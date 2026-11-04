@@ -5,9 +5,11 @@ import 'dart:typed_data';
 import 'package:drift/drift.dart' show OrderingTerm, Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/export/models/uddf_export_options.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_profiles.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_export_service.dart';
+import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
@@ -173,6 +175,114 @@ void main() {
       'src-a.uddf': '0:0.0 30:10.0 60:0.0',
       'src-b.uddf': '10:0.0 40:20.0 70:0.0',
     });
+  });
+
+  // Issue #4180: the raw data box decides only whether the computers'
+  // original bytes travel. Unticked, each computer and its samples still
+  // must, from either writer, through the fetch the export actions use.
+  group('with the raw data left out', () {
+    const withoutBytes = UddfExportOptions(includeRawData: false);
+
+    Future<void> seedTwoComputers() async {
+      await seedDive([(0, 0), (30, 10), (60, 0)]);
+      await repository.saveComputerReading(
+        reading(
+          'src-a',
+          primary: true,
+        ).copyWith(rawData: Value(Uint8List.fromList([1, 2, 3, 4]))),
+      );
+      await repository.saveAdditionalComputerReading(
+        reading: reading('src-b', primary: false, order: 1),
+        profile: points([(10, 0), (40, 20), (70, 0)]),
+      );
+    }
+
+    Future<List<domain.Dive>> exportedDives() async => attachMergedProfiles(
+      repository,
+      await repository.getAllDives(diverId: diverId),
+    );
+
+    final writers = <String, Future<String> Function()>{
+      'full backup': () async {
+        final dives = await exportedDives();
+        return UddfFullExportService().generateAllDataXmlForTest(
+          dives: dives,
+          dataSources: await resolveDataSources(repository, [
+            for (final dive in dives) dive.id,
+          ], includeRawData: false),
+          options: withoutBytes,
+        );
+      },
+      'dives export': () async {
+        final dives = await exportedDives();
+        return UddfExportService().generateDivesUddfContent(
+          dives,
+          dataSources: await resolveDataSources(repository, [
+            for (final dive in dives) dive.id,
+          ], includeRawData: false),
+          options: withoutBytes,
+        );
+      },
+    };
+
+    for (final MapEntry(key: name, value: write) in writers.entries) {
+      test('a $name restores both computers without their bytes', () async {
+        await seedTwoComputers();
+
+        final xml = await write();
+        expect(xml, isNot(contains('<dcdump>')));
+        await restoreUddfDives(xml, diverId: diverId);
+
+        expect(await restoredProfiles(), {
+          'src-a.uddf': '0:0.0 30:10.0 60:0.0',
+          'src-b.uddf': '10:0.0 40:20.0 70:0.0',
+        });
+        final restoredId = await restoredDiveId();
+        final restoredRows = [
+          for (final row in await db.select(db.diveDataSources).get())
+            if (row.diveId == restoredId) row,
+        ];
+        expect(restoredRows.map((r) => r.rawData), [null, null]);
+      });
+    }
+  });
+
+  test('a dives export without gear still restores each source', () async {
+    // The rows then name no computer and no file, but each recording still
+    // comes back as its own source with its own samples.
+    await seedDive([(0, 0), (30, 10), (60, 0)]);
+    await repository.saveComputerReading(
+      reading('src-a', primary: true, serial: '111'),
+    );
+    await repository.saveAdditionalComputerReading(
+      reading: reading('src-b', primary: false, serial: '222', order: 1),
+      profile: points([(10, 0), (40, 20), (70, 0)]),
+    );
+    final dives = await attachMergedProfiles(
+      repository,
+      await repository.getAllDives(diverId: diverId),
+    );
+
+    final xml = await UddfExportService().generateDivesUddfContent(
+      dives,
+      dataSources: await resolveDataSources(repository, ['dive-a']),
+      options: const UddfExportOptions(includeGear: false),
+    );
+    expect(xml, isNot(contains('<computerserial>')));
+    await restoreUddfDives(xml, diverId: diverId);
+
+    final profiles = await repository.getProfilesByDataSource(
+      await restoredDiveId(),
+    );
+    expect(
+      [
+        for (final profile in profiles.values)
+          [
+            for (final p in profile.points) '${p.timestamp}:${p.depth}',
+          ].join(' '),
+      ]..sort(),
+      ['0:0.0 30:10.0 60:0.0', '10:0.0 40:20.0 70:0.0'],
+    );
   });
 
   test('each restored computer owns its own samples', () async {

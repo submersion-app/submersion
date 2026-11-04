@@ -101,19 +101,29 @@ void main() {
     );
   });
 
-  test('omits both sections when includeRawData is false', () async {
-    final service = UddfFullExportService();
+  test(
+    'keeps the source but not its bytes when includeRawData is false',
+    () async {
+      final service = UddfFullExportService();
 
-    final xml = await service.generateAllDataXmlForTest(
-      dives: [dive],
-      dataSources: [sourceFor(id: 'src-a', ordinal: 0, rawData: raw)],
-      options: const UddfExportOptions(includeRawData: false),
-    );
-    final doc = XmlDocument.parse(xml);
+      final xml = await service.generateAllDataXmlForTest(
+        dives: [dive],
+        dataSources: [sourceFor(id: 'src-a', ordinal: 0, rawData: raw)],
+        options: const UddfExportOptions(includeRawData: false),
+      );
+      final doc = XmlDocument.parse(xml);
 
-    expect(doc.findAllElements('divecomputercontrol'), isEmpty);
-    expect(doc.findAllElements('datasources'), isEmpty);
-  });
+      expect(doc.findAllElements('divecomputercontrol'), isEmpty);
+      // Issue #4180: the box drops the bytes only. The source row is the
+      // dive's computer and its own values, and travels either way.
+      expect(doc.findAllElements('dcdump'), isEmpty);
+      expect(doc.findAllElements('datasources'), hasLength(1));
+      expect(
+        doc.findAllElements('source').map((e) => e.getAttribute('hasdump')),
+        ['false'],
+      );
+    },
+  );
 
   test('defaults to including raw data', () {
     expect(const UddfExportOptions().includeRawData, isTrue);

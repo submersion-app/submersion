@@ -8,6 +8,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/dive_import/data/services/imported_profile_readers.dart';
 import 'package:submersion/features/dive_import/data/services/missing_computer_attacher.dart';
 import 'package:submersion/features/dive_import/data/services/parsed_profile_event_mapper.dart';
 import 'package:submersion/features/dive_import/data/services/restored_source_attribution.dart';
@@ -281,18 +282,16 @@ class DiveReimportService {
   }
 
   /// Bottom time exactly as `UddfEntityImporter` derives it on first import:
-  /// trust `duration` only when it differs from `runtime`, otherwise measure
-  /// the fresh profile, otherwise fall back to `duration`. Without this a
-  /// resync that replaces the profile leaves the summary duration describing
-  /// the profile it just deleted.
+  /// the [statedBottomTime] both share, otherwise measure the fresh profile,
+  /// otherwise fall back to `duration`. Without this a resync that replaces
+  /// the profile leaves the summary duration describing the profile it just
+  /// deleted.
   static int? _deriveBottomTimeSeconds(Map<String, dynamic> diveData) {
+    if (statedBottomTime(diveData) case final stated?) {
+      return stated.inSeconds;
+    }
     final duration = diveData['duration'];
     final durationValue = duration is Duration ? duration : null;
-    final runtimeRaw = diveData['runtime'];
-    final runtime = runtimeRaw is Duration ? runtimeRaw : durationValue;
-    if (durationValue != null && durationValue != runtime) {
-      return durationValue.inSeconds;
-    }
     final profile = _profileOf(diveData);
     if (profile != null) {
       final fromProfile = BottomTimeCalculator.secondsFromSamples([
