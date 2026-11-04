@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart' show Variable;
 
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/agent_access/data/records/record_catalog.dart';
+import 'package:submersion/features/agent_access/data/records/record_reader.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/service_ledger_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
@@ -144,6 +146,7 @@ class DocumentWrites extends WritableEntry {
       return _ownerProblem(
         DocumentOwnerKind.values.byName(doc['owner_kind']! as String),
         doc['owner_id'] as String?,
+        check.ownerId,
       );
     }
     return null;
@@ -259,10 +262,13 @@ class DocumentWrites extends WritableEntry {
     return {if (n > 0) 'documents': n};
   }
 
-  /// Why [kind] and [ownerId] cannot hold a document, or null.
+  /// Why [kind] and [ownerId] cannot hold a document of [diverId]'s, or
+  /// null: the record has to exist and be one [diverId] can see, as the
+  /// record's own page only offers its documents to that profile.
   Future<PlanBlock?> _ownerProblem(
     DocumentOwnerKind kind,
     String? ownerId,
+    String? diverId,
   ) async {
     if (kind == DocumentOwnerKind.personal) {
       return ownerId == null
@@ -278,26 +284,38 @@ class DocumentWrites extends WritableEntry {
         'owner_id: the record the document is attached to.',
       );
     }
-    final table = switch (kind) {
+    final entity = switch (kind) {
       DocumentOwnerKind.dive => 'dives',
-      DocumentOwnerKind.site => 'dive_sites',
+      DocumentOwnerKind.site => 'sites',
       DocumentOwnerKind.trip => 'trips',
       DocumentOwnerKind.equipment => 'equipment',
       DocumentOwnerKind.course => 'courses',
       DocumentOwnerKind.certification => 'certifications',
       DocumentOwnerKind.buddy => 'buddies',
-      DocumentOwnerKind.diveCenter => 'dive_centers',
+      DocumentOwnerKind.diveCenter => 'centers',
       DocumentOwnerKind.personal => '',
     };
     assert(kDocumentOwnerColumns.containsKey(kind));
-    final rows = await countRows(table, 'id = ?1', ownerId);
-    return rows > 0
+    final entry = _records.named(entity);
+    if (await countRows(entry.table, 'id = ?1', ownerId) == 0) {
+      return PlanBlock(
+        BlockReason.unknownReference,
+        'owner_id: no ${kind.name} has id $ownerId.',
+      );
+    }
+    if (diverId == null) return null;
+    final visible = await RecordReader(
+      _r.db,
+    ).visibleIds(entry, [ownerId], diverId);
+    return visible.isNotEmpty
         ? null
         : PlanBlock(
-            BlockReason.unknownReference,
-            'owner_id: no ${kind.name} has id $ownerId.',
+            BlockReason.otherProfileReference,
+            'owner_id: $ownerId belongs to another profile.',
           );
   }
+
+  late final _records = RecordCatalog(_r);
 
   static Document _applied(Document doc, Map<String, Object?> v) {
     T? kept<T>(String key, T? held) => v.containsKey(key) ? v[key] as T? : held;

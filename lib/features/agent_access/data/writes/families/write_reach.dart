@@ -57,6 +57,47 @@ Future<Map<String, int>> countCascaded(
   return _counted(conditions, id, except);
 }
 
+/// What a delete of [id] of [table] takes and unlinks when its repository
+/// also deletes the child tables in [byHand], whose keys have no action:
+/// [parts] are the rows deleted at any depth, cascaded or by hand, and
+/// [unlinked] the rows that stay and lose a link to any of them. Tables in
+/// [except] are left out of both.
+Future<({Map<String, int> parts, Map<String, int> unlinked})> countDeleted(
+  String table,
+  String id, {
+  required Set<String> byHand,
+  Set<String> except = const {},
+}) async {
+  final keys = await _foreignKeys();
+  final deleted = <String, Set<String>>{};
+  final unlinked = <String, Set<String>>{};
+  void walk(String parent, String? scope, Set<String> path) {
+    for (final key in keys) {
+      if (key.parent != parent) continue;
+      final takes = key.cascades || byHand.contains(key.child);
+      // A key back into the path, such as a side trip's parent trip, is
+      // only ever an unlink; following it would never end.
+      if (takes && path.contains(key.child)) continue;
+      final condition = scope == null
+          ? '"${key.column}" = ?1'
+          : '"${key.column}" IN '
+                '(SELECT "${key.target}" FROM "$parent" WHERE $scope)';
+      if (takes) {
+        (deleted[key.child] ??= {}).add(condition);
+        walk(key.child, condition, {...path, key.child});
+      } else {
+        (unlinked[key.child] ??= {}).add(condition);
+      }
+    }
+  }
+
+  walk(table, null, {table});
+  return (
+    parts: await _counted(deleted, id, except),
+    unlinked: await _counted(unlinked, id, {...except, ...deleted.keys}),
+  );
+}
+
 /// Rows that stay when [id] of [table] goes but lose their link to it, by
 /// table: a `SET NULL` key clears itself, and one with no action has to be
 /// cleared by the repository or the delete fails. Tables with none, and those

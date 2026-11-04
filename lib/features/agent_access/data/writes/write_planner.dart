@@ -173,21 +173,27 @@ class _Pass {
   /// A block when an earlier change in the set claims [check]'s unique key,
   /// otherwise null, after claiming it for [op].
   PlanBlock? _claimUnique(ChangeOp op, WritableEntry entry, WriteCheck check) {
-    final claim = entry.uniqueKey(check);
-    if (claim == null) return null;
-    final earlier = _claims[(entry.name, claim.key)] ??= [];
-    final clash = earlier
-        .where((e) => claim.shared || e.shared || e.owner == check.ownerId)
-        .firstOrNull;
-    if (clash != null) {
-      return PlanBlock(
-        BlockReason.duplicateRecord,
-        'operation ${clash.index} of this set already claims '
-        '"${claim.key}" for a ${entry.name} record; two records that see '
-        'each other cannot share it.',
-      );
+    final claims = entry.uniqueKeys(check);
+    for (final claim in claims) {
+      final clash = (_claims[(entry.name, claim.key)] ?? const [])
+          .where((e) => claim.shared || e.shared || e.owner == check.ownerId)
+          .firstOrNull;
+      if (clash != null) {
+        return PlanBlock(
+          BlockReason.duplicateRecord,
+          'operation ${clash.index} of this set already claims '
+          '"${claim.key}" for a ${entry.name} record; two records that see '
+          'each other cannot share it.',
+        );
+      }
     }
-    earlier.add((owner: check.ownerId, shared: claim.shared, index: op.index));
+    for (final claim in claims) {
+      (_claims[(entry.name, claim.key)] ??= []).add((
+        owner: check.ownerId,
+        shared: claim.shared,
+        index: op.index,
+      ));
+    }
     return null;
   }
 

@@ -218,6 +218,16 @@ class EquipmentWrites extends WritableEntry {
         _ => null,
       };
 
+  /// A replacement's claim, and a passport id's: one tag on one item of a
+  /// profile, as the store holds it, so a second item given the same id in
+  /// the set is refused here rather than at apply.
+  @override
+  List<UniqueClaim> uniqueKeys(WriteCheck check) => [
+    ?uniqueKey(check),
+    if (check.values[passportKey] case final String passport)
+      UniqueClaim('passport/$passport'),
+  ];
+
   /// The currency the edit page starts a new item in, listed in the plan.
   @override
   Future<Map<String, Object?>> createDefaults(

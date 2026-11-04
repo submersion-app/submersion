@@ -29,6 +29,172 @@ void main() {
   const media = 'lib/features/media/data/repositories';
   const baselinePath = 'test/architecture/agent_write_coverage_baseline.txt';
 
+  /// Covered methods no writer names, and the call in a writer that runs
+  /// them or makes the same edit: the bulk dive edit service the dive page
+  /// saves through, or the writer's own path for the same record. The guard
+  /// checks each call is still made, so a writer that stops calling it, or
+  /// calls another, fails here.
+  final reachedThrough = <String, String>{
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkUpdateFields':
+        'BulkDiveEditService',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkSetSite':
+        'BulkDiveEditService',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkAddTags':
+        'BulkDiveEditService',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkRemoveTags':
+        'BulkDiveEditService',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkAddDiveTypes':
+        'BulkDiveEditService',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkRemoveDiveTypes':
+        'BulkDiveEditService',
+    'lib/features/buddies/data/repositories/buddy_repository.dart:bulkAddBuddies':
+        'BulkDiveEditService',
+    'lib/features/buddies/data/repositories/buddy_repository.dart:bulkRemoveBuddies':
+        'BulkDiveEditService',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkAddEquipment':
+        'BulkDiveEditService',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkRemoveEquipment':
+        'BulkDiveEditService',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkAddCourses':
+        'BulkDiveEditService',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkRemoveCourses':
+        'BulkDiveEditService',
+    'lib/features/dive_roles/data/repositories/dive_role_link_repository.dart:writeDiverRoles':
+        'BulkDiveEditService',
+    'lib/features/site_types/data/repositories/site_type_repository.dart:deleteSiteTypesWithLinks':
+        'deleteSiteType',
+    'lib/features/dive_sites/data/repositories/site_classification_repository.dart:addTagsToSites':
+        'replaceTags',
+    'lib/features/buddies/data/repositories/buddy_repository.dart:setFavorite':
+        'updateFields',
+    'lib/features/buddies/data/repositories/buddy_repository.dart:toggleFavorite':
+        'updateFields',
+    'lib/features/buddies/data/repositories/buddy_repository.dart:updateBuddy':
+        'updateFields',
+    'lib/features/dive_log/data/repositories/dive_custom_field_repository.dart:replaceFieldsForDive':
+        'updateCustomField',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:createGasSwitch':
+        'DiverGasSwitchWriter',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:deleteDive':
+        'bulkDeleteDives',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:deleteGasSwitch':
+        'DiverGasSwitchWriter',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:insertGasSwitches':
+        'DiverGasSwitchWriter',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:setFavorite':
+        'BulkDiveEditService',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:shiftDiveTimes':
+        'bulkShiftDiveTimes',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:toggleFavorite':
+        'BulkDiveEditService',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:updateDive':
+        'BulkDiveEditService',
+    'lib/features/tags/data/repositories/tag_link_repository.dart:addTags':
+        'BulkDiveEditService',
+    'lib/features/tags/data/repositories/tag_link_repository.dart:removeTags':
+        'BulkDiveEditService',
+    'lib/features/tags/data/repositories/tag_repository.dart:addTagToDive':
+        'BulkDiveEditService',
+    'lib/features/tags/data/repositories/tag_repository.dart:removeTagFromDive':
+        'BulkDiveEditService',
+    'lib/features/tags/data/repositories/tag_repository.dart:setTagsForDive':
+        'BulkDiveEditService',
+    'lib/features/trips/data/repositories/trip_repository.dart:assignDiveToTrip':
+        'assignDivesToTrip',
+    'lib/features/buddies/data/repositories/buddy_repository.dart:addBuddyToDive':
+        'BulkDiveEditService',
+    'lib/features/buddies/data/repositories/buddy_repository.dart:addBuddyToDiveWithRoles':
+        'BulkDiveEditService',
+    'lib/features/buddies/data/repositories/buddy_repository.dart:bulkReplaceBuddies':
+        'BulkDiveEditService',
+    'lib/features/buddies/data/repositories/buddy_repository.dart:bulkUpdateBuddyRoles':
+        'BulkDiveEditService',
+    'lib/features/buddies/data/repositories/buddy_repository.dart:removeBuddyFromDive':
+        'BulkDiveEditService',
+    'lib/features/certifications/data/repositories/certification_repository.dart:replaceBuddyCertifications':
+        'createCertification',
+    'lib/features/checklists/data/repositories/trip_checklist_repository.dart:clearItems':
+        'deleteItem',
+    'lib/features/checklists/data/repositories/trip_checklist_section_repository.dart:createSectionRow':
+        'applyTemplate',
+    'lib/features/checklists/data/repositories/trip_checklists_repository.dart:deleteAllForTrip':
+        'deleteTrip',
+    'lib/features/dive_sites/data/repositories/site_classification_repository.dart:addTags':
+        'replaceTags',
+    'lib/features/dive_sites/data/repositories/site_classification_repository.dart:addTypes':
+        'replaceTypes',
+    'lib/features/dive_sites/data/repositories/site_classification_repository.dart:addTypesToSites':
+        'replaceTypes',
+    'lib/features/dive_sites/data/repositories/site_classification_repository.dart:removeTagsFromSites':
+        'replaceTags',
+    'lib/features/dive_sites/data/repositories/site_classification_repository.dart:removeTypesFromSites':
+        'replaceTypes',
+    'lib/features/divers/data/repositories/item_shares_repository.dart:addSharing':
+        'setShares',
+    'lib/features/divers/data/repositories/item_shares_repository.dart:shareWith':
+        'setShares',
+    'lib/features/divers/data/repositories/profile_hides_repository.dart:hideAll':
+        'hide',
+    'lib/features/equipment/data/repositories/equipment_repository_impl.dart:deleteEquipment':
+        'deleteOwnedEquipment',
+    'lib/features/equipment/data/repositories/equipment_repository_impl.dart:saveAttributes':
+        'updateEquipment',
+    'lib/features/equipment/data/repositories/service_schedule_repository.dart:applyBaselines':
+        'createEquipment',
+    'lib/features/planner/data/repositories/dive_plan_mission_store.dart:deleteAll':
+        'deletePlan',
+    'lib/features/planner/data/repositories/dive_plan_mission_store.dart:recordWrite':
+        'savePlan',
+    'lib/features/trips/data/repositories/trip_cylinder_repository.dart:createCylinder':
+        'createCylinders',
+    'lib/features/trips/data/repositories/trip_cylinder_repository.dart:createEvents':
+        'writeFills',
+    'lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:createComputer':
+        'createEquipment',
+    'lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:deleteComputer':
+        'deleteOwnedEquipment',
+    'lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:updateComputer':
+        'updateEquipment',
+    'lib/features/dive_log/data/repositories/safety_findings_repository.dart:setDismissedForDives':
+        'setDismissed',
+    'lib/features/dive_sites/data/repositories/site_classification_repository.dart:relinkForMerge':
+        'mergeSites',
+    'lib/features/documents/data/repositories/document_repository.dart:deleteForOwner':
+        'deleteTrip',
+    'lib/features/documents/data/repositories/document_repository.dart:deleteForOwners':
+        'deleteBuddy',
+    'lib/features/documents/data/repositories/document_repository.dart:saveCardImages':
+        'updateCertification',
+    'lib/features/gps_log/data/repositories/gps_track_repository.dart:clearTrim':
+        'setTrimBounds',
+    'lib/features/media/data/repositories/media_color_adjustment_repository.dart:applySlidersToDive':
+        'setColorAdjustment',
+    'lib/features/media/data/repositories/media_people_buddy_merge.dart:repointMediaPeopleForMerge':
+        'mergeBuddies',
+    'lib/features/media/data/repositories/media_people_buddy_merge.dart:repointSmartAlbumBuddies':
+        'mergeBuddies',
+    'lib/features/media/data/repositories/media_repository.dart:deleteMedia':
+        'deleteMediaItems',
+    'lib/features/media/data/repositories/media_repository.dart:deleteMultipleMedia':
+        'deleteMediaItems',
+    'lib/features/media/data/repositories/site_attachment_repository.dart:setSiteCategory':
+        'setAttachmentDetails',
+    'lib/features/media/data/repositories/smart_album_tag_repoint.dart:repointSmartAlbumTags':
+        'mergeTags',
+    'lib/features/media/data/repositories/smart_album_tag_repoint.dart:repointSmartAlbums':
+        'mergeTags',
+    'lib/features/planner/data/repositories/dive_plan_dive_links.dart:clearPlanLinksToDives':
+        'bulkDeleteDives',
+    'lib/features/planner/data/repositories/dive_plan_dive_links.dart:clearPlanLinksToSites':
+        'deleteSite',
+    'lib/features/planner/data/repositories/dive_plan_mission_store.dart:recordDeletion':
+        'deletePlan',
+    'lib/features/pre_dive/data/repositories/pre_dive_template_repository.dart:updateItemEquipment':
+        'updateTemplate',
+    'lib/features/safety/data/repositories/incident_repository.dart:unlinkFromDeletedEquipment':
+        'deleteOwnedEquipment',
+  };
+
   /// `repository file:method`, and the write entity that reaches it.
   final covered = <String, String>{
     'lib/features/dive_log/data/repositories/dive_repository_impl.dart:createDive':
@@ -1161,6 +1327,29 @@ void main() {
     };
 
     expect(covered.values.toSet().difference(writable), isEmpty);
+  });
+
+  test('every covered method is called by a writer, or through a call one '
+      'makes', () {
+    final writers = [
+      for (final file in Directory(
+        'lib/features/agent_access/data/writes',
+      ).listSync(recursive: true).whereType<File>())
+        if (file.path.endsWith('.dart')) file.readAsStringSync(),
+    ].join('\n');
+    bool named(String? name) =>
+        name != null && RegExp('\\b$name\\b').hasMatch(writers);
+
+    final unreached = [
+      for (final key in covered.keys)
+        if (!named(key.split(':').last) && !named(reachedThrough[key])) key,
+    ];
+
+    expect(unreached, isEmpty);
+    expect(
+      reachedThrough.keys.toSet().difference(covered.keys.toSet()),
+      isEmpty,
+    );
   });
 }
 

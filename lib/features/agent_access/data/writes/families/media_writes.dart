@@ -29,11 +29,24 @@ typedef DiveProfileLength = Future<int> Function(String diveId);
 /// colour, a site attachment's details, and its delete, which holds the
 /// cloud copy's delete as the viewer's does. Media is added in the app.
 class MediaWrites extends WritableEntry {
-  MediaWrites(this._r, {DiveProfileLength? profileLength})
-    : _profileLength = profileLength;
+  MediaWrites(
+    this._r, {
+    DiveProfileLength? profileLength,
+    Future<void> Function()? kickWorker,
+    MediaTransferQueueRepository Function()? transferQueue,
+  }) : _profileLength = profileLength,
+       _kickWorker = kickWorker,
+       _transferQueue = transferQueue;
 
   final RecordRepositories _r;
   final DiveProfileLength? _profileLength;
+
+  /// What would start the media store's worker; a held delete never calls
+  /// it, so the change log can still put the cloud copy back.
+  final Future<void> Function()? _kickWorker;
+
+  /// The queue a cloud copy's delete waits in.
+  final MediaTransferQueueRepository Function()? _transferQueue;
   final _people = MediaPeopleRepository();
   final _speciesTags = MediaSpeciesRepository();
   final _colors = MediaColorAdjustmentRepository();
@@ -46,7 +59,8 @@ class MediaWrites extends WritableEntry {
   );
   late final _deletion = MediaDeletionCoordinator(
     mediaRepository: _r.media,
-    queue: () => MediaTransferQueueRepository(),
+    queue: _transferQueue ?? MediaTransferQueueRepository.new,
+    kickWorker: _kickWorker,
   );
 
   @override
@@ -170,7 +184,11 @@ class MediaWrites extends WritableEntry {
       );
     }
     if (v['people'] case final Object people) {
-      return _peopleProblem(ObjectListCodec.items(people), check.id!);
+      return _peopleProblem(
+        ObjectListCodec.items(people),
+        check.id!,
+        check.ownerId,
+      );
     }
     return null;
   }
@@ -313,6 +331,7 @@ class MediaWrites extends WritableEntry {
   Future<PlanBlock?> _peopleProblem(
     List<Map<String, Object?>> people,
     String mediaId,
+    String? ownerId,
   ) async {
     final video = await countRows(
       'media',
@@ -335,6 +354,23 @@ class MediaWrites extends WritableEntry {
           BlockReason.unknownReference,
           'people: item $i names no ${buddy != null ? 'buddy' : 'profile'} '
           '${buddy ?? diver}.',
+        );
+      }
+      // The people picker offers the photo's own profile's buddies: the
+      // profile of the dive it is on, else the one acting.
+      if (buddy != null &&
+          await countRows(
+                'buddies',
+                'id = ?1 AND diver_id IS NOT NULL AND diver_id IS NOT '
+                    'COALESCE((SELECT d.diver_id FROM media m JOIN dives d '
+                    'ON d.id = m.dive_id WHERE m.id = ?2), ?3)',
+                buddy,
+                [mediaId, ownerId ?? ''],
+              ) >
+              0) {
+        return PlanBlock(
+          BlockReason.otherProfileReference,
+          'people: item $i, buddy $buddy, belongs to another profile.',
         );
       }
       final key =

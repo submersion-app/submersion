@@ -89,23 +89,32 @@ Future<Map<String, int>> assignTouched(
     final parent = await r.trips.getTripById(parentId);
     if (parent != null && outside(parent)) trips++;
   }
-  final marks = List.filled(diveIds.length, '?').join(', ');
-  final links = await DatabaseService.instance.database
-      .customSelect(
-        'SELECT COUNT(*) AS n FROM dive_tanks dt '
-        'JOIN trip_cylinders tc ON tc.id = dt.trip_cylinder_id '
-        'WHERE dt.dive_id IN ($marks) AND tc.trip_id != ?',
-        variables: [
-          for (final id in diveIds) Variable.withString(id),
-          Variable.withString(trip.id),
-        ],
-      )
-      .getSingle();
-  final cleared = links.read<int>('n');
+  final cleared = await foreignSlotLinks(diveIds, trip.id);
   return {
     if (trips > 0) 'trips': trips,
     if (cleared > 0) 'dive_tanks': cleared,
   };
+}
+
+/// The tanks of [diveIds] linked to a slot of a trip other than [tripId]
+/// (any trip when null): the links the dives lose when they move, which
+/// the repository clears.
+Future<int> foreignSlotLinks(Set<String> diveIds, String? tripId) async {
+  if (diveIds.isEmpty) return 0;
+  final marks = List.filled(diveIds.length, '?').join(', ');
+  final row = await DatabaseService.instance.database
+      .customSelect(
+        'SELECT COUNT(*) AS n FROM dive_tanks dt '
+        'JOIN trip_cylinders tc ON tc.id = dt.trip_cylinder_id '
+        'WHERE dt.dive_id IN ($marks)'
+        '${tripId == null ? '' : ' AND tc.trip_id != ?'}',
+        variables: [
+          for (final id in diveIds) Variable.withString(id),
+          if (tripId != null) Variable.withString(tripId),
+        ],
+      )
+      .getSingle();
+  return row.read<int>('n');
 }
 
 /// The itinerary days a date change of [trip] to [next] deletes: those

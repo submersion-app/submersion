@@ -1,10 +1,14 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
+import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/agent_access/data/writes/families/media_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/data/writes/write_catalog.dart';
+import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 
 import '../../../../helpers/test_database.dart';
 import '../records/record_harness.dart';
@@ -116,6 +120,25 @@ void main() {
     expect(await db.select(db.mediaPeople).get(), hasLength(1));
   });
 
+  // The people picker lists the photo's own profile's buddies.
+  test('a photo cannot tag another profile\'s buddy', () async {
+    final theirs = await ChildWriteHarness(db)
+        .run([
+          createOp('buddies', {'name': 'Ana'}, diver: kDiverB),
+        ])
+        .then((r) => r.created.single.id);
+
+    final plan = await h.preview([
+      updateOp('media', 'm1', {
+        'people': [
+          {'buddy_id': theirs},
+        ],
+      }),
+    ]);
+
+    expect(plan.items.single.block!.reason, BlockReason.otherProfileReference);
+  });
+
   test('a species tag on a dive photo lists the sighting it adds', () async {
     final fish = await ChildWriteHarness(db)
         .run([
@@ -179,4 +202,40 @@ void main() {
       expect(await db.select(db.mediaPeople).get(), isEmpty);
     },
   );
+
+  // The delete waits with the cloud copy's delete, as the viewer's does, so
+  // a revert can still find the copy.
+  test('a delete lists the cloud copy and never starts the worker', () async {
+    var kicks = 0;
+    final cache = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
+    addTearDown(cache.close);
+    final queue = MediaTransferQueueRepository(database: cache);
+    h = ChildWriteHarness(
+      db,
+      catalog: (repos) => WriteCatalog.of([
+        MediaWrites(
+          repos,
+          profileLength: (_) async => 3000,
+          kickWorker: () async => kicks++,
+          transferQueue: () => queue,
+        ),
+      ]),
+    );
+    await (db.update(db.media)..where((m) => m.id.equals('m1'))).write(
+      const MediaCompanion(
+        contentHash: Value('hash-1'),
+        remoteUploadedAt: Value(kSeedTime),
+      ),
+    );
+
+    final plan = await h.preview([deleteOp('media', 'm1')]);
+    expect(plan.items.single.reach.records, {'cloud_copies': 1});
+    await h.apply(plan);
+
+    expect(await h.one('media', 'm1'), isNull);
+    expect(await queue.hasHeldDelete('hash-1'), isTrue);
+    expect(kicks, 0);
+  });
 }

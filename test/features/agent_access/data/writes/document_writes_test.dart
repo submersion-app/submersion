@@ -36,6 +36,22 @@ void main() {
   });
   tearDown(() => tearDownTestDatabase());
 
+  // d2 is the other profile's private dive; d1 is this profile's own.
+  test('a document cannot be attached to another profile\'s record', () async {
+    Map<String, Object?> on(String dive) => createOp('documents', {
+      'type': 'other',
+      'title': 'Log page',
+      'owner_kind': 'dive',
+      'owner_id': dive,
+    });
+
+    final plan = await h.preview([on('d2')]);
+    expect(plan.items.single.block!.reason, BlockReason.otherProfileReference);
+
+    final own = await h.preview([on('d1')]);
+    expect(own.items.single.block, isNull);
+  });
+
   test(
     'a document\'s details are written and it is deleted with its pages listed',
     () async {

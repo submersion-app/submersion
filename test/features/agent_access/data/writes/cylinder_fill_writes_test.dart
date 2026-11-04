@@ -170,4 +170,17 @@ void main() {
     expect(plan.items.first.block!.reason, BlockReason.duplicateRecord);
     expect(plan.items.last.block, isNotNull);
   });
+
+  // The store would refuse the second at apply; the preview sees it first.
+  test('two items given one passport id in a set are refused', () async {
+    await gear('steel', 'tank');
+
+    final plan = await h.preview([
+      updateOp('equipment', 'al80', {'passport_id': passport}),
+      updateOp('equipment', 'steel', {'passport_id': passport}),
+    ]);
+
+    expect(plan.items.first.block, isNull);
+    expect(plan.items.last.block!.reason, BlockReason.duplicateRecord);
+  });
 }

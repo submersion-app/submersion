@@ -7,6 +7,8 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/agent_access/data/documents/document_dates.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_link_rules.dart';
+import 'package:submersion/features/agent_access/data/writes/families/trip_rules.dart'
+    show foreignSlotLinks;
 import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
@@ -269,12 +271,19 @@ class DiveWrites extends WritableEntry {
       }
     }
     final stretched = await _tripsStretched(id, update);
+    final trip = update.relations['trip'];
+    final slots = trip == null
+        ? 0
+        : await foreignSlotLinks({id}, trip.add.firstOrNull);
     return SideEffects(
       fields: fields,
       relations: relations,
       lost: lost,
       parts: parts,
-      touched: {if (stretched > 0) 'trips': stretched},
+      touched: {
+        if (stretched > 0) 'trips': stretched,
+        if (slots > 0) 'dive_tanks': slots,
+      },
     );
   }
 

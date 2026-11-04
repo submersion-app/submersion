@@ -152,9 +152,11 @@ class TripWrites extends WritableEntry {
       next,
       update.relations['dive_ids']?.add ?? const <String>{},
     );
+    // updateTrip deletes both: the vessel of a trip no longer a liveaboard,
+    // and the days with nothing planned outside the new range.
     return SideEffects(
-      touched: {
-        ...assigned,
+      touched: assigned,
+      parts: {
         if (details > 0) 'liveaboard_details': details,
         if (bare > 0) 'itinerary_days': bare,
       },
@@ -174,12 +176,30 @@ class TripWrites extends WritableEntry {
     Map<String, Set<String>> alongside = const {},
   }) async {
     final documents = await countDocuments(await deletedDocumentOwners(id));
+    final reach = await countDeleted(
+      'trips',
+      id,
+      byHand: _deletedByHand,
+      except: const {'documents'},
+    );
     return DeleteReach(
       records: {if (documents > 0) 'documents': documents},
-      parts: await countCascaded('trips', id, except: const {'documents'}),
-      unlinked: await countUnlinked('trips', id, except: const {'documents'}),
+      parts: reach.parts,
+      unlinked: reach.unlinked,
     );
   }
+
+  /// The trip's children whose keys have no action, which `deleteTrip`
+  /// deletes before the trip, with the rows they hold.
+  static const _deletedByHand = {
+    'liveaboard_detail_records',
+    'trip_itinerary_days',
+    'trip_day_weather',
+    'trip_cylinders',
+    'trip_checklists',
+    'trip_checklist_sections',
+    'trip_checklist_items',
+  };
 
   @override
   Future<String> create(String diverId, Map<String, Object?> values) async {

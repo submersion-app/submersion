@@ -141,6 +141,66 @@ void main() {
     expect(dive.computerId, 'c1');
   });
 
+  // mergeComputers rewrites the survivor from both records and folds the
+  // duplicate's gear item into the survivor's.
+  test('a computer merge lists what it changes on the survivor and the gear '
+      'item it folds away', () async {
+    await computer('c1');
+    await computer('c2');
+    await (db.update(db.diveComputers)..where((c) => c.id.equals('c2'))).write(
+      const DiveComputersCompanion(
+        serialNumber: Value('SN2'),
+        diveCount: Value(3),
+      ),
+    );
+
+    final plan = await h.preview([
+      deleteOp('dive_computers', 'c2', mergeInto: 'c1'),
+    ]);
+    final reach = plan.items.single.reach;
+    expect(reach.survivor, {'serial_number': 'SN2', 'dive_count': 3});
+    expect(reach.records, {'equipment': 1});
+    await h.apply(plan);
+
+    expect((await h.one('dive_computers', 'c1'))!['serial_number'], 'SN2');
+    expect(await h.one('equipment', 'gear-c2'), isNull);
+  });
+
+  test('a computer merge reverts through the change log', () async {
+    await computer('c1');
+    await computer('c2');
+    await (db.update(db.dives)..where((d) => d.id.equals('d1'))).write(
+      const DivesCompanion(computerId: Value('c2')),
+    );
+
+    final result = await h.run([
+      deleteOp('dive_computers', 'c2', mergeInto: 'c1'),
+    ]);
+    await h.revert(result);
+
+    expect((await h.one('dive_computers', 'c2'))!['name'], 'Computer c2');
+    expect((await h.one('equipment', 'gear-c2'))!['name'], 'Computer c2');
+    final dive = await (db.select(
+      db.dives,
+    )..where((d) => d.id.equals('d1'))).getSingle();
+    expect(dive.computerId, 'c2');
+  });
+
+  test('a site merge reverts through the change log', () async {
+    final keep = await make('sites', {'name': 'Blue Hole'});
+    final dupe = await make('sites', {'name': 'The Blue Hole'});
+    await h.run([onDive('d1', 'site', dupe)]);
+
+    final result = await h.run([deleteOp('sites', dupe, mergeInto: keep)]);
+    await h.revert(result);
+
+    expect((await h.one('sites', dupe))!['name'], 'The Blue Hole');
+    final dive = await (db.select(
+      db.dives,
+    )..where((d) => d.id.equals('d1'))).getSingle();
+    expect(dive.siteId, dupe);
+  });
+
   test('a merge reverts through the change log', () async {
     final keep = await make('buddies', {'name': 'Rui'});
     final dupe = await make('buddies', {'name': 'Rui S.'});

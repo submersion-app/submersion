@@ -1,9 +1,13 @@
 import 'package:drift/drift.dart' show Variable;
 
+import 'package:submersion/features/agent_access/data/documents/logbook_documents.dart'
+    show diveComputerDocument;
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/merge_reach.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
+import 'package:submersion/features/dive_computer/domain/services/dive_computer_merge_rules.dart'
+    show mergedDiveComputer;
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_merge_repository.dart';
 
 /// A dive computer's own settings, through the repository the computer
@@ -120,12 +124,46 @@ class DiveComputerWrites extends WritableEntry {
   @override
   bool get mergeable => true;
 
+  /// What moves, and what the merge rewrites: the survivor as
+  /// `mergedDiveComputer` makes it from both records, and the duplicate's
+  /// gear item, which folds into the survivor's and goes, its own links
+  /// following.
   @override
   Future<DeleteReach> mergeReach(
     String id,
     String intoId, {
     Set<String> mergedBefore = const {},
-  }) => linksMoved('dive_computers', id);
+  }) async {
+    final links = await linksMoved('dive_computers', id);
+    final survivor = await _r.computers.getComputerById(intoId);
+    final duplicate = await _r.computers.getComputerById(id);
+    if (survivor == null || duplicate == null) return links;
+    final merged = mergedDiveComputer(survivor, [duplicate]);
+    final before = diveComputerDocument(survivor);
+    final changes = {
+      for (final MapEntry(:key, :value) in diveComputerDocument(merged).entries)
+        if (before[key] != value) key: value,
+    };
+    final folded = duplicate.equipmentId;
+    final folds =
+        folded != null &&
+        merged.equipmentId != null &&
+        folded != merged.equipmentId;
+    final itemLinks = folds
+        ? await linksMoved(
+            'equipment',
+            folded,
+            except: const {'dive_computers'},
+          )
+        : const DeleteReach();
+    return DeleteReach(
+      moved: links.moved,
+      survivor: changes,
+      records: {if (folds) 'equipment': 1},
+      touched: itemLinks.moved,
+      basis: '${links.basis} ${itemLinks.basis}',
+    );
+  }
 
   @override
   Future<void> merge(String id, String intoId, String? ownerId) =>

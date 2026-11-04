@@ -440,6 +440,10 @@ abstract class WritableEntry {
   /// claim on one key within the same set, which the database cannot see yet.
   UniqueClaim? uniqueKey(WriteCheck check) => null;
 
+  /// Every key this change claims, for an entity whose change can claim
+  /// more than one; [uniqueKey]'s alone by default.
+  List<UniqueClaim> uniqueKeys(WriteCheck check) => [?uniqueKey(check)];
+
   /// [document] with stored values where a read shows a derived one, so a
   /// plan compares against what the row holds.
   Future<Map<String, Object?>> stored(

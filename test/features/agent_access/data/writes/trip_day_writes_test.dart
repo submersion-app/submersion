@@ -55,6 +55,26 @@ void main() {
     expect((await h.one('liveaboard_details', details))!['cabin_type'], 'Twin');
   });
 
+  // updateTrip deletes the vessel when the trip stops being a liveaboard,
+  // and the generated days outside a shorter range: deletes, not rewrites.
+  test(
+    'a trip that stops being a liveaboard lists the rows it deletes',
+    () async {
+      final id = await trip('liveaboard');
+      await h.run([
+        createOp('liveaboard_details', {'trip_id': id, 'vessel_name': 'A'}),
+      ]);
+
+      final plan = await h.preview([
+        updateOp('trips', id, {'trip_type': 'shore', 'end_date': '2024-03-10'}),
+      ]);
+      final item = plan.items.single;
+
+      expect(item.reach.parts, {'liveaboard_details': 1, 'itinerary_days': 1});
+      expect(item.alsoChanges, isEmpty);
+    },
+  );
+
   test(
     'a vessel on a shore trip, a second vessel, or a bad type is refused',
     () async {
