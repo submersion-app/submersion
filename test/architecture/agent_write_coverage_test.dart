@@ -20,6 +20,7 @@ void main() {
   const checklists = 'lib/features/checklists/data/repositories';
   const divers = 'lib/features/divers/data/repositories';
   const certs = 'lib/features/certifications/data/repositories';
+  const courses = 'lib/features/courses/data/repositories';
   const baselinePath = 'test/architecture/agent_write_coverage_baseline.txt';
 
   /// `repository file:method`, and the write entity that reaches it.
@@ -352,6 +353,26 @@ void main() {
       ('deleteEvent', 'currency_events'),
     ])
       '$certs/certification_currency_repository.dart:$method': entity,
+    for (final method in const [
+      'createCourse',
+      'updateCourse',
+      'deleteCourse',
+      'linkDiveToCourse',
+      'unlinkDiveFromCourse',
+      'setCourseCertifications',
+    ])
+      '$courses/course_repository.dart:$method': 'courses',
+    '$courses/course_requirement_repository.dart:applyTemplate': 'courses',
+    for (final method in const [
+      'createRequirement',
+      'updateRequirement',
+      'deleteRequirement',
+      'setChecklistComplete',
+      'linkDive',
+      'unlinkDive',
+    ])
+      '$courses/course_requirement_repository.dart:$method':
+          'course_requirements',
   };
 
   /// Writes that change no record a diver keeps, so no change set entity

@@ -1,12 +1,11 @@
 import 'package:submersion/core/constants/certification_enums.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/writes/families/credential_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/service_ledger_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
-import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
-import 'package:submersion/features/certifications/domain/certification_primary.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart'
     show DocumentOwner, DocumentOwnerKind;
@@ -73,7 +72,8 @@ class CertificationWrites extends WritableEntry {
   ) async => {
     'agency': CertificationAgency.padi.name,
     'name': '',
-    for (final MapEntry(:key, :value) in (await _instructorCopy(
+    for (final MapEntry(:key, :value) in (await instructorCopy(
+      _r,
       values['instructor_id'],
     )).entries)
       key: ?value,
@@ -102,7 +102,8 @@ class CertificationWrites extends WritableEntry {
         !check.values.containsKey('level')) {
       return null;
     }
-    return _credentialProblem(
+    return credentialProblem(
+      _r,
       card['agency']! as String,
       card['level'] as String?,
       check.ownerId,
@@ -117,7 +118,8 @@ class CertificationWrites extends WritableEntry {
     Map<String, Object?> document,
   ) async => SideEffects(
     fields: {
-      for (final MapEntry(:key, :value) in (await _instructorCopy(
+      for (final MapEntry(:key, :value) in (await instructorCopy(
+        _r,
         update.values['instructor_id'],
       )).entries)
         if (!update.values.containsKey(key) && document[key] != value)
@@ -183,7 +185,7 @@ class CertificationWrites extends WritableEntry {
         ));
     await _r.certifications.updateCertification(
       _applied(current, {
-        ...await _instructorCopy(update.values['instructor_id']),
+        ...await instructorCopy(_r, update.values['instructor_id']),
         ...update.values,
       }),
     );
@@ -193,57 +195,10 @@ class CertificationWrites extends WritableEntry {
   Future<void> delete(String id, String? ownerId) =>
       _r.certifications.deleteCertification(id);
 
-  /// What picking buddy [instructorId] as the instructor writes: their name
-  /// and the card number of their highest instructor card, or none.
-  Future<Map<String, Object?>> _instructorCopy(Object? instructorId) async {
-    if (instructorId is! String) return const {};
-    final buddy = await _r.buddies.getBuddyById(instructorId);
-    if (buddy == null) return const {};
-    final teaching = [
-      for (final c in await _r.certifications.getCertificationMetadataByBuddy(
-        instructorId,
-      ))
-        if (CertificationLevel.fromId(c.level)?.isInstructorLevel ?? false) c,
-    ];
-    return {
-      'instructor_name': buddy.name,
-      'instructor_number': primaryCertification(teaching)?.cardNumber,
-    };
-  }
-
   /// The course whose representative card a change to [id] can move.
   Future<Map<String, int>> _courseRefresh(String id) async {
     final card = await _r.certifications.getCertificationById(id);
     return card?.courseId == null ? const {} : const {'courses': 1};
-  }
-
-  /// Why [agency] and [level] cannot go on a card of [ownerId], or null:
-  /// the agency is built in or a custom one the profile sees, and the level
-  /// one the agency offers.
-  Future<PlanBlock?> _credentialProblem(
-    String agency,
-    String? level,
-    String? ownerId,
-  ) async {
-    final custom = _r.customCertifications;
-    final catalog = CertificationCatalog(
-      agencies: await custom.getAllAgencies(),
-      levels: await custom.getAllLevels(),
-      viewerDiverId: ownerId,
-    );
-    if (!catalog.agencies.any((a) => a.id == agency)) {
-      return PlanBlock(
-        BlockReason.invalidValue,
-        'agency: $agency is not an agency this profile can use.',
-      );
-    }
-    if (level != null && !catalog.levelsFor(agency).any((l) => l.id == level)) {
-      return PlanBlock(
-        BlockReason.invalidValue,
-        'level: $level is not one of ${catalog.agency(agency).name}\'s levels.',
-      );
-    }
-    return null;
   }
 
   /// [card] with [values] written over it, as the page builds a save: every

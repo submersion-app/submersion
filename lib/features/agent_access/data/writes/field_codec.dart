@@ -69,7 +69,7 @@ abstract class FieldCodec {
 
   /// A true moment, written as a read lists one, in UTC with a `Z`: when a
   /// gear item moved, not a local time of day.
-  const factory FieldCodec.instant() = _InstantCodec;
+  const factory FieldCodec.instant({bool nullable}) = _InstantCodec;
 
   /// A day written as documents write one, `YYYY-MM-DD`, with no time or
   /// zone: a purchase date, an inspection date.
@@ -528,7 +528,7 @@ class _IntegerListCodec extends FieldCodec {
 }
 
 class _InstantCodec extends _WallClockCodec {
-  const _InstantCodec();
+  const _InstantCodec({super.nullable});
 
   @override
   String get describe => 'a moment in UTC, YYYY-MM-DDTHH:MM:SSZ';

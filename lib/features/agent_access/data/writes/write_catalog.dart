@@ -33,6 +33,7 @@ import 'package:submersion/features/agent_access/data/writes/families/service_sc
 import 'package:submersion/features/agent_access/data/writes/families/tank_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/transmitter_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/certification_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/course_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/currency_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/diver_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/trip_checklist_part_writes.dart';
@@ -120,6 +121,8 @@ class WriteCatalog {
       CurrencyRuleWrites(repositories),
       CurrencyPrefWrites(repositories),
       CurrencyEventWrites(repositories),
+      CourseWrites(repositories),
+      CourseRequirementWrites(repositories),
     ]);
   }
 
