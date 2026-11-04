@@ -197,6 +197,113 @@ void main() {
     expect(plan.items[2].block!.reason, BlockReason.invalidValue);
   });
 
+  Future<void> tag(String id, {bool equipment = true}) => db
+      .into(db.tags)
+      .insert(
+        TagsCompanion.insert(
+          id: id,
+          name: 'Tag $id',
+          createdAt: t,
+          updatedAt: t,
+          diverId: const Value(kDiverA),
+          appliesToEquipment: Value(equipment),
+        ),
+      );
+
+  Map<String, Object?> link(
+    String id,
+    String relation, {
+    List<String> add = const [],
+    List<String> remove = const [],
+  }) => {
+    'op': 'update',
+    'entity': 'equipment',
+    'id': id,
+    'relations': {
+      relation: {'add': add, 'remove': remove},
+    },
+  };
+
+  Future<Set<String>> rows(String table, String column, String id) async => {
+    for (final row
+        in await db
+            .customSelect(
+              'SELECT $column AS v FROM $table WHERE equipment_id = ?',
+              variables: [Variable.withString(id)],
+            )
+            .get())
+      row.read<String>('v'),
+  };
+
+  test('an item gains and loses tags', () async {
+    final id = await created({'name': 'Wing', 'type': 'wing'});
+    await tag('cold');
+    await tag('travel');
+
+    await h.run([
+      link(id, 'tags', add: ['cold', 'travel']),
+    ]);
+    expect(await rows('equipment_tags', 'tag_id', id), {'cold', 'travel'});
+    await h.run([
+      link(id, 'tags', remove: ['cold']),
+    ]);
+    expect(await rows('equipment_tags', 'tag_id', id), {'travel'});
+  });
+
+  test('a tag not used for equipment cannot link', () async {
+    final id = await created({'name': 'Wing', 'type': 'wing'});
+    await tag('dives-only', equipment: false);
+
+    final plan = await h.preview([
+      link(id, 'tags', add: ['dives-only']),
+    ]);
+
+    expect(plan.items.single.block!.reason, BlockReason.invalidValue);
+    expect(plan.items.single.block!.detail, contains('dives-only'));
+  });
+
+  test('an item is shared and unshared', () async {
+    final id = await created({'name': 'Wing', 'type': 'wing'});
+
+    await h.run([
+      link(id, 'shared_with', add: [kDiverB]),
+    ]);
+    expect(await rows('equipment_shares', 'diver_id', id), {kDiverB});
+    await h.run([
+      link(id, 'shared_with', remove: [kDiverB]),
+    ]);
+    expect(await rows('equipment_shares', 'diver_id', id), isEmpty);
+  });
+
+  test('sharing with the owner, an unknown profile or from an ownerless '
+      'item is blocked', () async {
+    final id = await created({'name': 'Wing', 'type': 'wing'});
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'nobodys',
+            name: 'Loaner',
+            type: 'wing',
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+
+    final plan = await h.preview([
+      link(id, 'shared_with', add: [kDiverA]),
+      link('nobodys', 'shared_with', add: [kDiverB]),
+    ]);
+    final unknown = await h.preview([
+      link(id, 'shared_with', add: ['ghost']),
+    ]);
+
+    for (final item in plan.items) {
+      expect(item.block, isNotNull, reason: item.id);
+    }
+    expect(unknown.items.single.block!.reason, BlockReason.unknownReference);
+  });
+
   test('legacy service fields and is_active are not writable', () async {
     final id = await created({'name': 'Mask', 'type': 'mask'});
 

@@ -308,10 +308,6 @@ lib/features/equipment/data/repositories/equipment_set_repository_impl.dart:setA
 lib/features/equipment/data/repositories/equipment_set_repository_impl.dart:setShowFigure
 lib/features/equipment/data/repositories/equipment_set_repository_impl.dart:updateGeofence
 lib/features/equipment/data/repositories/equipment_set_repository_impl.dart:updateSet
-lib/features/equipment/data/repositories/equipment_share_repository.dart:setShares
-lib/features/equipment/data/repositories/equipment_share_repository.dart:shareAllForDiver
-lib/features/equipment/data/repositories/equipment_share_repository.dart:shareMany
-lib/features/equipment/data/repositories/equipment_share_repository.dart:unshare
 lib/features/equipment/data/repositories/service_kind_repository.dart:createKind
 lib/features/equipment/data/repositories/service_kind_repository.dart:deleteKind
 lib/features/equipment/data/repositories/service_kind_repository.dart:updateKind
@@ -477,7 +473,6 @@ lib/features/safety/data/repositories/incident_repository.dart:updateIncident
 lib/features/tags/data/repositories/tag_link_repository.dart:addTags
 lib/features/tags/data/repositories/tag_link_repository.dart:deleteLinksFor
 lib/features/tags/data/repositories/tag_link_repository.dart:removeTags
-lib/features/tags/data/repositories/tag_link_repository.dart:replaceTags
 lib/features/tags/data/repositories/tag_repository.dart:addTagToDive
 lib/features/tags/data/repositories/tag_repository.dart:removeTagFromDive
 lib/features/tags/data/repositories/tag_repository.dart:setTagsForDive

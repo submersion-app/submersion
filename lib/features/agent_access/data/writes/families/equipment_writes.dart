@@ -1,5 +1,8 @@
+import 'package:drift/drift.dart' show QueryRow, Variable;
+
 import 'package:submersion/core/constants/enums.dart'
     show EquipmentStatus, EquipmentType;
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/equipment_item_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
@@ -10,6 +13,8 @@ import 'package:submersion/features/documents/domain/entities/document.dart'
     show DocumentOwner, DocumentOwnerKind;
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart'
+    show TagScope;
 
 /// Gear items, through the repository the equipment edit page uses, saved
 /// whole as the page saves them. Status decides whether an item is in the
@@ -58,6 +63,31 @@ class EquipmentWrites extends WritableEntry {
   Set<String> get requiredOnCreate => const {'name', 'type'};
 
   @override
+  final Map<String, RelationSpec> relations = const {
+    'tags': RelationSpec(refEntity: 'tags'),
+    'shared_with': RelationSpec(refEntity: 'divers'),
+  };
+
+  @override
+  Future<Set<String>> currentRelation(String id, String relation) async {
+    final (table, column, key) = switch (relation) {
+      'tags' => (
+        TagScope.equipment.table.junctionTable,
+        'tag_id',
+        TagScope.equipment.table.parentColumn,
+      ),
+      _ => ('equipment_shares', 'diver_id', 'equipment_id'),
+    };
+    final rows = await DatabaseService.instance.database
+        .customSelect(
+          'SELECT "$column" AS linked FROM "$table" WHERE "$key" = ?',
+          variables: [Variable.withString(id)],
+        )
+        .get();
+    return {for (final row in rows) row.read<String>('linked')};
+  }
+
+  @override
   String? titleOf(Map<String, Object?> document) => document['name'] as String?;
 
   @override
@@ -84,6 +114,8 @@ class EquipmentWrites extends WritableEntry {
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {
     if (check.kind == ChangeKind.delete) return null;
+    final links = await _tagBlock(check) ?? _shareBlock(check);
+    if (links != null) return links;
     final type = EquipmentType.values.byName(
       check.values['type'] as String? ?? check.document!['type']! as String,
     );
@@ -143,14 +175,86 @@ class EquipmentWrites extends WritableEntry {
 
   @override
   Future<void> update(String id, String? ownerId, RecordUpdate update) async {
-    final current =
-        await _r.equipment.getEquipmentById(id) ??
-        (throw AgentToolException(
-          AgentToolErrorCode.writeRefused,
-          'Equipment $id no longer exists.',
-          details: {'id': id},
-        ));
-    await _r.equipment.updateEquipment(nextItem(current, update.values));
+    if (update.values.isNotEmpty) {
+      final current =
+          await _r.equipment.getEquipmentById(id) ??
+          (throw AgentToolException(
+            AgentToolErrorCode.writeRefused,
+            'Equipment $id no longer exists.',
+            details: {'id': id},
+          ));
+      await _r.equipment.updateEquipment(nextItem(current, update.values));
+    }
+    // Tags and shares as the edit page and the share checklist save them,
+    // the whole new list at once.
+    if (update.relations['tags'] case final tags? when !tags.isEmpty) {
+      final now = await currentRelation(id, 'tags');
+      await _r.equipmentTags.replaceTags(id, [
+        ...now.difference(tags.remove),
+        ...tags.add,
+      ]);
+    }
+    if (update.relations['shared_with'] case final shares?
+        when !shares.isEmpty) {
+      final now = await currentRelation(id, 'shared_with');
+      await _r.equipmentShares.setShares(
+        equipmentId: id,
+        diverIds: {...now.difference(shares.remove), ...shares.add},
+        actingDiverId: ownerId!,
+      );
+    }
+  }
+
+  /// A block for a tag the edit page would not offer: one not used for
+  /// equipment, as a change earlier in the set leaves it.
+  Future<PlanBlock?> _tagBlock(WriteCheck check) async {
+    final added = check.relations['tags']?.add ?? const <String>{};
+    if (added.isEmpty) return null;
+    final rows = await DatabaseService.instance.database
+        .customSelect(
+          'SELECT id, applies_to_equipment FROM tags WHERE id IN '
+          '(${List.filled(added.length, '?').join(', ')})',
+          variables: [for (final id in added) Variable.withString(id)],
+        )
+        .get();
+    bool forGear(QueryRow row) => switch (check.soFar.values[(
+      'tags',
+      row.read<String>('id'),
+    )]?['scopes']) {
+      final String scopes => scopes.split(',').contains('equipment'),
+      _ => row.read<bool>('applies_to_equipment'),
+    };
+    final other = [
+      for (final row in rows)
+        if (!forGear(row)) row.read<String>('id'),
+    ];
+    if (other.isEmpty) return null;
+    return PlanBlock(
+      BlockReason.invalidValue,
+      'tags: ${other.join(', ')} is not used for equipment. Add equipment to '
+      'its scopes first.',
+    );
+  }
+
+  /// A block for a share the share checklist refuses: an item with no owner
+  /// has no one to share it, and its owner holds it already.
+  PlanBlock? _shareBlock(WriteCheck check) {
+    final shares = check.relations['shared_with'];
+    if (shares == null || shares.isEmpty) return null;
+    final owner = check.ownerId;
+    if (owner == null) {
+      return const PlanBlock(
+        BlockReason.notPermitted,
+        'shared_with: an item with no owner has no one to share it.',
+      );
+    }
+    if (shares.add.contains(owner)) {
+      return const PlanBlock(
+        BlockReason.invalidValue,
+        'shared_with: an item is its owner\'s already.',
+      );
+    }
+    return null;
   }
 
   /// Every agent write acts as the record's owner, so the owner's delete.

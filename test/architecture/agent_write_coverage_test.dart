@@ -193,6 +193,9 @@ void main() {
       'saveAttributes',
     ])
       '$gear/equipment_repository_impl.dart:$method': 'equipment',
+    '$gear/equipment_share_repository.dart:setShares': 'equipment',
+    'lib/features/tags/data/repositories/tag_link_repository.dart:replaceTags':
+        'equipment',
   };
 
   /// Writes that change no record a diver keeps, so no change set entity
@@ -264,6 +267,10 @@ void main() {
       'equipment_location_move_repository.dart:deleteForEquipment',
     ])
       '$gear/$step': 'an inner step of a delete of its owner',
+    for (final method in const ['shareMany', 'unshare', 'shareAllForDiver'])
+      '$gear/equipment_share_repository.dart:$method':
+          'a bulk shortcut for a share change, which equipment covers as '
+          'shared_with through setShares',
   };
 
   /// A public `Future` method on a repository. The return type may sit on the
