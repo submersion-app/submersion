@@ -177,6 +177,17 @@ void main() {
     expect(plan.items.single.block!.reason, BlockReason.invalidValue);
   });
 
+  test('a member leaving the kit earlier in the set is blocked', () async {
+    final id = await created({'name': 'Warm'});
+
+    final plan = await h.preview([
+      updateOp('equipment', 'wing', {'status': 'sold'}),
+      members(id, add: ['wing']),
+    ]);
+
+    expect(plan.items.last.block!.reason, BlockReason.invalidValue);
+  });
+
   test('a new set cannot be made the default in its create', () async {
     final plan = await h.preview([
       createOp('equipment_sets', {'name': 'Warm', 'is_default': true}),

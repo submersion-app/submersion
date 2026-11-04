@@ -380,6 +380,18 @@ List<EquipmentAttribute> _attributes(EquipmentItem current, Object? parsed) {
 bool _sameDays(List<int>? a, List<int>? b) =>
     a == null || b == null ? a == b : a.join(',') == b.join(',');
 
+/// Whether item [id] is in the kit once the changes earlier in the set
+/// apply: a status an earlier update writes decides, else [stored].
+bool inKitSoFar(SetSoFar soFar, String id, {required bool stored}) =>
+    switch (soFar.values[('equipment', id)]?['status']) {
+      final String status => !const {
+        'retired',
+        'sold',
+        'wanted',
+      }.contains(status),
+      _ => stored,
+    };
+
 /// [item]'s status as the edit page shows it: a legacy row out of the kit
 /// with an in-kit status reads as retired, so a save does not quietly put it
 /// back (#636).

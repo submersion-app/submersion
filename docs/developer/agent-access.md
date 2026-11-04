@@ -279,13 +279,29 @@ attaches (`autoAttachKindsFor`, the list `autoAttachForEquipment` uses), and
 the dive computer a device item's rename renames, the service clocks an
 inspection date anchors, or the set a new default takes the flag from. The
 dialog shows both as "Also adds" and "Also changes", and the plan's JSON as
-`also_creates` and `also_changes`.
+`also_creates` and `also_changes`. A share change also lists the ownership
+events it writes. The diver allows what the preview lists, so the applier
+asks each create's `alsoCreates` again before it writes and refuses the plan
+as stale when the answer moved; an `alsoCreates` must read only what a later
+change would also change.
+
+Work that must run after the commit, outside the apply's transaction, goes in
+`WritableEntry.afterApply`: a transmitter item's serial change rescans its
+dives there, since a scan scheduled inside the transaction is lost when it
+closes. A failure there is logged and leaves the apply in place.
 
 A set's default, figure and geofences go through `setAsDefault`,
 `setShowFigure` and the geofence writes; a new set becomes the default by an
-update once it exists. A place a move names is archived, never deleted. A
-component that would make an item part of itself is blocked before
-`addComponent` would throw. Status shortcuts, bulk share and move shortcuts,
+update once it exists. A set takes only members in the kit, as the set editor
+offers them, counting status changes earlier in the set; a part is fitted
+only to an item in the kit, by the same count (`inKitSoFar`). A place a move
+names is archived, never deleted, counting the moves the set deletes or moves
+elsewhere, and no move goes to an archived place. A Dive center place stands
+for a center (`dive_center_id`) and a Person place for a buddy (`buddy_id`);
+a kind change drops the link the new kind does not hold, as the place dialog
+does. A part's `sort_order` is its place in the assembly, not the stored
+number, which a removal leaves with gaps. A component that would make an item
+part of itself is blocked before `addComponent` would throw. Status shortcuts, bulk share and move shortcuts,
 and the inner steps of an item delete are in the coverage guard's `exempt`
 map.
 

@@ -92,6 +92,18 @@ void main() {
     },
   );
 
+  test('a part is not fitted to an item leaving the kit in the set', () async {
+    await gear('torch', 'light');
+    await gear('cell', 'battery');
+
+    final plan = await h.preview([
+      updateOp('equipment', 'torch', {'status': 'retired'}),
+      updateOp('equipment', 'cell', {'parent_equipment_id': 'torch'}),
+    ]);
+
+    expect(plan.items.last.block!.reason, BlockReason.invalidValue);
+  });
+
   // A legacy row out of the kit with an in-kit status reads as retired on
   // the edit page, so a save does not quietly put it back (#636).
   test('a legacy inactive item stays out of the kit on an edit', () async {

@@ -1,4 +1,8 @@
+import 'package:drift/drift.dart' show Variable;
 import 'package:uuid/uuid.dart';
+
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/agent_access/data/writes/families/equipment_item_rules.dart';
 
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
@@ -75,13 +79,30 @@ class EquipmentSetWrites extends WritableEntry {
   /// the plan can list the set it takes the default from.
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {
-    // The set editor offers only gear in the kit.
+    // The set editor offers only gear in the kit, as the set leaves it.
     final added = check.relations['equipment_ids']?.add ?? const <String>{};
-    for (final id in added) {
-      if (await countRows('equipment', 'id = ?1 AND is_active = 0', id) > 0) {
+    if (added.isNotEmpty) {
+      final rows = await DatabaseService.instance.database
+          .customSelect(
+            'SELECT id, is_active FROM equipment WHERE id IN '
+            '(${List.filled(added.length, '?').join(', ')})',
+            variables: [for (final id in added) Variable.withString(id)],
+          )
+          .get();
+      final out = [
+        for (final row in rows)
+          if (!inKitSoFar(
+            check.soFar,
+            row.read<String>('id'),
+            stored: row.read<bool>('is_active'),
+          ))
+            row.read<String>('id'),
+      ];
+      if (out.isNotEmpty) {
         return PlanBlock(
           BlockReason.invalidValue,
-          'equipment_ids: $id is not in the kit (retired, sold or wanted).',
+          'equipment_ids: ${out.join(', ')} is not in the kit (retired, sold '
+          'or wanted).',
         );
       }
     }

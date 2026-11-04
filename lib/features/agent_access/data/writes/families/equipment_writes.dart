@@ -132,7 +132,12 @@ class EquipmentWrites extends WritableEntry {
         ? check.values['parent_equipment_id'] as String?
         : null;
     if (parentId == null) return null;
-    final parent = await _r.equipment.getEquipmentById(parentId);
+    final stored = await _r.equipment.getEquipmentById(parentId);
+    // A parent an earlier change takes out of the kit, or puts back, as the
+    // apply will find it.
+    final parent = stored?.copyWith(
+      isActive: inKitSoFar(check.soFar, parentId, stored: stored.isActive),
+    );
     final status =
         check.values['status'] as String? ??
         check.document?['status'] as String?;
