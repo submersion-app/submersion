@@ -26,6 +26,18 @@ class RangeTableSection extends ConsumerWidget {
   }
 }
 
+/// [table] as the range grid, for a plan other than the one in the editor,
+/// such as a logged dive's plan.
+class RangeTableGrid extends StatelessWidget {
+  const RangeTableGrid({super.key, required this.table, required this.units});
+
+  final RangeTable table;
+  final UnitFormatter units;
+
+  @override
+  Widget build(BuildContext context) => _RangeGrid(table: table, units: units);
+}
+
 class _RangeGrid extends StatelessWidget {
   const _RangeGrid({required this.table, required this.units});
 

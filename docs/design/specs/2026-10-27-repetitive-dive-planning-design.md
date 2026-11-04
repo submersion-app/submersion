@@ -11,22 +11,24 @@ This adds a **series** of planned dives to the planner, a way to move between
 them, and the chain that carries each dive's end state into the next.
 
 The full design, its mockups and its five phases are in discussion #3700. This
-record covers what the phases agreed and the decisions made for phases 1, 3
-and 4, the phases built so far.
+record covers what the phases agreed and the decisions made for phases 1 to
+4, the phases built so far.
 
 ## Phases
 
 1. **Series in memory** (built): navigator, add and remove dives, the
    Dive details card, the tissue/CNS/OTU chain, carried tank pressures with
    Fill.
-2. **Shared settings**: settings shared across the series with per-dive
-   overrides, series warnings, the series results summary.
+2. **Shared settings** (built): start time and site per dive, settings and
+   tanks shared across the series with per-dive overrides, series warnings,
+   keyboard shortcuts. The series results summary was dropped.
 3. **Persistence** (built): a `dive_plan_series` table (synced), the saved
    plans list grouped by series, sharing a series in a `.subplan` file.
    Existing plans are not migrated: a plan with no series is a one-dive
    series. Keyboard shortcuts moved to phase 2.
 4. **Logged dives** (built): follow any logged dive, the one-tap Follow prompt, "Plan
-   repetitive dive" in the dive detail menu, the read-only logged-dive view.
+   repetitive dive" in the dive detail menu, a logged dive shown read-only
+   in the planner.
 5. **Plan vs actual**: a logged plan becomes Dive #xxx, and the dives after it
    are recalculated from it.
 
@@ -163,12 +165,8 @@ planned dives in the log is built.
   else its dive number, else its date (the same in the Follow prompt), with
   the real
   interval between logged dives, then Dive A's interval. Tapping a logged
-  dive shows it read-only in place of the planner: its profile (the dive
-  log's own chart, starting on depth, NDL, deco stops and ceiling, with NDL
-  on the right axis; its toggles are scoped to the view, so the dive log
-  keeps its own), Open in dive log, Stop following on the followed dive,
-  and what it carries into the next dive (interval, end CNS, OTU, each
-  tank's end pressure). Tapping a planned dive goes back. The bar opens on
+  dive shows it read-only in the planner's own layout (see "A logged dive in
+  the planner" below). Tapping a planned dive goes back. The bar opens on
   the selected planned dive, scrolled past the logged ones.
 - **Carry into Dive A.** As between planned dives: the followed dive's end
   tissues and CNS (the dive log's analysis, residual from the dives before
@@ -183,9 +181,12 @@ planned dives in the log is built.
   which keep their pressures. Stop following keeps the tanks, back at their
   fills. Removing Dive A leaves Dive B following, its tanks carrying from
   the logged tanks Dive A's did, after its own interval.
-- **Interval.** Following a dive that ended less than 48 hours ago (and more
-  than 10 minutes ago) starts Dive A after the time since, so the plan is for
-  now; an older dive gets the usual 1:00.
+- **Interval.** Following a dive that ended less than an hour ago gives Dive A
+  the usual 1:00, and its start follows from that. A dive that ended an hour
+  or more ago starts Dive A after the time since, rounded up to the minute, so
+  by default a plan starts now and never in the past, however old the dive.
+  These are defaults only: the diver can type a shorter interval or an earlier
+  start.
 - **Ways to follow.**
   - Follow a dive (planner menu) lists every logged dive.
   - A one-tap prompt under the bar offers the most recent logged dive when
@@ -197,9 +198,147 @@ planned dives in the log is built.
     rather than pushing a second one when the planner is already in the
     stack (a dive opened from the planner), which go_router cannot hold. It lands next to the "What if" entry #2407 changes; the
     merge is a matter of keeping both.
-- **Stopping.** Stop following sits in the followed dive's read-only view.
+- **Stopping.** Stop following sits in the followed dive's Dive details.
   There is no Following chip under the profile: it read as part of the chart
   while acting on the whole series, and one tap dropped the followed dive.
+
+### A logged dive in the planner
+
+Changed in phase 2: a logged dive used to replace the whole planner with a
+page of its own, which moved everything on screen. It now keeps the
+planner's layout, the panes, chart box and tabs where they were, and shows
+the dive read-only in each place.
+
+- **Chart.** The dive log's own chart in the plan chart's slot, starting on
+  depth, NDL, deco stops and ceiling, with NDL on the right axis; its toggles
+  are scoped to the view, so the dive log keeps its own. A dive dived from a
+  plan shows that plan ghosted beside it, as in the dive log. Under it, its
+  runtime, max depth and warnings; no contingency chips, chart mode or full
+  screen.
+- **Dive details**, read-only: its name and number, start, the interval
+  since the logged dive before, and site. The header opens it in the dive
+  log, compares it with its plan when it had one (the dive log's Compare),
+  and stops following on the followed dive.
+- **Tanks**, read-only: the same chips, each with its start and end pressure.
+- **Plan.** A dive dived from a plan (the plan linked to it, #4058) shows
+  that plan's segments read-only. One never planned has no Plan tab (greyed
+  on a phone) and says so in the editor pane. There are no plan settings:
+  Setup is greyed on a phone and hidden in the editor pane.
+- **Results.** What it carries into the next dive (interval, end CNS, OTU,
+  each tank's end pressure), two tiles wide; then its runtime and its
+  warnings, the safety review's findings the dive log shows (dismissed ones
+  and turned-off rules left out). A dive dived from a plan then shows that
+  plan's deco schedule, gas consumption and range table under "As planned";
+  last, the review's findings, which the Warnings tile scrolls to.
+- **Phone tabs.** A tab the logged dive can't show falls back to Tanks; the
+  choice comes back on a planned dive.
+
+## Start time and site
+
+Phase 2; the plan is
+`docs/design/plans/2026-11-03-repetitive-dive-planning-phase-2.md`.
+
+- The Dive details card holds, in order: the dive name, its **start**, the
+  surface interval, and its **site**. Both new fields are optional.
+- **Start and interval set each other.** A dive's start is the previous
+  dive's end plus its interval. The diver can set either:
+  - Setting a later dive's start fixes it (`PlanSeriesDive.fixedStart`): its
+    interval is then measured from the previous dive's end, and a longer
+    earlier dive shortens it rather than moving the start.
+  - Setting the interval lets it lead again, and the start follows.
+  - Clearing a fixed start lets the interval lead, from the interval the dive
+    had.
+  - A first dive that follows a logged dive works the same way against the
+    logged dive's end.
+  - A first dive that follows nothing has no interval; its start is its own,
+    and optional.
+- A later dive can be timed only once the dive before it has a start, so its
+  start field is greyed out ("Give the first dive a start time first") until
+  the first dive has one or follows a logged dive.
+- A start before the previous dive ends computes the dive from no surface
+  interval.
+- **Times are clock digits stamped UTC**, like the dive log's
+  (`DateTime.utc` of the digits shown). The arithmetic runs on true instants
+  (`fromWallClockUtc`), so a daylight saving change inside an interval does
+  not move a dive by an hour. Saved plans store the start the same way, and
+  Convert to Dive writes it, or the clock time now, straight into the dive.
+- **Saved and shared.** A saved dive keeps its start and whether it was
+  fixed (`dive_plans.fixed_start`, schema v342). A `.subplan` file carries a
+  plan's start as clock digits with no offset, and a series dive's
+  `fixedStart`; both are optional, so the version does not change and an
+  older install opens the file without its times.
+- **Following a dive** defaults the first dive's interval to an hour when the
+  dive ended less than an hour ago, and otherwise to the time since, rounded
+  up to the minute, so the plan starts now and never in the past. The Follow
+  prompt rounds the same way.
+- **The site** is the plan's existing `siteId`, now editable here with the
+  dive log's site picker. The planner doesn't use it; a dive logged from the
+  plan takes it. A new dive copies the previous dive's site.
+
+## Shared settings and tanks
+
+- **The first dive's settings are the series'.** Each Setup section
+  (Decompression, Rates, Gas, Environment, Contingencies) and the Tanks card
+  is a group.
+  Changing a group on the first dive reaches every later dive that has not
+  set its own. Changing it on a later dive makes it that dive's own at once,
+  without asking. The section then reads "This dive only" and offers
+  **Reset to series** and **Apply to all dives**. On a single dive nothing
+  shows.
+- Not shared, because they change a dive's segments or depend on its
+  circuit: the circuit and its setpoints, the pSCR ratio, stop minimums,
+  gear and weights, the DPV mission and the site.
+- **Stored as effective values.** Each dive's setting columns stay complete,
+  so the engine and an older peer read them as before.
+  `dive_plans.setting_overrides` (schema v342) names the groups a dive keeps
+  its own; the series' value of a group is the first dive's, so nothing else
+  is stored. A `.subplan` series dive carries the same list.
+- **Tanks** follow the same rule for what a tank is: its size, rated
+  pressure, gas, role and name. Adding, removing or changing a tank on the
+  first dive does the same on the later dives that share the series' tanks,
+  and their profiles move off a removed tank. A dive on another circuit keeps
+  its own.
+- **Start pressures are not shared.** A tank carries what was left in its
+  tank on the previous planned dive only while it is the same tank, the same
+  size and gas. A tank that is no longer the same one starts full at its
+  rated pressure, and a tank the previous dive does not have starts at the
+  series' fill. A pressure the diver filled or typed stays, and doesn't make
+  the tanks the dive's own.
+- **The same goes for a followed dive.** Dive A takes the logged dive's tanks,
+  and so do the later dives that share the series' tanks. Each carries the
+  logged end pressure only while it is that tank: changed to another size or
+  gas, it starts full. Nothing here changes the logged dive.
+
+## Series warnings
+
+Each dive of a series, and a first dive that follows a logged dive, is checked
+against what came before (`seriesIssuesFor`). The warnings join the dive's own,
+so its dot, the warnings list and the count all include them.
+
+| Warning | When | Severity |
+| --- | --- | --- |
+| Short surface interval | Under 10 minutes | Warning |
+| Starts before the previous dive ends | A fixed start earlier than that end | Critical |
+| Starts owing deco | Off-gassed tissues still can't surface at the high GF | Critical |
+| Reverse profile | More than 12 m deeper than the dive before | Warning |
+
+A planned dive's stops always clear the ceiling before it surfaces, so owing deco
+comes only from a followed logged dive that left it, or a later dive with a
+stricter high GF than the one before.
+
+CNS and OTU need no warning of their own: the engine starts each dive from the
+carried exposure, so its existing warnings already count earlier dives. The OTU
+limit stays 300 against the rolling 24-hour total.
+
+A series summary card, with no-fly time, was built and removed: the results
+pane has little room, and the deco schedule matters more there. The planner shows
+no no-fly time.
+
+## Keyboard
+
+Alt+Left and Alt+Right select the previous and next dive, and stand down
+while a text field has focus. Alt+N (add a dive) was tried and dropped:
+Windows beeps at Alt+letter, and it is not a convention in the app.
 
 ## Design
 
@@ -226,6 +365,6 @@ planned dives in the log is built.
 
 ## Out of scope
 
-Everything in phases 2 and 5, writing a series to the log as planned dives,
+Everything in phase 5, writing a series to the log as planned dives,
 plus (as in #3700) a whole-day timeline chart, series PDF export, and inserting
 or reordering dives.

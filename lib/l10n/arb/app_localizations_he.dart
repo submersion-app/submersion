@@ -2416,6 +2416,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get accessibility_shortcutCategory_help => 'עזרה';
 
   @override
+  String get accessibility_shortcutCategory_planner => 'מתכנן';
+
+  @override
   String get accessibility_shortcutCategory_navigation => 'ניווט';
 
   @override
@@ -2444,6 +2447,13 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get accessibility_shortcut_keyboardShortcuts => 'קיצורי מקלדת';
+
+  @override
+  String get accessibility_shortcut_previousPlannedDive =>
+      'הצלילה המתוכננת הקודמת';
+
+  @override
+  String get accessibility_shortcut_nextPlannedDive => 'הצלילה המתוכננת הבאה';
 
   @override
   String get accessibility_shortcut_newDive => 'צלילה חדשה';
@@ -8490,6 +8500,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_equipmentPicker_allSelected => 'כל הציוד כבר נבחר';
 
   @override
+  String get diveLog_equipmentPicker_allAssemblyParts =>
+      'הציוד הנותר הוא חלק ממכלול';
+
+  @override
   String get diveLog_equipmentPicker_allSpare => 'הציוד הנותר מסומן כרזרבי';
 
   @override
@@ -8502,6 +8516,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_equipmentPicker_removeToAdd => 'הסר פריטים להוספת אחרים';
+
+  @override
+  String get diveLog_equipmentPicker_showAssemblyParts =>
+      'הצג רכיבים של מכלולים';
 
   @override
   String get diveLog_equipmentPicker_showLeftKit =>
@@ -20565,6 +20583,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerSeries_stopFollowing => 'הפסקת מעקב';
 
   @override
+  String get plannerSeries_compareWithPlan => 'השוואה לתוכנית';
+
+  @override
+  String get plannerSeries_asPlanned => 'כפי שתוכנן';
+
+  @override
+  String get plannerSeries_loggedNotPlanned =>
+      'הצלילה הזו ביומן שלך ולא תוכננה כאן. פתח אותה ביומן כדי לשנות אותה.';
+
+  @override
+  String get plannerSeries_maxDepth => 'עומק מרבי';
+
+  @override
   String plannerSeries_carriedInto(String dive) {
     return 'מועבר אל $dive';
   }
@@ -20616,6 +20647,25 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'ביטול שינויים';
 
   @override
+  String plannerSeries_issue_shortInterval(String time) {
+    return 'מרווח שטח של $time קצר מ-10 דקות';
+  }
+
+  @override
+  String plannerSeries_issue_startsBefore(String time) {
+    return 'מתחילה $time לפני סיום הצלילה הקודמת';
+  }
+
+  @override
+  String get plannerSeries_issue_owingDeco =>
+      'מתחילה עם חובת דקו מהצלילה הקודמת';
+
+  @override
+  String plannerSeries_issue_reverseProfile(String depth, String previous) {
+    return 'פרופיל הפוך: $depth, עמוק מהצלילה הקודמת של $previous';
+  }
+
+  @override
   String get plannerSeries_unsaved_titleDive => 'לשמור את הצלילה?';
 
   @override
@@ -20626,6 +20676,50 @@ class AppLocalizationsHe extends AppLocalizations {
   String plannerSeries_saved_diveCount(int count) {
     return '$count צלילות';
   }
+
+  @override
+  String get plannerSeries_start => 'התחלה';
+
+  @override
+  String get plannerSeries_start_notSet => 'לא הוגדר';
+
+  @override
+  String get plannerSeries_start_clear => 'ניקוי שעת ההתחלה';
+
+  @override
+  String get plannerSeries_start_needsFirst =>
+      'יש לקבוע קודם שעת התחלה לצלילה הראשונה';
+
+  @override
+  String get plannerSeries_start_fixed => 'מרווח השטח נגזר משעת התחלה זו';
+
+  @override
+  String get plannerSeries_site => 'אתר';
+
+  @override
+  String get plannerSeries_site_none => 'ללא אתר';
+
+  @override
+  String get plannerSeries_site_clear => 'ניקוי האתר';
+
+  @override
+  String get plannerSeries_scope_series => 'סדרה';
+
+  @override
+  String get plannerSeries_scope_seriesHint =>
+      'הצלילות הבאות משתמשות בהגדרות אלה אלא אם יש להן הגדרות משלהן';
+
+  @override
+  String get plannerSeries_scope_fromSeries => 'מהסדרה';
+
+  @override
+  String get plannerSeries_scope_thisDive => 'צלילה זו בלבד';
+
+  @override
+  String get plannerSeries_scope_reset => 'איפוס לסדרה';
+
+  @override
+  String get plannerSeries_scope_applyAll => 'החלה על כל הצלילות';
 
   @override
   String plannerSeries_fill(String tank) {
@@ -25193,6 +25287,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'לחץ התחלתי נקבע ידנית';
 
   @override
+  String get settings_conflict_field_fixedStart => 'שעת התחלה נקבעה ידנית';
+
+  @override
+  String get settings_conflict_field_settingOverrides =>
+      'הגדרות לצלילה זו בלבד';
+
+  @override
   String get settings_conflict_field_startTime => 'שעת התחלה';
 
   @override
@@ -26599,6 +26700,16 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String settings_agentAccess_confirm_merge(String name) {
     return 'מיזוג לתוך $name';
+  }
+
+  @override
+  String settings_agentAccess_confirm_alsoAdds(String kind, int count) {
+    return 'מוסיף גם $kind: $count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_alsoChanges(String kind, int count) {
+    return 'משנה גם $kind: $count';
   }
 
   @override

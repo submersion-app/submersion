@@ -56,6 +56,8 @@ PlanSeries appendDive(
   final dive = PlanSeriesDive(
     state: state,
     sourceTankIds: {for (final e in tankIds.entries) e.value: e.key},
+    // It copies the previous dive's settings, its own ones included.
+    settingOverrides: series.dives.last.settingOverrides,
   );
   final dives = [...series.dives, dive];
   return series.copyWith(dives: dives, selectedIndex: dives.length - 1);
@@ -87,6 +89,8 @@ PlanSeries removeDive(PlanSeries series, int index) {
           // It is the whole plan now, and it has never been saved.
           isDirty: true,
         ),
+        // Its settings are the series' now.
+        settingOverrides: const {},
         // Following, its tanks now carry from the logged tanks the removed
         // dive's carried from.
         sourceTankIds: follow == null
@@ -146,6 +150,35 @@ PlanSeries renameDive(PlanSeries series, int index, String name) {
         ? dive.copyWith(clearName: true)
         : dive.copyWith(name: trimmed),
   );
+}
+
+/// Sets when the dive at [index] starts, as clock digits stamped UTC like
+/// the dive log's times; null clears it. A start fixes the dive's time, so
+/// its surface interval is measured from it; with none, the interval leads
+/// again.
+PlanSeries setDiveStart(PlanSeries series, int index, DateTime? start) {
+  final dive = series.dives[index];
+  return _replace(
+    series,
+    index,
+    dive.copyWith(
+      state: dive.state.copyWith(
+        startDateTime: start,
+        clearStartDateTime: start == null,
+        isDirty: true,
+        updatedAt: DateTime.now(),
+      ),
+      fixedStart: start != null,
+    ),
+  );
+}
+
+/// Lets the surface interval of the dive at [index] lead: the diver set the
+/// interval, so the start follows from it.
+PlanSeries anchorInterval(PlanSeries series, int index) {
+  final dive = series.dives[index];
+  if (!dive.fixedStart) return series;
+  return _replace(series, index, dive.copyWith(fixedStart: false));
 }
 
 /// Names the whole plan: every dive of the series carries its name.

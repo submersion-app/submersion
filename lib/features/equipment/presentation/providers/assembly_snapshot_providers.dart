@@ -4,7 +4,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_c
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 
 /// Ids of the template parts that attaching an assembly would still write
-/// ([isGearActive]: flagged active, neither retired nor lost), whoever owns
+/// ([isGearActive]: flagged active, not retired, sold or lost), whoever owns
 /// them. The dive gear tree reads it to tell a part missing from a dive
 /// apart from one that was retired since (issue #1988).
 ///

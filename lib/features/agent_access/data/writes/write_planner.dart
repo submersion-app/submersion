@@ -18,6 +18,7 @@ import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.
 part 'write_planner_children.dart';
 part 'write_planner_merge.dart';
 part 'write_planner_references.dart';
+part 'write_planner_relations.dart';
 
 /// Turns a change set into a plan by reading, and only reading. It opens no
 /// transaction and writes nothing, because the spec forbids even one that is
@@ -110,6 +111,7 @@ class _Pass {
   final _mergedInto = <(String, String?), Set<String>>{};
 
   final _deletedSoFar = <String, Set<String>>{};
+  final _createdSoFar = <String, List<Map<String, Object?>>>{};
   final _valuesSoFar = <(String, String), Map<String, Object?>>{};
   final _unlinkedSoFar = <(String, String), Map<String, Set<String>>>{};
 
@@ -118,6 +120,28 @@ class _Pass {
     deleted: _deletedSoFar,
     values: _valuesSoFar,
     unlinked: _unlinkedSoFar,
+    created: _createdSoFar,
+  );
+
+  /// [_soFar] as it stands now, for a read that runs again at apply, after
+  /// the later changes of the set have been planned.
+  SetSoFar get _soFarSnapshot => SetSoFar(
+    deleted: {
+      for (final MapEntry(:key, :value) in _deletedSoFar.entries)
+        key: {...value},
+    },
+    values: {..._valuesSoFar},
+    unlinked: {
+      for (final MapEntry(:key, :value) in _unlinkedSoFar.entries)
+        key: {
+          for (final MapEntry(key: entity, value: ids) in value.entries)
+            entity: {...ids},
+        },
+    },
+    created: {
+      for (final MapEntry(:key, :value) in _createdSoFar.entries)
+        key: [...value],
+    },
   );
 
   /// Notes what an update the plan keeps writes and unlinks, for the rules
@@ -265,7 +289,10 @@ class _Pass {
         await _checkFieldRefs(entry, parsed.values, diverId) ??
         await entry.refuse(check) ??
         _claimUnique(op, entry, check);
-    if (block == null) await _markFieldRefs(entry, parsed.values);
+    if (block == null) {
+      await _markFieldRefs(entry, parsed.values);
+      (_createdSoFar[op.entity] ??= []).add(parsed.values);
+    }
     final parent = await _parentContext(entry, owner.parentId, diverId);
     _add(
       op,
@@ -278,6 +305,9 @@ class _Pass {
       fields: parsed.changes,
       values: parsed.values,
       names: await _referenceNames(entry, parsed.changes, diverId),
+      alsoCreates: block == null
+          ? await entry.alsoCreates(diverId, parsed.values)
+          : const {},
       block: block,
     );
   }
@@ -306,7 +336,11 @@ class _Pass {
         await _checkFieldRefs(entry, parsed.values, row.ownerId) ??
         await entry.refuse(check) ??
         _claimUnique(op, entry, check);
-    final update = RecordUpdate(values: parsed.values, relations: links.deltas);
+    final update = RecordUpdate(
+      values: parsed.values,
+      relations: links.deltas,
+      soFar: _soFarSnapshot,
+    );
     Future<SideEffects> readEffects() =>
         entry.sideEffects(op.id, row.ownerId, update, document);
     final effects = block != null ? const SideEffects() : await readEffects();
@@ -369,6 +403,7 @@ class _Pass {
       indirectRelations: effects.relations,
       indirectLost: effects.lost,
       reach: DeleteReach(parts: effects.parts),
+      alsoChanges: effects.touched,
       names: {
         ...await _names(entry, links.deltas, {
           ...effects.relations,
@@ -545,137 +580,6 @@ class _Pass {
     return _Parsed(changes: changes, values: values, named: named);
   }
 
-  Future<_Links> _relations(
-    UpdateOp op,
-    WritableEntry entry,
-    String? ownerId,
-  ) async {
-    final deltas = <String, RelationDelta>{};
-    final current = <String, Set<String>>{};
-    for (final MapEntry(key: name, value: change) in op.relations.entries) {
-      final spec = entry.relations[name];
-      if (spec == null) {
-        return _Links.blocked(
-          PlanBlock(
-            BlockReason.unknownField,
-            '$name is not a relation of ${entry.name}. '
-            'These are: ${entry.relations.keys.join(', ')}.',
-          ),
-        );
-      }
-      final stored = current[name] = await entry.currentRelation(op.id, name);
-      // A link an earlier change in the set takes away, such as a tag whose
-      // scope closes, is gone by the time this change runs.
-      final links = {
-        for (final id in stored)
-          if (!(_unlinkedSoFar[(spec.refEntity, id)]?[op.entity]?.contains(
-                op.id,
-              ) ??
-              false))
-            id,
-      };
-      final delta = _delta(change, links, spec);
-      if (delta == null) {
-        return _Links.blocked(
-          PlanBlock(BlockReason.invalidValue, '$name takes one id.'),
-        );
-      }
-      final block = await _checkRefs(
-        name,
-        spec.refEntity,
-        delta.add,
-        ownerId,
-        copiesTarget: spec.copiesTarget,
-      );
-      if (block != null) return _Links.blocked(block);
-      if (!delta.isEmpty) deltas[name] = delta;
-    }
-    return _Links(deltas: deltas, current: current);
-  }
-
-  /// What [change] means against [links], or null when a single relation is
-  /// handed more than one id.
-  RelationDelta? _delta(
-    RelationChange change,
-    Set<String> links,
-    RelationSpec spec,
-  ) {
-    final wanted = change.set?.toSet();
-    final add = (wanted ?? change.add.toSet()).difference(links);
-    if (spec.single && (wanted ?? add).length > 1) return null;
-    final remove = wanted != null
-        ? links.difference(wanted)
-        : change.remove.toSet().intersection(links);
-    return RelationDelta(
-      add: add,
-      // A single link has one place, so a new one takes the old one's.
-      remove: spec.single && add.isNotEmpty ? links : remove,
-    );
-  }
-
-  /// Whether [ids], which [name] points at records of [refEntity] with, may
-  /// be used by [ownerId]. [copiesTarget] as [RelationSpec.copiesTarget].
-  Future<PlanBlock?> _checkRefs(
-    String name,
-    String refEntity,
-    Set<String> ids,
-    String? ownerId, {
-    bool copiesTarget = false,
-  }) async {
-    if (ids.isEmpty) return null;
-    final deleted = ids.where((id) => _deleted.contains((refEntity, id)));
-    if (deleted.isNotEmpty) {
-      return PlanBlock(
-        BlockReason.referenceDeleted,
-        '$name refers to ${deleted.join(', ')}, which this set deletes.',
-      );
-    }
-    final changed = copiesTarget
-        ? ids.where((id) => _changedSoFar.contains((refEntity, id)))
-        : const <String>[];
-    if (changed.isNotEmpty) {
-      return PlanBlock(
-        BlockReason.referenceChanged,
-        '$name copies values from ${changed.join(', ')}, which an earlier '
-        'operation in this set changes. Link it in a change set of its own.',
-      );
-    }
-    final ref = records.named(refEntity);
-    final diverId = ownerId ?? await resolveDiver(null);
-    final visible = await RecordReader(
-      db,
-    ).visibleIds(ref, ids.toList(), diverId);
-    final hidden = ids.difference(visible.toSet());
-    if (hidden.isEmpty) return null;
-    final existing = await _existing(ref, hidden);
-    final strangers = hidden.intersection(existing);
-    if (strangers.isNotEmpty) {
-      return PlanBlock(
-        BlockReason.otherProfileReference,
-        '$name: ${strangers.join(', ')} belongs to another profile.',
-      );
-    }
-    return PlanBlock(
-      BlockReason.unknownReference,
-      '$name: nothing has the id ${hidden.join(', ')}.',
-    );
-  }
-
-  Future<Set<String>> _existing(RecordEntry ref, Set<String> ids) async {
-    final found = <String>{};
-    for (final chunk in seriesIdChunks(ids.toList())) {
-      final marks = List.filled(chunk.length, '?').join(', ');
-      final rows = await db
-          .customSelect(
-            'SELECT id FROM ${ref.table} WHERE id IN ($marks)',
-            variables: [for (final id in chunk) Variable.withString(id)],
-          )
-          .get();
-      found.addAll(rows.map((row) => row.read<String>('id')));
-    }
-    return found;
-  }
-
   void _blocked(ChangeOp op, BlockReason reason, String detail) => items.add(
     PlanItem(
       operation: op.index,
@@ -713,6 +617,8 @@ class _Pass {
     DeleteReach reach = const DeleteReach(),
     String? mergeInto,
     String? mergeTitle,
+    Map<String, int> alsoCreates = const {},
+    Map<String, int> alsoChanges = const {},
     PlanBlock? block,
   }) => items.add(
     PlanItem(
@@ -735,6 +641,8 @@ class _Pass {
       reach: reach,
       mergeInto: mergeInto,
       mergeTitle: mergeTitle,
+      alsoCreates: alsoCreates,
+      alsoChanges: alsoChanges,
       block: block,
     ),
   );

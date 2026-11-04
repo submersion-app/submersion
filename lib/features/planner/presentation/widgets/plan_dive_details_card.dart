@@ -5,11 +5,14 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_dive_site_field.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_dive_start_field.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_surface_interval_field.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// What sets the selected dive apart from the others in its series (issue
-/// #3565): its name and the surface interval before it.
+/// #3565): its name, when it starts, the surface interval before it, and
+/// its site.
 ///
 /// On a first dive that follows no logged dive there is no interval to set,
 /// so the interval is greyed out rather than hidden: the card keeps its
@@ -122,7 +125,11 @@ class _PlanDiveDetailsCardState extends ConsumerState<PlanDiveDetailsCard> {
                   .renameSelected,
             ),
             const SizedBox(height: 16),
+            const PlanDiveStartField(),
+            const SizedBox(height: 16),
             PlanSurfaceIntervalField(enabled: hasInterval),
+            const SizedBox(height: 16),
+            const PlanDiveSiteField(),
           ],
         ),
       ),

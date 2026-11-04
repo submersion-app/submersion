@@ -1,8 +1,10 @@
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
 import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
@@ -10,6 +12,11 @@ import 'package:submersion/features/planner/domain/services/plan_series_calculat
     as calculator;
 import 'package:submersion/features/planner/domain/services/plan_series_edits.dart'
     as edits;
+import 'package:submersion/features/planner/domain/services/plan_series_settings.dart'
+    as settings;
+import 'package:submersion/features/planner/domain/services/plan_series_tanks.dart'
+    as series_tanks;
+import 'package:submersion/features/planner/domain/services/plan_setting_groups.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 
 const _uuid = Uuid();
@@ -66,24 +73,58 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
       state = PlanSeries.single(next);
       return;
     }
+    final before = state.dives[index].state;
     state = edits.updateDiveState(state, index, next);
+    // A setting changed on the first dive is the series'; on a later dive,
+    // that dive's own.
+    state = settings.shareSettingEdits(
+      state,
+      index,
+      before: before,
+      newId: _newId,
+    );
     // The name is the whole plan's, so every dive takes a new one.
     if (previous?.name != next.name) {
       state = edits.setPlanName(state, next.name);
     }
+    final carries = index > 0 || state.follow != null;
+    // The diver set the interval, so it leads and the start follows from it.
     // The OTU carried in depends on how long ago each earlier dive ended.
-    if ((index > 0 || state.follow != null) &&
-        previous?.surfaceInterval != next.surfaceInterval) {
+    final intervalChanged =
+        carries && previous?.surfaceInterval != next.surfaceInterval;
+    // A tank changed to another size or gas no longer carries what was left
+    // in the one before, so its start pressure is worked out again.
+    final tanksChanged =
+        carries && !sameGroup(PlanSettingGroup.tanks, before, next);
+    if (intervalChanged) state = edits.anchorInterval(state, index);
+    if (intervalChanged || tanksChanged) {
       final carried = calculator.carriedState(
         state.dives,
         index,
         _earlier,
         follow: state.follow,
       );
-      if (carried.initialOtu != next.initialOtu) {
-        _push(next.copyWith(initialOtu: carried.initialOtu));
+      if (carried.initialOtu != next.initialOtu ||
+          carried.startDateTime != next.startDateTime ||
+          !_sameStartPressures(carried.tanks, next.tanks)) {
+        _push(
+          next.copyWith(
+            initialOtu: carried.initialOtu,
+            startDateTime: carried.startDateTime,
+            clearStartDateTime: carried.startDateTime == null,
+            tanks: carried.tanks,
+          ),
+        );
       }
     }
+  }
+
+  static bool _sameStartPressures(List<DiveTank> a, List<DiveTank> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i].startPressure != b[i].startPressure) return false;
+    }
+    return true;
   }
 
   /// Re-seeds the selected dive after the engine settings changed. What a
@@ -117,6 +158,15 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
     final before = state;
     state = edits.removeDive(state, index);
     if (identical(before, state)) return;
+    // The dive after a removed first dive is the first now, so the values
+    // it kept its own are the series', and the dives sharing them take them.
+    if (index == 0) {
+      state = settings.followFirstDive(
+        state,
+        before.dives[1].settingOverrides,
+        newId: _newId,
+      );
+    }
     state = state.copyWith(structureChanged: true);
     _loadSelected();
   }
@@ -149,6 +199,44 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
     state = state.copyWith(clearId: true, structureChanged: false);
   }
 
+  /// Sets when the selected dive starts, as clock digits stamped UTC; null
+  /// clears it. A later dive's interval then comes from it (see
+  /// [PlanSeriesDive.fixedStart]).
+  void setSelectedStart(DateTime? start) {
+    final index = state.selectedIndex;
+    state = edits.setDiveStart(state, index, start);
+    _push(
+      calculator.carriedState(
+        state.dives,
+        index,
+        _earlier,
+        follow: state.follow,
+      ),
+    );
+  }
+
+  /// Puts the selected dive back on the series' settings of [group].
+  void resetGroupToSeries(PlanSettingGroup group) {
+    state = settings.resetGroupToSeries(
+      state,
+      state.selectedIndex,
+      group,
+      newId: _newId,
+    );
+    _loadSelected();
+  }
+
+  /// Makes the selected dive's settings of [group] the series'.
+  void applyGroupToAll(PlanSettingGroup group) {
+    state = settings.applyGroupToAll(
+      state,
+      state.selectedIndex,
+      group,
+      newId: _newId,
+    );
+    _loadSelected();
+  }
+
   /// Takes [name], given to this plan or series in the store from elsewhere
   /// (the saved plans sheet's Rename), without marking anything unsaved: the
   /// store already holds it, and the next save must not write the old one
@@ -169,6 +257,8 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
       surfaceInterval: surfaceInterval,
       newId: _newId,
     );
+    // The first dive took the followed dive's tanks, and it is the series'.
+    state = series_tanks.followSeriesTanks(state, newId: _newId);
     _loadSelected();
   }
 
@@ -264,10 +354,22 @@ final planSeriesResultsProvider = Provider<List<calculator.SeriesDiveResult>>((
   final dives = inputs.dives;
   // One dive is the plan in the editor, which that provider already runs.
   if (dives.length == 1) {
+    final state = dives.single.state;
+    final outcome = ref.watch(planOutcomeProvider);
+    final issues = calculator.seriesIssuesFor(
+      dives,
+      0,
+      state,
+      outcome.maxDepth,
+      const [],
+      config: ref.watch(planEngineConfigProvider),
+      follow: inputs.follow,
+    );
     return [
       calculator.SeriesDiveResult(
-        state: dives.single.state,
-        outcome: ref.watch(planOutcomeProvider),
+        state: state,
+        outcome: outcome.withIssues(issues),
+        seriesIssues: issues,
       ),
     ];
   }
@@ -278,12 +380,54 @@ final planSeriesResultsProvider = Provider<List<calculator.SeriesDiveResult>>((
   );
 });
 
+/// What the series raises about the dive in the editor, which the live
+/// outcome, computed by the engine alone, has no way to know.
+final selectedSeriesIssuesProvider = Provider<List<PlanIssue>>((ref) {
+  final index = ref.watch(
+    planSeriesNotifierProvider.select((s) => s.selectedIndex),
+  );
+  final results = ref.watch(planSeriesResultsProvider);
+  return index < results.length ? results[index].seriesIssues : const [];
+});
+
 /// The series as the chain reads it: without the dives' names or the
 /// selection, so neither of those runs the engine again.
 PlanSeries _chainInputs(PlanSeries series) => PlanSeries(
   dives: [for (final dive in series.dives) dive.copyWith(clearName: true)],
   follow: series.follow,
 );
+
+/// Where the selected dive's settings of a group come from, for its Setup
+/// section: null on a single dive, which has no series to share with.
+final settingScopeProvider = Provider.family<SettingScope?, PlanSettingGroup>((
+  ref,
+  group,
+) {
+  final (isSeries, index, overridden) = ref.watch(
+    planSeriesNotifierProvider.select(
+      (s) => (
+        s.isSeries,
+        s.selectedIndex,
+        s.selected.settingOverrides.contains(group),
+      ),
+    ),
+  );
+  if (!isSeries) return null;
+  if (index == 0) return SettingScope.series;
+  return overridden ? SettingScope.thisDive : SettingScope.fromSeries;
+});
+
+/// Where a dive's settings of a group come from.
+enum SettingScope {
+  /// The first dive: its settings are the series'.
+  series,
+
+  /// A later dive taking the series' settings.
+  fromSeries,
+
+  /// A later dive with its own.
+  thisDive,
+}
 
 /// Whether a dive can be added after the last one.
 final canAddSeriesDiveProvider = Provider<bool>(

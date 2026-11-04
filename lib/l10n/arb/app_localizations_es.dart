@@ -2452,6 +2452,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get accessibility_shortcutCategory_help => 'Ayuda';
 
   @override
+  String get accessibility_shortcutCategory_planner => 'Planificador';
+
+  @override
   String get accessibility_shortcutCategory_navigation => 'Navegación';
 
   @override
@@ -2480,6 +2483,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get accessibility_shortcut_keyboardShortcuts => 'Atajos de teclado';
+
+  @override
+  String get accessibility_shortcut_previousPlannedDive =>
+      'Inmersión planificada anterior';
+
+  @override
+  String get accessibility_shortcut_nextPlannedDive =>
+      'Inmersión planificada siguiente';
 
   @override
   String get accessibility_shortcut_newDive => 'Nueva inmersión';
@@ -8676,6 +8687,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Todo el equipo ya está seleccionado';
 
   @override
+  String get diveLog_equipmentPicker_allAssemblyParts =>
+      'El equipo restante forma parte de un conjunto';
+
+  @override
   String get diveLog_equipmentPicker_allSpare =>
       'El equipo restante está marcado como De repuesto';
 
@@ -8690,6 +8705,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diveLog_equipmentPicker_removeToAdd =>
       'Quita elementos para agregar otros diferentes';
+
+  @override
+  String get diveLog_equipmentPicker_showAssemblyParts =>
+      'Mostrar componentes de conjuntos';
 
   @override
   String get diveLog_equipmentPicker_showLeftKit =>
@@ -21018,6 +21037,19 @@ class AppLocalizationsEs extends AppLocalizations {
   String get plannerSeries_stopFollowing => 'Dejar de seguir';
 
   @override
+  String get plannerSeries_compareWithPlan => 'Comparar con su plan';
+
+  @override
+  String get plannerSeries_asPlanned => 'Según lo planificado';
+
+  @override
+  String get plannerSeries_loggedNotPlanned =>
+      'Esta inmersión está en tu registro y no se planificó aquí. Ábrela en el registro para cambiarla.';
+
+  @override
+  String get plannerSeries_maxDepth => 'Prof. máx.';
+
+  @override
   String plannerSeries_carriedInto(String dive) {
     return 'Se traslada a $dive';
   }
@@ -21070,6 +21102,25 @@ class AppLocalizationsEs extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Descartar';
 
   @override
+  String plannerSeries_issue_shortInterval(String time) {
+    return 'El intervalo en superficie de $time es inferior a 10 minutos';
+  }
+
+  @override
+  String plannerSeries_issue_startsBefore(String time) {
+    return 'Empieza $time antes de que termine la inmersión anterior';
+  }
+
+  @override
+  String get plannerSeries_issue_owingDeco =>
+      'Empieza con una obligación de descompresión de la inmersión anterior';
+
+  @override
+  String plannerSeries_issue_reverseProfile(String depth, String previous) {
+    return 'Perfil inverso: $depth, más profundo que la inmersión anterior de $previous';
+  }
+
+  @override
   String get plannerSeries_unsaved_titleDive => '¿Guardar esta inmersión?';
 
   @override
@@ -21080,6 +21131,51 @@ class AppLocalizationsEs extends AppLocalizations {
   String plannerSeries_saved_diveCount(int count) {
     return '$count inmersiones';
   }
+
+  @override
+  String get plannerSeries_start => 'Inicio';
+
+  @override
+  String get plannerSeries_start_notSet => 'Sin definir';
+
+  @override
+  String get plannerSeries_start_clear => 'Borrar la hora de inicio';
+
+  @override
+  String get plannerSeries_start_needsFirst =>
+      'Primero da una hora de inicio a la primera inmersión';
+
+  @override
+  String get plannerSeries_start_fixed =>
+      'El intervalo en superficie se deriva de este inicio';
+
+  @override
+  String get plannerSeries_site => 'Sitio';
+
+  @override
+  String get plannerSeries_site_none => 'Sin sitio';
+
+  @override
+  String get plannerSeries_site_clear => 'Borrar el sitio';
+
+  @override
+  String get plannerSeries_scope_series => 'Serie';
+
+  @override
+  String get plannerSeries_scope_seriesHint =>
+      'Las inmersiones siguientes usan estos ajustes salvo que tengan los suyos';
+
+  @override
+  String get plannerSeries_scope_fromSeries => 'De la serie';
+
+  @override
+  String get plannerSeries_scope_thisDive => 'Solo esta inmersión';
+
+  @override
+  String get plannerSeries_scope_reset => 'Restablecer a la serie';
+
+  @override
+  String get plannerSeries_scope_applyAll => 'Aplicar a todas las inmersiones';
 
   @override
   String plannerSeries_fill(String tank) {
@@ -25856,6 +25952,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'Presión inicial fijada a mano';
 
   @override
+  String get settings_conflict_field_fixedStart =>
+      'Hora de inicio fijada a mano';
+
+  @override
+  String get settings_conflict_field_settingOverrides =>
+      'Ajustes solo para esta inmersión';
+
+  @override
   String get settings_conflict_field_startTime => 'Hora de inicio';
 
   @override
@@ -27294,6 +27398,16 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String settings_agentAccess_confirm_merge(String name) {
     return 'Fusionar con $name';
+  }
+
+  @override
+  String settings_agentAccess_confirm_alsoAdds(String kind, int count) {
+    return 'También añade $kind: $count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_alsoChanges(String kind, int count) {
+    return 'También cambia $kind: $count';
   }
 
   @override

@@ -1,3 +1,4 @@
+import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
@@ -17,6 +18,20 @@ PlanOutcome computeOutcomeForState(
     divePlanFromState(state),
     startState: startStateForPlan(state, config: config),
   );
+}
+
+/// Whether an editing [state] starts with a deco obligation left by the dive
+/// before it: its tissues, once off-gassed over the surface interval, still
+/// cannot surface at the plan's high gradient factor.
+bool startsOwingDeco(DivePlanState state, {required PlanEngineConfig config}) {
+  final seed = startStateForPlan(state, config: config);
+  if (seed is! BuhlmannState) return false;
+  final algorithm = BuhlmannAlgorithm(
+    gfLow: (state.gfLow ?? config.gfLow) / 100.0,
+    gfHigh: (state.gfHigh ?? config.gfHigh) / 100.0,
+    environment: environmentForPlan(state),
+  )..setCompartments(seed.compartments);
+  return algorithm.surfaceTargetCeiling() > 0;
 }
 
 /// The tissues an editing [state] starts from: a followed dive's

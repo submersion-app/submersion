@@ -148,6 +148,12 @@ final equipmentPickerShowLeftKitProvider = StateProvider.autoDispose<bool>(
   (ref) => false,
 );
 
+/// Whether the dive gear picker also lists the components of assemblies it
+/// offers (#2514). autoDispose like [equipmentPickerShowLeftKitProvider]:
+/// adding one part on its own is the exception, not the next dive's default.
+final equipmentPickerShowAssemblyPartsProvider =
+    StateProvider.autoDispose<bool>((ref) => false);
+
 /// Equipment filter state provider.
 ///
 /// Holds the status and category axes edited in the equipment filter panel.

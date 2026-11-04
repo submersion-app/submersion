@@ -85,10 +85,19 @@ class RelationDelta {
 
 /// What an update changes: parsed field values, keyed as in the document.
 class RecordUpdate {
-  const RecordUpdate({this.values = const {}, this.relations = const {}});
+  const RecordUpdate({
+    this.values = const {},
+    this.relations = const {},
+    this.soFar = const SetSoFar(),
+  });
 
   final Map<String, Object?> values;
   final Map<String, RelationDelta> relations;
+
+  /// What the changes before this one in the set do, as the plan made it, so
+  /// [WritableEntry.sideEffects] reads other records as the apply will find
+  /// them. Empty at apply, where those changes have already run.
+  final SetSoFar soFar;
 }
 
 /// What an entity is asked to judge before a change is planned.
@@ -139,6 +148,7 @@ class SetSoFar {
     this.deleted = const {},
     this.values = const {},
     this.unlinked = const {},
+    this.created = const {},
   });
 
   /// The records deletes earlier in the set take away, by entity, counting
@@ -151,6 +161,10 @@ class SetSoFar {
   /// The records earlier updates take off a linked record, by the linked
   /// record's entity and id, then by the updated entity.
   final Map<(String, String), Map<String, Set<String>>> unlinked;
+
+  /// The fields of the records creates earlier in the set add, parsed, by
+  /// entity, counting only those the plan keeps.
+  final Map<String, List<Map<String, Object?>>> created;
 }
 
 /// What an update does beyond what it names, through a repository's own
@@ -162,6 +176,7 @@ class SideEffects {
     this.lost = const {},
     this.parts = const {},
     this.detached = const {},
+    this.touched = const {},
   });
 
   /// Document key to the value it will hold, as a document would read.
@@ -183,12 +198,17 @@ class SideEffects {
   /// change in the set reads those links as gone.
   final Map<String, Set<String>> detached;
 
+  /// Rows of other records the update rewrites, by table, such as the dive
+  /// computer a gear item's rename renames.
+  final Map<String, int> touched;
+
   bool get isEmpty =>
       fields.isEmpty &&
       relations.isEmpty &&
       lost.isEmpty &&
       parts.isEmpty &&
-      detached.isEmpty;
+      detached.isEmpty &&
+      touched.isEmpty;
 
   /// The same text for the same effects, to compare a preview with a later
   /// read.
@@ -209,6 +229,7 @@ class SideEffects {
       for (final MapEntry(:key, :value) in detached.entries)
         key: (value.toList()..sort()),
     }),
+    'touched': _sorted(touched),
   });
 }
 
@@ -328,6 +349,19 @@ abstract class WritableEntry {
 
   /// A block when this change may not happen, null when it may.
   Future<PlanBlock?> refuse(WriteCheck check) async => null;
+
+  /// Work the app does after a save of this record, run once the apply has
+  /// committed and outside its transaction, where a scheduled scan can read
+  /// the saved rows: [changed] are the document keys an update of [id]
+  /// changed. A failure here cannot undo the apply, so it is logged.
+  Future<void> afterApply(String id, Set<String> changed) async {}
+
+  /// Rows of other tables a create of [values] for [diverId] adds alongside
+  /// the record, by table, such as the service clocks a gear item gets.
+  Future<Map<String, int>> alsoCreates(
+    String diverId,
+    Map<String, Object?> values,
+  ) async => const {};
 
   /// What this change claims that no other record of its owner may hold, such
   /// as a tag's name as the name index keys it, or null when it claims

@@ -227,4 +227,15 @@ void main() {
     );
     expect(isGearActive(wish), isFalse);
   });
+
+  test('isGearActive refuses a sold row left flagged active', () {
+    // Older rows can be sold with isActive still true (EquipmentItem.isFitted).
+    const sold = EquipmentItem(
+      id: 's',
+      name: 's',
+      type: EquipmentType.hose,
+      status: EquipmentStatus.sold,
+    );
+    expect(isGearActive(sold), isFalse);
+  });
 }

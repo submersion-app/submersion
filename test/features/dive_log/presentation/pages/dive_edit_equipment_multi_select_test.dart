@@ -124,6 +124,20 @@ void main() {
     matching: find.text(text),
   );
 
+  testWidgets('the picker leaves out components of offered assemblies', (
+    tester,
+  ) async {
+    // Issue #2514: picking an assembly brings its parts, so the dive
+    // editor asks the sheet to keep them behind a switch.
+    await openPicker(tester);
+    expect(
+      tester
+          .widget<EquipmentPickerSheet>(find.byType(EquipmentPickerSheet))
+          .hideAssemblyParts,
+      isTrue,
+    );
+  });
+
   testWidgets('every ticked item joins the dive gear when Add is pressed', (
     tester,
   ) async {

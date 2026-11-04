@@ -10,9 +10,11 @@ import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/presentation/mission/mission_team_section.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/planner_layout_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/ccr_settings_section.dart';
 import 'package:submersion/features/planner/presentation/widgets/contingency_settings_section.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_setting_scope.dart';
 import 'package:submersion/features/planner/presentation/widgets/pscr_settings_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -133,9 +135,22 @@ class _PlanSetupAccordionState extends ConsumerState<PlanSetupAccordion> {
                     expanded;
               },
               title: Text(title, style: Theme.of(context).textTheme.titleSmall),
+              // In a series, whose settings these are (issue #3565). Null,
+              // not empty, elsewhere: any subtitle lays the header out at
+              // two-line height.
+              subtitle: switch (settingGroupForSection(key)) {
+                final group?
+                    when ref.watch(settingScopeProvider(group)) != null =>
+                  PlanSettingScopeLabel(group),
+                _ => null,
+              },
               tilePadding: const EdgeInsets.symmetric(horizontal: 12),
               childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-              children: [child],
+              children: [
+                if (settingGroupForSection(key) case final group?)
+                  PlanSettingScopeActions(group),
+                child,
+              ],
             ),
           ),
       ],

@@ -4585,6 +4585,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             scrollController: scrollController,
             selectedEquipmentIds: _selectedEquipment.map((e) => e.id).toSet(),
             hideSpare: true,
+            hideAssemblyParts: true,
             // A dive logged after the fact may have used gear since retired
             // or sold (#3210).
             offerLeftKit: true,
@@ -4751,6 +4752,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           scrollController: scrollController,
           selectedEquipmentIds: _equipmentMembers.map((e) => e.id).toSet(),
           hideSpare: true,
+          hideAssemblyParts: true,
           offerLeftKit: true,
           onEquipmentConfirmed: (items) {
             setState(() {

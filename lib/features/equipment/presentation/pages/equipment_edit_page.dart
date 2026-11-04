@@ -36,7 +36,7 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_cus
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
-import 'package:submersion/features/equipment/presentation/widgets/children_card.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_fitting.dart';
 import 'package:submersion/features/equipment/data/services/equipment_clone_service.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_clone_seed.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_clone_providers.dart';
@@ -347,7 +347,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     // check.
     final items = ref.read(activeEquipmentProvider).valueOrNull;
     if (items == null) return id;
-    final allowed = _parentTypesFor(type);
+    final allowed = parentTypesFor(type);
     return items.any((e) => e.id == id && allowed.contains(e.type)) ? id : null;
   }
 
@@ -371,19 +371,8 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         !await ref.read(equipmentRepositoryProvider).isVisibleTo(id, diverId)) {
       return null;
     }
-    return _parentTypesFor(type).contains(parent.type) ? id : null;
+    return parentTypesFor(type).contains(parent.type) ? id : null;
   }
-
-  /// Which item types can hold a child of [type]. Empty means the type is
-  /// not a child type and the picker is hidden.
-  static Set<EquipmentType> _parentTypesFor(EquipmentType type) =>
-      switch (type) {
-        EquipmentType.o2Cell => const {EquipmentType.rebreather},
-        // The detail page's host set, so a battery is only ever installed
-        // where its host's Children card will show it.
-        EquipmentType.battery => childHostTypes,
-        _ => const {},
-      };
 
   @override
   Widget build(BuildContext context) {
@@ -539,7 +528,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
 
           // Parent item, for the child types only (v202). Wishlist gear
           // (#2025) cannot be fitted into anything yet.
-          if (!_isWanted && _parentTypesFor(_selectedType).isNotEmpty) ...[
+          if (!_isWanted && parentTypesFor(_selectedType).isNotEmpty) ...[
             Builder(
               builder: (context) {
                 final candidates =
@@ -548,7 +537,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
                         .where(
                           (e) =>
                               e.id != widget.equipmentId &&
-                              _parentTypesFor(_selectedType).contains(e.type),
+                              parentTypesFor(_selectedType).contains(e.type),
                         )
                         .toList();
                 final known = candidates.any((e) => e.id == _parentEquipmentId);
@@ -1244,7 +1233,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             ? null
             : _serialController.text.trim(),
         purchaseDate: _purchaseDate,
-        parentEquipmentId: _parentTypesFor(_selectedType).isEmpty
+        parentEquipmentId: parentTypesFor(_selectedType).isEmpty
             ? null
             : await _parentIdToSave(_selectedType, diverId),
         // Blank means "no price"; anything unreadable was already stopped by

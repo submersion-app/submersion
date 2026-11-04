@@ -7,6 +7,7 @@ import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -38,8 +39,14 @@ import 'package:submersion/features/planner/presentation/widgets/plan_unsaved_di
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_store.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_follow_prompt.dart';
-import 'package:submersion/features/planner/presentation/widgets/plan_logged_dive_view.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_logged_dive_providers.dart';
+import 'package:submersion/features/planner/presentation/widgets/logged/logged_dive_chart.dart';
+import 'package:submersion/features/planner/presentation/widgets/logged/logged_dive_details_card.dart';
+import 'package:submersion/features/planner/presentation/widgets/logged/logged_dive_results.dart';
+import 'package:submersion/features/planner/presentation/widgets/logged/logged_dive_status_chips.dart';
+import 'package:submersion/features/planner/presentation/widgets/logged/logged_dive_tanks_card.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_series_navigator.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_series_shortcuts.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_dive_details_card.dart';
 import 'package:submersion/features/planner/presentation/widgets/saved_plans_sheet.dart';
@@ -48,6 +55,7 @@ import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 
+part 'plan_canvas_layouts.dart';
 part 'plan_canvas_series_flows.dart';
 
 /// Whether [id] refers to a plan that already exists in the store. Drives the
@@ -76,9 +84,10 @@ class PlanCanvasPage extends ConsumerStatefulWidget {
 }
 
 class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
-    with _PlanCanvasSeriesFlows {
+    with _PlanCanvasSeriesFlows, _PlanCanvasLayouts {
   /// Owns the always-visible results pane so it is created once (not per
   /// build) and disposed with the page. Shared by the phone Results tab.
+  @override
   final _wideResultsController = ScrollController();
 
   @override
@@ -319,12 +328,14 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
             );
           }
         },
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final width = constraints.maxWidth;
-            if (width >= 760) return _buildDesktop(fullWidth: width >= 1160);
-            return _buildPhone(constraints);
-          },
+        child: PlanSeriesShortcuts(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final width = constraints.maxWidth;
+              if (width >= 760) return _buildDesktop(fullWidth: width >= 1160);
+              return _buildPhone(constraints);
+            },
+          ),
         ),
       ),
     );
@@ -482,282 +493,6 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
       ref.read(editorPaneCollapsedProvider.notifier).state = false;
     }
     ref.read(setupFocusSectionProvider.notifier).state = section;
-  }
-
-  // --- Layout modes ---
-
-  /// Desktop: the editor pane is always visible (collapsible, never hidden
-  /// behind a drawer). At full width the results pane shows by default; at
-  /// middle widths it defaults to hidden and the right chevron reveals it.
-  Widget _buildDesktop({required bool fullWidth}) {
-    // A logged dive picked in the series bar is shown read-only in place of
-    // the planner, under the same bar.
-    if (ref.watch(viewedLoggedDiveProvider) != null) {
-      return const Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.fromLTRB(4, 4, 4, 0),
-            child: PlanSeriesNavigator(),
-          ),
-          Expanded(child: PlanLoggedDiveView()),
-        ],
-      );
-    }
-    final editorCollapsed = ref.watch(editorPaneCollapsedProvider);
-    final resultsVisible = fullWidth
-        ? !ref.watch(resultsPaneCollapsedProvider)
-        : ref.watch(resultsPaneNarrowExpandedProvider);
-
-    void toggleResults() {
-      if (fullWidth) {
-        ref.read(resultsPaneCollapsedProvider.notifier).update((v) => !v);
-      } else {
-        ref.read(resultsPaneNarrowExpandedProvider.notifier).update((v) => !v);
-      }
-    }
-
-    return Row(
-      children: [
-        if (!editorCollapsed) ...[
-          const SizedBox(width: 320, child: PlanEditorPane()),
-          const VerticalDivider(width: 1),
-        ],
-        Expanded(
-          child: _chartColumn(
-            editorCollapsed: editorCollapsed,
-            onToggleEditor: () => ref
-                .read(editorPaneCollapsedProvider.notifier)
-                .update((v) => !v),
-            resultsVisible: resultsVisible,
-            onToggleResults: toggleResults,
-          ),
-        ),
-        if (resultsVisible) ...[
-          const VerticalDivider(width: 1),
-          SizedBox(
-            width: 320,
-            child: PlanResultsPane(controller: _wideResultsController),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _chartColumn({
-    required bool editorCollapsed,
-    required VoidCallback onToggleEditor,
-    required bool resultsVisible,
-    required VoidCallback onToggleResults,
-  }) {
-    return Column(
-      children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(4, 4, 4, 0),
-          child: PlanSeriesNavigator(),
-        ),
-        const PlanFollowPrompt(),
-        Expanded(
-          child: Stack(
-            children: [
-              const Positioned.fill(
-                child: Padding(
-                  padding: EdgeInsets.all(12),
-                  child: PlanProfileChart(),
-                ),
-              ),
-              Positioned(
-                left: 4,
-                top: 4,
-                child: IconButton(
-                  tooltip: editorCollapsed
-                      ? context.l10n.plannerCanvas_pane_expand
-                      : context.l10n.plannerCanvas_pane_collapse,
-                  icon: Icon(
-                    editorCollapsed ? Icons.chevron_right : Icons.chevron_left,
-                  ),
-                  onPressed: onToggleEditor,
-                ),
-              ),
-              Positioned(
-                right: 4,
-                top: 4,
-                child: IconButton(
-                  tooltip: resultsVisible
-                      ? context.l10n.plannerCanvas_pane_collapse
-                      : context.l10n.plannerCanvas_pane_expand,
-                  icon: Icon(
-                    resultsVisible ? Icons.chevron_right : Icons.chevron_left,
-                  ),
-                  onPressed: onToggleResults,
-                ),
-              ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: PlanStatusChips(onIssuesTap: _scrollWideToIssues),
-        ),
-        const Padding(
-          padding: EdgeInsets.fromLTRB(16, 6, 16, 8),
-          child: Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [ContingencyChips(), ChartModeToggle()],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPhone(BoxConstraints constraints) {
-    final tab = ref.watch(plannerPhoneTabProvider);
-    // Tanks first: the gas is chosen before the profile that breathes it, and
-    // the deck's default index of 0 therefore opens on Tanks. Setup and
-    // Results keep indices 2 and 3, which _focusSetup and the issues chip
-    // write directly.
-    final tabs = [
-      context.l10n.divePlanner_label_tanks,
-      context.l10n.divePlanner_tab_plan,
-      context.l10n.plannerCanvas_tab_setup,
-      context.l10n.divePlanner_tab_results,
-    ];
-    // 30% of the body, clamped so the chart neither vanishes on short
-    // viewports nor dominates tall ones; the deck gets everything else.
-    final chartHeight = (constraints.maxHeight * 0.30)
-        .clamp(160.0, 260.0)
-        .toDouble();
-    // A single CustomScrollView so the chart and tab selector scroll away
-    // with the rest of the page instead of staying pinned and eating the
-    // viewport (#1428).
-    if (ref.watch(viewedLoggedDiveProvider) != null) {
-      return CustomScrollView(
-        slivers: [
-          const SliverToBoxAdapter(child: PlanSeriesNavigator()),
-          SliverToBoxAdapter(
-            child: PlanLoggedDiveView(chartHeight: chartHeight),
-          ),
-        ],
-      );
-    }
-    return CustomScrollView(
-      slivers: [
-        const SliverToBoxAdapter(child: PlanSeriesNavigator()),
-        const SliverToBoxAdapter(child: PlanFollowPrompt()),
-        SliverToBoxAdapter(
-          child: SizedBox(
-            height: chartHeight,
-            child: Stack(
-              children: [
-                const Positioned.fill(
-                  child: Padding(
-                    padding: EdgeInsets.all(8),
-                    child: PlanProfileChart(),
-                  ),
-                ),
-                PlanChartReadouts(
-                  onIssuesTap: () =>
-                      ref.read(plannerPhoneTabProvider.notifier).state = 3,
-                ),
-                const Positioned(
-                  left: 8,
-                  right: 56,
-                  bottom: 8,
-                  child: Align(
-                    alignment: Alignment.bottomLeft,
-                    // Both chip groups scroll together, not just
-                    // ContingencyChips' own inner scroll view: nested inside
-                    // a plain Row here, that inner view took its full
-                    // natural width instead of yielding to the Bailout/CCR
-                    // chips, overflowing this bar on a narrow phone (the
-                    // combined width of every chip no longer fits #3130).
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ContingencyChips(overlay: true),
-                          SizedBox(width: 6),
-                          ChartModeToggle(),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  right: 10,
-                  bottom: 10,
-                  child: IconButton.filledTonal(
-                    icon: const Icon(Icons.open_in_full, size: 18),
-                    // PUSH (not go): back returns to this canvas with its
-                    // state on the stack, instead of closing the app (#647).
-                    onPressed: () =>
-                        context.push('/planning/dive-planner/chart'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SliverToBoxAdapter(child: SizedBox(height: 8)),
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: SegmentedButton<int>(
-              segments: [
-                for (var i = 0; i < tabs.length; i++)
-                  ButtonSegment(value: i, label: Text(tabs[i])),
-              ],
-              selected: {tab},
-              showSelectedIcon: false,
-              onSelectionChanged: (selection) =>
-                  ref.read(plannerPhoneTabProvider.notifier).state =
-                      selection.first,
-            ),
-          ),
-        ),
-        const SliverToBoxAdapter(child: SizedBox(height: 8)),
-        SliverToBoxAdapter(child: _phoneTabBody(tab)),
-      ],
-    );
-  }
-
-  Widget _phoneTabBody(int tab) {
-    switch (tab) {
-      case 0:
-        return const Padding(
-          padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
-          child: Column(children: [PlanDiveDetailsCard(), PlanTankList()]),
-        );
-      case 1:
-        return const Padding(
-          padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
-          child: SegmentList(),
-        );
-      case 2:
-        return const Padding(
-          padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
-          child: PlanSetupAccordion(),
-        );
-      case 3:
-      default:
-        return PlanResultsPane(
-          controller: _wideResultsController,
-          shrinkWrap: true,
-        );
-    }
-  }
-
-  /// The results pane is always visible outside phone mode; scroll it to the
-  /// issues section (the last one) when the issues chip is tapped.
-  void _scrollWideToIssues() {
-    if (!_wideResultsController.hasClients) return;
-    _wideResultsController.animateTo(
-      _wideResultsController.position.maxScrollExtent,
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeOut,
-    );
   }
 
   // --- Actions ---

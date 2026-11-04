@@ -1371,6 +1371,7 @@
   "accessibility_shortcutCategory_editing": "Editing",
   "accessibility_shortcutCategory_general": "General",
   "accessibility_shortcutCategory_help": "Help",
+  "accessibility_shortcutCategory_planner": "Planner",
   "accessibility_shortcutCategory_navigation": "Navigation",
   "accessibility_shortcutCategory_search": "Search",
   "accessibility_shortcut_closeCancel": "Close / Cancel",
@@ -1381,6 +1382,8 @@
   "accessibility_shortcut_goToSites": "Go to Sites",
   "accessibility_shortcut_goToInsights": "Go to Insights",
   "accessibility_shortcut_keyboardShortcuts": "Keyboard shortcuts",
+  "accessibility_shortcut_previousPlannedDive": "Previous planned dive",
+  "accessibility_shortcut_nextPlannedDive": "Next planned dive",
   "accessibility_shortcut_newDive": "New dive",
   "accessibility_shortcut_openSettings": "Open settings",
   "accessibility_shortcut_searchDives": "Search dives",
@@ -5095,10 +5098,12 @@
   "diveLog_empty_title": "No dives logged yet",
   "diveLog_equipmentPicker_addFromTab": "Add equipment from the Equipment tab",
   "diveLog_equipmentPicker_allSelected": "All equipment already selected",
+  "diveLog_equipmentPicker_allAssemblyParts": "Remaining gear is part of an assembly",
   "diveLog_equipmentPicker_allSpare": "Remaining gear is marked Spare",
   "diveLog_equipmentPicker_errorLoading": "Error loading equipment: {error}",
   "diveLog_equipmentPicker_noEquipment": "No equipment yet",
   "diveLog_equipmentPicker_removeToAdd": "Remove items to add different ones",
+  "diveLog_equipmentPicker_showAssemblyParts": "Show components of assemblies",
   "diveLog_equipmentPicker_showLeftKit": "Show retired and sold gear",
   "diveLog_equipmentPicker_spareHint": "Set an item's status to Active to add it to a dive",
   "diveLog_equipmentPicker_title": "Add Equipment",
@@ -13128,6 +13133,10 @@
   },
   "plannerSeries_openInLog": "Open in dive log",
   "plannerSeries_stopFollowing": "Stop following",
+  "plannerSeries_compareWithPlan": "Compare with its plan",
+  "plannerSeries_asPlanned": "As planned",
+  "plannerSeries_loggedNotPlanned": "This dive is in your log and wasn't planned here. Open it in the dive log to change it.",
+  "plannerSeries_maxDepth": "Max depth",
   "plannerSeries_carriedInto": "Carried into {dive}",
   "@plannerSeries_carriedInto": {
     "description": "Heading over what a logged dive passes on to the dive after it",
@@ -13179,6 +13188,34 @@
   "plannerSeries_unsaved_title": "Save this series?",
   "plannerSeries_unsaved_body": "This series has changes that haven't been saved.",
   "plannerSeries_unsaved_discard": "Discard",
+  "plannerSeries_issue_shortInterval": "Surface interval of {time} is under 10 minutes",
+  "@plannerSeries_issue_shortInterval": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerSeries_issue_startsBefore": "Starts {time} before the previous dive ends",
+  "@plannerSeries_issue_startsBefore": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerSeries_issue_owingDeco": "Starts with a deco obligation from the dive before",
+  "plannerSeries_issue_reverseProfile": "Reverse profile: {depth}, deeper than the {previous} dive before",
+  "@plannerSeries_issue_reverseProfile": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      },
+      "previous": {
+        "type": "String"
+      }
+    }
+  },
   "plannerSeries_unsaved_titleDive": "Save this dive?",
   "plannerSeries_unsaved_bodyDive": "This dive has changes that haven't been saved.",
   "plannerSeries_saved_diveCount": "{count} dives",
@@ -13190,6 +13227,20 @@
       }
     }
   },
+  "plannerSeries_start": "Start",
+  "plannerSeries_start_notSet": "Not set",
+  "plannerSeries_start_clear": "Clear the start time",
+  "plannerSeries_start_needsFirst": "Give the first dive a start time first",
+  "plannerSeries_start_fixed": "The surface interval follows from this start",
+  "plannerSeries_site": "Site",
+  "plannerSeries_site_none": "No site",
+  "plannerSeries_site_clear": "Clear the site",
+  "plannerSeries_scope_series": "Series",
+  "plannerSeries_scope_seriesHint": "Dives after this one take these settings unless they set their own",
+  "plannerSeries_scope_fromSeries": "From the series",
+  "plannerSeries_scope_thisDive": "This dive only",
+  "plannerSeries_scope_reset": "Reset to series",
+  "plannerSeries_scope_applyAll": "Apply to all dives",
   "plannerSeries_fill": "Fill {tank}",
   "@plannerSeries_fill": {
     "description": "The tank's name or gas, such as EAN32",
@@ -15197,6 +15248,8 @@
   "settings_conflict_field_startDateTime": "Planned start",
   "settings_conflict_field_startDepth": "Start depth",
   "settings_conflict_field_startPressurePinned": "Start pressure set by hand",
+  "settings_conflict_field_fixedStart": "Start time set by hand",
+  "settings_conflict_field_settingOverrides": "Settings for this dive only",
   "settings_conflict_field_startTime": "Start time",
   "settings_conflict_field_startTimestamp": "Starts at (time into dive)",
   "settings_conflict_field_startedAt": "Started",
@@ -15766,6 +15819,10 @@
   "@settings_agentAccess_confirm_alsoUnlinks": {"placeholders": {"kind": {"type": "String"}, "count": {"type": "int"}}},
   "settings_agentAccess_confirm_merge": "Merge into {name}",
   "@settings_agentAccess_confirm_merge": {"placeholders": {"name": {"type": "String"}}},
+  "settings_agentAccess_confirm_alsoAdds": "Also adds {kind}: {count}",
+  "@settings_agentAccess_confirm_alsoAdds": {"placeholders": {"kind": {"type": "String"}, "count": {"type": "int"}}},
+  "settings_agentAccess_confirm_alsoChanges": "Also changes {kind}: {count}",
+  "@settings_agentAccess_confirm_alsoChanges": {"placeholders": {"kind": {"type": "String"}, "count": {"type": "int"}}},
   "settings_agentAccess_confirm_moves": "Moves {kind}: {count}",
   "@settings_agentAccess_confirm_moves": {"placeholders": {"kind": {"type": "String"}, "count": {"type": "int"}}},
   "settings_agentAccess_confirm_title": "Allow this change?",

@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
+import 'package:submersion/features/planner/domain/entities/plan_setting_group.dart';
 import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 
 /// The surface interval a dive gets when it is added to a series.
@@ -28,11 +29,24 @@ class PlanSeriesDive extends Equatable {
   /// name is the whole plan's.
   final String? name;
 
+  /// Whether the diver set this dive's start time
+  /// ([DivePlanState.startDateTime]), so its surface interval is measured
+  /// from it. Otherwise the interval leads and the start follows from it.
+  /// A first dive that follows no logged dive has no interval: its start is
+  /// whatever the diver gave it.
+  final bool fixedStart;
+
+  /// The setting groups this dive keeps its own values for, rather than the
+  /// series' (the first dive's). Always empty on the first dive.
+  final Set<PlanSettingGroup> settingOverrides;
+
   const PlanSeriesDive({
     required this.state,
     this.sourceTankIds = const {},
     this.pinnedTankIds = const {},
     this.name,
+    this.fixedStart = false,
+    this.settingOverrides = const {},
   });
 
   PlanSeriesDive copyWith({
@@ -41,17 +55,28 @@ class PlanSeriesDive extends Equatable {
     Set<String>? pinnedTankIds,
     String? name,
     bool clearName = false,
+    bool? fixedStart,
+    Set<PlanSettingGroup>? settingOverrides,
   }) {
     return PlanSeriesDive(
       state: state ?? this.state,
       sourceTankIds: sourceTankIds ?? this.sourceTankIds,
       pinnedTankIds: pinnedTankIds ?? this.pinnedTankIds,
       name: clearName ? null : (name ?? this.name),
+      fixedStart: fixedStart ?? this.fixedStart,
+      settingOverrides: settingOverrides ?? this.settingOverrides,
     );
   }
 
   @override
-  List<Object?> get props => [state, sourceTankIds, pinnedTankIds, name];
+  List<Object?> get props => [
+    state,
+    sourceTankIds,
+    pinnedTankIds,
+    name,
+    fixedStart,
+    settingOverrides,
+  ];
 }
 
 /// An ordered series of planned dives and the one being edited, and the

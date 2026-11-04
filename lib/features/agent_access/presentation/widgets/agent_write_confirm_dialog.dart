@@ -111,6 +111,20 @@ class AgentWriteConfirmDialog extends ConsumerWidget {
                     value,
                   ),
                 ),
+              for (final MapEntry(:key, :value) in _alsoAdded.entries)
+                Text(
+                  l.settings_agentAccess_confirm_alsoAdds(
+                    changeLogTableLabel(l, key),
+                    value,
+                  ),
+                ),
+              for (final MapEntry(:key, :value) in _alsoChanged.entries)
+                Text(
+                  l.settings_agentAccess_confirm_alsoChanges(
+                    changeLogTableLabel(l, key),
+                    value,
+                  ),
+                ),
               ExpansionTile(
                 key: detailsKey,
                 tilePadding: EdgeInsets.zero,
@@ -153,10 +167,19 @@ class AgentWriteConfirmDialog extends ConsumerWidget {
   /// Links the plan's merges move to the records they merge into, by table.
   Map<String, int> get _moved => _sum((reach) => reach.moved);
 
-  Map<String, int> _sum(Map<String, int> Function(DeleteReach) counted) {
+  /// Rows the plan's creates add alongside their records, by table.
+  Map<String, int> get _alsoAdded => _sumItems((item) => item.alsoCreates);
+
+  /// Rows of other records the plan's updates rewrite, by table.
+  Map<String, int> get _alsoChanged => _sumItems((item) => item.alsoChanges);
+
+  Map<String, int> _sum(Map<String, int> Function(DeleteReach) counted) =>
+      _sumItems((item) => counted(item.reach));
+
+  Map<String, int> _sumItems(Map<String, int> Function(PlanItem) counted) {
     final counts = <String, int>{};
     for (final item in request.items) {
-      for (final MapEntry(:key, :value) in counted(item.reach).entries) {
+      for (final MapEntry(:key, :value) in counted(item).entries) {
         counts.update(key, (n) => n + value, ifAbsent: () => value);
       }
     }
@@ -275,6 +298,22 @@ class _PlanItemRow extends StatelessWidget {
           for (final MapEntry(:key, :value) in item.reach.moved.entries)
             Text(
               l.settings_agentAccess_confirm_moves(
+                changeLogTableLabel(l, key),
+                value,
+              ),
+              style: theme.textTheme.bodySmall,
+            ),
+          for (final MapEntry(:key, :value) in item.alsoCreates.entries)
+            Text(
+              l.settings_agentAccess_confirm_alsoAdds(
+                changeLogTableLabel(l, key),
+                value,
+              ),
+              style: theme.textTheme.bodySmall,
+            ),
+          for (final MapEntry(:key, :value) in item.alsoChanges.entries)
+            Text(
+              l.settings_agentAccess_confirm_alsoChanges(
                 changeLogTableLabel(l, key),
                 value,
               ),

@@ -197,6 +197,38 @@ void main() {
     expect(restored.deviationTimeMinutes, isNull);
   });
 
+  group('start time', () {
+    test('travels as its clock digits and comes back the same', () {
+      final start = DateTime.utc(2026, 11, 3, 9, 30);
+      final json = planToSubplanJson(_plan().copyWith(startDateTime: start));
+
+      expect(
+        ((jsonDecode(json) as Map)['plan'] as Map)['startDateTime'],
+        '2026-11-03T09:30:00.000',
+      );
+      expect(subplanFromJson(json).startDateTime, start);
+      // Still the single-plan versions: an older install opens it.
+      expect((jsonDecode(json) as Map)['version'], lessThan(4));
+    });
+
+    test('a plan without one writes none and reads none', () {
+      final json = planToSubplanJson(_plan());
+
+      expect(
+        (jsonDecode(json) as Map)['plan'],
+        isNot(contains('startDateTime')),
+      );
+      expect(subplanFromJson(json).startDateTime, isNull);
+    });
+
+    test('an unreadable start is dropped, not a failed import', () {
+      final file = jsonDecode(planToSubplanJson(_plan())) as Map;
+      (file['plan'] as Map)['startDateTime'] = 'soon';
+
+      expect(subplanFromJson(jsonEncode(file)).startDateTime, isNull);
+    });
+  });
+
   test('foreign or future files are rejected', () {
     expect(() => subplanFromJson('not json'), throwsFormatException);
     expect(

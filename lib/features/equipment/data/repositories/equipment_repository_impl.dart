@@ -688,12 +688,18 @@ class EquipmentRepository {
   /// equipment_id cleared and an HLC stamp -- which a silent FK SET NULL
   /// never produces, so without this the unlink would not propagate to the
   /// diver's other devices.
-  Future<void> _cascadeMediaForEquipmentDeletion(List<String> ids) async {
+  Future<void> _cascadeMediaForEquipmentDeletion(
+    List<String> ids, {
+    bool holdRemoteMedia = false,
+  }) async {
     final split = await _mediaRepository.partitionMediaForEquipmentDeletion(
       ids,
     );
     if (split.doomed.isNotEmpty) {
-      await _mediaDeletionCoordinator.deleteMediaItems(split.doomed);
+      await _mediaDeletionCoordinator.deleteMediaItems(
+        split.doomed,
+        holdRemoteDelete: holdRemoteMedia,
+      );
     }
     if (split.unlinkIds.isNotEmpty) {
       await _mediaRepository.unlinkMediaFromDeletedEquipment(split.unlinkIds);
@@ -723,20 +729,29 @@ class EquipmentRepository {
   /// cascade-deleted by SQLite, but cascades emit no deletion-log entries, so
   /// each is tombstoned explicitly (mirrors EquipmentSetRepository.deleteSet).
   /// Cylinders linked to the item are cleared and staged for sync.
-  Future<void> deleteEquipment(String id) => ChangeLogScope.bulk(
-    DatabaseService.instance.databaseOrNull,
-    label: ChangeLogLabels.deletedRecord,
-    body: () => _deleteEquipmentInner(id),
-  );
+  ///
+  /// [holdRemoteMedia] leaves the media's remote blobs alone for now, for a
+  /// delete that can still go back.
+  Future<void> deleteEquipment(String id, {bool holdRemoteMedia = false}) =>
+      ChangeLogScope.bulk(
+        DatabaseService.instance.databaseOrNull,
+        label: ChangeLogLabels.deletedRecord,
+        body: () => _deleteEquipmentInner(id, holdRemoteMedia: holdRemoteMedia),
+      );
 
-  Future<void> _deleteEquipmentInner(String id) async {
+  Future<void> _deleteEquipmentInner(
+    String id, {
+    required bool holdRemoteMedia,
+  }) async {
     try {
       _log.info('Deleting equipment: $id');
       // Attachments first, outside the transaction: the coordinator's queue
       // writes live in another database, so no cross-DB transaction exists
       // and every step is individually idempotent/tombstoned. Same shape and
       // same reasoning as SiteRepository's media cascade.
-      await _cascadeMediaForEquipmentDeletion([id]);
+      await _cascadeMediaForEquipmentDeletion([
+        id,
+      ], holdRemoteMedia: holdRemoteMedia);
       // One delete for a device and its item (issue #3676): the dive
       // computer or transmitter rows behind it go first, each through its
       // own repository so it is tombstoned and its dives are kept.
@@ -851,10 +866,11 @@ class EquipmentRepository {
   Future<bool> deleteOwnedEquipment(
     String id, {
     required String? actingDiverId,
+    bool holdRemoteMedia = false,
   }) async {
     final item = await getEquipmentById(id);
     if (item != null && !canDeleteEquipment(item, actingDiverId)) return false;
-    await deleteEquipment(id);
+    await deleteEquipment(id, holdRemoteMedia: holdRemoteMedia);
     return true;
   }
 

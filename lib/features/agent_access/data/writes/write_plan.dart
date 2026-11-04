@@ -43,6 +43,8 @@ class PlanItem {
     this.reach = const DeleteReach(),
     this.mergeInto,
     this.mergeTitle,
+    this.alsoCreates = const {},
+    this.alsoChanges = const {},
     this.block,
   });
 
@@ -97,6 +99,12 @@ class PlanItem {
   /// what the diver knows it by.
   final String? mergeInto;
   final String? mergeTitle;
+
+  /// Rows of other tables a create adds alongside its record, by table.
+  final Map<String, int> alsoCreates;
+
+  /// Rows of other records an update rewrites, by table.
+  final Map<String, int> alsoChanges;
   final PlanBlock? block;
 
   Map<String, Object?> toJson() => {
@@ -109,6 +117,8 @@ class PlanItem {
     'title': ?title,
     'merge_into': ?mergeInto,
     'merge_title': ?mergeTitle,
+    if (alsoCreates.isNotEmpty) 'also_creates': alsoCreates,
+    if (alsoChanges.isNotEmpty) 'also_changes': alsoChanges,
     if (fields.isNotEmpty)
       'fields': {
         for (final MapEntry(:key, :value) in fields.entries)
