@@ -212,9 +212,7 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
             _ContextRow(
               icon: Icons.propane_tank_outlined,
               text: context.l10n.dataQuality_dive_tanks(
-                widget.tanks
-                    .map((t) => qualityTankLabel(context.l10n, t))
-                    .join(', '),
+                qualityTanksLabel(context.l10n, widget.tanks),
               ),
             ),
           // Some findings are a judgment call the app must not make for the
@@ -258,11 +256,25 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
 }
 
 /// A tank as the dive's own screens number it ("Tank 2"), with the diver's
-/// name for it when there is one ("Tank 2 · Stage").
+/// name for it when there is one ("Tank 2 · Stage"), the separator the
+/// dive headers above the cards use too.
 String qualityTankLabel(AppLocalizations l10n, QualityTankRef tank) {
   final number = l10n.diveLog_tank_title(tank.number);
   final name = tank.name;
   return name == null ? number : '$number · $name';
+}
+
+/// The tanks of one finding: one tank, or the pair of a twin-tank finding
+/// joined the way the locale joins two items ("Tank 1 and Tank 2").
+String qualityTanksLabel(AppLocalizations l10n, List<QualityTankRef> tanks) {
+  final labels = [for (final t in tanks) qualityTankLabel(l10n, t)];
+  return switch (labels) {
+    [final first, final second] => l10n.dataQuality_dive_tankPair(
+      first,
+      second,
+    ),
+    _ => labels.join(', '),
+  };
 }
 
 /// A quiet, icon-led line of context under a finding's message: which dive it

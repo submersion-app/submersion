@@ -70,12 +70,15 @@ void main() {
       await seedSource('b', computerId: 'unnamed', computerModel: 'EON');
       await seedSource('c', computerModel: 'Perdix 2');
       await seedSource('d');
+      await seedComputer('maker', manufacturer: 'Shearwater');
+      await seedSource('e', computerId: 'maker', computerModel: 'Perdix 2');
 
       final labels = await query.watchSourceLabels([
         'a',
         'b',
         'c',
         'd',
+        'e',
         'missing',
       ]).first;
 
@@ -83,6 +86,8 @@ void main() {
         'a': 'My Perdix',
         'b': 'Suunto EON Core',
         'c': 'Perdix 2',
+        // As DiveComputer.displayName names a computer with a maker alone.
+        'e': 'Shearwater',
       });
     });
 
@@ -141,6 +146,27 @@ void main() {
         'deco': const QualityTankRef(number: 3),
         'other': const QualityTankRef(number: 1),
       });
+    });
+
+    // The dive's screens sort by tank order alone, leaving equal orders in
+    // table order; an id tie-break would number them differently.
+    test('equal tank orders keep the order the tanks were stored in', () async {
+      await DiveRepository().createDive(
+        domain.Dive(
+          id: 'd1',
+          dateTime: entry,
+          entryTime: entry,
+          tanks: const [
+            domain.DiveTank(id: 'zz-first', order: 0),
+            domain.DiveTank(id: 'aa-second', order: 0),
+          ],
+        ),
+      );
+
+      final tanks = await query.watchTanks(['aa-second', 'zz-first']).first;
+
+      expect(tanks['zz-first']!.number, 1);
+      expect(tanks['aa-second']!.number, 2);
     });
 
     test('an empty id list reads nothing', () async {

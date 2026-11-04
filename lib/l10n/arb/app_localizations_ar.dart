@@ -42638,6 +42638,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String dataQuality_dive_tankPair(String first, String second) {
+    return '$first و$second';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => 'مراجعة جودة البيانات';
 
   @override

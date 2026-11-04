@@ -18,8 +18,12 @@ class GasModDetector extends QualityDetector {
 
   @override
   String get id => 'gas_mod';
+
+  /// 4: the ppO2 and hypoxic findings record `hePercent`, so their message
+  /// names a trimix as such (issue #4209). Findings stored by version 3 lack
+  /// it; the bump raises the rescan banner that rewrites them.
   @override
-  int get version => 3;
+  int get version => 4;
   @override
   QualityCategory get category => QualityCategory.gas;
 
@@ -56,14 +60,11 @@ class GasModDetector extends QualityDetector {
       return active.gasMix;
     }
 
-    double fo2At(int t) => mixAt(t).o2 / 100.0;
-
     // Sustained ppO2 above limits.
     int? runStart;
     var peak = 0.0;
     double? depthAtPeak;
-    var runFo2 = 0.0;
-    var runHe = 0.0;
+    var runMix = const domain.GasMix(o2: 0);
     var lastT = 0;
     void closePpo2Run() {
       if (runStart != null &&
@@ -77,8 +78,8 @@ class GasModDetector extends QualityDetector {
                 : QualitySeverity.warning,
             params: {
               'peakPpO2': peak,
-              'o2Percent': runFo2 * 100,
-              'hePercent': runHe,
+              'o2Percent': runMix.o2,
+              'hePercent': runMix.he,
               'depthAtPeak': depthAtPeak,
               'startSeconds': runStart,
               'durationSeconds': lastT - runStart!,
@@ -91,15 +92,14 @@ class GasModDetector extends QualityDetector {
     }
 
     for (final p in ctx.primarySamples) {
-      final fo2 = fo2At(p.t);
-      final ppo2 = fo2 * environment.pressureAtDepth(p.depth);
+      final mix = mixAt(p.t);
+      final ppo2 = mix.o2 / 100.0 * environment.pressureAtDepth(p.depth);
       if (ppo2 > ppO2WarnBar) {
         runStart ??= p.t;
         if (ppo2 > peak) {
           peak = ppo2;
           depthAtPeak = p.depth;
-          runFo2 = fo2;
-          runHe = mixAt(p.t).he;
+          runMix = mix;
         }
         lastT = p.t;
       } else {
@@ -111,8 +111,7 @@ class GasModDetector extends QualityDetector {
     // Hypoxic mix breathed at the surface.
     int? hypoStart;
     var hypoLastT = 0;
-    var hypoFo2 = 1.0;
-    var hypoHe = 0.0;
+    var hypoMix = const domain.GasMix(o2: 100);
     void closeHypoRun() {
       if (hypoStart != null &&
           hypoLastT - hypoStart! >= QualityThresholds.hypoxicSustainSeconds) {
@@ -122,8 +121,8 @@ class GasModDetector extends QualityDetector {
             discriminator: 'hypoxic:${hypoStart! ~/ 60}',
             severity: QualitySeverity.warning,
             params: {
-              'o2Percent': hypoFo2 * 100,
-              'hePercent': hypoHe,
+              'o2Percent': hypoMix.o2,
+              'hePercent': hypoMix.he,
               'startSeconds': hypoStart,
               'durationSeconds': hypoLastT - hypoStart!,
             },
@@ -134,12 +133,11 @@ class GasModDetector extends QualityDetector {
     }
 
     for (final p in ctx.primarySamples) {
-      final fo2 = fo2At(p.t);
-      if (fo2 < QualityThresholds.hypoxicFo2 &&
+      final mix = mixAt(p.t);
+      if (mix.o2 / 100.0 < QualityThresholds.hypoxicFo2 &&
           p.depth < QualityThresholds.hypoxicMaxDepthMeters) {
         hypoStart ??= p.t;
-        hypoFo2 = fo2;
-        hypoHe = mixAt(p.t).he;
+        hypoMix = mix;
         hypoLastT = p.t;
       } else {
         closeHypoRun();

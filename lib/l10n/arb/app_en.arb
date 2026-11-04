@@ -25454,6 +25454,18 @@
       }
     }
   },
+  "dataQuality_dive_tankPair": "{first} and {second}",
+  "@dataQuality_dive_tankPair": {
+    "description": "The two tanks of a twin-tank finding inside dataQuality_dive_tanks, e.g. 'Tank 1 and Tank 2'.",
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
+  },
   "dataQuality_badge_tooltip": "Data quality review",
   "dataQuality_scan_start": "Scan library",
   "dataQuality_scan_progress": "Checked {done} of {total} dives",

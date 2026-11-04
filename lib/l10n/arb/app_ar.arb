@@ -12745,6 +12745,7 @@
   "dataQuality_dive_pairedWith": "مقترنة بـ {dive}",
   "dataQuality_dive_recordedBy": "مسجّلة بواسطة {computer}",
   "dataQuality_dive_tanks": "يخص {tanks}",
+  "dataQuality_dive_tankPair": "{first} و{second}",
   "dataQuality_badge_tooltip": "مراجعة جودة البيانات",
   "dataQuality_scan_start": "فحص المكتبة",
   "dataQuality_scan_progress": "تم فحص {done} من {total} غوصة",

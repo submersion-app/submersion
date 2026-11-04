@@ -12745,6 +12745,7 @@
   "dataQuality_dive_pairedWith": "Emparejada con {dive}",
   "dataQuality_dive_recordedBy": "Registrada por {computer}",
   "dataQuality_dive_tanks": "Afecta a {tanks}",
+  "dataQuality_dive_tankPair": "{first} y {second}",
   "dataQuality_badge_tooltip": "Revisión de calidad de datos",
   "dataQuality_scan_start": "Analizar biblioteca",
   "dataQuality_scan_progress": "{done} de {total} inmersiones comprobadas",

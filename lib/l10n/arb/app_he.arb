@@ -12745,6 +12745,7 @@
   "dataQuality_dive_pairedWith": "משויכת ל-{dive}",
   "dataQuality_dive_recordedBy": "נרשמה על ידי {computer}",
   "dataQuality_dive_tanks": "נוגע ל-{tanks}",
+  "dataQuality_dive_tankPair": "{first} ו{second}",
   "dataQuality_badge_tooltip": "בדיקת איכות הנתונים",
   "dataQuality_scan_start": "סריקת הספרייה",
   "dataQuality_scan_progress": "נבדקו {done} מתוך {total} צלילות",

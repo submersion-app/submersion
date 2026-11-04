@@ -12899,6 +12899,7 @@
   "dataQuality_dive_pairedWith": "Verknüpft mit {dive}",
   "dataQuality_dive_recordedBy": "Aufgezeichnet von {computer}",
   "dataQuality_dive_tanks": "Betrifft {tanks}",
+  "dataQuality_dive_tankPair": "{first} und {second}",
   "dataQuality_badge_tooltip": "Datenqualitätsprüfung",
   "dataQuality_scan_start": "Bibliothek scannen",
   "dataQuality_scan_progress": "{done} von {total} Tauchgängen geprüft",

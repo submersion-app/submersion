@@ -39649,6 +39649,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String dataQuality_dive_tankPair(String first, String second) {
+    return '$first和$second';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => '数据质量审查';
 
   @override

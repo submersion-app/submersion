@@ -93,6 +93,8 @@ QualityFindingMessage buildFindingMessage(
   final p = f.params;
   double d(String key) => (p[key] as num?)?.toDouble() ?? 0;
   int i(String key) => (p[key] as num?)?.toInt() ?? 0;
+  // Absent on gas findings stored before the detector recorded helium.
+  final he = (p['hePercent'] as num?)?.toDouble();
 
   final title = detectorTitle(l10n, f.detectorId);
   String detail;
@@ -198,7 +200,7 @@ QualityFindingMessage buildFindingMessage(
       if (p.containsKey('peakPpO2')) {
         detail = l10n.dataQuality_msg_ppo2(
           d('peakPpO2').toStringAsFixed(2),
-          qualityGasLabel(l10n, d('o2Percent'), d('hePercent')),
+          qualityGasLabel(l10n, d('o2Percent'), he),
           fmt.depth(d('depthAtPeak')),
         );
       } else if (p.containsKey('switchDepth')) {
@@ -208,7 +210,7 @@ QualityFindingMessage buildFindingMessage(
         );
       } else {
         detail = l10n.dataQuality_msg_hypoxic(
-          qualityGasLabel(l10n, d('o2Percent'), d('hePercent')),
+          qualityGasLabel(l10n, d('o2Percent'), he),
         );
       }
     case 'unknown_transmitter':
@@ -269,12 +271,16 @@ String qualityDurationLabel(AppLocalizations l10n, int seconds) => seconds < 120
 /// The mix a gas finding names. Air and oxygen are words and translate;
 /// nitrox and trimix keep their international notation (EAN32, Tx 18/45),
 /// so a trimix keeps its helium instead of reading as nitrox (issue #4209).
-/// Findings stored before `hePercent` was recorded read as helium-free.
+///
+/// A null [hePercent] is a finding stored before the detector recorded it.
+/// Its helium is unknown, so it names the oxygen share alone rather than
+/// calling a Tx 21/35 "Air"; the next scan rewrites it.
 String qualityGasLabel(
   AppLocalizations l10n,
   double o2Percent,
-  double hePercent,
+  double? hePercent,
 ) {
+  if (hePercent == null) return '${o2Percent.round()}% O2';
   final mix = GasMix(o2: o2Percent, he: hePercent);
   if (mix.isAir) return l10n.gas_air_displayName;
   if (mix.isOxygen) return l10n.gas_oxygen_displayName;

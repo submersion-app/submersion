@@ -42225,6 +42225,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String dataQuality_dive_tankPair(String first, String second) {
+    return '$first et $second';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => 'Contrôle de la qualité des données';
 
   @override

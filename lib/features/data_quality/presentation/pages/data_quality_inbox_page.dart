@@ -90,6 +90,12 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
   /// keeps a selection of its own.
   QualityChip _chip = QualityChip.all;
 
+  /// The source labels and tank refs last read, kept across a change of the
+  /// findings' id set (see build). Read-through caches, not state: they only
+  /// hold what the providers already delivered.
+  Map<String, String> _lastSourceLabels = const {};
+  Map<String, QualityTankRef> _lastTankRefs = const {};
+
   void _selectChip(QualityChip chip) => setState(() => _chip = chip);
 
   Future<void> _runFullScan() async {
@@ -100,7 +106,6 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
     final service = ref.read(qualityScanServiceProvider);
     final store = ref.read(qualityScanStateStoreProvider);
     final findings = ref.read(qualityFindingsRepositoryProvider);
-    final diverId = ref.read(validatedCurrentDiverIdProvider.future);
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     try {
@@ -116,7 +121,7 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
       // checks banner while the checks had not reached the whole library.
       if (summary.cancelled) return;
       await store.recordFullScan(DateTime.now(), qualityDetectorVersions());
-      final open = await _openFindingsAfterScan(findings, diverId, summary);
+      final open = await _openFindingsAfterScan(findings, summary);
       messenger.showSnackBar(
         SnackBar(
           content: Text(
@@ -136,14 +141,20 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
   /// as the Dives badge and the dashboard chip, so the three never disagree.
   /// The scan's own `findingsProduced` also counts dismissed findings it
   /// detected again, and a pair seen from both of its batches twice (issue
-  /// #4209). A failed count falls back to it rather than hiding the result.
+  /// #4209). A failed count, or a page closed during the scan, falls back to
+  /// it rather than hiding the result.
+  ///
+  /// The diver is read here, after the scan, not before it: a future read
+  /// up front would sit unlistened through a scan that can run for minutes,
+  /// and an error in it would surface as uncaught.
   Future<int> _openFindingsAfterScan(
     QualityFindingsRepository findings,
-    Future<String?> diverId,
     QualityScanSummary summary,
   ) async {
+    if (!mounted) return summary.findingsProduced;
     try {
-      return await findings.watchOpenCount(diverId: await diverId).first;
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      return await findings.watchOpenCount(diverId: diverId).first;
     } catch (_) {
       return summary.findingsProduced;
     }
@@ -577,25 +588,30 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
           // Which source or tank a finding is about (issue #4209). Each lookup
           // runs only when a finding in scope names one, and only the context
           // rows and button labels wait on it.
+          //
+          // A changed id set (a rescan adds or retires a finding) is a new
+          // family key that starts out loading, so the labels last read stay
+          // up meanwhile instead of blanking every card for a frame.
           final sourceKey = qualitySourceIdsKey(scoped);
-          final sourceLabels = sourceKey.isEmpty
-              ? const <String, String>{}
-              : ref.watch(qualitySourceLabelsProvider(sourceKey)).value ??
-                    const <String, String>{};
+          if (sourceKey.isNotEmpty) {
+            final read = ref.watch(qualitySourceLabelsProvider(sourceKey));
+            if (read.value case final labels?) _lastSourceLabels = labels;
+          }
           final tankKey = qualityTankIdsKey(scoped);
-          final tankRefs = tankKey.isEmpty
-              ? const <String, QualityTankRef>{}
-              : ref.watch(qualityTankRefsProvider(tankKey)).value ??
-                    const <String, QualityTankRef>{};
+          if (tankKey.isNotEmpty) {
+            final read = ref.watch(qualityTankRefsProvider(tankKey));
+            if (read.value case final tanks?) _lastTankRefs = tanks;
+          }
           final subjects = QualityFindingSubjects(
-            sourceLabels: sourceLabels,
-            tanks: tankRefs,
+            sourceLabels: _lastSourceLabels,
+            tanks: _lastTankRefs,
           );
-          // The saved computer's name leads, as before; a source finding
-          // whose source names no saved computer falls back to the source's
-          // own label, so the row and the repair still say which recording.
+          // A source finding names its source as the source reads now: the
+          // finding's computerId is as of its last scan, and the repair acts
+          // on the source, whichever computer it belongs to today. Other
+          // findings keep the saved computer's name, as before.
           String? recordedBy(QualityFinding f) =>
-              computerNames[f.computerId] ?? subjects.sourceLabelOf(f);
+              subjects.sourceLabelOf(f) ?? computerNames[f.computerId];
           // Only the identity lines wait on that lookup; the findings
           // themselves render immediately from the stream that already
           // resolved.

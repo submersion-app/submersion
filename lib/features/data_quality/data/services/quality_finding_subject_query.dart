@@ -49,8 +49,10 @@ class QualityFindingSubjectQuery {
   }
 
   /// Tank id to its position among its dive's tanks and its name. The
-  /// position counts the dive's tanks ordered by tank order, ties broken by
-  /// id, so it matches the "Tank n" numbering of the dive's own screens.
+  /// position counts the dive's tanks ordered by tank order, so it matches
+  /// the "Tank n" the dive's own screens give the n-th tank of that list.
+  /// They sort by tank order alone, which leaves equal orders in table
+  /// order, so ties break by rowid here, not by id.
   Stream<Map<String, QualityTankRef>> watchTanks(List<String> tankIds) {
     if (tankIds.isEmpty) return Stream.value(const {});
     return _db
@@ -58,7 +60,8 @@ class QualityFindingSubjectQuery {
           'SELECT t.id AS id, t.tank_name AS name, '
           '(SELECT COUNT(*) FROM dive_tanks o WHERE o.dive_id = t.dive_id '
           'AND (o.tank_order < t.tank_order '
-          'OR (o.tank_order = t.tank_order AND o.id < t.id))) + 1 AS number '
+          'OR (o.tank_order = t.tank_order AND o.rowid < t.rowid))) + 1 '
+          'AS number '
           'FROM dive_tanks t '
           'WHERE t.id IN (SELECT value FROM json_each(?1))',
           variables: [Variable.withString(jsonEncode(tankIds))],
@@ -77,6 +80,10 @@ class QualityFindingSubjectQuery {
   }
 }
 
+/// The saved computer's name as `DiveComputer.displayName` gives it (its
+/// name, else "manufacturer model", else either alone), so a source reads
+/// the same as the computer-name lookup it stands in for. Without a saved
+/// computer, the model the recording carries.
 String? _sourceLabel({
   required String? name,
   required String? manufacturer,
@@ -88,7 +95,7 @@ String? _sourceLabel({
   final maker = _nonBlank(manufacturer);
   final savedModel = _nonBlank(model);
   if (maker != null && savedModel != null) return '$maker $savedModel';
-  return savedModel ?? _nonBlank(recordedModel);
+  return savedModel ?? maker ?? _nonBlank(recordedModel);
 }
 
 String? _nonBlank(String? value) {

@@ -12745,6 +12745,7 @@
   "dataQuality_dive_pairedWith": "Gekoppeld aan {dive}",
   "dataQuality_dive_recordedBy": "Vastgelegd door {computer}",
   "dataQuality_dive_tanks": "Betreft {tanks}",
+  "dataQuality_dive_tankPair": "{first} en {second}",
   "dataQuality_badge_tooltip": "Controle van datakwaliteit",
   "dataQuality_scan_start": "Bibliotheek scannen",
   "dataQuality_scan_progress": "{done} van {total} duiken gecontroleerd",

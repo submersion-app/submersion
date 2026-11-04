@@ -30,6 +30,9 @@ class QualityTankRef {
   final int number;
   final String? name;
 
+  QualityTankRef copyWith({int? number, String? name}) =>
+      QualityTankRef(number: number ?? this.number, name: name ?? this.name);
+
   @override
   bool operator ==(Object other) =>
       other is QualityTankRef && other.number == number && other.name == name;
@@ -70,6 +73,14 @@ class QualityFindingSubjects {
 
   /// Tank id to the tank's position and name.
   final Map<String, QualityTankRef> tanks;
+
+  QualityFindingSubjects copyWith({
+    Map<String, String>? sourceLabels,
+    Map<String, QualityTankRef>? tanks,
+  }) => QualityFindingSubjects(
+    sourceLabels: sourceLabels ?? this.sourceLabels,
+    tanks: tanks ?? this.tanks,
+  );
 
   String? sourceLabelOf(QualityFinding f) {
     final id = findingSourceId(f);

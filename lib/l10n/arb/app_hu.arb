@@ -12745,6 +12745,7 @@
   "dataQuality_dive_pairedWith": "Párosítva ezzel: {dive}",
   "dataQuality_dive_recordedBy": "Rögzítette: {computer}",
   "dataQuality_dive_tanks": "Érintett: {tanks}",
+  "dataQuality_dive_tankPair": "{first} és {second}",
   "dataQuality_badge_tooltip": "Adatminőség-ellenőrzés",
   "dataQuality_scan_start": "Könyvtár átvizsgálása",
   "dataQuality_scan_progress": "{done} / {total} merülés ellenőrizve",

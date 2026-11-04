@@ -187,6 +187,13 @@ void main() {
     test('a hypoxic helium-free mix reads as its oxygen share', () {
       expect(qualityGasLabel(l10n, 12, 0), '12% O2');
     });
+
+    // A finding stored before helium was recorded could be a trimix; naming
+    // its 21% "Air" would be a claim the finding cannot make.
+    test('an unknown helium share names the oxygen share alone', () {
+      expect(qualityGasLabel(l10n, 21, null), '21% O2');
+      expect(qualityGasLabel(l10n, 32, null), '32% O2');
+    });
   });
 
   group('depth_spike', () {
@@ -322,6 +329,7 @@ void main() {
       final d = detailFor('gas_mod', {
         'peakPpO2': 1.61,
         'o2Percent': 32.0,
+        'hePercent': 0.0,
         'depthAtPeak': 40.0,
       });
       expect(d, contains('1.61'));
@@ -343,6 +351,7 @@ void main() {
       final d = detailFor('gas_mod', {
         'peakPpO2': 1.9,
         'o2Percent': 100.0,
+        'hePercent': 0.0,
         'depthAtPeak': 9.0,
       });
       expect(d, contains(l10n.gas_oxygen_displayName));

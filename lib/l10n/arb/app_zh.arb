@@ -12745,6 +12745,7 @@
   "dataQuality_dive_pairedWith": "与 {dive} 配对",
   "dataQuality_dive_recordedBy": "由 {computer} 记录",
   "dataQuality_dive_tanks": "涉及 {tanks}",
+  "dataQuality_dive_tankPair": "{first}和{second}",
   "dataQuality_badge_tooltip": "数据质量审查",
   "dataQuality_scan_start": "扫描库",
   "dataQuality_scan_progress": "已检查 {total} 次潜水中的 {done} 次",

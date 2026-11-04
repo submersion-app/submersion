@@ -66427,6 +66427,12 @@ abstract class AppLocalizations {
   /// **'Affects {tanks}'**
   String dataQuality_dive_tanks(String tanks);
 
+  /// The two tanks of a twin-tank finding inside dataQuality_dive_tanks, e.g. 'Tank 1 and Tank 2'.
+  ///
+  /// In en, this message translates to:
+  /// **'{first} and {second}'**
+  String dataQuality_dive_tankPair(String first, String second);
+
   /// No description provided for @dataQuality_badge_tooltip.
   ///
   /// In en, this message translates to:

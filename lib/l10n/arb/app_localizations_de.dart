@@ -42026,6 +42026,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String dataQuality_dive_tankPair(String first, String second) {
+    return '$first und $second';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => 'Datenqualitätsprüfung';
 
   @override
