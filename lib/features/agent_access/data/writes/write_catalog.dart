@@ -6,57 +6,57 @@ import 'package:submersion/features/agent_access/data/writes/families/annotation
 import 'package:submersion/features/agent_access/data/writes/families/buddy_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/center_gear_note_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/center_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/certification_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/checklist_template_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/course_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/currency_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/custom_certification_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/custom_field_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/cylinder_config_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/cylinder_fill_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/dive_computer_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/dive_plan_series_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/dive_plan_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_role_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_type_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/diver_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/document_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/equipment_component_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/equipment_location_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/equipment_observation_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/equipment_set_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/equipment_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/gas_switch_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/media_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/pre_dive_session_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/pre_dive_template_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/preset_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/rule_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/safety_finding_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/safety_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/saved_view_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/scenario_writes.dart';
-import 'package:submersion/features/agent_access/data/writes/families/sighting_writes.dart';
-import 'package:submersion/features/agent_access/data/writes/families/site_type_writes.dart';
-import 'package:submersion/features/agent_access/data/writes/families/site_writes.dart';
-import 'package:submersion/features/agent_access/data/writes/families/species_writes.dart';
-import 'package:submersion/features/agent_access/data/writes/families/tag_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/service_kind_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/service_ledger_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/service_record_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/service_schedule_writes.dart';
-import 'package:submersion/features/agent_access/data/writes/families/tank_writes.dart';
-import 'package:submersion/features/agent_access/data/writes/families/transmitter_writes.dart';
-import 'package:submersion/features/agent_access/data/writes/families/certification_writes.dart';
-import 'package:submersion/features/agent_access/data/writes/families/checklist_template_writes.dart';
-import 'package:submersion/features/agent_access/data/writes/families/course_writes.dart';
-import 'package:submersion/features/agent_access/data/writes/families/media_writes.dart';
-import 'package:submersion/features/agent_access/data/writes/families/pre_dive_session_writes.dart';
-import 'package:submersion/features/agent_access/data/writes/families/rule_writes.dart';
-import 'package:submersion/features/agent_access/data/writes/families/saved_view_writes.dart';
-import 'package:submersion/features/agent_access/data/writes/families/safety_finding_writes.dart';
-import 'package:submersion/features/agent_access/data/writes/families/safety_writes.dart';
-import 'package:submersion/features/agent_access/data/writes/families/dive_computer_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/sighting_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/site_feature_writes.dart';
-import 'package:submersion/features/agent_access/data/writes/families/track_writes.dart';
-import 'package:submersion/features/agent_access/data/writes/families/pre_dive_template_writes.dart';
-import 'package:submersion/features/agent_access/data/writes/families/currency_writes.dart';
-import 'package:submersion/features/agent_access/data/writes/families/dive_plan_series_writes.dart';
-import 'package:submersion/features/agent_access/data/writes/families/dive_plan_writes.dart';
-import 'package:submersion/features/agent_access/data/writes/families/diver_writes.dart';
-import 'package:submersion/features/agent_access/data/writes/families/document_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/site_type_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/site_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/smart_album_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/species_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/tag_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/tank_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/track_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/transmitter_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/trip_checklist_part_writes.dart';
-import 'package:submersion/features/agent_access/data/writes/families/weight_entry_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/trip_checklist_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/trip_cylinder_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/trip_day_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/trip_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/weight_entry_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/weight_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_child_row_repository.dart';
@@ -71,12 +71,14 @@ class WriteCatalog {
     GearReminderRefresh? refreshReminders,
     ConditionFindingsRefresh? refreshFindings,
     DocumentRearm? rearmDocuments,
+    AppStrings? strings,
   }) : all = _entries(
          repositories,
          stamper,
          refreshReminders,
          refreshFindings,
          rearmDocuments,
+         strings,
        );
 
   /// A catalog of exactly [entries], for a test that swaps one writer.
@@ -91,6 +93,7 @@ class WriteCatalog {
     GearReminderRefresh? refreshReminders,
     ConditionFindingsRefresh? refreshFindings,
     DocumentRearm? rearmDocuments,
+    AppStrings? strings,
   ) {
     final rows = DiveChildRowRepository();
     return List.unmodifiable(<WritableEntry>[
@@ -141,7 +144,7 @@ class WriteCatalog {
       DiverWrites(repositories),
       WeightEntryWrites(repositories),
       CertificationWrites(repositories),
-      CurrencyRuleWrites(repositories),
+      CurrencyRuleWrites(repositories, strings: strings),
       CurrencyPrefWrites(repositories),
       CurrencyEventWrites(repositories),
       CourseWrites(repositories),

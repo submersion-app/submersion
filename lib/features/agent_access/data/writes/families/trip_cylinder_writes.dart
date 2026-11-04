@@ -246,7 +246,13 @@ class TripCylinderEventWrites extends WritableEntry {
       'analyzed_o2_fraction',
       'analyzed_he_fraction',
     ])
-      key: const FieldCodec.number(min: 0, max: 1, nullable: true),
+      // The store keeps a tenth of a percent: three decimals of a fraction.
+      key: const FieldCodec.number(
+        min: 0,
+        max: 1,
+        nullable: true,
+        fractionDigits: 3,
+      ),
     'dive_center_id': const FieldCodec.reference('centers', nullable: true),
     'cost': const FieldCodec.number(min: 0, max: 1000000, nullable: true),
     'currency': const FieldCodec.text(maxLength: 3, nullable: true, trim: true),

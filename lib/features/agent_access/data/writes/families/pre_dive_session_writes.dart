@@ -248,12 +248,10 @@ class PreDiveSessionItemWrites extends WritableEntry {
   late final Map<String, FieldCodec> fields = {
     'session_id': const FieldCodec.reference('pre_dive_sessions'),
     'state': FieldCodec.enumName(PreDiveItemState.values),
-    'value_number': const FieldCodec.number(nullable: true),
-    'value_text': const FieldCodec.text(
-      maxLength: 500,
-      nullable: true,
-      trim: true,
-    ),
+    // A reading is written over, as the runner records one; the store never
+    // clears it, so null is not offered.
+    'value_number': const FieldCodec.number(),
+    'value_text': const FieldCodec.text(maxLength: 500, trim: true),
     'note': const FieldCodec.text(allowBlank: true, trim: true),
   };
 

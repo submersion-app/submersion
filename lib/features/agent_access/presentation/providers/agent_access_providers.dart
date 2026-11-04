@@ -23,6 +23,7 @@ import 'package:submersion/features/documents/presentation/providers/document_pr
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 final agentAccessPreferencesProvider = Provider<AgentAccessPreferences>(
   (ref) => AgentAccessPreferences(ref.watch(sharedPreferencesProvider)),
@@ -281,6 +282,7 @@ class AgentAccessController {
               _ref.read(agentAccessSettingsProvider).confirmWrites,
           rearmDocuments: _ref.read(documentMutationsProvider).rearmReminders,
           refreshGearReminders: _refreshGearReminders,
+          strings: () => l10nForLocaleTag(_ref.read(localeProvider)),
         ),
       ),
       gate: AgentToolGate(isLocked: () => _ref.read(appLockNotifierProvider)),

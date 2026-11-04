@@ -341,7 +341,18 @@ class PreDiveTemplateWrites extends WritableEntry {
     final items = values.containsKey('items')
         ? ObjectListCodec.items(values['items'])
         : (await stored(id, const {}))['items']! as List<Map<String, Object?>>;
-    final ids = [for (final _ in items) _uuid.v4()];
+    final keptIds = keptItemIds([
+      for (final i in await repo.getItemsForTemplate(id))
+        (
+          id: i.id,
+          section: [
+            for (final s in kept)
+              if (s.id == i.sectionId) s.title,
+          ].firstOrNull,
+          title: i.title,
+        ),
+    ], items);
+    final ids = [for (final kept in keptIds) kept.isEmpty ? _uuid.v4() : kept];
     await repo.saveItems(id, [
       for (final (i, item) in items.indexed)
         PreDiveChecklistTemplateItem(

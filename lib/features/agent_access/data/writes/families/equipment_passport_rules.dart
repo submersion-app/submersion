@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/app_enums.dart' show EquipmentStatus;
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
@@ -52,7 +53,9 @@ Future<PlanBlock?> passportProblem(
 }
 
 /// The fills a new passport id moves onto [itemId]: those under the id
-/// that no cylinder holds yet, and those under the item's old id.
+/// that no cylinder holds yet, and those under the item's old id. And the
+/// items out of service that give the id up, as assignPassportId releases
+/// it from every one.
 Future<Map<String, int>> passportTouched(
   String itemId,
   String passport,
@@ -68,5 +71,22 @@ Future<Map<String, int>> passportTouched(
       ? 0
       : await countRows('cylinder_fills', 'passport_id = ?1', previous);
   final n = loose + rekeyed;
-  return {if (n > 0) 'cylinder_fills': n};
+  final released = await countRows(
+    'equipment',
+    'id != ?2 AND id IN (SELECT equipment_id FROM equipment_attributes '
+        'WHERE attr_key = ?3 AND is_custom = 0 AND value_text = ?1) '
+        'AND (is_active = 0 OR status IN (?4, ?5, ?6))',
+    passport,
+    [
+      itemId,
+      EquipmentAttrKeys.passportId,
+      EquipmentStatus.retired.name,
+      EquipmentStatus.sold.name,
+      EquipmentStatus.wanted.name,
+    ],
+  );
+  return {
+    if (n > 0) 'cylinder_fills': n,
+    if (released > 0) 'equipment': released,
+  };
 }

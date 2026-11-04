@@ -10,13 +10,13 @@ import 'package:submersion/features/equipment/data/services/sensor_summary_sched
 import 'package:submersion/features/equipment/domain/constants/observation_tag_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
+import 'package:submersion/features/equipment/domain/services/observation_defaults.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/observation_tag_display.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observation_near_miss_action.dart';
 import 'package:submersion/features/media/presentation/widgets/dive_picker_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
-import 'package:submersion/features/equipment/domain/services/observation_defaults.dart';
 
 export 'package:submersion/features/equipment/domain/services/observation_defaults.dart'
     show defaultObservedAt;

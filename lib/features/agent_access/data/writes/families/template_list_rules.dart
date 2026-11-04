@@ -57,6 +57,30 @@ List<String> keptSectionIds(
   List<String> titles,
 ) => [for (final title in titles) storedIdByTitle[sectionKey(title)] ?? ''];
 
+/// The id each of [items] keeps: a stored item's with the same section and
+/// title, each used once, or a blank for a new one. The editors give an
+/// item its id back, so a save rewrites the rows it keeps rather than
+/// deleting and re-adding every one.
+List<String> keptItemIds(
+  List<({String id, String? section, String title})> stored,
+  List<Map<String, Object?>> items,
+) {
+  String key(Object? section, Object? title) =>
+      '${sectionKey(section as String?) ?? ''}/'
+      '${sectionKey(title as String?) ?? ''}';
+  final free = <String, List<String>>{};
+  for (final s in stored) {
+    (free[key(s.section, s.title)] ??= []).add(s.id);
+  }
+  return [
+    for (final item in items)
+      switch (free[key(item['section'], item['title'])]) {
+        final ids? when ids.isNotEmpty => ids.removeAt(0),
+        _ => '',
+      },
+  ];
+}
+
 /// The stored section id [title] names, by the titles saved.
 String? sectionIdFor(Map<String?, String> idByKey, Object? title) =>
     title is String ? idByKey[sectionKey(title)] : null;

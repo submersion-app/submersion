@@ -172,10 +172,11 @@ class ChecklistTemplateWrites extends WritableEntry {
     final idByKey = <String?, String>{
       for (final s in sections) sectionKey(s.title): s.id,
     };
+    final storedItems = await repo.getItemsForTemplate(id);
     final items = values.containsKey('items')
         ? ObjectListCodec.items(values['items'])
         : [
-            for (final i in await repo.getItemsForTemplate(id))
+            for (final i in storedItems)
               {
                 'title': i.title,
                 'section': [
@@ -186,10 +187,21 @@ class ChecklistTemplateWrites extends WritableEntry {
                 'due_offset_days': i.dueOffsetDays,
               },
           ];
+    final ids = keptItemIds([
+      for (final i in storedItems)
+        (
+          id: i.id,
+          section: [
+            for (final s in stored)
+              if (s.id == i.sectionId) s.title,
+          ].firstOrNull,
+          title: i.title,
+        ),
+    ], items);
     await repo.saveItems(id, [
       for (final (i, item) in items.indexed)
         ChecklistTemplateItem(
-          id: '',
+          id: ids[i],
           templateId: id,
           title: item['title']! as String,
           sectionId: sectionIdFor(idByKey, item['section']),

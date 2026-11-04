@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart' show OrderingTerm;
+import 'package:drift/drift.dart' show OrderingTerm, Variable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
@@ -71,6 +71,61 @@ void main() {
       expect(await db.select(db.checklistTemplateItems).get(), isEmpty);
     },
   );
+
+  // saveItems keeps an item's id when it is given, as the editors give it,
+  // so an edit does not delete and re-add every item for sync.
+  test('an edit keeps the ids of the items it keeps', () async {
+    Future<List<String>> ids(String table, String id) async => [
+      for (final row
+          in await db
+              .customSelect(
+                'SELECT id FROM $table WHERE template_id = ? ORDER BY sort_order',
+                variables: [Variable.withString(id)],
+              )
+              .get())
+        row.read<String>('id'),
+    ];
+    final items = [
+      {'title': 'Passport', 'section': 'Docs'},
+      {'title': 'Fins'},
+    ];
+    final list = await make('checklist_templates', {
+      'name': 'Trip',
+      'sections': [
+        {'title': 'Docs'},
+      ],
+      'items': items,
+    });
+    final check = await make('pre_dive_templates', {
+      'name': 'Check',
+      'sections': [
+        {'title': 'Docs'},
+      ],
+      'items': [
+        for (final i in items) {...i, 'item_type': 'check'},
+      ],
+    });
+    final listBefore = await ids('checklist_template_items', list);
+    final checkBefore = await ids('pre_dive_checklist_template_items', check);
+
+    await h.run([
+      updateOp('checklist_templates', list, {
+        'items': [
+          ...items,
+          {'title': 'Mask'},
+        ],
+      }),
+      updateOp('pre_dive_templates', check, {
+        'sections': [
+          {'title': 'Docs'},
+          {'title': 'Spare'},
+        ],
+      }),
+    ]);
+
+    expect((await ids('checklist_template_items', list)).take(2), listBefore);
+    expect(await ids('pre_dive_checklist_template_items', check), checkBefore);
+  });
 
   test('a pre-dive built-in is refused but can be cloned', () async {
     final builtIn = (await (db.select(

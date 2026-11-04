@@ -1,7 +1,10 @@
+import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
+import 'package:submersion/features/certifications/presentation/currency_rule_display.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/test_database.dart';
 import '../records/record_harness.dart';
@@ -74,6 +77,25 @@ void main() {
       db.certificationCurrencyRules,
     )..where((r) => r.id.equals('padi_reactivate'))).getSingle();
     expect(builtIn.lapseDays, 365);
+  });
+
+  // The rule dialog seeds a copy with the built-in's translated name and
+  // advisory, so the copy reads as the rule it replaces.
+  test('a built-in rule\'s copy keeps its name and advisory', () async {
+    final l10n = lookupAppLocalizations(const Locale('en'));
+
+    await h.run([
+      updateOp('currency_rules', 'padi_reactivate', {'lapse_days': 500}),
+    ]);
+
+    final copy = await (db.select(
+      db.certificationCurrencyRules,
+    )..where((r) => r.supersedesRuleId.equals('padi_reactivate'))).getSingle();
+    expect(copy.name, builtInCurrencyRuleName(l10n, 'padi_reactivate'));
+    expect(
+      copy.advisoryText,
+      builtInCurrencyRuleAdvisory(l10n, 'padi_reactivate'),
+    );
   });
 
   test('a lead above the lapse is refused', () async {

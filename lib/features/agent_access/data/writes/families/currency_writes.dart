@@ -12,6 +12,13 @@ import 'package:submersion/features/certifications/domain/entities/currency_pref
 import 'package:submersion/features/certifications/domain/entities/currency_rule.dart';
 import 'package:submersion/features/certifications/domain/services/certification_currency_engine.dart'
     show kCardExpiryRuleId;
+import 'package:submersion/features/certifications/presentation/currency_rule_display.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+
+/// The app's strings in the language it shows, for text a write copies
+/// out of a translation.
+typedef AppStrings = AppLocalizations Function();
 
 /// The names an enum set's parsed value holds, in [values] order.
 List<T> _enumsOf<T extends Enum>(Object? parsed, List<T> values) {
@@ -30,9 +37,14 @@ List<String> _textsOf(Object? parsed) =>
 /// the custom copy that supersedes it, for the profile in use, as the dialog
 /// does, and a built-in is never deleted.
 class CurrencyRuleWrites extends WritableEntry {
-  CurrencyRuleWrites(this._r);
+  CurrencyRuleWrites(this._r, {AppStrings? strings})
+    : _strings = strings ?? (() => l10nForLocaleTag('en'));
 
   final RecordRepositories _r;
+
+  /// The app's strings in its language, which a built-in's name and
+  /// advisory are shown in.
+  final AppStrings _strings;
 
   static const _table = 'certification_currency_rules';
 
@@ -144,7 +156,16 @@ class CurrencyRuleWrites extends WritableEntry {
         details: {'id': id},
       );
     }
-    final edited = _applied(current, update.values);
+    // A copy starts from the built-in as the dialog shows it: its name and
+    // advisory in the app's language, which the stored row does not hold.
+    final l10n = _strings();
+    final base = current.isBuiltIn
+        ? _applied(current, {
+            'name': currencyRuleName(l10n, current),
+            'advisory_text': currencyRuleAdvisory(l10n, current),
+          })
+        : current;
+    final edited = _applied(base, update.values);
     if (current.isBuiltIn) {
       await _r.currency.createRule(
         _with(edited, id: '', diverId: await _profile(), supersedes: id),

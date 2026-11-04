@@ -63,6 +63,28 @@ void main() {
     expect([flagged['state'], flagged['note']], ['flagged', 'Slow leak']);
   });
 
+  // The runner writes a reading over the last one and never clears it, so
+  // null is not offered: a preview that lists it cleared would not hold.
+  test('a reading is replaced, never cleared', () async {
+    final session = await make('pre_dive_sessions', {
+      'template_id': await template(),
+    });
+    final first = (await items(session)).first;
+    await h.run([
+      updateOp('pre_dive_session_items', first, {
+        'value_number': 210.0,
+        'value_text': 'Full',
+      }),
+    ]);
+
+    for (final key in const ['value_number', 'value_text']) {
+      final plan = await h.preview([
+        updateOp('pre_dive_session_items', first, {key: null}),
+      ]);
+      expect(plan.items.single.block!.reason, BlockReason.invalidValue);
+    }
+  });
+
   test('completing with a required item pending is refused', () async {
     final session = await make('pre_dive_sessions', {
       'template_id': await template(),

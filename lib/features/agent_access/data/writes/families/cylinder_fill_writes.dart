@@ -30,8 +30,8 @@ class CylinderFillWrites extends WritableEntry {
   late final Map<String, FieldCodec> fields = {
     'equipment_id': const FieldCodec.reference('equipment'),
     'filled_at': const FieldCodec.instant(),
-    'o2_fraction': const FieldCodec.number(min: 0, max: 1),
-    'he_fraction': const FieldCodec.number(min: 0, max: 1),
+    'o2_fraction': const FieldCodec.number(min: 0, max: 1, fractionDigits: 3),
+    'he_fraction': const FieldCodec.number(min: 0, max: 1, fractionDigits: 3),
     'pressure_bar': const FieldCodec.number(min: 0, max: 400, nullable: true),
     'temperature_c': const FieldCodec.number(min: -30, max: 60, nullable: true),
     'analyzer': const FieldCodec.text(

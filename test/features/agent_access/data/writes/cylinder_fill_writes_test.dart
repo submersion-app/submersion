@@ -183,4 +183,35 @@ void main() {
     expect(plan.items.first.block, isNull);
     expect(plan.items.last.block!.reason, BlockReason.duplicateRecord);
   });
+
+  // The store keeps a tenth of a percent, so the plan lists the fraction
+  // the read will return.
+  test('a fraction finer than the store keeps is listed as stored', () async {
+    final plan = await h.preview([
+      createOp('cylinder_fills', fill({'o2_fraction': 0.3256})),
+    ]);
+    expect(plan.items.single.fields['o2_fraction']!.newValue, 0.326);
+
+    final id = (await h.apply(plan)).created.single.id;
+    expect((await h.one('cylinder_fills', id))!['o2_fraction'], 0.326);
+  });
+
+  // assignPassportId takes the tag off a holder no longer in service.
+  test('a passport id moving off a retired item lists that item', () async {
+    await gear('steel', 'tank');
+    await CylinderPassportRepository().assignPassportId(
+      equipmentId: 'steel',
+      passportId: passport,
+      diverId: kDiverA,
+    );
+    await (db.update(db.equipment)..where((e) => e.id.equals('steel'))).write(
+      const EquipmentCompanion(status: Value('retired')),
+    );
+
+    final plan = await h.preview([
+      updateOp('equipment', 'al80', {'passport_id': passport}),
+    ]);
+
+    expect(plan.items.single.alsoChanges['equipment'], 1);
+  });
 }
