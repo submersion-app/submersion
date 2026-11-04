@@ -33,6 +33,18 @@ class EquipmentComponentWrites extends WritableEntry {
   @override
   Set<String> get requiredOnCreate => const {'component_equipment_id'};
 
+  /// A part is in an assembly once, so two changes in one set cannot put
+  /// it there twice.
+  @override
+  UniqueClaim? uniqueKey(WriteCheck check) {
+    final componentId = check.values['component_equipment_id'] as String?;
+    if (componentId == null) return null;
+    final parentId =
+        check.values['parent_equipment_id'] as String? ??
+        check.document!['parent_equipment_id']! as String;
+    return UniqueClaim('$parentId/$componentId');
+  }
+
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {
     if (check.kind == ChangeKind.delete) return null;
@@ -59,10 +71,7 @@ class EquipmentComponentWrites extends WritableEntry {
     }
     final componentId = check.values['component_equipment_id'] as String?;
     if (componentId == null) return null;
-    if (await components.wouldCreateCycle(
-      parentId: parentId,
-      componentId: componentId,
-    )) {
+    if (await _closesLoop(parentId, componentId, check.soFar)) {
       return const PlanBlock(
         BlockReason.invalidValue,
         'component_equipment_id: that would make an item part of itself.',
@@ -76,6 +85,38 @@ class EquipmentComponentWrites extends WritableEntry {
       );
     }
     return null;
+  }
+
+  /// Whether linking [componentId] under [parentId] makes an item part of
+  /// itself, counting the links the set adds before this change, as
+  /// `wouldCreateCycle` counts the stored ones.
+  Future<bool> _closesLoop(
+    String parentId,
+    String componentId,
+    SetSoFar soFar,
+  ) async {
+    if (componentId == parentId) return true;
+    final parentsOf = <String, Set<String>>{};
+    void link(String parent, String part) =>
+        (parentsOf[part] ??= {}).add(parent);
+    for (final row in await _r.equipmentComponents.getAllComponents()) {
+      link(row.parentEquipmentId, row.componentEquipmentId);
+    }
+    for (final values in soFar.created[name] ?? const []) {
+      link(
+        values['parent_equipment_id']! as String,
+        values['component_equipment_id']! as String,
+      );
+    }
+    final seen = <String>{};
+    final frontier = [parentId];
+    while (frontier.isNotEmpty) {
+      final next = frontier.removeLast();
+      if (!seen.add(next)) continue;
+      if (next == componentId) return true;
+      frontier.addAll(parentsOf[next] ?? const {});
+    }
+    return false;
   }
 
   @override

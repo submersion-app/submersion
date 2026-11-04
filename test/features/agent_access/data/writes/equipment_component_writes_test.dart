@@ -95,6 +95,34 @@ void main() {
     }
   });
 
+  // The set runs in order, so a link an earlier change adds is there by
+  // the time a later one would close a loop or repeat it.
+  test('a loop or a repeat within one set is blocked', () async {
+    final loop = await h.preview([
+      createOp('equipment_components', part('reg', 'first')),
+      createOp('equipment_components', part('first', 'reg')),
+    ]);
+    expect(loop.items.first.block, isNull);
+    expect(loop.items.last.block!.reason, BlockReason.invalidValue);
+
+    final twice = await h.preview([
+      createOp('equipment_components', part('reg', 'first')),
+      createOp('equipment_components', part('reg', 'first')),
+    ]);
+    expect(twice.items.last.block!.reason, BlockReason.duplicateRecord);
+
+    final id = (await h.run([
+      createOp('equipment_components', part('reg', 'second')),
+    ])).created.single.id;
+    final swap = await h.preview([
+      createOp('equipment_components', part('reg', 'octo')),
+      updateOp('equipment_components', id, {
+        'component_equipment_id': 'octo',
+      }),
+    ]);
+    expect(swap.items.last.block!.reason, BlockReason.duplicateRecord);
+  });
+
   test('a part already in the assembly is a duplicate', () async {
     await h.run([createOp('equipment_components', part('reg', 'first'))]);
 

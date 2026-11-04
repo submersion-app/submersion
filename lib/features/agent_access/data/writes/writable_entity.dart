@@ -139,6 +139,7 @@ class SetSoFar {
     this.deleted = const {},
     this.values = const {},
     this.unlinked = const {},
+    this.created = const {},
   });
 
   /// The records deletes earlier in the set take away, by entity, counting
@@ -151,6 +152,10 @@ class SetSoFar {
   /// The records earlier updates take off a linked record, by the linked
   /// record's entity and id, then by the updated entity.
   final Map<(String, String), Map<String, Set<String>>> unlinked;
+
+  /// The fields of the records creates earlier in the set add, parsed, by
+  /// entity, counting only those the plan keeps.
+  final Map<String, List<Map<String, Object?>>> created;
 }
 
 /// What an update does beyond what it names, through a repository's own

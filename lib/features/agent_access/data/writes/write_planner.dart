@@ -111,6 +111,7 @@ class _Pass {
   final _mergedInto = <(String, String?), Set<String>>{};
 
   final _deletedSoFar = <String, Set<String>>{};
+  final _createdSoFar = <String, List<Map<String, Object?>>>{};
   final _valuesSoFar = <(String, String), Map<String, Object?>>{};
   final _unlinkedSoFar = <(String, String), Map<String, Set<String>>>{};
 
@@ -119,6 +120,7 @@ class _Pass {
     deleted: _deletedSoFar,
     values: _valuesSoFar,
     unlinked: _unlinkedSoFar,
+    created: _createdSoFar,
   );
 
   /// Notes what an update the plan keeps writes and unlinks, for the rules
@@ -266,7 +268,10 @@ class _Pass {
         await _checkFieldRefs(entry, parsed.values, diverId) ??
         await entry.refuse(check) ??
         _claimUnique(op, entry, check);
-    if (block == null) await _markFieldRefs(entry, parsed.values);
+    if (block == null) {
+      await _markFieldRefs(entry, parsed.values);
+      (_createdSoFar[op.entity] ??= []).add(parsed.values);
+    }
     final parent = await _parentContext(entry, owner.parentId, diverId);
     _add(
       op,
