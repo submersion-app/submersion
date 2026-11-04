@@ -271,6 +271,22 @@ void main() {
         'liveaboard_details',
     for (final method in const ['saveAll', 'updateDay', 'setPlannedDives'])
       '$trips/itinerary_day_repository.dart:$method': 'itinerary_days',
+    for (final method in const [
+      'createCylinder',
+      'createCylinders',
+      'updateCylinder',
+      'deleteCylinder',
+      'reorderCylinders',
+    ])
+      '$trips/trip_cylinder_repository.dart:$method': 'trip_cylinders',
+    '$trips/trip_cylinder_repository.dart:deleteByTripId': 'trips',
+    for (final method in const [
+      'createEvent',
+      'createEvents',
+      'updateEvent',
+      'deleteEvent',
+    ])
+      '$trips/trip_cylinder_repository.dart:$method': 'trip_cylinder_events',
   };
 
   /// Writes that change no record a diver keeps, so no change set entity

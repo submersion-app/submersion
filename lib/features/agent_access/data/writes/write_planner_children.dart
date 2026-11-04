@@ -55,9 +55,30 @@ extension _ChildRules on _Pass {
       return 'SELECT r.id, $owner, $version, NULL AS parent_id '
           'FROM ${entry.table} r';
     }
-    return 'SELECT r.id, p.diver_id, p.updated_at, r.${parent.column} AS '
-        'parent_id FROM ${entry.table} r JOIN ${_parentTable(entry)} p '
-        'ON p.id = r.${parent.column}';
+    final (:joins, :owner) = _ancestors(entry);
+    return 'SELECT r.id, $owner.diver_id, p.updated_at, r.${parent.column} '
+        'AS parent_id FROM ${entry.table} r JOIN ${_parentTable(entry)} p '
+        'ON p.id = r.${parent.column}$joins';
+  }
+
+  /// The joins from [entry]'s parent, aliased `p`, up to the record that
+  /// holds the owner, and that record's alias: `p` itself for a child of a
+  /// record of its own, a grandparent for a child of a child, such as a
+  /// fill on a trip's cylinder.
+  ({String joins, String owner}) _ancestors(WritableEntry entry) {
+    var joins = '';
+    var owner = 'p';
+    var up = writes.named(entry.parent!.entity)!;
+    for (var level = 0; up.parent != null; level++) {
+      final grand = up.parent!;
+      final alias = 'g$level';
+      joins +=
+          ' JOIN ${writes.named(grand.entity)!.table} $alias '
+          'ON $alias.id = $owner.${grand.column}';
+      owner = alias;
+      up = writes.named(grand.entity)!;
+    }
+    return (joins: joins, owner: owner);
   }
 
   String _parentTable(WritableEntry entry) =>
@@ -92,9 +113,11 @@ extension _ChildRules on _Pass {
       );
     }
     final table = _parentTable(entry);
+    final (:joins, :owner) = _ancestors(entry);
     final row = await db
         .customSelect(
-          'SELECT diver_id FROM $table WHERE id = ?',
+          'SELECT $owner.diver_id AS diver_id FROM $table p$joins '
+          'WHERE p.id = ?',
           variables: [Variable.withString(parentId)],
         )
         .getSingleOrNull();

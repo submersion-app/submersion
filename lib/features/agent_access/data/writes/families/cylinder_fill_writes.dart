@@ -1,5 +1,6 @@
 import 'package:submersion/core/constants/enums.dart' show EquipmentType;
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/writes/families/gas_fraction_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
@@ -123,8 +124,8 @@ class CylinderFillWrites extends WritableEntry {
         passportId: passport,
         equipmentId: itemId,
         filledAt: values['filled_at']! as DateTime,
-        o2Percent: _percent(values['o2_fraction'])!,
-        hePercent: _percent(values['he_fraction']) ?? 0,
+        o2Percent: percentOf(values['o2_fraction'])!,
+        hePercent: percentOf(values['he_fraction']) ?? 0,
         pressureBar: (values['pressure_bar'] as num?)?.toDouble(),
         temperatureC: (values['temperature_c'] as num?)?.toDouble(),
         analyzer: values['analyzer'] as String?,
@@ -150,8 +151,8 @@ class CylinderFillWrites extends WritableEntry {
     await _r.cylinderFills.update(
       current.copyWith(
         filledAt: v['filled_at'] as DateTime?,
-        o2Percent: _percent(v['o2_fraction']),
-        hePercent: _percent(v['he_fraction']),
+        o2Percent: percentOf(v['o2_fraction']),
+        hePercent: percentOf(v['he_fraction']),
         pressureBar: (v['pressure_bar'] as num?)?.toDouble(),
         clearPressureBar: cleared('pressure_bar'),
         temperatureC: (v['temperature_c'] as num?)?.toDouble(),
@@ -168,9 +169,4 @@ class CylinderFillWrites extends WritableEntry {
   @override
   Future<void> delete(String id, String? ownerId) =>
       _r.cylinderFills.delete(id);
-
-  /// A fraction on the wire as the percent the store holds, to a tenth of a
-  /// percent so 0.32 reads back as 0.32.
-  static double? _percent(Object? fraction) =>
-      fraction is num ? (fraction * 1000).roundToDouble() / 10 : null;
 }

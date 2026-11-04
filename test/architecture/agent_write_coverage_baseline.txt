@@ -449,16 +449,6 @@ lib/features/trips/data/repositories/itinerary_day_repository.dart:deleteBarePla
 lib/features/trips/data/repositories/itinerary_day_repository.dart:deleteByTripId
 lib/features/trips/data/repositories/liveaboard_details_repository.dart:deleteByTripId
 lib/features/trips/data/repositories/side_trip_links.dart:detachSideTripsForDelete
-lib/features/trips/data/repositories/trip_cylinder_repository.dart:createCylinder
-lib/features/trips/data/repositories/trip_cylinder_repository.dart:createCylinders
-lib/features/trips/data/repositories/trip_cylinder_repository.dart:createEvent
-lib/features/trips/data/repositories/trip_cylinder_repository.dart:createEvents
-lib/features/trips/data/repositories/trip_cylinder_repository.dart:deleteByTripId
-lib/features/trips/data/repositories/trip_cylinder_repository.dart:deleteCylinder
-lib/features/trips/data/repositories/trip_cylinder_repository.dart:deleteEvent
-lib/features/trips/data/repositories/trip_cylinder_repository.dart:reorderCylinders
-lib/features/trips/data/repositories/trip_cylinder_repository.dart:updateCylinder
-lib/features/trips/data/repositories/trip_cylinder_repository.dart:updateEvent
 lib/features/trips/data/repositories/trip_date_stretch.dart:restoreStretchedTripDates
 lib/features/trips/data/repositories/trip_day_weather_repository.dart:deleteByTripId
 lib/features/trips/data/repositories/trip_day_weather_repository.dart:upsert
