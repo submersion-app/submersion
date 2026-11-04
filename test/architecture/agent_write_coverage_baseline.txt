@@ -283,14 +283,6 @@ lib/features/equipment/data/repositories/equipment_component_repository.dart:rem
 lib/features/equipment/data/repositories/equipment_component_repository.dart:reorder
 lib/features/equipment/data/repositories/equipment_component_repository.dart:replaceComponent
 lib/features/equipment/data/repositories/equipment_component_repository.dart:updateRole
-lib/features/equipment/data/repositories/equipment_location_move_repository.dart:deleteMove
-lib/features/equipment/data/repositories/equipment_location_move_repository.dart:recordMoveGroups
-lib/features/equipment/data/repositories/equipment_location_move_repository.dart:recordMoves
-lib/features/equipment/data/repositories/equipment_location_move_repository.dart:updateMove
-lib/features/equipment/data/repositories/equipment_location_repository.dart:createLocation
-lib/features/equipment/data/repositories/equipment_location_repository.dart:deleteLocation
-lib/features/equipment/data/repositories/equipment_location_repository.dart:setArchived
-lib/features/equipment/data/repositories/equipment_location_repository.dart:updateLocation
 lib/features/equipment/data/repositories/equipment_observation_repository.dart:create
 lib/features/equipment/data/repositories/equipment_observation_repository.dart:delete
 lib/features/equipment/data/repositories/equipment_observation_repository.dart:unlinkFromDeletedDives

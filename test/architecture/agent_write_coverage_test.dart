@@ -206,6 +206,16 @@ void main() {
       'removeGeofence',
     ])
       '$gear/equipment_set_repository_impl.dart:$method': 'equipment_sets',
+    for (final method in const [
+      'createLocation',
+      'updateLocation',
+      'setArchived',
+      'deleteLocation',
+    ])
+      '$gear/equipment_location_repository.dart:$method': 'equipment_locations',
+    for (final method in const ['recordMoves', 'updateMove', 'deleteMove'])
+      '$gear/equipment_location_move_repository.dart:$method':
+          'equipment_location_moves',
     'lib/features/tags/data/repositories/tag_link_repository.dart:replaceTags':
         'equipment',
   };
@@ -279,6 +289,9 @@ void main() {
       'equipment_location_move_repository.dart:deleteForEquipment',
     ])
       '$gear/$step': 'an inner step of a delete of its owner',
+    '$gear/equipment_location_move_repository.dart:recordMoveGroups':
+        'a bulk shortcut for moves, which equipment_location_moves covers '
+        'one move at a time through recordMoves',
     for (final method in const ['addItemToSet', 'removeItemFromSet'])
       '$gear/equipment_set_repository_impl.dart:$method':
           'a shortcut for a member change, which equipment_sets covers as '
