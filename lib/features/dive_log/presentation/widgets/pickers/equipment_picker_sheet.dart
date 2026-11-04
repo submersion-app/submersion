@@ -6,7 +6,9 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_picker_filter.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
+import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_owner_sections.dart';
@@ -49,6 +51,13 @@ class EquipmentPickerSheet extends ConsumerStatefulWidget {
   /// weight rig look ahead and leave it off.
   final bool offerLeftKit;
 
+  /// Leave out the components of an assembly the picker also offers
+  /// (#2514), since picking the assembly brings them, behind a switch that
+  /// lists them again. Set by the callers that pick the gear a diver dives
+  /// with. The cylinder pickers leave it off: they need a twinset's single
+  /// tanks.
+  final bool hideAssemblyParts;
+
   /// Called with the row that was tapped. The caller closes the sheet.
   final void Function(EquipmentItem)? onEquipmentSelected;
 
@@ -76,6 +85,7 @@ class EquipmentPickerSheet extends ConsumerStatefulWidget {
     this.typeFilter,
     this.hideSpare = false,
     this.offerLeftKit = false,
+    this.hideAssemblyParts = false,
     this.onEquipmentSelected,
     this.onEquipmentConfirmed,
     this.title,
@@ -237,6 +247,45 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
                   .toList(),
             )
             .isNotEmpty;
+    // Components of an assembly the picker offers wait behind a switch
+    // (#2514). Until the index loads, or if it fails, nothing is hidden.
+    final componentsAsync = widget.hideAssemblyParts
+        ? ref.watch(equipmentComponentsIndexProvider)
+        : null;
+    final components = componentsAsync == null || componentsAsync.hasError
+        ? ComponentsIndex.empty
+        : componentsAsync.value ?? ComponentsIndex.empty;
+    final showParts =
+        widget.hideAssemblyParts &&
+        ref.watch(equipmentPickerShowAssemblyPartsProvider);
+    final callerOffered = widget
+        ._callerAllowed(
+          (equipmentAsync.value ?? const <EquipmentItem>[]).where(
+            (e) => !selectedEquipmentIds.contains(e.id),
+          ),
+        )
+        .toList();
+    final partIds = assemblyPartsAmong(
+      components,
+      callerOffered,
+      attached: selectedEquipmentIds,
+    );
+    final hiddenPartIds = showParts ? const <String>{} : partIds;
+    // What the list can show before the diver's own filter, and what the
+    // filter sheet derives its chips from, so no chip matches only hidden
+    // parts.
+    final offerable = [
+      for (final e in callerOffered)
+        if (!hiddenPartIds.contains(e.id)) e,
+    ];
+    // As with left-kit gear: only when it would bring back a row the list
+    // then shows, or to switch it back.
+    final offersPartsSwitch =
+        showParts ||
+        filter.apply([
+          for (final e in callerOffered)
+            if (partIds.contains(e.id)) e,
+        ]).isNotEmpty;
     // Shared gear (issue #2046) gets its own section and an owner chip.
     final multipleDivers = ref.watch(hasMultipleDiversProvider);
     final activeDiverId = ref.watch(validatedCurrentDiverIdProvider).value;
@@ -251,11 +300,7 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
           child: const Icon(Icons.filter_list),
         ),
         tooltip: context.l10n.equipment_filter_title,
-        onPressed: () => _showFilter(
-          context,
-          ref,
-          equipmentAsync.value ?? const <EquipmentItem>[],
-        ),
+        onPressed: () => _showFilter(context, ref, offerable),
       ),
       IconButton(
         icon: const Icon(Icons.sort),
@@ -333,19 +378,33 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
                 ref.read(equipmentPickerShowLeftKitProvider.notifier).state =
                     value,
           ),
+        if (offersPartsSwitch)
+          SwitchListTile(
+            key: const Key('equipment-picker-show-assembly-parts'),
+            dense: true,
+            title: Text(context.l10n.diveLog_equipmentPicker_showAssemblyParts),
+            value: showParts,
+            onChanged: (value) =>
+                ref
+                        .read(equipmentPickerShowAssemblyPartsProvider.notifier)
+                        .state =
+                    value,
+          ),
         const Divider(height: 1),
         Expanded(
           child: equipmentAsync.when(
             data: (equipmentList) {
               // Three narrowings, kept separate because each empties the list
               // for a different reason and the diver deserves to be told
-              // which: gear already on the dive, the caller's own constraints
-              // (the transmitter registry offers cylinders only, dive pickers
-              // hide spare gear), and finally the filter the diver chose.
+              // which: gear already on the dive (unselected), the caller's
+              // own constraints (the transmitter registry offers cylinders
+              // only, dive pickers hide spare gear and the components of
+              // offered assemblies), and finally the filter the diver chose.
+              // The first two make offerable, built in build() so the filter
+              // sheet shares it; this builder applies the third.
               final unselected = equipmentList
                   .where((e) => !selectedEquipmentIds.contains(e.id))
                   .toList();
-              final offerable = widget._callerAllowed(unselected).toList();
               final available = filter.apply(offerable);
 
               // Which axis to blame when nothing is left. Applying the type
@@ -373,12 +432,24 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
                             (typeFilter == null || e.type == typeFilter),
                       );
 
+              // Likewise when what the diver's filter would show is only
+              // components of an assembly the list offers (#2514): the whole
+              // filter, so this names only rows the switch above brings
+              // back. Checked before Spare: the switch fixes it on the spot,
+              // while Spare gear needs a trip to the item.
+              final onlyPartsLeft = filter.apply([
+                for (final e in unselected)
+                  if (hiddenPartIds.contains(e.id)) e,
+              ]).isNotEmpty;
+
               if (available.isEmpty) {
                 return _EmptyState(
                   message: equipmentList.isEmpty
                       ? context.l10n.diveLog_equipmentPicker_noEquipment
                       : unselected.isEmpty
                       ? context.l10n.diveLog_equipmentPicker_allSelected
+                      : onlyPartsLeft
+                      ? context.l10n.diveLog_equipmentPicker_allAssemblyParts
                       : onlySpareLeft
                       ? context.l10n.diveLog_equipmentPicker_allSpare
                       : typeMatches.isEmpty
@@ -393,7 +464,7 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
                       ? context.l10n.diveLog_equipmentPicker_addFromTab
                       : unselected.isEmpty
                       ? context.l10n.diveLog_equipmentPicker_removeToAdd
-                      : onlySpareLeft
+                      : onlySpareLeft && !onlyPartsLeft
                       ? context.l10n.diveLog_equipmentPicker_spareHint
                       : null,
                   onClearFilter: filter.hasActiveFilters
@@ -505,21 +576,18 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
   /// Offers only the types and statuses actually present in the picker, plus
   /// whatever is currently selected, so a filter is always clearable and no
   /// chip matches nothing.
+  ///
+  /// [selectable] is what the picker can actually show: gear already on the
+  /// dive is excluded, and so is anything the caller's own constraints or
+  /// the hidden assembly parts rule out. Deriving the chips from the full
+  /// active list would offer a chip (such as Spare, when hidden) that could
+  /// only ever produce an empty list.
   Future<void> _showFilter(
     BuildContext context,
     WidgetRef ref,
-    List<EquipmentItem> equipment,
+    List<EquipmentItem> selectable,
   ) async {
     final current = ref.read(equipmentPickerFilterProvider);
-    // Derived from what the picker can actually show: gear already on the
-    // dive is excluded, and so is anything the caller's own constraints rule
-    // out. Deriving them from the full active list would offer a chip (such
-    // as Spare, when hidden) that could only ever produce an empty list.
-    final selectable = widget
-        ._callerAllowed(
-          equipment.where((e) => !widget.selectedEquipmentIds.contains(e.id)),
-        )
-        .toList();
     final presentTypes = selectable.map((e) => e.type).toSet();
     // The status each row reads, as the filter matches it (#3210).
     final presentStatuses = selectable.map((e) => e.effectiveStatus).toSet();

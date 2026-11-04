@@ -58,6 +58,37 @@ class ComponentsIndex {
       edge.parentEquipmentId,
   ];
 
+  /// The ids in [offered] that are a part of another assembly in [offered]:
+  /// the rows a gear picker can leave out, since picking the assembly brings
+  /// them along (#2514). [offered] must hold only gear the expander attaches,
+  /// so a retired part (never brought along) and a retired assembly (whose
+  /// parts are the way to add them) are left out: call it through
+  /// `assemblyPartsAmong`, which applies that filter.
+  ///
+  /// A part stays when none of its assemblies is offered (each is Spare,
+  /// retired, or on the dive already), and when one of them is in
+  /// [attached], the gear already on the dive: an assembly row there cannot
+  /// bring a dropped part back. An assembly that is also below the part, a
+  /// corrupt loop, hides nothing, so a loop never hides all of its members.
+  Set<String> partsWithin(
+    Set<String> offered, {
+    Set<String> attached = const {},
+  }) {
+    final parts = <String>{};
+    for (final id in offered) {
+      final parents = parentIdsOf(id);
+      if (parents.any(attached.contains)) continue;
+      final offeredParents = [
+        for (final p in parents)
+          if (offered.contains(p)) p,
+      ];
+      if (offeredParents.isEmpty) continue;
+      final below = descendantsOf(id);
+      if (offeredParents.any((p) => !below.contains(p))) parts.add(id);
+    }
+    return parts;
+  }
+
   /// Every id reachable downward from [id], excluding [id] itself unless a
   /// corrupt loop leads back to it. A visited set guarantees termination.
   Set<String> descendantsOf(String id) => _walk(id, (current) sync* {

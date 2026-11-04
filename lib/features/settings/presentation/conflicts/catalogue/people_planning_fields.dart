@@ -202,6 +202,11 @@ final Map<String, ConflictField> peoplePlanningFields = {
     (l) => l.settings_conflict_field_finalAscentRate,
     FieldKind.ascentRate,
   ),
+  // Whether a planned dive's start was set by hand (issue #3565).
+  'fixedStart': ConflictField(
+    (l) => l.settings_conflict_field_fixedStart,
+    FieldKind.boolean,
+  ),
   'gasHe': ConflictField(
     (l) => l.settings_conflict_field_gasHe,
     FieldKind.percent,
@@ -461,6 +466,11 @@ final Map<String, ConflictField> peoplePlanningFields = {
   'setpointSwitchDepth': ConflictField(
     (l) => l.settings_conflict_field_setpointSwitchDepth,
     FieldKind.depth,
+  ),
+  // The setting groups a planned dive keeps its own (issue #3565).
+  'settingOverrides': ConflictField(
+    (l) => l.settings_conflict_field_settingOverrides,
+    FieldKind.opaque,
   ),
   'shallowAscentRate': ConflictField(
     (l) => l.settings_conflict_field_shallowAscentRate,

@@ -4,11 +4,13 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/schedule_policy.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/data/services/plan_file_mission_codec.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
+import 'package:submersion/features/planner/domain/entities/plan_setting_group.dart';
 import 'package:submersion/features/planner/domain/entities/stored_series.dart';
 
 /// The `.subplan` file format: versioned JSON around the plan aggregate.
@@ -32,10 +34,19 @@ import 'package:submersion/features/planner/domain/entities/stored_series.dart';
 /// with its plan, its own name and interval, and which tank of the dive
 /// before each of its tanks carries from, by position (issue #3565). `plan`
 /// still holds the first dive, and a single dive is still written as version
-/// 2 or 3. What a logged dive or a start time would add is left out: the
-/// followed dive is in the sender's log, not the reader's, and a start
-/// belongs to the sender's day. Older installs refuse the file rather than
-/// open one dive of a series as if it stood alone.
+/// 2 or 3. The followed dive is left out: it is in the sender's log, not the
+/// reader's. Older installs refuse the file rather than open one dive of a
+/// series as if it stood alone.
+///
+/// A series dive may also carry `settingOverrides`: the setting groups it
+/// keeps its own values for rather than the first dive's.
+///
+/// Any version may carry a plan's optional `startDateTime`, its clock digits
+/// with no offset (`2026-11-03T09:30:00`), like the dive log's times, and a
+/// series dive its `fixedStart`: whether the diver set that start rather
+/// than letting it follow from the surface interval. Both are optional, so
+/// a file without them still imports, and an older install that does not
+/// know them opens the file without its times.
 const subplanFormat = 'submersion-plan';
 const subplanVersion = 4;
 const subplanMinReadableVersion = 1;
@@ -65,6 +76,8 @@ String planToSubplanJson(domain.DivePlan plan) {
 Map<String, dynamic> _planToMap(domain.DivePlan plan) => {
   'name': plan.name,
   'notes': plan.notes,
+  if (plan.startDateTime case final start?)
+    'startDateTime': _wallClockToFile(start),
   'mode': plan.mode.name,
   'altitude': plan.altitude,
   'waterType': plan.waterType?.name,
@@ -140,6 +153,13 @@ Map<String, dynamic> _planToMap(domain.DivePlan plan) => {
   if (plan.mission != null) 'mission': missionToFileMap(plan.mission!),
 };
 
+/// A clock-digits-as-UTC time (see `wall_clock_utc.dart`) as its digits with
+/// no offset, so the reader takes the same clock time whatever its zone.
+String _wallClockToFile(DateTime wallClockUtc) {
+  final iso = wallClockUtc.toIso8601String();
+  return iso.endsWith('Z') ? iso.substring(0, iso.length - 1) : iso;
+}
+
 /// Serializes [series] into a shareable `.subplan` JSON string.
 String seriesToSubplanJson(StoredSeries series) {
   final map = {
@@ -170,6 +190,11 @@ Map<String, dynamic> _seriesDiveToMap(
     'plan': _planToMap(dive.plan),
     'diveName': dive.name,
     'surfaceIntervalSeconds': dive.plan.surfaceInterval?.inSeconds,
+    if (dive.fixedStart) 'fixedStart': true,
+    if (dive.settingOverrides.isNotEmpty)
+      'settingOverrides': [
+        for (final group in dive.settingOverrides) group.name,
+      ],
     'carriesFrom': [
       for (final tank in tanks)
         before.indexWhere((t) => t.id == dive.sourceTankIds[tank.id]),
@@ -218,6 +243,11 @@ StoredSeries? seriesFromSubplanJson(String source, {DateTime? now}) {
         StoredSeriesDive(
           plan: plan,
           name: dive['diveName'] as String?,
+          fixedStart: dive['fixedStart'] as bool? ?? false,
+          settingOverrides: {
+            for (final name in dive['settingOverrides'] as List? ?? const [])
+              ?PlanSettingGroup.values.asNameMap()[name],
+          },
           sourceTankIds: {
             for (var i = 0; i < tanks.length && i < carriesFrom.length; i++)
               if (carriesFrom[i] >= 0 && carriesFrom[i] < before.length)
@@ -357,6 +387,10 @@ domain.DivePlan _planFromMap(Map<String, dynamic> plan, DateTime timestamp) {
     id: _uuid.v4(),
     name: plan['name'] as String? ?? 'Imported plan',
     notes: plan['notes'] as String? ?? '',
+    startDateTime: switch (plan['startDateTime']) {
+      final String raw => parseExternalDateAsWallClockUtc(raw),
+      _ => null,
+    },
     createdAt: timestamp,
     updatedAt: timestamp,
     mode:

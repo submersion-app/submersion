@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
+import 'package:submersion/features/planner/domain/entities/plan_setting_group.dart';
 
 /// One dive of a saved repetitive series (issue #3565): its plan and what
 /// places it in the series. What it carries in from the dive before is
@@ -16,6 +17,12 @@ class StoredSeriesDive extends Equatable {
   final Map<String, String> sourceTankIds;
   final Set<String> pinnedTankIds;
 
+  /// See `PlanSeriesDive.fixedStart`.
+  final bool fixedStart;
+
+  /// See `PlanSeriesDive.settingOverrides`.
+  final Set<PlanSettingGroup> settingOverrides;
+
   /// What the saved-plans list shows for the dive.
   final double? summaryMaxDepth;
   final int? summaryRuntimeSeconds;
@@ -26,6 +33,8 @@ class StoredSeriesDive extends Equatable {
     this.name,
     this.sourceTankIds = const {},
     this.pinnedTankIds = const {},
+    this.fixedStart = false,
+    this.settingOverrides = const {},
     this.summaryMaxDepth,
     this.summaryRuntimeSeconds,
     this.summaryTtsSeconds,
@@ -37,6 +46,8 @@ class StoredSeriesDive extends Equatable {
     bool clearName = false,
     Map<String, String>? sourceTankIds,
     Set<String>? pinnedTankIds,
+    bool? fixedStart,
+    Set<PlanSettingGroup>? settingOverrides,
     double? summaryMaxDepth,
     int? summaryRuntimeSeconds,
     int? summaryTtsSeconds,
@@ -46,6 +57,8 @@ class StoredSeriesDive extends Equatable {
       name: clearName ? null : (name ?? this.name),
       sourceTankIds: sourceTankIds ?? this.sourceTankIds,
       pinnedTankIds: pinnedTankIds ?? this.pinnedTankIds,
+      fixedStart: fixedStart ?? this.fixedStart,
+      settingOverrides: settingOverrides ?? this.settingOverrides,
       summaryMaxDepth: summaryMaxDepth ?? this.summaryMaxDepth,
       summaryRuntimeSeconds:
           summaryRuntimeSeconds ?? this.summaryRuntimeSeconds,
@@ -59,6 +72,8 @@ class StoredSeriesDive extends Equatable {
     name,
     sourceTankIds,
     pinnedTankIds,
+    fixedStart,
+    settingOverrides,
     summaryMaxDepth,
     summaryRuntimeSeconds,
     summaryTtsSeconds,

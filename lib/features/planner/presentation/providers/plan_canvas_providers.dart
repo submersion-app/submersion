@@ -1,3 +1,4 @@
+import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
@@ -593,8 +594,12 @@ final contingencyGhostSeriesProvider = Provider<PlanCanvasSeries?>((ref) {
 /// deco time, CNS, issues) are shown: the selected contingency's outcome when
 /// one is being previewed, else the live plan's outcome.
 final activePlanOutcomeProvider = Provider<PlanOutcome>((ref) {
-  return ref.watch(selectedContingencyProvider)?.outcome ??
-      ref.watch(planOutcomeProvider);
+  // What the series raises about the dive (its interval, the tissues it
+  // starts with) holds for a previewed contingency of it too.
+  final seriesIssues = ref.watch(selectedSeriesIssuesProvider);
+  final preview = ref.watch(selectedContingencyProvider)?.outcome;
+  final outcome = preview ?? ref.watch<PlanOutcome>(planOutcomeProvider);
+  return outcome.withIssues(seriesIssues);
 });
 
 /// The logged dive a "What if..." plan was converted from, plus its profile:

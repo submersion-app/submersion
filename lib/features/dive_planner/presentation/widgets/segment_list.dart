@@ -17,17 +17,23 @@ import 'package:submersion/features/planner/domain/services/dive_plan_state_mapp
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart'
-    show resolvedPlanEngineConfigProvider;
+    show planEngineConfigProvider, resolvedPlanEngineConfigProvider;
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Widget for displaying and managing plan segments.
+///
+/// Given a [plan], it shows that plan's segments read-only instead of the
+/// editor's: a logged dive's plan, as it was (issue #3565).
 class SegmentList extends ConsumerWidget {
-  const SegmentList({super.key});
+  const SegmentList({super.key, this.plan});
+
+  final DivePlanState? plan;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final planState = ref.watch(divePlanNotifierProvider);
+    final readOnly = plan != null;
+    final DivePlanState planState = plan ?? ref.watch(divePlanNotifierProvider);
     final theme = Theme.of(context);
     final units = ref.watch(unitFormatterProvider);
     // Resolved once per build, not once per row. The state's list order is
@@ -53,13 +59,15 @@ class SegmentList extends ConsumerWidget {
     final resolvedPlan = const TankRoleResolver().apply(
       divePlanFromState(planState),
     );
+    // A plan shown read-only resolves its own settings, not the editor's.
+    final config = readOnly
+        ? ref.watch(planEngineConfigProvider).resolvedFor(resolvedPlan)
+        : ref.watch(resolvedPlanEngineConfigProvider);
     final adjustedLegs = const SegmentChain().resolve(
       withDiluentSwitchTime(
         resolvedPlan.segments,
         resolvedPlan,
-        gasSwitchStopSeconds: ref
-            .watch(resolvedPlanEngineConfigProvider)
-            .gasSwitchStopSeconds,
+        gasSwitchStopSeconds: config.gasSwitchStopSeconds,
       ),
     );
     int runtimeSecondsFor(String segmentId) => adjustedLegs
@@ -86,16 +94,29 @@ class SegmentList extends ConsumerWidget {
                     ),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.add),
-                  tooltip: context.l10n.divePlanner_segmentList_addSegment,
-                  onPressed: () => _showAddSegmentDialog(context, ref),
-                ),
+                if (!readOnly)
+                  IconButton(
+                    icon: const Icon(Icons.add),
+                    tooltip: context.l10n.divePlanner_segmentList_addSegment,
+                    onPressed: () => _showAddSegmentDialog(context, ref),
+                  ),
               ],
             ),
             const SizedBox(height: 8),
 
-            if (planState.segments.isEmpty)
+            if (readOnly)
+              for (final (index, leg) in legs.indexed)
+                _SegmentTile(
+                  key: ValueKey(leg.segment.id),
+                  leg: leg,
+                  runtimeSeconds: runtimeSecondsFor(leg.segment.id),
+                  switchedGas:
+                      index > 0 && legs[index - 1].tankId != leg.tankId,
+                  units: units,
+                  index: index,
+                  selected: false,
+                )
+            else if (planState.segments.isEmpty)
               _EmptyState(
                 onAddSimplePlan: () => _showSimplePlanDialog(context, ref),
               )
@@ -235,9 +256,12 @@ class _SegmentTile extends StatelessWidget {
   final UnitFormatter units;
   final int index;
   final bool selected;
-  final VoidCallback onSelect;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
+
+  /// All three null show the segment read-only: no selecting, editing,
+  /// deleting or dragging.
+  final VoidCallback? onSelect;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const _SegmentTile({
     super.key,
@@ -247,10 +271,12 @@ class _SegmentTile extends StatelessWidget {
     required this.units,
     required this.index,
     required this.selected,
-    required this.onSelect,
-    required this.onEdit,
-    required this.onDelete,
+    this.onSelect,
+    this.onEdit,
+    this.onDelete,
   });
+
+  bool get _readOnly => onEdit == null;
 
   PlanSegment get segment => leg.segment;
 
@@ -299,12 +325,14 @@ class _SegmentTile extends StatelessWidget {
           ),
           onTap: onSelect,
           leading: _SegmentIcon(phase: leg.phase),
-          trailing: ReorderableDragStartListener(
-            index: index,
-            child: const Icon(Icons.drag_handle, size: 18),
-          ),
+          trailing: _readOnly
+              ? null
+              : ReorderableDragStartListener(
+                  index: index,
+                  child: const Icon(Icons.drag_handle, size: 18),
+                ),
           title: Padding(
-            padding: const EdgeInsets.only(right: 64),
+            padding: EdgeInsets.only(right: _readOnly ? 0 : 64),
             child: Text(
               _formatDescription(context.l10n),
               maxLines: 3,
@@ -316,7 +344,7 @@ class _SegmentTile extends StatelessWidget {
             style: theme.textTheme.bodySmall,
           ),
         ),
-        Positioned(top: 6, right: 8, child: actions),
+        if (!_readOnly) Positioned(top: 6, right: 8, child: actions),
       ],
     );
   }

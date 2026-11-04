@@ -91,6 +91,7 @@ class RigComposer extends ConsumerWidget {
           scrollController: scrollController,
           selectedEquipmentIds: gear.map((e) => e.id).toSet(),
           hideSpare: true,
+          hideAssemblyParts: true,
           onEquipmentSelected: (equipment) {
             onGearAdded(equipment);
             Navigator.of(context).pop();

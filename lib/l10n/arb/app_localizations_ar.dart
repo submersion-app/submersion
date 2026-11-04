@@ -2511,6 +2511,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accessibility_shortcutCategory_help => 'مساعدة';
 
   @override
+  String get accessibility_shortcutCategory_planner => 'المخطط';
+
+  @override
   String get accessibility_shortcutCategory_navigation => 'تنقل';
 
   @override
@@ -2540,6 +2543,13 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get accessibility_shortcut_keyboardShortcuts =>
       'اختصارات لوحة المفاتيح';
+
+  @override
+  String get accessibility_shortcut_previousPlannedDive =>
+      'الغطسة المخططة السابقة';
+
+  @override
+  String get accessibility_shortcut_nextPlannedDive => 'الغطسة المخططة التالية';
 
   @override
   String get accessibility_shortcut_newDive => 'غوصة جديدة';
@@ -8799,6 +8809,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'تم اختيار جميع المعدات بالفعل';
 
   @override
+  String get diveLog_equipmentPicker_allAssemblyParts =>
+      'المعدات المتبقية جزء من تجميعة';
+
+  @override
   String get diveLog_equipmentPicker_allSpare =>
       'المعدات المتبقية مصنفة كاحتياطية';
 
@@ -8813,6 +8827,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_equipmentPicker_removeToAdd =>
       'أزل عناصر لإضافة عناصر مختلفة';
+
+  @override
+  String get diveLog_equipmentPicker_showAssemblyParts =>
+      'عرض مكوّنات التجميعات';
 
   @override
   String get diveLog_equipmentPicker_showLeftKit =>
@@ -21323,6 +21341,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerSeries_stopFollowing => 'إيقاف المتابعة';
 
   @override
+  String get plannerSeries_compareWithPlan => 'مقارنة بالخطة';
+
+  @override
+  String get plannerSeries_asPlanned => 'كما خُطط';
+
+  @override
+  String get plannerSeries_loggedNotPlanned =>
+      'هذه الغطسة في سجلك ولم تُخطط هنا. افتحها في السجل لتغييرها.';
+
+  @override
+  String get plannerSeries_maxDepth => 'أقصى عمق';
+
+  @override
   String plannerSeries_carriedInto(String dive) {
     return 'ينتقل إلى $dive';
   }
@@ -21374,6 +21405,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'تجاهل';
 
   @override
+  String plannerSeries_issue_shortInterval(String time) {
+    return 'فترة السطح البالغة $time أقل من 10 دقائق';
+  }
+
+  @override
+  String plannerSeries_issue_startsBefore(String time) {
+    return 'تبدأ قبل $time من انتهاء الغطسة السابقة';
+  }
+
+  @override
+  String get plannerSeries_issue_owingDeco =>
+      'تبدأ بالتزام تخفيف ضغط من الغطسة السابقة';
+
+  @override
+  String plannerSeries_issue_reverseProfile(String depth, String previous) {
+    return 'ملف عكسي: $depth، أعمق من الغطسة السابقة البالغة $previous';
+  }
+
+  @override
   String get plannerSeries_unsaved_titleDive => 'هل تريد حفظ هذه الغطسة؟';
 
   @override
@@ -21393,6 +21443,51 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get plannerSeries_start => 'البداية';
+
+  @override
+  String get plannerSeries_start_notSet => 'غير محدد';
+
+  @override
+  String get plannerSeries_start_clear => 'مسح وقت البداية';
+
+  @override
+  String get plannerSeries_start_needsFirst =>
+      'حدّد أولاً وقت بداية الغطسة الأولى';
+
+  @override
+  String get plannerSeries_start_fixed =>
+      'فترة السطح مستمدة من وقت البداية هذا';
+
+  @override
+  String get plannerSeries_site => 'الموقع';
+
+  @override
+  String get plannerSeries_site_none => 'بلا موقع';
+
+  @override
+  String get plannerSeries_site_clear => 'مسح الموقع';
+
+  @override
+  String get plannerSeries_scope_series => 'السلسلة';
+
+  @override
+  String get plannerSeries_scope_seriesHint =>
+      'تستخدم الغطسات التالية هذه الإعدادات ما لم تكن لها إعداداتها الخاصة';
+
+  @override
+  String get plannerSeries_scope_fromSeries => 'من السلسلة';
+
+  @override
+  String get plannerSeries_scope_thisDive => 'هذه الغطسة فقط';
+
+  @override
+  String get plannerSeries_scope_reset => 'إعادة إلى السلسلة';
+
+  @override
+  String get plannerSeries_scope_applyAll => 'تطبيق على كل الغطسات';
 
   @override
   String plannerSeries_fill(String tank) {
@@ -26076,6 +26171,13 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_startPressurePinned =>
       'ضغط البداية محدد يدويًا';
+
+  @override
+  String get settings_conflict_field_fixedStart => 'وقت البدء محدد يدويًا';
+
+  @override
+  String get settings_conflict_field_settingOverrides =>
+      'إعدادات لهذه الغطسة فقط';
 
   @override
   String get settings_conflict_field_startTime => 'وقت البدء';

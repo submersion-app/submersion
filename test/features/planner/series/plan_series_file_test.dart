@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/planner/data/services/plan_file_codec.dart';
+import 'package:submersion/features/planner/domain/entities/plan_setting_group.dart';
 import 'package:submersion/features/planner/domain/entities/stored_series.dart';
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 
@@ -55,6 +56,50 @@ void main() {
       (jsonDecode(seriesToSubplanJson(series())) as Map)['series'],
       isNot(contains('followedDiveId')),
     );
+  });
+
+  test('starts and fixed starts travel in the file as clock digits', () {
+    final aStart = DateTime.utc(2026, 11, 3, 9, 30);
+    final bStart = DateTime.utc(2026, 11, 3, 13);
+    final source = series();
+    final timed = source.copyWith(
+      dives: [
+        source.dives[0].copyWith(
+          plan: source.dives[0].plan.copyWith(startDateTime: aStart),
+        ),
+        source.dives[1].copyWith(
+          plan: source.dives[1].plan.copyWith(startDateTime: bStart),
+          fixedStart: true,
+        ),
+      ],
+    );
+    final json = seriesToSubplanJson(timed);
+    final file = jsonDecode(json) as Map<String, dynamic>;
+
+    expect((file['plan'] as Map)['startDateTime'], '2026-11-03T09:30:00.000');
+    final read = seriesFromSubplanJson(json)!;
+    expect(read.dives[0].plan.startDateTime, aStart);
+    expect(read.dives[0].fixedStart, isFalse);
+    expect(read.dives[1].plan.startDateTime, bStart);
+    expect(read.dives[1].fixedStart, isTrue);
+  });
+
+  test('the groups a dive keeps its own travel in the file', () {
+    final source = series();
+    final json = seriesToSubplanJson(
+      source.copyWith(
+        dives: [
+          source.dives[0],
+          source.dives[1].copyWith(
+            settingOverrides: const {PlanSettingGroup.rates},
+          ),
+        ],
+      ),
+    );
+
+    final read = seriesFromSubplanJson(json)!;
+    expect(read.dives[0].settingOverrides, isEmpty);
+    expect(read.dives[1].settingOverrides, {PlanSettingGroup.rates});
   });
 
   test('a series file reads as its first dive to the single-plan reader', () {

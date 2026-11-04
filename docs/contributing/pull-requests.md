@@ -212,7 +212,7 @@ A PR that touches none of those paths deletes the Screenshots section.
 The web app is the same code as the installed apps, built for a browser.
 CI proves that it compiles (`test/architecture/` keeps native-only imports
 and `dart:io`'s `Platform` out of shared code) and that its first run,
-sync round trip, restore and sample logbook work in three browsers. It
+sync round trip, restore and sample logbook work in Firefox and WebKit. It
 cannot prove that a new feature behaves there, so the template's
 **Browser** section asks.
 

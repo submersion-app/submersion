@@ -2328,6 +2328,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get accessibility_shortcutCategory_help => '帮助';
 
   @override
+  String get accessibility_shortcutCategory_planner => '计划器';
+
+  @override
   String get accessibility_shortcutCategory_navigation => '导航';
 
   @override
@@ -2356,6 +2359,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get accessibility_shortcut_keyboardShortcuts => '键盘快捷键';
+
+  @override
+  String get accessibility_shortcut_previousPlannedDive => '上一次计划潜水';
+
+  @override
+  String get accessibility_shortcut_nextPlannedDive => '下一次计划潜水';
 
   @override
   String get accessibility_shortcut_newDive => '新建潜水';
@@ -8231,6 +8240,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_equipmentPicker_allSelected => '所有装备已选择';
 
   @override
+  String get diveLog_equipmentPicker_allAssemblyParts => '剩余装备均属于某个组合';
+
+  @override
   String get diveLog_equipmentPicker_allSpare => '剩余装备均标记为备用';
 
   @override
@@ -8243,6 +8255,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_equipmentPicker_removeToAdd => '移除项目以添加新项目';
+
+  @override
+  String get diveLog_equipmentPicker_showAssemblyParts => '显示组合中的组件';
 
   @override
   String get diveLog_equipmentPicker_showLeftKit => '显示已退役和已售出的装备';
@@ -20002,6 +20017,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerSeries_stopFollowing => '停止跟随';
 
   @override
+  String get plannerSeries_compareWithPlan => '与计划对比';
+
+  @override
+  String get plannerSeries_asPlanned => '按计划';
+
+  @override
+  String get plannerSeries_loggedNotPlanned =>
+      '这次潜水在你的日志中，并非在此计划。请在潜水日志中打开以修改。';
+
+  @override
+  String get plannerSeries_maxDepth => '最大深度';
+
+  @override
   String plannerSeries_carriedInto(String dive) {
     return '带入 $dive';
   }
@@ -20052,6 +20080,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerSeries_unsaved_discard => '放弃';
 
   @override
+  String plannerSeries_issue_shortInterval(String time) {
+    return '$time 的水面间隔不足 10 分钟';
+  }
+
+  @override
+  String plannerSeries_issue_startsBefore(String time) {
+    return '在上一次潜水结束前 $time 开始';
+  }
+
+  @override
+  String get plannerSeries_issue_owingDeco => '开始时带有上一次潜水的减压义务';
+
+  @override
+  String plannerSeries_issue_reverseProfile(String depth, String previous) {
+    return '反向剖面：$depth，比上一次 $previous 的潜水更深';
+  }
+
+  @override
   String get plannerSeries_unsaved_titleDive => '保存此潜水？';
 
   @override
@@ -20061,6 +20107,48 @@ class AppLocalizationsZh extends AppLocalizations {
   String plannerSeries_saved_diveCount(int count) {
     return '$count 次潜水';
   }
+
+  @override
+  String get plannerSeries_start => '开始';
+
+  @override
+  String get plannerSeries_start_notSet => '未设置';
+
+  @override
+  String get plannerSeries_start_clear => '清除开始时间';
+
+  @override
+  String get plannerSeries_start_needsFirst => '请先为第一次潜水设置开始时间';
+
+  @override
+  String get plannerSeries_start_fixed => '水面间隔由此开始时间推算';
+
+  @override
+  String get plannerSeries_site => '潜点';
+
+  @override
+  String get plannerSeries_site_none => '无潜点';
+
+  @override
+  String get plannerSeries_site_clear => '清除潜点';
+
+  @override
+  String get plannerSeries_scope_series => '系列';
+
+  @override
+  String get plannerSeries_scope_seriesHint => '后续潜水使用这些设置，除非有自己的设置';
+
+  @override
+  String get plannerSeries_scope_fromSeries => '来自系列';
+
+  @override
+  String get plannerSeries_scope_thisDive => '仅此潜水';
+
+  @override
+  String get plannerSeries_scope_reset => '重置为系列';
+
+  @override
+  String get plannerSeries_scope_applyAll => '应用到所有潜水';
 
   @override
   String plannerSeries_fill(String tank) {
@@ -24388,6 +24476,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_startPressurePinned => '手动设置的起始压力';
+
+  @override
+  String get settings_conflict_field_fixedStart => '手动设置的开始时间';
+
+  @override
+  String get settings_conflict_field_settingOverrides => '仅适用于本次潜水的设置';
 
   @override
   String get settings_conflict_field_startTime => '开始时间';

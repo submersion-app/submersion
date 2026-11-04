@@ -556,9 +556,16 @@ void main() {
       await seedDive('d2');
       await pump(tester, ['d1', 'd2']);
 
-      // "+ Add" opens the equipment picker sheet.
+      // "+ Add" opens the equipment picker sheet, which leaves out the
+      // components of an assembly it offers (#2514).
       await tapAdd(tester, 'Equipment');
       expect(find.byType(EquipmentPickerSheet), findsOneWidget);
+      expect(
+        tester
+            .widget<EquipmentPickerSheet>(find.byType(EquipmentPickerSheet))
+            .hideAssemblyParts,
+        isTrue,
+      );
       await tester.tapAt(const Offset(20, 20)); // dismiss
       await tester.pumpAndSettle();
 

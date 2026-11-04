@@ -6,13 +6,31 @@ import 'package:submersion/features/equipment/domain/services/gear_expander.dart
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 
-/// True for gear the expander may attach as a part. Wishlist gear (#2025)
-/// never is, even on a row whose isActive was left true.
+/// True for gear the expander may attach as a part. Retired, sold, lost and
+/// wishlist (#2025) gear never is, even on an older row whose isActive was
+/// left true. Matches the repository's own expansion (`_activeIdsAmong`).
 bool isGearActive(EquipmentItem item) =>
     item.isActive &&
     item.status != EquipmentStatus.retired &&
+    item.status != EquipmentStatus.sold &&
     item.status != EquipmentStatus.lost &&
     item.status != EquipmentStatus.wanted;
+
+/// The ids among [items] a gear list can leave out because an assembly it
+/// also lists brings them along (#2514); see [ComponentsIndex.partsWithin]
+/// for [attached]. Only gear the expander attaches ([isGearActive]) counts,
+/// as a part or as the assembly: a retired, sold or lost part is not
+/// brought along, and an assembly that has left the kit leaves its parts as
+/// the way to add them. Every surface goes through here, so none can hand
+/// the index gear it would wrongly hide.
+Set<String> assemblyPartsAmong(
+  ComponentsIndex index,
+  Iterable<EquipmentItem> items, {
+  Set<String> attached = const {},
+}) => index.partsWithin({
+  for (final e in items)
+    if (isGearActive(e)) e.id,
+}, attached: attached);
 
 /// What a page gets back from [expandGearOnPage]: the new provenance list
 /// and the items (parts) that were not in the page's list before, so the

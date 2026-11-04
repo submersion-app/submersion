@@ -3799,6 +3799,12 @@ abstract class AppLocalizations {
   /// **'Help'**
   String get accessibility_shortcutCategory_help;
 
+  /// No description provided for @accessibility_shortcutCategory_planner.
+  ///
+  /// In en, this message translates to:
+  /// **'Planner'**
+  String get accessibility_shortcutCategory_planner;
+
   /// Shortcut category name: Navigation
   ///
   /// In en, this message translates to:
@@ -3858,6 +3864,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Keyboard shortcuts'**
   String get accessibility_shortcut_keyboardShortcuts;
+
+  /// No description provided for @accessibility_shortcut_previousPlannedDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous planned dive'**
+  String get accessibility_shortcut_previousPlannedDive;
+
+  /// No description provided for @accessibility_shortcut_nextPlannedDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Next planned dive'**
+  String get accessibility_shortcut_nextPlannedDive;
 
   /// Keyboard shortcut label for creating a new dive
   ///
@@ -13672,6 +13690,12 @@ abstract class AppLocalizations {
   /// **'All equipment already selected'**
   String get diveLog_equipmentPicker_allSelected;
 
+  /// No description provided for @diveLog_equipmentPicker_allAssemblyParts.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining gear is part of an assembly'**
+  String get diveLog_equipmentPicker_allAssemblyParts;
+
   /// No description provided for @diveLog_equipmentPicker_allSpare.
   ///
   /// In en, this message translates to:
@@ -13695,6 +13719,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove items to add different ones'**
   String get diveLog_equipmentPicker_removeToAdd;
+
+  /// No description provided for @diveLog_equipmentPicker_showAssemblyParts.
+  ///
+  /// In en, this message translates to:
+  /// **'Show components of assemblies'**
+  String get diveLog_equipmentPicker_showAssemblyParts;
 
   /// No description provided for @diveLog_equipmentPicker_showLeftKit.
   ///
@@ -33477,6 +33507,30 @@ abstract class AppLocalizations {
   /// **'Stop following'**
   String get plannerSeries_stopFollowing;
 
+  /// No description provided for @plannerSeries_compareWithPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare with its plan'**
+  String get plannerSeries_compareWithPlan;
+
+  /// No description provided for @plannerSeries_asPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'As planned'**
+  String get plannerSeries_asPlanned;
+
+  /// No description provided for @plannerSeries_loggedNotPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'This dive is in your log and wasn\'t planned here. Open it in the dive log to change it.'**
+  String get plannerSeries_loggedNotPlanned;
+
+  /// No description provided for @plannerSeries_maxDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Max depth'**
+  String get plannerSeries_maxDepth;
+
   /// Heading over what a logged dive passes on to the dive after it
   ///
   /// In en, this message translates to:
@@ -33561,6 +33615,30 @@ abstract class AppLocalizations {
   /// **'Discard'**
   String get plannerSeries_unsaved_discard;
 
+  /// No description provided for @plannerSeries_issue_shortInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface interval of {time} is under 10 minutes'**
+  String plannerSeries_issue_shortInterval(String time);
+
+  /// No description provided for @plannerSeries_issue_startsBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts {time} before the previous dive ends'**
+  String plannerSeries_issue_startsBefore(String time);
+
+  /// No description provided for @plannerSeries_issue_owingDeco.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts with a deco obligation from the dive before'**
+  String get plannerSeries_issue_owingDeco;
+
+  /// No description provided for @plannerSeries_issue_reverseProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Reverse profile: {depth}, deeper than the {previous} dive before'**
+  String plannerSeries_issue_reverseProfile(String depth, String previous);
+
   /// No description provided for @plannerSeries_unsaved_titleDive.
   ///
   /// In en, this message translates to:
@@ -33578,6 +33656,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} dives'**
   String plannerSeries_saved_diveCount(int count);
+
+  /// No description provided for @plannerSeries_start.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get plannerSeries_start;
+
+  /// No description provided for @plannerSeries_start_notSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get plannerSeries_start_notSet;
+
+  /// No description provided for @plannerSeries_start_clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the start time'**
+  String get plannerSeries_start_clear;
+
+  /// No description provided for @plannerSeries_start_needsFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Give the first dive a start time first'**
+  String get plannerSeries_start_needsFirst;
+
+  /// No description provided for @plannerSeries_start_fixed.
+  ///
+  /// In en, this message translates to:
+  /// **'The surface interval follows from this start'**
+  String get plannerSeries_start_fixed;
+
+  /// No description provided for @plannerSeries_site.
+  ///
+  /// In en, this message translates to:
+  /// **'Site'**
+  String get plannerSeries_site;
+
+  /// No description provided for @plannerSeries_site_none.
+  ///
+  /// In en, this message translates to:
+  /// **'No site'**
+  String get plannerSeries_site_none;
+
+  /// No description provided for @plannerSeries_site_clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the site'**
+  String get plannerSeries_site_clear;
+
+  /// No description provided for @plannerSeries_scope_series.
+  ///
+  /// In en, this message translates to:
+  /// **'Series'**
+  String get plannerSeries_scope_series;
+
+  /// No description provided for @plannerSeries_scope_seriesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives after this one take these settings unless they set their own'**
+  String get plannerSeries_scope_seriesHint;
+
+  /// No description provided for @plannerSeries_scope_fromSeries.
+  ///
+  /// In en, this message translates to:
+  /// **'From the series'**
+  String get plannerSeries_scope_fromSeries;
+
+  /// No description provided for @plannerSeries_scope_thisDive.
+  ///
+  /// In en, this message translates to:
+  /// **'This dive only'**
+  String get plannerSeries_scope_thisDive;
+
+  /// No description provided for @plannerSeries_scope_reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to series'**
+  String get plannerSeries_scope_reset;
+
+  /// No description provided for @plannerSeries_scope_applyAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply to all dives'**
+  String get plannerSeries_scope_applyAll;
 
   /// The tank's name or gas, such as EAN32
   ///
@@ -41288,6 +41450,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start pressure set by hand'**
   String get settings_conflict_field_startPressurePinned;
+
+  /// No description provided for @settings_conflict_field_fixedStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start time set by hand'**
+  String get settings_conflict_field_fixedStart;
+
+  /// No description provided for @settings_conflict_field_settingOverrides.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings for this dive only'**
+  String get settings_conflict_field_settingOverrides;
 
   /// No description provided for @settings_conflict_field_startTime.
   ///
