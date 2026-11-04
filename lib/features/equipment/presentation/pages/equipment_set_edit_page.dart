@@ -377,12 +377,10 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
                     : componentsAsync.value;
                 // A listed assembly brings its parts (#2514): hide each one
                 // behind a switch unless ticked or touched.
-                final partIds = (components ?? ComponentsIndex.empty)
-                    .partsWithin({
-                      for (final e in equipment)
-                        if (countsForPartHiding(e)) e.id,
-                    })
-                    .difference({..._selectedEquipmentIds, ..._touchedIds});
+                final partIds = assemblyPartsAmong(
+                  components ?? ComponentsIndex.empty,
+                  equipment,
+                ).difference({..._selectedEquipmentIds, ..._touchedIds});
                 final listed = _showParts
                     ? equipment
                     : [

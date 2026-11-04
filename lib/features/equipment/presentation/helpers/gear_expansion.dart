@@ -14,12 +14,21 @@ bool isGearActive(EquipmentItem item) =>
     item.status != EquipmentStatus.lost &&
     item.status != EquipmentStatus.wanted;
 
-/// True for gear that hiding assembly parts counts (#2514), as a part or as
-/// the assembly bringing it: gear the expander attaches that is still in
-/// the kit. A retired, sold or lost part is not brought along, and an
-/// assembly that has left the kit leaves its parts as the way to add them.
-bool countsForPartHiding(EquipmentItem item) =>
-    isGearActive(item) && !item.hasLeftKit;
+/// The ids among [items] a gear list can leave out because an assembly it
+/// also lists brings them along (#2514); see [ComponentsIndex.partsWithin]
+/// for [attached]. Only gear the expander attaches that is still in the kit
+/// counts, as a part or as the assembly: a retired, sold or lost part is not
+/// brought along, and an assembly that has left the kit leaves its parts as
+/// the way to add them. Every surface goes through here, so none can hand
+/// the index gear it would wrongly hide.
+Set<String> assemblyPartsAmong(
+  ComponentsIndex index,
+  Iterable<EquipmentItem> items, {
+  Set<String> attached = const {},
+}) => index.partsWithin({
+  for (final e in items)
+    if (isGearActive(e) && !e.hasLeftKit) e.id,
+}, attached: attached);
 
 /// What a page gets back from [expandGearOnPage]: the new provenance list
 /// and the items (parts) that were not in the page's list before, so the

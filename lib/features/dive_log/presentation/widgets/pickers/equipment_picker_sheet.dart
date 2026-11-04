@@ -265,10 +265,11 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
           ),
         )
         .toList();
-    final partIds = components.partsWithin({
-      for (final e in callerOffered)
-        if (countsForPartHiding(e)) e.id,
-    }, attached: selectedEquipmentIds);
+    final partIds = assemblyPartsAmong(
+      components,
+      callerOffered,
+      attached: selectedEquipmentIds,
+    );
     final hiddenPartIds = showParts ? const <String>{} : partIds;
     // What the list can show before the diver's own filter, and what the
     // filter sheet derives its chips from, so no chip matches only hidden
@@ -395,11 +396,12 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
             data: (equipmentList) {
               // Three narrowings, kept separate because each empties the list
               // for a different reason and the diver deserves to be told
-              // which: gear already on the dive, the caller's own constraints
-              // (the transmitter registry offers cylinders only, dive pickers
-              // hide spare gear and the components of offered assemblies),
-              // and finally the filter the diver chose.
-              // offerable is built above from this same list.
+              // which: gear already on the dive (unselected), the caller's
+              // own constraints (the transmitter registry offers cylinders
+              // only, dive pickers hide spare gear and the components of
+              // offered assemblies), and finally the filter the diver chose.
+              // The first two make offerable, built in build() so the filter
+              // sheet shares it; this builder applies the third.
               final unselected = equipmentList
                   .where((e) => !selectedEquipmentIds.contains(e.id))
                   .toList();

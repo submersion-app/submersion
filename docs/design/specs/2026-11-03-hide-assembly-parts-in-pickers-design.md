@@ -34,8 +34,8 @@ first stage that belongs to a set is needed.
 `ComponentsIndex.partsWithin(offered, attached:)` returns the ids in
 `offered` with a parent also in `offered`, unless a parent is in `attached`
 (the gear on the dive) or the only offered parents sit below the id too (a
-self-loop or a longer corrupt loop). It is the whole rule; both surfaces
-call it. They pass only gear that `countsForPartHiding` accepts: what the
+self-loop or a longer corrupt loop). Both surfaces reach it through
+`assemblyPartsAmong(index, items, attached:)`, which passes only gear the
 expander attaches (`isGearActive`) and that is still in the kit, so a
 retired part is never hidden and a retired assembly hides nothing.
 

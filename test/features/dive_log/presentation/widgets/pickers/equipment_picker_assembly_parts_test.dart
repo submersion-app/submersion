@@ -275,6 +275,43 @@ void main() {
       expect(find.text('Primary Second Stage'), findsNothing);
     });
 
+    testWidgets('a retired sub-assembly hides nothing below it', (
+      tester,
+    ) async {
+      // reg > retired first stage > hose: the expander skips the retired
+      // first stage and so never reaches the hose, so picking the reg brings
+      // neither, and the hose must stay listed with or without the switch.
+      const oldFirst = EquipmentItem(
+        id: 'first',
+        name: 'DIN First Stage',
+        type: EquipmentType.firstStage,
+        status: EquipmentStatus.retired,
+        isActive: false,
+      );
+      const hose = EquipmentItem(
+        id: 'hose',
+        name: 'Braided Hose',
+        type: EquipmentType.hose,
+      );
+      await _pump(
+        tester,
+        all: const [_reg, oldFirst, hose],
+        index: ComponentsIndex.fromRows([
+          _edge('reg', 'first'),
+          _edge('first', 'hose'),
+        ]),
+        offerLeftKit: true,
+      );
+      expect(find.text('Braided Hose'), findsOneWidget);
+
+      await tester.tap(find.text('Show retired and sold gear'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('DIN First Stage'), findsOneWidget);
+      expect(find.text('Braided Hose'), findsOneWidget);
+      expect(find.text(_showLabel), findsNothing);
+    });
+
     testWidgets('a retired assembly listed by the left-kit switch hides none', (
       tester,
     ) async {

@@ -60,9 +60,10 @@ class ComponentsIndex {
 
   /// The ids in [offered] that are a part of another assembly in [offered]:
   /// the rows a gear picker can leave out, since picking the assembly brings
-  /// them along (#2514). [offered] holds only gear the expander attaches, so
-  /// a retired part (never brought along) and a retired assembly (whose
-  /// parts are the way to add them) are left out by the caller.
+  /// them along (#2514). [offered] must hold only gear the expander attaches,
+  /// so a retired part (never brought along) and a retired assembly (whose
+  /// parts are the way to add them) are left out: call it through
+  /// `assemblyPartsAmong`, which applies that filter.
   ///
   /// A part stays when none of its assemblies is offered (each is Spare,
   /// retired, or on the dive already), and when one of them is in
