@@ -274,6 +274,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
       _markerPress = null;
       _hoverWorstCase = false;
       _worstCasePress = false;
+      _worstCasePinnedFor = null;
       _frozenAxes = null;
       return PlanChartEmptyState(theme: theme);
     }
@@ -318,6 +319,9 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
     final highlightedIssues = ref.watch(highlightedPlanIssuesProvider);
     final worstCase = ref.watch(planChartWorstCaseProvider);
     final worstCaseLabel = context.l10n.plannerCanvas_chart_worstCase;
+    // A marker that went away takes its pinned card with it, so it does not
+    // come back open when the marker does.
+    if (worstCase == null) _worstCasePinnedFor = null;
 
     final frozen = _frozenAxes;
     if (frozen != null) {
@@ -450,7 +454,10 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
           final hit = _dragVertex;
           _dragSegmentId = hit == null ? null : vertices[hit].segmentId;
           final mouse = event.kind == PointerDeviceKind.mouse;
-          _worstCasePress = onWorstCase(event.localPosition, mouse: mouse);
+          // A waypoint under the press keeps it: its handle sits on the line,
+          // the pill well clear of it.
+          _worstCasePress =
+              hit == null && onWorstCase(event.localPosition, mouse: mouse);
           _markerPress = _worstCasePress
               ? null
               : hitTestIssueMarker(
@@ -700,6 +707,21 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
                           final scrubTime = ref.watch(scrubTimeProvider);
                           return Stack(
                             children: [
+                              // Under the waypoint handles, which share its
+                              // point on the end of the bottom, and under the
+                              // warnings, so their card covers it.
+                              if (placedWorstCase != null)
+                                Positioned.fill(
+                                  child: PlanWorstCaseMarkerLayer(
+                                    placed: placedWorstCase,
+                                    label: worstCaseLabel,
+                                    active: worstCaseActive,
+                                    palette: palette,
+                                    units: units,
+                                    labelStyle: tagStyle,
+                                    onActivate: _toggleWorstCase,
+                                  ),
+                                ),
                               Positioned.fill(
                                 // A handle dragged past the frozen axes
                                 // must not paint over the axis labels or
@@ -730,19 +752,6 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
                                   ),
                                 ),
                               ),
-                              // Under the warnings, so their card covers it.
-                              if (placedWorstCase != null)
-                                Positioned.fill(
-                                  child: PlanWorstCaseMarkerLayer(
-                                    placed: placedWorstCase,
-                                    label: worstCaseLabel,
-                                    active: worstCaseActive,
-                                    palette: palette,
-                                    units: units,
-                                    labelStyle: tagStyle,
-                                    onActivate: _toggleWorstCase,
-                                  ),
-                                ),
                               Positioned.fill(
                                 child: PlanIssueMarkerLayer(
                                   placed: placedMarkers,

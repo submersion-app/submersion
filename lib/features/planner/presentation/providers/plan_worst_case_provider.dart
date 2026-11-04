@@ -33,6 +33,24 @@ class PlanChartWorstCase {
   /// result is on the way: still marked, but dimmed.
   final bool stale;
 
+  PlanChartWorstCase copyWith({
+    int? runtimeSeconds,
+    double? depthMeters,
+    int? ttsSeconds,
+    double? litersRequired,
+    double? availableLiters,
+    bool? sufficient,
+    bool? stale,
+  }) => PlanChartWorstCase(
+    runtimeSeconds: runtimeSeconds ?? this.runtimeSeconds,
+    depthMeters: depthMeters ?? this.depthMeters,
+    ttsSeconds: ttsSeconds ?? this.ttsSeconds,
+    litersRequired: litersRequired ?? this.litersRequired,
+    availableLiters: availableLiters ?? this.availableLiters,
+    sufficient: sufficient ?? this.sufficient,
+    stale: stale ?? this.stale,
+  );
+
   @override
   bool operator ==(Object other) =>
       other is PlanChartWorstCase &&

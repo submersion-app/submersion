@@ -45,7 +45,7 @@ PlacedWorstCaseMarker _place(
   geometry: _geometry,
   depthAt: depthAt ?? _profile,
   pillSize: _pillSize,
-);
+)!;
 
 void main() {
   group('placeWorstCaseMarker', () {
@@ -75,6 +75,38 @@ void main() {
         closeTo(placed.anchor.dy + worstCasePillGap, 0.01),
       );
       expect(placed.stemEnd, Offset(placed.anchor.dx, placed.pill.top));
+    });
+
+    test('a worst case past the end of the plot is not placed', () {
+      // A stale result for a longer plan, or axes frozen for a drag.
+      expect(
+        placeWorstCaseMarker(
+          worstCase: _worstCase(runtimeSeconds: 7200),
+          geometry: _geometry,
+          depthAt: _profile,
+          pillSize: _pillSize,
+        ),
+        isNull,
+      );
+    });
+
+    test('on a plot too short for the gap the pill stays inside it', () {
+      const short = PlanChartGeometry(
+        size: Size(500, 90),
+        maxTimeSeconds: 1800,
+        maxDepthMeters: 40,
+        depthUnitScale: 1,
+      );
+      final placed = placeWorstCaseMarker(
+        worstCase: _worstCase(),
+        geometry: short,
+        // Mid-plot: no room above for the gap, nor below for the full gap.
+        depthAt: (_) => 20,
+        pillSize: _pillSize,
+      )!;
+      expect(placed.above, isFalse);
+      expect(placed.pill.bottom, lessThanOrEqualTo(short.plotRect.bottom));
+      expect(placed.pill.top, greaterThanOrEqualTo(short.plotRect.top));
     });
 
     test('an early worst case keeps the pill inside the plot', () {

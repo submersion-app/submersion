@@ -40,8 +40,10 @@ class PlacedWorstCaseMarker {
   /// Whether the pill sits above the line (else below it).
   final bool above;
 
-  /// Where the stem meets the pill.
-  Offset get stemEnd => Offset(anchor.dx, above ? pill.bottom : pill.top);
+  /// Where the stem meets the pill. On a plot too short for the gap the pill
+  /// can come back over the anchor, and the stem has nothing to cross.
+  Offset get stemEnd =>
+      Offset(anchor.dx, above ? pill.bottom : math.max(anchor.dy, pill.top));
 
   /// The diamond and the pill together, so the card sits clear of both.
   Rect get footprint => pill.expandToInclude(
@@ -61,8 +63,12 @@ Size worstCasePillSize(String label, TextStyle style, TextDirection direction) {
 /// and to the left of the anchor, ending at it: stop tags sit right of and
 /// below their stops, and the gas flags along the top, so that side is free.
 /// Next to the gas flag row it goes below the line instead. It always stays
-/// inside the plot horizontally.
-PlacedWorstCaseMarker placeWorstCaseMarker({
+/// inside the plot.
+///
+/// Null when the worst case falls outside the plot's time span: a stale
+/// result for a longer plan, or one past axes frozen for a drag, has no
+/// point on the line to sit on.
+PlacedWorstCaseMarker? placeWorstCaseMarker({
   required PlanChartWorstCase worstCase,
   required PlanChartGeometry geometry,
   required double Function(double timeSeconds) depthAt,
@@ -71,10 +77,16 @@ PlacedWorstCaseMarker placeWorstCaseMarker({
   final plot = geometry.plotRect;
   final time = worstCase.runtimeSeconds.toDouble();
   final anchor = geometry.toPixel(time, depthAt(time));
+  if (anchor.dx < plot.left || anchor.dx > plot.right) return null;
 
   final aboveTop = anchor.dy - worstCasePillGap - pillSize.height;
   final above = aboveTop >= plot.top + _flagRowHeight;
-  final top = above ? aboveTop : anchor.dy + worstCasePillGap;
+  final top = above
+      ? aboveTop
+      : math.min(
+          anchor.dy + worstCasePillGap,
+          math.max(plot.top, plot.bottom - pillSize.height),
+        );
   final left = (anchor.dx - pillSize.width)
       .clamp(plot.left, math.max(plot.left, plot.right - pillSize.width))
       .toDouble();
