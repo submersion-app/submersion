@@ -15,6 +15,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// test/architecture/agent_write_coverage_test.dart`
 void main() {
   const gear = 'lib/features/equipment/data/repositories';
+  const passports = 'lib/features/cylinder_passports/data/repositories';
   const baselinePath = 'test/architecture/agent_write_coverage_baseline.txt';
 
   /// `repository file:method`, and the write entity that reaches it.
@@ -243,6 +244,10 @@ void main() {
     for (final method in const ['create', 'update', 'delete'])
       '$gear/equipment_observation_repository.dart:$method':
           'equipment_observations',
+    for (final method in const ['create', 'update', 'delete'])
+      '$passports/cylinder_fill_repository.dart:$method': 'cylinder_fills',
+    '$passports/cylinder_passport_repository.dart:assignPassportId':
+        'equipment',
   };
 
   /// Writes that change no record a diver keeps, so no change set entity

@@ -9,6 +9,7 @@ import 'package:submersion/features/agent_access/data/writes/families/center_wri
 import 'package:submersion/features/agent_access/data/writes/families/custom_certification_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/custom_field_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/cylinder_config_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/cylinder_fill_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_role_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_type_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_writes.dart';
@@ -93,6 +94,7 @@ class WriteCatalog {
         repositories,
         refreshFindings: refreshFindings,
       ),
+      CylinderFillWrites(repositories),
     ]);
   }
 

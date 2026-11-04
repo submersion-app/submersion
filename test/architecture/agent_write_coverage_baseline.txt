@@ -78,12 +78,8 @@ lib/features/courses/data/repositories/course_requirement_repository.dart:linkDi
 lib/features/courses/data/repositories/course_requirement_repository.dart:setChecklistComplete
 lib/features/courses/data/repositories/course_requirement_repository.dart:unlinkDive
 lib/features/courses/data/repositories/course_requirement_repository.dart:updateRequirement
-lib/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart:create
-lib/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart:delete
 lib/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart:relinkToEquipment
 lib/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart:unlinkFromDeletedEquipment
-lib/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart:update
-lib/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart:assignPassportId
 lib/features/dive_lab/data/repositories/dive_scenario_repository.dart:duplicateScenario
 lib/features/dive_log/data/repositories/derived_metrics_repository.dart:saveMetrics
 lib/features/dive_log/data/repositories/dive_computer_merge_repository.dart:mergeComputers
