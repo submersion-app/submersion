@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:convert';
 
 import 'package:submersion/features/agent_access/data/documents/document_dates.dart';
@@ -77,6 +78,17 @@ abstract class FieldCodec {
   /// document's list.
   const factory FieldCodec.integerList({int min, int max, int maxItems}) =
       _IntegerListCodec;
+
+  /// An object whose keys are some of [keys], each a number from [min] to
+  /// [max], such as a clock's intervals by exposure unit. The parsed value is
+  /// the map as JSON with its keys sorted, so it compares with a document's
+  /// map whatever order either is in.
+  const factory FieldCodec.numberMap({
+    required Set<String> keys,
+    num min,
+    num max,
+    bool nullable,
+  }) = _NumberMapCodec;
 
   /// The id of a record of [refEntity]. The planner checks it as it checks
   /// a relation's links: the record must exist and be the owner's to use.
@@ -358,6 +370,62 @@ class _CalendarDateCodec extends FieldCodec {
     }
     return raw;
   }
+}
+
+class _NumberMapCodec extends FieldCodec {
+  const _NumberMapCodec({
+    required this.keys,
+    this.min = 0,
+    this.max = 1e9,
+    super.nullable,
+  });
+
+  final Set<String> keys;
+  final num min;
+  final num max;
+
+  String get _keyList => ([...keys]..sort()).join(', ');
+
+  @override
+  String get describe => 'an object of numbers by $_keyList';
+
+  @override
+  Object parseValue(Object raw) {
+    if (raw is! Map) {
+      throw FieldRefusal('This field takes an object keyed by $_keyList.');
+    }
+    final sorted = SplayTreeMap<String, num>();
+    for (final MapEntry(:key, :value) in raw.entries) {
+      if (key is! String || !keys.contains(key)) {
+        throw FieldRefusal('This field takes the keys $_keyList.');
+      }
+      if (value is! num) {
+        throw FieldRefusal('$key takes a number.');
+      }
+      if (value < min || value > max) {
+        throw FieldRefusal('$key must be from $min to $max.');
+      }
+      sorted[key] = _plain(value);
+    }
+    return jsonEncode(sorted);
+  }
+
+  /// A whole number as an int, so 50 and a document's 50.0 read the same.
+  static num _plain(num value) =>
+      value == value.roundToDouble() ? value.toInt() : value.toDouble();
+
+  @override
+  Object? canonical(Object? documentValue) => documentValue is Map
+      ? jsonEncode(
+          SplayTreeMap<String, Object?>.of({
+            for (final MapEntry(:key, :value) in documentValue.entries)
+              '$key': value is num ? _plain(value) : value,
+          }),
+        )
+      : documentValue;
+
+  @override
+  Object? wire(Object? value) => value is String ? jsonDecode(value) : value;
 }
 
 class _IntegerListCodec extends FieldCodec {

@@ -279,19 +279,36 @@ class _Pass {
       return _add(op, entry, kind: ChangeKind.create, block: block);
     }
     final diverId = owner.diverId!;
+    // What the save fills in joins the plan, so the diver sees it and the
+    // apply writes the value listed.
+    final filled = {
+      for (final MapEntry(:key, :value) in (await entry.createDefaults(
+        diverId,
+        parsed.values,
+      )).entries)
+        // Only a field the entry writes, so a stray key cannot break a plan.
+        if (!parsed.values.containsKey(key) && entry.fields.containsKey(key))
+          key: value,
+    };
+    final values = {...parsed.values, ...filled};
+    final changes = {
+      ...parsed.changes,
+      for (final MapEntry(:key, :value) in filled.entries)
+        key: FieldChange(null, entry.fields[key]!.wire(value), indirect: true),
+    };
     final check = WriteCheck(
       kind: ChangeKind.create,
       ownerId: diverId,
-      values: parsed.values,
+      values: values,
       soFar: _soFar,
     );
     final block =
-        await _checkFieldRefs(entry, parsed.values, diverId) ??
+        await _checkFieldRefs(entry, values, diverId) ??
         await entry.refuse(check) ??
         _claimUnique(op, entry, check);
     if (block == null) {
-      await _markFieldRefs(entry, parsed.values);
-      (_createdSoFar[op.entity] ??= []).add(parsed.values);
+      await _markFieldRefs(entry, values);
+      (_createdSoFar[op.entity] ??= []).add(values);
     }
     final parent = await _parentContext(entry, owner.parentId, diverId);
     _add(
@@ -302,11 +319,14 @@ class _Pass {
       parentId: owner.parentId,
       parentTitle: parent.title,
       date: parent.date,
-      fields: parsed.changes,
-      values: parsed.values,
-      names: await _referenceNames(entry, parsed.changes, diverId),
+      fields: changes,
+      values: values,
+      names: await _referenceNames(entry, changes, diverId),
       alsoCreates: block == null
-          ? await entry.alsoCreates(diverId, parsed.values)
+          ? await entry.alsoCreates(diverId, values)
+          : const {},
+      alsoChanges: block == null
+          ? await entry.createTouched(diverId, values)
           : const {},
       block: block,
     );
@@ -479,6 +499,7 @@ class _Pass {
       date: document['date_time'] as String? ?? parent.date,
       context: _context(entry, document),
       reach: reach,
+      alsoChanges: reach.touched,
       fields: survivor?.fields ?? const {},
       mergeInto: block == null ? into : null,
       mergeTitle: survivor?.title,

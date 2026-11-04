@@ -20,6 +20,8 @@ import 'package:submersion/features/agent_access/domain/agent_access_settings.da
 import 'package:submersion/features/agent_access/presentation/providers/agent_write_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -138,6 +140,29 @@ class AgentAccessController {
   /// a restore, a storage move or an encryption change is seen by the next
   /// statement.
   static final _sqlRunner = SqlWindowRunner(file: liveSqlDatabaseFile);
+
+  /// Re-arms an item's service reminders after an agent changes its clocks
+  /// or history, as the service record notifier does: only while reminders
+  /// are on, and a failure is logged, never the write's.
+  Future<void> _refreshGearReminders(String equipmentId) async {
+    try {
+      final settings = _ref.read(settingsProvider);
+      if (!settings.notificationsEnabled) return;
+      final item = await _ref
+          .read(equipmentRepositoryProvider)
+          .getEquipmentById(equipmentId);
+      if (item == null) return;
+      await _ref
+          .read(notificationSchedulerProvider)
+          .updateForEquipment(item: item, globalSettings: settings);
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Failed to reschedule reminders after an agent service write',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
 
   /// Called when the owning provider is disposed (a scope rebuild). A sync
   /// still awaiting the keychain, the settings or the package info resumes
@@ -260,6 +285,7 @@ class AgentAccessController {
           confirmEnabled: () =>
               _ref.read(agentAccessSettingsProvider).confirmWrites,
           rearmDocuments: _ref.read(documentMutationsProvider).rearmReminders,
+          refreshGearReminders: _refreshGearReminders,
         ),
       ),
       gate: AgentToolGate(isLocked: () => _ref.read(appLockNotifierProvider)),

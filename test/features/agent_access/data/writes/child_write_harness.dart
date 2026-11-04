@@ -22,10 +22,13 @@ class _Allow implements WriteConfirmer {
 /// belong to a dive. Two divers are seeded, with dive `d1` for diver A and
 /// `d2` for diver B.
 class ChildWriteHarness {
-  ChildWriteHarness(this.db)
-    : records = RecordHarness(db),
-      _repositories = RecordRepositories() {
-    writes = WriteCatalog(_repositories);
+  /// [catalog] swaps in other writers, such as a probe a test watches.
+  ChildWriteHarness(
+    this.db, {
+    WriteCatalog Function(RecordRepositories repositories)? catalog,
+  }) : records = RecordHarness(db),
+       _repositories = RecordRepositories() {
+    writes = (catalog ?? WriteCatalog.new)(_repositories);
   }
 
   final AppDatabase db;
