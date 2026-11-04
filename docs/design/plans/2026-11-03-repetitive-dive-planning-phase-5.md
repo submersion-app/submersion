@@ -19,8 +19,11 @@ Built in the closed draft PR #4080; on the local tag
 | `cdce71ef4a` (state half) | The dived state on each dive's line in the saved plans list | ~100 |
 
 The backup's view of a dived dive was its own page (`plan_logged_dive_view`).
-Phase 2 replaced that page with the logged dive shown in the planner's own
-layout, so phase 5 builds on that instead.
+Phase 2 (#4175, merged 2026-11-04) replaced that page with the logged dive
+shown in the planner's own layout, so phase 5 builds on that instead. That
+layout now lives in `plan_canvas_layouts.dart`, a `part` file of the planner
+page, after the maintainer's split in review; the dived view goes there,
+not back into `plan_canvas_page.dart` (779 lines).
 
 ## Scope
 
@@ -32,7 +35,17 @@ layout, so phase 5 builds on that instead.
    - `PlanSeriesDive` gains an `actual` slot, read live from the log and
      never stored: the plan's own row stays the original plan.
    - The timeline uses the actual entry and exit: a later dive led by its
-     interval moves with them; one with a fixed start keeps it.
+     interval moves with them; one with a fixed start keeps it. Intervals
+     are measured between true instants, never by subtracting clock digits:
+     the maintainer settled this for logged dives in #4175 (967c578,
+     `loggedSurfaceInterval` reads the start through `fromWallClockUtc`
+     against the end instant). Use that helper or the same rule, with a
+     test across a daylight saving change.
+   - Anything that shows an interval or a carry from the dived dive reads
+     it as the series settles it (`planSeriesResultsProvider`), not from a
+     dive's stored state, as the logged-dive carry card does since 967c578.
+     A stored interval is stale after the actual times arrive until the dive
+     is next selected.
    - An undone download takes the dive back to its plan.
    - Out of order: if Dive B is dived and A is not, B's actual still carries
      from B on.

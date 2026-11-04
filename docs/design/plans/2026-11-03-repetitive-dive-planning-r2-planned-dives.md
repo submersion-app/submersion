@@ -26,10 +26,14 @@ About 800 lines of code and 750 of tests: the size of phase 2 or phase 3.
 
 ## Order
 
-1. Phase 2 (#4175) merged.
-2. The planner page split (`plan_canvas_page.dart` over 800 lines; see the
-   phase 2 plan, "Known issue to raise in the PR"). R2 then moves Convert to
-   Dive out of the page into `plan_log_update.dart`, shrinking it further.
+1. Phase 2 (#4175), merged 2026-11-04.
+2. The planner page split, done in #4175's review by the maintainer (see
+   the phase 2 plan, "The planner page's size"): only the layouts moved, into
+   `plan_canvas_layouts.dart`, leaving `plan_canvas_page.dart` at 779 lines.
+   No separate split PR. R2 moves Convert to Dive out of the page into
+   `plan_log_update.dart`, as that section expects; the page must stay under
+   800 lines with the new menu item. If it would not, move the menu into a
+   `part` file with a mixin on the page's state, the same way.
 3. R2.
 4. Phase 5, which needs R2's links to know a dive has been dived.
 
@@ -71,7 +75,21 @@ About 800 lines of code and 750 of tests: the size of phase 2 or phase 3.
   logged dive must not be overwritten.
 - The logged-dive layout from phase 2: a dived dive's chip opens it there,
   and its "As planned" results come from the plan R2 linked.
-- `currentSchemaVersion`: R2 needs no schema change as planned.
+- `currentSchemaVersion` (342 on main): R2 needs no schema change as
+  planned.
+- Gas switches (#4173): `gasSwitchesEditable` keeps the dive editor off a
+  planned dive's switches because "a planned dive's switches belong to the
+  plan". R2 keeps that: only Update planned dives writes them, and a
+  download clears them. Write them through the dive log's existing switch
+  storage rather than a new path.
+- Rebreather start gas (#4174): a CCR dive's starting gas is its diluent.
+  R2 writes no switches on a CCR entry, so the entry must carry its diluent
+  in a form `startingTankOf` and the gas timeline pick up.
+- Start times: a series' starts are clock digits stamped UTC, with intervals
+  measured between true instants (`fromWallClockUtc`), as in phase 2. Each
+  entry's `diveDateTime` takes the dive's clock digits unchanged. The
+  maintainer declined a migration for older plans' start column in #4175
+  (nothing could set it before), so R2 has none to handle.
 
 ## Stages
 
