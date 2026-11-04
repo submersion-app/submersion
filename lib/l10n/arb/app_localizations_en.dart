@@ -26823,6 +26823,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String settings_agentAccess_confirm_alsoAdds(String kind, int count) {
+    return 'Also adds $kind: $count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_alsoChanges(String kind, int count) {
+    return 'Also changes $kind: $count';
+  }
+
+  @override
   String settings_agentAccess_confirm_moves(String kind, int count) {
     return 'Moves $kind: $count';
   }

@@ -25765,6 +25765,16 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String settings_agentAccess_confirm_alsoAdds(String kind, int count) {
+    return '同时添加 $kind:$count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_alsoChanges(String kind, int count) {
+    return '同时更改 $kind:$count';
+  }
+
+  @override
   String settings_agentAccess_confirm_moves(String kind, int count) {
     return '移动 $kind:$count';
   }

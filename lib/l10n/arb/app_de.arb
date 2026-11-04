@@ -7992,6 +7992,8 @@
   "settings_agentAccess_confirm_alsoDeletes": "Löscht außerdem {kind}: {count}",
   "settings_agentAccess_confirm_alsoUnlinks": "Löst außerdem {kind}: {count}",
   "settings_agentAccess_confirm_merge": "Zusammenführen mit {name}",
+  "settings_agentAccess_confirm_alsoAdds": "Fügt auch hinzu: {kind}: {count}",
+  "settings_agentAccess_confirm_alsoChanges": "Ändert auch: {kind}: {count}",
   "settings_agentAccess_confirm_moves": "Verschiebt {kind}: {count}",
   "settings_agentAccess_confirm_title": "Diese Änderung zulassen?",
   "settings_agentAccess_confirm_client": "{client} möchte dein Logbuch ändern.",

@@ -24,6 +24,7 @@ PlanItem _item({
   String? title,
   Map<String, FieldChange> fields = const {},
   ChangeKind kind = ChangeKind.update,
+  Map<String, int> alsoChanges = const {},
 }) => PlanItem(
   operation: 0,
   kind: kind,
@@ -32,6 +33,7 @@ PlanItem _item({
   diverId: 'diver-a',
   title: title,
   fields: fields,
+  alsoChanges: alsoChanges,
 );
 
 WriteConfirmation _request({
@@ -299,6 +301,39 @@ void main() {
     expect(find.textContaining('Merge into Wreck'), findsOneWidget);
     expect(find.textContaining('Moves'), findsWidgets);
     expect(find.textContaining('3'), findsWidgets);
+    await _close(tester);
+  });
+
+  testWidgets('rows a create adds and records an update rewrites are listed', (
+    tester,
+  ) async {
+    await _pump(tester);
+    unawaited(
+      _confirmer().confirm(
+        _request(
+          items: [
+            const PlanItem(
+              operation: 0,
+              kind: ChangeKind.create,
+              entity: 'dives',
+              diverId: 'diver-a',
+              alsoCreates: {'service_schedules': 2},
+            ),
+            _item(
+              title: 'Morning dive',
+              fields: const {'water_temp_c': FieldChange(12.0, 24.0)},
+              alsoChanges: const {'dive_computers': 1},
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(AgentWriteConfirmDialog.detailsKey));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Also adds'), findsNWidgets(2));
+    expect(find.textContaining('Also changes'), findsNWidgets(2));
     await _close(tester);
   });
 

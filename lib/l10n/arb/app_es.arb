@@ -7858,6 +7858,8 @@
   "settings_agentAccess_confirm_alsoDeletes": "También elimina {kind}: {count}",
   "settings_agentAccess_confirm_alsoUnlinks": "También desvincula {kind}: {count}",
   "settings_agentAccess_confirm_merge": "Fusionar con {name}",
+  "settings_agentAccess_confirm_alsoAdds": "También añade {kind}: {count}",
+  "settings_agentAccess_confirm_alsoChanges": "También cambia {kind}: {count}",
   "settings_agentAccess_confirm_moves": "Mueve {kind}: {count}",
   "settings_agentAccess_confirm_title": "¿Permitir este cambio?",
   "settings_agentAccess_confirm_client": "{client} quiere cambiar tu cuaderno de buceo.",

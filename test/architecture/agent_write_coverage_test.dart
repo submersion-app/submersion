@@ -14,10 +14,11 @@ import 'package:flutter_test/flutter_test.dart';
 /// `UPDATE_AGENT_WRITE_BASELINE=1 flutter test
 /// test/architecture/agent_write_coverage_test.dart`
 void main() {
+  const gear = 'lib/features/equipment/data/repositories';
   const baselinePath = 'test/architecture/agent_write_coverage_baseline.txt';
 
   /// `repository file:method`, and the write entity that reaches it.
-  const covered = <String, String>{
+  final covered = <String, String>{
     'lib/features/dive_log/data/repositories/dive_repository_impl.dart:createDive':
         'dives',
     'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkUpdateFields':
@@ -184,13 +185,55 @@ void main() {
         'cylinder_configs',
     'lib/features/cylinder_configs/data/repositories/cylinder_config_repository.dart:saveItems':
         'cylinder_configs',
+    for (final method in const [
+      'createEquipment',
+      'updateEquipment',
+      'deleteEquipment',
+      'deleteOwnedEquipment',
+      'saveAttributes',
+    ])
+      '$gear/equipment_repository_impl.dart:$method': 'equipment',
+    '$gear/equipment_share_repository.dart:setShares': 'equipment',
+    for (final method in const [
+      'createSet',
+      'updateSet',
+      'deleteSet',
+      'setAsDefault',
+      'clearDefault',
+      'setShowFigure',
+      'addGeofence',
+      'updateGeofence',
+      'removeGeofence',
+    ])
+      '$gear/equipment_set_repository_impl.dart:$method': 'equipment_sets',
+    for (final method in const [
+      'createLocation',
+      'updateLocation',
+      'setArchived',
+      'deleteLocation',
+    ])
+      '$gear/equipment_location_repository.dart:$method': 'equipment_locations',
+    for (final method in const [
+      'addComponent',
+      'updateRole',
+      'replaceComponent',
+      'reorder',
+      'removeComponent',
+    ])
+      '$gear/equipment_component_repository.dart:$method':
+          'equipment_components',
+    for (final method in const ['recordMoves', 'updateMove', 'deleteMove'])
+      '$gear/equipment_location_move_repository.dart:$method':
+          'equipment_location_moves',
+    'lib/features/tags/data/repositories/tag_link_repository.dart:replaceTags':
+        'equipment',
   };
 
   /// Writes that change no record a diver keeps, so no change set entity
   /// covers them, each with the reason. `path:*` exempts a whole repository
   /// file. Anything a diver edits as a record of their diving stays out of
   /// here, however small.
-  const exempt = <String, String>{
+  final exempt = <String, String>{
     'lib/features/settings/data/repositories/app_settings_repository.dart:*':
         'app preferences, not logbook records',
     'lib/features/settings/data/repositories/diver_settings_repository.dart:*':
@@ -225,6 +268,47 @@ void main() {
         'updates',
     'lib/features/weight_presets/data/repositories/weight_preset_repository.dart:createFromWeights':
         'a shortcut for a create with entries, which weight_presets covers',
+    for (final method in const [
+      'retireEquipment',
+      'setStatusForMany',
+      'markEquipmentPurchased',
+    ])
+      '$gear/equipment_repository_impl.dart:$method':
+          'a shortcut for a status change, which equipment covers through '
+          'updateEquipment',
+    for (final method in const [
+      'createEquipmentWithTags',
+      'updateEquipmentWithTags',
+    ])
+      '$gear/equipment_repository_impl.dart:$method':
+          'the edit page\'s save, which equipment covers as fields and a tags '
+          'relation',
+    '$gear/dive_sensor_summary_repository.dart:*':
+        'a summary derived from dives, recomputed when they change',
+    '$gear/equipment_service_status_repository.dart:*':
+        'a status derived from the service ledger, recomputed from it',
+    '$gear/equipment_findings_repository.dart:*':
+        'the review state of derived findings, recomputed from records',
+    for (final step in const [
+      'cylinder_gear_links.dart:*',
+      'equipment_location_buddy_links.dart:*',
+      'equipment_location_center_links.dart:*',
+      'equipment_tag_repository.dart:deleteLinksForEquipment',
+      'equipment_share_repository.dart:deleteForEquipment',
+      'equipment_location_move_repository.dart:deleteForEquipment',
+    ])
+      '$gear/$step': 'an inner step of a delete of its owner',
+    '$gear/equipment_location_move_repository.dart:recordMoveGroups':
+        'a bulk shortcut for moves, which equipment_location_moves covers '
+        'one move at a time through recordMoves',
+    for (final method in const ['addItemToSet', 'removeItemFromSet'])
+      '$gear/equipment_set_repository_impl.dart:$method':
+          'a shortcut for a member change, which equipment_sets covers as '
+          'equipment_ids through updateSet',
+    for (final method in const ['shareMany', 'unshare', 'shareAllForDiver'])
+      '$gear/equipment_share_repository.dart:$method':
+          'a bulk shortcut for a share change, which equipment covers as '
+          'shared_with through setShares',
   };
 
   /// A public `Future` method on a repository. The return type may sit on the

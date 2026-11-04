@@ -7858,6 +7858,8 @@
   "settings_agentAccess_confirm_alsoDeletes": "Também elimina {kind}: {count}",
   "settings_agentAccess_confirm_alsoUnlinks": "Também desassocia {kind}: {count}",
   "settings_agentAccess_confirm_merge": "Fundir com {name}",
+  "settings_agentAccess_confirm_alsoAdds": "Também adiciona {kind}: {count}",
+  "settings_agentAccess_confirm_alsoChanges": "Também altera {kind}: {count}",
   "settings_agentAccess_confirm_moves": "Move {kind}: {count}",
   "settings_agentAccess_confirm_title": "Permitir esta alteração?",
   "settings_agentAccess_confirm_client": "{client} quer alterar o seu registo de mergulhos.",

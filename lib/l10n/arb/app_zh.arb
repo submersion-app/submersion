@@ -8023,6 +8023,8 @@
   "settings_agentAccess_confirm_alsoDeletes": "同时删除 {kind}:{count}",
   "settings_agentAccess_confirm_alsoUnlinks": "同时取消关联 {kind}:{count}",
   "settings_agentAccess_confirm_merge": "合并到 {name}",
+  "settings_agentAccess_confirm_alsoAdds": "同时添加 {kind}:{count}",
+  "settings_agentAccess_confirm_alsoChanges": "同时更改 {kind}:{count}",
   "settings_agentAccess_confirm_moves": "移动 {kind}:{count}",
   "settings_agentAccess_confirm_title": "允许此更改吗?",
   "settings_agentAccess_confirm_client": "{client} 想要更改您的潜水日志。",

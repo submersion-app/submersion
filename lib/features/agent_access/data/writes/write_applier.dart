@@ -117,6 +117,21 @@ class WriteApplier {
         if (_catalog.named(item.entity)!.parent?.entity == 'dives')
           item.parentId!,
     });
+    for (final item in plan.items) {
+      if (item.kind != ChangeKind.update) continue;
+      try {
+        await _catalog
+            .named(item.entity)!
+            .afterApply(item.id!, item.fields.keys.toSet());
+      } catch (e, stackTrace) {
+        _log.error(
+          'Follow-up work after ${item.entity} ${item.id} failed; the change '
+          'itself was applied',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+    }
     // The settler files another diver's records under `operation:diver`, and
     // a revert straight after this needs the entries settled anyway.
     await _changeLog.settleAll();
@@ -294,18 +309,49 @@ class WriteApplier {
         }
       }
     }
-    if (stale.isEmpty) return;
-    // Several items can mark one row, as tanks of one dive mark the dive.
-    final named = {for (final marker in stale) (marker.table, marker.id)};
+    if (stale.isNotEmpty) {
+      // Several items can mark one row, as tanks of one dive mark the dive.
+      final named = {for (final marker in stale) (marker.table, marker.id)};
+      throw AgentToolException(
+        AgentToolErrorCode.planStale,
+        'These records changed after the preview, so nothing was applied. '
+        'Read them and preview again.',
+        details: {
+          'records': [
+            for (final (table, id) in named) {'table': table, 'id': id},
+          ],
+        },
+      );
+    }
+    // After the records, whose list says what to read again.
+    await _ensureAlsoCreates(plan);
+  }
+
+  /// Refuses a plan whose creates would now add other records than the
+  /// preview listed, such as the service clocks a new item gets: the diver
+  /// allowed what the preview said.
+  Future<void> _ensureAlsoCreates(WritePlan plan) async {
+    final moved = <Map<String, Object?>>[];
+    for (final item in plan.items) {
+      if (item.kind != ChangeKind.create || item.block != null) continue;
+      final now = await _catalog
+          .named(item.entity)!
+          .alsoCreates(item.diverId!, item.values);
+      if (!const MapEquality<String, int>().equals(now, item.alsoCreates)) {
+        moved.add({
+          'operation': item.operation,
+          'entity': item.entity,
+          'previewed': item.alsoCreates,
+          'now': now,
+        });
+      }
+    }
+    if (moved.isEmpty) return;
     throw AgentToolException(
       AgentToolErrorCode.planStale,
-      'These records changed after the preview, so nothing was applied. '
-      'Read them and preview again.',
-      details: {
-        'records': [
-          for (final (table, id) in named) {'table': table, 'id': id},
-        ],
-      },
+      'What these creates also add changed after the preview, so nothing was '
+      'applied. Preview again.',
+      details: {'creates': moved},
     );
   }
 

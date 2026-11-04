@@ -7757,6 +7757,8 @@
   "settings_agentAccess_confirm_alsoDeletes": "Ezt is törli: {kind}: {count}",
   "settings_agentAccess_confirm_alsoUnlinks": "Ezt is leválasztja: {kind}: {count}",
   "settings_agentAccess_confirm_merge": "Összevonás ezzel: {name}",
+  "settings_agentAccess_confirm_alsoAdds": "Hozzáadja ezt is: {kind}: {count}",
+  "settings_agentAccess_confirm_alsoChanges": "Ezt is módosítja: {kind}: {count}",
   "settings_agentAccess_confirm_moves": "Áthelyezi: {kind}: {count}",
   "settings_agentAccess_confirm_title": "Engedélyezi ezt a módosítást?",
   "settings_agentAccess_confirm_client": "A(z) {client} módosítani szeretné a merülési naplóját.",
