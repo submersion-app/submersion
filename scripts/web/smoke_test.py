@@ -194,6 +194,16 @@ def fill_field(page, label, value):
     page.wait_for_timeout(300)
 
 
+def trace_database(page):
+    """Has the page print each database statement as it starts and ends
+    (StatementTraceInterceptor), set before the page loads. In Chromium on
+    the runners a transaction in first run and in the first sync waited
+    forever (#4186); its last `start` with no `done` names it."""
+    page.add_init_script(
+        "try { localStorage.setItem('submersion.trace-db', '1') } catch (e) {}"
+    )
+
+
 def wait_for_flutter(page):
     """The semantics tree is the sign that Flutter rendered."""
     page.goto(BASE_URL + "/?a11y=1", wait_until="load")
@@ -457,7 +467,9 @@ def report_failure(page, request, heard):
     watched, with a screenshot under SMOKE_ARTIFACT_DIR when that is set."""
     print("\n--- what the page reported (%s) ---" % request.node.name)
     print("url: %s" % page.url)
-    print("\n".join(heard[-40:]) or "(nothing)")
+    # The tail is what matters: with the database trace on, the last
+    # statement that started and never finished.
+    print("\n".join(heard[-80:]) or "(nothing)")
     print("workers: %s" % ([w.url for w in page.workers] or "(none)"))
     try:
         print("probe: %s" % page.evaluate(PAGE_PROBE))
@@ -538,6 +550,7 @@ def test_fresh_first_run(page):
     then the first write (the diver) landing on the dashboard. drift 2.34.3
     hung that commit on the locked OPFS mode, which is what an isolated page
     gets in Chromium (drift issue #3870)."""
+    trace_database(page)
     wait_for_flutter(page)
     continue_without_store(page)
     fill_field(page, "Your Name", "Smoke Diver")
@@ -556,6 +569,7 @@ def test_unparseable_browser_locale(unparseable_locale_page):
 
 
 def test_round_trip(page, clean_store):
+    trace_database(page)
     wait_for_flutter(page)
     connect_to_store(page)
     download_library(page)
