@@ -159,6 +159,26 @@ void main() {
     );
   });
 
+  // A calendar date is a day, not a moment: no time, no zone.
+  test('a calendar date takes YYYY-MM-DD only', () {
+    const codec = FieldCodec.calendarDate(nullable: true);
+    expect(codec.parse('2026-03-14'), '2026-03-14');
+    expect(codec.parse(null), isNull);
+    expect(() => codec.parse('2026-02-30'), _refused('YYYY-MM-DD'));
+    expect(() => codec.parse('2026-03-14T00:00:00Z'), _refused('YYYY-MM-DD'));
+    expect(() => codec.parse(20260314), _refused('YYYY-MM-DD'));
+  });
+
+  test('a whole-number list keeps its order inside its bounds', () {
+    const codec = FieldCodec.integerList(min: 1, max: 365, maxItems: 3);
+    final parsed = codec.parse([30, 7]);
+    expect(codec.wire(parsed), [30, 7]);
+    expect(parsed, codec.canonical([30, 7]));
+    expect(() => codec.parse([0]), _refused('1'));
+    expect(() => codec.parse([1, 2, 3, 4]), _refused('3'));
+    expect(() => codec.parse([1.5]), _refused('whole'));
+  });
+
   test('a date that does not exist is refused', () {
     expect(
       () => const FieldCodec.wallClock().parse('2024-02-31T10:00:00Z'),

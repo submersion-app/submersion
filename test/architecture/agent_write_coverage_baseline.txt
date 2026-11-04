@@ -295,13 +295,8 @@ lib/features/equipment/data/repositories/equipment_observation_repository.dart:c
 lib/features/equipment/data/repositories/equipment_observation_repository.dart:delete
 lib/features/equipment/data/repositories/equipment_observation_repository.dart:unlinkFromDeletedDives
 lib/features/equipment/data/repositories/equipment_observation_repository.dart:update
-lib/features/equipment/data/repositories/equipment_repository_impl.dart:createEquipment
-lib/features/equipment/data/repositories/equipment_repository_impl.dart:deleteEquipment
-lib/features/equipment/data/repositories/equipment_repository_impl.dart:deleteOwnedEquipment
 lib/features/equipment/data/repositories/equipment_repository_impl.dart:markAsServiced
 lib/features/equipment/data/repositories/equipment_repository_impl.dart:replaceChild
-lib/features/equipment/data/repositories/equipment_repository_impl.dart:saveAttributes
-lib/features/equipment/data/repositories/equipment_repository_impl.dart:updateEquipment
 lib/features/equipment/data/repositories/equipment_set_repository_impl.dart:addGeofence
 lib/features/equipment/data/repositories/equipment_set_repository_impl.dart:addItemToSet
 lib/features/equipment/data/repositories/equipment_set_repository_impl.dart:clearDefault

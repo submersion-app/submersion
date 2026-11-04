@@ -10,6 +10,7 @@ import 'package:submersion/features/agent_access/data/writes/families/cylinder_c
 import 'package:submersion/features/agent_access/data/writes/families/dive_role_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_type_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/equipment_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/gas_switch_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/preset_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/scenario_writes.dart';
@@ -57,6 +58,7 @@ class WriteCatalog {
       TankPresetWrites(repositories),
       WeightPresetWrites(repositories),
       CylinderConfigWrites(repositories),
+      EquipmentWrites(repositories),
     ]);
   }
 

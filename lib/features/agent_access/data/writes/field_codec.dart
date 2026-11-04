@@ -64,6 +64,16 @@ abstract class FieldCodec {
   /// A wall clock, written as documents write it, with a nominal `Z`.
   const factory FieldCodec.wallClock() = _WallClockCodec;
 
+  /// A day written as documents write one, `YYYY-MM-DD`, with no time or
+  /// zone: a purchase date, an inspection date.
+  const factory FieldCodec.calendarDate({bool nullable}) = _CalendarDateCodec;
+
+  /// Whole numbers in order, each inside [min] to [max], at most [maxItems]
+  /// of them. The parsed value is the list as JSON, so it compares with a
+  /// document's list.
+  const factory FieldCodec.integerList({int min, int max, int maxItems}) =
+      _IntegerListCodec;
+
   /// The id of a record of [refEntity]. The planner checks it as it checks
   /// a relation's links: the record must exist and be the owner's to use.
   const factory FieldCodec.reference(String refEntity, {bool nullable}) =
@@ -317,6 +327,72 @@ class ReferenceCodec extends FieldCodec {
     if (raw is String && raw.trim().isNotEmpty) return raw;
     throw FieldRefusal('This field takes the id of a $refEntity record.');
   }
+}
+
+class _CalendarDateCodec extends FieldCodec {
+  const _CalendarDateCodec({super.nullable});
+
+  static final _shape = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$');
+
+  @override
+  String get describe => 'a date, YYYY-MM-DD';
+
+  @override
+  Object parseValue(Object raw) {
+    const refusal = FieldRefusal('This field takes a date as YYYY-MM-DD.');
+    if (raw is! String) throw refusal;
+    final match = _shape.firstMatch(raw);
+    if (match == null) throw refusal;
+    final [year, month, day] = [
+      for (var i = 1; i <= 3; i++) int.parse(match.group(i)!),
+    ];
+    final date = DateTime.utc(year, month, day);
+    // DateTime rolls 2026-02-30 into March, so a day that does not exist
+    // reads back as another.
+    if (date.year != year || date.month != month || date.day != day) {
+      throw refusal;
+    }
+    return raw;
+  }
+}
+
+class _IntegerListCodec extends FieldCodec {
+  const _IntegerListCodec({
+    this.min = 0,
+    this.max = 1 << 31,
+    this.maxItems = 20,
+  });
+
+  final int min;
+  final int max;
+  final int maxItems;
+
+  @override
+  String get describe => 'a list of whole numbers';
+
+  @override
+  Object parseValue(Object raw) {
+    if (raw is! List) throw const FieldRefusal('This field takes a list.');
+    if (raw.length > maxItems) {
+      throw FieldRefusal('This field holds at most $maxItems items.');
+    }
+    for (final item in raw) {
+      if (item is! int) {
+        throw const FieldRefusal('Each item is a whole number.');
+      }
+      if (item < min || item > max) {
+        throw FieldRefusal('Each item must be from $min to $max.');
+      }
+    }
+    return jsonEncode(raw);
+  }
+
+  @override
+  Object? canonical(Object? documentValue) =>
+      documentValue is List ? jsonEncode(documentValue) : documentValue;
+
+  @override
+  Object? wire(Object? value) => value is String ? jsonDecode(value) : value;
 }
 
 class _WallClockCodec extends FieldCodec {

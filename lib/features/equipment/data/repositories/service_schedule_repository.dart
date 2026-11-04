@@ -12,6 +12,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart'
     as domain;
 import 'package:submersion/features/equipment/data/repositories/service_kind_repository.dart';
@@ -165,20 +166,13 @@ class ServiceScheduleRepository {
     String? diverId,
     bool notify = true,
   }) async {
-    final kinds = await ServiceKindRepository().getAllKinds();
     final existing = await getSchedulesForEquipment(equipmentId);
-    final existingKindIds = existing.map((s) => s.serviceKindId).toSet();
-    final hidden = await _hiddenServiceKinds(diverId);
     final now = DateTime.now();
-    for (final kind in kinds) {
-      if (!kind.isBuiltIn && kind.diverId != null && kind.diverId != diverId) {
-        continue; // another diver's custom kind
-      }
-      if (!kind.autoAttach || !kind.appliesTo(type)) continue;
-      // Hidden by the owning diver (issue #401): an unwanted clock would
-      // only nag with due reminders.
-      if (kind.isBuiltIn && hidden.contains(kind.id)) continue;
-      if (existingKindIds.contains(kind.id)) continue;
+    for (final kind in await autoAttachKindsFor(
+      type: type,
+      diverId: diverId,
+      existingKindIds: existing.map((s) => s.serviceKindId).toSet(),
+    )) {
       await createSchedule(
         domain.ServiceSchedule(
           id: 'auto-${kind.id}-$equipmentId',
@@ -190,6 +184,30 @@ class ServiceScheduleRepository {
         notify: notify,
       );
     }
+  }
+
+  /// The kinds [autoAttachForEquipment] gives an item of [type] owned by
+  /// [diverId] a clock for, leaving out [existingKindIds]. For a caller that
+  /// must say what a create adds before it writes, such as an agent's plan.
+  Future<List<ServiceKind>> autoAttachKindsFor({
+    required EquipmentType type,
+    String? diverId,
+    Set<String> existingKindIds = const {},
+  }) async {
+    final hidden = await _hiddenServiceKinds(diverId);
+    return [
+      for (final kind in await ServiceKindRepository().getAllKinds())
+        // Another diver's custom kind never attaches; a built-in kind the
+        // owning diver hid (issue #401) would only nag with due reminders.
+        if ((kind.isBuiltIn ||
+                kind.diverId == null ||
+                kind.diverId == diverId) &&
+            kind.autoAttach &&
+            kind.appliesTo(type) &&
+            !(kind.isBuiltIn && hidden.contains(kind.id)) &&
+            !existingKindIds.contains(kind.id))
+          kind,
+    ];
   }
 
   /// Sets each of [equipmentId]'s clocks named in [baselines] (service kind

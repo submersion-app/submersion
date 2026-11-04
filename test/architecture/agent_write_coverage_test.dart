@@ -18,7 +18,7 @@ void main() {
   const baselinePath = 'test/architecture/agent_write_coverage_baseline.txt';
 
   /// `repository file:method`, and the write entity that reaches it.
-  const covered = <String, String>{
+  final covered = <String, String>{
     'lib/features/dive_log/data/repositories/dive_repository_impl.dart:createDive':
         'dives',
     'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkUpdateFields':
@@ -185,6 +185,14 @@ void main() {
         'cylinder_configs',
     'lib/features/cylinder_configs/data/repositories/cylinder_config_repository.dart:saveItems':
         'cylinder_configs',
+    for (final method in const [
+      'createEquipment',
+      'updateEquipment',
+      'deleteEquipment',
+      'deleteOwnedEquipment',
+      'saveAttributes',
+    ])
+      '$gear/equipment_repository_impl.dart:$method': 'equipment',
   };
 
   /// Writes that change no record a diver keeps, so no change set entity
