@@ -116,4 +116,30 @@ void main() {
       ],
     );
   });
+
+  // replaceChild reads the part as the apply finds it, after the set's
+  // earlier changes, so a part those change is replaced in a set of its own.
+  test('a part the set changes or empties earlier is not replaced', () async {
+    final unfitted = await h.preview([
+      updateOp('equipment', 'cell1', {'parent_equipment_id': null}),
+      createOp('equipment', replacing('cell1')),
+    ]);
+    final hostGone = await h.preview([
+      deleteOp('equipment', 'ccr'),
+      createOp('equipment', replacing('cell1')),
+    ]);
+
+    expect(unfitted.items.last.block!.reason, BlockReason.invalidValue);
+    expect(hostGone.items.last.block!.reason, BlockReason.invalidValue);
+  });
+
+  test('a part is replaced once in a set', () async {
+    final plan = await h.preview([
+      createOp('equipment', replacing('cell1')),
+      createOp('equipment', replacing('cell1')),
+    ]);
+
+    expect(plan.items.first.block, isNull);
+    expect(plan.items.last.block!.reason, BlockReason.duplicateRecord);
+  });
 }

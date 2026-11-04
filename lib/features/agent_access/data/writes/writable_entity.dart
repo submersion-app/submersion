@@ -374,10 +374,20 @@ abstract class WritableEntry {
   /// A block when this change may not happen, null when it may.
   Future<PlanBlock?> refuse(WriteCheck check) async => null;
 
-  /// Work the app does after a save of this record, run once the apply has
+  /// Work the app does after saves of these records, run once the apply has
   /// committed and outside its transaction, where a scheduled scan can read
-  /// the saved rows. A failure here cannot undo the apply, so it is logged.
-  Future<void> afterApply(AppliedChange change) async {}
+  /// the saved rows. [changes] are every change of this entity the apply
+  /// wrote, in order, so work for one item runs once. A failure here cannot
+  /// undo the apply, so it is logged.
+  Future<void> afterApply(List<AppliedChange> changes) async {}
+
+  /// Values a create of [values] for [diverId] fills in that it does not
+  /// name, as the page's form prefills them, in the form [fields] parse to.
+  /// The plan lists them and the apply writes them as listed.
+  Future<Map<String, Object?>> createDefaults(
+    String diverId,
+    Map<String, Object?> values,
+  ) async => const {};
 
   /// Rows of other records a create of [values] for [diverId] rewrites, by
   /// table, as [SideEffects.touched] lists them for an update: the item

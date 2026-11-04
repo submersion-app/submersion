@@ -203,6 +203,26 @@ class EquipmentWrites extends WritableEntry {
     return {if (kinds.isNotEmpty) 'service_schedules': kinds.length};
   }
 
+  /// A part is replaced once, so two replacements of it in a set cannot
+  /// both pass.
+  @override
+  UniqueClaim? uniqueKey(WriteCheck check) =>
+      switch (check.values[replacesKey]) {
+        final String oldId when check.kind == ChangeKind.create => UniqueClaim(
+          'replace/$oldId',
+        ),
+        _ => null,
+      };
+
+  /// The currency the edit page starts a new item in, listed in the plan.
+  @override
+  Future<Map<String, Object?>> createDefaults(
+    String diverId,
+    Map<String, Object?> values,
+  ) async => values.containsKey(replacesKey)
+      ? const {}
+      : {'purchase_currency': await defaultCurrencyOf(diverId)};
+
   /// A replacement retires the part it replaces.
   @override
   Future<Map<String, int>> createTouched(
@@ -352,10 +372,12 @@ class EquipmentWrites extends WritableEntry {
   /// finding (issue #3367), so its dives are rescanned, as the edit page's
   /// save does.
   @override
-  Future<void> afterApply(AppliedChange change) async {
-    if (change.kind == ChangeKind.update &&
-        change.changed.contains('serial_number')) {
-      await _r.transmitters.rescanDivesForTransmitterItem(change.id);
+  Future<void> afterApply(List<AppliedChange> changes) async {
+    for (final change in changes) {
+      if (change.kind == ChangeKind.update &&
+          change.changed.contains('serial_number')) {
+        await _r.transmitters.rescanDivesForTransmitterItem(change.id);
+      }
     }
   }
 

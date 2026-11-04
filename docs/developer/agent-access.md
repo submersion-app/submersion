@@ -328,11 +328,16 @@ An equipment create that names only `replaces_equipment_id` goes through
 `replaceChild`, as the children card's Replace does: the new part copies the
 old one's name, type, make and spec into its place, the old one is retired,
 and the plan lists both. Only a part fitted to an item in the kit, as the set
-leaves it, is replaced. `afterApply` runs for every change, with the record's
-id and its parent, and `createTouched` and `DeleteReach.touched` let a create
-or a delete list the rows of other records it rewrites, as
-`SideEffects.touched` does for an update. `markAsServiced` is exempt: a legacy
-field with no caller in the app.
+leaves it, is replaced, once per set, and a part the set changes earlier is
+replaced in a set of its own. `afterApply` gets every change of its entity the
+apply wrote, each with the record's id and its parent, so work for one item
+runs once. `createTouched` and `DeleteReach.touched` let a create or a delete
+list the rows of other records it rewrites, as `SideEffects.touched` does for
+an update. `createDefaults` names what a create fills in that it does not name,
+as a form prefills it (a record's category, price and currency, an item's
+currency): the plan lists those values as indirect changes and the apply
+writes them as listed. `markAsServiced` is exempt: a legacy field with no
+caller in the app.
 
 ### Adding a writable entity
 

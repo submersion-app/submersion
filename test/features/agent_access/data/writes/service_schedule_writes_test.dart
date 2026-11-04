@@ -5,6 +5,9 @@ import 'package:submersion/core/built_ins/hidden_built_ins_codec.dart';
 import 'package:submersion/core/constants/enums.dart' show EquipmentType;
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
+import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/agent_access/data/writes/write_catalog.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/equipment/data/repositories/service_kind_repository.dart';
@@ -200,5 +203,47 @@ void main() {
     ]);
 
     expect(asked, ['suit', 'suit']);
+  });
+
+  // The clocks card is hidden for gear not bought yet, whatever the change.
+  test('a clock on wanted gear is not changed or removed', () async {
+    final seals = await kind();
+    final id = (await h.run([
+      createOp('service_schedules', clock('suit', seals)),
+    ])).created.single.id;
+
+    final edit = await h.preview([
+      updateOp('equipment', 'suit', {'status': 'wanted'}),
+      updateOp('service_schedules', id, {'interval_days': 30}),
+    ]);
+    final remove = await h.preview([
+      updateOp('equipment', 'suit', {'status': 'wanted'}),
+      deleteOp('service_schedules', id),
+    ]);
+
+    expect(edit.items.last.block!.reason, BlockReason.invalidValue);
+    expect(remove.items.last.block!.reason, BlockReason.invalidValue);
+  });
+
+  test('a clock added after the preview refuses the apply', () async {
+    final seals = await kind();
+    final plan = await h.preview([
+      createOp('service_schedules', clock('suit', seals)),
+    ]);
+    await ServiceScheduleRepository().createSchedule(
+      ServiceSchedule(
+        id: 'theirs',
+        equipmentId: 'suit',
+        serviceKindId: seals,
+        createdAt: DateTime.utc(2026),
+        updatedAt: DateTime.utc(2026),
+      ),
+    );
+
+    await expectLater(h.apply(plan), throwsA(isA<AgentToolException>()));
+    final clocks = await ServiceScheduleRepository().getSchedulesForEquipment(
+      'suit',
+    );
+    expect(clocks, hasLength(1));
   });
 }

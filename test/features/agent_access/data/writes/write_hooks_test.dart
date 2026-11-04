@@ -8,13 +8,23 @@ import 'package:submersion/features/agent_access/data/writes/write_catalog.dart'
 import '../../../../helpers/test_database.dart';
 import 'child_write_harness.dart';
 
-/// A tank writer that records what the applier tells it after a commit, and
-/// says it touches its dive on a create and a delete.
+/// A tank writer that records what the applier tells it after a commit,
+/// says it touches its dive on a create and a delete, and fills a volume a
+/// create leaves out.
 class _Probe extends TankWrites {
-  final seen = <AppliedChange>[];
+  final batches = <List<AppliedChange>>[];
+
+  List<AppliedChange> get seen => [for (final b in batches) ...b];
 
   @override
-  Future<void> afterApply(AppliedChange change) async => seen.add(change);
+  Future<void> afterApply(List<AppliedChange> changes) async =>
+      batches.add(changes);
+
+  @override
+  Future<Map<String, Object?>> createDefaults(
+    String diverId,
+    Map<String, Object?> values,
+  ) async => {'volume_l': 10.0};
 
   @override
   Future<Map<String, int>> createTouched(
@@ -71,6 +81,32 @@ void main() {
     expect(probe.seen[0].changed, contains('dive_id'));
     expect(probe.seen[1].changed, {'volume_l'});
     expect(probe.seen[2].changed, isEmpty);
+  });
+
+  test('one set reaches each writer once, with all its changes', () async {
+    await h.run([
+      createOp('dive_tanks', {'dive_id': 'd1'}),
+      createOp('dive_tanks', {'dive_id': 'd1'}),
+    ]);
+
+    expect([for (final b in probe.batches) b.length], [2]);
+  });
+
+  // The plan lists what the save fills in, and the apply writes what it lists.
+  test('a value a create fills in is listed and written', () async {
+    final plan = await h.preview([
+      createOp('dive_tanks', {'dive_id': 'd1'}),
+    ]);
+    final volume = plan.items.single.fields['volume_l']!;
+    expect([volume.newValue, volume.indirect], [10.0, true]);
+
+    final id = (await h.apply(plan)).created.single.id;
+    expect((await h.one('dive_tanks', id))!['volume_l'], 10.0);
+
+    final named = await h.preview([
+      createOp('dive_tanks', {'dive_id': 'd1', 'volume_l': 12.0}),
+    ]);
+    expect(named.items.single.fields['volume_l']!.newValue, 12.0);
   });
 
   test('a create and a delete list the rows they touch', () async {

@@ -74,6 +74,14 @@ class ServiceScheduleWrites extends WritableEntry {
 
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {
+    if (check.kind != ChangeKind.create &&
+        await _wanted(check, check.document!['equipment_id']! as String)) {
+      return const PlanBlock(
+        BlockReason.invalidValue,
+        'equipment_id: gear not bought yet shows no service clocks to '
+        'change.',
+      );
+    }
     if (check.kind == ChangeKind.delete) return null;
     final dayBlock =
         dayRangeProblem(
@@ -154,6 +162,15 @@ class ServiceScheduleWrites extends WritableEntry {
     return null;
   }
 
+  /// Whether item [itemId] is wanted as the set's earlier changes leave it.
+  Future<bool> _wanted(WriteCheck check, String itemId) async {
+    final earlier = check.soFar.values[('equipment', itemId)]?['status'];
+    final status =
+        earlier as String? ??
+        (await _r.equipment.getEquipmentById(itemId))?.status.name;
+    return status == EquipmentStatus.wanted.name;
+  }
+
   /// Whether a clock of [kind] with [values] counts anything down.
   static bool _hasInterval(ServiceKind kind, Map<String, Object?> values) =>
       kind.defaultIntervalDays != null ||
@@ -167,6 +184,19 @@ class ServiceScheduleWrites extends WritableEntry {
 
   @override
   Future<String> create(String diverId, Map<String, Object?> values) async {
+    final itemId = values['equipment_id']! as String;
+    final kindId = values['service_kind_id']! as String;
+    // Nothing in the database keeps a type to one clock per item, and adding
+    // a clock does not change the item, so this is checked again here.
+    if ((await _r.serviceSchedules.getSchedulesForEquipment(
+      itemId,
+    )).any((s) => s.serviceKindId == kindId)) {
+      throw const AgentToolException(
+        AgentToolErrorCode.writeRefused,
+        'A clock of this type was added to the item after the preview. '
+        'Preview again.',
+      );
+    }
     final now = DateTime.now();
     final blank = ServiceSchedule(
       id: '',
@@ -193,8 +223,9 @@ class ServiceScheduleWrites extends WritableEntry {
       _r.serviceSchedules.deleteSchedule(id);
 
   @override
-  Future<void> afterApply(AppliedChange change) async {
-    if (change.parentId case final itemId?) {
+  Future<void> afterApply(List<AppliedChange> changes) async {
+    // Once per item, however many of its clocks or records the set changed.
+    for (final itemId in {for (final c in changes) ?c.parentId}) {
       await refreshReminders?.call(itemId);
     }
   }

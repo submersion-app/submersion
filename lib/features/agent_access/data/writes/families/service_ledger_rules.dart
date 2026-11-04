@@ -50,11 +50,15 @@ PlanBlock? currencyProblem(WriteCheck check, String key) {
   );
 }
 
-/// The text codec for a currency code, upper-cased as the pickers store it.
-final FieldCodec currencyCodec = _UpperCodec();
+/// The text codec for a currency code, upper-cased as the pickers store it;
+/// blank or null leaves it to inherit.
+final FieldCodec currencyCodec = _UpperCodec(nullable: true);
+
+/// [currencyCodec] for a record that always holds a currency.
+final FieldCodec requiredCurrencyCodec = _UpperCodec(nullable: false);
 
 class _UpperCodec extends FieldCodec {
-  _UpperCodec() : super(nullable: true);
+  _UpperCodec({required super.nullable});
 
   @override
   String get describe => 'a currency code, such as EUR';
@@ -62,7 +66,7 @@ class _UpperCodec extends FieldCodec {
   /// A blank code reads as none, as a picker's "inherit" saves it.
   @override
   Object? parse(Object? raw) =>
-      raw is String && raw.trim().isEmpty ? null : super.parse(raw);
+      super.parse(raw is String && raw.trim().isEmpty ? null : raw);
 
   @override
   Object parseValue(Object raw) {

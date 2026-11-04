@@ -120,30 +120,32 @@ class WriteApplier {
     final createdIds = {
       for (final record in written.created) record.operation: record.id,
     };
+    final applied = <String, List<AppliedChange>>{};
     for (final item in plan.items) {
       final id = item.kind == ChangeKind.create
           ? createdIds[item.operation]
           : item.id;
       if (id == null) continue;
+      (applied[item.entity] ??= []).add(
+        AppliedChange(
+          kind: item.kind,
+          id: id,
+          parentId: item.parentId,
+          changed: switch (item.kind) {
+            ChangeKind.create => item.values.keys.toSet(),
+            ChangeKind.update => item.fields.keys.toSet(),
+            ChangeKind.delete => const {},
+          },
+        ),
+      );
+    }
+    for (final MapEntry(key: entity, value: changes) in applied.entries) {
       try {
-        await _catalog
-            .named(item.entity)!
-            .afterApply(
-              AppliedChange(
-                kind: item.kind,
-                id: id,
-                parentId: item.parentId,
-                changed: switch (item.kind) {
-                  ChangeKind.create => item.values.keys.toSet(),
-                  ChangeKind.update => item.fields.keys.toSet(),
-                  ChangeKind.delete => const {},
-                },
-              ),
-            );
+        await _catalog.named(entity)!.afterApply(changes);
       } catch (e, stackTrace) {
         _log.error(
-          'Follow-up work after ${item.entity} $id failed; the change '
-          'itself was applied',
+          'Follow-up work after the $entity changes failed; the changes '
+          'themselves were applied',
           error: e,
           stackTrace: stackTrace,
         );

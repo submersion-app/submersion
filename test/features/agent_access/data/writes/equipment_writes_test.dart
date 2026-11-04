@@ -89,6 +89,15 @@ void main() {
     },
   );
 
+  test('a new item lists the currency it starts in', () async {
+    final plan = await h.preview([
+      createOp('equipment', {'name': 'Fins', 'type': 'fins'}),
+    ]);
+
+    final currency = plan.items.single.fields['purchase_currency']!;
+    expect([currency.newValue, currency.indirect], ['USD', true]);
+  });
+
   // The edit page starts a new item in the diver's default currency.
   test('a new item takes its diver\'s default currency', () async {
     await db

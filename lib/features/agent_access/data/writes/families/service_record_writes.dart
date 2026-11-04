@@ -43,7 +43,7 @@ class ServiceRecordWrites extends WritableEntry {
       trim: true,
     ),
     'cost': const FieldCodec.number(min: 0, max: 10000000, nullable: true),
-    'currency': currencyCodec,
+    'currency': requiredCurrencyCodec,
     'notes': const FieldCodec.text(allowBlank: true, trim: true),
   };
 
@@ -98,10 +98,17 @@ class ServiceRecordWrites extends WritableEntry {
     return null;
   }
 
+  /// What the log service dialog fills in for a new record: the type's
+  /// category (else annual), the clock's or the type's price, and the
+  /// currency that goes with it, else the diver's own.
   @override
-  Future<String> create(String diverId, Map<String, Object?> values) async {
-    final itemId = values['equipment_id']! as String;
-    final kindId = values['service_kind_id']! as String;
+  Future<Map<String, Object?>> createDefaults(
+    String diverId,
+    Map<String, Object?> values,
+  ) async {
+    final itemId = values['equipment_id'] as String?;
+    final kindId = values['service_kind_id'] as String?;
+    if (itemId == null || kindId == null) return const {};
     final kind = await _r.serviceKinds.getKindById(kindId);
     final kinds = [?kind];
     final prices = resolveDefaultServiceCost(
@@ -109,30 +116,33 @@ class ServiceRecordWrites extends WritableEntry {
       schedules: await _r.serviceSchedules.getSchedulesForEquipment(itemId),
       kinds: kinds,
     );
+    return {
+      'category':
+          (resolveDefaultServiceCategory(serviceKindId: kindId, kinds: kinds) ??
+                  ServiceCategory.annual)
+              .name,
+      if (prices.cost != null) 'cost': prices.cost,
+      'currency': prices.currency ?? await defaultCurrencyOf(diverId),
+    };
+  }
+
+  @override
+  Future<String> create(String diverId, Map<String, Object?> values) async {
     final now = DateTime.now();
-    final category = values['category'] as String?;
     return (await _r.serviceRecords.createRecord(
       ServiceRecord(
         id: '',
-        equipmentId: itemId,
-        serviceKindId: kindId,
-        serviceCategory: category != null
-            ? ServiceCategory.values.byName(category)
-            : resolveDefaultServiceCategory(
-                    serviceKindId: kindId,
-                    kinds: kinds,
-                  ) ??
-                  ServiceCategory.annual,
+        equipmentId: values['equipment_id']! as String,
+        serviceKindId: values['service_kind_id']! as String,
+        serviceCategory: ServiceCategory.values.byName(
+          values['category'] as String? ?? ServiceCategory.annual.name,
+        ),
         serviceDate: calendarDay(values['service_date'])!,
         nextServiceDue: calendarDay(values['next_service_due_date']),
         provider: values['provider'] as String?,
-        cost: values.containsKey('cost')
-            ? (values['cost'] as num?)?.toDouble()
-            : prices.cost,
+        cost: (values['cost'] as num?)?.toDouble(),
         currency:
-            values['currency'] as String? ??
-            prices.currency ??
-            await defaultCurrencyOf(diverId),
+            values['currency'] as String? ?? await defaultCurrencyOf(diverId),
         notes: values['notes'] as String? ?? '',
         createdAt: now,
         updatedAt: now,
@@ -160,9 +170,7 @@ class ServiceRecordWrites extends WritableEntry {
             : current.nextServiceDue,
         provider: kept('provider', current.provider),
         cost: kept<num>('cost', current.cost)?.toDouble(),
-        currency: v.containsKey('currency')
-            ? v['currency'] as String? ?? await defaultCurrencyOf(ownerId ?? '')
-            : current.currency,
+        currency: v['currency'] as String? ?? current.currency,
         notes: v['notes'] as String? ?? current.notes,
         createdAt: current.createdAt,
         updatedAt: current.updatedAt,
@@ -175,8 +183,9 @@ class ServiceRecordWrites extends WritableEntry {
       _r.serviceRecords.deleteRecord(id);
 
   @override
-  Future<void> afterApply(AppliedChange change) async {
-    if (change.parentId case final itemId?) {
+  Future<void> afterApply(List<AppliedChange> changes) async {
+    // Once per item, however many of its clocks or records the set changed.
+    for (final itemId in {for (final c in changes) ?c.parentId}) {
       await refreshReminders?.call(itemId);
     }
   }
@@ -193,7 +202,9 @@ class ServiceRecordWrites extends WritableEntry {
   );
 
   /// The item an edit moves the last service date of: the repository sets
-  /// it to the newest record's day.
+  /// it to the newest record's day on every edit, which after an older
+  /// record was logged (#4201) can move it even when the day stays. Read
+  /// with the set's earlier changes to the item's records.
   @override
   Future<SideEffects> sideEffects(
     String id,
@@ -201,12 +212,18 @@ class ServiceRecordWrites extends WritableEntry {
     RecordUpdate update,
     Map<String, Object?> document,
   ) async {
-    final day = calendarDay(update.values['service_date']);
-    if (day == null) return const SideEffects();
     final itemId = document['equipment_id']! as String;
+    final soFar = update.soFar;
+    final gone = soFar.deleted[name] ?? const <String>{};
     final days = [
       for (final r in await _r.serviceRecords.getRecordsForEquipment(itemId))
-        r.id == id ? day : r.serviceDate,
+        if (!gone.contains(r.id))
+          calendarDay(
+                (r.id == id
+                    ? update.values
+                    : soFar.values[(name, r.id)])?['service_date'],
+              ) ??
+              r.serviceDate,
     ];
     return SideEffects(touched: await _moved(itemId, _newest(days)));
   }
@@ -220,11 +237,13 @@ class ServiceRecordWrites extends WritableEntry {
   }) async {
     final current = await _r.serviceRecords.getRecordById(id);
     if (current == null) return const DeleteReach();
+    // The set's other deletes go too, so the date the last of them leaves.
+    final gone = {id, ...?alongside[name]};
     final days = [
       for (final r in await _r.serviceRecords.getRecordsForEquipment(
         current.equipmentId,
       ))
-        if (r.id != id) r.serviceDate,
+        if (!gone.contains(r.id)) r.serviceDate,
     ];
     return DeleteReach(
       touched: await _moved(current.equipmentId, _newest(days)),

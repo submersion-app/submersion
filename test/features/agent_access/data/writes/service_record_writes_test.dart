@@ -194,4 +194,87 @@ void main() {
     ]);
     expect(await h.one('service_records', result.created.single.id), isNotNull);
   });
+
+  // The dialog shows the prices it fills in before a save, so the plan does.
+  test('a new record lists the category and prices it fills in', () async {
+    final plan = await h.preview([
+      createOp('service_records', record('2026-03-01')),
+    ]);
+
+    final fields = plan.items.single.fields;
+    expect(
+      {
+        for (final key in const ['category', 'cost', 'currency'])
+          key: [fields[key]?.newValue, fields[key]?.indirect],
+      },
+      {
+        'category': ['inspection', true],
+        'cost': [40, true],
+        'currency': ['EUR', true],
+      },
+    );
+  });
+
+  // updateRecord sets the date to the newest record's, so an edit of any
+  // field can move it after an older record was logged (#4201).
+  test('any edit lists the date it puts back to the newest', () async {
+    final newer = (await h.run([
+      createOp('service_records', record('2026-03-01')),
+    ])).created.single.id;
+    await h.run([createOp('service_records', record('2025-03-01'))]);
+
+    final plan = await h.preview([
+      updateOp('service_records', newer, {'notes': 'New seals'}),
+    ]);
+    expect(plan.items.single.alsoChanges, {'equipment': 1});
+    await h.apply(plan);
+
+    expect(await lastService(), DateTime(2026, 3, 1));
+  });
+
+  test('a record keeps a currency', () async {
+    final id = (await h.run([
+      createOp('service_records', record('2026-03-01')),
+    ])).created.single.id;
+
+    final plan = await h.preview([
+      updateOp('service_records', id, {'currency': null}),
+    ]);
+
+    expect(plan.items.single.block, isNotNull);
+  });
+
+  test('deleting every record lists the date it clears', () async {
+    final first = (await h.run([
+      createOp('service_records', record('2026-01-10')),
+    ])).created.single.id;
+    final second = (await h.run([
+      createOp('service_records', record('2026-02-20')),
+    ])).created.single.id;
+
+    final plan = await h.preview([
+      deleteOp('service_records', second),
+      deleteOp('service_records', first),
+    ]);
+
+    expect(plan.items.last.alsoChanges, {'equipment': 1});
+  });
+
+  test('several records on one item re-arm its reminders once', () async {
+    final asked = <String>[];
+    final watched = ChildWriteHarness(
+      db,
+      catalog: (repositories) => WriteCatalog(
+        repositories,
+        refreshReminders: (itemId) async => asked.add(itemId),
+      ),
+    );
+
+    await watched.run([
+      createOp('service_records', record('2026-01-10')),
+      createOp('service_records', record('2026-02-20')),
+    ]);
+
+    expect(asked, ['suit']);
+  });
 }
