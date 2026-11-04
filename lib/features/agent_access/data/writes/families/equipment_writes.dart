@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/enums.dart'
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/equipment_item_rules.dart';
+import 'package:submersion/features/agent_access/data/writes/families/equipment_replace_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/service_ledger_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
@@ -60,10 +61,13 @@ class EquipmentWrites extends WritableEntry {
       nullable: true,
     ),
     'attributes': attributeListCodec,
+    replacesKey: const FieldCodec.reference('equipment'),
   };
 
+  /// A new item names [newItemKeys] unless it replaces a part, which
+  /// [replacementProblem] judges.
   @override
-  Set<String> get requiredOnCreate => const {'name', 'type'};
+  Set<String> get requiredOnCreate => const {};
 
   @override
   final Map<String, RelationSpec> relations = const {
@@ -95,6 +99,8 @@ class EquipmentWrites extends WritableEntry {
 
   @override
   String get note =>
+      'a create names name and type, or only replaces_equipment_id to '
+      'replace a fitted part (the new one copies it, the old one retires); '
       'custom_reminder_enabled true uses custom_reminder_days (some of 7, '
       '14 and 30; all three when none are named), null the app\'s default '
       'reminders; is_active follows status; last_service_date and '
@@ -119,6 +125,13 @@ class EquipmentWrites extends WritableEntry {
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {
     if (check.kind == ChangeKind.delete) return null;
+    final replacement = await replacementProblem(
+      check,
+      _r.equipment.getEquipmentById,
+    );
+    if (replacement != null || check.values.containsKey(replacesKey)) {
+      return replacement;
+    }
     final links =
         await _tagBlock(check) ?? _shareBlock(check) ?? reminderProblem(check);
     if (links != null) return links;
@@ -179,12 +192,24 @@ class EquipmentWrites extends WritableEntry {
     String diverId,
     Map<String, Object?> values,
   ) async {
+    final replaced = values[replacesKey] as String?;
+    final old = replaced == null
+        ? null
+        : await _r.equipment.getEquipmentById(replaced);
     final kinds = await ServiceScheduleRepository().autoAttachKindsFor(
-      type: EquipmentType.values.byName(values['type']! as String),
-      diverId: diverId,
+      type: old?.type ?? EquipmentType.values.byName(values['type']! as String),
+      diverId: old?.diverId ?? diverId,
     );
     return {if (kinds.isNotEmpty) 'service_schedules': kinds.length};
   }
+
+  /// A replacement retires the part it replaces.
+  @override
+  Future<Map<String, int>> createTouched(
+    String diverId,
+    Map<String, Object?> values,
+  ) async =>
+      values.containsKey(replacesKey) ? const {'equipment': 1} : const {};
 
   @override
   Future<SideEffects> sideEffects(
@@ -216,6 +241,16 @@ class EquipmentWrites extends WritableEntry {
 
   @override
   Future<String> create(String diverId, Map<String, Object?> values) async {
+    if (values[replacesKey] case final String oldId) {
+      final old =
+          await _r.equipment.getEquipmentById(oldId) ??
+          (throw AgentToolException(
+            AgentToolErrorCode.writeRefused,
+            'Equipment $oldId no longer exists.',
+            details: {'id': oldId},
+          ));
+      return (await _r.equipment.replaceChild(old)).id;
+    }
     final blank = EquipmentItem(
       id: '',
       diverId: diverId,
