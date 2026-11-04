@@ -54,17 +54,23 @@ void main() {
       expect(placed.anchor, _geometry.toPixel(600, 40));
     });
 
-    test('the pill sits above the line, ending at the anchor, clear of a '
-        'warning sign at the same point', () {
+    test('the pill sits above and left of the line, clear of a warning '
+        'sign at the same point', () {
       final placed = _place(_worstCase());
       expect(placed.pill.size, _pillSize);
-      expect(placed.pill.right, closeTo(placed.anchor.dx, 0.01));
+      expect(
+        placed.pill.right,
+        closeTo(placed.anchor.dx - worstCasePillInset, 0.01),
+      );
       expect(
         placed.pill.bottom,
         closeTo(placed.anchor.dy - worstCasePillGap, 0.01),
       );
       expect(placed.above, isTrue);
-      expect(placed.stemEnd, Offset(placed.anchor.dx, placed.pill.bottom));
+      // The leader runs on a slant from the diamond up to the pill.
+      expect(placed.stemEnd, placed.pill.bottomRight);
+      expect(placed.stemStart.dx, lessThan(placed.anchor.dx));
+      expect(placed.stemStart.dy, lessThan(placed.anchor.dy));
     });
 
     test('next to the gas flag row the pill flips below the line', () {
@@ -74,7 +80,8 @@ void main() {
         placed.pill.top,
         closeTo(placed.anchor.dy + worstCasePillGap, 0.01),
       );
-      expect(placed.stemEnd, Offset(placed.anchor.dx, placed.pill.top));
+      expect(placed.stemEnd, placed.pill.topRight);
+      expect(placed.stemStart.dy, greaterThan(placed.anchor.dy));
     });
 
     test('a worst case past the end of the plot is not placed', () {

@@ -19,12 +19,18 @@ const worstCasePillGap = 22.0;
 /// that would reach into it goes below the line instead.
 const _flagRowHeight = 24.0;
 
-/// Half the diagonal of the diamond on the line.
-const _diamondRadius = 5.0;
+/// Half the diagonal of the hollow diamond round the anchor: wide enough to
+/// frame a waypoint handle (6.5 px at most, hovered) without covering it, as
+/// the worst case usually sits on the waypoint that ends the bottom.
+const worstCaseDiamondRadius = 12.0;
+
+/// How far left of the anchor the pill ends, so the leader to it runs on a
+/// slant: a vertical one would vanish into a steep ascent leaving the anchor.
+const worstCasePillInset = 12.0;
 
 /// The worst-case bailout marker where the chart draws it (issue #4211): the
-/// [anchor] on the profile line, the [pill] with its label, and the end of
-/// the stem that joins them.
+/// [anchor] on the profile line, the [pill] with its label, and the leader
+/// that joins them.
 class PlacedWorstCaseMarker {
   const PlacedWorstCaseMarker({
     required this.worstCase,
@@ -40,14 +46,19 @@ class PlacedWorstCaseMarker {
   /// Whether the pill sits above the line (else below it).
   final bool above;
 
-  /// Where the stem meets the pill. On a plot too short for the gap the pill
-  /// can come back over the anchor, and the stem has nothing to cross.
-  Offset get stemEnd =>
-      Offset(anchor.dx, above ? pill.bottom : math.max(anchor.dy, pill.top));
+  /// Where the leader leaves the diamond: the middle of its edge that faces
+  /// the pill.
+  Offset get stemStart => anchor.translate(
+    -worstCaseDiamondRadius / 2,
+    above ? -worstCaseDiamondRadius / 2 : worstCaseDiamondRadius / 2,
+  );
+
+  /// Where the leader meets the pill: its corner nearest the anchor.
+  Offset get stemEnd => above ? pill.bottomRight : pill.topRight;
 
   /// The diamond and the pill together, so the card sits clear of both.
   Rect get footprint => pill.expandToInclude(
-    Rect.fromCircle(center: anchor, radius: _diamondRadius + 1),
+    Rect.fromCircle(center: anchor, radius: worstCaseDiamondRadius + 1),
   );
 }
 
@@ -60,8 +71,9 @@ Size worstCasePillSize(String label, TextStyle style, TextDirection direction) {
 }
 
 /// Places [worstCase] on the profile [depthAt] describes. The pill goes up
-/// and to the left of the anchor, ending at it: stop tags sit right of and
-/// below their stops, and the gas flags along the top, so that side is free.
+/// and to the left of the anchor, ending [worstCasePillInset] short of it:
+/// stop tags sit right of and below their stops, and the gas flags along the
+/// top, so that side is free.
 /// Next to the gas flag row it goes below the line instead. It always stays
 /// inside the plot.
 ///
@@ -87,7 +99,7 @@ PlacedWorstCaseMarker? placeWorstCaseMarker({
           anchor.dy + worstCasePillGap,
           math.max(plot.top, plot.bottom - pillSize.height),
         );
-  final left = (anchor.dx - pillSize.width)
+  final left = (anchor.dx - worstCasePillInset - pillSize.width)
       .clamp(plot.left, math.max(plot.left, plot.right - pillSize.width))
       .toDouble();
   return PlacedWorstCaseMarker(
@@ -308,26 +320,37 @@ class PlanWorstCaseMarkerPainter extends CustomPainter {
     final pill = placed.pill;
 
     canvas.drawLine(
-      anchor,
+      placed.stemStart,
       placed.stemEnd,
       Paint()
         ..color = dim(color)
         ..strokeWidth = 1.2,
     );
 
+    // Hollow, so a waypoint handle on the same point shows inside it; a halo
+    // in the backdrop colour under the stroke keeps it apart from the profile
+    // line and the fill.
+    const r = worstCaseDiamondRadius;
     final diamond = Path()
-      ..moveTo(anchor.dx, anchor.dy - _diamondRadius)
-      ..lineTo(anchor.dx + _diamondRadius, anchor.dy)
-      ..lineTo(anchor.dx, anchor.dy + _diamondRadius)
-      ..lineTo(anchor.dx - _diamondRadius, anchor.dy)
+      ..moveTo(anchor.dx, anchor.dy - r)
+      ..lineTo(anchor.dx + r, anchor.dy)
+      ..lineTo(anchor.dx, anchor.dy + r)
+      ..lineTo(anchor.dx - r, anchor.dy)
       ..close();
-    canvas.drawPath(diamond, Paint()..color = dim(color));
     canvas.drawPath(
       diamond,
       Paint()
         ..color = dim(outline)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5
+        ..strokeWidth = 4
+        ..strokeJoin = StrokeJoin.round,
+    );
+    canvas.drawPath(
+      diamond,
+      Paint()
+        ..color = dim(color)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
         ..strokeJoin = StrokeJoin.round,
     );
 

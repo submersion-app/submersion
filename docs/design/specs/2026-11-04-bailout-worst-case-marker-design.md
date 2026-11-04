@@ -15,10 +15,13 @@ visible and a card with its figures on demand.
 
 ## What the diver sees
 
-- **Marker:** a small diamond on the profile line at the worst-case runtime,
-  a short solid stem up from it, and a pill at the top of the stem reading
-  "Worst case". The diamond sits on the line; the pill is what the diver
-  points at.
+- **Marker:** a hollow diamond round the point on the profile line at the
+  worst-case runtime, a slanted leader up and to the left, and a pill at its
+  end reading "Worst case". The diamond is hollow and wide enough (12 px half
+  diagonal) to frame the waypoint handle that usually sits on the same point
+  without covering it; the leader slants because a vertical one vanished into
+  a steep ascent leaving the anchor (seen in the running app). The pill is
+  what the diver points at.
 - **Card:** hovering the pill (mouse) shows a card beside it; tapping or
   clicking the pill pins the card until the next tap anywhere else on the
   chart, or another tap on the pill. The card reads, with the strings the
@@ -87,8 +90,8 @@ Pure function from the worst case, the chart geometry, the drawn series'
 - **Anchor:** `geometry.toPixel(runtime, series.depthAt(runtime))`, on the line
   that is drawn (live plan or bailout picture), as the warning markers are.
   The card's depth figure comes from the result itself.
-- **Pill:** above the anchor with its right edge at the anchor's x, so it
-  extends back over the bottom phase. Stop tags sit right of and below their
+- **Pill:** above the anchor with its right edge 12 px left of the anchor's
+  x, so it extends back over the bottom phase. Stop tags sit right of and below their
   stops, and gas flags sit at the plot top right of their stems, so up-left is
   the free side. The pill's bottom is 22 px above the anchor, clear of a
   warning sign (5 to 17 px above its anchor) at the same point.
