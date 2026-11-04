@@ -460,6 +460,30 @@ void main() {
       'dissolveSeries',
     ])
       '$planner/dive_plan_series_repository.dart:$method': 'dive_plan_series',
+    for (final method in const [
+      'create',
+      'update',
+      'delete',
+      'duplicate',
+      'reorder',
+      'setEnabled',
+    ])
+      'lib/features/rules/data/repositories/rule_repository.dart:$method':
+          'rules',
+    for (final method in const [
+      'create',
+      'rename',
+      'updateQuery',
+      'reorder',
+      'delete',
+    ])
+      'lib/features/query/data/repositories/saved_query_repository.dart:'
+              '$method':
+          'saved_queries',
+    for (final method in const ['create', 'rename', 'updateSpec', 'delete'])
+      'lib/features/connections/data/repositories/'
+              'connection_map_repository.dart:$method':
+          'connection_maps',
     for (final method in const ['cloneTemplate', 'updateItemEquipment'])
       'lib/features/pre_dive/data/repositories/'
               'pre_dive_template_repository.dart:$method':

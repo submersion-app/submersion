@@ -36,6 +36,8 @@ import 'package:submersion/features/agent_access/data/writes/families/certificat
 import 'package:submersion/features/agent_access/data/writes/families/checklist_template_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/course_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/pre_dive_session_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/rule_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/saved_view_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/pre_dive_template_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/currency_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_plan_series_writes.dart';
@@ -134,6 +136,9 @@ class WriteCatalog {
       PreDiveSessionItemWrites(repositories),
       DivePlanWrites(repositories),
       DivePlanSeriesWrites(repositories),
+      RuleWrites(repositories),
+      SavedQueryWrites(repositories),
+      ConnectionMapWrites(repositories),
     ]);
   }
 
