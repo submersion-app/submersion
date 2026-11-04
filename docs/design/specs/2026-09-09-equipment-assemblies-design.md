@@ -395,7 +395,11 @@ that drops the group; an assembly row has the expand chevron and a remove
 that drops its subtree; a component row is indented with a remove that
 drops only itself. Picking an assembly from the Add sheet inserts it
 collapsed with its count. The picker keeps listing every active item flat
-so a component can still be added on its own. The two pickers start
+so a component can still be added on its own. (Superseded by #2514: the
+dive gear pickers now leave out the components of an assembly they offer,
+behind a "Show components of assemblies" switch; see
+[2026-11-03-hide-assembly-parts-in-pickers-design.md](2026-11-03-hide-assembly-parts-in-pickers-design.md).)
+The two pickers start
 calling `_markDirty()`, which the set and item pickers currently omit.
 
 **Bulk edit** keeps the tri-state membership list in

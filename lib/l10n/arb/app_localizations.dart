@@ -13672,6 +13672,12 @@ abstract class AppLocalizations {
   /// **'All equipment already selected'**
   String get diveLog_equipmentPicker_allSelected;
 
+  /// No description provided for @diveLog_equipmentPicker_allAssemblyParts.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining gear is part of an assembly'**
+  String get diveLog_equipmentPicker_allAssemblyParts;
+
   /// No description provided for @diveLog_equipmentPicker_allSpare.
   ///
   /// In en, this message translates to:
@@ -13695,6 +13701,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove items to add different ones'**
   String get diveLog_equipmentPicker_removeToAdd;
+
+  /// No description provided for @diveLog_equipmentPicker_showAssemblyParts.
+  ///
+  /// In en, this message translates to:
+  /// **'Show components of assemblies'**
+  String get diveLog_equipmentPicker_showAssemblyParts;
 
   /// No description provided for @diveLog_equipmentPicker_showLeftKit.
   ///

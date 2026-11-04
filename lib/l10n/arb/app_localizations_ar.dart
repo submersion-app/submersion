@@ -8799,6 +8799,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'تم اختيار جميع المعدات بالفعل';
 
   @override
+  String get diveLog_equipmentPicker_allAssemblyParts =>
+      'المعدات المتبقية جزء من تجميعة';
+
+  @override
   String get diveLog_equipmentPicker_allSpare =>
       'المعدات المتبقية مصنفة كاحتياطية';
 
@@ -8813,6 +8817,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_equipmentPicker_removeToAdd =>
       'أزل عناصر لإضافة عناصر مختلفة';
+
+  @override
+  String get diveLog_equipmentPicker_showAssemblyParts =>
+      'عرض مكوّنات التجميعات';
 
   @override
   String get diveLog_equipmentPicker_showLeftKit =>

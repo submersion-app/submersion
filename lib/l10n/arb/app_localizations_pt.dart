@@ -8674,6 +8674,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Todos os equipamentos já selecionados';
 
   @override
+  String get diveLog_equipmentPicker_allAssemblyParts =>
+      'O equipamento restante faz parte de um conjunto';
+
+  @override
   String get diveLog_equipmentPicker_allSpare =>
       'O equipamento restante está marcado como reserva';
 
@@ -8688,6 +8692,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveLog_equipmentPicker_removeToAdd =>
       'Remova itens para adicionar outros';
+
+  @override
+  String get diveLog_equipmentPicker_showAssemblyParts =>
+      'Mostrar componentes de conjuntos';
 
   @override
   String get diveLog_equipmentPicker_showLeftKit =>

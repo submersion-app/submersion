@@ -26,6 +26,7 @@ import 'package:submersion/features/equipment/figure/presentation/figure_number_
 import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_selection.dart';
 import 'package:submersion/features/equipment/figure/presentation/gear_figure.dart';
+import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
@@ -58,6 +59,12 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
   bool _isDefault = false;
   bool _autoApplyOnComputerImport = false;
   bool _showFigure = true;
+
+  /// Whether the list also shows the parts of assemblies it lists (#2514).
+  /// Ticked rows, and rows touched here, always show, so an untick can be
+  /// undone in place.
+  bool _showParts = false;
+  Set<String> _touchedIds = const {};
   List<EquipmentSetGeofence> _geofences = [];
 
   @override
@@ -362,14 +369,32 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
                 // order the dive surfaces did (#1486, #1576). Selection is
                 // held in a Set of ids, so reordering the render cannot
                 // disturb what is ticked.
-                final groups = arrangeEquipment(
+                final componentsAsync = ref.watch(
+                  equipmentComponentsIndexProvider,
+                );
+                final components = componentsAsync.hasError
+                    ? ComponentsIndex.empty
+                    : componentsAsync.value;
+                // A listed assembly brings its parts (#2514): hide each one
+                // behind a switch unless ticked or touched.
+                final partIds = assemblyPartsAmong(
+                  components ?? ComponentsIndex.empty,
                   equipment,
+                ).difference({..._selectedEquipmentIds, ..._touchedIds});
+                final listed = _showParts
+                    ? equipment
+                    : [
+                        for (final e in equipment)
+                          if (!partIds.contains(e.id)) e,
+                      ];
+                final groups = arrangeEquipment(
+                  listed,
                   ref.watch(equipmentArrangementProvider),
                   typeLabel: (type) => type.localizedName(context.l10n),
                 );
                 // Labelled as one list, so identical items read differently
                 // from each other (#1549).
-                final labels = equipmentRowLabelsOf(context, ref, equipment);
+                final labels = equipmentRowLabelsOf(context, ref, listed);
                 // Members the diver can no longer see (a share was removed,
                 // issue #2046) stay selected, so saving keeps them; they are
                 // listed without a checkbox and marked.
@@ -394,12 +419,6 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
                     for (final item in group.items)
                       if (_selectedEquipmentIds.contains(item.id)) item,
                 ];
-                final componentsAsync = ref.watch(
-                  equipmentComponentsIndexProvider,
-                );
-                final components = componentsAsync.hasError
-                    ? ComponentsIndex.empty
-                    : componentsAsync.value;
                 final model =
                     _showFigure && components != null && ordered.isNotEmpty
                     ? _memo.of(
@@ -461,6 +480,19 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
                       ),
                       const SizedBox(height: 8),
                     ],
+                    if (_showParts || partIds.isNotEmpty)
+                      SwitchListTile(
+                        key: const Key('set-edit-show-assembly-parts'),
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          context
+                              .l10n
+                              .diveLog_equipmentPicker_showAssemblyParts,
+                        ),
+                        value: _showParts,
+                        onChanged: (v) => setState(() => _showParts = v),
+                      ),
                     if (unshared.isNotEmpty)
                       Card(
                         margin: const EdgeInsets.only(bottom: 8),
@@ -570,6 +602,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
               } else {
                 _selectedEquipmentIds.remove(item.id);
               }
+              _touchedIds = {..._touchedIds, item.id};
             });
           },
           title: Text(item.name),

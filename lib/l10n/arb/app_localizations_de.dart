@@ -8674,6 +8674,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Gesamte Ausrüstung bereits ausgewählt';
 
   @override
+  String get diveLog_equipmentPicker_allAssemblyParts =>
+      'Die restliche Ausrüstung ist Teil einer Baugruppe';
+
+  @override
   String get diveLog_equipmentPicker_allSpare =>
       'Die restliche Ausrüstung ist als Ersatz markiert';
 
@@ -8688,6 +8692,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveLog_equipmentPicker_removeToAdd =>
       'Entfernen Sie Gegenstände, um andere hinzuzufügen';
+
+  @override
+  String get diveLog_equipmentPicker_showAssemblyParts =>
+      'Komponenten von Baugruppen anzeigen';
 
   @override
   String get diveLog_equipmentPicker_showLeftKit =>

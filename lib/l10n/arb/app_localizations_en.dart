@@ -8544,6 +8544,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'All equipment already selected';
 
   @override
+  String get diveLog_equipmentPicker_allAssemblyParts =>
+      'Remaining gear is part of an assembly';
+
+  @override
   String get diveLog_equipmentPicker_allSpare =>
       'Remaining gear is marked Spare';
 
@@ -8558,6 +8562,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLog_equipmentPicker_removeToAdd =>
       'Remove items to add different ones';
+
+  @override
+  String get diveLog_equipmentPicker_showAssemblyParts =>
+      'Show components of assemblies';
 
   @override
   String get diveLog_equipmentPicker_showLeftKit =>

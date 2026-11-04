@@ -91,6 +91,7 @@ class PlanGearWeightsSection extends ConsumerWidget {
           scrollController: scrollController,
           selectedEquipmentIds: state.equipmentIds.toSet(),
           hideSpare: true,
+          hideAssemblyParts: true,
           onEquipmentSelected: (equipment) {
             Navigator.of(context).pop();
             _addGear(ref, [equipment]);

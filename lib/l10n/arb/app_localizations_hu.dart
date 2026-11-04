@@ -8651,6 +8651,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Minden felszerelés már ki van választva';
 
   @override
+  String get diveLog_equipmentPicker_allAssemblyParts =>
+      'A többi felszerelés egy összeállítás része';
+
+  @override
   String get diveLog_equipmentPicker_allSpare =>
       'A többi felszerelés tartalékként van jelölve';
 
@@ -8665,6 +8669,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_equipmentPicker_removeToAdd =>
       'Távolítson el elemeket mások hozzáadásához';
+
+  @override
+  String get diveLog_equipmentPicker_showAssemblyParts =>
+      'Összeállítások alkatrészeinek megjelenítése';
 
   @override
   String get diveLog_equipmentPicker_showLeftKit =>

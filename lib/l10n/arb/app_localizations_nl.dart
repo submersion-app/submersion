@@ -8626,6 +8626,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Alle uitrusting al geselecteerd';
 
   @override
+  String get diveLog_equipmentPicker_allAssemblyParts =>
+      'Resterende uitrusting is onderdeel van een samenstel';
+
+  @override
   String get diveLog_equipmentPicker_allSpare =>
       'Resterende uitrusting is gemarkeerd als reserve';
 
@@ -8640,6 +8644,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_equipmentPicker_removeToAdd =>
       'Verwijder items om andere toe te voegen';
+
+  @override
+  String get diveLog_equipmentPicker_showAssemblyParts =>
+      'Onderdelen van samenstellen tonen';
 
   @override
   String get diveLog_equipmentPicker_showLeftKit =>
