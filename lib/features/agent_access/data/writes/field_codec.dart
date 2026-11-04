@@ -52,7 +52,8 @@ abstract class FieldCodec {
   /// A set of [values]' `.name`s, written as a list, at least [min] of them.
   /// The parsed value is the sorted names joined with commas, so a set
   /// compares with a document's list whatever order either is in.
-  factory FieldCodec.enumSet(Iterable<Enum> values, {int min}) = _EnumSetCodec;
+  factory FieldCodec.enumSet(Iterable<Enum> values, {int min, bool nullable}) =
+      _EnumSetCodec;
 
   /// A list of short texts in order, such as a dive center's affiliations.
   /// The parsed value is the list as JSON, so it compares with a document's.
@@ -60,6 +61,7 @@ abstract class FieldCodec {
     int maxItems,
     int maxLength,
     String? separator,
+    bool nullable,
   }) = _TextListCodec;
 
   /// A wall clock, written as documents write it, with a nominal `Z`.
@@ -247,7 +249,7 @@ class _EnumCodec extends FieldCodec {
 }
 
 class _EnumSetCodec extends FieldCodec {
-  _EnumSetCodec(Iterable<Enum> values, {this.min = 0})
+  _EnumSetCodec(Iterable<Enum> values, {this.min = 0, super.nullable})
     : _names = [for (final value in values) value.name];
 
   final List<String> _names;
@@ -298,6 +300,7 @@ class _TextListCodec extends FieldCodec {
     this.maxItems = 20,
     this.maxLength = 100,
     this.separator,
+    super.nullable,
   });
 
   final int maxItems;

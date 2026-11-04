@@ -47,7 +47,7 @@ extension _ChildRules on _Pass {
       // one with no version column is marked by its document instead.
       final columns = await _columnsOf(entry.table);
       final owner = columns.contains(entry.ownerColumn)
-          ? 'r.${entry.ownerColumn} AS diver_id'
+          ? '${entry.ownerOf('r')} AS diver_id'
           : 'NULL AS diver_id';
       final version = columns.contains('updated_at')
           ? 'r.updated_at'
@@ -78,7 +78,7 @@ extension _ChildRules on _Pass {
       alias = next;
       up = writes.named(grand.entity)!;
     }
-    return (joins: joins, owner: '$alias.${up.ownerColumn}');
+    return (joins: joins, owner: up.ownerOf(alias));
   }
 
   String _parentTable(WritableEntry entry) =>

@@ -19,6 +19,7 @@ void main() {
   const trips = 'lib/features/trips/data/repositories';
   const checklists = 'lib/features/checklists/data/repositories';
   const divers = 'lib/features/divers/data/repositories';
+  const certs = 'lib/features/certifications/data/repositories';
   const baselinePath = 'test/architecture/agent_write_coverage_baseline.txt';
 
   /// `repository file:method`, and the write entity that reaches it.
@@ -334,6 +335,23 @@ void main() {
       '$divers/diver_repository.dart:$method': 'divers',
     for (final method in const ['createEntry', 'updateEntry', 'deleteEntry'])
       '$divers/diver_weight_entry_repository.dart:$method': 'weight_entries',
+    for (final method in const [
+      'createCertification',
+      'updateCertification',
+      'deleteCertification',
+      'replaceBuddyCertifications',
+    ])
+      '$certs/certification_repository.dart:$method': 'certifications',
+    for (final (method, entity) in const [
+      ('createRule', 'currency_rules'),
+      ('updateRule', 'currency_rules'),
+      ('deleteRule', 'currency_rules'),
+      ('upsertPref', 'currency_prefs'),
+      ('deletePref', 'currency_prefs'),
+      ('createEvent', 'currency_events'),
+      ('deleteEvent', 'currency_events'),
+    ])
+      '$certs/certification_currency_repository.dart:$method': entity,
   };
 
   /// Writes that change no record a diver keeps, so no change set entity

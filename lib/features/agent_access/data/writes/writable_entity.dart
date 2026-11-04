@@ -356,6 +356,11 @@ abstract class WritableEntry {
   /// profile belongs to itself.
   String get ownerColumn => 'diver_id';
 
+  /// The profile a row of [table] aliased [alias] belongs to, as SQL: its
+  /// [ownerColumn], unless the owner lives elsewhere, as a buddy's card
+  /// belongs to the buddy's profile.
+  String ownerOf(String alias) => '$alias.$ownerColumn';
+
   /// The record this one belongs to. A child takes its parent's owner,
   /// names it in [ChildOf.field] when it is created, and stays on it.
   ChildOf? get parent => null;
