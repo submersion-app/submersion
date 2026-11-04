@@ -101,7 +101,11 @@ class SavedQueryWrites extends WritableEntry {
   @override
   Future<void> delete(String id, String? ownerId) => _r.savedQueries.delete(id);
 
-  Future<QueryNode> _node(String subject, Object? query, String? diverId) async {
+  Future<QueryNode> _node(
+    String subject,
+    Object? query,
+    String? diverId,
+  ) async {
     final checked = await checkedQuery(
       _r,
       key: 'query',
