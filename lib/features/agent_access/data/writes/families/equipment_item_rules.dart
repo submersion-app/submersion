@@ -90,6 +90,52 @@ String? attributeProblem(Object parsed, EquipmentType type) {
   return null;
 }
 
+/// The day chips the edit page offers for custom reminders, all of them
+/// picked when the switch first goes on.
+const reminderDayChoices = [7, 14, 30];
+
+/// A block for reminders the edit page's switch cannot set: off (false) is
+/// not one of its states, and days mean nothing while custom reminders are
+/// not on.
+PlanBlock? reminderProblem(WriteCheck check) {
+  final v = check.values;
+  if (v.containsKey('custom_reminder_enabled') &&
+      v['custom_reminder_enabled'] == false) {
+    return const PlanBlock(
+      BlockReason.invalidValue,
+      'custom_reminder_enabled: true uses custom days, null the app\'s '
+      'default reminders; the app has no setting that turns an item\'s '
+      'reminders off.',
+    );
+  }
+  if (!v.containsKey('custom_reminder_days')) return null;
+  final enabled = v.containsKey('custom_reminder_enabled')
+      ? v['custom_reminder_enabled']
+      : check.document?['custom_reminder_enabled'];
+  if (enabled != true) {
+    return const PlanBlock(
+      BlockReason.invalidValue,
+      'custom_reminder_days: set custom_reminder_enabled true to use them.',
+    );
+  }
+  final days = [
+    for (final day
+        in const FieldCodec.integerList().wire(v['custom_reminder_days'])!
+            as List)
+      day as int,
+  ];
+  if (days.isEmpty ||
+      days.toSet().length != days.length ||
+      days.any((day) => !reminderDayChoices.contains(day))) {
+    return PlanBlock(
+      BlockReason.invalidValue,
+      'custom_reminder_days: one or more of '
+      '${reminderDayChoices.join(', ')}, each once.',
+    );
+  }
+  return null;
+}
+
 /// Why an item of [type] cannot be fitted to [parent], or null. The app
 /// fits an O2 cell to a rebreather and a battery to a host, nothing else,
 /// so a parent is never itself a part and no chain of parts can loop.
@@ -186,7 +232,7 @@ EquipmentItem nextItem(EquipmentItem current, Map<String, Object?> values) {
     customReminderEnabled: enabled,
     customReminderDays: enabled == true
         ? (values['custom_reminder_days'] == null
-              ? current.customReminderDays
+              ? current.customReminderDays ?? reminderDayChoices
               : [
                   for (final day
                       in const FieldCodec.integerList().wire(
@@ -216,6 +262,9 @@ Map<String, Object?> derivedFields(
   if (!values.containsKey('attributes') &&
       next.attributes.length != current.attributes.length)
     'attributes': attributeDocuments(next),
+  if (!values.containsKey('custom_reminder_days') &&
+      !_sameDays(next.customReminderDays, current.customReminderDays))
+    'custom_reminder_days': next.customReminderDays,
   if (!values.containsKey('parent_equipment_id') &&
       next.parentEquipmentId != current.parentEquipmentId)
     'parent_equipment_id': next.parentEquipmentId,
@@ -301,6 +350,9 @@ List<EquipmentAttribute> _attributes(EquipmentItem current, Object? parsed) {
         ),
   ];
 }
+
+bool _sameDays(List<int>? a, List<int>? b) =>
+    a == null || b == null ? a == b : a.join(',') == b.join(',');
 
 DateTime? _date(String? day) => day == null ? null : _day(DateTime.parse(day));
 

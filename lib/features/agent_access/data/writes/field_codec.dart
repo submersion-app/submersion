@@ -42,7 +42,7 @@ abstract class FieldCodec {
   const factory FieldCodec.integer({int? min, int? max, bool nullable}) =
       _IntegerCodec;
 
-  const factory FieldCodec.flag() = _FlagCodec;
+  const factory FieldCodec.flag({bool nullable}) = _FlagCodec;
 
   /// The `.name` of one of [values], which is how documents write an enum.
   factory FieldCodec.enumName(Iterable<Enum> values, {bool nullable}) =
@@ -193,7 +193,7 @@ class _IntegerCodec extends FieldCodec {
 }
 
 class _FlagCodec extends FieldCodec {
-  const _FlagCodec();
+  const _FlagCodec({super.nullable});
 
   @override
   String get describe => 'true or false';

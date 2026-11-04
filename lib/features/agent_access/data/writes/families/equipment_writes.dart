@@ -46,7 +46,7 @@ class EquipmentWrites extends WritableEntry {
     ),
     'purchase_currency': const FieldCodec.text(maxLength: 3, trim: true),
     'notes': const FieldCodec.text(allowBlank: true, trim: true),
-    'custom_reminder_enabled': const FieldCodec.flag(),
+    'custom_reminder_enabled': const FieldCodec.flag(nullable: true),
     'custom_reminder_days': const FieldCodec.integerList(
       min: 1,
       max: 365,
@@ -92,7 +92,9 @@ class EquipmentWrites extends WritableEntry {
 
   @override
   String get note =>
-      'is_active follows status; last_service_date and '
+      'custom_reminder_enabled true uses custom_reminder_days (some of 7, '
+      '14 and 30; all three when none are named), null the app\'s default '
+      'reminders; is_active follows status; last_service_date and '
       'service_interval_days are legacy and not writable; attributes are '
       'the whole list, built-in keys of the item\'s type plus custom ones '
       '(is_custom true), the app\'s own system keys left out';
@@ -114,7 +116,8 @@ class EquipmentWrites extends WritableEntry {
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {
     if (check.kind == ChangeKind.delete) return null;
-    final links = await _tagBlock(check) ?? _shareBlock(check);
+    final links =
+        await _tagBlock(check) ?? _shareBlock(check) ?? reminderProblem(check);
     if (links != null) return links;
     final type = EquipmentType.values.byName(
       check.values['type'] as String? ?? check.document!['type']! as String,

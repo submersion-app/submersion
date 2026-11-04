@@ -111,6 +111,64 @@ void main() {
     expect((await doc(id))['purchase_currency'], 'EUR');
   });
 
+  // As the edit page's switch: on uses custom days (7, 14 and 30 when none
+  // are picked), null goes back to the app's default reminders, and days
+  // mean nothing while custom reminders are off.
+  test('custom reminders follow the edit page\'s switch', () async {
+    final id = await created({'name': 'Reg', 'type': 'regulator'});
+
+    final on = await h.preview([
+      updateOp('equipment', id, {'custom_reminder_enabled': true}),
+    ]);
+    expect(on.items.single.fields['custom_reminder_days']!.newValue, [
+      7,
+      14,
+      30,
+    ]);
+    expect(on.items.single.fields['custom_reminder_days']!.indirect, isTrue);
+    await h.apply(on);
+    expect((await doc(id))['custom_reminder_days'], [7, 14, 30]);
+
+    final off = await h.preview([
+      updateOp('equipment', id, {'custom_reminder_enabled': null}),
+    ]);
+    expect(off.items.single.fields['custom_reminder_days']!.newValue, isNull);
+    await h.apply(off);
+    expect((await doc(id))['custom_reminder_enabled'], isNull);
+
+    final refused = await h.preview([
+      updateOp('equipment', id, {'custom_reminder_days': [7]}),
+    ]);
+    expect(refused.items.single.block!.reason, BlockReason.invalidValue);
+  });
+
+  test('reminder days are some of 7, 14 and 30, once each', () async {
+    final id = await created({
+      'name': 'Reg',
+      'type': 'regulator',
+      'custom_reminder_enabled': true,
+    });
+
+    for (final days in const [
+      <int>[],
+      [7, 7],
+      [10],
+    ]) {
+      final plan = await h.preview([
+        updateOp('equipment', id, {'custom_reminder_days': days}),
+      ]);
+      expect(
+        plan.items.single.block!.reason,
+        BlockReason.invalidValue,
+        reason: '$days',
+      );
+    }
+    final off = await h.preview([
+      updateOp('equipment', id, {'custom_reminder_enabled': false}),
+    ]);
+    expect(off.items.single.block!.reason, BlockReason.invalidValue);
+  });
+
   test('a create lists the service clocks it attaches', () async {
     final kinds = await ServiceScheduleRepository().autoAttachKindsFor(
       type: EquipmentType.tank,
