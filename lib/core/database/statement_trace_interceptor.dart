@@ -21,6 +21,12 @@ class StatementTraceInterceptor extends QueryInterceptor {
   }
 
   @override
+  QueryExecutor beginExclusive(QueryExecutor parent) {
+    _write('[db ${++_last}] begin exclusive');
+    return parent.beginExclusive();
+  }
+
+  @override
   Future<bool> ensureOpen(QueryExecutor executor, QueryExecutorUser user) =>
       _trace('open', () => executor.ensureOpen(user));
 

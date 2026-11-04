@@ -68,6 +68,24 @@ void main() {
     expect(events.every((e) => e['settled'] == 1), isTrue);
   });
 
+  // Each pass announces its entries, the open feed rebuilds on that and
+  // settles again in the rebuild: without joining, a backlog of many passes
+  // started a settle loop per pass.
+  test('a call while a settle runs joins it', () async {
+    await _editNotes(db, 'mine', 'One');
+    await _editNotes(db, 'theirs', 'Two');
+
+    final first = repository.settleAll(budget: Duration.zero);
+    final joined = ChangeLogRepository().settleAll(budget: Duration.zero);
+    expect(identical(joined, first), isTrue);
+    await first;
+
+    final next = repository.settleAll();
+    expect(identical(next, first), isFalse);
+    await next;
+    expect((await logEvents(db)).every((e) => e['settled'] == 1), isTrue);
+  });
+
   test('feed shows only the active diver', () async {
     await _editNotes(db, 'mine', 'One');
     await _editNotes(db, 'theirs', 'Two');

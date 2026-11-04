@@ -102,6 +102,9 @@ class ChangeLogFeedNotifier extends AsyncNotifier<ChangeLogFeedState> {
     _diverId = diverId;
     if (diverId == null) return const ChangeLogFeedState();
     await repository.settleAll();
+    // Settling announced its entries, and the rebuild that started reads
+    // the feed; this one would read it for nothing.
+    if (!ref.mounted) return const ChangeLogFeedState();
     return _nextPage(
       repository,
       diverId,

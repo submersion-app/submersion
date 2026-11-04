@@ -80,6 +80,12 @@ void main() {
     ]);
   });
 
+  test('marks an exclusive block', () async {
+    await db.exclusively(() => db.customSelect('SELECT 1').get());
+
+    expect(shapes(), contains(matches(r'^\[db \d+\] begin exclusive$')));
+  });
+
   test('prints a statement that fails, and still throws', () async {
     await expectLater(
       db.customSelect('SELECT x FROM missing').get(),

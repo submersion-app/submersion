@@ -40,7 +40,28 @@ class ChangeLogRepository {
   /// backlog (the first sync of a library) does not hold the database
   /// while the rest of the app waits on it (#4186). Every event a pass
   /// takes is settled or deleted, so passes run until one finds nothing.
-  Future<void> settleAll({Duration budget = _settleBudget}) async {
+  ///
+  /// A call while a settle runs joins it rather than starting another: each
+  /// pass announces its entries, the open feed rebuilds on that and settles
+  /// again in the rebuild, and a backlog of many passes started a loop per
+  /// pass.
+  Future<void> settleAll({Duration budget = _settleBudget}) {
+    final db = _db;
+    final running = _settling;
+    if (running != null && identical(running.db, db)) return running.run;
+    late final Future<void> run;
+    run = _settleAll(budget).whenComplete(() {
+      if (identical(_settling?.run, run)) _settling = null;
+    });
+    _settling = (db: db, run: run);
+    return run;
+  }
+
+  /// The settle running now and the database it settles, shared by every
+  /// repository: a call joins it only on the same database.
+  static ({AppDatabase db, Future<void> run})? _settling;
+
+  Future<void> _settleAll(Duration budget) async {
     try {
       final settler = ChangeLogSettler(_db);
       while (await settler.settle(batch: _settleBatch, budget: budget) > 0) {
