@@ -25,6 +25,7 @@ import 'package:submersion/features/agent_access/data/writes/families/site_write
 import 'package:submersion/features/agent_access/data/writes/families/species_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/tag_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/service_kind_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/service_schedule_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/tank_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/weight_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
@@ -75,6 +76,7 @@ class WriteCatalog {
       EquipmentLocationMoveWrites(repositories),
       EquipmentComponentWrites(repositories),
       ServiceKindWrites(repositories),
+      ServiceScheduleWrites(repositories),
     ]);
   }
 

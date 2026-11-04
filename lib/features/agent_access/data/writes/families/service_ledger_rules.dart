@@ -69,3 +69,38 @@ class _UpperCodec extends FieldCodec {
     return raw.trim().toUpperCase();
   }
 }
+
+/// Re-arms an item's service reminders after a write that moves its clocks,
+/// as the record and clock notifiers do. Wired from the provider layer.
+typedef GearReminderRefresh = Future<void> Function(String equipmentId);
+
+/// The day [value] names, `YYYY-MM-DD`, as the service pickers store a day:
+/// local midnight.
+DateTime? calendarDay(Object? value) {
+  if (value is! String) return null;
+  final day = DateTime.parse(value);
+  return DateTime(day.year, day.month, day.day);
+}
+
+/// Why the day under [key] falls outside [from] to [to], or null.
+PlanBlock? dayRangeProblem(
+  WriteCheck check,
+  String key, {
+  required DateTime from,
+  required DateTime to,
+}) {
+  final day = calendarDay(check.values[key]);
+  if (day == null || (!day.isBefore(from) && !day.isAfter(to))) return null;
+  String shown(DateTime d) =>
+      '${d.year}-${'${d.month}'.padLeft(2, '0')}-${'${d.day}'.padLeft(2, '0')}';
+  return PlanBlock(
+    BlockReason.invalidValue,
+    '$key: a day from ${shown(from)} to ${shown(to)}.',
+  );
+}
+
+/// Today, as a day.
+DateTime today() {
+  final now = DateTime.now();
+  return DateTime(now.year, now.month, now.day);
+}
