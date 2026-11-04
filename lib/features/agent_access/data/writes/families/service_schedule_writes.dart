@@ -247,10 +247,13 @@ class ServiceScheduleWrites extends WritableEntry {
       _r.serviceSchedules.deleteSchedule(id);
 
   @override
-  Future<void> afterApply(List<AppliedChange> changes) async {
-    // Once per item, however many of its clocks or records the set changed.
+  Future<void> afterApply(List<AppliedChange> changes, ApplyRun run) async {
+    // Once per item and apply, however many of its clocks and records the
+    // set changed.
     for (final itemId in {for (final c in changes) ?c.parentId}) {
-      await refreshReminders?.call(itemId);
+      if (run.once(('gear-reminders', itemId))) {
+        await refreshReminders?.call(itemId);
+      }
     }
   }
 

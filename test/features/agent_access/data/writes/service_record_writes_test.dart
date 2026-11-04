@@ -277,4 +277,46 @@ void main() {
 
     expect(asked, ['suit']);
   });
+
+  // The dialog lets an existing record go back to no type ("Not set"); a new
+  // one needs a type.
+  test('an edit can clear a record\'s type, a create cannot', () async {
+    final id = (await h.run([
+      createOp('service_records', record('2026-03-01')),
+    ])).created.single.id;
+
+    await h.run([
+      updateOp('service_records', id, {'service_kind_id': null}),
+    ]);
+    expect((await h.one('service_records', id))!['service_kind_id'], isNull);
+
+    final plan = await h.preview([
+      createOp('service_records', {
+        ...record('2026-03-02'),
+        'service_kind_id': null,
+      }),
+    ]);
+    expect(plan.items.single.block, isNotNull);
+  });
+
+  test('a clock and a record of one item re-arm it once', () async {
+    final asked = <String>[];
+    final watched = ChildWriteHarness(
+      db,
+      catalog: (repositories) => WriteCatalog(
+        repositories,
+        refreshReminders: (itemId) async => asked.add(itemId),
+      ),
+    );
+
+    await watched.run([
+      createOp('service_schedules', {
+        'equipment_id': 'suit',
+        'service_kind_id': 'seals',
+      }),
+      createOp('service_records', record('2026-01-10')),
+    ]);
+
+    expect(asked, ['suit']);
+  });
 }

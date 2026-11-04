@@ -184,6 +184,15 @@ class AppliedChange {
   final Set<String> changed;
 }
 
+/// One apply, as every entity's [WritableEntry.afterApply] sees it.
+class ApplyRun {
+  final _done = <Object>{};
+
+  /// Whether [key] is asked for the first time in this apply, so follow-up
+  /// work for one item, such as re-arming its reminders, runs once.
+  bool once(Object key) => _done.add(key);
+}
+
 /// What an update does beyond what it names, through a repository's own
 /// rules. The planner lists these, so a diver sees everything a plan does.
 class SideEffects {
@@ -377,9 +386,10 @@ abstract class WritableEntry {
   /// Work the app does after saves of these records, run once the apply has
   /// committed and outside its transaction, where a scheduled scan can read
   /// the saved rows. [changes] are every change of this entity the apply
-  /// wrote, in order, so work for one item runs once. A failure here cannot
-  /// undo the apply, so it is logged.
-  Future<void> afterApply(List<AppliedChange> changes) async {}
+  /// wrote, in order; [run] is shared by every entity of the apply, so work
+  /// two entities would both ask for runs once. A failure here cannot undo
+  /// the apply, so it is logged.
+  Future<void> afterApply(List<AppliedChange> changes, ApplyRun run) async {}
 
   /// Values a create of [values] for [diverId] fills in that it does not
   /// name, as the page's form prefills them, in the form [fields] parse to.

@@ -139,9 +139,10 @@ class WriteApplier {
         ),
       );
     }
+    final run = ApplyRun();
     for (final MapEntry(key: entity, value: changes) in applied.entries) {
       try {
-        await _catalog.named(entity)!.afterApply(changes);
+        await _catalog.named(entity)!.afterApply(changes, run);
       } catch (e, stackTrace) {
         _log.error(
           'Follow-up work after the $entity changes failed; the changes '

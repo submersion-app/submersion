@@ -33,7 +33,11 @@ class ServiceRecordWrites extends WritableEntry {
   @override
   late final Map<String, FieldCodec> fields = {
     'equipment_id': const FieldCodec.reference('equipment'),
-    'service_kind_id': const FieldCodec.reference('service_kinds'),
+    // An edit may set it back to none ("Not set"), as the dialog does.
+    'service_kind_id': const FieldCodec.reference(
+      'service_kinds',
+      nullable: true,
+    ),
     'category': FieldCodec.enumName(ServiceCategory.values),
     'service_date': const FieldCodec.calendarDate(),
     'next_service_due_date': const FieldCodec.calendarDate(nullable: true),
@@ -53,6 +57,13 @@ class ServiceRecordWrites extends WritableEntry {
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {
     if (check.kind == ChangeKind.delete) return null;
+    if (check.kind == ChangeKind.create &&
+        check.values['service_kind_id'] == null) {
+      return const PlanBlock(
+        BlockReason.invalidValue,
+        'service_kind_id: a new record names its service type.',
+      );
+    }
     final now = today();
     return dayRangeProblem(
           check,
@@ -160,7 +171,9 @@ class ServiceRecordWrites extends WritableEntry {
       ServiceRecord(
         id: id,
         equipmentId: current.equipmentId,
-        serviceKindId: v['service_kind_id'] as String? ?? current.serviceKindId,
+        serviceKindId: v.containsKey('service_kind_id')
+            ? v['service_kind_id'] as String?
+            : current.serviceKindId,
         serviceCategory: category == null
             ? current.serviceCategory
             : ServiceCategory.values.byName(category),
@@ -183,10 +196,13 @@ class ServiceRecordWrites extends WritableEntry {
       _r.serviceRecords.deleteRecord(id);
 
   @override
-  Future<void> afterApply(List<AppliedChange> changes) async {
-    // Once per item, however many of its clocks or records the set changed.
+  Future<void> afterApply(List<AppliedChange> changes, ApplyRun run) async {
+    // Once per item and apply, however many of its clocks and records the
+    // set changed.
     for (final itemId in {for (final c in changes) ?c.parentId}) {
-      await refreshReminders?.call(itemId);
+      if (run.once(('gear-reminders', itemId))) {
+        await refreshReminders?.call(itemId);
+      }
     }
   }
 

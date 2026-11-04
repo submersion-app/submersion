@@ -17,7 +17,7 @@ class _Probe extends TankWrites {
   List<AppliedChange> get seen => [for (final b in batches) ...b];
 
   @override
-  Future<void> afterApply(List<AppliedChange> changes) async =>
+  Future<void> afterApply(List<AppliedChange> changes, ApplyRun run) async =>
       batches.add(changes);
 
   @override
