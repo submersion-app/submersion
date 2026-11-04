@@ -58,6 +58,13 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
   /// The editor's [DivePlanNotifier.loadCount] when this last saw a change.
   int _seenLoads;
 
+  /// Log entries of dives removed from this series, until "Update planned
+  /// dives" has offered to delete the ones still only planned. Held in
+  /// memory, outside [state]: the series edits rebuild it.
+  Set<String> _removedLinkedDiveIds = const {};
+
+  Set<String> get removedLinkedDiveIds => _removedLinkedDiveIds;
+
   /// Called on every change of the editor's plan.
   void editorChanged(DivePlanState? previous, DivePlanState next) {
     final loaded = _editor.loadCount != _seenLoads;
@@ -70,6 +77,7 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
         : state.dives.indexWhere((d) => d.state.id == next.id);
     if (index < 0) {
       _earlier = const [];
+      _removedLinkedDiveIds = const {};
       state = PlanSeries.single(next);
       return;
     }
@@ -158,6 +166,9 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
     final before = state;
     state = edits.removeDive(state, index);
     if (identical(before, state)) return;
+    if (before.dives[index].state.linkedDiveId case final id?) {
+      _removedLinkedDiveIds = {..._removedLinkedDiveIds, id};
+    }
     // The dive after a removed first dive is the first now, so the values
     // it kept its own are the series', and the dives sharing them take them.
     if (index == 0) {
@@ -183,7 +194,38 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
   /// selected dive. Not an outside load: it is the series doing the loading.
   void loadSeries(PlanSeries series) {
     _earlier = const [];
+    // The same series, as just saved, still owes the offer; another does not.
+    if (state.id != null && series.id != state.id) {
+      _removedLinkedDiveIds = const {};
+    }
     state = series;
+    _loadSelected();
+  }
+
+  /// Takes on links the repository already holds, by plan id, written from
+  /// outside the series (issue #3565): not an edit, so nothing is marked
+  /// unsaved. The editor adopts its own dive's link itself.
+  void adoptLinks(Map<String, String> links) {
+    if (links.isEmpty) return;
+    state = state.copyWith(
+      dives: [
+        for (final dive in state.dives)
+          if (links[dive.state.id] case final id?)
+            dive.copyWith(state: dive.state.copyWith(linkedDiveId: id))
+          else
+            dive,
+      ],
+    );
+  }
+
+  /// Forgets the log entries of removed dives, once they have been offered.
+  void clearRemovedLinkedDives() {
+    _removedLinkedDiveIds = const {};
+  }
+
+  /// Sets when the first dive starts, whichever dive is selected.
+  void setFirstStart(DateTime start) {
+    state = edits.setDiveStart(state, 0, start);
     _loadSelected();
   }
 
@@ -444,6 +486,16 @@ final missionAllowedProvider = Provider<bool>(
 final planConvertAllowedProvider = Provider<bool>(
   (ref) =>
       !ref.watch(planSeriesNotifierProvider.select((s) => s.savesAsSeries)),
+);
+
+/// Whether any dive of the plan has an entry in the log, so the menu offers
+/// to update the planned dives rather than create them.
+final plannedDivesExistProvider = Provider<bool>(
+  (ref) => ref.watch(
+    planSeriesNotifierProvider.select(
+      (s) => s.dives.any((dive) => dive.state.linkedDiveId != null),
+    ),
+  ),
 );
 
 /// Whether the plan saves as a series rather than an ordinary plan.

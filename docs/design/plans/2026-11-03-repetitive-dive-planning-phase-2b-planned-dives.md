@@ -52,7 +52,8 @@ About 800 lines of code and 750 of tests: the size of phase 2 or phase 3.
    - A planned entry: rewritten in place, same dive id.
    - A dived entry: never touched.
    - A dive removed from the series whose planned entry is still in the log:
-     offer to delete it. **Open:** confirm this, or leave the entry.
+     offer to delete it (decided 2026-11-04). Only a planned entry; a dived
+     one is never offered.
 3. **Names.** An entry takes the planned dive's own name, else stays unnamed.
    `toDive()` names it from the whole plan today; it must use the dive's.
    No projected dive numbers.
