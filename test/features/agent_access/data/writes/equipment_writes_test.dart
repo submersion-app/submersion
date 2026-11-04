@@ -88,6 +88,29 @@ void main() {
     },
   );
 
+  // The edit page starts a new item in the diver's default currency.
+  test('a new item takes its diver\'s default currency', () async {
+    await db
+        .into(db.diverSettings)
+        .insertOnConflictUpdate(
+          DiverSettingsCompanion.insert(
+            id: 'settings-a',
+            diverId: kDiverA,
+            createdAt: t,
+            updatedAt: t,
+            defaultCurrency: const Value('eur'),
+          ),
+        );
+
+    final id = await created({
+      'name': 'Fins',
+      'type': 'fins',
+      'purchase_price': 120,
+    });
+
+    expect((await doc(id))['purchase_currency'], 'EUR');
+  });
+
   test('a create lists the service clocks it attaches', () async {
     final kinds = await ServiceScheduleRepository().autoAttachKindsFor(
       type: EquipmentType.tank,

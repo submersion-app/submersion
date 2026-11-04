@@ -168,7 +168,8 @@ class EquipmentWrites extends WritableEntry {
       type: EquipmentType.values.byName(values['type']! as String),
       status: EquipmentStatus.active,
       purchaseCurrency:
-          values['purchase_currency'] as String? ?? defaultCurrency(),
+          values['purchase_currency'] as String? ??
+          await _defaultCurrency(diverId),
     );
     return (await _r.equipment.createEquipment(nextItem(blank, values))).id;
   }
@@ -326,10 +327,18 @@ class EquipmentWrites extends WritableEntry {
     );
   }
 
-  /// The currency a new item takes when none is named, as the entity's.
-  static String defaultCurrency() => const EquipmentItem(
-    id: '',
-    name: '',
-    type: EquipmentType.mask,
-  ).purchaseCurrency;
+  /// The currency a new item takes when none is named: the diver's default,
+  /// as the edit page starts one.
+  Future<String> _defaultCurrency(String diverId) async {
+    final row = await DatabaseService.instance.database
+        .customSelect(
+          'SELECT default_currency FROM diver_settings WHERE diver_id = ?',
+          variables: [Variable.withString(diverId)],
+        )
+        .getSingleOrNull();
+    final code = (row?.read<String?>('default_currency') ?? '')
+        .trim()
+        .toUpperCase();
+    return code.isEmpty ? 'USD' : code;
+  }
 }
