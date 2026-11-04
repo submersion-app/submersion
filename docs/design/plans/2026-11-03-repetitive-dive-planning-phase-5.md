@@ -1,8 +1,9 @@
 # Repetitive dive planning, phase 5: a dived dive replaces its plan
 
 Issue #3565, discussion #3700. Design record:
-`docs/design/specs/2026-10-27-repetitive-dive-planning-design.md`. Needs R2
-(`docs/design/plans/2026-11-03-repetitive-dive-planning-r2-planned-dives.md`),
+`docs/design/specs/2026-10-27-repetitive-dive-planning-design.md`. Needs
+phase 2b
+(`docs/design/plans/2026-11-03-repetitive-dive-planning-phase-2b-planned-dives.md`),
 whose links tell the series that one of its dives has been dived. The
 decisions already made are in
 `docs/design/plans/2026-11-03-repetitive-dive-planning-phase-3.md`, "Dived

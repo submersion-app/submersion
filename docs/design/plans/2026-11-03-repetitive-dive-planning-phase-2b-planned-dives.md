@@ -1,15 +1,16 @@
-# Repetitive dive planning, R2: a series as planned dives in the log
+# Repetitive dive planning, phase 2b: a series as planned dives in the log
 
 Issue #3565, discussion #3700. Design record:
 `docs/design/specs/2026-10-27-repetitive-dive-planning-design.md`. Builds on
 phase 2 (#4175), which gives each dive its start time and site. The decisions
-already made for R2 are in
+already made for phase 2b are in
 `docs/design/plans/2026-11-03-repetitive-dive-planning-phase-3.md`, "Planned
-dives in the log (R2, after phase 3)"; this plan does not repeat them all.
+dives in the log (phase 2b, after phase 3)"; this plan does not repeat them
+all.
 
 ## Background
 
-R2 was built in the closed draft PR #4080 and is on the local tag
+Phase 2b was built in the closed draft PR #4080 and is on the local tag
 `backup/3565-phase-2-3-5`. Phase 3 left it out because it depends on #4058's
 link actions and its Convert confirmation, which merged after #4080 was
 written. Convert to Dive still holds back on a series.
@@ -30,12 +31,12 @@ About 800 lines of code and 750 of tests: the size of phase 2 or phase 3.
 2. The planner page split, done in #4175's review by the maintainer (see
    the phase 2 plan, "The planner page's size"): only the layouts moved, into
    `plan_canvas_layouts.dart`, leaving `plan_canvas_page.dart` at 779 lines.
-   No separate split PR. R2 moves Convert to Dive out of the page into
+   No separate split PR. Phase 2b moves Convert to Dive out of the page into
    `plan_log_update.dart`, as that section expects; the page must stay under
    800 lines with the new menu item. If it would not, move the menu into a
    `part` file with a mixin on the page's state, the same way.
-3. R2.
-4. Phase 5, which needs R2's links to know a dive has been dived.
+3. Phase 2b.
+4. Phase 5, which needs phase 2b's links to know a dive has been dived.
 
 ## Scope
 
@@ -74,22 +75,22 @@ About 800 lines of code and 750 of tests: the size of phase 2 or phase 3.
   dive's link must go through them, and a dive already linked by hand to a
   logged dive must not be overwritten.
 - The logged-dive layout from phase 2: a dived dive's chip opens it there,
-  and its "As planned" results come from the plan R2 linked.
-- `currentSchemaVersion` (342 on main): R2 needs no schema change as
+  and its "As planned" results come from the plan phase 2b linked.
+- `currentSchemaVersion` (342 on main): phase 2b needs no schema change as
   planned.
 - Gas switches (#4173): `gasSwitchesEditable` keeps the dive editor off a
   planned dive's switches because "a planned dive's switches belong to the
-  plan". R2 keeps that: only Update planned dives writes them, and a
+  plan". Phase 2b keeps that: only Update planned dives writes them, and a
   download clears them. Write them through the dive log's existing switch
   storage rather than a new path.
 - Rebreather start gas (#4174): a CCR dive's starting gas is its diluent.
-  R2 writes no switches on a CCR entry, so the entry must carry its diluent
-  in a form `startingTankOf` and the gas timeline pick up.
+  Phase 2b writes no switches on a CCR entry, so the entry must carry its
+  diluent in a form `startingTankOf` and the gas timeline pick up.
 - Start times: a series' starts are clock digits stamped UTC, with intervals
   measured between true instants (`fromWallClockUtc`), as in phase 2. Each
   entry's `diveDateTime` takes the dive's clock digits unchanged. The
   maintainer declined a migration for older plans' start column in #4175
-  (nothing could set it before), so R2 has none to handle.
+  (nothing could set it before), so phase 2b has none to handle.
 
 ## Stages
 
