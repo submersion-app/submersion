@@ -305,13 +305,6 @@ lib/features/planner/data/repositories/dive_plan_series_repository.dart:duplicat
 lib/features/planner/data/repositories/dive_plan_series_repository.dart:renameSeries
 lib/features/planner/data/repositories/dive_plan_series_repository.dart:restoreSeries
 lib/features/planner/data/repositories/dive_plan_series_repository.dart:saveSeries
-lib/features/pre_dive/data/repositories/pre_dive_session_repository.dart:abortSession
-lib/features/pre_dive/data/repositories/pre_dive_session_repository.dart:completeSession
-lib/features/pre_dive/data/repositories/pre_dive_session_repository.dart:deleteSession
-lib/features/pre_dive/data/repositories/pre_dive_session_repository.dart:linkToDive
-lib/features/pre_dive/data/repositories/pre_dive_session_repository.dart:startSession
-lib/features/pre_dive/data/repositories/pre_dive_session_repository.dart:unlinkFromDive
-lib/features/pre_dive/data/repositories/pre_dive_session_repository.dart:updateItemState
 lib/features/query/data/repositories/saved_query_repository.dart:create
 lib/features/query/data/repositories/saved_query_repository.dart:delete
 lib/features/query/data/repositories/saved_query_repository.dart:rename

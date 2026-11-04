@@ -419,6 +419,20 @@ void main() {
               'pre_dive_template_repository.dart:$method':
           'pre_dive_templates',
     },
+    for (final method in const [
+      'startSession',
+      'completeSession',
+      'abortSession',
+      'linkToDive',
+      'unlinkFromDive',
+      'deleteSession',
+    ])
+      'lib/features/pre_dive/data/repositories/'
+              'pre_dive_session_repository.dart:$method':
+          'pre_dive_sessions',
+    'lib/features/pre_dive/data/repositories/'
+            'pre_dive_session_repository.dart:updateItemState':
+        'pre_dive_session_items',
     for (final method in const ['cloneTemplate', 'updateItemEquipment'])
       'lib/features/pre_dive/data/repositories/'
               'pre_dive_template_repository.dart:$method':

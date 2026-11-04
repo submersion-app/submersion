@@ -524,6 +524,12 @@ void main() {
       expect(items['sections'], isEmpty);
     });
 
+    test('a pre-dive session item reads on its own, under its run', () async {
+      final ids = await h.list('pre_dive_session_items', parentId: 'pre-a');
+      final item = (await h.one('pre_dive_session_items', ids.single))!;
+      expect([item['session_id'], item['title']], ['pre-a', 'Tank']);
+    });
+
     test('a pre-dive session lists its sections', () async {
       await db
           .into(db.preDiveSessionSections)
