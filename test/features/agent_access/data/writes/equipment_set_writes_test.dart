@@ -133,6 +133,50 @@ void main() {
     expect((await h.one('equipment_sets', second))!['is_default'], isTrue);
   });
 
+  test('a set no profile owns can be made the default', () async {
+    await db
+        .into(db.equipmentSets)
+        .insert(
+          EquipmentSetsCompanion.insert(
+            id: 'loose',
+            name: 'Loose',
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+
+    final plan = await h.preview([
+      updateOp('equipment_sets', 'loose', {'is_default': true}),
+    ]);
+
+    expect(plan.items.single.block, isNull);
+  });
+
+  // The set editor offers only gear in the kit.
+  test('a member out of the kit is blocked', () async {
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'old',
+            name: 'Old wing',
+            type: 'wing',
+            createdAt: t,
+            updatedAt: t,
+            diverId: const Value(kDiverA),
+            status: const Value('retired'),
+            isActive: const Value(false),
+          ),
+        );
+    final id = await created({'name': 'Warm'});
+
+    final plan = await h.preview([
+      members(id, add: ['old']),
+    ]);
+
+    expect(plan.items.single.block!.reason, BlockReason.invalidValue);
+  });
+
   test('a new set cannot be made the default in its create', () async {
     final plan = await h.preview([
       createOp('equipment_sets', {'name': 'Warm', 'is_default': true}),

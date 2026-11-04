@@ -75,6 +75,16 @@ class EquipmentSetWrites extends WritableEntry {
   /// the plan can list the set it takes the default from.
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {
+    // The set editor offers only gear in the kit.
+    final added = check.relations['equipment_ids']?.add ?? const <String>{};
+    for (final id in added) {
+      if (await countRows('equipment', 'id = ?1 AND is_active = 0', id) > 0) {
+        return PlanBlock(
+          BlockReason.invalidValue,
+          'equipment_ids: $id is not in the kit (retired, sold or wanted).',
+        );
+      }
+    }
     if (check.kind == ChangeKind.create && check.values['is_default'] == true) {
       return const PlanBlock(
         BlockReason.invalidValue,
@@ -93,12 +103,18 @@ class EquipmentSetWrites extends WritableEntry {
     Map<String, Object?> document,
   ) async {
     if (update.values['is_default'] != true) return const SideEffects();
-    final others = await countRows(
-      'equipment_sets',
-      'id != ?1 AND is_default = 1 AND diver_id IS ?2',
-      id,
-      [?ownerId],
-    );
+    final others = ownerId == null
+        ? await countRows(
+            'equipment_sets',
+            'id != ?1 AND is_default = 1 AND diver_id IS NULL',
+            id,
+          )
+        : await countRows(
+            'equipment_sets',
+            'id != ?1 AND is_default = 1 AND diver_id = ?2',
+            id,
+            [ownerId],
+          );
     return SideEffects(touched: {if (others > 0) 'equipment_sets': others});
   }
 
