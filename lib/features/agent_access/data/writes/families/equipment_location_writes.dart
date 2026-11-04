@@ -1,3 +1,5 @@
+import 'package:submersion/core/database/database.dart'
+    show EquipmentLocationMoveRow;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
@@ -55,12 +57,36 @@ class EquipmentLocationWrites extends WritableEntry {
       }
       return null;
     }
-    if (!await _r.equipmentLocations.isInUse(check.id!)) return null;
+    if (!await _inUse(check.id!, check.soFar)) return null;
     return const PlanBlock(
       BlockReason.notPermitted,
       'A move names this place, and the app keeps it so that history keeps '
       'its name. Archive it with is_archived true instead.',
     );
+  }
+
+  /// Whether a move names place [id] once the changes earlier in the set
+  /// apply: the stored moves the set neither deletes, takes with their item
+  /// nor moves elsewhere. A move the set records or moves here is refused
+  /// already, as it names a place the set deletes.
+  static Future<bool> _inUse(String id, SetSoFar soFar) async {
+    const moves = 'equipment_location_moves';
+    final gone = soFar.deleted[moves] ?? const <String>{};
+    final goneItems = soFar.deleted['equipment'] ?? const <String>{};
+    bool stays(EquipmentLocationMoveRow move) {
+      final values = soFar.values[(moves, move.id)];
+      return !gone.contains(move.id) &&
+          !goneItems.contains(move.equipmentId) &&
+          (values == null ||
+              !values.containsKey('location_id') ||
+              values['location_id'] == id);
+    }
+
+    final db = DatabaseService.instance.database;
+    final stored = await (db.select(
+      db.equipmentLocationMoves,
+    )..where((m) => m.locationId.equals(id))).get();
+    return stored.any(stays);
   }
 
   @override
@@ -182,6 +208,25 @@ class EquipmentLocationMoveWrites extends WritableEntry {
   /// of every place.
   @override
   Set<String> get requiredOnCreate => const {'location_id', 'moved_at'};
+
+  /// Archived places leave the move sheet's picker, so a move goes only to
+  /// a place in use, counting an archive or restore earlier in the set.
+  @override
+  Future<PlanBlock?> refuse(WriteCheck check) async {
+    final placeId = check.values['location_id'];
+    if (placeId is! String) return null;
+    final earlier = check.soFar.values[('equipment_locations', placeId)];
+    final archived = earlier != null && earlier.containsKey('is_archived')
+        ? earlier['is_archived'] == true
+        : (await _r.equipmentLocations.getLocation(placeId))?.isArchived ??
+              false;
+    if (!archived) return null;
+    return PlanBlock(
+      BlockReason.invalidValue,
+      'location_id: $placeId is archived; restore it with is_archived false '
+      'first.',
+    );
+  }
 
   @override
   Future<String> create(String diverId, Map<String, Object?> values) async =>

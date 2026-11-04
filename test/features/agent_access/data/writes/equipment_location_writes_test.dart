@@ -160,6 +160,62 @@ void main() {
     expect(plan.items.single.block!.detail, contains('archive'));
   });
 
+  test('a move to a place the set deletes is refused', () async {
+    final id = await place({'name': 'Shop', 'kind': 'serviceShop'});
+
+    final plan = await h.preview([
+      createOp('equipment_location_moves', move(id, '2026-03-01T10:00:00Z')),
+      deleteOp('equipment_locations', id),
+    ]);
+
+    expect(plan.items.first.block!.reason, BlockReason.referenceDeleted);
+    expect(plan.items.last.block, isNull);
+  });
+
+  test('a place whose only move goes elsewhere in the set can go', () async {
+    final shop = await place({'name': 'Shop', 'kind': 'serviceShop'});
+    final home = await place({'name': 'Home', 'kind': 'storage'});
+    final moveId = (await h.run([
+      createOp('equipment_location_moves', move(shop, '2026-03-01T10:00:00Z')),
+    ])).created.single.id;
+
+    final plan = await h.preview([
+      updateOp('equipment_location_moves', moveId, {'location_id': home}),
+      deleteOp('equipment_locations', shop),
+    ]);
+
+    expect(plan.items.last.block, isNull);
+  });
+
+  test('a place whose only move goes earlier in the set can go', () async {
+    final id = await place({'name': 'Shop', 'kind': 'serviceShop'});
+    final moveId = (await h.run([
+      createOp('equipment_location_moves', move(id, '2026-03-01T10:00:00Z')),
+    ])).created.single.id;
+
+    final plan = await h.preview([
+      deleteOp('equipment_location_moves', moveId),
+      deleteOp('equipment_locations', id),
+    ]);
+
+    expect(plan.items.last.block, isNull);
+  });
+
+  // Archived places leave the move sheet's picker.
+  test('a move to an archived place is blocked', () async {
+    final id = await place({
+      'name': 'Old shed',
+      'kind': 'storage',
+      'is_archived': true,
+    });
+
+    final plan = await h.preview([
+      createOp('equipment_location_moves', move(id, '2026-03-01T10:00:00Z')),
+    ]);
+
+    expect(plan.items.single.block!.reason, BlockReason.invalidValue);
+  });
+
   test(
     'a move is recorded, edited and deleted, and the place follows',
     () async {
