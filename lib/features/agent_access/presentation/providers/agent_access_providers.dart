@@ -22,21 +22,16 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 final agentAccessPreferencesProvider = Provider<AgentAccessPreferences>(
   (ref) => AgentAccessPreferences(ref.watch(sharedPreferencesProvider)),
 );
 
-/// Whether agent access exists on this device at all: desktop only, and,
-/// until the write surface lands, only while debug mode is on. The Data
-/// tools row and the server lifecycle both read this, so the final write PR
-/// removes the debug clause in one place.
+/// Whether agent access exists on this device at all: on the desktop. The
+/// Data tools row and the server lifecycle both read this.
 final agentAccessAvailableProvider = Provider<bool>(
-  (ref) =>
-      ref.watch(deviceCapabilitiesProvider).agentAccess &&
-      ref.watch(debugModeNotifierProvider),
+  (ref) => ref.watch(deviceCapabilitiesProvider).agentAccess,
 );
 
 /// The per-device agent access settings, persisted on every change.
