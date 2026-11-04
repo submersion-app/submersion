@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart' show visibleForTesting;
+
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/annotation_writes.dart';
@@ -31,6 +33,11 @@ import 'package:submersion/features/dive_log/data/repositories/dive_child_row_re
 class WriteCatalog {
   WriteCatalog(RecordRepositories repositories, {LibraryEditStamper? stamper})
     : all = _entries(repositories, stamper);
+
+  /// A catalog of exactly [entries], for a test that swaps one writer.
+  @visibleForTesting
+  WriteCatalog.of(List<WritableEntry> entries)
+    : all = List.unmodifiable(entries);
 
   /// Built per request, so the row writers share one repository.
   static List<WritableEntry> _entries(

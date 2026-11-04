@@ -117,15 +117,32 @@ class WriteApplier {
         if (_catalog.named(item.entity)!.parent?.entity == 'dives')
           item.parentId!,
     });
+    final createdIds = {
+      for (final record in written.created) record.operation: record.id,
+    };
     for (final item in plan.items) {
-      if (item.kind != ChangeKind.update) continue;
+      final id = item.kind == ChangeKind.create
+          ? createdIds[item.operation]
+          : item.id;
+      if (id == null) continue;
       try {
         await _catalog
             .named(item.entity)!
-            .afterApply(item.id!, item.fields.keys.toSet());
+            .afterApply(
+              AppliedChange(
+                kind: item.kind,
+                id: id,
+                parentId: item.parentId,
+                changed: switch (item.kind) {
+                  ChangeKind.create => item.values.keys.toSet(),
+                  ChangeKind.update => item.fields.keys.toSet(),
+                  ChangeKind.delete => const {},
+                },
+              ),
+            );
       } catch (e, stackTrace) {
         _log.error(
-          'Follow-up work after ${item.entity} ${item.id} failed; the change '
+          'Follow-up work after ${item.entity} $id failed; the change '
           'itself was applied',
           error: e,
           stackTrace: stackTrace,

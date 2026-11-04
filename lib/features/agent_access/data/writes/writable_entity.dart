@@ -167,6 +167,23 @@ class SetSoFar {
   final Map<String, List<Map<String, Object?>>> created;
 }
 
+/// A change the applier wrote, for [WritableEntry.afterApply]: [id] is the
+/// record's (a create's new id), [parentId] the record it belongs to, and
+/// [changed] the document keys an update changed or a create named.
+class AppliedChange {
+  const AppliedChange({
+    required this.kind,
+    required this.id,
+    this.parentId,
+    this.changed = const {},
+  });
+
+  final ChangeKind kind;
+  final String id;
+  final String? parentId;
+  final Set<String> changed;
+}
+
 /// What an update does beyond what it names, through a repository's own
 /// rules. The planner lists these, so a diver sees everything a plan does.
 class SideEffects {
@@ -242,6 +259,7 @@ class DeleteReach {
     this.unlinked = const {},
     this.moved = const {},
     this.survivor = const {},
+    this.touched = const {},
     this.basis = '',
   });
 
@@ -265,6 +283,10 @@ class DeleteReach {
   /// the value it will hold, as a document would read.
   final Map<String, Object?> survivor;
 
+  /// Rows of other records the delete rewrites, by table, as
+  /// [SideEffects.touched] lists them for an update.
+  final Map<String, int> touched;
+
   /// What the reach was worked out from, such as the exact links a merge
   /// moves, when the counts alone would not show a change. The plan compares
   /// it at apply and never shows it.
@@ -276,7 +298,8 @@ class DeleteReach {
       parts.isEmpty &&
       unlinked.isEmpty &&
       moved.isEmpty &&
-      survivor.isEmpty;
+      survivor.isEmpty &&
+      touched.isEmpty;
 
   /// The same text for the same reach, to compare a preview with a later
   /// read.
@@ -289,6 +312,7 @@ class DeleteReach {
     'survivor': _sorted({
       for (final MapEntry(:key, :value) in survivor.entries) key: '$value',
     }),
+    'touched': _sorted(touched),
     'basis': basis,
   });
 }
@@ -352,9 +376,16 @@ abstract class WritableEntry {
 
   /// Work the app does after a save of this record, run once the apply has
   /// committed and outside its transaction, where a scheduled scan can read
-  /// the saved rows: [changed] are the document keys an update of [id]
-  /// changed. A failure here cannot undo the apply, so it is logged.
-  Future<void> afterApply(String id, Set<String> changed) async {}
+  /// the saved rows. A failure here cannot undo the apply, so it is logged.
+  Future<void> afterApply(AppliedChange change) async {}
+
+  /// Rows of other records a create of [values] for [diverId] rewrites, by
+  /// table, as [SideEffects.touched] lists them for an update: the item
+  /// whose last service date a new record moves.
+  Future<Map<String, int>> createTouched(
+    String diverId,
+    Map<String, Object?> values,
+  ) async => const {};
 
   /// Rows of other tables a create of [values] for [diverId] adds alongside
   /// the record, by table, such as the service clocks a gear item gets.

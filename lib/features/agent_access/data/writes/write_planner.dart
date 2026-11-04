@@ -308,6 +308,9 @@ class _Pass {
       alsoCreates: block == null
           ? await entry.alsoCreates(diverId, parsed.values)
           : const {},
+      alsoChanges: block == null
+          ? await entry.createTouched(diverId, parsed.values)
+          : const {},
       block: block,
     );
   }
@@ -479,6 +482,7 @@ class _Pass {
       date: document['date_time'] as String? ?? parent.date,
       context: _context(entry, document),
       reach: reach,
+      alsoChanges: reach.touched,
       fields: survivor?.fields ?? const {},
       mergeInto: block == null ? into : null,
       mergeTitle: survivor?.title,

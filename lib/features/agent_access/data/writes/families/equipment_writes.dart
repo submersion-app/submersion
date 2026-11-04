@@ -316,9 +316,10 @@ class EquipmentWrites extends WritableEntry {
   /// finding (issue #3367), so its dives are rescanned, as the edit page's
   /// save does.
   @override
-  Future<void> afterApply(String id, Set<String> changed) async {
-    if (changed.contains('serial_number')) {
-      await _r.transmitters.rescanDivesForTransmitterItem(id);
+  Future<void> afterApply(AppliedChange change) async {
+    if (change.kind == ChangeKind.update &&
+        change.changed.contains('serial_number')) {
+      await _r.transmitters.rescanDivesForTransmitterItem(change.id);
     }
   }
 
