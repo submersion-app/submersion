@@ -37,17 +37,15 @@ class WeightEntryWrites extends WritableEntry {
   @override
   Set<String> get requiredOnCreate => const {'measured_at', 'weight_kg'};
 
-  /// The day a read's instant falls on here, the form a write takes.
+  /// The day the entry was measured, as the store keeps it (that day's
+  /// local midnight), in the form a write takes.
   @override
   Future<Map<String, Object?>> stored(
     String id,
     Map<String, Object?> document,
   ) async => {
     ...document,
-    'measured_at': switch (document['measured_at']) {
-      final String at => calendarDate(DateTime.parse(at).toLocal()),
-      _ => null,
-    },
+    'measured_at': calendarDate((await _entry(id)).measuredAt),
   };
 
   @override
