@@ -59,6 +59,29 @@ void main() {
       expect(looped.partsWithin({'odd'}), isEmpty);
     });
 
+    test('a longer bad loop hides neither member through the other', () {
+      // a > b > a, and "root" holds a: the loop alone must not hide both.
+      final looped = ComponentsIndex.fromRows([
+        edge('a', 'b'),
+        edge('b', 'a'),
+        edge('root', 'a'),
+      ]);
+      expect(looped.partsWithin({'a', 'b'}), isEmpty);
+      expect(looped.partsWithin({'root', 'a', 'b'}), {'a'});
+    });
+
+    test('keeps a shared part whose other assembly is on the dive', () {
+      // reg is attached, so the dropped spare second goes back beside it,
+      // even though "stage" is offered and holds it too.
+      expect(
+        index.partsWithin({'stage', 'spare-second'}, attached: {'reg'}),
+        isEmpty,
+      );
+      expect(index.partsWithin({'stage', 'spare-second'}, attached: {'mask'}), {
+        'spare-second',
+      });
+    });
+
     test('is empty with no assemblies', () {
       expect(ComponentsIndex.empty.partsWithin({'a', 'b'}), isEmpty);
     });

@@ -6,6 +6,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_picker_filter.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
+import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -265,9 +266,17 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
         )
         .toList();
     final partIds = components.partsWithin({
-      for (final e in callerOffered) e.id,
-    });
+      for (final e in callerOffered)
+        if (countsForPartHiding(e)) e.id,
+    }, attached: selectedEquipmentIds);
     final hiddenPartIds = showParts ? const <String>{} : partIds;
+    // What the list can show before the diver's own filter, and what the
+    // filter sheet derives its chips from, so no chip matches only hidden
+    // parts.
+    final offerable = [
+      for (final e in callerOffered)
+        if (!hiddenPartIds.contains(e.id)) e,
+    ];
     // As with left-kit gear: only when it would bring back a row the list
     // then shows, or to switch it back.
     final offersPartsSwitch =
@@ -290,12 +299,7 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
           child: const Icon(Icons.filter_list),
         ),
         tooltip: context.l10n.equipment_filter_title,
-        onPressed: () => _showFilter(
-          context,
-          ref,
-          equipmentAsync.value ?? const <EquipmentItem>[],
-          hiddenPartIds,
-        ),
+        onPressed: () => _showFilter(context, ref, offerable),
       ),
       IconButton(
         icon: const Icon(Icons.sort),
@@ -395,12 +399,9 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
               // (the transmitter registry offers cylinders only, dive pickers
               // hide spare gear and the components of offered assemblies),
               // and finally the filter the diver chose.
+              // offerable is built above from this same list.
               final unselected = equipmentList
                   .where((e) => !selectedEquipmentIds.contains(e.id))
-                  .toList();
-              final offerable = widget
-                  ._callerAllowed(unselected)
-                  .where((e) => !hiddenPartIds.contains(e.id))
                   .toList();
               final available = filter.apply(offerable);
 
@@ -430,8 +431,9 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
                       );
 
               // Likewise when what is left in the category is components of
-              // an assembly the list offers (#2514); the switch above brings
-              // them back.
+              // an assembly the list offers (#2514). Checked before Spare:
+              // the switch above brings them back on the spot, while Spare
+              // gear needs a trip to the item.
               final onlyPartsLeft =
                   typeMatches.isEmpty &&
                   typeFilterOnly.apply([
@@ -445,10 +447,10 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
                       ? context.l10n.diveLog_equipmentPicker_noEquipment
                       : unselected.isEmpty
                       ? context.l10n.diveLog_equipmentPicker_allSelected
-                      : onlySpareLeft
-                      ? context.l10n.diveLog_equipmentPicker_allSpare
                       : onlyPartsLeft
                       ? context.l10n.diveLog_equipmentPicker_allAssemblyParts
+                      : onlySpareLeft
+                      ? context.l10n.diveLog_equipmentPicker_allSpare
                       : typeMatches.isEmpty
                       ? context.l10n.equipment_list_emptyState_noTypeMatch
                       : context.l10n.equipment_list_emptyState_noStatusMatch,
@@ -461,7 +463,7 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
                       ? context.l10n.diveLog_equipmentPicker_addFromTab
                       : unselected.isEmpty
                       ? context.l10n.diveLog_equipmentPicker_removeToAdd
-                      : onlySpareLeft
+                      : onlySpareLeft && !onlyPartsLeft
                       ? context.l10n.diveLog_equipmentPicker_spareHint
                       : null,
                   onClearFilter: filter.hasActiveFilters
@@ -573,23 +575,18 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
   /// Offers only the types and statuses actually present in the picker, plus
   /// whatever is currently selected, so a filter is always clearable and no
   /// chip matches nothing.
+  ///
+  /// [selectable] is what the picker can actually show: gear already on the
+  /// dive is excluded, and so is anything the caller's own constraints or
+  /// the hidden assembly parts rule out. Deriving the chips from the full
+  /// active list would offer a chip (such as Spare, when hidden) that could
+  /// only ever produce an empty list.
   Future<void> _showFilter(
     BuildContext context,
     WidgetRef ref,
-    List<EquipmentItem> equipment,
-    Set<String> hiddenPartIds,
+    List<EquipmentItem> selectable,
   ) async {
     final current = ref.read(equipmentPickerFilterProvider);
-    // Derived from what the picker can actually show: gear already on the
-    // dive is excluded, and so is anything the caller's own constraints rule
-    // out. Deriving them from the full active list would offer a chip (such
-    // as Spare, when hidden) that could only ever produce an empty list.
-    final selectable = widget
-        ._callerAllowed(
-          equipment.where((e) => !widget.selectedEquipmentIds.contains(e.id)),
-        )
-        .where((e) => !hiddenPartIds.contains(e.id))
-        .toList();
     final presentTypes = selectable.map((e) => e.type).toSet();
     // The status each row reads, as the filter matches it (#3210).
     final presentStatuses = selectable.map((e) => e.effectiveStatus).toSet();

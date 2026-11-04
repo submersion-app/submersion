@@ -122,5 +122,25 @@ void main() {
       expect(find.text('Primary Second Stage'), findsNothing);
       expect(find.text(showLabel), findsOneWidget);
     });
+
+    testWidgets('stay listed once unticked, so the untick can be undone', (
+      tester,
+    ) async {
+      await pumpPage(tester, members: const [first]);
+
+      await tester.tap(find.text('DIN First Stage'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('DIN First Stage'), findsOneWidget);
+      expect(
+        tester
+            .widget<CheckboxListTile>(
+              find.widgetWithText(CheckboxListTile, 'DIN First Stage'),
+            )
+            .value,
+        isFalse,
+      );
+      expect(find.text('Primary Second Stage'), findsNothing);
+    });
   });
 }

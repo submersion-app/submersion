@@ -14,6 +14,13 @@ bool isGearActive(EquipmentItem item) =>
     item.status != EquipmentStatus.lost &&
     item.status != EquipmentStatus.wanted;
 
+/// True for gear that hiding assembly parts counts (#2514), as a part or as
+/// the assembly bringing it: gear the expander attaches that is still in
+/// the kit. A retired, sold or lost part is not brought along, and an
+/// assembly that has left the kit leaves its parts as the way to add them.
+bool countsForPartHiding(EquipmentItem item) =>
+    isGearActive(item) && !item.hasLeftKit;
+
 /// What a page gets back from [expandGearOnPage]: the new provenance list
 /// and the items (parts) that were not in the page's list before, so the
 /// page can append them to its flat item list.

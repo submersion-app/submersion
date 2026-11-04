@@ -61,13 +61,25 @@ Future<void> _pump(
   required List<EquipmentItem> all,
   ComponentsIndex? index,
   bool hideAssemblyParts = true,
+  bool offerLeftKit = false,
   Set<String> selectedIds = const {},
   EquipmentPickerFilter filter = EquipmentPickerFilter.none,
   void Function(EquipmentItem)? onSelected,
+  ValueNotifier<bool>? sheetOpen,
 }) async {
   tester.view.physicalSize = const Size(900, 2400);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
+  final scrollController = ScrollController();
+  addTearDown(scrollController.dispose);
+  final sheet = EquipmentPickerSheet(
+    scrollController: scrollController,
+    selectedEquipmentIds: selectedIds,
+    hideSpare: true,
+    hideAssemblyParts: hideAssemblyParts,
+    offerLeftKit: offerLeftKit,
+    onEquipmentSelected: onSelected ?? (_) {},
+  );
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
@@ -87,14 +99,16 @@ Future<void> _pump(
         locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
+        // With [sheetOpen], the sheet can be closed and reopened inside the
+        // same ProviderScope, as a caller's bottom sheet is.
         home: Scaffold(
-          body: EquipmentPickerSheet(
-            scrollController: ScrollController(),
-            selectedEquipmentIds: selectedIds,
-            hideSpare: true,
-            hideAssemblyParts: hideAssemblyParts,
-            onEquipmentSelected: onSelected ?? (_) {},
-          ),
+          body: sheetOpen == null
+              ? sheet
+              : ValueListenableBuilder<bool>(
+                  valueListenable: sheetOpen,
+                  builder: (_, open, _) =>
+                      open ? sheet : const SizedBox.shrink(),
+                ),
         ),
       ),
     ),
@@ -235,6 +249,138 @@ void main() {
 
       await _showParts(tester);
       expect(find.text('DIN First Stage'), findsOneWidget);
+    });
+
+    testWidgets('a retired part stays listed, since the assembly skips it', (
+      tester,
+    ) async {
+      // The expander attaches only active parts, so picking the reg would
+      // not bring this first stage along.
+      const oldFirst = EquipmentItem(
+        id: 'first',
+        name: 'DIN First Stage',
+        type: EquipmentType.firstStage,
+        status: EquipmentStatus.retired,
+        isActive: false,
+      );
+      await _pump(
+        tester,
+        all: const [_reg, oldFirst, _second, _bcd],
+        offerLeftKit: true,
+      );
+      await tester.tap(find.text('Show retired and sold gear'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('DIN First Stage'), findsOneWidget);
+      expect(find.text('Primary Second Stage'), findsNothing);
+    });
+
+    testWidgets('a retired assembly listed by the left-kit switch hides none', (
+      tester,
+    ) async {
+      const oldReg = EquipmentItem(
+        id: 'reg',
+        name: 'Cold Water Reg',
+        type: EquipmentType.regulator,
+        status: EquipmentStatus.retired,
+        isActive: false,
+      );
+      await _pump(
+        tester,
+        all: const [oldReg, _first, _second],
+        offerLeftKit: true,
+      );
+      await tester.tap(find.text('Show retired and sold gear'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Cold Water Reg'), findsOneWidget);
+      expect(find.text('DIN First Stage'), findsOneWidget);
+      expect(find.text('Primary Second Stage'), findsOneWidget);
+      expect(find.text(_showLabel), findsNothing);
+    });
+
+    testWidgets('a shared part stays when its other assembly is on the dive', (
+      tester,
+    ) async {
+      const stage = EquipmentItem(
+        id: 'stage',
+        name: 'Stage Reg',
+        type: EquipmentType.regulator,
+      );
+      await _pump(
+        tester,
+        all: const [_reg, _first, _second, stage],
+        index: ComponentsIndex.fromRows([
+          _edge('reg', 'first'),
+          _edge('reg', 'second'),
+          _edge('stage', 'second'),
+        ]),
+        selectedIds: {'reg', 'first'},
+      );
+
+      expect(find.text('Stage Reg'), findsOneWidget);
+      expect(find.text('Primary Second Stage'), findsOneWidget);
+    });
+
+    testWidgets('an empty list points at the switch before Spare', (
+      tester,
+    ) async {
+      const looseSecond = EquipmentItem(
+        id: 'loose',
+        name: 'Loose Second Stage',
+        type: EquipmentType.secondStage,
+        status: EquipmentStatus.spare,
+      );
+      await _pump(
+        tester,
+        all: const [_reg, _first, _second, looseSecond],
+        filter: const EquipmentPickerFilter(type: EquipmentType.secondStage),
+      );
+
+      expect(
+        find.text('Remaining gear is part of an assembly'),
+        findsOneWidget,
+      );
+      expect(find.text('Remaining gear is marked Spare'), findsNothing);
+      expect(
+        find.text('Set an item\'s status to Active to add it to a dive'),
+        findsNothing,
+      );
+      expect(find.text(_showLabel), findsOneWidget);
+    });
+
+    testWidgets('the filter sheet offers no chip only components match', (
+      tester,
+    ) async {
+      await _pump(tester, all: const [_reg, _first, _second, _bcd]);
+      await tester.tap(find.byIcon(Icons.filter_list));
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(ChoiceChip, 'Regulator'), findsOneWidget);
+      expect(find.widgetWithText(ChoiceChip, 'First Stage'), findsNothing);
+      expect(find.widgetWithText(ChoiceChip, 'Second Stage'), findsNothing);
+    });
+
+    testWidgets('the switch is off again when the sheet reopens', (
+      tester,
+    ) async {
+      final sheetOpen = ValueNotifier(true);
+      addTearDown(sheetOpen.dispose);
+      await _pump(
+        tester,
+        all: const [_reg, _first, _second, _bcd],
+        sheetOpen: sheetOpen,
+      );
+      await _showParts(tester);
+      expect(find.text('DIN First Stage'), findsOneWidget);
+
+      sheetOpen.value = false;
+      await tester.pumpAndSettle();
+      sheetOpen.value = true;
+      await tester.pumpAndSettle();
+
+      expect(find.text('DIN First Stage'), findsNothing);
+      expect(find.text(_showLabel), findsOneWidget);
     });
   });
 }

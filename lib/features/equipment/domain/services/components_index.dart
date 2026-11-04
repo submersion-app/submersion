@@ -60,13 +60,33 @@ class ComponentsIndex {
 
   /// The ids in [offered] that are a part of another assembly in [offered]:
   /// the rows a gear picker can leave out, since picking the assembly brings
-  /// them along (#2514). A part none of whose assemblies is offered (each is
-  /// on the dive already, Spare, or retired) stays, as the only way left to
-  /// add it.
-  Set<String> partsWithin(Set<String> offered) => {
-    for (final id in offered)
-      if (parentIdsOf(id).any((p) => p != id && offered.contains(p))) id,
-  };
+  /// them along (#2514). [offered] holds only gear the expander attaches, so
+  /// a retired part (never brought along) and a retired assembly (whose
+  /// parts are the way to add them) are left out by the caller.
+  ///
+  /// A part stays when none of its assemblies is offered (each is Spare,
+  /// retired, or on the dive already), and when one of them is in
+  /// [attached], the gear already on the dive: an assembly row there cannot
+  /// bring a dropped part back. An assembly that is also below the part, a
+  /// corrupt loop, hides nothing, so a loop never hides all of its members.
+  Set<String> partsWithin(
+    Set<String> offered, {
+    Set<String> attached = const {},
+  }) {
+    final parts = <String>{};
+    for (final id in offered) {
+      final parents = parentIdsOf(id);
+      if (parents.any(attached.contains)) continue;
+      final offeredParents = [
+        for (final p in parents)
+          if (offered.contains(p)) p,
+      ];
+      if (offeredParents.isEmpty) continue;
+      final below = descendantsOf(id);
+      if (offeredParents.any((p) => !below.contains(p))) parts.add(id);
+    }
+    return parts;
+  }
 
   /// Every id reachable downward from [id], excluding [id] itself unless a
   /// corrupt loop leads back to it. A visited set guarantees termination.

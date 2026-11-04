@@ -26,6 +26,7 @@ import 'package:submersion/features/equipment/figure/presentation/figure_number_
 import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_selection.dart';
 import 'package:submersion/features/equipment/figure/presentation/gear_figure.dart';
+import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
@@ -59,9 +60,11 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
   bool _autoApplyOnComputerImport = false;
   bool _showFigure = true;
 
-  /// Whether the list also shows the components of assemblies it lists
-  /// (#2514). Ticked items always show, so a member can be unticked.
+  /// Whether the list also shows the parts of assemblies it lists (#2514).
+  /// Ticked rows, and rows touched here, always show, so an untick can be
+  /// undone in place.
   bool _showParts = false;
+  Set<String> _touchedIds = const {};
   List<EquipmentSetGeofence> _geofences = [];
 
   @override
@@ -372,11 +375,14 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
                 final components = componentsAsync.hasError
                     ? ComponentsIndex.empty
                     : componentsAsync.value;
-                // Components of a listed assembly come with it, so they
-                // wait behind a switch unless ticked (#2514).
+                // A listed assembly brings its parts (#2514): hide each one
+                // behind a switch unless ticked or touched.
                 final partIds = (components ?? ComponentsIndex.empty)
-                    .partsWithin({for (final e in equipment) e.id})
-                    .difference(_selectedEquipmentIds);
+                    .partsWithin({
+                      for (final e in equipment)
+                        if (countsForPartHiding(e)) e.id,
+                    })
+                    .difference({..._selectedEquipmentIds, ..._touchedIds});
                 final listed = _showParts
                     ? equipment
                     : [
@@ -598,6 +604,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
               } else {
                 _selectedEquipmentIds.remove(item.id);
               }
+              _touchedIds = {..._touchedIds, item.id};
             });
           },
           title: Text(item.name),
