@@ -41,6 +41,11 @@ visible and a card with its figures on demand.
 
 ## When there is no marker
 
+- A worst case past the end of the drawn profile (a stale result for a
+  longer plan) or outside the plot (axes frozen for a drag). The time axis
+  is padded past the profile, so the plot alone does not prove there is a
+  line to sit on. A pinned card goes with the marker.
+
 - Open-circuit plans, and loop plans with no bailout cylinder
   (`planMayHaveBailoutProvider` false).
 - No result for the open plan yet, a failed run, or a result for another plan

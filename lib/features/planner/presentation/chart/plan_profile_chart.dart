@@ -319,9 +319,6 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
     final highlightedIssues = ref.watch(highlightedPlanIssuesProvider);
     final worstCase = ref.watch(planChartWorstCaseProvider);
     final worstCaseLabel = context.l10n.plannerCanvas_chart_worstCase;
-    // A marker that went away takes its pinned card with it, so it does not
-    // come back open when the marker does.
-    if (worstCase == null) _worstCasePinnedFor = null;
 
     final frozen = _frozenAxes;
     if (frozen != null) {
@@ -368,12 +365,18 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
                 worstCase: worstCase,
                 geometry: geometry,
                 depthAt: series.depthAt,
+                profileEndSeconds: series.profile.last.timeSeconds,
                 pillSize: worstCasePillSize(
                   worstCaseLabel,
                   tagStyle,
                   direction,
                 ),
               );
+        // A marker not drawn takes its card along, so it never reopens unasked.
+        if (placedWorstCase == null) {
+          _worstCasePinnedFor = null;
+          _hoverWorstCase = false;
+        }
         // One card at a time: the warnings' wins.
         final worstCaseActive =
             !dragging &&
@@ -707,9 +710,8 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
                           final scrubTime = ref.watch(scrubTimeProvider);
                           return Stack(
                             children: [
-                              // Under the waypoint handles, which share its
-                              // point on the end of the bottom, and under the
-                              // warnings, so their card covers it.
+                              // Under the handles sharing its point, and the
+                              // warnings, whose card covers it.
                               if (placedWorstCase != null)
                                 Positioned.fill(
                                   child: PlanWorstCaseMarkerLayer(

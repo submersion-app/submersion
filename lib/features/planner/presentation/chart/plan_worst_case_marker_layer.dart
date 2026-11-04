@@ -19,10 +19,15 @@ const worstCasePillGap = 22.0;
 /// that would reach into it goes below the line instead.
 const _flagRowHeight = 24.0;
 
-/// Half the diagonal of the hollow diamond round the anchor: wide enough to
-/// frame a waypoint handle (6.5 px at most, hovered) without covering it, as
-/// the worst case usually sits on the waypoint that ends the bottom.
+/// Half the diagonal of the hollow diamond round the anchor. The worst case
+/// usually sits on the waypoint that ends the bottom, whose handle reaches
+/// 7.3 px from its centre when hovered (6.5 px radius, 1.6 px stroke); the
+/// inner edge of the diamond's 2 px stroke sits 12 / sqrt(2) - 1 = 7.5 px
+/// out, so the handle shows inside it whole.
 const worstCaseDiamondRadius = 12.0;
+
+/// How far the diamond and its backdrop halo reach from the anchor.
+const _diamondReach = worstCaseDiamondRadius + 2.5;
 
 /// How far left of the anchor the pill ends, so the leader to it runs on a
 /// slant: a vertical one would vanish into a steep ascent leaving the anchor.
@@ -30,35 +35,46 @@ const worstCasePillInset = 12.0;
 
 /// The worst-case bailout marker where the chart draws it (issue #4211): the
 /// [anchor] on the profile line, the [pill] with its label, and the leader
-/// that joins them.
+/// that joins them, all kept to the [plot].
 class PlacedWorstCaseMarker {
   const PlacedWorstCaseMarker({
     required this.worstCase,
     required this.anchor,
     required this.pill,
     required this.above,
+    required this.plot,
   });
 
   final PlanChartWorstCase worstCase;
   final Offset anchor;
   final Rect pill;
 
-  /// Whether the pill sits above the line (else below it).
+  /// Whether the pill was put above the line (else below it).
   final bool above;
 
-  /// Where the leader leaves the diamond: the middle of its edge that faces
-  /// the pill.
-  Offset get stemStart => anchor.translate(
-    -worstCaseDiamondRadius / 2,
-    above ? -worstCaseDiamondRadius / 2 : worstCaseDiamondRadius / 2,
+  /// The plot the marker is drawn in, and clipped to.
+  final Rect plot;
+
+  /// The point of the pill nearest the anchor, where the leader meets it.
+  Offset get leaderEnd => Offset(
+    anchor.dx.clamp(pill.left, pill.right).toDouble(),
+    anchor.dy.clamp(pill.top, pill.bottom).toDouble(),
   );
 
-  /// Where the leader meets the pill: its corner nearest the anchor.
-  Offset get stemEnd => above ? pill.bottomRight : pill.topRight;
+  /// Where the leader leaves the diamond: the point of its outline on the
+  /// way to [leaderEnd], whichever side the pill ended up on (a pill clamped
+  /// into the plot can sit right of the anchor, or over it on a short plot).
+  /// Null when the pill reaches the diamond, which leaves nothing to join.
+  Offset? get leaderStart {
+    final towards = leaderEnd - anchor;
+    final span = towards.dx.abs() + towards.dy.abs();
+    if (span <= _diamondReach) return null;
+    return anchor + towards * (worstCaseDiamondRadius / span);
+  }
 
   /// The diamond and the pill together, so the card sits clear of both.
   Rect get footprint => pill.expandToInclude(
-    Rect.fromCircle(center: anchor, radius: worstCaseDiamondRadius + 1),
+    Rect.fromCircle(center: anchor, radius: _diamondReach),
   );
 }
 
@@ -77,17 +93,20 @@ Size worstCasePillSize(String label, TextStyle style, TextDirection direction) {
 /// Next to the gas flag row it goes below the line instead. It always stays
 /// inside the plot.
 ///
-/// Null when the worst case falls outside the plot's time span: a stale
-/// result for a longer plan, or one past axes frozen for a drag, has no
-/// point on the line to sit on.
+/// Null when the worst case has no point on the drawn line to sit on: past
+/// [profileEndSeconds], where the profile ends and the time axis only pads
+/// (a stale result for a longer plan), or outside the plot (axes frozen for
+/// a drag).
 PlacedWorstCaseMarker? placeWorstCaseMarker({
   required PlanChartWorstCase worstCase,
   required PlanChartGeometry geometry,
   required double Function(double timeSeconds) depthAt,
+  required double profileEndSeconds,
   required Size pillSize,
 }) {
   final plot = geometry.plotRect;
   final time = worstCase.runtimeSeconds.toDouble();
+  if (time < 0 || time > profileEndSeconds) return null;
   final anchor = geometry.toPixel(time, depthAt(time));
   if (anchor.dx < plot.left || anchor.dx > plot.right) return null;
 
@@ -107,6 +126,7 @@ PlacedWorstCaseMarker? placeWorstCaseMarker({
     anchor: anchor,
     pill: Rect.fromLTWH(left, top, pillSize.width, pillSize.height),
     above: above,
+    plot: plot,
   );
 }
 
@@ -289,9 +309,11 @@ List<String> worstCaseCardLines(
   ];
 }
 
-/// The diamond on the line, the stem and the pill with its label, in the
-/// marker's [color], outlined in the chart backdrop so the diamond reads over
-/// the profile and the fill. A [opacity] below 1 dims all of it.
+/// The hollow diamond round the anchor, the leader and the pill with its
+/// label, in the marker's [color]. A halo in the chart backdrop, outside the
+/// diamond's stroke, keeps it apart from the profile and the fill without
+/// reaching in over a waypoint handle. A [opacity] below 1 dims all of it.
+/// Clipped to the plot, so a deep or late anchor never paints over the axes.
 class PlanWorstCaseMarkerPainter extends CustomPainter {
   const PlanWorstCaseMarkerPainter({
     required this.placed,
@@ -318,35 +340,38 @@ class PlanWorstCaseMarkerPainter extends CustomPainter {
     Color dim(Color c) => c.withValues(alpha: c.a * opacity);
     final anchor = placed.anchor;
     final pill = placed.pill;
+    canvas.save();
+    canvas.clipRect(placed.plot);
 
-    canvas.drawLine(
-      placed.stemStart,
-      placed.stemEnd,
-      Paint()
-        ..color = dim(color)
-        ..strokeWidth = 1.2,
-    );
+    final start = placed.leaderStart;
+    if (start != null) {
+      canvas.drawLine(
+        start,
+        placed.leaderEnd,
+        Paint()
+          ..color = dim(color)
+          ..strokeWidth = 1.2,
+      );
+    }
 
-    // Hollow, so a waypoint handle on the same point shows inside it; a halo
-    // in the backdrop colour under the stroke keeps it apart from the profile
-    // line and the fill.
-    const r = worstCaseDiamondRadius;
-    final diamond = Path()
+    Path diamondOf(double r) => Path()
       ..moveTo(anchor.dx, anchor.dy - r)
       ..lineTo(anchor.dx + r, anchor.dy)
       ..lineTo(anchor.dx, anchor.dy + r)
       ..lineTo(anchor.dx - r, anchor.dy)
       ..close();
+    // The halo sits 1 px further out, so its inner edge (7.7 px from the
+    // anchor) stays clear of a hovered handle as the stroke's does.
     canvas.drawPath(
-      diamond,
+      diamondOf(worstCaseDiamondRadius + 1),
       Paint()
         ..color = dim(outline)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 4
+        ..strokeWidth = 3
         ..strokeJoin = StrokeJoin.round,
     );
     canvas.drawPath(
-      diamond,
+      diamondOf(worstCaseDiamondRadius),
       Paint()
         ..color = dim(color)
         ..style = PaintingStyle.stroke
@@ -370,12 +395,14 @@ class PlanWorstCaseMarkerPainter extends CustomPainter {
     );
     text.paint(canvas, Offset(pill.left + 6, pill.top + 3));
     text.dispose();
+    canvas.restore();
   }
 
   @override
   bool shouldRepaint(PlanWorstCaseMarkerPainter oldDelegate) =>
       oldDelegate.placed.anchor != placed.anchor ||
       oldDelegate.placed.pill != placed.pill ||
+      oldDelegate.placed.plot != placed.plot ||
       oldDelegate.label != label ||
       oldDelegate.labelStyle != labelStyle ||
       oldDelegate.textDirection != textDirection ||

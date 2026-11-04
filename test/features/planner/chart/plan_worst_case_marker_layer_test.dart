@@ -44,6 +44,7 @@ PlacedWorstCaseMarker _place(
   worstCase: worstCase,
   geometry: _geometry,
   depthAt: depthAt ?? _profile,
+  profileEndSeconds: 1800,
   pillSize: _pillSize,
 )!;
 
@@ -67,10 +68,17 @@ void main() {
         closeTo(placed.anchor.dy - worstCasePillGap, 0.01),
       );
       expect(placed.above, isTrue);
-      // The leader runs on a slant from the diamond up to the pill.
-      expect(placed.stemEnd, placed.pill.bottomRight);
-      expect(placed.stemStart.dx, lessThan(placed.anchor.dx));
-      expect(placed.stemStart.dy, lessThan(placed.anchor.dy));
+      // The leader runs on a slant from the diamond's outline up to the
+      // pill's nearest corner.
+      expect(placed.leaderEnd, placed.pill.bottomRight);
+      final start = placed.leaderStart!;
+      expect(start.dx, lessThan(placed.anchor.dx));
+      expect(start.dy, lessThan(placed.anchor.dy));
+      final fromAnchor = start - placed.anchor;
+      expect(
+        fromAnchor.dx.abs() + fromAnchor.dy.abs(),
+        closeTo(worstCaseDiamondRadius, 0.01),
+      );
     });
 
     test('next to the gas flag row the pill flips below the line', () {
@@ -80,17 +88,34 @@ void main() {
         placed.pill.top,
         closeTo(placed.anchor.dy + worstCasePillGap, 0.01),
       );
-      expect(placed.stemEnd, placed.pill.topRight);
-      expect(placed.stemStart.dy, greaterThan(placed.anchor.dy));
+      expect(placed.leaderEnd, placed.pill.topRight);
+      expect(placed.leaderStart!.dy, greaterThan(placed.anchor.dy));
     });
 
     test('a worst case past the end of the plot is not placed', () {
-      // A stale result for a longer plan, or axes frozen for a drag.
+      // Axes frozen for a drag.
       expect(
         placeWorstCaseMarker(
           worstCase: _worstCase(runtimeSeconds: 7200),
           geometry: _geometry,
           depthAt: _profile,
+          profileEndSeconds: 7200,
+          pillSize: _pillSize,
+        ),
+        isNull,
+      );
+    });
+
+    test('a worst case past the end of the profile is not placed, even '
+        'inside the padded time axis', () {
+      // A stale result for a longer plan: 1850 s is on the axis (padded to
+      // 1890 s) but past the 1800 s the profile reaches.
+      expect(
+        placeWorstCaseMarker(
+          worstCase: _worstCase(runtimeSeconds: 1850),
+          geometry: _geometry,
+          depthAt: _profile,
+          profileEndSeconds: 1800,
           pillSize: _pillSize,
         ),
         isNull,
@@ -109,17 +134,39 @@ void main() {
         geometry: short,
         // Mid-plot: no room above for the gap, nor below for the full gap.
         depthAt: (_) => 20,
+        profileEndSeconds: 1800,
         pillSize: _pillSize,
       )!;
       expect(placed.above, isFalse);
       expect(placed.pill.bottom, lessThanOrEqualTo(short.plotRect.bottom));
       expect(placed.pill.top, greaterThanOrEqualTo(short.plotRect.top));
+      // The leader still heads for the pill, not back through it.
+      final start = placed.leaderStart!;
+      expect(placed.leaderEnd.dy, greaterThan(start.dy));
     });
 
-    test('an early worst case keeps the pill inside the plot', () {
-      final placed = _place(_worstCase(runtimeSeconds: 30));
-      expect(placed.pill.left, _geometry.plotRect.left);
-      expect(placed.pill.right, greaterThanOrEqualTo(placed.anchor.dx));
+    test(
+      'an early worst case keeps the pill inside the plot, and the leader '
+      'heads for the pill over the anchor rather than across the diamond',
+      () {
+        final placed = _place(_worstCase(runtimeSeconds: 30));
+        expect(placed.pill.left, _geometry.plotRect.left);
+        expect(placed.pill.right, greaterThanOrEqualTo(placed.anchor.dx));
+        expect(placed.leaderEnd.dx, closeTo(placed.anchor.dx, 0.01));
+        expect(placed.leaderStart!.dy, lessThan(placed.anchor.dy));
+      },
+    );
+
+    test('a pill that reaches the diamond leaves no leader to draw', () {
+      const anchor = Offset(200, 200);
+      final placed = PlacedWorstCaseMarker(
+        worstCase: _worstCase(),
+        anchor: anchor,
+        pill: Rect.fromLTWH(anchor.dx - 70, anchor.dy - 10, 70, 17),
+        above: false,
+        plot: _geometry.plotRect,
+      );
+      expect(placed.leaderStart, isNull);
     });
   });
 
