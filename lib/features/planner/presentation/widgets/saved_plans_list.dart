@@ -93,6 +93,8 @@ class SavedPlansList extends ConsumerWidget {
                   row: rows[plan.id]!,
                   units: units,
                   onOpen: open,
+                  // Pushed, so Back returns to the saved plans.
+                  onOpenInLog: (id) => context.push('/dives/$id'),
                 ),
             ],
           ],

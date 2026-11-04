@@ -31,19 +31,22 @@ String savedPlanRowSubtitle(
 /// The dives of a saved series, each a line under its row that opens the
 /// series on that dive (issue #3565). Each carries what it was dived as, and
 /// with [linkActions] its own Link and Unlink: a link is one dive's, never
-/// the series'.
+/// the series'. A dive in the log opens its entry there through [onOpenInLog]
+/// (issue #3565).
 class SavedSeriesDiveLines extends ConsumerWidget {
   const SavedSeriesDiveLines({
     super.key,
     required this.row,
     required this.units,
     required this.onOpen,
+    required this.onOpenInLog,
     this.linkActions = false,
   });
 
   final SavedPlanRow row;
   final UnitFormatter units;
   final ValueChanged<String> onOpen;
+  final ValueChanged<String> onOpenInLog;
   final bool linkActions;
 
   @override
@@ -73,7 +76,13 @@ class SavedSeriesDiveLines extends ConsumerWidget {
                   ),
                   if (planLinkBadge(context.l10n, dive, units)
                       case final badge?)
-                    PlanLinkBadge(label: badge),
+                    PlanLinkBadge(
+                      label: badge,
+                      onOpen: switch (dive.linkedDiveId) {
+                        final id? => () => onOpenInLog(id),
+                        null => null,
+                      },
+                    ),
                 ],
               ),
               trailing: linkActions ? _LinkMenu(dive: dive) : null,
@@ -130,16 +139,32 @@ class _LinkMenu extends ConsumerWidget {
 }
 
 /// A linked plan's mark: what it was dived as. A linked plan is read as saved,
-/// so an edit changes the comparison, and this is how the diver knows.
+/// so an edit changes the comparison, and this is how the diver knows. With
+/// [onOpen] it opens the linked dive in the log (issue #3565), the planned
+/// entry or the dived one.
 class PlanLinkBadge extends StatelessWidget {
-  const PlanLinkBadge({super.key, required this.label});
+  const PlanLinkBadge({super.key, required this.label, this.onOpen});
 
   final String label;
+  final VoidCallback? onOpen;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final color = theme.colorScheme.primary;
+    final badge = _badge(color, theme);
+    if (onOpen == null) return badge;
+    return Tooltip(
+      message: context.l10n.plannerSeries_openInLog,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(4),
+        onTap: onOpen,
+        child: badge,
+      ),
+    );
+  }
+
+  Widget _badge(Color color, ThemeData theme) {
     return Padding(
       padding: const EdgeInsets.only(top: 2),
       child: Row(
