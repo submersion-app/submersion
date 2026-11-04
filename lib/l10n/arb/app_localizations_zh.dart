@@ -21549,6 +21549,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navShortcut_short_backup => '备份';
 
   @override
+  String get navShortcut_short_diveComputers => '电脑';
+
+  @override
   String get navShortcut_short_speciesStats => '物种统计';
 
   @override

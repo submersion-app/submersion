@@ -14173,6 +14173,10 @@
   "@navShortcut_short_backup": {
     "description": "Short nav bar label for the Backup & Restore shortcut; must fit one bottom-bar slot."
   },
+  "navShortcut_short_diveComputers": "Computers",
+  "@navShortcut_short_diveComputers": {
+    "description": "Short nav bar label for the Transfer > Dive Computers shortcut; must fit one bottom-bar slot."
+  },
   "navShortcut_short_speciesStats": "Species stats",
   "@navShortcut_short_speciesStats": {
     "description": "Short nav label for the shortcut to Insights > Species (marine life statistics); distinct from the Species section."

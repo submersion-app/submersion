@@ -22195,6 +22195,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get navShortcut_short_backup => 'גיבוי';
 
   @override
+  String get navShortcut_short_diveComputers => 'מחשבים';
+
+  @override
   String get navShortcut_short_speciesStats => 'סטטיסטיקת מינים';
 
   @override

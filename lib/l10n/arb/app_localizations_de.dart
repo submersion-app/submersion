@@ -22662,6 +22662,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get navShortcut_short_backup => 'Backup';
 
   @override
+  String get navShortcut_short_diveComputers => 'Computer';
+
+  @override
   String get navShortcut_short_speciesStats => 'Artenstatistik';
 
   @override
