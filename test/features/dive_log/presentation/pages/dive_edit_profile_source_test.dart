@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,6 +10,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_series_revision.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
@@ -82,6 +85,8 @@ void main() {
   Future<void> pumpEditPage(
     WidgetTester tester, {
     required GoRouterWidgetBuilder editor,
+    List<Override> extraOverrides = const [],
+    bool settle = true,
   }) async {
     tester.view.physicalSize = const Size(950, 4000);
     tester.view.devicePixelRatio = 1.0;
@@ -98,6 +103,7 @@ void main() {
           ),
           customTankPresetsProvider.overrideWith((ref) async => []),
           tripForDateProvider.overrideWith((ref, date) async => null),
+          ...extraOverrides,
         ],
         child: MaterialApp.router(
           locale: const Locale('en'),
@@ -121,8 +127,27 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    if (settle) {
+      await tester.pumpAndSettle();
+    } else {
+      await tester.pump();
+    }
   }
+
+  ProfileSeriesRevision revision({
+    required String seriesId,
+    required int createdAt,
+    required bool isActive,
+  }) => ProfileSeriesRevision(
+    seriesId: seriesId,
+    diveId: diveId,
+    parentSeriesId: null,
+    rootSeriesId: seriesId,
+    contentHash: 'hash-$seriesId',
+    revisionKind: 'profile_editor',
+    createdAt: createdAt,
+    isActive: isActive,
+  );
 
   testWidgets('the chosen source reaches the editor and the form refreshes '
       'after its edit is saved', (tester) async {
@@ -225,5 +250,84 @@ void main() {
 
     expect(find.text('Choose starting profile'), findsNothing);
     expect(editorQuery?['sourceId'], 'src-b');
+  });
+
+  testWidgets('profile row shows points and revision count when multiple '
+      'revisions exist', (tester) async {
+    await pumpEditPage(
+      tester,
+      extraOverrides: [
+        profileSeriesHistoryProvider(diveId).overrideWith(
+          (ref) async => [
+            revision(seriesId: 'series-2', createdAt: now + 1, isActive: true),
+            revision(seriesId: 'series-1', createdAt: now, isActive: false),
+          ],
+        ),
+      ],
+      editor: (context, state) => const SizedBox.shrink(),
+    );
+
+    final localizations = AppLocalizations.of(
+      tester.element(find.byType(DiveEditPage)),
+    )!;
+    final dive = await repository.getDiveById(diveId);
+    final expected = localizations.diveLog_edit_profile_pointsAndProfiles(
+      dive!.profile.length,
+      2,
+    );
+
+    expect(find.text(expected), findsOneWidget);
+  });
+
+  testWidgets('profile row stays points-only when only one revision is '
+      'available even if multiple sources exist', (tester) async {
+    await pumpEditPage(
+      tester,
+      extraOverrides: [
+        profileSeriesHistoryProvider(diveId).overrideWith(
+          (ref) async => [
+            revision(seriesId: 'series-1', createdAt: now, isActive: true),
+          ],
+        ),
+      ],
+      editor: (context, state) => const SizedBox.shrink(),
+    );
+
+    final localizations = AppLocalizations.of(
+      tester.element(find.byType(DiveEditPage)),
+    )!;
+    final dive = await repository.getDiveById(diveId);
+    final expected = localizations.diveLog_edit_profile_points(
+      dive!.profile.length,
+    );
+
+    expect(find.text(expected), findsOneWidget);
+    expect(find.textContaining('revision'), findsNothing);
+  });
+
+  testWidgets('profile row stays points-only while revision history is '
+      'still loading', (tester) async {
+    final pending = Completer<List<ProfileSeriesRevision>>();
+    await pumpEditPage(
+      tester,
+      settle: false,
+      extraOverrides: [
+        profileSeriesHistoryProvider(
+          diveId,
+        ).overrideWith((ref) => pending.future),
+      ],
+      editor: (context, state) => const SizedBox.shrink(),
+    );
+
+    final localizations = AppLocalizations.of(
+      tester.element(find.byType(DiveEditPage)),
+    )!;
+    final dive = await repository.getDiveById(diveId);
+    final expected = localizations.diveLog_edit_profile_points(
+      dive!.profile.length,
+    );
+
+    expect(find.text(expected), findsOneWidget);
+    expect(find.textContaining('revision'), findsNothing);
   });
 }
