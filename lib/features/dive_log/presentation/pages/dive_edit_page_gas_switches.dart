@@ -6,8 +6,11 @@ part of 'dive_edit_page.dart';
 extension _GasSwitchEditing on _DiveEditPageState {
   /// With one cylinder there is nothing to switch to; a gauge dive logs no
   /// gas; a planned dive's switches belong to the plan.
-  bool get _gasSwitchesVisible =>
-      _tanks.length >= 2 && _diveMode != DiveMode.gauge && !_isPlanned;
+  bool get _gasSwitchesVisible => gasSwitchesEditable(
+    tankCount: _tanks.length,
+    mode: _diveMode,
+    isPlanned: _isPlanned,
+  );
 
   /// The switches that apply to the dive's primary computer: its own plus
   /// any that carry no computer. Another computer's are left alone, and a
@@ -19,10 +22,7 @@ extension _GasSwitchEditing on _DiveEditPageState {
     final computer = dive.computerId;
     return _inTimeOrder([
       for (final g in withTank)
-        if (computer == null
-            ? g.gasSwitch.computerId == null
-            : g.gasSwitch.appliesTo(computer))
-          g.gasSwitch,
+        if (g.gasSwitch.shownInEditor(computer)) g.gasSwitch,
     ]);
   }
 
@@ -53,8 +53,12 @@ extension _GasSwitchEditing on _DiveEditPageState {
     return null;
   }
 
-  DiveTank? get _gasSwitchStartingTank =>
-      startingTankOf(tanks: _tanks, switches: _gasSwitches, diveStart: 0);
+  DiveTank? get _gasSwitchStartingTank => startingTankOf(
+    tanks: _tanks,
+    switches: _gasSwitches,
+    diveStart: 0,
+    onLoop: _diveMode == DiveMode.ccr || _diveMode == DiveMode.scr,
+  );
 
   Widget? _buildGasSwitchesChild(UnitFormatter units) {
     if (!_gasSwitchesVisible) return null;

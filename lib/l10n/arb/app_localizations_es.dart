@@ -26954,6 +26954,18 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_ref_weight => 'Lastre';
 
   @override
+  String get settings_conflict_ref_customField => 'Campo personalizado';
+
+  @override
+  String get settings_conflict_ref_gasSwitch => 'Cambio de gas';
+
+  @override
+  String get settings_conflict_ref_profileEvent => 'Evento';
+
+  @override
+  String get settings_conflict_ref_scenario => 'Escenario';
+
+  @override
   String get settings_conflict_ref_transmitter => 'Transmisor';
 
   @override
@@ -58805,6 +58817,10 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get settings_photos_browserReadOnly =>
+      'Un navegador muestra las copias de fotos que guardan tus otros dispositivos, pero no puede empezarlas. Empiézalas en la app en un teléfono o un ordenador.';
+
+  @override
   String get settings_conflict_field_remoteStoreId => 'Subido a';
 
   @override
@@ -59590,11 +59606,16 @@ class AppLocalizationsEs extends AppLocalizations {
       'Continuar sin un almacén de sincronización';
 
   @override
-  String get web_rememberOnThisDevice_title => 'Recordar en este dispositivo';
+  String get web_rememberOnThisDevice_title =>
+      'Recordar el acceso en este dispositivo';
 
   @override
   String get web_rememberOnThisDevice_subtitle =>
-      'Guarda los datos de acceso y la frase de contraseña en este navegador. Desactivado, se olvidan al cerrar la pestaña.';
+      'Guarda los datos de acceso y la frase de contraseña en este navegador. Desactivado, se olvidan al cerrar la pestaña. Tus inmersiones permanecen en este navegador en cualquier caso, hasta que olvides este dispositivo.';
+
+  @override
+  String get web_rememberOnThisDevice_subtitleInMemory =>
+      'Guarda los datos de acceso y la frase de contraseña en este navegador. Desactivado, se olvidan al cerrar la pestaña. Este navegador no conserva inmersiones al cerrar la pestaña, esté activado o no.';
 
   @override
   String get web_unavailable_offer_icloud =>

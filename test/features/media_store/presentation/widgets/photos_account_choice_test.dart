@@ -12,6 +12,7 @@ import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_errors.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_tls.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
+import 'package:submersion/core/services/media_store/store_marker.dart';
 import 'package:submersion/features/media_store/data/media_store_service.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
 import 'package:submersion/features/media_store/presentation/widgets/photos_account_choice.dart';
@@ -174,6 +175,17 @@ void main() {
           dropbox,
         ),
         l10n.settings_accounts_signInTo('Dropbox'),
+      );
+    });
+
+    test('a browser finding no copies to join says where to start them', () {
+      expect(
+        photosAttachErrorText(
+          l10n,
+          const MediaStoreReadOnly('no photo copies to join'),
+          dropbox,
+        ),
+        l10n.settings_photos_browserReadOnly,
       );
     });
 

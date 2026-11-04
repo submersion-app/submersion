@@ -104,13 +104,22 @@ void main() {
       }
     });
 
-    test('names a weight, which the change log lists by its table', () {
-      // No key points at a weight, but an agent's plan and the change log
-      // name one by its entity type.
-      expect(
-        conflictReferenceLabel(l10n, ref(targetType: 'diveWeights')),
-        'Weight',
-      );
+    test('names the records the change log lists by their table', () {
+      // No key points at these, but an agent's plan and the change log
+      // name each by its entity type.
+      for (final MapEntry(:key, :value) in const {
+        'diveWeights': 'Weight',
+        'diveCustomFields': 'Custom field',
+        'gasSwitches': 'Gas switch',
+        'diveProfileEvents': 'Profile event',
+        'diveScenarios': 'Scenario',
+      }.entries) {
+        expect(
+          conflictReferenceLabel(l10n, ref(targetType: key)),
+          value,
+          reason: key,
+        );
+      }
     });
 
     test('lets a column name override its target type', () {

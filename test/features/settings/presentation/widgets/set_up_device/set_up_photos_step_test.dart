@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
@@ -111,6 +112,7 @@ void main() {
     WidgetTester tester,
     PhotosCopies copies, {
     _Actions? withActions,
+    DeviceCapabilities? capabilities,
   }) async {
     actions = withActions ?? _Actions();
     nav = [];
@@ -129,6 +131,8 @@ void main() {
           accountGroupsProvider.overrideWith((ref) async => [_drive, _dropbox]),
           photosCopiesProvider.overrideWith((ref) async => copies),
           setUpPhotoCountProvider.overrideWith((ref) async => 12),
+          if (capabilities != null)
+            deviceCapabilitiesProvider.overrideWithValue(capabilities),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -259,6 +263,48 @@ void main() {
 
       expect(actions.calls, ['signIn Dropbox']);
       expect(nav, isEmpty);
+    });
+  });
+
+  // Issue #4193: a browser reads the store and never writes it.
+  group('a browser', () {
+    testWidgets('joins the copies without an upload switch', (tester) async {
+      await pump(
+        tester,
+        _announced(_drive),
+        capabilities: DeviceCapabilities.web,
+      );
+
+      expect(switchOn(tester, 'Use the photo copies in Google Drive'), isTrue);
+      expect(find.text('Upload photos added here automatically'), findsNothing);
+
+      await tester.tap(find.text('Next'));
+      await tester.pumpAndSettle();
+
+      expect(actions.calls, ['attach Google Drive store-1']);
+      expect(prefs.getBool(MediaStorePolicies.autoUploadKey), isNull);
+      expect(nav, ['next']);
+    });
+
+    testWidgets('offers no copies to start where none are kept', (
+      tester,
+    ) async {
+      await pump(tester, _none, capabilities: DeviceCapabilities.web);
+
+      expect(find.byType(SwitchListTile), findsNothing);
+      expect(
+        find.text(
+          'A browser shows the photo copies your other devices keep, but '
+          'cannot start them. Start them in the app on a phone or computer.',
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Next'));
+      await tester.pumpAndSettle();
+
+      expect(actions.calls, isEmpty);
+      expect(nav, ['next']);
     });
   });
 

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/platform/web/remember_credentials_provider.dart';
+import 'package:submersion/core/platform/web_database_status.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_actions.dart';
 import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
@@ -15,6 +16,7 @@ import 'package:submersion/features/settings/presentation/widgets/set_up_device/
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_step_scaffold.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync/sync_account_switch.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync/sync_using_row.dart';
+import 'package:submersion/features/settings/presentation/widgets/web/web_storage_text.dart';
 import 'package:submersion/features/setup_wizard/domain/unit_preset_detector.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -112,7 +114,12 @@ class SetUpAccountStep extends ConsumerWidget {
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(l10n.web_rememberOnThisDevice_title),
-            subtitle: Text(l10n.web_rememberOnThisDevice_subtitle),
+            subtitle: Text(
+              rememberSwitchSubtitle(
+                l10n,
+                ref.watch(webDatabaseStatusProvider),
+              ),
+            ),
             value: ref.watch(rememberCredentialsProvider),
             onChanged: (value) =>
                 ref.read(rememberCredentialsProvider.notifier).set(value),

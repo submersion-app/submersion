@@ -5,10 +5,12 @@ import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/platform/web/remember_credentials_provider.dart';
 import 'package:submersion/core/platform/web/web_forget_device_service.dart';
 import 'package:submersion/core/platform/web_database_status.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/settings/presentation/providers/web_forget_device_provider.dart';
 import 'package:submersion/features/settings/presentation/widgets/web/web_sync_rows.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../../helpers/global_test_defaults.dart';
 import '../../../../../helpers/test_app.dart';
 
 class _RecordingRemember extends RememberCredentialsNotifier {
@@ -90,6 +92,47 @@ void main() {
     await tester.tap(toggle);
     await tester.pumpAndSettle();
     expect(tester.widget<SwitchListTile>(toggle).value, isTrue);
+  });
+
+  testWidgets('the remember switch says the dives stay (#4187)', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      status: const WebDatabaseStatus(storage: WebDatabaseStorage.opfsLocks),
+    );
+    expect(find.text(en.web_rememberOnThisDevice_subtitle), findsOneWidget);
+  });
+
+  testWidgets('with nothing kept after the tab, the remember switch does not '
+      'promise the dives stay (#4187)', (tester) async {
+    await pump(
+      tester,
+      status: const WebDatabaseStatus(storage: WebDatabaseStorage.inMemory),
+    );
+    expect(
+      find.text(en.web_rememberOnThisDevice_subtitleInMemory),
+      findsOneWidget,
+    );
+    expect(find.text(en.web_rememberOnThisDevice_subtitle), findsNothing);
+  });
+
+  testWidgets('in demo mode Forget this device is unavailable (#4187)', (
+    tester,
+  ) async {
+    DemoModeGate.instance.debugActive = true;
+    addTearDown(applyGlobalTestDefaults);
+    await pump(tester);
+    final row = find.ancestor(
+      of: find.text(en.web_forgetDevice_title),
+      matching: find.byType(ListTile),
+    );
+    expect(tester.widget<ListTile>(row).enabled, isFalse);
+    expect(find.text(en.demo_row_unavailable), findsOneWidget);
+    await tester.tap(row, warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(find.text(en.web_forgetDevice_confirmBody), findsNothing);
+    expect(forgets, 0);
   });
 
   testWidgets('Forget this device asks first', (tester) async {

@@ -54,6 +54,7 @@ class GasAnalysisService {
     required List<GasSwitchWithTank> gasSwitches,
     Map<String, List<TankPressurePoint>>? tankPressures,
     DiveEnvironment environment = DiveEnvironment.standard,
+    bool onLoop = false,
   }) {
     if (profile.isEmpty || gasSwitches.isEmpty) return null;
 
@@ -95,6 +96,7 @@ class GasAnalysisService {
           tanks: tanks,
           profile: profile,
           gasSwitches: sortedSwitches,
+          onLoop: onLoop,
         ),
       );
 
@@ -129,6 +131,7 @@ class GasAnalysisService {
       gasSwitches: sortedSwitches,
       timestamp: profile.first.timestamp,
       diveStart: profile.first.timestamp,
+      onLoop: onLoop,
     );
     if (startingTank != null) {
       addStretch(
@@ -184,6 +187,7 @@ class GasAnalysisService {
     List<StopWindow> decoStops = const [],
     List<StopWindow> safetyStops = const [],
     List<int> ndlCurve = const [],
+    bool onLoop = false,
   }) {
     if (profile.length < 10) return null;
 
@@ -253,6 +257,7 @@ class GasAnalysisService {
         gasSwitches: gasSwitches,
         timestamp: seg.start,
         diveStart: profile.first.timestamp,
+        onLoop: onLoop,
       );
       if (tank == null) continue;
 
@@ -267,6 +272,7 @@ class GasAnalysisService {
         tanks: tanks,
         profile: profile,
         gasSwitches: gasSwitches,
+        onLoop: onLoop,
       );
       // A phase can outlast its cylinder's breathing time; only what was
       // breathed of it drew on this tank, at the depths it was breathed.
@@ -501,6 +507,7 @@ class GasAnalysisService {
     required List<DiveTank> tanks,
     required List<DiveProfilePoint> profile,
     required List<GasSwitchWithTank>? gasSwitches,
+    required bool onLoop,
   }) {
     final diveStart = profile.first.timestamp;
     final diveEnd = profile.last.timestamp;
@@ -510,6 +517,7 @@ class GasAnalysisService {
       diveStart: diveStart,
       diveEnd: diveEnd,
       tanks: tanks,
+      onLoop: onLoop,
     );
     if (windows.isNotEmpty) return windows;
     return knownGasSwitches(tanks, gasSwitches, before: diveEnd).isEmpty

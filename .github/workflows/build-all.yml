@@ -738,7 +738,16 @@ jobs:
           perl -pi -e 's/^(version:\s*[0-9]+\.[0-9]+\.[0-9]+)\+[0-9]+/${1}+$ENV{BUILD_NUMBER}/' pubspec.yaml
           grep '^version:' pubspec.yaml
 
+      # Submersion's own Google web client goes into the one release bundle
+      # (issue #4161). The app uses it only at the origin listed here, so a
+      # self-hosted copy of the same zip still asks for a client id of its
+      # own; web.submersion.app gets it from the promoted release, which is
+      # this build. An empty variable (a fork, or before the client exists)
+      # builds without it. Setup: docs/developer/web-site-setup.md.
       - name: Build the web bundle
+        env:
+          GOOGLE_WEB_CLIENT_ID: ${{ vars.GOOGLE_WEB_CLIENT_ID }}
+          GOOGLE_WEB_CLIENT_ORIGINS: https://web.submersion.app
         run: scripts/build_web.sh
 
       - name: Zip the bundle

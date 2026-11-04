@@ -26956,6 +26956,18 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_ref_weight => 'Zavorra';
 
   @override
+  String get settings_conflict_ref_customField => 'Campo personalizzato';
+
+  @override
+  String get settings_conflict_ref_gasSwitch => 'Cambio gas';
+
+  @override
+  String get settings_conflict_ref_profileEvent => 'Evento';
+
+  @override
+  String get settings_conflict_ref_scenario => 'Scenario';
+
+  @override
   String get settings_conflict_ref_transmitter => 'Trasmettitore';
 
   @override
@@ -58769,6 +58781,10 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get settings_photos_browserReadOnly =>
+      'Un browser mostra le copie delle foto conservate dagli altri tuoi dispositivi, ma non può avviarle. Avviale nell\'app su un telefono o un computer.';
+
+  @override
   String get settings_conflict_field_remoteStoreId => 'Caricato in';
 
   @override
@@ -59551,11 +59567,16 @@ class AppLocalizationsIt extends AppLocalizations {
       'Continua senza un archivio di sincronizzazione';
 
   @override
-  String get web_rememberOnThisDevice_title => 'Ricorda su questo dispositivo';
+  String get web_rememberOnThisDevice_title =>
+      'Ricorda l\'accesso su questo dispositivo';
 
   @override
   String get web_rememberOnThisDevice_subtitle =>
-      'Conserva i dati di accesso e la passphrase in questo browser. Se disattivato, vengono dimenticati alla chiusura della scheda.';
+      'Conserva i dati di accesso e la passphrase in questo browser. Se disattivato, vengono dimenticati alla chiusura della scheda. Le tue immersioni restano comunque in questo browser finché non dimentichi questo dispositivo.';
+
+  @override
+  String get web_rememberOnThisDevice_subtitleInMemory =>
+      'Conserva i dati di accesso e la passphrase in questo browser. Se disattivato, vengono dimenticati alla chiusura della scheda. Questo browser non conserva immersioni dopo la chiusura della scheda, che sia attivato o no.';
 
   @override
   String get web_unavailable_offer_icloud =>

@@ -32,7 +32,8 @@ class PreviewChangesTool implements AgentTool {
     final entities = [
       for (final e in _writes.all)
         '${e.name} (fields: ${e.fields.keys.join(', ')}'
-            '${e.relations.isEmpty ? '' : '; relations: ${e.relations.keys.join(', ')}'})',
+            '${e.relations.isEmpty ? '' : '; relations: ${e.relations.keys.join(', ')}'}'
+            '${e.note == null ? '' : '. ${e.note}'})',
     ].join('; ');
     return 'First of two steps to change the logbook: this works out what a '
         'change set would do and changes nothing. Call apply_changes with the '

@@ -223,7 +223,12 @@ void main() {
     hub.heal('A');
     await a.manager.refresh();
     await b.manager.refresh();
-    await settleNearby();
+    // The retry is a pairing handshake and a 40 KB full copy; a loaded CI
+    // runner can need more than one settle for it, so wait for it (up to
+    // about 10 seconds) rather than for a fixed time.
+    for (var i = 0; i < 50 && b.engine.appliedFiles.isEmpty; i++) {
+      await settleNearby();
+    }
     expect(b.engine.appliedFiles, hasLength(1));
   });
 

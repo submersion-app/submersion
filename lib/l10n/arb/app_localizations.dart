@@ -43167,6 +43167,30 @@ abstract class AppLocalizations {
   /// **'Weight'**
   String get settings_conflict_ref_weight;
 
+  /// No description provided for @settings_conflict_ref_customField.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom field'**
+  String get settings_conflict_ref_customField;
+
+  /// No description provided for @settings_conflict_ref_gasSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas switch'**
+  String get settings_conflict_ref_gasSwitch;
+
+  /// No description provided for @settings_conflict_ref_profileEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile event'**
+  String get settings_conflict_ref_profileEvent;
+
+  /// No description provided for @settings_conflict_ref_scenario.
+  ///
+  /// In en, this message translates to:
+  /// **'Scenario'**
+  String get settings_conflict_ref_scenario;
+
   /// No description provided for @settings_conflict_ref_transmitter.
   ///
   /// In en, this message translates to:
@@ -93000,6 +93024,12 @@ abstract class AppLocalizations {
   /// **'No copies were found in {account}, so this device started separate copies there.'**
   String settings_photos_startedSeparate(String account);
 
+  /// Shown in a browser, which only reads photo copies: as the Set up this device note on a device whose library keeps no copies yet, and as the error when an account holds no copies to join.
+  ///
+  /// In en, this message translates to:
+  /// **'A browser shows the photo copies your other devices keep, but cannot start them. Start them in the app on a phone or computer.'**
+  String get settings_photos_browserReadOnly;
+
   /// Sync conflict field label: the photo copies store a media item's upload stamps refer to
   ///
   /// In en, this message translates to:
@@ -93946,14 +93976,20 @@ abstract class AppLocalizations {
   /// Web app (issue #4121)
   ///
   /// In en, this message translates to:
-  /// **'Remember on this device'**
+  /// **'Remember sign-in on this device'**
   String get web_rememberOnThisDevice_title;
 
   /// Web app (issue #4121)
   ///
   /// In en, this message translates to:
-  /// **'Keep the sign-in details and passphrase in this browser. Off, they are forgotten when the tab closes.'**
+  /// **'Keep the sign-in details and passphrase in this browser. Off, they are forgotten when the tab closes. Your dives stay in this browser either way, until you forget this device.'**
   String get web_rememberOnThisDevice_subtitle;
+
+  /// Web app, remember switch subtitle when the browser keeps nothing after the tab closes (issue #4187)
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the sign-in details and passphrase in this browser. Off, they are forgotten when the tab closes. This browser keeps no dives after the tab closes, whether this is on or off.'**
+  String get web_rememberOnThisDevice_subtitleInMemory;
 
   /// Web app (issue #4121)
   ///

@@ -455,6 +455,8 @@ final mediaStoreServiceProvider = Provider<MediaStoreService>(
     attachState: ref.watch(mediaStoreAttachStateProvider),
     storesRepository: ref.watch(mediaStoresRepositoryProvider),
     mediaRepository: ref.watch(mediaRepositoryProvider),
+    // A browser never writes the store (issue #4193).
+    canWriteStore: ref.watch(deviceCapabilitiesProvider).mediaAttach,
   ),
 );
 

@@ -27013,6 +27013,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_ref_weight => 'Lest';
 
   @override
+  String get settings_conflict_ref_customField => 'Champ personnalisé';
+
+  @override
+  String get settings_conflict_ref_gasSwitch => 'Changement de gaz';
+
+  @override
+  String get settings_conflict_ref_profileEvent => 'Événement';
+
+  @override
+  String get settings_conflict_ref_scenario => 'Scénario';
+
+  @override
   String get settings_conflict_ref_transmitter => 'Émetteur';
 
   @override
@@ -58891,6 +58903,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get settings_photos_browserReadOnly =>
+      'Un navigateur affiche les copies de photos que conservent vos autres appareils, mais ne peut pas les commencer. Commencez-les dans l\'app sur un téléphone ou un ordinateur.';
+
+  @override
   String get settings_conflict_field_remoteStoreId => 'Envoyé vers';
 
   @override
@@ -59679,11 +59695,16 @@ class AppLocalizationsFr extends AppLocalizations {
       'Continuer sans espace de synchronisation';
 
   @override
-  String get web_rememberOnThisDevice_title => 'Mémoriser sur cet appareil';
+  String get web_rememberOnThisDevice_title =>
+      'Mémoriser la connexion sur cet appareil';
 
   @override
   String get web_rememberOnThisDevice_subtitle =>
-      'Conserve les identifiants et la phrase secrète dans ce navigateur. Désactivé, ils sont oubliés à la fermeture de l\'onglet.';
+      'Conserve les identifiants et la phrase secrète dans ce navigateur. Désactivé, ils sont oubliés à la fermeture de l\'onglet. Vos plongées restent dans ce navigateur dans tous les cas, jusqu\'à ce que vous oubliiez cet appareil.';
+
+  @override
+  String get web_rememberOnThisDevice_subtitleInMemory =>
+      'Conserve les identifiants et la phrase secrète dans ce navigateur. Désactivé, ils sont oubliés à la fermeture de l\'onglet. Ce navigateur ne conserve aucune plongée après la fermeture de l\'onglet, que ce réglage soit activé ou non.';
 
   @override
   String get web_unavailable_offer_icloud =>
