@@ -26,6 +26,15 @@ PlanBlock _nameTaken(String name) => PlanBlock(
 
 /// Whether a rename, or sharing a record, can clash with another name, as
 /// the repository decides when to check.
+/// The records of [entity] whose names the changes earlier in the set free:
+/// those they delete or rename, since the set runs in order. A rename onto a
+/// name is the planner's claim to check.
+Set<String> _freedSoFar(WriteCheck check, String entity) => {
+  ...?check.soFar.deleted[entity],
+  for (final MapEntry(key: (named, id), :value) in check.soFar.values.entries)
+    if (named == entity && value.containsKey('name')) id,
+};
+
 bool _mayClash(WriteCheck check) {
   final name = check.values['name'] as String?;
   final before = check.document?['name'] as String?;
@@ -96,6 +105,7 @@ class CustomAgencyWrites extends WritableEntry {
           check.values['is_shared'] as bool? ??
           check.document?['is_shared'] == true,
       exceptId: check.id,
+      exceptIds: _freedSoFar(check, 'custom_agencies'),
     );
     return taken ? _nameTaken(name) : null;
   }
@@ -250,6 +260,7 @@ class CustomLevelWrites extends WritableEntry {
           check.values['is_shared'] as bool? ??
           check.document?['is_shared'] == true,
       exceptId: check.id,
+      exceptIds: _freedSoFar(check, 'custom_levels'),
     );
     return taken ? _nameTaken(name) : null;
   }

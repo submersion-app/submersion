@@ -236,4 +236,17 @@ void main() {
     expect(doc['color_hex'], '#00AACC');
     expect(doc['scopes'], ['dives', 'sites']);
   });
+
+  test('a name an earlier delete in the set frees can be taken', () async {
+    await tag('reef', 'Reef');
+
+    final plan = await h.preview([
+      deleteOp('tags', 'reef'),
+      createOp('tags', {'name': 'Reef'}),
+    ]);
+
+    expect(plan.items.last.block, isNull);
+    await h.apply(plan);
+    expect(await count(db.tags), 1);
+  });
 }

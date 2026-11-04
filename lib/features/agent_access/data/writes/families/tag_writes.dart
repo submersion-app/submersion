@@ -53,7 +53,9 @@ class TagWrites extends WritableEntry {
     final owner = check.ownerId ?? check.document?['diver_id'] as String?;
     final holder = await _holderOf(name, owner, except: check.id);
     if (holder == null) return null;
-    // A rename earlier in the set frees the name before this change runs.
+    // A delete or merge earlier in the set frees the name, and so does a
+    // rename, before this change runs.
+    if (check.soFar.deleted['tags']?.contains(holder.id) ?? false) return null;
     if (check.soFar.values[('tags', holder.id)]?['name']
         case final String renamed when _folded(renamed) != _folded(name)) {
       return null;

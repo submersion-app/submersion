@@ -84,7 +84,13 @@ extension _MergeRules on _Pass {
     DeleteReach reach,
   ) async {
     final survivor = _rows[op.entity]![op.mergeInto!]!;
-    final document = await _document(entry, op.mergeInto!, survivor.ownerId);
+    // As an earlier change in the set leaves it, such as a rename, so the
+    // confirmation names what the merge goes into. A field the merge changes
+    // is never one the set sets too ([_survivorClash]).
+    final document = {
+      ...await _document(entry, op.mergeInto!, survivor.ownerId),
+      ...?_valuesSoFar[(op.entity, op.mergeInto!)],
+    };
     return (
       title: entry.titleOf(document),
       fields: {
