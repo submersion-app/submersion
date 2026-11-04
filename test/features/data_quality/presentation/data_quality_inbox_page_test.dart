@@ -1702,6 +1702,12 @@ void main() {
       await tester.tap(find.byType(FilledButton).first);
       await tester.pumpAndSettle();
 
+      // Set-primary asks first, since it has no snackbar undo (#4209).
+      if (find.byType(AlertDialog).evaluate().isNotEmpty) {
+        await tester.tap(find.text('Make primary'));
+        await tester.pumpAndSettle();
+      }
+
       // Each of these repairs reports the outcome (applied or failed) as a
       // SnackBar via the shared withUndo helper.
       expect(find.byType(SnackBar), findsWidgets);
