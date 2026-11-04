@@ -432,16 +432,15 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
                             (typeFilter == null || e.type == typeFilter),
                       );
 
-              // Likewise when what is left in the category is components of
-              // an assembly the list offers (#2514). Checked before Spare:
-              // the switch above brings them back on the spot, while Spare
-              // gear needs a trip to the item.
-              final onlyPartsLeft =
-                  typeMatches.isEmpty &&
-                  typeFilterOnly.apply([
-                    for (final e in unselected)
-                      if (hiddenPartIds.contains(e.id)) e,
-                  ]).isNotEmpty;
+              // Likewise when what the diver's filter would show is only
+              // components of an assembly the list offers (#2514): the whole
+              // filter, so this names only rows the switch above brings
+              // back. Checked before Spare: the switch fixes it on the spot,
+              // while Spare gear needs a trip to the item.
+              final onlyPartsLeft = filter.apply([
+                for (final e in unselected)
+                  if (hiddenPartIds.contains(e.id)) e,
+              ]).isNotEmpty;
 
               if (available.isEmpty) {
                 return _EmptyState(

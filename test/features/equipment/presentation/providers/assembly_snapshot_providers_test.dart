@@ -87,10 +87,11 @@ void main() {
     );
     addTearDown(container.dispose);
 
+    // "sold" is flagged active, as an older row can be; the expander skips
+    // it like retired gear, so a dive without it is not missing a part.
     expect(await container.read(activeComponentIdsProvider.future), {
       'fitted',
       'spare',
-      'sold',
       'borrowed',
     });
   });

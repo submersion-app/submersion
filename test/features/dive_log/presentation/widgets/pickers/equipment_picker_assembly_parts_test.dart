@@ -386,6 +386,26 @@ void main() {
       expect(find.text(_showLabel), findsOneWidget);
     });
 
+    testWidgets('an empty list blames components only if one matches', (
+      tester,
+    ) async {
+      // Every first stage is a component, but none is retired, so the switch
+      // could not bring a row back under this filter and the message must
+      // not point at it.
+      await _pump(
+        tester,
+        all: const [_reg, _first, _second],
+        filter: const EquipmentPickerFilter(
+          type: EquipmentType.firstStage,
+          status: EquipmentStatus.retired,
+        ),
+      );
+
+      expect(find.text('DIN First Stage'), findsNothing);
+      expect(find.text('Remaining gear is part of an assembly'), findsNothing);
+      expect(find.text(_showLabel), findsNothing);
+    });
+
     testWidgets('the filter sheet offers no chip only components match', (
       tester,
     ) async {

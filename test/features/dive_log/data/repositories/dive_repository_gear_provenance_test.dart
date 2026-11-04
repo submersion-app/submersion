@@ -272,6 +272,33 @@ void main() {
     expect((await rowsOf('dw')).keys, isNot(contains('wish-hose')));
   });
 
+  test('bulkAddEquipment skips a sold part left flagged active', () async {
+    // An older row sold with is_active left set, which isFitted already
+    // treats as gone; the expander must not bring it along either.
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'sold-hose',
+            name: 'sold-hose',
+            type: 'hose',
+            createdAt: 1,
+            updatedAt: 1,
+            diverId: const Value('d1'),
+            isActive: const Value(true),
+            status: const Value('sold'),
+          ),
+        );
+    await components.addComponent(parentId: 'reg', componentId: 'sold-hose');
+    await repo.createDive(
+      domain.Dive(id: 'ds', dateTime: DateTime(2026, 1, 3)),
+    );
+
+    await repo.bulkAddEquipment(['ds'], ['reg']);
+
+    expect((await rowsOf('ds')).keys, isNot(contains('sold-hose')));
+  });
+
   test('bulkRemoveEquipment drops the whole subtree', () async {
     await repo.createDive(
       domain.Dive(id: 'dv', dateTime: DateTime(2026, 1, 1)),
