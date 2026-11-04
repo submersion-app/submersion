@@ -368,7 +368,7 @@ void main() {
       expect(switches, hasLength(1));
     });
 
-    test('the profile is sampled every 30 seconds', () async {
+    test('the profile is sampled every 10 seconds', () async {
       final id = await decoDiveInTheLog();
 
       final profile = await c.read(diveRepositoryProvider).getDiveProfile(id);
@@ -377,8 +377,8 @@ void main() {
         for (var i = 1; i < profile.length; i++)
           profile[i].timestamp - profile[i - 1].timestamp,
       ];
-      expect(profile.length, greaterThan(30));
-      expect(gaps, everyElement(lessThanOrEqualTo(30)));
+      expect(profile.length, greaterThan(90));
+      expect(gaps, everyElement(lessThanOrEqualTo(10)));
     });
 
     test("the log's analysis agrees with the plan on the ceiling", () async {

@@ -6,10 +6,10 @@ DiveProfilePoint _p(int t, double d) =>
     DiveProfilePoint(timestamp: t, depth: d);
 
 void main() {
-  test('adds a sample every 30 seconds along each leg', () {
-    final samples = sampledPlanProfile([_p(0, 0), _p(120, 40)]);
+  test('adds a sample every 10 seconds along each leg', () {
+    final samples = sampledPlanProfile([_p(0, 0), _p(40, 40)]);
 
-    expect(samples.map((s) => s.timestamp), [0, 30, 60, 90, 120]);
+    expect(samples.map((s) => s.timestamp), [0, 10, 20, 30, 40]);
     expect(samples.map((s) => s.depth), [0, 10, 20, 30, 40]);
   });
 
@@ -34,13 +34,13 @@ void main() {
   });
 
   test('a sample on a corner is not doubled', () {
-    final samples = sampledPlanProfile([_p(0, 0), _p(30, 10), _p(60, 20)]);
+    final samples = sampledPlanProfile([_p(0, 0), _p(10, 10), _p(20, 20)]);
 
-    expect(samples.map((s) => s.timestamp), [0, 30, 60]);
+    expect(samples.map((s) => s.timestamp), [0, 10, 20]);
   });
 
   test('two corners at one moment keep the later', () {
-    final samples = sampledPlanProfile([_p(0, 0), _p(30, 10), _p(30, 12)]);
+    final samples = sampledPlanProfile([_p(0, 0), _p(10, 10), _p(10, 12)]);
 
     expect(samples.last.depth, 12);
     expect(samples, hasLength(2));

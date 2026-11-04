@@ -47,7 +47,7 @@ About 800 lines of code and 750 of tests: the size of phase 2 or phase 3.
    none. The log is updated only by this action, never by Save.
 2. **Each dive.**
    - No log entry: a new planned entry with its start, site, name, computed
-     profile (sampled every 30 seconds), tanks and gases, and the plan's gas
+     profile (sampled every 10 seconds), tanks and gases, and the plan's gas
      switches (on the fly as well as at stops, open circuit only).
    - A planned entry: rewritten in place, same dive id.
    - A dived entry: never touched.

@@ -254,7 +254,7 @@ class _PlannedEntry {
 
   /// The state's segments stop at the bottom; the engine computes the
   /// ascent. The entry takes the full computed profile so the log shows the
-  /// deco schedule the plan produced, sampled every 30 seconds like a dive
+  /// deco schedule the plan produced, sampled every 10 seconds like a dive
   /// computer's: the log analyses a dive only at its samples.
   factory _PlannedEntry.of(
     SeriesDiveResult result, {

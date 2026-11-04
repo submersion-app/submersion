@@ -1,7 +1,7 @@
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// How often a planned dive's profile is sampled in the log.
-const plannedDiveSampleInterval = Duration(seconds: 30);
+const plannedDiveSampleInterval = Duration(seconds: 10);
 
 /// [corners], a plan's waypoints, as a dive log profile: a sample every
 /// [interval] along the straight lines between them, like a dive computer, with
