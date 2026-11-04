@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart' show QueryRow, Variable;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/constants/enums.dart'
     show EquipmentStatus, EquipmentType;
@@ -9,6 +10,7 @@ import 'package:submersion/features/agent_access/data/writes/families/write_reac
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
+import 'package:submersion/features/dive_computer/data/clock_sync_preferences.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart'
     show DocumentOwner, DocumentOwnerKind;
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
@@ -131,7 +133,32 @@ class EquipmentWrites extends WritableEntry {
         : null;
     if (parentId == null) return null;
     final parent = await _r.equipment.getEquipmentById(parentId);
-    return parentProblem(type, parent, check.id);
+    final status =
+        check.values['status'] as String? ??
+        check.document?['status'] as String?;
+    return parentProblem(
+      type,
+      parent,
+      check.id,
+      wanted: status == EquipmentStatus.wanted.name,
+    );
+  }
+
+  /// [current] with [values] applied, with the item it is then fitted to.
+  Future<EquipmentItem> _next(
+    EquipmentItem current,
+    Map<String, Object?> values,
+  ) async {
+    final parentId = values.containsKey('parent_equipment_id')
+        ? values['parent_equipment_id'] as String?
+        : current.parentEquipmentId;
+    return nextItem(
+      current,
+      values,
+      parent: parentId == null
+          ? null
+          : await _r.equipment.getEquipmentById(parentId),
+    );
   }
 
   @override
@@ -155,7 +182,7 @@ class EquipmentWrites extends WritableEntry {
   ) async {
     final current = await _r.equipment.getEquipmentById(id);
     if (current == null) return const SideEffects();
-    final next = nextItem(current, update.values);
+    final next = await _next(current, update.values);
     return SideEffects(
       fields: derivedFields(current, next, update.values),
       touched: await touchedBy(current, next),
@@ -174,7 +201,7 @@ class EquipmentWrites extends WritableEntry {
           values['purchase_currency'] as String? ??
           await _defaultCurrency(diverId),
     );
-    return (await _r.equipment.createEquipment(nextItem(blank, values))).id;
+    return (await _r.equipment.createEquipment(await _next(blank, values))).id;
   }
 
   @override
@@ -187,7 +214,7 @@ class EquipmentWrites extends WritableEntry {
             'Equipment $id no longer exists.',
             details: {'id': id},
           ));
-      await _r.equipment.updateEquipment(nextItem(current, update.values));
+      await _r.equipment.updateEquipment(await _next(current, update.values));
     }
     // Tags and shares as the edit page and the share checklist save them,
     // the whole new list at once.
@@ -272,14 +299,24 @@ class EquipmentWrites extends WritableEntry {
   }
 
   /// Every agent write acts as the record's owner, so the owner's delete.
+  /// A computer's item takes the computer with it, so this install's clock
+  /// sync choice for it goes too, as the equipment page's delete forgets it.
   @override
   Future<void> delete(String id, String? ownerId) async {
+    final computers = await _r.computers.getComputersForEquipment(id);
     await _r.equipment.deleteOwnedEquipment(
       id,
       actingDiverId: ownerId,
       // A revert restores the rows, and its media needs the blobs still there.
       holdRemoteMedia: true,
     );
+    if (computers.isEmpty) return;
+    final clockSync = ClockSyncPreferences(
+      await SharedPreferences.getInstance(),
+    );
+    for (final computer in computers) {
+      await clockSync.forget(computer.id);
+    }
   }
 
   @override

@@ -9,6 +9,7 @@ import 'package:submersion/features/agent_access/data/writes/object_list_codec.d
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_fitting.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -49,7 +50,7 @@ List<Map<String, Object?>> _ordered(List<Map<String, Object?>> items) => [
 /// left out, since a save keeps them whatever it is sent.
 List<Map<String, Object?>> attributeDocuments(EquipmentItem item) => _ordered([
   for (final a in [
-    ...item.attributes,
+    ...keepStrayColorAsCustom(item.type, item.attributes),
   ]..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)))
     if (a.isCustom || !EquipmentAttributeCatalog.isSystemKey(a.key))
       {
@@ -142,8 +143,15 @@ PlanBlock? reminderProblem(WriteCheck check) {
 PlanBlock? parentProblem(
   EquipmentType type,
   EquipmentItem? parent,
-  String? id,
-) {
+  String? id, {
+  bool wanted = false,
+}) {
+  if (wanted) {
+    return const PlanBlock(
+      BlockReason.invalidValue,
+      'parent_equipment_id: an item not bought yet is fitted to nothing.',
+    );
+  }
   final allowed = parentTypesFor(type);
   if (allowed.isEmpty) {
     return PlanBlock(
@@ -172,14 +180,22 @@ PlanBlock? parentProblem(
 /// decides whether it is in the kit, taking it out of wanted fills an empty
 /// purchase date as Mark purchased does, and a type change drops the
 /// built-in attributes and the fitting the new type has no place for.
-EquipmentItem nextItem(EquipmentItem current, Map<String, Object?> values) {
+///
+/// [parent] is the item the result is fitted to, read by the caller; a part
+/// keeps it only while its type can hold the part and it is in the kit, as
+/// the edit page's save keeps it.
+EquipmentItem nextItem(
+  EquipmentItem current,
+  Map<String, Object?> values, {
+  EquipmentItem? parent,
+}) {
   T? kept<T>(String key, T? now) =>
       values.containsKey(key) ? values[key] as T? : now;
   final type = values['type'] == null
       ? current.type
       : EquipmentType.values.byName(values['type']! as String);
   final status = values['status'] == null
-      ? current.status
+      ? seededStatus(current)
       : EquipmentStatus.values.byName(values['status']! as String);
   final purchased =
       current.id.isNotEmpty &&
@@ -194,7 +210,7 @@ EquipmentItem nextItem(EquipmentItem current, Map<String, Object?> values) {
     for (final a
         in values.containsKey('attributes')
             ? _attributes(current, values['attributes'])
-            : current.attributes)
+            : keepStrayColorAsCustom(type, current.attributes))
       if (a.isCustom ||
           ofType.contains(a.key) ||
           EquipmentAttributeCatalog.isSystemKey(a.key))
@@ -242,9 +258,14 @@ EquipmentItem nextItem(EquipmentItem current, Map<String, Object?> values) {
                     day as int,
                 ])
         : null,
-    parentEquipmentId: parentTypesFor(type).isEmpty
-        ? null
-        : kept('parent_equipment_id', current.parentEquipmentId),
+    parentEquipmentId:
+        parent != null &&
+            parent.id ==
+                kept('parent_equipment_id', current.parentEquipmentId) &&
+            parent.isActive &&
+            parentTypesFor(type).contains(parent.type)
+        ? parent.id
+        : null,
     createdAt: current.createdAt,
   );
 }
@@ -256,11 +277,14 @@ Map<String, Object?> derivedFields(
   Map<String, Object?> values,
 ) => {
   if (next.isActive != current.isActive) 'is_active': next.isActive,
+  if (!values.containsKey('status') && next.status != current.status)
+    'status': next.status.name,
   if (!values.containsKey('purchase_date') &&
       next.purchaseDate != current.purchaseDate)
     'purchase_date': calendarDate(next.purchaseDate),
   if (!values.containsKey('attributes') &&
-      next.attributes.length != current.attributes.length)
+      jsonEncode(attributeDocuments(next)) !=
+          jsonEncode(attributeDocuments(current)))
     'attributes': attributeDocuments(next),
   if (!values.containsKey('custom_reminder_days') &&
       !_sameDays(next.customReminderDays, current.customReminderDays))
@@ -278,22 +302,20 @@ Future<Map<String, int>> touchedBy(
   EquipmentItem next,
 ) async {
   final id = current.id;
-  final computers = next.name == current.name && next.notes == current.notes
-      ? 0
-      : await countRows(
-          'dive_computers',
-          'equipment_id = ?1 AND (name IS NOT ?2 OR notes IS NOT ?3)',
-          id,
-          [next.name, next.notes],
-        );
-  final keys = next.name == current.name
-      ? 0
-      : await countRows(
-          'transmitters',
-          'transmitter_equipment_id = ?1 AND label IS NOT ?2',
-          id,
-          [next.name],
-        );
+  // Every save mirrors the name, so a device already named apart from its
+  // item is rewritten even when the name stays.
+  final computers = await countRows(
+    'dive_computers',
+    'equipment_id = ?1 AND (name IS NOT ?2 OR notes IS NOT ?3)',
+    id,
+    [next.name, next.notes],
+  );
+  final keys = await countRows(
+    'transmitters',
+    'transmitter_equipment_id = ?1 AND label IS NOT ?2',
+    id,
+    [next.name],
+  );
   final baselines = attributeServiceBaselines(
     current: next.attributes,
     previous: current.attributes,
@@ -329,8 +351,12 @@ List<EquipmentAttribute> _attributes(EquipmentItem current, Object? parsed) {
       if (a.isCustom) a.key: a.id,
   };
   final items = ObjectListCodec.items(parsed);
+  final customs = [
+    for (final item in items)
+      if (item['is_custom'] == true) item,
+  ];
   return [
-    for (final (index, item) in items.indexed)
+    for (final item in items)
       if (item['is_custom'] == true)
         EquipmentAttribute(
           id: customIds[item['key']] ?? '',
@@ -339,7 +365,7 @@ List<EquipmentAttribute> _attributes(EquipmentItem current, Object? parsed) {
           isCustom: true,
           valueText: item['value_text'] as String?,
           valueNum: (item['value_num'] as num?)?.toDouble(),
-          sortOrder: index,
+          sortOrder: customs.indexOf(item),
         )
       else
         EquipmentAttribute.curated(
@@ -353,6 +379,16 @@ List<EquipmentAttribute> _attributes(EquipmentItem current, Object? parsed) {
 
 bool _sameDays(List<int>? a, List<int>? b) =>
     a == null || b == null ? a == b : a.join(',') == b.join(',');
+
+/// [item]'s status as the edit page shows it: a legacy row out of the kit
+/// with an in-kit status reads as retired, so a save does not quietly put it
+/// back (#636).
+EquipmentStatus seededStatus(EquipmentItem item) =>
+    !item.isActive &&
+        item.status != EquipmentStatus.sold &&
+        item.status != EquipmentStatus.wanted
+    ? EquipmentStatus.retired
+    : item.status;
 
 DateTime? _date(String? day) => day == null ? null : _day(DateTime.parse(day));
 
