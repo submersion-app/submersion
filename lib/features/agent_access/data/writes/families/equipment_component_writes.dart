@@ -55,10 +55,7 @@ class EquipmentComponentWrites extends WritableEntry {
     final siblings = await _r.equipmentComponents.getComponents(
       document['parent_equipment_id']! as String,
     );
-    return {
-      ...document,
-      'sort_order': siblings.indexWhere((c) => c.id == id),
-    };
+    return {...document, 'sort_order': siblings.indexWhere((c) => c.id == id)};
   }
 
   @override

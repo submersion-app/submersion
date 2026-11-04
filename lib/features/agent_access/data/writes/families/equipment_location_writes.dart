@@ -8,7 +8,9 @@ import 'package:submersion/features/equipment/domain/entities/equipment_location
 
 /// The places gear is kept, through the repository the gear location sheet
 /// uses. A place any move names keeps its history's name: it is archived,
-/// never deleted, as the app refuses that delete.
+/// never deleted, as the app refuses that delete. A Dive center place stands
+/// for a saved center and a Person place for a buddy; a kind change drops the
+/// link the new kind does not hold, as the place dialog's save drops it.
 class EquipmentLocationWrites extends WritableEntry {
   EquipmentLocationWrites(this._r);
 
@@ -25,6 +27,7 @@ class EquipmentLocationWrites extends WritableEntry {
     'name': const FieldCodec.text(maxLength: 100, trim: true),
     'kind': FieldCodec.enumName(EquipmentLocationKind.values),
     'dive_center_id': const FieldCodec.reference('centers', nullable: true),
+    'buddy_id': const FieldCodec.reference('buddies', nullable: true),
     'notes': const FieldCodec.text(allowBlank: true, trim: true),
     'is_archived': const FieldCodec.flag(),
   };
@@ -32,9 +35,26 @@ class EquipmentLocationWrites extends WritableEntry {
   @override
   Set<String> get requiredOnCreate => const {'name', 'kind'};
 
+  /// Each link and the kind of place that holds it.
+  static const _links = {
+    'dive_center_id': EquipmentLocationKind.diveCenter,
+    'buddy_id': EquipmentLocationKind.person,
+  };
+
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {
-    if (check.kind != ChangeKind.delete) return null;
+    if (check.kind != ChangeKind.delete) {
+      final kind = check.values['kind'] ?? check.document?['kind'];
+      for (final MapEntry(key: link, value: holder) in _links.entries) {
+        if (check.values[link] != null && kind != holder.name) {
+          return PlanBlock(
+            BlockReason.invalidValue,
+            '$link: only a ${holder.name} place stands for one.',
+          );
+        }
+      }
+      return null;
+    }
     if (!await _r.equipmentLocations.isInUse(check.id!)) return null;
     return const PlanBlock(
       BlockReason.notPermitted,
@@ -51,6 +71,7 @@ class EquipmentLocationWrites extends WritableEntry {
       name: values['name']! as String,
       kind: EquipmentLocationKind.values.byName(values['kind']! as String),
       diveCenterId: values['dive_center_id'] as String?,
+      buddyId: values['buddy_id'] as String?,
       notes: values['notes'] as String? ?? '',
     );
     if (values['is_archived'] == true) {
@@ -59,11 +80,35 @@ class EquipmentLocationWrites extends WritableEntry {
     return place.id;
   }
 
+  /// The links a kind change in [values] drops from [document]: those the
+  /// new kind does not hold.
+  static Map<String, Object?> _dropped(
+    Map<String, Object?> document,
+    Map<String, Object?> values,
+  ) {
+    final kind = values['kind'];
+    if (kind == null || kind == document['kind']) return const {};
+    return {
+      for (final MapEntry(key: link, value: holder) in _links.entries)
+        if (kind != holder.name &&
+            !values.containsKey(link) &&
+            document[link] != null)
+          link: null,
+    };
+  }
+
+  @override
+  Future<SideEffects> sideEffects(
+    String id,
+    String? ownerId,
+    RecordUpdate update,
+    Map<String, Object?> document,
+  ) async => SideEffects(fields: _dropped(document, update.values));
+
   @override
   Future<void> update(String id, String? ownerId, RecordUpdate update) async {
     final locations = _r.equipmentLocations;
-    final v = update.values;
-    if (v.keys.any((key) => key != 'is_archived')) {
+    if (update.values.keys.any((key) => key != 'is_archived')) {
       final current =
           await locations.getLocation(id) ??
           (throw AgentToolException(
@@ -71,6 +116,14 @@ class EquipmentLocationWrites extends WritableEntry {
             'Place $id no longer exists.',
             details: {'id': id},
           ));
+      final v = {
+        ...update.values,
+        ..._dropped({
+          'kind': current.kind.name,
+          'dive_center_id': current.diveCenterId,
+          'buddy_id': current.buddyId,
+        }, update.values),
+      };
       await locations.updateLocation(
         current.copyWith(
           name: v['name'] as String?,
@@ -80,11 +133,13 @@ class EquipmentLocationWrites extends WritableEntry {
           diveCenterId: v['dive_center_id'] as String?,
           clearDiveCenterId:
               v.containsKey('dive_center_id') && v['dive_center_id'] == null,
+          buddyId: v['buddy_id'] as String?,
+          clearBuddyId: v.containsKey('buddy_id') && v['buddy_id'] == null,
           notes: v['notes'] as String?,
           isArchived: v['is_archived'] as bool?,
         ),
       );
-    } else if (v['is_archived'] case final bool archived) {
+    } else if (update.values['is_archived'] case final bool archived) {
       await locations.setArchived(id, archived: archived);
     }
   }

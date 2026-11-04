@@ -68,6 +68,86 @@ void main() {
     expect(await h.one('equipment_locations', id), isNull);
   });
 
+  Future<void> links() async {
+    await db
+        .into(db.diveCenters)
+        .insert(
+          DiveCentersCompanion.insert(
+            id: 'shop',
+            name: 'Reef Shop',
+            createdAt: t,
+            updatedAt: t,
+            diverId: const Value(kDiverA),
+          ),
+        );
+    await db
+        .into(db.buddies)
+        .insert(
+          BuddiesCompanion.insert(
+            id: 'bud',
+            name: 'Bud',
+            createdAt: t,
+            updatedAt: t,
+            diverId: const Value(kDiverA),
+          ),
+        );
+  }
+
+  // The place dialog keeps a link only while the kind holds it.
+  test('a kind change clears the link the new kind does not hold', () async {
+    await links();
+    final id = await place({
+      'name': 'Reef Shop',
+      'kind': 'diveCenter',
+      'dive_center_id': 'shop',
+    });
+
+    final plan = await h.preview([
+      updateOp('equipment_locations', id, {'kind': 'storage'}),
+    ]);
+    final center = plan.items.single.fields['dive_center_id']!;
+    expect(
+      [center.oldValue, center.newValue, center.indirect],
+      ['shop', null, true],
+    );
+    await h.apply(plan);
+
+    expect((await h.one('equipment_locations', id))!['dive_center_id'], isNull);
+  });
+
+  test('a link the kind does not hold is refused', () async {
+    await links();
+
+    final plan = await h.preview([
+      createOp('equipment_locations', {
+        'name': 'Shelf',
+        'kind': 'storage',
+        'dive_center_id': 'shop',
+      }),
+      createOp('equipment_locations', {
+        'name': 'Shop',
+        'kind': 'diveCenter',
+        'buddy_id': 'bud',
+      }),
+    ]);
+
+    for (final item in plan.items) {
+      expect(item.block!.reason, BlockReason.invalidValue);
+    }
+  });
+
+  test('a person place names its buddy', () async {
+    await links();
+
+    final id = await place({
+      'name': 'Bud',
+      'kind': 'person',
+      'buddy_id': 'bud',
+    });
+
+    expect((await h.one('equipment_locations', id))!['buddy_id'], 'bud');
+  });
+
   test('a place a move names cannot be deleted', () async {
     final id = await place({'name': 'Shop', 'kind': 'serviceShop'});
     await h.run([

@@ -136,6 +136,7 @@ Map<String, Object?> equipmentLocationDocument(EquipmentLocation l) => {
   'name': l.name,
   'kind': l.kind.name,
   'dive_center_id': l.diveCenterId,
+  'buddy_id': l.buddyId,
   'notes': l.notes,
   'is_archived': l.isArchived,
 };
