@@ -109,7 +109,11 @@ void main() {
           inInclusiveRange(7, 13),
           reason: '$latest',
         );
-        expect(shifted.weekday, latest.weekday, reason: '$latest');
+        expect(
+          shifted.toUtc().weekday,
+          latest.toUtc().weekday,
+          reason: '$latest',
+        );      
       }
     },
   );
