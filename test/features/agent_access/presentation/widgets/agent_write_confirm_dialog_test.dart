@@ -269,6 +269,39 @@ void main() {
     await _close(tester);
   });
 
+  testWidgets('a merge reads as merge into the survivor and lists what moves', (
+    tester,
+  ) async {
+    await _pump(tester);
+    unawaited(
+      _confirmer().confirm(
+        _request(
+          items: [
+            const PlanItem(
+              operation: 0,
+              kind: ChangeKind.delete,
+              entity: 'tags',
+              id: 'wrecks',
+              diverId: 'diver-a',
+              title: 'Wrecks',
+              mergeInto: 'wreck',
+              mergeTitle: 'Wreck',
+              reach: DeleteReach(moved: {'dive_tags': 3}),
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(AgentWriteConfirmDialog.detailsKey));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Merge into Wreck'), findsOneWidget);
+    expect(find.textContaining('Moves'), findsWidgets);
+    expect(find.textContaining('3'), findsWidgets);
+    await _close(tester);
+  });
+
   testWidgets('names the dives a delete reaches on another profile', (
     tester,
   ) async {
@@ -495,6 +528,44 @@ void main() {
     expect(find.textContaining('98'), findsOneWidget);
     expect(find.textContaining('ft'), findsOneWidget);
     expect(find.textContaining('68'), findsOneWidget);
+    await _close(tester);
+  });
+
+  // A weight preset's entries and a cylinder config's cylinders are lists of
+  // objects; each value inside reads as it would on its own.
+  testWidgets('values inside a list of objects respect the diver units', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      settings: const AppSettings(weightUnit: WeightUnit.pounds),
+    );
+    unawaited(
+      _confirmer().confirm(
+        _request(
+          items: [
+            _item(
+              fields: const {
+                'entries': FieldChange(null, [
+                  {'type': 'integrated', 'amount_kg': 4.0, 'label': 'Trim'},
+                ]),
+                'items': FieldChange(null, [
+                  {'role': 'deco', 'o2_fraction': 0.5, 'label': null},
+                ]),
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(AgentWriteConfirmDialog.detailsKey));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('8.8 lb'), findsOneWidget);
+    expect(find.textContaining('50%'), findsOneWidget);
+    expect(find.textContaining('amount_kg: 4.0'), findsNothing);
+    expect(find.textContaining('label: null'), findsNothing);
     await _close(tester);
   });
 

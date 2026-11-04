@@ -7756,6 +7756,8 @@
   "settings_agentAccess_confirm_linkedDives": "Immersioni che perdono questo collegamento ({diver}): {count}",
   "settings_agentAccess_confirm_alsoDeletes": "Elimina anche {kind}: {count}",
   "settings_agentAccess_confirm_alsoUnlinks": "Scollega anche {kind}: {count}",
+  "settings_agentAccess_confirm_merge": "Unisci a {name}",
+  "settings_agentAccess_confirm_moves": "Sposta {kind}: {count}",
   "settings_agentAccess_confirm_title": "Consentire questa modifica?",
   "settings_agentAccess_confirm_client": "{client} vuole modificare il tuo logbook.",
   "settings_agentAccess_confirm_unknownClient": "Un agente vuole modificare il tuo logbook.",

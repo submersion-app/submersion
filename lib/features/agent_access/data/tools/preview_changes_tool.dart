@@ -99,6 +99,12 @@ class PreviewChangesTool implements AgentTool {
               'type': 'string',
               'description': 'The owner of a new record, for create.',
             },
+            'merge_into': {
+              'type': 'string',
+              'description':
+                  'For a delete of an entity that can merge: the id of the '
+                  'record that takes over its links.',
+            },
             'fields': {'type': 'object'},
             'relations': {
               'type': 'object',

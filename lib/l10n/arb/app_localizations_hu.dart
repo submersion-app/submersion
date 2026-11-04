@@ -27148,6 +27148,16 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String settings_agentAccess_confirm_merge(String name) {
+    return 'Összevonás ezzel: $name';
+  }
+
+  @override
+  String settings_agentAccess_confirm_moves(String kind, int count) {
+    return 'Áthelyezi: $kind: $count';
+  }
+
+  @override
   String get settings_agentAccess_confirm_title =>
       'Engedélyezi ezt a módosítást?';
 

@@ -26818,6 +26818,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String settings_agentAccess_confirm_merge(String name) {
+    return 'Merge into $name';
+  }
+
+  @override
+  String settings_agentAccess_confirm_moves(String kind, int count) {
+    return 'Moves $kind: $count';
+  }
+
+  @override
   String get settings_agentAccess_confirm_title => 'Allow this change?';
 
   @override
