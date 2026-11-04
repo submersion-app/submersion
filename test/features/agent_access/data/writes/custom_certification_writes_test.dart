@@ -261,4 +261,46 @@ void main() {
       }
     },
   );
+
+  // The set runs in order, so a delete or rename earlier frees the name.
+  test('a name an earlier delete or rename frees can be taken', () async {
+    final club = await created('custom_agencies', {'name': 'Cave Club'});
+    final reef = await created('custom_agencies', {'name': 'Reef Club'});
+    final level = await created('custom_levels', {
+      'agency_id': reef,
+      'name': 'Cavern',
+      'is_progression': false,
+    });
+
+    final plan = await h.preview([
+      deleteOp('custom_agencies', club),
+      createOp('custom_agencies', {'name': 'Cave Club'}),
+      updateOp('custom_levels', level, {'name': 'Cavern One'}),
+      createOp('custom_levels', {
+        'agency_id': reef,
+        'name': 'Cavern',
+        'is_progression': false,
+      }),
+    ]);
+
+    for (final item in plan.items) {
+      expect(item.block, isNull, reason: '${item.entity} ${item.kind}');
+    }
+  });
+
+  // createLevel always takes the next slot of its progression, or 0.
+  test('a new level cannot name its slot', () async {
+    final agency = await created('custom_agencies', {'name': 'Cave Club'});
+
+    final plan = await h.preview([
+      createOp('custom_levels', {
+        'agency_id': agency,
+        'name': 'Cavern',
+        'is_progression': true,
+        'sort_order': 3,
+      }),
+    ]);
+
+    expect(plan.items.single.block!.reason, BlockReason.invalidValue);
+  });
 }

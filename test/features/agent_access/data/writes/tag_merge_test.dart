@@ -404,4 +404,13 @@ void main() {
       );
     },
   );
+
+  test('a merge names the survivor as an earlier rename leaves it', () async {
+    final plan = await h.preview([
+      updateOp('tags', 'wrecks', {'name': 'Wreck dives'}),
+      merge('wreck', 'wrecks'),
+    ]);
+
+    expect(plan.items.last.mergeTitle, 'Wreck dives');
+  });
 }

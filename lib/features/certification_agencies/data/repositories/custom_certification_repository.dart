@@ -504,6 +504,7 @@ class CustomCertificationRepository {
     required String diverId,
     required bool isShared,
     String? exceptId,
+    Set<String> exceptIds = const {},
   }) async {
     final lower = name.trim().toLowerCase();
     final builtIn = CertificationAgency.values.any(
@@ -514,6 +515,7 @@ class CustomCertificationRepository {
     return (await getAllAgencies()).any(
       (a) =>
           a.id != exceptId &&
+          !exceptIds.contains(a.id) &&
           (isShared || a.diverId == diverId || a.isShared) &&
           a.name.toLowerCase() == lower,
     );
@@ -550,6 +552,7 @@ class CustomCertificationRepository {
     required String diverId,
     required bool isShared,
     String? exceptId,
+    Set<String> exceptIds = const {},
   }) async {
     final lower = name.trim().toLowerCase();
     final builtInAgency = CertificationAgency.fromId(agencyId);
@@ -562,6 +565,7 @@ class CustomCertificationRepository {
     return (await getAllLevels()).any(
       (l) =>
           l.id != exceptId &&
+          !exceptIds.contains(l.id) &&
           l.agencyId == agencyId &&
           (isShared ||
               l.diverId == diverId ||
