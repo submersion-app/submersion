@@ -73,8 +73,9 @@ class ProfileSeriesCodec {
   ///
   /// Most of those are caller bugs, but not all: a deltaInt field whose
   /// difference from the previous sample leaves the zigzag varint range
-  /// (`minVarInt` .. `maxVarInt`) also throws [ArgumentError], and that is
-  /// data. A caller packing rows it did not produce, the part 2 migration
+  /// (`minVarInt` .. `maxVarInt`, and in JavaScript its two ends as well,
+  /// which zigzag past 63 bits there) also throws [ArgumentError], and that
+  /// is data. A caller packing rows it did not produce, the part 2 migration
   /// among them, has to handle the throw per series rather than treat it as
   /// a bug that cannot happen.
   EncodedProfileSeries encode(List<ProfileSample> samples, {int? version}) {

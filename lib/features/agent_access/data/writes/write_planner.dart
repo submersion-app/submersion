@@ -16,6 +16,8 @@ import 'package:submersion/features/agent_access/data/writes/writable_entity.dar
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 
 part 'write_planner_children.dart';
+part 'write_planner_merge.dart';
+part 'write_planner_references.dart';
 
 /// Turns a change set into a plan by reading, and only reading. It opens no
 /// transaction and writes nothing, because the spec forbids even one that is
@@ -78,7 +80,14 @@ class _Pass {
   final _rows = <String, Map<String, _Row>>{};
   final _seen = <(String, String)>{};
   final _referenced = <(String, String)>{};
-  final _versionedTables = <String, bool>{};
+  final _tableColumns = <String, Set<String>>{};
+
+  /// The fields each update in the set names, by record, wherever it sits.
+  late final _updatedFields = {
+    for (final op in set.operations)
+      if (op is UpdateOp) (op.entity, op.id): op.fields.keys.toSet(),
+  };
+
   late final _deleted = {
     for (final op in set.operations)
       if (op is DeleteOp) (op.entity, op.id),
@@ -96,6 +105,68 @@ class _Pass {
   /// Records an update earlier in the set changes, as each is planned.
   final _changedSoFar = <(String, String)>{};
 
+  /// The records each survivor takes in by an earlier merge in the set, by
+  /// entity and survivor.
+  final _mergedInto = <(String, String?), Set<String>>{};
+
+  final _deletedSoFar = <String, Set<String>>{};
+  final _valuesSoFar = <(String, String), Map<String, Object?>>{};
+  final _unlinkedSoFar = <(String, String), Map<String, Set<String>>>{};
+
+  /// What the set does before the change being planned, for its rules.
+  SetSoFar get _soFar => SetSoFar(
+    deleted: _deletedSoFar,
+    values: _valuesSoFar,
+    unlinked: _unlinkedSoFar,
+  );
+
+  /// Notes what an update the plan keeps writes and unlinks, for the rules
+  /// of the changes after it.
+  void _recordSoFar(
+    UpdateOp op,
+    WritableEntry entry,
+    Map<String, Object?> values,
+    Map<String, RelationDelta> deltas,
+    Map<String, Set<String>> detached,
+  ) {
+    _valuesSoFar[(op.entity, op.id)] = values;
+    for (final MapEntry(key: entity, value: ids) in detached.entries) {
+      ((_unlinkedSoFar[(op.entity, op.id)] ??= {})[entity] ??= {}).addAll(ids);
+    }
+    for (final MapEntry(key: name, value: delta) in deltas.entries) {
+      final target = entry.relations[name]!.refEntity;
+      for (final id in delta.remove) {
+        ((_unlinkedSoFar[(target, id)] ??= {})[op.entity] ??= {}).add(op.id);
+      }
+    }
+  }
+
+  /// Each unique key a change in the set claims, by entity and owner, to the
+  /// operation that claimed it first.
+  final _claims =
+      <(String, String), List<({String? owner, bool shared, int index})>>{};
+
+  /// A block when an earlier change in the set claims [check]'s unique key,
+  /// otherwise null, after claiming it for [op].
+  PlanBlock? _claimUnique(ChangeOp op, WritableEntry entry, WriteCheck check) {
+    final claim = entry.uniqueKey(check);
+    if (claim == null) return null;
+    final earlier = _claims[(entry.name, claim.key)] ??= [];
+    final clash = earlier
+        .where((e) => claim.shared || e.shared || e.owner == check.ownerId)
+        .firstOrNull;
+    if (clash != null) {
+      return PlanBlock(
+        BlockReason.duplicateRecord,
+        'operation ${clash.index} of this set already claims '
+        '"${claim.key}" for a ${entry.name} record; two records that see '
+        'each other cannot share it.',
+      );
+    }
+    earlier.add((owner: check.ownerId, shared: claim.shared, index: op.index));
+    return null;
+  }
+
   /// Reads the owner and version of every record the set names, by table.
   Future<void> loadRows() async {
     final ids = <String, Set<String>>{};
@@ -107,6 +178,10 @@ class _Pass {
       if (id == null) continue;
       if (writes.named(op.entity) case final entry?) {
         (ids[entry.name] ??= {}).add(id);
+        // A merge's survivor, whose owner the merge must share.
+        if (op case DeleteOp(:final mergeInto?)) {
+          ids[entry.name]!.add(mergeInto);
+        }
       }
     }
     for (final MapEntry(key: entity, value: wanted) in ids.entries) {
@@ -116,7 +191,7 @@ class _Pass {
         final marks = List.filled(chunk.length, '?').join(', ');
         final found = await db
             .customSelect(
-              '${_rowSelect(entry)} WHERE r.id IN ($marks)',
+              '${await _rowSelect(entry)} WHERE r.id IN ($marks)',
               variables: [for (final id in chunk) Variable.withString(id)],
             )
             .get();
@@ -175,19 +250,21 @@ class _Pass {
       );
     }
     final owner = await _owner(op, entry, parsed.values);
-    if (owner.block case final block?) {
+    if (owner.block ?? _parentWritten(entry, owner.parentId, ChangeKind.create)
+        case final block?) {
       return _add(op, entry, kind: ChangeKind.create, block: block);
     }
     final diverId = owner.diverId!;
+    final check = WriteCheck(
+      kind: ChangeKind.create,
+      ownerId: diverId,
+      values: parsed.values,
+      soFar: _soFar,
+    );
     final block =
         await _checkFieldRefs(entry, parsed.values, diverId) ??
-        await entry.refuse(
-          WriteCheck(
-            kind: ChangeKind.create,
-            ownerId: diverId,
-            values: parsed.values,
-          ),
-        );
+        await entry.refuse(check) ??
+        _claimUnique(op, entry, check);
     if (block == null) await _markFieldRefs(entry, parsed.values);
     final parent = await _parentContext(entry, owner.parentId, diverId);
     _add(
@@ -213,20 +290,22 @@ class _Pass {
     final document = await entry.stored(op.id, read);
     final parsed = _parse(op.index, entry, op.fields, document);
     final links = await _relations(op, entry, row.ownerId);
+    final check = WriteCheck(
+      kind: ChangeKind.update,
+      id: op.id,
+      ownerId: row.ownerId,
+      values: parsed.values,
+      relations: links.deltas,
+      document: document,
+      soFar: _soFar,
+    );
     final block =
         parsed.block ??
         links.block ??
         _fixed(entry, parsed) ??
         await _checkFieldRefs(entry, parsed.values, row.ownerId) ??
-        await entry.refuse(
-          WriteCheck(
-            kind: ChangeKind.update,
-            id: op.id,
-            ownerId: row.ownerId,
-            values: parsed.values,
-            document: document,
-          ),
-        );
+        await entry.refuse(check) ??
+        _claimUnique(op, entry, check);
     final update = RecordUpdate(values: parsed.values, relations: links.deltas);
     Future<SideEffects> readEffects() =>
         entry.sideEffects(op.id, row.ownerId, update, document);
@@ -252,6 +331,10 @@ class _Pass {
       }
     }
     if (block == null) {
+      // What stored() adds beyond a plain read, such as a config's cylinders,
+      // can change without touching the row's version, so it is compared too.
+      Future<String> readStored() async =>
+          _storedExtras(read, await entry.stored(op.id, read));
       markers.add(
         await _marker(
           entry,
@@ -259,12 +342,14 @@ class _Pass {
           row,
           read,
           relations: links.current,
-          footprint: effects.footprint,
-          readFootprint: () async => (await readEffects()).footprint,
+          footprint: '${effects.footprint} ${_storedExtras(read, document)}',
+          readFootprint: () async =>
+              '${(await readEffects()).footprint} ${await readStored()}',
         ),
       );
       await _markReferences(entry, links.deltas);
       await _markFieldRefs(entry, parsed.values);
+      _recordSoFar(op, entry, parsed.values, links.deltas, effects.detached);
     }
     final parent = await _parentContext(entry, row.parentId, row.ownerId);
     _add(
@@ -283,6 +368,7 @@ class _Pass {
       relations: links.deltas,
       indirectRelations: effects.relations,
       indirectLost: effects.lost,
+      reach: DeleteReach(parts: effects.parts),
       names: {
         ...await _names(entry, links.deltas, {
           ...effects.relations,
@@ -300,22 +386,41 @@ class _Pass {
     if (row == null) return;
     if (_orphaned(op, entry, row, ChangeKind.delete)) return;
     final document = await _document(entry, op.id, row.ownerId);
-    final block = await entry.refuse(
-      WriteCheck(
-        kind: ChangeKind.delete,
-        id: op.id,
-        ownerId: row.ownerId,
-        document: document,
-      ),
-    );
-    // Held as a local, so the closure a marker keeps holds the map and not
-    // this pass, whose database a plan must not keep alive.
+    final into = op.mergeInto;
+    final refused =
+        (into == null ? null : _mergeBlock(op, entry, row)) ??
+        _parentWritten(entry, row.parentId, ChangeKind.delete) ??
+        await entry.refuse(
+          WriteCheck(
+            kind: ChangeKind.delete,
+            id: op.id,
+            ownerId: row.ownerId,
+            document: document,
+            soFar: _soFar,
+          ),
+        );
+    // Held as locals, so the closure a marker keeps holds these and not this
+    // pass, whose database a plan must not keep alive.
     final alongside = _deletedByEntity;
-    Future<DeleteReach> readReach() =>
-        entry.deleteReach(op.id, alongside: alongside);
-    final reach = block == null ? await readReach() : const DeleteReach();
+    final mergedBefore = {...?_mergedInto[(op.entity, into)]};
+    Future<DeleteReach> readReach() => into == null
+        ? entry.deleteReach(op.id, alongside: alongside)
+        : entry.mergeReach(op.id, into, mergedBefore: mergedBefore);
+    final read = refused == null ? await readReach() : const DeleteReach();
+    final block = refused ?? (into == null ? null : _survivorClash(op, read));
+    final reach = block == null ? read : const DeleteReach();
     final parent = await _parentContext(entry, row.parentId, row.ownerId);
+    final survivor = block == null && into != null
+        ? await _survivorView(op, entry, reach)
+        : null;
+    if (block == null && into != null) {
+      // A survivor changed after the preview may no longer be the record
+      // the diver allowed the links to move to.
+      await _markReference(entry.table, into);
+      (_mergedInto[(op.entity, into)] ??= {}).add(op.id);
+    }
     if (block == null) {
+      (_deletedSoFar[op.entity] ??= {}).add(op.id);
       markers.add(
         await _marker(
           entry,
@@ -339,91 +444,11 @@ class _Pass {
       date: document['date_time'] as String? ?? parent.date,
       context: _context(entry, document),
       reach: reach,
+      fields: survivor?.fields ?? const {},
+      mergeInto: block == null ? into : null,
+      mergeTitle: survivor?.title,
       block: block,
     );
-  }
-
-  /// Adds a marker for each record a plan links to, so one that goes away
-  /// after the preview refuses the plan instead of quietly not linking.
-  Future<void> _markReferences(
-    WritableEntry entry,
-    Map<String, RelationDelta> deltas,
-  ) async {
-    for (final MapEntry(key: name, value: delta) in deltas.entries) {
-      final table = records.named(entry.relations[name]!.refEntity).table;
-      for (final id in delta.add) {
-        await _markReference(table, id);
-      }
-    }
-  }
-
-  Future<void> _markReference(String table, String id) async {
-    if (!_referenced.add((table, id))) return;
-    if (!await _versioned(table)) {
-      // Nothing to compare but whether the row is still there.
-      markers.add(
-        RecordMarker(
-          table: table,
-          id: id,
-          updatedAt: null,
-          versioned: false,
-          footprint: await _presence(table, id),
-          readFootprint: () => _presence(table, id),
-        ),
-      );
-      return;
-    }
-    final row = await db
-        .customSelect(
-          'SELECT updated_at FROM $table WHERE id = ?',
-          variables: [Variable.withString(id)],
-        )
-        .getSingleOrNull();
-    markers.add(
-      RecordMarker(
-        table: table,
-        id: id,
-        updatedAt: row?.read<int>('updated_at'),
-      ),
-    );
-  }
-
-  /// Whether [table] has an `updated_at` column.
-  Future<bool> _versioned(String table) async => _versionedTables[table] ??=
-      (await db
-          .customSelect(
-            "SELECT 1 FROM pragma_table_info(?) WHERE name = 'updated_at'",
-            variables: [Variable.withString(table)],
-          )
-          .getSingleOrNull()) !=
-      null;
-
-  /// The names of what a change links, so a diver reads names, not ids.
-  Future<Map<String, String>> _names(
-    WritableEntry entry,
-    Map<String, RelationDelta> deltas,
-    Map<String, Set<String>> indirect,
-  ) async {
-    final names = <String, String>{};
-    for (final relation in {...deltas.keys, ...indirect.keys}) {
-      final delta = deltas[relation];
-      final ids = {...?delta?.add, ...?delta?.remove, ...?indirect[relation]};
-      if (ids.isEmpty) continue;
-      final table = records.named(entry.relations[relation]!.refEntity).table;
-      for (final chunk in seriesIdChunks(ids.toList())) {
-        final marks = List.filled(chunk.length, '?').join(', ');
-        final rows = await db
-            .customSelect(
-              'SELECT id, name FROM $table WHERE id IN ($marks)',
-              variables: [for (final id in chunk) Variable.withString(id)],
-            )
-            .get();
-        for (final row in rows) {
-          names[row.read<String>('id')] = row.read<String>('name');
-        }
-      }
-    }
-    return names;
   }
 
   /// The row for a record the set may change, or null after blocking it.
@@ -538,7 +563,17 @@ class _Pass {
           ),
         );
       }
-      final links = current[name] = await entry.currentRelation(op.id, name);
+      final stored = current[name] = await entry.currentRelation(op.id, name);
+      // A link an earlier change in the set takes away, such as a tag whose
+      // scope closes, is gone by the time this change runs.
+      final links = {
+        for (final id in stored)
+          if (!(_unlinkedSoFar[(spec.refEntity, id)]?[op.entity]?.contains(
+                op.id,
+              ) ??
+              false))
+            id,
+      };
       final delta = _delta(change, links, spec);
       if (delta == null) {
         return _Links.blocked(
@@ -676,6 +711,8 @@ class _Pass {
     Map<String, Set<String>> indirectLost = const {},
     Map<String, String> names = const {},
     DeleteReach reach = const DeleteReach(),
+    String? mergeInto,
+    String? mergeTitle,
     PlanBlock? block,
   }) => items.add(
     PlanItem(
@@ -696,6 +733,8 @@ class _Pass {
       indirectLost: indirectLost,
       names: names,
       reach: reach,
+      mergeInto: mergeInto,
+      mergeTitle: mergeTitle,
       block: block,
     ),
   );

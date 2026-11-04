@@ -48,6 +48,10 @@ class GasUsageSegment {
 /// segment is invented from the lowest-order tank, which renders a sliver of
 /// the wrong gas whenever that tank holds a different mix (issue #679).
 ///
+/// [loopGas] is the gas a rebreather dive's loop runs on, which no cylinder
+/// need hold (#4020). It fills the starting window in place of the starting
+/// tank's mix.
+///
 /// Returns an empty list when there are no tanks or the dive has no
 /// duration — the caller should hide the strip in that case.
 List<GasUsageSegment> buildGasUsageSegments({
@@ -55,13 +59,17 @@ List<GasUsageSegment> buildGasUsageSegments({
   required List<GasSwitchWithTank> gasSwitches,
   required int diveDurationSeconds,
   int firstSampleSeconds = 0,
+  GasMix? loopGas,
+  bool onLoop = true,
 }) {
   if (tanks.isEmpty || diveDurationSeconds <= 0) {
     return const <GasUsageSegment>[];
   }
 
   final tankById = {for (final t in tanks) t.id: t};
-  final startingTank = _startingTankOf(tanks);
+  final startingTank = _startingTankOf(tanks, onLoop: onLoop);
+  final startingGas = loopGas ?? startingTank.gasMix;
+  final startingTankName = loopGas == null ? startingTank.name : null;
 
   final inBoundsSwitches =
       ([...gasSwitches]..sort((a, b) => a.timestamp.compareTo(b.timestamp)))
@@ -73,9 +81,9 @@ List<GasUsageSegment> buildGasUsageSegments({
       GasUsageSegment(
         startSeconds: 0,
         endSeconds: diveDurationSeconds,
-        gasMix: startingTank.gasMix,
-        label: startingTank.gasMix.name,
-        tankName: startingTank.name,
+        gasMix: startingGas,
+        label: startingGas.name,
+        tankName: startingTankName,
       ),
     ];
   }
@@ -92,9 +100,9 @@ List<GasUsageSegment> buildGasUsageSegments({
       GasUsageSegment(
         startSeconds: 0,
         endSeconds: inBoundsSwitches.first.timestamp,
-        gasMix: startingTank.gasMix,
-        label: startingTank.gasMix.name,
-        tankName: startingTank.name,
+        gasMix: startingGas,
+        label: startingGas.name,
+        tankName: startingTankName,
       ),
     );
   }
@@ -128,10 +136,15 @@ List<GasUsageSegment> buildGasUsageSegments({
 /// is the role an import gives a cylinder it knows nothing about, which on a
 /// rebreather may be a bailout. [DiveTank.order] settles a tie, since the list
 /// itself may be in any order. [tanks] is non-empty.
-DiveTank _startingTankOf(List<DiveTank> tanks) {
+///
+/// [onLoop] false is a dive known to be off the loop, where a diluent tag does
+/// not take the start, as in [startingTankOf].
+DiveTank _startingTankOf(List<DiveTank> tanks, {bool onLoop = true}) {
   final byOrder = [...tanks]..sort((a, b) => a.order.compareTo(b.order));
-  return byOrder.firstWhereOrNull((t) => t.role == TankRole.diluent) ??
-      sacReferenceTankOf(byOrder)!;
+  final diluent = onLoop
+      ? byOrder.firstWhereOrNull((t) => t.role == TankRole.diluent)
+      : null;
+  return diluent ?? sacReferenceTankOf(byOrder)!;
 }
 
 /// Index into [sorted] of the switch that declares the dive's starting gas, or

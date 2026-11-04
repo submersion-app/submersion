@@ -44,6 +44,7 @@ class DiveChartInputs extends Equatable {
     dive.sac,
     dive.sacReferenceVolume,
     dive.isRebreather,
+    dive.diluentGas,
     dive.environment,
     dive.tanks,
     dive.profile,

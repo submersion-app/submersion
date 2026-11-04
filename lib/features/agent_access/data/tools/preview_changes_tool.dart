@@ -32,7 +32,8 @@ class PreviewChangesTool implements AgentTool {
     final entities = [
       for (final e in _writes.all)
         '${e.name} (fields: ${e.fields.keys.join(', ')}'
-            '${e.relations.isEmpty ? '' : '; relations: ${e.relations.keys.join(', ')}'})',
+            '${e.relations.isEmpty ? '' : '; relations: ${e.relations.keys.join(', ')}'}'
+            '${e.note == null ? '' : '. ${e.note}'})',
     ].join('; ');
     return 'First of two steps to change the logbook: this works out what a '
         'change set would do and changes nothing. Call apply_changes with the '
@@ -97,6 +98,12 @@ class PreviewChangesTool implements AgentTool {
             'diver_id': {
               'type': 'string',
               'description': 'The owner of a new record, for create.',
+            },
+            'merge_into': {
+              'type': 'string',
+              'description':
+                  'For a delete of an entity that can merge: the id of the '
+                  'record that takes over its links.',
             },
             'fields': {'type': 'object'},
             'relations': {

@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/platform/web/remember_credentials_provider.dart';
+import 'package:submersion/core/platform/web_database_status.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
 import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
@@ -253,7 +254,7 @@ void main() {
       tester,
     ) async {
       await pump(tester, browser: true);
-      expect(find.text('Remember on this device'), findsOneWidget);
+      expect(find.text('Remember sign-in on this device'), findsOneWidget);
       final toggle = find.byType(SwitchListTile);
       expect(tester.widget<SwitchListTile>(toggle).value, isFalse);
       await tester.tap(toggle);
@@ -262,9 +263,24 @@ void main() {
       expect(tester.widget<SwitchListTile>(toggle).value, isTrue);
     });
 
+    testWidgets('with nothing kept after the tab, the switch does not promise '
+        'the dives stay (#4187)', (tester) async {
+      WebDatabaseStatusHolder.record(
+        const WebDatabaseStatus(storage: WebDatabaseStorage.inMemory),
+      );
+      addTearDown(WebDatabaseStatusHolder.clear);
+      await pump(tester, browser: true);
+      final en = lookupAppLocalizations(const Locale('en'));
+      expect(
+        find.text(en.web_rememberOnThisDevice_subtitleInMemory),
+        findsOneWidget,
+      );
+      expect(find.text(en.web_rememberOnThisDevice_subtitle), findsNothing);
+    });
+
     testWidgets('natively there is no remember switch', (tester) async {
       await pump(tester);
-      expect(find.text('Remember on this device'), findsNothing);
+      expect(find.text('Remember sign-in on this device'), findsNothing);
       expect(find.byType(SwitchListTile), findsNothing);
     });
 

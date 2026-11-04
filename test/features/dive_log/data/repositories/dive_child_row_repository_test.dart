@@ -307,4 +307,86 @@ void main() {
       expect(await diveVersion(), seeded);
     });
   });
+
+  group('custom fields', () {
+    Future<void> field(String id, int order) => db
+        .into(db.diveCustomFields)
+        .insert(
+          DiveCustomFieldsCompanion.insert(
+            id: id,
+            diveId: 'd1',
+            fieldKey: 'key $id',
+            fieldValue: Value('value $id'),
+            sortOrder: Value(order),
+            createdAt: seeded,
+          ),
+        );
+
+    Future<DiveCustomField?> fieldRow(String id) => (db.select(
+      db.diveCustomFields,
+    )..where((f) => f.id.equals(id))).getSingleOrNull();
+
+    test('an add goes after the highest order and marks the row', () async {
+      await field('f1', 0);
+      await field('f3', 2);
+
+      final id = await repo.addCustomField(
+        'd1',
+        const DiveCustomFieldsCompanion(
+          fieldKey: Value('Camera'),
+          fieldValue: Value('GoPro'),
+        ),
+      );
+
+      final row = (await fieldRow(id))!;
+      expect(row.fieldKey, 'Camera');
+      expect(row.fieldValue, 'GoPro');
+      expect(row.sortOrder, 3);
+      expect(row.diveId, 'd1');
+      expect(await pending('diveCustomFields'), {id});
+      expect(await diveVersion(), greaterThan(seeded));
+    });
+
+    test('an update writes only the columns it names', () async {
+      await field('f1', 0);
+      await field('f2', 1);
+
+      expect(
+        await repo.updateCustomField(
+          'f1',
+          const DiveCustomFieldsCompanion(fieldValue: Value('changed')),
+        ),
+        isTrue,
+      );
+
+      final row = (await fieldRow('f1'))!;
+      expect(row.fieldValue, 'changed');
+      expect(row.fieldKey, 'key f1');
+      expect((await fieldRow('f2'))!.fieldValue, 'value f2');
+      expect(await pending('diveCustomFields'), {'f1'});
+      expect(await diveVersion(), greaterThan(seeded));
+    });
+
+    test('a delete removes the row and tombstones it', () async {
+      await field('f1', 0);
+
+      expect(await repo.deleteCustomField('f1'), isTrue);
+
+      expect(await fieldRow('f1'), isNull);
+      expect(await tombstones('diveCustomFields'), ['f1']);
+      expect(await diveVersion(), greaterThan(seeded));
+    });
+
+    test('a field that has gone finds nothing', () async {
+      expect(
+        await repo.updateCustomField(
+          'gone',
+          const DiveCustomFieldsCompanion(fieldValue: Value('x')),
+        ),
+        isFalse,
+      );
+      expect(await repo.deleteCustomField('gone'), isFalse);
+      expect(await diveVersion(), seeded);
+    });
+  });
 }

@@ -26176,6 +26176,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_ref_weight => 'משקולת';
 
   @override
+  String get settings_conflict_ref_customField => 'שדה מותאם';
+
+  @override
+  String get settings_conflict_ref_gasSwitch => 'החלפת גז';
+
+  @override
+  String get settings_conflict_ref_profileEvent => 'אירוע';
+
+  @override
+  String get settings_conflict_ref_scenario => 'תרחיש';
+
+  @override
   String get settings_conflict_ref_transmitter => 'משדר';
 
   @override
@@ -26590,6 +26602,16 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String settings_agentAccess_confirm_alsoUnlinks(String kind, int count) {
     return 'מנתק גם $kind: $count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_merge(String name) {
+    return 'מיזוג לתוך $name';
+  }
+
+  @override
+  String settings_agentAccess_confirm_moves(String kind, int count) {
+    return 'מעביר $kind: $count';
   }
 
   @override
@@ -57448,6 +57470,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get settings_photos_browserReadOnly =>
+      'דפדפן מציג את עותקי התמונות שהמכשירים האחרים שלך שומרים, אך אינו יכול להתחיל אותם. אפשר להתחיל אותם באפליקציה בטלפון או במחשב.';
+
+  @override
   String get settings_conflict_field_remoteStoreId => 'הועלה אל';
 
   @override
@@ -58217,11 +58243,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get web_continueWithoutSync => 'המשך ללא מאגר סנכרון';
 
   @override
-  String get web_rememberOnThisDevice_title => 'זכור במכשיר זה';
+  String get web_rememberOnThisDevice_title => 'זכור את הכניסה במכשיר זה';
 
   @override
   String get web_rememberOnThisDevice_subtitle =>
-      'שמור את פרטי הכניסה ואת ביטוי הסיסמה בדפדפן זה. כשכבוי, הם נשכחים עם סגירת הכרטיסייה.';
+      'שמור את פרטי הכניסה ואת ביטוי הסיסמה בדפדפן זה. כשכבוי, הם נשכחים עם סגירת הכרטיסייה. הצלילות שלך נשארות בדפדפן זה בכל מקרה, עד שתשכח את המכשיר הזה.';
+
+  @override
+  String get web_rememberOnThisDevice_subtitleInMemory =>
+      'שמור את פרטי הכניסה ואת ביטוי הסיסמה בדפדפן זה. כשכבוי, הם נשכחים עם סגירת הכרטיסייה. דפדפן זה אינו שומר צלילות לאחר סגירת הכרטיסייה, בין אם זה מופעל ובין אם לא.';
 
   @override
   String get web_unavailable_offer_icloud =>

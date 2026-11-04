@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/gas_percent.dart';
+import 'package:submersion/core/utils/minutes_seconds.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/agent_access/data/writes/write_plan.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
@@ -103,6 +104,13 @@ class AgentWriteConfirmDialog extends ConsumerWidget {
                     value,
                   ),
                 ),
+              for (final MapEntry(:key, :value) in _moved.entries)
+                Text(
+                  l.settings_agentAccess_confirm_moves(
+                    changeLogTableLabel(l, key),
+                    value,
+                  ),
+                ),
               ExpansionTile(
                 key: detailsKey,
                 tilePadding: EdgeInsets.zero,
@@ -141,6 +149,9 @@ class AgentWriteConfirmDialog extends ConsumerWidget {
 
   /// Records that lose a link to the plan's own deletes, by table.
   Map<String, int> get _alsoUnlinked => _sum((reach) => reach.unlinked);
+
+  /// Links the plan's merges move to the records they merge into, by table.
+  Map<String, int> get _moved => _sum((reach) => reach.moved);
 
   Map<String, int> _sum(Map<String, int> Function(DeleteReach) counted) {
     final counts = <String, int>{};
@@ -256,6 +267,19 @@ class _PlanItemRow extends StatelessWidget {
             ),
           ),
           if (where.isNotEmpty) Text(where, style: theme.textTheme.bodySmall),
+          if (item.mergeInto case final into?)
+            Text(
+              l.settings_agentAccess_confirm_merge(item.mergeTitle ?? into),
+              style: theme.textTheme.bodySmall,
+            ),
+          for (final MapEntry(:key, :value) in item.reach.moved.entries)
+            Text(
+              l.settings_agentAccess_confirm_moves(
+                changeLogTableLabel(l, key),
+                value,
+              ),
+              style: theme.textTheme.bodySmall,
+            ),
           for (final MapEntry(:key, :value) in item.fields.entries)
             Text(
               '$key: ${shown(key, value.oldValue, oldPressure)} '
@@ -299,6 +323,31 @@ String agentValueText(
   num? workingPressureBar,
 }) {
   if (value == null) return l.settings_agentAccess_confirm_none;
+  // A list written whole, such as a preset's entries: each item reads as it
+  // would alone, and each value of an object by its own key.
+  if (value is List) {
+    return value
+        .map(
+          (item) => agentValueText(
+            l,
+            units,
+            key,
+            item,
+            workingPressureBar: workingPressureBar,
+          ),
+        )
+        .join(value.any((item) => item is Map) ? '; ' : ', ');
+  }
+  if (value is Map) {
+    final pressure = value['working_pressure_bar'] as num?;
+    return [
+      for (final MapEntry(:key, :value) in value.entries)
+        if (value != null && value != '')
+          '$key: ${agentValueText(l, units, '$key', value, workingPressureBar: pressure)}',
+    ].join(', ');
+  }
+  // A time into the dive, such as a switch's or an annotation's.
+  if (key.endsWith('_s') && value is int) return formatMinutesSeconds(value);
   if (value is num) {
     final number = value.toDouble();
     if (key.endsWith('_m')) return units.formatDepth(number);

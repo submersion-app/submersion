@@ -29,6 +29,7 @@ typedef _SegmentInputs = ({
   List<GasSwitchWithTank> gasSwitches,
   Map<String, List<TankPressurePoint>> tankPressures,
   DiveEnvironment environment,
+  bool onLoop,
 });
 
 /// The source whose samples [key] names, or null when the dive has no
@@ -69,6 +70,7 @@ Future<_SegmentInputs?> _segmentInputs(Ref ref, DiveSourceKey key) async {
       gasSwitches: gasSwitches,
       tankPressures: tankPressures,
       environment: dive.environment,
+      onLoop: dive.isRebreather,
     );
   }
 
@@ -96,6 +98,7 @@ Future<_SegmentInputs?> _segmentInputs(Ref ref, DiveSourceKey key) async {
         if (tankIds.contains(entry.key)) entry.key: entry.value,
     },
     environment: dive.environment,
+    onLoop: dive.isRebreather,
   );
 }
 
@@ -120,6 +123,7 @@ final gasSwitchSegmentsProvider =
             ? null
             : inputs.tankPressures,
         environment: inputs.environment,
+        onLoop: inputs.onLoop,
       );
     });
 
@@ -146,6 +150,7 @@ final phaseSegmentsProvider =
             : inputs.tankPressures,
         gasSwitches: inputs.gasSwitches.isEmpty ? null : inputs.gasSwitches,
         environment: inputs.environment,
+        onLoop: inputs.onLoop,
         decoStops: analysis?.decoStopWindows ?? const [],
         safetyStops: safetyStopWindows(
           analysis?.events ?? const [],

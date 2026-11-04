@@ -85,6 +85,14 @@ String conflictReferenceLabel(
       return l10n.settings_conflict_ref_tank;
     case 'diveWeights':
       return l10n.settings_conflict_ref_weight;
+    case 'diveCustomFields':
+      return l10n.settings_conflict_ref_customField;
+    case 'gasSwitches':
+      return l10n.settings_conflict_ref_gasSwitch;
+    case 'diveProfileEvents':
+      return l10n.settings_conflict_ref_profileEvent;
+    case 'diveScenarios':
+      return l10n.settings_conflict_ref_scenario;
     case 'divePlanTanks':
       return l10n.settings_conflict_ref_plannedTank;
     case 'divePlans':

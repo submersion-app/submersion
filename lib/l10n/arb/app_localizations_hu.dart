@@ -26723,6 +26723,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_ref_weight => 'Súly';
 
   @override
+  String get settings_conflict_ref_customField => 'Egyéni mező';
+
+  @override
+  String get settings_conflict_ref_gasSwitch => 'Gázcserélés';
+
+  @override
+  String get settings_conflict_ref_profileEvent => 'Esemény';
+
+  @override
+  String get settings_conflict_ref_scenario => 'Forgatókönyv';
+
+  @override
   String get settings_conflict_ref_transmitter => 'Jeladó';
 
   @override
@@ -27141,6 +27153,16 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String settings_agentAccess_confirm_alsoUnlinks(String kind, int count) {
     return 'Ezt is leválasztja: $kind: $count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_merge(String name) {
+    return 'Összevonás ezzel: $name';
+  }
+
+  @override
+  String settings_agentAccess_confirm_moves(String kind, int count) {
+    return 'Áthelyezi: $kind: $count';
   }
 
   @override
@@ -58348,6 +58370,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get settings_photos_browserReadOnly =>
+      'A böngésző megjeleníti a többi eszköze által tárolt fotómásolatokat, de nem tudja elindítani őket. Indítsa el őket az alkalmazásban egy telefonon vagy számítógépen.';
+
+  @override
   String get settings_conflict_field_remoteStoreId => 'Feltöltés helye';
 
   @override
@@ -59129,11 +59155,16 @@ class AppLocalizationsHu extends AppLocalizations {
       'Folytatás szinkronizálási tároló nélkül';
 
   @override
-  String get web_rememberOnThisDevice_title => 'Megjegyzés ezen az eszközön';
+  String get web_rememberOnThisDevice_title =>
+      'Bejelentkezés megjegyzése ezen az eszközön';
 
   @override
   String get web_rememberOnThisDevice_subtitle =>
-      'A bejelentkezési adatok és a jelmondat megőrzése ebben a böngészőben. Kikapcsolva a lap bezárásakor elfelejtődnek.';
+      'A bejelentkezési adatok és a jelmondat megőrzése ebben a böngészőben. Kikapcsolva a lap bezárásakor elfelejtődnek. A merüléseid mindenképp ebben a böngészőben maradnak, amíg el nem felejted ezt az eszközt.';
+
+  @override
+  String get web_rememberOnThisDevice_subtitleInMemory =>
+      'A bejelentkezési adatok és a jelmondat megőrzése ebben a böngészőben. Kikapcsolva a lap bezárásakor elfelejtődnek. Ez a böngésző a lap bezárása után nem őrzi meg a merüléseket, akár be van kapcsolva, akár nincs.';
 
   @override
   String get web_unavailable_offer_icloud =>

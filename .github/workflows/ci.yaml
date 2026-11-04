@@ -693,7 +693,7 @@ jobs:
       - name: Run Python guard tests with coverage
         run: |
           mkdir -p coverage
-          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_glibc_floor.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_flutter_setup_retried.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py,scripts/filter_trivial_coverage.py,scripts/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/report_inherited_failures.py,scripts/export_support_matrix_catalog.py,scripts/check_no_skipped_tests.py,scripts/check_docs_links.py,scripts/check_dependabot_gemfiles.py,scripts/dependabot_failure_alert.py,scripts/check_ruby_versions.py,scripts/demo_data/fetch_demo_db.py,scripts/curated_sites.py,scripts/demo_package_age_alert.py,scripts/demo_data/fetch_published_manifest.py,scripts/snapshot_downloads.py,scripts/check_web_bundle.py,scripts/web/check_sqlite3_wasm_lock.py,scripts/web/serve_bundle.py'
+          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_glibc_floor.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_flutter_setup_retried.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py,scripts/filter_trivial_coverage.py,scripts/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/report_inherited_failures.py,scripts/export_support_matrix_catalog.py,scripts/check_no_skipped_tests.py,scripts/check_docs_links.py,scripts/check_dependabot_gemfiles.py,scripts/dependabot_failure_alert.py,scripts/check_ruby_versions.py,scripts/demo_data/fetch_demo_db.py,scripts/curated_sites.py,scripts/demo_package_age_alert.py,scripts/demo_data/fetch_published_manifest.py,scripts/snapshot_downloads.py,scripts/check_web_bundle.py,scripts/web/check_sqlite3_wasm_lock.py,scripts/web/serve_bundle.py,scripts/web/stage_hosted_site.py'
           python3 -m coverage run --include="$guards" \
             scripts/check_proguard_serial_keep_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -756,6 +756,8 @@ jobs:
             scripts/web/check_sqlite3_wasm_lock_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/web/serve_bundle_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/web/stage_hosted_site_test.py
           python3 -m coverage report -m --include="$guards"
           python3 -m coverage xml --include="$guards" \
             -o coverage/scripts.xml
@@ -1096,15 +1098,17 @@ jobs:
             --dart-define=MINIO_ACCESS_KEY="$MINIO_ROOT_USER" \
             --dart-define=MINIO_SECRET_KEY="$MINIO_ROOT_PASSWORD"
 
-  # The bundle in three browsers (issue #4121): Playwright drives Chromium,
-  # Firefox and WebKit through connecting to a MinIO store, the first sync,
+  # The bundle in two browsers (issue #4121): Playwright drives Firefox and
+  # WebKit through connecting to a MinIO store, the first sync,
   # a dive edit and a publish, and checks the bucket for the browser's own
   # changeset. The bundle is web-build's artifact, served with the hosting
   # headers by scripts/web/serve_bundle.py. A browser that never renders
   # fails on the wait for Flutter's semantics tree, and a run that tested
-  # nothing fails on the junit count.
+  # nothing fails on the junit count. Chromium is left out (#4186): these
+  # runners give it only software drawing on four cores, and its step times
+  # swung with the load, so its failures pointed at nothing.
   web-smoke:
-    name: Web Smoke (3 browsers)
+    name: Web Smoke (Firefox and WebKit)
     needs: [changes, web-build]
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
@@ -1199,10 +1203,10 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install Playwright and the three browsers
+      - name: Install Playwright, Firefox and WebKit
         run: |
           python3 -m pip install -r scripts/web/requirements-smoke.txt
-          python3 -m playwright install --with-deps chromium firefox webkit
+          python3 -m playwright install --with-deps firefox webkit
 
       - name: Serve the bundle with the hosting headers
         run: |
@@ -1216,7 +1220,7 @@ jobs:
           done
           curl -sfI http://127.0.0.1:8080/index.html | grep -i cross-origin-opener-policy
 
-      - name: Run the smoke in Chromium, Firefox and WebKit
+      - name: Run the smoke in Firefox and WebKit
         env:
           SMOKE_BASE_URL: http://127.0.0.1:8080
           SMOKE_ARTIFACT_DIR: ${{ runner.temp }}/smoke

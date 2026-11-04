@@ -155,6 +155,7 @@ class _OceanBackgroundState extends State<OceanBackground>
     if (watch == _watchingFrames) return;
     _watchingFrames = watch;
     if (watch) {
+      _frameBudget.restartCadence();
       SchedulerBinding.instance.addTimingsCallback(_onFrameTimings);
     } else {
       SchedulerBinding.instance.removeTimingsCallback(_onFrameTimings);
@@ -162,7 +163,7 @@ class _OceanBackgroundState extends State<OceanBackground>
   }
 
   void _onFrameTimings(List<FrameTiming> timings) {
-    if (_frameBudget.record(timings.map((timing) => timing.totalSpan))) {
+    if (_frameBudget.record(timings)) {
       _syncAnimation();
     }
   }
@@ -260,33 +261,42 @@ class OceanEffectPainter extends CustomPainter {
     _paintBubbles(canvas, size);
   }
 
+  /// Each patch fills only its own square: the gradient is transparent
+  /// beyond its radius, and a browser drawing without WebGL rasterises every
+  /// picture on every frame, so a full-screen fill cost it two full-screen
+  /// passes whenever anything animated (#4186).
   void _paintCaustics(Canvas canvas, Size size) {
     final t = animationValue * 2 * math.pi;
     final dx = math.sin(t) * 8;
     final dy = math.cos(t) * 4;
-    final rect = Offset.zero & size;
 
     // First caustic patch (upper-left area)
-    final center1 = Offset(size.width * 0.3 + dx, size.height * 0.4 + dy);
+    final patch1 = Rect.fromCircle(
+      center: Offset(size.width * 0.3 + dx, size.height * 0.4 + dy),
+      radius: 80,
+    );
     final paint1 = Paint()
       ..shader = RadialGradient(
         colors: [
           Colors.white.withValues(alpha: causticOpacity),
           Colors.transparent,
         ],
-      ).createShader(Rect.fromCircle(center: center1, radius: 80));
-    canvas.drawRect(rect, paint1);
+      ).createShader(patch1);
+    canvas.drawRect(patch1, paint1);
 
     // Second caustic patch (lower-right area)
-    final center2 = Offset(size.width * 0.7 - dx, size.height * 0.6 - dy);
+    final patch2 = Rect.fromCircle(
+      center: Offset(size.width * 0.7 - dx, size.height * 0.6 - dy),
+      radius: 60,
+    );
     final paint2 = Paint()
       ..shader = RadialGradient(
         colors: [
           Colors.white.withValues(alpha: causticOpacity * 0.67),
           Colors.transparent,
         ],
-      ).createShader(Rect.fromCircle(center: center2, radius: 60));
-    canvas.drawRect(rect, paint2);
+      ).createShader(patch2);
+    canvas.drawRect(patch2, paint2);
   }
 
   void _paintBubbles(Canvas canvas, Size size) {

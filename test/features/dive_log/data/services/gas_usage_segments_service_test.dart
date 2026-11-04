@@ -181,6 +181,47 @@ void main() {
       },
     );
 
+    group('with a loop gas (#4020)', () {
+      final bailouts = [
+        _tank(id: 'ean40', o2: 40, name: 'Stage', role: TankRole.stage),
+        _tank(
+          id: 'tx',
+          o2: 15,
+          he: 50,
+          name: 'Bailout',
+          order: 1,
+          role: TankRole.bailout,
+        ),
+      ];
+
+      test('shows a diluent no cylinder holds, on no cylinder', () {
+        final segments = buildGasUsageSegments(
+          tanks: bailouts,
+          gasSwitches: const [],
+          diveDurationSeconds: 1200,
+          loopGas: const GasMix(),
+        );
+
+        expect(segments.single.gasMix.isAir, isTrue);
+        expect(segments.single.tankName, isNull);
+      });
+
+      test('runs up to a bailout, which shows its own gas', () {
+        final segments = buildGasUsageSegments(
+          tanks: bailouts,
+          gasSwitches: [
+            _switch(tankId: 'ean40', timestamp: 600, o2Fraction: 0.40),
+          ],
+          diveDurationSeconds: 1200,
+          firstSampleSeconds: 10,
+          loopGas: const GasMix(),
+        );
+
+        expect(segments.map((s) => s.gasMix.o2), [21, 40]);
+        expect(segments.first.endSeconds, 600);
+      });
+    });
+
     test('starts on the lowest-order tank when none is back gas', () {
       final segments = buildGasUsageSegments(
         tanks: [

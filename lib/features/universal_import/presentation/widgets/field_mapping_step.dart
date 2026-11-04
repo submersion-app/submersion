@@ -125,7 +125,7 @@ class _FieldMappingStepState extends ConsumerState<FieldMappingStep> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (state.error != null) ...[
-                Text(
+                SelectableText(
                   state.error!,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.error,
@@ -313,7 +313,7 @@ class _NoColumnsNotice extends StatelessWidget {
             ),
             if (error != null) ...[
               const SizedBox(height: 12),
-              Text(
+              SelectableText(
                 error!,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodySmall?.copyWith(

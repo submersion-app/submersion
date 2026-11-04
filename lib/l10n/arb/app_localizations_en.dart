@@ -26397,6 +26397,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_ref_weight => 'Weight';
 
   @override
+  String get settings_conflict_ref_customField => 'Custom field';
+
+  @override
+  String get settings_conflict_ref_gasSwitch => 'Gas switch';
+
+  @override
+  String get settings_conflict_ref_profileEvent => 'Profile event';
+
+  @override
+  String get settings_conflict_ref_scenario => 'Scenario';
+
+  @override
   String get settings_conflict_ref_transmitter => 'Transmitter';
 
   @override
@@ -26811,6 +26823,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String settings_agentAccess_confirm_alsoUnlinks(String kind, int count) {
     return 'Also unlinks $kind: $count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_merge(String name) {
+    return 'Merge into $name';
+  }
+
+  @override
+  String settings_agentAccess_confirm_moves(String kind, int count) {
+    return 'Moves $kind: $count';
   }
 
   @override
@@ -57748,6 +57770,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get settings_photos_browserReadOnly =>
+      'A browser shows the photo copies your other devices keep, but cannot start them. Start them in the app on a phone or computer.';
+
+  @override
   String get settings_conflict_field_remoteStoreId => 'Uploaded to';
 
   @override
@@ -58523,11 +58549,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get web_continueWithoutSync => 'Continue without a sync store';
 
   @override
-  String get web_rememberOnThisDevice_title => 'Remember on this device';
+  String get web_rememberOnThisDevice_title =>
+      'Remember sign-in on this device';
 
   @override
   String get web_rememberOnThisDevice_subtitle =>
-      'Keep the sign-in details and passphrase in this browser. Off, they are forgotten when the tab closes.';
+      'Keep the sign-in details and passphrase in this browser. Off, they are forgotten when the tab closes. Your dives stay in this browser either way, until you forget this device.';
+
+  @override
+  String get web_rememberOnThisDevice_subtitleInMemory =>
+      'Keep the sign-in details and passphrase in this browser. Off, they are forgotten when the tab closes. This browser keeps no dives after the tab closes, whether this is on or off.';
 
   @override
   String get web_unavailable_offer_icloud =>

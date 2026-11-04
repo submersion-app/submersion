@@ -69,6 +69,14 @@ void main() {
     expect(find.textContaining('0 of 0 columns mapped'), findsNothing);
     expect(find.textContaining('no columns to map'), findsOneWidget);
     expect(find.text('No data could be parsed from the file'), findsOneWidget);
+    // Selectable, so it can be pasted into a report (#3629).
+    expect(
+      find.widgetWithText(
+        SelectableText,
+        'No data could be parsed from the file',
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('a CSV with columns still gets the mapping editor', (
@@ -121,6 +129,13 @@ void main() {
     await _pump(tester, container);
 
     expect(find.text('Failed to parse file: FormatException'), findsOneWidget);
+    expect(
+      find.widgetWithText(
+        SelectableText,
+        'Failed to parse file: FormatException',
+      ),
+      findsOneWidget,
+    );
     expect(find.text('Column Mapping'), findsOneWidget);
     expect(find.text('Date'), findsOneWidget);
   });

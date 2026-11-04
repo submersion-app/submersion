@@ -2,6 +2,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_errors.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
+import 'package:submersion/core/services/media_store/store_marker.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media_store/data/media_store_service.dart';
 import 'package:submersion/features/media_store/presentation/media_store_error_message.dart';
@@ -127,6 +128,7 @@ String photosAttachErrorText(
   if (e is MediaStoreAccountUnusable) {
     return l10n.settings_accounts_signInTo(choice.label);
   }
+  if (e is MediaStoreReadOnly) return l10n.settings_photos_browserReadOnly;
   final cause = e.cause;
   if (cause is WebDavException) return webDavErrorText(l10n, cause);
   return mediaStoreErrorMessage(l10n, e);

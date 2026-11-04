@@ -77,6 +77,38 @@ void main() {
     expect(_gradientOf(tester).colors.first, _abyssTop);
   });
 
+  // The caustic gradients are transparent beyond their radius, so filling
+  // more than their squares draws nothing. A browser drawing without WebGL
+  // rasterises every picture on every frame, and two full-screen fills made
+  // each spinner frame cost 134 ms on the page's thread, which starved
+  // drift's replies until setup stalled (#4186).
+  test('fills only the squares the caustic shimmer reaches', () {
+    const size = Size(1280, 900);
+    final painter = OceanEffectPainter(
+      animationValue: 0,
+      bubbleColor: Colors.white,
+      causticOpacity: 0.12,
+    );
+
+    // At the start of the cycle each patch sits 4 points off its rest.
+    expect(
+      (Canvas canvas) => painter.paint(canvas, size),
+      paints
+        ..rect(
+          rect: Rect.fromCircle(
+            center: Offset(size.width * 0.3, size.height * 0.4 + 4),
+            radius: 80,
+          ),
+        )
+        ..rect(
+          rect: Rect.fromCircle(
+            center: Offset(size.width * 0.7, size.height * 0.6 - 4),
+            radius: 60,
+          ),
+        ),
+    );
+  });
+
   group('frame budget (#3044)', () {
     double animationValueOf(WidgetTester tester) {
       final paint = tester.widget<CustomPaint>(
@@ -172,15 +204,15 @@ void main() {
       expect(tester.binding.hasScheduledFrame, isFalse);
     });
 
-    FrameTiming frameTaking(Duration span) {
+    FrameTiming frameTaking(Duration span, {int vsyncStart = 0}) {
       final micros = span.inMicroseconds;
       return FrameTiming(
-        vsyncStart: 0,
-        buildStart: 0,
-        buildFinish: micros ~/ 2,
-        rasterStart: micros ~/ 2,
-        rasterFinish: micros,
-        rasterFinishWallTime: micros,
+        vsyncStart: vsyncStart,
+        buildStart: vsyncStart,
+        buildFinish: vsyncStart + micros ~/ 2,
+        rasterStart: vsyncStart + micros ~/ 2,
+        rasterFinish: vsyncStart + micros,
+        rasterFinishWallTime: vsyncStart + micros,
       );
     }
 
@@ -199,6 +231,25 @@ void main() {
       await pumpAnimated(tester);
 
       reportFrames(tester, const Duration(milliseconds: 120), 12);
+      await tester.pump();
+
+      expect(await countRepaintsOverOneSecond(tester), 0);
+      expect(tester.binding.hasScheduledFrame, isFalse);
+    });
+
+    // Chromium drawing WebGL in software does the drawing in its GPU process,
+    // after a frame's timings end: each frame looks quick, they arrive about
+    // half as often as asked, and the drawing starved drift's workers while
+    // the splash waited on the database (#4186).
+    testWidgets('holds still once its frames keep arriving late', (
+      tester,
+    ) async {
+      await pumpAnimated(tester);
+
+      tester.binding.platformDispatcher.onReportTimings!([
+        for (var i = 0; i < 13; i++)
+          frameTaking(const Duration(milliseconds: 8), vsyncStart: i * 60000),
+      ]);
       await tester.pump();
 
       expect(await countRepaintsOverOneSecond(tester), 0);

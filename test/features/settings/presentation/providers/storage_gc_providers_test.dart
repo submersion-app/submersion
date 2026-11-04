@@ -10,6 +10,7 @@ import 'package:path_provider_platform_interface/path_provider_platform_interfac
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/services/media_store/network_status_service.dart';
 import 'package:submersion/core/services/media_store/store_keys.dart';
@@ -135,10 +136,13 @@ void main() {
     bool runtimeHangs = false,
     Future<void> Function()? whileRuntimeBuilds,
     MediaCacheIndexSweep? indexSweep,
+    DeviceCapabilities? capabilities,
   }) {
     final cache = MediaCacheStore(database: cacheDb, root: root);
     final c = ProviderContainer(
       overrides: [
+        if (capabilities != null)
+          deviceCapabilitiesProvider.overrideWithValue(capabilities),
         if (runtimeHangs)
           mediaStoreRuntimeWaitProvider.overrideWithValue(
             const Duration(milliseconds: 50),
@@ -360,6 +364,29 @@ void main() {
       store.objects.keys,
       contains(StoreKeys.objectKey('dead', extension: 'jpg')),
     );
+  });
+
+  // Issue #4193: a browser reads the store and never writes it, so neither
+  // the cleanup's deletes nor the marker check behind them run there.
+  test('a browser never sweeps the store', () async {
+    await registerStore();
+    await knownPhoto();
+    deadObject();
+    writeMarker('another-library');
+    final c = container(syncOn: false, capabilities: DeviceCapabilities.web);
+
+    await c.read(storageGcCoordinatorProvider).run(StorageGcTrigger.manual);
+
+    expect(
+      store.objects.keys,
+      contains(StoreKeys.objectKey('dead', extension: 'jpg')),
+    );
+    expect(
+      await MediaStoreAttachState(prefs: prefs).hasMarkerMismatch(),
+      isFalse,
+      reason: 'the marker check would have flagged another library',
+    );
+    expect((await MediaStoresRepository().getActive())!.lastSweepAt, isNull);
   });
 
   test('a store that fails its marker check is not swept', () async {
