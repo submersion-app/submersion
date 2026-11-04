@@ -20,12 +20,7 @@ lib/features/dive_log/data/repositories/dive_computer_merge_repository.dart:merg
 lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:addProfileEvent
 lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:clearEventsForDive
 lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:clearSourceAndProfiles
-lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:createComputer
-lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:deleteComputer
 lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:insertTanks
-lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:setAutoDownloadDisabled
-lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:setFavoriteComputer
-lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:updateComputer
 lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:updateLastDownload
 lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:updateLastFingerprint
 lib/features/dive_log/data/repositories/dive_custom_field_repository.dart:replaceFieldsForDive
@@ -108,8 +103,6 @@ lib/features/dive_log/data/repositories/profile_series_repository.dart:restoreRe
 lib/features/dive_log/data/repositories/profile_series_repository.dart:restoreSeriesRow
 lib/features/dive_log/data/repositories/profile_series_repository.dart:shiftSamples
 lib/features/dive_log/data/repositories/safety_findings_repository.dart:saveReview
-lib/features/dive_log/data/repositories/safety_findings_repository.dart:setDismissed
-lib/features/dive_log/data/repositories/safety_findings_repository.dart:setDismissedForDives
 lib/features/dive_log/data/repositories/source_clock_repository.dart:restore
 lib/features/dive_log/data/repositories/source_clock_repository.dart:shift
 lib/features/dive_log/data/repositories/tank_computer_links.dart:clearTankComputerLinks

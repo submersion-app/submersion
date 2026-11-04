@@ -38,7 +38,9 @@ import 'package:submersion/features/agent_access/data/writes/families/course_wri
 import 'package:submersion/features/agent_access/data/writes/families/pre_dive_session_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/rule_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/saved_view_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/safety_finding_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/safety_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/dive_computer_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/site_feature_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/pre_dive_template_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/currency_writes.dart';
@@ -144,6 +146,8 @@ class WriteCatalog {
       SiteFeatureWrites(repositories, stamper: stamper),
       IncidentWrites(repositories, refreshFindings: refreshFindings),
       EmergencyChamberWrites(repositories),
+      DiveComputerWrites(repositories),
+      SafetyFindingWrites(repositories),
     ]);
   }
 

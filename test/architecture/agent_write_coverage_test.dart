@@ -23,6 +23,7 @@ void main() {
   const courses = 'lib/features/courses/data/repositories';
   const planner = 'lib/features/planner/data/repositories';
   const safety = 'lib/features/safety/data/repositories';
+  const diveLog = 'lib/features/dive_log/data/repositories';
   const baselinePath = 'test/architecture/agent_write_coverage_baseline.txt';
 
   /// `repository file:method`, and the write entity that reaches it.
@@ -499,6 +500,21 @@ void main() {
     '$safety/incident_repository.dart:unlinkFromDeletedEquipment': 'equipment',
     for (final method in const ['createChamber', 'deleteChamber'])
       '$safety/emergency_chamber_repository.dart:$method': 'emergency_chambers',
+    for (final method in const [
+      'setFavoriteComputer',
+      'setAutoDownloadDisabled',
+    ])
+      '$diveLog/dive_computer_repository_impl.dart:$method': 'dive_computers',
+    // A computer's record is its gear item's: made, renamed and deleted
+    // with it.
+    for (final method in const [
+      'createComputer',
+      'updateComputer',
+      'deleteComputer',
+    ])
+      '$diveLog/dive_computer_repository_impl.dart:$method': 'equipment',
+    for (final method in const ['setDismissed', 'setDismissedForDives'])
+      '$diveLog/safety_findings_repository.dart:$method': 'safety_findings',
     for (final method in const ['cloneTemplate', 'updateItemEquipment'])
       'lib/features/pre_dive/data/repositories/'
               'pre_dive_template_repository.dart:$method':
