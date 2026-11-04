@@ -18,6 +18,7 @@ void main() {
   const passports = 'lib/features/cylinder_passports/data/repositories';
   const trips = 'lib/features/trips/data/repositories';
   const checklists = 'lib/features/checklists/data/repositories';
+  const divers = 'lib/features/divers/data/repositories';
   const baselinePath = 'test/architecture/agent_write_coverage_baseline.txt';
 
   /// `repository file:method`, and the write entity that reaches it.
@@ -325,6 +326,14 @@ void main() {
     ])
       '$checklists/trip_checklist_repository.dart:$method':
           'trip_checklist_items',
+    for (final method in const [
+      'createDiver',
+      'updateDiver',
+      'setDefaultDiver',
+    ])
+      '$divers/diver_repository.dart:$method': 'divers',
+    for (final method in const ['createEntry', 'updateEntry', 'deleteEntry'])
+      '$divers/diver_weight_entry_repository.dart:$method': 'weight_entries',
   };
 
   /// Writes that change no record a diver keeps, so no change set entity
@@ -332,6 +341,20 @@ void main() {
   /// file. Anything a diver edits as a record of their diving stays out of
   /// here, however small.
   final exempt = <String, String>{
+    // Decided 2026-11-04: an agent neither deletes nor merges a profile.
+    for (final path in const [
+      'diver_delete_steps.dart:*',
+      'diver_location_retirement.dart:*',
+      'diver_merge_repository.dart:*',
+      'diver_owned_rows.dart:*',
+      'diver_repository.dart:deleteDiver',
+      'diver_repository.dart:deleteDiverWithReassignment',
+    ])
+      '$divers/$path':
+          'deleting or merging a profile is done in the app, which offers '
+          'to move its dives first',
+    '$divers/diver_repository.dart:setActiveDiverIdInSettings':
+        'which profile this device shows, an app preference',
     'lib/features/settings/data/repositories/app_settings_repository.dart:*':
         'app preferences, not logbook records',
     'lib/features/settings/data/repositories/diver_settings_repository.dart:*':

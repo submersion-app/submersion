@@ -90,6 +90,15 @@ abstract class FieldCodec {
     bool nullable,
   }) = _NumberMapCodec;
 
+  /// An object naming each of [keys], each a text of at most [maxLength]
+  /// characters or null, trimmed and with a blank as null, such as an
+  /// emergency contact. The parsed value is the map as JSON with its keys
+  /// sorted, so it compares with a document's map.
+  const factory FieldCodec.textObject({
+    required Set<String> keys,
+    int maxLength,
+  }) = _TextObjectCodec;
+
   /// The id of a record of [refEntity]. The planner checks it as it checks
   /// a relation's links: the record must exist and be the owner's to use.
   const factory FieldCodec.reference(String refEntity, {bool nullable}) =
@@ -420,6 +429,54 @@ class _NumberMapCodec extends FieldCodec {
           SplayTreeMap<String, Object?>.of({
             for (final MapEntry(:key, :value) in documentValue.entries)
               '$key': value is num ? _plain(value) : value,
+          }),
+        )
+      : documentValue;
+
+  @override
+  Object? wire(Object? value) => value is String ? jsonDecode(value) : value;
+}
+
+class _TextObjectCodec extends FieldCodec {
+  const _TextObjectCodec({required this.keys, this.maxLength = 200});
+
+  final Set<String> keys;
+  final int maxLength;
+
+  String get _keyList => ([...keys]..sort()).join(', ');
+
+  @override
+  String get describe => 'an object naming $_keyList, each text or null';
+
+  @override
+  Object parseValue(Object raw) {
+    if (raw is! Map ||
+        raw.length != keys.length ||
+        !raw.keys.every(keys.contains)) {
+      throw FieldRefusal(
+        'This field takes an object naming $_keyList, each text or null.',
+      );
+    }
+    final sorted = SplayTreeMap<String, String?>();
+    for (final MapEntry(:key, :value) in raw.entries) {
+      if (value != null && value is! String) {
+        throw FieldRefusal('$key takes text or null.');
+      }
+      final text = (value as String?)?.trim();
+      if (text != null && text.length > maxLength) {
+        throw FieldRefusal('$key holds at most $maxLength characters.');
+      }
+      sorted[key as String] = text == null || text.isEmpty ? null : text;
+    }
+    return jsonEncode(sorted);
+  }
+
+  @override
+  Object? canonical(Object? documentValue) => documentValue is Map
+      ? jsonEncode(
+          SplayTreeMap<String, Object?>.of({
+            for (final MapEntry(:key, :value) in documentValue.entries)
+              '$key': value,
           }),
         )
       : documentValue;

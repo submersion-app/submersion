@@ -352,6 +352,10 @@ abstract class WritableEntry {
   /// Fields a create must carry.
   Set<String> get requiredOnCreate;
 
+  /// The column of [table] naming the profile a record belongs to: a
+  /// profile belongs to itself.
+  String get ownerColumn => 'diver_id';
+
   /// The record this one belongs to. A child takes its parent's owner,
   /// names it in [ChildOf.field] when it is created, and stays on it.
   ChildOf? get parent => null;
