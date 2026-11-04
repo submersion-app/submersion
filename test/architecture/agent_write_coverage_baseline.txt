@@ -447,10 +447,6 @@ lib/features/transmitters/data/repositories/transmitter_repository.dart:detachFr
 lib/features/transmitters/data/repositories/transmitter_repository.dart:unlinkFromDeletedEquipment
 lib/features/trips/data/repositories/itinerary_day_repository.dart:deleteBarePlanDaysOutside
 lib/features/trips/data/repositories/itinerary_day_repository.dart:deleteByTripId
-lib/features/trips/data/repositories/itinerary_day_repository.dart:saveAll
-lib/features/trips/data/repositories/itinerary_day_repository.dart:setPlannedDives
-lib/features/trips/data/repositories/itinerary_day_repository.dart:updateDay
-lib/features/trips/data/repositories/liveaboard_details_repository.dart:createOrUpdate
 lib/features/trips/data/repositories/liveaboard_details_repository.dart:deleteByTripId
 lib/features/trips/data/repositories/side_trip_links.dart:detachSideTripsForDelete
 lib/features/trips/data/repositories/trip_cylinder_repository.dart:createCylinder
