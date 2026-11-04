@@ -154,9 +154,6 @@ lib/features/dive_roles/data/repositories/dive_role_link_repository.dart:writeBu
 lib/features/dive_sites/data/repositories/site_children.dart:restore
 lib/features/dive_sites/data/repositories/site_children.dart:restoreSiteChildren
 lib/features/dive_sites/data/repositories/site_classification_repository.dart:relinkForMerge
-lib/features/dive_sites/data/repositories/site_feature_repository.dart:addFeature
-lib/features/dive_sites/data/repositories/site_feature_repository.dart:deleteFeature
-lib/features/dive_sites/data/repositories/site_feature_repository.dart:updateFeature
 lib/features/dive_sites/data/repositories/site_links.dart:restoreLinksToSites
 lib/features/dive_sites/data/repositories/site_repository_impl.dart:applyImportedMetadata
 lib/features/dive_sites/data/repositories/site_repository_impl.dart:applyLocationDetails
@@ -289,12 +286,6 @@ lib/features/rules/data/repositories/rule_run_repository.dart:deleteAllRuns
 lib/features/rules/data/repositories/rule_run_repository.dart:deleteRun
 lib/features/rules/data/repositories/rule_run_repository.dart:insertRun
 lib/features/rules/data/repositories/rule_run_repository.dart:markUndone
-lib/features/safety/data/repositories/emergency_chamber_repository.dart:createChamber
-lib/features/safety/data/repositories/emergency_chamber_repository.dart:deleteChamber
-lib/features/safety/data/repositories/incident_repository.dart:createIncident
-lib/features/safety/data/repositories/incident_repository.dart:deleteIncident
-lib/features/safety/data/repositories/incident_repository.dart:unlinkFromDeletedEquipment
-lib/features/safety/data/repositories/incident_repository.dart:updateIncident
 lib/features/tags/data/repositories/tag_link_repository.dart:addTags
 lib/features/tags/data/repositories/tag_link_repository.dart:deleteLinksFor
 lib/features/tags/data/repositories/tag_link_repository.dart:removeTags

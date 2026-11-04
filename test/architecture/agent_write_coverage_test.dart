@@ -22,6 +22,7 @@ void main() {
   const certs = 'lib/features/certifications/data/repositories';
   const courses = 'lib/features/courses/data/repositories';
   const planner = 'lib/features/planner/data/repositories';
+  const safety = 'lib/features/safety/data/repositories';
   const baselinePath = 'test/architecture/agent_write_coverage_baseline.txt';
 
   /// `repository file:method`, and the write entity that reaches it.
@@ -484,6 +485,20 @@ void main() {
       'lib/features/connections/data/repositories/'
               'connection_map_repository.dart:$method':
           'connection_maps',
+    for (final method in const ['addFeature', 'updateFeature', 'deleteFeature'])
+      'lib/features/dive_sites/data/repositories/site_feature_repository.dart:'
+              '$method':
+          'site_features',
+    for (final method in const [
+      'createIncident',
+      'updateIncident',
+      'deleteIncident',
+    ])
+      '$safety/incident_repository.dart:$method': 'incidents',
+    // An item's delete takes it off its incidents.
+    '$safety/incident_repository.dart:unlinkFromDeletedEquipment': 'equipment',
+    for (final method in const ['createChamber', 'deleteChamber'])
+      '$safety/emergency_chamber_repository.dart:$method': 'emergency_chambers',
     for (final method in const ['cloneTemplate', 'updateItemEquipment'])
       'lib/features/pre_dive/data/repositories/'
               'pre_dive_template_repository.dart:$method':
