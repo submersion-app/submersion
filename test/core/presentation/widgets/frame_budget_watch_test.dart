@@ -104,6 +104,20 @@ void main() {
       expect(watch.tripped, isTrue);
     });
 
+    test('an odd window judges by its middle gap', () {
+      final watch = FrameBudgetWatch(window: 5);
+      const late = Duration(milliseconds: 60);
+
+      // Three gaps on time and two late: the middle one is on time.
+      final onTime = _frames(4);
+      watch.record(onTime);
+      final lateFrames = _frames(2, gap: late, from: _after(onTime, late));
+      expect(watch.record(lateFrames), isFalse);
+
+      // One more late gap pushes an on-time one out: now the middle is late.
+      expect(watch.record(_frames(1, from: _after(lateFrames, late))), isTrue);
+    });
+
     test('does not judge the pace before the window has filled', () {
       final watch = FrameBudgetWatch();
 
