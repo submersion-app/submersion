@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
@@ -213,5 +214,31 @@ void main() {
     ]);
 
     expect(plan.items.single.alsoChanges['equipment'], 1);
+  });
+
+  // assignPassportId only releases holders the owner sees.
+  test('a retired holder of another profile is not listed', () async {
+    await gear('theirs', 'tank', status: 'retired');
+    await (db.update(db.equipment)..where((e) => e.id.equals('theirs'))).write(
+      const EquipmentCompanion(diverId: Value(kDiverB)),
+    );
+    await db
+        .into(db.equipmentAttributes)
+        .insert(
+          EquipmentAttributesCompanion.insert(
+            id: 'attr-theirs',
+            equipmentId: 'theirs',
+            attrKey: EquipmentAttrKeys.passportId,
+            valueText: const Value(passport),
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+
+    final plan = await h.preview([
+      updateOp('equipment', 'al80', {'passport_id': passport}),
+    ]);
+
+    expect(plan.items.single.alsoChanges['equipment'], isNull);
   });
 }

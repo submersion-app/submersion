@@ -55,11 +55,12 @@ Future<PlanBlock?> passportProblem(
 /// The fills a new passport id moves onto [itemId]: those under the id
 /// that no cylinder holds yet, and those under the item's old id. And the
 /// items out of service that give the id up, as assignPassportId releases
-/// it from every one.
+/// it from every one [ownerId] sees: owned, or shared with them.
 Future<Map<String, int>> passportTouched(
   String itemId,
   String passport,
   String? previous,
+  String? ownerId,
 ) async {
   final loose = await countRows(
     'cylinder_fills',
@@ -75,7 +76,9 @@ Future<Map<String, int>> passportTouched(
     'equipment',
     'id != ?2 AND id IN (SELECT equipment_id FROM equipment_attributes '
         'WHERE attr_key = ?3 AND is_custom = 0 AND value_text = ?1) '
-        'AND (is_active = 0 OR status IN (?4, ?5, ?6))',
+        'AND (is_active = 0 OR status IN (?4, ?5, ?6))'
+        '${ownerId == null ? '' : ' AND (diver_id = ?7 OR id IN (SELECT '
+                  'equipment_id FROM equipment_shares WHERE diver_id = ?7))'}',
     passport,
     [
       itemId,
@@ -83,6 +86,7 @@ Future<Map<String, int>> passportTouched(
       EquipmentStatus.retired.name,
       EquipmentStatus.sold.name,
       EquipmentStatus.wanted.name,
+      ?ownerId,
     ],
   );
   return {

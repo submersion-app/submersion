@@ -266,7 +266,7 @@ class EquipmentWrites extends WritableEntry {
     final logged = {
       if (events > 0) 'equipment_ownership_events': events,
       if (passport != null)
-        ...await passportTouched(id, passport, passportOf(current)),
+        ...await passportTouched(id, passport, passportOf(current), ownerId),
     };
     // Only a field change saves the item, so a change of tags, shares or
     // the passport alone derives nothing and renames no device.
