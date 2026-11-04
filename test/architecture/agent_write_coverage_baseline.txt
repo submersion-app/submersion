@@ -297,17 +297,6 @@ lib/features/equipment/data/repositories/equipment_observation_repository.dart:u
 lib/features/equipment/data/repositories/equipment_observation_repository.dart:update
 lib/features/equipment/data/repositories/equipment_repository_impl.dart:markAsServiced
 lib/features/equipment/data/repositories/equipment_repository_impl.dart:replaceChild
-lib/features/equipment/data/repositories/equipment_set_repository_impl.dart:addGeofence
-lib/features/equipment/data/repositories/equipment_set_repository_impl.dart:addItemToSet
-lib/features/equipment/data/repositories/equipment_set_repository_impl.dart:clearDefault
-lib/features/equipment/data/repositories/equipment_set_repository_impl.dart:createSet
-lib/features/equipment/data/repositories/equipment_set_repository_impl.dart:deleteSet
-lib/features/equipment/data/repositories/equipment_set_repository_impl.dart:removeGeofence
-lib/features/equipment/data/repositories/equipment_set_repository_impl.dart:removeItemFromSet
-lib/features/equipment/data/repositories/equipment_set_repository_impl.dart:setAsDefault
-lib/features/equipment/data/repositories/equipment_set_repository_impl.dart:setShowFigure
-lib/features/equipment/data/repositories/equipment_set_repository_impl.dart:updateGeofence
-lib/features/equipment/data/repositories/equipment_set_repository_impl.dart:updateSet
 lib/features/equipment/data/repositories/service_kind_repository.dart:createKind
 lib/features/equipment/data/repositories/service_kind_repository.dart:deleteKind
 lib/features/equipment/data/repositories/service_kind_repository.dart:updateKind

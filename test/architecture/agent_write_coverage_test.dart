@@ -194,6 +194,18 @@ void main() {
     ])
       '$gear/equipment_repository_impl.dart:$method': 'equipment',
     '$gear/equipment_share_repository.dart:setShares': 'equipment',
+    for (final method in const [
+      'createSet',
+      'updateSet',
+      'deleteSet',
+      'setAsDefault',
+      'clearDefault',
+      'setShowFigure',
+      'addGeofence',
+      'updateGeofence',
+      'removeGeofence',
+    ])
+      '$gear/equipment_set_repository_impl.dart:$method': 'equipment_sets',
     'lib/features/tags/data/repositories/tag_link_repository.dart:replaceTags':
         'equipment',
   };
@@ -267,6 +279,10 @@ void main() {
       'equipment_location_move_repository.dart:deleteForEquipment',
     ])
       '$gear/$step': 'an inner step of a delete of its owner',
+    for (final method in const ['addItemToSet', 'removeItemFromSet'])
+      '$gear/equipment_set_repository_impl.dart:$method':
+          'a shortcut for a member change, which equipment_sets covers as '
+          'equipment_ids through updateSet',
     for (final method in const ['shareMany', 'unshare', 'shareAllForDiver'])
       '$gear/equipment_share_repository.dart:$method':
           'a bulk shortcut for a share change, which equipment covers as '
