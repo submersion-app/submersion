@@ -119,7 +119,7 @@ class EquipmentLocationMoveWrites extends WritableEntry {
       nullable: true,
     ),
     // A moment, as a read lists it in UTC.
-    'moved_at': const FieldCodec.wallClock(),
+    'moved_at': const FieldCodec.instant(),
     'note': const FieldCodec.text(allowBlank: true, trim: true),
   };
 

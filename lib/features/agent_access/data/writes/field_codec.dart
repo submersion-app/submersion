@@ -64,6 +64,10 @@ abstract class FieldCodec {
   /// A wall clock, written as documents write it, with a nominal `Z`.
   const factory FieldCodec.wallClock() = _WallClockCodec;
 
+  /// A true moment, written as a read lists one, in UTC with a `Z`: when a
+  /// gear item moved, not a local time of day.
+  const factory FieldCodec.instant() = _InstantCodec;
+
   /// A day written as documents write one, `YYYY-MM-DD`, with no time or
   /// zone: a purchase date, an inspection date.
   const factory FieldCodec.calendarDate({bool nullable}) = _CalendarDateCodec;
@@ -393,6 +397,13 @@ class _IntegerListCodec extends FieldCodec {
 
   @override
   Object? wire(Object? value) => value is String ? jsonDecode(value) : value;
+}
+
+class _InstantCodec extends _WallClockCodec {
+  const _InstantCodec();
+
+  @override
+  String get describe => 'a moment in UTC, YYYY-MM-DDTHH:MM:SSZ';
 }
 
 class _WallClockCodec extends FieldCodec {

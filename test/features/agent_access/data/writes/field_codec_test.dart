@@ -159,6 +159,14 @@ void main() {
     );
   });
 
+  // A moment is written as a wall clock is, but means UTC, and says so.
+  test('an instant reads YYYY-MM-DDTHH:MM:SSZ as UTC and says so', () {
+    const codec = FieldCodec.instant();
+    expect(codec.parse('2026-03-01T10:00:00Z'), DateTime.utc(2026, 3, 1, 10));
+    expect(codec.describe, contains('UTC'));
+    expect(const FieldCodec.wallClock().describe, isNot(contains('UTC')));
+  });
+
   // A calendar date is a day, not a moment: no time, no zone.
   test('a calendar date takes YYYY-MM-DD only', () {
     const codec = FieldCodec.calendarDate(nullable: true);
