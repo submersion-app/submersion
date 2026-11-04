@@ -1,9 +1,10 @@
 import 'dart:convert';
 
-import 'package:drift/drift.dart' show Variable;
+import 'package:drift/drift.dart' show TableUpdateQuery, Variable;
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding_subjects.dart';
 
 /// Resolves the sources and tanks findings name into what a diver knows them
@@ -11,20 +12,41 @@ import 'package:submersion/features/data_quality/domain/entities/quality_finding
 ///
 /// Each read binds its id list as one JSON array and expands it with
 /// `json_each`, so a library with hundreds of findings stays one statement
-/// with one variable. Both reads watch their tables: a renamed computer, a
-/// set-primary or a tank reassigned from the inbox relabel the open cards.
+/// with one variable.
+///
+/// The reads are one-shot, refreshed through [watchChanges] the way the
+/// inbox's other lookups are (`invalidateSelfWhen` on a debounced tick):
+/// a renamed computer, a set-primary or a tank reassigned from the inbox
+/// relabels the open cards once the writes settle. A Drift `watch()` would
+/// re-query inside every write burst, and in a widget test's fake clock it
+/// held the connection that the test's own reads were waiting on.
 class QualityFindingSubjectQuery {
   QualityFindingSubjectQuery([AppDatabase? db]) : _dbOverride = db;
 
   final AppDatabase? _dbOverride;
   AppDatabase get _db => _dbOverride ?? DatabaseService.instance.database;
 
+  /// Debounce window of [watchChanges], the one the dive repository's change
+  /// ticks use, so a sync's burst of writes refreshes the labels once.
+  static const changeTickDebounce = Duration(milliseconds: 300);
+
+  /// Ticks when a table the labels read from changes.
+  Stream<void> watchChanges() => _db
+      .tableUpdates(
+        TableUpdateQuery.allOf([
+          TableUpdateQuery.onTable(_db.diveDataSources),
+          TableUpdateQuery.onTable(_db.diveComputers),
+          TableUpdateQuery.onTable(_db.diveTanks),
+        ]),
+      )
+      .debounce(changeTickDebounce);
+
   /// Source id to label: the saved computer's name, else its manufacturer
   /// and model, else the model the recording carries. A source with none of
   /// them is left out, and the caller keeps its unnamed copy.
-  Stream<Map<String, String>> watchSourceLabels(List<String> sourceIds) {
-    if (sourceIds.isEmpty) return Stream.value(const {});
-    return _db
+  Future<Map<String, String>> sourceLabels(List<String> sourceIds) async {
+    if (sourceIds.isEmpty) return const {};
+    final rows = await _db
         .customSelect(
           'SELECT s.id AS id, s.computer_model AS recorded_model, '
           'c.name AS name, c.manufacturer AS manufacturer, c.model AS model '
@@ -34,18 +56,16 @@ class QualityFindingSubjectQuery {
           variables: [Variable.withString(jsonEncode(sourceIds))],
           readsFrom: {_db.diveDataSources, _db.diveComputers},
         )
-        .watch()
-        .map(
-          (rows) => {
-            for (final r in rows)
-              r.read<String>('id'): ?_sourceLabel(
-                name: r.read<String?>('name'),
-                manufacturer: r.read<String?>('manufacturer'),
-                model: r.read<String?>('model'),
-                recordedModel: r.read<String?>('recorded_model'),
-              ),
-          },
-        );
+        .get();
+    return {
+      for (final r in rows)
+        r.read<String>('id'): ?_sourceLabel(
+          name: r.read<String?>('name'),
+          manufacturer: r.read<String?>('manufacturer'),
+          model: r.read<String?>('model'),
+          recordedModel: r.read<String?>('recorded_model'),
+        ),
+    };
   }
 
   /// Tank id to its position among its dive's tanks and its name. The
@@ -53,9 +73,9 @@ class QualityFindingSubjectQuery {
   /// the "Tank n" the dive's own screens give the n-th tank of that list.
   /// They sort by tank order alone, which leaves equal orders in table
   /// order, so ties break by rowid here, not by id.
-  Stream<Map<String, QualityTankRef>> watchTanks(List<String> tankIds) {
-    if (tankIds.isEmpty) return Stream.value(const {});
-    return _db
+  Future<Map<String, QualityTankRef>> tanks(List<String> tankIds) async {
+    if (tankIds.isEmpty) return const {};
+    final rows = await _db
         .customSelect(
           'SELECT t.id AS id, t.tank_name AS name, '
           '(SELECT COUNT(*) FROM dive_tanks o WHERE o.dive_id = t.dive_id '
@@ -67,16 +87,14 @@ class QualityFindingSubjectQuery {
           variables: [Variable.withString(jsonEncode(tankIds))],
           readsFrom: {_db.diveTanks},
         )
-        .watch()
-        .map(
-          (rows) => {
-            for (final r in rows)
-              r.read<String>('id'): QualityTankRef(
-                number: r.read<int>('number'),
-                name: _nonBlank(r.read<String?>('name')),
-              ),
-          },
-        );
+        .get();
+    return {
+      for (final r in rows)
+        r.read<String>('id'): QualityTankRef(
+          number: r.read<int>('number'),
+          name: _nonBlank(r.read<String?>('name')),
+        ),
+    };
   }
 }
 

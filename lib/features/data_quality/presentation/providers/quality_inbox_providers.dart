@@ -84,21 +84,24 @@ final qualityFindingSubjectQueryProvider = Provider<QualityFindingSubjectQuery>(
 /// Labels for the data sources the inbox's findings name, keyed by
 /// [qualitySourceIdsKey]: which computer a clock or source finding is about,
 /// for the card, its repair button and the follow-up sheet (issue #4209).
-final qualitySourceLabelsProvider = StreamProvider.autoDispose
-    .family<Map<String, String>, String>(
-      (ref, key) => ref
-          .watch(qualityFindingSubjectQueryProvider)
-          .watchSourceLabels(idsOfSubjectKey(key)),
-    );
+///
+/// One read per key, refreshed when a source, computer or tank write settles
+/// (the same debounced-tick pattern as [qualityFindingDivesProvider]).
+final qualitySourceLabelsProvider = FutureProvider.autoDispose
+    .family<Map<String, String>, String>((ref, key) {
+      final query = ref.watch(qualityFindingSubjectQueryProvider);
+      ref.invalidateSelfWhen(query.watchChanges());
+      return query.sourceLabels(idsOfSubjectKey(key));
+    });
 
 /// Position and name of the tanks the inbox's findings name, keyed by
 /// [qualityTankIdsKey], so a pressure or tank finding says which tank.
-final qualityTankRefsProvider = StreamProvider.autoDispose
-    .family<Map<String, QualityTankRef>, String>(
-      (ref, key) => ref
-          .watch(qualityFindingSubjectQueryProvider)
-          .watchTanks(idsOfSubjectKey(key)),
-    );
+final qualityTankRefsProvider = FutureProvider.autoDispose
+    .family<Map<String, QualityTankRef>, String>((ref, key) {
+      final query = ref.watch(qualityFindingSubjectQueryProvider);
+      ref.invalidateSelfWhen(query.watchChanges());
+      return query.tanks(idsOfSubjectKey(key));
+    });
 
 final diveOpenFindingsCountProvider = StreamProvider.autoDispose
     .family<int, String>(

@@ -55,7 +55,7 @@ void main() {
         ),
       );
 
-  group('watchSourceLabels', () {
+  group('sourceLabels', () {
     setUp(() async {
       await DiveRepository().createDive(
         domain.Dive(id: 'd1', dateTime: entry, entryTime: entry),
@@ -73,14 +73,14 @@ void main() {
       await seedComputer('maker', manufacturer: 'Shearwater');
       await seedSource('e', computerId: 'maker', computerModel: 'Perdix 2');
 
-      final labels = await query.watchSourceLabels([
+      final labels = await query.sourceLabels([
         'a',
         'b',
         'c',
         'd',
         'e',
         'missing',
-      ]).first;
+      ]);
 
       expect(labels, {
         'a': 'My Perdix',
@@ -92,26 +92,26 @@ void main() {
     });
 
     test('an empty id list reads nothing', () async {
-      expect(await query.watchSourceLabels(const []).first, isEmpty);
+      expect(await query.sourceLabels(const []), isEmpty);
     });
 
-    test('a renamed computer relabels the source', () async {
+    // The inbox re-reads on this tick, so a renamed computer relabels the
+    // open cards once the write settles.
+    test('a computer rename ticks the change stream', () async {
       await seedComputer('c1', name: 'Old');
       await seedSource('a', computerId: 'c1');
-      final labels = query.watchSourceLabels(['a']);
-      final seen = <Map<String, String>>[];
-      final sub = labels.listen(seen.add);
-      await pumpEventQueue();
+      expect(await query.sourceLabels(['a']), {'a': 'Old'});
+
+      final tick = query.watchChanges().first;
       await (db.update(db.diveComputers)..where((t) => t.id.equals('c1')))
           .write(const DiveComputersCompanion(name: Value('New')));
-      await pumpEventQueue();
-      await sub.cancel();
-      expect(seen.first, {'a': 'Old'});
-      expect(seen.last, {'a': 'New'});
+      await tick.timeout(const Duration(seconds: 5));
+
+      expect(await query.sourceLabels(['a']), {'a': 'New'});
     });
   });
 
-  group('watchTanks', () {
+  group('tanks', () {
     test('numbers tanks by their order within their own dive', () async {
       await DiveRepository().createDive(
         domain.Dive(
@@ -134,12 +134,7 @@ void main() {
         ),
       );
 
-      final tanks = await query.watchTanks([
-        'deco',
-        'stage',
-        'other',
-        'missing',
-      ]).first;
+      final tanks = await query.tanks(['deco', 'stage', 'other', 'missing']);
 
       expect(tanks, {
         'stage': const QualityTankRef(number: 2, name: 'Stage'),
@@ -163,14 +158,14 @@ void main() {
         ),
       );
 
-      final tanks = await query.watchTanks(['aa-second', 'zz-first']).first;
+      final tanks = await query.tanks(['aa-second', 'zz-first']);
 
       expect(tanks['zz-first']!.number, 1);
       expect(tanks['aa-second']!.number, 2);
     });
 
     test('an empty id list reads nothing', () async {
-      expect(await query.watchTanks(const []).first, isEmpty);
+      expect(await query.tanks(const []), isEmpty);
     });
   });
 }
