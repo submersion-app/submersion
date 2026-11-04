@@ -213,6 +213,15 @@ void main() {
       'deleteLocation',
     ])
       '$gear/equipment_location_repository.dart:$method': 'equipment_locations',
+    for (final method in const [
+      'addComponent',
+      'updateRole',
+      'replaceComponent',
+      'reorder',
+      'removeComponent',
+    ])
+      '$gear/equipment_component_repository.dart:$method':
+          'equipment_components',
     for (final method in const ['recordMoves', 'updateMove', 'deleteMove'])
       '$gear/equipment_location_move_repository.dart:$method':
           'equipment_location_moves',

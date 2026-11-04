@@ -10,6 +10,7 @@ import 'package:submersion/features/agent_access/data/writes/families/cylinder_c
 import 'package:submersion/features/agent_access/data/writes/families/dive_role_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_type_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/equipment_component_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/equipment_location_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/equipment_set_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/equipment_writes.dart';
@@ -64,6 +65,7 @@ class WriteCatalog {
       EquipmentSetWrites(repositories),
       EquipmentLocationWrites(repositories),
       EquipmentLocationMoveWrites(repositories),
+      EquipmentComponentWrites(repositories),
     ]);
   }
 

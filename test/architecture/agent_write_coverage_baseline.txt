@@ -278,11 +278,6 @@ lib/features/documents/data/repositories/document_repository.dart:restoreOwners
 lib/features/documents/data/repositories/document_repository.dart:restoreSnapshot
 lib/features/documents/data/repositories/document_repository.dart:save
 lib/features/documents/data/repositories/document_repository.dart:saveCardImages
-lib/features/equipment/data/repositories/equipment_component_repository.dart:addComponent
-lib/features/equipment/data/repositories/equipment_component_repository.dart:removeComponent
-lib/features/equipment/data/repositories/equipment_component_repository.dart:reorder
-lib/features/equipment/data/repositories/equipment_component_repository.dart:replaceComponent
-lib/features/equipment/data/repositories/equipment_component_repository.dart:updateRole
 lib/features/equipment/data/repositories/equipment_observation_repository.dart:create
 lib/features/equipment/data/repositories/equipment_observation_repository.dart:delete
 lib/features/equipment/data/repositories/equipment_observation_repository.dart:unlinkFromDeletedDives
