@@ -42633,6 +42633,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String dataQuality_dive_tanks(String tanks) {
+    return 'يخص $tanks';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => 'مراجعة جودة البيانات';
 
   @override
@@ -42651,12 +42656,12 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'اكتمل الفحص: $count عنصر للمراجعة',
-      many: 'اكتمل الفحص: $count عنصرًا للمراجعة',
-      few: 'اكتمل الفحص: $count عناصر للمراجعة',
-      two: 'اكتمل الفحص: عنصران للمراجعة',
-      one: 'اكتمل الفحص: عنصر واحد للمراجعة',
-      zero: 'اكتمل الفحص: لا توجد نتائج جديدة',
+      other: 'اكتمل الفحص: $count عنصر مفتوح للمراجعة',
+      many: 'اكتمل الفحص: $count عنصرًا مفتوحًا للمراجعة',
+      few: 'اكتمل الفحص: $count عناصر مفتوحة للمراجعة',
+      two: 'اكتمل الفحص: عنصران مفتوحان للمراجعة',
+      one: 'اكتمل الفحص: عنصر مفتوح واحد للمراجعة',
+      zero: 'اكتمل الفحص: لا توجد نتائج مفتوحة',
     );
     return '$_temp0';
   }
@@ -42784,8 +42789,31 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_clock_offset(int hours) {
-    return 'تختلف ساعة أحد المصادر بمقدار $hours ساعة';
+  String dataQuality_msg_clock_offsetAhead(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'تتقدم ساعة أحد المصادر بـ$hours ساعة',
+      many: 'تتقدم ساعة أحد المصادر بـ$hours ساعة',
+      few: 'تتقدم ساعة أحد المصادر بـ$hours ساعات',
+      two: 'تتقدم ساعة أحد المصادر بساعتين',
+      one: 'تتقدم ساعة أحد المصادر بساعة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_clock_offsetBehind(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'تتأخر ساعة أحد المصادر بـ$hours ساعة',
+      many: 'تتأخر ساعة أحد المصادر بـ$hours ساعة',
+      few: 'تتأخر ساعة أحد المصادر بـ$hours ساعات',
+      two: 'تتأخر ساعة أحد المصادر بساعتين',
+      one: 'تتأخر ساعة أحد المصادر بساعة واحدة',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -42858,8 +42886,18 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_rate(String rate, int seconds) {
-    return 'معدل رأسي قدره $rate استمر لمدة $seconds ثانية';
+  String dataQuality_msg_rate(String rate, String duration) {
+    return 'معدل رأسي قدره $rate استمر لمدة $duration';
+  }
+
+  @override
+  String dataQuality_unit_seconds(int seconds) {
+    return '$seconds ثانية';
+  }
+
+  @override
+  String dataQuality_unit_minutes(int minutes) {
+    return '$minutes دقيقة';
   }
 
   @override
@@ -42964,10 +43002,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'تشير النسبة الثابتة إلى اختلاف في إعداد الماء المالح/العذب';
 
   @override
-  String get dataQuality_msg_sourceDuration => 'تختلف المصادر حول مدة الغوصة';
+  String dataQuality_msg_sourceDuration(String primary, String source) {
+    return 'تختلف المصادر حول مدة الغوصة: $primary مقابل $source';
+  }
 
   @override
-  String get dataQuality_msg_sourceTemp => 'تختلف المصادر حول درجة حرارة الماء';
+  String dataQuality_msg_sourceTemp(String primary, String source) {
+    return 'تختلف المصادر حول درجة حرارة الماء: $primary مقابل $source';
+  }
 
   @override
   String dataQuality_repairLabel_shiftTime(String offset) {
@@ -42986,6 +43028,14 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String dataQuality_repairLabel_fixSourceClock(String offset) {
     return 'تصحيح ساعة هذا الكمبيوتر بمقدار $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClockNamed(
+    String computer,
+    String offset,
+  ) {
+    return 'تصحيح ساعة $computer بمقدار $offset';
   }
 
   @override
@@ -43179,6 +43229,29 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_split => 'التقسيم إلى غوصات منفصلة';
+
+  @override
+  String dataQuality_repairLabel_setPrimaryNamed(String source) {
+    return 'جعل $source المصدر الأساسي';
+  }
+
+  @override
+  String dataQuality_repairLabel_splitNamed(String source) {
+    return 'فصل $source في غوصة مستقلة';
+  }
+
+  @override
+  String dataQuality_setPrimary_title(String source) {
+    return 'جعل $source المصدر الأساسي؟';
+  }
+
+  @override
+  String dataQuality_setPrimary_body(String source) {
+    return 'سيأتي عمق الغوصة ومدتها ومخططها من $source. يمكنك تغيير ذلك مرة أخرى من مصادر بيانات الغوصة.';
+  }
+
+  @override
+  String get dataQuality_setPrimary_confirm => 'جعله أساسيًا';
 
   @override
   String get dataQuality_repairLabel_compare => 'مقارنة المخططات';

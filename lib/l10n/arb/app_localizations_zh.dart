@@ -39644,6 +39644,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String dataQuality_dive_tanks(String tanks) {
+    return '涉及 $tanks';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => '数据质量审查';
 
   @override
@@ -39662,9 +39667,9 @@ class AppLocalizationsZh extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '扫描完成 - $count 个待审查项',
-      one: '扫描完成 - 1 个待审查项',
-      zero: '扫描完成 - 没有新发现',
+      other: '扫描完成 - $count 个未处理的待审查项',
+      one: '扫描完成 - $count 个未处理的待审查项',
+      zero: '扫描完成 - 没有未处理的发现',
     );
     return '$_temp0';
   }
@@ -39789,8 +39794,23 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_clock_offset(int hours) {
-    return '某个来源的时钟相差 $hours 小时';
+  String dataQuality_msg_clock_offsetAhead(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: '某个来源的时钟快了 $hours 小时',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_clock_offsetBehind(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: '某个来源的时钟慢了 $hours 小时',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -39856,8 +39876,18 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_rate(String rate, int seconds) {
-    return '$rate 的垂直速率持续了 $seconds 秒';
+  String dataQuality_msg_rate(String rate, String duration) {
+    return '$rate 的垂直速率持续了 $duration';
+  }
+
+  @override
+  String dataQuality_unit_seconds(int seconds) {
+    return '$seconds 秒';
+  }
+
+  @override
+  String dataQuality_unit_minutes(int minutes) {
+    return '$minutes 分钟';
   }
 
   @override
@@ -39956,10 +39986,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dataQuality_msg_salinityHint => '这一恒定比值表明盐水/淡水设置存在差异';
 
   @override
-  String get dataQuality_msg_sourceDuration => '各来源对潜水时长存在分歧';
+  String dataQuality_msg_sourceDuration(String primary, String source) {
+    return '各来源对潜水时长存在分歧：$primary 对 $source';
+  }
 
   @override
-  String get dataQuality_msg_sourceTemp => '各来源对水温存在分歧';
+  String dataQuality_msg_sourceTemp(String primary, String source) {
+    return '各来源对水温存在分歧：$primary 对 $source';
+  }
 
   @override
   String dataQuality_repairLabel_shiftTime(String offset) {
@@ -39977,6 +40011,14 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String dataQuality_repairLabel_fixSourceClock(String offset) {
     return '将此电脑的时钟校正 $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClockNamed(
+    String computer,
+    String offset,
+  ) {
+    return '将 $computer 的时钟校正 $offset';
   }
 
   @override
@@ -40147,6 +40189,29 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_split => '拆分为单独的潜水';
+
+  @override
+  String dataQuality_repairLabel_setPrimaryNamed(String source) {
+    return '将 $source 设为主要来源';
+  }
+
+  @override
+  String dataQuality_repairLabel_splitNamed(String source) {
+    return '将 $source 拆分为单独的潜水';
+  }
+
+  @override
+  String dataQuality_setPrimary_title(String source) {
+    return '将 $source 设为主要来源？';
+  }
+
+  @override
+  String dataQuality_setPrimary_body(String source) {
+    return '潜水的深度、时长和剖面将来自 $source。你可以在潜水的数据来源中再次更改。';
+  }
+
+  @override
+  String get dataQuality_setPrimary_confirm => '设为主要来源';
 
   @override
   String get dataQuality_repairLabel_compare => '比较剖面';

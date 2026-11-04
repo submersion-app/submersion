@@ -33,6 +33,7 @@ const _formatters = QualityUnitFormatters(
   limitDepth: _fmt,
   pressure: _fmt,
   temperature: _fmt,
+  temperatureDelta: _fmt,
   sac: _fmt,
   date: _fmtDate,
   dateTime: _fmtDate,

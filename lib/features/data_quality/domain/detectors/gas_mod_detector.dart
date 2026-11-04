@@ -44,7 +44,7 @@ class GasModDetector extends QualityDetector {
     domain.DiveTank? tankById(String tid) =>
         tanks.firstWhereOrNull((t) => t.id == tid);
 
-    double fo2At(int t) {
+    domain.GasMix mixAt(int t) {
       var active = ordered.first;
       for (final sw in ctx.gasSwitches) {
         if (sw.timestamp <= t) {
@@ -53,14 +53,17 @@ class GasModDetector extends QualityDetector {
           break;
         }
       }
-      return active.gasMix.o2 / 100.0;
+      return active.gasMix;
     }
+
+    double fo2At(int t) => mixAt(t).o2 / 100.0;
 
     // Sustained ppO2 above limits.
     int? runStart;
     var peak = 0.0;
     double? depthAtPeak;
     var runFo2 = 0.0;
+    var runHe = 0.0;
     var lastT = 0;
     void closePpo2Run() {
       if (runStart != null &&
@@ -75,6 +78,7 @@ class GasModDetector extends QualityDetector {
             params: {
               'peakPpO2': peak,
               'o2Percent': runFo2 * 100,
+              'hePercent': runHe,
               'depthAtPeak': depthAtPeak,
               'startSeconds': runStart,
               'durationSeconds': lastT - runStart!,
@@ -95,6 +99,7 @@ class GasModDetector extends QualityDetector {
           peak = ppo2;
           depthAtPeak = p.depth;
           runFo2 = fo2;
+          runHe = mixAt(p.t).he;
         }
         lastT = p.t;
       } else {
@@ -107,6 +112,7 @@ class GasModDetector extends QualityDetector {
     int? hypoStart;
     var hypoLastT = 0;
     var hypoFo2 = 1.0;
+    var hypoHe = 0.0;
     void closeHypoRun() {
       if (hypoStart != null &&
           hypoLastT - hypoStart! >= QualityThresholds.hypoxicSustainSeconds) {
@@ -117,6 +123,7 @@ class GasModDetector extends QualityDetector {
             severity: QualitySeverity.warning,
             params: {
               'o2Percent': hypoFo2 * 100,
+              'hePercent': hypoHe,
               'startSeconds': hypoStart,
               'durationSeconds': hypoLastT - hypoStart!,
             },
@@ -132,6 +139,7 @@ class GasModDetector extends QualityDetector {
           p.depth < QualityThresholds.hypoxicMaxDepthMeters) {
         hypoStart ??= p.t;
         hypoFo2 = fo2;
+        hypoHe = mixAt(p.t).he;
         hypoLastT = p.t;
       } else {
         closeHypoRun();

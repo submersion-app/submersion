@@ -1,5 +1,7 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart'
+    show GasMix;
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -9,6 +11,7 @@ class QualityUnitFormatters {
     required this.depthRate,
     required this.pressure,
     required this.temperature,
+    required this.temperatureDelta,
     required this.sac,
     required this.date,
     required this.dateTime,
@@ -26,6 +29,11 @@ class QualityUnitFormatters {
   final String Function(double meters) limitDepth;
   final String Function(double bar) pressure;
   final String Function(double celsius) temperature;
+
+  /// Formats a temperature DIFFERENCE given in Celsius. Not [temperature]:
+  /// a difference scales without the offset a reading's conversion adds, so
+  /// a 3 C jump reads 5.4 F, never 37.4 F (issue #4209).
+  final String Function(double celsiusDelta) temperatureDelta;
 
   /// Formats an RMV given in L/min into the diver's preferred volume unit
   /// (L/min vs cuft/min), including the unit suffix.
@@ -91,7 +99,12 @@ QualityFindingMessage buildFindingMessage(
   switch (f.detectorId) {
     case 'clock_offset':
       if (p.containsKey('offsetHours')) {
-        detail = l10n.dataQuality_msg_clock_offset(i('offsetHours'));
+        // The secondary source reads `offsetHours` later than the primary, so
+        // a positive offset is a clock running ahead.
+        final hours = i('offsetHours');
+        detail = hours < 0
+            ? l10n.dataQuality_msg_clock_offsetBehind(-hours)
+            : l10n.dataQuality_msg_clock_offsetAhead(hours);
       } else if (p.containsKey('overlapMinutes')) {
         detail = l10n.dataQuality_msg_clock_overlap(i('overlapMinutes'));
       } else {
@@ -119,7 +132,7 @@ QualityFindingMessage buildFindingMessage(
     case 'sample_gap':
       detail = l10n.dataQuality_msg_gap(
         i('gapCount'),
-        '${i('longestGapSeconds')} s',
+        qualityDurationLabel(l10n, i('longestGapSeconds')),
       );
     case 'depth_spike':
       if (p.containsKey('storedMaxDepth')) {
@@ -139,11 +152,13 @@ QualityFindingMessage buildFindingMessage(
     case 'impossible_rate':
       detail = l10n.dataQuality_msg_rate(
         fmt.depthRate(d('maxRateMetersPerMinute')),
-        i('durationSeconds'),
+        qualityDurationLabel(l10n, i('durationSeconds')),
       );
     case 'temp_anomaly':
       if (p.containsKey('deltaC')) {
-        detail = l10n.dataQuality_msg_tempJump(fmt.temperature(d('deltaC')));
+        detail = l10n.dataQuality_msg_tempJump(
+          fmt.temperatureDelta(d('deltaC')),
+        );
       } else if (p.containsKey('waterTempC')) {
         detail = l10n.dataQuality_msg_tempScalar(
           fmt.temperature(d('waterTempC')),
@@ -183,7 +198,7 @@ QualityFindingMessage buildFindingMessage(
       if (p.containsKey('peakPpO2')) {
         detail = l10n.dataQuality_msg_ppo2(
           d('peakPpO2').toStringAsFixed(2),
-          'EAN${d('o2Percent').round()}',
+          qualityGasLabel(l10n, d('o2Percent'), d('hePercent')),
           fmt.depth(d('depthAtPeak')),
         );
       } else if (p.containsKey('switchDepth')) {
@@ -192,7 +207,9 @@ QualityFindingMessage buildFindingMessage(
           fmt.limitDepth(d('modMeters')),
         );
       } else {
-        detail = l10n.dataQuality_msg_hypoxic('${d('o2Percent').round()}%');
+        detail = l10n.dataQuality_msg_hypoxic(
+          qualityGasLabel(l10n, d('o2Percent'), d('hePercent')),
+        );
       }
     case 'unknown_transmitter':
       detail = l10n.dataQuality_msg_unknownTransmitter(
@@ -225,9 +242,15 @@ QualityFindingMessage buildFindingMessage(
           detail = '$detail ${l10n.dataQuality_msg_salinityHint}';
         }
       } else if (p.containsKey('primarySeconds')) {
-        detail = l10n.dataQuality_msg_sourceDuration;
+        detail = l10n.dataQuality_msg_sourceDuration(
+          qualityDurationLabel(l10n, i('primarySeconds')),
+          qualityDurationLabel(l10n, i('sourceSeconds')),
+        );
       } else {
-        detail = l10n.dataQuality_msg_sourceTemp;
+        detail = l10n.dataQuality_msg_sourceTemp(
+          fmt.temperature(d('primaryTempC')),
+          fmt.temperature(d('sourceTempC')),
+        );
       }
     case 'shared_gear_overlap':
       detail = _sharedGearDetail(l10n, p, fmt);
@@ -235,6 +258,27 @@ QualityFindingMessage buildFindingMessage(
       detail = '';
   }
   return QualityFindingMessage(title: title, detail: detail);
+}
+
+/// A duration in a finding message: seconds while that is the natural unit,
+/// whole minutes from two minutes on, so a 1620 s run reads "27 min".
+String qualityDurationLabel(AppLocalizations l10n, int seconds) => seconds < 120
+    ? l10n.dataQuality_unit_seconds(seconds)
+    : l10n.dataQuality_unit_minutes((seconds / 60).round());
+
+/// The mix a gas finding names. Air and oxygen are words and translate;
+/// nitrox and trimix keep their international notation (EAN32, Tx 18/45),
+/// so a trimix keeps its helium instead of reading as nitrox (issue #4209).
+/// Findings stored before `hePercent` was recorded read as helium-free.
+String qualityGasLabel(
+  AppLocalizations l10n,
+  double o2Percent,
+  double hePercent,
+) {
+  final mix = GasMix(o2: o2Percent, he: hePercent);
+  if (mix.isAir) return l10n.gas_air_displayName;
+  if (mix.isOxygen) return l10n.gas_oxygen_displayName;
+  return mix.name;
 }
 
 /// "{item} is on {diverA}'s dive at {timeA} and {diverB}'s dive at

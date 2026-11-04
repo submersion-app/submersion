@@ -66421,6 +66421,12 @@ abstract class AppLocalizations {
   /// **'Recorded by {computer}'**
   String dataQuality_dive_recordedBy(String computer);
 
+  /// Names the tank or tanks a finding is about, e.g. 'Affects Tank 2' or 'Affects Tank 1, Tank 2'.
+  ///
+  /// In en, this message translates to:
+  /// **'Affects {tanks}'**
+  String dataQuality_dive_tanks(String tanks);
+
   /// No description provided for @dataQuality_badge_tooltip.
   ///
   /// In en, this message translates to:
@@ -66448,7 +66454,7 @@ abstract class AppLocalizations {
   /// No description provided for @dataQuality_scan_done.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =0{Scan complete - no new findings} =1{Scan complete - 1 item to review} other{Scan complete - {count} items to review}}'**
+  /// **'{count, plural, =0{Scan complete - nothing open to review} =1{Scan complete - {count} open item to review} other{Scan complete - {count} open items to review}}'**
   String dataQuality_scan_done(int count);
 
   /// No description provided for @dataQuality_scan_errors.
@@ -66673,11 +66679,17 @@ abstract class AppLocalizations {
   /// **'Dive is dated before 1950 ({date})'**
   String dataQuality_msg_clock_ancient(String date);
 
-  /// No description provided for @dataQuality_msg_clock_offset.
+  /// A secondary source's clock reads later than the primary's by whole hours.
   ///
   /// In en, this message translates to:
-  /// **'A source clock differs by {hours} hours'**
-  String dataQuality_msg_clock_offset(int hours);
+  /// **'{hours, plural, =1{A source clock runs {hours} hour ahead} other{A source clock runs {hours} hours ahead}}'**
+  String dataQuality_msg_clock_offsetAhead(int hours);
+
+  /// A secondary source's clock reads earlier than the primary's by whole hours.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours, plural, =1{A source clock runs {hours} hour behind} other{A source clock runs {hours} hours behind}}'**
+  String dataQuality_msg_clock_offsetBehind(int hours);
 
   /// No description provided for @dataQuality_msg_clock_overlap.
   ///
@@ -66742,8 +66754,20 @@ abstract class AppLocalizations {
   /// No description provided for @dataQuality_msg_rate.
   ///
   /// In en, this message translates to:
-  /// **'Vertical rate of {rate} sustained for {seconds} s'**
-  String dataQuality_msg_rate(String rate, int seconds);
+  /// **'Vertical rate of {rate} sustained for {duration}'**
+  String dataQuality_msg_rate(String rate, String duration);
+
+  /// A short duration in a finding message, in seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds} s'**
+  String dataQuality_unit_seconds(int seconds);
+
+  /// A duration in a finding message, in whole minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String dataQuality_unit_minutes(int minutes);
 
   /// No description provided for @dataQuality_msg_tempRange.
   ///
@@ -66866,14 +66890,14 @@ abstract class AppLocalizations {
   /// No description provided for @dataQuality_msg_sourceDuration.
   ///
   /// In en, this message translates to:
-  /// **'Sources disagree on dive duration'**
-  String get dataQuality_msg_sourceDuration;
+  /// **'Sources disagree on dive duration: {primary} vs. {source}'**
+  String dataQuality_msg_sourceDuration(String primary, String source);
 
   /// No description provided for @dataQuality_msg_sourceTemp.
   ///
   /// In en, this message translates to:
-  /// **'Sources disagree on water temperature'**
-  String get dataQuality_msg_sourceTemp;
+  /// **'Sources disagree on water temperature: {primary} vs. {source}'**
+  String dataQuality_msg_sourceTemp(String primary, String source);
 
   /// No description provided for @dataQuality_repairLabel_shiftTime.
   ///
@@ -66898,6 +66922,15 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Fix this computer\'s clock by {offset}'**
   String dataQuality_repairLabel_fixSourceClock(String offset);
+
+  /// Repair button naming the computer whose clock is corrected.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix {computer}\'s clock by {offset}'**
+  String dataQuality_repairLabel_fixSourceClockNamed(
+    String computer,
+    String offset,
+  );
 
   /// No description provided for @dataQuality_repairLabel_fixSourceClockAll.
   ///
@@ -67108,6 +67141,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Split into separate dives'**
   String get dataQuality_repairLabel_split;
+
+  /// Repair button naming the data source that becomes the dive's primary source.
+  ///
+  /// In en, this message translates to:
+  /// **'Make {source} the primary source'**
+  String dataQuality_repairLabel_setPrimaryNamed(String source);
+
+  /// Repair button naming the data source that is split off into a dive of its own.
+  ///
+  /// In en, this message translates to:
+  /// **'Split {source} into its own dive'**
+  String dataQuality_repairLabel_splitNamed(String source);
+
+  /// No description provided for @dataQuality_setPrimary_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Make {source} the primary source?'**
+  String dataQuality_setPrimary_title(String source);
+
+  /// No description provided for @dataQuality_setPrimary_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The dive\'s depth, duration and profile will come from {source}. You can change this again under the dive\'s data sources.'**
+  String dataQuality_setPrimary_body(String source);
+
+  /// No description provided for @dataQuality_setPrimary_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Make primary'**
+  String get dataQuality_setPrimary_confirm;
 
   /// No description provided for @dataQuality_repairLabel_compare.
   ///

@@ -42133,6 +42133,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String dataQuality_dive_tanks(String tanks) {
+    return 'Afecta a $tanks';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => 'Revisión de calidad de datos';
 
   @override
@@ -42151,9 +42156,9 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Análisis completado - $count elementos para revisar',
-      one: 'Análisis completado - 1 elemento para revisar',
-      zero: 'Análisis completado - sin nuevos hallazgos',
+      other: 'Análisis completado - $count elementos abiertos para revisar',
+      one: 'Análisis completado - $count elemento abierto para revisar',
+      zero: 'Análisis completado - ningún hallazgo abierto',
     );
     return '$_temp0';
   }
@@ -42284,8 +42289,25 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_clock_offset(int hours) {
-    return 'El reloj de una fuente difiere en $hours horas';
+  String dataQuality_msg_clock_offsetAhead(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'El reloj de una fuente va $hours horas adelantado',
+      one: 'El reloj de una fuente va $hours hora adelantado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_clock_offsetBehind(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'El reloj de una fuente va $hours horas atrasado',
+      one: 'El reloj de una fuente va $hours hora atrasado',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -42352,8 +42374,18 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_rate(String rate, int seconds) {
-    return 'Velocidad vertical de $rate mantenida durante $seconds s';
+  String dataQuality_msg_rate(String rate, String duration) {
+    return 'Velocidad vertical de $rate mantenida durante $duration';
+  }
+
+  @override
+  String dataQuality_unit_seconds(int seconds) {
+    return '$seconds s';
+  }
+
+  @override
+  String dataQuality_unit_minutes(int minutes) {
+    return '$minutes min';
   }
 
   @override
@@ -42458,12 +42490,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'La proporción constante sugiere una diferencia en el ajuste de agua salada/dulce';
 
   @override
-  String get dataQuality_msg_sourceDuration =>
-      'Las fuentes no coinciden en la duración de la inmersión';
+  String dataQuality_msg_sourceDuration(String primary, String source) {
+    return 'Las fuentes no coinciden en la duración de la inmersión: $primary frente a $source';
+  }
 
   @override
-  String get dataQuality_msg_sourceTemp =>
-      'Las fuentes no coinciden en la temperatura del agua';
+  String dataQuality_msg_sourceTemp(String primary, String source) {
+    return 'Las fuentes no coinciden en la temperatura del agua: $primary frente a $source';
+  }
 
   @override
   String dataQuality_repairLabel_shiftTime(String offset) {
@@ -42482,6 +42516,14 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String dataQuality_repairLabel_fixSourceClock(String offset) {
     return 'Corregir el reloj de este ordenador $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClockNamed(
+    String computer,
+    String offset,
+  ) {
+    return 'Corregir el reloj de $computer $offset';
   }
 
   @override
@@ -42660,6 +42702,29 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_split =>
       'Dividir en inmersiones separadas';
+
+  @override
+  String dataQuality_repairLabel_setPrimaryNamed(String source) {
+    return 'Hacer que $source sea la fuente principal';
+  }
+
+  @override
+  String dataQuality_repairLabel_splitNamed(String source) {
+    return 'Separar $source en una inmersión propia';
+  }
+
+  @override
+  String dataQuality_setPrimary_title(String source) {
+    return '¿Hacer que $source sea la fuente principal?';
+  }
+
+  @override
+  String dataQuality_setPrimary_body(String source) {
+    return 'La profundidad, la duración y el perfil de la inmersión procederán de $source. Puedes volver a cambiarlo en las fuentes de datos de la inmersión.';
+  }
+
+  @override
+  String get dataQuality_setPrimary_confirm => 'Hacer principal';
 
   @override
   String get dataQuality_repairLabel_compare => 'Comparar perfiles';
