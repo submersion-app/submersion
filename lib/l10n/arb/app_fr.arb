@@ -2617,6 +2617,7 @@
   "diveLog_edit_profile_none": "Non enregistré",
   "diveLog_edit_profile_outliers": "{count, plural, one{{count} valeur aberrante potentielle détectée} other{{count} valeurs aberrantes potentielles détectées}}",
   "diveLog_edit_profile_points": "{count, plural, one{{count} point} other{{count} points}}",
+  "diveLog_edit_profile_pointsAndProfiles": "{pointCount, plural, one{{pointCount} point} other{{pointCount} points}} · {profileCount, plural, one{{profileCount} révision} other{{profileCount} révisions}}",
   "diveLog_edit_row_diveProfile": "Profil de plongée",
   "diveLog_edit_row_addSite": "Ajouter un site",
   "diveLog_edit_row_diveCenter": "Centre de plongée",

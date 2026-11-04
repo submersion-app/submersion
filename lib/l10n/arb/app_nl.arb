@@ -2718,6 +2718,7 @@
   "diveLog_edit_profile_none": "Niet vastgelegd",
   "diveLog_edit_profile_outliers": "{count, plural, one{1 mogelijke uitschieter gedetecteerd} other{{count} mogelijke uitschieters gedetecteerd}}",
   "diveLog_edit_profile_points": "{count, plural, one{1 punt} other{{count} punten}}",
+  "diveLog_edit_profile_pointsAndProfiles": "{pointCount, plural, one{1 punt} other{{pointCount} punten}} · {profileCount, plural, one{1 revisie} other{{profileCount} revisies}}",
   "diveLog_edit_row_diveProfile": "Duikprofiel",
   "diveLog_edit_row_addSite": "Duikstek toevoegen",
   "diveLog_edit_row_diveCenter": "Duikcentrum",

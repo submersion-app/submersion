@@ -3638,13 +3638,30 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final l10n = context.l10n;
     final hasProfile = _existingDive?.profile.isNotEmpty == true;
     final profileLength = _existingDive?.profile.length ?? 0;
+    final diveId = _existingDive?.id;
     if (hasProfile) {
+      int? availableRevisions;
+      if (diveId != null) {
+        final revisions = ref
+            .watch(profileSeriesHistoryProvider(diveId))
+            .valueOrNull;
+        if (revisions != null) {
+          // Keep the row stable if history metadata is temporarily sparse.
+          availableRevisions = revisions.isNotEmpty ? revisions.length : 1;
+        }
+      }
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           FormRow.picker(
             label: l10n.diveLog_edit_row_diveProfile,
-            value: l10n.diveLog_edit_profile_points(profileLength),
+            value: availableRevisions == null || availableRevisions <= 1
+                ? l10n.diveLog_edit_profile_points(profileLength)
+                : l10n.diveLog_edit_profile_pointsAndProfiles(
+                    profileLength,
+                    availableRevisions!,
+                  ),
             onTap: () => _openProfileEditor(_existingDive!.id),
           ),
           Consumer(

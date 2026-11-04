@@ -2718,6 +2718,7 @@
   "diveLog_edit_profile_none": "غير مسجل",
   "diveLog_edit_profile_outliers": "{count, plural, one{تم اكتشاف قيمة شاذة محتملة واحدة} two{تم اكتشاف قيمتين شاذتين محتملتين} few{تم اكتشاف {count} قيم شاذة محتملة} many{تم اكتشاف {count} قيمة شاذة محتملة} other{تم اكتشاف {count} قيمة شاذة محتملة}}",
   "diveLog_edit_profile_points": "{count, plural, one{نقطة واحدة} two{نقطتان} few{{count} نقاط} many{{count} نقطة} other{{count} نقطة}}",
+  "diveLog_edit_profile_pointsAndProfiles": "{pointCount, plural, one{نقطة واحدة} two{نقطتان} few{{pointCount} نقاط} many{{pointCount} نقطة} other{{pointCount} نقطة}} · {profileCount, plural, one{مراجعة واحدة} two{مراجعتان} few{{profileCount} مراجعات} many{{profileCount} مراجعة} other{{profileCount} مراجعة}}",
   "diveLog_edit_row_diveProfile": "ملف الغوص",
   "diveLog_edit_row_addSite": "إضافة موقع",
   "diveLog_edit_row_diveCenter": "مركز الغوص",

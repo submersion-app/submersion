@@ -2718,6 +2718,7 @@
   "diveLog_edit_profile_none": "Não registrado",
   "diveLog_edit_profile_outliers": "{count, plural, one{{count} possível valor atípico detectado} other{{count} possíveis valores atípicos detectados}}",
   "diveLog_edit_profile_points": "{count, plural, one{{count} ponto} other{{count} pontos}}",
+  "diveLog_edit_profile_pointsAndProfiles": "{pointCount, plural, one{{pointCount} ponto} other{{pointCount} pontos}} · {profileCount, plural, one{{profileCount} revisão} other{{profileCount} revisões}}",
   "diveLog_edit_row_diveProfile": "Perfil de mergulho",
   "diveLog_edit_row_addSite": "Adicionar ponto",
   "diveLog_edit_row_diveCenter": "Operadora de mergulho",

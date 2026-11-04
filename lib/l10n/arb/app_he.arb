@@ -2617,6 +2617,7 @@
   "diveLog_edit_profile_none": "לא הוקלט",
   "diveLog_edit_profile_outliers": "{count, plural, one{זוהתה חריגה אפשרית אחת} other{זוהו {count} חריגות אפשריות}}",
   "diveLog_edit_profile_points": "{count, plural, one{נקודה אחת} other{{count} נקודות}}",
+  "diveLog_edit_profile_pointsAndProfiles": "{pointCount, plural, one{נקודה אחת} other{{pointCount} נקודות}} · {profileCount, plural, one{גרסה אחת} other{{profileCount} גרסאות}}",
   "diveLog_edit_row_diveProfile": "פרופיל צלילה",
   "diveLog_edit_row_addSite": "הוספת אתר",
   "diveLog_edit_row_diveCenter": "מרכז צלילה",

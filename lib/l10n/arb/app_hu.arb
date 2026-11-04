@@ -2617,6 +2617,7 @@
   "diveLog_edit_profile_none": "Nincs rögzítve",
   "diveLog_edit_profile_outliers": "{count, plural, one{1 lehetséges kiugró érték észlelve} other{{count} lehetséges kiugró érték észlelve}}",
   "diveLog_edit_profile_points": "{count, plural, one{1 pont} other{{count} pont}}",
+  "diveLog_edit_profile_pointsAndProfiles": "{pointCount, plural, one{1 pont} other{{pointCount} pont}} · {profileCount, plural, one{1 revízió} other{{profileCount} revízió}}",
   "diveLog_edit_row_diveProfile": "Merülési profil",
   "diveLog_edit_row_addSite": "Merülőhely hozzáadása",
   "diveLog_edit_row_diveCenter": "Búvárközpont",

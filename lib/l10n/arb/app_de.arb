@@ -2744,6 +2744,7 @@
   "diveLog_edit_profile_none": "Nicht aufgezeichnet",
   "diveLog_edit_profile_outliers": "{count, plural, one{1 möglicher Ausreißer erkannt} other{{count} mögliche Ausreißer erkannt}}",
   "diveLog_edit_profile_points": "{count, plural, one{1 Punkt} other{{count} Punkte}}",
+  "diveLog_edit_profile_pointsAndProfiles": "{pointCount, plural, one{1 Punkt} other{{pointCount} Punkte}} · {profileCount, plural, one{1 Revision} other{{profileCount} Revisionen}}",
   "diveLog_edit_row_diveProfile": "Tauchprofil",
   "diveLog_edit_row_addSite": "Tauchplatz hinzufügen",
   "diveLog_edit_row_diveCenter": "Tauchbasis",

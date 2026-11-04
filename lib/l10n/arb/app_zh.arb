@@ -2828,6 +2828,7 @@
   "diveLog_edit_profile_none": "未记录",
   "diveLog_edit_profile_outliers": "{count, plural, other{检测到 {count} 个可能的异常点}}",
   "diveLog_edit_profile_points": "{count, plural, other{{count} 个点}}",
+  "diveLog_edit_profile_pointsAndProfiles": "{pointCount, plural, other{{pointCount} 个点}} · {profileCount, plural, other{{profileCount} 次修订}}",
   "diveLog_edit_row_diveProfile": "潜水曲线",
   "diveLog_edit_row_addSite": "添加潜点",
   "diveLog_edit_row_diveCenter": "潜水中心",

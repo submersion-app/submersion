@@ -13090,6 +13090,15 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{1 point} other{{count} points}}'**
   String diveLog_edit_profile_points(num count);
 
+  /// Dive profile row value: recorded profile samples and number of available profile revisions
+  ///
+  /// In en, this message translates to:
+  /// **'{pointCount, plural, one{1 point} other{{pointCount} points}} · {profileCount, plural, one{1 revision} other{{profileCount} revisions}}'**
+  String diveLog_edit_profile_pointsAndProfiles(
+    num pointCount,
+    num profileCount,
+  );
+
   /// Placeholder when no site selected
   ///
   /// In en, this message translates to:

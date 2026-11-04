@@ -8410,6 +8410,32 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_profile_pointsAndProfiles(
+    num pointCount,
+    num profileCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      pointCount,
+      locale: localeName,
+      other: '$pointCount نقطة',
+      many: '$pointCount نقطة',
+      few: '$pointCount نقاط',
+      two: 'نقطتان',
+      one: 'نقطة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      profileCount,
+      locale: localeName,
+      other: '$profileCount مراجعة',
+      many: '$profileCount مراجعة',
+      few: '$profileCount مراجعات',
+      two: 'مراجعتان',
+      one: 'مراجعة واحدة',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
   String get diveLog_edit_row_addSite => 'إضافة موقع';
 
   @override

@@ -4851,6 +4851,18 @@
       }
     }
   },
+  "diveLog_edit_profile_pointsAndProfiles": "{pointCount, plural, one{1 point} other{{pointCount} points}} · {profileCount, plural, one{1 revision} other{{profileCount} revisions}}",
+  "@diveLog_edit_profile_pointsAndProfiles": {
+    "description": "Dive profile row value: recorded profile samples and number of available profile revisions",
+    "placeholders": {
+      "pointCount": {
+        "type": "num"
+      },
+      "profileCount": {
+        "type": "num"
+      }
+    }
+  },
   "diveLog_edit_row_addSite": "Add site",
   "@diveLog_edit_row_addSite": {
     "description": "Placeholder when no site selected"
