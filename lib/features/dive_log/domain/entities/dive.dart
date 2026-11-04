@@ -797,6 +797,8 @@ class Dive extends Equatable {
     bool? isPlanned,
     String? outingId,
     bool clearOutingId = false,
+    bool clearSetpoints = false,
+    bool clearDiluentGas = false,
     // Training courses
     List<String>? courseIds,
     // Import source tracking
@@ -887,15 +889,15 @@ class Dive extends Equatable {
       tags: tags ?? this.tags,
       // CCR/SCR fields
       diveMode: diveMode ?? this.diveMode,
-      setpointLow: setpointLow ?? this.setpointLow,
-      setpointHigh: setpointHigh ?? this.setpointHigh,
+      setpointLow: clearSetpoints ? null : (setpointLow ?? this.setpointLow),
+      setpointHigh: clearSetpoints ? null : (setpointHigh ?? this.setpointHigh),
       setpointDeco: setpointDeco ?? this.setpointDeco,
       scrType: scrType ?? this.scrType,
       scrInjectionRate: scrInjectionRate ?? this.scrInjectionRate,
       scrAdditionRatio: scrAdditionRatio ?? this.scrAdditionRatio,
       scrOrificeSize: scrOrificeSize ?? this.scrOrificeSize,
       assumedVo2: assumedVo2 ?? this.assumedVo2,
-      diluentGas: diluentGas ?? this.diluentGas,
+      diluentGas: clearDiluentGas ? null : (diluentGas ?? this.diluentGas),
       loopO2Min: loopO2Min ?? this.loopO2Min,
       loopO2Max: loopO2Max ?? this.loopO2Max,
       loopO2Avg: loopO2Avg ?? this.loopO2Avg,

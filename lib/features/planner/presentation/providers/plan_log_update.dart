@@ -1,6 +1,7 @@
 import 'package:clock/clock.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
@@ -14,10 +15,15 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart'
     show PlanSummaryData;
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    show PlanMode;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
+import 'package:submersion/features/planner/domain/services/plan_gas_switches.dart';
+import 'package:submersion/features/planner/domain/services/plan_profile_samples.dart';
 import 'package:submersion/features/planner/domain/services/plan_series_calculator.dart'
     show SeriesDiveResult;
 import 'package:submersion/features/planner/presentation/chart/plan_chart_geometry.dart';
@@ -161,6 +167,7 @@ Future<PlannedDivesUpdate> updatePlannedDives(
       final added = await log.addDive(entry.newDive(result.state, site));
       links[i] = added.id;
       created++;
+      await _writeGasSwitches(repository, added.id, result);
     } else {
       await log.updateDive(entry.update(existing, result.state, site));
       await repository.saveEditedProfileWithKind(
@@ -168,6 +175,8 @@ Future<PlannedDivesUpdate> updatePlannedDives(
         editedPoints: entry.profile,
         editKind: 'plan_update',
       );
+      await repository.deleteGasSwitchesForDive(existing.id);
+      await _writeGasSwitches(repository, existing.id, result);
       updated++;
     }
   }
@@ -245,7 +254,8 @@ class _PlannedEntry {
 
   /// The state's segments stop at the bottom; the engine computes the
   /// ascent. The entry takes the full computed profile so the log shows the
-  /// deco schedule the plan produced.
+  /// deco schedule the plan produced, sampled every 30 seconds like a dive
+  /// computer's: the log analyses a dive only at its samples.
   factory _PlannedEntry.of(
     SeriesDiveResult result, {
     required String? name,
@@ -259,13 +269,13 @@ class _PlannedEntry {
     return _PlannedEntry(
       name: name,
       outcome: result.outcome,
-      profile: [
+      profile: sampledPlanProfile([
         for (final point in canvas.profile)
           DiveProfilePoint(
             timestamp: point.timeSeconds.round(),
             depth: point.depth,
           ),
-      ],
+      ]),
       avgDepth: PlanChartGeometry.meanDepthMeters(canvas.profile),
     );
   }
@@ -287,6 +297,10 @@ class _PlannedEntry {
     waterType: state.waterType,
     gradientFactorLow: state.gfLow,
     gradientFactorHigh: state.gfHigh,
+    diveMode: _diveMode(state.mode),
+    setpointLow: _onLoop(state) ? state.setpointLow : null,
+    setpointHigh: _onLoop(state) ? state.setpointHigh : null,
+    diluentGas: _diluent(state),
     isPlanned: true,
   );
 
@@ -306,8 +320,57 @@ class _PlannedEntry {
         waterType: state.waterType,
         gradientFactorLow: state.gfLow,
         gradientFactorHigh: state.gfHigh,
+        diveMode: _diveMode(state.mode),
+        setpointLow: _onLoop(state) ? state.setpointLow : null,
+        setpointHigh: _onLoop(state) ? state.setpointHigh : null,
+        clearSetpoints: !_onLoop(state),
+        diluentGas: _diluent(state),
+        clearDiluentGas: _diluent(state) == null,
         tanks: _tanksFor(existing, state),
       );
+}
+
+/// Writes the plan's gas switches onto its entry in the log, so the log's
+/// analysis breathes what the plan breathes. They name no computer, so a
+/// download clears them with the plan's profile. A loop's gas drifts with
+/// depth on every line of its schedule, so only open circuit has switches to
+/// write; a rebreather entry starts on its diluent (#4174).
+Future<void> _writeGasSwitches(
+  DiveRepository repository,
+  String diveId,
+  SeriesDiveResult result,
+) async {
+  if (result.state.mode != PlanMode.oc) return;
+  final tanks = (await repository.getDiveById(diveId))?.tanks ?? const [];
+  await repository.insertGasSwitches(
+    plannedGasSwitches(
+      result.outcome.schedule,
+      planTanks: result.state.tanks,
+      entryTanks: tanks,
+      diveId: diveId,
+      createdAt: DateTime.now(),
+    ),
+  );
+}
+
+/// The log's mode for a plan's: every rebreather but a closed circuit is
+/// semi-closed there.
+DiveMode _diveMode(PlanMode mode) => switch (mode) {
+  PlanMode.oc => DiveMode.oc,
+  PlanMode.ccr => DiveMode.ccr,
+  PlanMode.scr || PlanMode.pscr => DiveMode.scr,
+};
+
+bool _onLoop(DivePlanState state) => state.mode == PlanMode.ccr;
+
+/// A rebreather plan's diluent, the first diluent cylinder's mix, which the
+/// log's deco model and gas timeline breathe on the loop.
+GasMix? _diluent(DivePlanState state) {
+  if (state.mode == PlanMode.oc) return null;
+  for (final tank in state.tanks) {
+    if (tank.role == TankRole.diluent) return tank.gasMix;
+  }
+  return null;
 }
 
 /// When [state]'s dive goes in the log. Dive times are clock digits stamped
