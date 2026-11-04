@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:submersion/core/constants/enums.dart'
     show EquipmentStatus, EquipmentType;
 import 'package:submersion/features/agent_access/data/documents/document_dates.dart';
+import 'package:submersion/features/agent_access/data/writes/families/service_ledger_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/object_list_codec.dart';
@@ -230,9 +231,9 @@ EquipmentItem nextItem(
     serialNumber: kept('serial_number', current.serialNumber),
     status: status,
     purchaseDate: purchased
-        ? _day(DateTime.now())
+        ? today()
         : values.containsKey('purchase_date')
-        ? _date(values['purchase_date'] as String?)
+        ? calendarDay(values['purchase_date'])
         : current.purchaseDate,
     purchasePrice: kept('purchase_price', current.purchasePrice),
     purchaseCurrency:
@@ -401,7 +402,3 @@ EquipmentStatus seededStatus(EquipmentItem item) =>
         item.status != EquipmentStatus.wanted
     ? EquipmentStatus.retired
     : item.status;
-
-DateTime? _date(String? day) => day == null ? null : _day(DateTime.parse(day));
-
-DateTime _day(DateTime value) => DateTime(value.year, value.month, value.day);

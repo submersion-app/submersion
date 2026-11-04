@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart' show visibleForTesting;
+
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/annotation_writes.dart';
@@ -22,6 +24,10 @@ import 'package:submersion/features/agent_access/data/writes/families/site_type_
 import 'package:submersion/features/agent_access/data/writes/families/site_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/species_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/tag_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/service_kind_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/service_ledger_rules.dart';
+import 'package:submersion/features/agent_access/data/writes/families/service_record_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/service_schedule_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/tank_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/weight_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
@@ -29,13 +35,24 @@ import 'package:submersion/features/dive_log/data/repositories/dive_child_row_re
 
 /// Every entity an agent can change, by the read catalogue's names.
 class WriteCatalog {
-  WriteCatalog(RecordRepositories repositories, {LibraryEditStamper? stamper})
-    : all = _entries(repositories, stamper);
+  /// [refreshReminders] re-arms an item's service reminders after a write
+  /// to its clocks or history, as the service dialogs do.
+  WriteCatalog(
+    RecordRepositories repositories, {
+    LibraryEditStamper? stamper,
+    GearReminderRefresh? refreshReminders,
+  }) : all = _entries(repositories, stamper, refreshReminders);
+
+  /// A catalog of exactly [entries], for a test that swaps one writer.
+  @visibleForTesting
+  WriteCatalog.of(List<WritableEntry> entries)
+    : all = List.unmodifiable(entries);
 
   /// Built per request, so the row writers share one repository.
   static List<WritableEntry> _entries(
     RecordRepositories repositories,
     LibraryEditStamper? stamper,
+    GearReminderRefresh? refreshReminders,
   ) {
     final rows = DiveChildRowRepository();
     return List.unmodifiable(<WritableEntry>[
@@ -66,6 +83,9 @@ class WriteCatalog {
       EquipmentLocationWrites(repositories),
       EquipmentLocationMoveWrites(repositories),
       EquipmentComponentWrites(repositories),
+      ServiceKindWrites(repositories),
+      ServiceScheduleWrites(repositories, refreshReminders: refreshReminders),
+      ServiceRecordWrites(repositories, refreshReminders: refreshReminders),
     ]);
   }
 

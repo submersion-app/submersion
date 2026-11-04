@@ -194,7 +194,7 @@ class ServiceScheduleRepository {
     String? diverId,
     Set<String> existingKindIds = const {},
   }) async {
-    final hidden = await _hiddenServiceKinds(diverId);
+    final hidden = await hiddenServiceKindIds(diverId);
     return [
       for (final kind in await ServiceKindRepository().getAllKinds())
         // Another diver's custom kind never attaches; a built-in kind the
@@ -258,7 +258,7 @@ class ServiceScheduleRepository {
   /// The built-in service kinds [diverId] hid from the pickers (issue #401).
   /// Read straight from diver_settings, as [getDueSoonWindowDays] does, so
   /// equipment creation does not depend on the settings notifier.
-  Future<Set<String>> _hiddenServiceKinds(String? diverId) async {
+  Future<Set<String>> hiddenServiceKindIds(String? diverId) async {
     if (diverId == null) return const {};
     final row =
         await (_db.select(_db.diverSettings)

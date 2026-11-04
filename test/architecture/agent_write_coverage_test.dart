@@ -231,6 +231,19 @@ void main() {
         'dives',
     'lib/features/dive_log/data/repositories/profile_series_repository.dart:deleteSeriesWithHistory':
         'dives',
+    for (final method in const ['createKind', 'updateKind', 'deleteKind'])
+      '$gear/service_kind_repository.dart:$method': 'service_kinds',
+    for (final method in const [
+      'createSchedule',
+      'updateSchedule',
+      'deleteSchedule',
+    ])
+      '$gear/service_schedule_repository.dart:$method': 'service_schedules',
+    // The item save calls it with the baselines its attributes name.
+    '$gear/service_schedule_repository.dart:applyBaselines': 'equipment',
+    for (final method in const ['createRecord', 'updateRecord', 'deleteRecord'])
+      '$gear/service_record_repository.dart:$method': 'service_records',
+    '$gear/equipment_repository_impl.dart:replaceChild': 'equipment',
   };
 
   /// Writes that change no record a diver keeps, so no change set entity
@@ -313,6 +326,9 @@ void main() {
       '$gear/equipment_share_repository.dart:$method':
           'a bulk shortcut for a share change, which equipment covers as '
           'shared_with through setShares',
+    '$gear/equipment_repository_impl.dart:markAsServiced':
+        'a legacy field with no caller in the app, and a write that skips '
+        'sync; service_records covers servicing',
   };
 
   /// A public `Future` method on a repository. The return type may sit on the

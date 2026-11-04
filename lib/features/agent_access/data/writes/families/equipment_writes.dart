@@ -6,6 +6,8 @@ import 'package:submersion/core/constants/enums.dart'
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/equipment_item_rules.dart';
+import 'package:submersion/features/agent_access/data/writes/families/equipment_replace_rules.dart';
+import 'package:submersion/features/agent_access/data/writes/families/service_ledger_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
@@ -59,10 +61,13 @@ class EquipmentWrites extends WritableEntry {
       nullable: true,
     ),
     'attributes': attributeListCodec,
+    replacesKey: const FieldCodec.reference('equipment'),
   };
 
+  /// A new item names [newItemKeys] unless it replaces a part, which
+  /// [replacementProblem] judges.
   @override
-  Set<String> get requiredOnCreate => const {'name', 'type'};
+  Set<String> get requiredOnCreate => const {};
 
   @override
   final Map<String, RelationSpec> relations = const {
@@ -94,6 +99,8 @@ class EquipmentWrites extends WritableEntry {
 
   @override
   String get note =>
+      'a create names name and type, or only replaces_equipment_id to '
+      'replace a fitted part (the new one copies it, the old one retires); '
       'custom_reminder_enabled true uses custom_reminder_days (some of 7, '
       '14 and 30; all three when none are named), null the app\'s default '
       'reminders; is_active follows status; last_service_date and '
@@ -118,6 +125,13 @@ class EquipmentWrites extends WritableEntry {
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {
     if (check.kind == ChangeKind.delete) return null;
+    final replacement = await replacementProblem(
+      check,
+      _r.equipment.getEquipmentById,
+    );
+    if (replacement != null || check.values.containsKey(replacesKey)) {
+      return replacement;
+    }
     final links =
         await _tagBlock(check) ?? _shareBlock(check) ?? reminderProblem(check);
     if (links != null) return links;
@@ -178,12 +192,44 @@ class EquipmentWrites extends WritableEntry {
     String diverId,
     Map<String, Object?> values,
   ) async {
+    final replaced = values[replacesKey] as String?;
+    final old = replaced == null
+        ? null
+        : await _r.equipment.getEquipmentById(replaced);
     final kinds = await ServiceScheduleRepository().autoAttachKindsFor(
-      type: EquipmentType.values.byName(values['type']! as String),
-      diverId: diverId,
+      type: old?.type ?? EquipmentType.values.byName(values['type']! as String),
+      diverId: old?.diverId ?? diverId,
     );
     return {if (kinds.isNotEmpty) 'service_schedules': kinds.length};
   }
+
+  /// A part is replaced once, so two replacements of it in a set cannot
+  /// both pass.
+  @override
+  UniqueClaim? uniqueKey(WriteCheck check) =>
+      switch (check.values[replacesKey]) {
+        final String oldId when check.kind == ChangeKind.create => UniqueClaim(
+          'replace/$oldId',
+        ),
+        _ => null,
+      };
+
+  /// The currency the edit page starts a new item in, listed in the plan.
+  @override
+  Future<Map<String, Object?>> createDefaults(
+    String diverId,
+    Map<String, Object?> values,
+  ) async => values.containsKey(replacesKey)
+      ? const {}
+      : {'purchase_currency': await defaultCurrencyOf(diverId)};
+
+  /// A replacement retires the part it replaces.
+  @override
+  Future<Map<String, int>> createTouched(
+    String diverId,
+    Map<String, Object?> values,
+  ) async =>
+      values.containsKey(replacesKey) ? const {'equipment': 1} : const {};
 
   @override
   Future<SideEffects> sideEffects(
@@ -215,6 +261,16 @@ class EquipmentWrites extends WritableEntry {
 
   @override
   Future<String> create(String diverId, Map<String, Object?> values) async {
+    if (values[replacesKey] case final String oldId) {
+      final old =
+          await _r.equipment.getEquipmentById(oldId) ??
+          (throw AgentToolException(
+            AgentToolErrorCode.writeRefused,
+            'Equipment $oldId no longer exists.',
+            details: {'id': oldId},
+          ));
+      return (await _r.equipment.replaceChild(old)).id;
+    }
     final blank = EquipmentItem(
       id: '',
       diverId: diverId,
@@ -223,7 +279,7 @@ class EquipmentWrites extends WritableEntry {
       status: EquipmentStatus.active,
       purchaseCurrency:
           values['purchase_currency'] as String? ??
-          await _defaultCurrency(diverId),
+          await defaultCurrencyOf(diverId),
     );
     return (await _r.equipment.createEquipment(await _next(blank, values))).id;
   }
@@ -316,9 +372,12 @@ class EquipmentWrites extends WritableEntry {
   /// finding (issue #3367), so its dives are rescanned, as the edit page's
   /// save does.
   @override
-  Future<void> afterApply(String id, Set<String> changed) async {
-    if (changed.contains('serial_number')) {
-      await _r.transmitters.rescanDivesForTransmitterItem(id);
+  Future<void> afterApply(List<AppliedChange> changes, ApplyRun run) async {
+    for (final change in changes) {
+      if (change.kind == ChangeKind.update &&
+          change.changed.contains('serial_number')) {
+        await _r.transmitters.rescanDivesForTransmitterItem(change.id);
+      }
     }
   }
 
@@ -399,20 +458,5 @@ class EquipmentWrites extends WritableEntry {
         if (media.unlinkIds.isNotEmpty) 'media': media.unlinkIds.length,
       },
     );
-  }
-
-  /// The currency a new item takes when none is named: the diver's default,
-  /// as the edit page starts one.
-  Future<String> _defaultCurrency(String diverId) async {
-    final row = await DatabaseService.instance.database
-        .customSelect(
-          'SELECT default_currency FROM diver_settings WHERE diver_id = ?',
-          variables: [Variable.withString(diverId)],
-        )
-        .getSingleOrNull();
-    final code = (row?.read<String?>('default_currency') ?? '')
-        .trim()
-        .toUpperCase();
-    return code.isEmpty ? 'USD' : code;
   }
 }

@@ -187,6 +187,21 @@ void main() {
     expect(() => codec.parse([1.5]), _refused('whole'));
   });
 
+  test('a number map takes its keys in any order, each in range', () {
+    const codec = FieldCodec.numberMap(keys: {'a', 'b'}, min: 0, max: 10);
+    final parsed = codec.parse({'b': 1, 'a': 2});
+    expect(parsed, codec.parse({'a': 2, 'b': 1}));
+    expect(parsed, codec.canonical({'a': 2, 'b': 1}));
+    // A document holds the intervals as doubles.
+    expect(parsed, codec.canonical({'a': 2.0, 'b': 1.0}));
+    expect(codec.wire(parsed), {'a': 2, 'b': 1});
+    expect(codec.parse(<String, Object?>{}), codec.canonical({}));
+    expect(() => codec.parse({'c': 1}), _refused('a, b'));
+    expect(() => codec.parse({'a': 'x'}), _refused('number'));
+    expect(() => codec.parse({'a': 11}), _refused('10'));
+    expect(() => codec.parse([1]), _refused('object'));
+  });
+
   test('a date that does not exist is refused', () {
     expect(
       () => const FieldCodec.wallClock().parse('2024-02-31T10:00:00Z'),

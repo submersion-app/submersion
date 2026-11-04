@@ -305,6 +305,40 @@ part of itself is blocked before `addComponent` would throw. Status shortcuts, b
 and the inner steps of an item delete are in the coverage guard's `exempt`
 map.
 
+The service ledger is writable as `service_kinds`, `service_schedules` (an
+item's clocks, children of the item) and `service_records` (its history, also
+children). A built-in service type is the app's: the service types page lets a
+diver hide one in Settings but never edit or delete it, so an update or a
+delete of one is refused. A clock is one per type on an item, of a type that
+fits the item's type, is not another profile's custom type and is not a
+built-in the owner hid, never on wanted gear, and with an interval to count; a
+baseline it names is stamped as picked, as the clock's dialog stamps it. A new
+record takes the category and prices the log service dialog fills in
+(`resolveDefaultServiceCategory`, `resolveDefaultServiceCost`, then the
+diver's default currency). The record repository keeps the item's
+`last_service_date`, so a record's create, edit or delete lists the item under
+"Also changes" when it moves that date; a create writes the record's day as it
+is, even an older one (issue #4201). Clock and record writes re-arm the item's
+service reminders after the apply through a `GearReminderRefresh` callback the
+provider layer builds, as the record notifier does; it does nothing while
+reminders are off, and a failure there is logged. A revert does not call it,
+so reminders catch up at the next app start.
+
+An equipment create that names only `replaces_equipment_id` goes through
+`replaceChild`, as the children card's Replace does: the new part copies the
+old one's name, type, make and spec into its place, the old one is retired,
+and the plan lists both. Only a part fitted to an item in the kit, as the set
+leaves it, is replaced, once per set, and a part the set changes earlier is
+replaced in a set of its own. `afterApply` gets every change of its entity the
+apply wrote, each with the record's id and its parent, so work for one item
+runs once. `createTouched` and `DeleteReach.touched` let a create or a delete
+list the rows of other records it rewrites, as `SideEffects.touched` does for
+an update. `createDefaults` names what a create fills in that it does not name,
+as a form prefills it (a record's category, price and currency, an item's
+currency): the plan lists those values as indirect changes and the apply
+writes them as listed. `markAsServiced` is exempt: a legacy field with no
+caller in the app.
+
 ### Adding a writable entity
 
 1. Add a `WritableEntry` under `data/writes/families/` and list it in
