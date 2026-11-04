@@ -2442,6 +2442,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get accessibility_shortcutCategory_help => 'Help';
 
   @override
+  String get accessibility_shortcutCategory_planner => 'Planner';
+
+  @override
   String get accessibility_shortcutCategory_navigation => 'Navigatie';
 
   @override
@@ -2470,6 +2473,13 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get accessibility_shortcut_keyboardShortcuts => 'Sneltoetsen';
+
+  @override
+  String get accessibility_shortcut_previousPlannedDive =>
+      'Vorige geplande duik';
+
+  @override
+  String get accessibility_shortcut_nextPlannedDive => 'Volgende geplande duik';
 
   @override
   String get accessibility_shortcut_newDive => 'Nieuwe duik';
@@ -20899,6 +20909,19 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerSeries_stopFollowing => 'Niet meer volgen';
 
   @override
+  String get plannerSeries_compareWithPlan => 'Vergelijken met het plan';
+
+  @override
+  String get plannerSeries_asPlanned => 'Zoals gepland';
+
+  @override
+  String get plannerSeries_loggedNotPlanned =>
+      'Deze duik staat in je logboek en is hier niet gepland. Open hem in het logboek om hem te wijzigen.';
+
+  @override
+  String get plannerSeries_maxDepth => 'Max. diepte';
+
+  @override
   String plannerSeries_carriedInto(String dive) {
     return 'Overgedragen naar $dive';
   }
@@ -20951,6 +20974,25 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Verwerpen';
 
   @override
+  String plannerSeries_issue_shortInterval(String time) {
+    return 'Oppervlakte-interval van $time is korter dan 10 minuten';
+  }
+
+  @override
+  String plannerSeries_issue_startsBefore(String time) {
+    return 'Begint $time voordat de vorige duik eindigt';
+  }
+
+  @override
+  String get plannerSeries_issue_owingDeco =>
+      'Begint met een decoverplichting van de vorige duik';
+
+  @override
+  String plannerSeries_issue_reverseProfile(String depth, String previous) {
+    return 'Omgekeerd profiel: $depth, dieper dan de vorige duik van $previous';
+  }
+
+  @override
   String get plannerSeries_unsaved_titleDive => 'Deze duik opslaan?';
 
   @override
@@ -20961,6 +21003,51 @@ class AppLocalizationsNl extends AppLocalizations {
   String plannerSeries_saved_diveCount(int count) {
     return '$count duiken';
   }
+
+  @override
+  String get plannerSeries_start => 'Begin';
+
+  @override
+  String get plannerSeries_start_notSet => 'Niet ingesteld';
+
+  @override
+  String get plannerSeries_start_clear => 'Begintijd wissen';
+
+  @override
+  String get plannerSeries_start_needsFirst =>
+      'Geef eerst de eerste duik een begintijd';
+
+  @override
+  String get plannerSeries_start_fixed =>
+      'De oppervlakte-interval volgt uit dit begin';
+
+  @override
+  String get plannerSeries_site => 'Duikstek';
+
+  @override
+  String get plannerSeries_site_none => 'Geen duikstek';
+
+  @override
+  String get plannerSeries_site_clear => 'Duikstek wissen';
+
+  @override
+  String get plannerSeries_scope_series => 'Reeks';
+
+  @override
+  String get plannerSeries_scope_seriesHint =>
+      'Latere duiken nemen deze instellingen over, tenzij ze eigen instellingen hebben';
+
+  @override
+  String get plannerSeries_scope_fromSeries => 'Uit de reeks';
+
+  @override
+  String get plannerSeries_scope_thisDive => 'Alleen deze duik';
+
+  @override
+  String get plannerSeries_scope_reset => 'Terugzetten naar reeks';
+
+  @override
+  String get plannerSeries_scope_applyAll => 'Op alle duiken toepassen';
 
   @override
   String plannerSeries_fill(String tank) {
@@ -25682,6 +25769,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_startPressurePinned =>
       'Begindruk handmatig ingesteld';
+
+  @override
+  String get settings_conflict_field_fixedStart =>
+      'Begintijd handmatig ingesteld';
+
+  @override
+  String get settings_conflict_field_settingOverrides =>
+      'Instellingen alleen voor deze duik';
 
   @override
   String get settings_conflict_field_startTime => 'Starttijd';

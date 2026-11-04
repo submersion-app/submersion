@@ -35,5 +35,9 @@ extension BeforeOpenSettingsColumns on AppDatabase {
     // v341 backstop: dive_plans series placement columns and the
     // dive_plan_tanks carry-over columns (issue #3565).
     await _assertDivePlanSeriesColumns();
+
+    // v342 backstop: dive_plans.fixed_start and setting_overrides (issue
+    // #3565, phase 2).
+    await _assertDivePlanPhase2Columns();
   }
 }

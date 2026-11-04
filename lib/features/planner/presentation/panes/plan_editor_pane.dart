@@ -10,6 +10,9 @@ import 'package:submersion/features/planner/presentation/panes/plan_setup_accord
 import 'package:submersion/features/planner/presentation/providers/planner_layout_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_kit.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_dive_details_card.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_logged_dive_providers.dart';
+import 'package:submersion/features/planner/presentation/widgets/logged/logged_dive_details_card.dart';
+import 'package:submersion/features/planner/presentation/widgets/logged/logged_dive_tanks_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The editing column of Mission Control: the dive's details, tanks and
@@ -55,6 +58,35 @@ class _PlanEditorPaneState extends ConsumerState<PlanEditorPane> {
     final missionOn = ref.watch(
       divePlanNotifierProvider.select((s) => s.mission != null),
     );
+
+    // A logged dive picked in the series bar: its details and tanks
+    // read-only, and the segments of the plan it was dived from, if any
+    // (issue #3565). It has no plan settings of its own.
+    if (ref.watch(viewingLoggedDiveProvider)) {
+      final plan = ref.watch(viewedLoggedDivePlanStateProvider);
+      return ListView(
+        controller: _scrollController,
+        padding: const EdgeInsets.all(12),
+        children: [
+          const LoggedDiveDetailsCard(),
+          const LoggedDiveTanksCard(),
+          const SizedBox(height: 12),
+          if (plan != null)
+            SegmentList(plan: plan)
+          else
+            Padding(
+              key: const Key('loggedDiveNotPlanned'),
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                context.l10n.plannerSeries_loggedNotPlanned,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+        ],
+      );
+    }
 
     return ListView(
       controller: _scrollController,

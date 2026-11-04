@@ -62,7 +62,7 @@ class _PlanFollowPromptState extends ConsumerState<PlanFollowPrompt> {
         ? l10n.plannerSeries_loggedDiveNumber(number)
         : units.formatDate(dive.effectiveEntryTime);
     final ago = formatHoursMinutes(
-      clock.now().difference(diveEndInstant(dive)),
+      elapsedToTheMinute(diveEndInstant(dive), now: clock.now()),
     );
 
     return Padding(

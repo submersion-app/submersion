@@ -65,6 +65,22 @@ reuse from plan to plan.
 
 A new plan starts with one 11.1 L tank at 200 bar on air.
 
+### Start time and site
+
+**Dive details** (above the tanks) holds the dive's name, its **Start**, the
+**Surface interval** and its **Site**. Start and site are optional. On a
+series of dives, a dive's start and its surface interval set each other:
+change the interval and the start follows, or set the start and the interval
+is measured from the end of the dive before. Whichever you set last holds
+when an earlier dive gets longer or shorter. A later dive's start can be set
+once the first dive has one, or follows a logged dive.
+
+The planner doesn't use the site; a dive you convert from the plan takes it,
+with the start time (or now, if there is none).
+
+With a keyboard, Alt+Left and Alt+Right move to the previous and next dive of
+a series, except while you are typing in a field.
+
 ### Building the profile
 
 Under **Dive Segments**, each segment is a point you want to reach: a
@@ -103,6 +119,18 @@ dive:
 > A lower gradient factor is more conservative. See the [Glossary](glossary.md)
 > for gradient factors, RMV, ppO₂ and the other terms used here.
 
+On a series of dives, the first dive's settings are the series'. Changing
+**Decompression**, **Rates**, **Gas**, **Environment** or **Contingencies** on
+the first dive changes them on every later dive that hasn't set its own.
+Changing one on a later dive makes it that dive's own, and the section says
+**This dive only**, with **Reset to series** and **Apply to all dives**. CCR,
+pSCR and Gear & Weights are always each dive's own.
+
+Tanks work the same way: a later dive takes the first dive's tanks and gases
+until you change its own. A tank starts with what was left in it after the
+dive before only while it is the same tank, the same size and gas; a
+different tank starts full. A pressure you fill or type stays.
+
 ### Reading the results
 
 The results pane leads with **Runtime**, **NDL** (or **TTS** once the dive needs
@@ -139,6 +167,13 @@ The planner warns about:
 | Missing gas | An open-circuit deco dive with no deco gas, or a rebreather deco dive with no bailout gas |
 | Bailout gas | A rebreather plan deeper than the maximum operating depth of every bailout gas, or bailout gases that turn hypoxic on the way to the surface. These do not stop a plan being diveable |
 | Diluent MOD | A diluent breathed deeper than its maximum operating depth |
+| Surface interval | A dive of a series, or one following a logged dive, less than 10 minutes after the dive before |
+| Starts before the dive before ends | A start you set that falls before the dive before it ends (critical) |
+| Starts owing deco | The tissues carried in from the dive before still have a ceiling when this dive starts (critical) |
+| Reverse profile | A dive more than 12 m deeper than the dive before it |
+
+On a series, CNS and OTU count the dives before: each dive starts from what the
+earlier ones left.
 
 ### Saving, sharing and comparing plans
 
@@ -169,17 +204,27 @@ From the menu you can also:
   at least one segment, since an empty plan has no schedule to print.
 - **Export plan file:** a `.subplan` file another Submersion user can import.
   A series goes in one file, without the logged dive it follows, which is in
-  your log rather than theirs.
+  your log rather than theirs. Start times go in the file; sites stay out.
 - **Reset Plan** or **Delete plan**.
 
 ### Plans and logged dives
 
 - **Follow a dive** plans a repetitive dive: pick one of your last 30 dives, and
   the planner starts from the tissue loading that dive left, with the surface
-  interval set to the time since it ended. The dive needs a recorded profile.
+  interval set to the time since it ended, so the plan starts now. A dive that
+  ended less than an hour ago gets an hour. The dive needs a recorded profile.
   A plan following a dive saves with it, and reopens from that dive's tissue
   loading, CNS and OTU. It can't be converted to a dive yet; **Stop
   following** gives that back.
+- **Logged dives in the series bar.** The dives a plan follows lead the bar.
+  Tap one to see it in the planner's own layout, read-only: its profile where
+  the plan's chart was, its details and tanks, and in the results what it
+  carries into the next dive, its runtime and the warnings its safety review
+  found. If the dive was dived from a plan, that plan's segments show under
+  **Plan**, its schedule, gas and range table show **As planned**, and the
+  chart shows the plan beside the dive; **Compare with its plan** opens the
+  dive's Compare page. Setup isn't available for a logged dive. Tap a planned
+  dive to go back.
 - **Rebuild in planner** opens a logged dive in the planner. In the dive's menu
   choose **Compare…**, then **Rebuild in planner...** in the Compare page's
   menu; a dive Compare can't branch, such as a gauge dive, goes straight there.

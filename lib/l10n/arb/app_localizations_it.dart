@@ -2453,6 +2453,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get accessibility_shortcutCategory_help => 'Aiuto';
 
   @override
+  String get accessibility_shortcutCategory_planner => 'Pianificatore';
+
+  @override
   String get accessibility_shortcutCategory_navigation => 'Navigazione';
 
   @override
@@ -2482,6 +2485,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get accessibility_shortcut_keyboardShortcuts =>
       'Scorciatoie da tastiera';
+
+  @override
+  String get accessibility_shortcut_previousPlannedDive =>
+      'Immersione pianificata precedente';
+
+  @override
+  String get accessibility_shortcut_nextPlannedDive =>
+      'Immersione pianificata successiva';
 
   @override
   String get accessibility_shortcut_newDive => 'Nuova immersione';
@@ -21036,6 +21047,19 @@ class AppLocalizationsIt extends AppLocalizations {
   String get plannerSeries_stopFollowing => 'Smetti di seguire';
 
   @override
+  String get plannerSeries_compareWithPlan => 'Confronta con il piano';
+
+  @override
+  String get plannerSeries_asPlanned => 'Come pianificato';
+
+  @override
+  String get plannerSeries_loggedNotPlanned =>
+      'Questa immersione è nel tuo logbook e non è stata pianificata qui. Aprila nel logbook per modificarla.';
+
+  @override
+  String get plannerSeries_maxDepth => 'Prof. max';
+
+  @override
   String plannerSeries_carriedInto(String dive) {
     return 'Riportato su $dive';
   }
@@ -21088,6 +21112,25 @@ class AppLocalizationsIt extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Scarta';
 
   @override
+  String plannerSeries_issue_shortInterval(String time) {
+    return 'L\'intervallo di superficie di $time è inferiore a 10 minuti';
+  }
+
+  @override
+  String plannerSeries_issue_startsBefore(String time) {
+    return 'Inizia $time prima della fine dell\'immersione precedente';
+  }
+
+  @override
+  String get plannerSeries_issue_owingDeco =>
+      'Inizia con un obbligo di deco dall\'immersione precedente';
+
+  @override
+  String plannerSeries_issue_reverseProfile(String depth, String previous) {
+    return 'Profilo inverso: $depth, più profondo dell\'immersione precedente a $previous';
+  }
+
+  @override
   String get plannerSeries_unsaved_titleDive => 'Salvare questa immersione?';
 
   @override
@@ -21098,6 +21141,51 @@ class AppLocalizationsIt extends AppLocalizations {
   String plannerSeries_saved_diveCount(int count) {
     return '$count immersioni';
   }
+
+  @override
+  String get plannerSeries_start => 'Inizio';
+
+  @override
+  String get plannerSeries_start_notSet => 'Non impostato';
+
+  @override
+  String get plannerSeries_start_clear => 'Cancella l\'ora di inizio';
+
+  @override
+  String get plannerSeries_start_needsFirst =>
+      'Imposta prima l\'ora di inizio della prima immersione';
+
+  @override
+  String get plannerSeries_start_fixed =>
+      'L\'intervallo di superficie deriva da questo inizio';
+
+  @override
+  String get plannerSeries_site => 'Sito';
+
+  @override
+  String get plannerSeries_site_none => 'Nessun sito';
+
+  @override
+  String get plannerSeries_site_clear => 'Cancella il sito';
+
+  @override
+  String get plannerSeries_scope_series => 'Serie';
+
+  @override
+  String get plannerSeries_scope_seriesHint =>
+      'Le immersioni successive usano queste impostazioni salvo che abbiano le proprie';
+
+  @override
+  String get plannerSeries_scope_fromSeries => 'Dalla serie';
+
+  @override
+  String get plannerSeries_scope_thisDive => 'Solo questa immersione';
+
+  @override
+  String get plannerSeries_scope_reset => 'Ripristina la serie';
+
+  @override
+  String get plannerSeries_scope_applyAll => 'Applica a tutte le immersioni';
 
   @override
   String plannerSeries_fill(String tank) {
@@ -25868,6 +25956,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_conflict_field_startPressurePinned =>
       'Pressione iniziale impostata a mano';
+
+  @override
+  String get settings_conflict_field_fixedStart =>
+      'Ora di inizio impostata a mano';
+
+  @override
+  String get settings_conflict_field_settingOverrides =>
+      'Impostazioni solo per questa immersione';
 
   @override
   String get settings_conflict_field_startTime => 'Ora di inizio';

@@ -112,12 +112,12 @@ void main() {
     await tester.pumpAndSettle();
 
     // The series follows the dive; the plan's own source dive is left for
-    // replans. The dive is months old, so the interval is the default hour.
+    // replans. The dive is months old, and the plan starts now, not back then.
     final follow = container.read(planSeriesNotifierProvider).follow;
     expect(follow?.followed.id, 'dive-9');
     final state = container.read(divePlanNotifierProvider);
     expect(state.sourceDiveId, isNull);
-    expect(state.surfaceInterval, const Duration(hours: 1));
+    expect(state.surfaceInterval, greaterThan(const Duration(days: 30)));
     // The sheet closed after following.
     expect(find.byType(FollowDiveSheet), findsNothing);
   });

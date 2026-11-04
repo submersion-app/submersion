@@ -30,5 +30,13 @@ extension RungsFromV340 on AppDatabase {
       await _assertDivePlanSeriesColumns();
     }
     if (from < 341) await reportProgress();
+
+    // v342: dive_plans.fixed_start, whether a planned dive's start was set by
+    // the diver rather than following from its surface interval, and
+    // dive_plans.setting_overrides, the setting groups a dive keeps its own
+    // values for (issue #3565, phase 2). Defaulted, no backfill. Re-asserted
+    // in beforeOpen.
+    if (from < 342) await _assertDivePlanPhase2Columns();
+    if (from < 342) await reportProgress();
   }
 }

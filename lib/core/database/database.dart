@@ -313,7 +313,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 341;
+  static const int currentSchemaVersion = 342;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1565,6 +1565,11 @@ class AppDatabase extends _$AppDatabase {
     // from 339 and then 340, which upstream claimed first for issues #3361
     // and #4136.
     341,
+    // v342: dive_plans.fixed_start, whether a planned dive's start was set
+    // by the diver, and dive_plans.setting_overrides, the setting groups a
+    // dive keeps its own (issue #3565, phase 2). Defaulted columns an older
+    // peer omits, so the floor does not move.
+    342,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

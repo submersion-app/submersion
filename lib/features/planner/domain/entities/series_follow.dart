@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// A logged dive shown before the planned dives of a series (issue #3565).
@@ -20,6 +21,9 @@ class SeriesLoggedDive extends Equatable {
   /// that ended too long before the followed one to count.
   final double otu;
 
+  /// How deep it went; null when not recorded.
+  final double? maxDepth;
+
   const SeriesLoggedDive({
     required this.id,
     this.diveNumber,
@@ -28,6 +32,7 @@ class SeriesLoggedDive extends Equatable {
     required this.end,
     required this.endInstant,
     this.otu = 0,
+    this.maxDepth,
   });
 
   SeriesLoggedDive copyWith({
@@ -38,6 +43,7 @@ class SeriesLoggedDive extends Equatable {
     DateTime? end,
     DateTime? endInstant,
     double? otu,
+    double? maxDepth,
   }) {
     return SeriesLoggedDive(
       id: id ?? this.id,
@@ -47,6 +53,7 @@ class SeriesLoggedDive extends Equatable {
       end: end ?? this.end,
       endInstant: endInstant ?? this.endInstant,
       otu: otu ?? this.otu,
+      maxDepth: maxDepth ?? this.maxDepth,
     );
   }
 
@@ -59,7 +66,21 @@ class SeriesLoggedDive extends Equatable {
     end,
     endInstant,
     otu,
+    maxDepth,
   ];
+}
+
+/// The surface interval between the logged dives [before] and [after], as
+/// the series bar and the planner's logged-dive cards show it: none when
+/// their logged times overlap. Measured between true instants, as the
+/// planned dives' intervals are, so a daylight saving change in between
+/// does not add or take away an hour.
+Duration loggedSurfaceInterval(
+  SeriesLoggedDive before,
+  SeriesLoggedDive after,
+) {
+  final gap = fromWallClockUtc(after.start).difference(before.endInstant);
+  return gap.isNegative ? Duration.zero : gap;
 }
 
 /// The logged dives a series follows (issue #3565): the followed dive, last,

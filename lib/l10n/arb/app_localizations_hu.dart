@@ -2446,6 +2446,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get accessibility_shortcutCategory_help => 'Súgó';
 
   @override
+  String get accessibility_shortcutCategory_planner => 'Tervező';
+
+  @override
   String get accessibility_shortcutCategory_navigation => 'Navigáció';
 
   @override
@@ -2474,6 +2477,14 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get accessibility_shortcut_keyboardShortcuts => 'Billentyűparancsok';
+
+  @override
+  String get accessibility_shortcut_previousPlannedDive =>
+      'Előző tervezett merülés';
+
+  @override
+  String get accessibility_shortcut_nextPlannedDive =>
+      'Következő tervezett merülés';
 
   @override
   String get accessibility_shortcut_newDive => 'Új merülés';
@@ -20960,6 +20971,19 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerSeries_stopFollowing => 'Követés leállítása';
 
   @override
+  String get plannerSeries_compareWithPlan => 'Összevetés a tervvel';
+
+  @override
+  String get plannerSeries_asPlanned => 'Ahogy tervezték';
+
+  @override
+  String get plannerSeries_loggedNotPlanned =>
+      'Ez a merülés a naplódban van, és nem itt tervezték. A módosításhoz nyisd meg a naplóban.';
+
+  @override
+  String get plannerSeries_maxDepth => 'Max. mélység';
+
+  @override
   String plannerSeries_carriedInto(String dive) {
     return 'Átvitel ide: $dive';
   }
@@ -21012,6 +21036,25 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Elvetés';
 
   @override
+  String plannerSeries_issue_shortInterval(String time) {
+    return 'A(z) $time felszíni idő kevesebb 10 percnél';
+  }
+
+  @override
+  String plannerSeries_issue_startsBefore(String time) {
+    return '$time idővel az előző merülés vége előtt kezdődik';
+  }
+
+  @override
+  String get plannerSeries_issue_owingDeco =>
+      'Az előző merülésből eredő dekó-kötelezettséggel kezdődik';
+
+  @override
+  String plannerSeries_issue_reverseProfile(String depth, String previous) {
+    return 'Fordított profil: $depth, mélyebb az előző, $previous mély merülésnél';
+  }
+
+  @override
   String get plannerSeries_unsaved_titleDive => 'Menti ezt a merülést?';
 
   @override
@@ -21022,6 +21065,51 @@ class AppLocalizationsHu extends AppLocalizations {
   String plannerSeries_saved_diveCount(int count) {
     return '$count merülés';
   }
+
+  @override
+  String get plannerSeries_start => 'Kezdés';
+
+  @override
+  String get plannerSeries_start_notSet => 'Nincs megadva';
+
+  @override
+  String get plannerSeries_start_clear => 'Kezdési idő törlése';
+
+  @override
+  String get plannerSeries_start_needsFirst =>
+      'Először adj kezdési időt az első merülésnek';
+
+  @override
+  String get plannerSeries_start_fixed =>
+      'A felszíni idő ebből a kezdésből adódik';
+
+  @override
+  String get plannerSeries_site => 'Merülőhely';
+
+  @override
+  String get plannerSeries_site_none => 'Nincs merülőhely';
+
+  @override
+  String get plannerSeries_site_clear => 'Merülőhely törlése';
+
+  @override
+  String get plannerSeries_scope_series => 'Sorozat';
+
+  @override
+  String get plannerSeries_scope_seriesHint =>
+      'A későbbi merülések ezeket a beállításokat használják, hacsak nincs sajátjuk';
+
+  @override
+  String get plannerSeries_scope_fromSeries => 'A sorozatból';
+
+  @override
+  String get plannerSeries_scope_thisDive => 'Csak ez a merülés';
+
+  @override
+  String get plannerSeries_scope_reset => 'Vissza a sorozathoz';
+
+  @override
+  String get plannerSeries_scope_applyAll => 'Alkalmazás minden merülésre';
 
   @override
   String plannerSeries_fill(String tank) {
@@ -25730,6 +25818,13 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_startPressurePinned =>
       'Kezdőnyomás kézzel megadva';
+
+  @override
+  String get settings_conflict_field_fixedStart => 'Kezdési idő kézzel megadva';
+
+  @override
+  String get settings_conflict_field_settingOverrides =>
+      'Csak erre a merülésre vonatkozó beállítások';
 
   @override
   String get settings_conflict_field_startTime => 'Kezdés ideje';

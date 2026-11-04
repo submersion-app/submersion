@@ -2452,6 +2452,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get accessibility_shortcutCategory_help => 'Hilfe';
 
   @override
+  String get accessibility_shortcutCategory_planner => 'Planer';
+
+  @override
   String get accessibility_shortcutCategory_navigation => 'Navigation';
 
   @override
@@ -2480,6 +2483,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get accessibility_shortcut_keyboardShortcuts => 'Tastenkombinationen';
+
+  @override
+  String get accessibility_shortcut_previousPlannedDive =>
+      'Vorheriger geplanter Tauchgang';
+
+  @override
+  String get accessibility_shortcut_nextPlannedDive =>
+      'Nächster geplanter Tauchgang';
 
   @override
   String get accessibility_shortcut_newDive => 'Neuer Tauchgang';
@@ -21011,6 +21022,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannerSeries_stopFollowing => 'Nicht mehr folgen';
 
   @override
+  String get plannerSeries_compareWithPlan => 'Mit dem Plan vergleichen';
+
+  @override
+  String get plannerSeries_asPlanned => 'Wie geplant';
+
+  @override
+  String get plannerSeries_loggedNotPlanned =>
+      'Dieser Tauchgang steht in deinem Logbuch und wurde nicht hier geplant. Öffne ihn im Logbuch, um ihn zu ändern.';
+
+  @override
+  String get plannerSeries_maxDepth => 'Max. Tiefe';
+
+  @override
   String plannerSeries_carriedInto(String dive) {
     return 'Übertragen auf $dive';
   }
@@ -21062,6 +21086,25 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Verwerfen';
 
   @override
+  String plannerSeries_issue_shortInterval(String time) {
+    return 'Oberflächenpause von $time liegt unter 10 Minuten';
+  }
+
+  @override
+  String plannerSeries_issue_startsBefore(String time) {
+    return 'Beginnt $time vor dem Ende des vorherigen Tauchgangs';
+  }
+
+  @override
+  String get plannerSeries_issue_owingDeco =>
+      'Beginnt mit einer Deko-Verpflichtung aus dem vorherigen Tauchgang';
+
+  @override
+  String plannerSeries_issue_reverseProfile(String depth, String previous) {
+    return 'Umgekehrtes Profil: $depth, tiefer als der vorherige Tauchgang mit $previous';
+  }
+
+  @override
   String get plannerSeries_unsaved_titleDive => 'Diesen Tauchgang speichern?';
 
   @override
@@ -21072,6 +21115,51 @@ class AppLocalizationsDe extends AppLocalizations {
   String plannerSeries_saved_diveCount(int count) {
     return '$count Tauchgänge';
   }
+
+  @override
+  String get plannerSeries_start => 'Beginn';
+
+  @override
+  String get plannerSeries_start_notSet => 'Nicht festgelegt';
+
+  @override
+  String get plannerSeries_start_clear => 'Beginn löschen';
+
+  @override
+  String get plannerSeries_start_needsFirst =>
+      'Gib zuerst dem ersten Tauchgang einen Beginn';
+
+  @override
+  String get plannerSeries_start_fixed =>
+      'Die Oberflächenpause ergibt sich aus diesem Beginn';
+
+  @override
+  String get plannerSeries_site => 'Tauchplatz';
+
+  @override
+  String get plannerSeries_site_none => 'Kein Tauchplatz';
+
+  @override
+  String get plannerSeries_site_clear => 'Tauchplatz löschen';
+
+  @override
+  String get plannerSeries_scope_series => 'Serie';
+
+  @override
+  String get plannerSeries_scope_seriesHint =>
+      'Spätere Tauchgänge übernehmen diese Einstellungen, sofern sie keine eigenen haben';
+
+  @override
+  String get plannerSeries_scope_fromSeries => 'Aus der Serie';
+
+  @override
+  String get plannerSeries_scope_thisDive => 'Nur dieser Tauchgang';
+
+  @override
+  String get plannerSeries_scope_reset => 'Auf Serie zurücksetzen';
+
+  @override
+  String get plannerSeries_scope_applyAll => 'Auf alle Tauchgänge anwenden';
 
   @override
   String plannerSeries_fill(String tank) {
@@ -25800,6 +25888,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_startPressurePinned =>
       'Startdruck manuell festgelegt';
+
+  @override
+  String get settings_conflict_field_fixedStart =>
+      'Startzeit manuell festgelegt';
+
+  @override
+  String get settings_conflict_field_settingOverrides =>
+      'Einstellungen nur für diesen Tauchgang';
 
   @override
   String get settings_conflict_field_startTime => 'Startzeit';

@@ -107,6 +107,52 @@ void main() {
     }, skip: zoneHasNoDst);
   });
 
+  group('loggedSurfaceInterval', () {
+    test('is the time between one dive ending and the next starting', () {
+      final end = DateTime(2026, 7, 1, 10);
+      final before = seriesLoggedDive('a', end);
+      final after = seriesLoggedDive(
+        'b',
+        end.add(const Duration(hours: 3)),
+        minutes: 60,
+      );
+
+      expect(loggedSurfaceInterval(before, after), const Duration(hours: 2));
+    });
+
+    test('is none when the two overlap', () {
+      final end = DateTime(2026, 7, 1, 10);
+      final before = seriesLoggedDive('a', end);
+      final after = seriesLoggedDive('b', end, minutes: 30);
+
+      expect(loggedSurfaceInterval(before, after), Duration.zero);
+    });
+
+    test('runs on true instants across a clock change', () {
+      final change = dstTransition(forward: true)!;
+      // Ends half an hour before the change, starts again two real hours
+      // later; the clock digits between them are an hour further apart.
+      final ended = change.subtract(const Duration(minutes: 30));
+      final restarted = ended.add(const Duration(hours: 2));
+      final before = SeriesLoggedDive(
+        id: 'a',
+        start: asWallClockUtc(
+          ended.subtract(const Duration(hours: 1)).toLocal(),
+        ),
+        end: asWallClockUtc(ended.toLocal()),
+        endInstant: ended.toLocal(),
+      );
+      final after = SeriesLoggedDive(
+        id: 'b',
+        start: asWallClockUtc(restarted.toLocal()),
+        end: asWallClockUtc(restarted.add(const Duration(hours: 1)).toLocal()),
+        endInstant: restarted.add(const Duration(hours: 1)).toLocal(),
+      );
+
+      expect(loggedSurfaceInterval(before, after), const Duration(hours: 2));
+    }, skip: zoneHasNoDst);
+  });
+
   group('followSurfaceInterval', () {
     final end = DateTime(2026, 10, 25, 10);
 
@@ -120,14 +166,51 @@ void main() {
       );
     });
 
-    test('is an hour for a dive that only just ended or long ago', () {
+    test('is an hour for a dive that ended less than an hour ago', () {
+      for (final minutes in const [5, 30, 59]) {
+        expect(
+          followSurfaceInterval(end, now: end.add(Duration(minutes: minutes))),
+          const Duration(hours: 1),
+        );
+      }
+    });
+
+    test('is the time since from an hour on', () {
       expect(
-        followSurfaceInterval(end, now: end.add(const Duration(minutes: 5))),
+        followSurfaceInterval(end, now: end.add(const Duration(hours: 1))),
         const Duration(hours: 1),
       );
       expect(
-        followSurfaceInterval(end, now: end.add(followLookback)),
-        const Duration(hours: 1),
+        followSurfaceInterval(
+          end,
+          now: end.add(const Duration(hours: 1, minutes: 20)),
+        ),
+        const Duration(hours: 1, minutes: 20),
+      );
+    });
+
+    test('starts the plan now for a dive long ago, not in the past', () {
+      expect(
+        followSurfaceInterval(end, now: end.add(const Duration(days: 3))),
+        const Duration(days: 3),
+      );
+    });
+
+    test('rounds as the Follow prompt does', () {
+      final now = end.add(const Duration(hours: 2, seconds: 1));
+      expect(
+        followSurfaceInterval(end, now: now),
+        elapsedToTheMinute(end, now: now),
+      );
+    });
+
+    test('rounds up, so the start is not a few seconds in the past', () {
+      expect(
+        followSurfaceInterval(
+          end,
+          now: end.add(const Duration(hours: 2, seconds: 1)),
+        ),
+        const Duration(hours: 2, minutes: 1),
       );
     });
   });
@@ -174,6 +257,59 @@ void main() {
       );
 
       expect(tanks.map((t) => t.startPressure), [232, 200, 210]);
+    });
+
+    group('a tank changed from the logged one starts full', () {
+      const logged = DiveTank(
+        id: 'l1',
+        volume: 12,
+        workingPressure: 232,
+        endPressure: 90,
+        gasMix: ean32,
+      );
+      const planned = DiveTank(
+        id: 'back',
+        volume: 12,
+        workingPressure: 232,
+        startPressure: 90,
+        gasMix: ean32,
+      );
+
+      List<DiveTank> carried(DiveTank tank) => followedTankPressures(
+        [tank],
+        follow(const [logged]),
+        sources: {'back': 'l1'},
+      );
+
+      test('the same tank carries', () {
+        expect(carried(planned).single.startPressure, 90);
+      });
+
+      test('on another gas', () {
+        expect(
+          carried(planned.copyWith(gasMix: ean50)).single.startPressure,
+          232,
+        );
+      });
+
+      test('of another size', () {
+        expect(
+          carried(
+            planned.copyWith(volume: 15, workingPressure: 300),
+          ).single.startPressure,
+          300,
+        );
+      });
+
+      test('but not when pinned', () {
+        final tanks = followedTankPressures(
+          [planned.copyWith(gasMix: ean50, startPressure: 120)],
+          follow(const [logged]),
+          sources: {'back': 'l1'},
+          pinned: {'back'},
+        );
+        expect(tanks.single.startPressure, 120);
+      });
     });
 
     test('an end pressure below zero starts at zero', () {

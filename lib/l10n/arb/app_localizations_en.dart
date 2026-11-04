@@ -2427,6 +2427,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accessibility_shortcutCategory_help => 'Help';
 
   @override
+  String get accessibility_shortcutCategory_planner => 'Planner';
+
+  @override
   String get accessibility_shortcutCategory_navigation => 'Navigation';
 
   @override
@@ -2455,6 +2458,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accessibility_shortcut_keyboardShortcuts => 'Keyboard shortcuts';
+
+  @override
+  String get accessibility_shortcut_previousPlannedDive =>
+      'Previous planned dive';
+
+  @override
+  String get accessibility_shortcut_nextPlannedDive => 'Next planned dive';
 
   @override
   String get accessibility_shortcut_newDive => 'New dive';
@@ -20723,6 +20733,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerSeries_stopFollowing => 'Stop following';
 
   @override
+  String get plannerSeries_compareWithPlan => 'Compare with its plan';
+
+  @override
+  String get plannerSeries_asPlanned => 'As planned';
+
+  @override
+  String get plannerSeries_loggedNotPlanned =>
+      'This dive is in your log and wasn\'t planned here. Open it in the dive log to change it.';
+
+  @override
+  String get plannerSeries_maxDepth => 'Max depth';
+
+  @override
   String plannerSeries_carriedInto(String dive) {
     return 'Carried into $dive';
   }
@@ -20774,6 +20797,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Discard';
 
   @override
+  String plannerSeries_issue_shortInterval(String time) {
+    return 'Surface interval of $time is under 10 minutes';
+  }
+
+  @override
+  String plannerSeries_issue_startsBefore(String time) {
+    return 'Starts $time before the previous dive ends';
+  }
+
+  @override
+  String get plannerSeries_issue_owingDeco =>
+      'Starts with a deco obligation from the dive before';
+
+  @override
+  String plannerSeries_issue_reverseProfile(String depth, String previous) {
+    return 'Reverse profile: $depth, deeper than the $previous dive before';
+  }
+
+  @override
   String get plannerSeries_unsaved_titleDive => 'Save this dive?';
 
   @override
@@ -20784,6 +20826,51 @@ class AppLocalizationsEn extends AppLocalizations {
   String plannerSeries_saved_diveCount(int count) {
     return '$count dives';
   }
+
+  @override
+  String get plannerSeries_start => 'Start';
+
+  @override
+  String get plannerSeries_start_notSet => 'Not set';
+
+  @override
+  String get plannerSeries_start_clear => 'Clear the start time';
+
+  @override
+  String get plannerSeries_start_needsFirst =>
+      'Give the first dive a start time first';
+
+  @override
+  String get plannerSeries_start_fixed =>
+      'The surface interval follows from this start';
+
+  @override
+  String get plannerSeries_site => 'Site';
+
+  @override
+  String get plannerSeries_site_none => 'No site';
+
+  @override
+  String get plannerSeries_site_clear => 'Clear the site';
+
+  @override
+  String get plannerSeries_scope_series => 'Series';
+
+  @override
+  String get plannerSeries_scope_seriesHint =>
+      'Dives after this one take these settings unless they set their own';
+
+  @override
+  String get plannerSeries_scope_fromSeries => 'From the series';
+
+  @override
+  String get plannerSeries_scope_thisDive => 'This dive only';
+
+  @override
+  String get plannerSeries_scope_reset => 'Reset to series';
+
+  @override
+  String get plannerSeries_scope_applyAll => 'Apply to all dives';
 
   @override
   String plannerSeries_fill(String tank) {
@@ -25415,6 +25502,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_field_startPressurePinned =>
       'Start pressure set by hand';
+
+  @override
+  String get settings_conflict_field_fixedStart => 'Start time set by hand';
+
+  @override
+  String get settings_conflict_field_settingOverrides =>
+      'Settings for this dive only';
 
   @override
   String get settings_conflict_field_startTime => 'Start time';

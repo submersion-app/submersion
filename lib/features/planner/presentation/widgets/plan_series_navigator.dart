@@ -5,10 +5,11 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
+import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 import 'package:submersion/features/planner/domain/utils/hours_minutes.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
-import 'package:submersion/features/planner/presentation/widgets/plan_logged_dive_view.dart';
+import 'package:submersion/features/planner/presentation/widgets/logged/logged_dive_label.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/planned_dive_icon.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -133,9 +134,10 @@ class _PlanSeriesNavigatorState extends ConsumerState<PlanSeriesNavigator> {
     for (var i = 0; i < logged.length; i++) {
       final dive = logged[i];
       if (i > 0) {
-        final gap = dive.start.difference(logged[i - 1].end);
         items.add(
-          _SurfaceIntervalMark(interval: gap.isNegative ? Duration.zero : gap),
+          _SurfaceIntervalMark(
+            interval: loggedSurfaceInterval(logged[i - 1], dive),
+          ),
         );
       }
       items.add(
@@ -152,9 +154,13 @@ class _PlanSeriesNavigatorState extends ConsumerState<PlanSeriesNavigator> {
       final dive = series.dives[i];
       if (i > 0 || logged.isNotEmpty) {
         items.add(
+          // As the series settles it: a fixed start's interval follows the
+          // dive before it, which the dive's own copy only learns when it
+          // is next selected.
           _SurfaceIntervalMark(
             interval:
-                dive.state.surfaceInterval ?? defaultSeriesSurfaceInterval,
+                results[i].state.surfaceInterval ??
+                defaultSeriesSurfaceInterval,
           ),
         );
       }

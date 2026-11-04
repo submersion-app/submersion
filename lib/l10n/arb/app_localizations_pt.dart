@@ -2450,6 +2450,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get accessibility_shortcutCategory_help => 'Ajuda';
 
   @override
+  String get accessibility_shortcutCategory_planner => 'Planeador';
+
+  @override
   String get accessibility_shortcutCategory_navigation => 'Navegação';
 
   @override
@@ -2478,6 +2481,14 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get accessibility_shortcut_keyboardShortcuts => 'Atalhos de teclado';
+
+  @override
+  String get accessibility_shortcut_previousPlannedDive =>
+      'Mergulho planeado anterior';
+
+  @override
+  String get accessibility_shortcut_nextPlannedDive =>
+      'Mergulho planeado seguinte';
 
   @override
   String get accessibility_shortcut_newDive => 'Novo mergulho';
@@ -21036,6 +21047,19 @@ class AppLocalizationsPt extends AppLocalizations {
   String get plannerSeries_stopFollowing => 'Deixar de seguir';
 
   @override
+  String get plannerSeries_compareWithPlan => 'Comparar com o plano';
+
+  @override
+  String get plannerSeries_asPlanned => 'Conforme planeado';
+
+  @override
+  String get plannerSeries_loggedNotPlanned =>
+      'Este mergulho está no teu registo e não foi planeado aqui. Abre-o no registo para o alterar.';
+
+  @override
+  String get plannerSeries_maxDepth => 'Prof. máx.';
+
+  @override
   String plannerSeries_carriedInto(String dive) {
     return 'Transportado para $dive';
   }
@@ -21088,6 +21112,25 @@ class AppLocalizationsPt extends AppLocalizations {
   String get plannerSeries_unsaved_discard => 'Descartar';
 
   @override
+  String plannerSeries_issue_shortInterval(String time) {
+    return 'O intervalo de superfície de $time é inferior a 10 minutos';
+  }
+
+  @override
+  String plannerSeries_issue_startsBefore(String time) {
+    return 'Começa $time antes de terminar o mergulho anterior';
+  }
+
+  @override
+  String get plannerSeries_issue_owingDeco =>
+      'Começa com uma obrigação de descompressão do mergulho anterior';
+
+  @override
+  String plannerSeries_issue_reverseProfile(String depth, String previous) {
+    return 'Perfil inverso: $depth, mais fundo do que o mergulho anterior a $previous';
+  }
+
+  @override
   String get plannerSeries_unsaved_titleDive => 'Guardar este mergulho?';
 
   @override
@@ -21098,6 +21141,51 @@ class AppLocalizationsPt extends AppLocalizations {
   String plannerSeries_saved_diveCount(int count) {
     return '$count mergulhos';
   }
+
+  @override
+  String get plannerSeries_start => 'Início';
+
+  @override
+  String get plannerSeries_start_notSet => 'Não definido';
+
+  @override
+  String get plannerSeries_start_clear => 'Limpar a hora de início';
+
+  @override
+  String get plannerSeries_start_needsFirst =>
+      'Defina primeiro a hora de início do primeiro mergulho';
+
+  @override
+  String get plannerSeries_start_fixed =>
+      'O intervalo de superfície resulta deste início';
+
+  @override
+  String get plannerSeries_site => 'Local';
+
+  @override
+  String get plannerSeries_site_none => 'Sem local';
+
+  @override
+  String get plannerSeries_site_clear => 'Limpar o local';
+
+  @override
+  String get plannerSeries_scope_series => 'Série';
+
+  @override
+  String get plannerSeries_scope_seriesHint =>
+      'Os mergulhos seguintes usam estas definições, salvo se tiverem as suas';
+
+  @override
+  String get plannerSeries_scope_fromSeries => 'Da série';
+
+  @override
+  String get plannerSeries_scope_thisDive => 'Só este mergulho';
+
+  @override
+  String get plannerSeries_scope_reset => 'Repor a série';
+
+  @override
+  String get plannerSeries_scope_applyAll => 'Aplicar a todos os mergulhos';
 
   @override
   String plannerSeries_fill(String tank) {
@@ -25841,6 +25929,14 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_conflict_field_startPressurePinned =>
       'Pressão inicial definida manualmente';
+
+  @override
+  String get settings_conflict_field_fixedStart =>
+      'Hora de início definida manualmente';
+
+  @override
+  String get settings_conflict_field_settingOverrides =>
+      'Definições apenas para este mergulho';
 
   @override
   String get settings_conflict_field_startTime => 'Hora de início';
