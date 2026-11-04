@@ -7,6 +7,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/item_share_rules.dart';
+import 'package:submersion/features/agent_access/data/writes/families/merge_reach.dart';
 import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
@@ -296,6 +297,59 @@ class SiteWrites extends WritableEntry {
           actingDiverId: ownerId,
         );
       }
+    }
+  }
+
+  @override
+  bool get mergeable => true;
+
+  /// A site merges into a site shared with its owner, which keeps its own
+  /// owner and sharing, as the site merge keeps them.
+  @override
+  bool get mergesAcrossProfiles => true;
+
+  @override
+  Future<PlanBlock?> refuseMerge(
+    String id,
+    String intoId,
+    String? ownerId,
+  ) async {
+    if (ownerId == null ||
+        await _r.itemShares.isVisibleTo(SharedItemKind.site, intoId, ownerId)) {
+      return null;
+    }
+    return PlanBlock(
+      BlockReason.otherProfileReference,
+      'merge_into: $intoId belongs to another profile and is not shared with '
+      'this one.',
+    );
+  }
+
+  /// The merged site's dives, photos, features, links and documents move to
+  /// the survivor, which keeps its own details.
+  @override
+  Future<DeleteReach> mergeReach(
+    String id,
+    String intoId, {
+    Set<String> mergedBefore = const {},
+  }) => linksMoved('dive_sites', id);
+
+  @override
+  Future<void> merge(String id, String intoId, String? ownerId) async {
+    final survivor = await _r.sites.getSiteById(intoId);
+    final snapshot = survivor == null
+        ? null
+        : await _r.sites.mergeSites(
+            mergedSite: survivor,
+            siteIds: [intoId, id],
+            actingDiverId: ownerId,
+          );
+    if (snapshot == null) {
+      throw AgentToolException(
+        AgentToolErrorCode.writeRefused,
+        'Site $id could not be merged into $intoId.',
+        details: {'id': id, 'merge_into': intoId},
+      );
     }
   }
 

@@ -445,6 +445,9 @@ class _Pass {
     final into = op.mergeInto;
     final refused =
         (into == null ? null : _mergeBlock(op, entry, row)) ??
+        (into == null
+            ? null
+            : await entry.refuseMerge(op.id, into, row.ownerId)) ??
         _parentWritten(entry, row.parentId, ChangeKind.delete) ??
         await entry.refuse(
           WriteCheck(
@@ -453,6 +456,7 @@ class _Pass {
             ownerId: row.ownerId,
             document: document,
             soFar: _soFar,
+            mergeInto: into,
           ),
         );
     // Held as locals, so the closure a marker keeps holds these and not this

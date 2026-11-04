@@ -2,9 +2,11 @@ import 'package:drift/drift.dart' show Value;
 
 import 'package:submersion/core/database/database.dart' show BuddiesCompanion;
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/writes/families/merge_reach.dart';
 import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
+import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
 import 'package:submersion/features/documents/domain/entities/document.dart'
@@ -116,4 +118,33 @@ class BuddyWrites extends WritableEntry {
 
   @override
   Future<void> delete(String id, String? ownerId) => _r.buddies.deleteBuddy(id);
+
+  @override
+  bool get mergeable => true;
+
+  /// The merged buddy's dives, cards, documents and photo tags move to the
+  /// survivor, as the buddy merge moves them; the survivor keeps its own
+  /// details.
+  @override
+  Future<DeleteReach> mergeReach(
+    String id,
+    String intoId, {
+    Set<String> mergedBefore = const {},
+  }) => linksMoved('buddies', id);
+
+  @override
+  Future<void> merge(String id, String intoId, String? ownerId) async {
+    final survivor = await _r.buddies.getBuddyById(intoId);
+    if (survivor == null) {
+      throw AgentToolException(
+        AgentToolErrorCode.writeRefused,
+        'Buddy $intoId no longer exists.',
+        details: {'id': intoId},
+      );
+    }
+    await _r.buddies.mergeBuddies(
+      mergedBuddy: survivor,
+      buddyIds: [intoId, id],
+    );
+  }
 }

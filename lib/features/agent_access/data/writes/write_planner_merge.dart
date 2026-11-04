@@ -34,7 +34,7 @@ extension _MergeRules on _Pass {
         '${entry.name} record merges only into one beside it.',
       );
     }
-    if (survivor.ownerId != row.ownerId) {
+    if (survivor.ownerId != row.ownerId && !entry.mergesAcrossProfiles) {
       return PlanBlock(
         BlockReason.otherProfileReference,
         'merge_into: $into belongs to another diver profile.',

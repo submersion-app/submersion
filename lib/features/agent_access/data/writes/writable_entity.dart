@@ -110,6 +110,7 @@ class WriteCheck {
     this.relations = const {},
     this.document,
     this.soFar = const SetSoFar(),
+    this.mergeInto,
   });
 
   final ChangeKind kind;
@@ -128,6 +129,9 @@ class WriteCheck {
 
   /// The record as it stands. Null for a create.
   final Map<String, Object?>? document;
+
+  /// The record a delete merges this one into, or null for a plain delete.
+  final String? mergeInto;
 }
 
 /// A key a change claims, such as a folded name. A [shared] claim holds the
@@ -463,6 +467,20 @@ abstract class WritableEntry {
   /// Whether a delete may name `merge_into`: a record that takes over this
   /// one's links, as the app merges these records.
   bool get mergeable => false;
+
+  /// Whether a merge may keep a survivor another profile owns, as a site
+  /// merges into a site shared with its owner. [refuseMerge] then says
+  /// which such survivors may take the merge.
+  bool get mergesAcrossProfiles => false;
+
+  /// A block when [id] of [ownerId] may not merge into [intoId], null when
+  /// it may. Only asked of a [mergeable] entity, after the planner's own
+  /// merge rules pass.
+  Future<PlanBlock?> refuseMerge(
+    String id,
+    String intoId,
+    String? ownerId,
+  ) async => null;
 
   /// What merging [id] into [intoId] does to their links, and to the
   /// survivor in [DeleteReach.survivor]. [mergedBefore] are the records the

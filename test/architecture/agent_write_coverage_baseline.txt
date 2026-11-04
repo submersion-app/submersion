@@ -1,11 +1,9 @@
 lib/features/buddies/data/repositories/buddy_conversion_repository.dart:apply
 lib/features/buddies/data/repositories/buddy_conversion_repository.dart:undo
 lib/features/buddies/data/repositories/buddy_merge_repository.dart:bulkDeleteBuddies
-lib/features/buddies/data/repositories/buddy_merge_repository.dart:mergeBuddies
 lib/features/buddies/data/repositories/buddy_merge_repository.dart:undoMerge
 lib/features/buddies/data/repositories/buddy_repository.dart:applyLegacyConversion
 lib/features/buddies/data/repositories/buddy_repository.dart:bulkDeleteBuddies
-lib/features/buddies/data/repositories/buddy_repository.dart:mergeBuddies
 lib/features/buddies/data/repositories/buddy_repository.dart:setFavorite
 lib/features/buddies/data/repositories/buddy_repository.dart:toggleFavorite
 lib/features/buddies/data/repositories/buddy_repository.dart:undoLegacyConversion
@@ -16,7 +14,6 @@ lib/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart:
 lib/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart:unlinkFromDeletedEquipment
 lib/features/dive_lab/data/repositories/dive_scenario_repository.dart:duplicateScenario
 lib/features/dive_log/data/repositories/derived_metrics_repository.dart:saveMetrics
-lib/features/dive_log/data/repositories/dive_computer_merge_repository.dart:mergeComputers
 lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:addProfileEvent
 lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:clearEventsForDive
 lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:clearSourceAndProfiles
@@ -146,12 +143,10 @@ lib/features/dive_roles/data/repositories/dive_role_link_repository.dart:restore
 lib/features/dive_roles/data/repositories/dive_role_link_repository.dart:writeBuddyRoles
 lib/features/dive_sites/data/repositories/site_children.dart:restore
 lib/features/dive_sites/data/repositories/site_children.dart:restoreSiteChildren
-lib/features/dive_sites/data/repositories/site_classification_repository.dart:relinkForMerge
 lib/features/dive_sites/data/repositories/site_links.dart:restoreLinksToSites
 lib/features/dive_sites/data/repositories/site_repository_impl.dart:applyImportedMetadata
 lib/features/dive_sites/data/repositories/site_repository_impl.dart:applyLocationDetails
 lib/features/dive_sites/data/repositories/site_repository_impl.dart:bulkDeleteSites
-lib/features/dive_sites/data/repositories/site_repository_impl.dart:mergeSites
 lib/features/dive_sites/data/repositories/site_repository_impl.dart:relinkSiteReferences
 lib/features/dive_sites/data/repositories/site_repository_impl.dart:restoreSiteLinks
 lib/features/dive_sites/data/repositories/site_repository_impl.dart:undoMerge
@@ -185,8 +180,6 @@ lib/features/media/data/repositories/manifest_subscription_repository.dart:setAc
 lib/features/media/data/repositories/manifest_subscription_repository.dart:updateUrlAndDisplayName
 lib/features/media/data/repositories/media_color_adjustment_repository.dart:restoreColorAdjustments
 lib/features/media/data/repositories/media_parent_cascade.dart:unlinkMediaFromDeletedParents
-lib/features/media/data/repositories/media_people_buddy_merge.dart:repointMediaPeopleForMerge
-lib/features/media/data/repositories/media_people_buddy_merge.dart:repointSmartAlbumBuddies
 lib/features/media/data/repositories/media_people_buddy_merge.dart:undoMediaPeopleMerge
 lib/features/media/data/repositories/media_people_repository.dart:deleteForBuddies
 lib/features/media/data/repositories/media_people_repository.dart:deleteForMedia

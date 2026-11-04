@@ -578,6 +578,25 @@ void main() {
       ('site_attachment_repository.dart', 'setSiteCategory'),
     ])
       '$media/$file:$method': 'media',
+    // Merges, as their pages merge: the merge and the helpers it calls.
+    'lib/features/dive_sites/data/repositories/site_repository_impl.dart:'
+            'mergeSites':
+        'sites',
+    'lib/features/dive_sites/data/repositories/'
+            'site_classification_repository.dart:relinkForMerge':
+        'sites',
+    for (final file in const [
+      'buddy_repository.dart',
+      'buddy_merge_repository.dart',
+    ])
+      'lib/features/buddies/data/repositories/$file:mergeBuddies': 'buddies',
+    for (final method in const [
+      'repointMediaPeopleForMerge',
+      'repointSmartAlbumBuddies',
+    ])
+      '$media/media_people_buddy_merge.dart:$method': 'buddies',
+    '$diveLog/dive_computer_merge_repository.dart:mergeComputers':
+        'dive_computers',
     for (final method in const ['cloneTemplate', 'updateItemEquipment'])
       'lib/features/pre_dive/data/repositories/'
               'pre_dive_template_repository.dart:$method':

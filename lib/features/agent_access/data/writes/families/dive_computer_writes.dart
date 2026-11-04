@@ -1,8 +1,10 @@
 import 'package:drift/drift.dart' show Variable;
 
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/writes/families/merge_reach.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_computer_merge_repository.dart';
 
 /// A dive computer's own settings, through the repository the computer
 /// page uses: the favourite star, which moves from the profile's other
@@ -50,7 +52,7 @@ class DiveComputerWrites extends WritableEntry {
         'item.',
       );
     }
-    if (check.kind == ChangeKind.delete) {
+    if (check.kind == ChangeKind.delete && check.mergeInto == null) {
       return PlanBlock(
         BlockReason.notPermitted,
         'A dive computer goes with $through.',
@@ -112,4 +114,23 @@ class DiveComputerWrites extends WritableEntry {
   @override
   Future<void> delete(String id, String? ownerId) =>
       throw UnsupportedError('A dive computer goes with its gear item.');
+
+  /// A duplicate computer merges into another, as the computer page merges
+  /// them: its dives, profiles and tanks move to the survivor.
+  @override
+  bool get mergeable => true;
+
+  @override
+  Future<DeleteReach> mergeReach(
+    String id,
+    String intoId, {
+    Set<String> mergedBefore = const {},
+  }) => linksMoved('dive_computers', id);
+
+  @override
+  Future<void> merge(String id, String intoId, String? ownerId) =>
+      DiveComputerMergeRepository().mergeComputers(
+        survivorId: intoId,
+        duplicateIds: [id],
+      );
 }
