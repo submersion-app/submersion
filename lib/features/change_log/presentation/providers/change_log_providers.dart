@@ -93,17 +93,20 @@ class ChangeLogFeedNotifier extends AsyncNotifier<ChangeLogFeedState> {
   Future<ChangeLogFeedState> build() async {
     final repository = ref.watch(changeLogRepositoryProvider);
     ref.invalidateSelfWhen(repository.watchChanges());
+    // A rebuild is usually a settle while the log is open, so it reads back
+    // as much as was showing rather than collapsing a scrolled list. Read
+    // before the first wait: a settle of several passes announces each one,
+    // and the rebuild that starts disposes this one mid-wait (#4186).
+    final showing = state.value?.operations.length ?? 0;
     final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
     _diverId = diverId;
     if (diverId == null) return const ChangeLogFeedState();
     await repository.settleAll();
-    // A rebuild is usually a settle while the log is open, so it reads back
-    // as much as was showing rather than collapsing a scrolled list.
     return _nextPage(
       repository,
       diverId,
       const ChangeLogFeedState(),
-      limit: max(kChangeLogPageSize, state.value?.operations.length ?? 0),
+      limit: max(kChangeLogPageSize, showing),
     );
   }
 
