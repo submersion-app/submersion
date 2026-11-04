@@ -13,6 +13,19 @@
 #   scripts/run_all_tests.sh [flutter test options...]
 #   scripts/run_all_tests.sh --coverage
 #   TEST_CONCURRENCY=8 scripts/run_all_tests.sh
+#   TEST_FILES_FROM="$PWD/selection.txt" scripts/run_all_tests.sh
+#
+# TEST_FILES_FROM names a file listing test paths, one per line: only those
+# run, bundled, with the same failure report. The pre-push hook hands a large
+# selection over like this (issue #4117). A bundle runs its files one after
+# another, so a selection's bundles are sized to give every worker one: at most
+# files / concurrency each, and never over the 40 used for the suite. Measured
+# at -j 16, 86 files took 62-67s as 19 bundles but about 180s as 4 bundles of
+# 40, which left 12 workers idle. The hook's header has the comparison with
+# separate files. The list must name existing files under test/, by paths relative
+# to the repository root; an empty list is refused rather than silently running
+# the whole suite. Give the list file itself as an absolute path, since the
+# script changes to the repository root first.
 #
 # Runs from the repository root wherever it is started, in one flutter test
 # call, so an option such as --coverage covers the whole suite. Performance
@@ -20,11 +33,18 @@
 # particular files, use `flutter test <paths>`. Exits non-zero if any test
 # fails, after naming the files that failed, did not compile or could not load.
 #
+# Each test gets 5 minutes, over the 2 in dart_test.yaml. On a machine at load
+# 35-55 a migration test that takes seconds alone reached 2 minutes in a bundle,
+# twice, and never as separate files, which blocked a push over nothing. Widget
+# tests keep the binding's limit, which this does not reach. A --timeout option
+# given to this script wins.
+#
 # Where the command line has a length limit (Git Bash on Windows, 8,191
 # characters), the bundles are rebuilt with more files each until their paths
 # fit, and the suite runs unbundled if no size fits; RUN_ALL_TESTS_ARG_LIMIT
 # overrides the limit in characters. Without a working python3 the test files
-# run one by one. The bundles go in a directory of this run's own under
+# run one by one, a selection in as many calls as the command line needs. The
+# bundles go in a directory of this run's own under
 # test/.bundles (git-ignored), removed however the run ends.
 #
 # `RUN_ALL_TESTS=1 git push` runs this script.
@@ -54,10 +74,47 @@ for arg in "$@"; do
     exit 2
 done
 
+# The explicit selection, when TEST_FILES_FROM is set; empty for the suite.
+SELECTED=()
+if [ -n "${TEST_FILES_FROM:-}" ]; then
+    if [ ! -f "$TEST_FILES_FROM" ]; then
+        echo "TEST_FILES_FROM: no such file: $TEST_FILES_FROM" >&2
+        exit 2
+    fi
+    refused=""
+    while IFS= read -r line || [ -n "$line" ]; do
+        line="${line%$'\r'}"
+        [ -n "$line" ] || continue
+        if [ -f "$line" ] && [ "${line#test/}" != "$line" ] \
+            && [ "${line#*/../}" = "$line" ]; then
+            SELECTED+=("$line")
+        else
+            refused="${refused}  ${line}
+"
+        fi
+    done < "$TEST_FILES_FROM"
+    if [ -n "$refused" ]; then
+        echo "TEST_FILES_FROM must name existing files under test/; these are not:" >&2
+        printf '%s' "$refused" >&2
+        exit 2
+    fi
+    if [ "${#SELECTED[@]}" -eq 0 ]; then
+        echo "TEST_FILES_FROM lists no test files: $TEST_FILES_FROM" >&2
+        exit 2
+    fi
+fi
+
 BUNDLE_ROOT="test/.bundles"
 BUNDLE_DIR="$BUNDLE_ROOT/run_all_tests.$$"
 FIRST_MAX_FILES=40
 LAST_MAX_FILES=640
+# A selection gets one bundle per worker at least; see TEST_FILES_FROM above.
+if [ "${#SELECTED[@]}" -gt 0 ]; then
+    per_worker=$(( (${#SELECTED[@]} + CONCURRENCY - 1) / CONCURRENCY ))
+    if [ "$per_worker" -lt "$FIRST_MAX_FILES" ]; then
+        FIRST_MAX_FILES="$per_worker"
+    fi
+fi
 
 LOG="$(mktemp)"
 # Removes only this run's bundles, then test/.bundles if nothing else is in it.
@@ -82,8 +139,15 @@ bundle_suite() {
     local list line
     ENTRYPOINTS=()
     rm -rf "$BUNDLE_DIR"
+    local -a subset=()
+    if [ "${#SELECTED[@]}" -gt 0 ]; then
+        subset=(--subset "$TEST_FILES_FROM")
+    fi
+    # test/web is the browser suite (@TestOn('browser')): a VM run could
+    # only skip it. It runs through scripts/web/test_web.sh.
     list="$(python3 scripts/bundle_tests.py --total-shards 1 \
-        --max-files "$1" --out "$BUNDLE_DIR" 2>/dev/null || true)"
+        --exclude-dir test/web \
+        --max-files "$1" --out "$BUNDLE_DIR" ${subset[@]+"${subset[@]}"} 2>/dev/null || true)"
     [ -n "$list" ] || return 0
     # A native Windows python3 under Git Bash ends each line with CRLF.
     while IFS= read -r line; do
@@ -115,7 +179,18 @@ while [ "${#ENTRYPOINTS[@]}" -gt 0 ] && [ "$LIMIT" -gt 0 ] \
     bundle_suite "$max_files"
 done
 
-if [ "${#ENTRYPOINTS[@]}" -gt 0 ]; then
+if [ "${#SELECTED[@]}" -gt 0 ]; then
+    if [ "${#SELECTED[@]}" -eq 1 ]; then
+        what="1 selected test file"
+    else
+        what="${#SELECTED[@]} selected test files"
+    fi
+    if [ "${#ENTRYPOINTS[@]}" -gt 0 ]; then
+        echo "Running $what as ${#ENTRYPOINTS[@]} bundled entrypoint(s) of up to $max_files files (concurrency $CONCURRENCY)."
+    else
+        echo "Running $what one by one (concurrency $CONCURRENCY); python3 could not bundle them within the limits."
+    fi
+elif [ "${#ENTRYPOINTS[@]}" -gt 0 ]; then
     echo "Running the suite as ${#ENTRYPOINTS[@]} bundled entrypoints of up to $max_files files (concurrency $CONCURRENCY)."
 else
     echo "Running the test files one by one (concurrency $CONCURRENCY); python3 could not bundle them within the limits."
@@ -200,9 +275,41 @@ report_failures() {
     fi
 }
 
-flutter test --exclude-tags performance --concurrency="$CONCURRENCY" \
-    "$@" ${ENTRYPOINTS[@]+"${ENTRYPOINTS[@]}"} 2>&1 | tee "$LOG"
-status=${PIPESTATUS[0]}
+TEST_TIMEOUT=5m
+CALLER_OPTIONS=("$@")
+
+# Runs flutter test on the targets "$@", adding to the log. Returns its status.
+run_flutter() {
+    flutter test --exclude-tags performance --concurrency="$CONCURRENCY" \
+        --timeout="$TEST_TIMEOUT" ${CALLER_OPTIONS[@]+"${CALLER_OPTIONS[@]}"} \
+        "$@" 2>&1 | tee -a "$LOG"
+    return "${PIPESTATUS[0]}"
+}
+
+# Runs the selected files in as many calls as the command-line limit needs,
+# which is one where there is no limit. Later calls still run after a failure.
+run_selected_files() {
+    local -a batch=()
+    local path length=0
+    for path in "${SELECTED[@]}"; do
+        if [ "$LIMIT" -gt 0 ] && [ "${#batch[@]}" -gt 0 ] \
+            && [ $((length + ${#path} + 1)) -gt "$LIMIT" ]; then
+            run_flutter "${batch[@]}" || status=$?
+            batch=()
+            length=0
+        fi
+        batch+=("$path")
+        length=$((length + ${#path} + 1))
+    done
+    run_flutter "${batch[@]}" || status=$?
+}
+
+status=0
+if [ "${#ENTRYPOINTS[@]}" -eq 0 ] && [ "${#SELECTED[@]}" -gt 0 ]; then
+    run_selected_files
+else
+    run_flutter ${ENTRYPOINTS[@]+"${ENTRYPOINTS[@]}"} || status=$?
+fi
 
 if [ "$status" -ne 0 ]; then
     echo ""

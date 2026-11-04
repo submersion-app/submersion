@@ -233,8 +233,9 @@ parser already produces, as a structured error, never an exception.
 
 Reuses the parse, validate, compile, run chain in `lib/core/query/` and
 `lib/features/query/data/query_id_set_runner.dart`, with the diver scope
-applied the way `query_id_set_providers.dart` applies it, including the
-`serviceDue` cache wait when that field is read.
+applied the way `query_id_set_providers.dart` applies it. `serviceDue` and
+`nextServiceDue` are evaluated for the named diver when the query runs, since
+the cache they compile against holds the active diver's verdicts only.
 
 ### `get_records`
 
@@ -245,12 +246,15 @@ profile samples), `diver_id`.
 
 Output: one JSON document per record, metric with unit-named keys, children
 nested. Profile samples are returned only when asked and are paged, since a
-long dive has thousands of samples.
+long dive has thousands of samples. Documents carry everything but bytes and
+media URLs, which can carry an access token: contact details, card and
+reference numbers, medical notes and insurance are included.
 
 There is no domain `Dive.toJson()`. The builder writes a small mapper per
 entity over the domain entities (or `DiveSummary` plus the detail loaders),
 not over Drift rows or the sync serializer, so the shape is stable and
-device-local and credential columns can never leak by accident.
+device-local and credential columns can never leak by accident. Diver settings
+are the one exception, because that table has no domain shape of its own.
 
 ### `list_records`
 
@@ -273,14 +277,19 @@ Rules:
 - Runs on a second in-process connection opened read-only (SQLite read-only
   open mode plus `PRAGMA query_only`), with the same SQLCipher key and the
   same custom SQL functions registered as the main connection. Read-only is
-  enforced by the engine, not by inspecting the SQL text.
+  enforced by the engine, not by inspecting the SQL text. As built, each call
+  opens its own connection on a worker isolate and closes it, so a step never
+  blocks the UI and no handle outlives a call.
 - Statements that touch a denied table or column are refused. The denied
   set is its own list, kept in one file: tables holding credentials, keys
   or tokens (connected accounts, network credential hosts, shared library
   keys), sync bookkeeping (`sync_*`), nearby peers, local publish and
   subscription state, and the change log tables, plus the credential
   columns the change log policy lists
-  (`lib/core/database/change_log/change_log_policy.dart`). Derived analytics
+  (`lib/core/database/change_log/change_log_policy.dart`),
+  `media_subscriptions.manifest_url`, `media.url` and `media.entry_key`,
+  because a private feed's URL and the URLs of its items can carry an access
+  token, and a feed's item id is often that URL. Derived analytics
   tables (dive derived metrics, sensor summaries, quality findings,
   equipment findings and service status, trip day weather, rule runs) stay
   readable: they are exactly what the statistics case wants. A guard test
@@ -291,7 +300,11 @@ Rules:
   example, `EXPLAIN` output's table opens mapped through `sqlite_schema`) or
   from views that omit the denied columns, never from a regex over the text.
   The builder picks the mechanism; the test suite includes an attempt to
-  read each denied table through a view, a subquery and a CTE.
+  read each denied table through a view, a subquery and a CTE. As built:
+  `EXPLAIN`, since the bundled SQLite is compiled with `OMIT_AUTHORIZATION`.
+  The excluded tables this list does not name are denied too, apart from
+  `equipment_condition_reviews`, `gps_track_points_local` and
+  `rule_run_changes`, which stay readable with the derived tables.
 - A row cap and a time cap, both reported in the result and both the
   builder's numbers. The pinned `sqlite3` package exposes no interrupt and
   the native build omits the progress callback, so the time cap is enforced
@@ -308,7 +321,10 @@ Rules:
 - `submersion://schema`: the tables and columns the SQL window may read,
   with a one-line meaning per column, units, enum values, and the join keys.
   Generated from the Drift schema at build time or startup, not maintained
-  by hand, with the denied tables and columns removed.
+  by hand, with the denied tables and columns removed. As built: every column
+  has its type and keys, and meanings come from the comments in the table
+  sources, which many columns lack. Units and enums are stated as conventions
+  in the header, because the schema does not hold them per column.
 - `submersion://query-language`: the grammar and the field list per root.
   The grammar section of the query language spec and the per-entity field
   registries are the source; the builder generates the field list from the
@@ -605,7 +621,43 @@ TDD applies. Minimum coverage:
 | Demo mode refuses every tool | design |
 | Metric values with unit-named keys; query parses in the diver's units | design |
 | SQL denied list is its own list (credentials, sync, peers, change log), pinned to the policy by a guard test; derived analytics readable | design |
+| SQL window denies `manifest_url` and `media.url`: a private feed's URL and the URLs of its items can carry an access token | Eric |
+| SQL window also denies `media.entry_key`, because a feed's item id is often its URL | design |
 | Apply is atomic: one transaction, any refusal rolls back everything | design |
 | Time cap by stepping rows; FFI interrupt optional | design |
 | Client name shown live, not persisted in the change log | design |
 | `list_records` tool for entities that are not query roots | design |
+| `serviceDue` and `nextServiceDue` work for any diver, evaluated fresh, without touching the cache | Eric |
+| Documents carry everything but bytes and media URLs, contact and ID fields included | Eric |
+| Every editable entity is readable, not only the write checklist | Eric |
+| Diver profiles and settings are readable records; `list_divers` stays a short view | Eric |
+| A plan with a blocked item gets no `plan_id` | design |
+| Fields write through a partial companion or clear flags, because `copyWith` cannot clear and a rebuilt entity loses what a mapper forgets | design |
+| Dives write through `BulkDiveEditService`; `date_time` writes as a shift, so entry and exit move with it | design |
+| A version marker is `updated_at` plus the current ids of each changed relation | design |
+| Markers are checked again inside the sync turn, after the diver confirms, and apply refuses if the database was replaced | design |
+| A record appears once per change set; a reference to a record the set deletes is blocked; no placeholder ids | design |
+| A plan lists what a write does indirectly (site snap, cleared visibility, moved entry and exit, a delete's reach), and a field the set names wins over a snap | design |
+| Deleting a shared library site is blocked; the app removes these through the library | design |
+| A record a plan links to has a marker, so one that goes away refuses the plan | design |
+| A marker carries a footprint of what the plan derived from rows with no version, a delete's reach or a site's types, and apply refuses if it no longer matches | review |
+| A delete's reach comes from the schema's foreign keys, split into records, parts and unlinked; the dialog keeps parts under the details | review |
+| Hides and shares of a deleted site are not listed; they are bookkeeping about the site and mean nothing without it | review |
+| A link that copies values from its target (a dive's site) is blocked after a change to that target earlier in the same set | review |
+| The write coverage guard knows a write by any verb repositories use for one, not only create, update and delete | review |
+| A second apply while a dialog is open is refused, not queued | design |
+| Tanks, weights and sightings are written one record at a time, by the ids `get_records` returns, not as a dive's whole list | Eric |
+| A child record takes its dive's owner, names the dive in `dive_id` when created, and stays on it; a sighting keeps its species | design |
+| A child's version marker is its dive's `updated_at`, which every child write stamps, plus a footprint of the child's own document | design |
+| A change to a child of a dive the same set deletes is blocked | design |
+| A tank's mix must have oxygen from 0.05 to 1, helium up to 0.95, and the two at most 1, judged after the change | design |
+| A weight label with spaces at either end is blocked, since every weight write stores it trimmed | design |
+| Adding an assembly to a dive's gear lists its active parts as indirect, and removing an item lists what goes with it | design |
+| The confirmation dialog shows pressures, weights, cylinder sizes and gas fractions in the diver's units | design |
+| An agent can change exactly what a diver can change in the app, and nothing a computer recorded that the app protects: gas switches as the dive editor shows them, annotations but not computer events, custom fields, roles and scenarios in full | Eric |
+| Gas switch writes go through `DiverGasSwitchWriter`, so they mark the dive's switches as the diver's and drop its safety review; a moved switch takes the profile's depth unless the change names one | design |
+| An annotation's words live in the dive's Notes: a create links them, a delete unlinks them, rewording is a Notes edit, and a create or delete cannot share a set with an update of its dive | design |
+| An agent's Notes edit reconciles annotations as the editor's save does, and the plan lists the annotations it deletes | design |
+| Diver roles are normalized as every role write stores them, so a role beside Solo drops it and the plan says so | design |
+| A scenario's interventions are held to the Dive Lab's rules, and a cylinder they name must be one of the scenario's dive | design |
+| `revert_operation` keeps records changed since unless `include_changed_since` is set, and asks the diver nothing | design |

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/domain/entities/storage_config.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
+import 'package:submersion/core/platform/web_database_status.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/domain/data_health/data_row_status.dart';
@@ -17,6 +19,8 @@ import 'package:submersion/features/settings/presentation/widgets/data_row_tile.
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_device_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/set_up_step_route.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
+import 'package:submersion/features/settings/presentation/widgets/web/web_forget_device_action.dart';
+import 'package:submersion/features/settings/presentation/widgets/web/web_storage_text.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/utils/device_kind.dart';
 import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
@@ -107,6 +111,10 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
       setUpRoute: setUpStep == null ? null : setUpStepRoute(setUpStep),
     );
 
+    final caps = ref.watch(deviceCapabilitiesProvider);
+    // Null natively and before a browser's database is open.
+    final webStorage = ref.watch(webDatabaseStatusProvider);
+
     Widget advanced(
       IconData icon,
       String title,
@@ -190,21 +198,48 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
           ),
           const SizedBox(height: 16),
           _header(context, l10n.settings_data_header_advanced),
-          advanced(
-            Icons.folder,
-            l10n.settings_data_databaseStorage,
-            isCustomFolder
-                ? l10n.settings_data_customFolder
-                : l10n.settings_data_appDefaultLocation,
-            '/settings/storage',
-            sealed: true,
-          ),
-          advanced(
-            Icons.cloud_download,
-            l10n.settings_data_offlineMaps,
-            l10n.settings_data_offlineMaps_subtitle,
-            '/settings/offline-maps',
-          ),
+          // A browser keeps the database in its own storage; the row says
+          // which, and that the dives stay until the device is forgotten
+          // (#4187), and opens nothing.
+          if (caps.customDatabaseFolder)
+            advanced(
+              Icons.folder,
+              l10n.settings_data_databaseStorage,
+              isCustomFolder
+                  ? l10n.settings_data_customFolder
+                  : l10n.settings_data_appDefaultLocation,
+              '/settings/storage',
+              sealed: true,
+            )
+          else
+            DataRowTile(
+              // Warns, as the Sync page's row does, when nothing outlives
+              // the tab.
+              icon: webStorage?.persists == false
+                  ? Icons.warning_amber
+                  : Icons.folder,
+              title: l10n.settings_data_databaseStorage,
+              subtitle: webStorage == null
+                  ? l10n.settings_data_appDefaultLocation
+                  : describeWebStorage(l10n, webStorage),
+            ),
+          // Clearing a browser's data, beside where it is kept, for a diver
+          // who never opens the Sync page (#4187).
+          if (caps.isBrowser)
+            DataRowTile(
+              icon: Icons.delete_forever,
+              title: l10n.web_forgetDevice_title,
+              subtitle: l10n.web_forgetDevice_subtitle,
+              onTap: () => confirmAndForgetDevice(context, ref),
+              enabled: !demoActive,
+            ),
+          if (caps.offlineMapTiles)
+            advanced(
+              Icons.cloud_download,
+              l10n.settings_data_offlineMaps,
+              l10n.settings_data_offlineMaps_subtitle,
+              '/settings/offline-maps',
+            ),
           advanced(
             Icons.input,
             l10n.settings_data_importOptions,
@@ -230,7 +265,9 @@ class _DataSectionContentState extends ConsumerState<DataSectionContent> {
             ),
           // Rarely used, so last under Advanced rather than beside the user's
           // real data (#3736).
-          if (demoActive)
+          if (!caps.demoMode)
+            const SizedBox.shrink()
+          else if (demoActive)
             DataRowTile(
               icon: Icons.logout,
               title: l10n.demo_settings_exit_title,

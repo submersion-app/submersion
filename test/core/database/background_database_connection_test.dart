@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:sqlite3/sqlite3.dart' show sqlite3;
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/background_database_connection.dart';
@@ -89,7 +90,7 @@ void main() {
   test('awaitWorkerShutdown does not return until the worker has finished '
       'closing the database', () async {
     final connection = await BackgroundDatabaseConnection.open(
-      File('unused-by-the-test-opener.db'),
+      'unused-by-the-test-opener.db',
       debugOpener: _slowClosingOpener(closeDelay.inMilliseconds),
     );
     final db = _TinyDb(connection.connection);
@@ -124,7 +125,7 @@ void main() {
 
   test('awaitWorkerShutdown kills a stuck worker when asked to', () async {
     final connection = await BackgroundDatabaseConnection.open(
-      File('unused-by-the-test-opener.db'),
+      'unused-by-the-test-opener.db',
       debugOpener: _slowClosingOpener(
         const Duration(minutes: 5).inMilliseconds,
       ),
@@ -149,7 +150,7 @@ void main() {
     'awaitWorkerShutdown throws instead of killing on reopen paths',
     () async {
       final connection = await BackgroundDatabaseConnection.open(
-        File('unused-by-the-test-opener.db'),
+        'unused-by-the-test-opener.db',
         debugOpener: _slowClosingOpener(
           const Duration(minutes: 5).inMilliseconds,
         ),
@@ -182,7 +183,7 @@ void main() {
     addTearDown(() => dir.deleteSync(recursive: true));
 
     final connection = await BackgroundDatabaseConnection.open(
-      File('${dir.path}/app.db'),
+      p.join(dir.path, 'app.db'),
     );
     final db = _TinyDb(connection.connection);
     // Explicit WAL mode with a write through it, so the durability check
@@ -240,7 +241,7 @@ void main() {
     addTearDown(() => dir.deleteSync(recursive: true));
 
     final connection = await BackgroundDatabaseConnection.open(
-      File('${dir.path}/app.db'),
+      p.join(dir.path, 'app.db'),
     );
     final db = _TinyDb(connection.connection);
 

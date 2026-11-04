@@ -46,7 +46,7 @@ request.
 | Dive type (20+ types) | Implemented | MVP | Recreational, tech, wreck, cave, night, etc. |
 | Runtime tracking | Implemented | v1.5 | Separate field for total runtime (entry→exit) |
 | Custom dive types (user-defined) | Implemented | v1.5 | Database-backed with management UI |
-| Auto bottom time calculation | Implemented | v1.5 | Calculate from dive profile (descent end → ascent start) |
+| Auto bottom time calculation | Implemented | v1.5 | Calculate from dive profile (surface departure → start of final ascent) |
 
 ---
 
@@ -1064,7 +1064,7 @@ request.
 | Conflict resolution UI | Implemented | v1.5 | Dialog for resolving conflicts |
 | Sync status indicator | Implemented | v1.5 | Last sync time, pending changes |
 | Multi-device support | Implemented | v1.5 | Via cloud storage providers |
-| Web sync | Planned | v2.0 | Requires backend service |
+| Web app | Implemented | v1.8.4 | Runs in the browser against your own sync store; no backend |
 
 **v1.5 Tasks (Complete):**
 
@@ -1076,7 +1076,7 @@ request.
 
 **v2.0 Tasks:**
 
-- [ ] Web platform sync (requires backend)
+- [x] Web platform sync (v1.8.4, in the browser, no backend)
 - [ ] "Force push" and "force pull" options for troubleshooting
 
 ---
@@ -1685,7 +1685,7 @@ request.
 
 ## v2.0 (Planned)
 
-- [ ] Web platform with backend service
+- [x] Web platform (v1.8.4, self-hosted static site, no backend service)
 - [x] 7+ language translations (10 languages: EN, ES, FR, DE, IT, NL, PT, AR, HE, HU)
 - [ ] Community features beta tested
 
@@ -1700,7 +1700,7 @@ request.
 | macOS | Supported | macOS 12+ |
 | Windows | Supported | Windows 10+ |
 | Linux | Supported | x86-64, glibc 2.38+ |
-| Web | v2.0 | Requires cloud sync |
+| Web | Supported | A modern browser and your own sync store; self-hosted |
 
 ---
 

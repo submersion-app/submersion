@@ -116,6 +116,34 @@ void main() {
   // Issue #2545: computers such as the OSTC log CNS only every few samples,
   // so the last sample of the dive usually carries none. The actual CNS is
   // the last reading the computer logged.
+  testWidgets('a source dive with only a bottom time has no runtime to '
+      'compare', (tester) async {
+    final dive = Dive(
+      id: 'd1',
+      dateTime: DateTime(2026, 1, 1),
+      maxDepth: 28,
+      bottomTime: const Duration(minutes: 41),
+    );
+
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          sourceDiveForPlanProvider.overrideWith((ref) async => dive),
+          sourceDiveTtsSecondsProvider.overrideWith((ref) async => null),
+          sourceDiveDecoSecondsProvider.overrideWith((ref) async => null),
+          activePlanOutcomeProvider.overrideWithValue(_outcome()),
+        ],
+        child: const PlanSourceDiveCompareStrip(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('30′'), findsOneWidget); // planned runtime
+    expect(find.textContaining('41′'), findsNothing);
+  });
+
   testWidgets('shows the last computer CNS reading when the final sample '
       'has none', (tester) async {
     final dive = Dive(

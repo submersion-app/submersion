@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import 'package:submersion/core/platform/cross_tab_lock.dart';
+
 /// Serialises every sync that merges into the database (issue #2567): the
 /// personal changeset sync and each shared site library sync wait for one another,
 /// so two merges never touch the database at once. Bodies run in the order
@@ -46,8 +48,21 @@ abstract final class SyncCoordinator {
     return run(body);
   }
 
+  /// [join], holding every tab's sync lock as well: for a step that swaps
+  /// or wipes the library a browser's tabs share (a restore, Forget this
+  /// device), so no tab's sync runs beside it. The turn comes first and the
+  /// lock second, the order a sync takes them in, so the two never wait on
+  /// each other. Not from inside a sync or another such step: Web Locks are
+  /// not reentrant, and the lock it already holds would never come free.
+  static Future<T> joinAcrossTabs<T>(Future<T> Function() body) =>
+      join(() => withCrossTabLock(kSyncCrossTabLock, body));
+
   static Future<T> run<T>(Future<T> Function() body) {
-    final previous = _tail;
+    // With no turn running there is nothing to wait for. A fresh future says
+    // so without depending on the zone the last turn ran in, which a future
+    // schedules its listeners in, and which may have stopped running (a
+    // widget test's fake zone, when many test files share an isolate).
+    final previous = _depth == 0 ? Future<void>.value() : _tail;
     final done = Completer<void>();
     _tail = done.future;
     _depth++;

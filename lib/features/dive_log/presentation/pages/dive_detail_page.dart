@@ -37,6 +37,11 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_mirror_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/core/constants/dive_detail_sections.dart';
+import 'package:submersion/features/dive_log/presentation/providers/annotation_focus_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_annotation_actions.dart';
+import 'package:submersion/features/dive_log/presentation/providers/annotation_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_actions.dart';
@@ -67,6 +72,9 @@ import 'package:submersion/features/dive_planner/presentation/providers/dive_pla
 import 'package:submersion/features/planner/presentation/planner_navigation.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_store.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_first_save_name.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_unsaved_dialog.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/features/pre_dive/presentation/widgets/link_session_picker.dart';
@@ -118,6 +126,107 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
   bool _hasRedirected = false;
 
   final GlobalKey _safetyReviewSectionKey = GlobalKey();
+  final GlobalKey _notesSectionKey = GlobalKey();
+  final GlobalKey _profileSectionKey = GlobalKey();
+
+  /// "Open in Notes" on an annotation's popup (#4109): unfolds the Notes
+  /// card when the list layout folds it, scrolls there and highlights the
+  /// passage for a moment.
+  Future<void> _scrollToNotes(String annotationId) async {
+    // The fullscreen profile calls back as it pops, and a resize or a route
+    // change while it was up can have replaced this page.
+    if (!mounted) return;
+    final layout = ref.read(settingsProvider.select((s) => s.diveDetailLayout));
+    if (layout.foldsSections) {
+      await ref
+          .read(settingsProvider.notifier)
+          .setDiveDetailSectionExpanded(DiveDetailSectionId.notes, true);
+      await WidgetsBinding.instance.endOfFrame;
+    }
+    if (!mounted) return;
+    final ctx = _notesSectionKey.currentContext;
+    if (ctx != null && ctx.mounted) {
+      await Scrollable.ensureVisible(
+        ctx,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOutCubic,
+        alignment: 0.05,
+      );
+    }
+    if (!mounted) return;
+    final highlight = annotationNotesHighlightProvider(widget.diveId);
+    ref.read(highlight.notifier).state = annotationId;
+    Future<void>.delayed(const Duration(milliseconds: 1500), () {
+      if (mounted && ref.read(highlight) == annotationId) {
+        ref.read(highlight.notifier).state = null;
+      }
+    });
+  }
+
+  bool _hasMarkerToOpen(Dive dive) =>
+      dive.profile.isNotEmpty &&
+      ref
+          .read(settingsProvider)
+          .diveDetailSections
+          .shows(DiveDetailSectionId.profile, gauge: dive.isGauge);
+
+  /// A tap on an annotation link in the Notes card (#4109): unfolds the
+  /// profile when the list layout folds it, turns the legend's Annotations
+  /// toggle back on if it was off, scrolls to the profile and asks the chart
+  /// to light the marker and open its popup. A dive with no profile, or a
+  /// page with the profile section switched off, has no marker to open, so
+  /// the link changes the time instead.
+  Future<void> _scrollToProfileAndFocus(String annotationId) async {
+    final dive = ref.read(diveProvider(widget.diveId)).value;
+    if (dive != null && !_hasMarkerToOpen(dive)) {
+      final annotations = await ref
+          .read(annotationRepositoryProvider)
+          .annotationsForDive(widget.diveId);
+      final annotation = annotations
+          .where((a) => a.id == annotationId)
+          .firstOrNull;
+      if (annotation == null || !mounted) return;
+      await DiveDetailAnnotationActions(
+        ref: ref,
+        context: context,
+        dive: dive,
+      ).editTime(annotation);
+      return;
+    }
+    final layout = ref.read(settingsProvider.select((s) => s.diveDetailLayout));
+    if (layout.foldsSections) {
+      await ref
+          .read(settingsProvider.notifier)
+          .setDiveDetailSectionExpanded(DiveDetailSectionId.profile, true);
+      await WidgetsBinding.instance.endOfFrame;
+    }
+    if (!mounted) return;
+    if (!ref.read(profileLegendProvider).showAnnotations) {
+      ref.read(profileLegendProvider.notifier).toggleAnnotations();
+      await WidgetsBinding.instance.endOfFrame;
+    }
+    if (!mounted) return;
+    final ctx = _profileSectionKey.currentContext;
+    if (ctx != null && ctx.mounted) {
+      await Scrollable.ensureVisible(
+        ctx,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOutCubic,
+        alignment: 0.05,
+      );
+    }
+    if (!mounted) return;
+    // A request nothing could serve (placement mode, no layer yet) leaves its
+    // id in place, and setting it again is no change to the layer. Clearing
+    // it takes a frame: two writes in one tick reach the layer as neither.
+    final focus = annotationFocusProvider(widget.diveId);
+    if (ref.read(focus) != null) {
+      ref.read(focus.notifier).state = null;
+      await WidgetsBinding.instance.endOfFrame;
+      if (!mounted) return;
+    }
+    ref.read(focus.notifier).state = annotationId;
+  }
 
   /// Scrolls the page so the safety review section is visible (callout
   /// "Details" action). The selection stays active.
@@ -162,6 +271,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
       diveId: dive.id,
     ),
     openDocument: (item) => DocumentOpenHelper.open(context, ref, item),
+    openAnnotation: _scrollToProfileAndFocus,
   );
 
   /// What [_profileSectionFor] last built.
@@ -177,10 +287,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     final section = _profileSection;
     if (section != null && section.diveId == id) return section;
     return _profileSection = DiveDetailProfileSection(
+      key: _profileSectionKey,
       diveId: id,
       exportKey: _profileChartExportKey,
       onSafetyFindingDetails: _scrollToSafetySection,
       onSetPrimarySource: _setPrimarySource,
+      onOpenInNotes: _scrollToNotes,
     );
   }
 
@@ -356,6 +468,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
               dive: dive,
               profileSection: _profileSectionFor(dive.id),
               safetyReviewKey: _safetyReviewSectionKey,
+              notesKey: _notesSectionKey,
               retention: _analysisRetention,
               actions: _sectionActions,
             ),

@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/security/database_encryption_migrator.dart';
 import 'package:submersion/core/services/security/database_security_key_store.dart';
@@ -59,9 +60,18 @@ class DatabaseSecurityService {
     return p;
   }
 
-  bool get appLockEnabled => _p.appLockEnabled;
-  bool get encryptionEnabled => _p.dbEncryptionEnabled;
+  /// Neither tier exists in a browser: there is no keychain to hold a key
+  /// and no encrypted file to protect, so both read false there whatever
+  /// a synced preference says.
+  bool get appLockEnabled => !HostPlatform.isWeb && _p.appLockEnabled;
+  bool get encryptionEnabled => !HostPlatform.isWeb && _p.dbEncryptionEnabled;
   bool get isUnlocked => _mlk != null;
+
+  void _ensureNotWeb() {
+    if (HostPlatform.isWeb) {
+      throw UnsupportedError('encryption at rest is not offered in a browser');
+    }
+  }
 
   /// Whether durable security credentials already exist for [dbPath].
   bool hasCredential({required String dbPath}) =>
@@ -115,6 +125,7 @@ class DatabaseSecurityService {
     required String dbPath,
     KdfParams kdf = const KdfParams(),
   }) async {
+    _ensureNotWeb();
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.databaseFile);
     if (await DatabaseSecuritySidecar.read(dbPath) != null) {
       throw StateError('Security is already enabled for $dbPath');
@@ -229,14 +240,18 @@ class DatabaseSecurityService {
     void Function(String phase)? onPhase,
     @visibleForTesting String? dbPathOverride,
     @visibleForTesting bool skipReopenForTesting = false,
-  }) => SyncCoordinator.join(
-    () => _enableEncryption(
-      migrator: migrator,
-      onPhase: onPhase,
-      dbPathOverride: dbPathOverride,
-      skipReopenForTesting: skipReopenForTesting,
-    ),
-  );
+  }) {
+    _ensureNotWeb();
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.databaseFile);
+    return SyncCoordinator.join(
+      () => _enableEncryption(
+        migrator: migrator,
+        onPhase: onPhase,
+        dbPathOverride: dbPathOverride,
+        skipReopenForTesting: skipReopenForTesting,
+      ),
+    );
+  }
 
   Future<void> _enableEncryption({
     DatabaseEncryptionMigrator? migrator,
@@ -244,7 +259,6 @@ class DatabaseSecurityService {
     String? dbPathOverride,
     bool skipReopenForTesting = false,
   }) async {
-    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.databaseFile);
     final mlk = _mlk;
     if (mlk == null) {
       throw StateError('Cannot enable encryption while locked');

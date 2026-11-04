@@ -133,3 +133,22 @@ class DiveMediaEnricher {
       existing.matchConfidence == result.matchConfidence &&
       existing.timestampOffsetSeconds == result.timestampOffsetSeconds;
 }
+
+/// A browser's enricher (issue #4121): media is read-only there, and
+/// enrichment rows are synced, so it writes none and leaves them to the
+/// devices that link the photos.
+class ReadOnlyDiveMediaEnricher extends DiveMediaEnricher {
+  ReadOnlyDiveMediaEnricher()
+    : super(
+        loadDive: _noDive,
+        loadMediaForDive: _noMedia,
+        saveEnrichments: _noSave,
+      );
+
+  static Future<Dive?> _noDive(String diveId) async => null;
+  static Future<List<MediaItem>> _noMedia(String diveId) async => const [];
+  static Future<void> _noSave(List<MediaEnrichment> enrichments) async {}
+
+  @override
+  Future<int> enrichMissingForDive(String diveId) async => 0;
+}

@@ -118,8 +118,8 @@ class VideoThumbnailService {
   /// Resolves (and memoises) the cache directory, or null when it cannot be
   /// determined.
   ///
-  /// [_cacheDir] calls `getApplicationSupportDirectory()`, which can throw
-  /// (a `MissingPluginException` where path_provider has no implementation, or
+  /// [_cacheDir] asks path_provider for a directory, which can throw (a
+  /// `MissingPluginException` where path_provider has no implementation, or
   /// a `PlatformException` if the platform cannot supply the path). Letting
   /// that escape would break this class's "null on failure" contract and
   /// surface as an error tile during grid rendering. Instead we degrade to

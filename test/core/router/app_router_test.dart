@@ -54,6 +54,7 @@ import 'package:submersion/features/dive_log/presentation/pages/bulk_dive_edit_p
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/core/router/shortcut_locations.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/leave_running_import_dialog.dart';
+import 'package:submersion/features/table_editor/presentation/pages/table_editor_page.dart';
 
 /// Finds a [GoRoute] by name in a route tree recursively.
 GoRoute? _findRouteByName(List<RouteBase> routes, String name) {
@@ -303,6 +304,13 @@ void main() {
       expect(build('/sites/new?duplicateOf=s1').duplicateOfId, 's1');
       expect(build('/sites/new').duplicateOfId, isNull);
     });
+  });
+
+  // The sidebar leaves with go(), which no PopScope sees (#3422).
+  test('leaving the table editor goes through its unsaved work check', () {
+    final route = _findRouteByName(router.configuration.routes, 'tableEditor');
+
+    expect(route?.onExit, confirmLeaveTableEditor);
   });
 
   group('tracks area', () {

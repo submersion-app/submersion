@@ -1,6 +1,7 @@
 import 'dart:isolate';
 
 import 'package:submersion/core/deco/deco_model.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
@@ -133,8 +134,24 @@ class IsolatePlanResultRunner implements PlanResultRunner {
   }
 }
 
+/// Runs each computation on the calling thread: the browser has no
+/// isolates, so the plan engine shares the main thread with the page.
+class MainThreadPlanResultRunner implements PlanResultRunner {
+  const MainThreadPlanResultRunner();
+
+  @override
+  Future<T> run<T>(
+    PlanComputation<T> computation,
+    domain.DivePlan plan,
+    TissueState? startState,
+    PlanEngineConfig config,
+  ) => Future.sync(() => computation(plan, startState, config));
+}
+
 final planResultRunnerProvider = Provider<PlanResultRunner>(
-  (ref) => const IsolatePlanResultRunner(),
+  (ref) => HostPlatform.isWeb
+      ? const MainThreadPlanResultRunner()
+      : const IsolatePlanResultRunner(),
 );
 
 /// How long an edit must stand before background results are computed. A drag

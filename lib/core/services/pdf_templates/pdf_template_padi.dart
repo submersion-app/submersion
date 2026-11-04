@@ -44,6 +44,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
     required PdfPageSize pageSize,
     required PdfDateFormatter dates,
     required UnitFormatter units,
+    Map<String, Map<String, String>> annotationTimesByDive = const {},
     String? title,
     Map<String, List<Signature>>? diveSignatures,
     List<Certification>? certifications,
@@ -126,6 +127,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
               ...pageDives.expand(
                 (dive) => [
                   _buildPadiDiveEntry(
+                    annotationTimes: annotationTimesByDive[dive.id] ?? const {},
                     dive,
                     dates: dates,
                     units: units,
@@ -263,6 +265,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
     required UnitFormatter units,
     required AppLocalizations l10n,
     List<Signature>? signatures,
+    Map<String, String> annotationTimes = const {},
   }) {
     final tank = dive.tanks.isNotEmpty ? dive.tanks.first : null;
     final isTrainingDive =
@@ -360,7 +363,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
                     ),
                     _buildPadiField(
                       l10n.pdf_columnTime,
-                      l10n.pdf_minutesCompact(pdfDiveDurationMinutes(dive)),
+                      pdfDiveDurationCompact(dive, l10n),
                     ),
                     _buildPadiField(
                       l10n.pdf_columnTemp,
@@ -415,6 +418,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
                       color: PdfColors.grey700,
                     ),
                     maxLines: 2,
+                    annotationTimes: annotationTimes,
                   ),
                 ],
                 // Buddy/Instructor sign-off row

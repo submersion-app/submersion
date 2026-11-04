@@ -36,6 +36,10 @@ final Map<String, ConflictField> equipmentFields = {
     (l) => l.settings_conflict_field_autoAttach,
     FieldKind.boolean,
   ),
+  'autoDownloadDisabled': ConflictField(
+    (l) => l.diveComputer_autoDownload_disableTitle,
+    FieldKind.boolean,
+  ),
   'bluetoothAddress': ConflictField(
     (l) => l.settings_conflict_field_bluetoothAddress,
     FieldKind.shortText,

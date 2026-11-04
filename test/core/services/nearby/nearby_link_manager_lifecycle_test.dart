@@ -174,39 +174,37 @@ void main() {
     expect(finished, ['B']);
   });
 
-  test('a pairing this diver confirmed gives way to its twin on both '
-      'devices, so the two still pair', () async {
-    final a = await device('A');
-    final b = await device('B');
-    // B's nonce is the lower, so the pairing B starts is the one both keep.
-    a.pairingNonce = () => 'nonce-z';
-    b.pairingNonce = () => 'nonce-a';
-    // Only A can connect at first: A's pairing is the one the divers see.
-    b.carrier.refuseConnects = true;
-    await a.manager.setForeground(true);
-    await b.manager.setForeground(true);
-    await a.manager.enterPairingMode();
-    await b.manager.enterPairingMode();
-    await settleNearby();
-    final first = a.manager.currentPairings.single.confirm().then(
-      (_) => 'paired',
-      onError: (Object _) => 'replaced',
-    );
-    await pumpEventQueue();
+  test(
+    'a device showing a code does not dial the other again, so a '
+    'pairing one diver already confirmed still completes (issue #4154)',
+    () async {
+      final a = await device('A');
+      final b = await device('B');
+      // B's nonce is the lower: a twin B started would displace A's pairing.
+      a.pairingNonce = () => 'nonce-z';
+      b.pairingNonce = () => 'nonce-a';
+      // Only A can connect at first: A's pairing is the one the divers see.
+      b.carrier.refuseConnects = true;
+      await a.manager.setForeground(true);
+      await b.manager.setForeground(true);
+      await a.manager.enterPairingMode();
+      await b.manager.enterPairingMode();
+      await settleNearby();
+      final first = a.manager.currentPairings.single.confirm();
+      await pumpEventQueue();
 
-    // B now meets A from its own side.
-    b.carrier.refuseConnects = false;
-    await b.manager.refresh();
-    await settleNearby();
-    expect(await first, 'replaced');
-    final onA = a.manager.currentPairings.single;
-    final onB = b.manager.currentPairings.single;
-    expect(onA.code, onB.code, reason: 'one pairing, on both screens');
-    await expectLater(Future.wait([onA.confirm(), onB.confirm()]), completes);
-    await settleNearby();
-    expect(await a.peers.get('B'), isNotNull);
-    expect(await b.peers.get('A'), isNotNull);
-  });
+      // B could now reach A from its own side, but its screen already shows
+      // A's code: no twin opens to displace it.
+      b.carrier.refuseConnects = false;
+      await b.manager.refresh();
+      await settleNearby();
+      final onB = b.manager.currentPairings.single;
+      await expectLater(Future.wait([first, onB.confirm()]), completes);
+      await settleNearby();
+      expect(await a.peers.get('B'), isNotNull);
+      expect(await b.peers.get('A'), isNotNull);
+    },
+  );
 
   test('a session cut short by a lost link is tried again at the next '
       'sighting, not after the cooldown', () async {
@@ -225,7 +223,12 @@ void main() {
     hub.heal('A');
     await a.manager.refresh();
     await b.manager.refresh();
-    await settleNearby();
+    // The retry is a pairing handshake and a 40 KB full copy; a loaded CI
+    // runner can need more than one settle for it, so wait for it (up to
+    // about 10 seconds) rather than for a fixed time.
+    for (var i = 0; i < 50 && b.engine.appliedFiles.isEmpty; i++) {
+      await settleNearby();
+    }
     expect(b.engine.appliedFiles, hasLength(1));
   });
 

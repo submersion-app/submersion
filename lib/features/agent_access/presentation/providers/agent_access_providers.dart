@@ -1,27 +1,25 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
-import 'package:mcp_dart/mcp_dart.dart' show McpServer;
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/presentation/providers/app_lock_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
-import 'package:submersion/core/services/window_fullscreen.dart';
 import 'package:submersion/features/agent_access/data/agent_access_preferences.dart';
 import 'package:submersion/features/agent_access/data/agent_access_token_store.dart';
 import 'package:submersion/features/agent_access/data/agent_tool_gate.dart';
 import 'package:submersion/features/agent_access/data/diver_context.dart';
+import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/server/agent_access_server.dart';
-import 'package:submersion/features/agent_access/data/server/mcp_server_builder.dart';
+import 'package:submersion/features/agent_access/data/sql/sql_window_runner.dart';
 import 'package:submersion/features/agent_access/data/tools/agent_tool_registry.dart';
+import 'package:submersion/features/agent_access/data/writes/agent_write_services.dart';
 import 'package:submersion/features/agent_access/domain/agent_access_settings.dart';
-import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
-import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/agent_access/presentation/providers/agent_write_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
-import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -34,7 +32,9 @@ final agentAccessPreferencesProvider = Provider<AgentAccessPreferences>(
 /// tools row and the server lifecycle both read this, so the final write PR
 /// removes the debug clause in one place.
 final agentAccessAvailableProvider = Provider<bool>(
-  (ref) => hasDesktopWindow() && ref.watch(debugModeNotifierProvider),
+  (ref) =>
+      ref.watch(deviceCapabilitiesProvider).agentAccess &&
+      ref.watch(debugModeNotifierProvider),
 );
 
 /// The per-device agent access settings, persisted on every change.
@@ -132,6 +132,13 @@ class AgentAccessController {
   String? _token;
   bool _disposed = false;
 
+  /// Process-wide, like [AgentAccessServer.instance], and unlike the server
+  /// built per request below: a statement that cannot be stopped outlives a
+  /// scope rebuild too, so its busy flag must. Reads the file at call time, so
+  /// a restore, a storage move or an encryption change is seen by the next
+  /// statement.
+  static final _sqlRunner = SqlWindowRunner(file: liveSqlDatabaseFile);
+
   /// Called when the owning provider is disposed (a scope rebuild). A sync
   /// still awaiting the keychain, the settings or the package info resumes
   /// afterwards, sees this, and stops short of starting a listener the old
@@ -213,7 +220,7 @@ class AgentAccessController {
     await server.start(
       port: settings.port,
       token: () => _token ?? '',
-      serverFactory: () => _buildServer(appVersion),
+      serverSpec: () => _buildServer(appVersion),
     );
   }
 
@@ -228,7 +235,7 @@ class AgentAccessController {
   /// Runs once per MCP session (or per request on the stateless protocol),
   /// so everything here is cheap and nothing touches the database until a
   /// tool runs.
-  McpServer _buildServer(String appVersion) {
+  AgentServerSpec _buildServer(String appVersion) {
     final divers = _ref.read(diverRepositoryProvider);
     final settings = _ref.read(diverSettingsRepositoryProvider);
     final loader = DiverContextLoader(
@@ -238,16 +245,22 @@ class AgentAccessController {
       localeTag: _ref.read(localeProvider),
       activeDiverId: () => _ref.read(validatedCurrentDiverIdProvider.future),
     );
-    return buildMcpServer(
+    final records = RecordRepositories();
+    return AgentServerSpec(
       registry: AgentToolRegistry.standard(
         loader: loader,
         divers: divers,
         settings: settings,
-        dives: _ref.read(diveRepositoryProvider),
-        buddies: _ref.read(buddyRepositoryProvider),
-        species: _ref.read(speciesRepositoryProvider),
-        media: _ref.read(mediaRepositoryProvider),
-        diveTypes: _ref.read(diveTypeRepositoryProvider),
+        records: records,
+        sql: _sqlRunner,
+        writes: AgentWriteServices(
+          records: records,
+          plans: _ref.read(agentWritePlanStoreProvider),
+          confirmer: _ref.read(agentWriteConfirmerProvider),
+          confirmEnabled: () =>
+              _ref.read(agentAccessSettingsProvider).confirmWrites,
+          rearmDocuments: _ref.read(documentMutationsProvider).rearmReminders,
+        ),
       ),
       gate: AgentToolGate(isLocked: () => _ref.read(appLockNotifierProvider)),
       appVersion: appVersion,

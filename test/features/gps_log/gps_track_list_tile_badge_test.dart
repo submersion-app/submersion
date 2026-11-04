@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/gps_log/data/repositories/track_geometry_cache_repository.dart';
@@ -6,7 +7,9 @@ import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_track_map_providers.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/gps_track_list_tile.dart';
 import 'package:submersion/features/tracks/presentation/widgets/track_badge_line.dart';
+import 'package:submersion/features/tracks/presentation/widgets/track_list_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_list_card.dart';
 
 import '../../helpers/mock_providers.dart';
 
@@ -115,5 +118,87 @@ void main() {
       findsNothing,
     );
     expect(find.text('1 point, 1h 30m'), findsOneWidget);
+  });
+
+  group('the live pick and the entry last opened (#4101)', () {
+    Future<ListTile> pumpTile(
+      WidgetTester tester, {
+      bool selected = false,
+      bool isHighlighted = false,
+    }) async {
+      const track = GpsTrack(
+        id: 't1',
+        startTime: 1700000000000,
+        endTime: 1700005400000,
+        pointCount: 1,
+      );
+      final base = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...base,
+            gpsTrackGeometryProvider((
+              't1',
+              TrackLod.thumbnail,
+            )).overrideWith((ref) async => const []),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: ListView(
+                children: [
+                  GpsTrackListTile(
+                    track: track,
+                    onTap: () {},
+                    selected: selected,
+                    isHighlighted: isHighlighted,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return tester.widget<ListTile>(find.byType(ListTile));
+    }
+
+    testWidgets('the live pick is the tile\'s selected state', (tester) async {
+      final tile = await pumpTile(tester, selected: true);
+      expect(tile.selected, isTrue);
+    });
+
+    testWidgets('the entry last opened is filled but not selected', (
+      tester,
+    ) async {
+      final tile = await pumpTile(tester, isHighlighted: true);
+      expect(tile.selected, isFalse);
+      expect(
+        tester.widget<TrackListCard>(find.byType(TrackListCard)).highlighted,
+        isTrue,
+      );
+    });
+
+    testWidgets('a live pick keeps the dive card title colour', (tester) async {
+      final tile = await pumpTile(tester, selected: true);
+      final scheme = Theme.of(
+        tester.element(find.byType(GpsTrackListTile)),
+      ).colorScheme;
+      expect(
+        tester
+            .renderObject<RenderParagraph>(
+              find.text((tile.title! as Text).data!),
+            )
+            .text
+            .style
+            ?.color,
+        RecordCardColors.forFill(
+          scheme,
+          recordCardSelectionFill(scheme),
+        ).primaryText,
+      );
+    });
   });
 }

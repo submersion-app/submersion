@@ -127,6 +127,14 @@ void main() {
   });
 
   // Review Focus 2.
+  testWidgets('offers a date in plain words', (tester) async {
+    await pumpSuggestions(tester);
+
+    await tester.tap(find.text('last year'));
+
+    expect(hints, ['last year']);
+  });
+
   testWidgets('hints follow the diver units', (tester) async {
     await pumpSuggestions(tester, imperial: true);
     expect(find.text('depth > 100ft'), findsOneWidget);

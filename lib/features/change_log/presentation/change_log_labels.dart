@@ -18,6 +18,7 @@ String changeLogSourceLabel(AppLocalizations l, ChangeLogSource source) =>
       ChangeLogSource.automatic => l.changeLog_source_automatic,
       ChangeLogSource.revert => l.changeLog_source_revert,
       ChangeLogSource.system => l.changeLog_source_system,
+      ChangeLogSource.agent => l.changeLog_source_agent,
     };
 
 IconData changeLogSourceIcon(ChangeLogSource source) => switch (source) {
@@ -29,6 +30,7 @@ IconData changeLogSourceIcon(ChangeLogSource source) => switch (source) {
   ChangeLogSource.automatic => Icons.auto_mode,
   ChangeLogSource.revert => Icons.undo,
   ChangeLogSource.system => Icons.settings_backup_restore,
+  ChangeLogSource.agent => Icons.smart_toy_outlined,
 };
 
 /// A label the app stored by key, translated; any other is shown as written.
@@ -53,6 +55,7 @@ String changeLogStoredLabel(AppLocalizations l, String label) =>
       ChangeLogLabels.galleryBackfill => l.changeLog_label_galleryBackfill,
       ChangeLogLabels.mediaCleanup => l.changeLog_label_mediaCleanup,
       ChangeLogLabels.accountMigration => l.changeLog_label_accountMigration,
+      ChangeLogLabels.tableEditor => l.changeLog_label_tableEditor,
       _ => label,
     };
 

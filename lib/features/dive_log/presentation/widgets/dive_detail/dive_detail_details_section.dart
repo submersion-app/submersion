@@ -296,6 +296,7 @@ class DiveDetailsSection extends ConsumerWidget {
         DiveDetailRow(
           label: context.l10n.diveLog_detail_label_serialNumber,
           value: dive.diveComputerSerial!,
+          copyable: true,
         ),
       if (dive.diveComputerFirmware != null &&
           dive.diveComputerFirmware!.isNotEmpty)

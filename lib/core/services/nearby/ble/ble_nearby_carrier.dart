@@ -70,6 +70,10 @@ class BleNearbyCarrier implements NearbyCarrier {
   /// Their trailing writes belong to the finished session and must not
   /// open a new one; a fresh subscription or connection clears the mark.
   final _endedCentrals = <String>{};
+
+  /// Ended centrals whose ignored writes are already in the log, so a
+  /// central that keeps writing is named once rather than per write.
+  final _ignoringCentrals = <String>{};
   StreamSubscription<BleDevice>? _scanSub;
   final _peripheralSubs = <StreamSubscription<Object?>>[];
 
@@ -244,11 +248,20 @@ class BleNearbyCarrier implements NearbyCarrier {
         offset,
         value,
       ) {
-        if (characteristicId.toLowerCase() == nearbyInboxUuid &&
-            value != null &&
-            !_endedCentrals.contains(deviceId)) {
-          _peripheralEnd(deviceId).feed(value);
+        if (characteristicId.toLowerCase() != nearbyInboxUuid ||
+            value == null) {
+          return null;
         }
+        if (_endedCentrals.contains(deviceId)) {
+          if (_ignoringCentrals.add(deviceId)) {
+            _log.info(
+              'Nearby writes from central $deviceId ignored until it '
+              'subscribes again: its last session ended here',
+            );
+          }
+          return null;
+        }
+        _peripheralEnd(deviceId).feed(value);
         return null;
       });
       UniversalBlePeripheral.setReadRequestHandlers((
@@ -272,7 +285,7 @@ class BleNearbyCarrier implements NearbyCarrier {
         UniversalBlePeripheral.characteristicSubscriptionStream.listen((e) {
           if (e.characteristicId.toLowerCase() != nearbyDoorbellUuid) return;
           if (e.isSubscribed) {
-            _endedCentrals.remove(e.deviceId);
+            _forgetEnded(e.deviceId);
             _peripheralEnd(e.deviceId);
           } else {
             _peripheralEnds.remove(e.deviceId)?.drop();
@@ -280,11 +293,11 @@ class BleNearbyCarrier implements NearbyCarrier {
         }),
         UniversalBlePeripheral.connectionStateStream.listen((e) {
           if (e.connected) {
-            _endedCentrals.remove(e.deviceId);
+            _forgetEnded(e.deviceId);
             return;
           }
           _peripheralEnds.remove(e.deviceId)?.drop();
-          _endedCentrals.remove(e.deviceId);
+          _forgetEnded(e.deviceId);
           _mtuByCentral.remove(e.deviceId);
         }),
         UniversalBlePeripheral.mtuChangedStream.listen((e) {
@@ -397,11 +410,19 @@ class BleNearbyCarrier implements NearbyCarrier {
   /// central to ask for more.
   static int _readLengthFor(int mtu) => (mtu - 4).clamp(19, 508);
 
+  void _forgetEnded(String deviceId) {
+    _endedCentrals.remove(deviceId);
+    _ignoringCentrals.remove(deviceId);
+  }
+
   /// The endpoint for a central, created on its first subscription or
   /// write, whichever arrives first.
   _PeripheralEnd _peripheralEnd(String deviceId) {
     final existing = _peripheralEnds[deviceId];
     if (existing != null) return existing;
+    // Named in the log: when a device says it reached this one and no
+    // session follows, this line says whether the link arrived at all.
+    _log.info('Nearby link from central $deviceId opened');
     final end = _PeripheralEnd(
       deviceId,
       onClosed: () {

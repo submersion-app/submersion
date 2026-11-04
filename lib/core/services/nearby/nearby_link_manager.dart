@@ -81,6 +81,7 @@ class NearbyLinkManager {
     this.syncNowTimeout = const Duration(seconds: 20),
     this.recentSighting = const Duration(minutes: 2),
     this.scanRestartAfter = const Duration(seconds: 10),
+    this.pairingDialPause = const Duration(minutes: 2),
     this.partSize = 262144,
     String Function() pairingNonce = NearbySession.newPairingNonce,
   }) : _carrier = carrier,
@@ -128,6 +129,11 @@ class NearbyLinkManager {
   /// A local change dials only peers sighted this recently.
   final Duration recentSighting;
 
+  /// How long a code on screen holds back pairing dials. The diver answers
+  /// well within it, and a card whose peer left without answering (its
+  /// "Not mine" closes the link, not the card) stops blocking after it.
+  final Duration pairingDialPause;
+
   /// The least time between two starts of a running scan. Real radios
   /// report every advertisement, so a restart only freshens the sightings,
   /// and Android stops delivering results to an app that starts five scans
@@ -153,6 +159,11 @@ class NearbyLinkManager {
   bool _prunedSecrets = false;
   Future<void> _refreshTail = Future.value();
   Timer? _debounce;
+
+  /// Restarts the scan once a code on screen stops holding dials back:
+  /// Apple reports a device once per scan, so without it the pause would
+  /// last until something else refreshed.
+  Timer? _dialPauseEnd;
   DateTime? _scanStartedAt;
 
   /// The last availability check found Bluetooth off or not allowed.
@@ -398,6 +409,14 @@ class NearbyLinkManager {
     final device = _deviceByTransport[transportId];
     if (device != null && _active.containsKey(device)) return;
     if (_pairingMode) {
+      // A code on screen means the other device is found. Another link
+      // could only become a twin, and on Apple devices closing one can drop
+      // the shared Bluetooth link the pairing runs on (issue #4154).
+      // Dialling resumes once the diver answers, or after
+      // [pairingDialPause].
+      if (_pending.any((h) => !_waited(h.offeredAt, pairingDialPause))) {
+        return;
+      }
       if (!_pairingTried.add(transportId)) return;
       unawaited(_openPairing(transportId));
       return;
@@ -585,6 +604,10 @@ class NearbyLinkManager {
     // A handshake that finished after the app left the foreground, after
     // demo mode closed the gate, or after this manager was disposed.
     if (_disposed || !_foreground || DemoModeGate.instance.isActive) {
+      _log.info(
+        'Nearby session with ${channel.peer.deviceId} closed: the link is '
+        'not running here',
+      );
       await channel.close();
       return null;
     }
@@ -739,6 +762,7 @@ class NearbyLinkManager {
     _disposed = true;
     _cardHost?.attach(null);
     _debounce?.cancel();
+    _dialPauseEnd?.cancel();
     for (final sub in _subs) {
       await sub.cancel();
     }

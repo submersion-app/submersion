@@ -46,6 +46,35 @@ void main() {
     },
   );
 
+  test('a browser keeps the snapshot as text and restores it the same way '
+      '(#4121)', () async {
+    SharedPreferences.setMockInitialValues({
+      'b': true,
+      'l': ['a'],
+      'current_diver_id': 'real',
+    });
+    final prefs = await SharedPreferences.getInstance();
+
+    final encoded = PrefsSnapshot.encode(prefs);
+    await prefs.setString('current_diver_id', 'demo-diver');
+    await prefs.setInt('added', 1);
+    await PrefsSnapshot.restoreEncoded(prefs, encoded);
+
+    expect(prefs.getString('current_diver_id'), 'real');
+    expect(prefs.getStringList('l'), ['a']);
+    expect(prefs.containsKey('added'), isFalse);
+  });
+
+  test('unreadable text restores nothing', () async {
+    SharedPreferences.setMockInitialValues({'k': 'v'});
+    final prefs = await SharedPreferences.getInstance();
+    await expectLater(
+      PrefsSnapshot.restoreEncoded(prefs, '{broken'),
+      throwsStateError,
+    );
+    expect(prefs.getString('k'), 'v');
+  });
+
   test('an empty snapshot restores to no preferences at all', () async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();

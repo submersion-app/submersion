@@ -2,8 +2,11 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:path/path.dart' as p;
+import 'package:submersion/core/platform/cross_tab_lock.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_temp_files.dart';
 
 const _log = LoggerService('SyncTempSweep');
 
@@ -45,6 +48,10 @@ const Duration syncTempFileGrace = Duration(minutes: 5);
 Future<void> sweepLeftoverSyncTempFiles({
   @visibleForTesting Future<Directory> Function()? tempDir,
 }) async {
+  if (HostPlatform.isWeb && tempDir == null) {
+    await _sweepBrowserTempFiles();
+    return;
+  }
   try {
     final dir = await (tempDir?.call() ?? resolveSyncTempDir());
     final cutoff = DateTime.now().subtract(syncTempFileGrace);
@@ -60,6 +67,27 @@ Future<void> sweepLeftoverSyncTempFiles({
         // best effort
       }
     }
+  } catch (e) {
+    _log.warning('Could not sweep leftover sync temp files: $e');
+  }
+}
+
+/// The browser's leftovers live in the origin private file system, in one
+/// directory the app owns outright, so every file there is a sync temp
+/// file; the compute worker lists and removes them, leaving any a handle
+/// still holds open. Only while no sync holds the cross-tab lock, in this
+/// tab or another: a sync reads its assembled base in chunks, between which
+/// the file is unlocked, and a launch that finds a sync running leaves the
+/// sweep to the next one.
+Future<void> _sweepBrowserTempFiles() async {
+  try {
+    final ran = await withCrossTabLockIfAvailable(kSyncCrossTabLock, () async {
+      final removed = await SyncTempFiles.sweepAll();
+      if (removed > 0) {
+        _log.info('Swept $removed leftover sync temp file(s)');
+      }
+    });
+    if (!ran) _log.info('Sync temp sweep skipped: a sync is running');
   } catch (e) {
     _log.warning('Could not sweep leftover sync temp files: $e');
   }

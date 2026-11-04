@@ -19,6 +19,7 @@ import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/import_wizard/domain/services/step_skip_calculator.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_job_provider.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/dive_computer_scan_scope.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/running_import_gate.dart';
 import 'package:submersion/features/rules/presentation/providers/rule_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -27,88 +28,10 @@ import 'package:submersion/features/import_wizard/presentation/widgets/import_pr
 import 'package:submersion/features/import_wizard/presentation/pages/step_indicator_view.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_summary_step.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/review_step.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/wizard_message.dart';
 import 'package:submersion/shared/widgets/wizard/wizard_step_indicator.dart';
 
-/// The unified import wizard shell.
-///
-/// Accepts an [ImportSourceAdapter] and orchestrates the full import flow:
-/// acquisition steps (source-specific), review, import progress, and summary.
-///
-/// The adapter is a per-session object: it accumulates acquisition state
-/// (a dive computer download, a picked file) that the later steps consume.
-/// The wizard therefore pins the adapter it is first built with and keeps
-/// using it even if an ancestor rebuilds this widget with a different
-/// instance. Route builders create their adapter in `build`, so a provider
-/// re-emitting mid-session (the dive computer download route watches the
-/// computer record, which the download itself writes on completion) would
-/// otherwise swap in a fresh, empty adapter between the download and the
-/// Review step.
-class UnifiedImportWizard extends StatefulWidget {
-  const UnifiedImportWizard({
-    super.key,
-    required this.adapter,
-    this.initialPageOverride,
-    this.notifierFactoryOverride,
-  });
-
-  /// The adapter this widget was built with. The session adapter is the one
-  /// the wizard was FIRST built with; see the class doc.
-  final ImportSourceAdapter adapter;
-
-  /// Optional starting page for widget tests that need to exercise behavior
-  /// on pages past the acquisition/review flow (e.g. the cancel dialog on
-  /// the import-progress page) without driving the full adapter through
-  /// [ImportSourceAdapter.buildBundle] and [performImport].
-  @visibleForTesting
-  final int? initialPageOverride;
-
-  /// Optional notifier factory for tests that need to inject a pre-configured
-  /// [ImportWizardNotifier] (e.g. one whose state already has
-  /// `isCancellationRequested: true` so the "already cancelling" dialog
-  /// branch can be exercised).
-  @visibleForTesting
-  final ImportWizardNotifier Function(Ref ref)? notifierFactoryOverride;
-
-  @override
-  State<UnifiedImportWizard> createState() => _UnifiedImportWizardState();
-}
-
-class _UnifiedImportWizardState extends State<UnifiedImportWizard> {
-  /// The session adapter, captured once. Deliberately not refreshed in
-  /// didUpdateWidget: a replacement instance carries none of the state the
-  /// acquisition steps already committed to this one.
-  late final ImportSourceAdapter _adapter = widget.adapter;
-
-  @override
-  Widget build(BuildContext context) {
-    return RunningImportGate(
-      title: _adapter.displayName,
-      child: ProviderScope(
-        overrides: [
-          importWizardNotifierProvider.overrideWith(
-            widget.notifierFactoryOverride ??
-                (ref) => ImportWizardNotifier(
-                  _adapter,
-                  tagRepository: ref.read(tagRepositoryProvider),
-                  ruleEngine: ref.read(ruleEngineProvider),
-                  gpsTrackMatchService: ref.read(gpsTrackMatchServiceProvider),
-                  equipmentDefaulter: DiveEquipmentDefaulter(),
-                  job: ref.read(importJobProvider.notifier),
-                  // Only the universal adapters read through a container
-                  // that outlives the wizard (#3554); every other source
-                  // stops when the wizard goes away.
-                  continuesWithoutWizard: _adapter is UniversalAdapter,
-                ),
-          ),
-        ],
-        child: _UnifiedImportWizardBody(
-          adapter: _adapter,
-          initialPageOverride: widget.initialPageOverride,
-        ),
-      ),
-    );
-  }
-}
+part 'unified_import_wizard_session.dart';
 
 class _UnifiedImportWizardBody extends ConsumerStatefulWidget {
   const _UnifiedImportWizardBody({
@@ -588,7 +511,7 @@ class _UnifiedImportWizardBodyState
             ),
           ),
           if (_advanceError != null && _currentPage < _reviewIndex)
-            _WizardMessage(
+            WizardMessage(
               message: _advanceError!,
               icon: Icons.error_outline,
               isError: true,
@@ -603,7 +526,7 @@ class _UnifiedImportWizardBodyState
                 ),
               ) &&
               _currentPage == _reviewIndex)
-            _WizardMessage(
+            WizardMessage(
               message: context.l10n.universalImport_error_duplicateCheckFailed,
               icon: Icons.warning_amber_outlined,
               isError: false,
@@ -651,51 +574,6 @@ class _UnifiedImportWizardBodyState
               ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Inline message strip shown between the step content and the bottom bar
-// ---------------------------------------------------------------------------
-
-class _WizardMessage extends StatelessWidget {
-  const _WizardMessage({
-    required this.message,
-    required this.icon,
-    required this.isError,
-  });
-
-  final String message;
-  final IconData icon;
-  final bool isError;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final foreground = isError
-        ? theme.colorScheme.onErrorContainer
-        : theme.colorScheme.onTertiaryContainer;
-
-    return Container(
-      width: double.infinity,
-      color: isError
-          ? theme.colorScheme.errorContainer
-          : theme.colorScheme.tertiaryContainer,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ExcludeSemantics(child: Icon(icon, size: 20, color: foreground)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              message,
-              style: theme.textTheme.bodySmall?.copyWith(color: foreground),
-            ),
-          ),
-        ],
       ),
     );
   }

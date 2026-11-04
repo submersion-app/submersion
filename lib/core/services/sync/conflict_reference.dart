@@ -91,6 +91,7 @@ class ConflictReferenceResolver {
     'relatedDiveId': 'dives',
     'linkedDiveId': 'dives',
     'sourceDiveId': 'dives',
+    'followedDiveId': 'dives',
     'siteId': 'diveSites',
     'tagId': 'tags',
     'diveTypeId': 'diveTypes',
@@ -102,6 +103,7 @@ class ConflictReferenceResolver {
     'instructorId': 'buddies',
     'signerId': 'buddies',
     'equipmentId': 'equipment',
+    'observationId': 'equipmentObservations',
     'scooterEquipmentId': 'equipment',
     'setId': 'equipmentSets',
     'equipmentSetId': 'equipmentSets',
@@ -112,6 +114,7 @@ class ConflictReferenceResolver {
     'tankId': 'diveTanks',
     'switchToTankId': 'divePlanTanks',
     'planId': 'divePlans',
+    'seriesId': 'divePlanSeries',
     'tripId': 'trips',
     'parentTripId': 'trips',
     'tripCylinderId': 'tripCylinders',
@@ -206,6 +209,7 @@ class ConflictReferenceResolver {
     'diveDateTime',
     'startDateTime',
     'startDate',
+    'observedAt',
   ];
 
   /// Every entity type a foreign key can point at. Exposed so the dialog's

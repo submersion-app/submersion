@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
+import 'package:submersion/core/utils/root_zone_future.dart';
 import 'package:submersion/features/dive_log/data/repositories/derived_metrics_repository.dart';
 
 /// Keeps the phase 2 derived metrics current without blocking a write.
@@ -31,7 +34,7 @@ class DerivedMetricsScheduler {
   @visibleForTesting
   void Function(Set<String> diveIds, bool force)? requestListener;
 
-  Future<void> _tail = Future.value();
+  Future<void> _tail = rootZoneFuture();
   final Set<String> _pending = {};
 
   /// The subset of [_pending] to rebuild even when the stored row looks
@@ -70,38 +73,44 @@ class DerivedMetricsScheduler {
     // The callback must ALWAYS complete normally. An error escaping it
     // leaves _tail completed with that error, and every later schedule
     // chains onto a failed future and silently never runs again.
-    _tail = _tail.then((_) async {
-      try {
-        final repo = repositoryFactory();
+    //
+    // The callback is bound to the root zone. A write can ask for this from
+    // inside a transaction, which is a zone, and work bound to it would read
+    // through a transaction that has closed by the time the queue gets here.
+    _tail = _tail.then(
+      Zone.root.bindUnaryCallback((_) async {
+        try {
+          final repo = repositoryFactory();
 
-        if (_sweepPending) {
-          _sweepPending = false;
-          final diverId = _sweepDiverId;
-          _sweepDiverId = null;
-          try {
-            _pending.addAll(await repo.staleDiveIds(diverId: diverId));
-          } catch (_) {
-            // A failed sweep must not stop the per-dive refreshes already
-            // queued beside it.
+          if (_sweepPending) {
+            _sweepPending = false;
+            final diverId = _sweepDiverId;
+            _sweepDiverId = null;
+            try {
+              _pending.addAll(await repo.staleDiveIds(diverId: diverId));
+            } catch (_) {
+              // A failed sweep must not stop the per-dive refreshes already
+              // queued beside it.
+            }
           }
-        }
 
-        final ids = _pending.toList();
-        final forced = {..._forced};
-        _pending.clear();
-        _forced.clear();
+          final ids = _pending.toList();
+          final forced = {..._forced};
+          _pending.clear();
+          _forced.clear();
 
-        for (final id in ids) {
-          try {
-            await repo.ensureCurrent(id, force: forced.contains(id));
-          } catch (_) {
-            // One unreadable dive must not strand the rest of the batch.
+          for (final id in ids) {
+            try {
+              await repo.ensureCurrent(id, force: forced.contains(id));
+            } catch (_) {
+              // One unreadable dive must not strand the rest of the batch.
+            }
           }
+        } catch (_) {
+          // Nothing here may escape; see the comment above.
         }
-      } catch (_) {
-        // Nothing here may escape; see the comment above.
-      }
-    });
+      }),
+    );
   }
 }
 

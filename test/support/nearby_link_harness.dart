@@ -44,6 +44,10 @@ class NearbyTestDevice {
   /// The manager's retry spacing; set before [manager] is first read.
   Duration retryAfter = Duration.zero;
 
+  /// How long a code on screen holds pairing dials back; set before
+  /// [manager] is first read.
+  Duration pairingDialPause = const Duration(minutes: 2);
+
   /// The manager's pairing nonces, so a test can say which of two twin
   /// pairings is kept; set before [manager] is first read.
   String Function() pairingNonce = NearbySession.newPairingNonce;
@@ -59,6 +63,7 @@ class NearbyTestDevice {
     now: () => now,
     changeDebounce: const Duration(milliseconds: 20),
     retryAfter: retryAfter,
+    pairingDialPause: pairingDialPause,
     pairingNonce: pairingNonce,
     // Tests sight devices afresh by refreshing; the in-memory carrier
     // reports a device only when its scan starts.

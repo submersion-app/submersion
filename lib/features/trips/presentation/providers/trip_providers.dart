@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/text/text_sort.dart';
 
+import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
@@ -110,7 +111,9 @@ final allTripsWithStatsProvider = FutureProvider<List<TripWithStats>>((
   ref.invalidateSelfWhen(repository.watchTripsChanges());
   // The per-trip stats aggregate the trip's dives, so a merge or a bulk delete
   // changes them without the trips table being written (issue #958).
-  ref.invalidateSelfWhen(ref.read(diveRepositoryProvider).watchDivesChanges());
+  ref.invalidateSelfWhen(
+    ref.read(diveRepositoryProvider).watchMeasuredRuntimeChanges(),
+  );
   return repository.getAllTripsWithStats(diverId: validatedDiverId);
 });
 
@@ -262,7 +265,7 @@ final tripWithStatsProvider = FutureProvider.family<TripWithStats, String>((
   final diveRepository = ref.watch(diveRepositoryProvider);
   final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
 
-  ref.invalidateSelfWhen(diveRepository.watchDivesChanges());
+  ref.invalidateSelfWhen(diveRepository.watchMeasuredRuntimeChanges());
   ref.invalidateSelfWhen(repository.watchTripsChanges());
 
   return repository.getTripWithStats(tripId, diverId: diverId);
@@ -315,6 +318,9 @@ final divesForTripProvider = FutureProvider.family<List<domain.Dive>, String>((
   // buddy names, and a rename or a synced buddy link never restamps the dive
   // row (#1769, #3039).
   ref.invalidateSelfWhen(diveRepository.watchDivesChangesWithBuddyLinks());
+  // The day rows' runtime, to match the trip total above them. Not the whole
+  // runtime tick: the line above already follows the dive row.
+  ref.invalidateSelfWhen(diveRepository.watchTables(measuredRuntimeTables));
   // And a side trip linked or unlinked (issue #3658).
   ref.invalidateSelfWhen(tripRepository.watchTripsChanges());
 
@@ -383,7 +389,7 @@ class TripListNotifier extends StateNotifier<AsyncValue<List<TripWithStats>>> {
     );
     final divesChangeSub = _ref
         .read(diveRepositoryProvider)
-        .watchDivesChanges()
+        .watchMeasuredRuntimeChanges()
         .listen((_) => _silentReload());
     _ref.onDispose(tripsChangeSub.cancel);
     _ref.onDispose(divesChangeSub.cancel);

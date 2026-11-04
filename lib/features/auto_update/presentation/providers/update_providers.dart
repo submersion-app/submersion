@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:package_info_plus/package_info_plus.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/features/auto_update/data/repositories/update_preferences.dart';
@@ -41,15 +42,15 @@ String githubRepoFor(ReleaseChannel channel) => switch (channel) {
 
 /// Platform-specific asset suffix for GitHub Releases downloads.
 String get _platformSuffix {
-  if (Platform.isMacOS) return 'macOS.dmg';
-  if (Platform.isWindows) return 'Windows-Setup.exe';
-  if (Platform.isLinux) return 'Linux.tar.gz';
-  if (Platform.isAndroid) return 'Android.apk';
+  if (HostPlatform.isMacOS) return 'macOS.dmg';
+  if (HostPlatform.isWindows) return 'Windows-Setup.exe';
+  if (HostPlatform.isLinux) return 'Linux.tar.gz';
+  if (HostPlatform.isAndroid) return 'Android.apk';
   return '';
 }
 
 /// Whether the current platform uses the Sparkle/WinSparkle engine.
-bool get _useSparkleEngine => Platform.isMacOS || Platform.isWindows;
+bool get _useSparkleEngine => HostPlatform.isMacOS || HostPlatform.isWindows;
 
 /// How this Linux copy was installed.
 ///
@@ -58,9 +59,9 @@ bool get _useSparkleEngine => Platform.isMacOS || Platform.isWindows;
 /// each install method on any CI host. Non-Linux platforms report tarball: they
 /// have their own update engines and never consult this.
 final linuxInstallMethodProvider = Provider<LinuxInstallMethod>((ref) {
-  if (!Platform.isLinux) return LinuxInstallMethod.tarball;
+  if (!HostPlatform.isLinux) return LinuxInstallMethod.tarball;
   return LinuxInstallMethodReader(
-    executablePath: Platform.resolvedExecutable,
+    executablePath: HostPlatform.resolvedExecutable,
   ).read();
 });
 

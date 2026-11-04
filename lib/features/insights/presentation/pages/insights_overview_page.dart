@@ -15,6 +15,7 @@ import 'package:submersion/features/insights/domain/career_totals.dart';
 import 'package:submersion/features/insights/presentation/formatters/distribution_labels.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
+import 'package:submersion/features/insights/presentation/widgets/insights_filtered_scaffold.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_overview_empty_state.dart';
 import 'package:submersion/features/insights/presentation/widgets/observations_strip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -47,10 +48,8 @@ class InsightsOverviewPage extends ConsumerWidget {
     );
 
     if (embedded) return body;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.insights_category_overview_title),
-      ),
+    return InsightsFilteredScaffold(
+      title: context.l10n.insights_category_overview_title,
       body: body,
     );
   }
@@ -417,7 +416,7 @@ class _RecordsSection extends StatelessWidget {
       );
     }
     if (records.longestDive != null) {
-      final minutes = records.longestDive!.effectiveRuntime?.inMinutes ?? 0;
+      final minutes = records.longestDive!.runtime?.inMinutes ?? 0;
       rows.add(
         _RecordTile(
           icon: Icons.timer,

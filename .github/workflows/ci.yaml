@@ -464,6 +464,7 @@ jobs:
           # guard below pass the shard without running anything.
           python3 scripts/bundle_tests.py \
             --shard "${{ matrix.shard }}" --total-shards "${TOTAL_SHARDS}" \
+            --exclude-dir test/web \
             > bundle-paths.txt
           mapfile -t paths < bundle-paths.txt
           echo "Shard ${{ matrix.shard }}/${TOTAL_SHARDS}: ${#paths[@]} entrypoints"
@@ -669,6 +670,13 @@ jobs:
         # docs-only pull requests too.
         run: python3 scripts/check_docs_links.py
 
+      - name: Check the sqlite3.wasm lock matches pubspec.lock
+        # Fails if scripts/web/sqlite3_wasm.lock pins a sqlite3.wasm release
+        # other than the package:sqlite3 version in pubspec.lock. The module
+        # and the Dart bindings ship together; a mismatch fails in the
+        # browser with an obscure import error (issue #4121).
+        run: python3 scripts/web/check_sqlite3_wasm_lock.py
+
       - name: Check Gemfiles are parseable and covered by Dependabot
         # Fails on an eval_gemfile call Dependabot cannot parse (a variable
         # path, as `fastlane add_plugin` writes). That made every bundler
@@ -685,7 +693,7 @@ jobs:
       - name: Run Python guard tests with coverage
         run: |
           mkdir -p coverage
-          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_glibc_floor.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_flutter_setup_retried.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py,scripts/filter_trivial_coverage.py,scripts/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/report_inherited_failures.py,scripts/export_support_matrix_catalog.py,scripts/check_no_skipped_tests.py,scripts/check_docs_links.py,scripts/check_dependabot_gemfiles.py,scripts/dependabot_failure_alert.py,scripts/check_ruby_versions.py,scripts/demo_data/fetch_demo_db.py,scripts/curated_sites.py,scripts/demo_package_age_alert.py,scripts/demo_data/fetch_published_manifest.py,scripts/snapshot_downloads.py'
+          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_glibc_floor.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_flutter_setup_retried.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py,scripts/filter_trivial_coverage.py,scripts/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/report_inherited_failures.py,scripts/export_support_matrix_catalog.py,scripts/check_no_skipped_tests.py,scripts/check_docs_links.py,scripts/check_dependabot_gemfiles.py,scripts/dependabot_failure_alert.py,scripts/check_ruby_versions.py,scripts/demo_data/fetch_demo_db.py,scripts/curated_sites.py,scripts/demo_package_age_alert.py,scripts/demo_data/fetch_published_manifest.py,scripts/snapshot_downloads.py,scripts/check_web_bundle.py,scripts/web/check_sqlite3_wasm_lock.py,scripts/web/serve_bundle.py,scripts/web/stage_hosted_site.py'
           python3 -m coverage run --include="$guards" \
             scripts/check_proguard_serial_keep_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -742,6 +750,14 @@ jobs:
             scripts/demo_data/fetch_published_manifest_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/snapshot_downloads_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/check_web_bundle_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/web/check_sqlite3_wasm_lock_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/web/serve_bundle_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/web/stage_hosted_site_test.py
           python3 -m coverage report -m --include="$guards"
           python3 -m coverage xml --include="$guards" \
             -o coverage/scripts.xml
@@ -898,6 +914,337 @@ jobs:
           files: coverage/scripts.xml
           flags: scripts
           fail_ci_if_error: false
+
+  # The browser app (issue #4121): a release web build with the hosting
+  # files, checked by scripts/check_web_bundle.py, and its Dockerfile built
+  # once per run so it cannot rot. Nothing is pushed or published; the
+  # bundle is an artifact the smoke job serves.
+  web-build:
+    name: Web Build
+    needs: [changes, codegen]
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Read Flutter version
+        id: flutter-ver
+        run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
+
+      - uses: ./.github/actions/setup-flutter
+        id: setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-ver.outputs.version }}
+          channel: 'stable'
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.pub-cache
+            ${{ github.workspace }}/.dart_tool
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Download generated code
+        uses: actions/download-artifact@v8
+        with:
+          name: generated-code
+
+      - name: Unpack generated code
+        run: tar -xzf generated-code.tar.gz
+
+      - name: Build the web bundle
+        run: scripts/build_web.sh
+
+      - name: Build the hosting image (never pushed)
+        run: docker build -f build/web/Dockerfile -t submersion-web:ci build/web
+
+      - name: Upload the web bundle
+        uses: actions/upload-artifact@v7
+        with:
+          name: web-bundle
+          path: build/web
+          if-no-files-found: error
+          retention-days: 5
+
+  # The browser suite (issue #4121): test/web in Chrome against two MinIO
+  # stores, one admitting every origin and one admitting only another
+  # site, so the S3 round trip and the CORS diagnoser run for real. A
+  # `services:` entry cannot pass the `server /data` command the minio
+  # image needs, so a step starts the two containers and waits on their
+  # health endpoints.
+  web-tests:
+    name: Web Tests (Chrome)
+    needs: [changes, codegen]
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # MinIO's community image and binaries were withdrawn when the project
+      # was archived, so this is a community fork from before it was renamed:
+      # the same server, command and variables, pinned by digest. Only a
+      # throwaway test store with throwaway credentials runs from it.
+      MINIO_IMAGE: pgsty/minio:RELEASE.2026-08-04T00-00-00Z@sha256:b6bfe7239bfc83fb90d31612d9704d86039dd714f7904b3f1ad68f211e602372
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_BUCKET: submersion-test
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Start MinIO, open to every origin and refusing this one
+        run: |
+          docker run -d --name minio -p 9000:9000 \
+            -e MINIO_ROOT_USER -e MINIO_ROOT_PASSWORD \
+            -e MINIO_API_CORS_ALLOW_ORIGIN='*' \
+            "$MINIO_IMAGE" server /data
+          docker run -d --name minio-nocors -p 9001:9000 \
+            -e MINIO_ROOT_USER -e MINIO_ROOT_PASSWORD \
+            -e MINIO_API_CORS_ALLOW_ORIGIN='https://example.invalid' \
+            "$MINIO_IMAGE" server /data
+          for port in 9000 9001; do
+            for attempt in $(seq 1 30); do
+              if curl -sf "http://localhost:$port/minio/health/live" > /dev/null; then
+                break
+              fi
+              if [ "$attempt" -eq 30 ]; then
+                echo "::error::MinIO on port $port did not come up"
+                docker logs minio minio-nocors || true
+                exit 1
+              fi
+              sleep 2
+            done
+          done
+
+      - name: Create the bucket on both stores
+        env:
+          AWS_ACCESS_KEY_ID: ${{ env.MINIO_ROOT_USER }}
+          AWS_SECRET_ACCESS_KEY: ${{ env.MINIO_ROOT_PASSWORD }}
+          AWS_DEFAULT_REGION: us-east-1
+        run: |
+          aws --endpoint-url http://localhost:9000 s3 mb "s3://$MINIO_BUCKET"
+          aws --endpoint-url http://localhost:9001 s3 mb "s3://$MINIO_BUCKET"
+
+      - name: Read Flutter version
+        id: flutter-ver
+        run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
+
+      - uses: ./.github/actions/setup-flutter
+        id: setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-ver.outputs.version }}
+          channel: 'stable'
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.pub-cache
+            ${{ github.workspace }}/.dart_tool
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Download generated code
+        uses: actions/download-artifact@v8
+        with:
+          name: generated-code
+
+      - name: Unpack generated code
+        run: tar -xzf generated-code.tar.gz
+
+      - name: Stage sqlite3.wasm and the workers for the browser tests
+        run: |
+          scripts/web/fetch_sqlite3_wasm.sh
+          scripts/web/compile_workers.sh
+
+      - name: Seed the sync library
+        # A flutter test run as a tool (tool/seed_sync_library_test.dart):
+        # two divers, a site, a buddy and five dives, published under the
+        # device id seed-device for the round trip to pull.
+        run: |
+          flutter test tool/seed_sync_library_test.dart \
+            --file-reporter "json:$RUNNER_TEMP/seed-report.json" \
+            --dart-define=MINIO_ENDPOINT=http://localhost:9000 \
+            --dart-define=MINIO_BUCKET="$MINIO_BUCKET" \
+            --dart-define=MINIO_ACCESS_KEY="$MINIO_ROOT_USER" \
+            --dart-define=MINIO_SECRET_KEY="$MINIO_ROOT_PASSWORD"
+
+      - name: Run the browser suite
+        # One directory per Chrome (scripts/web/test_web.sh says why); the
+        # script then fails on any skipped test, since the store tests skip
+        # without their defines and a job that lost them must not pass on
+        # nothing. The seed's report is checked the same way.
+        env:
+          WEB_TEST_REPORT_DIR: ${{ runner.temp }}/web-reports
+        run: |
+          python3 scripts/check_no_skipped_tests.py "$RUNNER_TEMP/seed-report.json"
+          scripts/web/test_web.sh \
+            --dart-define=MINIO_ENDPOINT=http://localhost:9000 \
+            --dart-define=MINIO_NOCORS_ENDPOINT=http://localhost:9001 \
+            --dart-define=MINIO_BUCKET="$MINIO_BUCKET" \
+            --dart-define=MINIO_ACCESS_KEY="$MINIO_ROOT_USER" \
+            --dart-define=MINIO_SECRET_KEY="$MINIO_ROOT_PASSWORD"
+
+  # The bundle in two browsers (issue #4121): Playwright drives Firefox and
+  # WebKit through connecting to a MinIO store, the first sync,
+  # a dive edit and a publish, and checks the bucket for the browser's own
+  # changeset. The bundle is web-build's artifact, served with the hosting
+  # headers by scripts/web/serve_bundle.py. A browser that never renders
+  # fails on the wait for Flutter's semantics tree, and a run that tested
+  # nothing fails on the junit count. Chromium is left out (#4186): these
+  # runners give it only software drawing on four cores, and its step times
+  # swung with the load, so its failures pointed at nothing.
+  web-smoke:
+    name: Web Smoke (Firefox and WebKit)
+    needs: [changes, web-build]
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      # MinIO's community image and binaries were withdrawn when the project
+      # was archived, so this is a community fork from before it was renamed:
+      # the same server, command and variables, pinned by digest. Only a
+      # throwaway test store with throwaway credentials runs from it.
+      MINIO_IMAGE: pgsty/minio:RELEASE.2026-08-04T00-00-00Z@sha256:b6bfe7239bfc83fb90d31612d9704d86039dd714f7904b3f1ad68f211e602372
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_BUCKET: submersion-test
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Start MinIO, open to every origin
+        run: |
+          docker run -d --name minio -p 9000:9000 \
+            -e MINIO_ROOT_USER -e MINIO_ROOT_PASSWORD \
+            -e MINIO_API_CORS_ALLOW_ORIGIN='*' \
+            "$MINIO_IMAGE" server /data
+          for attempt in $(seq 1 30); do
+            if curl -sf http://localhost:9000/minio/health/live > /dev/null; then
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              echo "::error::MinIO did not come up"
+              docker logs minio || true
+              exit 1
+            fi
+            sleep 2
+          done
+
+      - name: Create the bucket
+        env:
+          AWS_ACCESS_KEY_ID: ${{ env.MINIO_ROOT_USER }}
+          AWS_SECRET_ACCESS_KEY: ${{ env.MINIO_ROOT_PASSWORD }}
+          AWS_DEFAULT_REGION: us-east-1
+        run: aws --endpoint-url http://localhost:9000 s3 mb "s3://$MINIO_BUCKET"
+
+      - name: Read Flutter version
+        id: flutter-ver
+        run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
+
+      - uses: ./.github/actions/setup-flutter
+        id: setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-ver.outputs.version }}
+          channel: 'stable'
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.pub-cache
+            ${{ github.workspace }}/.dart_tool
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Download generated code
+        uses: actions/download-artifact@v8
+        with:
+          name: generated-code
+
+      - name: Unpack generated code
+        run: tar -xzf generated-code.tar.gz
+
+      - name: Seed the sync library
+        run: |
+          flutter test tool/seed_sync_library_test.dart \
+            --file-reporter "json:$RUNNER_TEMP/seed-report.json" \
+            --dart-define=MINIO_ENDPOINT=http://localhost:9000 \
+            --dart-define=MINIO_BUCKET="$MINIO_BUCKET" \
+            --dart-define=MINIO_ACCESS_KEY="$MINIO_ROOT_USER" \
+            --dart-define=MINIO_SECRET_KEY="$MINIO_ROOT_PASSWORD"
+          python3 scripts/check_no_skipped_tests.py "$RUNNER_TEMP/seed-report.json"
+
+      - name: Download the web bundle
+        uses: actions/download-artifact@v8
+        with:
+          name: web-bundle
+          path: build/web
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.x'
+
+      - name: Install Playwright, Firefox and WebKit
+        run: |
+          python3 -m pip install -r scripts/web/requirements-smoke.txt
+          python3 -m playwright install --with-deps firefox webkit
+
+      - name: Serve the bundle with the hosting headers
+        run: |
+          python3 scripts/web/serve_bundle.py --dir build/web --port 8080 \
+            > "$RUNNER_TEMP/serve.log" 2>&1 &
+          for attempt in $(seq 1 20); do
+            if curl -sf http://127.0.0.1:8080/index.html > /dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          curl -sfI http://127.0.0.1:8080/index.html | grep -i cross-origin-opener-policy
+
+      - name: Run the smoke in Firefox and WebKit
+        env:
+          SMOKE_BASE_URL: http://127.0.0.1:8080
+          SMOKE_ARTIFACT_DIR: ${{ runner.temp }}/smoke
+          MINIO_ENDPOINT: http://localhost:9000
+          MINIO_ACCESS_KEY: ${{ env.MINIO_ROOT_USER }}
+          MINIO_SECRET_KEY: ${{ env.MINIO_ROOT_PASSWORD }}
+        # Under a virtual display: headless Firefox on Linux has no GL driver
+        # and falls back to CPU-only rendering, too slow for the smoke;
+        # headed, it gets Mesa's software GL (smoke_test.py, LAUNCH_OPTIONS).
+        run: |
+          xvfb-run -a python3 -m pytest scripts/web/smoke_test.py -v -rP \
+            --junitxml="$RUNNER_TEMP/smoke.xml"
+          # A run that tested nothing, or skipped, must not pass.
+          python3 -c "import sys, xml.etree.ElementTree as ET; r = ET.parse(sys.argv[1]).getroot(); s = [r] if r.tag == 'testsuite' else list(r); t = sum(int(x.get('tests', 0)) for x in s); k = sum(int(x.get('skipped', 0)) for x in s); print('smoke tests', t, 'skipped', k); sys.exit(1 if t == 0 or k else 0)" "$RUNNER_TEMP/smoke.xml"
+
+      - name: Keep the server log
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: web-smoke-logs
+          path: |
+            ${{ runner.temp }}/serve.log
+            ${{ runner.temp }}/smoke
+          if-no-files-found: ignore
 
   # Platform-agnostic integration tests (#2940). They exercise Dart code, the
   # bundled SQLCipher and the desktop UI, none of which needs macOS, so they
@@ -1874,6 +2221,8 @@ jobs:
       - test
       - timezone-tests
       - script-tests
+      - web-build
+      - web-tests
       - integration-test
       - integration-test-macos
       - fastlane-bundles

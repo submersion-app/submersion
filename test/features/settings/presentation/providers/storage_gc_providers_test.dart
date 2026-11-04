@@ -10,12 +10,14 @@ import 'package:path_provider_platform_interface/path_provider_platform_interfac
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/services/media_store/network_status_service.dart';
 import 'package:submersion/core/services/media_store/store_keys.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
+import 'package:submersion/core/services/storage/cache_location.dart';
 import 'package:submersion/core/services/storage/gc/cloud_usage_measure.dart';
 import 'package:submersion/core/services/storage/gc/storage_gc_coordinator.dart';
 import 'package:submersion/core/services/storage/gc/storage_gc_store.dart';
@@ -27,6 +29,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
+import 'package:submersion/features/media_store/data/media_cache_index_sweep.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
@@ -76,6 +79,8 @@ void main() {
     );
     root = await Directory.systemTemp.createTemp('storage_gc_providers');
     useFakePathProvider(_TempPathProvider(root.path));
+    resetCacheLocationForTesting();
+    addTearDown(resetCacheLocationForTesting);
     store = InMemoryMediaObjectStore();
     writeMarker('store-1');
     syncCloud = FakeCloudStorageProvider();
@@ -130,14 +135,20 @@ void main() {
     bool runtimeAvailable = true,
     bool runtimeHangs = false,
     Future<void> Function()? whileRuntimeBuilds,
+    MediaCacheIndexSweep? indexSweep,
+    DeviceCapabilities? capabilities,
   }) {
     final cache = MediaCacheStore(database: cacheDb, root: root);
     final c = ProviderContainer(
       overrides: [
+        if (capabilities != null)
+          deviceCapabilitiesProvider.overrideWithValue(capabilities),
         if (runtimeHangs)
           mediaStoreRuntimeWaitProvider.overrideWithValue(
             const Duration(milliseconds: 50),
           ),
+        if (indexSweep != null)
+          mediaCacheIndexSweepProvider.overrideWithValue(indexSweep),
         sharedPreferencesProvider.overrideWithValue(prefs),
         storageGcNetworkProvider.overrideWithValue(
           () async => NetworkKind.unmetered,
@@ -175,6 +186,23 @@ void main() {
     addTearDown(c.dispose);
     return c;
   }
+
+  test('the cleanup runs the media cache index sweep', () async {
+    var runs = 0;
+    final c = container(
+      indexSweep: MediaCacheIndexSweep(
+        osManagesCaches: () async {
+          runs++;
+          return false;
+        },
+        store: () async => fail('nothing to do on a desktop host'),
+      ),
+    );
+
+    await c.read(storageGcCoordinatorProvider).run(StorageGcTrigger.manual);
+
+    expect(runs, 1);
+  });
 
   test('rescan measures the media store, sync folder and libraries', () async {
     store.objects[StoreKeys.objectKey('aabb', extension: 'jpg')] = [1, 2, 3];
@@ -336,6 +364,29 @@ void main() {
       store.objects.keys,
       contains(StoreKeys.objectKey('dead', extension: 'jpg')),
     );
+  });
+
+  // Issue #4193: a browser reads the store and never writes it, so neither
+  // the cleanup's deletes nor the marker check behind them run there.
+  test('a browser never sweeps the store', () async {
+    await registerStore();
+    await knownPhoto();
+    deadObject();
+    writeMarker('another-library');
+    final c = container(syncOn: false, capabilities: DeviceCapabilities.web);
+
+    await c.read(storageGcCoordinatorProvider).run(StorageGcTrigger.manual);
+
+    expect(
+      store.objects.keys,
+      contains(StoreKeys.objectKey('dead', extension: 'jpg')),
+    );
+    expect(
+      await MediaStoreAttachState(prefs: prefs).hasMarkerMismatch(),
+      isFalse,
+      reason: 'the marker check would have flagged another library',
+    );
+    expect((await MediaStoresRepository().getActive())!.lastSweepAt, isNull);
   });
 
   test('a store that fails its marker check is not swept', () async {

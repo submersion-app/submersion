@@ -22,7 +22,9 @@ class SetUpStepScaffold extends StatelessWidget {
   final String? intro;
   final List<Widget> children;
   final String backLabel;
-  final VoidCallback onBack;
+
+  /// Null hides Back: there is nothing before this step.
+  final VoidCallback? onBack;
   final String primaryLabel;
 
   /// Null disables the primary button (the step cannot finish yet).
@@ -60,11 +62,13 @@ class SetUpStepScaffold extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              TextButton(
-                onPressed: busy ? null : onBack,
-                child: Text(backLabel),
-              ),
-              const SizedBox(width: 8),
+              if (onBack != null) ...[
+                TextButton(
+                  onPressed: busy ? null : onBack,
+                  child: Text(backLabel),
+                ),
+                const SizedBox(width: 8),
+              ],
               // A long translated label wraps the buttons onto a second
               // line rather than overflowing the row.
               Expanded(

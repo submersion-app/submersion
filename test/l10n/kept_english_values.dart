@@ -257,4 +257,5 @@ const Map<String, String> keptEnglishValues = {
   'trips_detail_preDive_action@nl': _loanword,
   'units_profileMetric_gPerL': _units,
   'universalImport_compare_serial@de': _germanSerial,
+  'web_googleClientId_hint': _exampleAddress,
 };

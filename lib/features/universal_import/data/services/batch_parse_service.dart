@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_options.dart';
@@ -130,7 +131,7 @@ Future<List<String>> scanFolderForImportableFiles(String dirPath) async {
   ).list(recursive: true, followLinks: false)) {
     if (entity is! File) continue;
     final relative = entity.path.substring(dirPath.length);
-    final segments = relative.split(Platform.pathSeparator);
+    final segments = relative.split(HostPlatform.pathSeparator);
     if (segments.any((s) => s.startsWith('.'))) continue;
     final dot = entity.path.lastIndexOf('.');
     if (dot < 0) continue;

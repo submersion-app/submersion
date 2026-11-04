@@ -28,6 +28,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_picker_rows.
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_site_snap.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
+import 'package:submersion/features/dive_log/data/services/user_event_preservation.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_reduction.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_row_decoder.dart';
@@ -109,6 +110,7 @@ import 'package:submersion/features/query/app_query_registry.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart' as domain;
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
+import 'package:submersion/features/trips/data/repositories/trip_date_stretch.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart' as domain;
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
@@ -119,6 +121,8 @@ import 'package:submersion/features/equipment/data/repositories/equipment_observ
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+
+part 'dive_repository_gear_preview.dart';
 
 /// A dive that a conditions fetch can still do something for: its site carries
 /// coordinates and at least one weather column is empty.
@@ -131,6 +135,14 @@ typedef ConditionsCandidate = ({
   double latitude,
   double longitude,
 });
+
+/// `dives.weather_fetched_at` holds Unix seconds, where most columns here hold
+/// milliseconds (issue #4119), so every read and write goes through this pair.
+int? _weatherStamp(DateTime? fetchedAt) =>
+    fetchedAt == null ? null : fetchedAt.millisecondsSinceEpoch ~/ 1000;
+
+DateTime? _weatherStampTime(int? stamp) =>
+    stamp == null ? null : DateTime.fromMillisecondsSinceEpoch(stamp * 1000);
 
 class DiveRepository {
   /// The media dependencies drive the dive-deletion cascade
@@ -242,14 +254,15 @@ class DiveRepository {
   /// pressures, gas switches, equipment and media, none of which the list
   /// reads, and every one of which would reload the whole list for nothing.
   ///
-  /// One known gap, taken on purpose. `dive_profile_series` and
-  /// `dive_profile_events` appear in the query's `readsFrom` because the
-  /// decompression filter joins them (see [decoSignalCondition]), so with that
-  /// filter active a profile write can change which dives match. They are left
-  /// out because a profile import writes thousands of sample rows and would
-  /// otherwise reload the whole list behind every one of them, to correct a
-  /// filter most sessions never switch on. This is no worse than the
-  /// dives-only tick it replaces.
+  /// One known gap, taken on purpose. `dive_profile_events` appears in the
+  /// query's `readsFrom` because the decompression filter joins it (see
+  /// [decoSignalCondition]), so with that filter active an event write can
+  /// change which dives match. It is left out because a profile import writes
+  /// many event rows and would otherwise reload the whole list behind them, to
+  /// correct a filter most sessions never switch on. This is no worse than the
+  /// dives-only tick it replaces. The series and source tables are in the
+  /// tick: a row's Runtime reads them ([measuredRuntimeTickTables]), and a
+  /// series is one packed row per recording, not one per sample.
   Stream<void> watchDiveListChanges() => _db
       .tableUpdates(TableUpdateQuery.allOf(_diveListTables))
       .debounce(changeTickDebounce);
@@ -275,6 +288,8 @@ class DiveRepository {
     'dive_custom_fields',
     'dive_buddies',
     'buddies',
+    // The profile span of a dive only its samples can measure.
+    ...measuredRuntimeTickTables,
   };
 
   /// Fires on a write to any of [diveHydrationTables], so a holder of hydrated
@@ -294,12 +309,30 @@ class DiveRepository {
     ]),
   );
 
+  /// What a dive's measured runtime reads beyond its own row, by SQL name: the
+  /// profile span step of `measuredRuntimeSecondsSql`. A sync pull or a profile
+  /// edit writes these without touching `dives`, so anything reporting a
+  /// runtime ticks on them too (issue #3304).
+  static const Set<String> measuredRuntimeTickTables = measuredRuntimeTables;
+
+  /// Fires when a dive's measured runtime can change. Takes the place of
+  /// [watchDivesChanges] for a provider that reports a runtime: one tick over
+  /// the dive row and the [measuredRuntimeTickTables], so a write to both
+  /// reloads it once.
+  Stream<void> watchMeasuredRuntimeChanges() =>
+      watchTables({'dives', ...measuredRuntimeTickTables});
+
   /// The tables [getStatistics] and [getRecords] read, by SQL name, before
-  /// any filter joins: the dives themselves and the `dive_sites` JOIN that
-  /// names Most Visited Sites and each record's site. A provider built on
-  /// either query ticks on all of these plus the filter's own tables, so a
-  /// site rename (a `dive_sites`-only write) refreshes the names it shows.
-  static const Set<String> statisticsTickTables = {'dives', 'dive_sites'};
+  /// any filter joins: the dives themselves, the `dive_sites` JOIN that names
+  /// Most Visited Sites and each record's site, and what a measured runtime
+  /// reads. A provider built on either query ticks on all of these plus the
+  /// filter's own tables, so a site rename (a `dive_sites`-only write)
+  /// refreshes the names it shows.
+  static const Set<String> statisticsTickTables = {
+    'dives',
+    'dive_sites',
+    ...measuredRuntimeTickTables,
+  };
 
   /// The tables a dive comparison reads, by SQL name: the dive and its site
   /// for the label, the series and source rows for the profile. Narrower than
@@ -328,6 +361,8 @@ class DiveRepository {
     'dive_tags',
     'tags',
     'dive_dive_types',
+    // The row's Runtime.
+    ...measuredRuntimeTickTables,
   };
 
   List<TableUpdateQuery> get _diveListTables => [
@@ -617,8 +652,9 @@ class DiveRepository {
   /// the one per dive [_mapRowToDive] costs.
   ///
   /// No sample is read, so `profile` stays empty and what [_mapRowToDive]
-  /// derives from samples stays missing. Weights are left to the callers that
-  /// show them, through [weightsByDive].
+  /// derives from samples stays missing, apart from `profileSpan`, which keeps
+  /// [domain.Dive.measuredRuntime] the same on both. Weights are left to the
+  /// callers that show them, through [weightsByDive].
   Future<List<domain.Dive>> _mapRowsWithPreloadedData(
     List<Dive> rows, {
     Map<String, List<domain.DiveWeight>> weightsByDive = const {},
@@ -781,6 +817,8 @@ class DiveRepository {
     // (issue #626). Scalar buddy/diveMaster remain the fallback.
     final buddiesByDive = await _buddyRepository.getBuddiesForDives(diveIds);
 
+    final profileSpans = await _profileSpansFor(rows);
+
     return rows
         .map(
           (row) => _mapRowToDiveWithPreloadedData(
@@ -802,9 +840,46 @@ class DiveRepository {
             customFields: customFieldsByDive[row.id] ?? [],
             buddies: buddiesByDive[row.id] ?? const [],
             weights: weightsByDive[row.id] ?? const [],
+            profileSpan: profileSpans[row.id],
           ),
         )
         .toList();
+  }
+
+  /// The profile span of each of [rows] that only its samples can measure: no
+  /// runtime and no exit after the entry, the steps of
+  /// `measuredRuntimeSecondsSql` before the span. Most logs have none, and then
+  /// this runs no statement.
+  // stats-scope-exempt: hydrates the dives of a list, and aggregates nothing
+  Future<Map<String, Duration>> _profileSpansFor(List<Dive> rows) async {
+    final ids = [
+      for (final row in rows)
+        if (row.runtime == null &&
+            (row.entryTime == null ||
+                row.exitTime == null ||
+                row.exitTime! <= row.entryTime!))
+          row.id,
+    ];
+    final spans = <String, Duration>{};
+    for (final chunk in seriesIdChunks(ids)) {
+      final placeholders = List.filled(chunk.length, '?').join(', ');
+      final result = await _db
+          .customSelect(
+            "SELECT d.id, ${profileSpanSecondsSql('d')} AS profile_span "
+            'FROM dives d WHERE d.id IN ($placeholders)',
+            variables: [for (final id in chunk) Variable<String>(id)],
+            readsFrom: {_db.dives, _db.diveProfileSeries},
+          )
+          .get();
+      for (final row in result) {
+        final span = row.readNullable<int>('profile_span');
+        // Matches Dive.calculateRuntimeFromProfile: null unless positive.
+        if (span != null && span > 0) {
+          spans[row.read<String>('id')] = Duration(seconds: span);
+        }
+      }
+    }
+    return spans;
   }
 
   /// Get a single dive by ID
@@ -1265,7 +1340,7 @@ class DiveRepository {
                 ? Value(source.name)
                 : const Value.absent(),
             weatherFetchedAt: stampProvenance
-                ? Value(fetchedAt.millisecondsSinceEpoch)
+                ? Value(_weatherStamp(fetchedAt))
                 : const Value.absent(),
             updatedAt: Value(now),
           ),
@@ -2180,11 +2255,7 @@ class DiveRepository {
                 weatherDescription: Value(dive.weatherDescription),
                 weatherCode: Value(dive.weatherCode),
                 weatherSource: Value(dive.weatherSource?.name),
-                weatherFetchedAt: Value(
-                  dive.weatherFetchedAt != null
-                      ? dive.weatherFetchedAt!.millisecondsSinceEpoch ~/ 1000
-                      : null,
-                ),
+                weatherFetchedAt: Value(_weatherStamp(dive.weatherFetchedAt)),
                 // Surface interval and deco settings
                 surfaceIntervalSeconds: Value(dive.surfaceInterval?.inSeconds),
                 gradientFactorLow: Value(dive.gradientFactorLow),
@@ -2519,11 +2590,7 @@ class DiveRepository {
             weatherDescription: Value(dive.weatherDescription),
             weatherCode: Value(dive.weatherCode),
             weatherSource: Value(dive.weatherSource?.name),
-            weatherFetchedAt: Value(
-              dive.weatherFetchedAt != null
-                  ? dive.weatherFetchedAt!.millisecondsSinceEpoch ~/ 1000
-                  : null,
-            ),
+            weatherFetchedAt: Value(_weatherStamp(dive.weatherFetchedAt)),
             // Surface interval and deco settings
             surfaceIntervalSeconds: Value(dive.surfaceInterval?.inSeconds),
             gradientFactorLow: Value(dive.gradientFactorLow),
@@ -3013,7 +3080,7 @@ class DiveRepository {
   ///
   /// - no `water_temp`, which [_mapRowToDive] takes from the profile;
   /// - no `runtime` and no usable exit time, where
-  ///   [domain.Dive.effectiveRuntime] measures the profile;
+  ///   [domain.Dive.measuredRuntime] measures the profile;
   /// - a tank with no stored start or end pressure, which [_mapRowToDive]
   ///   takes from the pressure series.
   ///
@@ -3161,7 +3228,9 @@ class DiveRepository {
             'SELECT '
             'd.id, d.dive_number, d.name AS dive_name, '
             'd.dive_date_time, d.entry_time, '
-            'd.max_depth, d.bottom_time, d.runtime, d.water_temp, d.rating, '
+            'd.max_depth, d.bottom_time, '
+            '${measuredRuntimeSecondsSql('d')} AS runtime, '
+            'd.water_temp, d.rating, '
             'd.is_favorite, d.excluded_from_stats, d.excluded_from_gas_stats, '
             'd.is_planned, '
             'd.dive_type, d.dive_mode, '
@@ -3200,6 +3269,9 @@ class DiveRepository {
               readsFrom: {
                 _db.dives,
                 _db.diveSites,
+                // The measured runtime's profile step.
+                _db.diveProfileSeries,
+                _db.diveDataSources,
                 // Renaming a trip changes a header the list is showing.
                 _db.trips,
                 _db.diveSafetyFindings,
@@ -4051,7 +4123,9 @@ class DiveRepository {
           'SELECT '
           'd.id, d.dive_number, d.name AS dive_name, '
           'd.dive_date_time, d.entry_time, '
-          'd.max_depth, d.bottom_time, d.runtime, d.water_temp, d.rating, '
+          'd.max_depth, d.bottom_time, '
+          '${measuredRuntimeSecondsSql('d')} AS runtime, '
+          'd.water_temp, d.rating, '
           'd.is_favorite, d.excluded_from_stats, d.excluded_from_gas_stats, '
           'd.is_planned, '
           'd.dive_type, d.dive_mode, '
@@ -4087,6 +4161,8 @@ class DiveRepository {
           readsFrom: {
             _db.dives,
             _db.diveSites,
+            _db.diveProfileSeries,
+            _db.diveDataSources,
             _db.trips,
             _db.diveSafetyFindings,
             _db.diveSafetyReviews,
@@ -4249,7 +4325,7 @@ class DiveRepository {
         COALESCE(SUM(
           CASE WHEN dive_date_time >= ? AND dive_date_time < ? THEN 1 ELSE 0 END
         ), 0) as dives_this_year,
-        SUM(COALESCE(runtime, bottom_time)) as total_time,
+        SUM(${measuredRuntimeSecondsSql('dives')}) as total_time,
         MAX(max_depth) as max_depth,
         AVG(max_depth) as avg_max_depth,
         AVG(water_temp) as avg_temp,
@@ -4291,11 +4367,9 @@ class DiveRepository {
       // open-ended bucket for anything deeper (issue #641). A dive lands in
       // a bucket by its max depth, the same rule the old 0-40 m version used.
       //
-      // Per-bucket duration resolves the full `Dive.effectiveRuntime` chain
-      // in SQL (see `effectiveRuntimeSecondsSql`) rather than the
-      // `COALESCE(runtime, bottom_time)` shortcut this query used before,
-      // which skipped the profile-derived step and reported a dive that only
-      // has a profile as zero minutes. Bucketing stays in SQL so the whole
+      // Per-bucket duration resolves `Dive.measuredRuntime` in SQL (see
+      // `measuredRuntimeSecondsSql`), so a dive that only has a profile is
+      // not reported as zero minutes. Bucketing stays in SQL so the whole
       // distribution comes back as at most 14 rows, not one row per dive.
       final depthWhereClause = diverId != null
           ? 'WHERE d.max_depth IS NOT NULL AND d.diver_id = ?'
@@ -4304,7 +4378,7 @@ class DiveRepository {
           .customSelect(
             'SELECT $depthBucketSql AS bucket, '
             'COUNT(*) AS count, '
-            'SUM(${effectiveRuntimeSecondsSql('d')}) AS total_time '
+            'SUM(${measuredRuntimeSecondsSql('d')}) AS total_time '
             'FROM dives d '
             '$depthWhereClause $fAliasD '
             'GROUP BY bucket',
@@ -4318,8 +4392,8 @@ class DiveRepository {
       for (final row in depthRows) {
         final bucket = row.read<int>('bucket');
         bucketCounts[bucket] = row.read<int>('count');
-        // NULL when every dive in the bucket is missing all four duration
-        // sources, which reads as zero minutes logged at that depth.
+        // NULL when no dive in the bucket measured a runtime, which reads as
+        // zero minutes logged at that depth.
         bucketDurationSeconds[bucket] =
             row.readNullable<int>('total_time') ?? 0;
       }
@@ -4446,14 +4520,15 @@ class DiveRepository {
       LIMIT 1
     ''', variables: vars).getSingleOrNull();
 
-      // Longest dive (by runtime, falling back to bottom_time)
+      // Longest dive, by what it measured: a bottom time is not a runtime
+      // (issue #3304).
       final longestResult = await _db.customSelect('''
       SELECT d.*, s.name as site_name,
-        COALESCE(d.runtime, d.bottom_time) as effective_runtime
+        ${measuredRuntimeSecondsSql('d')} as measured_runtime
       FROM dives d
       LEFT JOIN dive_sites s ON d.site_id = s.id
-      WHERE COALESCE(d.runtime, d.bottom_time) IS NOT NULL $diverFilter $filterClause
-      ORDER BY effective_runtime DESC
+      WHERE measured_runtime > 0 $diverFilter $filterClause
+      ORDER BY measured_runtime DESC
       LIMIT 1
     ''', variables: vars).getSingleOrNull();
 
@@ -4549,9 +4624,10 @@ class DiveRepository {
       bottomTime: row.data['bottom_time'] != null
           ? Duration(seconds: row.data['bottom_time'] as int)
           : null,
-      runtime: row.data['runtime'] != null
-          ? Duration(seconds: row.data['runtime'] as int)
-          : null,
+      runtime: switch (row.data['measured_runtime'] ?? row.data['runtime']) {
+        final int seconds => Duration(seconds: seconds),
+        _ => null,
+      },
       waterTemp: row.data['water_temp'] as double?,
     );
   }
@@ -4608,15 +4684,14 @@ class DiveRepository {
     return rows.map((r) => r.read<String>('id')).toList();
   }
 
-  /// SQL expression mirroring [domain.Dive.effectiveRuntime]'s resolution
-  /// order in seconds: runtime, exit - entry (when positive), profile span,
-  /// bottom time.
+  /// SQL expression mirroring [domain.Dive.measuredRuntime]'s resolution
+  /// order in seconds: runtime, exit - entry (when positive), profile span.
   ///
   /// Delegates to the shared fragment rather than spelling the chain out a
   /// second time. This constant and the statistics aggregates have to agree
-  /// on what a dive's duration is, and two hand-written copies of a four-step
-  /// COALESCE are how they stop agreeing.
-  static final _effectiveRuntimeSql = effectiveRuntimeSecondsSql('d');
+  /// on what a dive's duration is, and two hand-written copies of a
+  /// three-step COALESCE are how they stop agreeing.
+  static final _measuredRuntimeSql = measuredRuntimeSecondsSql('d');
 
   /// Deterministic tie-break for the personal-record winners, matching the
   /// most-recent-first order [getAllDives] used before WS4: the old in-memory
@@ -4670,14 +4745,14 @@ class DiveRepository {
       'd.max_depth IS NOT NULL AND d.max_depth > 0',
       'd.max_depth DESC, $_recencyTieBreak',
     );
-    // Longest evaluates the effective-runtime expression (a correlated
+    // Longest evaluates the measured-runtime expression (a correlated
     // dive_profile_series subquery) once in a derived table and orders on
     // the alias, rather than paying for the subquery twice (WHERE + ORDER BY)
     // -- this is the dashboard hot path the PR is optimizing.
     final longestRow = await _db
         .customSelect(
           'SELECT id FROM ('
-          'SELECT d.id AS id, $_effectiveRuntimeSql AS er, '
+          'SELECT d.id AS id, $_measuredRuntimeSql AS er, '
           'COALESCE(d.entry_time, d.dive_date_time) AS recency, '
           'd.dive_number AS dn FROM dives d WHERE 1 = 1 $diverFilter'
           ') WHERE er > 0 ORDER BY er DESC, recency DESC, dn DESC LIMIT 1',
@@ -4743,6 +4818,7 @@ class DiveRepository {
     List<domain.DiveCustomField> customFields = const [],
     List<domain.BuddyWithRole> buddies = const [],
     List<domain.DiveWeight> weights = const [],
+    Duration? profileSpan,
   }) {
     // Map site if exists
     final domainSite = site == null ? null : mapDiveSiteRow(site);
@@ -4815,6 +4891,7 @@ class DiveRepository {
           ? Duration(seconds: row.bottomTime!)
           : null,
       runtime: row.runtime != null ? Duration(seconds: row.runtime!) : null,
+      profileSpan: profileSpan,
       maxDepth: row.maxDepth,
       avgDepth: row.avgDepth,
       entryLocation: row.entryLatitude != null && row.entryLongitude != null
@@ -4935,9 +5012,7 @@ class DiveRepository {
               orElse: () => WeatherSource.manual,
             )
           : null,
-      weatherFetchedAt: row.weatherFetchedAt != null
-          ? DateTime.fromMillisecondsSinceEpoch(row.weatherFetchedAt! * 1000)
-          : null,
+      weatherFetchedAt: _weatherStampTime(row.weatherFetchedAt),
       tanks: tanks
           .map(
             (t) => domain.DiveTank(
@@ -5400,9 +5475,7 @@ class DiveRepository {
               orElse: () => WeatherSource.manual,
             )
           : null,
-      weatherFetchedAt: row.weatherFetchedAt != null
-          ? DateTime.fromMillisecondsSinceEpoch(row.weatherFetchedAt! * 1000)
-          : null,
+      weatherFetchedAt: _weatherStampTime(row.weatherFetchedAt),
       tanks: tankRows.map((t) {
         return domain.DiveTank(
           id: t.id,
@@ -5752,6 +5825,73 @@ class DiveRepository {
     return byDive;
   }
 
+  /// Weights for [diveIds] grouped by dive, for a sheet that shows many
+  /// dives at once (issue #3422). A dive with no weights has no entry.
+  Future<Map<String, List<domain.DiveWeight>>> getWeightsForDives(
+    List<String> diveIds, {
+    @visibleForTesting int chunkSize = kSeriesIdChunkSize,
+  }) async => {
+    for (final chunk in seriesIdChunks(diveIds, size: chunkSize))
+      ...await _weightsForDives(chunk),
+  };
+
+  /// The type of the weight row on [diverId]'s most recent dive that has one,
+  /// or null when they have none (issue #3422). Asks the log rather than a
+  /// sheet, since a sheet filtered to weightless dives holds no answer.
+  Future<WeightType?> latestWeightType(String? diverId) async {
+    final query =
+        _db.select(_db.diveWeights).join([
+            innerJoin(
+              _db.dives,
+              _db.dives.id.equalsExp(_db.diveWeights.diveId),
+            ),
+          ])
+          ..orderBy([OrderingTerm.desc(_db.dives.diveDateTime)])
+          ..limit(1);
+    if (diverId != null) query.where(_db.dives.diverId.equals(diverId));
+    final row = await query.getSingleOrNull();
+    return row == null
+        ? null
+        : _mapWeightRow(row.readTable(_db.diveWeights)).weightType;
+  }
+
+  /// Sets the amount of a dive's single weight row in place, keeping its id
+  /// (issue #3422). No rows: inserts one of [newRowType]. One row: updates
+  /// it, or deletes it (tombstoned) when [amountKg] is null. Two or more
+  /// rows: throws [StateError], since the cell cannot say which row it
+  /// means. No transaction, no notify: the caller owns those.
+  Future<void> setSingleWeightAmount(
+    String diveId,
+    double? amountKg, {
+    required WeightType newRowType,
+  }) async {
+    final existing = await _loadWeightsForDive(diveId);
+    if (existing.length > 1) {
+      throw StateError(
+        'Dive $diveId has ${existing.length} weight rows; '
+        'a single amount cannot choose one',
+      );
+    }
+    final List<domain.DiveWeight> desired;
+    if (amountKg == null) {
+      desired = const [];
+    } else if (existing.isEmpty) {
+      desired = [
+        domain.DiveWeight(
+          id: '',
+          diveId: diveId,
+          weightType: newRowType,
+          amountKg: amountKg,
+        ),
+      ];
+    } else {
+      desired = [existing.single.copyWith(amountKg: amountKg)];
+    }
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _writeWeightDiff(diveId, desired, now);
+    await _bumpDives([diveId], now);
+  }
+
   domain.DiveWeight _mapWeightRow(DiveWeight row) => domain.DiveWeight(
     id: row.id,
     diveId: row.diveId,
@@ -6051,7 +6191,15 @@ class DiveRepository {
   // Profile Event Operations
   // ============================================================================
 
-  /// Bulk insert profile events (for dive computer imports and analysis results)
+  /// Which of [ids] already name a profile event row, on any dive. A backup
+  /// restore carries each event's own id (#4109), and gives its new dive a
+  /// fresh one in place of any of these.
+  Future<Set<String>> existingProfileEventIds(Iterable<String> ids) =>
+      takenProfileEventIds(_db, ids);
+
+  /// Bulk insert profile events (for dive computer imports and analysis
+  /// results). Duplicate ids throw, so a write that must be all or nothing
+  /// fails loudly.
   Future<void> insertProfileEvents(List<ProfileEvent> events) async {
     if (events.isEmpty) return;
 
@@ -6061,11 +6209,8 @@ class DiveRepository {
       for (final event in events) {
         final id = event.id.isEmpty ? _uuid.v4() : event.id;
         diveIds.add(event.diveId);
-        // Drift's default conflict mode is `insertOrFail` — duplicate IDs
-        // throw. Callers are expected to pass unique IDs (either freshly
-        // generated via _uuid.v4() or from domain entities that assigned them);
-        // the `event.id.isEmpty ? _uuid.v4()` guard above covers the most
-        // common case where the caller hasn't assigned an ID yet.
+        // Drift's default conflict mode is `insertOrFail`: callers pass unique
+        // ids (fresh, or a domain entity's own).
         await _db
             .into(_db.diveProfileEvents)
             .insert(
@@ -6337,8 +6482,8 @@ class DiveRepository {
   ///
   /// Every caller here reads a single dive or a short range, so the subquery
   /// runs a bounded number of times. Aggregates that scan the whole dive
-  /// table use [effectiveRuntimeSecondsSql] instead, which resolves the same
-  /// chain but short-circuits past the profile scan.
+  /// table use [measuredRuntimeSecondsSql] instead, which short-circuits past
+  /// the profile scan.
   static final _diveTimesSelect =
       'SELECT d.id, d.diver_id, d.dive_date_time, d.entry_time, d.exit_time, '
       'd.runtime, d.bottom_time, '
@@ -8515,6 +8660,14 @@ class DiveRepository {
             now: now,
           );
         }
+        if (tripId != null) {
+          await stretchTripsToCoverDives(
+            _db,
+            _syncRepository,
+            diveIds,
+            now: now,
+          );
+        }
       });
       SyncEventBus.notifyLocalChange();
       _log.info('Bulk updated trip for ${diveIds.length} dives');
@@ -8706,9 +8859,16 @@ class DiveRepository {
   ///
   /// The ordering is part of the contract: it defines the ordinals that pair
   /// a `<source>` entry with its `<divecomputerdump>`.
+  ///
+  /// With [includeRawData] false the rows come back without their bytes, and
+  /// the `raw_data` column is never read, so an export with the raw data box
+  /// unticked does not load every dump only to drop it (issue #4180). That
+  /// query is a typed `selectOnly`, and the table's own `map` builds each
+  /// row, so the converter rule above still holds for every other column.
   Future<List<DiveSourceExport>> getSourcesForExport(
-    List<String> diveIds,
-  ) async {
+    List<String> diveIds, {
+    bool includeRawData = true,
+  }) async {
     if (diveIds.isEmpty) return const [];
     try {
       // Chunked because this binds one SQL variable per id and the full
@@ -8728,17 +8888,34 @@ class DiveRepository {
       // caller's order.
       final uniqueIds = diveIds.toSet().toList(growable: false);
 
+      final table = _db.diveDataSources;
+      final order = [
+        OrderingTerm.asc(table.diveId),
+        OrderingTerm.desc(table.isPrimary),
+        OrderingTerm.asc(table.createdAt),
+        OrderingTerm.asc(table.id),
+      ];
       final rows = <DiveDataSourcesData>[];
       for (final chunk in seriesIdChunks(uniqueIds)) {
-        final query = _db.select(_db.diveDataSources)
-          ..where((t) => t.diveId.isIn(chunk))
-          ..orderBy([
-            (t) => OrderingTerm.asc(t.diveId),
-            (t) => OrderingTerm.desc(t.isPrimary),
-            (t) => OrderingTerm.asc(t.createdAt),
-            (t) => OrderingTerm.asc(t.id),
-          ]);
-        rows.addAll(await query.get());
+        if (includeRawData) {
+          final query = _db.select(table)
+            ..where((t) => t.diveId.isIn(chunk))
+            ..orderBy([for (final term in order) (_) => term]);
+          rows.addAll(await query.get());
+          continue;
+        }
+        final query = _db.selectOnly(table)
+          ..addColumns([
+            for (final column in table.$columns)
+              if (column != table.rawData) column,
+          ])
+          ..where(table.diveId.isIn(chunk))
+          ..orderBy(order);
+        for (final result in await query.get()) {
+          rows.add(
+            table.map(result.rawData.data, tablePrefix: table.actualTableName),
+          );
+        }
       }
 
       final seriesByRow = await _liveSeriesOfMultiSourceDives(rows);
@@ -8780,8 +8957,9 @@ class DiveRepository {
               entryLongitude: row.entryLongitude,
               exitLatitude: row.exitLatitude,
               exitLongitude: row.exitLongitude,
-              entryTime: row.entryTime,
-              exitTime: row.exitTime,
+              // See _mapRowToDataSource.
+              entryTime: row.entryTime?.toUtc(),
+              exitTime: row.exitTime?.toUtc(),
               maxAscentRate: row.maxAscentRate,
               maxDescentRate: row.maxDescentRate,
               surfaceInterval: row.surfaceInterval,
@@ -9752,8 +9930,11 @@ class DiveRepository {
       entryLongitude: row.entryLongitude,
       exitLatitude: row.exitLatitude,
       exitLongitude: row.exitLongitude,
-      entryTime: row.entryTime,
-      exitTime: row.exitTime,
+      // Written from a wall clock flagged UTC, as the dive's own times are, but
+      // a Drift dateTime() column reads back flagged local. toUtc restores the
+      // stored digits; passed on as is, they show shifted by the device's zone.
+      entryTime: row.entryTime?.toUtc(),
+      exitTime: row.exitTime?.toUtc(),
       maxAscentRate: row.maxAscentRate,
       maxDescentRate: row.maxDescentRate,
       surfaceInterval: row.surfaceInterval,
@@ -9984,9 +10165,6 @@ class DiveRecord {
     this.runtime,
     this.waterTemp,
   });
-
-  /// Best available runtime (runtime, then bottomTime).
-  Duration? get effectiveRuntime => runtime ?? bottomTime;
 }
 
 /// Information about dive numbering, including gaps

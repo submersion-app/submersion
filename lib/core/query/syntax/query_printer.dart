@@ -2,8 +2,10 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_registry.dart';
+import 'package:submersion/core/query/syntax/date_grammar.dart';
 import 'package:submersion/core/query/syntax/query_parser.dart'
     show kQueryKeywords;
+import 'package:submersion/core/query/syntax/query_plain_words.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
 
 /// Integers print bare; other values keep the precision the diver typed
@@ -24,13 +26,19 @@ String formatQueryNumber(double v) {
 final RegExp _plainWord = RegExp(r'^[^\s"()\[\],:~=<>!&|-]+$');
 final RegExp _isoLike = RegExp(r'^\d{4}(-\d{2}){0,2}$');
 
+/// No one-word date depends on today.
+final DateTime _anyDay = DateTime(2000);
+
 /// Emits exactly one canonical text per tree, which the parser reads back
 /// to an equal tree.
 class QueryPrinter {
   final QueryRegistry registry;
   final QueryEntity root;
   final UnitPrefs prefs;
-  QueryPrinter(this.registry, this.root, this.prefs);
+
+  /// The language the parser reads this text back in, for its filler words.
+  final String? language;
+  QueryPrinter(this.registry, this.root, this.prefs, {this.language});
 
   String print(QueryNode? node) => node == null ? '' : _node(node, root);
 
@@ -56,7 +64,9 @@ class QueryPrinter {
     ScopedNode(:final path, :final inner) =>
       '$path[${_node(inner, _target(path, scope))}]',
     TextNode(:final words) =>
-      words.length == 1 && _bareWordSafe(words.first)
+      words.length == 1 &&
+              _bareWordSafe(words.first) &&
+              !_dropsAsFiller(words.first, scope)
           ? words.first
           : _quote(words.join(' ')),
     ConditionNode(:final path, :final op, :final value) => _condition(
@@ -72,13 +82,19 @@ class QueryPrinter {
     return registry.entityFor(res.terminalRelation!.target);
   }
 
+  /// Whether the parser would drop [w] if it were left bare (#3457). A
+  /// filler word in a tree was quoted or saved on purpose.
+  bool _dropsAsFiller(String w, QueryEntity scope) =>
+      scope.plainWords != null && isFillerWord(w, language);
+
   /// A bare word that names a field would still parse as text (no operator
   /// follows), so it is safe unquoted; keywords, numbers and dates are not.
   bool _bareWordSafe(String w) =>
       _plainWord.hasMatch(w) &&
       !kQueryKeywords.contains(w.toLowerCase()) &&
       !_isoLike.hasMatch(w) &&
-      double.tryParse(w) == null;
+      double.tryParse(w) == null &&
+      parseDateText(w, now: _anyDay) == null;
 
   String _condition(
     FieldPath path,

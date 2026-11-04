@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:path/path.dart' as path;
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
@@ -24,8 +25,8 @@ enum ICloudHostPlatform {
 
   /// The real host platform this process is running on.
   static ICloudHostPlatform current() {
-    if (Platform.isIOS) return ICloudHostPlatform.ios;
-    if (Platform.isMacOS) return ICloudHostPlatform.macos;
+    if (HostPlatform.isIOS) return ICloudHostPlatform.ios;
+    if (HostPlatform.isMacOS) return ICloudHostPlatform.macos;
     return ICloudHostPlatform.other;
   }
 

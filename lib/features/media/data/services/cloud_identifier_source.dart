@@ -1,7 +1,7 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:photo_manager/photo_manager.dart';
+
+import 'package:submersion/core/platform/host_platform.dart';
 
 /// PhotoKit's cloud identifiers for local gallery asset ids (media sync
 /// program spec 6.2). A cloud identifier names the same photo on every
@@ -42,7 +42,8 @@ class PhotoManagerCloudIdentifierSource implements CloudIdentifierSource {
   final int _chunkSize;
 
   @override
-  bool get isSupported => _supported ?? (Platform.isIOS || Platform.isMacOS);
+  bool get isSupported =>
+      _supported ?? (HostPlatform.isIOS || HostPlatform.isMacOS);
 
   Future<Map<String, String?>> _call(List<String> ids) =>
       (_fetch ?? PhotoManager.plugin.getCloudIdentifiers)(ids);

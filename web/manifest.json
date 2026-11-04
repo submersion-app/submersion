@@ -1,12 +1,12 @@
 {
-    "name": "submersion",
-    "short_name": "submersion",
+    "name": "Submersion",
+    "short_name": "Submersion",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#002D50",
     "theme_color": "#006994",
-    "description": "An open-source dive logging application for scuba divers.",
-    "orientation": "portrait-primary",
+    "description": "Submersion, the open-source dive log, in your browser.",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {

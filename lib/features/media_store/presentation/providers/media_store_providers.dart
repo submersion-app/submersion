@@ -5,12 +5,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 
 import 'package:flutter_riverpod/misc.dart' show ProviderOrFamily;
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/account_display_name.dart';
@@ -22,9 +21,11 @@ import 'package:submersion/core/services/media_store/media_store_credentials_sto
 import 'package:submersion/core/services/media_store/media_store_policies.dart';
 import 'package:submersion/core/services/media_store/media_upload_quality_policy.dart';
 import 'package:submersion/core/services/media_store/network_status_service.dart';
+import 'package:submersion/core/services/storage/cache_location.dart';
 import 'package:submersion/core/services/storage/gc/storage_gc_store.dart';
 import 'package:submersion/core/services/sync/peer_sync_snapshot.dart';
 import 'package:submersion/features/media/data/media_cache_settings.dart';
+import 'package:submersion/features/media/data/resolvers/media_bytes_memory.dart';
 import 'package:submersion/features/media/data/resolvers/media_store_resolver.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/media_cache_purge.dart';
@@ -59,18 +60,28 @@ import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 class MediaStoreRuntime {
   final String storeId;
   final MediaObjectStore store;
-  final MediaCacheStore cache;
+
+  /// The disk cache, or null in a browser, which has none: its [resolver]
+  /// keeps what it fetches in page memory (issue #4121).
+  final MediaCacheStore? cache;
   final MediaStoreResolver resolver;
   final MediaStoreWorker? worker;
 
   const MediaStoreRuntime({
     required this.storeId,
     required this.store,
-    required this.cache,
+    this.cache,
     required this.resolver,
     this.worker,
   });
 }
+
+/// What a browser keeps of the media it fetched from the store (issue
+/// #4121): one budget, shared by the runtime's resolver and the probe
+/// resolver, for the life of the page.
+final mediaBytesMemoryProvider = Provider<MediaBytesMemory>(
+  (ref) => MediaBytesMemory(),
+);
 
 final mediaStoreCredentialsStoreProvider = Provider<MediaStoreCredentialsStore>(
   (ref) => MediaStoreCredentialsStore(),
@@ -103,44 +114,15 @@ final mediaTransferQueueRepositoryProvider =
       (ref) => MediaTransferQueueRepository(),
     );
 
-Future<Directory>? _mediaCacheRootFuture;
-
-/// The on-disk root of the media cache: originals, thumbs, renditions, plus
-/// the staging and transcode scratch directories.
+/// The on-disk root of the media cache's pools: originals, thumbs and
+/// renditions. Staging and transcode sit apart; see [CacheLocation].
 ///
-/// Memoized for the process. Five call sites resolve this (the runtime, the
-/// eviction pass, and the three media cache rows on the storage usage page)
-/// and each one costs a platform channel round trip that returns the same
-/// immutable path every time. Caching the Directory is safe in a way that
-/// caching a MediaCacheStore is not: the store captures the LocalCacheDatabase
-/// at construction and would go stale after a database location migration,
-/// whereas the support directory does not move while the process lives.
-///
-/// A failed lookup is deliberately not cached, so the next caller retries
-/// rather than inheriting a permanent failure from one bad moment at boot.
-Future<Directory> mediaCacheRoot() async {
-  final cached = _mediaCacheRootFuture;
-  if (cached != null) return cached;
-
-  final pending = _resolveMediaCacheRoot();
-  _mediaCacheRootFuture = pending;
-  try {
-    return await pending;
-  } catch (_) {
-    _mediaCacheRootFuture = null;
-    rethrow;
-  }
-}
-
-Future<Directory> _resolveMediaCacheRoot() async {
-  final support = await getApplicationSupportDirectory();
-  return Directory(p.join(support.path, 'Submersion', 'media_cache'));
-}
-
-/// Drops the memoized [mediaCacheRoot], so a test that overrides the
-/// path_provider platform channel is not served another test's directory.
-@visibleForTesting
-void resetMediaCacheRootForTesting() => _mediaCacheRootFuture = null;
+/// Memoized for the process by [cacheLocation]. Holding on to the Directory is
+/// safe in a way that holding on to a MediaCacheStore is not: the store
+/// captures the LocalCacheDatabase at construction and would go stale after a
+/// database location migration, whereas this path does not move while the
+/// process lives.
+Future<Directory> mediaCacheRoot() async => (await cacheLocation()).mediaPools;
 
 /// The media cache over the live cache database.
 ///
@@ -152,13 +134,22 @@ void resetMediaCacheRootForTesting() => _mediaCacheRootFuture = null;
 /// (issue #3337), read each time eviction runs so that a change reaches
 /// stores already built. Without, the default size applies.
 Future<MediaCacheStore> openMediaCacheStore(SharedPreferences? prefs) async =>
-    MediaCacheStore(
-      database: LocalCacheDatabaseService.instance.database,
-      root: await mediaCacheRoot(),
-      thumbsCapSource: prefs == null
-          ? null
-          : () => MediaCacheSettings.fromPrefs(prefs).diskCacheBytes,
-    );
+    mediaCacheStoreAt(await cacheLocation(), prefs);
+
+/// [openMediaCacheStore] for a given [location], which lets a test on a
+/// desktop host build the store a phone would.
+@visibleForTesting
+MediaCacheStore mediaCacheStoreAt(
+  CacheLocation location,
+  SharedPreferences? prefs,
+) => MediaCacheStore(
+  database: LocalCacheDatabaseService.instance.database,
+  root: location.mediaPools,
+  scratchRoot: location.mediaScratch,
+  thumbsCapSource: prefs == null
+      ? null
+      : () => MediaCacheSettings.fromPrefs(prefs).diskCacheBytes,
+);
 
 /// Empties the thumbnail disk cache, and the decoded images in memory with
 /// it: the "Empty cache" button in Photos & Media settings.
@@ -296,6 +287,8 @@ final orphanDeletePolicyFactoryProvider =
 final mediaTransferResumeProvider = Provider<Future<void> Function()>((ref) {
   return () async {
     try {
+      // A browser never writes the store (issue #4121): nothing to drain.
+      if (!ref.read(deviceCapabilitiesProvider).mediaAttach) return;
       if (!await ref.read(mediaStoreAttachedProvider.future)) return;
       final queue = ref.read(mediaTransferQueueRepositoryProvider);
       if (!await queue.hasOutstandingWork()) return;
@@ -462,6 +455,8 @@ final mediaStoreServiceProvider = Provider<MediaStoreService>(
     attachState: ref.watch(mediaStoreAttachStateProvider),
     storesRepository: ref.watch(mediaStoresRepositoryProvider),
     mediaRepository: ref.watch(mediaRepositoryProvider),
+    // A browser never writes the store (issue #4193).
+    canWriteStore: ref.watch(deviceCapabilitiesProvider).mediaAttach,
   ),
 );
 
@@ -527,10 +522,16 @@ final FutureProvider<MediaStoreResolver?> mediaStoreProbeResolverProvider =
     FutureProvider<MediaStoreResolver?>((ref) async {
       final store = await ref.watch(attachedMediaObjectStoreProvider.future);
       if (store == null) return null;
-      final resolver = MediaStoreResolver(
-        store: store,
-        cache: await openMediaCacheStore(mediaCachePrefsOrNull(ref)),
-      );
+      // A page has no disk to cache in (issue #4121).
+      final resolver = ref.watch(deviceCapabilitiesProvider).isBrowser
+          ? MediaStoreResolver.inMemory(
+              store: store,
+              memory: ref.watch(mediaBytesMemoryProvider),
+            )
+          : MediaStoreResolver(
+              store: store,
+              cache: await openMediaCacheStore(mediaCachePrefsOrNull(ref)),
+            );
       ref.onDispose(resolver.dispose);
       return resolver;
     });
@@ -554,14 +555,36 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
       if (attachedId == null) return null;
       final store = await ref.watch(attachedMediaObjectStoreProvider.future);
       if (store == null) return null;
-      // Fills in the account a store announced before descriptors recorded
-      // it, so other devices join it in its own folder. Best effort.
-      try {
-        await ref.read(mediaStoreServiceProvider).recordAttachedAccount();
-      } on Object catch (e) {
-        LoggerService.forClass(
-          MediaStoreService,
-        ).warning('Could not record the media store account: $e');
+      // A browser reads the store and never writes it (issue #4121): no
+      // account to record, no worker to drain and no sweep that uploads.
+      final capabilities = ref.watch(deviceCapabilitiesProvider);
+      final readOnly = !capabilities.mediaAttach;
+      if (!readOnly) {
+        // Fills in the account a store announced before descriptors
+        // recorded it, so other devices join it in its own folder. Best
+        // effort.
+        try {
+          await ref.read(mediaStoreServiceProvider).recordAttachedAccount();
+        } on Object catch (e) {
+          LoggerService.forClass(
+            MediaStoreService,
+          ).warning('Could not record the media store account: $e');
+        }
+      }
+
+      // A page has no disk to cache in: its resolver keeps what it fetches
+      // in memory, and there is no cache to evict.
+      if (capabilities.isBrowser) {
+        final resolver = MediaStoreResolver.inMemory(
+          store: store,
+          memory: ref.watch(mediaBytesMemoryProvider),
+        );
+        ref.onDispose(resolver.dispose);
+        return MediaStoreRuntime(
+          storeId: attachedId,
+          store: store,
+          resolver: resolver,
+        );
       }
 
       final cache = await openMediaCacheStore(mediaCachePrefsOrNull(ref));
@@ -570,6 +593,29 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
       // leave its resolver's budget timers armed behind the one that
       // replaced it.
       ref.onDispose(resolver.dispose);
+
+      // Fire-and-forget: housekeeping must not delay the drain below.
+      //
+      // catchError is load-bearing, not decoration. A FutureProvider records
+      // the failure in its own AsyncError state, but the future handed back by
+      // .future still completes with that error, so an unawaited one surfaces
+      // as an unhandled async exception. Same shape as the tile sweep in
+      // startup_page.dart. Nothing surfaces this to the user and the retry is
+      // a whole launch away, so the log is the only diagnostic there will be.
+      unawaited(
+        ref.read(mediaCacheEvictionProvider.future).catchError((Object e) {
+          debugPrint('Media cache eviction failed (will retry): $e');
+        }),
+      );
+
+      if (readOnly) {
+        return MediaStoreRuntime(
+          storeId: attachedId,
+          store: store,
+          cache: cache,
+          resolver: resolver,
+        );
+      }
 
       final mediaRepository = ref.watch(mediaRepositoryProvider);
       final policies = ref.watch(mediaStorePoliciesProvider);
@@ -629,19 +675,6 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
           }
           return WorkerGate.proceed;
         },
-      );
-      // Fire-and-forget: housekeeping must not delay the drain below.
-      //
-      // catchError is load-bearing, not decoration. A FutureProvider records
-      // the failure in its own AsyncError state, but the future handed back by
-      // .future still completes with that error, so an unawaited one surfaces
-      // as an unhandled async exception. Same shape as the tile sweep in
-      // startup_page.dart. Nothing surfaces this to the user and the retry is
-      // a whole launch away, so the log is the only diagnostic there will be.
-      unawaited(
-        ref.read(mediaCacheEvictionProvider.future).catchError((Object e) {
-          debugPrint('Media cache eviction failed (will retry): $e');
-        }),
       );
 
       // Fire-and-forget, and contains its own failures. Checks the flag first:

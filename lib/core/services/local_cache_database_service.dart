@@ -5,7 +5,13 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import 'package:submersion/core/database/background_database_connection.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
+
+/// Where the browser keeps the per-device local cache: a virtual path, see
+/// `kWebDatabasePath`.
+const String kWebLocalCacheDatabasePath =
+    '/opfs/Submersion/submersion_local.db';
 
 /// Singleton service managing the local-only cache database.
 ///
@@ -55,18 +61,21 @@ class LocalCacheDatabaseService {
   Future<void> initialize() async {
     if (_database != null) return;
 
-    final supportDir = await getApplicationSupportDirectory();
-    final dbPath = p.join(supportDir.path, 'Submersion', 'submersion_local.db');
+    final String dbPath;
+    if (HostPlatform.isWeb) {
+      dbPath = kWebLocalCacheDatabasePath;
+    } else {
+      final supportDir = await getApplicationSupportDirectory();
+      dbPath = p.join(supportDir.path, 'Submersion', 'submersion_local.db');
 
-    // Ensure directory exists
-    final dbDir = Directory(p.dirname(dbPath));
-    if (!await dbDir.exists()) {
-      await dbDir.create(recursive: true);
+      // Ensure directory exists
+      final dbDir = Directory(p.dirname(dbPath));
+      if (!await dbDir.exists()) {
+        await dbDir.create(recursive: true);
+      }
     }
 
-    final background = await BackgroundDatabaseConnection.openPlain(
-      File(dbPath),
-    );
+    final background = await BackgroundDatabaseConnection.openPlain(dbPath);
     _background = background;
     _database = LocalCacheDatabase(background.connection);
   }
@@ -88,10 +97,11 @@ class LocalCacheDatabaseService {
     }
   }
 
-  /// On both iOS and macOS, getApplicationSupportDirectory() returns a
-  /// path inside ~/Library/Application Support/ (macOS) or
-  /// <sandbox>/Library/Application Support/ (iOS). Neither location is
-  /// synced by iCloud Drive — iCloud only syncs the iCloud Drive folder
-  /// and app-specific iCloud containers. No explicit
-  /// NSURLIsExcludedFromBackupKey is needed for Application Support.
+  /// On iOS, getApplicationSupportDirectory() is included in device backups
+  /// (iCloud and computer) unless a file is excluded, and on Android the files
+  /// directory falls under Auto Backup. No exclusion is set on this database,
+  /// which holds only per-device and derivable data. The media caches it
+  /// indexes are in the OS cache directory, which neither platform backs up
+  /// (issue #3341), so a restored index can name files that are not there; the
+  /// media cache copes with that. See CacheLocation.
 }

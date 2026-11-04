@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/utils/root_zone_future.dart';
 import 'package:submersion/features/equipment/data/repositories/dive_sensor_summary_repository.dart';
 import 'package:submersion/features/equipment/data/services/equipment_findings_pass.dart';
 
@@ -52,7 +53,7 @@ class SensorSummaryScheduler {
   @visibleForTesting
   void Function(Set<String> diveIds, bool force)? summaryRequestListener;
 
-  Future<void> _tail = Future.value();
+  Future<void> _tail = rootZoneFuture();
   final Set<String> _pending = {};
 
   /// The subset of [_pending] to rebuild even when the stored row looks

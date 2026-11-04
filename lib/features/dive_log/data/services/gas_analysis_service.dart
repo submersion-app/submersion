@@ -8,9 +8,14 @@ import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
+import 'package:submersion/features/dive_log/domain/services/ccr_cylinder_use.dart';
+import 'package:submersion/features/dive_log/domain/services/deco_stop_windows.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_pressure_lookup.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_usage_range.dart';
+
+part 'gas_analysis_service_ccr.dart';
+part 'gas_analysis_service_phases.dart';
 
 /// Service for calculating SAC (Surface Air Consumption) metrics
 /// per segment and per cylinder.
@@ -49,6 +54,7 @@ class GasAnalysisService {
     required List<GasSwitchWithTank> gasSwitches,
     Map<String, List<TankPressurePoint>>? tankPressures,
     DiveEnvironment environment = DiveEnvironment.standard,
+    bool onLoop = false,
   }) {
     if (profile.isEmpty || gasSwitches.isEmpty) return null;
 
@@ -90,6 +96,7 @@ class GasAnalysisService {
           tanks: tanks,
           profile: profile,
           gasSwitches: sortedSwitches,
+          onLoop: onLoop,
         ),
       );
 
@@ -124,6 +131,7 @@ class GasAnalysisService {
       gasSwitches: sortedSwitches,
       timestamp: profile.first.timestamp,
       diveStart: profile.first.timestamp,
+      onLoop: onLoop,
     );
     if (startingTank != null) {
       addStretch(
@@ -165,12 +173,21 @@ class GasAnalysisService {
   /// Calculate SAC segments using depth-phase segmentation.
   ///
   /// Automatically detects dive phases: descent, bottom, ascent, safety stop.
+  /// A hold inside one of [decoStops], or on a sample [ndlCurve] reads as in
+  /// deco, is a deco stop, not a safety stop. The curve catches the short stops
+  /// that are too brief to be a window. A curve whose length does not match
+  /// [profile] is another series, and is treated as absent. A hold inside one
+  /// of [safetyStops] stays a safety stop, so this agrees with the chart.
   List<SacSegment>? calculatePhaseSegments({
     required List<DiveProfilePoint> profile,
     required List<DiveTank> tanks,
     Map<String, List<TankPressurePoint>>? tankPressures,
     List<GasSwitchWithTank>? gasSwitches,
     DiveEnvironment environment = DiveEnvironment.standard,
+    List<StopWindow> decoStops = const [],
+    List<StopWindow> safetyStops = const [],
+    List<int> ndlCurve = const [],
+    bool onLoop = false,
   }) {
     if (profile.length < 10) return null;
 
@@ -180,11 +197,22 @@ class GasAnalysisService {
     final maxDepth = profile.map((p) => p.depth).reduce(math.max);
     if (maxDepth < 3.0) return null; // Too shallow
 
+    final alignedNdl = ndlCurve.length == profile.length
+        ? ndlCurve
+        : const <int>[];
+
     // Classify each profile point by phase
     final phasePoints = <({int timestamp, DivePhase phase})>[];
     for (int i = 0; i < profile.length; i++) {
-      final phase = _classifyPhase(profile, i, maxDepth);
-      phasePoints.add((timestamp: profile[i].timestamp, phase: phase));
+      final timestamp = profile[i].timestamp;
+      bool isInside(StopWindow w) => timestamp >= w.start && timestamp <= w.end;
+      var phase = _classifyPhase(profile, i, maxDepth);
+      if (phase == DivePhase.safetyStop &&
+          !safetyStops.any(isInside) &&
+          (decoStops.any(isInside) || isDecoSample(profile, alignedNdl, i))) {
+        phase = DivePhase.deco;
+      }
+      phasePoints.add((timestamp: timestamp, phase: phase));
     }
 
     // Group consecutive points by phase
@@ -229,6 +257,7 @@ class GasAnalysisService {
         gasSwitches: gasSwitches,
         timestamp: seg.start,
         diveStart: profile.first.timestamp,
+        onLoop: onLoop,
       );
       if (tank == null) continue;
 
@@ -243,6 +272,7 @@ class GasAnalysisService {
         tanks: tanks,
         profile: profile,
         gasSwitches: gasSwitches,
+        onLoop: onLoop,
       );
       // A phase can outlast its cylinder's breathing time; only what was
       // breathed of it drew on this tank, at the depths it was breathed.
@@ -300,6 +330,9 @@ class GasAnalysisService {
   ///
   /// Works with basic tank data (start/end pressures) and provides
   /// enhanced accuracy when time-series pressure data is available.
+  ///
+  /// On a CCR dive every cylinder gets a row, since nothing else says when an
+  /// O2 supply was used: see [_ccrCylinderSac].
   List<CylinderSac> calculateCylinderSac({
     required Dive dive,
     required List<DiveProfilePoint> profile,
@@ -317,7 +350,18 @@ class GasAnalysisService {
     );
 
     final diveEnd =
-        dive.effectiveRuntime?.inSeconds ?? profile.lastOrNull?.timestamp ?? 0;
+        dive.measuredRuntime?.inSeconds ?? profile.lastOrNull?.timestamp ?? 0;
+
+    if (dive.isCCR) {
+      return _ccrCylinderSac(
+        dive: dive,
+        profile: profile,
+        gasSwitches: gasSwitches,
+        resolvedPressures: resolvedPressures,
+        diveEnd: diveEnd,
+      );
+    }
+
     // Only a switch that says when a cylinder was breathed overrides a
     // recorded duration: not a stale id (#110), nor one after the dive.
     final hasGasSwitches = knownGasSwitches(
@@ -435,6 +479,7 @@ class GasAnalysisService {
           sacRate: sacRate,
           startPressure: tank.startPressure,
           endPressure: tank.endPressure,
+          gasModel: gasModel,
           usageDuration: Duration(seconds: usageSeconds),
           avgDepthDuringUse: avgDepthDuringUse,
           hasTimeSeriesData: hasTsData,
@@ -462,6 +507,7 @@ class GasAnalysisService {
     required List<DiveTank> tanks,
     required List<DiveProfilePoint> profile,
     required List<GasSwitchWithTank>? gasSwitches,
+    required bool onLoop,
   }) {
     final diveStart = profile.first.timestamp;
     final diveEnd = profile.last.timestamp;
@@ -471,6 +517,7 @@ class GasAnalysisService {
       diveStart: diveStart,
       diveEnd: diveEnd,
       tanks: tanks,
+      onLoop: onLoop,
     );
     if (windows.isNotEmpty) return windows;
     return knownGasSwitches(tanks, gasSwitches, before: diveEnd).isEmpty
@@ -537,100 +584,6 @@ class GasAnalysisService {
     final gasUsedLiters = startVol - endVol;
     if (gasUsedLiters <= 0) return null;
     return gasUsedLiters / tankVolume / durationMin / ambientPressureBar;
-  }
-
-  /// Classify a profile point into a dive phase
-  DivePhase _classifyPhase(
-    List<DiveProfilePoint> profile,
-    int index,
-    double maxDepth,
-  ) {
-    final point = profile[index];
-    final depth = point.depth;
-
-    // Safety stop detection: 3-6m depth
-    if (depth >= safetyStopMinDepth && depth <= safetyStopMaxDepth) {
-      // Check if we're stable at this depth (could be safety stop)
-      // Look at surrounding points
-      int stableCount = 0;
-      for (
-        int i = math.max(0, index - 10);
-        i < math.min(profile.length, index + 10);
-        i++
-      ) {
-        if (profile[i].depth >= safetyStopMinDepth &&
-            profile[i].depth <= safetyStopMaxDepth) {
-          stableCount++;
-        }
-      }
-      // If we have many points in safety stop range, it's likely a safety stop
-      if (stableCount > 15) {
-        return DivePhase.safetyStop;
-      }
-    }
-
-    // Bottom: within 15% of max depth
-    final bottomThreshold = maxDepth * 0.85;
-    if (depth >= bottomThreshold) {
-      return DivePhase.bottom;
-    }
-
-    // Calculate rate of depth change
-    double depthRate = 0;
-    if (index > 0) {
-      final prevPoint = profile[index - 1];
-      final timeDiff = point.timestamp - prevPoint.timestamp;
-      if (timeDiff > 0) {
-        depthRate = (depth - prevPoint.depth) / (timeDiff / 60.0); // m/min
-      }
-    }
-
-    // Descent: significant depth increase
-    if (depthRate > 3.0) {
-      return DivePhase.descent;
-    }
-
-    // Ascent: significant depth decrease
-    if (depthRate < -1.0) {
-      return DivePhase.ascent;
-    }
-
-    // Default based on position in dive
-    // If before max depth, likely descent/bottom; after, likely ascent
-    final maxDepthIndex = profile.indexWhere((p) => p.depth == maxDepth);
-    if (index <= maxDepthIndex) {
-      return depth < bottomThreshold ? DivePhase.descent : DivePhase.bottom;
-    } else {
-      return DivePhase.ascent;
-    }
-  }
-
-  /// Merge small segments into adjacent ones
-  List<({int start, int end, DivePhase phase})> _mergeSmallSegments(
-    List<({int start, int end, DivePhase phase})> segments,
-  ) {
-    if (segments.length <= 1) return segments;
-
-    final merged = <({int start, int end, DivePhase phase})>[];
-    var current = segments.first;
-
-    for (int i = 1; i < segments.length; i++) {
-      final next = segments[i];
-      final currentDuration = current.end - current.start;
-
-      if (currentDuration < minSegmentDuration) {
-        // Merge into next segment
-        current = (start: current.start, end: next.end, phase: next.phase);
-      } else {
-        merged.add(current);
-        current = next;
-      }
-    }
-
-    // Add the last segment
-    merged.add(current);
-
-    return merged;
   }
 
   /// Calculate SAC for a segment from profile data

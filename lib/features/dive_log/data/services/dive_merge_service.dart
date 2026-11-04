@@ -19,6 +19,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart'
     as series;
+import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_merge_builder.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
@@ -75,6 +76,30 @@ class DiveMergeService {
       if (value != null) return value;
     }
     return null;
+  }
+
+  T? _lastNonNullDiveColumn<T>(
+    List<Dive> orderedRows,
+    T? Function(Dive) pick,
+  ) => _firstNonNullDiveColumn(orderedRows.reversed.toList(), pick);
+
+  /// The sum of every segment's value, or null when none has one: a dose
+  /// such as OTU accumulates over the whole combined dive (issue #4136).
+  double? _summedDiveColumn(
+    List<Dive> orderedRows,
+    double? Function(Dive) pick,
+  ) {
+    final values = orderedRows.map(pick).nonNulls;
+    return values.isEmpty ? null : values.reduce((a, b) => a + b);
+  }
+
+  /// The rows whose exposure was measured: the logged segments, so a plan's
+  /// computed CNS or OTU never lands on the logged dive (issue #3924), as
+  /// `DiveMergeBuilder` keeps a plan's values out of its summaries. Every
+  /// row when all of them are plans.
+  List<Dive> _loggedDiveRows(List<Dive> orderedRows) {
+    final logged = orderedRows.where((r) => !r.isPlanned).toList();
+    return logged.isEmpty ? orderedRows : logged;
   }
 
   /// The draft that hosts a gap's surface samples: the segment's primary
@@ -173,17 +198,28 @@ class DiveMergeService {
     final mergedId = result.mergedDive.id;
     final snapshot = await captureSnapshot(diveIds, mergedId);
     final now = DateTime.now().millisecondsSinceEpoch;
+    // The events come across under fresh ids (step 5), and an annotation is
+    // held together by its id, so the links in the combined Notes follow
+    // them (#4109).
+    final mergedEventIds = {
+      for (final row in snapshot.eventRows) row.id: _uuid.v4(),
+    };
+    final mergedDive = result.mergedDive.copyWith(
+      notes: renameAnnotationLinks(result.mergedDive.notes, mergedEventIds),
+    );
 
     await _db.transaction(() async {
       // 1. Merged dive + entity-carried children (tanks, weights, custom
       //    fields, profile=[], equipment, tags, dive types).
-      await _diveRepo.createDive(result.mergedDive);
+      await _diveRepo.createDive(mergedDive);
 
       // 1b. Columns the domain Dive entity has no field for (computerId,
       //     importVersion, cnsStart/cnsEnd/otu) never travel through
       //     createDive's round-trip through the domain layer, so backfill
       //     them directly from the source rows here, chronologically
-      //     (sortedSources order), first-non-null wins per column. Same
+      //     (sortedSources order). An identity column takes the first
+      //     non-null value; a whole-dive one (CNS at the end, the OTU dose)
+      //     takes the last segment's or the sum (issue #4136). Same
       //     transaction/record as createDive's write above, so no separate
       //     markRecordPending is needed.
       final chronologicalDiveRows = [
@@ -205,10 +241,16 @@ class DiveMergeService {
           // is always the "first non-null" one.
           cnsStart: Value(chronologicalDiveRows.first.cnsStart),
           cnsEnd: Value(
-            _firstNonNullDiveColumn(chronologicalDiveRows, (r) => r.cnsEnd),
+            _lastNonNullDiveColumn(
+              _loggedDiveRows(chronologicalDiveRows),
+              (r) => r.cnsEnd,
+            ),
           ),
           otu: Value(
-            _firstNonNullDiveColumn(chronologicalDiveRows, (r) => r.otu),
+            _summedDiveColumn(
+              _loggedDiveRows(chronologicalDiveRows),
+              (r) => r.otu,
+            ),
           ),
         ),
       );
@@ -470,7 +512,7 @@ class DiveMergeService {
       // 5. Existing profile events, re-based, tank text-refs remapped.
       for (final row in snapshot.eventRows) {
         final offset = result.segmentOffsetsSeconds[row.diveId] ?? 0;
-        final eventId = _uuid.v4();
+        final eventId = mergedEventIds[row.id]!;
         await _db
             .into(_db.diveProfileEvents)
             .insert(
@@ -661,7 +703,7 @@ class DiveMergeService {
     });
 
     SyncEventBus.notifyLocalChange();
-    return DiveMergeOutcome(mergedDive: result.mergedDive, snapshot: snapshot);
+    return DiveMergeOutcome(mergedDive: mergedDive, snapshot: snapshot);
   }
 
   /// Restores the source dives exactly and removes the merged dive.

@@ -5,6 +5,7 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/query/data/repositories/saved_query_repository.dart';
+import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
 import 'package:submersion/features/query/presentation/providers/saved_query_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -18,6 +19,26 @@ void main() {
     await seedQueryFixture(db);
   });
   tearDown(tearDownTestDatabase);
+
+  test('nothing saved loads no names', () async {
+    final overrides = await getBaseOverrides();
+    final container = ProviderContainer(
+      overrides: [
+        ...overrides.cast(),
+        queryNameIndexProvider.overrideWith(
+          (ref) => throw StateError('the name index was read'),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    final sub = container.listen(savedQueryLoadsProvider('dives'), (_, _) {});
+    addTearDown(sub.close);
+
+    expect(
+      await container.read(savedQueryLoadsProvider('dives').future),
+      isEmpty,
+    );
+  });
 
   test(
     'loads the diver\'s queries for a subject and refreshes on a write',

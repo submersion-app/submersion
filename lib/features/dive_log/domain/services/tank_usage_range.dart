@@ -2,7 +2,8 @@ import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
 
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/core/constants/app_enums.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 
@@ -52,12 +53,13 @@ List<GasSwitchWithTank> knownGasSwitches(
 
 /// The cylinder breathed at [timestamp]: the one the last switch at or
 /// before it names, else the starting gas (see [_startingTank]). Null when
-/// there are no cylinders.
+/// there are no cylinders. [onLoop] as for [startingTankOf].
 DiveTank? activeTankAt({
   required List<DiveTank> tanks,
   required List<GasSwitchWithTank>? gasSwitches,
   required int timestamp,
   required int diveStart,
+  bool onLoop = false,
 }) {
   if (tanks.isEmpty) return null;
   final sorted = knownGasSwitches(tanks, gasSwitches)
@@ -65,7 +67,9 @@ DiveTank? activeTankAt({
   final active = sorted.lastWhereOrNull(
     (sw) => sw.gasSwitch.timestamp <= timestamp,
   );
-  if (active == null) return _startingTank(tanks, sorted, diveStart);
+  if (active == null) {
+    return _startingTank(tanks, sorted, diveStart, onLoop: onLoop);
+  }
   return tanks.firstWhere((t) => t.id == active.gasSwitch.tankId);
 }
 
@@ -76,20 +80,26 @@ DiveTank? activeTankAt({
 DiveTank _startingTank(
   List<DiveTank> tanks,
   List<GasSwitchWithTank> sortedSwitches,
-  int diveStart,
-) => startingTankOf(
+  int diveStart, {
+  bool onLoop = false,
+}) => startingTankOf(
   tanks: tanks,
   switches: sortedSwitches.map((s) => s.gasSwitch),
   diveStart: diveStart,
+  onLoop: onLoop,
 )!;
 
 /// The cylinder the dive starts on, by the [_startingTank] rule, from bare
 /// switches in any order: one naming a cylinder not in [tanks] is ignored.
 /// Null when there are no cylinders.
+///
+/// [onLoop] is set for a rebreather dive, which starts on its diluent ahead of
+/// the SAC reference: its gas list often leads with a bailout (#4020).
 DiveTank? startingTankOf({
   required List<DiveTank> tanks,
   required Iterable<GasSwitch> switches,
   required int diveStart,
+  bool onLoop = false,
 }) {
   if (tanks.isEmpty) return null;
   final tankIds = {for (final t in tanks) t.id};
@@ -101,19 +111,26 @@ DiveTank? startingTankOf({
       first.timestamp <= diveStart + startingSwitchGraceSeconds) {
     return tanks.firstWhere((t) => t.id == first.tankId);
   }
-  return sacReferenceTankOf(tanks)!;
+  final diluent = onLoop
+      ? tanks
+            .sortedBy<num>((t) => t.order)
+            .firstWhereOrNull((t) => t.role == TankRole.diluent)
+      : null;
+  return diluent ?? sacReferenceTankOf(tanks)!;
 }
 
 /// The periods, in seconds and time order, when [tank] was breathed: from the
 /// dive's gas switches, else the whole dive for the primary gas. A cylinder the
 /// diver returned to has one per visit (#3900). Empty when nothing says when
-/// the tank was breathed (a stage with no recorded switch).
+/// the tank was breathed (a stage with no recorded switch). [onLoop] as for
+/// [startingTankOf].
 List<TankUsageWindow> tankUsageWindows({
   required DiveTank tank,
   required List<GasSwitchWithTank>? gasSwitches,
   required int diveStart,
   required int diveEnd,
   required List<DiveTank> tanks,
+  bool onLoop = false,
 }) {
   if (diveEnd <= diveStart) return const [];
 
@@ -124,6 +141,12 @@ List<TankUsageWindow> tankUsageWindows({
   final knownSwitches = knownGasSwitches(tanks, gasSwitches, before: diveEnd);
 
   if (knownSwitches.isEmpty) {
+    if (onLoop) {
+      final starting = _startingTank(tanks, const [], diveStart, onLoop: true);
+      return starting.id == tank.id
+          ? [(start: diveStart, end: diveEnd)]
+          : const [];
+    }
     // Without switches only the primary gas is known to span the dive: the
     // backmount gas, or either cylinder of a sidemount pair. A stage's
     // window is unknown, and the whole dive would understate its rate.
@@ -158,7 +181,12 @@ List<TankUsageWindow> tankUsageWindows({
   int? periodStart;
 
   // Check if this tank is the initial tank (before first switch)
-  final initialTankId = _startingTank(tanks, sortedSwitches, diveStart).id;
+  final initialTankId = _startingTank(
+    tanks,
+    sortedSwitches,
+    diveStart,
+    onLoop: onLoop,
+  ).id;
   if (breathedWith(initialTankId)) {
     periodStart = diveStart;
   }

@@ -3,6 +3,8 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
+
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/chunked_upload.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_client.dart';
@@ -30,8 +32,10 @@ class WebDavStorageProvider
 
   static final Random _random = Random();
 
-  static String _probeSuffix() =>
-      '${DateTime.now().microsecondsSinceEpoch}-${_random.nextInt(1 << 32)}';
+  /// The probe object's per-run name part: a time and a random number.
+  @visibleForTesting
+  static String probeSuffix() =>
+      '${DateTime.now().microsecondsSinceEpoch}-${_random.nextInt(0x100000000)}';
 
   WebDavStorageProvider({
     WebDavCredentialsStore? store,
@@ -93,17 +97,34 @@ class WebDavStorageProvider
       throw WebDavException(error, code: WebDavErrorCode.invalidConfig);
     }
     final client = _clientFactory(config);
+    lastProbeFailedOnWrite = false;
     try {
-      await probe(client, config.folder);
+      await probe(
+        client,
+        config.folder,
+        onStep: (write) => lastProbeFailedOnWrite = write,
+      );
     } finally {
       client.close();
     }
     return config;
   }
 
+  /// Whether the last connection test failed on a write rather than a read,
+  /// for a browser's diagnosis of the failure (issue #4121).
+  bool lastProbeFailedOnWrite = false;
+
   /// The DAV root exists and is a collection; the folder can be created;
   /// a small file round-trips and is removed.
-  static Future<void> probe(WebDavClient client, String folder) async {
+  ///
+  /// [onStep] is told before each step whether it writes, so a caller can
+  /// say which kind of step a failure came from.
+  static Future<void> probe(
+    WebDavClient client,
+    String folder, {
+    void Function(bool write)? onStep,
+  }) async {
+    onStep?.call(false);
     final root = await client.stat('');
     if (root == null || !root.isCollection) {
       throw WebDavException(
@@ -111,15 +132,17 @@ class WebDavStorageProvider
         code: WebDavErrorCode.notFound,
       );
     }
+    onStep?.call(true);
     await client.ensureCollection(folder);
     // A name of its own, so a probe never overwrites or deletes a file the
     // user keeps there, nor one another device's probe is using right now.
-    final probePath = '$folder/$probeObjectName-${_probeSuffix()}';
+    final probePath = '$folder/$probeObjectName-${probeSuffix()}';
     try {
       await client.putBytes(
         probePath,
         Uint8List.fromList(utf8.encode('probe')),
       );
+      onStep?.call(false);
       final back = await client.getBytes(probePath);
       if (utf8.decode(back, allowMalformed: true) != 'probe') {
         throw WebDavException(
@@ -128,6 +151,8 @@ class WebDavStorageProvider
         );
       }
     } finally {
+      // Not a step of its own: a failure here is swallowed below, so it is
+      // never the failure the caller hears about.
       try {
         await client.delete(probePath);
       } on WebDavException {

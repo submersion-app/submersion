@@ -3,7 +3,6 @@
 import 'package:drift/drift.dart' show OrderingTerm;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' show AppDatabase;
-import 'package:submersion/core/services/export/models/uddf_export_options.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_export_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -221,9 +220,7 @@ void main() {
     test('restores the series of a backup without its sources', () async {
       final xml = await UddfFullExportService().generateAllDataXmlForTest(
         dives: [dive],
-        dataSources: [source('src-primary', 0, primary: true)],
         diveTankPressures: recorded([(5, 199), (15, 191)]),
-        options: const UddfExportOptions(includeRawData: false),
       );
 
       await restore(xml);

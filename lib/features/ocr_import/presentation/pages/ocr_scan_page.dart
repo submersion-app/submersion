@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -45,7 +46,8 @@ class _OcrScanPageState extends ConsumerState<OcrScanPage> {
   bool _processing = false;
 
   bool get _isMobile =>
-      widget.forceMobileLayout ?? (Platform.isAndroid || Platform.isIOS);
+      widget.forceMobileLayout ??
+      (HostPlatform.isAndroid || HostPlatform.isIOS);
 
   Future<String?> _pick(ImageSource source) async {
     if (widget.pickImageOverride != null) {

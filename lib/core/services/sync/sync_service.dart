@@ -1,13 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:drift/drift.dart' show TableUpdate, Variable;
 
+import 'package:submersion/core/platform/host_platform.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_temp_files.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/computer_tissue_scalar_move.dart';
+import 'package:submersion/core/database/weather_fetched_at_repair.dart';
+import 'package:submersion/core/database/combined_dive_summary_repair.dart';
 import 'package:submersion/core/database/device_gear_heal.dart';
 import 'package:submersion/core/database/database.dart'
     show AppDatabase, SyncRecord, DeletionLogData;
@@ -1445,27 +1448,46 @@ class SyncService {
           remotePayload,
           localLastSync,
         );
-        await _moveLegacyComputerTissueScalars();
+        await _repairLegacyPeerRows(
+          combinedDiveIds: {
+            for (final dive in remotePayload.data.dives) ?dive['id'] as String?,
+            for (final source in remotePayload.data.diveDataSources)
+              ?source['diveId'] as String?,
+          },
+        );
         return result;
       }),
     );
   }
 
+  /// Runs the data rungs over what was just applied, because this database
+  /// ran them before those rows arrived, or never ran them if it is new. Each
+  /// reads only rows still in the old shape, so it is a cheap no-op once every
+  /// peer is current, and each leaves the sync stamp alone, as its rung does:
+  /// the sending peer makes the same change when it upgrades. A combined dive
+  /// keeps its shape once repaired, so that repair reads only
+  /// [combinedDiveIds], the dives a payload touched; null, for a base file,
+  /// sweeps them all.
+  ///
   /// A peer below v318 still publishes the CNS, OTU and deco model inside a
   /// dive's computer tissue snapshot, with the dive's own columns empty
-  /// (issue #2555). This database ran the v318 rung before that row
-  /// arrived, so run the same move over what was just applied: it reads
-  /// only snapshots that still name one of those keys, so it is a cheap
-  /// no-op once every peer is on v318. Leaves the sync stamp alone, as the
-  /// rung does: the sending peer makes the same move when it upgrades.
-  Future<void> _moveLegacyComputerTissueScalars() async {
+  /// (issue #2555). One below v337 publishes `weather_fetched_at` in
+  /// milliseconds, as does a sync store written before it (issue #4119). One
+  /// below v340 publishes a combined dive with its first segment's water
+  /// temperature, CNS and OTU (issue #4136).
+  Future<void> _repairLegacyPeerRows({
+    Iterable<String>? combinedDiveIds,
+  }) async {
     try {
-      await moveComputerTissueScalars(DatabaseService.instance.database);
+      final db = DatabaseService.instance.database;
+      await repairWeatherFetchedAtSeconds(db);
+      await repairCombinedDiveSummaries(db, diveIds: combinedDiveIds);
+      await moveComputerTissueScalars(db);
     } catch (e, st) {
-      // The applied rows are already in place; losing this move costs only
+      // The applied rows are already in place; losing this repair costs only
       // the old values, never the sync.
       _log.warning(
-        'Moving legacy computer tissue values failed (non-fatal)',
+        'Repairing rows from an older peer failed (non-fatal)',
         error: e,
         stackTrace: st,
       );
@@ -1641,6 +1663,12 @@ class SyncService {
           ),
           (type: 'gpsTracks', records: data.gpsTracks, hasUpdatedAt: true),
           (type: 'navTracks', records: data.navTracks, hasUpdatedAt: true),
+          // Before divePlans, whose series_id references it.
+          (
+            type: 'divePlanSeries',
+            records: data.divePlanSeries,
+            hasUpdatedAt: true,
+          ),
           (type: 'divePlans', records: data.divePlans, hasUpdatedAt: true),
           (
             type: 'divePlanTanks',
@@ -2300,7 +2328,7 @@ class SyncService {
     DateTime? localLastSync, {
     void Function(double fraction)? onProgress,
   }) async {
-    final totalBytes = await File(filePath).length();
+    final totalBytes = await SyncTempFiles.length(filePath);
     final stopwatch = Stopwatch()..start();
     _log.info('Applying peer base: $totalBytes bytes');
     final progress = BaseApplyProgress(totalBytes, onProgress);
@@ -2315,6 +2343,12 @@ class SyncService {
         progress,
       );
     } catch (e, st) {
+      // No inline parse in a browser: a base the worker cannot handle is
+      // too large for the page, so the failure is reported as it is.
+      if (HostPlatform.isWeb) {
+        await client?.dispose();
+        rethrow;
+      }
       _log.warning(
         'Base-apply worker failed; falling back to inline',
         error: e,
@@ -2333,7 +2367,7 @@ class SyncService {
     } finally {
       await client?.dispose();
     }
-    await _moveLegacyComputerTissueScalars();
+    await _repairLegacyPeerRows();
     progress.done();
     _log.info(
       'Peer base applied in ${stopwatch.elapsed.inSeconds}s: '
@@ -2507,12 +2541,13 @@ class SyncService {
     DateTime? localLastSync,
     BaseApplyProgress progress,
   ) async {
-    final file = File(filePath);
     final lastSyncMs = localLastSync?.millisecondsSinceEpoch;
     // The inline parse blocks the UI isolate, so its heartbeats are what
     // keep the bar moving; the fallback runs the whole file three times.
-    Stream<List<int>> openWithProgress() =>
-        withByteProgress(file.openRead(), onProgress: progress.consumed);
+    Stream<List<int>> openWithProgress() => withByteProgress(
+      SyncTempFiles.openRead(filePath),
+      onProgress: progress.consumed,
+    );
 
     // ---- Pass 1: exportedAt + deletions ----
     var baseExportedAt = 0;
@@ -2962,6 +2997,7 @@ class SyncService {
     'preDiveSessionItems': true,
     'gpsTracks': true,
     'navTracks': true,
+    'divePlanSeries': true,
     'divePlans': true,
     'diveScenarios': true,
     'divePlanTanks': true,
@@ -3399,6 +3435,9 @@ class SyncService {
       (field: 'diveId', parent: 'dives', nullable: true),
       // v202: the item an equipment incident attributes to; nullable.
       (field: 'equipmentId', parent: 'equipment', nullable: true),
+      // v338: the check-in behind a near-miss; nullable, so a deleted
+      // check-in only clears the link.
+      (field: 'observationId', parent: 'equipmentObservations', nullable: true),
     ],
     // v202: a gear check-in; the item is required, the dive optional.
     'equipmentObservations': [
@@ -3606,10 +3645,15 @@ class SyncService {
       (field: 'sessionId', parent: 'preDiveSessions', nullable: false),
       (field: 'equipmentId', parent: 'equipment', nullable: true),
     ],
+    'divePlanSeries': [
+      (field: 'diverId', parent: 'divers', nullable: true),
+      (field: 'followedDiveId', parent: 'dives', nullable: true),
+    ],
     'divePlans': [
       (field: 'siteId', parent: 'diveSites', nullable: true),
       (field: 'sourceDiveId', parent: 'dives', nullable: true),
       (field: 'linkedDiveId', parent: 'dives', nullable: true),
+      (field: 'seriesId', parent: 'divePlanSeries', nullable: true),
     ],
     'divePlanTanks': [(field: 'planId', parent: 'divePlans', nullable: false)],
     'divePlanSegments': [
@@ -4574,11 +4618,7 @@ class SyncService {
                   await _serializer.fetchRecord(entityType, recordId),
                 )
               : remoteData;
-          await _serializer.upsertRecord(entityType, toApply);
-          // The batch paths re-derive this in repairDanglingForeignKeys;
-          // this single-record write skips it.
-          await _serializer.alignLinkedRouteOwners();
-          await _serializer.seedRepresentativeCourseLinks();
+          await _applyConflictRow(entityType, toApply);
         }
         await _syncRepository.clearConflict(
           entityType: entityType,
@@ -4589,9 +4629,7 @@ class SyncService {
       case ConflictResolution.keepBoth:
         if (keepBothMakesCopy(entityType, remoteData)) {
           remoteData['id'] = _uuid.v4();
-          await _serializer.upsertRecord(entityType, remoteData);
-          await _serializer.alignLinkedRouteOwners();
-          await _serializer.seedRepresentativeCourseLinks();
+          await _applyConflictRow(entityType, remoteData);
         }
         await _syncRepository.clearConflict(
           entityType: entityType,
@@ -4601,6 +4639,18 @@ class SyncService {
         break;
     }
   }
+
+  /// Writes a peer's row the user chose to keep, as the batch paths would.
+  /// That row can name a parent this device has since deleted, or a check-in
+  /// it turns OK, so the write defers the FK checks and repairs before COMMIT
+  /// rather than failing with SqliteException(787) and leaving the conflict
+  /// unresolvable. The repaired rows are not marked pending: every device
+  /// derives the same result from the same rows.
+  Future<void> _applyConflictRow(String entityType, Map<String, dynamic> row) =>
+      _serializer.applyInDeferredFkTransaction(() async {
+        await _serializer.upsertRecord(entityType, row);
+        await _serializer.repairAfterRowWrite(entityType);
+      });
 
   Future<void> _markPendingForConflict(
     String entityType,
@@ -5687,7 +5737,7 @@ class SyncService {
       }
 
       await BaseJsonStreamReader().parse(
-        File(unit.file!).openRead(),
+        SyncTempFiles.openRead(unit.file!),
         wantRows: (section, table) =>
             section == 'data' && _baseApplyEntityFlags.containsKey(table),
         onRow: (section, table, rowBytes) async {
@@ -5951,7 +6001,7 @@ class SyncService {
   /// absent (an unstamped/legacy base sorts first, which is the safe default).
   Future<int> _readBaseExportedAt(String path) async {
     final bytes = <int>[];
-    await for (final chunk in File(path).openRead(0, 65536)) {
+    await for (final chunk in SyncTempFiles.openRead(path, 0, 65536)) {
       bytes.addAll(chunk);
     }
     final head = utf8.decode(bytes, allowMalformed: true);

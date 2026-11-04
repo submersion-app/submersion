@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
@@ -41,6 +42,8 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.dart';
 import 'package:submersion/features/settings/presentation/pages/troubleshoot_sync_page.dart';
+import 'package:submersion/features/settings/presentation/widgets/sync/nearby_devices_section.dart';
+import 'package:submersion/features/settings/presentation/widgets/web/web_sync_rows.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync/sync_account_switch.dart'
     show connectionErrorMessage, errorDisplayText;
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_group_tile.dart';
@@ -465,6 +468,8 @@ void main() {
     // no sync service can read (#311).
     bool customFolderIsDeviceVolumeOnly = false,
     List<AccountGroup> accountGroups = const [],
+    // A browser (issue #4121): no radios for device-to-device sync.
+    bool browser = false,
   }) async {
     final base = await getBaseOverrides();
     final fakeRepo = _FakeSyncRepository();
@@ -481,6 +486,10 @@ void main() {
       ProviderScope(
         overrides: [
           ...base,
+          if (browser)
+            deviceCapabilitiesProvider.overrideWithValue(
+              DeviceCapabilities.web,
+            ),
           syncStateProvider.overrideWith((ref) => fakeSync),
           syncRepositoryProvider.overrideWithValue(fakeRepo),
           accountGroupsProvider.overrideWith((ref) async => accountGroups),
@@ -2082,6 +2091,36 @@ void main() {
       );
 
       expect(find.text('Enter passphrase'), findsNothing);
+    });
+  });
+
+  group('in a browser (#4121)', () {
+    testWidgets('natively the nearby devices section shows', (tester) async {
+      await pumpPage(tester, selectedProvider: CloudProviderType.s3);
+      expect(find.byType(NearbyDevicesSection), findsOneWidget);
+    });
+
+    testWidgets('the nearby devices section is absent', (tester) async {
+      await pumpPage(
+        tester,
+        selectedProvider: CloudProviderType.s3,
+        browser: true,
+      );
+      expect(find.byType(NearbyDevicesSection), findsNothing);
+    });
+
+    testWidgets('the browser rows show', (tester) async {
+      await pumpPage(
+        tester,
+        selectedProvider: CloudProviderType.s3,
+        browser: true,
+      );
+      expect(find.byType(WebSyncRows), findsOneWidget);
+    });
+
+    testWidgets('natively there are no browser rows', (tester) async {
+      await pumpPage(tester, selectedProvider: CloudProviderType.s3);
+      expect(find.byType(WebSyncRows), findsNothing);
     });
   });
 }

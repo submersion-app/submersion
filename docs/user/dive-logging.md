@@ -92,7 +92,9 @@ The rows, in order:
 > **Runtime** is the total time from entry to exit. Your SAC
 > ([Surface Air Consumption](glossary.md)) rate is calculated from runtime, so a
 > dive's gas-use figures are most accurate when both your gas pressures and your
-> entry and exit times (or runtime) are filled in.
+> entry and exit times (or runtime) are filled in. A dive with only a bottom time
+> has no runtime, so it shows no SAC or RMV and adds nothing to your total time or
+> longest dive. Fill in its runtime, or its entry and exit times, to count it.
 
 ### Automatic dive numbering
 
@@ -387,6 +389,15 @@ dive mode reveals a settings panel.
 | **Scrubber** | The carbon-dioxide scrubber **Type** (for example Sofnolime), its **Rated** life in minutes, and the **Remaining** minutes at the start of the dive. |
 | **Loop Volume** | The breathing-loop volume in litres. |
 
+On a CCR dive the **Cylinders** card shows **Loop use** for gas that left a
+cylinder while you were on the loop: plain litres per minute of loop time, with
+no depth correction, since oxygen and diluent use do not scale with depth the
+way open-circuit breathing does. Gas used after a recorded bailout shows as
+SAC and RMV over the bailout instead, and a transmitter lets one cylinder show
+both. A cylinder not marked **Diluent** or **O₂ Supply** needs to lose more than
+20 bar on the loop to count, because an untouched bailout can lose nearly that
+just cooling down in the water.
+
 ### SCR settings (semi-closed rebreather)
 
 | Field | Notes |
@@ -461,8 +472,21 @@ filtered to.
 
 ### Search
 
-Tap **Search dives** to search your log. Type words to match sites, buddies,
-boats, operators and notes, or write a query such as `depth > 30m`; the field suggests what to try.
+Tap **Search dives** to search your log. Type what you remember about a dive,
+in any order, for example `ressel in october 2018 with mike` or
+`shearwater nitrox shore`. Words reach sites, countries, buddies, boats, operators,
+notes, tags, dive types, gear, trips, species, courses and dive computers.
+
+Dates work as you would say them: `14 october 2018`, `october 14, 2018`,
+`october 2018`, `oct 2018`, `last year`, `since 2020`, `2018 to 2020`. Month
+names also read in the language the app is set to, as you would write them
+there, such as `14 de octubre de 2018` or `14. Oktober 2018`. A date shows as a
+chip with a calendar icon. A lone year or month, such as `2018` or `october`,
+also finds it written in your notes.
+Words such as `ccr`, `nitrox`, `ean32`, `shore`, `salt water` and `favourite` find
+dives by that setting. Put words in quotes to search for exactly those words.
+
+You can also write a query such as `depth > 30m`; the field suggests what to try.
 To find dives missing something, write `trip:none` or `trip is blank`, and `trip is set` for the
 opposite. In the rule builder, choose a field such as Trip, then **Trip is not set** at the top of the list.
 You can also ask a question in plain words. The search can run **Within filters**

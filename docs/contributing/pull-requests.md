@@ -91,9 +91,15 @@ Fixes the MOD calculation for trimix, which used the O2 fraction of air.
 - [x] `flutter test` passes
 - [x] `flutter analyze` passes
 - [x] Manual testing on: macOS
+
+## Browser
+
+- [x] Nothing device-only: no hardware, local files, background work, new plugin, media write or database swap
 ```
 
 This PR touches no UI code, so its author deleted the Screenshots section.
+Its change is shared calculation code, which the web app runs as is, so
+one box covers the [browser check](#the-browser-check).
 For a PR that does, see
 [Screenshots for UI Changes](#screenshots-for-ui-changes).
 
@@ -141,6 +147,7 @@ A PR needs screenshots when it changes files in any of these places:
 | Feature screens, widgets and their providers | `lib/**/presentation/` |
 | Shared widgets, theme and icons | `lib/shared/widgets/`, `lib/core/theme/`, `lib/core/ui/`, `lib/core/icons/` |
 | Platform UI resources | launch screens, app icons and window chrome under `android/`, `ios/`, `macos/`, `windows/`, `linux/` |
+| The browser's shell and what a browser may show | `web/` (the page, its manifest and icons), `lib/core/platform/device_capabilities*.dart` (which features each device offers) |
 
 When in doubt, include a screenshot.
 
@@ -199,6 +206,41 @@ change** box and say in the Summary why nothing looks different. A reviewer who
 disagrees will ask for screenshots.
 
 A PR that touches none of those paths deletes the Screenshots section.
+
+## The browser check
+
+The web app is the same code as the installed apps, built for a browser.
+CI proves that it compiles (`test/architecture/` keeps native-only imports
+and `dart:io`'s `Platform` out of shared code) and that its first run,
+sync round trip, restore and sample logbook work in Firefox and WebKit. It
+cannot prove that a new feature behaves there, so the template's
+**Browser** section asks.
+
+Most PRs tick the first box. A change with a device-only part ticks each
+line it covers:
+
+- **Hardware, local files or background work.** A browser has no
+  Bluetooth, USB, NFC, camera, file paths or background tasks. Add a field
+  to `DeviceCapabilities`, set it false in `DeviceCapabilities.web`, and
+  hide the feature behind it. A screen with its own route also goes in
+  `webUnavailableRoutePrefixes` (or `webUnavailableSections` for a
+  `?selected=` section), so a link to it explains itself instead of
+  failing.
+- **Plugins and files.** A plugin with no web implementation, or code that
+  uses `dart:io` files or `path_provider` behind a shared seam, still
+  builds and then fails when a browser runs it.
+- **Media writes.** Media is read-only in a browser, so anything that
+  writes media, or a synced row about media, checks `mediaAttach`.
+- **Swapping or wiping the database.** Browser tabs share one database, so
+  the step runs under `SyncCoordinator.joinAcrossTabs`, which no tab's sync
+  runs beside.
+- **Opened in a browser.** When the change shows on a screen a browser
+  reaches, build with `scripts/build_web.sh`, serve with
+  `python3 scripts/web/serve_bundle.py --dir build/web --port 8080` and
+  look.
+
+[docs/developer/web.md](../developer/web.md#platform-seams) explains the
+seams behind each line.
 
 ## PR Best Practices
 

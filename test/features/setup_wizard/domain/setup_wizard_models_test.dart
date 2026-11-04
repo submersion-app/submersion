@@ -4,6 +4,37 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/setup_wizard/domain/setup_wizard_models.dart';
 
 void main() {
+  group('offersNoLibrary', () {
+    test('the browser connect step offers it on the existing-data path', () {
+      const draft = SetupWizardDraft(
+        mode: SetupWizardMode.firstRun,
+        path: SetupPath.existingData,
+        browser: true,
+      );
+      expect(offersNoLibrary(draft, SetupStepId.setUpAccount), isTrue);
+      expect(offersNoLibrary(draft, SetupStepId.setUpSync), isTrue);
+    });
+
+    test('once the path is fresh the connect step keeps Not now', () {
+      const draft = SetupWizardDraft(
+        mode: SetupWizardMode.firstRun,
+        path: SetupPath.fresh,
+        browser: true,
+      );
+      expect(offersNoLibrary(draft, SetupStepId.setUpAccount), isFalse);
+      expect(offersNoLibrary(draft, SetupStepId.setUpSync), isFalse);
+    });
+
+    test('natively only the sync step offers it', () {
+      const draft = SetupWizardDraft(
+        mode: SetupWizardMode.firstRun,
+        path: SetupPath.existingData,
+      );
+      expect(offersNoLibrary(draft, SetupStepId.setUpAccount), isFalse);
+      expect(offersNoLibrary(draft, SetupStepId.setUpSync), isTrue);
+    });
+  });
+
   group('computeSteps', () {
     test('first run starts with fork only while path undecided', () {
       const draft = SetupWizardDraft(mode: SetupWizardMode.firstRun);
@@ -144,6 +175,78 @@ void main() {
       // and back to metric
       final metric = imperial.applyingUnitPreset(UnitPreset.metric);
       expect(metric.settings.unitPreset, UnitPreset.metric);
+    });
+  });
+
+  group('computeSteps in a browser (#4121)', () {
+    // A browser has no automatic backups (no files, no background work) and
+    // no photo library to sync, so those two shared steps are gone in every
+    // mode; a first run also has no welcome fork and no existing-data choice.
+    const browserSteps = [SetupStepId.setUpAccount, SetupStepId.setUpSync];
+
+    test('a first run opens on the connect step', () {
+      const draft = SetupWizardDraft(
+        mode: SetupWizardMode.firstRun,
+        browser: true,
+        path: SetupPath.existingData,
+        source: ExistingDataSource.cloudSync,
+      );
+      expect(computeSteps(draft), [...browserSteps, SetupStepId.finish]);
+    });
+
+    test('continue without a sync store runs profile, units, the steps '
+        'and finish, with no fork to go back to', () {
+      const draft = SetupWizardDraft(
+        mode: SetupWizardMode.firstRun,
+        browser: true,
+        path: SetupPath.fresh,
+      );
+      expect(computeSteps(draft), [
+        SetupStepId.profile,
+        SetupStepId.units,
+        ...browserSteps,
+        SetupStepId.finish,
+      ]);
+    });
+
+    test('a draft with no path yet still opens on the connect step', () {
+      const draft = SetupWizardDraft(
+        mode: SetupWizardMode.firstRun,
+        browser: true,
+      );
+      expect(computeSteps(draft), [...browserSteps, SetupStepId.finish]);
+    });
+
+    test('the backups and photos steps never show in a browser', () {
+      for (final mode in SetupWizardMode.values) {
+        final draft = SetupWizardDraft(
+          mode: mode,
+          browser: true,
+          path: SetupPath.fresh,
+        );
+        expect(
+          computeSteps(draft),
+          isNot(contains(SetupStepId.setUpBackups)),
+          reason: '$mode',
+        );
+        expect(
+          computeSteps(draft),
+          isNot(contains(SetupStepId.setUpPhotos)),
+          reason: '$mode',
+        );
+      }
+    });
+
+    test('the settings assistant keeps units and the connect steps', () {
+      const draft = SetupWizardDraft(
+        mode: SetupWizardMode.settings,
+        browser: true,
+      );
+      expect(computeSteps(draft), [
+        SetupStepId.units,
+        ...browserSteps,
+        SetupStepId.finish,
+      ]);
     });
   });
 }

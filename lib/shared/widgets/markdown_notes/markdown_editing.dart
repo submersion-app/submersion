@@ -2,6 +2,12 @@ import 'dart:math' as math;
 
 import 'package:flutter/services.dart';
 
+import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
+
+/// What a page answers when the notes editor asks to annotate (#4109): the
+/// new annotation's id, and the words to insert when nothing was selected.
+typedef AnnotationRequestResult = ({String id, String? words});
+
 /// The line-start marks the notes editor's buttons toggle.
 enum NotesLinePrefix { heading, bullet, numbered }
 
@@ -66,6 +72,90 @@ TextEditingValue toggleInlineMark(TextEditingValue value, String mark) {
       extentOffset: end + mark.length,
     ),
   );
+}
+
+/// Turns the selection into an annotation link `[words](annotation:id)`
+/// (#4109), hugging the words the way [toggleInlineMark] does. With no
+/// selection, inserts a link to [words] at the caret, on a line of its own
+/// when the caret is not at a line start. The caret lands after the link.
+TextEditingValue wrapSelectionAsAnnotation(
+  TextEditingValue value, {
+  required String id,
+  String? words,
+}) {
+  final text = value.text;
+  final sel = _annotationSelection(value);
+  if (!sel.isCollapsed) {
+    final link = annotationLinkMarkdown(text.substring(sel.start, sel.end), id);
+    return TextEditingValue(
+      text: text.replaceRange(sel.start, sel.end, link),
+      selection: TextSelection.collapsed(offset: sel.start + link.length),
+    );
+  }
+  final caret = sel.start;
+  // Nothing selected and nothing to say: an empty link would draw a marker
+  // with no words, so the text is left alone.
+  if (words == null || words.trim().isEmpty) return value;
+  final atLineStart = caret == 0 || text[caret - 1] == '\n';
+  final link = annotationLinkMarkdown(words.trim(), id);
+  final insert = atLineStart ? link : '\n$link';
+  return TextEditingValue(
+    text: text.replaceRange(caret, caret, insert),
+    selection: TextSelection.collapsed(offset: caret + insert.length),
+  );
+}
+
+/// The part of [value]'s selection an annotation can cover, hugged.
+TextSelection _annotationSelection(TextEditingValue value) => _hugWords(
+  value.text,
+  _clearOfLinks(value.text, _firstParagraphOf(value.text, _normalized(value))),
+);
+
+/// [sel] up to the first annotation link it touches, or the words after a
+/// link it starts on; a caret after the link when nothing is left, or when
+/// it sat inside one. Links do not nest, and wrapping or splitting one would
+/// leave its marker with no link to keep it.
+TextSelection _clearOfLinks(String text, TextSelection sel) {
+  if (sel.isCollapsed) {
+    for (final link in annotationLinkPattern.allMatches(text)) {
+      if (link.start < sel.start && sel.start < link.end) {
+        return TextSelection.collapsed(offset: link.end);
+      }
+    }
+    return sel;
+  }
+  var start = sel.start;
+  for (final link in annotationLinkPattern.allMatches(text)) {
+    if (link.end <= start) continue;
+    if (link.start >= sel.end) break;
+    if (link.start > start) {
+      return TextSelection(baseOffset: start, extentOffset: link.start);
+    }
+    start = link.end;
+  }
+  return start < sel.end
+      ? TextSelection(baseOffset: start, extentOffset: sel.end)
+      : TextSelection.collapsed(offset: start);
+}
+
+/// [sel] cut at the first blank line inside it: a Markdown link cannot span
+/// paragraphs, so an annotation covers the selection's first paragraph.
+TextSelection _firstParagraphOf(String text, TextSelection sel) {
+  if (sel.isCollapsed) return sel;
+  final match = RegExp(
+    r'\n[ \t]*\n',
+  ).firstMatch(text.substring(sel.start, sel.end));
+  if (match == null) return sel;
+  return TextSelection(
+    baseOffset: sel.start,
+    extentOffset: sel.start + match.start,
+  );
+}
+
+/// The words a selection covers once hugged, or '' for a caret.
+String selectedWords(TextEditingValue value) {
+  final sel = _annotationSelection(value);
+  return sel.isCollapsed ? '' : value.text.substring(sel.start, sel.end);
 }
 
 /// [sel] shrunk to leave whitespace at its edges outside: Markdown marks

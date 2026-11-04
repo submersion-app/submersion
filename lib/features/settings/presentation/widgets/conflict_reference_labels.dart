@@ -26,6 +26,8 @@ String conflictReferenceLabel(
       return l10n.settings_conflict_ref_linkedDive;
     case 'sourceDiveId':
       return l10n.settings_conflict_ref_sourceDive;
+    case 'followedDiveId':
+      return l10n.settings_conflict_ref_followedDive;
     case 'instructorId':
       return l10n.settings_conflict_ref_instructor;
     case 'signerId':
@@ -81,10 +83,22 @@ String conflictReferenceLabel(
       return l10n.settings_conflict_ref_importedFile;
     case 'diveTanks':
       return l10n.settings_conflict_ref_tank;
+    case 'diveWeights':
+      return l10n.settings_conflict_ref_weight;
+    case 'diveCustomFields':
+      return l10n.settings_conflict_ref_customField;
+    case 'gasSwitches':
+      return l10n.settings_conflict_ref_gasSwitch;
+    case 'diveProfileEvents':
+      return l10n.settings_conflict_ref_profileEvent;
+    case 'diveScenarios':
+      return l10n.settings_conflict_ref_scenario;
     case 'divePlanTanks':
       return l10n.settings_conflict_ref_plannedTank;
     case 'divePlans':
       return l10n.settings_conflict_ref_divePlan;
+    case 'divePlanSeries':
+      return l10n.settings_conflict_ref_divePlanSeries;
     case 'trips':
       return l10n.settings_conflict_ref_trip;
     case 'tripCylinders':
@@ -103,6 +117,8 @@ String conflictReferenceLabel(
       return l10n.settings_conflict_ref_serviceKind;
     case 'equipmentLocations':
       return l10n.settings_conflict_ref_equipmentLocation;
+    case 'equipmentObservations':
+      return l10n.settings_conflict_ref_gearCheckIn;
     case 'species':
       return l10n.settings_conflict_ref_species;
     case 'sightings':

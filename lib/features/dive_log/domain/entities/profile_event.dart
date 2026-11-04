@@ -95,6 +95,9 @@ class ProfileEvent extends Equatable {
   /// Whether this event has associated data value
   bool get hasValue => value != null;
 
+  /// Whether this is an annotation: a Notes passage pinned to a time (#4109).
+  bool get isAnnotation => eventType == ProfileEventType.annotation;
+
   /// Create an ascent start event
   factory ProfileEvent.ascentStart({
     required String id,
@@ -230,6 +233,29 @@ class ProfileEvent extends Equatable {
     );
   }
 
+  /// Create an annotation: a passage of the dive's Notes pinned to a time
+  /// (#4109). [words] are the link text in Notes, cached here for readers
+  /// that never load Notes.
+  factory ProfileEvent.annotation({
+    required String id,
+    required String diveId,
+    required int timestamp,
+    double? depth,
+    required String words,
+    required DateTime createdAt,
+  }) {
+    return ProfileEvent(
+      id: id,
+      diveId: diveId,
+      timestamp: timestamp,
+      eventType: ProfileEventType.annotation,
+      depth: depth,
+      description: words,
+      createdAt: createdAt,
+      source: EventSource.user,
+    );
+  }
+
   /// Create a setpoint change event (CCR dives)
   factory ProfileEvent.setpointChange({
     required String id,
@@ -345,6 +371,15 @@ class ProfileEvent extends Equatable {
       source: source,
     );
   }
+
+  /// Whether this event counts for [analyzedSource], the data source a
+  /// per-source analysis covers: that source's computer's events do, and so
+  /// do ones with no computer. A null [analyzedSource] is a dive-level
+  /// analysis, which every event counts for.
+  bool countsFor(({String? computerId})? analyzedSource) =>
+      analyzedSource == null ||
+      computerId == null ||
+      computerId == analyzedSource.computerId;
 
   ProfileEvent copyWith({
     String? id,

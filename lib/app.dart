@@ -13,6 +13,7 @@ import 'package:submersion/features/documents/presentation/providers/equipment_f
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/app/app_exit.dart';
+import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/presentation/providers/app_lock_provider.dart';
 import 'package:submersion/core/presentation/widgets/lock_barrier.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -136,7 +137,10 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _lifecycleListener = AppLifecycleListener(onExitRequested: _closeDatabases);
+    final exitGuard = ref.read(appExitGuardProvider);
+    _lifecycleListener = AppLifecycleListener(
+      onExitRequested: () => exitGuard.answer(_closeDatabases),
+    );
     registerUpdateMenuChannel(ref);
     registerDisplayZoomMenuChannel(ref);
     // Each share waits until the app can open the page it leads to (see
@@ -236,7 +240,9 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   /// The guarantees that make this safe to be the platform's only reply path
   /// (always answers, never throws, never exceeds its budget) live in
   /// [closeDatabasesForExit]; see its doc for why totality matters here and
-  /// what happens natively when the reply never arrives.
+  /// what happens natively when the reply never arrives. [AppExitGuard]
+  /// answers first, and holds the same guarantees: a page with unsaved work
+  /// cancels the exit and asks, and nothing closes until the diver lets it go.
   Future<AppExitResponse> _closeDatabases() => closeDatabasesForExit(
     closeMain: () => DatabaseService.instance.close(),
     closeCache: () => LocalCacheDatabaseService.instance.close(),

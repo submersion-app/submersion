@@ -8,20 +8,20 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/agent_access/data/agent_tool_gate.dart';
 import 'package:submersion/features/agent_access/data/diver_context.dart';
 import 'package:submersion/features/agent_access/data/server/agent_access_server.dart';
-import 'package:submersion/features/agent_access/data/server/mcp_server_builder.dart';
+import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/sql/sql_window_runner.dart';
 import 'package:submersion/features/agent_access/data/tools/agent_tool_registry.dart';
+import 'package:submersion/features/agent_access/data/writes/agent_write_services.dart';
+import 'package:submersion/features/agent_access/data/writes/write_plan_store.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
-import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/agent_access/domain/write_confirmer.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
-import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
-import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
-import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 
 import '../../../../helpers/global_test_defaults.dart';
 import '../../../../helpers/test_database.dart';
+import '../sql/sql_window_fixture.dart';
 
 const _token = 'e2e-token-0123456789-abcdefghijklmnopqrstuv';
 
@@ -32,6 +32,11 @@ Map<String, Object?> payload(CallToolResult r) =>
     r.structuredContent ??
     (jsonDecode((r.content.single as TextContent).text) as Map)
         .cast<String, Object?>();
+
+class _Allow implements WriteConfirmer {
+  @override
+  Future<bool> confirm(WriteConfirmation request) async => true;
+}
 
 /// Echoes the client name the server put in the tool context.
 class _EchoClientTool implements AgentTool {
@@ -54,7 +59,14 @@ class _EchoClientTool implements AgentTool {
 void main() {
   late AppDatabase db;
   late McpClient client;
+  late SqlWindowFixture sqlFixture;
+  final plans = WritePlanStore();
   const t = 1700000000000;
+
+  setUpAll(() async {
+    sqlFixture = await SqlWindowFixture.create();
+  });
+  tearDownAll(() => sqlFixture.dispose());
 
   AgentToolRegistry registry() {
     final divers = DiverRepository();
@@ -69,11 +81,17 @@ void main() {
       ),
       divers: divers,
       settings: settings,
-      dives: DiveRepository(),
-      buddies: BuddyRepository(),
-      species: SpeciesRepository(),
-      media: MediaRepository(),
-      diveTypes: DiveTypeRepository(),
+      records: RecordRepositories(),
+      sql: SqlWindowRunner(
+        file: () async => SqlDatabaseFile(path: sqlFixture.path),
+      ),
+      writes: AgentWriteServices(
+        records: RecordRepositories(),
+        plans: plans,
+        confirmer: _Allow(),
+        confirmEnabled: () => true,
+        afterDiveWrites: (_) {},
+      ),
     );
     return AgentToolRegistry(
       tools: [...standard.tools, _EchoClientTool()],
@@ -111,7 +129,7 @@ void main() {
     await AgentAccessServer.instance.start(
       port: 0,
       token: () => _token,
-      serverFactory: () => buildMcpServer(
+      serverSpec: () => AgentServerSpec(
         registry: registry(),
         gate: AgentToolGate(isLocked: () => false),
         appVersion: '9.9.9-test',
@@ -150,17 +168,115 @@ void main() {
       expect(info?.version, '9.9.9-test');
     });
 
-    test('lists the three tools and two resources', () async {
+    test('lists every tool and three resources', () async {
       final tools = await client.listTools();
       expect(
         tools.tools.map((t) => t.name),
-        containsAll(['list_divers', 'query', 'get_records']),
+        unorderedEquals([
+          'list_divers',
+          'query',
+          'get_records',
+          'list_records',
+          'sql_query',
+          'preview_changes',
+          'apply_changes',
+          'revert_operation',
+          // This test's own probe for the client name.
+          'echo_client',
+        ]),
       );
       final resources = await client.listResources();
       expect(
         resources.resources.map((r) => r.uri),
-        unorderedEquals(['submersion://query-language', 'submersion://units']),
+        unorderedEquals([
+          'submersion://query-language',
+          'submersion://units',
+          'submersion://schema',
+        ]),
       );
+    });
+
+    test('a change previews, applies and reverts over loopback', () async {
+      Future<Map<String, Object?>> call(
+        String tool,
+        Map<String, dynamic> arguments,
+      ) async {
+        final out = await client.callTool(
+          CallToolRequest(name: tool, arguments: arguments),
+        );
+        expect(out.isError, isFalse, reason: '$tool: ${payload(out)}');
+        return payload(out);
+      }
+
+      Future<Object?> depth() async {
+        final out = await call('get_records', {
+          'entity': 'dives',
+          'ids': ['dive-20'],
+        });
+        return ((out['records']! as List).single as Map)['max_depth_m'];
+      }
+
+      final plan = await call('preview_changes', {
+        'label': 'Correct the depth',
+        'operations': [
+          {
+            'op': 'update',
+            'entity': 'dives',
+            'id': 'dive-20',
+            'fields': {'max_depth_m': 22.5},
+          },
+        ],
+      });
+      expect(plan['applicable'], isTrue);
+      expect(await depth(), 20.0);
+
+      final applied = await call('apply_changes', {'plan_id': plan['plan_id']});
+      expect(await depth(), 22.5);
+
+      final operation = (applied['operations']! as List).single as Map;
+      await call('revert_operation', {
+        'operation_id': operation['operation_id'],
+      });
+      expect(await depth(), 20.0);
+    });
+
+    test('every write tool refuses in demo mode', () async {
+      DemoModeGate.instance.debugActive = true;
+      addTearDown(() => DemoModeGate.instance.debugActive = false);
+
+      for (final (tool, arguments) in [
+        (
+          'preview_changes',
+          <String, dynamic>{
+            'label': 'x',
+            'operations': [
+              {'op': 'delete', 'entity': 'dives', 'id': 'dive-20'},
+            ],
+          },
+        ),
+        ('apply_changes', <String, dynamic>{'plan_id': 'p'}),
+        ('revert_operation', <String, dynamic>{'operation_id': 'o'}),
+      ]) {
+        final out = await client.callTool(
+          CallToolRequest(name: tool, arguments: arguments),
+        );
+        expect(out.isError, isTrue, reason: tool);
+        expect(payload(out)['error'], 'demo_mode', reason: tool);
+      }
+    });
+
+    test('list_records over loopback', () async {
+      await db
+          .into(db.diveTanks)
+          .insert(DiveTanksCompanion.insert(id: 'tank-1', diveId: 'dive-20'));
+      final out = await client.callTool(
+        const CallToolRequest(
+          name: 'list_records',
+          arguments: {'entity': 'dive_tanks', 'parent_id': 'dive-20'},
+        ),
+      );
+      expect(out.isError, isFalse);
+      expect(out.structuredContent!['total'], 1);
     });
 
     test('query then get_records round trip', () async {
@@ -181,6 +297,44 @@ void main() {
       expect(records, hasLength(2));
       final text = (g.content.single as TextContent).text;
       expect(text, contains('"max_depth_m":20.0'));
+    });
+
+    test('sql_query over loopback, with a bound parameter', () async {
+      final r = await client.callTool(
+        const CallToolRequest(
+          name: 'sql_query',
+          arguments: {
+            'sql': 'SELECT ? AS answer',
+            'params': [42],
+          },
+        ),
+      );
+      expect(r.isError, isNot(true));
+      expect(r.structuredContent!['rows'], [
+        [42],
+      ]);
+    });
+
+    test('sql_query refuses a denied table with its code', () async {
+      final r = await client.callTool(
+        const CallToolRequest(
+          name: 'sql_query',
+          arguments: {'sql': 'SELECT * FROM connected_accounts'},
+        ),
+      );
+      expect(r.isError, true);
+      final text = (r.content.single as TextContent).text;
+      expect(text, contains('sql_refused'));
+      expect(text, contains('connected_accounts'));
+    });
+
+    test('reads the schema resource', () async {
+      final r = await client.readResource(
+        const ReadResourceRequest(uri: 'submersion://schema'),
+      );
+      final text = (r.contents.single as TextResourceContents).text;
+      expect(text, contains('## dives'));
+      expect(text, isNot(contains('connected_accounts')));
     });
 
     test('reads the query language resource', () async {

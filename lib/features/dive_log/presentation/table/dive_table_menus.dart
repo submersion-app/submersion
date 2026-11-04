@@ -22,21 +22,23 @@ import 'package:submersion/shared/widgets/entity_table/entity_table_menu.dart';
 List<EntityTableMenuAction> diveHeaderMenuItems(
   BuildContext context,
   WidgetRef ref,
-  DiveField field,
-) {
+  DiveField field, {
+  StateProvider<DiveFilterState>? filterProvider,
+}) {
   if (!kDiveColumnFilters.containsKey(field)) return const [];
   final l10n = context.l10n;
-  final filter = ref.read(diveFilterProvider);
+  final provider = filterProvider ?? diveFilterProvider;
+  final filter = ref.read(provider);
   return [
     EntityTableMenuAction(
       label: l10n.tableMode_menu_addFilter,
-      onSelected: () => _addColumnFilter(context, ref, field),
+      onSelected: () => _addColumnFilter(context, ref, field, provider),
     ),
     EntityTableMenuAction(
       label: l10n.tableMode_menu_resetFilter,
       enabled: isDiveColumnFiltered(filter, field),
-      onSelected: () => ref.read(diveFilterProvider.notifier).state =
-          resetDiveColumnFilter(ref.read(diveFilterProvider), field),
+      onSelected: () => ref.read(provider.notifier).state =
+          resetDiveColumnFilter(ref.read(provider), field),
     ),
   ];
 }
@@ -47,15 +49,19 @@ List<EntityTableMenuAction> diveCellMenuItems(
   BuildContext context,
   WidgetRef ref,
   DiveField field,
-  List<CellFilterOption> options,
-) {
+  List<CellFilterOption> options, {
+  StateProvider<DiveFilterState>? filterProvider,
+}) {
   final l10n = context.l10n;
+  final provider = filterProvider ?? diveFilterProvider;
   return [
     for (final o in options)
       EntityTableMenuAction(
         label: cellFilterLabel(l10n, o, field),
-        onSelected: () => ref.read(diveFilterProvider.notifier).state =
-            addDiveTableRule(ref.read(diveFilterProvider), o.rule),
+        onSelected: () => ref.read(provider.notifier).state = addDiveTableRule(
+          ref.read(provider),
+          o.rule,
+        ),
       ),
   ];
 }
@@ -89,6 +95,7 @@ Future<void> _addColumnFilter(
   BuildContext context,
   WidgetRef ref,
   DiveField field,
+  StateProvider<DiveFilterState> filterProvider,
 ) async {
   final spec = kDiveColumnFilters[field]!;
   final editor = readQueryEditorContext(context, ref, diveQueryEntity);
@@ -115,8 +122,8 @@ Future<void> _addColumnFilter(
   }
   await showRefinePanel(
     context,
-    filterProvider: diveFilterProvider,
-    initialDraft: addDiveTableRule(ref.read(diveFilterProvider), rule),
+    filterProvider: filterProvider,
+    initialDraft: addDiveTableRule(ref.read(filterProvider), rule),
     startOnRulesBuilder: true,
   );
 }

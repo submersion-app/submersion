@@ -3,22 +3,34 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/agent_access/data/diver_context.dart';
+import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/sql/sql_window_runner.dart';
 import 'package:submersion/features/agent_access/data/tools/agent_tool_registry.dart';
+import 'package:submersion/features/agent_access/data/writes/agent_write_services.dart';
+import 'package:submersion/features/agent_access/data/writes/write_plan_store.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
-import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
-import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
+import 'package:submersion/features/agent_access/domain/write_confirmer.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
-import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
-import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../sql/sql_window_fixture.dart';
+
+class _Allow implements WriteConfirmer {
+  @override
+  Future<bool> confirm(WriteConfirmation request) async => true;
+}
 
 void main() {
   late AppDatabase db;
+  late SqlWindowFixture sqlFixture;
   const t = 1700000000000;
+
+  setUpAll(() async {
+    sqlFixture = await SqlWindowFixture.create();
+  });
+  tearDownAll(() => sqlFixture.dispose());
 
   setUp(() async {
     db = await setUpTestDatabase();
@@ -48,34 +60,47 @@ void main() {
       ),
       divers: divers,
       settings: settings,
-      dives: DiveRepository(),
-      buddies: BuddyRepository(),
-      species: SpeciesRepository(),
-      media: MediaRepository(),
-      diveTypes: DiveTypeRepository(),
+      records: RecordRepositories(),
+      sql: SqlWindowRunner(
+        file: () async => SqlDatabaseFile(path: sqlFixture.path),
+      ),
+      writes: AgentWriteServices(
+        records: RecordRepositories(),
+        plans: WritePlanStore(),
+        confirmer: _Allow(),
+        confirmEnabled: () => true,
+      ),
     );
   }
 
   group('AgentToolRegistry', () {
-    test('standard registry exposes list_divers, query and get_records', () {
+    test('standard registry exposes the read and write tools', () {
       expect(
         registry().tools.map((t) => t.name),
-        unorderedEquals(['list_divers', 'query', 'get_records']),
+        unorderedEquals([
+          'list_divers',
+          'query',
+          'get_records',
+          'list_records',
+          'sql_query',
+          'preview_changes',
+          'apply_changes',
+          'revert_operation',
+        ]),
       );
     });
 
-    test(
-      'standard registry exposes the query-language and units resources',
-      () {
-        expect(
-          registry().resources.map((r) => r.uri),
-          unorderedEquals([
-            'submersion://query-language',
-            'submersion://units',
-          ]),
-        );
-      },
-    );
+    test('standard registry exposes the query-language, units and schema '
+        'resources', () {
+      expect(
+        registry().resources.map((r) => r.uri),
+        unorderedEquals([
+          'submersion://query-language',
+          'submersion://units',
+          'submersion://schema',
+        ]),
+      );
+    });
 
     test('toolNamed throws not_found for unknown names', () {
       expect(

@@ -106,6 +106,11 @@ If you entered prior experience on your
 it and show the split, for example "120 logged + 380 prior". A "Diving since"
 line appears when you set the year you started.
 
+**Total Time** adds up runtime, the time from entry to exit. A dive logged with
+only a bottom time counts toward **Total Dives** but adds nothing to it, because
+bottom time is not a runtime. To count those dives, fill in their runtime, or
+enter the hours as prior experience.
+
 ### Personal records, sites and distributions
 
 - **Personal Records:** your first, deepest, longest, coldest and warmest dives.
@@ -122,7 +127,7 @@ rolling average and an overall trend line, and let you choose the range shown.
 | Dashboard | What you will find |
 |-----------|--------------------|
 | **Connections** | A map of how your buddies, sites and gear link through your dives |
-| **Air Consumption** | SAC or RMV over time, gas mixes, consumption by tank role, and your best and highest consumption |
+| **Air Consumption** | SAC or RMV over time, gas mixes, consumption by tank role, rebreather gas use, and your best and highest consumption |
 | **Progression** | Maximum depth and bottom time over time, dives per year, dives by suit thickness, and your cumulative dive count |
 | **Dive focus** | A chosen group of dives and what they have in common (see below) |
 | **Conditions** | Visibility, water type, site types, entry method, and water temperature over time, by month and by band |
@@ -143,7 +148,13 @@ rolling average and an overall trend line, and let you choose the range shown.
 > automatically, as gauge dives are. On a rebreather the cylinders do not empty
 > as you breathe, so their pressure drop is not a breathing rate, and the dive
 > shows no SAC or RMV of its own. Rebreather dives still count toward gas
-> mixes, gas used and consumption by tank role.
+> mixes and gas used, and SCR dives toward consumption by tank role.
+>
+> CCR dives have their own **Rebreather gas use** card instead, which appears
+> once your dives have a rate to show. It charts your O₂ and diluent use in
+> litres per minute on the loop, with no depth correction and leaving out
+> bailout time. To keep a dive out of it, such as one with O₂ flushes, tick
+> "exclude from gas statistics" on the dive.
 
 <!-- screenshot: images/statistics/gas-sac.png: air consumption dashboard -->
 

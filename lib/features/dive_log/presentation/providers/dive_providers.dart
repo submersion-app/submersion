@@ -612,6 +612,10 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
     await _loadDives();
   }
 
+  /// [_silentReload] for a caller that has just written, so the list stays on
+  /// screen and the reload costs what the write changed.
+  Future<void> reloadQuietly() => _silentReload();
+
   /// Invalidate trip providers for a dive
   void _invalidateRelatedProviders(domain.Dive dive) {
     // Invalidate trip stats if dive has a trip (check both tripId and trip object)
@@ -1516,15 +1520,13 @@ final allDivesForTableProvider = Provider<AsyncValue<List<domain.Dive>>>((ref) {
 
 /// Every dive's surface interval for the table (#2984), over the whole log
 /// so a filter never changes the dive a gap is measured from. Reloaded on
-/// writes to `dives` (entry, exit, runtime) and to `dive_profile_series`,
-/// whose span stands in for a missing runtime, and nothing else.
+/// writes to `dives` (entry, exit, runtime) and to what a measured runtime
+/// reads, whose span stands in for a missing runtime, and nothing else.
 /// Auto-disposed, so nothing re-queries the whole log once the table closes.
 final diveSurfaceIntervalsProvider =
     FutureProvider.autoDispose<Map<String, Duration?>>((ref) async {
       final repository = ref.watch(diveRepositoryProvider);
-      ref.invalidateSelfWhen(
-        repository.watchTables({'dives', 'dive_profile_series'}),
-      );
+      ref.invalidateSelfWhen(repository.watchMeasuredRuntimeChanges());
       return repository.getSurfaceIntervals();
     });
 

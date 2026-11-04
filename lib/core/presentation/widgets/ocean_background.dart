@@ -3,6 +3,9 @@ import 'dart:math' as math;
 
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+
+import 'package:submersion/core/presentation/widgets/frame_budget_watch.dart';
 
 /// Specification for a single animated bubble.
 class BubbleSpec {
@@ -88,6 +91,14 @@ class _OceanBackgroundState extends State<OceanBackground>
   bool _tickersEnabled = true;
   bool _disableAnimations = false;
 
+  /// Trips when the frames this animation drives keep running over budget,
+  /// and the effects then hold still for good (#4177).
+  final _frameBudget = FrameBudgetWatch();
+
+  /// Whether [_onFrameTimings] is registered, which it is only while the
+  /// effects animate.
+  bool _watchingFrames = false;
+
   /// Seconds for one conceptual animation cycle (controls bubble rise speed).
   static const _cyclePeriod = 10.0;
 
@@ -117,22 +128,43 @@ class _OceanBackgroundState extends State<OceanBackground>
 
   /// Animates only while the effects can be seen and are wanted: the app is
   /// focused in the foreground (a null state means the platform has not
-  /// reported one yet), the route is not covered, and reduce motion is off.
+  /// reported one yet), the route is not covered, reduce motion is off, and
+  /// the device has kept up with the frames so far.
   bool get _shouldAnimate =>
       (_lifecycleState == null ||
           _lifecycleState == AppLifecycleState.resumed) &&
       _tickersEnabled &&
-      !_disableAnimations;
+      !_disableAnimations &&
+      !_frameBudget.tripped;
 
   void _syncAnimation() {
     if (_shouldAnimate) {
+      _watchFrames(true);
       if (_frameTimer != null) return;
       _stopwatch.start();
       _frameTimer = Timer.periodic(_frameInterval, (_) => _onFrame());
     } else {
+      _watchFrames(false);
       _frameTimer?.cancel();
       _frameTimer = null;
       _stopwatch.stop();
+    }
+  }
+
+  void _watchFrames(bool watch) {
+    if (watch == _watchingFrames) return;
+    _watchingFrames = watch;
+    if (watch) {
+      _frameBudget.restartCadence();
+      SchedulerBinding.instance.addTimingsCallback(_onFrameTimings);
+    } else {
+      SchedulerBinding.instance.removeTimingsCallback(_onFrameTimings);
+    }
+  }
+
+  void _onFrameTimings(List<FrameTiming> timings) {
+    if (_frameBudget.record(timings)) {
+      _syncAnimation();
     }
   }
 
@@ -144,6 +176,7 @@ class _OceanBackgroundState extends State<OceanBackground>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _watchFrames(false);
     _frameTimer?.cancel();
     _stopwatch.stop();
     _animationValue.dispose();
@@ -228,33 +261,42 @@ class OceanEffectPainter extends CustomPainter {
     _paintBubbles(canvas, size);
   }
 
+  /// Each patch fills only its own square: the gradient is transparent
+  /// beyond its radius, and a browser drawing without WebGL rasterises every
+  /// picture on every frame, so a full-screen fill cost it two full-screen
+  /// passes whenever anything animated (#4186).
   void _paintCaustics(Canvas canvas, Size size) {
     final t = animationValue * 2 * math.pi;
     final dx = math.sin(t) * 8;
     final dy = math.cos(t) * 4;
-    final rect = Offset.zero & size;
 
     // First caustic patch (upper-left area)
-    final center1 = Offset(size.width * 0.3 + dx, size.height * 0.4 + dy);
+    final patch1 = Rect.fromCircle(
+      center: Offset(size.width * 0.3 + dx, size.height * 0.4 + dy),
+      radius: 80,
+    );
     final paint1 = Paint()
       ..shader = RadialGradient(
         colors: [
           Colors.white.withValues(alpha: causticOpacity),
           Colors.transparent,
         ],
-      ).createShader(Rect.fromCircle(center: center1, radius: 80));
-    canvas.drawRect(rect, paint1);
+      ).createShader(patch1);
+    canvas.drawRect(patch1, paint1);
 
     // Second caustic patch (lower-right area)
-    final center2 = Offset(size.width * 0.7 - dx, size.height * 0.6 - dy);
+    final patch2 = Rect.fromCircle(
+      center: Offset(size.width * 0.7 - dx, size.height * 0.6 - dy),
+      radius: 60,
+    );
     final paint2 = Paint()
       ..shader = RadialGradient(
         colors: [
           Colors.white.withValues(alpha: causticOpacity * 0.67),
           Colors.transparent,
         ],
-      ).createShader(Rect.fromCircle(center: center2, radius: 60));
-    canvas.drawRect(rect, paint2);
+      ).createShader(patch2);
+    canvas.drawRect(patch2, paint2);
   }
 
   void _paintBubbles(Canvas canvas, Size size) {

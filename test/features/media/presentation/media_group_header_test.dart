@@ -78,7 +78,7 @@ void main() {
     'navigable dive': MediaGroupHeaderSpec(
       kind: MediaGroupHeaderKind.dive,
       label: '#9 · Blue Hole',
-      diveId: 'd1',
+      route: '/dives/d1',
     ),
     'long inert dive': MediaGroupHeaderSpec(
       kind: MediaGroupHeaderKind.dive,
@@ -87,7 +87,7 @@ void main() {
     'long navigable dive': MediaGroupHeaderSpec(
       kind: MediaGroupHeaderKind.dive,
       label: _long,
-      diveId: 'd1',
+      route: '/dives/d1',
     ),
     'long day': MediaGroupHeaderSpec(
       kind: MediaGroupHeaderKind.day,

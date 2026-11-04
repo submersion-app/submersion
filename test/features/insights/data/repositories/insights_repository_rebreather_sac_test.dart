@@ -8,8 +8,8 @@ import '../../../../helpers/test_database.dart';
 /// Issue #3673: a rebreather's cylinders do not drain with the diver's
 /// breathing, so a CCR or SCR dive leaves the SAC and RMV averages, trends
 /// and records, the way a gauge dive does. Its gas data still counts where
-/// it is meaningful: the gas mixes, the litres drawn, and the breakdown by
-/// cylinder role.
+/// it is meaningful: the gas mixes and the litres drawn. Issue #4082 took CCR
+/// dives out of the breakdown by cylinder role as well.
 ///
 /// The fixture seeds three dives, identical apart from the dive mode, each
 /// with a diluent (or back gas) cylinder and an oxygen cylinder.
@@ -104,15 +104,40 @@ void main() {
       final points = await repository.getGasUsedPerDive();
       expect(points.map((p) => p.diveId), ['oc', 'ccr', 'scr']);
     });
+  });
 
-    test('getSacPressureByTankRole keeps the diluent cylinders', () async {
-      final byRole = await repository.getSacPressureByTankRole();
-      expect(byRole.keys, containsAll(['backGas', 'diluent', 'oxygenSupply']));
-    });
+  // Issue #4082: a depth-corrected sum over the whole dive means nothing for a
+  // loop, so a CCR dive reads through getCcrGasUsePerDive instead. An SCR dive
+  // keeps its rows.
+  group('the breakdown by cylinder role leaves CCR dives out', () {
+    Future<void> deleteDive(String id) =>
+        (db.delete(db.dives)..where((d) => d.id.equals(id))).go();
 
-    test('getSacVolumeByTankRole keeps the diluent cylinders', () async {
-      final byRole = await repository.getSacVolumeByTankRole();
-      expect(byRole.keys, containsAll(['backGas', 'diluent', 'oxygenSupply']));
-    });
+    for (final (name, read)
+        in <(String, Future<Map<String, double>> Function())>[
+          (
+            'getSacPressureByTankRole',
+            () => repository.getSacPressureByTankRole(),
+          ),
+          ('getSacVolumeByTankRole', () => repository.getSacVolumeByTankRole()),
+        ]) {
+      test('$name has no rows from a CCR dive alone', () async {
+        await deleteDive('oc');
+        await deleteDive('scr');
+        expect(await read(), isEmpty);
+      });
+
+      test('$name keeps an SCR dive', () async {
+        await deleteDive('oc');
+        await deleteDive('ccr');
+        expect((await read()).keys, containsAll(['diluent', 'oxygenSupply']));
+      });
+
+      test('$name keeps an open-circuit dive', () async {
+        await deleteDive('ccr');
+        await deleteDive('scr');
+        expect((await read()).keys, contains('backGas'));
+      });
+    }
   });
 }

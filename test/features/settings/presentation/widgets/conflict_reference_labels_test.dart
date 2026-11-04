@@ -57,6 +57,7 @@ void main() {
       'diveTanks': 'Tank',
       'divePlanTanks': 'Planned tank',
       'divePlans': 'Dive plan',
+      'divePlanSeries': 'Dive series',
       'trips': 'Trip',
       'tripCylinders': 'Trip cylinder',
       'diveCenters': 'Dive center',
@@ -66,6 +67,7 @@ void main() {
       'courseRequirements': 'Course requirement',
       'serviceKinds': 'Service type',
       'equipmentLocations': 'Equipment location',
+      'equipmentObservations': 'Gear check-in',
       'importedFiles': 'Imported file',
       'species': 'Species',
       'sightings': 'Sighting',
@@ -102,6 +104,24 @@ void main() {
       }
     });
 
+    test('names the records the change log lists by their table', () {
+      // No key points at these, but an agent's plan and the change log
+      // name each by its entity type.
+      for (final MapEntry(:key, :value) in const {
+        'diveWeights': 'Weight',
+        'diveCustomFields': 'Custom field',
+        'gasSwitches': 'Gas switch',
+        'diveProfileEvents': 'Profile event',
+        'diveScenarios': 'Scenario',
+      }.entries) {
+        expect(
+          conflictReferenceLabel(l10n, ref(targetType: key)),
+          value,
+          reason: key,
+        );
+      }
+    });
+
     test('lets a column name override its target type', () {
       // These columns all point at an entity that already has a label, but
       // mean something more specific than "another one of those".
@@ -116,6 +136,10 @@ void main() {
       expect(
         conflictReferenceLabel(l10n, ref(field: 'sourceDiveId')),
         'Source dive',
+      );
+      expect(
+        conflictReferenceLabel(l10n, ref(field: 'followedDiveId')),
+        'Followed dive',
       );
       expect(
         conflictReferenceLabel(

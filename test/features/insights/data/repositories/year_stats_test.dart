@@ -23,7 +23,7 @@ void main() {
         domain.Dive(
           id: 'a',
           dateTime: DateTime(2026, 2, 1, 10),
-          bottomTime: const Duration(minutes: 30),
+          runtime: const Duration(minutes: 30),
           maxDepth: 18,
         ),
       );
@@ -31,7 +31,7 @@ void main() {
         domain.Dive(
           id: 'b',
           dateTime: DateTime(2026, 5, 1, 10),
-          bottomTime: const Duration(minutes: 40),
+          runtime: const Duration(minutes: 40),
           maxDepth: 32,
         ),
       );
@@ -39,7 +39,7 @@ void main() {
         domain.Dive(
           id: 'c',
           dateTime: DateTime(2026, 7, 1, 10),
-          bottomTime: const Duration(minutes: 50),
+          runtime: const Duration(minutes: 50),
           maxDepth: 25,
         ),
       );
@@ -47,7 +47,7 @@ void main() {
         domain.Dive(
           id: 'last-year',
           dateTime: DateTime(2025, 7, 1, 10),
-          bottomTime: const Duration(minutes: 60),
+          runtime: const Duration(minutes: 60),
           maxDepth: 40,
         ),
       );

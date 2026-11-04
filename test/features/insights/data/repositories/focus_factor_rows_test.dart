@@ -98,7 +98,7 @@ void main() {
     expect(result.map((r) => r.diveId), ['in']);
   });
 
-  test('duration prefers runtime and falls back to bottom time', () async {
+  test('duration is the measured runtime, never a bottom time', () async {
     await dive('rt', runtime: 3000, bottomTime: 2400);
     await dive('bt', day: 2, runtime: null, bottomTime: 1800);
     final byId = {
@@ -108,7 +108,7 @@ void main() {
         r.diveId: r,
     };
     expect(byId['rt']!.durationMinutes, 50);
-    expect(byId['bt']!.durationMinutes, 30);
+    expect(byId['bt']!.durationMinutes, isNull);
   });
 
   test('gas class and first tank follow the tanks', () async {

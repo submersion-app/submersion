@@ -6,13 +6,18 @@ import 'package:flutter/services.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/presentation/providers/annotation_focus_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/annotation_placement_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_annotations_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/annotation_placement_banner.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_annotation_actions.dart';
 import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
@@ -45,7 +50,16 @@ import 'package:submersion/l10n/l10n_extension.dart';
 class FullscreenProfilePage extends ConsumerStatefulWidget {
   final String diveId;
 
-  const FullscreenProfilePage({super.key, required this.diveId});
+  /// Takes the diver to an annotation's passage, after this page has popped.
+  /// Null where no Notes card sits underneath (the dashboard's recent dive),
+  /// which leaves Open in Notes out of the marker popup.
+  final ValueChanged<String>? onOpenInNotes;
+
+  const FullscreenProfilePage({
+    super.key,
+    required this.diveId,
+    this.onOpenInNotes,
+  });
 
   @override
   ConsumerState<FullscreenProfilePage> createState() =>
@@ -284,6 +298,29 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
     }
 
     final notifier = ref.read(playbackProvider(widget.diveId).notifier);
+    // Annotations (#4109): the same actions as the detail page's chart host.
+    final openInNotes = widget.onOpenInNotes;
+    final annotationActions = DiveDetailAnnotationActions(
+      ref: ref,
+      context: context,
+      dive: dive,
+      onOpenInNotes: openInNotes == null
+          ? null
+          : (id) {
+              Navigator.of(context).pop();
+              openInNotes(id);
+            },
+    );
+    final annotationPlacement = ref.watch(
+      annotationPlacementProvider(widget.diveId),
+    );
+    final focusedAnnotation = ref.watch(annotationFocusProvider(widget.diveId));
+    // `.value` keeps the previous annotations on screen through a reload.
+    final chartEvents = mergeChartEvents(
+      analysis?.events,
+      ref.watch(diveAnnotationsProvider(widget.diveId)).value ??
+          const <ProfileEvent>[],
+    );
 
     // Active source and overlays (mirrors the detail page's wiring).
     final labels = SourceNameLabels(
@@ -329,6 +366,7 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
     // activeSourceProfileProvider is the one rule for this, shared with the
     // detail page and the dive-list panel (#543).
     final chartProfile = resolvedActive?.points ?? dive.profile;
+    final chartActions = annotationActions.onProfile(chartProfile);
 
     // Keep the range and playback extents on this page's own drawn series
     // rather than rely on the screen that opened it having set them.
@@ -473,6 +511,13 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                                     isEnabled: rangeState.isEnabled,
                                   ),
                                 ),
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: AnnotationPinButton(
+                                    active: annotationPlacement != null,
+                                    onPressed: chartActions.onPinPressed,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -484,7 +529,12 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                               analysis?.computerStopsWithCalculatedCeiling ??
                               false,
                           ascentRates: analysis?.ascentRates,
-                          events: analysis?.events,
+                          events: chartEvents,
+                          annotationPlacement: annotationPlacement != null,
+                          onAnnotationPlaced: chartActions.place,
+                          onAnnotationTap: chartActions.onMarkerTap,
+                          onSecondaryTapAt: chartActions.onSecondaryTap,
+                          focusedAnnotationId: focusedAnnotation,
                           ndlCurve: analysis?.ndlCurve,
                           sacCurve: analysis?.smoothedSacCurve,
                           environment:
@@ -535,13 +585,11 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                           gasSegments:
                               (dive.tanks.isEmpty || chartProfile.isEmpty)
                               ? null
-                              : buildGasUsageSegments(
-                                  tanks: dive.tanks,
-                                  gasSwitches: gasSwitches ?? const [],
-                                  diveDurationSeconds:
-                                      chartProfile.last.timestamp,
-                                  firstSampleSeconds:
-                                      chartProfile.first.timestamp,
+                              : activeGasUsageSegments(
+                                  dive,
+                                  gasSwitches: gasSwitches,
+                                  profile: chartProfile,
+                                  computerId: resolvedActive?.computerId,
                                 ),
                           diveDurationSeconds: chartProfile.isEmpty
                               ? null
@@ -617,6 +665,22 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                       ),
                       if (!tooltipFollowsCursor)
                         _FixedTooltipPanel(rows: _fixedTooltipRows),
+                      if (annotationPlacement != null)
+                        Positioned(
+                          top: 56,
+                          left: 16,
+                          right: 16,
+                          child: AnnotationPlacementBanner(
+                            moving: annotationPlacement.isMove,
+                            onCancel: ref
+                                .read(
+                                  annotationPlacementProvider(
+                                    widget.diveId,
+                                  ).notifier,
+                                )
+                                .cancel,
+                          ),
+                        ),
                     ],
                   ),
                 ),

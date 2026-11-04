@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/discard_dialog.dart';
 
 /// Shared shell for every edit form.
 ///
@@ -41,38 +42,16 @@ class EditFormScaffold extends StatelessWidget {
   /// Extra actions (e.g. delete) rendered before the save button.
   final List<Widget>? actions;
 
-  Future<bool> _confirmDiscard(BuildContext context) async {
-    final l10n = context.l10n;
-    final discard = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.forms_discard_title),
-        content: Text(l10n.forms_discard_body),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n.forms_discard_keepEditing),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l10n.forms_discard_discard),
-          ),
-        ],
-      ),
-    );
-    return discard == true;
-  }
-
   Future<void> _handlePop(BuildContext context, bool didPop) async {
     if (didPop) return;
     final navigator = Navigator.of(context);
-    final shouldPop = await _confirmDiscard(context);
+    final shouldPop = await showDiscardDialog(context);
     // The dialog can outlive this route; don't pop a disposed context.
     if (shouldPop && context.mounted) navigator.pop();
   }
 
   Future<void> _handleCancel(BuildContext context) async {
-    if (hasUnsavedChanges && !await _confirmDiscard(context)) return;
+    if (hasUnsavedChanges && !await showDiscardDialog(context)) return;
     if (context.mounted) onCancel?.call();
   }
 

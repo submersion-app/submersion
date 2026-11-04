@@ -115,4 +115,18 @@ void main() {
       });
     });
   });
+
+  test('a browser has nothing to update, whatever the channel', () {
+    for (final channel in UpdateChannel.values) {
+      expect(
+        UpdateChannelConfig.isAutoUpdateEnabledFor(
+          isIOS: false,
+          isWeb: true,
+          channel: channel,
+        ),
+        isFalse,
+        reason: '$channel',
+      );
+    }
+  });
 }

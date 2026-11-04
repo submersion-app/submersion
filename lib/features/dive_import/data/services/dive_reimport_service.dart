@@ -3,10 +3,12 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/features/dive_log/data/services/user_event_preservation.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/dive_import/data/services/imported_profile_readers.dart';
 import 'package:submersion/features/dive_import/data/services/missing_computer_attacher.dart';
 import 'package:submersion/features/dive_import/data/services/parsed_profile_event_mapper.dart';
 import 'package:submersion/features/dive_import/data/services/restored_source_attribution.dart';
@@ -280,18 +282,16 @@ class DiveReimportService {
   }
 
   /// Bottom time exactly as `UddfEntityImporter` derives it on first import:
-  /// trust `duration` only when it differs from `runtime`, otherwise measure
-  /// the fresh profile, otherwise fall back to `duration`. Without this a
-  /// resync that replaces the profile leaves the summary duration describing
-  /// the profile it just deleted.
+  /// the [statedBottomTime] both share, otherwise measure the fresh profile,
+  /// otherwise fall back to `duration`. Without this a resync that replaces
+  /// the profile leaves the summary duration describing the profile it just
+  /// deleted.
   static int? _deriveBottomTimeSeconds(Map<String, dynamic> diveData) {
+    if (statedBottomTime(diveData) case final stated?) {
+      return stated.inSeconds;
+    }
     final duration = diveData['duration'];
     final durationValue = duration is Duration ? duration : null;
-    final runtimeRaw = diveData['runtime'];
-    final runtime = runtimeRaw is Duration ? runtimeRaw : durationValue;
-    if (durationValue != null && durationValue != runtime) {
-      return durationValue.inSeconds;
-    }
     final profile = _profileOf(diveData);
     if (profile != null) {
       final fromProfile = BottomTimeCalculator.secondsFromSamples([
@@ -728,24 +728,55 @@ class DiveReimportService {
     final eventsRaw = diveData['events'] ?? diveData['profileEvents'];
     if (eventsRaw is! List) return;
 
+    // The diver's own events (annotations, hand-added bookmarks) are not
+    // the file's to replace (#4109).
     final deleted = await (db.delete(
       db.diveProfileEvents,
-    )..where((t) => t.diveId.equals(diveId))).go();
+    )..where((t) => t.diveId.equals(diveId) & nonUserEvent(t))).go();
     // One tombstone for the dive's events, not one per event (#1926). Logged
     // before the fresh events are staged below, so their clocks are newer
-    // and a peer applying the scope keeps them.
+    // and a peer applying the scope keeps them. The kept user events are
+    // re-stamped for the same reason.
     if (deleted > 0) {
       await _syncRepository.logScopedDeletion(
         EventScopeTombstone(diveId: diveId),
       );
+      await restampUserEvents(
+        db: db,
+        sync: _syncRepository,
+        diveId: diveId,
+        now: now.millisecondsSinceEpoch,
+      );
     }
+    final keptIds = {
+      for (final row in await (db.select(
+        db.diveProfileEvents,
+      )..where((t) => t.diveId.equals(diveId))).get())
+        row.id,
+    };
 
-    final events = profileEventsFromParsed(
+    final parsed = profileEventsFromParsed(
       diveId: diveId,
       eventMaps: eventsRaw.cast<Map<String, dynamic>>(),
       now: now,
       onSkipped: _log.warning,
     );
+    // A file that carries this log's own event ids (a UDDF backup): an id
+    // kept on this dive is the same row, skipped; an id a row of another
+    // dive holds (the backup restored twice) gets a fresh one, or the insert
+    // would abort the resync. Nothing here links another dive's annotation,
+    // so a copy of one could only ever be a hidden row.
+    final takenElsewhere = await takenProfileEventIds(db, [
+      for (final e in parsed) e.id,
+    ], exceptDiveId: diveId);
+    final events = [
+      for (final e in parsed)
+        if (!keptIds.contains(e.id))
+          if (!takenElsewhere.contains(e.id))
+            e
+          else if (!e.isAnnotation)
+            e.copyWith(id: _uuid.v4()),
+    ];
     for (final event in events) {
       await db
           .into(db.diveProfileEvents)

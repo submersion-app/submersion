@@ -96,6 +96,15 @@ class ChartViewport {
     zoomLimit: zoomLimit,
   )._clamped();
 
+  /// This viewport at the same zoom with the point at fractions [x], [y] of
+  /// the full range mid-window, or as near as the range allows.
+  ChartViewport centredOn(double x, double y) => ChartViewport(
+    zoom: zoom,
+    offsetX: x - visibleWidth / 2,
+    offsetY: y - visibleHeight / 2,
+    zoomLimit: zoomLimit,
+  )._clamped();
+
   ChartViewport _clamped() {
     final maxOff = 1.0 - 1.0 / zoom;
     return ChartViewport(

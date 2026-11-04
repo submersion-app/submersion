@@ -161,6 +161,7 @@ import 'package:submersion/features/settings/presentation/pages/language_setting
 import 'package:submersion/features/settings/presentation/pages/nav_customization_page.dart';
 import 'package:submersion/features/settings/presentation/pages/theme_gallery_page.dart';
 import 'package:submersion/features/settings/presentation/pages/data_tools_page.dart';
+import 'package:submersion/features/table_editor/presentation/pages/table_editor_page.dart';
 import 'package:submersion/features/settings/presentation/pages/import_options_page.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_settings_page.dart';
 import 'package:submersion/features/backup/presentation/pages/unrecognized_backups_page.dart';
@@ -256,14 +257,30 @@ import 'package:submersion/features/certification_agencies/presentation/pages/ce
 import 'package:submersion/features/certification_agencies/presentation/pages/certification_agency_edit_page.dart';
 import 'package:submersion/features/demo_mode/presentation/demo_sealed_routes.dart';
 import 'package:submersion/features/demo_mode/presentation/pages/demo_unavailable_page.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
+import 'package:submersion/core/router/web_unavailable_routes.dart';
+import 'package:submersion/shared/widgets/web_unavailable_page.dart';
 
 /// Root navigator key, so app-wide modals (e.g. the replaced-library adopt
 /// dialog surfaced from the app root) can be shown above the shell.
 final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
+/// Reports when a route is pushed on top of, or popped back to, the Dive
+/// Computers section of the Transfer tab (issue #3361), so
+/// `AutoConnectController` can pause its passive scan while the discovery
+/// wizard, a computer detail page or the download page covers it, and
+/// resume when the diver backs out to it again.
+///
+/// go_router merges `GoRouter.observers` into every `ShellRoute`'s own
+/// nested `Navigator` by default (`notifyRootObserver: true`, unchanged
+/// here), so this one `RouteObserver` sees pushes/pops for every shell
+/// branch, not only the root `Navigator`.
+final computersRouteObserver = RouteObserver<ModalRoute<void>>();
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     navigatorKey: rootNavigatorKey,
+    observers: [computersRouteObserver],
     initialLocation: '/dashboard',
     redirect: (context, state) async {
       // Skip redirect logic during database migration to prevent deadlock
@@ -274,6 +291,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // Demo mode (issue #3708): a sealed screen explains itself instead.
       final sealed = demoRedirect(state.uri.toString());
       if (sealed != null) return sealed;
+
+      // A browser cannot serve the hardware and file-bound screens; a
+      // bookmark or deep link to one lands on a page that says so.
+      final unavailable = webUnavailableRedirect(
+        ref.read(deviceCapabilitiesProvider),
+        state.uri.toString(),
+      );
+      if (unavailable != null) return unavailable;
 
       final hasDivers = await ref.read(hasAnyDiversProvider.future);
       final isOnWelcome = state.matchedLocation == '/welcome';
@@ -317,6 +342,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: 'demoUnavailable',
             builder: (context, state) => DemoUnavailablePage(
               feature: DemoUnavailablePage.featureFromQuery(
+                state.uri.queryParameters['feature'],
+              ),
+            ),
+          ),
+          GoRoute(
+            path: webUnavailableLocation,
+            name: 'webUnavailable',
+            builder: (context, state) => WebUnavailablePage(
+              feature: WebUnavailablePage.featureFromQuery(
                 state.uri.queryParameters['feature'],
               ),
             ),
@@ -1401,6 +1435,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: 'incidentNew',
                 builder: (context, state) => IncidentEditPage(
                   diveId: state.uri.queryParameters['diveId'],
+                  observationId: state.uri.queryParameters['observationId'],
                 ),
               ),
               GoRoute(
@@ -1511,6 +1546,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'data-quality',
                 name: 'dataQualitySettings',
                 builder: (context, state) => const DataQualitySettingsPage(),
+              ),
+              GoRoute(
+                path: 'table-editor',
+                name: 'tableEditor',
+                onExit: confirmLeaveTableEditor,
+                builder: (context, state) => const TableEditorPage(),
               ),
               GoRoute(
                 path: 'appearance',

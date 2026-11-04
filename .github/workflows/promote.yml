@@ -213,7 +213,7 @@ jobs:
           # store-only artifact deliberately not re-hosted on the stable
           # release, matching the historical stable asset list).
           sha256sum -c --ignore-missing checksums-sha256.txt
-          for suffix in macOS.dmg Windows-Setup.exe Linux.tar.gz Android.apk Android.aab iOS.ipa; do
+          for suffix in macOS.dmg Windows-Setup.exe Linux.tar.gz Android.apk Android.aab iOS.ipa Web.zip; do
             ls Submersion-*-$suffix >/dev/null || { echo "::error::Missing $suffix"; exit 1; }
           done
           test -s appcast.xml
@@ -456,10 +456,22 @@ jobs:
             --body "Opens the next beta train after promoting ${{ needs.promote.outputs.tag }}. Auto-merges when checks pass; until it lands, the beta pipeline's train-closed guard fails every merge."
           arm_automerge "$BRANCH"
 
+  # Submersion's own site, https://web.submersion.app, gets the promoted
+  # release's web bundle as it is (issue #4161). Skips with a notice until
+  # WEB_DEPLOY_TOKEN is set (docs/developer/web-site-setup.md).
+  deploy-web:
+    name: Deploy the web app
+    needs: promote
+    uses: ./.github/workflows/deploy-web.yml
+    with:
+      tag: ${{ needs.promote.outputs.tag }}
+    secrets:
+      WEB_DEPLOY_TOKEN: ${{ secrets.WEB_DEPLOY_TOKEN }}
+
   notify-failures:
     name: Open issue on promotion failure
     runs-on: ubuntu-latest
-    needs: [promote, promote-play, submit-appstore, bump-pr]
+    needs: [promote, promote-play, submit-appstore, bump-pr, deploy-web]
     if: always() && contains(needs.*.result, 'failure')
     permissions:
       issues: write
@@ -471,4 +483,4 @@ jobs:
           gh issue create --repo ${{ github.repository }} \
             --title "Promotion of build ${{ inputs.build-number }} partially failed" \
             --label ci \
-            --body "One or more promotion jobs failed: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}. The GitHub release, Play promotion, App Store submission, and bump PR are independent - check which succeeded before re-running."
+            --body "One or more promotion jobs failed: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}. The GitHub release, Play promotion, App Store submission, bump PR, and web app deploy are independent - check which succeeded before re-running. A failed web app deploy can be rerun alone with the Deploy Web App workflow."

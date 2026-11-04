@@ -1,10 +1,7 @@
-import 'dart:io';
-
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/data/demo_state_store.dart';
-import 'package:submersion/features/demo_mode/data/prefs_snapshot.dart';
 import 'package:submersion/features/demo_mode/domain/demo_state.dart';
 
 final _log = LoggerService.forClass(DemoStartup);
@@ -32,11 +29,9 @@ class DemoStartup {
     required DemoStateStore store,
     required SharedPreferences prefs,
   }) async {
-    final paths = store.paths;
-    // The common case, demo mode never used: a synchronous stat, so a launch
-    // (and every startup widget test, whose zone never completes dart:io
-    // futures) does no async file work here.
-    if (!Directory(paths.root).existsSync()) {
+    // The common case, demo mode never used: a synchronous look, so a
+    // launch does no async work here (see DemoStateStore.hasAnything).
+    if (!store.hasAnything) {
       DemoModeGate.instance.markActive(false);
       return const DemoStartupDecision(null);
     }
@@ -44,10 +39,10 @@ class DemoStartup {
     String? demoPath;
     switch (state?.phase) {
       case null:
-        // A directory with no readable state is debris; clear it.
+        // Demo files with no readable state are debris; clear them.
         await store.deleteAll();
-      case DemoPhase.active when await File(paths.databaseFile).exists():
-        demoPath = paths.databaseFile;
+      case DemoPhase.active when await store.hasDatabase():
+        demoPath = store.paths.databaseFile;
       case DemoPhase.entering || DemoPhase.active || DemoPhase.exiting:
         await _finishExit(store, prefs);
     }
@@ -59,13 +54,10 @@ class DemoStartup {
     DemoStateStore store,
     SharedPreferences prefs,
   ) async {
-    final snapshot = File(store.paths.prefsSnapshotFile);
-    if (await snapshot.exists()) {
-      try {
-        await PrefsSnapshot.restore(prefs, snapshot);
-      } on StateError catch (e) {
-        _log.warning('Demo mode preferences could not be restored: $e');
-      }
+    try {
+      await store.restorePrefs(prefs);
+    } on StateError catch (e) {
+      _log.warning('Demo mode preferences could not be restored: $e');
     }
     await store.deleteAll();
   }

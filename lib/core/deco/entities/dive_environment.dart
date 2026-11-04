@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/app_enums.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 
 /// Physical environment of a dive: what decompression, oxygen exposure, gas

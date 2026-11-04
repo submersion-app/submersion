@@ -3405,6 +3405,10 @@
   "@notesEditor_action_numberedList": {
     "description": "Tooltip for the notes editor button that turns lines into a numbered list"
   },
+  "notesEditor_action_annotate": "Annotate",
+  "@notesEditor_action_annotate": {
+    "description": "Tooltip for the notes editor button that pins the selected words to a time in the dive (an annotation)"
+  },
   "notesEditor_action_preview": "Preview",
   "@notesEditor_action_preview": {
     "description": "Toggle in the notes editor that shows the notes formatted instead of the Markdown being typed"
@@ -4211,7 +4215,6 @@
   "diveCenters_fillHours_errorOrder": "Closing time must be after opening time.",
   "diveCenters_section_notes": "Notes",
   "diveCenters_snackbar_coordinatesFound": "Coordinates found from address",
-  "diveCenters_snackbar_copiedToClipboard": "Copied to clipboard",
   "diveCenters_snackbar_imported": "Imported \"{name}\"",
   "diveCenters_snackbar_locationCaptured": "Location captured",
   "diveCenters_snackbar_locationCapturedWithAccuracy": "Location captured (±{accuracy}m)",
@@ -4901,6 +4904,104 @@
   "diveLog_edit_section_equipment": "Equipment",
   "diveLog_edit_section_marineLife": "Species",
   "diveLog_edit_section_notes": "Notes",
+  "diveLog_annotation_sheetTitle_new": "New annotation",
+  "@diveLog_annotation_sheetTitle_new": {
+    "description": "Title of the sheet that creates an annotation (a notes passage pinned to a time in the dive) when no words were selected"
+  },
+  "diveLog_annotation_sheetTitle_editTime": "Change the time",
+  "@diveLog_annotation_sheetTitle_editTime": {
+    "description": "Title of the sheet that changes when an existing annotation happened; the words appear beneath it"
+  },
+  "diveLog_annotation_sheetTitle_words": "Annotate \"{words}\"",
+  "@diveLog_annotation_sheetTitle_words": {
+    "description": "Title of the sheet that pins the selected notes words to a time in the dive",
+    "placeholders": {
+      "words": {"type": "String", "example": "started feeling nauseous"}
+    }
+  },
+  "diveLog_annotation_field_words": "What happened",
+  "@diveLog_annotation_field_words": {
+    "description": "Label of the words field on the annotation sheet"
+  },
+  "diveLog_annotation_words_required": "Say what happened",
+  "@diveLog_annotation_words_required": {
+    "description": "Validation message when the annotation words field is left empty"
+  },
+  "diveLog_annotation_field_time": "Time from the start",
+  "@diveLog_annotation_field_time": {
+    "description": "Label of the minutes:seconds field on the annotation sheet"
+  },
+  "diveLog_annotation_time_invalid": "Enter minutes:seconds",
+  "@diveLog_annotation_time_invalid": {
+    "description": "Validation message when the annotation time does not parse as minutes:seconds"
+  },
+  "diveLog_annotation_time_outsideDive": "Must be within the dive",
+  "@diveLog_annotation_time_outsideDive": {
+    "description": "Validation message when the annotation time is later than the dive's runtime"
+  },
+  "diveLog_annotation_pickOnProfile": "Or tap the profile to place it",
+  "@diveLog_annotation_pickOnProfile": {
+    "description": "Hint above the small dive profile on the annotation sheet"
+  },
+  "diveLog_annotation_noProfile": "This dive has no profile to point at. Type the time instead.",
+  "@diveLog_annotation_noProfile": {
+    "description": "Shown on the annotation sheet in place of the small profile when the dive has no profile samples"
+  },
+  "diveLog_annotation_action_annotate": "Annotate",
+  "@diveLog_annotation_action_annotate": {
+    "description": "Primary button of the annotation sheet when the words were selected in the notes"
+  },
+  "diveLog_annotation_action_add": "Add",
+  "@diveLog_annotation_action_add": {
+    "description": "Primary button of the annotation sheet when it also asked for the words"
+  },
+  "diveLog_annotation_add": "Add annotation",
+  "@diveLog_annotation_add": {
+    "description": "Tooltip of the pin button on the dive profile card that starts placing an annotation"
+  },
+  "diveLog_annotation_banner_place": "Tap the profile where it happened. Press and hold to fine-tune.",
+  "@diveLog_annotation_banner_place": {
+    "description": "Banner above the dive profile while a new annotation is being placed"
+  },
+  "diveLog_annotation_banner_move": "Tap the new spot for this annotation.",
+  "@diveLog_annotation_banner_move": {
+    "description": "Banner above the dive profile while an existing annotation is being moved"
+  },
+  "diveLog_annotation_banner_cancel": "Cancel",
+  "@diveLog_annotation_banner_cancel": {
+    "description": "Button on the placement banner that leaves placement mode with nothing added"
+  },
+  "diveLog_annotation_popup_meta": "{time} at {depth}",
+  "@diveLog_annotation_popup_meta": {
+    "description": "Time and depth line of the annotation popup, e.g. 21:30 at 19.6m",
+    "placeholders": {
+      "time": {"type": "String", "example": "21:30"},
+      "depth": {"type": "String", "example": "19.6m"}
+    }
+  },
+  "diveLog_annotation_popup_openInNotes": "Open in Notes",
+  "@diveLog_annotation_popup_openInNotes": {
+    "description": "Annotation popup action that scrolls to the Notes card and highlights the passage"
+  },
+  "diveLog_annotation_popup_move": "Move",
+  "@diveLog_annotation_popup_move": {
+    "description": "Annotation popup action that re-enters placement mode for this annotation"
+  },
+  "diveLog_annotation_popup_remove": "Remove",
+  "@diveLog_annotation_popup_remove": {
+    "description": "Annotation popup action that deletes the annotation and keeps its words as plain text"
+  },
+  "diveLog_annotation_contextMenu_annotateAt": "Annotate at {time}",
+  "@diveLog_annotation_contextMenu_annotateAt": {
+    "description": "Right-click menu item on the dive profile that opens the annotation sheet for that time",
+    "placeholders": {
+      "time": {"type": "String", "example": "30:00"}
+    }
+  },
+  "diveLog_annotation_removed": "Annotation removed",
+  "@diveLog_annotation_removed": {
+    "description": "Snack bar shown after an annotation was removed from the profile"
+  },
   "diveLog_edit_section_rating": "Rating",
   "diveLog_edit_section_tags": "Tags",
   "diveLog_edit_section_trainingCourses": "Training Courses",
@@ -5125,6 +5226,7 @@
   "diveLog_legend_label_cns": "CNS%",
   "diveLog_legend_label_depth": "Depth",
   "diveLog_legend_label_events": "Events",
+  "diveLog_legend_label_annotations": "Annotations",
   "diveLog_legend_label_computedEvents": "Computed events",
   "diveLog_legend_label_gasDensity": "Gas Density",
   "diveLog_legend_label_lateGasSwitches": "Late gas switches",
@@ -5724,7 +5826,7 @@
   "diveLog_refine_showDives": "{count, plural, =1{Show {count} dive} other{Show {count} dives}}",
   "@diveLog_refine_showDives": {"placeholders": {"count": {"type": "int"}}},
   "diveLog_refine_showDivesNoCount": "Show dives",
-  "diveLog_search_fieldHint": "Search, or try depth > 30m",
+  "diveLog_search_fieldHint": "Site, buddy, gear or date",
   "diveLog_search_refineTooltip": "Refine",
   "diveLog_search_closeTooltip": "Close search",
   "diveLog_search_scopeWithin": "Within filters",
@@ -5931,6 +6033,7 @@
   "diveLog_cylinders_figureUsed": "Used {pressure}",
   "diveLog_cylinders_gasSemantics": "Gas {mix}",
   "diveLog_cylinders_gasUsed": "Gas used {amount}",
+  "diveLog_cylinders_loopUse": "Loop use {rate}",
   "diveLog_cylinders_mod": "MOD {depth}",
   "diveLog_cylinders_mnd": "MND {depth}",
   "diveLog_cylinders_modNote": "MOD at ppO₂ {ppO2}",
@@ -6607,6 +6710,14 @@
     "description": "Cylinders card detail item: the volume of gas the dive consumed from this cylinder, e.g. \"Gas used 1665 L\"",
     "placeholders": {
       "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "@diveLog_cylinders_loopUse": {
+    "description": "Cylinders card detail item on a CCR dive: the rate gas left this cylinder while the diver was on the loop, with no depth correction, e.g. \"Loop use 1.8 L/min\"",
+    "placeholders": {
+      "rate": {
         "type": "String"
       }
     }
@@ -8135,6 +8246,7 @@
   "enum_profileEvent_maxDepth": "Max Depth",
   "enum_profileEvent_missedStop": "Missed Deco Stop",
   "enum_profileEvent_note": "Note",
+  "enum_profileEvent_annotation": "Annotation",
   "enum_profileEvent_ppO2High": "High ppO2",
   "enum_profileEvent_ppO2Low": "Low ppO2",
   "enum_profileEvent_safetyStopEnd": "Safety Stop End",
@@ -12546,6 +12658,10 @@
   "@media_library_filter_site": {
     "description": "Library filter chip: pick a dive site"
   },
+  "media_library_filter_source": "Source",
+  "@media_library_filter_source": {
+    "description": "Library filter sheet row: pick the source the media came from (photo library, local files, and so on)"
+  },
   "media_library_filter_species": "Species",
   "@media_library_filter_species": {
     "description": "Library filter chip: pick a species tag"
@@ -12626,6 +12742,38 @@
   "media_library_untitledDiveHeader": "Untitled dive",
   "@media_library_untitledDiveHeader": {
     "description": "By-dive view header for a linked dive with no number, site or date"
+  },
+  "media_library_siteHeader": "Site: {name}",
+  "@media_library_siteHeader": {
+    "description": "By-dive view header for media attached to a dive site but to no dive",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "description": "The dive site's name"
+      }
+    }
+  },
+  "media_library_equipmentHeader": "Equipment: {name}",
+  "@media_library_equipmentHeader": {
+    "description": "By-dive view header for media attached to an equipment item but to no dive or site",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "description": "The equipment item's name"
+      }
+    }
+  },
+  "media_library_siteHeaderHint": "Open this site",
+  "@media_library_siteHeaderHint": {
+    "description": "Accessibility hint for the by-dive view's site group header, which opens the site"
+  },
+  "media_library_equipmentHeaderHint": "Open this equipment",
+  "@media_library_equipmentHeaderHint": {
+    "description": "Accessibility hint for the by-dive view's equipment group header, which opens the equipment item"
+  },
+  "media_library_untitledEquipment": "Untitled equipment",
+  "@media_library_untitledEquipment": {
+    "description": "Name used in the by-dive view's equipment header when the item has no name"
   },
   "media_library_viewMode_byDive": "By dive",
   "@media_library_viewMode_byDive": {
@@ -13028,6 +13176,20 @@
   "plannerSeries_surfaceInterval_invalid": "Enter a time as h:mm",
   "plannerSeries_surfaceInterval_decrease": "15 minutes less",
   "plannerSeries_surfaceInterval_increase": "15 minutes more",
+  "plannerSeries_unsaved_title": "Save this series?",
+  "plannerSeries_unsaved_body": "This series has changes that haven't been saved.",
+  "plannerSeries_unsaved_discard": "Discard",
+  "plannerSeries_unsaved_titleDive": "Save this dive?",
+  "plannerSeries_unsaved_bodyDive": "This dive has changes that haven't been saved.",
+  "plannerSeries_saved_diveCount": "{count} dives",
+  "@plannerSeries_saved_diveCount": {
+    "description": "How many dives a saved series has, in the saved plans list",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "plannerSeries_fill": "Fill {tank}",
   "@plannerSeries_fill": {
     "description": "The tank's name or gas, such as EAN32",
@@ -13038,7 +13200,6 @@
     }
   },
   "plannerSeries_fillAll": "Fill all tanks",
-  "plannerSeries_saveUnavailable": "A series of dives can't be saved yet",
   "plannerSeries_convertUnavailable": "A series of dives can't be converted to logged dives yet",
   "plannerSeries_missionUnavailable": "A series of dives can't be planned as a DPV mission",
   "plannerSeries_followUnavailableInReplan": "A replan can't follow another dive",
@@ -13298,8 +13459,9 @@
   "settings_about_header": "About",
   "settings_about_openSourceLicenses": "Open Source Licenses",
   "settings_about_reportIssue": "Report an Issue",
-  "settings_about_reportIssue_copy": "Copy link",
   "settings_about_reportIssue_snackbar": "Visit github.com/submersion-app/submersion/issues",
+  "settings_about_userGuide": "User Guide",
+  "settings_about_userGuide_snackbar": "Visit submersion.app/guide",
   "settings_about_version": "Version {version}",
   "@settings_about_version": {
     "placeholders": {
@@ -14675,6 +14837,7 @@
   "settings_conflict_field_diveDetailSections": "Dive detail sections",
   "settings_conflict_field_diveListViewMode": "Dive list view",
   "settings_conflict_field_diveModeOverride": "Breathing mode for this segment",
+  "settings_conflict_field_diveName": "Dive name",
   "settings_conflict_field_diveOperator": "Dive operator",
   "settings_conflict_field_divePlanSegments_type": "Segment",
   "settings_conflict_field_divePlanTanks_role": "Tank role",
@@ -14968,6 +15131,7 @@
   "settings_conflict_field_seascapeAppearance": "Seascape appearance",
   "settings_conflict_field_seascapeVerticalExaggerationOverrides": "Seascape height scaling",
   "settings_conflict_field_section": "Section",
+  "settings_conflict_field_seriesIndex": "Position in series",
   "settings_conflict_field_serviceCategory": "Service type",
   "settings_conflict_field_serviceDate": "Service date",
   "settings_conflict_field_serviceReminderDays": "Service reminder days",
@@ -15022,6 +15186,7 @@
   "settings_conflict_field_sourceItemId": "Linked item",
   "settings_conflict_field_sourceMetadata": "Extra data from the source",
   "settings_conflict_field_sourceRef": "Source file or device",
+  "settings_conflict_field_sourceTankId": "Carried over from tank",
   "settings_conflict_field_sourceTankIndex": "Tank number in the source log",
   "settings_conflict_field_sourceType": "Source",
   "settings_conflict_field_sourceUuid": "Source ID",
@@ -15031,6 +15196,7 @@
   "settings_conflict_field_splitAtConfiguredRate": "Split at the configured rate",
   "settings_conflict_field_startDateTime": "Planned start",
   "settings_conflict_field_startDepth": "Start depth",
+  "settings_conflict_field_startPressurePinned": "Start pressure set by hand",
   "settings_conflict_field_startTime": "Start time",
   "settings_conflict_field_startTimestamp": "Starts at (time into dive)",
   "settings_conflict_field_startedAt": "Started",
@@ -15425,14 +15591,17 @@
   "settings_conflict_ref_diveCenter": "Dive center",
   "settings_conflict_ref_diveComputer": "Dive computer",
   "settings_conflict_ref_divePlan": "Dive plan",
+  "settings_conflict_ref_divePlanSeries": "Dive series",
   "settings_conflict_ref_diveRole": "Dive role",
   "settings_conflict_ref_diveSite": "Dive site",
   "settings_conflict_ref_diveType": "Dive type",
   "settings_conflict_ref_diver": "Diver",
   "settings_conflict_ref_equipment": "Equipment",
   "settings_conflict_ref_equipmentLocation": "Equipment location",
+  "settings_conflict_ref_gearCheckIn": "Gear check-in",
   "settings_conflict_ref_equipmentSet": "Equipment set",
   "settings_conflict_ref_finding": "Finding",
+  "settings_conflict_ref_followedDive": "Followed dive",
   "settings_conflict_ref_importedFile": "Imported file",
   "settings_conflict_ref_installedIn": "Installed in",
   "settings_conflict_ref_instructor": "Instructor",
@@ -15460,6 +15629,11 @@
   "settings_conflict_ref_species": "Species",
   "settings_conflict_ref_tag": "Tag",
   "settings_conflict_ref_tank": "Tank",
+  "settings_conflict_ref_weight": "Weight",
+  "settings_conflict_ref_customField": "Custom field",
+  "settings_conflict_ref_gasSwitch": "Gas switch",
+  "settings_conflict_ref_profileEvent": "Profile event",
+  "settings_conflict_ref_scenario": "Scenario",
   "settings_conflict_ref_transmitter": "Transmitter",
   "settings_conflict_ref_trip": "Trip",
   "settings_conflict_ref_tripCylinder": "Trip cylinder",
@@ -15582,8 +15756,32 @@
   "settings_data_importOptions": "Import options",
   "settings_data_importOptions_subtitle": "Site matching, surfacing pressure, auto tags",
   "settings_data_dataTools": "Data tools",
-  "settings_data_dataTools_subtitle": "Fix dive times, link buddies, retype gear, data quality",
+  "settings_data_dataTools_subtitle": "Fix dive times, link buddies, retype gear, data quality, table editor",
   "settings_agentAccess_title": "Agent access",
+  "settings_agentAccess_confirm_linkedDives": "Dives that lose this link ({diver}): {count}",
+  "@settings_agentAccess_confirm_linkedDives": {"placeholders": {"diver": {"type": "String"}, "count": {"type": "int"}}},
+  "settings_agentAccess_confirm_alsoDeletes": "Also deletes {kind}: {count}",
+  "@settings_agentAccess_confirm_alsoDeletes": {"placeholders": {"kind": {"type": "String"}, "count": {"type": "int"}}},
+  "settings_agentAccess_confirm_alsoUnlinks": "Also unlinks {kind}: {count}",
+  "@settings_agentAccess_confirm_alsoUnlinks": {"placeholders": {"kind": {"type": "String"}, "count": {"type": "int"}}},
+  "settings_agentAccess_confirm_merge": "Merge into {name}",
+  "@settings_agentAccess_confirm_merge": {"placeholders": {"name": {"type": "String"}}},
+  "settings_agentAccess_confirm_moves": "Moves {kind}: {count}",
+  "@settings_agentAccess_confirm_moves": {"placeholders": {"kind": {"type": "String"}, "count": {"type": "int"}}},
+  "settings_agentAccess_confirm_title": "Allow this change?",
+  "settings_agentAccess_confirm_client": "{client} wants to change your logbook.",
+  "@settings_agentAccess_confirm_client": {"placeholders": {"client": {"type": "String"}}},
+  "settings_agentAccess_confirm_unknownClient": "An agent wants to change your logbook.",
+  "settings_agentAccess_confirm_count": "{kind}: {count}",
+  "@settings_agentAccess_confirm_count": {"placeholders": {"kind": {"type": "String"}, "count": {"type": "int"}}},
+  "settings_agentAccess_confirm_shared": "Shared",
+  "settings_agentAccess_confirm_details": "Show every change",
+  "settings_agentAccess_confirm_allow": "Allow",
+  "settings_agentAccess_confirm_deny": "Deny",
+  "settings_agentAccess_confirm_none": "none",
+  "settings_agentAccess_confirm_create": "New",
+  "settings_agentAccess_confirm_update": "Change",
+  "settings_agentAccess_confirm_delete": "Delete",
   "settings_agentAccess_subtitle": "Let an AI agent on this computer read and change your logbook",
   "settings_agentAccess_enable": "Enable agent access",
   "settings_agentAccess_statusListening": "Listening",
@@ -16480,7 +16678,7 @@
   "settings_units_gasModel_real_subtitle": "Accounts for compressibility. A 12 L cylinder at 200 bar holds about 2317 L.",
   "settings_units_gasModel_ideal": "Ideal gas",
   "settings_units_gasModel_ideal_subtitle": "Matches hand calculation and dive tables. A 12 L cylinder at 200 bar holds 2400 L.",
-  "settings_units_gasModel_explanation": "How cylinder pressure is converted to gas volume. This affects RMV, gas statistics, the planner, and the gas calculators. Ideal gas matches the arithmetic taught by training agencies; real gas is physically accurate and reads roughly 5% lower for RMV.",
+  "settings_units_gasModel_explanation": "How cylinder pressure is converted to gas volume. This affects RMV, gas used, gas statistics, the planner, and the gas calculators. Ideal gas matches the arithmetic taught by training agencies; real gas is physically accurate and reads roughly 5% lower for RMV.",
   "settings_units_dialog_gasModel": "Gas calculations",
   "settings_units_dialog_waterType": "Default water type",
   "settings_units_dialog_temperatureUnit": "Temperature Unit",
@@ -17180,6 +17378,16 @@
   "insights_equipment_exposureUnit_cycles": "Battery cycles",
   "insights_error_loadingInsights": "Error loading insights",
   "insights_filterBar_clear": "Clear filter",
+  "insights_filterBar_allDives": "All dives",
+  "@insights_filterBar_allDives": {"description": "Insights group selector: every dive, no group chosen"},
+  "insights_filterBar_customFilter": "Custom filter",
+  "@insights_filterBar_customFilter": {"description": "Insights group selector: a filter that is not one of the saved groups"},
+  "insights_filterBar_chooseGroup": "Choose a dive group",
+  "@insights_filterBar_chooseGroup": {"description": "Tooltip of the Insights group selector"},
+  "insights_filterBar_saveCurrent": "Save current filter...",
+  "@insights_filterBar_saveCurrent": {"description": "Insights group menu: saves the active filter as a named group"},
+  "insights_filterBar_manageSaved": "Manage saved queries",
+  "@insights_filterBar_manageSaved": {"description": "Insights group menu: opens the saved queries page"},
   "insights_filterBar_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
   "insights_gas_appBar_title": "Air Consumption",
   "insights_gas_gasMix_error": "Failed to load gas mix data",
@@ -17189,6 +17397,11 @@
   "insights_gas_sacByRole_error": "Failed to load consumption by role",
   "insights_gas_sacByRole_subtitle": "Average consumption by tank type",
   "insights_gas_sacByRole_title": "Gas consumption by tank role",
+  "insights_gas_ccrUse_title": "Rebreather gas use",
+  "insights_gas_ccrUse_subtitle": "Per minute on the loop, leaving out bailout time",
+  "insights_gas_ccrUse_o2Average": "O₂ average",
+  "insights_gas_ccrUse_o2Series": "O₂",
+  "insights_gas_ccrUse_diluentAverage": "Diluent average",
   "insights_gas_sacRecords_empty": "No consumption data yet",
   "insights_gas_sacRecords_error": "Failed to load consumption records",
   "insights_gas_sacRecords_highestRmv": "Highest RMV",
@@ -18851,6 +19064,11 @@
   "transfer_computers_appleWatchHeader": "Apple Watch",
   "transfer_computers_appleWatchSubtitle": "Import dives via Apple HealthKit",
   "transfer_computers_appleWatchTitle": "Import from Apple Watch",
+  "transfer_computers_autoConnect_downloadingSnackbar": "Downloading from {name}...",
+  "@transfer_computers_autoConnect_downloadingSnackbar": {"placeholders": {"name": {"type": "String"}}},
+  "transfer_computers_autoConnect_searching": "Searching for known computers...",
+  "transfer_computers_autoConnect_switchSubtitle": "While this screen is open, scans for known computers and downloads from one automatically when it's in range.",
+  "transfer_computers_autoConnect_switchTitle": "Auto-connect known computers",
   "transfer_computers_connectSubtitle": "Discover and pair a dive computer",
   "transfer_computers_connectTitle": "Connect New Computer",
   "transfer_computers_errorLoading": "Error loading computers",
@@ -19202,6 +19420,18 @@
   "trips_photos_sectionTitle": "Photos",
   "trips_photos_tooltip_scan": "Scan device gallery",
   "trips_photos_viewAll": "View All",
+  "trips_dateStretch_failed": "Dive saved, but the trip's dates couldn't be updated",
+  "trips_dateStretch_message": "{trip} now runs {dates}",
+  "@trips_dateStretch_message": {
+    "placeholders": {
+      "trip": {
+        "type": "String"
+      },
+      "dates": {
+        "type": "String"
+      }
+    }
+  },
   "trips_picker_alreadyPacked": "Already packed",
   "trips_picker_clearTooltip": "Clear selection",
   "trips_picker_empty_createButton": "Create Trip",
@@ -21036,6 +21266,8 @@
     }
   },
   "certifications_certificate_thisCertifies": "This certifies that",
+  "diveComputer_autoDownload_disableSubtitle": "Keeps this computer out of the passive auto-connect scan, even while that switch is on.",
+  "diveComputer_autoDownload_disableTitle": "Skip auto-connect for this computer",
   "diveComputer_clockSync_appSettingOff": "App setting: off",
   "diveComputer_clockSync_appSettingOn": "App setting: on",
   "diveComputer_clockSync_cardTitle": "Clock sync",
@@ -24488,6 +24720,7 @@
   "incidents_empty": "No near-misses logged. Recording what almost went wrong - without judgment - is how patterns become visible before they become accidents.",
   "incidents_add": "Log near-miss",
   "incidents_linkedDive": "Linked to a dive",
+  "incidents_linkedCheckIn": "Linked to a check-in",
   "incidents_delete_confirm": "Delete this near-miss report?",
   "incidents_notFound": "Near-miss report not found",
   "incidentEdit_title_new": "Log near-miss",
@@ -24509,6 +24742,8 @@
   "incidentEdit_equipment_none": "None",
   "incidentEdit_equipment_onThisDive": "On this dive",
   "incidentEdit_equipment_allGear": "All gear",
+  "incidentEdit_checkIn": "Gear check-in",
+  "incidentEdit_checkIn_others": "Other check-ins",
   "incidentCategory_buoyancy": "Buoyancy",
   "incidentCategory_gasSupply": "Gas supply",
   "incidentCategory_equipment": "Equipment",
@@ -25056,6 +25291,14 @@
   "equipmentObservation_card_title": "Check-ins",
   "equipmentObservation_card_empty": "No check-ins recorded for this item.",
   "equipmentObservation_card_add": "Add check-in",
+  "equipmentObservation_card_nearMissLinked": "{count, plural, =1{Near-miss linked} other{{count} near-misses linked}}",
+  "@equipmentObservation_card_nearMissLinked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "equipmentObservation_card_onDive": "Dive #{number}",
   "@equipmentObservation_card_onDive": {
     "placeholders": {
@@ -26077,6 +26320,79 @@
   "enum_diveField_cloudCover_short": "Cloud",
   "enum_diveField_precipitation_short": "Precip",
   "enum_diveField_humidity_short": "Humid",
+  "tableEditor_skip_ambiguousRow": "{key} names more than one row",
+  "@tableEditor_skip_ambiguousRow": {"placeholders": {"key": {"type": "String"}}},
+  "tableEditor_skip_readOnlyCell": "{key}: that cell is read-only",
+  "@tableEditor_skip_readOnlyCell": {"placeholders": {"key": {"type": "String"}}},
+  "tableEditor_discardDraft": "Discard change",
+  "tableEditor_changeLog": "Change log",
+  "settings_tableEditor_title": "Table editor",
+  "settings_tableEditor_subtitle": "Edit many dives, sites or centers in a spreadsheet",
+  "tableEditor_title": "Table editor",
+  "tableEditor_tab_dives": "Dives",
+  "tableEditor_tab_sites": "Sites",
+  "tableEditor_tab_centers": "Centers",
+  "tableEditor_needsWiderScreen": "The table editor needs a wider window. Open it on a tablet or a computer.",
+  "tableEditor_saveAll": "Save all",
+  "tableEditor_paste": "Paste",
+  "tableEditor_clearFilters": "Clear filters",
+  "tableEditor_draftCount": "{count, plural, =1{{count} unsaved} other{{count} unsaved}}",
+  "@tableEditor_draftCount": {"placeholders": {"count": {"type": "int"}}},
+  "tableEditor_summary_title": "Save changes?",
+  "tableEditor_summary_changed": "{count, plural, =1{{count} cell changes} other{{count} cells change}}",
+  "@tableEditor_summary_changed": {"placeholders": {"count": {"type": "int"}}},
+  "tableEditor_summary_attention": "{count, plural, =1{{count} needs attention and will not be saved} other{{count} need attention and will not be saved}}",
+  "@tableEditor_summary_attention": {"placeholders": {"count": {"type": "int"}}},
+  "tableEditor_summary_overwrite": "{count, plural, =1{{count} replaces an existing value} other{{count} replace an existing value}}",
+  "@tableEditor_summary_overwrite": {"placeholders": {"count": {"type": "int"}}},
+  "tableEditor_summary_changedElsewhere": "{count, plural, =1{{count} changed elsewhere since you edited it} other{{count} changed elsewhere since you edited them}}",
+  "@tableEditor_summary_changedElsewhere": {"placeholders": {"count": {"type": "int"}}},
+  "tableEditor_summary_matching_number": "Pasted rows matched by dive number",
+  "tableEditor_summary_matching_name": "Pasted rows matched by name",
+  "tableEditor_summary_matching_position": "Pasted rows placed by position",
+  "tableEditor_skip_readOnlyColumn": "{column} is read-only",
+  "@tableEditor_skip_readOnlyColumn": {"placeholders": {"column": {"type": "String"}}},
+  "tableEditor_skip_unknownRow": "No row for {key}",
+  "@tableEditor_skip_unknownRow": {"placeholders": {"key": {"type": "String"}}},
+  "tableEditor_skip_hiddenRow": "{key} is hidden by the filter",
+  "@tableEditor_skip_hiddenRow": {"placeholders": {"key": {"type": "String"}}},
+  "tableEditor_skip_truncated": "{count, plural, =1{{count} row past the end of the sheet} other{{count} rows past the end of the sheet}}",
+  "@tableEditor_skip_truncated": {"placeholders": {"count": {"type": "int"}}},
+  "tableEditor_skip_unknownColumn": "No column named {header}",
+  "@tableEditor_skip_unknownColumn": {"placeholders": {"header": {"type": "String"}}},
+  "tableEditor_saved": "{count, plural, =1{{count} change saved} other{{count} changes saved}}",
+  "@tableEditor_saved": {"placeholders": {"count": {"type": "int"}}},
+  "tableEditor_saveFailed": "Nothing was saved. Fix the error and try again.",
+  "tableEditor_undo": "Undo",
+  "tableEditor_undoneAll": "Changes undone",
+  "tableEditor_undonePartial": "Undid {reverted} of {total} changes",
+  "@tableEditor_undonePartial": {"placeholders": {"reverted": {"type": "int"}, "total": {"type": "int"}}},
+  "tableEditor_open_saveAndOpen": "Save all and open",
+  "tableEditor_open_discardAndOpen": "Discard and open",
+  "tableEditor_open_stay": "Stay",
+  "tableEditor_original": "Was: {value}",
+  "@tableEditor_original": {"placeholders": {"value": {"type": "String"}}},
+  "tableEditor_flag_unparsable": "Not a valid value",
+  "tableEditor_flag_unknownValue": "Not in the list",
+  "tableEditor_flag_pairIncomplete": "Needs both latitude and longitude",
+  "tableEditor_flag_scrubberNeedsType": "Needs a scrubber type",
+  "tableEditor_flag_changedElsewhere": "Changed elsewhere since you edited it",
+  "tableEditor_multiChoice_done": "Done",
+  "tableEditor_libraryReadOnly": "Library site: only notes and rating can be edited here",
+  "tableEditor_summary_pairClear": "Clearing one coordinate clears both",
+  "tableEditor_weightRows": "{count, plural, =1{{count} weight row, edit it in the dive} other{{count} weight rows, edit them in the dive}}",
+  "@tableEditor_weightRows": {"placeholders": {"count": {"type": "int"}}},
+  "tableEditor_summary_siteSnap": "Setting a site also sets its water type, entry, exit and dive types on the dive",
+  "enum_diveField_excludedFromStats": "Excluded from Stats",
+  "enum_diveField_excludedFromStats_short": "No Stats",
+  "enum_diveField_excludedFromGasStats": "Excluded from Gas Stats",
+  "enum_diveField_excludedFromGasStats_short": "No Gas Stats",
+  "enum_diveField_windDirection": "Wind Direction",
+  "enum_diveField_windDirection_short": "Wind Dir",
+  "enum_diveField_scrubberType": "Scrubber Type",
+  "enum_diveField_scrubberType_short": "Scrubber",
+  "enum_diveField_scrubberDuration": "Scrubber Duration",
+  "enum_diveField_scrubberDuration_short": "Scrubber Min",
   "enum_diveField_weatherDescription_short": "Weather",
   "enum_diveField_surfaceConditions_short": "Surface",
   "enum_diveField_primaryGas_short": "Gas",
@@ -29168,6 +29484,7 @@
   "settings_debugLog_copiedSnack": "Filtered logs copied to clipboard",
   "settings_debugLog_savedSnack": "Logs saved to {path}",
   "common_action_copy": "Copy",
+  "common_snackbar_copiedToClipboard": "Copied to clipboard",
   "settings_appearance_customGradient_title": "Custom Gradient",
   "settings_appearance_customGradient_start": "Start",
   "settings_appearance_customGradient_end": "End",
@@ -32530,14 +32847,19 @@
       }
     }
   },
-  "navTrack_detail_battery": "Battery: {start} V -> {end} V",
+  "navTrack_detail_battery": "Battery: {start} V → {end} V ({change} V)",
   "@navTrack_detail_battery": {
+    "description": "The recording console's battery over the track: first reading, last reading, and the signed change between them.",
     "placeholders": {
       "start": {
         "type": "String"
       },
       "end": {
         "type": "String"
+      },
+      "change": {
+        "type": "String",
+        "example": "-0.12"
       }
     }
   },
@@ -34157,6 +34479,8 @@
   "@settings_photos_switchHeldOnly": {"description": "Account sheet: added after the switch consequence when some photos exist only in the store being left (cloud-backed photos). Plural on count.", "placeholders": {"count": {"type": "int"}}},
   "settings_photos_startedSeparate": "No copies were found in {account}, so this device started separate copies there.",
   "@settings_photos_startedSeparate": {"description": "Snackbar after choosing an account for photo copies that held none, so a new separate set was started instead of joining the library's copies. {account} is an account name.", "placeholders": {"account": {"type": "String"}}},
+  "settings_photos_browserReadOnly": "A browser shows the photo copies your other devices keep, but cannot start them. Start them in the app on a phone or computer.",
+  "@settings_photos_browserReadOnly": {"description": "Shown in a browser, which only reads photo copies: as the Set up this device note on a device whose library keeps no copies yet, and as the error when an account holds no copies to join."},
   "settings_conflict_field_remoteStoreId": "Uploaded to",
   "@settings_conflict_field_remoteStoreId": {"description": "Sync conflict field label: the photo copies store a media item's upload stamps refer to"},
   "tags_manage_scope_media": "Media",
@@ -34290,6 +34614,8 @@
   "@settings_setUpDevice_offer_icloud": {"description": "Under iCloud in setup step 1: what adding it takes"},
   "settings_setUpDevice_offer_googleDrive": "Sign in with Google",
   "@settings_setUpDevice_offer_googleDrive": {"description": "Under Google Drive in setup step 1: what adding it takes"},
+  "settings_setUpDevice_offer_googleDrive_browser": "Sign in with Google each time you open the site",
+  "@settings_setUpDevice_offer_googleDrive_browser": {"description": "Web app (issue #4121)"},
   "settings_setUpDevice_offer_dropbox": "Sign in with Dropbox",
   "@settings_setUpDevice_offer_dropbox": {"description": "Under Dropbox in setup step 1: what adding it takes"},
   "settings_setUpDevice_offer_ownServer": "S3-compatible storage or a WebDAV server",
@@ -34432,6 +34758,104 @@
   "@demo_unavailable_title": {"description": "Demo mode (issue #3708)"},
   "demo_unavailable_body": "Demo mode keeps the sample logbook separate from your data, so nothing can be imported, exported, backed up or synced.",
   "@demo_unavailable_body": {"description": "Demo mode (issue #3708)"},
+  "web_unavailable_title": "Not available in a browser",
+  "@web_unavailable_title": {"description": "Web app (issue #4121)"},
+  "web_unavailable_reason_hardware": "This needs hardware a web page cannot reach, such as Bluetooth, USB, NFC or the camera. Use the Submersion app on a phone or computer for it.",
+  "@web_unavailable_reason_hardware": {"description": "Web app (issue #4121)"},
+  "web_unavailable_reason_background": "This runs in the background or as a local service, which a web page cannot do. Use the Submersion app on a phone or computer for it.",
+  "@web_unavailable_reason_background": {"description": "Web app (issue #4121)"},
+  "web_unavailable_reason_files": "This works with files on the device, which a web page cannot reach. Use the Submersion app on a phone or computer for it.",
+  "@web_unavailable_reason_files": {"description": "Web app (issue #4121)"},
+  "web_unavailable_reason_icloud": "iCloud is only available in the Submersion app on Apple devices.",
+  "@web_unavailable_reason_icloud": {"description": "Web app (issue #4121)"},
+  "web_unavailable_reason_git": "Git hosts do not accept requests from a web page. Use the Submersion app on a phone or computer for a Git sync store.",
+  "@web_unavailable_reason_git": {"description": "Web app (issue #4121)"},
+  "web_continueWithoutSync": "Continue without a sync store",
+  "@web_continueWithoutSync": {"description": "Web app (issue #4121)"},
+  "web_rememberOnThisDevice_title": "Remember sign-in on this device",
+  "@web_rememberOnThisDevice_title": {"description": "Web app (issue #4121)"},
+  "web_rememberOnThisDevice_subtitle": "Keep the sign-in details and passphrase in this browser. Off, they are forgotten when the tab closes. Your dives stay in this browser either way, until you forget this device.",
+  "@web_rememberOnThisDevice_subtitle": {"description": "Web app (issue #4121)"},
+  "web_rememberOnThisDevice_subtitleInMemory": "Keep the sign-in details and passphrase in this browser. Off, they are forgotten when the tab closes. This browser keeps no dives after the tab closes, whether this is on or off.",
+  "@web_rememberOnThisDevice_subtitleInMemory": {"description": "Web app, remember switch subtitle when the browser keeps nothing after the tab closes (issue #4187)"},
+  "web_unavailable_offer_icloud": "Only the Submersion app on an Apple device can reach iCloud.",
+  "@web_unavailable_offer_icloud": {"description": "Web app (issue #4121)"},
+  "web_unavailable_offer_git": "Git hosts do not accept requests from a web page.",
+  "@web_unavailable_offer_git": {"description": "Web app (issue #4121)"},
+  "web_googleClientId_title": "Google client id",
+  "@web_googleClientId_title": {"description": "Web app (issue #4121)"},
+  "web_googleClientId_body": "A web page signs in to Google with a client id from your own Google Cloud project: type Web application, with this site's address as an authorised JavaScript origin. Paste it here. It is kept with your other sign-in details.",
+  "@web_googleClientId_body": {"description": "Web app (issue #4121)"},
+  "web_googleClientId_ownProjectNote": "A client id of your own sees only a Google Drive library this site starts. Google keeps each project's Drive folder apart, so the library your phone and computer sync to Google Drive cannot open here.",
+  "@web_googleClientId_ownProjectNote": {"description": "Web app (issue #4121)"},
+  "web_googleClientId_hint": "123456789-abc123.apps.googleusercontent.com",
+  "@web_googleClientId_hint": {"description": "Web app (issue #4121)"},
+  "web_googleClientId_invalid": "That does not look like a Google client id. It ends in .apps.googleusercontent.com.",
+  "@web_googleClientId_invalid": {"description": "Web app (issue #4121)"},
+  "web_googleClientId_help": "How to create one",
+  "@web_googleClientId_help": {"description": "Web app (issue #4121)"},
+  "web_cors_title_blockedByCors": "The store blocks browser requests",
+  "@web_cors_title_blockedByCors": {"description": "Web app (issue #4121)"},
+  "web_cors_explain_blockedByCors": "The browser asked the store and got no answer it was allowed to read. The store's CORS rules must allow this site's address. Add the rule below to the store, then check again.",
+  "@web_cors_explain_blockedByCors": {"description": "Web app (issue #4121)"},
+  "web_cors_title_methodBlockedByCors": "The store allows some requests, not all",
+  "@web_cors_title_methodBlockedByCors": {"description": "Web app (issue #4121)"},
+  "web_cors_explain_methodBlockedByCors": "The store answers a plain request from this site but refuses the method the app needs, such as PROPFIND for WebDAV. Its CORS rule must list every method below.",
+  "@web_cors_explain_methodBlockedByCors": {"description": "Web app (issue #4121)"},
+  "web_cors_title_writeBlockedByCors": "The store allows reading, not writing",
+  "@web_cors_title_writeBlockedByCors": {"description": "Web app (issue #4121)"},
+  "web_cors_explain_writeBlockedByCors": "Reads from this site work, but a write was refused. The CORS rule must also allow PUT and DELETE; the rule below includes them.",
+  "@web_cors_explain_writeBlockedByCors": {"description": "Web app (issue #4121)"},
+  "web_cors_title_forbidden": "The store refused the credentials",
+  "@web_cors_title_forbidden": {"description": "Web app (issue #4121)"},
+  "web_cors_explain_forbidden": "The store answered 403: a wrong access key or secret, or a read-only key where sync needs to write. Check the credentials and the key's permissions.",
+  "@web_cors_explain_forbidden": {"description": "Web app (issue #4121)"},
+  "web_cors_title_notFound": "Nothing found at this address",
+  "@web_cors_title_notFound": {"description": "Web app (issue #4121)"},
+  "web_cors_explain_notFound": "The bucket, folder or path does not exist, or the name is misspelt. Check the address and the bucket or folder name.",
+  "@web_cors_explain_notFound": {"description": "Web app (issue #4121)"},
+  "web_cors_title_tlsOrUnreachable": "The browser does not trust or cannot reach the server",
+  "@web_cors_title_tlsOrUnreachable": {"description": "Web app (issue #4121)"},
+  "web_cors_explain_tlsOrUnreachable": "A private address over HTTPS failed before any answer. The browser, not the app, decides which certificates to trust: open the server's address in a new tab and accept or install its certificate, or make sure the server is reachable from here.",
+  "@web_cors_explain_tlsOrUnreachable": {"description": "Web app (issue #4121)"},
+  "web_cors_title_ok": "The connection works",
+  "@web_cors_title_ok": {"description": "Web app (issue #4121)"},
+  "web_cors_explain_ok": "The store accepted the test from this browser.",
+  "@web_cors_explain_ok": {"description": "Web app (issue #4121)"},
+  "web_cors_title_unknown": "The connection failed",
+  "@web_cors_title_unknown": {"description": "Web app (issue #4121)"},
+  "web_cors_explain_unknown": "The browser reported a failure it does not explain. Most often the store's CORS rules do not allow this site's address; the rule below is the usual fix.",
+  "@web_cors_explain_unknown": {"description": "Web app (issue #4121)"},
+  "web_cors_copyRule": "Copy rule",
+  "@web_cors_copyRule": {"description": "Web app (issue #4121)"},
+  "web_cors_copied": "Rule copied",
+  "@web_cors_copied": {"description": "Web app (issue #4121)"},
+  "web_storage_title": "Browser storage",
+  "@web_storage_title": {"description": "Web app (issue #4121)"},
+  "web_storage_opfs": "Browser file storage. Your dives stay in this browser until you forget this device.",
+  "@web_storage_opfs": {"description": "Web app (issue #4121)"},
+  "web_storage_indexedDb": "Browser database (slower). Your dives stay in this browser until you forget this device.",
+  "@web_storage_indexedDb": {"description": "Web app (issue #4121)"},
+  "web_storage_memoryWarning": "Nothing is saved after this tab closes. This browser gives the site no lasting storage; sync before you leave.",
+  "@web_storage_memoryWarning": {"description": "Web app (issue #4121)"},
+  "web_forgetDevice_title": "Forget this device",
+  "@web_forgetDevice_title": {"description": "Web app (issue #4121)"},
+  "web_forgetDevice_subtitle": "Remove the dives, sign-in details and device identity from this browser",
+  "@web_forgetDevice_subtitle": {"description": "Web app (issue #4121)"},
+  "web_forgetDevice_confirm": "Forget",
+  "@web_forgetDevice_confirm": {"description": "Web app (issue #4121)"},
+  "web_forgetDevice_confirmBody": "This removes everything Submersion keeps in this browser: the dive log, the sign-in details and passphrase, and this device's identity in sync. Your dives stay in the sync store and on your other devices. The page reloads to a fresh start.",
+  "@web_forgetDevice_confirmBody": {"description": "Web app (issue #4121)"},
+  "web_forgetDevice_failed": "This browser kept the database. Close other Submersion tabs and try again.",
+  "@web_forgetDevice_failed": {"description": "Web app (issue #4121)"},
+  "web_forgetDevice_incomplete": "This browser could not clear its sign-in details and settings. Try again.",
+  "@web_forgetDevice_incomplete": {"description": "Web app (issue #4121)"},
+  "web_downloadBackup_failed": "The backup could not be created.",
+  "@web_downloadBackup_failed": {"description": "Web app (issue #4121)"},
+  "web_downloadBackup_title": "Download a backup",
+  "@web_downloadBackup_title": {"description": "Web app (issue #4121)"},
+  "web_downloadBackup_subtitle": "A copy of your dive log as a database file, saved by your browser",
+  "@web_downloadBackup_subtitle": {"description": "Web app (issue #4121)"},
   "demo_row_unavailable": "Unavailable in demo mode",
   "@demo_row_unavailable": {"description": "Demo mode (issue #3708)"},
   "demo_enter_confirm_title": "Explore with sample data?",
@@ -34466,6 +34890,7 @@
   "changeLog_source_automatic": "Automatic",
   "changeLog_source_revert": "Revert",
   "changeLog_source_system": "System",
+  "changeLog_source_agent": "Agent",
   "changeLog_thisDevice": "This device",
   "changeLog_anotherDevice": "another device",
   "changeLog_syncedFrom": "Synced from {device}",
@@ -34500,6 +34925,7 @@
   "changeLog_label_libraryAdopted": "Library added to this device",
   "changeLog_label_libraryReplaced": "Library replaced",
   "changeLog_label_libraryRestored": "Library restored from a backup",
+  "changeLog_label_tableEditor": "Table editor",
   "changeLog_label_reparse": "Reparsed dives",
   "changeLog_label_splitDive": "Split a dive",
   "changeLog_label_gearTransfer": "Transferred gear",

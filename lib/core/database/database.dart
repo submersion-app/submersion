@@ -241,6 +241,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     DivePlans,
     DivePlanTanks,
     DivePlanSegments,
+    // Saved repetitive dive series (v341, issue #3565)
+    DivePlanSeries,
     // DPV mission planner (v244, issue #2086)
     DivePlanMissions,
     DivePlanMissionLegs,
@@ -311,7 +313,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 336;
+  static const int currentSchemaVersion = 341;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1540,6 +1542,29 @@ class AppDatabase extends _$AppDatabase {
     // v336: trip_checklists, splitting one trip's single flat checklist
     // into several named ones (issue #3356).
     336,
+    // v337: dives.weather_fetched_at back to seconds where the bulk conditions
+    // fill wrote milliseconds (issue #4119). Data only, so the floor does not
+    // move.
+    337,
+    // v338: incidents.observation_id, the gear check-in behind a near-miss
+    // (issue #3062).
+    338,
+    // v339: dive_computers.auto_download_disabled, the per-device opt-out
+    // for passive auto-connect/auto-download (issue #3361). Renumbered from
+    // 333, which upstream claimed first for issue #32, then from 338, which
+    // upstream claimed first for issue #3062.
+    339,
+    // v340: a combined dive's water temperature, CNS at the end and OTU
+    // recomputed from its segments (issue #4136). Data only, so the floor does
+    // not move.
+    340,
+    // v341: dive_plan_series, a saved repetitive dive series, and the
+    // dive_plans / dive_plan_tanks columns that place a plan in one (issue
+    // #3565). A new synced table plus nullable or defaulted columns an older
+    // peer omits, with no backfill, so the floor does not move. Renumbered
+    // from 339 and then 340, which upstream claimed first for issues #3361
+    // and #4136.
+    341,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

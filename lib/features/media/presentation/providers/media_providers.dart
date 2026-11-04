@@ -1,3 +1,4 @@
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -28,6 +29,11 @@ final mediaForDiveProvider = FutureProvider.family<List<MediaItem>, String>((
 /// missing [MediaEnrichment] rows. Idempotent; wired to a dive-with-profile
 /// loader and the media repository's read/save.
 final diveMediaEnricherProvider = Provider<DiveMediaEnricher>((ref) {
+  // A browser never writes media (issue #4121); the enrichment rows it
+  // would write are synced.
+  if (!ref.watch(deviceCapabilitiesProvider).mediaAttach) {
+    return ReadOnlyDiveMediaEnricher();
+  }
   final mediaRepo = ref.watch(mediaRepositoryProvider);
   final diveRepo = ref.watch(diveRepositoryProvider);
   return DiveMediaEnricher(

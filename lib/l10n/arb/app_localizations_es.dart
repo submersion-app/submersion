@@ -5513,6 +5513,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get notesEditor_action_numberedList => 'Lista numerada';
 
   @override
+  String get notesEditor_action_annotate => 'Anotar';
+
+  @override
   String get notesEditor_action_preview => 'Vista previa';
 
   @override
@@ -7019,10 +7022,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Coordenadas encontradas desde dirección';
 
   @override
-  String get diveCenters_snackbar_copiedToClipboard =>
-      'Copiado al portapapeles';
-
-  @override
   String diveCenters_snackbar_imported(Object name) {
     return 'Importado \"$name\"';
   }
@@ -8386,6 +8385,83 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_edit_section_notes => 'Notas';
 
   @override
+  String get diveLog_annotation_sheetTitle_new => 'Nueva anotación';
+
+  @override
+  String get diveLog_annotation_sheetTitle_editTime => 'Cambiar el tiempo';
+
+  @override
+  String diveLog_annotation_sheetTitle_words(String words) {
+    return 'Anotar «$words»';
+  }
+
+  @override
+  String get diveLog_annotation_field_words => 'Qué pasó';
+
+  @override
+  String get diveLog_annotation_words_required => 'Di qué pasó';
+
+  @override
+  String get diveLog_annotation_field_time => 'Tiempo desde el inicio';
+
+  @override
+  String get diveLog_annotation_time_invalid => 'Introduce minutos:segundos';
+
+  @override
+  String get diveLog_annotation_time_outsideDive =>
+      'Debe estar dentro de la inmersión';
+
+  @override
+  String get diveLog_annotation_pickOnProfile =>
+      'O toca el perfil para situarla';
+
+  @override
+  String get diveLog_annotation_noProfile =>
+      'Esta inmersión no tiene perfil que señalar. Escribe la hora en su lugar.';
+
+  @override
+  String get diveLog_annotation_action_annotate => 'Anotar';
+
+  @override
+  String get diveLog_annotation_action_add => 'Añadir';
+
+  @override
+  String get diveLog_annotation_add => 'Añadir anotación';
+
+  @override
+  String get diveLog_annotation_banner_place =>
+      'Toca el perfil donde ocurrió. Mantén pulsado para ajustar.';
+
+  @override
+  String get diveLog_annotation_banner_move =>
+      'Toca el nuevo punto para esta anotación.';
+
+  @override
+  String get diveLog_annotation_banner_cancel => 'Cancelar';
+
+  @override
+  String diveLog_annotation_popup_meta(String time, String depth) {
+    return '$time a $depth';
+  }
+
+  @override
+  String get diveLog_annotation_popup_openInNotes => 'Abrir en Notas';
+
+  @override
+  String get diveLog_annotation_popup_move => 'Mover';
+
+  @override
+  String get diveLog_annotation_popup_remove => 'Quitar';
+
+  @override
+  String diveLog_annotation_contextMenu_annotateAt(String time) {
+    return 'Anotar a los $time';
+  }
+
+  @override
+  String get diveLog_annotation_removed => 'Anotación eliminada';
+
+  @override
   String get diveLog_edit_section_rating => 'Valoración';
 
   @override
@@ -8979,6 +9055,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_legend_label_events => 'Eventos';
+
+  @override
+  String get diveLog_legend_label_annotations => 'Anotaciones';
 
   @override
   String get diveLog_legend_label_computedEvents => 'Eventos calculados';
@@ -10014,7 +10093,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_refine_showDivesNoCount => 'Mostrar inmersiones';
 
   @override
-  String get diveLog_search_fieldHint => 'Busca, p. ej. depth > 30m';
+  String get diveLog_search_fieldHint => 'Punto, compañero o fecha';
 
   @override
   String get diveLog_search_refineTooltip => 'Refinar';
@@ -10717,6 +10796,11 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String diveLog_cylinders_gasUsed(String amount) {
     return 'Gas usado $amount';
+  }
+
+  @override
+  String diveLog_cylinders_loopUse(String rate) {
+    return 'Uso en el circuito $rate';
   }
 
   @override
@@ -13720,6 +13804,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get enum_profileEvent_note => 'Nota';
+
+  @override
+  String get enum_profileEvent_annotation => 'Anotación';
 
   @override
   String get enum_profileEvent_ppO2High => 'ppO2 alto';
@@ -20515,6 +20602,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_library_filter_site => 'Sitio';
 
   @override
+  String get media_library_filter_source => 'Fuente';
+
+  @override
   String get media_library_filter_species => 'Especie';
 
   @override
@@ -20572,6 +20662,25 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get media_library_untitledDiveHeader => 'Inmersión sin título';
+
+  @override
+  String media_library_siteHeader(String name) {
+    return 'Sitio: $name';
+  }
+
+  @override
+  String media_library_equipmentHeader(String name) {
+    return 'Equipo: $name';
+  }
+
+  @override
+  String get media_library_siteHeaderHint => 'Abrir este sitio';
+
+  @override
+  String get media_library_equipmentHeaderHint => 'Abrir este equipo';
+
+  @override
+  String get media_library_untitledEquipment => 'Equipo sin nombre';
 
   @override
   String get media_library_viewMode_byDive => 'Por inmersión';
@@ -20951,16 +21060,34 @@ class AppLocalizationsEs extends AppLocalizations {
   String get plannerSeries_surfaceInterval_increase => '15 minutos más';
 
   @override
+  String get plannerSeries_unsaved_title => '¿Guardar esta serie?';
+
+  @override
+  String get plannerSeries_unsaved_body =>
+      'Esta serie tiene cambios sin guardar.';
+
+  @override
+  String get plannerSeries_unsaved_discard => 'Descartar';
+
+  @override
+  String get plannerSeries_unsaved_titleDive => '¿Guardar esta inmersión?';
+
+  @override
+  String get plannerSeries_unsaved_bodyDive =>
+      'Esta inmersión tiene cambios sin guardar.';
+
+  @override
+  String plannerSeries_saved_diveCount(int count) {
+    return '$count inmersiones';
+  }
+
+  @override
   String plannerSeries_fill(String tank) {
     return 'Llenar $tank';
   }
 
   @override
   String get plannerSeries_fillAll => 'Llenar todas las botellas';
-
-  @override
-  String get plannerSeries_saveUnavailable =>
-      'Todavía no se puede guardar una serie de inmersiones';
 
   @override
   String get plannerSeries_convertUnavailable =>
@@ -21344,11 +21471,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_about_reportIssue => 'Reportar un problema';
 
   @override
-  String get settings_about_reportIssue_copy => 'Copiar enlace';
-
-  @override
   String get settings_about_reportIssue_snackbar =>
       'Visita github.com/submersion-app/submersion/issues';
+
+  @override
+  String get settings_about_userGuide => 'Guía del usuario';
+
+  @override
+  String get settings_about_userGuide_snackbar => 'Visita submersion.app/guide';
 
   @override
   String settings_about_version(String version) {
@@ -24519,6 +24649,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'Modo de respiración en este tramo';
 
   @override
+  String get settings_conflict_field_diveName => 'Nombre de la inmersión';
+
+  @override
   String get settings_conflict_field_diveOperator => 'Operador de buceo';
 
   @override
@@ -25485,6 +25618,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_field_section => 'Sección';
 
   @override
+  String get settings_conflict_field_seriesIndex => 'Posición en la serie';
+
+  @override
   String get settings_conflict_field_serviceCategory => 'Tipo de mantenimiento';
 
   @override
@@ -25684,6 +25820,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'Archivo o dispositivo de origen';
 
   @override
+  String get settings_conflict_field_sourceTankId => 'Traspasada de la botella';
+
+  @override
   String get settings_conflict_field_sourceTankIndex =>
       'Número de tanque en el registro de origen';
 
@@ -25711,6 +25850,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_conflict_field_startDepth => 'Profundidad inicial';
+
+  @override
+  String get settings_conflict_field_startPressurePinned =>
+      'Presión inicial fijada a mano';
 
   @override
   String get settings_conflict_field_startTime => 'Hora de inicio';
@@ -26589,6 +26732,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_ref_divePlan => 'Plan de buceo';
 
   @override
+  String get settings_conflict_ref_divePlanSeries => 'Serie de inmersiones';
+
+  @override
   String get settings_conflict_ref_diveRole => 'Función en la inmersión';
 
   @override
@@ -26607,10 +26753,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_ref_equipmentLocation => 'Ubicación del equipo';
 
   @override
+  String get settings_conflict_ref_gearCheckIn => 'Revisión de equipo';
+
+  @override
   String get settings_conflict_ref_equipmentSet => 'Conjunto de equipo';
 
   @override
   String get settings_conflict_ref_finding => 'Hallazgo';
+
+  @override
+  String get settings_conflict_ref_followedDive => 'Inmersión anterior';
 
   @override
   String get settings_conflict_ref_importedFile => 'Archivo importado';
@@ -26701,6 +26853,21 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_tank => 'Tanque';
+
+  @override
+  String get settings_conflict_ref_weight => 'Lastre';
+
+  @override
+  String get settings_conflict_ref_customField => 'Campo personalizado';
+
+  @override
+  String get settings_conflict_ref_gasSwitch => 'Cambio de gas';
+
+  @override
+  String get settings_conflict_ref_profileEvent => 'Evento';
+
+  @override
+  String get settings_conflict_ref_scenario => 'Escenario';
 
   @override
   String get settings_conflict_ref_transmitter => 'Transmisor';
@@ -27104,10 +27271,77 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'Corregir horas de inmersión, vincular compañeros, reclasificar equipo, calidad de datos';
+      'Corregir horas, enlazar compañeros, retipar equipo, calidad de datos, editor de tabla';
 
   @override
   String get settings_agentAccess_title => 'Acceso de agentes';
+
+  @override
+  String settings_agentAccess_confirm_linkedDives(String diver, int count) {
+    return 'Inmersiones que pierden este vínculo ($diver): $count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_alsoDeletes(String kind, int count) {
+    return 'También elimina $kind: $count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_alsoUnlinks(String kind, int count) {
+    return 'También desvincula $kind: $count';
+  }
+
+  @override
+  String settings_agentAccess_confirm_merge(String name) {
+    return 'Fusionar con $name';
+  }
+
+  @override
+  String settings_agentAccess_confirm_moves(String kind, int count) {
+    return 'Mueve $kind: $count';
+  }
+
+  @override
+  String get settings_agentAccess_confirm_title => '¿Permitir este cambio?';
+
+  @override
+  String settings_agentAccess_confirm_client(String client) {
+    return '$client quiere cambiar tu cuaderno de buceo.';
+  }
+
+  @override
+  String get settings_agentAccess_confirm_unknownClient =>
+      'Un agente quiere cambiar tu cuaderno de buceo.';
+
+  @override
+  String settings_agentAccess_confirm_count(String kind, int count) {
+    return '$kind: $count';
+  }
+
+  @override
+  String get settings_agentAccess_confirm_shared => 'Compartido';
+
+  @override
+  String get settings_agentAccess_confirm_details =>
+      'Mostrar todos los cambios';
+
+  @override
+  String get settings_agentAccess_confirm_allow => 'Permitir';
+
+  @override
+  String get settings_agentAccess_confirm_deny => 'Denegar';
+
+  @override
+  String get settings_agentAccess_confirm_none => 'ninguno';
+
+  @override
+  String get settings_agentAccess_confirm_create => 'Nuevo';
+
+  @override
+  String get settings_agentAccess_confirm_update => 'Cambiar';
+
+  @override
+  String get settings_agentAccess_confirm_delete => 'Eliminar';
 
   @override
   String get settings_agentAccess_subtitle =>
@@ -29222,7 +29456,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_units_gasModel_explanation =>
-      'Cómo se convierte la presión de la botella en volumen de gas. Afecta al RMV, las estadísticas de gas, el planificador y las calculadoras. El gas ideal coincide con el cálculo que enseñan las agencias; el gas real es físicamente exacto y da un RMV un 5 % menor aproximadamente.';
+      'Cómo se convierte la presión de la botella en volumen de gas. Afecta al RMV, el gas usado, las estadísticas de gas, el planificador y las calculadoras. El gas ideal coincide con el cálculo que enseñan las agencias; el gas real es físicamente exacto y da un RMV un 5 % menor aproximadamente.';
 
   @override
   String get settings_units_dialog_gasModel => 'Cálculos de gas';
@@ -30074,6 +30308,21 @@ class AppLocalizationsEs extends AppLocalizations {
   String get insights_filterBar_clear => 'Borrar filtro';
 
   @override
+  String get insights_filterBar_allDives => 'Todas las inmersiones';
+
+  @override
+  String get insights_filterBar_customFilter => 'Filtro personalizado';
+
+  @override
+  String get insights_filterBar_chooseGroup => 'Elegir grupo de inmersiones';
+
+  @override
+  String get insights_filterBar_saveCurrent => 'Guardar filtro actual...';
+
+  @override
+  String get insights_filterBar_manageSaved => 'Gestionar consultas guardadas';
+
+  @override
   String insights_filterBar_diveCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -30112,6 +30361,22 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get insights_gas_sacByRole_title =>
       'Consumo de gas por función del tanque';
+
+  @override
+  String get insights_gas_ccrUse_title => 'Uso de gas del rebreather';
+
+  @override
+  String get insights_gas_ccrUse_subtitle =>
+      'Por minuto en el circuito, sin tiempo de bailout';
+
+  @override
+  String get insights_gas_ccrUse_o2Average => 'Media de O₂';
+
+  @override
+  String get insights_gas_ccrUse_o2Series => 'O₂';
+
+  @override
+  String get insights_gas_ccrUse_diluentAverage => 'Media de diluyente';
 
   @override
   String get insights_gas_sacRecords_empty => 'Aún no hay datos de consumo';
@@ -32692,6 +32957,23 @@ class AppLocalizationsEs extends AppLocalizations {
   String get transfer_computers_appleWatchTitle => 'Importar desde Apple Watch';
 
   @override
+  String transfer_computers_autoConnect_downloadingSnackbar(String name) {
+    return 'Descargando de $name...';
+  }
+
+  @override
+  String get transfer_computers_autoConnect_searching =>
+      'Buscando computadoras conocidas...';
+
+  @override
+  String get transfer_computers_autoConnect_switchSubtitle =>
+      'Mientras esta pantalla está abierta, busca computadoras conocidas y descarga automáticamente de una de ellas cuando esté dentro del alcance.';
+
+  @override
+  String get transfer_computers_autoConnect_switchTitle =>
+      'Conectar automáticamente computadoras conocidas';
+
+  @override
   String get transfer_computers_connectSubtitle =>
       'Descubrir y emparejar una computadora de buceo';
 
@@ -33635,6 +33917,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get trips_photos_viewAll => 'Ver todas';
+
+  @override
+  String get trips_dateStretch_failed =>
+      'Inmersión guardada, pero no se pudieron actualizar las fechas del viaje';
+
+  @override
+  String trips_dateStretch_message(String trip, String dates) {
+    return '$trip ahora abarca $dates';
+  }
 
   @override
   String get trips_picker_alreadyPacked => 'Ya preparado';
@@ -35494,6 +35785,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get certifications_certificate_thisCertifies => 'Se certifica que';
+
+  @override
+  String get diveComputer_autoDownload_disableSubtitle =>
+      'Excluye esta computadora del escaneo de conexión automática pasivo, incluso si ese interruptor está activado.';
+
+  @override
+  String get diveComputer_autoDownload_disableTitle =>
+      'Omitir la conexión automática para esta computadora';
 
   @override
   String get diveComputer_clockSync_appSettingOff =>
@@ -40640,6 +40939,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get incidents_linkedDive => 'Vinculado a una inmersión';
 
   @override
+  String get incidents_linkedCheckIn => 'Vinculado a una revisión';
+
+  @override
   String get incidents_delete_confirm =>
       '¿Eliminar este informe de casi incidente?';
 
@@ -40705,6 +41007,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get incidentEdit_equipment_allGear => 'Todo el equipo';
+
+  @override
+  String get incidentEdit_checkIn => 'Revisión de equipo';
+
+  @override
+  String get incidentEdit_checkIn_others => 'Otras revisiones';
 
   @override
   String get incidentCategory_buoyancy => 'Flotabilidad';
@@ -41517,6 +41825,17 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipmentObservation_card_add => 'Añadir revisión';
+
+  @override
+  String equipmentObservation_card_nearMissLinked(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count casi incidentes vinculados',
+      one: 'Casi incidente vinculado',
+    );
+    return '$_temp0';
+  }
 
   @override
   String equipmentObservation_card_onDive(int number) {
@@ -42922,6 +43241,269 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get enum_diveField_humidity_short => 'Hum.';
+
+  @override
+  String tableEditor_skip_ambiguousRow(String key) {
+    return '$key corresponde a más de una fila';
+  }
+
+  @override
+  String tableEditor_skip_readOnlyCell(String key) {
+    return '$key: esa celda es de solo lectura';
+  }
+
+  @override
+  String get tableEditor_discardDraft => 'Descartar cambio';
+
+  @override
+  String get tableEditor_changeLog => 'Registro de cambios';
+
+  @override
+  String get settings_tableEditor_title => 'Editor de tabla';
+
+  @override
+  String get settings_tableEditor_subtitle =>
+      'Edita muchas inmersiones, puntos o centros en una hoja';
+
+  @override
+  String get tableEditor_title => 'Editor de tabla';
+
+  @override
+  String get tableEditor_tab_dives => 'Inmersiones';
+
+  @override
+  String get tableEditor_tab_sites => 'Puntos';
+
+  @override
+  String get tableEditor_tab_centers => 'Centros';
+
+  @override
+  String get tableEditor_needsWiderScreen =>
+      'El editor de tabla necesita una ventana más ancha. Ábrelo en una tableta o un ordenador.';
+
+  @override
+  String get tableEditor_saveAll => 'Guardar todo';
+
+  @override
+  String get tableEditor_paste => 'Pegar';
+
+  @override
+  String get tableEditor_clearFilters => 'Borrar filtros';
+
+  @override
+  String tableEditor_draftCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sin guardar',
+      one: '$count sin guardar',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_title => '¿Guardar cambios?';
+
+  @override
+  String tableEditor_summary_changed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count celdas cambian',
+      one: '$count celda cambia',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_attention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count necesitan atención y no se guardarán',
+      one: '$count necesita atención y no se guardará',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_overwrite(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sustituyen un valor existente',
+      one: '$count sustituye un valor existente',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_summary_changedElsewhere(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cambiaron en otro sitio desde tu edición',
+      one: '$count cambió en otro sitio desde tu edición',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_matching_number =>
+      'Filas pegadas emparejadas por número de inmersión';
+
+  @override
+  String get tableEditor_summary_matching_name =>
+      'Filas pegadas emparejadas por nombre';
+
+  @override
+  String get tableEditor_summary_matching_position =>
+      'Filas pegadas colocadas por posición';
+
+  @override
+  String tableEditor_skip_readOnlyColumn(String column) {
+    return '$column es de solo lectura';
+  }
+
+  @override
+  String tableEditor_skip_unknownRow(String key) {
+    return 'No hay fila para $key';
+  }
+
+  @override
+  String tableEditor_skip_hiddenRow(String key) {
+    return '$key está oculto por el filtro';
+  }
+
+  @override
+  String tableEditor_skip_truncated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count filas más allá del final de la hoja',
+      one: '$count fila más allá del final de la hoja',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tableEditor_skip_unknownColumn(String header) {
+    return 'No hay columna llamada $header';
+  }
+
+  @override
+  String tableEditor_saved(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cambios guardados',
+      one: '$count cambio guardado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_saveFailed =>
+      'No se guardó nada. Corrige el error e inténtalo de nuevo.';
+
+  @override
+  String get tableEditor_undo => 'Deshacer';
+
+  @override
+  String get tableEditor_undoneAll => 'Cambios deshechos';
+
+  @override
+  String tableEditor_undonePartial(int reverted, int total) {
+    return 'Deshechos $reverted de $total cambios';
+  }
+
+  @override
+  String get tableEditor_open_saveAndOpen => 'Guardar todo y abrir';
+
+  @override
+  String get tableEditor_open_discardAndOpen => 'Descartar y abrir';
+
+  @override
+  String get tableEditor_open_stay => 'Quedarse';
+
+  @override
+  String tableEditor_original(String value) {
+    return 'Antes: $value';
+  }
+
+  @override
+  String get tableEditor_flag_unparsable => 'Valor no válido';
+
+  @override
+  String get tableEditor_flag_unknownValue => 'No está en la lista';
+
+  @override
+  String get tableEditor_flag_pairIncomplete => 'Necesita latitud y longitud';
+
+  @override
+  String get tableEditor_flag_scrubberNeedsType =>
+      'Necesita un tipo de scrubber';
+
+  @override
+  String get tableEditor_flag_changedElsewhere =>
+      'Cambiado en otro sitio desde tu edición';
+
+  @override
+  String get tableEditor_multiChoice_done => 'Listo';
+
+  @override
+  String get tableEditor_libraryReadOnly =>
+      'Punto de biblioteca: aquí solo se editan notas y valoración';
+
+  @override
+  String get tableEditor_summary_pairClear =>
+      'Borrar una coordenada borra ambas';
+
+  @override
+  String tableEditor_weightRows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count filas de lastre, edítalas en la inmersión',
+      one: '$count fila de lastre, edítala en la inmersión',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tableEditor_summary_siteSnap =>
+      'Asignar un punto también fija en la inmersión su tipo de agua, entrada, salida y tipos de inmersión';
+
+  @override
+  String get enum_diveField_excludedFromStats => 'Excluida de estadísticas';
+
+  @override
+  String get enum_diveField_excludedFromStats_short => 'Sin estad.';
+
+  @override
+  String get enum_diveField_excludedFromGasStats =>
+      'Excluida de estadísticas de gas';
+
+  @override
+  String get enum_diveField_excludedFromGasStats_short => 'Sin estad. gas';
+
+  @override
+  String get enum_diveField_windDirection => 'Dirección del viento';
+
+  @override
+  String get enum_diveField_windDirection_short => 'Dir. viento';
+
+  @override
+  String get enum_diveField_scrubberType => 'Tipo de scrubber';
+
+  @override
+  String get enum_diveField_scrubberType_short => 'Scrubber';
+
+  @override
+  String get enum_diveField_scrubberDuration => 'Duración del scrubber';
+
+  @override
+  String get enum_diveField_scrubberDuration_short => 'Min scrubber';
 
   @override
   String get enum_diveField_weatherDescription_short => 'Clima';
@@ -50652,6 +51234,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get common_action_copy => 'Copiar';
 
   @override
+  String get common_snackbar_copiedToClipboard => 'Copiado al portapapeles';
+
+  @override
   String get settings_appearance_customGradient_title =>
       'Degradado personalizado';
 
@@ -55266,8 +55851,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String navTrack_detail_battery(String start, String end) {
-    return 'Batería: $start V -> $end V';
+  String navTrack_detail_battery(String start, String end, String change) {
+    return 'Batería: $start V → $end V ($change V)';
   }
 
   @override
@@ -58159,6 +58744,10 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get settings_photos_browserReadOnly =>
+      'Un navegador muestra las copias de fotos que guardan tus otros dispositivos, pero no puede empezarlas. Empiézalas en la app en un teléfono o un ordenador.';
+
+  @override
   String get settings_conflict_field_remoteStoreId => 'Subido a';
 
   @override
@@ -58582,6 +59171,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Inicia sesión con Google';
 
   @override
+  String get settings_setUpDevice_offer_googleDrive_browser =>
+      'Inicia sesión con Google cada vez que abras el sitio';
+
+  @override
   String get settings_setUpDevice_offer_dropbox => 'Inicia sesión con Dropbox';
 
   @override
@@ -58913,6 +59506,189 @@ class AppLocalizationsEs extends AppLocalizations {
       'El modo demo mantiene el diario de ejemplo separado de tus datos, así que no se puede importar, exportar, respaldar ni sincronizar nada.';
 
   @override
+  String get web_unavailable_title => 'No disponible en un navegador';
+
+  @override
+  String get web_unavailable_reason_hardware =>
+      'Esto necesita hardware al que una página web no puede acceder, como Bluetooth, USB, NFC o la cámara. Usa la app de Submersion en un teléfono u ordenador.';
+
+  @override
+  String get web_unavailable_reason_background =>
+      'Esto se ejecuta en segundo plano o como un servicio local, algo que una página web no puede hacer. Usa la app de Submersion en un teléfono u ordenador.';
+
+  @override
+  String get web_unavailable_reason_files =>
+      'Esto trabaja con archivos del dispositivo, a los que una página web no puede acceder. Usa la app de Submersion en un teléfono u ordenador.';
+
+  @override
+  String get web_unavailable_reason_icloud =>
+      'iCloud solo está disponible en la app de Submersion en dispositivos Apple.';
+
+  @override
+  String get web_unavailable_reason_git =>
+      'Los servidores Git no aceptan solicitudes desde una página web. Usa la app de Submersion en un teléfono u ordenador para un almacén de sincronización Git.';
+
+  @override
+  String get web_continueWithoutSync =>
+      'Continuar sin un almacén de sincronización';
+
+  @override
+  String get web_rememberOnThisDevice_title =>
+      'Recordar el acceso en este dispositivo';
+
+  @override
+  String get web_rememberOnThisDevice_subtitle =>
+      'Guarda los datos de acceso y la frase de contraseña en este navegador. Desactivado, se olvidan al cerrar la pestaña. Tus inmersiones permanecen en este navegador en cualquier caso, hasta que olvides este dispositivo.';
+
+  @override
+  String get web_rememberOnThisDevice_subtitleInMemory =>
+      'Guarda los datos de acceso y la frase de contraseña en este navegador. Desactivado, se olvidan al cerrar la pestaña. Este navegador no conserva inmersiones al cerrar la pestaña, esté activado o no.';
+
+  @override
+  String get web_unavailable_offer_icloud =>
+      'Solo la app Submersion en un dispositivo Apple puede acceder a iCloud.';
+
+  @override
+  String get web_unavailable_offer_git =>
+      'Los servidores Git no aceptan solicitudes desde una página web.';
+
+  @override
+  String get web_googleClientId_title => 'ID de cliente de Google';
+
+  @override
+  String get web_googleClientId_body =>
+      'Una página web inicia sesión en Google con un ID de cliente de tu propio proyecto de Google Cloud: de tipo Aplicación web, con la dirección de este sitio como origen de JavaScript autorizado. Pégalo aquí. Se guarda con tus otros datos de acceso.';
+
+  @override
+  String get web_googleClientId_ownProjectNote =>
+      'Un ID de cliente propio solo ve una biblioteca de Google Drive que haya creado este sitio. Google mantiene separada la carpeta de Drive de cada proyecto, así que la biblioteca que tu teléfono y tu ordenador sincronizan con Google Drive no se puede abrir aquí.';
+
+  @override
+  String get web_googleClientId_hint =>
+      '123456789-abc123.apps.googleusercontent.com';
+
+  @override
+  String get web_googleClientId_invalid =>
+      'Eso no parece un ID de cliente de Google. Termina en .apps.googleusercontent.com.';
+
+  @override
+  String get web_googleClientId_help => 'Cómo crear uno';
+
+  @override
+  String get web_cors_title_blockedByCors =>
+      'El almacén bloquea las solicitudes del navegador';
+
+  @override
+  String get web_cors_explain_blockedByCors =>
+      'El navegador consultó al almacén y no obtuvo una respuesta que pudiera leer. Las reglas CORS del almacén deben permitir la dirección de este sitio. Añade la regla de abajo al almacén y vuelve a comprobar.';
+
+  @override
+  String get web_cors_title_methodBlockedByCors =>
+      'El almacén permite algunas solicitudes, no todas';
+
+  @override
+  String get web_cors_explain_methodBlockedByCors =>
+      'El almacén responde a una solicitud simple desde este sitio pero rechaza el método que la app necesita, como PROPFIND en WebDAV. Su regla CORS debe incluir todos los métodos de abajo.';
+
+  @override
+  String get web_cors_title_writeBlockedByCors =>
+      'El almacén permite leer, no escribir';
+
+  @override
+  String get web_cors_explain_writeBlockedByCors =>
+      'Las lecturas desde este sitio funcionan, pero una escritura fue rechazada. La regla CORS también debe permitir PUT y DELETE; la regla de abajo los incluye.';
+
+  @override
+  String get web_cors_title_forbidden => 'El almacén rechazó las credenciales';
+
+  @override
+  String get web_cors_explain_forbidden =>
+      'El almacén respondió 403: clave de acceso o secreto incorrectos, o una clave de solo lectura donde la sincronización necesita escribir. Comprueba las credenciales y los permisos de la clave.';
+
+  @override
+  String get web_cors_title_notFound => 'No hay nada en esta dirección';
+
+  @override
+  String get web_cors_explain_notFound =>
+      'El bucket, la carpeta o la ruta no existe, o el nombre está mal escrito. Comprueba la dirección y el nombre del bucket o la carpeta.';
+
+  @override
+  String get web_cors_title_tlsOrUnreachable =>
+      'El navegador no confía en el servidor o no puede alcanzarlo';
+
+  @override
+  String get web_cors_explain_tlsOrUnreachable =>
+      'Una dirección privada por HTTPS falló sin respuesta. El navegador, no la app, decide en qué certificados confiar: abre la dirección del servidor en una pestaña nueva y acepta o instala su certificado, o asegúrate de que el servidor sea accesible desde aquí.';
+
+  @override
+  String get web_cors_title_ok => 'La conexión funciona';
+
+  @override
+  String get web_cors_explain_ok =>
+      'El almacén aceptó la prueba desde este navegador.';
+
+  @override
+  String get web_cors_title_unknown => 'La conexión falló';
+
+  @override
+  String get web_cors_explain_unknown =>
+      'El navegador informó de un error que no explica. Lo más habitual es que las reglas CORS del almacén no permitan la dirección de este sitio; la regla de abajo suele ser la solución.';
+
+  @override
+  String get web_cors_copyRule => 'Copiar regla';
+
+  @override
+  String get web_cors_copied => 'Regla copiada';
+
+  @override
+  String get web_storage_title => 'Almacenamiento del navegador';
+
+  @override
+  String get web_storage_opfs =>
+      'Almacenamiento de archivos del navegador. Tus inmersiones permanecen en este navegador hasta que olvides este dispositivo.';
+
+  @override
+  String get web_storage_indexedDb =>
+      'Base de datos del navegador (más lenta). Tus inmersiones permanecen en este navegador hasta que olvides este dispositivo.';
+
+  @override
+  String get web_storage_memoryWarning =>
+      'No se guarda nada al cerrar esta pestaña. Este navegador no ofrece al sitio almacenamiento duradero; sincroniza antes de salir.';
+
+  @override
+  String get web_forgetDevice_title => 'Olvidar este dispositivo';
+
+  @override
+  String get web_forgetDevice_subtitle =>
+      'Eliminar las inmersiones, los datos de acceso y la identidad del dispositivo de este navegador';
+
+  @override
+  String get web_forgetDevice_confirm => 'Olvidar';
+
+  @override
+  String get web_forgetDevice_confirmBody =>
+      'Esto elimina todo lo que Submersion guarda en este navegador: el registro de inmersiones, los datos de acceso y la frase de contraseña, y la identidad de este dispositivo en la sincronización. Tus inmersiones permanecen en el almacén de sincronización y en tus otros dispositivos. La página se recarga desde cero.';
+
+  @override
+  String get web_forgetDevice_failed =>
+      'Este navegador conservó la base de datos. Cierra las otras pestañas de Submersion e inténtalo de nuevo.';
+
+  @override
+  String get web_forgetDevice_incomplete =>
+      'Este navegador no pudo borrar sus datos de inicio de sesión y su configuración. Inténtalo de nuevo.';
+
+  @override
+  String get web_downloadBackup_failed =>
+      'No se pudo crear la copia de seguridad.';
+
+  @override
+  String get web_downloadBackup_title => 'Descargar una copia de seguridad';
+
+  @override
+  String get web_downloadBackup_subtitle =>
+      'Una copia de tu registro de inmersiones como archivo de base de datos, guardada por tu navegador';
+
+  @override
   String get demo_row_unavailable => 'No disponible en el modo demo';
 
   @override
@@ -59010,6 +59786,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get changeLog_source_system => 'Sistema';
+
+  @override
+  String get changeLog_source_agent => 'Agente';
 
   @override
   String get changeLog_thisDevice => 'Este dispositivo';
@@ -59113,6 +59892,9 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get changeLog_label_libraryRestored =>
       'Biblioteca restaurada desde una copia';
+
+  @override
+  String get changeLog_label_tableEditor => 'Editor de tabla';
 
   @override
   String get changeLog_label_reparse => 'Inmersiones reanalizadas';

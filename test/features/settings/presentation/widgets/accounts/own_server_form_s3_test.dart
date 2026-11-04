@@ -7,6 +7,8 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -173,7 +175,11 @@ void main() {
 
   /// Pumps the form; with [existing], as the account detail view does for an
   /// account this device holds credentials for.
-  Future<void> pumpPage(WidgetTester tester, {S3Config? existing}) async {
+  Future<void> pumpPage(
+    WidgetTester tester, {
+    S3Config? existing,
+    bool browser = false,
+  }) async {
     tester.view.physicalSize = const Size(1200, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(() {
@@ -206,6 +212,10 @@ void main() {
         overrides: [
           s3StorageProviderInstanceProvider.overrideWithValue(provider),
           accountCredentialsStoreProvider.overrideWithValue(credentials),
+          if (browser)
+            deviceCapabilitiesProvider.overrideWithValue(
+              DeviceCapabilities.web,
+            ),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -216,6 +226,7 @@ void main() {
                 existing: group,
                 kinds: const {AccountKind.s3},
                 onSaved: (_) async {},
+                browserOrigin: browser ? 'https://dives.example.com' : null,
               ),
             ),
           ),
@@ -667,5 +678,41 @@ void main() {
       find.byKey(const Key('account-s3-prefix')),
     );
     expect(prefix.controller!.text, 'submersion-sync/');
+  });
+
+  group('in a browser (#4121)', () {
+    testWidgets('a blocked store opens the help sheet with the rule', (
+      tester,
+    ) async {
+      // What the browser reports for a request CORS refused: no status,
+      // just a network failure, which the S3 client wraps as unreachable.
+      apiClient.failListWith = CloudStorageException(
+        'Could not reach S3 endpoint nas.local:9000',
+        http.ClientException('XMLHttpRequest error.'),
+      );
+      await pumpPage(tester, browser: true);
+      await fillValidForm(tester);
+      await tester.ensureVisible(find.byKey(const Key('own-server-check')));
+      await tester.tap(find.byKey(const Key('own-server-check')));
+      await tester.pumpAndSettle();
+      expect(find.text('The store blocks browser requests'), findsOneWidget);
+      expect(find.textContaining('mc admin config set'), findsOneWidget);
+      expect(find.textContaining('https://dives.example.com'), findsOneWidget);
+      expect(find.byType(SnackBar), findsNothing);
+    });
+
+    testWidgets('natively the same failure stays a snackbar', (tester) async {
+      apiClient.failListWith = CloudStorageException(
+        'Could not reach S3 endpoint nas.local:9000',
+        http.ClientException('XMLHttpRequest error.'),
+      );
+      await pumpPage(tester);
+      await fillValidForm(tester);
+      await tester.ensureVisible(find.byKey(const Key('own-server-check')));
+      await tester.tap(find.byKey(const Key('own-server-check')));
+      await tester.pumpAndSettle();
+      expect(find.text('The store blocks browser requests'), findsNothing);
+      expect(find.textContaining('Could not reach S3'), findsOneWidget);
+    });
   });
 }

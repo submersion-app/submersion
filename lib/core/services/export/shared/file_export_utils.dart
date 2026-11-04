@@ -8,6 +8,8 @@ import 'package:gal/gal.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:submersion/core/platform/file_saver.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
@@ -22,7 +24,7 @@ import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 /// Where the sheet cannot take files the share helpers fall back to the same
 /// save dialog the `save*ToFile` helpers use, which is the destination a
 /// desktop user expects anyway.
-bool get canShareFiles => _canShareFilesOverride ?? !Platform.isLinux;
+bool get canShareFiles => _canShareFilesOverride ?? !HostPlatform.isLinux;
 
 bool? _canShareFilesOverride;
 
@@ -33,6 +35,12 @@ bool? _canShareFilesOverride;
 /// save-dialog tests pass for the wrong reason everywhere else.
 @visibleForTesting
 set debugCanShareFiles(bool? value) => _canShareFilesOverride = value;
+
+/// Stands in for the browser download on the VM, so the routing can be
+/// tested where there is no page; null restores the platform path.
+@visibleForTesting
+Future<String> Function(Uint8List bytes, String fileName, String mimeType)?
+debugBrowserDownload;
 
 /// Save string content and hand it to the system share sheet, or to the save
 /// dialog where [canShareFiles] is false.
@@ -89,6 +97,14 @@ Future<String> _shareOrSave(
   String mimeType, {
   Rect? sharePositionOrigin,
 }) async {
+  final download = debugBrowserDownload;
+  if (download != null) return download(bytes, fileName, mimeType);
+  // A page has no share sheet, no documents directory and no save dialog:
+  // its export is a download (issue #4121).
+  if (HostPlatform.isWeb) {
+    await FileSaver.saveBytes(bytes, fileName: fileName, mimeType: mimeType);
+    return fileName;
+  }
   if (!canShareFiles) return _saveViaDialog(bytes, fileName, mimeType);
 
   // The sheet takes a file, not bytes, so the export has to exist on disk

@@ -1,4 +1,4 @@
-import 'package:sqlite3/sqlite3.dart';
+import 'package:sqlite3/common.dart';
 
 import 'package:submersion/features/universal_import/data/services/divinglog_id_list.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_raw_types.dart';
@@ -223,7 +223,7 @@ class DivingLogReferenceReader {
   /// defines (`TypeID`, `Val1`, `Val3` and the set marker): a Diving Log
   /// file is never read through DiveMate's code tables.
   static DivingLogReferences read(
-    Database db,
+    CommonDatabase db,
     DivingLogCapabilities caps, {
     bool isDiveMate = false,
   }) {
@@ -406,7 +406,7 @@ class DivingLogReferenceReader {
   /// field for, counted per kind without loading their blobs so the import
   /// can say what it left behind. Kinds with none are absent.
   static Map<String, int> unsupportedImageCounts(
-    Database db,
+    CommonDatabase db,
     DivingLogCapabilities caps,
   ) {
     final counts = <String, int>{};
@@ -453,7 +453,7 @@ class DivingLogReferenceReader {
   /// throw. Every read goes through `selectList`, which resolves the file's
   /// own spelling of each column.
   static Map<int, T> _read<T>(
-    Database db,
+    CommonDatabase db,
     DivingLogCapabilities caps,
     String table,
     List<String> columns,
@@ -481,7 +481,7 @@ class DivingLogReferenceReader {
   /// `FishRel` rows grouped by dive. Many rows share a `LogID`, so this
   /// cannot go through [_read].
   static Map<int, List<int>> _readSpeciesLinks(
-    Database db,
+    CommonDatabase db,
     DivingLogCapabilities caps,
   ) {
     if (!caps.hasTable('FishRel') ||
@@ -506,7 +506,7 @@ class DivingLogReferenceReader {
 
   /// `Pictures` rows grouped by dive.
   static Map<int, List<DivingLogRawPicture>> _readPictures(
-    Database db,
+    CommonDatabase db,
     DivingLogCapabilities caps,
   ) {
     if (!caps.hasTable('Pictures') || !caps.hasColumn('Pictures', 'LogID')) {

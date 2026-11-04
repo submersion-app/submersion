@@ -1,7 +1,8 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
+
+import 'package:submersion/core/platform/zlib/platform_zlib.dart';
 import 'package:submersion/features/dive_log/domain/codecs/bounded_inflate.dart';
 import 'package:submersion/features/dive_log/domain/codecs/byte_io.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec_exception.dart';
@@ -83,9 +84,6 @@ class TankPressureSeriesCodec {
 
   static const int version = 1;
 
-  // ZLibCodec has no const constructor, so this is `final`, not `const`.
-  static final ZLibCodec _zlib = ZLibCodec(level: 6);
-
   /// Encodes a non-empty, timestamp-ordered series. Throws [ArgumentError]
   /// on an empty list, on more than [kMaxSeriesSampleCount] samples, or on
   /// decreasing timestamps.
@@ -121,7 +119,7 @@ class TankPressureSeriesCodec {
       for (final s in samples) s.pressure,
     ], writer.writeFloat64);
     return EncodedTankPressureSeries(
-      bytes: Uint8List.fromList(_zlib.encode(writer.takeBytes())),
+      bytes: PlatformZlib.deflate(writer.takeBytes()),
       codecVersion: version,
       summary: summary,
     );

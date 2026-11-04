@@ -4,8 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
+import 'package:submersion/features/planner/domain/utils/saved_plan_rows.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
+import 'package:submersion/features/planner/presentation/widgets/saved_series_dive_lines.dart';
 import 'package:submersion/features/planning/presentation/planning_tools.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
@@ -43,16 +44,18 @@ class PlanningListContent extends ConsumerWidget {
     // beside this list. The row would only duplicate that, so it is a
     // narrow-window-only entry point (issue #3551).
     final showPlannedDivesRow = onToolSelected == null;
+    // A saved series is one entry, opening on its first dive (issue #3565).
     final recentPlans = showPlannedDivesRow
-        ? ref.watch(divePlanSummariesProvider).valueOrNull?.take(3).toList() ??
-              const []
-        : const <DivePlanSummary>[];
+        ? collapseSeries(
+            ref.watch(divePlanSummariesProvider).valueOrNull ?? const [],
+          ).take(3).toList()
+        : const <SavedPlanRow>[];
 
     final list = KeyboardListNavigator(
       keys: [
         kDivePlannerToolId,
         if (showPlannedDivesRow) kPlannedDivesToolId,
-        for (final plan in recentPlans) _planNavKey(plan.id),
+        for (final row in recentPlans) _planNavKey(row.plan.id),
         for (final tool in tools) tool.id,
       ],
       currentKey: selectedId,
@@ -76,11 +79,11 @@ class PlanningListContent extends ConsumerWidget {
           PlanningTile.select(context, _plannedDivesTool(context), null);
           return;
         }
-        final plan = recentPlans
-            .where((p) => _planNavKey(p.id) == id)
+        final row = recentPlans
+            .where((r) => _planNavKey(r.plan.id) == id)
             .firstOrNull;
-        if (plan != null) {
-          _openPlan(context, plan.id);
+        if (row != null) {
+          _openPlan(context, row.plan.id);
           return;
         }
         PlanningTile.select(
@@ -236,7 +239,7 @@ class _PlannedDivesSection extends ConsumerWidget {
   const _PlannedDivesSection({required this.recentPlans});
 
   /// The plans to list, the same ones the list's keyboard cursor walks.
-  final List<DivePlanSummary> recentPlans;
+  final List<SavedPlanRow> recentPlans;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -251,24 +254,21 @@ class _PlannedDivesSection extends ConsumerWidget {
             onToolSelected: null,
           ),
         ),
-        for (final summary in recentPlans)
+        for (final row in recentPlans)
           KeyboardListItem(
-            navigationKey: _planNavKey(summary.id),
+            navigationKey: _planNavKey(row.plan.id),
             child: ListTile(
               contentPadding: const EdgeInsets.only(left: 76, right: 16),
               dense: true,
               leading: const Icon(Icons.route, size: 20),
-              title: Text(summary.name),
+              title: Text(row.plan.name),
               subtitle: Text(
                 [
-                  if (summary.maxDepth != null)
-                    units.formatDepth(summary.maxDepth!),
-                  if (summary.runtimeSeconds != null)
-                    '${(summary.runtimeSeconds! / 60).ceil()}′',
-                  summary.mode.name.toUpperCase(),
-                ].join(' · '),
+                  savedPlanRowSubtitle(context, row, units),
+                  row.plan.mode.name.toUpperCase(),
+                ].where((part) => part.isNotEmpty).join(' · '),
               ),
-              onTap: () => _openPlan(context, summary.id),
+              onTap: () => _openPlan(context, row.plan.id),
             ),
           ),
       ],

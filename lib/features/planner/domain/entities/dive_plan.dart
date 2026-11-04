@@ -667,6 +667,12 @@ class DivePlanSummary extends Equatable {
   final bool linkedDiveIsPlanned;
   final DateTime? linkedDiveDate;
 
+  /// The saved series this dive is in (issue #3565), its place there and its
+  /// own name; null for an ordinary plan.
+  final String? seriesId;
+  final int? seriesIndex;
+  final String? diveName;
+
   const DivePlanSummary({
     required this.id,
     required this.name,
@@ -679,6 +685,9 @@ class DivePlanSummary extends Equatable {
     this.linkedDiveNumber,
     this.linkedDiveIsPlanned = false,
     this.linkedDiveDate,
+    this.seriesId,
+    this.seriesIndex,
+    this.diveName,
   });
 
   @override
@@ -694,5 +703,8 @@ class DivePlanSummary extends Equatable {
     linkedDiveNumber,
     linkedDiveIsPlanned,
     linkedDiveDate,
+    seriesId,
+    seriesIndex,
+    diveName,
   ];
 }

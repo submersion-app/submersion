@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
 import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/unavailable_account_kinds_provider.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_group_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_sign_in.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/own_server_form.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// What the diver picked in an account chooser.
@@ -264,9 +267,15 @@ class _AccountChooserState extends ConsumerState<AccountChooser> {
         naturalKeyForKind(kind) != null && presentKinds.contains(kind),
       null => false,
     };
+    // Kinds this device cannot sign in to at all, shown with their reason
+    // where the step explains each kind (issue #4121).
+    final unavailable = widget.offerHints
+        ? ref.watch(unavailableAccountKindsProvider)
+        : const <AccountKindOffer, String Function(AppLocalizations)>{};
     final offers = [
       for (final o in ref.watch(offerableAccountKindsProvider))
-        if (_offerAllowed(o) && !alreadyAdded(o)) o,
+        if (_offerAllowed(o) && !alreadyAdded(o) && !unavailable.containsKey(o))
+          o,
     ];
     final noneLabel = widget.noneLabel;
     // Not closed while a sign-in or switch runs: what follows it needs this
@@ -328,6 +337,17 @@ class _AccountChooserState extends ConsumerState<AccountChooser> {
                   onTap: () => _add(o),
                 ),
             ],
+            for (final MapEntry(key: o, value: reason) in unavailable.entries)
+              if (_offerAllowed(o))
+                ListTile(
+                  enabled: false,
+                  leading: Icon(switch (kindOfOffer(o)) {
+                    final kind? => accountKindIcon(kind),
+                    null => accountKindIcon(AccountKind.s3),
+                  }),
+                  title: Text(_offerLabel(context, o)),
+                  subtitle: Text(reason(l10n)),
+                ),
           ],
         ),
       ),
@@ -342,8 +362,11 @@ class _AccountChooserState extends ConsumerState<AccountChooser> {
     if (!widget.offerHints) return null;
     return switch (offer) {
       AccountKindOffer.icloud => l10n.settings_setUpDevice_offer_icloud,
+      // A browser signs in to Google again on each visit (issue #4121).
       AccountKindOffer.googleDrive =>
-        l10n.settings_setUpDevice_offer_googleDrive,
+        ref.watch(deviceCapabilitiesProvider).isBrowser
+            ? l10n.settings_setUpDevice_offer_googleDrive_browser
+            : l10n.settings_setUpDevice_offer_googleDrive,
       AccountKindOffer.dropbox => l10n.settings_setUpDevice_offer_dropbox,
       AccountKindOffer.ownServer => l10n.settings_setUpDevice_offer_ownServer,
       AccountKindOffer.git => null,

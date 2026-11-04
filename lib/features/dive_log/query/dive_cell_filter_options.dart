@@ -45,10 +45,9 @@ class CellFilterOption {
 ///
 /// Every item is a rule the query engine evaluates on the SAME value the
 /// cell displays. Where the cell shows something the field does not read
-/// (a runtime derived from timestamps, an entry method inherited from the
-/// site, a legacy free-text buddy, a legacy visibility bucket, a dive name
-/// shown from its site), there are no items rather than a rule that would
-/// drop the dive that was clicked.
+/// (a legacy free-text buddy, a legacy visibility bucket, a dive name shown
+/// from its site), there are no items rather than a rule that would drop the
+/// dive that was clicked.
 ///
 /// [surfaceIntervals] is null while the computed intervals are loading, and
 /// [knownComputerIds] lists the computer rows that exist (null while
@@ -311,7 +310,7 @@ Object? _queriedValue(
   DiveField.visibility => dive.visibilityMeters,
   DiveField.totalWeight => dive.recordedWeightKg,
   DiveField.bottomTime => dive.bottomTime,
-  DiveField.runtime => dive.runtime,
+  DiveField.runtime => dive.measuredRuntime,
   DiveField.surfaceInterval => _surfaceInterval(dive, surfaceIntervals),
   // The `date` field reads dive_date_time; the cell shows the entry time.
   // On another calendar day they would disagree, so nothing is offered.

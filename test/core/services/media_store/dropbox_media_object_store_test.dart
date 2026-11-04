@@ -171,6 +171,26 @@ void main() {
     expect(progress.last, bytes.length);
   });
 
+  test('getBytes hands a whole object back in memory, and a missing one is '
+      'notFound', () async {
+    final store = build(chunkSizeBytes: 16 * 1024);
+    final bytes = List<int>.generate(50 * 1024, (i) => (i * 3) % 251);
+    server.files['/submersion-media/smv1/objects/aa/m.bin'] =
+        Uint8List.fromList(bytes);
+
+    expect(await store.getBytes('smv1/objects/aa/m.bin'), bytes);
+    await expectLater(
+      store.getBytes('smv1/objects/aa/missing.bin'),
+      throwsA(
+        isA<MediaStoreException>().having(
+          (e) => e.kind,
+          'kind',
+          MediaStoreErrorKind.notFound,
+        ),
+      ),
+    );
+  });
+
   DropboxMediaObjectStore throwingStore(CloudStorageException e) =>
       DropboxMediaObjectStore(client: _ThrowingDropboxClient(e));
 
@@ -187,6 +207,10 @@ void main() {
     );
     await expectLater(
       store.getFile('smv1/objects/aa/e.bin', File('${tmp.path}/o')),
+      throwsA(isA<MediaStoreException>()),
+    );
+    await expectLater(
+      store.getBytes('smv1/objects/aa/e.bin'),
       throwsA(isA<MediaStoreException>()),
     );
     await expectLater(

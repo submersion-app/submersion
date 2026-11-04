@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_api_client.dart';
@@ -233,6 +234,16 @@ class DropboxMediaObjectStore implements MediaObjectStore {
       } finally {
         await raf.close();
       }
+    } on CloudStorageException catch (e) {
+      throw _map('get', key, e);
+    }
+  }
+
+  @override
+  Future<Uint8List> getBytes(String key) async {
+    try {
+      // A missing file answers not found, which _map classifies.
+      return await _client.download(_path(key));
     } on CloudStorageException catch (e) {
       throw _map('get', key, e);
     }

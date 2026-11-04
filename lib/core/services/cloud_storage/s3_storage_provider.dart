@@ -128,11 +128,35 @@ class S3StorageProvider
   /// tiny probe object under the prefix. Shared by [authenticate] and
   /// [testConnection] so the two paths cannot drift.
   Future<void> _probe(S3ApiClient client, S3Config config) async {
-    await client.listObjects(prefix: config.prefix, maxKeys: 1);
+    lastProbeFailedOnWrite = false;
+    await _probeStep(
+      write: false,
+      () => client.listObjects(prefix: config.prefix, maxKeys: 1),
+    );
     final probeKey = '${config.prefix}$probeObjectName';
-    await client.putObject(probeKey, Uint8List.fromList('probe'.codeUnits));
-    await client.getObject(probeKey);
-    await client.deleteObject(probeKey);
+    await _probeStep(
+      write: true,
+      () => client.putObject(probeKey, Uint8List.fromList('probe'.codeUnits)),
+    );
+    await _probeStep(write: false, () => client.getObject(probeKey));
+    await _probeStep(write: true, () => client.deleteObject(probeKey));
+  }
+
+  /// Whether the last probe failed on its write or delete rather than on a
+  /// read. A browser's connection test reads it to tell a store that allows
+  /// GET but not PUT from one that allows nothing (issue #4121).
+  bool lastProbeFailedOnWrite = false;
+
+  Future<T> _probeStep<T>(
+    Future<T> Function() step, {
+    required bool write,
+  }) async {
+    try {
+      return await step();
+    } catch (_) {
+      lastProbeFailedOnWrite = write;
+      rethrow;
+    }
   }
 
   @override

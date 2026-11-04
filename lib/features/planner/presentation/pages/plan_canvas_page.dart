@@ -16,7 +16,6 @@ import 'package:submersion/features/dive_planner/presentation/widgets/simple_pla
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
-import 'package:submersion/features/planner/domain/services/plan_name_generator.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_geometry.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_profile_chart.dart';
 import 'package:submersion/features/planner/presentation/panes/plan_editor_pane.dart';
@@ -33,19 +32,23 @@ import 'package:submersion/features/planner/presentation/widgets/follow_dive_she
 import 'package:submersion/features/planner/presentation/widgets/plan_chart_readouts.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_export_actions.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_export_files.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_first_save_name.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_name_dialog.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_unsaved_dialog.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_store.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_follow_prompt.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_logged_dive_view.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_series_navigator.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_dive_details_card.dart';
 import 'package:submersion/features/planner/presentation/widgets/saved_plans_sheet.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
+
+part 'plan_canvas_series_flows.dart';
 
 /// Whether [id] refers to a plan that already exists in the store. Drives the
 /// visibility of the destructive "Delete plan" action: a brand-new, never-saved
@@ -72,7 +75,8 @@ class PlanCanvasPage extends ConsumerStatefulWidget {
   ConsumerState<PlanCanvasPage> createState() => _PlanCanvasPageState();
 }
 
-class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
+class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
+    with _PlanCanvasSeriesFlows {
   /// Owns the always-visible results pane so it is created once (not per
   /// build) and disposed with the page. Shared by the phone Results tab.
   final _wideResultsController = ScrollController();
@@ -86,7 +90,11 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       // callbacks; defer the load to a microtask.
       Future.microtask(() {
         if (!mounted) return;
-        ref.read(divePlanNotifierProvider.notifier).loadPlanById(planId);
+        logFailure(
+          _openRoutePlan(planId),
+          _PlanCanvasPageState,
+          'open a saved plan',
+        );
       });
     }
   }
@@ -123,12 +131,16 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   @override
   Widget build(BuildContext context) {
     final planState = ref.watch(divePlanNotifierProvider);
-    // A series of dives, or a plan following a logged dive, cannot be saved
-    // or logged until series persistence lands (issue #3565).
-    final saveAllowed = ref.watch(planSaveAllowedProvider);
+    // A series of dives, or a plan following a logged dive, cannot be logged
+    // yet (issue #3565).
+    final convertAllowed = ref.watch(planConvertAllowedProvider);
+    final savedSeriesId = ref.watch(
+      planSeriesNotifierProvider.select((s) => s.id),
+    );
+    final isDirty = ref.watch(planSeriesDirtyProvider);
     _notifier = ref.read(divePlanNotifierProvider.notifier);
     // A series is not a throwaway: leaving must not lose what cannot be saved.
-    _replanId = planState.sourceDiveId != null && saveAllowed
+    _replanId = planState.sourceDiveId != null && convertAllowed
         ? planState.id
         : null;
     final units = ref.watch(unitFormatterProvider);
@@ -138,15 +150,17 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     // avoidable subscription/fetch in the common edit-a-saved-plan case. The
     // summaries watch only runs for a new plan, where it flips the Delete item
     // on once the plan is first saved.
-    // A series offers none: the route's plan may not be the dive on screen.
+    // A saved series deletes as a whole; one not saved yet has nothing to
+    // delete, and the route's plan may not be the dive on screen.
     final canDelete =
-        saveAllowed &&
-        (widget.planId != null ||
-            planIsPersisted(
-              planState.id,
-              ref.watch(divePlanSummariesProvider).valueOrNull ??
-                  const <domain.DivePlanSummary>[],
-            ));
+        savedSeriesId != null ||
+        (convertAllowed &&
+            (widget.planId != null ||
+                planIsPersisted(
+                  planState.id,
+                  ref.watch(divePlanSummariesProvider).valueOrNull ??
+                      const <domain.DivePlanSummary>[],
+                )));
 
     return Scaffold(
       appBar: AppBar(
@@ -214,11 +228,9 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
         ),
         actions: [
           IconButton(
-            icon: Icon(planState.isDirty ? Icons.save : Icons.save_outlined),
-            tooltip: saveAllowed
-                ? context.l10n.divePlanner_action_savePlan
-                : context.l10n.plannerSeries_saveUnavailable,
-            onPressed: planState.isDirty && saveAllowed ? _savePlan : null,
+            icon: Icon(isDirty ? Icons.save : Icons.save_outlined),
+            tooltip: context.l10n.divePlanner_action_savePlan,
+            onPressed: isDirty ? _savePlan : null,
           ),
           // A Builder so the share anchor resolves to the overflow button
           // rather than the whole app bar: it contributes no render object, so
@@ -260,8 +272,8 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
                   'convert',
                   Icons.scuba_diving,
                   context.l10n.divePlanner_action_convertToDive,
-                  enabled: saveAllowed,
-                  tooltip: saveAllowed
+                  enabled: convertAllowed,
+                  tooltip: convertAllowed
                       ? null
                       : context.l10n.plannerSeries_convertUnavailable,
                 ),
@@ -291,12 +303,29 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
           ),
         ],
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final width = constraints.maxWidth;
-          if (width >= 760) return _buildDesktop(fullWidth: width >= 1160);
-          return _buildPhone(constraints);
+      // Leaving a series with unsaved changes asks first (issue #3565).
+      body: PopScope(
+        // Not over another planner page, which still shows the series.
+        canPop:
+            !(isDirty &&
+                ref.watch(planSeriesSavesAsSeriesProvider) &&
+                !_plannerBelow),
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) {
+            logFailure(
+              _confirmLeavingSeries(),
+              _PlanCanvasPageState,
+              'leave an unsaved series',
+            );
+          }
         },
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth;
+            if (width >= 760) return _buildDesktop(fullWidth: width >= 1160);
+            return _buildPhone(constraints);
+          },
+        ),
       ),
     );
   }
@@ -313,7 +342,13 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   List<PopupMenuItem<String>> _linkMenuItems(BuildContext context) {
     final l10n = context.l10n;
     final plan = ref.read(divePlanNotifierProvider);
-    final saved = ref.read(divePlanNotifierProvider.notifier).isPersisted;
+    final summaries = ref.read(divePlanSummariesProvider).value;
+    final summary = summaries?.where((s) => s.id == plan.id).firstOrNull;
+    // A dive of a saved series is loaded into the editor without being its
+    // persisted plan, so its saved row is what says it can be named.
+    final saved =
+        ref.read(divePlanNotifierProvider.notifier).isPersisted ||
+        (ref.read(planSeriesNotifierProvider).id != null && summary != null);
     final tooltip = saved ? null : l10n.plannerCanvas_link_saveFirst;
     if (plan.linkedDiveId == null) {
       return [
@@ -326,8 +361,6 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
         ),
       ];
     }
-    final summaries = ref.read(divePlanSummariesProvider).value;
-    final summary = summaries?.where((s) => s.id == plan.id).firstOrNull;
     return [
       _menuItem(
         'linkDive',
@@ -736,7 +769,15 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       title: l10n.plannerCanvas_share_menu,
       savedMessage: l10n.plannerCanvas_share_saved,
       shareAnchor: shareAnchor,
-      build: () async => mounted ? planFileExport(ref) : null,
+      build: () async {
+        if (!mounted) return null;
+        // One dive is shared as the plan it is; a series goes together, with
+        // what each dive carries from the one before.
+        if (!ref.read(planSeriesNotifierProvider).isSeries) {
+          return planFileExport(ref);
+        }
+        return seriesExport(await currentStoredSeries(ref.container));
+      },
     );
   }
 
@@ -767,6 +808,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   /// and prompts for a name on a plan that is already being saved.
   bool _saveInFlight = false;
 
+  @override
   Future<void> _savePlan() async {
     if (_saveInFlight) return;
     _saveInFlight = true;
@@ -784,56 +826,26 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     // list is not a wall of identically-named rows. Re-saves stay silent, and
     // so does Convert to Dive: that flow is already multi-step and should not
     // grow a modal.
-    if (!notifier.isPersisted) {
-      final l10n = context.l10n;
-      final units = UnitFormatter(ref.read(settingsProvider));
-      final siteId = ref.read(divePlanNotifierProvider).siteId;
-      final site = siteId == null
-          ? null
-          : await ref.read(siteProvider(siteId).future);
-      if (!mounted) return;
-
-      // Re-read after the site lookup rather than before it. No modal is up
-      // while that read resolves, so the diver can still edit the plan and the
-      // suggested name must describe what the plan is now.
-      final planState = ref.read(divePlanNotifierProvider);
-      final suggestedDepth = ref.read(planOutcomeProvider).maxDepth;
-      // The lookup was keyed on the pre-await id. If the diver switched sites
-      // while it resolved, the fetched name describes a site the plan no longer
-      // uses, so drop it rather than pair it with fresh depth and date.
-      final siteName = planState.siteId == siteId ? site?.name : null;
-
-      final entered = await showPlanNameDialog(
-        context,
-        initialName: generateDefaultPlanName(
-          siteName: siteName,
-          depthLabel: suggestedDepth > 0
-              ? units.formatDepth(suggestedDepth)
-              : null,
-          dateLabel: units.formatMonthDay(
-            planState.startDateTime ?? DateTime.now(),
-          ),
-          fallbackLabel: l10n.plannerCanvas_name_defaultFallback,
-        ),
-        title: l10n.plannerCanvas_name_dialogTitle,
-      );
-      // Cancel aborts the save entirely: nothing is written and the plan stays
-      // dirty, so the diver is never surprised by a name they rejected.
-      if (entered == null) return;
-      notifier.updateName(entered);
+    final series = ref.read(planSeriesNotifierProvider);
+    if (!notifier.isPersisted && series.id == null) {
+      if (!await nameFirstSave(context, ref) || !mounted) return;
     }
 
     // Build the summary last so the denormalized depth/runtime always describe
     // the plan actually being persisted, never whatever it looked like before
     // the naming flow's async gaps.
     final outcome = ref.read(planOutcomeProvider);
-    await notifier.save(
-      summary: PlanSummaryData(
-        maxDepth: outcome.maxDepth,
-        runtimeSeconds: outcome.runtimeSeconds,
-        ttsSeconds: outcome.ttsAtBottom,
-      ),
-    );
+    if (ref.read(planSeriesNotifierProvider).savesAsSeries) {
+      await saveCurrentSeries(ref.container);
+    } else {
+      await notifier.save(
+        summary: PlanSummaryData(
+          maxDepth: outcome.maxDepth,
+          runtimeSeconds: outcome.runtimeSeconds,
+          ttsSeconds: outcome.ttsAtBottom,
+        ),
+      );
+    }
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(context.l10n.divePlanner_message_planSaved)),
@@ -958,6 +970,8 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   }
 
   Future<void> _deletePlan() async {
+    final seriesId = ref.read(planSeriesNotifierProvider).id;
+    if (seriesId != null) return _deleteSeries(seriesId);
     // Prefer the route's planId. During the loadPlanById() window the notifier
     // state still holds a freshly generated placeholder id, so reading it here
     // could target (and tombstone) the wrong plan. widget.planId is the
@@ -982,57 +996,15 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     if (!mounted) return;
     final name = captured?.name ?? ref.read(divePlanNotifierProvider).name;
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(context.l10n.divePlanner_action_deletePlan),
-        content: Text(
-          context.l10n.divePlanner_message_deleteConfirmation(name),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(context.l10n.common_action_cancel),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(dialogContext).colorScheme.error,
-            ),
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(context.l10n.common_action_delete),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return;
+    if (!await _confirmDeletePlan(name) || !mounted) return;
 
     await repository.deletePlan(planId);
     if (!mounted) return;
 
-    // Capture messenger + strings before navigating; this page is about to be
-    // disposed and its context becomes defunct.
-    final messenger = ScaffoldMessenger.of(context);
-    final deletedLabel = context.l10n.divePlanner_message_planDeleted;
-    final undoLabel = context.l10n.divePlanner_undo;
-    context.go('/planning');
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(deletedLabel),
-        duration: const Duration(seconds: 5),
-        // A SnackBar with an action defaults to persist: true, which makes the
-        // auto-dismiss timer a no-op so the banner never hides on its own.
-        // Force the 5s auto-dismiss and add a close icon so the banner can be
-        // dismissed without tapping Undo (which would restore the plan). #406.
-        persist: false,
-        showCloseIcon: true,
-        action: captured == null
-            ? null
-            : SnackBarAction(
-                label: undoLabel,
-                onPressed: () =>
-                    repository.savePlan(captured, summary: capturedSummary),
-              ),
-      ),
+    _leaveDeleted(
+      undo: captured == null
+          ? null
+          : () => repository.savePlan(captured, summary: capturedSummary),
     );
   }
 

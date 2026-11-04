@@ -17,6 +17,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_parent_links.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_sites/data/mappers/dive_site_row_mapper.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_children.dart';
@@ -734,9 +735,13 @@ class SiteRepository {
   /// Returns false, with nothing changed, for a site another profile owns
   /// (issue #2594). A site already gone (deleted on another device) counts
   /// as deleted and returns true.
+  ///
+  /// [holdRemoteMedia] leaves the media's remote blobs alone for now, for a
+  /// delete that can still go back.
   Future<bool> deleteSite(
     String id, {
     bool cascadeMedia = true,
+    bool holdRemoteMedia = false,
     String? actingDiverId,
     bool? logTombstones,
   }) => ChangeLogScope.bulk(
@@ -745,6 +750,7 @@ class SiteRepository {
     body: () => _deleteSiteInner(
       id,
       cascadeMedia: cascadeMedia,
+      holdRemoteMedia: holdRemoteMedia,
       actingDiverId: actingDiverId,
       logTombstones: logTombstones,
     ),
@@ -753,6 +759,7 @@ class SiteRepository {
   Future<bool> _deleteSiteInner(
     String id, {
     bool cascadeMedia = true,
+    bool holdRemoteMedia = false,
     String? actingDiverId,
     bool? logTombstones,
   }) async {
@@ -773,6 +780,7 @@ class SiteRepository {
       await _deleteSiteRows(
         [id],
         cascadeMedia: cascadeMedia,
+        undoable: holdRemoteMedia,
         skipTombstones: tombstone ? const {} : {id},
       );
       SyncEventBus.notifyLocalChange();
@@ -1454,8 +1462,8 @@ class SiteRepository {
                MIN(dive_date_time) AS first_dived,
                MAX(max_depth) AS max_depth_reached,
                AVG(max_depth) AS avg_depth_reached,
-               MAX(COALESCE(runtime, bottom_time)) AS longest_dive_seconds,
-               AVG(COALESCE(runtime, bottom_time)) AS avg_duration_seconds
+               MAX(${measuredRuntimeSecondsSql('dives')}) AS longest_dive_seconds,
+               AVG(${measuredRuntimeSecondsSql('dives')}) AS avg_duration_seconds
         FROM dives
         WHERE site_id IS NOT NULL${DiveStatsScope.and(alias: 'dives')}
           ${diverId == null ? '' : 'AND diver_id = ?'}

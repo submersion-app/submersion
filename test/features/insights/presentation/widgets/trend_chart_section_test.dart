@@ -26,7 +26,10 @@ List<TrendDataPoint> fourYears() => List.generate(
   ),
 );
 
-Widget host(AsyncValue<List<TrendDataPoint>> value) {
+Widget host(
+  AsyncValue<List<TrendDataPoint>> value, {
+  List<TrendSeries> secondarySeries = const [],
+}) {
   return ProviderScope(
     child: MaterialApp(
       locale: const Locale('en'),
@@ -39,6 +42,7 @@ Widget host(AsyncValue<List<TrendDataPoint>> value) {
             title: 'Maximum Depth Progression',
             subtitle: 'Depth per dive in range',
             pointsAsync: value,
+            secondarySeries: secondarySeries,
             errorMessage: 'Failed to load depth progression',
             lineColor: Colors.indigo,
             valueFormatter: (v) => '${v.toStringAsFixed(1)}m',
@@ -169,6 +173,36 @@ void main() {
       const TrendRange.preset(TrendRangePreset.year1),
     );
     expect(find.text('Last year'), findsOneWidget);
+  });
+
+  testWidgets('Custom range... spans a secondary series too', (tester) async {
+    await tester.pumpWidget(
+      host(
+        AsyncValue.data(fourYears()),
+        secondarySeries: [
+          TrendSeries(
+            label: 'Earlier',
+            color: Colors.green,
+            points: [TrendDataPoint(date: DateTime.utc(2021, 6, 1), value: 12)],
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('trend-range-depth')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('trend-range-depth-custom')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(TrendChartSection)),
+    );
+    final range = container
+        .read(trendChartSettingsProvider(TrendChartIds.depth))
+        .range;
+    expect(range.start, DateTime.utc(2021, 6, 1));
   });
 
   testWidgets('Custom range... stores the picked days', (tester) async {

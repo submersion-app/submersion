@@ -344,19 +344,19 @@ void main() {
   testAsk('Undo puts the sentence back and the old query', (tester) async {
     await pumpHeader(
       tester,
-      engine: _Engine()..replies['deep dives, please'] = _deep,
+      engine: _Engine()..replies['deep dives (please'] = _deep,
       filter: DiveFilterState(query: TextNode(['reef'])),
     );
     await tester.enterText(
       find.byKey(kDiveSearchFieldKey),
-      'deep dives, please',
+      'deep dives (please',
     );
     await tester.pump();
     await tester.tap(find.byKey(kDiveAskRowKey));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(kDiveAskUndoKey));
     await tester.pump();
-    expect(fieldOf(tester).controller!.text, 'deep dives, please');
+    expect(fieldOf(tester).controller!.text, 'deep dives (please');
     expect(filterOf().query, TextNode(['reef']));
     // Shown, not applied: still the old query once any debounce is over.
     await tester.pump(kDiveSearchDebounce * 2);
@@ -378,13 +378,7 @@ void main() {
     await tester.tap(find.byKey(kDiveAskUndoKey));
     await tester.pump(kDiveSearchDebounce * 2);
     expect(fieldOf(tester).controller!.text, 'deep dives');
-    expect(
-      filterOf().query,
-      AndNode([
-        TextNode(['deep']),
-        TextNode(['dives']),
-      ]),
-    );
+    expect(filterOf().query, TextNode(['deep']));
   });
 
   testAsk('a sentence about sites opens the site list', (tester) async {

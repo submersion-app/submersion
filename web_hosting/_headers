@@ -1,0 +1,30 @@
+# Cloudflare Pages and Netlify read this file from the site root.
+#
+# The two headers make the page cross-origin isolated, which lets the app
+# use the fastest browser storage. Without them it still runs, on a slower
+# storage path shown in Settings. See HOSTING.md.
+# A site whose users connect Google Drive needs Google's sign-in popup to
+# talk back to the page, which same-origin forbids: use
+# same-origin-allow-popups there and accept the slower storage.
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: credentialless
+# These keep their names across releases, and the app, its workers and the
+# SQLite module must all come from one release, so they are revalidated on
+# every load and a replaced bundle is picked up at once.
+/
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+/drift_worker.js
+  Cache-Control: no-cache
+/compute_worker.js
+  Cache-Control: no-cache
+/sqlite3.wasm
+  Cache-Control: no-cache
+/flutter_bootstrap.js
+  Cache-Control: no-cache
+/main.dart.js
+  Cache-Control: no-cache
+/version.json
+  Cache-Control: no-cache

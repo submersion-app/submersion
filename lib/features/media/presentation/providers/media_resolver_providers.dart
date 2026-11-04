@@ -1,10 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
+import 'package:submersion/core/services/storage/cache_location.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/data/repositories/manifest_subscription_repository.dart';
@@ -53,9 +51,10 @@ final platformGalleryResolverProvider = Provider<PlatformGalleryResolver>(
   (ref) => PlatformGalleryResolver(
     resolutionService: ref.watch(assetResolutionServiceProvider),
     thumbnailCache: ref.watch(galleryThumbnailCacheProvider),
-    hasPhotoLibrary: ref
-        .watch(photoPickerServiceProvider)
-        .supportsGalleryBrowsing,
+    // A page has no photo library whatever OS the browser reports (#4121).
+    hasPhotoLibrary:
+        ref.watch(deviceCapabilitiesProvider).devicePhotoLibrary &&
+        ref.watch(photoPickerServiceProvider).supportsGalleryBrowsing,
     assetReader: const PhotoManagerAssetReader(),
     // read, not watch: a resolver answers per resolution, so the current
     // map is right there; widgets already on screen watch the live stream.
@@ -98,10 +97,7 @@ final videoThumbnailServiceProvider = Provider<VideoThumbnailService>(
   (ref) => VideoThumbnailService(
     platform: ref.watch(localMediaPlatformProvider),
     bookmarkStorage: ref.watch(localBookmarkStorageProvider),
-    cacheDir: () async {
-      final support = await getApplicationSupportDirectory();
-      return Directory(p.join(support.path, 'Submersion', 'video_thumbnails'));
-    },
+    cacheDir: () async => (await cacheLocation()).videoThumbnails,
   ),
 );
 
@@ -109,10 +105,7 @@ final videoThumbnailServiceProvider = Provider<VideoThumbnailService>(
 /// shows the document rather than a generic icon.
 final pdfThumbnailServiceProvider = Provider<PdfThumbnailService>(
   (ref) => PdfThumbnailService(
-    cacheDir: () async {
-      final support = await getApplicationSupportDirectory();
-      return Directory(p.join(support.path, 'Submersion', 'pdf_thumbnails'));
-    },
+    cacheDir: () async => (await cacheLocation()).pdfThumbnails,
   ),
 );
 

@@ -230,6 +230,14 @@ enum DiveDetailSectionId {
       this == DiveDetailSectionId.tanks;
 }
 
+/// Reading a saved section list.
+extension DiveDetailSectionsShown on List<DiveDetailSectionConfig> {
+  /// Whether [id] is on the detail page of a dive, or of a gauge dive with
+  /// [gauge]: not switched off, and not one gauge mode hides.
+  bool shows(DiveDetailSectionId id, {required bool gauge}) =>
+      any((s) => s.id == id && s.shownFor(gauge: gauge));
+}
+
 /// Visibility and ordering configuration for a single dive detail section.
 class DiveDetailSectionConfig {
   final DiveDetailSectionId id;
@@ -247,6 +255,11 @@ class DiveDetailSectionConfig {
     required this.visible,
     this.expanded = false,
   });
+
+  /// Whether this section is on the detail page, for a gauge dive with
+  /// [gauge].
+  bool shownFor({required bool gauge}) =>
+      visible && !(gauge && id.hiddenInGaugeMode);
 
   DiveDetailSectionConfig copyWith({bool? visible, bool? expanded}) {
     return DiveDetailSectionConfig(

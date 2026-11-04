@@ -20,6 +20,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/codecs/deco_type.dart';
+import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
@@ -28,6 +29,7 @@ import 'package:submersion/features/dive_log/domain/entities/profile_event.dart'
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/dive_log/domain/services/ccr_gas_schedule.dart';
 import 'package:submersion/features/dive_log/domain/services/computer_cns_extractor.dart';
+import 'package:submersion/features/dive_log/domain/services/deco_stop_windows.dart';
 import 'package:submersion/features/dive_log/domain/services/gas_time_remaining.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_event_mapper.dart';
 import 'package:submersion/features/dive_log/presentation/providers/analysis_settings_provider.dart';
@@ -273,7 +275,12 @@ List<ProfileGasSegment> buildProfileGasSegments(
 ///
 /// [tanks] scopes the search to the analysed computer's cylinders on a
 /// multi-source dive; defaults to every tank.
-GasMix resolveCcrDiluentMix(Dive dive, {List<DiveTank>? tanks}) {
+GasMix resolveCcrDiluentMix(Dive dive, {List<DiveTank>? tanks}) =>
+    _recordedCcrDiluentMix(dive, tanks: tanks) ?? const GasMix();
+
+/// [resolveCcrDiluentMix] without its air default: null when the log holds no
+/// gas the loop could run on.
+GasMix? _recordedCcrDiluentMix(Dive dive, {List<DiveTank>? tanks}) {
   final candidates = tanks ?? dive.tanks;
   for (final tank in candidates) {
     if (tank.role == TankRole.diluent) return tank.gasMix;
@@ -291,7 +298,50 @@ GasMix resolveCcrDiluentMix(Dive dive, {List<DiveTank>? tanks}) {
     if (role == TankRole.oxygenSupply || role == TankRole.bailout) continue;
     return tank.gasMix;
   }
-  return const GasMix();
+  return null;
+}
+
+/// The gas a rebreather dive's loop runs on, for the gas timeline (issue
+/// #4020): the deco model's diluent, read from the cylinders [computerId]
+/// breathed as that model reads them. Null when the dive is not on a loop, or
+/// its log records no such gas: the timeline then names a cylinder rather than
+/// show an air nothing in the log mentions.
+GasMix? rebreatherLoopGas(Dive dive, [String? computerId]) => dive.isRebreather
+    ? _recordedCcrDiluentMix(
+        dive,
+        tanks: computerId == null
+            ? null
+            : dive.tanks.where((t) => t.isUsedBy(computerId)).toList(),
+      )
+    : null;
+
+/// The gas timeline of the series drawn for [computerId], from that computer's
+/// own cylinders and switches by the rule the deco model reads them. Null
+/// [computerId] draws every source as one series, so every one of them counts.
+List<GasUsageSegment> activeGasUsageSegments(
+  Dive dive, {
+  required List<GasSwitchWithTank>? gasSwitches,
+  required List<DiveProfilePoint> profile,
+  String? computerId,
+}) {
+  final tanks = computerId == null
+      ? dive.tanks
+      : dive.tanks.where((t) => t.isUsedBy(computerId)).toList();
+  final tankIds = {for (final t in tanks) t.id};
+  return buildGasUsageSegments(
+    tanks: tanks,
+    gasSwitches: [
+      for (final s in gasSwitches ?? const <GasSwitchWithTank>[])
+        if (computerId == null ||
+            (tankIds.contains(s.gasSwitch.tankId) &&
+                s.gasSwitch.appliesTo(computerId)))
+          s,
+    ],
+    diveDurationSeconds: profile.last.timestamp,
+    firstSampleSeconds: profile.first.timestamp,
+    loopGas: rebreatherLoopGas(dive, computerId),
+    onLoop: dive.isRebreather,
+  );
 }
 
 /// The gas schedule a rebreather dive's tissues load from, or null when the
@@ -523,6 +573,10 @@ List<double> _overlayComputerCns(
 /// possibly-overlaid ceiling curve, so choosing computer data for the
 /// ceiling line does not implicitly change the band's source too.
 ///
+/// Calculated safety stops that were really decompression come out here,
+/// rather than at detection, because only now is it known which NDL curve the
+/// analysis shows (see [splitOutDecoStops]).
+///
 /// Returns a tuple of the (possibly overlaid) [ProfileAnalysis] and a
 /// [MetricSourceInfo] reporting the actual source used per metric after
 /// fallback resolution.
@@ -609,9 +663,15 @@ List<double> _overlayComputerCns(
     // Millivolts stand alone: a dive can carry them with no ppO2, cells or
     // setpoint to overlay, and they must not be dropped on this path (#810).
     if (o2CellMvCurves != null) {
-      return (analysis.copyWith(o2CellMvCurves: o2CellMvCurves), sourceInfo);
+      return (
+        _withDecoStopsSplitOut(
+          analysis.copyWith(o2CellMvCurves: o2CellMvCurves),
+          profile,
+        ),
+        sourceInfo,
+      );
     }
-    return (analysis, sourceInfo);
+    return (_withDecoStopsSplitOut(analysis, profile), sourceInfo);
   }
 
   final overlaid = analysis.copyWith(
@@ -674,7 +734,22 @@ List<double> _overlayComputerCns(
     computerStopsWithCalculatedCeiling: useDecoStop && !useCeiling,
   );
 
-  return (overlaid, sourceInfo);
+  return (_withDecoStopsSplitOut(overlaid, profile), sourceInfo);
+}
+
+/// [analysis] with its deco stops moved from its events to its deco stop
+/// windows.
+ProfileAnalysis _withDecoStopsSplitOut(
+  ProfileAnalysis analysis,
+  List<DiveProfilePoint> profile,
+) {
+  final (:events, :windows) = splitOutDecoStops(
+    analysis.events,
+    profile: profile,
+    ndlCurve: analysis.ndlCurve,
+  );
+  if (windows.isEmpty) return analysis;
+  return analysis.copyWith(events: events, decoStopWindows: windows);
 }
 
 // Top-level cell accessors so they can form a `const` list of tear-offs.

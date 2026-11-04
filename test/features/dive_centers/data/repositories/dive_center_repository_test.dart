@@ -130,6 +130,31 @@ void main() {
       });
     });
 
+    group('getDiveCentersByIds', () {
+      test(
+        'finds every id across chunks and passes over a missing one',
+        () async {
+          final ids = [
+            for (final name in ['A', 'B', 'C'])
+              (await repository.createDiveCenter(
+                createTestCenter(name: name),
+              )).id,
+          ];
+
+          final found = await repository.getDiveCentersByIds([
+            ...ids,
+            'non-existent-id',
+          ]);
+
+          expect(found.map((c) => c.name), unorderedEquals(['A', 'B', 'C']));
+        },
+      );
+
+      test('asks nothing for no ids', () async {
+        expect(await repository.getDiveCentersByIds(const []), isEmpty);
+      });
+    });
+
     group('getAllDiveCenters', () {
       test('should return empty list when no centers exist', () async {
         final result = await repository.getAllDiveCenters();

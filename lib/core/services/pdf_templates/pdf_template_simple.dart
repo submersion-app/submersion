@@ -35,6 +35,7 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
     required PdfPageSize pageSize,
     required PdfDateFormatter dates,
     required UnitFormatter units,
+    Map<String, Map<String, String>> annotationTimesByDive = const {},
     String? title,
     Map<String, List<Signature>>? diveSignatures,
     List<Certification>? certifications,
@@ -216,11 +217,7 @@ class PdfTemplateSimple extends PdfTemplateBuilder {
                           cellStyle,
                         ),
                         _buildCell(
-                          dive.effectiveRuntime != null
-                              ? l10n.pdf_minutesCompact(
-                                  '${dive.effectiveRuntime!.inMinutes}',
-                                )
-                              : '-',
+                          pdfDiveDurationCompact(dive, l10n),
                           cellStyle,
                         ),
                         _buildCell(

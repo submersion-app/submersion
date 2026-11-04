@@ -70,6 +70,46 @@ void main() {
     order: 1,
   );
 
+  group('a rebreather dive that starts on its diluent (#4020)', () {
+    const stage = DiveTank(id: 'stage', volume: 12, role: TankRole.stage);
+    const diluent = DiveTank(
+      id: 'diluent',
+      volume: 12,
+      startPressure: 200,
+      endPressure: 100,
+      role: TankRole.diluent,
+      order: 1,
+    );
+
+    test('the phase before a bailout charges the diluent', () {
+      final dive = makeDive(const [stage, diluent]);
+
+      final segments = service.calculatePhaseSegments(
+        profile: dive.profile,
+        tanks: dive.tanks,
+        gasSwitches: [switchTo('stage', 1200)],
+        onLoop: true,
+      );
+
+      expect(segments?.first.tankId, 'diluent');
+      expect(segments?.first.gasConsumed, greaterThan(0));
+    });
+
+    test('the stretch before a bailout charges the diluent', () {
+      final dive = makeDive(const [stage, diluent]);
+
+      final segments = service.calculateGasSwitchSegments(
+        profile: dive.profile,
+        tanks: dive.tanks,
+        gasSwitches: [switchTo('stage', 1200)],
+        onLoop: true,
+      );
+
+      expect(segments?.first.tankId, 'diluent');
+      expect(segments?.first.gasConsumed, greaterThan(0));
+    });
+  });
+
   final alternating = [
     switchTo('left', 0),
     switchTo('right', 600),

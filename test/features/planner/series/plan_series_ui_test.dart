@@ -209,7 +209,7 @@ void main() {
         );
       });
 
-      testWidgets('Save is held back while the plan is a series', (
+      testWidgets('Save offers to save a series, on any change to it', (
         tester,
       ) async {
         await pumpPlan(tester, size);
@@ -226,17 +226,13 @@ void main() {
         expect(save().onPressed, isNotNull);
 
         await addDive(tester);
-        // An edited dive, so only the series holds Save back.
-        containerOf(
-          tester,
-        ).read(divePlanNotifierProvider.notifier).updateGradientFactors(30, 70);
-        await tester.pumpAndSettle();
+        // Adding a dive is itself a change, though the new dive has no edits.
         expect(
           containerOf(tester).read(divePlanNotifierProvider).isDirty,
-          isTrue,
+          isFalse,
         );
-        expect(save().onPressed, isNull);
-        expect(save().tooltip, "A series of dives can't be saved yet");
+        expect(save().onPressed, isNotNull);
+        expect(save().tooltip, 'Save Plan');
       });
 
       testWidgets('Convert to Dive says why a series holds it back', (

@@ -1,7 +1,6 @@
-import 'dart:io';
-
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
 import 'package:submersion/features/media/data/services/local_media_platform.dart';
 
@@ -34,8 +33,9 @@ class LocalFileHandleFactory {
   }) : _platform = platform,
        _bookmarkStorage = bookmarkStorage,
        _usesBookmarks =
-           usesSecurityScopedBookmarks ?? (Platform.isIOS || Platform.isMacOS),
-       _keepsPath = keepsPathBesideBookmark ?? Platform.isMacOS;
+           usesSecurityScopedBookmarks ??
+           (HostPlatform.isIOS || HostPlatform.isMacOS),
+       _keepsPath = keepsPathBesideBookmark ?? HostPlatform.isMacOS;
 
   final LocalMediaPlatform _platform;
   final LocalBookmarkStorage _bookmarkStorage;

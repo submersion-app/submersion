@@ -11,6 +11,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/tables/dive_tables.dart';
 import 'package:submersion/core/database/tables/diver_tables.dart';
+import 'package:submersion/core/database/tables/equipment_condition_tables.dart';
 import 'package:submersion/core/database/tables/equipment_tables.dart';
 
 /// Marker row recording that the safety review engine has analyzed a dive.
@@ -100,6 +101,16 @@ class Incidents extends Table {
   /// v202: the item an equipment incident attributes to.
   TextColumn get equipmentId => text().nullable().references(
     Equipment,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+
+  /// v338: the gear check-in that recorded the fault behind this report
+  /// (issue #3062). The link lives here, not on the check-in, because
+  /// check-ins are exported and a report never is: an exported row cannot
+  /// name a record this table keeps private.
+  TextColumn get observationId => text().nullable().references(
+    EquipmentObservations,
     #id,
     onDelete: KeyAction.setNull,
   )();

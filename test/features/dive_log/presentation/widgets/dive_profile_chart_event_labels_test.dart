@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -18,7 +19,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
-  _TestSettingsNotifier() : super(const AppSettings());
+  _TestSettingsNotifier([super.settings = const AppSettings()]);
 
   @override
   Future<void> setMapStyle(MapStyle style) async =>
@@ -65,10 +66,14 @@ ProfileEvent _event(
   createdAt: DateTime(2026),
 );
 
-Widget _buildChart(List<ProfileEvent> events) {
+Widget _buildChart(
+  List<ProfileEvent> events, {
+  AppSettings settings = const AppSettings(),
+}) {
   return ProviderScope(
+    key: ValueKey(settings.depthUnit),
     overrides: [
-      settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+      settingsProvider.overrideWith((ref) => _TestSettingsNotifier(settings)),
     ],
     child: MaterialApp(
       // The new label test asserts English strings.
@@ -115,6 +120,28 @@ void main() {
         reason: 'labels must sit below the curve, not on the plot top edge',
       );
     }
+  });
+
+  testWidgets('a label sits at the same height in feet as in metres', (
+    tester,
+  ) async {
+    double labelTop() =>
+        _eventLines(tester).single.label.padding.resolve(TextDirection.ltr).top;
+    final events = [_event(600, ProfileEventType.maxDepth)];
+
+    await tester.pumpWidget(_buildChart(events));
+    await tester.pumpAndSettle();
+    final metres = labelTop();
+
+    await tester.pumpWidget(
+      _buildChart(
+        events,
+        settings: const AppSettings(depthUnit: DepthUnit.feet),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(labelTop(), closeTo(metres, 8));
   });
 
   testWidgets('tail-cluster labels near the dive end stay inside the plot '

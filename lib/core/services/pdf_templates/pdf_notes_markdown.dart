@@ -3,6 +3,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/text/markdown/notes_markdown.dart';
+import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
 
 const _blockGap = 4.0;
 const _markerWidth = 14.0;
@@ -17,9 +18,10 @@ const _muted = PdfColors.grey700;
 List<pw.Widget> notesMarkdownPdfBlocks(
   String source, {
   required pw.TextStyle style,
+  Map<String, String> annotationTimes = const {},
 }) {
   if (source.trim().isEmpty) return const [];
-  final builder = _PdfNotesBuilder(style);
+  final builder = _PdfNotesBuilder(style, annotationTimes: annotationTimes);
   return [
     for (final node in parseNotesMarkdown(source))
       if (builder.block(node, style) case final widget?)
@@ -38,8 +40,9 @@ pw.Widget notesMarkdownPdfInline(
   String source, {
   required pw.TextStyle style,
   required int maxLines,
+  Map<String, String> annotationTimes = const {},
 }) {
-  final builder = _PdfNotesBuilder(style);
+  final builder = _PdfNotesBuilder(style, annotationTimes: annotationTimes);
   final spans = <pw.InlineSpan>[];
   for (final node in parseNotesMarkdown(source)) {
     final line = builder.flatLine(node, style);
@@ -63,9 +66,13 @@ pw.TextStyle _codeStyle(String text, pw.TextStyle style) =>
     : style;
 
 class _PdfNotesBuilder {
-  _PdfNotesBuilder(this.base);
+  _PdfNotesBuilder(this.base, {this.annotationTimes = const {}});
 
   final pw.TextStyle base;
+
+  /// Annotation id to its `m:ss` (#4109): a linked passage prints as
+  /// `words (m:ss)`; a dangling id prints the words alone.
+  final Map<String, String> annotationTimes;
 
   pw.Widget? block(md.Node node, pw.TextStyle style, {int depth = 0}) {
     if (node is md.Text) {
@@ -329,6 +336,18 @@ class _PdfNotesBuilder {
     String? href,
     pw.TextStyle style,
   ) {
+    final annotationId = annotationIdFromHref(href);
+    if (annotationId != null) {
+      final time = annotationTimes[annotationId];
+      return [
+        ...inline(children, style),
+        if (time != null)
+          pw.TextSpan(
+            text: ' ($time)',
+            style: style.copyWith(color: _muted),
+          ),
+      ];
+    }
     if (!isTappableNotesLink(href)) return inline(children, style);
     return [
       pw.TextSpan(

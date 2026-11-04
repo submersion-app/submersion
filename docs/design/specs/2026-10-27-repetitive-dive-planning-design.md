@@ -11,8 +11,8 @@ This adds a **series** of planned dives to the planner, a way to move between
 them, and the chain that carries each dive's end state into the next.
 
 The full design, its mockups and its five phases are in discussion #3700. This
-record covers what the phases agreed and the decisions made for phases 1 and
-4, the phases built so far.
+record covers what the phases agreed and the decisions made for phases 1, 3
+and 4, the phases built so far.
 
 ## Phases
 
@@ -21,9 +21,10 @@ record covers what the phases agreed and the decisions made for phases 1 and
    Fill.
 2. **Shared settings**: settings shared across the series with per-dive
    overrides, series warnings, the series results summary.
-3. **Persistence**: a `dive_plan_series` table (synced), migration of existing
-   plans into one-dive series, the saved-plans list grouped by series, keyboard
-   shortcuts.
+3. **Persistence** (built): a `dive_plan_series` table (synced), the saved
+   plans list grouped by series, sharing a series in a `.subplan` file.
+   Existing plans are not migrated: a plan with no series is a one-dive
+   series. Keyboard shortcuts moved to phase 2.
 4. **Logged dives** (built): follow any logged dive, the one-tap Follow prompt, "Plan
    repetitive dive" in the dive detail menu, the read-only logged-dive view.
 5. **Plan vs actual**: a logged plan becomes Dive #xxx, and the dives after it
@@ -88,9 +89,60 @@ Dive A is computed as given unless the series follows a logged dive (phase
 
 ### Saving
 
-A series cannot be saved until phase 3. While a plan has more than one dive,
-Save is disabled (its tooltip says why), and so is Convert to dive, which saves
-the plan. Removing dives back to one re-enables both.
+Phase 3 below replaced this: a series saves as a whole. Convert to dive stays
+off for a series, or a plan following a logged dive, until the update of
+planned dives in the log is built.
+
+## Phase 3 behaviour
+
+- **Storage.** A synced `dive_plan_series` row holds a series' name, its
+  owner and the logged dive it follows. Each dive is an ordinary saved plan
+  placed in it by `series_id`, `series_index` and its own `dive_name`, so
+  everything that reads a plan keeps working. A plan tank stores the tank it
+  carries over from (`source_tank_id`, no foreign key: it can name a logged
+  dive's tank or an earlier plan's) and whether its start pressure was set by
+  hand. There is no backfill: minting series on each device would sync
+  duplicates.
+- **What is stored.** What a dive carries in (tissues, CNS, OTU, tank start
+  pressures) is never stored. Opening a series reads the followed dive from
+  the log again and runs the chain, so a followed plan reopens with the
+  schedule, CNS and OTU it was saved with. The followed dive is found
+  whichever diver it belongs to, since saved plans are not scoped to a diver
+  yet (#4074). Deleting the followed dive clears the follow, and the series
+  reopens clean.
+- **Save.** On whenever any dive has changed, or a dive was added, removed
+  or named. A single dive following a logged dive saves as a series, since
+  the series row holds the followed dive. Opening any dive opens its series
+  with that dive selected.
+- **Owner.** The diver who first saves a series owns it, through later saves
+  by other profiles. Deleting that diver frees surviving plans from the
+  series before it goes.
+- **Links.** Saving never writes a dive's link to the log. Each dive keeps
+  the link its row holds, and a new dive has none. Only the Link, Change and
+  Unlink actions change a link, so a dive linked while another was in the
+  editor is not unlinked by the next save.
+- **The saved plans list** shows a series as one row with its dive count,
+  deepest depth and total runtime, and each dive on a line that opens the
+  series on it. Each line carries what that dive was dived as, and in the
+  saved plans sheet its own Link and Unlink. Rename, Duplicate, Share and
+  Delete act on the whole series. Compare stays on single plans: a series'
+  later dives depend on the dives before them. A single dive that follows a
+  logged dive is saved as a series but reads as one plan, and is shared as
+  one. Global search lists a series once, opening it on the dive it found.
+- **Leaving** the planner, or replacing the plan with "Plan repetitive dive",
+  with unsaved series changes asks: Save, Discard or Cancel. A series with
+  nothing to save goes without asking.
+- **Opening a different saved plan** with unsaved changes asks the same, as
+  "Save this series?" or "Save this dive?" by what is being edited. Cancel, or
+  cancelling the name prompt that a first save opens, stays on the plan being
+  edited. Opening a dive of the series being edited selects it, keeping the
+  edits.
+- **A `.subplan` file** at version 4 holds a series: each dive's plan, name
+  and interval, and which tank of the dive before each tank carries from, by
+  position. The followed dive and start times stay out: the dive is in the
+  sender's log, and a start belongs to the sender's day. Older installs
+  refuse the file rather than open one dive as if it stood alone. A single
+  dive is still written as version 2 or 3.
 
 ## Phase 4 behaviour
 
@@ -100,10 +152,9 @@ the plan. Removing dives back to one re-enables both.
   (`PlanSeries.follow`), in memory like the rest of the series, and
   `sourceDiveId` is a replan's alone: its compare strip and overlay, and the
   reset when the planner closes, apply to replans only. A plan following a
-  logged dive cannot be saved or converted until phase 3 persists series: what
-  it carries in is not stored, so it would reopen as a fresh diver. Stop
-  following gives both back. Plans saved before keep their `sourceDiveId` and
-  open as replans, as they did.
+  logged dive saves with its series (phase 3) but cannot be converted yet.
+  Plans saved before keep their `sourceDiveId` and open as replans, as they
+  did.
 - **What is followed.** The followed dive and the logged dives before it,
   back to the first gap of 48 hours or more, the window the log uses for
   residual tissue. Planned dives and dives logged after the followed one are
@@ -168,8 +219,13 @@ the plan. Removing dives back to one re-enables both.
   one and loads the selected one with its carry applied. Edits flow back
   through a listener. A plan the editor starts or loads by itself starts a new
   one-dive series.
+- **Persistence** (`stored_series.dart`, `dive_plan_series_repository.dart`,
+  `plan_series_store.dart`): `saveCurrentSeries` stores the series in the
+  editor and adopts what was stored; `openSavedPlan` opens a saved plan's
+  whole series, or an ordinary plan as before.
 
 ## Out of scope
 
-Everything in phases 2, 3 and 5, plus (as in #3700) a whole-day timeline chart,
-series PDF export, and inserting or reordering dives.
+Everything in phases 2 and 5, writing a series to the log as planned dives,
+plus (as in #3700) a whole-day timeline chart, series PDF export, and inserting
+or reordering dives.

@@ -1,13 +1,16 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:drift/drift.dart' show Value;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart' hide ConnectedAccount;
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
@@ -16,11 +19,13 @@ import 'package:submersion/core/services/media_store/icloud_media_platform.dart'
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/services/media_store/media_store_credentials_store.dart';
+import 'package:submersion/core/services/media_store/store_marker.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media_store/data/media_store_service.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 
 import '../../helpers/in_memory_media_object_store.dart';
 import '../../helpers/test_database.dart';
@@ -39,11 +44,7 @@ class _UndownloadablePlatform extends DirectoryICloudMediaPlatform {
 /// Never serves the marker, however often it is asked.
 class _AlwaysTransientStore extends InMemoryMediaObjectStore {
   @override
-  Future<void> getFile(
-    String key,
-    File destination, {
-    TransferProgressCallback? onProgress,
-  }) async {
+  Future<Uint8List> getBytes(String key) async {
     throw const MediaStoreException(
       'still downloading from iCloud: smv1/store.json',
       kind: MediaStoreErrorKind.transient,
@@ -85,14 +86,17 @@ void main() {
 
   tearDown(tearDownTestDatabase);
 
-  MediaStoreService service({List<Duration> backoff = const []}) =>
-      MediaStoreService(
-        credentials: credentials,
-        attachState: attachState,
-        storesRepository: storesRepository,
-        mediaRepository: MediaRepository(),
-        markerRetryBackoff: backoff,
-      );
+  MediaStoreService service({
+    List<Duration> backoff = const [],
+    bool canWriteStore = true,
+  }) => MediaStoreService(
+    credentials: credentials,
+    attachState: attachState,
+    storesRepository: storesRepository,
+    mediaRepository: MediaRepository(),
+    markerRetryBackoff: backoff,
+    canWriteStore: canWriteStore,
+  );
 
   test('attaching creates the marker, attaches, and announces the store '
       'with its account', () async {
@@ -111,6 +115,80 @@ void main() {
     expect(active.providerType, 's3');
     expect(active.displayHint, 'dive-media @ minio');
     expect(active.accountId, 's3-media');
+  });
+
+  // Issue #4193: a browser reads the store and never writes it, so it
+  // joins copies another device started and cannot start its own.
+  test('a device that only reads joins existing copies', () async {
+    final store = InMemoryMediaObjectStore();
+    final row = _row('db-row', AccountKind.dropbox);
+    final first = await service().attachToAccountRow(row, store);
+    await service().disconnect();
+
+    final joined = await service(
+      canWriteStore: false,
+    ).attachToAccountRow(row, store);
+
+    expect(joined.createdNewStore, isFalse);
+    expect(joined.storeId, first.storeId);
+    expect(await attachState.attachedStoreId(), first.storeId);
+  });
+
+  test(
+    'a device that only reads cannot start copies, attaching nothing',
+    () async {
+      final store = InMemoryMediaObjectStore();
+
+      await expectLater(
+        service(
+          canWriteStore: false,
+        ).attachToAccountRow(_row('db-row', AccountKind.dropbox), store),
+        throwsA(isA<MediaStoreReadOnly>()),
+      );
+      expect(store.objects, isEmpty);
+      expect(await attachState.attachedStoreId(), isNull);
+      expect(await storesRepository.getActive(), isNull);
+    },
+  );
+
+  group('the service provider', () {
+    ProviderContainer container(DeviceCapabilities capabilities) {
+      final c = ProviderContainer(
+        overrides: [
+          deviceCapabilitiesProvider.overrideWithValue(capabilities),
+          mediaStoreAttachStateProvider.overrideWithValue(attachState),
+          mediaStoreCredentialsStoreProvider.overrideWithValue(credentials),
+        ],
+      );
+      addTearDown(c.dispose);
+      return c;
+    }
+
+    test('in a browser joins only, never starting copies', () async {
+      final store = InMemoryMediaObjectStore();
+
+      await expectLater(
+        container(DeviceCapabilities.web)
+            .read(mediaStoreServiceProvider)
+            .attachToAccountRow(_row('db-row', AccountKind.dropbox), store),
+        throwsA(isA<MediaStoreReadOnly>()),
+      );
+      expect(store.objects, isEmpty);
+    });
+
+    test(
+      'on a device that writes starts copies where there are none',
+      () async {
+        final store = InMemoryMediaObjectStore();
+
+        final result =
+            await container(DeviceCapabilities.web.copyWith(mediaAttach: true))
+                .read(mediaStoreServiceProvider)
+                .attachToAccountRow(_row('db-row', AccountKind.dropbox), store);
+
+        expect(result.createdNewStore, isTrue);
+      },
+    );
   });
 
   test('attaching to a store that already has a marker adopts it', () async {

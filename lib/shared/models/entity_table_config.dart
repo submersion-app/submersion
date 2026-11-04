@@ -59,6 +59,12 @@ class EntityTableViewConfig<F extends EntityField> extends Equatable {
     this.sortAscending = true,
   });
 
+  /// The columns in the order the table shows them: pinned ones first.
+  List<EntityTableColumnConfig<F>> get columnsAsShown => [
+    ...columns.where((c) => c.isPinned),
+    ...columns.where((c) => !c.isPinned),
+  ];
+
   EntityTableViewConfig<F> copyWith({
     List<EntityTableColumnConfig<F>>? columns,
     F? sortField,

@@ -1,6 +1,7 @@
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/divers/data/repositories/diver_delete_steps.dart';
+import 'package:submersion/features/planner/data/repositories/dive_plan_dive_links.dart';
 
 /// A table whose rows are deleted and tombstoned together with their parent,
 /// linked to it by [parentColumn].
@@ -228,6 +229,22 @@ Future<void> deleteDiverOwnedRows(
       (table: owned.table, entityType: owned.entityType, where: ownedWhere),
     ]);
   }
+  // Saved dive series (issue #3565), after the diver's own plans. A
+  // surviving plan still in one of them (another diver's, or an ownerless
+  // one) is freed first: dive_plans.series_id has no ON DELETE action.
+  await clearPlanLinksToDiverSeries(
+    db,
+    syncRepository,
+    diverId,
+    now: DateTime.now().millisecondsSinceEpoch,
+  );
+  await deleteDiverRows(db, syncRepository, diverId, const [
+    (
+      table: 'dive_plan_series',
+      entityType: 'divePlanSeries',
+      where: 'diver_id = ?1',
+    ),
+  ]);
 }
 
 /// Deletes [diverId]'s custom service kinds, except a kind a surviving

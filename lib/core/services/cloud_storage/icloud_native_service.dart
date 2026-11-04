@@ -1,8 +1,7 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/logger_service.dart';
 
 /// Runtime iCloud availability for the current build/device.
@@ -29,7 +28,7 @@ class ICloudNativeService {
 
   /// Returns the iCloud container Documents directory, or null if unavailable.
   static Future<String?> getContainerPath() async {
-    if (!Platform.isIOS && !Platform.isMacOS) return null;
+    if (!HostPlatform.isIOS && !HostPlatform.isMacOS) return null;
     try {
       final path = await _channel.invokeMethod<String>(
         'getICloudContainerPath',
@@ -62,7 +61,7 @@ class ICloudNativeService {
   /// so it cannot hang. Returns [ICloudAvailability.unsupported] on
   /// non-iOS/macOS platforms; otherwise delegates to [queryNativeAvailability].
   static Future<ICloudAvailability> getAvailability() async {
-    if (!Platform.isIOS && !Platform.isMacOS) {
+    if (!HostPlatform.isIOS && !HostPlatform.isMacOS) {
       return ICloudAvailability.unsupported;
     }
     return queryNativeAvailability();
@@ -90,7 +89,7 @@ class ICloudNativeService {
 
   /// Ensures the iCloud file is downloaded locally before access.
   static Future<bool> downloadIfNeeded(String path) async {
-    if (!Platform.isIOS && !Platform.isMacOS) return true;
+    if (!HostPlatform.isIOS && !HostPlatform.isMacOS) return true;
     try {
       final result = await _channel.invokeMethod<bool>('downloadIfNeeded', {
         'path': path,
@@ -108,7 +107,7 @@ class ICloudNativeService {
   /// Writes data to the given path using native file coordination.
   /// Throws an exception with the error details if writing fails.
   static Future<void> writeFile(String path, Uint8List data) async {
-    if (!Platform.isIOS && !Platform.isMacOS) {
+    if (!HostPlatform.isIOS && !HostPlatform.isMacOS) {
       throw Exception('writeFile only supported on iOS/macOS');
     }
     _log.info('writeFile: path=$path, size=${data.length} bytes');
@@ -125,7 +124,7 @@ class ICloudNativeService {
   /// Refreshes an iCloud folder to ensure we see the latest files from other devices.
   /// This triggers downloads for any files that exist in iCloud but aren't local.
   static Future<void> refreshFolder(String path) async {
-    if (!Platform.isIOS && !Platform.isMacOS) return;
+    if (!HostPlatform.isIOS && !HostPlatform.isMacOS) return;
     try {
       _log.info('refreshFolder: $path');
       await _channel.invokeMethod<bool>('refreshFolder', {'path': path});
@@ -144,7 +143,7 @@ class ICloudNativeService {
     String sourcePath,
     String destinationPath,
   ) async {
-    if (!Platform.isIOS && !Platform.isMacOS) return false;
+    if (!HostPlatform.isIOS && !HostPlatform.isMacOS) return false;
     try {
       final result = await _channel.invokeMethod<bool>('moveFile', {
         'sourcePath': sourcePath,

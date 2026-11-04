@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 
@@ -27,10 +28,13 @@ void main() {
   /// question this provider answers.
   ({ProviderContainer container, List<int> builds}) buildContainer({
     required bool attached,
+    DeviceCapabilities? capabilities,
   }) {
     final builds = <int>[];
     final container = ProviderContainer(
       overrides: [
+        if (capabilities != null)
+          deviceCapabilitiesProvider.overrideWithValue(capabilities),
         mediaTransferQueueRepositoryProvider.overrideWithValue(queue),
         mediaStoreAttachedProvider.overrideWith((ref) async => attached),
         mediaStoreRuntimeProvider.overrideWith((ref) async {
@@ -54,6 +58,19 @@ void main() {
     await harness.container.read(mediaTransferResumeProvider)();
 
     expect(harness.builds, hasLength(1));
+  });
+
+  // A browser reads the media store and never writes it (issue #4121).
+  test('a browser does not build the runtime to drain its queue', () async {
+    await queue.enqueueUpload(mediaId: 'm1');
+    final harness = buildContainer(
+      attached: true,
+      capabilities: DeviceCapabilities.web,
+    );
+
+    await harness.container.read(mediaTransferResumeProvider)();
+
+    expect(harness.builds, isEmpty);
   });
 
   // Building the runtime opens the keychain and reads the store marker out of

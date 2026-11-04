@@ -41,7 +41,7 @@ class FocusFactorRow {
   final double? maxDepth;
   final double? avgDepth;
 
-  /// Runtime, falling back to bottom time, in minutes.
+  /// Measured runtime in minutes, null for a dive with only a bottom time.
   final double? durationMinutes;
   final double? waterTemp;
 

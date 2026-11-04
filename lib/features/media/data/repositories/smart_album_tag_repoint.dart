@@ -50,15 +50,7 @@ Future<Map<String, String>> repointSmartAlbums(
   required int now,
 }) async {
   final previous = <String, String>{};
-  for (final row in await db.select(db.mediaSmartAlbums).get()) {
-    final Object? decoded;
-    try {
-      decoded = jsonDecode(row.filterJson);
-    } on FormatException {
-      continue;
-    }
-    if (decoded is! Map<String, dynamic>) continue;
-    final filter = MediaLibraryFilter.fromJson(decoded);
+  for (final (row, decoded, filter) in await _savedFilters(db)) {
     if (!names(filter)) continue;
     previous[row.id] = row.filterJson;
     await (db.update(
@@ -78,4 +70,33 @@ Future<Map<String, String>> repointSmartAlbums(
     );
   }
   return previous;
+}
+
+/// The ids of the saved smart albums whose filter [names] something, in
+/// id order, read as [repointSmartAlbums] reads them, so a merge's plan
+/// knows which albums its repoint will rewrite.
+Future<List<String>> smartAlbumIdsNaming(
+  AppDatabase db,
+  bool Function(MediaLibraryFilter filter) names,
+) async => [
+  for (final (row, _, filter) in await _savedFilters(db))
+    if (names(filter)) row.id,
+]..sort();
+
+/// Each saved smart album with its decoded JSON and filter. An album whose
+/// filter does not parse is left out, so nothing rewrites it.
+Future<List<(MediaSmartAlbum, Map<String, dynamic>, MediaLibraryFilter)>>
+_savedFilters(AppDatabase db) async => [
+  for (final row in await db.select(db.mediaSmartAlbums).get())
+    if (_decoded(row.filterJson) case final decoded?)
+      (row, decoded, MediaLibraryFilter.fromJson(decoded)),
+];
+
+Map<String, dynamic>? _decoded(String json) {
+  try {
+    final decoded = jsonDecode(json);
+    return decoded is Map<String, dynamic> ? decoded : null;
+  } on FormatException {
+    return null;
+  }
 }

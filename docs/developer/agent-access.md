@@ -1,7 +1,7 @@
 # Agent access (MCP server)
 
-Agent access lets an AI agent on the same desktop machine read, and in later
-phases change, the diver's logbook through the Model Context Protocol. The
+Agent access lets an AI agent on the same desktop machine read and change the
+diver's logbook through the Model Context Protocol. The
 design is `docs/design/specs/2026-11-01-mcp-server-design.md`; this page is
 the map of the code and the rules it keeps.
 
@@ -27,9 +27,15 @@ Everything is under `lib/features/agent_access/`:
 | `data/agent_tool_gate.dart` | Demo mode, app lock and database-available checks, run before every tool |
 | `data/diver_context.dart` | Resolves the profile a call acts as: settings, unit prefs, name index |
 | `data/root_scope.dart` | The SQL fragment that limits a query root to what one diver may see |
-| `data/documents/` | JSON mappers (dive, dive summary, diver, media), metric with unit-named keys |
-| `data/tools/` | `list_divers`, `query`, `get_records`, and the registry |
-| `data/resources/` | `submersion://query-language` and `submersion://units` |
+| `data/service_status_overlay.dart` | The named diver's service verdicts, as a CTE that shadows the cache table |
+| `data/records/` | The record catalogue: scopes, the reader, the repository bundle |
+| `data/records/families/` | One file per family of entities, each returning its catalogue entries |
+| `data/documents/` | JSON mappers per family, metric with unit-named keys, and `document_dates.dart` |
+| `data/sql/` | The SQL window: the denied set, the bytecode guard, the worker and its runner |
+| `data/writes/` | The write catalogue: change sets, field codecs, the planner, the plan store and the applier |
+| `data/writes/families/` | One file per family of writable entities, each going through its repository or service |
+| `data/tools/` | `list_divers`, `query`, `get_records`, `list_records`, `sql_query`, `preview_changes`, `apply_changes`, `revert_operation`, and the registry |
+| `data/resources/` | `submersion://query-language`, `submersion://units` and `submersion://schema` |
 | `data/server/` | The loopback listener, the bearer check, and the adapter onto `mcp_dart` |
 | `presentation/providers/` | Settings notifier, token store, status stream, lifecycle controller |
 | `presentation/pages/`, `presentation/widgets/` | The settings page, status card and client snippets |
@@ -44,11 +50,9 @@ Everything is under `lib/features/agent_access/`:
    or add one with a snake_case `wire` name.
 3. Register it in `AgentToolRegistry.standard`.
 4. Emit metric values with the unit in the key (`max_depth_m`,
-   `water_temp_c`, `start_pressure_bar`, `weight_kg`) and ISO 8601 dates
-   from the wall-clock UTC values without `toLocal()`. Those strings carry
-   a nominal `Z` but are the dive's local wall clock, not UTC instants; every
-   tool description and the query-language resource say so, and a new tool
-   that emits times must keep saying so.
+   `water_temp_c`, `start_pressure_bar`, `weight_kg`) and dates through
+   `document_dates.dart` (see The date rule). A tool that emits times puts
+   `kDocumentDateRule` in its description.
 5. Test it against a real in-memory database (`setUpTestDatabase()`), and
    add an end-to-end case to `agent_access_server_e2e_test.dart` when the
    tool changes what a client can observe.
@@ -59,6 +63,357 @@ and any `AgentToolException` becomes an `isError` result carrying
 `{"error": <wire code>, "message": ..., "details": ...}`. On the 2026
 protocol the SDK drops `structuredContent` from error results, so clients
 read the text block for errors.
+
+## Adding an entity
+
+Every entity an agent can read is one entry in the catalogue. To add one:
+
+1. Write its mapper in the family's file under `data/documents/`: metric,
+   unit-named keys, never bytes, no `created_at` or `updated_at`, and no
+   column the SQL window denies.
+2. Add a `RecordEntity<T>` to the family under `data/records/families/`: the
+   wire `name`, the `table`, a `scope`, a `load`, the `document`, and
+   `summaryKeys`. Give it a `parentColumn` when `parent_id` makes sense, and
+   `blocks` for children a caller asks for by name. A child whose repository
+   only reads by parent is a `childEntity`, which wires the read by id.
+3. Copy `scope` from the repository's own list method, so the agent sees what
+   the app shows that profile: `owned`, `ownedOrNull`, `ownedOrBuiltIn`,
+   `ownedNullOrBuiltIn`, `ownedOrShared`, `rootScope`, `viaParent`, `everyone`,
+   or a small function when the rule is its own. A family test pins the entry
+   against that list method.
+4. Add a repository to `RecordRepositories` if it needs a new one. Keep it
+   `late final`, because the bundle is built per request.
+
+A block that lists rows another entity governs passes them through
+`RecordReader.keepVisible` with that entity's scope, so a block never shows a
+row the entity itself would refuse.
+
+`record_catalog_guard_test.dart` fails on a tracked table with no decision: a
+new table must be an entity, a link, folded into a parent, or listed as
+unexposed with a reason. Every read in a family test also runs through
+`expectCleanDocument`, which refuses a credential key, a device-local key or
+bytes anywhere in a result.
+
+`diver_settings` is the one document built from a Drift row. The table has over
+two hundred columns and no domain shape, so `settingsDocument` drops the
+device-local and bookkeeping columns and renames the dimensioned ones from
+`kSettingUnitKeys`. A new `REAL` column must join that map or
+`kUnitlessSettings`, or the guard fails.
+
+## Writes
+
+A write takes two calls. `preview_changes` reads and diffs, and `apply_changes`
+runs the plan it stored. The preview never opens a transaction: a rolled back
+one would still fire triggers and tick streams, and
+`write_planner_test.dart` counts both to prove it.
+
+Apply checks the plan is still true, asks the diver when the setting is on,
+then checks again inside `SyncCoordinator.run`, because the dialog can stay
+open for five minutes. It then opens `ChangeLogScope.run` with source `agent`,
+and inside that one transaction around every operation. A refusal rolls back
+everything. The settler files other divers' records under `operation:diver`,
+so one apply can return several operation ids, each revertable alone. A
+scope that cannot open a change log entry carries on for a diver's own save,
+but an apply checks for its entry before the first write and refuses without
+one, so every agent change can be reverted. A plan also keeps the database
+it was previewed on, so a restored logbook with the same rows refuses it.
+
+A plan with a blocked item gets no `plan_id`, so a diver is never asked to
+allow something that cannot run. The dialog raises and focuses the window, so Allow
+arms only after `kAgentWriteAllowDelay`, and a click meant for another window
+cannot answer it. Deny is live at once. A plan is single use and lasts 15 minutes.
+Plans live in `agentWritePlanStoreProvider`, not in the registry, because the
+protocol builds a server per request.
+
+A version marker is `updated_at` plus the current ids of each relation the
+plan changes, since a link can change without touching its parent row. A record
+a plan links to gets a marker too, so one that goes away refuses the plan. A
+marker also carries a footprint of what the plan worked out from rows with no
+version of their own, a delete's reach or a site's types, and apply works it
+out again, so a child added since the preview refuses the plan as well.
+
+What a plan lists is what a write does. An entity reports what an update does
+beyond what it names through `sideEffects`: a site link snaps on water type,
+entry and exit methods and dive types, a visibility band clears the measured
+values, and a moved dive takes its entry and exit times along. A field the set
+names is written after the snap and wins, even if it equals the current value.
+A field whose write does something even when it equals the row is listed in
+`effectFields`, as a dive's `visibility` is, so the plan cannot drop it as
+unchanged.
+
+`deleteReach` reports what a delete takes with it. `records` holds what has a
+life of its own, such as documents, media and certifications, and `parts` the
+rows that only exist as part of the record, such as a dive's tanks. `unlinked`
+holds what stays but loses its link, and `linkedDives` the dives that do,
+including another profile's. The dialog shows all of that without being opened
+except `parts`, which it keeps under the details, since a dive with a profile
+has many. `countCascaded` and `countUnlinked` read these from the schema's
+foreign keys, so a table added later is counted without anyone remembering to.
+
+A child entry, such as a tank, belongs to another record and says so in
+`parent`. A create names the parent in the parent's field, `dive_id` for a
+tank, and takes the parent's owner; a `diver_id` naming anyone else is
+blocked, and the field cannot change afterwards, so moving a tank is a delete
+and a create. A child has no `updated_at` of its own, so its parent's marks
+it: every write path for a dive's tanks, weights and sightings stamps the
+dive. The marker also compares the child's own document, because a sync merge
+can change the child row alone. A change to a child whose parent the same set
+deletes is blocked, as the delete takes the child with it. After an apply,
+the dives of the children it changed are refreshed as edited dives are. A
+parent with no owner, as an old dive can be, takes the profile a create names.
+
+A child item carries its parent's title and date, so the dialog says which dive
+a tank change is on, and an untitled record is named by its kind, never by its
+id. `displayContext` lists document values a change may leave alone but the
+dialog needs to show it, such as the working pressure that says what a tank's
+size holds for an imperial diver.
+
+A field that holds an id uses `FieldCodec.reference`, and the planner checks
+it as it checks a relation's links, and names what it points at so the dialog
+shows a dive's or a species' name. A reference into a table with no
+`updated_at`, such as `species`, is marked by whether the row still exists.
+
+A marker's `readFootprint` lives as long as the plan, up to 15 minutes, so it
+must not capture the preview pass: the pass holds the database strongly, and a
+plan keeps only a weak reference to it, so a restored logbook is not kept
+alive. Read through a top-level function and copy what the closure needs into
+locals first.
+
+The change log covers rows in this database, and a rollback covers them too.
+What neither can take back is a blob that has left the media store. A blob
+delete is queued as an intent that waits for a drain and does nothing if its
+row has come back, so a rollback or revert before the drain loses nothing.
+Dive and site deletes pass `holdRemoteMedia`, so a coordinator wired to start
+the worker would still wait.
+
+### Catalogs and merges
+
+The diver's catalogs are writable as records of their own: `tags`,
+`dive_types`, `dive_roles`, `site_types`, `species`, `centers` with their
+`center_gear_notes`, `custom_agencies`, `custom_levels`, `tank_presets`,
+`weight_presets` and `cylinder_configs`. Each keeps the rules its own screen
+keeps, and blocks in the preview what the repository would otherwise do
+quietly:
+
+- A built-in dive type, role or site type is a constant of the app, so only
+  its visibility can change. A built-in species can be edited but not
+  deleted, and nor can a species, dive type, role, agency or level in use.
+- A tag name is unique per diver, trimmed and ignoring case. The app reuses
+  the old tag on a clash, so a writer would merge two tags without saying so;
+  the plan blocks it as `duplicate_record` instead. Turning a tag's scope off
+  unlinks it from that scope's records, which the plan lists.
+- A custom agency or level name must be free, checked by the same
+  `agencyNameTaken` and `levelNameTaken` the repository's own saves call. A
+  level's `agency_id` may name a built-in agency, which has no row.
+- A tank preset's internal name follows its display name, as the editor sets
+  it.
+
+A weight preset's `entries` and a cylinder config's `items` are written whole
+through `ObjectListCodec`, which compares a list as canonical JSON, so an
+unchanged list is no change. A read lists them only on request, so the entry
+fills them in through `stored`. A cylinder keeps the id of the one at its
+place before, and gas goes in as fractions and is stored as percent.
+
+Two relations join sites: `tags`, whose tags must apply to sites, and
+`expected_species`.
+
+A delete can name `merge_into` instead of going alone. The survivor takes the
+record's links, the plan's JSON lists them under `moved_to_merge_target` and
+the dialog says which record it merges into. What the merge changes on the
+survivor itself, such as the scopes a tag gains, comes back from `mergeReach`
+in `DeleteReach.survivor` and is listed as indirect field changes on the
+merge's item. Only `tags` can merge so far: an entry opts in with
+`mergeable`, `mergeReach` and `merge`. The planner blocks a merge into the
+record itself, into a record that is gone or another profile's, into one the
+same set deletes, beside an update that changes links to the same entity, and
+beside an update of a survivor field the merge changes. Several merges into
+one survivor are counted one after another through `mergedBefore`. The
+survivor is marked, so one that changes after the preview refuses the plan.
+
+A plan lists what is stored, not what was sent. A name the repository trims
+uses `FieldCodec.text(trim: true)`, and a number its column keeps to fewer
+places uses `FieldCodec.number(fractionDigits:)`, so an unchanged value
+compares equal. A create naming `sort_order` 0 is blocked where the
+repository reads 0 as "after the last".
+
+Two rules look past a single change. `uniqueKey` returns a `UniqueClaim`: what no two records
+of one owner may share, such as a tag's folded name, and whether the claim
+is shared, as a shared agency's name is taken for every profile. The planner
+blocks a second claim within one set, which `refuse` cannot see in the
+database: a shared claim clashes with any other, an unshared one with a
+shared claim or the same owner's. A merge's `DeleteReach.basis` carries the
+exact links it moves, so a link that moves after the preview refuses the
+plan even when the counts stay the same.
+`WriteCheck.soFar` carries what the changes earlier in the set delete, write
+and unlink, counting only those the plan keeps, since a set applies in
+order. A rule that reads stored rows counts them too: a site may take a tag
+the set first opens to sites, a tag may take a name an earlier rename frees,
+and a dive type or species whose dives or sightings the set first removes
+may be deleted.
+
+### Adding a writable entity
+
+1. Add a `WritableEntry` under `data/writes/families/` and list it in
+   `WriteCatalog`. Its `name` and field keys are the read catalogue's, so a
+   document can be edited and sent back.
+2. Write through a repository or service, never a table. Most `copyWith`
+   methods use `??` and cannot clear a field, and rebuilding a whole entity
+   loses any field the mapper forgets, so use a partial companion
+   (`BulkDiveEditService`, `BuddyRepository.updateFields`) or clear flags
+   (`DiveSite.copyWith`).
+3. Add a test that every key in `fields` reaches its column, and read each
+   value back through the document.
+4. Implement `refuse` for what the repository would quietly ignore.
+   `updateSite` keeps a library's values and reports success, so
+   `SiteWrites.refuse` blocks that case in the preview.
+5. Implement `sideEffects` and `deleteReach` for anything the write path does
+   beyond the columns it was given, or a diver allows a change they cannot see.
+   Read a repository's delete for what it clears by hand: `countCascaded` sees
+   the schema, not that code. A dive's delete also reclaims stored import
+   files no other dive uses, which no foreign key shows. A record that goes
+   only once everything holding it goes, such as an import file several
+   dives share or a photo of a dive and its site, depends on what else the
+   set deletes: read `alongside` and count it on one item, so the dialog's
+   totals add up.
+   A relation whose write copies values from its target, as a dive's site
+   does, sets `copiesTarget`, so it cannot follow a change to that target
+   earlier in the same set: the plan works out the copy from the target as it
+   stands, and the write would copy the changed one.
+6. Implement `deletedDocumentOwners` with every owner a delete takes documents
+   from, so a refused plan can arm their reminders again. A buddy's lists their
+   certifications too.
+7. Hold remote media on any delete that cascades to it.
+8. For a record that belongs to another, return a `ChildOf` from `parent`
+   and list its parent field in `fields` as a `FieldCodec.reference`. List
+   any other field a create sets and an update may not change in
+   `createOnly`, as a sighting's species. Write one row at a time: a
+   repository's bulk replace re-inserts every sibling under a fresh id.
+9. If a change also writes the parent, as an annotation's create rewrites
+   its dive's Notes, list those kinds in `writesParent`: the planner blocks
+   them beside an update of that parent. Say what an agent must know beyond
+   the fields in `note`, which the `preview_changes` description carries.
+   Write through the service the app's own screen uses, as gas switches go
+   through `DiverGasSwitchWriter`, so the agent's change does what the
+   diver's does.
+10. Move the repository's methods from
+   `test/architecture/agent_write_coverage_baseline.txt` to `covered` in
+   `agent_write_coverage_test.dart`. That guard fails on a new repository
+   write no entity reaches, and on a baseline line that has gone. A write
+   that changes no record a diver keeps, such as a setting, a cache, a
+   backup or a dismissed finding, goes in the same file's `exempt` map
+   instead, as `path:method` or `path:*` for a whole repository, with the
+   reason. A shortcut that does what a covered method does, as
+   `createFromWeights` does, belongs there too.
+
+### Known limits
+
+- Many MCP clients time out a request after about a minute, which is shorter
+  than the dialog. The server keeps asking, so a later Allow applies a change
+  the agent reported as failed. While that dialog is open a second apply
+  answers `confirmation_pending`, so a retry cannot queue the same change, and
+  the `apply_changes` description tells agents to read the records first.
+- The plain `DiveRepository` and `SiteRepository` the tools use never start
+  the media worker, so `holdRemoteMedia` changes nothing there: an intent
+  drains when anything next starts the worker, and a revert after that
+  re-queues the upload through `repairRestoredMedia`.
+- A change set cannot refer to a record it creates. Linking a new buddy to a
+  dive takes two applies.
+
+## The date rule
+
+Each key's suffix says what kind of date it holds, and `document_dates.dart`
+has the only three formatters. Pick by how the value is stored, not by how it
+reads: a repository that reads with `isUtc: true` usually holds a wall clock.
+
+| Key | Meaning | Formatter |
+| --- | --- | --- |
+| `date_time`, `*_time` | Local wall clock of the dive or event, with a nominal `Z`; do not shift it | `wallClock` |
+| `*_date` | A calendar date, `2025-03-14` | `calendarDate` |
+| `*_at` | A true instant in UTC | `instant` |
+
+`calendarDate` reads the value as held and never goes through `toUtc()`:
+most of these are stored as local midnight, so a shift would move them to the
+day before.
+
+`wallClock` asserts that its value is flagged UTC, because the right conversion
+depends on where a local-flagged value came from. A Drift `dateTime()` column
+written from a wall clock reads back local-flagged and needs `toUtc()`. A local
+`DateTime` whose digits are the wall clock, such as a plan's start, needs
+`asWallClockUtc`.
+
+## Service status in queries
+
+`serviceDue` and `nextServiceDue` compile against `equipment_service_status`,
+a local cache that holds the active diver's verdicts only. `query` does not
+read it. `serviceStatusOverlay` evaluates the named diver's clocks through
+`evaluateServiceClocksForItems`, the same batch the notification scheduler
+uses, and returns a CTE named after the cache. SQLite resolves that name first,
+so the compiled SQL runs unchanged, the answer is right for any profile, and a
+read tool writes nothing. It is why `awaitServiceStatusIfRead` is not used
+here: that provider can only answer for the active diver.
+
+## The SQL window
+
+`sql_query` runs one statement on a connection of its own, opened read-only
+with `PRAGMA query_only` on a worker isolate and closed when the call ends.
+Nothing holds a handle between calls, so a restore, a storage move or an
+encryption change needs no handling: the runner reads the path and key on each
+call. The runner is a static on the controller rather than part of the
+per-request server, because its busy flag has to outlast a request and a scope
+rebuild, as a statement that cannot be stopped does.
+
+Read-only says nothing about credentials, so a statement is inspected before
+it steps. The bundled SQLite is built with `OMIT_AUTHORIZATION` and
+`OMIT_PROGRESS_CALLBACK`, so there is no authorizer to ask. `EXPLAIN` is the
+engine's view that remains: by then views, CTEs and subqueries have been
+flattened, so every read shows up as an `OpenRead` of a root page, and
+`SqlReadCatalog` maps root pages through `sqlite_schema`. `inspectSqlProgram`
+fails closed:
+
+- An unknown root, a root in another database and any virtual table refuse.
+  That last one covers `pragma_*` and `json_each`, because `VOpen` carries only
+  a pointer and they cannot be told apart.
+- A denied column refuses at its `Column` step, and an index holding one
+  refuses when it opens, because a seek compares the value with no `Column`
+  step at all.
+- `ATTACH`, `BEGIN` and `PRAGMA` all report read-only, so `sqlLeadingKeyword`
+  allows only `SELECT`, `WITH` and `VALUES`. It is the only text check, and it
+  is an allowlist. Never add a check that looks for a table name in the text.
+
+Classifying a table: a table the change log policy excludes must go in
+`kSqlDeniedTables` or `kSqlReadableExcludedTables`, and a test fails until it
+does. A table the policy does not know is refused at runtime. A new credential
+column goes in `changeLogCredentialColumns`, which the window reads too. A
+column the log should keep recording but an agent should not see goes in
+`kSqlDeniedColumns` directly, as `manifest_url`, `url` and `entry_key` do: any
+of them can carry an access token. An expression or partial index on such a table stays readable
+unless its own definition names a denied column. A statement SQLite would
+answer from a refused index is refused too, and the refusal says to write
+`NOT INDEXED` after the table name.
+
+`submersion://schema` comes from the live schema, so it cannot drift. Its notes
+come from the comments in `lib/core/database/tables/`, because Drift keeps no
+descriptions at runtime. After changing a table, run
+`dart run tool/generate_sql_column_notes.dart`; a test fails until the
+generated file matches.
+
+SQLite builds a value inside its own step, so only its own limit can bound the
+memory; the result size cap applies later and protects the reply, not the
+process. `sql_value_limit.dart` sets `SQLITE_LIMIT_LENGTH` through
+`sqlite3_limit`, bound directly because the package does not bind it. That
+works where the library exports the symbol, as on macOS. The package's Linux
+build exports only the functions it binds, so there the call answers false and
+a statement can still build a value of up to a gigabyte. The Windows build marks
+every API function `dllexport`, so it should work there, but nobody has run it.
+
+A statement that stays inside one native step cannot be stopped: `Isolate.kill`
+acts only when the step returns. The call answers with `still_running`, and
+later calls answer `sql_busy` until the worker ends. Until then the statement
+costs more than its thread: it holds a read snapshot, so the WAL cannot reset
+past it, a recursive `UNION` or a sort keeps growing its temporary storage, and
+on Windows its open file can block a restore or a storage move.
+`sqlite3_interrupt` through FFI would fix this, but it needs a test on all three
+desktop platforms and CI runs Linux only.
 
 ## Security rules and their tests
 
@@ -88,6 +443,9 @@ token through a function.
 | `unknown_diver` | `diver_id` names no profile on this device |
 | `not_found` | No such tool or record |
 | `too_many_ids` | More ids than `get_records` accepts in one call |
+| `sql_refused` | `sql_query` would read something denied, or is not one read-only statement; names the table or column |
+| `sql_error` | SQLite rejected the statement, with its message |
+| `sql_busy` | An earlier `sql_query` statement is still running and cannot be stopped |
 | `internal` | Anything else; the exception type only, never a message that could leak data |
 
 Arguments the schema itself rejects (a wrong type, an unknown property, a
@@ -109,9 +467,8 @@ The server factory runs per MCP session, and per request on the stateless
 
 ## Roadmap
 
-The remaining PRs, all behind the debug-mode gate until the last one:
-reads for every entity and `list_records`; the read-only SQL window with the
-generated schema resource; the write core (`preview_changes`,
+The remaining PRs, all behind the debug-mode gate until the last one: the
+write core (`preview_changes`,
 `apply_changes`, `revert_operation`, the confirmation dialog, change log
 source `agent`); write coverage per entity family with a guard test; then
 the gate removal, user documentation and release note.

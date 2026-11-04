@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:submersion/core/platform/host_platform.dart';
+
 /// Classifies whether the VOLUME a path lives on is currently mounted, so
 /// "file on an unmounted network share" can be told apart from "file
 /// deleted" (program spec section 8).
@@ -28,11 +30,11 @@ class VolumeStatus {
   String? volumeRootOf(String path, {String? platformOverride}) {
     final platform =
         platformOverride ??
-        (Platform.isMacOS
+        (HostPlatform.isMacOS
             ? 'macos'
-            : Platform.isWindows
+            : HostPlatform.isWindows
             ? 'windows'
-            : Platform.isLinux
+            : HostPlatform.isLinux
             ? 'linux'
             : 'other');
     switch (platform) {

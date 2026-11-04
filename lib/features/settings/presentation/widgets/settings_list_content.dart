@@ -1,6 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -112,6 +112,23 @@ const settingsSections = [
   ),
 ];
 
+/// The sections this device shows: data sources need the health import of
+/// an iPhone, security needs a lock or encryption to offer, and shared data
+/// needs a second diver.
+List<SettingsSection> visibleSettingsSections({
+  required DeviceCapabilities caps,
+  required int diverCount,
+}) => settingsSections
+    .where(
+      (s) => s.id != 'dataSources' || (HostPlatform.isIOS && caps.healthImport),
+    )
+    .where(
+      (s) =>
+          s.id != 'security' || caps.biometricLock || caps.databaseEncryption,
+    )
+    .where((s) => s.id != 'sharedData' || diverCount >= 2)
+    .toList();
+
 /// Content widget for the settings section list, used in master-detail layout.
 class SettingsListContent extends ConsumerWidget {
   final void Function(String?)? onItemSelected;
@@ -131,10 +148,10 @@ class SettingsListContent extends ConsumerWidget {
     final allDiversAsync = ref.watch(allDiversProvider);
     final diverCount = allDiversAsync.valueOrNull?.length ?? 0;
 
-    final sections = settingsSections
-        .where((s) => s.id != 'dataSources' || Platform.isIOS)
-        .where((s) => s.id != 'sharedData' || diverCount >= 2)
-        .toList();
+    final sections = visibleSettingsSections(
+      caps: ref.watch(deviceCapabilitiesProvider),
+      diverCount: diverCount,
+    );
 
     // Insert Debug section just before About when debug mode is enabled
     if (debugEnabled) {

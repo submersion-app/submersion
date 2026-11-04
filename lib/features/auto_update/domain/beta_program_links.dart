@@ -1,5 +1,4 @@
-import 'dart:io' show Platform;
-
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_channel.dart';
 
 /// Public enrollment links for the beta program. An empty link hides the
@@ -11,9 +10,9 @@ const kPlayBetaOptInUrl = 'https://play.google.com/apps/testing/app.submersion';
 /// The store beta-enrollment link to offer on this build, or null when there
 /// is none.
 String? get betaEnrollUrl => betaEnrollUrlFor(
-  isIOS: Platform.isIOS,
-  isMacOS: Platform.isMacOS,
-  isAndroid: Platform.isAndroid,
+  isIOS: HostPlatform.isIOS,
+  isMacOS: HostPlatform.isMacOS,
+  isAndroid: HostPlatform.isAndroid,
   autoUpdateEnabled: UpdateChannelConfig.isAutoUpdateEnabled,
 );
 

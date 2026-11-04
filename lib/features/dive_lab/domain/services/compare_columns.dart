@@ -74,7 +74,7 @@ CompareColumn divedColumn({
     ndl: deco.ndl,
     decoRequiredSeconds: deco.requiredSeconds,
     decoDoneSeconds: deco.doneSeconds,
-    runtimeSeconds: dive.effectiveRuntime?.inSeconds,
+    runtimeSeconds: dive.measuredRuntime?.inSeconds,
     surfaceGf: _last(analysis?.surfaceGfCurve),
     decoStartSeconds: deco.startSeconds,
   );

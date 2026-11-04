@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 
+import 'package:submersion/core/platform/host_platform.dart';
+
 /// Service for managing security-scoped bookmarks on macOS and iOS.
 ///
 /// Security-scoped bookmarks allow sandboxed apps to persist access
@@ -30,7 +32,7 @@ class SecurityScopedBookmarkService {
 
   /// Whether security-scoped bookmarks are supported on this platform
   static bool get isSupported =>
-      debugSupportedOverride ?? (Platform.isMacOS || Platform.isIOS);
+      debugSupportedOverride ?? (HostPlatform.isMacOS || HostPlatform.isIOS);
 
   /// Creates a security-scoped bookmark for the given folder path.
   ///
@@ -124,7 +126,7 @@ class SecurityScopedBookmarkService {
   /// On non-iOS platforms, returns null (caller should use standard file check).
   static Future<bool?> verifyWriteAccess(String path) async {
     // This method is only needed on iOS
-    if (!Platform.isIOS) return null;
+    if (!HostPlatform.isIOS) return null;
 
     try {
       final result = await _channel.invokeMethod<bool>('verifyWriteAccess', {
@@ -150,7 +152,7 @@ class SecurityScopedBookmarkService {
   /// Returns a [FolderPickResult] with path and bookmark data, or null if cancelled.
   /// Only works on iOS - returns null on other platforms.
   static Future<FolderPickResult?> pickFolderWithSecurityScope() async {
-    if (!Platform.isIOS) return null;
+    if (!HostPlatform.isIOS) return null;
 
     try {
       final result = await _channel.invokeMethod<Map<Object?, Object?>>(

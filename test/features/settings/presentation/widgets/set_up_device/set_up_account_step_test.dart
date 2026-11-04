@@ -3,7 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/platform/device_capabilities.dart';
+import 'package:submersion/core/platform/web/remember_credentials_provider.dart';
+import 'package:submersion/core/platform/web_database_status.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
+import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
+import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
@@ -45,6 +50,14 @@ final _dropbox = _group(
   status: AccountStatus.needsSignIn,
 );
 
+class _RecordingRemember extends RememberCredentialsNotifier {
+  @override
+  bool build() => false;
+
+  @override
+  Future<void> set(bool value) async => state = value;
+}
+
 void main() {
   late SharedPreferences prefs;
   late ProviderContainer container;
@@ -55,6 +68,9 @@ void main() {
     List<AccountGroup> groups = const [],
     String? Function(AccountGroup)? consequenceOf,
     SetUpHost host = SetUpHost.settingsPage,
+    bool browser = false,
+    VoidCallback? onNoLibrary,
+    DemoPackage? demoPackage,
   }) async {
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
@@ -65,6 +81,15 @@ void main() {
       ProviderScope(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
+          if (browser) ...[
+            deviceCapabilitiesProvider.overrideWithValue(
+              DeviceCapabilities.web,
+            ),
+            // Natively the switch has nothing to move; this stand-in keeps
+            // what the step sets so the wiring shows.
+            rememberCredentialsProvider.overrideWith(_RecordingRemember.new),
+            demoAvailabilityProvider.overrideWith((ref) async => demoPackage),
+          ],
           accountGroupsProvider.overrideWith((ref) async => groups),
           offerableAccountKindsProvider.overrideWithValue(const [
             AccountKindOffer.icloud,
@@ -83,10 +108,12 @@ void main() {
                 onNext: () => calls.add('next'),
                 onBack: () => calls.add('back'),
                 onNotNow: () => calls.add('notNow'),
+                onNoLibrary: onNoLibrary,
                 host: host,
               ),
               consequenceOf: consequenceOf ?? (_) => null,
               onRestoreFile: () async => calls.add('restore'),
+              onTryDemo: (package) => calls.add('demo ${package.size}'),
             ),
           ),
         ),
@@ -212,5 +239,105 @@ void main() {
     await pump(tester, host: SetUpHost.assistant);
 
     expect(find.text('I have a backup file instead'), findsOneWidget);
+  });
+
+  testWidgets('a browser restores a backup file too (#4121)', (tester) async {
+    await pump(tester, browser: true);
+
+    await tester.tap(find.text('I have a backup file instead'));
+    expect(calls, ['restore']);
+    expect(find.text('Not now'), findsOneWidget);
+  });
+
+  group('in a browser (#4121)', () {
+    testWidgets('offers the remember switch, wired to the provider', (
+      tester,
+    ) async {
+      await pump(tester, browser: true);
+      expect(find.text('Remember sign-in on this device'), findsOneWidget);
+      final toggle = find.byType(SwitchListTile);
+      expect(tester.widget<SwitchListTile>(toggle).value, isFalse);
+      await tester.tap(toggle);
+      await tester.pumpAndSettle();
+      expect(container.read(rememberCredentialsProvider), isTrue);
+      expect(tester.widget<SwitchListTile>(toggle).value, isTrue);
+    });
+
+    testWidgets('with nothing kept after the tab, the switch does not promise '
+        'the dives stay (#4187)', (tester) async {
+      WebDatabaseStatusHolder.record(
+        const WebDatabaseStatus(storage: WebDatabaseStorage.inMemory),
+      );
+      addTearDown(WebDatabaseStatusHolder.clear);
+      await pump(tester, browser: true);
+      final en = lookupAppLocalizations(const Locale('en'));
+      expect(
+        find.text(en.web_rememberOnThisDevice_subtitleInMemory),
+        findsOneWidget,
+      );
+      expect(find.text(en.web_rememberOnThisDevice_subtitle), findsNothing);
+    });
+
+    testWidgets('natively there is no remember switch', (tester) async {
+      await pump(tester);
+      expect(find.text('Remember sign-in on this device'), findsNothing);
+      expect(find.byType(SwitchListTile), findsNothing);
+    });
+
+    testWidgets('continue without a sync store stands where Not now was', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        browser: true,
+        host: SetUpHost.firstRun,
+        onNoLibrary: () => calls.add('noLibrary'),
+      );
+      expect(find.text('Not now'), findsNothing);
+      await tester.tap(find.text('Continue without a sync store'));
+      expect(calls, ['noLibrary']);
+    });
+
+    testWidgets('first run offers the sample logbook the site ships', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        browser: true,
+        host: SetUpHost.firstRun,
+        onNoLibrary: () => calls.add('noLibrary'),
+        demoPackage: DemoPackage(
+          schemaVersion: 327,
+          url: Uri.parse('https://dive.example/demo/submersion_demo.db.gz'),
+          sha256: 'a' * 64,
+          size: 8075714,
+          generatedAt: DateTime.utc(2026, 10, 30),
+        ),
+      );
+      await tester.tap(find.text('Explore with sample data'));
+      expect(calls, ['demo 8075714']);
+    });
+
+    testWidgets('a site without a sample logbook offers none', (tester) async {
+      await pump(
+        tester,
+        browser: true,
+        host: SetUpHost.firstRun,
+        onNoLibrary: () => calls.add('noLibrary'),
+      );
+      expect(find.text('Explore with sample data'), findsNothing);
+    });
+
+    testWidgets('first run offers to restore a backup file', (tester) async {
+      await pump(
+        tester,
+        browser: true,
+        host: SetUpHost.firstRun,
+        onNoLibrary: () => calls.add('noLibrary'),
+      );
+      expect(find.text('I have a backup file instead'), findsNothing);
+      await tester.tap(find.text('Restore a backup file'));
+      expect(calls, ['restore']);
+    });
   });
 }

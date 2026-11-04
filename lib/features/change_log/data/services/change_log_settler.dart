@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
@@ -11,6 +13,9 @@ import 'package:submersion/features/change_log/domain/entities/change_log_event.
 /// Manual saves on one record this close together are one entry.
 const Duration kChangeLogManualGroupWindow = Duration(seconds: 5);
 
+/// How many unsettled events a pass reads at a time.
+const int _readChunk = 50;
+
 /// Turns raw trigger events into the operations the diver sees (issue
 /// #3922). Runs on its own, never inside a save, so a failure here cannot
 /// affect one; unsettled events are simply tried again.
@@ -22,9 +27,15 @@ class ChangeLogSettler {
   final Map<String, ChangeLogTableSpec> _specs;
 
   /// Settles up to [batch] events, oldest first, and returns how many.
-  Future<int> settle({int batch = 500}) async {
+  ///
+  /// With a [budget], the pass also ends after the first event that finds
+  /// it spent, and settles at least one. A pass is one transaction, and
+  /// nothing else reaches the database until it commits: in a browser
+  /// drawing without a GPU each statement waited about a frame, and a full
+  /// batch held the database for minutes (#4186).
+  Future<int> settle({int batch = 500, Duration? budget}) async {
     final settled = await _db.transaction(
-      () => _SettlePass(_db, _specs).run(batch),
+      () => _SettlePass(_db, _specs).run(batch, budget),
     );
     if (settled > 0) {
       _db.notifyUpdates({
@@ -140,20 +151,33 @@ class _SettlePass {
   final _latestManual = <ChangeLogRoot, String>{};
   final _columns = <String, Object?>{};
 
-  Future<int> run(int batch) async {
-    final rows = await _db
-        .customSelect(
-          'SELECT * FROM change_log_events WHERE settled = 0 '
-          'ORDER BY id LIMIT ?',
-          variables: [Variable.withInt(batch)],
-        )
-        .get();
-    for (final row in rows) {
-      await _settle(_Event(row.data));
+  /// Events are read [_readChunk] at a time: a pass a budget ends early
+  /// would otherwise read a whole batch to settle one or two.
+  Future<int> run(int batch, Duration? budget) async {
+    final clock = Stopwatch()..start();
+    var settled = 0;
+    var spent = false;
+    while (!spent && settled < batch) {
+      final rows = await _db
+          .customSelect(
+            'SELECT * FROM change_log_events WHERE settled = 0 '
+            'ORDER BY id LIMIT ?',
+            variables: [
+              Variable.withInt(math.min(_readChunk, batch - settled)),
+            ],
+          )
+          .get();
+      for (final row in rows) {
+        await _settle(_Event(row.data));
+        settled++;
+        spent = budget != null && clock.elapsed >= budget;
+        if (spent) break;
+      }
+      if (rows.length < _readChunk) break;
     }
     await _writeOperations();
     await _deleteEmptyOperations();
-    return rows.length;
+    return settled;
   }
 
   Future<void> _settle(_Event event) async {

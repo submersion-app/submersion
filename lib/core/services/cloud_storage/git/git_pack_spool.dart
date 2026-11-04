@@ -50,7 +50,7 @@ Future<List<GitObjectId>> readSpooledPack(
   final file = File(
     p.join(
       dir.path,
-      '$_prefix${_random.nextInt(1 << 32).toRadixString(16)}$_suffix',
+      '$_prefix${_random.nextInt(0x100000000).toRadixString(16)}$_suffix',
     ),
   );
   try {

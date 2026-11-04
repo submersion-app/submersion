@@ -32,6 +32,7 @@ import 'package:submersion/features/explore/presentation/providers/explore_name_
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
 import 'package:submersion/features/query/presentation/app_query_labels.dart';
+import 'package:submersion/features/query/presentation/providers/query_language_provider.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
 import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
 import 'package:submersion/features/query/presentation/query_error_text.dart';
@@ -257,6 +258,9 @@ class _DiveSearchHeaderState extends ConsumerState<DiveSearchHeader> {
         NameIndex.empty,
     labels: AppQueryLabels(context),
     now: DateTime.now,
+    language: watch
+        ? ref.watch(queryLanguageProvider)
+        : ref.read(queryLanguageProvider),
   );
 
   /// Remembers the query the diver typed (Enter, or leaving the field

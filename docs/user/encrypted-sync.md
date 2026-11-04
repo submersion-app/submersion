@@ -116,6 +116,13 @@ Once encryption is on, **End-to-end encryption** offers:
 > itself, only enough to check it, so it cannot show it to you later. If you have
 > lost it, use **Generate new recovery code** to make one you can save.
 
+## In a Browser
+
+[Submersion in a browser](web-app.md) asks for the passphrase when you
+connect, as a new device does, and keeps it only while the tab is open
+unless you turn on Remember sign-in on this device. The browser's own copy
+of your dives is not encrypted at rest; Forget this device removes it.
+
 ## Encrypted Cloud Backups
 
 Encryption also covers your [cloud backups](backup-and-restore.md). While it is

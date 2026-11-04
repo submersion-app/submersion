@@ -100,6 +100,7 @@ DiveComputer computerForDownload(
     lastDiveFingerprint: computer.lastDiveFingerprint,
     diveCount: computer.diveCount,
     isFavorite: computer.isFavorite,
+    autoDownloadDisabled: computer.autoDownloadDisabled,
     notes: computer.notes,
     equipmentId: computer.equipmentId,
     createdAt: computer.createdAt,

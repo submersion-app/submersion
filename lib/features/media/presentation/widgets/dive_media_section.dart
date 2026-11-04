@@ -1,8 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/feature_flags.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/utils/unit_formatter_settings.dart';
@@ -33,12 +33,12 @@ import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
 /// can't be exercised from `flutter test`.
 @visibleForTesting
 String showInOsFileManagerLabel() {
-  if (Platform.isMacOS) return 'Show in Finder';
+  if (HostPlatform.isMacOS) return 'Show in Finder';
   // coverage:ignore-start
   // Windows-only branch — test suite runs on macOS / Linux. On Linux the
   // `if (Platform.isWindows)` evaluates false and the function falls
   // through to 'Show in Files' (covered).
-  if (Platform.isWindows) {
+  if (HostPlatform.isWindows) {
     return 'Show in Explorer';
   }
   // coverage:ignore-end
@@ -77,6 +77,9 @@ class DiveMediaSection extends ConsumerStatefulWidget {
 }
 
 class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
+  /// A browser shows the media it can and links none (issue #4121).
+  bool get _canAttach => ref.watch(deviceCapabilitiesProvider).mediaAttach;
+
   /// Owns the bulk-selection state machine for this section.
   ///
   /// Id-based, unlike the positional [DragSelectGridView] it drives. Indices
@@ -266,7 +269,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
     TapDownDetails details,
   ) async {
     if (item.sourceType != MediaSourceType.localFile) return;
-    if (!(Platform.isMacOS || Platform.isWindows || Platform.isLinux)) return;
+    if (!HostPlatform.isDesktop) return;
 
     final selected = await showMenu<String>(
       context: context,
@@ -283,11 +286,12 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
             // TODO(media): l10n
             child: Text(showInOsFileManagerLabel()),
           ),
-        const PopupMenuItem<String>(
-          value: 'replace',
-          // TODO(media): l10n
-          child: Text('Replace link...'),
-        ),
+        if (ref.read(deviceCapabilitiesProvider).mediaAttach)
+          const PopupMenuItem<String>(
+            value: 'replace',
+            // TODO(media): l10n
+            child: Text('Replace link...'),
+          ),
       ],
     );
 
@@ -386,7 +390,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                   // The only way into selection: entry by long-press was
                   // removed, so nothing but this control opens the mode.
                   mediaAsync.whenOrNull(
-                        data: (media) => media.isEmpty
+                        data: (media) => media.isEmpty || !_canAttach
                             ? const SizedBox.shrink()
                             : IconButton(
                                 key: const ValueKey('enter_selection'),
@@ -401,7 +405,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                               ),
                       ) ??
                       const SizedBox.shrink(),
-                  if (widget.onScanPressed != null)
+                  if (_canAttach && widget.onScanPressed != null)
                     IconButton(
                       icon: Icon(
                         Icons.image_search,
@@ -413,7 +417,8 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                     ),
                   // Lightroom scan hidden pending Adobe review
                   // (lightroomUiEnabled).
-                  if (lightroomUiEnabled &&
+                  if (_canAttach &&
+                      lightroomUiEnabled &&
                       ref.watch(lightroomAccountProvider).value != null)
                     IconButton(
                       icon: Icon(
@@ -424,7 +429,8 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                       tooltip: context.l10n.settings_lightroom_scanNow,
                       onPressed: () => _scanLightroom(context),
                     ),
-                  if (widget.onAddPressed != null &&
+                  if (_canAttach &&
+                      widget.onAddPressed != null &&
                       widget.onAddDocumentPressed == null)
                     IconButton(
                       icon: Icon(
@@ -435,7 +441,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                       tooltip: context.l10n.media_diveMediaSection_addTooltip,
                       onPressed: widget.onAddPressed,
                     )
-                  else if (widget.onAddPressed != null)
+                  else if (_canAttach && widget.onAddPressed != null)
                     PopupMenuButton<String>(
                       icon: Icon(
                         Icons.add_photo_alternate,
