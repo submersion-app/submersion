@@ -11147,9 +11147,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get divePlanner_action_addTank => 'Adicionar Cilindro';
 
   @override
-  String get divePlanner_action_convertToDive => 'Converter em Mergulho';
-
-  @override
   String get divePlanner_action_deletePlan => 'Excluir plano';
 
   @override
@@ -20961,10 +20958,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Regra de pressão de retorno';
 
   @override
-  String get plannerCanvas_convert_success =>
-      'Mergulho criado a partir do plano';
-
-  @override
   String get plannerCanvas_convert_view => 'Ver';
 
   @override
@@ -21196,8 +21189,67 @@ class AppLocalizationsPt extends AppLocalizations {
   String get plannerSeries_fillAll => 'Encher todas as garrafas';
 
   @override
-  String get plannerSeries_convertUnavailable =>
-      'Ainda não é possível converter uma série de mergulhos em mergulhos registados';
+  String get plannerSeries_createPlannedDive => 'Criar mergulho planeado';
+
+  @override
+  String get plannerSeries_createPlannedDives => 'Criar mergulhos planeados';
+
+  @override
+  String get plannerSeries_updatePlannedDive => 'Atualizar mergulho planeado';
+
+  @override
+  String get plannerSeries_updatePlannedDives =>
+      'Atualizar mergulhos planeados';
+
+  @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return '$dive tem um aviso crítico, por isso os mergulhos planeados não foram atualizados';
+  }
+
+  @override
+  String plannerSeries_created(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos planeados adicionados ao registo',
+      one: '$count mergulho planeado adicionado ao registo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerSeries_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos planeados atualizados no registo',
+      one: '$count mergulho planeado atualizado no registo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_title => 'Eliminar do registo?';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count mergulhos planeados que já não estão nesta série permanecem no registo.',
+      one:
+          '$count mergulho planeado que já não está nesta série permanece no registo.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'Manter';
+
+  @override
+  String get plannerSeries_allDived =>
+      'Todos os mergulhos deste plano já foram feitos, não há nada para atualizar';
 
   @override
   String get plannerSeries_missionUnavailable =>

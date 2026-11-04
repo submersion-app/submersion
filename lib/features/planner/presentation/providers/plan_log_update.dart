@@ -35,6 +35,10 @@ class PlannedDivesUpdate {
 
   /// In a series, which dive stopped it: its name, else its letter.
   final String? blockedBy;
+
+  /// A single plan linked to a dived dive: a new entry would take its link,
+  /// so nothing was written until the diver agrees to move it.
+  final bool needsLinkMove;
   final int created;
   final int updated;
 
@@ -51,6 +55,7 @@ class PlannedDivesUpdate {
   const PlannedDivesUpdate({
     this.valid = true,
     this.blockedBy,
+    this.needsLinkMove = false,
     this.created = 0,
     this.updated = 0,
     this.skipped = 0,
@@ -70,14 +75,20 @@ class PlannedDivesUpdate {
 /// plan rows, which the link actions keep current; the series in memory can
 /// hold a stale one for a dive linked while another was in the editor.
 ///
+/// A single plan linked to a dived dive is the one exception, as Convert to
+/// Dive was (#4058): its new entry takes the link off the dived dive, so this
+/// returns [PlannedDivesUpdate.needsLinkMove] without writing until called
+/// again with [moveDivedLink] once the diver agrees.
+///
 /// A series' entries take each dive's own name, or none, so a dived one goes
 /// by its number. A single plan's only name is its own.
 ///
 /// Takes the container rather than a `WidgetRef`: the writes outlive a page
 /// the diver leaves during them.
 Future<PlannedDivesUpdate> updatePlannedDives(
-  ProviderContainer container,
-) async {
+  ProviderContainer container, {
+  bool moveDivedLink = false,
+}) async {
   final notifier = container.read(planSeriesNotifierProvider.notifier);
   final editor = container.read(divePlanNotifierProvider.notifier);
   final log = container.read(paginatedDiveListProvider.notifier);
@@ -106,6 +117,10 @@ Future<PlannedDivesUpdate> updatePlannedDives(
   final series = container.read(planSeriesNotifierProvider);
   final results = container.read(planSeriesResultsProvider);
   bool dived(int i) => linked[i] != null && !linked[i]!.isPlanned;
+  if (!series.isSeries && dived(0)) {
+    if (!moveDivedLink) return const PlannedDivesUpdate(needsLinkMove: true);
+    linked[0] = null;
+  }
   for (final (i, result) in results.indexed) {
     if (dived(i)) continue;
     if (result.state.segments.isEmpty || !result.outcome.isDiveable) {

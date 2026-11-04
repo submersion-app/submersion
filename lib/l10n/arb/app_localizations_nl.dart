@@ -11076,9 +11076,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get divePlanner_action_addTank => 'Fles toevoegen';
 
   @override
-  String get divePlanner_action_convertToDive => 'Omzetten naar duik';
-
-  @override
   String get divePlanner_action_deletePlan => 'Plan verwijderen';
 
   @override
@@ -20824,9 +20821,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerCanvas_contingency_turnRule => 'Keerdruk-regel';
 
   @override
-  String get plannerCanvas_convert_success => 'Duik aangemaakt vanuit plan';
-
-  @override
   String get plannerCanvas_convert_view => 'Bekijk';
 
   @override
@@ -21058,8 +21052,66 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerSeries_fillAll => 'Alle flessen vullen';
 
   @override
-  String get plannerSeries_convertUnavailable =>
-      'Een reeks duiken kan nog niet worden omgezet in gelogde duiken';
+  String get plannerSeries_createPlannedDive => 'Geplande duik aanmaken';
+
+  @override
+  String get plannerSeries_createPlannedDives => 'Geplande duiken aanmaken';
+
+  @override
+  String get plannerSeries_updatePlannedDive => 'Geplande duik bijwerken';
+
+  @override
+  String get plannerSeries_updatePlannedDives => 'Geplande duiken bijwerken';
+
+  @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return '$dive heeft een kritieke waarschuwing, dus de geplande duiken zijn niet bijgewerkt';
+  }
+
+  @override
+  String plannerSeries_created(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count geplande duiken toegevoegd aan het logboek',
+      one: '$count geplande duik toegevoegd aan het logboek',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerSeries_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count geplande duiken bijgewerkt in het logboek',
+      one: '$count geplande duik bijgewerkt in het logboek',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_title => 'Uit het logboek verwijderen?';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count geplande duiken die niet meer in deze reeks zitten, staan nog in het logboek.',
+      one:
+          '$count geplande duik die niet meer in deze reeks zit, staat nog in het logboek.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'Behouden';
+
+  @override
+  String get plannerSeries_allDived =>
+      'Alle duiken van dit plan zijn al gedoken, er is niets bij te werken';
 
   @override
   String get plannerSeries_missionUnavailable =>

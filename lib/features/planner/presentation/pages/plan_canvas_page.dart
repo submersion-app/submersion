@@ -9,15 +9,12 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
-import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_tank_list.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/segment_list.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/simple_plan_dialog.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
-import 'package:submersion/features/planner/presentation/chart/plan_chart_geometry.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_profile_chart.dart';
 import 'package:submersion/features/planner/presentation/panes/plan_editor_pane.dart';
 import 'package:submersion/features/planner/presentation/panes/plan_results_pane.dart';
@@ -38,6 +35,9 @@ import 'package:submersion/features/planner/presentation/widgets/plan_name_dialo
 import 'package:submersion/features/planner/presentation/widgets/plan_unsaved_dialog.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_store.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_log_update.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_dive_start_field.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_follow_prompt.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_logged_dive_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/logged/logged_dive_chart.dart';
@@ -52,10 +52,9 @@ import 'package:submersion/features/planner/presentation/widgets/plan_dive_detai
 import 'package:submersion/features/planner/presentation/widgets/saved_plans_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/utils/log_failure.dart';
-import 'package:submersion/core/data/visibility/shared_item_policy.dart';
-import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 
 part 'plan_canvas_layouts.dart';
+part 'plan_canvas_log_flows.dart';
 part 'plan_canvas_series_flows.dart';
 
 /// Whether [id] refers to a plan that already exists in the store. Drives the
@@ -84,7 +83,7 @@ class PlanCanvasPage extends ConsumerStatefulWidget {
 }
 
 class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
-    with _PlanCanvasSeriesFlows, _PlanCanvasLayouts {
+    with _PlanCanvasSeriesFlows, _PlanCanvasLayouts, _PlanCanvasLogFlows {
   /// Owns the always-visible results pane so it is created once (not per
   /// build) and disposed with the page. Shared by the phone Results tab.
   @override
@@ -280,11 +279,13 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
                 _menuItem(
                   'convert',
                   Icons.scuba_diving,
-                  context.l10n.divePlanner_action_convertToDive,
-                  enabled: convertAllowed,
-                  tooltip: convertAllowed
-                      ? null
-                      : context.l10n.plannerSeries_convertUnavailable,
+                  _PlanCanvasLogFlows._plannedDivesLabel(
+                    context.l10n,
+                    exist: ref.watch(plannedDivesExistProvider),
+                    isSeries: ref.watch(
+                      planSeriesNotifierProvider.select((s) => s.isSeries),
+                    ),
+                  ),
                 ),
                 ..._linkMenuItems(context),
                 _menuItem(
@@ -445,7 +446,11 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
       case 'settings':
         _focusSetup('deco');
       case 'convert':
-        logFailure(_convertToDive(), _PlanCanvasPageState, 'convert to dive');
+        logFailure(
+          _updatePlannedDives(),
+          _PlanCanvasPageState,
+          'update planned dives',
+        );
       case 'linkDive':
         logFailure(
           pickDiveAndLink(
@@ -559,8 +564,8 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
 
     // Prompt for a name the first time a plan is persisted, so the saved-plans
     // list is not a wall of identically-named rows. Re-saves stay silent, and
-    // so does Convert to Dive: that flow is already multi-step and should not
-    // grow a modal.
+    // so does writing the planned dives: that flow is already multi-step and
+    // should not grow a modal.
     final series = ref.read(planSeriesNotifierProvider);
     if (!notifier.isPersisted && series.id == null) {
       if (!await nameFirstSave(context, ref) || !mounted) return;
@@ -584,123 +589,6 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(context.l10n.divePlanner_message_planSaved)),
-    );
-  }
-
-  Future<void> _convertToDive() async {
-    // The new dive takes the plan's link, so a plan already linked gives up
-    // its dive here: the one move that does not go through the link actions.
-    if (ref.read(divePlanNotifierProvider).linkedDiveId != null) {
-      final confirmed = await confirmLinkMove(
-        context,
-        action: context.l10n.divePlanner_action_convertToDive,
-      );
-      if (!confirmed || !mounted) return;
-    }
-    // The plan holds only the site id; the dive needs the site itself. A site
-    // deleted since the plan was saved resolves to null and is left off.
-    final siteId = ref.read(divePlanNotifierProvider).siteId;
-    final site = siteId == null
-        ? null
-        : await ref.read(siteProvider(siteId).future);
-    // Whether the current diver may see the site, by the site list's rule
-    // (issue #2151: a site shared with this diver by name, or in a shared
-    // site library it belongs to, counts too). Read here, before the
-    // no-await stretch below, for the diver current now.
-    final checkedFor = ref.read(currentDiverIdProvider);
-    final siteVisible = site == null
-        ? false
-        : checkedFor == null
-        ? site.isShared || site.diverId == null
-        : site.diverId == checkedFor ||
-              site.isShared ||
-              await ref
-                  .read(itemSharesRepositoryProvider)
-                  .isVisibleTo(SharedItemKind.site, site.id, checkedFor);
-    if (!mounted) return;
-
-    // Checked after the lookup, with the rest of the plan below: the diver
-    // can still edit while it resolves, and a plan made invalid meanwhile
-    // must not be converted.
-    if (!ref.read(planIsValidProvider)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.l10n.divePlanner_error_cannotConvert),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    // Saved plans are not diver-scoped, so the plan may name a site private to
-    // another diver. Attach only a shared site or one the dive's own owner
-    // owns: the owner-or-shared rule the site list applies (VisibilityFilter),
-    // except that with no current diver the dive is unowned, where every
-    // all-divers read would show the site, so only an unowned site qualifies.
-    // From here to addDive nothing awaits, and addDive reads the diver once on
-    // entry, so the dive goes to the diver this check was made for.
-    // A diver switched during the read above drops the site rather than
-    // attach one checked for another diver.
-    final diverId = ref.read(currentDiverIdProvider);
-    final visibleSite = siteVisible && diverId == checkedFor ? site : null;
-
-    // Read the plan after the site lookup so the dive describes the plan as
-    // it is now. If the diver switched sites meanwhile, the fetched site is
-    // stale, so drop it rather than attach the wrong one.
-    final notifier = ref.read(divePlanNotifierProvider.notifier);
-    final outcome = ref.read(planOutcomeProvider);
-    final series = ref.read(planLiveCanvasSeriesProvider);
-    final currentSite = ref.read(divePlanNotifierProvider).siteId == siteId
-        ? visibleSite
-        : null;
-
-    // The state's segments stop at the bottom; the engine computes the
-    // ascent. Persist the full computed profile so the logged dive shows
-    // the deco schedule the plan produced.
-    final dive = notifier.toDive().copyWith(
-      site: currentSite,
-      profile: [
-        for (final point in series.profile)
-          DiveProfilePoint(
-            timestamp: point.timeSeconds.round(),
-            depth: point.depth,
-          ),
-      ],
-      runtime: Duration(seconds: outcome.runtimeSeconds),
-      maxDepth: outcome.maxDepth,
-      avgDepth: PlanChartGeometry.meanDepthMeters(series.profile),
-    );
-
-    // The logged dive is a planned, unnumbered entry until the diver's
-    // download fills it or they mark it as logged (issue #2002). It goes
-    // through the dive list notifier, as the dive edit page's saves do, so it
-    // is assigned to the current diver: the dive list shows only that diver's
-    // dives, and a dive written without one never appears there (#2392).
-    final created = await ref
-        .read(paginatedDiveListProvider.notifier)
-        .addDive(dive);
-    notifier.setLinkedDive(created.id);
-    await notifier.save(
-      summary: PlanSummaryData(
-        maxDepth: outcome.maxDepth,
-        runtimeSeconds: outcome.runtimeSeconds,
-        ttsSeconds: outcome.ttsAtBottom,
-      ),
-    );
-
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(context.l10n.plannerCanvas_convert_success),
-        persist: false,
-        action: SnackBarAction(
-          label: context.l10n.plannerCanvas_convert_view,
-          // push, not go: `go` into the `/dives` child route would rebuild
-          // the stack as [dive list, dive detail] and discard this canvas
-          // and its editable plan state.
-          onPressed: () => context.push('/dives/${created.id}'),
-        ),
-      ),
     );
   }
 

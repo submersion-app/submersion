@@ -168,39 +168,81 @@ void main() {
     expect(after?.dateTime, dived?.dateTime);
   });
 
-  test(
-    'a dive linked by hand to a logged dive, unknown to the editor, is kept',
-    () async {
-      final editor = c.read(divePlanNotifierProvider.notifier);
-      await editor.save();
+  group('a single plan linked to a dived dive', () {
+    /// The plan saved and linked by hand to a logged dive, as the link sheet
+    /// does from the dive log, without telling the editor.
+    Future<(String, String)> linkedByHand() async {
+      await c.read(divePlanNotifierProvider.notifier).save();
       final planId = c.read(divePlanNotifierProvider).id;
       final logged = await c
           .read(paginatedDiveListProvider.notifier)
           .addDive(Dive(id: 'logged', dateTime: nine));
-      // As the link sheet does from the dive log, without telling the editor.
       await c
           .read(divePlanRepositoryProvider)
           .linkPlanToDive(planId, logged.id);
+      return (planId, logged.id);
+    }
+
+    test('asks before its link moves, and writes nothing', () async {
+      final (planId, loggedId) = await linkedByHand();
 
       final result = await updatePlannedDives(c);
 
+      expect(result.needsLinkMove, isTrue);
       expect(result.created + result.updated, 0);
-      expect(result.skipped, 1);
       final stored = await c.read(divePlanRepositoryProvider).getPlan(planId);
-      expect(stored?.linkedDiveId, logged.id);
+      expect(stored?.linkedDiveId, loggedId);
       expect(await c.read(diveRepositoryProvider).getAllDives(), hasLength(1));
-    },
-  );
+    });
 
-  test('a plan whose dives have all been dived writes nothing', () async {
-    final first = (await updatePlannedDives(c)).selectedDiveId!;
-    await c.read(diveRepositoryProvider).convertPlanToActualDive(first);
+    test('once agreed, a new entry takes the link', () async {
+      final (planId, loggedId) = await linkedByHand();
+
+      final result = await updatePlannedDives(c, moveDivedLink: true);
+
+      expect(result.created, 1);
+      final stored = await c.read(divePlanRepositoryProvider).getPlan(planId);
+      expect(stored?.linkedDiveId, result.selectedDiveId);
+      expect(stored?.linkedDiveId, isNot(loggedId));
+      expect(
+        c.read(divePlanNotifierProvider).linkedDiveId,
+        stored?.linkedDiveId,
+      );
+      final logged = await entry(loggedId);
+      expect(logged?.isPlanned, isFalse);
+    });
+  });
+
+  test('a series whose dives have all been dived writes nothing', () async {
+    twoDives();
+    await updatePlannedDives(c);
+    final repository = c.read(diveRepositoryProvider);
+    await repository.convertPlanToActualDive(linkOf(0)!);
+    await repository.convertPlanToActualDive(linkOf(1)!);
 
     final result = await updatePlannedDives(c);
 
+    expect(result.needsLinkMove, isFalse);
     expect(result.created + result.updated, 0);
+    expect(result.skipped, 2);
+    expect(await repository.getAllDives(), hasLength(2));
+  });
+
+  test('a dive of a series linked by hand to a logged dive is kept', () async {
+    twoDives();
+    await saveCurrentSeries(c);
+    final planId = c.read(planSeriesNotifierProvider).dives[0].state.id;
+    final logged = await c
+        .read(paginatedDiveListProvider.notifier)
+        .addDive(Dive(id: 'logged', dateTime: nine));
+    await c.read(divePlanRepositoryProvider).linkPlanToDive(planId, logged.id);
+
+    final result = await updatePlannedDives(c);
+
+    expect(result.created, 1);
     expect(result.skipped, 1);
-    expect(await c.read(diveRepositoryProvider).getAllDives(), hasLength(1));
+    final stored = await c.read(divePlanRepositoryProvider).getPlan(planId);
+    expect(stored?.linkedDiveId, logged.id);
   });
 
   test('a single plan keeps its own name on its entry', () async {

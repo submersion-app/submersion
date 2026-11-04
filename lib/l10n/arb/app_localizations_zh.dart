@@ -10592,9 +10592,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divePlanner_action_addTank => '添加气瓶';
 
   @override
-  String get divePlanner_action_convertToDive => '转换为潜水';
-
-  @override
   String get divePlanner_action_deletePlan => '删除计划';
 
   @override
@@ -19933,9 +19930,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerCanvas_contingency_turnRule => '折返压力规则';
 
   @override
-  String get plannerCanvas_convert_success => '已从计划创建潜水';
-
-  @override
   String get plannerCanvas_convert_view => '查看';
 
   @override
@@ -20159,7 +20153,60 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerSeries_fillAll => '加满所有气瓶';
 
   @override
-  String get plannerSeries_convertUnavailable => '暂时无法将潜水系列转换为已记录的潜水';
+  String get plannerSeries_createPlannedDive => '创建计划潜水';
+
+  @override
+  String get plannerSeries_createPlannedDives => '创建计划潜水';
+
+  @override
+  String get plannerSeries_updatePlannedDive => '更新计划潜水';
+
+  @override
+  String get plannerSeries_updatePlannedDives => '更新计划潜水';
+
+  @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return '$dive 有严重警告，因此未更新计划潜水';
+  }
+
+  @override
+  String plannerSeries_created(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已将 $count 次计划潜水添加到日志',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerSeries_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已在日志中更新 $count 次计划潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_title => '从日志中删除？';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '有 $count 次不再属于此系列的计划潜水仍在日志中。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => '保留';
+
+  @override
+  String get plannerSeries_allDived => '此计划的所有潜水均已完成，没有需要更新的内容';
 
   @override
   String get plannerSeries_missionUnavailable => '潜水系列无法规划为 DPV 任务';

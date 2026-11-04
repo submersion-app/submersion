@@ -10904,9 +10904,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_action_addTank => 'הוסף מיכל';
 
   @override
-  String get divePlanner_action_convertToDive => 'המר לצלילה';
-
-  @override
   String get divePlanner_action_deletePlan => 'מחק תוכנית';
 
   @override
@@ -20498,9 +20495,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerCanvas_contingency_turnRule => 'כלל לחץ פנייה';
 
   @override
-  String get plannerCanvas_convert_success => 'נוצרה צלילה מהתוכנית';
-
-  @override
   String get plannerCanvas_convert_view => 'הצג';
 
   @override
@@ -20730,8 +20724,64 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerSeries_fillAll => 'מילוי כל המכלים';
 
   @override
-  String get plannerSeries_convertUnavailable =>
-      'עדיין לא ניתן להמיר סדרת צלילות לצלילות מתועדות';
+  String get plannerSeries_createPlannedDive => 'יצירת צלילה מתוכננת';
+
+  @override
+  String get plannerSeries_createPlannedDives => 'יצירת צלילות מתוכננות';
+
+  @override
+  String get plannerSeries_updatePlannedDive => 'עדכון צלילה מתוכננת';
+
+  @override
+  String get plannerSeries_updatePlannedDives => 'עדכון צלילות מתוכננות';
+
+  @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return 'ל-$dive יש אזהרה קריטית, ולכן הצלילות המתוכננות לא עודכנו';
+  }
+
+  @override
+  String plannerSeries_created(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות מתוכננות נוספו ליומן',
+      one: '$count צלילה מתוכננת נוספה ליומן',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerSeries_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות מתוכננות עודכנו ביומן',
+      one: '$count צלילה מתוכננת עודכנה ביומן',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_title => 'למחוק מהיומן?';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות מתוכננות שכבר אינן בסדרה זו עדיין ביומן.',
+      one: '$count צלילה מתוכננת שכבר אינה בסדרה זו עדיין ביומן.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'שמירה';
+
+  @override
+  String get plannerSeries_allDived =>
+      'כל הצלילות בתוכנית זו כבר בוצעו, אין מה לעדכן';
 
   @override
   String get plannerSeries_missionUnavailable =>

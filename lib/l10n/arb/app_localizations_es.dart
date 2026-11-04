@@ -11149,9 +11149,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get divePlanner_action_addTank => 'Agregar Botella';
 
   @override
-  String get divePlanner_action_convertToDive => 'Convertir a Inmersión';
-
-  @override
   String get divePlanner_action_deletePlan => 'Eliminar plan';
 
   @override
@@ -20951,10 +20948,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Regla de presión de retorno';
 
   @override
-  String get plannerCanvas_convert_success =>
-      'Inmersión creada a partir del plan';
-
-  @override
   String get plannerCanvas_convert_view => 'Ver';
 
   @override
@@ -21186,8 +21179,69 @@ class AppLocalizationsEs extends AppLocalizations {
   String get plannerSeries_fillAll => 'Llenar todas las botellas';
 
   @override
-  String get plannerSeries_convertUnavailable =>
-      'Todavía no se puede convertir una serie de inmersiones en inmersiones registradas';
+  String get plannerSeries_createPlannedDive => 'Crear inmersión planificada';
+
+  @override
+  String get plannerSeries_createPlannedDives =>
+      'Crear inmersiones planificadas';
+
+  @override
+  String get plannerSeries_updatePlannedDive =>
+      'Actualizar inmersión planificada';
+
+  @override
+  String get plannerSeries_updatePlannedDives =>
+      'Actualizar inmersiones planificadas';
+
+  @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return '$dive tiene una advertencia crítica, por lo que las inmersiones planificadas no se actualizaron';
+  }
+
+  @override
+  String plannerSeries_created(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones planificadas añadidas al registro',
+      one: '$count inmersión planificada añadida al registro',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerSeries_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones planificadas actualizadas en el registro',
+      one: '$count inmersión planificada actualizada en el registro',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_title => '¿Eliminar del registro?';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count inmersiones planificadas que ya no están en esta serie siguen en el registro.',
+      one:
+          '$count inmersión planificada que ya no está en esta serie sigue en el registro.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'Conservar';
+
+  @override
+  String get plannerSeries_allDived =>
+      'Todas las inmersiones de este plan ya se han realizado, no hay nada que actualizar';
 
   @override
   String get plannerSeries_missionUnavailable =>

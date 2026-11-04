@@ -10973,9 +10973,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get divePlanner_action_addTank => 'Add Tank';
 
   @override
-  String get divePlanner_action_convertToDive => 'Convert to Dive';
-
-  @override
   String get divePlanner_action_deletePlan => 'Delete plan';
 
   @override
@@ -20648,9 +20645,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerCanvas_contingency_turnRule => 'Turn pressure rule';
 
   @override
-  String get plannerCanvas_convert_success => 'Dive created from plan';
-
-  @override
   String get plannerCanvas_convert_view => 'View';
 
   @override
@@ -20881,8 +20875,65 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerSeries_fillAll => 'Fill all tanks';
 
   @override
-  String get plannerSeries_convertUnavailable =>
-      'A series of dives can\'t be converted to logged dives yet';
+  String get plannerSeries_createPlannedDive => 'Create planned dive';
+
+  @override
+  String get plannerSeries_createPlannedDives => 'Create planned dives';
+
+  @override
+  String get plannerSeries_updatePlannedDive => 'Update planned dive';
+
+  @override
+  String get plannerSeries_updatePlannedDives => 'Update planned dives';
+
+  @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return '$dive has a critical warning, so the planned dives weren\'t updated';
+  }
+
+  @override
+  String plannerSeries_created(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count planned dives added to the log',
+      one: '$count planned dive added to the log',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerSeries_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count planned dives updated in the log',
+      one: '$count planned dive updated in the log',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_title => 'Delete from the log?';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count planned dives no longer in this series are still in the log.',
+      one: '$count planned dive no longer in this series is still in the log.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'Keep';
+
+  @override
+  String get plannerSeries_allDived =>
+      'Every dive in this plan has been dived, so there\'s nothing to update';
 
   @override
   String get plannerSeries_missionUnavailable =>

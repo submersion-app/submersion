@@ -6786,7 +6786,6 @@
     }
   },
   "divePlanner_action_addTank": "Add Tank",
-  "divePlanner_action_convertToDive": "Convert to Dive",
   "divePlanner_action_deletePlan": "Delete plan",
   "divePlanner_action_editTank": "Edit Tank",
   "divePlanner_action_fillBestMix": "Best mix for {depth}: {mix}",
@@ -13053,7 +13052,6 @@
   "plannerCanvas_contingency_title": "Contingencies",
   "plannerCanvas_contingency_turnFraction": "Turn fraction",
   "plannerCanvas_contingency_turnRule": "Turn pressure rule",
-  "plannerCanvas_convert_success": "Dive created from plan",
   "plannerCanvas_convert_view": "View",
   "plannerCanvas_export_failed": "Export failed: {error}",
   "@plannerCanvas_export_failed": {
@@ -13251,7 +13249,45 @@
     }
   },
   "plannerSeries_fillAll": "Fill all tanks",
-  "plannerSeries_convertUnavailable": "A series of dives can't be converted to logged dives yet",
+  "plannerSeries_createPlannedDive": "Create planned dive",
+  "plannerSeries_createPlannedDives": "Create planned dives",
+  "plannerSeries_updatePlannedDive": "Update planned dive",
+  "plannerSeries_updatePlannedDives": "Update planned dives",
+  "plannerSeries_cannotUpdate": "{dive} has a critical warning, so the planned dives weren't updated",
+  "@plannerSeries_cannotUpdate": {
+    "placeholders": {
+      "dive": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerSeries_created": "{count, plural, one{{count} planned dive added to the log} other{{count} planned dives added to the log}}",
+  "@plannerSeries_created": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "plannerSeries_updated": "{count, plural, one{{count} planned dive updated in the log} other{{count} planned dives updated in the log}}",
+  "@plannerSeries_updated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "plannerSeries_orphans_title": "Delete from the log?",
+  "plannerSeries_orphans_body": "{count, plural, one{{count} planned dive no longer in this series is still in the log.} other{{count} planned dives no longer in this series are still in the log.}}",
+  "@plannerSeries_orphans_body": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "plannerSeries_orphans_keep": "Keep",
+  "plannerSeries_allDived": "Every dive in this plan has been dived, so there's nothing to update",
   "plannerSeries_missionUnavailable": "A series of dives can't be planned as a DPV mission",
   "plannerSeries_followUnavailableInReplan": "A replan can't follow another dive",
   "plannerCanvas_follow_title": "Follow a dive",

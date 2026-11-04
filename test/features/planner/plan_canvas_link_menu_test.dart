@@ -110,7 +110,7 @@ void main() {
     await save(tester, container);
     await openMenu(tester);
 
-    await tester.tap(find.text('Convert to Dive').last);
+    await tester.tap(find.text('Create planned dive').last);
     await pumpUntilRealAsync(
       tester,
       () => find.byType(AlertDialog).evaluate().isNotEmpty,

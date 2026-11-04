@@ -11187,9 +11187,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get divePlanner_action_addTank => 'Ajouter une bouteille';
 
   @override
-  String get divePlanner_action_convertToDive => 'Convertir en plongée';
-
-  @override
   String get divePlanner_action_deletePlan => 'Supprimer le plan';
 
   @override
@@ -21019,9 +21016,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Règle de pression de demi-tour';
 
   @override
-  String get plannerCanvas_convert_success => 'Plongée créée à partir du plan';
-
-  @override
   String get plannerCanvas_convert_view => 'Voir';
 
   @override
@@ -21254,8 +21248,69 @@ class AppLocalizationsFr extends AppLocalizations {
   String get plannerSeries_fillAll => 'Remplir tous les blocs';
 
   @override
-  String get plannerSeries_convertUnavailable =>
-      'Une série de plongées ne peut pas encore être convertie en plongées enregistrées';
+  String get plannerSeries_createPlannedDive => 'Créer la plongée planifiée';
+
+  @override
+  String get plannerSeries_createPlannedDives =>
+      'Créer les plongées planifiées';
+
+  @override
+  String get plannerSeries_updatePlannedDive =>
+      'Mettre à jour la plongée planifiée';
+
+  @override
+  String get plannerSeries_updatePlannedDives =>
+      'Mettre à jour les plongées planifiées';
+
+  @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return '$dive a un avertissement critique : les plongées planifiées n\'ont pas été mises à jour';
+  }
+
+  @override
+  String plannerSeries_created(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées planifiées ajoutées au carnet',
+      one: '$count plongée planifiée ajoutée au carnet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerSeries_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées planifiées mises à jour dans le carnet',
+      one: '$count plongée planifiée mise à jour dans le carnet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_title => 'Supprimer du carnet ?';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count plongées planifiées qui ne sont plus dans cette série restent dans le carnet.',
+      one:
+          '$count plongée planifiée qui n\'est plus dans cette série reste dans le carnet.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'Conserver';
+
+  @override
+  String get plannerSeries_allDived =>
+      'Toutes les plongées de ce plan ont été effectuées, il n\'y a rien à mettre à jour';
 
   @override
   String get plannerSeries_missionUnavailable =>
