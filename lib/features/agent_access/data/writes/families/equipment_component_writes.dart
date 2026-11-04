@@ -45,6 +45,22 @@ class EquipmentComponentWrites extends WritableEntry {
     return UniqueClaim('$parentId/$componentId');
   }
 
+  /// A part's place in its assembly, the number [update] takes: a removal
+  /// leaves a gap in the stored order, so the stored number can run past it.
+  @override
+  Future<Map<String, Object?>> stored(
+    String id,
+    Map<String, Object?> document,
+  ) async {
+    final siblings = await _r.equipmentComponents.getComponents(
+      document['parent_equipment_id']! as String,
+    );
+    return {
+      ...document,
+      'sort_order': siblings.indexWhere((c) => c.id == id),
+    };
+  }
+
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {
     if (check.kind == ChangeKind.delete) return null;

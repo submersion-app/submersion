@@ -131,6 +131,34 @@ void main() {
     expect(plan.items.single.block!.reason, BlockReason.duplicateRecord);
   });
 
+  // A removal leaves a gap in the stored order, so a plan reads a part's
+  // place in the assembly, the number an agent writes back.
+  test('a part at its place already is unchanged', () async {
+    for (final (id, component, order) in [
+      ('c1', 'first', 0),
+      ('c2', 'second', 5),
+    ]) {
+      await db
+          .into(db.equipmentComponents)
+          .insert(
+            EquipmentComponentsCompanion.insert(
+              id: id,
+              parentEquipmentId: 'reg',
+              componentEquipmentId: component,
+              sortOrder: Value(order),
+              createdAt: t,
+              updatedAt: t,
+            ),
+          );
+    }
+
+    final plan = await h.preview([
+      updateOp('equipment_components', 'c2', {'sort_order': 1}),
+    ]);
+
+    expect(plan.unchanged.single.id, 'c2');
+  });
+
   test('a position must be one the assembly holds', () async {
     final id = (await h.run([
       createOp('equipment_components', part('reg', 'first')),
