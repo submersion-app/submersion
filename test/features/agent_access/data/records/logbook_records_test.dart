@@ -394,6 +394,8 @@ void main() {
       final doc = (await h.one('nav_tracks', 'nav-a'))!;
       expect(doc['point_count'], 0);
       expect(doc['max_depth_m'], 20.0);
+      // The alignment's scale is part of the correction an agent can set.
+      expect(doc['scale_factor'], 1.0);
       expect(doc.keys, isNot(contains('points')));
       expect(doc['start_time'], endsWith('Z'));
     });

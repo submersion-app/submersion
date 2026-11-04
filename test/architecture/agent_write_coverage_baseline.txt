@@ -286,6 +286,8 @@ lib/features/gps_log/data/repositories/gps_track_repository.dart:clearTrim
 lib/features/gps_log/data/repositories/gps_track_repository.dart:deleteTrack
 lib/features/gps_log/data/repositories/gps_track_repository.dart:insertImportedTrack
 lib/features/gps_log/data/repositories/gps_track_repository.dart:setTrimBounds
+lib/features/gps_log/data/repositories/gps_track_repository.dart:splitTrack
+lib/features/gps_log/data/repositories/gps_track_repository.dart:startTrack
 lib/features/marine_life/data/repositories/species_repository.dart:bulkAddSightings
 lib/features/marine_life/data/repositories/species_repository.dart:bulkReplaceSightings
 lib/features/marine_life/data/repositories/species_repository.dart:deleteSightingsForDive
@@ -395,14 +397,19 @@ lib/features/planner/data/repositories/dive_plan_repository.dart:linkPlanToDive
 lib/features/planner/data/repositories/dive_plan_repository.dart:savePlan
 lib/features/planner/data/repositories/dive_plan_repository.dart:unlinkPlan
 lib/features/planner/data/repositories/dive_plan_series_repository.dart:deleteSeries
+lib/features/planner/data/repositories/dive_plan_series_repository.dart:dissolveSeries
 lib/features/planner/data/repositories/dive_plan_series_repository.dart:duplicateSeries
 lib/features/planner/data/repositories/dive_plan_series_repository.dart:renameSeries
 lib/features/planner/data/repositories/dive_plan_series_repository.dart:restoreSeries
 lib/features/planner/data/repositories/dive_plan_series_repository.dart:saveSeries
+lib/features/pre_dive/data/repositories/pre_dive_session_repository.dart:abortSession
+lib/features/pre_dive/data/repositories/pre_dive_session_repository.dart:completeSession
 lib/features/pre_dive/data/repositories/pre_dive_session_repository.dart:deleteSession
 lib/features/pre_dive/data/repositories/pre_dive_session_repository.dart:linkToDive
+lib/features/pre_dive/data/repositories/pre_dive_session_repository.dart:startSession
 lib/features/pre_dive/data/repositories/pre_dive_session_repository.dart:unlinkFromDive
 lib/features/pre_dive/data/repositories/pre_dive_session_repository.dart:updateItemState
+lib/features/pre_dive/data/repositories/pre_dive_template_repository.dart:cloneTemplate
 lib/features/pre_dive/data/repositories/pre_dive_template_repository.dart:createSection
 lib/features/pre_dive/data/repositories/pre_dive_template_repository.dart:createTemplate
 lib/features/pre_dive/data/repositories/pre_dive_template_repository.dart:deleteSection
@@ -473,6 +480,8 @@ lib/features/trips/data/repositories/trip_day_weather_repository.dart:deleteByTr
 lib/features/trips/data/repositories/trip_day_weather_repository.dart:upsert
 lib/features/trips/data/repositories/trip_equipment_repository.dart:deleteByTripId
 lib/features/trips/data/repositories/trip_equipment_repository.dart:deleteForEquipment
+lib/features/trips/data/repositories/trip_equipment_repository.dart:pack
+lib/features/trips/data/repositories/trip_equipment_repository.dart:unpack
 lib/features/trips/data/repositories/trip_repository.dart:assignDiveToTrip
 lib/features/trips/data/repositories/trip_repository.dart:assignDivesToTrip
 lib/features/trips/data/repositories/trip_repository.dart:createTrip

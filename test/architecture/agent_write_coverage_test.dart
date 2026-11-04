@@ -366,6 +366,14 @@ void main() {
       'shiftDiveTimes',
       'fillNotesIfEmpty',
       'recordConnection',
+      'startSession',
+      'completeSession',
+      'abortSession',
+      'cloneTemplate',
+      'dissolveSeries',
+      'pack',
+      'unpack',
+      'splitTrack',
     ]) {
       expect(isWriteName(name), isTrue, reason: name);
     }
@@ -450,6 +458,14 @@ bool isWriteName(String name) =>
 
 const _writeVerbs = [
   'create',
+  'start',
+  'complete',
+  'abort',
+  'clone',
+  'dissolve',
+  'pack',
+  'unpack',
+  'split',
   'add',
   'insert',
   'update',

@@ -130,4 +130,6 @@ Map<String, Object?> preDiveTemplateItemDocument(
   'value_max': i.valueMax,
   'is_required': i.isRequired,
   'equipment_id': i.equipmentId,
+  // The item a cell linearity check reads its air reading from.
+  'source_item_id': i.sourceItemId,
 };

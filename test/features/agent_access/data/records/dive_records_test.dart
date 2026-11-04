@@ -342,6 +342,44 @@ void main() {
       });
     }
 
+    test('safety findings read with their dismissal, by profile', () async {
+      for (final dive in const ['a1', 'b1']) {
+        await db
+            .into(db.diveSafetyReviews)
+            .insert(
+              DiveSafetyReviewsCompanion.insert(
+                diveId: dive,
+                engineVersion: 1,
+                reviewedAt: t,
+              ),
+            );
+        await db
+            .into(db.diveSafetyFindings)
+            .insert(
+              DiveSafetyFindingsCompanion.insert(
+                id: 'f-$dive',
+                diveId: dive,
+                ruleId: 'rapidAscent',
+                severity: 'caution',
+                engineVersion: 1,
+                createdAt: t,
+                startTimestamp: const Value(120),
+                dismissedAt: Value(dive == 'a1' ? t : null),
+              ),
+            );
+      }
+
+      final doc = (await h.one('safety_findings', 'f-a1'))!;
+
+      expect(doc['dive_id'], 'a1');
+      expect(doc['rule_id'], 'rapidAscent');
+      expect(doc['severity'], 'caution');
+      expect(doc['start_s'], 120);
+      expect(doc['dismissed_at'], endsWith('Z'));
+      expect(await h.one('safety_findings', 'f-b1'), isNull);
+      expect(await h.list('safety_findings', parentId: 'a1'), ['f-a1']);
+    });
+
     test('sightings read by id with their species name', () async {
       final doc = (await h.one('sightings', 'si'))!;
       expect(doc['species_name'], 'Turtle');

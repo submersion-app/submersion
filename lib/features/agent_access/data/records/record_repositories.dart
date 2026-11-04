@@ -16,6 +16,7 @@ import 'package:submersion/features/cylinder_passports/data/repositories/cylinde
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_gear_note_repository.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
 import 'package:submersion/features/dive_lab/data/repositories/dive_scenario_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_custom_field_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -119,6 +120,7 @@ class RecordRepositories {
   late final savedQueries = SavedQueryRepository();
   late final serviceKinds = ServiceKindRepository();
   late final serviceRecords = ServiceRecordRepository();
+  late final safetyFindings = SafetyFindingsRepository();
   late final serviceSchedules = ServiceScheduleRepository();
   late final sideTrips = SideTripRepository();
   late final siteClassification = SiteClassificationRepository();
