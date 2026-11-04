@@ -132,12 +132,7 @@ class EquipmentWrites extends WritableEntry {
         ? check.values['parent_equipment_id'] as String?
         : null;
     if (parentId == null) return null;
-    final stored = await _r.equipment.getEquipmentById(parentId);
-    // A parent an earlier change takes out of the kit, or puts back, as the
-    // apply will find it.
-    final parent = stored?.copyWith(
-      isActive: inKitSoFar(check.soFar, parentId, stored: stored.isActive),
-    );
+    final parent = await _parentAsSoFar(parentId, check.soFar);
     final status =
         check.values['status'] as String? ??
         check.document?['status'] as String?;
@@ -149,20 +144,32 @@ class EquipmentWrites extends WritableEntry {
     );
   }
 
-  /// [current] with [values] applied, with the item it is then fitted to.
+  /// [current] with [values] applied, with the item it is then fitted to as
+  /// the changes [soFar] lists leave it.
   Future<EquipmentItem> _next(
     EquipmentItem current,
-    Map<String, Object?> values,
-  ) async {
+    Map<String, Object?> values, {
+    SetSoFar soFar = const SetSoFar(),
+  }) async {
     final parentId = values.containsKey('parent_equipment_id')
         ? values['parent_equipment_id'] as String?
         : current.parentEquipmentId;
     return nextItem(
       current,
       values,
-      parent: parentId == null
-          ? null
-          : await _r.equipment.getEquipmentById(parentId),
+      parent: parentId == null ? null : await _parentAsSoFar(parentId, soFar),
+    );
+  }
+
+  /// Item [id] with the status and type a change earlier in the set writes,
+  /// as the apply finds it when it saves a part after its parent.
+  Future<EquipmentItem?> _parentAsSoFar(String id, SetSoFar soFar) async {
+    final stored = await _r.equipment.getEquipmentById(id);
+    if (stored == null) return null;
+    final type = soFar.values[('equipment', id)]?['type'];
+    return stored.copyWith(
+      isActive: inKitSoFar(soFar, id, stored: stored.isActive),
+      type: type is String ? EquipmentType.values.byName(type) : null,
     );
   }
 
@@ -187,7 +194,6 @@ class EquipmentWrites extends WritableEntry {
   ) async {
     final current = await _r.equipment.getEquipmentById(id);
     if (current == null) return const SideEffects();
-    final next = await _next(current, update.values);
     // Each share and unshare writes an event to the item's ownership log.
     var events = 0;
     if (update.relations['shared_with'] case final shares?) {
@@ -196,12 +202,14 @@ class EquipmentWrites extends WritableEntry {
           shares.add.difference(now).length +
           shares.remove.intersection(now).length;
     }
+    final logged = {if (events > 0) 'equipment_ownership_events': events};
+    // Only a field change saves the item, so a change of tags or shares
+    // alone derives nothing and renames no device.
+    if (update.values.isEmpty) return SideEffects(touched: logged);
+    final next = await _next(current, update.values, soFar: update.soFar);
     return SideEffects(
       fields: derivedFields(current, next, update.values),
-      touched: {
-        ...await touchedBy(current, next),
-        if (events > 0) 'equipment_ownership_events': events,
-      },
+      touched: {...await touchedBy(current, next), ...logged},
     );
   }
 

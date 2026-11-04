@@ -104,6 +104,58 @@ void main() {
     expect(plan.items.last.block!.reason, BlockReason.invalidValue);
   });
 
+  // The apply saves the part after its parent, so the preview reads the
+  // parent as the set leaves it and lists the fitting the save drops.
+  test('a part lists the fitting an earlier change ends', () async {
+    await gear('torch', 'light');
+    await gear('cell', 'battery', parent: 'torch');
+
+    final plan = await h.preview([
+      updateOp('equipment', 'torch', {'status': 'retired'}),
+      updateOp('equipment', 'cell', {'notes': 'Spare'}),
+    ]);
+    final parent = plan.items.last.fields['parent_equipment_id']!;
+    expect(
+      [parent.oldValue, parent.newValue, parent.indirect],
+      ['torch', null, true],
+    );
+    await h.apply(plan);
+
+    expect((await doc('cell'))['parent_equipment_id'], isNull);
+  });
+
+  // Only a field change saves the item; a share change alone does not.
+  test('a share alone lists no device renames', () async {
+    await gear('perdix', 'computer');
+    await db
+        .into(db.diveComputers)
+        .insert(
+          DiveComputersCompanion.insert(
+            id: 'dc1',
+            name: 'Old name',
+            createdAt: t,
+            updatedAt: t,
+            diverId: const Value(kDiverA),
+            equipmentId: const Value('perdix'),
+          ),
+        );
+
+    final plan = await h.preview([
+      {
+        'op': 'update',
+        'entity': 'equipment',
+        'id': 'perdix',
+        'relations': {
+          'shared_with': {
+            'add': [kDiverB],
+          },
+        },
+      },
+    ]);
+
+    expect(plan.items.single.alsoChanges, {'equipment_ownership_events': 1});
+  });
+
   // A legacy row out of the kit with an in-kit status reads as retired on
   // the edit page, so a save does not quietly put it back (#636).
   test('a legacy inactive item stays out of the kit on an edit', () async {

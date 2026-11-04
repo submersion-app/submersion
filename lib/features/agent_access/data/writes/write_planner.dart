@@ -123,6 +123,27 @@ class _Pass {
     created: _createdSoFar,
   );
 
+  /// [_soFar] as it stands now, for a read that runs again at apply, after
+  /// the later changes of the set have been planned.
+  SetSoFar get _soFarSnapshot => SetSoFar(
+    deleted: {
+      for (final MapEntry(:key, :value) in _deletedSoFar.entries)
+        key: {...value},
+    },
+    values: {..._valuesSoFar},
+    unlinked: {
+      for (final MapEntry(:key, :value) in _unlinkedSoFar.entries)
+        key: {
+          for (final MapEntry(key: entity, value: ids) in value.entries)
+            entity: {...ids},
+        },
+    },
+    created: {
+      for (final MapEntry(:key, :value) in _createdSoFar.entries)
+        key: [...value],
+    },
+  );
+
   /// Notes what an update the plan keeps writes and unlinks, for the rules
   /// of the changes after it.
   void _recordSoFar(
@@ -315,7 +336,11 @@ class _Pass {
         await _checkFieldRefs(entry, parsed.values, row.ownerId) ??
         await entry.refuse(check) ??
         _claimUnique(op, entry, check);
-    final update = RecordUpdate(values: parsed.values, relations: links.deltas);
+    final update = RecordUpdate(
+      values: parsed.values,
+      relations: links.deltas,
+      soFar: _soFarSnapshot,
+    );
     Future<SideEffects> readEffects() =>
         entry.sideEffects(op.id, row.ownerId, update, document);
     final effects = block != null ? const SideEffects() : await readEffects();

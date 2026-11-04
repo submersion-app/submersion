@@ -85,10 +85,19 @@ class RelationDelta {
 
 /// What an update changes: parsed field values, keyed as in the document.
 class RecordUpdate {
-  const RecordUpdate({this.values = const {}, this.relations = const {}});
+  const RecordUpdate({
+    this.values = const {},
+    this.relations = const {},
+    this.soFar = const SetSoFar(),
+  });
 
   final Map<String, Object?> values;
   final Map<String, RelationDelta> relations;
+
+  /// What the changes before this one in the set do, as the plan made it, so
+  /// [WritableEntry.sideEffects] reads other records as the apply will find
+  /// them. Empty at apply, where those changes have already run.
+  final SetSoFar soFar;
 }
 
 /// What an entity is asked to judge before a change is planned.
