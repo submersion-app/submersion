@@ -184,6 +184,10 @@ void main() {
         'cylinder_configs',
     'lib/features/cylinder_configs/data/repositories/cylinder_config_repository.dart:saveItems':
         'cylinder_configs',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:deleteProfileSeriesWithHistoryForDive':
+        'dives',
+    'lib/features/dive_log/data/repositories/profile_series_repository.dart:deleteSeriesWithHistory':
+        'dives',
   };
 
   /// Writes that change no record a diver keeps, so no change set entity
