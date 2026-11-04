@@ -538,6 +538,28 @@ void main() {
       'lib/features/nav_track/data/repositories/nav_track_repository.dart:'
               '$method':
           'nav_tracks',
+    for (final method in const [
+      'save',
+      'delete',
+      'deleteForOwner',
+      'deleteForOwners',
+    ])
+      'lib/features/documents/data/repositories/document_repository.dart:'
+              '$method':
+          'documents',
+    // A card's images ride on its certification's save.
+    'lib/features/documents/data/repositories/document_repository.dart:'
+            'saveCardImages':
+        'certifications',
+    for (final method in const ['create', 'rename', 'delete'])
+      'lib/features/media/data/repositories/media_smart_album_repository.dart:'
+              '$method':
+          'smart_albums',
+    // A tag merge moves the smart albums that name the merged tag.
+    for (final method in const ['repointSmartAlbumTags', 'repointSmartAlbums'])
+      'lib/features/media/data/repositories/smart_album_tag_repoint.dart:'
+              '$method':
+          'tags',
     for (final method in const ['cloneTemplate', 'updateItemEquipment'])
       'lib/features/pre_dive/data/repositories/'
               'pre_dive_template_repository.dart:$method':

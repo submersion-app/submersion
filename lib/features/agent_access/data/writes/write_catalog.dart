@@ -48,6 +48,8 @@ import 'package:submersion/features/agent_access/data/writes/families/currency_w
 import 'package:submersion/features/agent_access/data/writes/families/dive_plan_series_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_plan_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/diver_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/document_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/smart_album_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/trip_checklist_part_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/weight_entry_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/trip_checklist_writes.dart';
@@ -67,7 +69,14 @@ class WriteCatalog {
     LibraryEditStamper? stamper,
     GearReminderRefresh? refreshReminders,
     ConditionFindingsRefresh? refreshFindings,
-  }) : all = _entries(repositories, stamper, refreshReminders, refreshFindings);
+    DocumentRearm? rearmDocuments,
+  }) : all = _entries(
+         repositories,
+         stamper,
+         refreshReminders,
+         refreshFindings,
+         rearmDocuments,
+       );
 
   /// A catalog of exactly [entries], for a test that swaps one writer.
   @visibleForTesting
@@ -80,6 +89,7 @@ class WriteCatalog {
     LibraryEditStamper? stamper,
     GearReminderRefresh? refreshReminders,
     ConditionFindingsRefresh? refreshFindings,
+    DocumentRearm? rearmDocuments,
   ) {
     final rows = DiveChildRowRepository();
     return List.unmodifiable(<WritableEntry>[
@@ -151,6 +161,8 @@ class WriteCatalog {
       SafetyFindingWrites(repositories),
       GpsTrackWrites(repositories),
       NavTrackWrites(repositories),
+      DocumentWrites(repositories, rearm: rearmDocuments),
+      SmartAlbumWrites(repositories),
     ]);
   }
 

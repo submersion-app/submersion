@@ -162,14 +162,9 @@ lib/features/divers/data/repositories/item_shares_repository.dart:deleteShares
 lib/features/divers/data/repositories/item_shares_repository.dart:restoreShares
 lib/features/divers/data/repositories/profile_hides_repository.dart:deleteHides
 lib/features/divers/data/repositories/profile_hides_repository.dart:restoreHides
-lib/features/documents/data/repositories/document_repository.dart:delete
-lib/features/documents/data/repositories/document_repository.dart:deleteForOwner
-lib/features/documents/data/repositories/document_repository.dart:deleteForOwners
 lib/features/documents/data/repositories/document_repository.dart:reassignOwner
 lib/features/documents/data/repositories/document_repository.dart:restoreOwners
 lib/features/documents/data/repositories/document_repository.dart:restoreSnapshot
-lib/features/documents/data/repositories/document_repository.dart:save
-lib/features/documents/data/repositories/document_repository.dart:saveCardImages
 lib/features/equipment/data/repositories/equipment_observation_repository.dart:unlinkFromDeletedDives
 lib/features/gps_log/data/repositories/gps_track_repository.dart:insertImportedTrack
 lib/features/gps_log/data/repositories/gps_track_repository.dart:startTrack
@@ -238,9 +233,6 @@ lib/features/media/data/repositories/media_repository.dart:unlinkMediaFromDelete
 lib/features/media/data/repositories/media_repository.dart:updateMedia
 lib/features/media/data/repositories/media_row_restore.dart:relinkMediaToSites
 lib/features/media/data/repositories/media_row_restore.dart:restoreMediaRows
-lib/features/media/data/repositories/media_smart_album_repository.dart:create
-lib/features/media/data/repositories/media_smart_album_repository.dart:delete
-lib/features/media/data/repositories/media_smart_album_repository.dart:rename
 lib/features/media/data/repositories/media_species_repository.dart:addTag
 lib/features/media/data/repositories/media_species_repository.dart:removeTag
 lib/features/media/data/repositories/network_credentials_repository.dart:delete
@@ -248,8 +240,6 @@ lib/features/media/data/repositories/network_credentials_repository.dart:updateD
 lib/features/media/data/repositories/network_credentials_repository.dart:upsert
 lib/features/media/data/repositories/site_attachment_repository.dart:setAttachmentDetails
 lib/features/media/data/repositories/site_attachment_repository.dart:setSiteCategory
-lib/features/media/data/repositories/smart_album_tag_repoint.dart:repointSmartAlbumTags
-lib/features/media/data/repositories/smart_album_tag_repoint.dart:repointSmartAlbums
 lib/features/media/data/repositories/watched_folder_repository.dart:addRoot
 lib/features/media/data/repositories/watched_folder_repository.dart:deleteIndexed
 lib/features/media/data/repositories/watched_folder_repository.dart:removeRoot

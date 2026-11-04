@@ -21,7 +21,11 @@ class AgentWriteServices {
     void Function(Iterable<String>) afterDiveWrites = refreshAfterRuleWrites,
     this.rearmDocuments,
     GearReminderRefresh? refreshGearReminders,
-  }) : catalog = WriteCatalog(records, refreshReminders: refreshGearReminders),
+  }) : catalog = WriteCatalog(
+         records,
+         refreshReminders: refreshGearReminders,
+         rearmDocuments: rearmDocuments,
+       ),
        _confirmer = confirmer,
        _confirmEnabled = confirmEnabled,
        _afterDiveWrites = afterDiveWrites;
