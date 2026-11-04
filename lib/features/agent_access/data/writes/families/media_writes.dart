@@ -1,3 +1,5 @@
+import 'package:drift/drift.dart' show Variable;
+
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/media_rules.dart';
@@ -318,6 +320,24 @@ class MediaWrites extends WritableEntry {
     await _deletion.deleteMediaItems([item], holdRemoteDelete: true);
   }
 
+  /// The profile [mediaId] belongs to, whose buddies its people picker
+  /// lists: its dive's, else its site's, else the profile in use, as a
+  /// library photo is tagged from the profile the app has open.
+  Future<String?> _photoOwner(String mediaId) async {
+    final row = await _r.db
+        .customSelect(
+          'SELECT COALESCE('
+          '(SELECT d.diver_id FROM dives d WHERE d.id = m.dive_id), '
+          '(SELECT s.diver_id FROM dive_sites s WHERE s.id = m.site_id)'
+          ') AS owner FROM media m WHERE m.id = ?',
+          variables: [Variable.withString(mediaId)],
+        )
+        .getSingleOrNull();
+    return row?.readNullable<String>('owner') ??
+        await _r.divers.getActiveDiverIdFromSettings() ??
+        (await _r.divers.getDefaultDiver())?.id;
+  }
+
   Future<int> _lengthOf(String diveId) async {
     final length = _profileLength;
     if (length != null) return length(diveId);
@@ -338,6 +358,7 @@ class MediaWrites extends WritableEntry {
       "id = ?1 AND file_type = 'video'",
       mediaId,
     );
+    final owner = await _photoOwner(mediaId) ?? ownerId;
     final seen = <String>{};
     for (final (i, p) in people.indexed) {
       final buddy = p['buddy_id'] as String?;
@@ -356,16 +377,14 @@ class MediaWrites extends WritableEntry {
           '${buddy ?? diver}.',
         );
       }
-      // The people picker offers the photo's own profile's buddies: the
-      // profile of the dive it is on, else the one acting.
+      // The people picker offers the photo's own profile's buddies.
       if (buddy != null &&
+          owner != null &&
           await countRows(
                 'buddies',
-                'id = ?1 AND diver_id IS NOT NULL AND diver_id IS NOT '
-                    'COALESCE((SELECT d.diver_id FROM media m JOIN dives d '
-                    'ON d.id = m.dive_id WHERE m.id = ?2), ?3)',
+                'id = ?1 AND diver_id IS NOT NULL AND diver_id != ?2',
                 buddy,
-                [mediaId, ownerId ?? ''],
+                [owner],
               ) >
               0) {
         return PlanBlock(

@@ -2,6 +2,8 @@ import 'package:drift/drift.dart' show Variable;
 
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/writes/families/dive_link_rules.dart'
+    show stretchCount;
 import 'package:submersion/features/agent_access/data/writes/families/service_ledger_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/trips/data/repositories/side_trip_links.dart';
@@ -76,19 +78,10 @@ Future<Map<String, int>> assignTouched(
   Set<String> diveIds,
 ) async {
   if (diveIds.isEmpty) return const {};
-  final days = <DateTime>[];
-  for (final id in diveIds) {
-    final dive = await r.dives.getDiveById(id);
-    if (dive != null) days.add(tripDay(dive.dateTime));
-  }
-  bool outside(Trip t) => days.any(
-    (d) => d.isBefore(tripDay(t.startDate)) || d.isAfter(tripDay(t.endDate)),
-  );
-  var trips = outside(trip) ? 1 : 0;
-  if (trip.parentTripId case final parentId?) {
-    final parent = await r.trips.getTripById(parentId);
-    if (parent != null && outside(parent)) trips++;
-  }
+  final times = [
+    for (final id in diveIds) (await r.dives.getDiveById(id))?.dateTime,
+  ].nonNulls.toList();
+  final trips = await stretchCount(r, trip, times);
   final cleared = await foreignSlotLinks(diveIds, trip.id);
   return {
     if (trips > 0) 'trips': trips,

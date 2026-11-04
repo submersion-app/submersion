@@ -237,4 +237,20 @@ void main() {
     await h.run([onDive('d1', 'buddies', keep)]);
     await expectLater(h.apply(gained), throwsA(stale));
   });
+
+  // The digest reads which rows link, not what they hold: a dive's notes
+  // changing after the preview moves no link, and a profile's samples are
+  // never read for it.
+  test('a change to a link\'s other columns keeps the merge', () async {
+    final keep = await make('buddies', {'name': 'Rui'});
+    final dupe = await make('buddies', {'name': 'Rui S.'});
+    await h.run([onDive('d1', 'buddies', dupe)]);
+
+    final plan = await h.preview([deleteOp('buddies', dupe, mergeInto: keep)]);
+    await (db.update(db.diveBuddies)..where((l) => l.buddyId.equals(dupe)))
+        .write(const DiveBuddiesCompanion(role: Value('instructor')));
+    await h.apply(plan);
+
+    expect(await h.one('buddies', dupe), isNull);
+  });
 }

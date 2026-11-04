@@ -70,7 +70,10 @@ void main() {
       ]);
       final item = plan.items.single;
 
-      expect(item.reach.parts, {'liveaboard_details': 1, 'itinerary_days': 1});
+      expect(item.reach.parts, {
+        'liveaboard_detail_records': 1,
+        'trip_itinerary_days': 1,
+      });
       expect(item.alsoChanges, isEmpty);
     },
   );

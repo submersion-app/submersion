@@ -201,11 +201,49 @@ void main() {
     expect((await h.one('trips', id))!['start_date'], '2024-03-14');
   });
 
+  // stretchTripsToCoverDives moves a larger trip only when its side trip
+  // moves: a side trip may sit past the larger trip's end on purpose.
+  test('a side trip that covers the dive stretches nothing', () async {
+    final parent = await created({});
+    final side = await created({
+      'name': 'Side',
+      'start_date': '2024-03-14',
+      'end_date': '2024-03-16',
+      'parent_trip_id': parent,
+    });
+
+    final fromTrip = await h.preview([
+      {
+        ...updateOp('trips', side, {}),
+        'relations': {
+          'dive_ids': {
+            'add': ['d1'],
+          },
+        },
+      },
+    ]);
+    final fromDive = await h.preview([
+      {
+        ...updateOp('dives', 'd1', {}),
+        'relations': {
+          'trip': {
+            'set': [side],
+          },
+        },
+      },
+    ]);
+
+    expect(fromTrip.items.single.alsoChanges['trips'], isNull);
+    expect(fromDive.items.single.alsoChanges['trips'], isNull);
+    await h.apply(fromTrip);
+    expect((await h.one('trips', parent))!['end_date'], '2024-03-12');
+  });
+
   test('a new liveaboard trip lists the days it generates', () async {
     final plan = await h.preview([
       createOp('trips', trip({'trip_type': 'liveaboard'})),
     ]);
-    expect(plan.items.single.alsoCreates, {'itinerary_days': 3});
+    expect(plan.items.single.alsoCreates, {'trip_itinerary_days': 3});
     await h.apply(plan);
 
     expect(await db.select(db.tripItineraryDays).get(), hasLength(3));

@@ -6,6 +6,7 @@ import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/equipment_item_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/gas_fraction_rules.dart';
+import 'package:submersion/features/agent_access/data/writes/families/service_ledger_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
@@ -255,7 +256,7 @@ class TripCylinderEventWrites extends WritableEntry {
       ),
     'dive_center_id': const FieldCodec.reference('centers', nullable: true),
     'cost': const FieldCodec.number(min: 0, max: 1000000, nullable: true),
-    'currency': const FieldCodec.text(maxLength: 3, nullable: true, trim: true),
+    'currency': currencyCodec,
     'is_package': const FieldCodec.flag(),
     'note': const FieldCodec.text(allowBlank: true, trim: true),
   };
@@ -301,6 +302,7 @@ class TripCylinderEventWrites extends WritableEntry {
         return invalid('pressure_bar: a fill reaches at least 1 bar.');
       }
     }
+    if (currencyProblem(check, 'currency') case final block?) return block;
     if (held('currency') != null && held('cost') == null) {
       return invalid('currency: a currency goes with a cost.');
     }
@@ -348,6 +350,34 @@ class TripCylinderEventWrites extends WritableEntry {
   }) async {
     final copy = await _r.cylinderFills.getById(tripFillPassportCopyId(id));
     return DeleteReach(records: {if (copy != null) 'cylinder_fills': 1});
+  }
+
+  /// A fill on one of the diver's own cylinders keeps its passport copy in
+  /// step on every save: the copy is rewritten, or written, with the tank's
+  /// passport id minted, when there is none yet.
+  @override
+  Future<SideEffects> sideEffects(
+    String id,
+    String? ownerId,
+    RecordUpdate update,
+    Map<String, Object?> document,
+  ) async {
+    if (document['kind'] != TripCylinderEventKind.fill.name) {
+      return const SideEffects();
+    }
+    final slot = await _slotOf(document['trip_cylinder_id']! as String);
+    final itemId = slot?.equipmentId;
+    if (itemId == null) return const SideEffects();
+    if (await _r.cylinderFills.getById(tripFillPassportCopyId(id)) != null) {
+      return const SideEffects(touched: {'cylinder_fills': 1});
+    }
+    final minted = await _r.cylinderPassports.getPassportId(itemId);
+    return SideEffects(
+      created: {
+        'cylinder_fills': 1,
+        if (minted == null) 'equipment_attributes': 1,
+      },
+    );
   }
 
   @override
@@ -467,7 +497,7 @@ class TripCylinderEventWrites extends WritableEntry {
           : event.analyzedHe,
       diveCenterId: kept('dive_center_id', event.diveCenterId),
       cost: (kept('cost', event.cost) as num?)?.toDouble(),
-      currency: currency?.toUpperCase(),
+      currency: currency,
       isPackage: v['is_package'] as bool?,
       note: v['note'] as String?,
     );

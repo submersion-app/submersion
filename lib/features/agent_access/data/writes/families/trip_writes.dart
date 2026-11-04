@@ -118,7 +118,7 @@ class TripWrites extends WritableEntry {
     Map<String, Object?> values,
   ) async {
     if (values['trip_type'] != TripType.liveaboard.name) return const {};
-    return {'itinerary_days': _generated('', values).length};
+    return {'trip_itinerary_days': _generated('', values).length};
   }
 
   static List<ItineraryDay> _generated(
@@ -157,8 +157,8 @@ class TripWrites extends WritableEntry {
     return SideEffects(
       touched: assigned,
       parts: {
-        if (details > 0) 'liveaboard_details': details,
-        if (bare > 0) 'itinerary_days': bare,
+        if (details > 0) 'liveaboard_detail_records': details,
+        if (bare > 0) 'trip_itinerary_days': bare,
       },
     );
   }

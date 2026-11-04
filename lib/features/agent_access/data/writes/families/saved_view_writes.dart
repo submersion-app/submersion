@@ -1,3 +1,5 @@
+import 'package:submersion/core/query/domain/query_errors.dart';
+import 'package:submersion/core/query/domain/query_json.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/presentation/query_tree_edit.dart';
@@ -8,6 +10,17 @@ import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/json_object_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/connections/domain/views/map_spec.dart';
+
+/// [raw] as the query bar stores it, a group of one printed without its
+/// group, so the plan lists the tree a read will show. One this version
+/// cannot read is left as sent, for the check to refuse.
+Map<String, Object?> _flattened(Map<String, Object?> raw) {
+  try {
+    return queryNodeToJson(flattenOneChildGroups(queryNodeFromJson(raw)));
+  } on QueryJsonException {
+    return raw;
+  }
+}
 
 /// Saved queries, through the repository the query bar saves with. A query
 /// is the stored tree a read shows, checked as the query bar checks one and
@@ -33,7 +46,10 @@ class SavedQueryWrites extends WritableEntry {
   late final Map<String, FieldCodec> fields = {
     'subject': const FieldCodec.text(maxLength: 60),
     'name': const FieldCodec.text(maxLength: 100, trim: true),
-    'query': const JsonObjectCodec(shape: 'a stored query object'),
+    'query': const JsonObjectCodec(
+      shape: 'a stored query object',
+      normalize: _flattened,
+    ),
     'sort_order': const FieldCodec.integer(min: 0, max: 999),
   };
 

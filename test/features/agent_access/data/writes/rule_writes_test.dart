@@ -4,6 +4,7 @@ import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../records/record_harness.dart';
 import 'child_write_harness.dart';
 
 /// Automation rules, as the rule edit page saves them.
@@ -109,5 +110,65 @@ void main() {
     ]);
 
     expect(plan.items.single.block!.reason, BlockReason.invalidValue);
+  });
+
+  // The rule edit page offers the profile's own records, and the applier
+  // only checks that an id exists, so the write checks whose it is.
+  test('an action naming another profile\'s tag is refused', () async {
+    final theirs = (await h.run([
+      createOp('tags', {'name': 'Theirs'}, diver: kDiverB),
+    ])).created.single.id;
+
+    final plan = await h.preview([
+      createOp('rules', {
+        'subject': 'dives',
+        'name': 'Tag',
+        'actions': {
+          'version': 1,
+          'actions': [
+            {
+              'kind': 'diveMembership',
+              'collection': 'tags',
+              'mode': 'add',
+              'ids': [theirs],
+            },
+          ],
+        },
+      }),
+    ]);
+
+    expect(plan.items.single.block!.reason, BlockReason.otherProfileReference);
+  });
+
+  test('a copy is held to the checks a new rule is', () async {
+    final source = await make({
+      'subject': 'dives',
+      'name': 'Notes',
+      'actions': notes,
+    });
+
+    final plan = await h.preview([
+      createOp('rules', {
+        'duplicate_of': source,
+        'condition': {
+          'version': 1,
+          'node': {
+            't': 'cond',
+            'path': ['nothing_here'],
+            'op': 'eq',
+            'value': {'k': 'num', 'v': 1},
+          },
+        },
+      }),
+    ]);
+    expect(plan.items.single.block!.reason, BlockReason.invalidValue);
+
+    for (final create in [
+      {'duplicate_of': source, 'sort_order': 0},
+      {'subject': 'dives', 'name': 'New', 'actions': notes, 'sort_order': 0},
+    ]) {
+      final placed = await h.preview([createOp('rules', create)]);
+      expect(placed.items.single.block!.reason, BlockReason.invalidValue);
+    }
   });
 }

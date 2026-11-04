@@ -135,6 +135,48 @@ void main() {
     expect(await db.select(db.cylinderFills).get(), hasLength(1));
   });
 
+  // TripFillPassportCopier.afterSave rewrites the copy on every save, and
+  // writes one (minting the tank's passport id) when there is none yet.
+  test('a fill edit lists the passport copy it rewrites or adds', () async {
+    final slot = await cylinder({'equipment_id': 'own'});
+    final copied = (await h.run([
+      createOp('trip_cylinder_events', fill(slot, {})),
+    ])).created.single.id;
+
+    final rewrite = await h.preview([
+      updateOp('trip_cylinder_events', copied, {'pressure_bar': 210.0}),
+    ]);
+    expect(rewrite.items.single.alsoChanges, {'cylinder_fills': 1});
+
+    await db.delete(db.cylinderFills).go();
+    final add = await h.preview([
+      updateOp('trip_cylinder_events', copied, {'pressure_bar': 205.0}),
+    ]);
+    expect(add.items.single.alsoCreates, {'cylinder_fills': 1});
+    await h.apply(add);
+    expect(await db.select(db.cylinderFills).get(), hasLength(1));
+  });
+
+  // The fill sheet's currency picker stores three upper-case letters.
+  test('a fill currency is listed as stored, three letters', () async {
+    final slot = await cylinder({});
+
+    final plan = await h.preview([
+      createOp(
+        'trip_cylinder_events',
+        fill(slot, {'cost': 12.0, 'currency': 'eur'}),
+      ),
+    ]);
+    expect(plan.items.single.fields['currency']!.newValue, 'EUR');
+    final bad = await h.preview([
+      createOp(
+        'trip_cylinder_events',
+        fill(slot, {'cost': 12.0, 'currency': '1@x'}),
+      ),
+    ]);
+    expect(bad.items.single.block!.reason, BlockReason.invalidValue);
+  });
+
   test('an owned tank already on the board is refused', () async {
     await cylinder({'equipment_id': 'own'});
 

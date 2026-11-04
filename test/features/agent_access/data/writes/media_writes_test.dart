@@ -139,6 +139,27 @@ void main() {
     expect(plan.items.single.block!.reason, BlockReason.otherProfileReference);
   });
 
+  // A photo on no dive belongs to the profile in use, whose buddies the
+  // people picker lists.
+  test('a photo on no dive tags the profile\'s own buddy', () async {
+    await photo('loose', dive: null);
+    final rui = await ChildWriteHarness(db)
+        .run([
+          createOp('buddies', {'name': 'Rui'}),
+        ])
+        .then((r) => r.created.single.id);
+
+    final plan = await h.preview([
+      updateOp('media', 'loose', {
+        'people': [
+          {'buddy_id': rui},
+        ],
+      }),
+    ]);
+
+    expect(plan.items.single.block, isNull);
+  });
+
   test('a species tag on a dive photo lists the sighting it adds', () async {
     final fish = await ChildWriteHarness(db)
         .run([

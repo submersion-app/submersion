@@ -58,6 +58,28 @@ void main() {
     expect(await h.one('saved_queries', id), isNull);
   });
 
+  // The query bar saves a group of one as its child, so the plan lists the
+  // tree as the store keeps it and a read matches it.
+  test('a saved query is listed as the store keeps it', () async {
+    final plan = await h.preview([
+      createOp('saved_queries', {
+        'subject': 'dives',
+        'name': 'Reef',
+        'query': {
+          'version': 1,
+          'node': {
+            't': 'and',
+            'c': [reef['node']],
+          },
+        },
+      }),
+    ]);
+    expect(plan.items.single.fields['query']!.newValue, reef);
+
+    final id = (await h.apply(plan)).created.single.id;
+    expect((await h.one('saved_queries', id))!['query'], reef);
+  });
+
   test('a saved query that does not validate is refused', () async {
     final plan = await h.preview([
       createOp('saved_queries', {

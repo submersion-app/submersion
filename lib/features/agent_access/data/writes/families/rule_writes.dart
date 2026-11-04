@@ -1,11 +1,16 @@
 import 'package:submersion/core/query/domain/query_json.dart';
+import 'package:submersion/features/agent_access/data/records/record_catalog.dart';
+import 'package:submersion/features/agent_access/data/records/record_reader.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/checklist_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/saved_query_rules.dart';
+import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/json_object_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
+import 'package:submersion/features/dive_log/domain/bulk_edit/bulk_edit_field_set.dart'
+    show BulkField;
 import 'package:submersion/features/rules/domain/entities/rule.dart';
 import 'package:submersion/features/rules/domain/entities/rule_action.dart';
 import 'package:submersion/features/rules/domain/rule_actions_json.dart';
@@ -87,17 +92,29 @@ class RuleWrites extends WritableEntry {
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {
     final v = check.values;
+    final String subject;
     if (check.kind == ChangeKind.create) {
-      if (v[_copy] != null) return null;
-      final missing = [
-        for (final key in const ['subject', 'name', 'actions'])
-          if (v[key] == null) key,
-      ];
-      if (missing.isNotEmpty) {
-        return PlanBlock(
-          BlockReason.missingField,
-          'A new rules record needs ${missing.join(', ')}, or $_copy.',
+      // A rule, new or copied, joins the end of its subject's order.
+      if (v['sort_order'] != null) {
+        return const PlanBlock(
+          BlockReason.invalidValue,
+          'sort_order: a new rule goes last; move it with an update.',
         );
+      }
+      if (v[_copy] case final String from) {
+        subject = (await _rule(from, check.ownerId)).subject.name;
+      } else {
+        final missing = [
+          for (final key in const ['subject', 'name', 'actions'])
+            if (v[key] == null) key,
+        ];
+        if (missing.isNotEmpty) {
+          return PlanBlock(
+            BlockReason.missingField,
+            'A new rules record needs ${missing.join(', ')}, or $_copy.',
+          );
+        }
+        subject = v['subject']! as String;
       }
     } else {
       final rule = await _rule(check.id!, check.ownerId);
@@ -116,18 +133,87 @@ class RuleWrites extends WritableEntry {
           'sort_order: past the last of this subject\'s rules.',
         );
       }
+      subject = rule.subject.name;
+    }
+    if (v['actions'] case final String actions) {
+      final problem = await _actionRefsProblem(
+        ruleActionsFromJson(JsonObjectCodec.decoded(actions)),
+        check.ownerId,
+      );
+      if (problem != null) return problem;
     }
     if (v['condition'] case final String condition) {
-      final subject = RuleSubject.values.byName(
-        (v['subject'] ?? check.document!['subject'])! as String,
-      );
       return (await checkedQuery(
         _r,
         key: 'condition',
-        subject: subject.querySubject.name,
+        subject: RuleSubject.values.byName(subject).querySubject.name,
         query: JsonObjectCodec.decoded(condition),
         diverId: check.ownerId,
       )).problem;
+    }
+    return null;
+  }
+
+  /// Why [actions] name a record [ownerId] cannot use, or null: the rule
+  /// page offers the profile's own tags, buddies, gear, courses, types,
+  /// roles, centers and trips, and the applier only checks that an id
+  /// exists when the rule runs.
+  Future<PlanBlock?> _actionRefsProblem(
+    List<RuleAction> actions,
+    String? ownerId,
+  ) async {
+    if (ownerId == null) return null;
+    final named = <String, Set<String>>{};
+    void add(String entity, Iterable<String?> ids) =>
+        (named[entity] ??= {}).addAll(ids.nonNulls);
+    for (final action in actions) {
+      switch (action) {
+        case DiveMembershipAction(:final collection, :final ids):
+          add(switch (collection) {
+            DiveCollection.diveTypes => 'dive_types',
+            DiveCollection.tags => 'tags',
+            DiveCollection.equipment => 'equipment',
+            DiveCollection.buddies => 'buddies',
+            DiveCollection.courses => 'courses',
+          }, ids);
+          add('dive_roles', [action.buddyRoleId]);
+        case SiteMembershipAction(:final collection, :final ids):
+          add(switch (collection) {
+            SiteCollection.tags => 'tags',
+            SiteCollection.siteTypes => 'site_types',
+          }, ids);
+        case SetDiveFieldAction(:final field, :final values):
+          switch (field) {
+            case BulkField.diveCenter:
+              add('centers', [values['diveCenterId'] as String?]);
+            case BulkField.trip:
+              add('trips', [values['tripId'] as String?]);
+            default:
+              break;
+          }
+        default:
+          break;
+      }
+    }
+    final catalog = RecordCatalog(_r);
+    final reader = RecordReader(_r.db);
+    for (final MapEntry(key: entity, value: ids) in named.entries) {
+      if (ids.isEmpty) continue;
+      final entry = catalog.named(entity);
+      final hidden = ids.difference(
+        (await reader.visibleIds(entry, ids.toList(), ownerId)).toSet(),
+      );
+      for (final id in hidden) {
+        final exists = await countRows(entry.table, 'id = ?1', id) > 0;
+        return PlanBlock(
+          exists
+              ? BlockReason.otherProfileReference
+              : BlockReason.unknownReference,
+          exists
+              ? 'actions: $entity $id belongs to another profile.'
+              : 'actions: no $entity record has id $id.',
+        );
+      }
     }
     return null;
   }

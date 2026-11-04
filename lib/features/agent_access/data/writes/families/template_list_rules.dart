@@ -68,16 +68,16 @@ List<String> keptItemIds(
   String key(Object? section, Object? title) =>
       '${sectionKey(section as String?) ?? ''}/'
       '${sectionKey(title as String?) ?? ''}';
-  final free = <String, List<String>>{};
-  for (final s in stored) {
-    (free[key(s.section, s.title)] ??= []).add(s.id);
-  }
+  final storedKeys = [for (final s in stored) key(s.section, s.title)];
+  final itemKeys = [for (final i in items) key(i['section'], i['title'])];
+  // The nth item of a key takes the nth stored row of that key.
   return [
-    for (final item in items)
-      switch (free[key(item['section'], item['title'])]) {
-        final ids? when ids.isNotEmpty => ids.removeAt(0),
-        _ => '',
-      },
+    for (final (i, k) in itemKeys.indexed)
+      [
+            for (final (j, s) in stored.indexed)
+              if (storedKeys[j] == k) s.id,
+          ].elementAtOrNull(itemKeys.take(i).where((o) => o == k).length) ??
+          '',
   ];
 }
 

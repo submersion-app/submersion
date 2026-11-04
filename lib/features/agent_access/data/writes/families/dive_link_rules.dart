@@ -6,6 +6,8 @@ import 'package:submersion/features/agent_access/data/records/record_repositorie
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/services/trip_date_stretch.dart';
 
 /// A dive's buddies and the roles each holds, by buddy id, as the dive edit
 /// page shows them.
@@ -91,16 +93,32 @@ Future<int> tripsStretched(
   String tripId,
   DateTime day,
 ) async {
-  var count = 0;
-  String? next = tripId;
-  final seen = <String>{};
-  while (next != null && seen.add(next)) {
-    final trip = await r.trips.getTripById(next);
-    if (trip == null) break;
-    if (day.isBefore(trip.startDate) || day.isAfter(trip.endDate)) count++;
-    next = trip.parentTripId;
-  }
-  return count;
+  final trip = await r.trips.getTripById(tripId);
+  return trip == null
+      ? 0
+      : stretchCount(r, trip, [DateTime.utc(day.year, day.month, day.day)]);
+}
+
+/// How many trips dives at [diveDateTimes] (wall clocks) on [trip] make
+/// stretch, by stretchTripsToCoverDives' rule: the trip when its days miss
+/// one, and its larger trip only then, when the larger trip misses one too.
+/// A side trip that already covers its dives may sit past its larger trip.
+Future<int> stretchCount(
+  RecordRepositories r,
+  Trip trip,
+  List<DateTime> diveDateTimes,
+) async {
+  bool misses(Trip t) =>
+      coveringRange(
+        start: t.startDate,
+        end: t.endDate,
+        diveDateTimes: diveDateTimes,
+      ) !=
+      null;
+  if (diveDateTimes.isEmpty || !misses(trip)) return 0;
+  final parentId = trip.parentTripId;
+  final parent = parentId == null ? null : await r.trips.getTripById(parentId);
+  return parent != null && misses(parent) ? 2 : 1;
 }
 
 /// The day of the dive [diveId] as its wall clock reads, or [moved] when

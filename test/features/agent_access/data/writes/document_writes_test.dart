@@ -155,4 +155,18 @@ void main() {
 
     expect(plan.items.single.block!.reason, BlockReason.invalidValue);
   });
+
+  // A value of the wrong type, or a day that does not parse, is the op's
+  // own refusal, not a failed preview.
+  test('a filter value of the wrong shape is refused', () async {
+    for (final filter in [
+      {'siteId': 5},
+      {'mediaType': 'photo', 'from_date': 'last week'},
+    ]) {
+      final plan = await h.preview([
+        createOp('smart_albums', {'name': 'Odd', 'filter': filter}),
+      ]);
+      expect(plan.items.single.block!.reason, BlockReason.invalidValue);
+    }
+  });
 }

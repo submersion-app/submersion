@@ -1,4 +1,3 @@
-import 'dart:collection';
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
@@ -33,6 +32,48 @@ Future<Map<String, int>> countDivesByOwner(
   };
 }
 
+/// The rows a delete of `?1` of [table] reaches, as SQL conditions by
+/// table: [_Reach.taken] are deleted, by `ON DELETE CASCADE` or, for the
+/// child tables in [byHand], by the repository; [_Reach.unlinked] stay and
+/// lose a link to one of them, at the top only unless [deepUnlinks].
+Future<_Reach> _reach(
+  String table, {
+  Set<String> byHand = const {},
+  bool deepUnlinks = false,
+}) async {
+  final keys = await _foreignKeys();
+  final taken = <String, Set<String>>{};
+  final unlinked = <String, Set<String>>{};
+  void walk(String parent, String? scope, Set<String> path) {
+    for (final key in keys) {
+      if (key.parent != parent) continue;
+      final takes = key.cascades || byHand.contains(key.child);
+      // A key back into the path, such as a side trip's parent trip, is
+      // only ever an unlink; following it would never end.
+      if (takes && path.contains(key.child)) continue;
+      if (!takes && scope != null && !deepUnlinks) continue;
+      final condition = scope == null
+          ? '"${key.column}" = ?1'
+          : '"${key.column}" IN '
+                '(SELECT "${key.target}" FROM "$parent" WHERE $scope)';
+      if (takes) {
+        (taken[key.child] ??= {}).add(condition);
+        walk(key.child, condition, {...path, key.child});
+      } else {
+        (unlinked[key.child] ??= {}).add(condition);
+      }
+    }
+  }
+
+  walk(table, null, {table});
+  return (taken: taken, unlinked: unlinked);
+}
+
+typedef _Reach = ({
+  Map<String, Set<String>> taken,
+  Map<String, Set<String>> unlinked,
+});
+
 /// Rows [ON DELETE CASCADE] takes with [id] of [table], by table, however deep.
 /// The schema is the source, so a child table added later is counted without
 /// anyone remembering to. Tables with none, and those in [except], are left
@@ -41,25 +82,7 @@ Future<Map<String, int>> countCascaded(
   String table,
   String id, {
   Set<String> except = const {},
-}) async {
-  final keys = await _foreignKeys();
-  final conditions = <String, Set<String>>{};
-  void walk(String parent, String? scope, Set<String> path) {
-    for (final key in keys) {
-      if (key.parent != parent || !key.cascades) continue;
-      if (path.contains(key.child)) continue;
-      final condition = scope == null
-          ? '"${key.column}" = ?1'
-          : '"${key.column}" IN '
-                '(SELECT "${key.target}" FROM "$parent" WHERE $scope)';
-      (conditions[key.child] ??= {}).add(condition);
-      walk(key.child, condition, {...path, key.child});
-    }
-  }
-
-  walk(table, null, {table});
-  return _counted(conditions, id, except);
-}
+}) async => _counted((await _reach(table)).taken, id, except);
 
 /// What a delete of [id] of [table] takes and unlinks when its repository
 /// also deletes the child tables in [byHand], whose keys have no action:
@@ -72,80 +95,68 @@ Future<({Map<String, int> parts, Map<String, int> unlinked})> countDeleted(
   required Set<String> byHand,
   Set<String> except = const {},
 }) async {
-  final keys = await _foreignKeys();
-  final deleted = <String, Set<String>>{};
-  final unlinked = <String, Set<String>>{};
-  void walk(String parent, String? scope, Set<String> path) {
-    for (final key in keys) {
-      if (key.parent != parent) continue;
-      final takes = key.cascades || byHand.contains(key.child);
-      // A key back into the path, such as a side trip's parent trip, is
-      // only ever an unlink; following it would never end.
-      if (takes && path.contains(key.child)) continue;
-      final condition = scope == null
-          ? '"${key.column}" = ?1'
-          : '"${key.column}" IN '
-                '(SELECT "${key.target}" FROM "$parent" WHERE $scope)';
-      if (takes) {
-        (deleted[key.child] ??= {}).add(condition);
-        walk(key.child, condition, {...path, key.child});
-      } else {
-        (unlinked[key.child] ??= {}).add(condition);
-      }
-    }
-  }
-
-  walk(table, null, {table});
+  final reach = await _reach(table, byHand: byHand, deepUnlinks: true);
   return (
-    parts: await _counted(deleted, id, except),
-    unlinked: await _counted(unlinked, id, {...except, ...deleted.keys}),
+    parts: await _counted(reach.taken, id, except),
+    unlinked: await _counted(reach.unlinked, id, {
+      ...except,
+      ...reach.taken.keys,
+    }),
   );
 }
 
-/// A digest of every row that links to [id] of [table] or is part of it,
-/// with what each row holds, in a stable order: a link that moves to
-/// another record after a preview changes it while the counts stay the
-/// same. A digest, so a plan does not hold every row of a busy record.
+/// A digest of which rows link to [id] of [table] or are part of it: each
+/// row's primary key and every link it holds, its foreign keys, in a
+/// stable order. A link that moves to another record after a preview changes it
+/// while the counts stay the same; a row's other columns, a profile's
+/// samples among them, are never read. A digest, so a plan does not hold
+/// every row of a busy record.
 Future<String> linkRowsDigest(
   String table,
   String id, {
   Set<String> except = const {},
 }) async {
+  final reach = await _reach(table);
   final keys = await _foreignKeys();
-  final conditions = <String, Set<String>>{};
-  void walk(String parent, String? scope, Set<String> path) {
-    for (final key in keys) {
-      if (key.parent != parent) continue;
-      if (scope != null && !key.cascades) continue;
-      if (key.cascades && path.contains(key.child)) continue;
-      final condition = scope == null
-          ? '"${key.column}" = ?1'
-          : '"${key.column}" IN '
-                '(SELECT "${key.target}" FROM "$parent" WHERE $scope)';
-      (conditions[key.child] ??= {}).add(condition);
-      if (key.cascades) walk(key.child, condition, {...path, key.child});
-    }
-  }
-
-  walk(table, null, {table});
   final db = DatabaseService.instance.database;
-  final rows = <String>[];
+  final conditions = <String, Set<String>>{
+    for (final child in {...reach.taken.keys, ...reach.unlinked.keys})
+      if (!except.contains(child))
+        child: {...?reach.taken[child], ...?reach.unlinked[child]},
+  };
+  final lines = <String>[];
   for (final child in conditions.keys.toList()..sort()) {
-    if (except.contains(child)) continue;
+    final keyColumns = [
+      for (final row
+          in await db
+              .customSelect(
+                'SELECT name FROM pragma_table_info(?) WHERE pk > 0 '
+                'ORDER BY pk',
+                variables: [Variable.withString(child)],
+              )
+              .get())
+        row.read<String>('name'),
+    ];
+    final selected = {
+      ...keyColumns,
+      for (final key in keys)
+        if (key.child == child) key.column,
+    }.toList()..sort();
     final found = await db
         .customSelect(
-          'SELECT * FROM "$child" WHERE ${conditions[child]!.join(' OR ')}',
+          'SELECT ${[for (final c in selected) '"$c"'].join(', ')} '
+          'FROM "$child" WHERE ${conditions[child]!.join(' OR ')}',
           variables: [Variable.withString(id)],
         )
         .get();
-    rows.addAll(
+    lines.addAll(
       [
         for (final row in found)
-          '$child:${jsonEncode(SplayTreeMap<String, Object?>.of(row.data))}',
+          '$child:${jsonEncode([for (final c in selected) row.data[c]])}',
       ]..sort(),
     );
   }
-  return sha256.convert(utf8.encode(rows.join('\n'))).toString();
+  return sha256.convert(utf8.encode(lines.join('\n'))).toString();
 }
 
 /// Rows that stay when [id] of [table] goes but lose their link to it, by
@@ -156,14 +167,7 @@ Future<Map<String, int>> countUnlinked(
   String table,
   String id, {
   Set<String> except = const {},
-}) async {
-  final conditions = <String, Set<String>>{};
-  for (final key in await _foreignKeys()) {
-    if (key.parent != table || key.cascades) continue;
-    (conditions[key.child] ??= {}).add('"${key.column}" = ?1');
-  }
-  return _counted(conditions, id, except);
-}
+}) async => _counted((await _reach(table)).unlinked, id, except);
 
 /// Rows matching any of a table's conditions, so a row two links reach counts
 /// once. One statement for every table: a reach is read again at apply, inside

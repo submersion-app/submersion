@@ -22,7 +22,20 @@ class JsonObjectCodec extends FieldCodec {
   Object parseValue(Object raw) {
     if (raw is! Map) throw FieldRefusal('This field takes $shape.');
     final map = raw.cast<String, Object?>();
-    return _sorted(normalize?.call(map) ?? map);
+    // A value inside the object that does not parse, such as a day, or one
+    // of another type, which the app's own readers cast, is this field's
+    // refusal rather than a failed preview.
+    try {
+      return _sorted(normalize?.call(map) ?? map);
+    } on FieldRefusal {
+      rethrow;
+    } on FormatException {
+      throw FieldRefusal('This field takes $shape; a value does not parse.');
+    } on TypeError {
+      throw FieldRefusal(
+        'This field takes $shape; a value has the wrong type.',
+      );
+    }
   }
 
   @override
