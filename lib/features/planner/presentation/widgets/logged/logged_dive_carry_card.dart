@@ -42,7 +42,11 @@ class LoggedDiveCarryCard extends ConsumerWidget {
     if (index == follow.loggedDives.length - 1) {
       final first = series.dives.first;
       nextLabel = first.name ?? l10n.plannerSeries_dive(seriesDiveLetter(0));
-      interval = first.state.surfaceInterval ?? defaultSeriesSurfaceInterval;
+      // As the series settles it: a fixed start's interval follows the
+      // followed dive's end, which Dive A's own copy only learns when it is
+      // next selected.
+      final settled = ref.watch(planSeriesResultsProvider).first.state;
+      interval = settled.surfaceInterval ?? defaultSeriesSurfaceInterval;
     } else {
       final next = follow.loggedDives[index + 1];
       nextLabel = seriesLoggedDiveLabel(next, units);

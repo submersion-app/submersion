@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// A logged dive shown before the planned dives of a series (issue #3565).
@@ -71,12 +72,14 @@ class SeriesLoggedDive extends Equatable {
 
 /// The surface interval between the logged dives [before] and [after], as
 /// the series bar and the planner's logged-dive cards show it: none when
-/// their logged times overlap.
+/// their logged times overlap. Measured between true instants, as the
+/// planned dives' intervals are, so a daylight saving change in between
+/// does not add or take away an hour.
 Duration loggedSurfaceInterval(
   SeriesLoggedDive before,
   SeriesLoggedDive after,
 ) {
-  final gap = after.start.difference(before.end);
+  final gap = fromWallClockUtc(after.start).difference(before.endInstant);
   return gap.isNegative ? Duration.zero : gap;
 }
 

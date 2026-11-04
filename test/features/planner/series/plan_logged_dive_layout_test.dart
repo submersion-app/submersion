@@ -185,6 +185,37 @@ void main() {
     expect(find.byType(LoggedDiveResults), findsNothing);
   });
 
+  testWidgets('the carry card shows the interval the series settles on', (
+    tester,
+  ) async {
+    await pumpLogged(tester, planned: false);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanCanvasPage)),
+    );
+    final series = container.read(planSeriesNotifierProvider.notifier);
+    container.read(viewedLoggedDiveIdProvider.notifier).state = null;
+    // Dive A fixed at 15:00, then Dive B added and selected.
+    series
+      ..select(0)
+      ..setSelectedStart(DateTime.utc(2026, 10, 25, 15))
+      ..addDive();
+    // Following #41 instead, which ended at 09:45, while Dive B is selected:
+    // Dive A's fixed start now comes 5:15 after it.
+    final follow41 = await container.read(seriesFollowProvider('d41').future);
+    series.followDive(follow41!, surfaceInterval: const Duration(hours: 1));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Logged dive #41'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('loggedDiveCarryCard')),
+        matching: find.text('5:15'),
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('on a phone, a planned dive opens its Plan tab', (tester) async {
     await pumpLogged(tester, planned: true, size: const Size(420, 900));
 

@@ -107,6 +107,52 @@ void main() {
     }, skip: zoneHasNoDst);
   });
 
+  group('loggedSurfaceInterval', () {
+    test('is the time between one dive ending and the next starting', () {
+      final end = DateTime(2026, 7, 1, 10);
+      final before = seriesLoggedDive('a', end);
+      final after = seriesLoggedDive(
+        'b',
+        end.add(const Duration(hours: 3)),
+        minutes: 60,
+      );
+
+      expect(loggedSurfaceInterval(before, after), const Duration(hours: 2));
+    });
+
+    test('is none when the two overlap', () {
+      final end = DateTime(2026, 7, 1, 10);
+      final before = seriesLoggedDive('a', end);
+      final after = seriesLoggedDive('b', end, minutes: 30);
+
+      expect(loggedSurfaceInterval(before, after), Duration.zero);
+    });
+
+    test('runs on true instants across a clock change', () {
+      final change = dstTransition(forward: true)!;
+      // Ends half an hour before the change, starts again two real hours
+      // later; the clock digits between them are an hour further apart.
+      final ended = change.subtract(const Duration(minutes: 30));
+      final restarted = ended.add(const Duration(hours: 2));
+      final before = SeriesLoggedDive(
+        id: 'a',
+        start: asWallClockUtc(
+          ended.subtract(const Duration(hours: 1)).toLocal(),
+        ),
+        end: asWallClockUtc(ended.toLocal()),
+        endInstant: ended.toLocal(),
+      );
+      final after = SeriesLoggedDive(
+        id: 'b',
+        start: asWallClockUtc(restarted.toLocal()),
+        end: asWallClockUtc(restarted.add(const Duration(hours: 1)).toLocal()),
+        endInstant: restarted.add(const Duration(hours: 1)).toLocal(),
+      );
+
+      expect(loggedSurfaceInterval(before, after), const Duration(hours: 2));
+    }, skip: zoneHasNoDst);
+  });
+
   group('followSurfaceInterval', () {
     final end = DateTime(2026, 10, 25, 10);
 
