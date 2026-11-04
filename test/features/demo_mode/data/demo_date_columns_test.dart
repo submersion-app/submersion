@@ -113,7 +113,7 @@ void main() {
           shifted.toUtc().weekday,
           latest.toUtc().weekday,
           reason: '$latest',
-        );      
+        );
       }
     },
   );

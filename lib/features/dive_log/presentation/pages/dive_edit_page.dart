@@ -3660,7 +3660,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 ? l10n.diveLog_edit_profile_points(profileLength)
                 : l10n.diveLog_edit_profile_pointsAndProfiles(
                     profileLength,
-                    availableRevisions!,
+                    availableRevisions,
                   ),
             onTap: () => _openProfileEditor(_existingDive!.id),
           ),

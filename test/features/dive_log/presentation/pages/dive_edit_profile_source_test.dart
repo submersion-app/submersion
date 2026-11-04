@@ -269,7 +269,7 @@ void main() {
 
     final localizations = AppLocalizations.of(
       tester.element(find.byType(DiveEditPage)),
-    )!;
+    );
     final dive = await repository.getDiveById(diveId);
     final expected = localizations.diveLog_edit_profile_pointsAndProfiles(
       dive!.profile.length,
@@ -295,7 +295,7 @@ void main() {
 
     final localizations = AppLocalizations.of(
       tester.element(find.byType(DiveEditPage)),
-    )!;
+    );
     final dive = await repository.getDiveById(diveId);
     final expected = localizations.diveLog_edit_profile_points(
       dive!.profile.length,
@@ -321,7 +321,7 @@ void main() {
 
     final localizations = AppLocalizations.of(
       tester.element(find.byType(DiveEditPage)),
-    )!;
+    );
     final dive = await repository.getDiveById(diveId);
     final expected = localizations.diveLog_edit_profile_points(
       dive!.profile.length,
