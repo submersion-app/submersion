@@ -42,6 +42,7 @@ import 'package:submersion/features/agent_access/data/writes/families/safety_fin
 import 'package:submersion/features/agent_access/data/writes/families/safety_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_computer_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/site_feature_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/track_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/pre_dive_template_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/currency_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_plan_series_writes.dart';
@@ -148,6 +149,8 @@ class WriteCatalog {
       EmergencyChamberWrites(repositories),
       DiveComputerWrites(repositories),
       SafetyFindingWrites(repositories),
+      GpsTrackWrites(repositories),
+      NavTrackWrites(repositories),
     ]);
   }
 

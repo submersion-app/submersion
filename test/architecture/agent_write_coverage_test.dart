@@ -515,6 +515,29 @@ void main() {
       '$diveLog/dive_computer_repository_impl.dart:$method': 'equipment',
     for (final method in const ['setDismissed', 'setDismissedForDives'])
       '$diveLog/safety_findings_repository.dart:$method': 'safety_findings',
+    for (final method in const [
+      'setTrimBounds',
+      'clearTrim',
+      'splitTrack',
+      'deleteTrack',
+    ])
+      'lib/features/gps_log/data/repositories/gps_track_repository.dart:'
+              '$method':
+          'gps_tracks',
+    for (final method in const [
+      'rename',
+      'setSite',
+      'setEquipment',
+      'updateCorrection',
+      'setPrimary',
+      'link',
+      'unlink',
+      'relink',
+      'delete',
+    ])
+      'lib/features/nav_track/data/repositories/nav_track_repository.dart:'
+              '$method':
+          'nav_tracks',
     for (final method in const ['cloneTemplate', 'updateItemEquipment'])
       'lib/features/pre_dive/data/repositories/'
               'pre_dive_template_repository.dart:$method':
