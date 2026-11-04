@@ -17,6 +17,7 @@ void main() {
   const gear = 'lib/features/equipment/data/repositories';
   const passports = 'lib/features/cylinder_passports/data/repositories';
   const trips = 'lib/features/trips/data/repositories';
+  const checklists = 'lib/features/checklists/data/repositories';
   const baselinePath = 'test/architecture/agent_write_coverage_baseline.txt';
 
   /// `repository file:method`, and the write entity that reaches it.
@@ -287,6 +288,43 @@ void main() {
       'deleteEvent',
     ])
       '$trips/trip_cylinder_repository.dart:$method': 'trip_cylinder_events',
+    for (final method in const [
+      'createChecklist',
+      'renameChecklist',
+      'reorderChecklists',
+      'deleteChecklist',
+    ])
+      '$checklists/trip_checklists_repository.dart:$method': 'trip_checklists',
+    '$checklists/trip_checklists_repository.dart:deleteAllForTrip': 'trips',
+    for (final method in const [
+      'applyTemplate',
+      'replaceWithTemplate',
+      'saveAsTemplate',
+    ])
+      '$checklists/trip_checklist_repository.dart:$method': 'trip_checklists',
+    for (final file in const [
+      'trip_checklist_repository.dart',
+      'trip_checklist_section_repository.dart',
+    ])
+      for (final method in const [
+        'createSection',
+        'renameSection',
+        'reorderSections',
+        'deleteSection',
+      ])
+        '$checklists/$file:$method': 'trip_checklist_sections',
+    '$checklists/trip_checklist_section_repository.dart:createSectionRow':
+        'trip_checklists',
+    for (final method in const [
+      'createItem',
+      'updateItem',
+      'toggleDone',
+      'moveItem',
+      'deleteItem',
+      'clearItems',
+    ])
+      '$checklists/trip_checklist_repository.dart:$method':
+          'trip_checklist_items',
   };
 
   /// Writes that change no record a diver keeps, so no change set entity

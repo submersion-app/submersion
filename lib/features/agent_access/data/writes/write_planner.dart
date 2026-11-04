@@ -423,6 +423,7 @@ class _Pass {
       indirectRelations: effects.relations,
       indirectLost: effects.lost,
       reach: DeleteReach(parts: effects.parts),
+      alsoCreates: effects.created,
       alsoChanges: effects.touched,
       names: {
         ...await _names(entry, links.deltas, {

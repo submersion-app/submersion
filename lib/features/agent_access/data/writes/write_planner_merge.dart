@@ -26,6 +26,14 @@ extension _MergeRules on _Pass {
         'merge_into: no ${entry.name} record has id $into.',
       );
     }
+    if (entry.parent case final parent?
+        when survivor.parentId != row.parentId) {
+      return PlanBlock(
+        BlockReason.invalidValue,
+        'merge_into: $into belongs to another ${parent.entity} record; a '
+        '${entry.name} record merges only into one beside it.',
+      );
+    }
     if (survivor.ownerId != row.ownerId) {
       return PlanBlock(
         BlockReason.otherProfileReference,

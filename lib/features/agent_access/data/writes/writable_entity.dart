@@ -203,6 +203,7 @@ class SideEffects {
     this.parts = const {},
     this.detached = const {},
     this.touched = const {},
+    this.created = const {},
   });
 
   /// Document key to the value it will hold, as a document would read.
@@ -228,13 +229,18 @@ class SideEffects {
   /// computer a gear item's rename renames.
   final Map<String, int> touched;
 
+  /// Rows the update adds, by table, as a create's [WritableEntry.alsoCreates]
+  /// lists them: the items a template brings to a checklist.
+  final Map<String, int> created;
+
   bool get isEmpty =>
       fields.isEmpty &&
       relations.isEmpty &&
       lost.isEmpty &&
       parts.isEmpty &&
       detached.isEmpty &&
-      touched.isEmpty;
+      touched.isEmpty &&
+      created.isEmpty;
 
   /// The same text for the same effects, to compare a preview with a later
   /// read.
@@ -256,6 +262,7 @@ class SideEffects {
         key: (value.toList()..sort()),
     }),
     'touched': _sorted(touched),
+    'created': _sorted(created),
   });
 }
 
