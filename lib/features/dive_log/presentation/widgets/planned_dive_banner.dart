@@ -26,40 +26,54 @@ class PlannedDiveBanner extends ConsumerWidget {
       color: scheme.tertiaryContainer,
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
-        child: Row(
+        padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
+        // The actions sit under the text: beside it, two of them leave the
+        // text no room at phone width.
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Icon(
-              Icons.event_available_outlined,
-              color: scheme.onTertiaryContainer,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    context.l10n.diveLog_planned_bannerTitle,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: scheme.onTertiaryContainer,
-                    ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.event_available_outlined,
+                  color: scheme.onTertiaryContainer,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        context.l10n.diveLog_planned_bannerTitle,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: scheme.onTertiaryContainer,
+                        ),
+                      ),
+                      Text(
+                        context.l10n.diveLog_planned_bannerBody,
+                        style: TextStyle(color: scheme.onTertiaryContainer),
+                      ),
+                    ],
                   ),
-                  Text(
-                    context.l10n.diveLog_planned_bannerBody,
-                    style: TextStyle(color: scheme.onTertiaryContainer),
+                ),
+              ],
+            ),
+            OverflowBar(
+              alignment: MainAxisAlignment.end,
+              overflowAlignment: OverflowBarAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: onMarkLogged,
+                  child: Text(context.l10n.diveLog_detail_menu_markLogged),
+                ),
+                if (planId != null)
+                  TextButton(
+                    onPressed: () => openSavedPlanInPlanner(context, planId),
+                    child: Text(context.l10n.diveLog_planned_openInPlanner),
                   ),
-                ],
-              ),
+              ],
             ),
-            TextButton(
-              onPressed: onMarkLogged,
-              child: Text(context.l10n.diveLog_detail_menu_markLogged),
-            ),
-            if (planId != null)
-              TextButton(
-                onPressed: () => openSavedPlanInPlanner(context, planId),
-                child: Text(context.l10n.diveLog_planned_openInPlanner),
-              ),
           ],
         ),
       ),
