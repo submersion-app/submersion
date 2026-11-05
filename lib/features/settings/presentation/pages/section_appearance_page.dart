@@ -459,13 +459,7 @@ class SectionAppearancePage extends ConsumerWidget {
           onChanged: (value) => ref
               .read(settingsProvider.notifier)
               .setCardPhotoOverlayLight(value),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-          child: Text(
-            context.l10n.settings_appearance_photoOverlay_subtitle,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
+          hint: context.l10n.settings_appearance_photoOverlay_subtitle,
         ),
       ],
     ];
