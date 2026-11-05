@@ -185,8 +185,9 @@ seconds.
 
 A plan of several dives saves as one series: saving keeps every dive, and
 opening any of them opens the whole series on that dive. In **Saved plans** a
-series is one row, with its number of dives, deepest depth and total runtime,
-and a line for each dive that opens the series there and shows what that dive
+series is one row, with its number of dives (and how many you have dived,
+once you have dived any), deepest depth and total runtime, and a line for each
+dive that opens the series there and shows what that dive
 was dived as. Rename, duplicate, share and delete act on the whole series; link
 and unlink act on one dive, from its line. A series can't be compared.
 
@@ -244,10 +245,23 @@ From the menu you can also:
   is written while any dive has critical warnings; the message names it. A
   download from your dive computer on that day or the next fills the planned
   dive in place.
-- **Open in planner** on a planned dive's banner, and **View in planner** in a
-  dived dive's menu, take you back to the plan it came from, on that dive.
-  In the saved plans list, tap a dive's **Waiting for the dive** or **Dived
-  as #N** to open it in your log.
+- **Dived dives.** Once a planned dive is dived, by **Mark as logged**, the
+  edit page's switch or a download, the planner treats it as what happened.
+  Its chip in the series bar becomes the solid diver with the logged dive's
+  name or number, and it can no longer be removed from the series. Tap it to
+  see it as a logged dive, with its plan drawn beside it on the chart; switch
+  **Actual** to **Plan** to see the plan itself, read-only. The dives after it
+  start from what it really left: its tissue loading, CNS, OTU and the gas
+  left in each tank, from when it really ended, so their times and results
+  update. Undo a download and the dive goes back to its plan.
+- **Open in dive log** in the plan's menu opens the dive's entry in your log,
+  planned or dived. **Open in planner** on a planned dive's banner, and **View
+  in planner** in a dived dive's menu, take you back to the plan it came
+  from, on that dive. In the saved plans list, tap a dive's **Waiting for the
+  dive** or **Dived as #N** to open it in your log.
+- **As planned** for a later dive of a series, in the planner, on the dive
+  log's chart and in Compare, starts from what the dives before it were
+  planned to leave, not from a fresh diver.
 - **Link to a logged dive** joins a saved plan to a dive you have already
   logged, from the saved plans list or the plan's menu. The dive's
   [Compare](compare.md) section then shows the plan beside what you did, and the

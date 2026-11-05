@@ -9,6 +9,16 @@ decisions already made are in
 `docs/design/plans/2026-11-03-repetitive-dive-planning-phase-3.md`, "Dived
 dives (phase 5)". This is the last phase, so its PR can close #3565.
 
+## Status (2026-11-05)
+
+Built in the phase 2b PR (#4206) rather than its own, decided 2026-11-05.
+The backup's calculator and its tests were ported; its dived-dive page,
+compare strip and per-dive deco providers were not, since phase 2's
+logged-dive layout and #4058's Compare columns already do that work. What
+was built is in
+`docs/design/plans/2026-11-05-repetitive-dive-planning-phase-2b-ui-fixes.md`
+and the spec's "Dived dives". The open question below is still open.
+
 ## Background
 
 Built in the closed draft PR #4080; on the local tag

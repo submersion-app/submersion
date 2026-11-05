@@ -32,8 +32,8 @@ record covers what the phases agreed and the decisions made for phases 1 to
 4. **Logged dives** (built): follow any logged dive, the one-tap Follow prompt, "Plan
    repetitive dive" in the dive detail menu, a logged dive shown read-only
    in the planner.
-5. **Plan vs actual**: a logged plan becomes Dive #xxx, and the dives after it
-   are recalculated from it.
+5. **Plan vs actual** (built with 2b): a dived dive of the series shows as
+   Dive #xxx, and the dives after it are recalculated from it.
 
 ## Phase 1 behaviour
 
@@ -385,7 +385,38 @@ Phase 2b; the plan is
   a dive. A planned dive's banner has "Open in planner" and a dived dive's
   menu "View in planner" while the plan exists; both go through
   `openSavedPlanInPlanner`. In the saved plans list, a dive's link badge
-  opens its entry in the log.
+  opens its entry in the log, and the plan menu's "Open in dive log" opens
+  the selected dive's.
+
+## Dived dives
+
+Phase 5, built in the phase 2b PR; the plan is
+`docs/design/plans/2026-11-05-repetitive-dive-planning-phase-2b-ui-fixes.md`.
+
+- **What the log says.** `seriesActualsProvider` reads each linked entry and,
+  for one no longer planned (Mark as logged, the edit page's switch, a
+  download), the same `SeriesFollow` a followed dive gives. The planner page
+  hands it to `PlanSeriesNotifier.setActuals`, which puts it in each dive's
+  `actual` slot. It is read live, never stored; an undone download takes the
+  dive back to its plan. Saving keeps a dived dive's stored plan as it was.
+- **The chain.** A dived dive carries its logged end tissues (in the
+  conditions it ended in), CNS, OTU and remaining tank pressures into the
+  next dive, each tank matched by position and gas. Its real start and end
+  set the timeline, measured between true instants: a later dive led by its
+  interval moves with it, one with a fixed start keeps it. It raises no
+  series warnings, and the next dive's reverse profile check reads its real
+  depth. A dive with no profile to analyse carries its plan's tissues.
+- **In the planner.** Its chip is the solid diver with the logged dive's
+  name, else its number, with no remove button. Selected, it shows in the
+  logged-dive layout, its plan ghosted on the chart and its results "as
+  planned"; an Actual / Plan toggle shows the plan itself, read-only. The
+  carry card names the dive after it.
+- **As planned.** `linkedPlanComparisonProvider` computes a later dive's plan,
+  or a first dive following a logged one, from the series as planned, so the
+  dive log's overlay, Compare and the planner's "As planned" all start from
+  what the dives before it were planned to leave. The range table still
+  starts from a fresh diver.
+- **Saved plans list.** A series row counts its dives dived once any are.
 
 ## Keyboard
 
@@ -418,5 +449,5 @@ Windows beeps at Alt+letter, and it is not a convention in the app.
 
 ## Out of scope
 
-Everything in phase 5, plus (as in #3700) a whole-day timeline chart, series PDF export, and inserting
-or reordering dives.
+A whole-day timeline chart, series PDF export, and inserting or reordering
+dives (as in #3700).
