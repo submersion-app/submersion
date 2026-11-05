@@ -519,6 +519,13 @@ final selectedDiveActualProvider = Provider<SeriesFollow?>(
       ref.watch(planSeriesNotifierProvider.select((s) => s.selected.actual)),
 );
 
+/// Whether the plan in the editor is locked: its dive has been dived, so its
+/// plan is the record of what was planned (issue #3565). Every editing
+/// surface reads this; viewing, scrolling and scrubbing stay open.
+final planLockedProvider = Provider<bool>(
+  (ref) => ref.watch(selectedDiveActualProvider) != null,
+);
+
 /// Whether a dive that has been dived shows its original plan rather than
 /// what happened. Starts over on each dive.
 final showPlanOfDivedProvider = StateProvider<bool>((ref) {

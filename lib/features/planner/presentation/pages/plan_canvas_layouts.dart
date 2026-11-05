@@ -15,9 +15,6 @@ mixin _PlanCanvasLayouts on ConsumerState<PlanCanvasPage> {
     // A logged dive picked in the series bar keeps this layout: each pane
     // shows it read-only in the planned dive's place (issue #3565).
     final logged = ref.watch(viewingLoggedDiveProvider);
-    // The plan of a dive that has been dived is the record of what was
-    // planned, so it shows read-only.
-    final planOfDived = ref.watch(_planOfDivedProvider);
     final editorCollapsed = ref.watch(editorPaneCollapsedProvider);
     final resultsVisible = fullWidth
         ? !ref.watch(resultsPaneCollapsedProvider)
@@ -34,13 +31,7 @@ mixin _PlanCanvasLayouts on ConsumerState<PlanCanvasPage> {
     return Row(
       children: [
         if (!editorCollapsed) ...[
-          SizedBox(
-            width: 320,
-            child: IgnorePointer(
-              ignoring: planOfDived,
-              child: const PlanEditorPane(),
-            ),
-          ),
+          const SizedBox(width: 320, child: PlanEditorPane()),
           const VerticalDivider(width: 1),
         ],
         Expanded(
@@ -226,10 +217,7 @@ mixin _PlanCanvasLayouts on ConsumerState<PlanCanvasPage> {
         const SliverToBoxAdapter(child: SizedBox(height: 8)),
         SliverToBoxAdapter(
           child: logged == null
-              ? IgnorePointer(
-                  ignoring: ref.watch(_planOfDivedProvider),
-                  child: _phoneTabBody(shownTab),
-                )
+              ? _phoneTabBody(shownTab)
               : _phoneLoggedTabBody(shownTab, loggedPlan),
         ),
       ],
@@ -288,16 +276,26 @@ mixin _PlanCanvasLayouts on ConsumerState<PlanCanvasPage> {
   }
 
   Widget _phoneTabBody(int tab) {
+    // A plan whose dive has been dived is locked (issue #3565): the page
+    // still scrolls and Setup's sections open, but nothing takes input.
+    final locked = ref.watch(planLockedProvider);
     switch (tab) {
       case 0:
-        return const Padding(
-          padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
-          child: Column(children: [PlanDiveDetailsCard(), PlanTankList()]),
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          child: IgnorePointer(
+            ignoring: locked,
+            child: const Column(
+              children: [PlanDiveDetailsCard(), PlanTankList()],
+            ),
+          ),
         );
       case 1:
-        return const Padding(
-          padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
-          child: SegmentList(),
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          child: locked
+              ? SegmentList(plan: ref.watch(divePlanNotifierProvider))
+              : const SegmentList(),
         );
       case 2:
         return const Padding(
@@ -347,11 +345,3 @@ mixin _PlanCanvasLayouts on ConsumerState<PlanCanvasPage> {
     );
   }
 }
-
-/// Whether the planner shows the plan of a dive that has been dived, which
-/// is read-only (issue #3565).
-final _planOfDivedProvider = Provider<bool>(
-  (ref) =>
-      ref.watch(selectedDiveActualProvider) != null &&
-      ref.watch(showPlanOfDivedProvider),
-);

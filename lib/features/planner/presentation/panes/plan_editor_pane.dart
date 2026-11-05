@@ -11,6 +11,7 @@ import 'package:submersion/features/planner/presentation/providers/planner_layou
 import 'package:submersion/features/planner/presentation/widgets/plan_kit.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_dive_details_card.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_logged_dive_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/logged/logged_dive_details_card.dart';
 import 'package:submersion/features/planner/presentation/widgets/logged/logged_dive_tanks_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -88,15 +89,23 @@ class _PlanEditorPaneState extends ConsumerState<PlanEditorPane> {
       );
     }
 
+    // A plan whose dive has been dived is locked (issue #3565): it scrolls
+    // and its settings open, but nothing in it takes input.
+    final locked = ref.watch(planLockedProvider);
     return ListView(
       controller: _scrollController,
       padding: const EdgeInsets.all(12),
       children: [
-        const PlanDiveDetailsCard(),
-        const PlanTankList(),
+        IgnorePointer(ignoring: locked, child: const PlanDiveDetailsCard()),
+        IgnorePointer(ignoring: locked, child: const PlanTankList()),
         const SizedBox(height: 12),
-        const MissionToggleRow(),
-        if (missionOn) const MissionLegList() else const SegmentList(),
+        if (!locked) const MissionToggleRow(),
+        if (missionOn)
+          IgnorePointer(ignoring: locked, child: const MissionLegList())
+        else if (locked)
+          SegmentList(plan: ref.watch(divePlanNotifierProvider))
+        else
+          const SegmentList(),
         const SizedBox(height: 12),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4),

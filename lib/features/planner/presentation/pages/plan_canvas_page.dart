@@ -167,6 +167,8 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
         : null;
     final units = ref.watch(unitFormatterProvider);
     final followAllowed = ref.watch(followAllowedProvider);
+    // A plan whose dive has been dived is locked (issue #3565).
+    final locked = ref.watch(planLockedProvider);
     // Watched here rather than in the menu's builder: an open menu does not
     // rebuild, so it must open on a value already settled.
     final logState =
@@ -234,9 +236,11 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
             // State-derived mode toggle: tap cycles OC -> CCR -> SCR.
             InkWell(
               borderRadius: BorderRadius.circular(12),
-              onTap: () => ref
-                  .read(divePlanNotifierProvider.notifier)
-                  .updateMode(_nextMode(planState.mode)),
+              onTap: locked
+                  ? null
+                  : () => ref
+                        .read(divePlanNotifierProvider.notifier)
+                        .updateMode(_nextMode(planState.mode)),
               child: PlanChip(
                 label: planState.mode.name.toUpperCase(),
                 emphasized: planState.mode != domain.PlanMode.oc,
@@ -284,6 +288,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
                   'quickPlan',
                   Icons.auto_awesome,
                   context.l10n.divePlanner_action_quickPlan,
+                  enabled: !locked,
                 ),
                 _menuItem(
                   'saved',
@@ -304,17 +309,22 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
                   Icons.tune,
                   context.l10n.divePlanner_label_planSettings,
                 ),
-                _menuItem(
-                  'convert',
-                  Icons.scuba_diving,
-                  _PlanCanvasLogFlows._plannedDivesLabel(
-                    context.l10n,
-                    exist: logState.entriesExist,
-                    isSeries: isSeries,
+                // A single plan whose dive has been dived has nothing to
+                // write: its plan is locked, and Duplicate in Saved plans
+                // gives an editable copy. A series still writes its other
+                // dives.
+                if (isSeries || !locked)
+                  _menuItem(
+                    'convert',
+                    Icons.scuba_diving,
+                    _PlanCanvasLogFlows._plannedDivesLabel(
+                      context.l10n,
+                      exist: logState.entriesExist,
+                      isSeries: isSeries,
+                    ),
+                    // Nothing to write while the log matches the plan.
+                    enabled: logState.outOfDate,
                   ),
-                  // Nothing to write while the log matches the plan.
-                  enabled: logState.outOfDate,
-                ),
                 ..._linkMenuItems(context),
                 _menuItem(
                   'slate',

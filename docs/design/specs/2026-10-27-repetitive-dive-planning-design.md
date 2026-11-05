@@ -409,8 +409,16 @@ Phase 5, built in the phase 2b PR; the plan is
 - **In the planner.** Its chip is the solid diver with the logged dive's
   name, else its number, with no remove button. Selected, it shows in the
   logged-dive layout, its plan ghosted on the chart and its results "as
-  planned"; an Actual / Plan toggle shows the plan itself, read-only. The
-  carry card names the dive after it.
+  planned"; an Actual / Plan toggle, aligned to the start so its buttons
+  hold still, shows the plan itself. The carry card names the dive after it.
+- **Locked.** `planLockedProvider` (the selected dive is dived) locks the
+  plan everywhere: the chart has no waypoint handles, as on a DPV mission,
+  so no drag, add or gas menu; the editor pane and the phone tabs scroll,
+  with details and tanks taking no input, segments in `SegmentList`'s
+  read-only form and no mission toggle; Setup's sections open, their bodies
+  taking no input; the mode chip and Quick plan are off. A single plan
+  linked to a dived dive no longer offers "Create planned dive", so
+  #4058's link move from that item is no longer reachable from the planner.
 - **As planned.** `linkedPlanComparisonProvider` computes a later dive's plan,
   or a first dive following a logged one, from the series as planned, so the
   dive log's overlay, Compare and the planner's "As planned" all start from

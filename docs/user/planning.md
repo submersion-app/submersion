@@ -250,7 +250,11 @@ From the menu you can also:
   Its chip in the series bar becomes the solid diver with the logged dive's
   name or number, and it can no longer be removed from the series. Tap it to
   see it as a logged dive, with its plan drawn beside it on the chart; switch
-  **Actual** to **Plan** to see the plan itself, read-only. The dives after it
+  **Actual** to **Plan** to see the plan itself. The plan is locked once its
+  dive is dived: you can scroll it and open its settings to read them, but
+  not change it, on the chart or anywhere else. A single plan linked to a
+  dived dive no longer offers **Create planned dive**; use **Duplicate** in
+  **Saved plans** for a copy you can change. The dives after it
   start from what it really left: its tissue loading, CNS, OTU and the gas
   left in each tank, from when it really ended, so their times and results
   update. Undo a download and the dive goes back to its plan.

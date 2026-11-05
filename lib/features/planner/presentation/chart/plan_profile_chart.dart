@@ -22,6 +22,7 @@ import 'package:submersion/features/planner/presentation/chart/plan_waypoint_men
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_issue_marker_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_result_status.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -271,8 +272,11 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
 
   /// A DPV mission generates the profile from its route, so the chart only
   /// scrubs it: an edit here would disagree with the route and be replaced
-  /// by the next mission edit.
-  bool get _readOnly => ref.read(divePlanNotifierProvider).mission != null;
+  /// by the next mission edit. A plan whose dive has been dived is locked
+  /// (issue #3565).
+  bool get _readOnly =>
+      ref.read(divePlanNotifierProvider).mission != null ||
+      ref.read(planLockedProvider);
 
   static double _endTimeOf(List<PlanSegment> ordered, int index) {
     var t = 0.0;
@@ -335,8 +339,9 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
 
     final selectedId = ref.watch(selectedSegmentIdProvider);
     final plan = ref.watch(divePlanNotifierProvider);
-    // No vertices on a mission profile: no handles, no drag, no gas menu.
-    final vertices = plan.mission == null
+    // No vertices on a mission profile, or a locked plan (issue #3565): no
+    // handles, no drag, no gas menu.
+    final vertices = plan.mission == null && !ref.watch(planLockedProvider)
         ? planVertices(plan.segments)
         : const <PlanVertex>[];
 

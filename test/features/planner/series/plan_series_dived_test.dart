@@ -13,6 +13,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
+import 'package:submersion/features/planner/presentation/panes/plan_editor_pane.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_log_update.dart';
@@ -148,6 +149,30 @@ void main() {
       expect(c.read(planSeriesResultsProvider)[0].state.startDateTime, later);
     });
 
+    test('being dived is not an edit, on a series or one plan', () async {
+      await twoDivesInTheLog();
+      series().select(0);
+      final dives = c.read(planSeriesNotifierProvider).dives;
+      expect(c.read(planSeriesDirtyProvider), isFalse);
+
+      series().setActuals({dives[0].state.id: divedAt('x', nine)});
+      expect(c.read(planSeriesDirtyProvider), isFalse);
+
+      // One saved plan, dived.
+      final editor = c.read(divePlanNotifierProvider.notifier);
+      editor.newPlan();
+      editor.addSimplePlan(maxDepth: 18, bottomTimeMinutes: 20);
+      series().setSelectedStart(nine);
+      await editor.save();
+      final id = c.read(divePlanNotifierProvider).id;
+      expect(c.read(planSeriesDirtyProvider), isFalse);
+
+      series().setActuals({
+        id: divedAt('y', nine.add(const Duration(hours: 1))),
+      });
+      expect(c.read(planSeriesDirtyProvider), isFalse);
+    });
+
     test('Update leaves a dived dive out of its checks', () async {
       await twoDivesInTheLog();
       final dives = c.read(planSeriesNotifierProvider).dives;
@@ -236,6 +261,7 @@ void main() {
     Future<ProviderContainer> pumpDived(
       WidgetTester tester, {
       Size size = const Size(1400, 1000),
+      bool series = true,
     }) async {
       tester.view.physicalSize = size;
       tester.view.devicePixelRatio = 1.0;
@@ -267,8 +293,10 @@ void main() {
           .read(divePlanNotifierProvider.notifier)
           .addSimplePlan(maxDepth: 18, bottomTimeMinutes: 20);
       final notifier = c.read(planSeriesNotifierProvider.notifier);
-      notifier.addDive();
-      notifier.select(0);
+      if (series) {
+        notifier.addDive();
+        notifier.select(0);
+      }
       await tester.pumpAndSettle();
       notifier.setActuals({
         c.read(planSeriesNotifierProvider).dives[0].state.id: SeriesFollow(
@@ -357,6 +385,73 @@ void main() {
 
       expect(find.byTooltip('Logged dive #214'), findsOneWidget);
       expect(find.byKey(const Key('planActualToggle')), findsOneWidget);
+    });
+
+    Future<void> showPlan(WidgetTester tester) async {
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('planActualToggle')),
+          matching: find.text('Plan'),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the toggle buttons stay put when the note shows', (
+      tester,
+    ) async {
+      await pumpDived(tester);
+      final actual = find.descendant(
+        of: find.byKey(const Key('planActualToggle')),
+        matching: find.text('Actual'),
+      );
+      final before = tester.getTopLeft(actual);
+
+      await showPlan(tester);
+
+      expect(tester.getTopLeft(actual), before);
+    });
+
+    testWidgets('its plan scrolls, and Setup opens to read but not edit', (
+      tester,
+    ) async {
+      await pumpDived(tester);
+      await showPlan(tester);
+
+      final pane = find.byType(PlanEditorPane);
+      final scrollable = find
+          .descendant(of: pane, matching: find.byType(Scrollable))
+          .first;
+      await tester.drag(scrollable, const Offset(0, -600));
+      await tester.pumpAndSettle();
+      expect(
+        tester.state<ScrollableState>(scrollable).position.pixels,
+        greaterThan(0),
+      );
+
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('planSetup_deco')),
+        200,
+        scrollable: scrollable,
+      );
+      await tester.tap(find.byKey(const ValueKey('planSetup_deco')));
+      await tester.pumpAndSettle();
+      final body = tester.widget<IgnorePointer>(
+        find.byKey(const ValueKey('planSetupBody_deco')),
+      );
+      expect(body.ignoring, isTrue);
+    });
+
+    testWidgets('a single plan, dived, offers no new planned dive', (
+      tester,
+    ) async {
+      await pumpDived(tester, series: false);
+
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Create planned dive'), findsNothing);
+      expect(find.text('Update planned dive'), findsNothing);
     });
   });
 }

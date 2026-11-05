@@ -139,6 +139,16 @@ light and dark, phone and desktop.
   shows nothing for the last.
 - **Keyboard.** Next and previous treat a dived dive as any other dive of
   the series; only a followed dive picked in the bar is left first.
+- **Locked plan (found in review, 2026-11-05).** The first build locked a
+  dived dive's plan by wrapping the editor in `IgnorePointer`, which also
+  stopped it scrolling and left the chart editable; Save then reported
+  success while keeping the stored plan. Now one `planLockedProvider` is read
+  by each editing surface instead (see the spec's "Dived dives"). The chart's
+  drag was never gated by its own read-only flag: a mission simply has no
+  handles, so a locked plan drops them the same way. Reset Plan stays: it
+  starts a new plan and leaves the saved one alone. The toggle is aligned
+  to the start. A single plan linked to a dived dive hides "Create planned
+  dive" (decided 2026-11-05).
 - **Not done:** the range table of a later dive still starts from a fresh
   diver. No test across a daylight saving change: the chain reuses phase
   2's `fromWallClockUtc` and `endInstant`, and CI runs in UTC, where such a

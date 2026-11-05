@@ -23,38 +23,43 @@ class PlanActualToggle extends ConsumerWidget {
     final l10n = context.l10n;
     final units = ref.watch(unitFormatterProvider);
     final showPlan = ref.watch(showPlanOfDivedProvider);
+    // Aligned to the start, so the buttons stay put when the note appears
+    // after them; centred, the wider row would shift them.
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Wrap(
-        crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: 12,
-        runSpacing: 4,
-        children: [
-          SegmentedButton<bool>(
-            key: const Key('planActualToggle'),
-            segments: [
-              ButtonSegment(
-                value: false,
-                label: Text(l10n.plannerSeries_view_actual),
-              ),
-              ButtonSegment(
-                value: true,
-                label: Text(l10n.plannerSeries_view_plan),
-              ),
-            ],
-            selected: {showPlan},
-            showSelectedIcon: false,
-            onSelectionChanged: (selection) =>
-                ref.read(showPlanOfDivedProvider.notifier).state =
-                    selection.first,
-          ),
-          if (showPlan)
-            Text(
-              l10n.plannerSeries_view_planNote(
-                seriesLoggedDiveLabel(actual.followed, units),
-              ),
+      child: Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 12,
+          runSpacing: 4,
+          children: [
+            SegmentedButton<bool>(
+              key: const Key('planActualToggle'),
+              segments: [
+                ButtonSegment(
+                  value: false,
+                  label: Text(l10n.plannerSeries_view_actual),
+                ),
+                ButtonSegment(
+                  value: true,
+                  label: Text(l10n.plannerSeries_view_plan),
+                ),
+              ],
+              selected: {showPlan},
+              showSelectedIcon: false,
+              onSelectionChanged: (selection) =>
+                  ref.read(showPlanOfDivedProvider.notifier).state =
+                      selection.first,
             ),
-        ],
+            if (showPlan)
+              Text(
+                l10n.plannerSeries_view_planNote(
+                  seriesLoggedDiveLabel(actual.followed, units),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
