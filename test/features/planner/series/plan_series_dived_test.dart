@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -298,6 +300,7 @@ void main() {
       WidgetTester tester, {
       Size size = const Size(1400, 1000),
       bool series = true,
+      List<dynamic> overrides = const [],
     }) async {
       tester.view.physicalSize = size;
       tester.view.devicePixelRatio = 1.0;
@@ -317,6 +320,7 @@ void main() {
             planResultRunnerProvider.overrideWithValue(
               const MainThreadPlanResultRunner(),
             ),
+            ...overrides,
           ],
           locale: const Locale('en'),
           child: const PlanCanvasPage(),
@@ -370,6 +374,36 @@ void main() {
       expect(find.byKey(const Key('loggedDiveName')), findsOneWidget);
       expect(find.byTooltip('Open in dive log'), findsOneWidget);
       expect(find.byType(SegmentList), findsNothing);
+    });
+
+    testWidgets('a reread of the log shows no plan before it is done', (
+      tester,
+    ) async {
+      // The log's answer for any link never comes, as on a slow first read.
+      final c = await pumpDived(
+        tester,
+        overrides: [
+          seriesActualsProvider.overrideWith((ref) {
+            final linked = ref.watch(
+              planSeriesNotifierProvider.select(
+                (s) => s.dives.any((d) => d.state.linkedDiveId != null),
+              ),
+            );
+            return linked
+                ? Completer<Map<String, SeriesFollow>>().future
+                : Future.value(const <String, SeriesFollow>{});
+          }),
+        ],
+      );
+      final b = c.read(planSeriesNotifierProvider).dives[1].state.id;
+
+      // A new link reads the log again; until then the old answer stands.
+      c.read(planSeriesNotifierProvider.notifier).adoptLinks({b: 'other'});
+      await tester.pump();
+      await tester.pump();
+
+      expect(c.read(planSeriesNotifierProvider).dives[0].actual, isNotNull);
+      expect(find.byType(LoggedDiveResults), findsOneWidget);
     });
 
     testWidgets('the toggle shows the plan, read-only, and back', (

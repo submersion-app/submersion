@@ -108,10 +108,12 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
     }
     // What has actually been dived replaces the plan in the chain (issue
     // #3565). Deferred: this can fire inside a build, where providers cannot
-    // be changed.
+    // be changed. Only a finished read: one under way still carries the
+    // last answer, for other links, and applying that would show a dived
+    // dive's plan until the read is done.
     ref.listenManual(seriesActualsProvider, (_, next) {
-      final actuals = next.value;
-      if (actuals == null) return;
+      if (next is! AsyncData) return;
+      final actuals = next.requireValue;
       Future.microtask(() {
         if (mounted) {
           ref.read(planSeriesNotifierProvider.notifier).setActuals(actuals);
