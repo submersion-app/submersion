@@ -20906,11 +20906,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerSeries_view_plan => 'Plan';
 
   @override
-  String plannerSeries_view_planNote(String dive) {
-    return 'Zoals gepland. Gedoken als $dive.';
-  }
-
-  @override
   String plannerSeries_saved_divedCount(int dived, int count) {
     return '$dived van $count gedoken';
   }

@@ -5921,7 +5921,6 @@
   "plannerSeries_openInLog": "Apri nel logbook",
   "plannerSeries_view_actual": "Effettiva",
   "plannerSeries_view_plan": "Piano",
-  "plannerSeries_view_planNote": "Come pianificato. Effettuata come {dive}.",
   "plannerSeries_saved_divedCount": "{dived} di {count} effettuate",
   "plannerSeries_stopFollowing": "Smetti di seguire",
   "plannerSeries_compareWithPlan": "Confronta con il piano",

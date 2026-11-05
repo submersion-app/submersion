@@ -6022,7 +6022,6 @@
   "plannerSeries_openInLog": "فتح في سجل الغطس",
   "plannerSeries_view_actual": "الفعلي",
   "plannerSeries_view_plan": "الخطة",
-  "plannerSeries_view_planNote": "كما هو مخطط. نُفّذت باسم {dive}.",
   "plannerSeries_saved_divedCount": "{dived} من {count} نُفّذت",
   "plannerSeries_stopFollowing": "إيقاف المتابعة",
   "plannerSeries_compareWithPlan": "مقارنة بالخطة",

@@ -5921,7 +5921,6 @@
   "plannerSeries_openInLog": "Megnyitás a naplóban",
   "plannerSeries_view_actual": "Tényleges",
   "plannerSeries_view_plan": "Terv",
-  "plannerSeries_view_planNote": "Ahogy tervezve. Merülve: {dive}.",
   "plannerSeries_saved_divedCount": "{dived}/{count} lemerülve",
   "plannerSeries_stopFollowing": "Követés leállítása",
   "plannerSeries_compareWithPlan": "Összevetés a tervvel",

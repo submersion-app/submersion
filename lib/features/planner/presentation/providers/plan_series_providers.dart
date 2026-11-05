@@ -192,7 +192,11 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
 
   /// Replaces the series with [series], as saved or opened, and loads its
   /// selected dive. Not an outside load: it is the series doing the loading.
-  void loadSeries(PlanSeries series) {
+  ///
+  /// With [actuals], what the log says about its dives that have been dived
+  /// is taken in the same step, so a dived dive never shows as a plan first.
+  void loadSeries(PlanSeries series, {Map<String, SeriesFollow>? actuals}) {
+    if (actuals != null) _actuals = actuals;
     _earlier = const [];
     // The same series, as just saved, still owes the offer; another does not.
     if (state.id != null && series.id != state.id) {

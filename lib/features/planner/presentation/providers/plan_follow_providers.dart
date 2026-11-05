@@ -2,6 +2,7 @@ import 'package:clock/clock.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
@@ -143,16 +144,31 @@ final seriesActualsProvider = FutureProvider<Map<String, SeriesFollow>>((
   ];
   final repository = ref.watch(diveRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchDivesChanges());
+  return readSeriesActuals(
+    links,
+    repository,
+    (diveId) => ref.watch(seriesFollowProvider(diveId).future),
+  );
+});
 
+/// What the log says about [links], (plan id, dive id) pairs, by plan id:
+/// for each entry no longer planned, the dive as a followed dive reads.
+/// Shared by [seriesActualsProvider] and opening a saved plan, which reads
+/// it before the plan shows so a dived dive never shows as a plan first.
+Future<Map<String, SeriesFollow>> readSeriesActuals(
+  Iterable<(String, String)> links,
+  DiveRepository repository,
+  Future<SeriesFollow?> Function(String diveId) followOf,
+) async {
   final actuals = <String, SeriesFollow>{};
   for (final (planId, diveId) in links) {
     final dive = await repository.getDiveById(diveId);
     if (dive == null || dive.isPlanned) continue;
-    final follow = await ref.watch(seriesFollowProvider(diveId).future);
+    final follow = await followOf(diveId);
     if (follow != null) actuals[planId] = follow;
   }
   return actuals;
-});
+}
 
 /// Logged dives whose Follow prompt the diver dismissed this session.
 final dismissedFollowSuggestionsProvider = StateProvider<Set<String>>(

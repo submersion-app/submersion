@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_planner/presentation/providers/dive_pla
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/segment_list.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
 import 'package:submersion/features/planner/presentation/panes/plan_editor_pane.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
@@ -173,6 +174,41 @@ void main() {
       expect(c.read(planSeriesDirtyProvider), isFalse);
     });
 
+    test('a saved series opens with its dived dive dived at once', () async {
+      final first = await twoDivesInTheLog();
+      final a = c.read(planSeriesNotifierProvider).dives[0].state.id;
+      await c.read(diveRepositoryProvider).convertPlanToActualDive(first);
+      c.invalidate(divesProvider);
+      c.read(divePlanNotifierProvider.notifier).newPlan();
+      expect(c.read(planSeriesNotifierProvider).dives.single.actual, isNull);
+
+      await openSavedPlan(c, a);
+
+      // Nothing waits on the planner's own read of the log.
+      final opened = c.read(planSeriesNotifierProvider);
+      expect(opened.selected.state.id, a);
+      expect(opened.selected.actual?.followed.id, first);
+      expect(c.read(viewedLoggedDiveProvider)?.id, first);
+    });
+
+    test('a single saved plan opens dived at once too', () async {
+      final editor = c.read(divePlanNotifierProvider.notifier);
+      series().setSelectedStart(nine);
+      await editor.save();
+      final id = c.read(divePlanNotifierProvider).id;
+      final dive = await c
+          .read(diveRepositoryProvider)
+          .createDive(Dive(id: '', diveNumber: 9, dateTime: nine));
+      await c.read(divePlanRepositoryProvider).linkPlanToDive(id, dive.id);
+      c.invalidate(divesProvider);
+      editor.newPlan();
+
+      await openSavedPlan(c, id);
+
+      expect(c.read(planSeriesNotifierProvider).selected.state.id, id);
+      expect(c.read(viewedLoggedDiveProvider)?.id, dive.id);
+    });
+
     test('Update leaves a dived dive out of its checks', () async {
       await twoDivesInTheLog();
       final dives = c.read(planSeriesNotifierProvider).dives;
@@ -330,6 +366,10 @@ void main() {
 
       expect(find.byType(LoggedDiveResults), findsOneWidget);
       expect(find.byKey(const Key('planActualToggle')), findsOneWidget);
+      // Its details, read-only with a way to the dive, and no segments.
+      expect(find.byKey(const Key('loggedDiveName')), findsOneWidget);
+      expect(find.byTooltip('Open in dive log'), findsOneWidget);
+      expect(find.byType(SegmentList), findsNothing);
     });
 
     testWidgets('the toggle shows the plan, read-only, and back', (
@@ -346,16 +386,17 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(LoggedDiveResults), findsNothing);
-      expect(find.textContaining('As planned. Dived as #214'), findsOneWidget);
+      expect(find.textContaining('As planned. Dived as'), findsNothing);
+      // Its details read, with a way to the dive; its tanks offer nothing.
       expect(
-        find.ancestor(
-          of: find.byKey(const Key('diveNameField')),
-          matching: find.byWidgetPredicate(
-            (w) => w is IgnorePointer && w.ignoring,
-          ),
-        ),
-        findsWidgets,
+        tester
+            .widget<TextField>(find.byKey(const Key('diveNameField')))
+            .readOnly,
+        isTrue,
       );
+      expect(find.byKey(const Key('planDetailsOpenInLog')), findsOneWidget);
+      expect(find.byTooltip('Add Tank'), findsNothing);
+      expect(find.text('Saved tanks'), findsNothing);
 
       await tester.tap(
         find.descendant(
@@ -378,6 +419,9 @@ void main() {
       expect(find.byType(LoggedDiveResults), findsNothing);
       expect(find.byKey(const Key('planActualToggle')), findsNothing);
       expect(find.byTooltip('Remove Dive B'), findsOneWidget);
+      // A plan still open has its tanks' controls, and no link to a dive.
+      expect(find.byTooltip('Add Tank'), findsOneWidget);
+      expect(find.byKey(const Key('planDetailsOpenInLog')), findsNothing);
     });
 
     testWidgets('on a phone too', (tester) async {
@@ -397,7 +441,7 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('the toggle buttons stay put when the note shows', (
+    testWidgets('the toggle buttons stay put between Actual and Plan', (
       tester,
     ) async {
       await pumpDived(tester);

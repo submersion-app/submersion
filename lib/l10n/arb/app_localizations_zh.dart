@@ -20014,11 +20014,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerSeries_view_plan => '计划';
 
   @override
-  String plannerSeries_view_planNote(String dive) {
-    return '按计划。实际潜水：$dive。';
-  }
-
-  @override
   String plannerSeries_saved_divedCount(int dived, int count) {
     return '已潜 $dived/$count';
   }

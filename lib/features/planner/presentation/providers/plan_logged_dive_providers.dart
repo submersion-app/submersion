@@ -1,8 +1,6 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
-import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
-import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/domain/services/range_table_service.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
@@ -28,13 +26,6 @@ final viewedLoggedDivePlanProvider = Provider<LinkedPlanComparison?>((ref) {
   final logged = ref.watch(viewedLoggedDiveProvider);
   if (logged == null) return null;
   return ref.watch(linkedPlanComparisonProvider(logged.id)).value;
-});
-
-/// The plan of [viewedLoggedDivePlanProvider] as the editor's widgets read
-/// a plan, for showing its segments read-only.
-final viewedLoggedDivePlanStateProvider = Provider<DivePlanState?>((ref) {
-  final comparison = ref.watch(viewedLoggedDivePlanProvider);
-  return comparison == null ? null : stateFromDivePlan(comparison.plan);
 });
 
 /// The range table of the plan [diveId] was dived from, computed in the

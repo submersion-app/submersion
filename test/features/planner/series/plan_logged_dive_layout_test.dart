@@ -127,16 +127,14 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('a dive dived from a plan shows that plan read-only', (
+  testWidgets('a dive dived from a plan shows it as planned, not segments', (
     tester,
   ) async {
     await pumpLogged(tester, planned: true);
 
-    // Its plan's segments, with nothing to edit.
-    final segments = tester.widget<SegmentList>(find.byType(SegmentList));
-    expect(segments.plan, isNotNull);
-    expect(find.byTooltip('Add Segment'), findsNothing);
-    expect(find.byIcon(Icons.drag_handle), findsNothing);
+    // What happened has no segments (decided 2026-11-05).
+    expect(find.byType(SegmentList), findsNothing);
+    expect(find.byKey(const Key('loggedDiveNotPlanned')), findsNothing);
     // Its plan's schedule, gas and range table, as planned.
     expect(find.byKey(const Key('loggedDiveAsPlanned')), findsOneWidget);
     expect(find.text('As planned'), findsOneWidget);
@@ -216,21 +214,15 @@ void main() {
     );
   });
 
-  testWidgets('on a phone, a planned dive opens its Plan tab', (tester) async {
+  testWidgets('on a phone, a planned dive has Tanks and Results only', (
+    tester,
+  ) async {
     await pumpLogged(tester, planned: true, size: const Size(420, 900));
 
     final tabs = tester.widget<SegmentedButton<int>>(
       find.byType(SegmentedButton<int>),
     );
-    expect(tabs.segments.map((s) => s.enabled), [true, true, false, true]);
-
-    await tester.tap(find.text('Plan'));
-    await tester.pumpAndSettle();
-    expect(tester.takeException(), isNull);
-    expect(
-      tester.widget<SegmentList>(find.byType(SegmentList)).plan,
-      isNotNull,
-    );
+    expect(tabs.segments.map((s) => s.enabled), [true, false, false, true]);
 
     await tester.tap(find.text('Results'));
     await tester.pumpAndSettle();

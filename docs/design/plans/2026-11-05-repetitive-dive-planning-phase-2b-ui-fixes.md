@@ -149,6 +149,15 @@ light and dark, phone and desktop.
   starts a new plan and leaves the saved one alone. The toggle is aligned
   to the start. A single plan linked to a dived dive hides "Create planned
   dive" (decided 2026-11-05).
+- **Second review (2026-11-05).** Opening a dived plan from the Planning
+  list showed its plan for a moment: the planner read the log only after
+  loading it. Opening now reads it first. The Actual view lost its details
+  card, which was written for followed dives and hid without a follow; it
+  now shows for a dived dive, with its open-in-log icon, and no logged-dive
+  view shows segments any more (decided 2026-11-05: Plan shows segments,
+  Actual never does). The "As planned. Dived as" note is gone and the
+  toggle centred again. The Plan view's details card locks itself and
+  gains the same icon; its tank list drops add, Fill all and Saved tanks.
 - **Not done:** the range table of a later dive still starts from a fresh
   diver. No test across a daylight saving change: the chain reuses phase
   2's `fromWallClockUtc` and `endInstant`, and CI runs in UTC, where such a

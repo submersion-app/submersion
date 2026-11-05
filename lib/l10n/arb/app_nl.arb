@@ -6022,7 +6022,6 @@
   "plannerSeries_openInLog": "Openen in logboek",
   "plannerSeries_view_actual": "Werkelijk",
   "plannerSeries_view_plan": "Plan",
-  "plannerSeries_view_planNote": "Zoals gepland. Gedoken als {dive}.",
   "plannerSeries_saved_divedCount": "{dived} van {count} gedoken",
   "plannerSeries_stopFollowing": "Niet meer volgen",
   "plannerSeries_compareWithPlan": "Vergelijken met het plan",

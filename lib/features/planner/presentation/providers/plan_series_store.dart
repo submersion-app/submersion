@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_series_repository.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
@@ -180,7 +181,18 @@ Future<void> openSavedPlan(ProviderContainer container, String planId) async {
   final seriesId = await repository.seriesIdForPlan(planId);
   final stored = seriesId == null ? null : await repository.getSeries(seriesId);
   if (stored == null || stored.dives.isEmpty) {
+    // Whether its dive has been dived, read first: the plan then shows as
+    // dived from its first frame (issue #3565).
+    final linked =
+        (await container.read(divePlanRepositoryProvider).getPlan(planId))
+            ?.linkedDiveId;
+    final actuals = linked == null
+        ? const <String, SeriesFollow>{}
+        : await _actualsOf(container, [(planId, linked)]);
+    if (!notifier.mounted) return;
     await editor.loadPlanById(planId);
+    // No await between the load and this, so no frame shows the plan alone.
+    if (notifier.mounted) notifier.setActuals(actuals);
     return;
   }
 
@@ -192,6 +204,12 @@ Future<void> openSavedPlan(ProviderContainer container, String planId) async {
       : await container.awaitFuture(seriesFollowProvider(followedId).future);
   if (!notifier.mounted) return;
 
+  final actuals = await _actualsOf(container, [
+    for (final dive in stored.dives)
+      if (dive.plan.linkedDiveId case final id?) (dive.plan.id, id),
+  ]);
+  if (!notifier.mounted) return;
+
   final index = stored.dives.indexWhere((dive) => dive.plan.id == planId);
   notifier.loadSeries(
     seriesFromStored(
@@ -199,8 +217,21 @@ Future<void> openSavedPlan(ProviderContainer container, String planId) async {
       follow: follow == null ? null : _withOwnPressures(follow, stored),
       selectedIndex: index < 0 ? 0 : index,
     ),
+    actuals: actuals,
   );
 }
+
+/// What the log says about [links], read through [container].
+Future<Map<String, SeriesFollow>> _actualsOf(
+  ProviderContainer container,
+  List<(String, String)> links,
+) => links.isEmpty
+    ? Future.value(const {})
+    : readSeriesActuals(
+        links,
+        container.read(diveRepositoryProvider),
+        (diveId) => container.awaitFuture(seriesFollowProvider(diveId).future),
+      );
 
 /// The planner's series for [stored], following [follow] with
 /// [selectedIndex] selected. Nothing in it is unsaved.

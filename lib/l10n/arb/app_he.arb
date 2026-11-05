@@ -5921,7 +5921,6 @@
   "plannerSeries_openInLog": "פתיחה ביומן",
   "plannerSeries_view_actual": "בפועל",
   "plannerSeries_view_plan": "תוכנית",
-  "plannerSeries_view_planNote": "כמתוכנן. נצללה כ-{dive}.",
   "plannerSeries_saved_divedCount": "{dived} מתוך {count} נצללו",
   "plannerSeries_stopFollowing": "הפסקת מעקב",
   "plannerSeries_compareWithPlan": "השוואה לתוכנית",

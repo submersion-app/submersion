@@ -60,11 +60,11 @@ class _PlanEditorPaneState extends ConsumerState<PlanEditorPane> {
       divePlanNotifierProvider.select((s) => s.mission != null),
     );
 
-    // A logged dive picked in the series bar: its details and tanks
-    // read-only, and the segments of the plan it was dived from, if any
-    // (issue #3565). It has no plan settings of its own.
+    // A logged dive, followed or a dived dive of the series: its details and
+    // tanks read-only (issue #3565). What happened has no segments; a plan's
+    // are in its Plan view, or Compare. It has no plan settings of its own.
     if (ref.watch(viewingLoggedDiveProvider)) {
-      final plan = ref.watch(viewedLoggedDivePlanStateProvider);
+      final planned = ref.watch(viewedLoggedDivePlanProvider) != null;
       return ListView(
         controller: _scrollController,
         padding: const EdgeInsets.all(12),
@@ -72,9 +72,7 @@ class _PlanEditorPaneState extends ConsumerState<PlanEditorPane> {
           const LoggedDiveDetailsCard(),
           const LoggedDiveTanksCard(),
           const SizedBox(height: 12),
-          if (plan != null)
-            SegmentList(plan: plan)
-          else
+          if (!planned)
             Padding(
               key: const Key('loggedDiveNotPlanned'),
               padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -96,7 +94,8 @@ class _PlanEditorPaneState extends ConsumerState<PlanEditorPane> {
       controller: _scrollController,
       padding: const EdgeInsets.all(12),
       children: [
-        IgnorePointer(ignoring: locked, child: const PlanDiveDetailsCard()),
+        // Locks itself, keeping its link to the dive open.
+        const PlanDiveDetailsCard(),
         IgnorePointer(ignoring: locked, child: const PlanTankList()),
         const SizedBox(height: 12),
         if (!locked) const MissionToggleRow(),

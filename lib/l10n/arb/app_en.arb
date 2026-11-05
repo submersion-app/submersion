@@ -13138,15 +13138,6 @@
   "@plannerSeries_view_plan": {
     "description": "Toggle segment showing the original plan of a dive of a series that has been dived"
   },
-  "plannerSeries_view_planNote": "As planned. Dived as {dive}.",
-  "@plannerSeries_view_planNote": {
-    "description": "Note beside the toggle while a dived dive shows its plan, read-only",
-    "placeholders": {
-      "dive": {
-        "type": "String"
-      }
-    }
-  },
   "plannerSeries_saved_divedCount": "{dived} of {count} dived",
   "@plannerSeries_saved_divedCount": {
     "description": "How many dives of a saved series have been dived, in the saved plans list",

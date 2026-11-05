@@ -20580,11 +20580,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerSeries_view_plan => 'תוכנית';
 
   @override
-  String plannerSeries_view_planNote(String dive) {
-    return 'כמתוכנן. נצללה כ-$dive.';
-  }
-
-  @override
   String plannerSeries_saved_divedCount(int dived, int count) {
     return '$dived מתוך $count נצללו';
   }

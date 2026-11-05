@@ -20730,11 +20730,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerSeries_view_plan => 'Plan';
 
   @override
-  String plannerSeries_view_planNote(String dive) {
-    return 'As planned. Dived as $dive.';
-  }
-
-  @override
   String plannerSeries_saved_divedCount(int dived, int count) {
     return '$dived of $count dived';
   }

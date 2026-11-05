@@ -220,11 +220,10 @@ From the menu you can also:
   Tap one to see it in the planner's own layout, read-only: its profile where
   the plan's chart was, its details and tanks, and in the results what it
   carries into the next dive, its runtime and the warnings its safety review
-  found. If the dive was dived from a plan, that plan's segments show under
-  **Plan**, its schedule, gas and range table show **As planned**, and the
-  chart shows the plan beside the dive; **Compare with its plan** opens the
-  dive's Compare page. Setup isn't available for a logged dive. Tap a planned
-  dive to go back.
+  found. If the dive was dived from a plan, its schedule, gas and range table
+  show **As planned**, and the chart shows the plan beside the dive;
+  **Compare with its plan** opens the dive's Compare page. A logged dive has
+  no segments or Setup of its own. Tap a planned dive to go back.
 - **Rebuild in planner** opens a logged dive in the planner. In the dive's menu
   choose **Compare…**, then **Rebuild in planner...** in the Compare page's
   menu; a dive Compare can't branch, such as a gauge dive, goes straight there.
@@ -248,11 +247,13 @@ From the menu you can also:
 - **Dived dives.** Once a planned dive is dived, by **Mark as logged**, the
   edit page's switch or a download, the planner treats it as what happened.
   Its chip in the series bar becomes the solid diver with the logged dive's
-  name or number, and it can no longer be removed from the series. Tap it to
-  see it as a logged dive, with its plan drawn beside it on the chart; switch
-  **Actual** to **Plan** to see the plan itself. The plan is locked once its
-  dive is dived: you can scroll it and open its settings to read them, but
-  not change it, on the chart or anywhere else. A single plan linked to a
+  name or number, and it can no longer be removed from the series. It opens
+  as a logged dive, with its details, its plan drawn beside it on the chart,
+  and no segments; switch **Actual** to **Plan** to see the plan itself. The
+  plan is locked once its dive is dived: you can scroll it and open its
+  settings to read them, but not change it, on the chart or anywhere else.
+  The open icon in either view's **Dive details** opens the dive in your
+  log. A single plan linked to a
   dived dive no longer offers **Create planned dive**; use **Duplicate** in
   **Saved plans** for a copy you can change. The dives after it
   start from what it really left: its tissue loading, CNS, OTU and the gas

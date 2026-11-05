@@ -33501,12 +33501,6 @@ abstract class AppLocalizations {
   /// **'Plan'**
   String get plannerSeries_view_plan;
 
-  /// Note beside the toggle while a dived dive shows its plan, read-only
-  ///
-  /// In en, this message translates to:
-  /// **'As planned. Dived as {dive}.'**
-  String plannerSeries_view_planNote(String dive);
-
   /// How many dives of a saved series have been dived, in the saved plans list
   ///
   /// In en, this message translates to:

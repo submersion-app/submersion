@@ -6173,7 +6173,6 @@
   "plannerSeries_openInLog": "在潜水日志中打开",
   "plannerSeries_view_actual": "实际",
   "plannerSeries_view_plan": "计划",
-  "plannerSeries_view_planNote": "按计划。实际潜水：{dive}。",
   "plannerSeries_saved_divedCount": "已潜 {dived}/{count}",
   "plannerSeries_stopFollowing": "停止跟随",
   "plannerSeries_compareWithPlan": "与计划对比",
