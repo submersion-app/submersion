@@ -22,11 +22,30 @@ class SeriesDiveResult {
   /// engine computes alone.
   final List<PlanIssue> seriesIssues;
 
+  /// What the dive left behind if it has been dived; [outcome] stays the plan,
+  /// for comparing against it.
+  final SeriesFollow? actual;
+
   const SeriesDiveResult({
     required this.state,
     required this.outcome,
     this.seriesIssues = const [],
+    this.actual,
   });
+
+  /// How long the dive took: as dived, else as planned.
+  int get runtimeSeconds {
+    final logged = actual?.followed;
+    return logged == null
+        ? outcome.runtimeSeconds
+        : logged.endInstant
+              .difference(fromWallClockUtc(logged.start))
+              .inSeconds;
+  }
+
+  /// The OTU of this dive alone: as dived, else as planned.
+  double get ownOtu =>
+      actual?.followed.otu ?? outcome.otuTotal - (state.initialOtu ?? 0);
 }
 
 /// A surface interval shorter than this is flagged.
@@ -48,6 +67,8 @@ List<PlanIssue> seriesIssuesFor(
   SeriesFollow? follow,
 }) {
   if (index == 0 && follow == null) return const [];
+  // It has happened, so there is nothing left to warn about.
+  if (dives[index].actual != null) return const [];
   final issues = <PlanIssue>[];
 
   final end = previousEnd(index, earlier, follow: follow);
@@ -90,7 +111,8 @@ List<PlanIssue> seriesIssuesFor(
 
   final previousDepth = index == 0
       ? follow?.followed.maxDepth
-      : earlier[index - 1].outcome.maxDepth;
+      : earlier[index - 1].actual?.followed.maxDepth ??
+            earlier[index - 1].outcome.maxDepth;
   if (previousDepth != null &&
       maxDepth > previousDepth + reverseProfileMarginMeters) {
     issues.add(
@@ -136,6 +158,7 @@ List<SeriesDiveResult> computeSeries(
         state: state,
         outcome: outcome.withIssues(issues),
         seriesIssues: issues,
+        actual: dives[i].actual,
       ),
     );
   }
@@ -158,7 +181,7 @@ DivePlanState carriedState(
   SeriesFollow? follow,
 }) {
   final dive = dives[index];
-  if (index == 0 && follow == null) return dive.state;
+  if (index == 0 && follow == null && dive.actual == null) return dive.state;
 
   final timing = _timing(dive, previousEnd(index, earlier, follow: follow));
   final timed = dive.state.copyWith(
@@ -168,6 +191,7 @@ DivePlanState carriedState(
   );
   final otu = _carriedOtu(index, timing.interval, earlier, follow);
 
+  if (index == 0 && follow == null) return timed;
   if (index == 0) {
     final tissues = follow!.endTissues;
     return timed.copyWith(
@@ -186,11 +210,15 @@ DivePlanState carriedState(
   }
   final previous = earlier[index - 1];
 
-  final remaining = {
-    for (final usage in previous.outcome.tankUsages)
-      if (usage.remainingPressure case final pressure?)
-        usage.tankId: pressure < 0 ? 0.0 : pressure,
-  };
+  final actual = previous.actual;
+  final actualTissues = actual?.endTissues;
+  final remaining = actual == null
+      ? {
+          for (final usage in previous.outcome.tankUsages)
+            if (usage.remainingPressure case final pressure?)
+              usage.tankId: pressure < 0 ? 0.0 : pressure,
+        }
+      : _remainingAsDived(previous.state.tanks, actual.endTanks);
   final before = {for (final tank in previous.state.tanks) tank.id: tank};
   final tanks = [
     for (final tank in dive.state.tanks)
@@ -204,9 +232,15 @@ DivePlanState carriedState(
   ];
 
   return timed.copyWith(
-    initialTissueState: previous.outcome.surfacedTissue.compartments,
-    initialTissueEnvironment: environmentForPlan(previous.state),
-    initialCns: previous.outcome.cnsEnd,
+    // A dive that has been dived carries the tissues it really ended with,
+    // in the conditions it was dived in; one with no profile to analyse
+    // carries its plan's.
+    initialTissueState:
+        actualTissues ?? previous.outcome.surfacedTissue.compartments,
+    initialTissueEnvironment: actualTissues != null
+        ? actual!.endEnvironment
+        : environmentForPlan(previous.state),
+    initialCns: actual?.endCns ?? previous.outcome.cnsEnd,
     initialOtu: otu,
     tanks: tanks,
   );
@@ -245,6 +279,7 @@ DateTime? previousEnd(
 }) {
   if (index == 0) return follow?.followed.endInstant;
   final previous = earlier[index - 1];
+  if (previous.actual case final actual?) return actual.followed.endInstant;
   final start = previous.state.startDateTime;
   if (start == null) return null;
   return fromWallClockUtc(
@@ -261,6 +296,16 @@ DateTime? previousEnd(
   DateTime? previousEnd,
 ) {
   final own = dive.state.surfaceInterval ?? defaultSeriesSurfaceInterval;
+  // A dive that has been dived started when it did.
+  if (dive.actual?.followed case final logged?) {
+    final since = previousEnd == null
+        ? own
+        : fromWallClockUtc(logged.start).difference(previousEnd);
+    return (
+      interval: since.isNegative ? Duration.zero : since,
+      start: logged.start,
+    );
+  }
   if (previousEnd == null) return (interval: own, start: null);
   final start = dive.state.startDateTime;
   if (dive.fixedStart && start != null) {
@@ -287,7 +332,7 @@ double _carriedOtu(
   var clock = 0;
   for (var j = 0; j < index; j++) {
     if (j > 0) clock += _intervalSeconds(earlier[j].state);
-    clock += earlier[j].outcome.runtimeSeconds;
+    clock += earlier[j].runtimeSeconds;
     ends.add(clock);
   }
   final start = index == 0 ? 0 : clock + interval.inSeconds;
@@ -307,10 +352,31 @@ double _carriedOtu(
   }
   for (var j = 0; j < index; j++) {
     if (start - ends[j] >= otuCarryWindow.inSeconds) continue;
-    final result = earlier[j];
-    otu += result.outcome.otuTotal - (result.state.initialOtu ?? 0);
+    otu += earlier[j].ownOtu;
   }
   return otu;
+}
+
+/// What was left in each of [tanks] after the dive was dived, from the logged
+/// [endTanks]: the tank in the same position when it holds the same gas, else
+/// the first of that gas. A download can log different tanks from those planned.
+Map<String, double> _remainingAsDived(
+  List<DiveTank> tanks,
+  List<DiveTank> endTanks,
+) {
+  bool sameGas(DiveTank a, DiveTank b) =>
+      a.gasMix.roundedO2 == b.gasMix.roundedO2 &&
+      a.gasMix.roundedHe == b.gasMix.roundedHe;
+  final remaining = <String, double>{};
+  for (final (index, tank) in tanks.indexed) {
+    final logged = index < endTanks.length && sameGas(endTanks[index], tank)
+        ? endTanks[index]
+        : endTanks.where((t) => sameGas(t, tank)).firstOrNull;
+    if (logged?.endPressure case final end?) {
+      remaining[tank.id] = end < 0 ? 0.0 : end;
+    }
+  }
+  return remaining;
 }
 
 int _intervalSeconds(DivePlanState state) =>
