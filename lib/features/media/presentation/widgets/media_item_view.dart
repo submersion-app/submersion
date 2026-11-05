@@ -81,6 +81,15 @@ class MediaItemView extends ConsumerStatefulWidget {
   /// is the original's.
   final ValueChanged<Size>? onImageSize;
 
+  /// Called once per item with the image provider that drew it and its
+  /// decoded size, after its first frame, for a caller that analyses the
+  /// pixels it shows (a dive card's photo crop). Never called for a
+  /// placeholder or an image that failed to decode.
+  final void Function(ImageProvider provider, Size size)? onImageReady;
+
+  /// Where the image sits in its box when [fit] crops it.
+  final Alignment alignment;
+
   const MediaItemView({
     super.key,
     required this.item,
@@ -89,6 +98,8 @@ class MediaItemView extends ConsumerStatefulWidget {
     this.thumbnail = false,
     this.showAccessActions = false,
     this.onImageSize,
+    this.onImageReady,
+    this.alignment = Alignment.center,
   });
 
   @override
@@ -166,11 +177,13 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
     _sizeListener = null;
   }
 
-  /// Reports [provider]'s decoded size to [MediaItemView.onImageSize], once
-  /// per item.
+  /// Reports [provider]'s decoded size to [MediaItemView.onImageSize] and
+  /// [MediaItemView.onImageReady], once per item.
   void _watchSize(ImageProvider provider) {
-    final report = widget.onImageSize;
-    if (report == null || _sizeReportedFor == widget.item.id) return;
+    final reportSize = widget.onImageSize;
+    final reportReady = widget.onImageReady;
+    if (reportSize == null && reportReady == null) return;
+    if (_sizeReportedFor == widget.item.id) return;
     final stream = provider.resolve(ImageConfiguration.empty);
     if (stream.key == _sizeStream?.key) return;
     _stopSizeWatch();
@@ -185,7 +198,9 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
       // A cached image answers synchronously, inside this build; the caller
       // may setState with the size, so it hears after the frame.
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) report(size);
+        if (!mounted) return;
+        reportSize?.call(size);
+        reportReady?.call(provider, size);
       });
       _stopSizeWatch();
     }, onError: (_, _) => _stopSizeWatch());
@@ -449,6 +464,7 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
     return Image(
       image: provider,
       fit: widget.fit,
+      alignment: widget.alignment,
       errorBuilder: _imageError,
       frameBuilder: (context, child, frame, synchronouslyLoaded) =>
           ColorCorrected(

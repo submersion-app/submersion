@@ -313,7 +313,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 342;
+  static const int currentSchemaVersion = 343;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1570,6 +1570,11 @@ class AppDatabase extends _$AppDatabase {
     // dive keeps its own (issue #3565, phase 2). Defaulted columns an older
     // peer omits, so the floor does not move.
     342,
+    // v343: diver_settings.show_photo_background_on_dive_cards, whether a
+    // dive card shows one of the dive's photos behind its text, and the
+    // overlay opacity over it per theme. Additive and defaulted; the floor
+    // does not move.
+    343,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

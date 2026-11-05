@@ -492,6 +492,54 @@ void main() {
 
       expect(find.byIcon(Icons.map), findsWidgets);
     });
+
+    testWidgets('the photo background switch saves and reveals the sliders', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final notifier = MockSettingsNotifier();
+
+      await tester.pumpWidget(_buildTestWidget('dives', notifier: notifier));
+      await tester.pumpAndSettle();
+
+      final tile = find.widgetWithText(
+        SwitchListTile,
+        'Photo background on dive cards',
+      );
+      expect(tile, findsOneWidget);
+      expect(find.text('Photo overlay, dark theme'), findsNothing);
+
+      await tester.tap(tile);
+      await tester.pumpAndSettle();
+      expect(notifier.state.showPhotoBackgroundOnDiveCards, isTrue);
+      expect(find.text('Photo overlay, dark theme'), findsOneWidget);
+      expect(find.text('Photo overlay, light theme'), findsOneWidget);
+      expect(find.text('60%'), findsNWidgets(2));
+    });
+
+    testWidgets('dragging an overlay slider saves once it is let go', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final notifier = MockSettingsNotifier();
+      await notifier.setShowPhotoBackgroundOnDiveCards(true);
+
+      await tester.pumpWidget(_buildTestWidget('dives', notifier: notifier));
+      await tester.pumpAndSettle();
+
+      final slider = find.descendant(
+        of: find.byKey(const ValueKey('card_photo_overlay_light')),
+        matching: find.byType(Slider),
+      );
+      await tester.drag(slider, const Offset(-400, 0));
+      await tester.pumpAndSettle();
+
+      // Dragged to the far left: the lowest opacity offered.
+      expect(notifier.state.cardPhotoOverlayLight, closeTo(0.2, 1e-9));
+      expect(notifier.state.cardPhotoOverlayDark, 0.6);
+    });
   });
 
   group('SectionAppearancePage - Site cards settings', () {

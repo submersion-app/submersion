@@ -39,5 +39,8 @@ extension BeforeOpenSettingsColumns on AppDatabase {
     // v342 backstop: dive_plans.fixed_start and setting_overrides (issue
     // #3565, phase 2).
     await _assertDivePlanPhase2Columns();
+
+    // v343 backstop: diver_settings.show_photo_background_on_dive_cards.
+    await _assertDiveCardPhotoBackgroundColumn();
   }
 }

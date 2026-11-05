@@ -1,0 +1,165 @@
+import 'package:flutter/material.dart';
+
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/domain/card_photo/card_crop_alignment.dart';
+import 'package:submersion/features/dive_log/domain/card_photo/card_photo.dart';
+import 'package:submersion/features/dive_log/domain/card_photo/card_photo_tuning.dart';
+import 'package:submersion/features/dive_log/presentation/providers/card_photo_providers.dart';
+import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+
+/// The overlay that keeps a dive card's text readable over its photo: dark
+/// on a dark theme, light on a light one, so the card sits with its
+/// neighbours in the list.
+abstract final class DiveCardPhotoScrim {
+  /// The colour the card's text colours are chosen against.
+  static Color textBase(Brightness brightness) =>
+      brightness == Brightness.dark ? const Color(0xFF1A1A2E) : Colors.white;
+
+  /// The overlay for [brightness] at the diver's chosen [opacity].
+  static LinearGradient gradient(Brightness brightness, double opacity) {
+    final base = brightness == Brightness.dark ? Colors.black : Colors.white;
+    final alphas = CardPhotoTuning.overlayAlphas(opacity);
+    return LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      stops: const [0.0, 0.3, 0.7, 1.0],
+      colors: [for (final a in alphas) base.withValues(alpha: a)],
+    );
+  }
+}
+
+/// [child] over one of the dive's photos, cropped to cover the card.
+///
+/// The photo stays hidden until it has decoded and its crop is known, then
+/// fades in at its final position, so it never jumps. Until then, and for a
+/// photo that cannot be drawn, the card shows its own fill.
+class DiveCardPhotoBackground extends ConsumerStatefulWidget {
+  const DiveCardPhotoBackground({
+    super.key,
+    required this.photo,
+    required this.child,
+  });
+
+  final CardPhoto photo;
+  final Widget child;
+
+  @override
+  ConsumerState<DiveCardPhotoBackground> createState() =>
+      _DiveCardPhotoBackgroundState();
+}
+
+class _DiveCardPhotoBackgroundState
+    extends ConsumerState<DiveCardPhotoBackground> {
+  Size? _imageSize;
+  List<double>? _rows;
+  bool _ready = false;
+
+  /// Decode widths step in buckets, so a window being resized does not
+  /// resolve the photo again on every pixel.
+  static const _decodeStep = 160.0;
+
+  @override
+  void didUpdateWidget(covariant DiveCardPhotoBackground oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.photo.mediaId != widget.photo.mediaId) {
+      _imageSize = null;
+      _rows = null;
+      _ready = false;
+    }
+  }
+
+  void _onImageReady(ImageProvider provider, Size size) {
+    if (!mounted) return;
+    final mediaId = widget.photo.mediaId;
+    if (widget.photo.focusBoxes.isNotEmpty ||
+        !CardPhotoTuning.usePixelAnalysis) {
+      setState(() {
+        _imageSize = size;
+        _ready = true;
+      });
+      return;
+    }
+    final analyzer = ref.read(cardFocusAnalyzerProvider);
+    if (analyzer.hasAnswer(mediaId)) {
+      setState(() {
+        _imageSize = size;
+        _rows = analyzer.peek(mediaId);
+        _ready = true;
+      });
+      return;
+    }
+    _imageSize = size;
+    analyzer.rowScoresFor(mediaId, provider).then((rows) {
+      if (!mounted || widget.photo.mediaId != mediaId) return;
+      setState(() {
+        _rows = rows;
+        _ready = true;
+      });
+    });
+  }
+
+  double _alignmentY(Size card) {
+    final image = _imageSize;
+    if (!_ready || image == null || image.height <= 0 || card.height <= 0) {
+      return 0;
+    }
+    return cardCropAlignmentY(
+      imageAspect: image.width / image.height,
+      cardAspect: card.width / card.height,
+      focusBoxes: widget.photo.focusBoxes,
+      rowScores: _rows,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final item = ref.watch(mediaByIdProvider(widget.photo.mediaId)).value;
+    final brightness = Theme.of(context).brightness;
+    final overlay = ref.watch(cardPhotoOverlayProvider);
+    final opacity = brightness == Brightness.dark
+        ? overlay.dark
+        : overlay.light;
+    return Stack(
+      children: [
+        if (item != null)
+          Positioned.fill(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final card = constraints.biggest;
+                final decodeWidth =
+                    (card.width / _decodeStep).ceil() * _decodeStep;
+                return AnimatedOpacity(
+                  opacity: _ready ? 1 : 0,
+                  duration: CardPhotoTuning.fadeIn,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      MediaItemView(
+                        item: item,
+                        thumbnail: true,
+                        targetSize: Size(decodeWidth, decodeWidth),
+                        fit: BoxFit.cover,
+                        alignment: Alignment(0, _alignmentY(card)),
+                        onImageReady: _onImageReady,
+                      ),
+                      DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: DiveCardPhotoScrim.gradient(
+                            brightness,
+                            opacity,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        widget.child,
+      ],
+    );
+  }
+}

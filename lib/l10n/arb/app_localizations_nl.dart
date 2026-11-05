@@ -22210,6 +22210,24 @@ class AppLocalizationsNl extends AppLocalizations {
       'Toon duikstekkaart als achtergrond op duikkaarten (vereist steklocatie)';
 
   @override
+  String get settings_appearance_photoBackgroundDiveCards =>
+      'Fotoachtergrond op duikkaarten';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards_subtitle =>
+      'Toon een van de foto\'s van de duik als achtergrond op duikkaarten (zonder foto\'s wordt de kaart of kleur gebruikt)';
+
+  @override
+  String get settings_appearance_photoOverlayDark => 'Fotolaag, donker thema';
+
+  @override
+  String get settings_appearance_photoOverlayLight => 'Fotolaag, licht thema';
+
+  @override
+  String get settings_appearance_photoOverlay_subtitle =>
+      'Hoger houdt de tekst leesbaar, lager toont meer van de foto';
+
+  @override
   String get settings_appearance_mapBackgroundSiteCards =>
       'Kaartachtergrond op stekkaarten';
 
@@ -25652,6 +25670,18 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_showMapBackgroundOnDiveCards =>
       'Kaart achter duikkaarten';
+
+  @override
+  String get settings_conflict_field_showPhotoBackgroundOnDiveCards =>
+      'Foto achter duikkaarten';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayDark =>
+      'Fotolaag op duikkaarten (donker thema)';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayLight =>
+      'Fotolaag op duikkaarten (licht thema)';
 
   @override
   String get settings_conflict_field_showMapBackgroundOnSiteCards =>

@@ -22324,6 +22324,26 @@ class AppLocalizationsDe extends AppLocalizations {
       'Tauchplatzkarte als Hintergrund auf Tauchkarten anzeigen (erfordert Standort des Tauchplatzes)';
 
   @override
+  String get settings_appearance_photoBackgroundDiveCards =>
+      'Fotohintergrund auf Tauchkarten';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards_subtitle =>
+      'Eines der Fotos des Tauchgangs als Hintergrund auf Tauchkarten anzeigen (ohne Fotos wird die Karte oder Farbe verwendet)';
+
+  @override
+  String get settings_appearance_photoOverlayDark =>
+      'Fotoüberlagerung, dunkles Design';
+
+  @override
+  String get settings_appearance_photoOverlayLight =>
+      'Fotoüberlagerung, helles Design';
+
+  @override
+  String get settings_appearance_photoOverlay_subtitle =>
+      'Höher hält den Text lesbar, niedriger zeigt mehr vom Foto';
+
+  @override
   String get settings_appearance_mapBackgroundSiteCards =>
       'Kartenhintergrund auf Tauchplatzkarten';
 
@@ -25772,6 +25792,18 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_showMapBackgroundOnDiveCards =>
       'Karte hinter Tauchgangskarten';
+
+  @override
+  String get settings_conflict_field_showPhotoBackgroundOnDiveCards =>
+      'Foto hinter Tauchgangskarten';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayDark =>
+      'Fotoüberlagerung auf Tauchgangskarten (dunkles Design)';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayLight =>
+      'Fotoüberlagerung auf Tauchgangskarten (helles Design)';
 
   @override
   String get settings_conflict_field_showMapBackgroundOnSiteCards =>
