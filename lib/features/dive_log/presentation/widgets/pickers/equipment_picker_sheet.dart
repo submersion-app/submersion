@@ -54,8 +54,9 @@ class EquipmentPickerSheet extends ConsumerStatefulWidget {
   /// Leave out the components of an assembly the picker also offers
   /// (#2514), since picking the assembly brings them, behind a switch that
   /// lists them again. Set by the callers that pick the gear a diver dives
-  /// with. The cylinder pickers leave it off: they need a twinset's single
-  /// tanks.
+  /// with, and by the trip's Gear tab, where a packed assembly takes its
+  /// parts along. The cylinder pickers leave it off: they need a twinset's
+  /// single tanks.
   final bool hideAssemblyParts;
 
   /// Called with the row that was tapped. The caller closes the sheet.
