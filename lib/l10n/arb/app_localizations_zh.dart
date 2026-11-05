@@ -20008,6 +20008,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerSeries_openInLog => '在潜水日志中打开';
 
   @override
+  String get plannerSeries_view_actual => '实际';
+
+  @override
+  String get plannerSeries_view_plan => '计划';
+
+  @override
+  String plannerSeries_view_planNote(String dive) {
+    return '按计划。实际潜水：$dive。';
+  }
+
+  @override
+  String plannerSeries_saved_divedCount(int dived, int count) {
+    return '已潜 $dived/$count';
+  }
+
+  @override
   String get plannerSeries_stopFollowing => '停止跟随';
 
   @override

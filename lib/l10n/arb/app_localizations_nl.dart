@@ -20900,6 +20900,22 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerSeries_openInLog => 'Openen in logboek';
 
   @override
+  String get plannerSeries_view_actual => 'Werkelijk';
+
+  @override
+  String get plannerSeries_view_plan => 'Plan';
+
+  @override
+  String plannerSeries_view_planNote(String dive) {
+    return 'Zoals gepland. Gedoken als $dive.';
+  }
+
+  @override
+  String plannerSeries_saved_divedCount(int dived, int count) {
+    return '$dived van $count gedoken';
+  }
+
+  @override
   String get plannerSeries_stopFollowing => 'Niet meer volgen';
 
   @override

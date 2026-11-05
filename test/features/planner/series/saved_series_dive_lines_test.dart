@@ -97,4 +97,44 @@ void main() {
 
     expect(find.byTooltip('Open in dive log'), findsNothing);
   });
+
+  testWidgets('a series row counts the dives dived once any are', (
+    tester,
+  ) async {
+    late String none;
+    late String some;
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('en'),
+        home: Builder(
+          builder: (context) {
+            const units = UnitFormatter(AppSettings());
+            none = savedPlanRowSubtitle(
+              context,
+              SavedPlanRow(plan: dive('a'), dives: [dive('a'), dive('b')]),
+              units,
+            );
+            some = savedPlanRowSubtitle(
+              context,
+              SavedPlanRow(
+                plan: dive('a'),
+                dives: [
+                  dive('a', linkedDiveId: 'd1', linkedDiveNumber: 7),
+                  dive('b', linkedDiveId: 'd2', linkedDiveIsPlanned: true),
+                  dive('c'),
+                ],
+              ),
+              units,
+            );
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+
+    expect(none, startsWith('2 dives'));
+    expect(some, startsWith('1 of 3 dived'));
+  });
 }

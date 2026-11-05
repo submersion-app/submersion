@@ -20574,6 +20574,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerSeries_openInLog => 'פתיחה ביומן';
 
   @override
+  String get plannerSeries_view_actual => 'בפועל';
+
+  @override
+  String get plannerSeries_view_plan => 'תוכנית';
+
+  @override
+  String plannerSeries_view_planNote(String dive) {
+    return 'כמתוכנן. נצללה כ-$dive.';
+  }
+
+  @override
+  String plannerSeries_saved_divedCount(int dived, int count) {
+    return '$dived מתוך $count נצללו';
+  }
+
+  @override
   String get plannerSeries_stopFollowing => 'הפסקת מעקב';
 
   @override

@@ -174,4 +174,26 @@ void main() {
     expect(find.text('Dived as #7'), findsOneWidget);
     expect(find.text('Link to a logged dive'), findsNothing);
   });
+
+  testWidgets(
+    'a linked plan opens its dive in the log; an unlinked one cannot',
+    (tester) async {
+      final container = await pumpCanvas(tester);
+      await openMenu(tester);
+      expect(find.text('Open in dive log'), findsNothing);
+      await tester.tapAt(Offset.zero);
+      await tester.pumpAndSettle();
+
+      final dive = await tester.runAsync(
+        () => DiveRepository().createDive(
+          Dive(id: '', dateTime: DateTime.utc(2026, 1, 1), isPlanned: true),
+        ),
+      );
+      container.read(divePlanNotifierProvider.notifier).setLinkedDive(dive!.id);
+      await save(tester, container);
+      await openMenu(tester);
+
+      expect(find.text('Open in dive log'), findsOneWidget);
+    },
+  );
 }

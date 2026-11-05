@@ -78,7 +78,7 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
     if (index < 0) {
       _earlier = const [];
       _removedLinkedDiveIds = const {};
-      state = PlanSeries.single(next);
+      state = _withActuals(PlanSeries.single(next));
       return;
     }
     final before = state.dives[index].state;
@@ -198,9 +198,33 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
     if (state.id != null && series.id != state.id) {
       _removedLinkedDiveIds = const {};
     }
-    state = series;
+    state = _withActuals(series);
     _loadSelected();
   }
+
+  /// What the log last said about the dives that have been dived, by plan id.
+  Map<String, SeriesFollow> _actuals = const {};
+
+  /// Takes what the log says about the dives that have been dived (issue
+  /// #3565), and recalculates from them. A download undone takes its dive
+  /// back to its plan.
+  void setActuals(Map<String, SeriesFollow> actuals) {
+    _actuals = actuals;
+    final next = _withActuals(state);
+    if (next == state) return;
+    state = next;
+    _loadSelected();
+  }
+
+  PlanSeries _withActuals(PlanSeries series) => series.copyWith(
+    dives: [
+      for (final dive in series.dives)
+        if (_actuals[dive.state.id] case final actual?)
+          dive.copyWith(actual: actual)
+        else
+          dive.copyWith(clearActual: true),
+    ],
+  );
 
   /// Takes on links the repository already holds, by plan id, written from
   /// outside the series (issue #3565): not an edit, so nothing is marked
@@ -412,6 +436,7 @@ final planSeriesResultsProvider = Provider<List<calculator.SeriesDiveResult>>((
         state: state,
         outcome: outcome.withIssues(issues),
         seriesIssues: issues,
+        actual: dives.single.actual,
       ),
     ];
   }
@@ -487,6 +512,19 @@ final planConvertAllowedProvider = Provider<bool>(
   (ref) =>
       !ref.watch(planSeriesNotifierProvider.select((s) => s.savesAsSeries)),
 );
+
+/// The selected dive as it was actually dived; null while it is only a plan.
+final selectedDiveActualProvider = Provider<SeriesFollow?>(
+  (ref) =>
+      ref.watch(planSeriesNotifierProvider.select((s) => s.selected.actual)),
+);
+
+/// Whether a dive that has been dived shows its original plan rather than
+/// what happened. Starts over on each dive.
+final showPlanOfDivedProvider = StateProvider<bool>((ref) {
+  ref.watch(planSeriesNotifierProvider.select((s) => s.selected.state.id));
+  return false;
+});
 
 /// Whether the plan saves as a series rather than an ordinary plan.
 final planSeriesSavesAsSeriesProvider = Provider<bool>(

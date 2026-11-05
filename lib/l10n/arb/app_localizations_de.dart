@@ -21013,6 +21013,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannerSeries_openInLog => 'Im Logbuch öffnen';
 
   @override
+  String get plannerSeries_view_actual => 'Tatsächlich';
+
+  @override
+  String get plannerSeries_view_plan => 'Plan';
+
+  @override
+  String plannerSeries_view_planNote(String dive) {
+    return 'Wie geplant. Getaucht als $dive.';
+  }
+
+  @override
+  String plannerSeries_saved_divedCount(int dived, int count) {
+    return '$dived von $count getaucht';
+  }
+
+  @override
   String get plannerSeries_stopFollowing => 'Nicht mehr folgen';
 
   @override

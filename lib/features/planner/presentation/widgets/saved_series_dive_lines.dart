@@ -11,8 +11,9 @@ import 'package:submersion/features/planner/presentation/widgets/planned_dive_ic
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// What a saved plans row says under its name: the dive count for a series,
-/// then the depth and runtime, in the diver's own units. A plan's link badge
-/// is left to the caller, since a series shows one on each dive instead.
+/// and how many have been dived once any have, then the depth and runtime,
+/// in the diver's own units. A plan's link badge is left to the caller,
+/// since a series shows one on each dive instead.
 String savedPlanRowSubtitle(
   BuildContext context,
   SavedPlanRow row,
@@ -20,9 +21,18 @@ String savedPlanRowSubtitle(
 ) {
   final depth = row.maxDepth;
   final runtime = row.runtimeSeconds;
+  // Dived: linked to an entry in the log that is no longer planned.
+  final dived = row.dives
+      .where((d) => d.linkedDiveId != null && !d.linkedDiveIsPlanned)
+      .length;
   return [
     if (row.showsDives)
-      context.l10n.plannerSeries_saved_diveCount(row.dives.length),
+      dived == 0
+          ? context.l10n.plannerSeries_saved_diveCount(row.dives.length)
+          : context.l10n.plannerSeries_saved_divedCount(
+              dived,
+              row.dives.length,
+            ),
     if (depth != null) units.formatDepth(depth),
     if (runtime != null) '${(runtime / 60).ceil()}′',
   ].join(' · ');

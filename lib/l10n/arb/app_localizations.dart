@@ -33489,6 +33489,30 @@ abstract class AppLocalizations {
   /// **'Open in dive log'**
   String get plannerSeries_openInLog;
 
+  /// Toggle segment showing what really happened on a dive of a series that has been dived
+  ///
+  /// In en, this message translates to:
+  /// **'Actual'**
+  String get plannerSeries_view_actual;
+
+  /// Toggle segment showing the original plan of a dive of a series that has been dived
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get plannerSeries_view_plan;
+
+  /// Note beside the toggle while a dived dive shows its plan, read-only
+  ///
+  /// In en, this message translates to:
+  /// **'As planned. Dived as {dive}.'**
+  String plannerSeries_view_planNote(String dive);
+
+  /// How many dives of a saved series have been dived, in the saved plans list
+  ///
+  /// In en, this message translates to:
+  /// **'{dived} of {count} dived'**
+  String plannerSeries_saved_divedCount(int dived, int count);
+
   /// No description provided for @plannerSeries_stopFollowing.
   ///
   /// In en, this message translates to:

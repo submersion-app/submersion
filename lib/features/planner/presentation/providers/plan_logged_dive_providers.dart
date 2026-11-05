@@ -39,7 +39,7 @@ final viewedLoggedDivePlanStateProvider = Provider<DivePlanState?>((ref) {
 
 /// The range table of the plan [diveId] was dived from, computed in the
 /// background like the editor's; null when it has no plan or nothing to
-/// vary. It starts from a fresh diver, as the dive log's overlay does.
+/// vary. It starts from a fresh diver, even for a later dive of a series.
 final linkedPlanRangeTableProvider = FutureProvider.family<RangeTable?, String>(
   (ref, diveId) async {
     final comparison = await ref.watch(

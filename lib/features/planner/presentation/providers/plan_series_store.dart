@@ -116,14 +116,19 @@ Future<StoredSeries> currentStoredSeries(ProviderContainer container) async {
   for (var i = 0; i < series.dives.length; i++) {
     final dive = series.dives[i];
     final result = results[i];
+    final existing = await plans.getPlan(dive.state.id);
     dives.add(
       StoredSeriesDive(
-        plan: divePlanFromState(
-          i == 0 && follow != null
-              ? _atOwnPressures(result.state, dive, follow)
-              : result.state,
-          existing: await plans.getPlan(dive.state.id),
-        ),
+        // A dive that has been dived keeps its plan as saved: what the chain
+        // holds for it now is what happened, such as its real start.
+        plan: existing != null && dive.actual != null
+            ? existing
+            : divePlanFromState(
+                i == 0 && follow != null
+                    ? _atOwnPressures(result.state, dive, follow)
+                    : result.state,
+                existing: existing,
+              ),
         name: dive.name,
         sourceTankIds: dive.sourceTankIds,
         pinnedTankIds: dive.pinnedTankIds,

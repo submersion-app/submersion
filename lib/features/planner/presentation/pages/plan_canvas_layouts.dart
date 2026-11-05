@@ -15,6 +15,9 @@ mixin _PlanCanvasLayouts on ConsumerState<PlanCanvasPage> {
     // A logged dive picked in the series bar keeps this layout: each pane
     // shows it read-only in the planned dive's place (issue #3565).
     final logged = ref.watch(viewingLoggedDiveProvider);
+    // The plan of a dive that has been dived is the record of what was
+    // planned, so it shows read-only.
+    final planOfDived = ref.watch(_planOfDivedProvider);
     final editorCollapsed = ref.watch(editorPaneCollapsedProvider);
     final resultsVisible = fullWidth
         ? !ref.watch(resultsPaneCollapsedProvider)
@@ -31,7 +34,13 @@ mixin _PlanCanvasLayouts on ConsumerState<PlanCanvasPage> {
     return Row(
       children: [
         if (!editorCollapsed) ...[
-          const SizedBox(width: 320, child: PlanEditorPane()),
+          SizedBox(
+            width: 320,
+            child: IgnorePointer(
+              ignoring: planOfDived,
+              child: const PlanEditorPane(),
+            ),
+          ),
           const VerticalDivider(width: 1),
         ],
         Expanded(
@@ -69,6 +78,10 @@ mixin _PlanCanvasLayouts on ConsumerState<PlanCanvasPage> {
         const Padding(
           padding: EdgeInsets.fromLTRB(4, 4, 4, 0),
           child: PlanSeriesNavigator(),
+        ),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12),
+          child: PlanActualToggle(),
         ),
         if (logged == null) const PlanFollowPrompt(),
         Expanded(
@@ -171,6 +184,12 @@ mixin _PlanCanvasLayouts on ConsumerState<PlanCanvasPage> {
     return CustomScrollView(
       slivers: [
         const SliverToBoxAdapter(child: PlanSeriesNavigator()),
+        const SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12),
+            child: PlanActualToggle(),
+          ),
+        ),
         if (logged == null) const SliverToBoxAdapter(child: PlanFollowPrompt()),
         SliverToBoxAdapter(
           child: SizedBox(
@@ -207,7 +226,10 @@ mixin _PlanCanvasLayouts on ConsumerState<PlanCanvasPage> {
         const SliverToBoxAdapter(child: SizedBox(height: 8)),
         SliverToBoxAdapter(
           child: logged == null
-              ? _phoneTabBody(shownTab)
+              ? IgnorePointer(
+                  ignoring: ref.watch(_planOfDivedProvider),
+                  child: _phoneTabBody(shownTab),
+                )
               : _phoneLoggedTabBody(shownTab, loggedPlan),
         ),
       ],
@@ -325,3 +347,11 @@ mixin _PlanCanvasLayouts on ConsumerState<PlanCanvasPage> {
     );
   }
 }
+
+/// Whether the planner shows the plan of a dive that has been dived, which
+/// is read-only (issue #3565).
+final _planOfDivedProvider = Provider<bool>(
+  (ref) =>
+      ref.watch(selectedDiveActualProvider) != null &&
+      ref.watch(showPlanOfDivedProvider),
+);

@@ -13130,6 +13130,35 @@
     }
   },
   "plannerSeries_openInLog": "Open in dive log",
+  "plannerSeries_view_actual": "Actual",
+  "@plannerSeries_view_actual": {
+    "description": "Toggle segment showing what really happened on a dive of a series that has been dived"
+  },
+  "plannerSeries_view_plan": "Plan",
+  "@plannerSeries_view_plan": {
+    "description": "Toggle segment showing the original plan of a dive of a series that has been dived"
+  },
+  "plannerSeries_view_planNote": "As planned. Dived as {dive}.",
+  "@plannerSeries_view_planNote": {
+    "description": "Note beside the toggle while a dived dive shows its plan, read-only",
+    "placeholders": {
+      "dive": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerSeries_saved_divedCount": "{dived} of {count} dived",
+  "@plannerSeries_saved_divedCount": {
+    "description": "How many dives of a saved series have been dived, in the saved plans list",
+    "placeholders": {
+      "dived": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "plannerSeries_stopFollowing": "Stop following",
   "plannerSeries_compareWithPlan": "Compare with its plan",
   "plannerSeries_asPlanned": "As planned",

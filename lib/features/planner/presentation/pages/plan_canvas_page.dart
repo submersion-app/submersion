@@ -46,6 +46,7 @@ import 'package:submersion/features/planner/presentation/widgets/logged/logged_d
 import 'package:submersion/features/planner/presentation/widgets/logged/logged_dive_results.dart';
 import 'package:submersion/features/planner/presentation/widgets/logged/logged_dive_status_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/logged/logged_dive_tanks_card.dart';
+import 'package:submersion/features/planner/presentation/widgets/logged/plan_actual_toggle.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_series_navigator.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_series_shortcuts.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
@@ -106,6 +107,18 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
         );
       });
     }
+    // What has actually been dived replaces the plan in the chain (issue
+    // #3565). Deferred: this can fire inside a build, where providers cannot
+    // be changed.
+    ref.listenManual(seriesActualsProvider, (_, next) {
+      final actuals = next.value;
+      if (actuals == null) return;
+      Future.microtask(() {
+        if (mounted) {
+          ref.read(planSeriesNotifierProvider.notifier).setActuals(actuals);
+        }
+      });
+    }, fireImmediately: true);
   }
 
   @override
@@ -389,6 +402,8 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
       ];
     }
     return [
+      // The dive's entry in the log, planned or dived (issue #3565).
+      _menuItem('openInLog', Icons.open_in_new, l10n.plannerSeries_openInLog),
       _menuItem(
         'linkDive',
         Icons.link,
@@ -486,6 +501,11 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
           _PlanCanvasPageState,
           'unlink plan',
         );
+      case 'openInLog':
+        if (ref.read(divePlanNotifierProvider).linkedDiveId case final id?) {
+          // push, not go: the planner and its unsaved edits stay underneath.
+          context.push('/dives/$id');
+        }
       case 'slate':
         logFailure(
           _exportSlate(shareAnchor),

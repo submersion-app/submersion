@@ -21332,6 +21332,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerSeries_openInLog => 'فتح في سجل الغطس';
 
   @override
+  String get plannerSeries_view_actual => 'الفعلي';
+
+  @override
+  String get plannerSeries_view_plan => 'الخطة';
+
+  @override
+  String plannerSeries_view_planNote(String dive) {
+    return 'كما هو مخطط. نُفّذت باسم $dive.';
+  }
+
+  @override
+  String plannerSeries_saved_divedCount(int dived, int count) {
+    return '$dived من $count نُفّذت';
+  }
+
+  @override
   String get plannerSeries_stopFollowing => 'إيقاف المتابعة';
 
   @override

@@ -21038,6 +21038,22 @@ class AppLocalizationsIt extends AppLocalizations {
   String get plannerSeries_openInLog => 'Apri nel logbook';
 
   @override
+  String get plannerSeries_view_actual => 'Effettiva';
+
+  @override
+  String get plannerSeries_view_plan => 'Piano';
+
+  @override
+  String plannerSeries_view_planNote(String dive) {
+    return 'Come pianificato. Effettuata come $dive.';
+  }
+
+  @override
+  String plannerSeries_saved_divedCount(int dived, int count) {
+    return '$dived di $count effettuate';
+  }
+
+  @override
   String get plannerSeries_stopFollowing => 'Smetti di seguire';
 
   @override

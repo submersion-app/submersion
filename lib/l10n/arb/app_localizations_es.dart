@@ -21027,6 +21027,22 @@ class AppLocalizationsEs extends AppLocalizations {
   String get plannerSeries_openInLog => 'Abrir en el registro';
 
   @override
+  String get plannerSeries_view_actual => 'Real';
+
+  @override
+  String get plannerSeries_view_plan => 'Plan';
+
+  @override
+  String plannerSeries_view_planNote(String dive) {
+    return 'Según lo planificado. Buceada como $dive.';
+  }
+
+  @override
+  String plannerSeries_saved_divedCount(int dived, int count) {
+    return '$dived de $count buceadas';
+  }
+
+  @override
   String get plannerSeries_stopFollowing => 'Dejar de seguir';
 
   @override
