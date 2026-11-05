@@ -90,17 +90,25 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
   @override
   final _wideResultsController = ScrollController();
 
+  /// Whether the saved plan this page was pushed for is still loading.
+  var _opening = false;
+
   @override
   void initState() {
     super.initState();
     final planId = widget.planId;
     if (planId != null) {
+      // Until another plan has loaded the page stays blank, rather than
+      // showing the one the app-wide editor still holds.
+      _opening = ref.read(divePlanNotifierProvider).id != planId;
       // Riverpod 3 forbids provider mutation during widget lifecycle
       // callbacks; defer the load to a microtask.
       Future.microtask(() {
         if (!mounted) return;
         logFailure(
-          _openRoutePlan(planId),
+          _openRoutePlan(planId).whenComplete(() {
+            if (mounted && _opening) setState(() => _opening = false);
+          }),
           _PlanCanvasPageState,
           'open a saved plan',
         );
@@ -153,6 +161,13 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
 
   @override
   Widget build(BuildContext context) {
+    if (_opening) {
+      return Scaffold(
+        appBar: AppBar(
+          leading: Navigator.of(context).canPop() ? const BackButton() : null,
+        ),
+      );
+    }
     final planState = ref.watch(divePlanNotifierProvider);
     // A series of dives, or a plan following a logged dive, cannot be logged
     // yet (issue #3565).
