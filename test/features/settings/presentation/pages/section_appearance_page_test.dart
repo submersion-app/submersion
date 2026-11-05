@@ -9,7 +9,6 @@ import 'package:submersion/features/dive_log/presentation/profile_colors/profile
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_color_overrides.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/settings/presentation/widgets/card_photo_overlay_slider.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -519,7 +518,7 @@ void main() {
       expect(find.text('60%'), findsNWidgets(2));
     });
 
-    testWidgets('the overlay hint lines up with the start of the slider', (
+    testWidgets('the overlay hint lines up with the slider labels', (
       tester,
     ) async {
       await tester.binding.setSurfaceSize(const Size(400, 4000));
@@ -530,36 +529,15 @@ void main() {
       await tester.pumpWidget(_buildTestWidget('dives', notifier: notifier));
       await tester.pumpAndSettle();
 
-      final slider = find.descendant(
-        of: find.byKey(const ValueKey('card_photo_overlay_light')),
-        matching: find.byType(Slider),
-      );
-      // With its padding set, a slider's track spans its render box, which
-      // the padding insets from the widget's edge.
-      final track = find
-          .descendant(
-            of: slider,
-            matching: find.byWidgetPredicate(
-              (w) => w is LeafRenderObjectWidget,
-            ),
-          )
-          .first;
-      final trackLeft = tester
-          .renderObject<RenderBox>(track)
-          .localToGlobal(Offset.zero)
-          .dx;
-      final hint = find.text(
+      double left(String text) => tester.getTopLeft(find.text(text)).dx;
+      final hint = left(
         'Higher keeps the text readable, lower shows more of the photo',
       );
 
-      expect(tester.getTopLeft(hint).dx, closeTo(trackLeft, 0.5));
-      expect(
-        trackLeft,
-        closeTo(
-          tester.getTopLeft(slider).dx + CardPhotoOverlaySlider.trackInset,
-          0.5,
-        ),
-      );
+      expect(hint, left('Photo overlay, light theme'));
+      expect(hint, left('Photo overlay, dark theme'));
+      // And with the other settings' subtitles.
+      expect(hint, left('Photo background on dive cards'));
     });
 
     testWidgets('dragging an overlay slider saves once it is let go', (
