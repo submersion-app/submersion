@@ -34,17 +34,19 @@ class PlanDiveStartField extends ConsumerWidget {
     final start = ref.watch(
       divePlanNotifierProvider.select((s) => s.startDateTime),
     );
+    // A plan whose dive has been dived only reads (issue #3565).
+    final locked = ref.watch(planLockedProvider);
     // A later dive has a start only when the dive before it has an end.
     final enabled = index == 0 || start != null;
     // A later dive's start, or a first dive's that follows a logged dive,
     // comes from the dive before it unless the diver fixed it; clearing one
     // that was not fixed would only work it out again.
     final derived = index > 0 || following;
-    final clearable = start != null && (fixed || !derived);
+    final clearable = !locked && start != null && (fixed || !derived);
 
     final field = InkWell(
       key: const Key('diveStartField'),
-      onTap: enabled ? () => _pick(context, ref, start) : null,
+      onTap: enabled && !locked ? () => _pick(context, ref, start) : null,
       borderRadius: BorderRadius.circular(4),
       child: InputDecorator(
         isEmpty: false,

@@ -221,7 +221,8 @@ class PlanTankList extends ConsumerWidget {
           modExceedsLimit: modCheck?.exceedsLimit ?? false,
           roleBadge: isLoopSlot ? tank.role.localizedName(context.l10n) : null,
           onEdit: () => _showEditTankDialog(context, ref, tank, units),
-          onDelete: _canDelete(planState, tank)
+          onDelete:
+              !ref.watch(planLockedProvider) && _canDelete(planState, tank)
               ? () => ref
                     .read(divePlanNotifierProvider.notifier)
                     .removeTank(tank.id)

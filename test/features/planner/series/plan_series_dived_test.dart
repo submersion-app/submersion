@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_planner/presentation/providers/dive_pla
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/plan_tank_chip.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/segment_list.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
 import 'package:submersion/features/planner/presentation/panes/plan_editor_pane.dart';
@@ -301,6 +302,7 @@ void main() {
       Size size = const Size(1400, 1000),
       bool series = true,
       List<dynamic> overrides = const [],
+      void Function(ProviderContainer c)? prepare,
     }) async {
       tester.view.physicalSize = size;
       tester.view.devicePixelRatio = 1.0;
@@ -337,6 +339,7 @@ void main() {
         notifier.addDive();
         notifier.select(0);
       }
+      prepare?.call(c);
       await tester.pumpAndSettle();
       notifier.setActuals({
         c.read(planSeriesNotifierProvider).dives[0].state.id: SeriesFollow(
@@ -409,7 +412,23 @@ void main() {
     testWidgets('the toggle shows the plan, read-only, and back', (
       tester,
     ) async {
-      await pumpDived(tester);
+      // A start, a site-less dive and two tanks: each would offer an edit.
+      await pumpDived(
+        tester,
+        prepare: (c) {
+          c.read(planSeriesNotifierProvider.notifier).setSelectedStart(nine);
+          c
+              .read(divePlanNotifierProvider.notifier)
+              .addTank(
+                const DiveTank(
+                  id: 'stage',
+                  volume: 7,
+                  startPressure: 200,
+                  gasMix: ean50,
+                ),
+              );
+        },
+      );
 
       await tester.tap(
         find.descendant(
@@ -431,6 +450,20 @@ void main() {
       expect(find.byKey(const Key('planDetailsOpenInLog')), findsOneWidget);
       expect(find.byTooltip('Add Tank'), findsNothing);
       expect(find.text('Saved tanks'), findsNothing);
+      // Nothing that looks like it can still be changed.
+      expect(find.byTooltip('Clear the start time'), findsNothing);
+      expect(find.byTooltip('15 minutes less'), findsNothing);
+      expect(find.byTooltip('15 minutes more'), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('diveSiteField')),
+          matching: find.byIcon(Icons.arrow_drop_down),
+        ),
+        findsNothing,
+      );
+      final chips = tester.widgetList<PlanTankChip>(find.byType(PlanTankChip));
+      expect(chips, hasLength(2));
+      expect(chips.every((chip) => chip.onDelete == null), isTrue);
 
       await tester.tap(
         find.descendant(

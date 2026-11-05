@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -17,10 +18,12 @@ class PlanDiveSiteField extends ConsumerWidget {
     final siteId = ref.watch(divePlanNotifierProvider.select((s) => s.siteId));
     final sites = ref.watch(sitesProvider).value ?? const [];
     final site = sites.where((s) => s.id == siteId).firstOrNull;
+    // A plan whose dive has been dived only reads (issue #3565).
+    final locked = ref.watch(planLockedProvider);
 
     return InkWell(
       key: const Key('diveSiteField'),
-      onTap: () => _pick(context, ref, siteId),
+      onTap: locked ? null : () => _pick(context, ref, siteId),
       borderRadius: BorderRadius.circular(4),
       child: InputDecorator(
         decoration: InputDecoration(
@@ -29,7 +32,9 @@ class PlanDiveSiteField extends ConsumerWidget {
           labelText: l10n.plannerSeries_site,
           floatingLabelBehavior: FloatingLabelBehavior.always,
           prefixIcon: const Icon(Icons.location_on_outlined),
-          suffixIcon: siteId == null
+          suffixIcon: locked
+              ? null
+              : siteId == null
               ? const Icon(Icons.arrow_drop_down)
               : IconButton(
                   icon: const Icon(Icons.clear),
