@@ -169,16 +169,16 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
       );
     }
     final planState = ref.watch(divePlanNotifierProvider);
-    // A series of dives, or a plan following a logged dive, cannot be logged
-    // yet (issue #3565).
-    final convertAllowed = ref.watch(planConvertAllowedProvider);
+    // An ordinary plan: one dive that follows nothing, saved as a plan row
+    // of its own rather than as a series (issue #3565).
+    final singlePlan = !ref.watch(planSeriesSavesAsSeriesProvider);
     final savedSeriesId = ref.watch(
       planSeriesNotifierProvider.select((s) => s.id),
     );
     final isDirty = ref.watch(planSeriesDirtyProvider);
     _notifier = ref.read(divePlanNotifierProvider.notifier);
     // A series is not a throwaway: leaving must not lose what cannot be saved.
-    _replanId = planState.sourceDiveId != null && convertAllowed
+    _replanId = planState.sourceDiveId != null && singlePlan
         ? planState.id
         : null;
     final units = ref.watch(unitFormatterProvider);
@@ -211,7 +211,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
     // delete, and the route's plan may not be the dive on screen.
     final canDelete =
         savedSeriesId != null ||
-        (convertAllowed &&
+        (singlePlan &&
             (widget.planId != null ||
                 planIsPersisted(
                   planState.id,

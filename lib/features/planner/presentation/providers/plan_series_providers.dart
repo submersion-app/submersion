@@ -534,13 +534,6 @@ final missionAllowedProvider = Provider<bool>(
   (ref) => edits.canPlanMission(ref.watch(planSeriesNotifierProvider)),
 );
 
-/// Whether the plan can be converted to a dive in the log. A series, or a plan
-/// following a logged dive, cannot be yet (issue #3565).
-final planConvertAllowedProvider = Provider<bool>(
-  (ref) =>
-      !ref.watch(planSeriesNotifierProvider.select((s) => s.savesAsSeries)),
-);
-
 /// The selected dive as it was actually dived; null while it is only a plan.
 final selectedDiveActualProvider = Provider<SeriesFollow?>(
   (ref) =>

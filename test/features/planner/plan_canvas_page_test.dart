@@ -400,7 +400,7 @@ void main() {
         ),
       );
     await tester.pumpAndSettle();
-    expect(container.read(planIsValidProvider), isTrue);
+    expect(container.read(planOutcomeProvider).isDiveable, isTrue);
     final live = container.read(planCanvasSeriesProvider).profile;
 
     container.read(chartDisplayModeProvider.notifier).state =
