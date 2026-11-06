@@ -39,9 +39,11 @@ its alignment, site, name and dive link.
    recording (`-101` twice), so markers are numbered in file order rather
    than by value, and normal and return markers share one symbol. They are
    read from the stored file, not stored on their own, so they always
-   match the points derived from it. They show on the detail map, the
-   alignment page and the track's 3D view (labelled with the same
-   number), not in the seascape.
+   match the points derived from it. They show, labelled with the same
+   number, on the detail map, the alignment page, the track's 3D view and
+   the three terrain views that draw a track: the track's seascape, the
+   dive's 3D view and the site's seascape (through `ReckonedPath.markers`).
+   The list thumbnails and the tracks overview map show none.
 4. **Re-import.** A file counts as already imported when its name matches
    a stored track's `source_ref` and the recordings start within seven
    days of each other. The ENC numbers files `001` to `050` and starts
@@ -63,5 +65,5 @@ its alignment, site, name and dive link.
 
 - Correcting a wrong console clock.
 - Suunto routes keeping their original file.
-- Markers in the seascape view.
+- Markers in the list thumbnails and on the tracks overview map.
 - Surface GPS jumps under the segmenter's 50 m threshold during a dive.
