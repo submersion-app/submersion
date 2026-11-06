@@ -594,6 +594,40 @@ void main() {
       },
     );
 
+    test('a long stored recording whose end comes near but whose start lies '
+        'outside the window is a new route', () async {
+      // Started nine days before this recording and ran for six days, so
+      // its end is three days away: the window is about start times.
+      final start = parseSeacraftEncCsv(
+        _fixture('seacraft_enc3_short.csv'),
+      ).points.first.timestamp;
+      await routeRepo.insertImportedRoute(
+        points: [
+          NavTrackPoint(
+            timestamp: start - const Duration(days: 9).inSeconds,
+            north: 0,
+            east: 0,
+            depth: 2,
+          ),
+          NavTrackPoint(
+            timestamp: start - const Duration(days: 3).inSeconds,
+            north: 5,
+            east: 0,
+            depth: 2,
+          ),
+        ],
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: '005.DAT.csv',
+      );
+
+      final preview = await service.prepare(
+        _fixture('seacraft_enc3_short.csv'),
+        fileName: '005.DAT.csv',
+      );
+
+      expect(preview.duplicateOfRouteId, isNull);
+    });
+
     test('a file of another name in the same window is a new route', () async {
       await routeRepo.insertImportedRoute(
         points: parseSeacraftEncCsv(_fixture('seacraft_enc3_short.csv')).points,

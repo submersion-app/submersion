@@ -267,9 +267,10 @@ class NavTrackImportService {
       if (route.startTime <= endMs && route.endTime >= startMs) {
         return (id: route.id, sameRecording: true);
       }
-      final near =
-          route.startTime <= endMs + windowMs &&
-          route.endTime >= startMs - windowMs;
+      // The rule is about when the recordings start, not how close their
+      // spans come: a stored recording running for days must not count
+      // because its end reaches near this one's start.
+      final near = (route.startTime - startMs).abs() <= windowMs;
       if (near) nearId ??= route.id;
     }
     return nearId == null ? null : (id: nearId, sameRecording: false);
