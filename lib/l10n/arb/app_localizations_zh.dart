@@ -7133,6 +7133,64 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_deco_semantics_required => '需要减压';
 
   @override
+  String diveLog_deco_compartmentLeading(int number) {
+    return '前导：#$number';
+  }
+
+  @override
+  String diveLog_deco_compartmentOther(int number) {
+    return '隔间：#$number';
+  }
+
+  @override
+  String get diveLog_deco_metricLoad => '负荷';
+
+  @override
+  String get diveLog_deco_gasOngassing => '吸收';
+
+  @override
+  String get diveLog_deco_gasOffgassing => '释放';
+
+  @override
+  String get diveLog_deco_gasEquilibrium => '平衡';
+
+  @override
+  String get diveLog_deco_heatMapRows => '行：快速（上）到慢速（下）';
+
+  @override
+  String get diveLog_deco_surfaceLevel => '水面水平';
+
+  @override
+  String get diveLog_deco_mValue => 'M 值';
+
+  @override
+  String diveLog_deco_tooltipCompartment(int number) {
+    return '隔间 $number';
+  }
+
+  @override
+  String diveLog_deco_tooltipLoaded(String percent) {
+    return '负荷 $percent%';
+  }
+
+  @override
+  String diveLog_deco_tooltipHalfTime(String minutes) {
+    return '半衰期：$minutes 分钟';
+  }
+
+  @override
+  String diveLog_deco_tooltipSurfaceLevel(String percent) {
+    return '水面水平：$percent%';
+  }
+
+  @override
+  String get diveLog_deco_info_title => '这些数值代表什么？';
+
+  @override
+  String get diveLog_deco_info_body =>
+      '负荷：隔间内惰性气体压力占其在水面可容纳最大值（M 值，即 100% 处的红线）的百分比。\n\n水面水平：每根柱上的标记表示在水面呼吸空气时，完全脱饱和的隔间最终稳定的位置。它永远不会是 0%，因为你的身体始终含有所呼吸空气中的氮气。处于标记处的柱不再带有潜水遗留的负荷。\n\n吸收与释放：气体总是向你所呼吸气体的压力方向移动。使用氧气或富氦混合气减压后，快速隔间中的氮气可能少于水面空气中的氮气。重新呼吸空气后，它们会再次吸收氮气，直到达到各自的标记。这是正常现象，并非潜水遗留的负荷。\n\n氦气：空气中不含氦气。三混气潜水后，隔间在释放氦气的同时可能吸收氮气。N₂ 和 He 旁的箭头分别显示每种气体的方向；隔间编号旁的标识显示两者的总体方向。';
+
+  @override
   String get diveLog_deco_tissueFast => '快速';
 
   @override
@@ -38306,11 +38364,25 @@ class AppLocalizationsZh extends AppLocalizations {
       '潜水后 CNS%（氧气钟）以 90 分钟的半衰期衰减——大约一天后基本降回 0。\n\n每日 OTU 每晚午夜重置。每周 OTU 是过去 7 天的滚动总和：较早的潜水一旦超出该时间窗口，就会自动从计算中剔除。';
 
   @override
+  String get safetyHub_tissueLoading_clear_title => '组织无残余负荷';
+
+  @override
+  String get safetyHub_tissueLoading_clear_body =>
+      '所有隔间均已与水面空气恢复平衡。它们停留在正常水平（每根柱上的标记），而不是 0%。';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_title => '无法提供组织饱和度';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_body =>
+      '上一次潜水没有可用于计算组织饱和度的数据，例如深度计模式下的潜水或未设置设定点的循环呼吸器潜水。';
+
+  @override
   String get safetyHub_tissueLoading_about_title => '关于组织饱和度';
 
   @override
   String get safetyHub_tissueLoading_about_body =>
-      '你的身体有 16 个组织舱室，以不同速度吸收和释放氮气（在三元气体或循环呼吸器潜水中，还有氦气）。快速组织饱和与脱饱和都很快；慢速组织两者都需要更长时间。\n\n使用氦气潜水后，同一舱室中的氮气和氦气可能会短暂地朝相反方向变化：氦气仍在释放的同时，同一舱室可能同时在吸收少量氮气，直到两种气体都与你呼吸的空气达到平衡。这就是为什么一个舱室可能短暂显示\"Ongassing\"，即使其总负荷仍在下降。';
+      '你的身体有 16 个组织隔间，它们以不同速度吸收和释放氮气（在三混气或循环呼吸器潜水中也包括氦气）。快速组织饱和与脱饱和都很快；慢速组织两者都需要长得多的时间。\n\n残余负荷仅指高于水面正常水平的部分。即使完全脱饱和，柱也不会降到 0%：每个隔间都会稳定在与所呼吸空气中氮气相对应的标记处。因此，在使用氧气减压的潜水后，快速隔间在这里的数值可能高于潜水结束时，但负荷并没有增加。\n\n含氦潜水后，隔间在释放氦气的同时会吸收氮气，直到两种气体都与所呼吸的空气达到平衡。';
 
   @override
   String safetyHub_noFly_category_single(int hours) {

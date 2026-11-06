@@ -4479,6 +4479,63 @@
   "diveLog_deco_sectionTissueLoading": "Tissue Loading",
   "diveLog_deco_semantics_notRequired": "No decompression required",
   "diveLog_deco_semantics_required": "Decompression required",
+  "diveLog_deco_compartmentLeading": "Leading: #{number}",
+  "@diveLog_deco_compartmentLeading": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_compartmentOther": "Compartment: #{number}",
+  "@diveLog_deco_compartmentOther": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_metricLoad": "Load",
+  "diveLog_deco_gasOngassing": "Ongassing",
+  "diveLog_deco_gasOffgassing": "Offgassing",
+  "diveLog_deco_gasEquilibrium": "Equilibrium",
+  "diveLog_deco_heatMapRows": "Rows: fast (top) to slow (bottom)",
+  "diveLog_deco_surfaceLevel": "Surface level",
+  "diveLog_deco_mValue": "M-value",
+  "diveLog_deco_tooltipCompartment": "Compartment {number}",
+  "@diveLog_deco_tooltipCompartment": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_tooltipLoaded": "{percent}% loaded",
+  "@diveLog_deco_tooltipLoaded": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_tooltipHalfTime": "Half-time: {minutes} min",
+  "@diveLog_deco_tooltipHalfTime": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_tooltipSurfaceLevel": "Surface level: {percent}%",
+  "@diveLog_deco_tooltipSurfaceLevel": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_info_title": "What do these values mean?",
+  "diveLog_deco_info_body": "Load: a compartment's inert gas pressure as a percentage of the most it may hold at the surface (its M-value, the red line at 100%).\n\nSurface level: the marker on each bar shows where a fully desaturated compartment settles while you breathe air at the surface. It is never 0%, because your body always holds the nitrogen of the air you breathe. A bar at its marker carries no load left over from diving.\n\nOngassing and offgassing: gas always moves toward the pressure of the gas you breathe. After decompression on oxygen or on a mix rich in helium, the fast compartments can hold less nitrogen than the air at the surface. Back on air, they take nitrogen up again until they reach their marker. That is normal and not a residual load from the dive.\n\nHelium: air contains no helium. After a trimix dive, a compartment releases helium while it can take nitrogen up at the same time. The arrows next to N₂ and He show each gas on its own; the badge next to the compartment number shows the net direction of both.",
   "diveLog_deco_tissueFast": "Fast",
   "diveLog_deco_tissueSlow": "Slow",
   "diveLog_deco_title": "Deco Status",
@@ -24542,8 +24599,12 @@
   "safetyHub_cnsOtu_noProfile_body": "Its CNS% and OTU can't be calculated without depth samples. The totals below leave it out.",
   "safetyHub_cnsOtu_about_title": "About CNS and OTU",
   "safetyHub_cnsOtu_about_body": "Your CNS% (oxygen clock) decays after a dive with a 90-minute half-life -- it's practically back to 0 after about a day.\n\nDaily OTU resets every night at midnight. Weekly OTU is a rolling total of the last 7 days: older dives automatically drop out of the calculation once they fall outside that window.",
+  "safetyHub_tissueLoading_clear_title": "No residual tissue load",
+  "safetyHub_tissueLoading_clear_body": "All compartments are back in equilibrium with the air at the surface. They stay at their normal level (the marker on each bar), not at 0%.",
+  "safetyHub_tissueLoading_unavailable_title": "Tissue loading not available",
+  "safetyHub_tissueLoading_unavailable_body": "The last dive has no data to calculate tissue loading from, for example a dive in gauge mode or a rebreather dive without a setpoint.",
   "safetyHub_tissueLoading_about_title": "About Tissue Loading",
-  "safetyHub_tissueLoading_about_body": "Your body has 16 tissue compartments that absorb and release nitrogen (and, on trimix or rebreather dives, helium too) at different speeds. Fast tissues saturate and desaturate quickly; slow tissues take much longer for both.\n\nAfter a dive with helium, nitrogen and helium in a single compartment can briefly move in opposite directions: while helium is still releasing, the same compartment can simultaneously be absorbing a little nitrogen, until both gases reach equilibrium with the air you're breathing. That's why a compartment can briefly show \"Ongassing\" even while its overall load keeps dropping.",
+  "safetyHub_tissueLoading_about_body": "Your body has 16 tissue compartments that take up and release nitrogen (and, on trimix or rebreather dives, helium too) at different speeds. Fast tissues saturate and desaturate quickly; slow tissues take much longer for both.\n\nResidual load is only what sits above the normal surface level. Even fully desaturated, the bars do not drop to 0%: each compartment settles at the marker that matches the nitrogen in the air you breathe. That is why a fast compartment can read higher here than at the end of a dive with oxygen decompression, without the load having grown.\n\nAfter a dive with helium, a compartment releases helium while it takes up nitrogen at the same time, until both gases are in equilibrium with the air you breathe.",
   "safetyHub_noFly_category_single": "After a single no-deco dive: {hours} h guideline",
   "@safetyHub_noFly_category_single": {
     "placeholders": {
