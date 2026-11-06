@@ -113,14 +113,18 @@ class _Summary extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            l10n.settings_syncDevices_summary(
-              devices.length,
-              files,
-              formatBytes(bytes),
+          // Only removed devices left (this one has not published yet): "0
+          // devices, 0 files" over an empty list reads like a failed read, so
+          // the removed count stands alone.
+          if (devices.isNotEmpty)
+            Text(
+              l10n.settings_syncDevices_summary(
+                devices.length,
+                files,
+                formatBytes(bytes),
+              ),
+              style: theme.textTheme.titleMedium,
             ),
-            style: theme.textTheme.titleMedium,
-          ),
           if (removable.isNotEmpty) ...[
             const SizedBox(height: 4),
             Text(
@@ -134,7 +138,7 @@ class _Summary extends StatelessWidget {
             ),
           ],
           if (removedCount > 0) ...[
-            const SizedBox(height: 4),
+            if (devices.isNotEmpty) const SizedBox(height: 4),
             Text(
               l10n.settings_syncDevices_summary_removed(removedCount),
               style: theme.textTheme.bodySmall?.copyWith(

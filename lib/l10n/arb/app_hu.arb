@@ -15173,7 +15173,7 @@
   "settings_syncDevices_state_unreadable": "Nincs olvasható jegyzék; befejezetlen feltöltés vagy titkosított",
   "settings_syncDevices_summary": "{deviceCount, plural, one{1 eszköz} other{{deviceCount} eszköz}}, {fileCount, plural, one{1 fájl} other{{fileCount} fájl}}, {size}",
   "settings_syncDevices_summary_removable": "{count, plural, one{1 maradvány egy lecserélt vagy kivont könyvtárból, {size} méretben.} other{{count} maradvány egy lecserélt vagy kivont könyvtárból, {size} méretben.}}",
-  "settings_syncDevices_summary_removed": "{count, plural, one{{count} eltávolított eszközt megjegyez az app, hogy ne hozhasson vissza törölt adatokat.} other{{count} eltávolított eszközt megjegyez az app, hogy ne hozhassanak vissza törölt adatokat.}}",
+  "settings_syncDevices_summary_removed": "{count, plural, one{{count} eltávolított eszközt megjegyez az alkalmazás, hogy ne hozhasson vissza törölt adatokat.} other{{count} eltávolított eszközt megjegyez az alkalmazás, hogy ne hozhasson vissza törölt adatokat.}}",
   "settings_syncDevices_tile_filesSize": "{count, plural, one{1 fájl} other{{count} fájl}}, {size}",
   "settings_syncDevices_tile_filesSizeSeen": "{count, plural, one{1 fájl} other{{count} fájl}}, {size} · {when}",
   "settings_syncDevices_unnamedDevice": "{shortId} eszköz",

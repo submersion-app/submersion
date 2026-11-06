@@ -50514,9 +50514,9 @@ class AppLocalizationsHu extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          '$count eltávolított eszközt megjegyez az app, hogy ne hozhassanak vissza törölt adatokat.',
+          '$count eltávolított eszközt megjegyez az alkalmazás, hogy ne hozhasson vissza törölt adatokat.',
       one:
-          '$count eltávolított eszközt megjegyez az app, hogy ne hozhasson vissza törölt adatokat.',
+          '$count eltávolított eszközt megjegyez az alkalmazás, hogy ne hozhasson vissza törölt adatokat.',
     );
     return '$_temp0';
   }

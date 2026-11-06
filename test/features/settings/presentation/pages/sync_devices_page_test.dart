@@ -221,6 +221,23 @@ void main() {
       );
     });
 
+    testWidgets('alone, says how many are remembered and nothing else', (
+      tester,
+    ) async {
+      await pump(tester, removed.skip(1).toList());
+
+      expect(
+        find.textContaining('2 removed devices are remembered'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('0 devices'),
+        findsNothing,
+        reason: 'an empty total over an empty list reads like a failed read',
+      );
+      expect(find.text('No sync files on this backend.'), findsNothing);
+    });
+
     testWidgets('a retired device that still holds files keeps its row', (
       tester,
     ) async {
