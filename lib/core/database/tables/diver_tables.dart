@@ -316,6 +316,19 @@ class DiverSettings extends Table {
       text().withDefault(const Constant('heatMap'))();
   BoolColumn get showMapBackgroundOnDiveCards =>
       boolean().withDefault(const Constant(false))();
+
+  /// Whether a dive card shows one of the dive's photos behind its text
+  /// (v343). It takes precedence over the map; a dive with no usable photo
+  /// falls back to the map or the attribute colour.
+  BoolColumn get showPhotoBackgroundOnDiveCards =>
+      boolean().withDefault(const Constant(false))();
+
+  /// Opacity (0..1) of the overlay over a dive card's photo, per theme
+  /// (v343): black on the dark theme, white on the light one.
+  RealColumn get cardPhotoOverlayDark =>
+      real().withDefault(const Constant(0.6))();
+  RealColumn get cardPhotoOverlayLight =>
+      real().withDefault(const Constant(0.6))();
   BoolColumn get showMapBackgroundOnSiteCards =>
       boolean().withDefault(const Constant(false))();
   // Dive profile markers

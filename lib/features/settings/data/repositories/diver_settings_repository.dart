@@ -365,6 +365,11 @@ class DiverSettingsRepository {
                 showMapBackgroundOnDiveCards: Value(
                   s.showMapBackgroundOnDiveCards,
                 ),
+                showPhotoBackgroundOnDiveCards: Value(
+                  s.showPhotoBackgroundOnDiveCards,
+                ),
+                cardPhotoOverlayDark: Value(s.cardPhotoOverlayDark),
+                cardPhotoOverlayLight: Value(s.cardPhotoOverlayLight),
                 showMapBackgroundOnSiteCards: Value(
                   s.showMapBackgroundOnSiteCards,
                 ),
@@ -755,6 +760,11 @@ class DiverSettingsRepository {
       showMapBackgroundOnDiveCards: Value(
         settings.showMapBackgroundOnDiveCards,
       ),
+      showPhotoBackgroundOnDiveCards: Value(
+        settings.showPhotoBackgroundOnDiveCards,
+      ),
+      cardPhotoOverlayDark: Value(settings.cardPhotoOverlayDark),
+      cardPhotoOverlayLight: Value(settings.cardPhotoOverlayLight),
       showMapBackgroundOnSiteCards: Value(
         settings.showMapBackgroundOnSiteCards,
       ),
@@ -1033,6 +1043,9 @@ class DiverSettingsRepository {
       tissueColorScheme: TissueColorScheme.fromName(row.tissueColorScheme),
       tissueVizMode: TissueVizMode.fromName(row.tissueVizMode),
       showMapBackgroundOnDiveCards: row.showMapBackgroundOnDiveCards,
+      showPhotoBackgroundOnDiveCards: row.showPhotoBackgroundOnDiveCards,
+      cardPhotoOverlayDark: row.cardPhotoOverlayDark,
+      cardPhotoOverlayLight: row.cardPhotoOverlayLight,
       showMapBackgroundOnSiteCards: row.showMapBackgroundOnSiteCards,
       showMaxDepthMarker: row.showMaxDepthMarker,
       showPressureThresholdMarkers: row.showPressureThresholdMarkers,

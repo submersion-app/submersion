@@ -22354,6 +22354,26 @@ class AppLocalizationsIt extends AppLocalizations {
       'Mostra la mappa del sito di immersione come sfondo sulle schede immersione (richiede la posizione del sito)';
 
   @override
+  String get settings_appearance_photoBackgroundDiveCards =>
+      'Foto di sfondo sulle schede immersione';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards_subtitle =>
+      'Mostra una delle foto dell\'immersione come sfondo delle schede (senza foto si usa la mappa o il colore)';
+
+  @override
+  String get settings_appearance_photoOverlayDark =>
+      'Velo sulla foto, tema scuro';
+
+  @override
+  String get settings_appearance_photoOverlayLight =>
+      'Velo sulla foto, tema chiaro';
+
+  @override
+  String get settings_appearance_photoOverlay_subtitle =>
+      'Più alto mantiene il testo leggibile, più basso mostra più foto';
+
+  @override
   String get settings_appearance_mapBackgroundSiteCards =>
       'Mappa di sfondo sulle schede sito';
 
@@ -25835,6 +25855,18 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_conflict_field_showMapBackgroundOnDiveCards =>
       'Mappa dietro le schede immersione';
+
+  @override
+  String get settings_conflict_field_showPhotoBackgroundOnDiveCards =>
+      'Foto dietro le schede immersione';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayDark =>
+      'Velo sulla foto delle schede (tema scuro)';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayLight =>
+      'Velo sulla foto delle schede (tema chiaro)';
 
   @override
   String get settings_conflict_field_showMapBackgroundOnSiteCards =>

@@ -692,6 +692,18 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.settings_conflict_field_showMapBackgroundOnDiveCards,
     FieldKind.boolean,
   ),
+  'showPhotoBackgroundOnDiveCards': ConflictField(
+    (l) => l.settings_conflict_field_showPhotoBackgroundOnDiveCards,
+    FieldKind.boolean,
+  ),
+  'cardPhotoOverlayDark': ConflictField(
+    (l) => l.settings_conflict_field_cardPhotoOverlayDark,
+    FieldKind.fraction,
+  ),
+  'cardPhotoOverlayLight': ConflictField(
+    (l) => l.settings_conflict_field_cardPhotoOverlayLight,
+    FieldKind.fraction,
+  ),
   'showMapBackgroundOnSiteCards': ConflictField(
     (l) => l.settings_conflict_field_showMapBackgroundOnSiteCards,
     FieldKind.boolean,

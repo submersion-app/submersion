@@ -38,5 +38,11 @@ extension RungsFromV340 on AppDatabase {
     // in beforeOpen.
     if (from < 342) await _assertDivePlanPhase2Columns();
     if (from < 342) await reportProgress();
+
+    // v343: diver_settings.show_photo_background_on_dive_cards and the
+    // photo overlay opacity per theme. Columns only, defaulted; re-asserted
+    // in beforeOpen.
+    if (from < 343) await _assertDiveCardPhotoBackgroundColumn();
+    if (from < 343) await reportProgress();
   }
 }

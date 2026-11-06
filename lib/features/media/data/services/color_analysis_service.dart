@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 
+import 'package:submersion/features/media/data/services/small_image_decoder.dart';
 import 'package:submersion/features/media/domain/color/channel_stats.dart';
 
 /// Decodes [source] small and returns straight RGBA bytes, or null.
@@ -164,49 +164,6 @@ class ColorAnalysisService {
 }
 
 /// The production decoder: [source] fitted inside 64x64, read back as
-/// straight RGBA.
-///
-/// A tile's source is often already a [ResizeImage], which cannot be
-/// wrapped in another (an assert in debug builds), so its inner provider is
-/// resized instead. The small decode is evicted from the shared image cache
-/// once read, so analysis never pushes out the thumbnails a grid draws.
-Future<Uint8List?> decodeSmallRgba(ImageProvider source) async {
-  final base = source is ResizeImage ? source.imageProvider : source;
-  final provider = ResizeImage(
-    base,
-    width: 64,
-    height: 64,
-    policy: ResizeImagePolicy.fit,
-  );
-  final stream = provider.resolve(ImageConfiguration.empty);
-  final completer = Completer<ui.Image>();
-  late final ImageStreamListener listener;
-  listener = ImageStreamListener(
-    // Each listener is handed its own handle and must dispose it: the first
-    // is kept (and disposed once read), any later frame is let go at once.
-    (info, _) {
-      if (completer.isCompleted) {
-        info.dispose();
-      } else {
-        completer.complete(info.image);
-      }
-      stream.removeListener(listener);
-    },
-    onError: (error, stackTrace) {
-      if (!completer.isCompleted) completer.completeError(error, stackTrace);
-      stream.removeListener(listener);
-    },
-  );
-  stream.addListener(listener);
-  final image = await completer.future;
-  try {
-    final data = await image.toByteData(
-      format: ui.ImageByteFormat.rawStraightRgba,
-    );
-    return data?.buffer.asUint8List();
-  } finally {
-    image.dispose();
-    final key = await provider.obtainKey(ImageConfiguration.empty);
-    PaintingBinding.instance.imageCache.evict(key);
-  }
-}
+/// straight RGBA. See [decodeSmallImage].
+Future<Uint8List?> decodeSmallRgba(ImageProvider source) async =>
+    (await decodeSmallImage(source))?.rgba;
