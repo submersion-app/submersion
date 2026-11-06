@@ -159,6 +159,9 @@ void main() {
       );
       expect(tooltip.message, startsWith('Marker 2: '));
       expect(tooltip.message, contains('20'));
+      // To the second: the sample sits 4 s into the recording, and markers
+      // are often only seconds apart.
+      expect(tooltip.message, contains(':04'));
     });
 
     testWidgets('draws nothing for a route without markers', (tester) async {

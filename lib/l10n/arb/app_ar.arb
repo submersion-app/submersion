@@ -16665,6 +16665,7 @@
   "navTrack_editRow_tracksLoadFailed": "تعذر تحميل المسارات تحت الماء",
   "navTrack_editRow_more": "{name} +{count}",
   "navTrack_editSheet_removeTrackTooltip": "إزالة المسار",
+  "navTrack_editSheet_trackOnAnotherDive": "ينتمي هذا المسار إلى غطسة أخرى. حدّثه من تلك الغطسة، أو استورد الملف كمسار جديد.",
   "navTrack_editRow_tracksSaveFailed": "تعذر تحديث مسارات هذه الغوصة تحت الماء: {error}",
   "navTrack_importError_unsupportedFormat": "هذا الملف ليس سجل ملاحة Seacraft ENC.",
   "navTrack_importError_unreadable": "تعذرت قراءة هذا الملف كسجل ملاحة Seacraft ENC.",
@@ -17798,5 +17799,7 @@
   "navTrack_detail_exportFailed": "فشل التصدير: {error}",
   "navTrack_detail_updateNameMismatchTitle": "اسم ملف مختلف",
   "navTrack_detail_updateNameMismatchMessage": "تم استيراد هذا المسار من \"{expected}\"، والملف المختار هو \"{actual}\". هل تريد تحديث المسار منه على أي حال؟",
+  "navTrack_detail_updateOtherRecordingTitle": "تسجيل مختلف",
+  "navTrack_detail_updateOtherRecordingMessage": "تم تسجيل هذا الملف في {fileDate}، والمسار في {trackDate}، لذا قد تكون غطسة مختلفة. هل تريد تحديث المسار منه على أي حال؟",
   "navTrack_marker_details": "علامة {number}: {time}، {depth}، {distance}"
 }

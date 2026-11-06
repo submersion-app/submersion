@@ -16665,6 +16665,7 @@
   "navTrack_editRow_tracksLoadFailed": "לא ניתן לטעון את המסלולים התת-ימיים",
   "navTrack_editRow_more": "{name} +{count}",
   "navTrack_editSheet_removeTrackTooltip": "הסרת מסלול",
+  "navTrack_editSheet_trackOnAnotherDive": "המסלול הזה שייך לצלילה אחרת. יש לעדכן אותו מאותה צלילה, או לייבא את הקובץ כמסלול חדש.",
   "navTrack_editRow_tracksSaveFailed": "לא ניתן לעדכן את המסלולים התת-ימיים של צלילה זו: {error}",
   "navTrack_importError_unsupportedFormat": "קובץ זה אינו יומן ניווט Seacraft ENC.",
   "navTrack_importError_unreadable": "לא ניתן היה לקרוא את הקובץ הזה כיומן ניווט Seacraft ENC.",
@@ -17798,5 +17799,7 @@
   "navTrack_detail_exportFailed": "הייצוא נכשל: {error}",
   "navTrack_detail_updateNameMismatchTitle": "שם קובץ שונה",
   "navTrack_detail_updateNameMismatchMessage": "המסלול הזה יובא מ-\"{expected}\", והקובץ שנבחר הוא \"{actual}\". לעדכן את המסלול ממנו בכל זאת?",
+  "navTrack_detail_updateOtherRecordingTitle": "הקלטה שונה",
+  "navTrack_detail_updateOtherRecordingMessage": "הקובץ הזה הוקלט ב-{fileDate}, והמסלול ב-{trackDate}, כך שייתכן שזו צלילה אחרת. לעדכן את המסלול ממנו בכל זאת?",
   "navTrack_marker_details": "סמן {number}: {time}, {depth}, {distance}"
 }

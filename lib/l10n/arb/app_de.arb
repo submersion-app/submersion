@@ -16819,6 +16819,7 @@
   "navTrack_editRow_tracksLoadFailed": "Unterwasser-Tracks konnten nicht geladen werden",
   "navTrack_editRow_more": "{name} +{count}",
   "navTrack_editSheet_removeTrackTooltip": "Track entfernen",
+  "navTrack_editSheet_trackOnAnotherDive": "Dieser Track gehört zu einem anderen Tauchgang. Aktualisiere ihn dort oder importiere die Datei als neuen Track.",
   "navTrack_editRow_tracksSaveFailed": "Unterwasser-Tracks dieses Tauchgangs konnten nicht aktualisiert werden: {error}",
   "navTrack_importError_unsupportedFormat": "Diese Datei ist kein Seacraft-ENC-Navigationsprotokoll.",
   "navTrack_importError_unreadable": "Diese Datei konnte nicht als Seacraft-ENC-Navigationsprotokoll gelesen werden.",
@@ -17923,5 +17924,7 @@
   "navTrack_detail_exportFailed": "Export fehlgeschlagen: {error}",
   "navTrack_detail_updateNameMismatchTitle": "Anderer Dateiname",
   "navTrack_detail_updateNameMismatchMessage": "Dieser Track wurde aus „{expected}“ importiert, die gewählte Datei heißt „{actual}“. Den Track trotzdem daraus aktualisieren?",
+  "navTrack_detail_updateOtherRecordingTitle": "Andere Aufzeichnung",
+  "navTrack_detail_updateOtherRecordingMessage": "Diese Datei wurde am {fileDate} aufgezeichnet, der Track am {trackDate}. Es kann ein anderer Tauchgang sein. Den Track trotzdem daraus aktualisieren?",
   "navTrack_marker_details": "Markierung {number}: {time}, {depth}, {distance}"
 }

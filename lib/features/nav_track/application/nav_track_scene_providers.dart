@@ -19,7 +19,9 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 /// dive scene already falls back to when it has no coordinates.
 final navTrackSceneProvider =
     FutureProvider.family<SpatialSceneResult?, String>((ref, trackId) async {
-      final route = await ref.watch(navTrackByIdProvider(trackId).future);
+      final route = await ref.watch(
+        navTrackWithMarkersProvider(trackId).future,
+      );
       if (route == null || route.points.length < 2) return null;
 
       final path = NavTrackPathAdapter.toReckonedPath(route);

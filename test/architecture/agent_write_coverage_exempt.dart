@@ -141,11 +141,11 @@ final exempt = <String, String>{
     'lib/features/media/data/repositories/media_repository.dart:markVerified',
     'lib/features/media/data/repositories/media_repository.dart:saveEnrichment',
     'lib/features/media/data/repositories/media_repository.dart:saveEnrichments',
-    'lib/features/nav_track/data/repositories/nav_track_repository.dart:insertImportedRoute',
+    'lib/features/nav_track/data/repositories/nav_track_repository_imports.dart:insertImportedRoute',
     'lib/features/nav_track/data/repositories/nav_track_repository.dart:replace',
     // Re-reads a track's recording from the console file it was imported
     // from (issue #4231).
-    'lib/features/nav_track/data/repositories/nav_track_repository.dart:updateImportedData',
+    'lib/features/nav_track/data/repositories/nav_track_repository_imports.dart:updateImportedData',
     'lib/features/rules/data/repositories/rule_run_repository.dart:deleteAllRuns',
     'lib/features/rules/data/repositories/rule_run_repository.dart:deleteRun',
     'lib/features/rules/data/repositories/rule_run_repository.dart:insertRun',

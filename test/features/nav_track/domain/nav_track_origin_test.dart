@@ -91,6 +91,15 @@ void main() {
       expect(rebaseOnActiveStart(const []), isEmpty);
     });
 
+    test('a recording already at the origin still comes back unmodifiable', () {
+      final points = [_p(0, 0, 0, 2), _p(2, 1, 0, 3)];
+
+      final rebased = rebaseOnActiveStart(points);
+
+      expect(rebased, points);
+      expect(() => rebased.add(_p(4, 2, 0, 3)), throwsUnsupportedError);
+    });
+
     test('never changes the list it was given', () {
       final points = List<NavTrackPoint>.unmodifiable([
         _p(0, 50, 50, 2),

@@ -9,6 +9,7 @@ import 'package:submersion/features/nav_track/data/repositories/nav_track_reposi
 import 'package:submersion/features/nav_track/data/services/nav_track_import_service.dart';
 import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/presentation/nav_track_file_actions.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
@@ -24,20 +25,38 @@ class _FakeRepository extends NavTrackRepository {
 }
 
 class _FakeImportService implements NavTrackImportService {
-  _FakeImportService({this.error, this.updated = true});
+  _FakeImportService({this.error, this.updated = true, this.recordedAt = 0});
 
+  /// Thrown by `parseFile` when it is a [NavTrackParseException], else by
+  /// `updateFromFile`.
   final Object? error;
   final bool updated;
-  final updates = <({String routeId, Uint8List bytes, String fileName})>[];
+
+  /// When the picked file's recording starts, in epoch seconds. The test
+  /// route records from 0 to 1 s, so 0 is its own recording read again.
+  final int recordedAt;
+  final updates = <({String routeId, Uint8List bytes, String? fileName})>[];
 
   @override
-  Future<bool> updateFromBytes({
+  ParsedNavTrack parseFile(Uint8List bytes) {
+    if (error is NavTrackParseException) throw error!;
+    return ParsedNavTrack(
+      points: [
+        NavTrackPoint(timestamp: recordedAt, north: 0, east: 0, depth: 2),
+        NavTrackPoint(timestamp: recordedAt + 1, north: 1, east: 0, depth: 2),
+      ],
+    );
+  }
+
+  @override
+  Future<bool> updateFromFile({
     required String routeId,
-    required Uint8List bytes,
-    required String fileName,
+    required ParsedNavTrack parsed,
+    required Uint8List sourceFile,
+    String? sourceRef,
   }) async {
     if (error != null) throw error!;
-    updates.add((routeId: routeId, bytes: bytes, fileName: fileName));
+    updates.add((routeId: routeId, bytes: sourceFile, fileName: sourceRef));
     return updated;
   }
 
@@ -102,13 +121,30 @@ void main() {
         tester,
         repository: _FakeRepository(_file),
         action: (context, ref) => NavTrackFileActions(
-          saveFile: (bytes, name) async => saved.add((bytes, name)),
+          saveFile: (bytes, name, _) async => saved.add((bytes, name)),
         ).exportCsv(context, ref, _route()),
       );
 
       expect(saved, hasLength(1));
       expect(saved.single.$1, _file);
       expect(saved.single.$2, '023.DAT.csv');
+    });
+
+    testWidgets('anchors the share sheet where the caller asks', (
+      tester,
+    ) async {
+      const origin = Rect.fromLTWH(10, 20, 30, 40);
+      final origins = <Rect?>[];
+      await _pump(
+        tester,
+        repository: _FakeRepository(_file),
+        action: (context, ref) => NavTrackFileActions(
+          saveFile: (bytes, name, shareOrigin) async =>
+              origins.add(shareOrigin),
+        ).exportCsv(context, ref, _route(), shareOrigin: origin),
+      );
+
+      expect(origins, [origin]);
     });
 
     testWidgets('says the track has no stored file instead of exporting '
@@ -118,7 +154,7 @@ void main() {
         tester,
         repository: _FakeRepository(null),
         action: (context, ref) => NavTrackFileActions(
-          saveFile: (bytes, name) async => saved.add((bytes, name)),
+          saveFile: (bytes, name, _) async => saved.add((bytes, name)),
         ).exportCsv(context, ref, _route()),
       );
 
@@ -131,7 +167,7 @@ void main() {
         tester,
         repository: _FakeRepository(_file),
         action: (context, ref) => NavTrackFileActions(
-          saveFile: (bytes, name) async => throw StateError('disk full'),
+          saveFile: (bytes, name, _) async => throw StateError('disk full'),
         ).exportCsv(context, ref, _route()),
       );
 
@@ -174,6 +210,30 @@ void main() {
 
       expect(find.byType(AlertDialog), findsOneWidget);
       expect(find.textContaining('"023.DAT.csv"'), findsOneWidget);
+      await tester.tap(
+        find.byKey(const ValueKey('nav-track-update-mismatch-cancel')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(service.updates, isEmpty);
+    });
+
+    testWidgets('asks before updating from a recording made at another '
+        'time, even under the same name', (tester) async {
+      // A console numbers its files from 001 again, so the same name can be
+      // a different dive months later.
+      final service = _FakeImportService(
+        recordedAt: const Duration(days: 180).inSeconds,
+      );
+      await _pump(
+        tester,
+        service: service,
+        action: (context, ref) => NavTrackFileActions(
+          pickFile: () async => (bytes: _file, name: '023.DAT.csv'),
+        ).updateFromFile(context, ref, _route()),
+      );
+
+      expect(find.text('Different recording'), findsOneWidget);
       await tester.tap(
         find.byKey(const ValueKey('nav-track-update-mismatch-cancel')),
       );
@@ -229,6 +289,21 @@ void main() {
 
       expect(service.updates, isEmpty);
       expect(find.byType(SnackBar), findsNothing);
+    });
+
+    testWidgets('reports a file picker that fails instead of dropping the '
+        'error', (tester) async {
+      final service = _FakeImportService();
+      await _pump(
+        tester,
+        service: service,
+        action: (context, ref) => NavTrackFileActions(
+          pickFile: () async => throw StateError('picker unavailable'),
+        ).updateFromFile(context, ref, _route()),
+      );
+
+      expect(service.updates, isEmpty);
+      expect(find.textContaining('picker unavailable'), findsOneWidget);
     });
 
     testWidgets('reports a file it cannot read', (tester) async {

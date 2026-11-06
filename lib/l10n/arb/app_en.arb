@@ -33088,6 +33088,8 @@
     }
   },
   "navTrack_editSheet_removeTrackTooltip": "Remove track",
+  "navTrack_editSheet_trackOnAnotherDive": "This track belongs to another dive. Update it from that dive, or import the file as a new track.",
+  "@navTrack_editSheet_trackOnAnotherDive": {"description": "Dive Edit route sheet: the stored track a re-imported file would update is linked to another dive"},
   "navTrack_editRow_tracksSaveFailed": "Could not update this dive's underwater tracks: {error}",
   "@navTrack_editRow_tracksSaveFailed": {
     "placeholders": {
@@ -35081,6 +35083,10 @@
   "@navTrack_detail_updateNameMismatchTitle": {"description": "Dialog title when the chosen file has another name than the track"},
   "navTrack_detail_updateNameMismatchMessage": "This track was imported from \"{expected}\", the chosen file is \"{actual}\". Update the track from it anyway?",
   "@navTrack_detail_updateNameMismatchMessage": {"placeholders": {"expected": {"type": "String"}, "actual": {"type": "String"}}},
+  "navTrack_detail_updateOtherRecordingTitle": "Different recording",
+  "@navTrack_detail_updateOtherRecordingTitle": {"description": "Dialog title when the file picked to update a track was recorded at another time than the track"},
+  "navTrack_detail_updateOtherRecordingMessage": "This file was recorded on {fileDate}, the track on {trackDate}, so it may be a different dive. Update the track from it anyway?",
+  "@navTrack_detail_updateOtherRecordingMessage": {"description": "Dialog asking whether to update a track from a file recorded at another time; both dates are formatted dates", "placeholders": {"fileDate": {"type": "String"}, "trackDate": {"type": "String"}}},
   "navTrack_marker_details": "Marker {number}: {time}, {depth}, {distance}",
   "@navTrack_marker_details": {"description": "Tooltip of a marker the recording console set: its number, time, depth and distance into the dive", "placeholders": {"number": {"type": "int"}, "time": {"type": "String"}, "depth": {"type": "String"}, "distance": {"type": "String"}}}
 }

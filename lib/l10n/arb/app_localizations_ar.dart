@@ -56875,6 +56875,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navTrack_editSheet_removeTrackTooltip => 'إزالة المسار';
 
   @override
+  String get navTrack_editSheet_trackOnAnotherDive =>
+      'ينتمي هذا المسار إلى غطسة أخرى. حدّثه من تلك الغطسة، أو استورد الملف كمسار جديد.';
+
+  @override
   String navTrack_editRow_tracksSaveFailed(String error) {
     return 'تعذر تحديث مسارات هذه الغوصة تحت الماء: $error';
   }
@@ -61076,6 +61080,17 @@ class AppLocalizationsAr extends AppLocalizations {
     String actual,
   ) {
     return 'تم استيراد هذا المسار من \"$expected\"، والملف المختار هو \"$actual\". هل تريد تحديث المسار منه على أي حال؟';
+  }
+
+  @override
+  String get navTrack_detail_updateOtherRecordingTitle => 'تسجيل مختلف';
+
+  @override
+  String navTrack_detail_updateOtherRecordingMessage(
+    String fileDate,
+    String trackDate,
+  ) {
+    return 'تم تسجيل هذا الملف في $fileDate، والمسار في $trackDate، لذا قد تكون غطسة مختلفة. هل تريد تحديث المسار منه على أي حال؟';
   }
 
   @override

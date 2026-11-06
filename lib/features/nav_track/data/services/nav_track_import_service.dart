@@ -45,11 +45,6 @@ class NavTrackImportPreview {
 
   final String sourceRef;
 
-  /// The file exactly as it was read, stored with the route so it can be
-  /// derived again and exported unchanged (issue #4231). Null only for a
-  /// preview built by hand.
-  final Uint8List? sourceBytes;
-
   /// The diver this preview was prepared for: whose dives it proposes and
   /// whose routes it checked for a duplicate. Saving passes it back to
   /// [NavTrackImportService.commit], so switching profile while the review
@@ -67,7 +62,6 @@ class NavTrackImportPreview {
     this.duplicateIsSameRecording = false,
     required this.sourceRef,
     this.diverId,
-    this.sourceBytes,
   });
 
   /// True when the recording shows no movement at all: distance and speed
@@ -148,7 +142,6 @@ class NavTrackImportService {
       duplicateIsSameRecording: duplicate?.sameRecording ?? false,
       sourceRef: sourceRef,
       diverId: diverId,
-      sourceBytes: bytes,
     );
   }
 
@@ -161,12 +154,8 @@ class NavTrackImportService {
   /// single match to propose), and a sweep would only override that choice.
   ///
   /// [diverId] is the preview's own [NavTrackImportPreview.diverId], never
-  /// the active diver re-read at save time: [dive] and [replacingRouteId]
-  /// came from that diver's scope. It owns an unlinked route.
-  ///
-  /// [replacingRouteId] is a duplicate this import supersedes. It is
-  /// removed only after the new route is stored, so a failure anywhere
-  /// above leaves the original recording in place.
+  /// the active diver re-read at save time: [dive] came from that diver's
+  /// scope. It owns an unlinked route.
   ///
   /// [sourceFile] is the file [parsed] came from, stored with the route
   /// (issue #4231).
@@ -179,26 +168,19 @@ class NavTrackImportService {
     String? name,
     String? deviceName,
     String? equipmentId,
-    String? replacingRouteId,
     Uint8List? sourceFile,
-  }) async {
-    final id = await _routeRepository.insertImportedRoute(
-      points: parsed.points,
-      source: NavTrackSource.seacraftEnc,
-      sourceRef: sourceRef,
-      deviceName: deviceName,
-      name: name,
-      diveId: dive?.id,
-      diverId: diverId,
-      siteId: siteId,
-      equipmentId: equipmentId,
-      sourceFile: sourceFile,
-    );
-    if (replacingRouteId != null) {
-      await _routeRepository.replace(replacingRouteId, withRouteId: id);
-    }
-    return id;
-  }
+  }) => _routeRepository.insertImportedRoute(
+    points: parsed.points,
+    source: NavTrackSource.seacraftEnc,
+    sourceRef: sourceRef,
+    deviceName: deviceName,
+    name: name,
+    diveId: dive?.id,
+    diverId: diverId,
+    siteId: siteId,
+    equipmentId: equipmentId,
+    sourceFile: sourceFile,
+  );
 
   /// Replaces [routeId]'s data with [parsed], the file [sourceFile] read
   /// again, and keeps every setting on the route (issue #4231): the dive
@@ -217,22 +199,24 @@ class NavTrackImportService {
     sourceRef: sourceRef,
   );
 
-  /// [updateFromFile] for a file the diver picked on the route's own page:
-  /// parses [bytes] and records [fileName] as the route's file. Throws
-  /// [NavTrackParseException] when the file is not a route this app reads.
-  Future<bool> updateFromBytes({
-    required String routeId,
-    required Uint8List bytes,
-    required String fileName,
-  }) async {
-    final parsed = parseSeacraftEncCsv(bytes);
-    return updateFromFile(
-      routeId: routeId,
-      parsed: parsed,
-      sourceFile: bytes,
-      sourceRef: fileName,
-    );
-  }
+  /// Parses [bytes], a file the diver picked to update a stored route from
+  /// (issue #4231), so the caller can compare it with that route before
+  /// anything is written. Throws [NavTrackParseException] when the file is
+  /// not a route this app reads.
+  ParsedNavTrack parseFile(Uint8List bytes) => parseSeacraftEncCsv(bytes);
+
+  /// True when [parsed] is [route]'s own recording read again: the two
+  /// recording windows overlap in time. A file of the same name recorded at
+  /// another time may be a different dive.
+  static bool isSameRecording(NavTrack route, ParsedNavTrack parsed) =>
+      _overlaps(
+        route,
+        parsed.points.first.timestamp * 1000,
+        parsed.points.last.timestamp * 1000,
+      );
+
+  static bool _overlaps(NavTrack route, int startMs, int endMs) =>
+      route.startTime <= endMs && route.endTime >= startMs;
 
   /// How far apart two recordings from a file of the same name may start
   /// and still count as the same recording.
@@ -263,8 +247,11 @@ class NavTrackImportService {
     final existing = await _routeRepository.getAll(diverId: diverId);
     String? nearId;
     for (final route in existing) {
+      // Only an ENC route can be updated from an ENC file: a route of
+      // another source with the same file name keeps its own data.
+      if (route.source != NavTrackSource.seacraftEnc) continue;
       if (route.sourceRef != sourceRef) continue;
-      if (route.startTime <= endMs && route.endTime >= startMs) {
+      if (_overlaps(route, startMs, endMs)) {
         return (id: route.id, sameRecording: true);
       }
       // The rule is about when the recordings start, not how close their

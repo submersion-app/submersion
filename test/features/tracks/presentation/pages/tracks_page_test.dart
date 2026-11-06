@@ -49,18 +49,14 @@ import '../../../../helpers/test_database.dart';
 /// Hands back a fixed preview so the flow can be followed past the picker.
 class _PreparedNavImport implements NavTrackImportService {
   @override
+  ParsedNavTrack parseFile(Uint8List bytes) => throw UnimplementedError();
+
+  @override
   Future<bool> updateFromFile({
     required String routeId,
     required ParsedNavTrack parsed,
     required Uint8List sourceFile,
     String? sourceRef,
-  }) async => true;
-
-  @override
-  Future<bool> updateFromBytes({
-    required String routeId,
-    required Uint8List bytes,
-    required String fileName,
   }) async => true;
 
   int prepareCount = 0;
@@ -110,7 +106,6 @@ class _PreparedNavImport implements NavTrackImportService {
     String? name,
     String? deviceName,
     String? equipmentId,
-    String? replacingRouteId,
     Uint8List? sourceFile,
   }) async => throw UnimplementedError();
 }

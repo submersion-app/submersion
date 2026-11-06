@@ -56169,6 +56169,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get navTrack_editSheet_removeTrackTooltip => 'Remover trilha';
 
   @override
+  String get navTrack_editSheet_trackOnAnotherDive =>
+      'Esta trilha pertence a outro mergulho. Atualize-a a partir desse mergulho ou importe o arquivo como nova trilha.';
+
+  @override
   String navTrack_editRow_tracksSaveFailed(String error) {
     return 'Não foi possível atualizar as trilhas subaquáticas deste mergulho: $error';
   }
@@ -60241,6 +60245,17 @@ class AppLocalizationsPt extends AppLocalizations {
     String actual,
   ) {
     return 'Esta trilha foi importada de \"$expected\" e o arquivo escolhido é \"$actual\". Atualizar a trilha a partir dele mesmo assim?';
+  }
+
+  @override
+  String get navTrack_detail_updateOtherRecordingTitle => 'Gravação diferente';
+
+  @override
+  String navTrack_detail_updateOtherRecordingMessage(
+    String fileDate,
+    String trackDate,
+  ) {
+    return 'Este arquivo foi gravado em $fileDate e a trilha em $trackDate, então pode ser outro mergulho. Atualizar a trilha a partir dele mesmo assim?';
   }
 
   @override

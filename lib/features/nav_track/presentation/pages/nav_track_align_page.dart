@@ -278,7 +278,7 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
 
   @override
   Widget build(BuildContext context) {
-    final routeAsync = ref.watch(navTrackByIdProvider(widget.routeId));
+    final routeAsync = ref.watch(navTrackWithMarkersProvider(widget.routeId));
     final l10n = context.l10n;
     return routeAsync.when(
       loading: () =>

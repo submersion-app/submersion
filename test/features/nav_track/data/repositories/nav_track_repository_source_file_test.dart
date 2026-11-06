@@ -3,18 +3,20 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/nav_track/data/services/parsers/seacraft_enc_csv_parser.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track_marker.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 
 import '../../../../helpers/test_database.dart';
 
 Uint8List _fixture(String name) =>
-    File('test/fixtures/nav_tracks/$name').readAsBytesSync();
+    File(p.join('test', 'fixtures', 'nav_tracks', name)).readAsBytesSync();
 
 /// `nav_tracks.source_file` (issue #4231): the original file a route was
 /// imported from, kept byte for byte so its points can be derived again,
@@ -32,6 +34,9 @@ void main() {
     SyncClock.instance.reset();
     await tearDownTestDatabase();
   });
+
+  Future<List<NavTrackMarker>> markersOf(String id) async =>
+      repo.getMarkers((await repo.getById(id))!);
 
   Future<String> insertFixture(String name, {bool withFile = true}) {
     final bytes = _fixture(name);
@@ -87,19 +92,58 @@ void main() {
   });
 
   group('markers', () {
-    test('a detail read carries the markers of its file', () async {
+    test('a detail read leaves the markers to getMarkers', () async {
+      final id = await insertFixture('seacraft_enc3_gps_fix.csv');
+
+      // getById hydrates points for thumbnails and maps too, which draw no
+      // markers, so it never parses the file.
+      expect((await repo.getById(id))!.markers, isEmpty);
+      expect(await markersOf(id), hasLength(2));
+    });
+
+    test('getMarkers reads the markers of the stored file', () async {
       final id = await insertFixture('seacraft_enc3_gps_fix.csv');
 
       final route = (await repo.getById(id))!;
+      final markers = await repo.getMarkers(route);
 
-      expect(route.markers.map((m) => m.rawValue), [-1, -101]);
-      expect(route.points[route.markers.first.index].batteryVolts, isNull);
+      expect(markers.map((m) => m.rawValue), [-1, -101]);
+      expect(route.points[markers.first.index].batteryVolts, isNull);
+    });
+
+    test('shows no markers when the stored points do not derive from the '
+        'stored file', () async {
+      // Points of one recording next to the file of another: what a sync
+      // conflict that kept each from a different side, or a parser that
+      // maps rows to samples differently, would leave behind.
+      final id = await repo.insertImportedRoute(
+        points: parseSeacraftEncCsv(_fixture('seacraft_enc3_bench.csv')).points,
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: 'seacraft_enc3_gps_fix.csv',
+        sourceFile: _fixture('seacraft_enc3_gps_fix.csv'),
+      );
+
+      expect(await markersOf(id), isEmpty);
+    });
+
+    test('a new file on the same route brings its own markers', () async {
+      final id = await insertFixture('seacraft_enc3_bench.csv');
+      expect(await markersOf(id), isEmpty);
+      final bytes = _fixture('seacraft_enc3_gps_fix.csv');
+
+      await repo.updateImportedData(
+        id,
+        points: parseSeacraftEncCsv(bytes).points,
+        sourceFile: bytes,
+      );
+
+      expect(await markersOf(id), hasLength(2));
     });
 
     test('a route without a file shows no markers', () async {
       final id = await insertFixture('seacraft_enc3_real.csv', withFile: false);
 
-      expect((await repo.getById(id))!.markers, isEmpty);
+      expect(await markersOf(id), isEmpty);
     });
 
     test('an unparseable stored file shows no markers instead of failing the '
@@ -116,7 +160,7 @@ void main() {
 
       final route = (await repo.getById(id))!;
 
-      expect(route.markers, isEmpty);
+      expect(await repo.getMarkers(route), isEmpty);
       expect(route.points, hasLength(2));
     });
   });
@@ -155,7 +199,7 @@ void main() {
       expect(route.startTime, parsed.points.first.timestamp * 1000);
       expect(route.endTime, parsed.points.last.timestamp * 1000);
       expect(route.totalDistance, isNotNull);
-      expect(route.markers, hasLength(2));
+      expect(await repo.getMarkers(route), hasLength(2));
       expect(await repo.getSourceFile(id), bytes);
       // Settings stay.
       expect(route.name, 'My track');

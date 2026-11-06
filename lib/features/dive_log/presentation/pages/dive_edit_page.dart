@@ -6589,7 +6589,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           );
           if (skipped.isNotEmpty) {
             _log.warning(
-              'Routes already linked elsewhere, left as is: $skipped',
+              'Routes not linked (linked elsewhere or deleted meanwhile): $skipped',
             );
           }
         } catch (e, stackTrace) {

@@ -34,19 +34,22 @@ class _FakeRouteRepository extends NavTrackRepository {
 /// A fixed preview, and a commit that "saves" as `new-route`.
 class _FakeImportService implements NavTrackImportService {
   @override
+  ParsedNavTrack parseFile(Uint8List bytes) => throw UnimplementedError();
+
+  @override
   Future<bool> updateFromFile({
     required String routeId,
     required ParsedNavTrack parsed,
     required Uint8List sourceFile,
     String? sourceRef,
-  }) async => true;
+  }) async {
+    updatedRouteIds.add(routeId);
+    return true;
+  }
 
-  @override
-  Future<bool> updateFromBytes({
-    required String routeId,
-    required Uint8List bytes,
-    required String fileName,
-  }) async => true;
+  /// Routes `updateFromFile` wrote; in return mode the sheet must stage the
+  /// update instead.
+  final updatedRouteIds = <String>[];
 
   _FakeImportService({this.duplicateOfRouteId, this.prepareError});
 
@@ -85,7 +88,6 @@ class _FakeImportService implements NavTrackImportService {
     String? name,
     String? deviceName,
     String? equipmentId,
-    String? replacingRouteId,
     Uint8List? sourceFile,
   }) async {
     lastSiteId = siteId;
@@ -293,27 +295,55 @@ void main() {
     );
   });
 
-  testWidgets('importing a re-export of this dive\'s route updates that route '
-      'in place and keeps it in the draft', (tester) async {
+  testWidgets('importing a re-export of this dive\'s route stages an update '
+      'of that route until Save and keeps it in the draft', (tester) async {
     _mockPickedFile();
     final old = testNavTrack('old', diveId: 'd1');
+    final service = _FakeImportService(duplicateOfRouteId: 'old');
     final changes = await _openSheet(
       tester,
       draft: DiveRouteLinkDraft.initial([old]),
       repository: _FakeRouteRepository({'old': old}),
-      service: _FakeImportService(duplicateOfRouteId: 'old'),
+      service: service,
     );
 
     await tester.tap(find.byKey(const ValueKey('route-sheet-import-button')));
     await tester.pumpAndSettle();
-    // Updating the stored route is the default choice (issue #4231): it is
-    // re-read in place, so the draft keeps it as it was.
+    // Updating the stored route is the default choice (issue #4231). In
+    // return mode nothing is written: a cancelled edit keeps the route.
     await _saveReviewPage(tester);
 
+    expect(service.updatedRouteIds, isEmpty);
     expect(changes.last.current.map((r) => r.id), ['old']);
     expect(changes.last.toUnlink, isEmpty);
     expect(changes.last.toLink, isEmpty);
-    expect(changes.last.replacements, isEmpty);
+    expect(changes.last.updates.keys, ['old']);
+    expect(changes.last.updates['old']!.points, kTestNavTrackPoints);
+  });
+
+  testWidgets('refuses to update a track that belongs to another dive, '
+      'staging nothing', (tester) async {
+    _mockPickedFile();
+    final elsewhere = testNavTrack('elsewhere', diveId: 'other-dive');
+    final service = _FakeImportService(duplicateOfRouteId: 'elsewhere');
+    final changes = await _openSheet(
+      tester,
+      draft: DiveRouteLinkDraft.initial(const []),
+      repository: _FakeRouteRepository({'elsewhere': elsewhere}),
+      service: service,
+    );
+
+    await tester.tap(find.byKey(const ValueKey('route-sheet-import-button')));
+    await tester.pumpAndSettle();
+    await _saveReviewPage(tester);
+
+    expect(service.updatedRouteIds, isEmpty);
+    expect(changes, isEmpty);
+    expect(
+      find.byKey(const ValueKey('route-sheet-row-elsewhere')),
+      findsNothing,
+    );
+    expect(find.textContaining('another dive'), findsOneWidget);
   });
 
   testWidgets('an imported route is saved without a site, so it takes the '

@@ -56220,6 +56220,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get navTrack_editSheet_removeTrackTooltip => 'Quitar track';
 
   @override
+  String get navTrack_editSheet_trackOnAnotherDive =>
+      'Este track pertenece a otra inmersión. Actualízalo desde esa inmersión o importa el archivo como track nuevo.';
+
+  @override
   String navTrack_editRow_tracksSaveFailed(String error) {
     return 'No se pudieron actualizar los tracks submarinos de esta inmersión: $error';
   }
@@ -60295,6 +60299,17 @@ class AppLocalizationsEs extends AppLocalizations {
     String actual,
   ) {
     return 'Este track se importó desde \"$expected\" y el archivo elegido es \"$actual\". ¿Actualizar el track desde él de todos modos?';
+  }
+
+  @override
+  String get navTrack_detail_updateOtherRecordingTitle => 'Grabación distinta';
+
+  @override
+  String navTrack_detail_updateOtherRecordingMessage(
+    String fileDate,
+    String trackDate,
+  ) {
+    return 'Este archivo se grabó el $fileDate y el track el $trackDate, así que puede ser otra inmersión. ¿Actualizar el track desde él de todos modos?';
   }
 
   @override

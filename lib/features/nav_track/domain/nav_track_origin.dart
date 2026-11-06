@@ -15,13 +15,14 @@ import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 /// first row: a pre-dive GPS calibration sits before the dive, and the
 /// anchor stands for where the dive itself began. Every sample shifts by
 /// the same amount, so step lengths, fix events and the active range stay
-/// exactly as they were. Returns a new list and leaves [points] untouched.
+/// exactly as they were. Returns a new, unmodifiable list and leaves
+/// [points] untouched, whether or not anything had to move.
 List<NavTrackPoint> rebaseOnActiveStart(List<NavTrackPoint> points) {
-  if (points.isEmpty) return points;
+  if (points.isEmpty) return const [];
   final start = points[NavTrackCorrector.activeRange(points).start];
   final north = start.north;
   final east = start.east;
-  if (north == 0 && east == 0) return points;
+  if (north == 0 && east == 0) return List.unmodifiable(points);
   return List.unmodifiable([
     for (final p in points)
       p.copyWith(north: p.north - north, east: p.east - east),

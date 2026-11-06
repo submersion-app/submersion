@@ -88702,6 +88702,12 @@ abstract class AppLocalizations {
   /// **'Remove track'**
   String get navTrack_editSheet_removeTrackTooltip;
 
+  /// Dive Edit route sheet: the stored track a re-imported file would update is linked to another dive
+  ///
+  /// In en, this message translates to:
+  /// **'This track belongs to another dive. Update it from that dive, or import the file as a new track.'**
+  String get navTrack_editSheet_trackOnAnotherDive;
+
   /// No description provided for @navTrack_editRow_tracksSaveFailed.
   ///
   /// In en, this message translates to:
@@ -95036,6 +95042,21 @@ abstract class AppLocalizations {
   String navTrack_detail_updateNameMismatchMessage(
     String expected,
     String actual,
+  );
+
+  /// Dialog title when the file picked to update a track was recorded at another time than the track
+  ///
+  /// In en, this message translates to:
+  /// **'Different recording'**
+  String get navTrack_detail_updateOtherRecordingTitle;
+
+  /// Dialog asking whether to update a track from a file recorded at another time; both dates are formatted dates
+  ///
+  /// In en, this message translates to:
+  /// **'This file was recorded on {fileDate}, the track on {trackDate}, so it may be a different dive. Update the track from it anyway?'**
+  String navTrack_detail_updateOtherRecordingMessage(
+    String fileDate,
+    String trackDate,
   );
 
   /// Tooltip of a marker the recording console set: its number, time, depth and distance into the dive

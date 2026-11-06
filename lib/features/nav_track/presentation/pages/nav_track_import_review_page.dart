@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_import_service.dart';
 import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_track.dart';
+import 'package:submersion/features/nav_track/domain/dive_route_link_draft.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_segmenter.dart';
@@ -52,10 +53,15 @@ Future<void> navigateToNavTrackReview(
   );
 }
 
-/// What the review page pops with in return mode: the saved route, and the
-/// duplicate it replaced (already deleted), if any. A route updated in place
-/// from its file comes back as [routeId] with no replaced route.
-typedef NavTrackImportResult = ({String routeId, String? replacedRouteId});
+/// What the review page pops with in return mode: the route to link, and
+/// for a stored route the diver chose to update from this file, the update
+/// itself (issue #4231). That update is not written yet: the caller stages
+/// it until its own Save, so a cancelled edit leaves the stored route as it
+/// was. A new route comes back with no update, already stored unlinked.
+typedef NavTrackImportResult = ({
+  String routeId,
+  StagedRouteFileUpdate? update,
+});
 
 /// Opens the review page in return mode, for a caller that links the route
 /// itself later (the Dive Edit page's route sheet, which stages links until
@@ -292,6 +298,15 @@ class _NavTrackImportReviewPageState
   Future<void> _updateDuplicate(NavTrackImportPreview preview) async {
     final l10n = context.l10n;
     final routeId = preview.duplicateOfRouteId!;
+    // Return mode writes nothing: the caller stages the update with its
+    // other route changes until its own Save.
+    if (widget.returnResult) {
+      Navigator.of(context).pop<NavTrackImportResult>((
+        routeId: routeId,
+        update: (points: preview.parsed.points, sourceFile: widget.bytes),
+      ));
+      return;
+    }
     setState(() {
       _busy = true;
       _error = null;
@@ -302,7 +317,7 @@ class _NavTrackImportReviewPageState
           .updateFromFile(
             routeId: routeId,
             parsed: preview.parsed,
-            sourceFile: preview.sourceBytes ?? widget.bytes,
+            sourceFile: widget.bytes,
           );
       // Deleted since the review opened (here or by a sync): nothing was
       // written, so say so rather than open a track that is gone. The diver
@@ -325,12 +340,6 @@ class _NavTrackImportReviewPageState
       return;
     }
     if (!mounted) return;
-    if (widget.returnResult) {
-      Navigator.of(
-        context,
-      ).pop<NavTrackImportResult>((routeId: routeId, replacedRouteId: null));
-      return;
-    }
     _leaveFor(routeId, l10n.navTrack_review_trackUpdatedConfirmation);
   }
 
@@ -344,9 +353,8 @@ class _NavTrackImportReviewPageState
     final String id;
     try {
       final name = _nameController.text.trim();
-      // The service stores the new route before it removes the duplicate
-      // it replaces, so a failure leaves the original recording in place,
-      // and it keeps the dive's primary route on the re-imported one.
+      // A new route of its own, kept next to any duplicate: updating that
+      // duplicate instead goes through [_updateDuplicate].
       id = await ref
           .read(navTrackImportServiceProvider)
           .commit(
@@ -358,7 +366,7 @@ class _NavTrackImportReviewPageState
             name: name.isEmpty ? null : name,
             deviceName: _equipmentName,
             equipmentId: _equipmentId,
-            sourceFile: preview.sourceBytes ?? widget.bytes,
+            sourceFile: widget.bytes,
           );
     } on NavTrackParseException catch (e) {
       if (!mounted) return;
@@ -379,7 +387,7 @@ class _NavTrackImportReviewPageState
     if (widget.returnResult) {
       Navigator.of(
         context,
-      ).pop<NavTrackImportResult>((routeId: id, replacedRouteId: null));
+      ).pop<NavTrackImportResult>((routeId: id, update: null));
       return;
     }
     // Outside the try: the route is written by now, so nothing below may be

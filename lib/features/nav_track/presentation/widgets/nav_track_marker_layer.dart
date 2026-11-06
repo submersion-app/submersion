@@ -99,7 +99,8 @@ class NavTrackMarkerLayer extends ConsumerWidget {
     final distance = point.distance;
     return l10n.navTrack_marker_details(
       placement.number,
-      units.formatTime(time),
+      // To the second: a console's markers are often only seconds apart.
+      units.formatTimeWithSeconds(time),
       units.formatDepth(point.depth),
       distance == null ? '-' : units.formatDistance(distance),
     );

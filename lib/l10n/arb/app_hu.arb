@@ -16665,6 +16665,7 @@
   "navTrack_editRow_tracksLoadFailed": "Nem sikerült betölteni a víz alatti nyomvonalakat",
   "navTrack_editRow_more": "{name} +{count}",
   "navTrack_editSheet_removeTrackTooltip": "Nyomvonal eltávolítása",
+  "navTrack_editSheet_trackOnAnotherDive": "Ez a nyomvonal egy másik merüléshez tartozik. Frissítsd annál a merülésnél, vagy importáld a fájlt új nyomvonalként.",
   "navTrack_editRow_tracksSaveFailed": "Nem sikerült frissíteni a merülés víz alatti nyomvonalait: {error}",
   "navTrack_importError_unsupportedFormat": "Ez a fájl nem Seacraft ENC navigációs napló.",
   "navTrack_importError_unreadable": "Ezt a fájlt nem sikerült Seacraft ENC navigációs naplóként beolvasni.",
@@ -17798,5 +17799,7 @@
   "navTrack_detail_exportFailed": "Az exportálás sikertelen: {error}",
   "navTrack_detail_updateNameMismatchTitle": "Eltérő fájlnév",
   "navTrack_detail_updateNameMismatchMessage": "Ezt a nyomvonalat a(z) „{expected}” fájlból importálták, a kiválasztott fájl neve „{actual}”. Mégis frissíted belőle a nyomvonalat?",
+  "navTrack_detail_updateOtherRecordingTitle": "Eltérő felvétel",
+  "navTrack_detail_updateOtherRecordingMessage": "Ez a fájl {fileDate} napon készült, a nyomvonal {trackDate} napon, így lehet, hogy másik merülés. Mégis frissíted belőle a nyomvonalat?",
   "navTrack_marker_details": "Jelölő {number}: {time}, {depth}, {distance}"
 }

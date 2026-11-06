@@ -16665,6 +16665,7 @@
   "navTrack_editRow_tracksLoadFailed": "Não foi possível carregar as trilhas subaquáticas",
   "navTrack_editRow_more": "{name} +{count}",
   "navTrack_editSheet_removeTrackTooltip": "Remover trilha",
+  "navTrack_editSheet_trackOnAnotherDive": "Esta trilha pertence a outro mergulho. Atualize-a a partir desse mergulho ou importe o arquivo como nova trilha.",
   "navTrack_editRow_tracksSaveFailed": "Não foi possível atualizar as trilhas subaquáticas deste mergulho: {error}",
   "navTrack_importError_unsupportedFormat": "Este arquivo não é um registro de navegação Seacraft ENC.",
   "navTrack_importError_unreadable": "Não foi possível ler este arquivo como um registro de navegação Seacraft ENC.",
@@ -17798,5 +17799,7 @@
   "navTrack_detail_exportFailed": "Falha ao exportar: {error}",
   "navTrack_detail_updateNameMismatchTitle": "Nome de arquivo diferente",
   "navTrack_detail_updateNameMismatchMessage": "Esta trilha foi importada de \"{expected}\" e o arquivo escolhido é \"{actual}\". Atualizar a trilha a partir dele mesmo assim?",
+  "navTrack_detail_updateOtherRecordingTitle": "Gravação diferente",
+  "navTrack_detail_updateOtherRecordingMessage": "Este arquivo foi gravado em {fileDate} e a trilha em {trackDate}, então pode ser outro mergulho. Atualizar a trilha a partir dele mesmo assim?",
   "navTrack_marker_details": "Marcador {number}: {time}, {depth}, {distance}"
 }

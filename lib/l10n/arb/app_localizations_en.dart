@@ -55285,6 +55285,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navTrack_editSheet_removeTrackTooltip => 'Remove track';
 
   @override
+  String get navTrack_editSheet_trackOnAnotherDive =>
+      'This track belongs to another dive. Update it from that dive, or import the file as a new track.';
+
+  @override
   String navTrack_editRow_tracksSaveFailed(String error) {
     return 'Could not update this dive\'s underwater tracks: $error';
   }
@@ -59306,6 +59310,17 @@ class AppLocalizationsEn extends AppLocalizations {
     String actual,
   ) {
     return 'This track was imported from \"$expected\", the chosen file is \"$actual\". Update the track from it anyway?';
+  }
+
+  @override
+  String get navTrack_detail_updateOtherRecordingTitle => 'Different recording';
+
+  @override
+  String navTrack_detail_updateOtherRecordingMessage(
+    String fileDate,
+    String trackDate,
+  ) {
+    return 'This file was recorded on $fileDate, the track on $trackDate, so it may be a different dive. Update the track from it anyway?';
   }
 
   @override

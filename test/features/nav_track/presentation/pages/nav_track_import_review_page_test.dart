@@ -347,6 +347,9 @@ Future<GoRouter> _pumpWithRouter(
 /// Records the parameters `commit` was called with, so a test can assert on
 /// them without touching a real database.
 class _RecordingImportService implements NavTrackImportService {
+  @override
+  ParsedNavTrack parseFile(Uint8List bytes) => throw UnimplementedError();
+
   String? lastUpdatedRouteId;
   Uint8List? lastUpdatedSourceFile;
   Uint8List? lastCommittedSourceFile;
@@ -368,15 +371,7 @@ class _RecordingImportService implements NavTrackImportService {
   /// What `updateFromFile` reports: false when the route is gone.
   bool updateResult = true;
 
-  @override
-  Future<bool> updateFromBytes({
-    required String routeId,
-    required Uint8List bytes,
-    required String fileName,
-  }) async => true;
-
   String? lastEquipmentId;
-  String? lastReplacingRouteId;
   String? lastDiverId;
   Dive? lastDive;
   String? lastSiteId;
@@ -398,11 +393,9 @@ class _RecordingImportService implements NavTrackImportService {
     String? name,
     String? deviceName,
     String? equipmentId,
-    String? replacingRouteId,
     Uint8List? sourceFile,
   }) async {
     lastEquipmentId = equipmentId;
-    lastReplacingRouteId = replacingRouteId;
     lastDiverId = diverId;
     lastDive = dive;
     lastSiteId = siteId;
@@ -416,18 +409,14 @@ class _RecordingImportService implements NavTrackImportService {
 /// own parse-error branch (as opposed to the preview's).
 class _ParseRejectingImportService implements NavTrackImportService {
   @override
+  ParsedNavTrack parseFile(Uint8List bytes) => throw UnimplementedError();
+
+  @override
   Future<bool> updateFromFile({
     required String routeId,
     required ParsedNavTrack parsed,
     required Uint8List sourceFile,
     String? sourceRef,
-  }) async => true;
-
-  @override
-  Future<bool> updateFromBytes({
-    required String routeId,
-    required Uint8List bytes,
-    required String fileName,
   }) async => true;
 
   @override
@@ -446,7 +435,6 @@ class _ParseRejectingImportService implements NavTrackImportService {
     String? name,
     String? deviceName,
     String? equipmentId,
-    String? replacingRouteId,
     Uint8List? sourceFile,
   }) async {
     throw const NavTrackParseException(
@@ -460,18 +448,14 @@ class _ParseRejectingImportService implements NavTrackImportService {
 /// of a commit that never lands.
 class _ThrowingImportService implements NavTrackImportService {
   @override
+  ParsedNavTrack parseFile(Uint8List bytes) => throw UnimplementedError();
+
+  @override
   Future<bool> updateFromFile({
     required String routeId,
     required ParsedNavTrack parsed,
     required Uint8List sourceFile,
     String? sourceRef,
-  }) async => true;
-
-  @override
-  Future<bool> updateFromBytes({
-    required String routeId,
-    required Uint8List bytes,
-    required String fileName,
   }) async => true;
 
   @override
@@ -490,7 +474,6 @@ class _ThrowingImportService implements NavTrackImportService {
     String? name,
     String? deviceName,
     String? equipmentId,
-    String? replacingRouteId,
     Uint8List? sourceFile,
   }) async {
     throw StateError('commit failed');
@@ -1290,7 +1273,6 @@ void main() {
 
     expect(service.commitCount, 1);
     expect(service.updateCount, 0);
-    expect(service.lastReplacingRouteId, isNull);
     // The new route keeps the file it came from.
     expect(service.lastCommittedSourceFile, isNotNull);
   });
@@ -1410,12 +1392,14 @@ void main() {
 
       expect(service.commitCount, 1);
       expect(service.lastDive, isNull);
-      expect(results, [(routeId: 'new-route-id', replacedRouteId: null)]);
+      expect(results, [(routeId: 'new-route-id', update: null)]);
       // Back on the host page: nothing navigated past it.
       expect(find.text('HOST'), findsOneWidget);
     });
 
-    testWidgets('returns the duplicate it updated in place', (tester) async {
+    testWidgets('hands the duplicate\'s update back for the caller to stage', (
+      tester,
+    ) async {
       final service = _RecordingImportService();
       final results = await _pumpReturnMode(
         tester,
@@ -1425,8 +1409,11 @@ void main() {
 
       await _tapSave(tester);
 
-      expect(results, [(routeId: 'existing-route', replacedRouteId: null)]);
-      expect(service.updateCount, 1);
+      // Nothing written yet: the Dive Edit page stages the update until
+      // its own Save, so a cancelled edit keeps the stored track.
+      expect(results.single!.routeId, 'existing-route');
+      expect(results.single!.update!.points, hasLength(greaterThan(1)));
+      expect(service.updateCount, 0);
       expect(service.commitCount, 0);
     });
 
@@ -1447,18 +1434,14 @@ void main() {
 
 class _FailingImportService implements NavTrackImportService {
   @override
+  ParsedNavTrack parseFile(Uint8List bytes) => throw UnimplementedError();
+
+  @override
   Future<bool> updateFromFile({
     required String routeId,
     required ParsedNavTrack parsed,
     required Uint8List sourceFile,
     String? sourceRef,
-  }) async => true;
-
-  @override
-  Future<bool> updateFromBytes({
-    required String routeId,
-    required Uint8List bytes,
-    required String fileName,
   }) async => true;
 
   @override
@@ -1482,7 +1465,6 @@ class _FailingImportService implements NavTrackImportService {
     String? name,
     String? deviceName,
     String? equipmentId,
-    String? replacingRouteId,
     Uint8List? sourceFile,
   }) async => throw UnimplementedError();
 }
@@ -1492,18 +1474,14 @@ class _FailingImportService implements NavTrackImportService {
 /// branch (as opposed to the localized parse-reason text).
 class _GenericFailingImportService implements NavTrackImportService {
   @override
+  ParsedNavTrack parseFile(Uint8List bytes) => throw UnimplementedError();
+
+  @override
   Future<bool> updateFromFile({
     required String routeId,
     required ParsedNavTrack parsed,
     required Uint8List sourceFile,
     String? sourceRef,
-  }) async => true;
-
-  @override
-  Future<bool> updateFromBytes({
-    required String routeId,
-    required Uint8List bytes,
-    required String fileName,
   }) async => true;
 
   @override
@@ -1524,7 +1502,6 @@ class _GenericFailingImportService implements NavTrackImportService {
     String? name,
     String? deviceName,
     String? equipmentId,
-    String? replacingRouteId,
     Uint8List? sourceFile,
   }) async => throw UnimplementedError();
 }

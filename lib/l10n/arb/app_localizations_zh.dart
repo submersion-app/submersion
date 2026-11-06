@@ -52673,6 +52673,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navTrack_editSheet_removeTrackTooltip => '移除轨迹';
 
   @override
+  String get navTrack_editSheet_trackOnAnotherDive =>
+      '此轨迹属于另一次潜水。请在那次潜水中更新它，或将文件作为新轨迹导入。';
+
+  @override
   String navTrack_editRow_tracksSaveFailed(String error) {
     return '无法更新此潜水的水下轨迹：$error';
   }
@@ -56561,6 +56565,17 @@ class AppLocalizationsZh extends AppLocalizations {
     String actual,
   ) {
     return '此轨迹是从“$expected”导入的，所选文件为“$actual”。仍要用它更新轨迹吗？';
+  }
+
+  @override
+  String get navTrack_detail_updateOtherRecordingTitle => '录制不同';
+
+  @override
+  String navTrack_detail_updateOtherRecordingMessage(
+    String fileDate,
+    String trackDate,
+  ) {
+    return '此文件录制于 $fileDate，轨迹录制于 $trackDate，可能是另一次潜水。仍要用它更新轨迹吗？';
   }
 
   @override

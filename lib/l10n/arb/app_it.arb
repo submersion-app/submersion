@@ -16665,6 +16665,7 @@
   "navTrack_editRow_tracksLoadFailed": "Impossibile caricare le tracce subacquee",
   "navTrack_editRow_more": "{name} +{count}",
   "navTrack_editSheet_removeTrackTooltip": "Rimuovi traccia",
+  "navTrack_editSheet_trackOnAnotherDive": "Questa traccia appartiene a un'altra immersione. Aggiornala da quell'immersione oppure importa il file come nuova traccia.",
   "navTrack_editRow_tracksSaveFailed": "Impossibile aggiornare le tracce subacquee di questa immersione: {error}",
   "navTrack_importError_unsupportedFormat": "Questo file non è un registro di navigazione Seacraft ENC.",
   "navTrack_importError_unreadable": "Impossibile leggere questo file come registro di navigazione Seacraft ENC.",
@@ -17798,5 +17799,7 @@
   "navTrack_detail_exportFailed": "Esportazione non riuscita: {error}",
   "navTrack_detail_updateNameMismatchTitle": "Nome file diverso",
   "navTrack_detail_updateNameMismatchMessage": "Questa traccia è stata importata da \"{expected}\", il file scelto è \"{actual}\". Aggiornare comunque la traccia da questo file?",
+  "navTrack_detail_updateOtherRecordingTitle": "Registrazione diversa",
+  "navTrack_detail_updateOtherRecordingMessage": "Questo file è stato registrato il {fileDate}, la traccia il {trackDate}: potrebbe essere un'altra immersione. Aggiornare comunque la traccia da questo file?",
   "navTrack_marker_details": "Marcatore {number}: {time}, {depth}, {distance}"
 }

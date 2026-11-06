@@ -55870,6 +55870,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get navTrack_editSheet_removeTrackTooltip => 'Nyomvonal eltávolítása';
 
   @override
+  String get navTrack_editSheet_trackOnAnotherDive =>
+      'Ez a nyomvonal egy másik merüléshez tartozik. Frissítsd annál a merülésnél, vagy importáld a fájlt új nyomvonalként.';
+
+  @override
   String navTrack_editRow_tracksSaveFailed(String error) {
     return 'Nem sikerült frissíteni a merülés víz alatti nyomvonalait: $error';
   }
@@ -59913,6 +59917,17 @@ class AppLocalizationsHu extends AppLocalizations {
     String actual,
   ) {
     return 'Ezt a nyomvonalat a(z) „$expected” fájlból importálták, a kiválasztott fájl neve „$actual”. Mégis frissíted belőle a nyomvonalat?';
+  }
+
+  @override
+  String get navTrack_detail_updateOtherRecordingTitle => 'Eltérő felvétel';
+
+  @override
+  String navTrack_detail_updateOtherRecordingMessage(
+    String fileDate,
+    String trackDate,
+  ) {
+    return 'Ez a fájl $fileDate napon készült, a nyomvonal $trackDate napon, így lehet, hogy másik merülés. Mégis frissíted belőle a nyomvonalat?';
   }
 
   @override

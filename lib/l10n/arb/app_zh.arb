@@ -16665,6 +16665,7 @@
   "navTrack_editRow_tracksLoadFailed": "无法加载水下轨迹",
   "navTrack_editRow_more": "{name} +{count}",
   "navTrack_editSheet_removeTrackTooltip": "移除轨迹",
+  "navTrack_editSheet_trackOnAnotherDive": "此轨迹属于另一次潜水。请在那次潜水中更新它，或将文件作为新轨迹导入。",
   "navTrack_editRow_tracksSaveFailed": "无法更新此潜水的水下轨迹：{error}",
   "navTrack_importError_unsupportedFormat": "此文件不是 Seacraft ENC 导航日志。",
   "navTrack_importError_unreadable": "无法将此文件作为 Seacraft ENC 导航日志读取。",
@@ -17798,5 +17799,7 @@
   "navTrack_detail_exportFailed": "导出失败：{error}",
   "navTrack_detail_updateNameMismatchTitle": "文件名不同",
   "navTrack_detail_updateNameMismatchMessage": "此轨迹是从“{expected}”导入的，所选文件为“{actual}”。仍要用它更新轨迹吗？",
+  "navTrack_detail_updateOtherRecordingTitle": "录制不同",
+  "navTrack_detail_updateOtherRecordingMessage": "此文件录制于 {fileDate}，轨迹录制于 {trackDate}，可能是另一次潜水。仍要用它更新轨迹吗？",
   "navTrack_marker_details": "标记 {number}：{time}，{depth}，{distance}"
 }

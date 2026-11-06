@@ -16665,6 +16665,7 @@
   "navTrack_editRow_tracksLoadFailed": "Kan onderwatertracks niet laden",
   "navTrack_editRow_more": "{name} +{count}",
   "navTrack_editSheet_removeTrackTooltip": "Track verwijderen",
+  "navTrack_editSheet_trackOnAnotherDive": "Deze track hoort bij een andere duik. Werk hem bij vanuit die duik, of importeer het bestand als nieuwe track.",
   "navTrack_editRow_tracksSaveFailed": "Kan de onderwatertracks van deze duik niet bijwerken: {error}",
   "navTrack_importError_unsupportedFormat": "Dit bestand is geen Seacraft ENC-navigatielog.",
   "navTrack_importError_unreadable": "Dit bestand kon niet worden gelezen als Seacraft ENC-navigatielog.",
@@ -17798,5 +17799,7 @@
   "navTrack_detail_exportFailed": "Exporteren mislukt: {error}",
   "navTrack_detail_updateNameMismatchTitle": "Andere bestandsnaam",
   "navTrack_detail_updateNameMismatchMessage": "Deze track is geïmporteerd uit \"{expected}\", het gekozen bestand heet \"{actual}\". De track toch hieruit bijwerken?",
+  "navTrack_detail_updateOtherRecordingTitle": "Andere opname",
+  "navTrack_detail_updateOtherRecordingMessage": "Dit bestand is opgenomen op {fileDate}, de track op {trackDate}, dus het kan een andere duik zijn. De track toch hieruit bijwerken?",
   "navTrack_marker_details": "Markering {number}: {time}, {depth}, {distance}"
 }

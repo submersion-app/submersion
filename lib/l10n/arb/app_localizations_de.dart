@@ -56052,6 +56052,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get navTrack_editSheet_removeTrackTooltip => 'Track entfernen';
 
   @override
+  String get navTrack_editSheet_trackOnAnotherDive =>
+      'Dieser Track gehört zu einem anderen Tauchgang. Aktualisiere ihn dort oder importiere die Datei als neuen Track.';
+
+  @override
   String navTrack_editRow_tracksSaveFailed(String error) {
     return 'Unterwasser-Tracks dieses Tauchgangs konnten nicht aktualisiert werden: $error';
   }
@@ -60129,6 +60133,17 @@ class AppLocalizationsDe extends AppLocalizations {
     String actual,
   ) {
     return 'Dieser Track wurde aus „$expected“ importiert, die gewählte Datei heißt „$actual“. Den Track trotzdem daraus aktualisieren?';
+  }
+
+  @override
+  String get navTrack_detail_updateOtherRecordingTitle => 'Andere Aufzeichnung';
+
+  @override
+  String navTrack_detail_updateOtherRecordingMessage(
+    String fileDate,
+    String trackDate,
+  ) {
+    return 'Diese Datei wurde am $fileDate aufgezeichnet, der Track am $trackDate. Es kann ein anderer Tauchgang sein. Den Track trotzdem daraus aktualisieren?';
   }
 
   @override

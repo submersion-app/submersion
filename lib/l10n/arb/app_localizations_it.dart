@@ -56181,6 +56181,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get navTrack_editSheet_removeTrackTooltip => 'Rimuovi traccia';
 
   @override
+  String get navTrack_editSheet_trackOnAnotherDive =>
+      'Questa traccia appartiene a un\'altra immersione. Aggiornala da quell\'immersione oppure importa il file come nuova traccia.';
+
+  @override
   String navTrack_editRow_tracksSaveFailed(String error) {
     return 'Impossibile aggiornare le tracce subacquee di questa immersione: $error';
   }
@@ -60257,6 +60261,18 @@ class AppLocalizationsIt extends AppLocalizations {
     String actual,
   ) {
     return 'Questa traccia è stata importata da \"$expected\", il file scelto è \"$actual\". Aggiornare comunque la traccia da questo file?';
+  }
+
+  @override
+  String get navTrack_detail_updateOtherRecordingTitle =>
+      'Registrazione diversa';
+
+  @override
+  String navTrack_detail_updateOtherRecordingMessage(
+    String fileDate,
+    String trackDate,
+  ) {
+    return 'Questo file è stato registrato il $fileDate, la traccia il $trackDate: potrebbe essere un\'altra immersione. Aggiornare comunque la traccia da questo file?';
   }
 
   @override

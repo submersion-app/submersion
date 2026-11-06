@@ -55811,6 +55811,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get navTrack_editSheet_removeTrackTooltip => 'Track verwijderen';
 
   @override
+  String get navTrack_editSheet_trackOnAnotherDive =>
+      'Deze track hoort bij een andere duik. Werk hem bij vanuit die duik, of importeer het bestand als nieuwe track.';
+
+  @override
   String navTrack_editRow_tracksSaveFailed(String error) {
     return 'Kan de onderwatertracks van deze duik niet bijwerken: $error';
   }
@@ -59878,6 +59882,17 @@ class AppLocalizationsNl extends AppLocalizations {
     String actual,
   ) {
     return 'Deze track is geïmporteerd uit \"$expected\", het gekozen bestand heet \"$actual\". De track toch hieruit bijwerken?';
+  }
+
+  @override
+  String get navTrack_detail_updateOtherRecordingTitle => 'Andere opname';
+
+  @override
+  String navTrack_detail_updateOtherRecordingMessage(
+    String fileDate,
+    String trackDate,
+  ) {
+    return 'Dit bestand is opgenomen op $fileDate, de track op $trackDate, dus het kan een andere duik zijn. De track toch hieruit bijwerken?';
   }
 
   @override

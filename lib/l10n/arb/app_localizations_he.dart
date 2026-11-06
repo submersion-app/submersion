@@ -54973,6 +54973,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get navTrack_editSheet_removeTrackTooltip => 'הסרת מסלול';
 
   @override
+  String get navTrack_editSheet_trackOnAnotherDive =>
+      'המסלול הזה שייך לצלילה אחרת. יש לעדכן אותו מאותה צלילה, או לייבא את הקובץ כמסלול חדש.';
+
+  @override
   String navTrack_editRow_tracksSaveFailed(String error) {
     return 'לא ניתן לעדכן את המסלולים התת-ימיים של צלילה זו: $error';
   }
@@ -58992,6 +58996,17 @@ class AppLocalizationsHe extends AppLocalizations {
     String actual,
   ) {
     return 'המסלול הזה יובא מ-\"$expected\", והקובץ שנבחר הוא \"$actual\". לעדכן את המסלול ממנו בכל זאת?';
+  }
+
+  @override
+  String get navTrack_detail_updateOtherRecordingTitle => 'הקלטה שונה';
+
+  @override
+  String navTrack_detail_updateOtherRecordingMessage(
+    String fileDate,
+    String trackDate,
+  ) {
+    return 'הקובץ הזה הוקלט ב-$fileDate, והמסלול ב-$trackDate, כך שייתכן שזו צלילה אחרת. לעדכן את המסלול ממנו בכל זאת?';
   }
 
   @override

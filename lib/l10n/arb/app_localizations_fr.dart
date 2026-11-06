@@ -56298,6 +56298,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navTrack_editSheet_removeTrackTooltip => 'Retirer la trace';
 
   @override
+  String get navTrack_editSheet_trackOnAnotherDive =>
+      'Cette trace appartient à une autre plongée. Mettez-la à jour depuis cette plongée, ou importez le fichier comme nouvelle trace.';
+
+  @override
   String navTrack_editRow_tracksSaveFailed(String error) {
     return 'Impossible de mettre à jour les traces sous-marines de cette plongée : $error';
   }
@@ -60390,6 +60394,18 @@ class AppLocalizationsFr extends AppLocalizations {
     String actual,
   ) {
     return 'Cette trace a été importée depuis « $expected », le fichier choisi est « $actual ». Mettre quand même la trace à jour depuis ce fichier ?';
+  }
+
+  @override
+  String get navTrack_detail_updateOtherRecordingTitle =>
+      'Enregistrement différent';
+
+  @override
+  String navTrack_detail_updateOtherRecordingMessage(
+    String fileDate,
+    String trackDate,
+  ) {
+    return 'Ce fichier a été enregistré le $fileDate, la trace le $trackDate : il peut s\'agir d\'une autre plongée. Mettre quand même la trace à jour depuis ce fichier ?';
   }
 
   @override

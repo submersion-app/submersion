@@ -16665,6 +16665,7 @@
   "navTrack_editRow_tracksLoadFailed": "Impossible de charger les traces sous-marines",
   "navTrack_editRow_more": "{name} +{count}",
   "navTrack_editSheet_removeTrackTooltip": "Retirer la trace",
+  "navTrack_editSheet_trackOnAnotherDive": "Cette trace appartient à une autre plongée. Mettez-la à jour depuis cette plongée, ou importez le fichier comme nouvelle trace.",
   "navTrack_editRow_tracksSaveFailed": "Impossible de mettre à jour les traces sous-marines de cette plongée : {error}",
   "navTrack_importError_unsupportedFormat": "Ce fichier n'est pas un journal de navigation Seacraft ENC.",
   "navTrack_importError_unreadable": "Ce fichier n'a pas pu être lu comme un journal de navigation Seacraft ENC.",
@@ -17798,5 +17799,7 @@
   "navTrack_detail_exportFailed": "Échec de l'export : {error}",
   "navTrack_detail_updateNameMismatchTitle": "Nom de fichier différent",
   "navTrack_detail_updateNameMismatchMessage": "Cette trace a été importée depuis « {expected} », le fichier choisi est « {actual} ». Mettre quand même la trace à jour depuis ce fichier ?",
+  "navTrack_detail_updateOtherRecordingTitle": "Enregistrement différent",
+  "navTrack_detail_updateOtherRecordingMessage": "Ce fichier a été enregistré le {fileDate}, la trace le {trackDate} : il peut s'agir d'une autre plongée. Mettre quand même la trace à jour depuis ce fichier ?",
   "navTrack_marker_details": "Repère {number} : {time}, {depth}, {distance}"
 }
