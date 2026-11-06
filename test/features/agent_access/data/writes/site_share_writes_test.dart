@@ -97,4 +97,33 @@ void main() {
     ]);
     expect(own.items.single.block!.reason, BlockReason.invalidValue);
   });
+
+  // The site editor shares a site with everyone, or names profiles once
+  // it is not; one op can do both, as a trip's can.
+  test('a site is shared with everyone, then with one profile', () async {
+    final site = await make('sites', {'name': 'Reef'});
+
+    await h.run([
+      updateOp('sites', site, {'is_shared': true}),
+    ]);
+    expect((await h.one('sites', site))!['is_shared'], true);
+
+    final plan = await h.preview([
+      {
+        ...relate('sites', site, 'shared_with', add: [kDiverB]),
+        'fields': {'is_shared': false},
+      },
+    ]);
+    expect(plan.items.single.block, isNull);
+    await h.apply(plan);
+
+    expect((await h.one('sites', site))!['is_shared'], false);
+    expect(
+      await db
+          .select(db.siteShares)
+          .get()
+          .then((s) => [for (final r in s) r.diverId]),
+      [kDiverB],
+    );
+  });
 }

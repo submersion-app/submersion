@@ -11,9 +11,13 @@ import 'package:submersion/features/media/domain/entities/media_library_filter.d
 MediaLibraryFilter _filterOf(Map<String, Object?> raw) {
   int? millis(String key) {
     final day = calendarDay(raw[key]);
-    return day == null
-        ? null
-        : DateTime.utc(day.year, day.month, day.day).millisecondsSinceEpoch;
+    if (day == null) return null;
+    // DateTime.parse rolls 2024-02-31 into March; a day is only the day it
+    // names, as the calendar date fields keep it.
+    if (calendarDate(day) != raw[key]) {
+      throw FieldRefusal('$key: a day that exists, written YYYY-MM-DD.');
+    }
+    return DateTime.utc(day.year, day.month, day.day).millisecondsSinceEpoch;
   }
 
   final filter = MediaLibraryFilter.fromJson({

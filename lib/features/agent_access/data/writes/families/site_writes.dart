@@ -53,6 +53,7 @@ class SiteWrites extends WritableEntry {
     'access_notes': const FieldCodec.text(nullable: true),
     'mooring_number': const FieldCodec.text(maxLength: 200, nullable: true),
     'parking_info': const FieldCodec.text(nullable: true),
+    'is_shared': const FieldCodec.flag(),
   };
 
   @override
@@ -145,11 +146,20 @@ class SiteWrites extends WritableEntry {
     if (check.kind == ChangeKind.create) return null;
     final library = check.document?['shared_library_id'] != null;
     if (check.kind == ChangeKind.update) {
+      // A library site is shared by its library, not one by one.
+      if (library && check.values.containsKey('is_shared')) {
+        return const PlanBlock(
+          BlockReason.notPermitted,
+          'is_shared: a shared site library site follows its library.',
+        );
+      }
       final share = await shareProblem(
         _r,
         SharedItemKind.site,
         check,
-        everyone: check.document?['is_shared'] == true,
+        // The op's own flag first, as a trip's share rule reads it.
+        everyone:
+            (check.values['is_shared'] ?? check.document?['is_shared']) == true,
         library: library,
       );
       if (share != null) return share;
@@ -382,6 +392,7 @@ class SiteWrites extends WritableEntry {
     final longitude = value<double>('longitude') ?? site.location?.longitude;
     return site.copyWith(
       name: value<String>('name'),
+      isShared: value<bool>('is_shared'),
       description: value<String>('description'),
       location: latitude != null && longitude != null
           ? GeoPoint(latitude, longitude)

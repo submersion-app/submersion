@@ -162,6 +162,7 @@ void main() {
     for (final filter in [
       {'siteId': 5},
       {'mediaType': 'photo', 'from_date': 'last week'},
+      {'mediaType': 'photo', 'to_date': '2024-02-31'},
     ]) {
       final plan = await h.preview([
         createOp('smart_albums', {'name': 'Odd', 'filter': filter}),

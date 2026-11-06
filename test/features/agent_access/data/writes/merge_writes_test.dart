@@ -253,4 +253,24 @@ void main() {
 
     expect(await h.one('buddies', dupe), isNull);
   });
+
+  // The second merge's reach is read before the first runs, at preview and
+  // at apply alike, so the pair applies.
+  test('two buddies merge into one survivor in one set', () async {
+    final keep = await make('buddies', {'name': 'Rui'});
+    final one = await make('buddies', {'name': 'Rui S.'});
+    final two = await make('buddies', {'name': 'R. Silva'});
+    await h.run([onDive('d1', 'buddies', one)]);
+    await h.dive('d3');
+    await h.run([onDive('d3', 'buddies', two)]);
+
+    await h.run([
+      deleteOp('buddies', one, mergeInto: keep),
+      deleteOp('buddies', two, mergeInto: keep),
+    ]);
+
+    final links = await db.select(db.diveBuddies).get();
+    expect({for (final l in links) l.buddyId}, {keep});
+    expect(links, hasLength(2));
+  });
 }
