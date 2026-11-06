@@ -9,6 +9,7 @@ import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_files.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/computer_tissue_scalar_move.dart';
+import 'package:submersion/core/database/last_service_date_repair.dart';
 import 'package:submersion/core/database/weather_fetched_at_repair.dart';
 import 'package:submersion/core/database/combined_dive_summary_repair.dart';
 import 'package:submersion/core/database/device_gear_heal.dart';
@@ -1474,7 +1475,9 @@ class SyncService {
   /// (issue #2555). One below v337 publishes `weather_fetched_at` in
   /// milliseconds, as does a sync store written before it (issue #4119). One
   /// below v340 publishes a combined dive with its first segment's water
-  /// temperature, CNS and OTU (issue #4136).
+  /// temperature, CNS and OTU (issue #4136). One below v346 publishes an
+  /// item's last service date older than its newest service record when an
+  /// older record was logged there (issue #4201).
   Future<void> _repairLegacyPeerRows({
     Iterable<String>? combinedDiveIds,
   }) async {
@@ -1483,6 +1486,7 @@ class SyncService {
       await repairWeatherFetchedAtSeconds(db);
       await repairCombinedDiveSummaries(db, diveIds: combinedDiveIds);
       await moveComputerTissueScalars(db);
+      await repairLastServiceDates(db);
     } catch (e, st) {
       // The applied rows are already in place; losing this repair costs only
       // the old values, never the sync.

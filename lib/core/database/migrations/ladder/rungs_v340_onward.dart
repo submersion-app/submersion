@@ -38,5 +38,12 @@ extension RungsFromV340 on AppDatabase {
     // in beforeOpen.
     if (from < 342) await _assertDivePlanPhase2Columns();
     if (from < 342) await reportProgress();
+
+    // v346: an item's last service date is its newest service record's
+    // again where logging an older record had moved it back (issue #4201).
+    // Data only, so the compatibility floor does not move. Numbered past
+    // 343, which three open PRs claim, so they can take 343 to 345.
+    if (from < 346) await _repairLastServiceDates();
+    if (from < 346) await reportProgress();
   }
 }

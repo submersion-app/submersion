@@ -121,11 +121,9 @@ class ServiceRecordRepository {
     );
     SyncEventBus.notifyLocalChange();
 
-    // Update the equipment's lastServiceDate
-    await _updateEquipmentLastServiceDate(
-      record.equipmentId,
-      record.serviceDate,
-    );
+    // The newest record's date, so a record back-filled from paper does not
+    // move the item's last service date back (issue #4201).
+    await _refreshEquipmentLastServiceDate(record.equipmentId);
 
     return record.copyWith(id: id, createdAt: now, updatedAt: now);
   }
@@ -157,14 +155,7 @@ class ServiceRecordRepository {
     );
     SyncEventBus.notifyLocalChange();
 
-    // Update equipment's lastServiceDate if this is the most recent record
-    final mostRecent = await getMostRecentRecord(record.equipmentId);
-    if (mostRecent != null) {
-      await _updateEquipmentLastServiceDate(
-        record.equipmentId,
-        mostRecent.serviceDate,
-      );
-    }
+    await _refreshEquipmentLastServiceDate(record.equipmentId);
   }
 
   /// Delete a service record
@@ -179,18 +170,8 @@ class ServiceRecordRepository {
     );
     SyncEventBus.notifyLocalChange();
 
-    // Update equipment's lastServiceDate if needed
     if (record != null) {
-      final mostRecent = await getMostRecentRecord(record.equipmentId);
-      if (mostRecent != null) {
-        await _updateEquipmentLastServiceDate(
-          record.equipmentId,
-          mostRecent.serviceDate,
-        );
-      } else {
-        // No more service records, clear the date
-        await _clearEquipmentLastServiceDate(record.equipmentId);
-      }
+      await _refreshEquipmentLastServiceDate(record.equipmentId);
     }
   }
 
@@ -252,6 +233,20 @@ class ServiceRecordRepository {
         .getSingle();
 
     return result.data['count'] as int? ?? 0;
+  }
+
+  /// Sets the item's lastServiceDate to its newest record's date, or clears
+  /// it when the item has no record left.
+  Future<void> _refreshEquipmentLastServiceDate(String equipmentId) async {
+    final mostRecent = await getMostRecentRecord(equipmentId);
+    if (mostRecent == null) {
+      await _clearEquipmentLastServiceDate(equipmentId);
+    } else {
+      await _updateEquipmentLastServiceDate(
+        equipmentId,
+        mostRecent.serviceDate,
+      );
+    }
   }
 
   /// Update the equipment's lastServiceDate field
