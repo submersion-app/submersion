@@ -9,6 +9,8 @@ OS version, build and tag model for each line.
 ## Prerequisites
 
 - One each of NTAG213 and NTAG215, blank.
+- One NDEF-formatted ISO 15693 (Type 5) tag, such as an NXP ICODE SLIX
+  micro tag (issue #4226).
 - A regulator and a tank in Equipment, a second diver profile's shared BCD,
   and an upcoming trip.
 - The website's `apple-app-site-association` lists `/g` and `/g/*`, and the
@@ -21,6 +23,11 @@ OS version, build and tag model for each line.
 - [ ] Android: the same.
 - [ ] NTAG213: written, with "Left off to fit" naming the last service date
   and model for a typical name.
+- [ ] iPhone and Android: the Type 5 tag on the regulator is found, written
+  and checked, and scanning it opens the gear passport.
+- [ ] iPhone and Android: a buddy card written to the Type 5 tag as a
+  sticker opens the buddy card when scanned (buddy stickers share the tag
+  session).
 - [ ] Print label for the regulator, and Print labels for a mixed selection
   (regulator, tank, fins): one PDF, the gear labels with a `/g` QR.
 

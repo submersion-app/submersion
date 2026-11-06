@@ -59,6 +59,12 @@ ways:
   tag; when a small tag cannot hold everything, the sheet says which details
   were left off. Writing needs a phone with NFC.
 
+  Small industrial tags with an ISO 15693 chip, such as the NXP ICODE SLIX
+  micro and glass tags, work too. On a steel or aluminium cylinder use a tag
+  made for metal, since an ordinary tag does not read there, and hold the
+  phone's NFC spot right against it. An ICODE SLIX holds less than an
+  NTAG213, so more details are left off; the cylinder's identity always fits.
+
 A tag already on the cylinder (one a shop wrote, for example) can be attached
 with **Link an existing tag** by pasting its link.
 

@@ -21,9 +21,16 @@ OS version, build and tag model for each line.
       written and checked", the type and capacity, "Everything fits".
 - [ ] Android: the same.
 - [ ] NTAG213: written, with "Left off to fit" naming the dropped fields.
-- [ ] iPhone and Android: the ICODE SLIX tag is found, written and checked,
-      with "Left off to fit" naming the dropped fields; on Android the type
-      reads "NFC Forum Type 5". Scanning it opens the passport.
+- [ ] iPhone and Android: the Type 5 tag is found, written and checked, on a
+      cylinder with a fill logged. A SLIX (112 bytes) shows "Left off to
+      fit" naming the dropped fields; a SLIX2 (316 bytes) may show
+      "Everything fits". On Android the type reads "NFC Forum Type 5".
+      Scanning it opens the passport.
+- [ ] Type 5 capacity: note the capacity the sheet reports on each platform.
+      It must be the NDEF message size (at most 105 for a SLIX, after the
+      capability container and TLV), not the raw user memory. A write
+      that fills the reported capacity reads back as written; "The tag was
+      not written" on every retry means the platform reports raw memory.
 - [ ] Locked tag: "This tag is locked", nothing written.
 - [ ] Lift the tag mid-write: "The tag was not written", Try again writes
       it cleanly.

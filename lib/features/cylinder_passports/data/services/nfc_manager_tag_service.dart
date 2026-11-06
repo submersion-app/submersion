@@ -118,11 +118,13 @@ class NfcManagerTagService implements NfcTagService {
     sessionActive = true;
     try {
       await _manager.startSession(
-        // NTAG21x stickers are ISO 14443 type A (NFC Forum Type 2). The
-        // small on-metal and glass tags made for gear are often ISO 15693
-        // (Type 5, NXP ICODE SLIX), which polling 14443 alone never
-        // reports (issue #4226). FeliCa (ISO 18092) is left out: iOS
-        // would also need its system codes declared in Info.plist.
+        // Every tag flow shares this set. ISO 14443 covers NTAG21x
+        // stickers (NFC Forum Type 2) and the Type 4 tag an Android phone
+        // emulates for a buddy card swap (issue #3728). ISO 15693 covers
+        // the small on-metal and glass tags made for gear (Type 5, NXP
+        // ICODE SLIX), which polling 14443 alone never reports (issue
+        // #4226). FeliCa (ISO 18092) is left out: iOS would also need its
+        // system codes declared in Info.plist.
         pollingOptions: const {
           NfcPollingOption.iso14443,
           NfcPollingOption.iso15693,

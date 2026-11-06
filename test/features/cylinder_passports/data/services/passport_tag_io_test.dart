@@ -40,18 +40,28 @@ void main() {
       );
     });
 
-    test('a small Type 5 tag still takes the identity (issue #4226)', () async {
-      // An ICODE SLIX has 112 bytes of user memory, of which the phone
-      // reports a little over 100 as NDEF capacity.
+    test('a small Type 5 tag keeps the identity and drops the rest '
+        '(issue #4226)', () async {
+      // An ICODE SLIX has 112 bytes of user memory. Its 4-byte capability
+      // container and the NDEF TLV's header and terminator leave at most
+      // 105 for the message, below the 104 this payload needs whole.
+      const capacity = 100;
       final tag = FakeTagHandle(
-        maxMessageBytes: 104,
+        maxMessageBytes: capacity,
         typeLabel: 'com.nxp.ndef.icodesli',
       );
       final result = await writePassportTo(tag, payload);
       expect(result, isA<TagWritten>());
       final written = result as TagWritten;
-      expect(written.plan.message.byteLength, lessThanOrEqualTo(104));
-      expect(firstPassportUri(tag.stored!), isNotNull);
+      final plan = written.plan as PassportNdefPlan;
+      expect(plan.message.byteLength, lessThanOrEqualTo(capacity));
+      expect(plan.droppedKeys, isNotEmpty);
+      expect(plan.payload.passportId, id);
+      expect(
+        firstPassportUri(tag.stored!),
+        PassportPayloadCodec.httpsUrl(plan.payload),
+      );
+      expect(friendlyTagType(written.typeLabel), 'NFC Forum Type 5');
     });
 
     test('a tag that cannot hold NDEF is refused', () async {
