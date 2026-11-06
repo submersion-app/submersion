@@ -111,8 +111,5 @@ Map<String, Object?> updateOp(
   Map<String, Object?> fields,
 ) => {'op': 'update', 'entity': entity, 'id': id, 'fields': fields};
 
-Map<String, Object?> deleteOp(String entity, String id) => {
-  'op': 'delete',
-  'entity': entity,
-  'id': id,
-};
+Map<String, Object?> deleteOp(String entity, String id, {String? mergeInto}) =>
+    {'op': 'delete', 'entity': entity, 'id': id, 'merge_into': ?mergeInto};

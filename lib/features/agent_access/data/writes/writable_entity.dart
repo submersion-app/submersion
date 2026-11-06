@@ -110,6 +110,7 @@ class WriteCheck {
     this.relations = const {},
     this.document,
     this.soFar = const SetSoFar(),
+    this.mergeInto,
   });
 
   final ChangeKind kind;
@@ -128,6 +129,9 @@ class WriteCheck {
 
   /// The record as it stands. Null for a create.
   final Map<String, Object?>? document;
+
+  /// The record a delete merges this one into, or null for a plain delete.
+  final String? mergeInto;
 }
 
 /// A key a change claims, such as a folded name. A [shared] claim holds the
@@ -203,6 +207,7 @@ class SideEffects {
     this.parts = const {},
     this.detached = const {},
     this.touched = const {},
+    this.created = const {},
   });
 
   /// Document key to the value it will hold, as a document would read.
@@ -228,13 +233,18 @@ class SideEffects {
   /// computer a gear item's rename renames.
   final Map<String, int> touched;
 
+  /// Rows the update adds, by table, as a create's [WritableEntry.alsoCreates]
+  /// lists them: the items a template brings to a checklist.
+  final Map<String, int> created;
+
   bool get isEmpty =>
       fields.isEmpty &&
       relations.isEmpty &&
       lost.isEmpty &&
       parts.isEmpty &&
       detached.isEmpty &&
-      touched.isEmpty;
+      touched.isEmpty &&
+      created.isEmpty;
 
   /// The same text for the same effects, to compare a preview with a later
   /// read.
@@ -256,6 +266,7 @@ class SideEffects {
         key: (value.toList()..sort()),
     }),
     'touched': _sorted(touched),
+    'created': _sorted(created),
   });
 }
 
@@ -345,6 +356,15 @@ abstract class WritableEntry {
   /// Fields a create must carry.
   Set<String> get requiredOnCreate;
 
+  /// The column of [table] naming the profile a record belongs to: a
+  /// profile belongs to itself.
+  String get ownerColumn => 'diver_id';
+
+  /// The profile a row of [table] aliased [alias] belongs to, as SQL: its
+  /// [ownerColumn], unless the owner lives elsewhere, as a buddy's card
+  /// belongs to the buddy's profile.
+  String ownerOf(String alias) => '$alias.$ownerColumn';
+
   /// The record this one belongs to. A child takes its parent's owner,
   /// names it in [ChildOf.field] when it is created, and stays on it.
   ChildOf? get parent => null;
@@ -420,6 +440,10 @@ abstract class WritableEntry {
   /// claim on one key within the same set, which the database cannot see yet.
   UniqueClaim? uniqueKey(WriteCheck check) => null;
 
+  /// Every key this change claims, for an entity whose change can claim
+  /// more than one; [uniqueKey]'s alone by default.
+  List<UniqueClaim> uniqueKeys(WriteCheck check) => [?uniqueKey(check)];
+
   /// [document] with stored values where a read shows a derived one, so a
   /// plan compares against what the row holds.
   Future<Map<String, Object?>> stored(
@@ -447,6 +471,20 @@ abstract class WritableEntry {
   /// Whether a delete may name `merge_into`: a record that takes over this
   /// one's links, as the app merges these records.
   bool get mergeable => false;
+
+  /// Whether a merge may keep a survivor another profile owns, as a site
+  /// merges into a site shared with its owner. [refuseMerge] then says
+  /// which such survivors may take the merge.
+  bool get mergesAcrossProfiles => false;
+
+  /// A block when [id] of [ownerId] may not merge into [intoId], null when
+  /// it may. Only asked of a [mergeable] entity, after the planner's own
+  /// merge rules pass.
+  Future<PlanBlock?> refuseMerge(
+    String id,
+    String intoId,
+    String? ownerId,
+  ) async => null;
 
   /// What merging [id] into [intoId] does to their links, and to the
   /// survivor in [DeleteReach.survivor]. [mergedBefore] are the records the

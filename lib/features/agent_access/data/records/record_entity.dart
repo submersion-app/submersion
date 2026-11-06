@@ -173,12 +173,14 @@ RecordEntity<T> childEntity<T>(
   required Map<String, Object?> Function(T) document,
   required List<String> summaryKeys,
   String? orderBy,
+  Map<String, BlockLoader<T>> blocks = const {},
 }) => RecordEntity<T>(
   name: name,
   table: table,
   scope: scope,
   parentColumn: parentColumn,
   orderBy: orderBy,
+  blocks: blocks,
   load: (ids, _) => loadChildren<T>(
     r.db,
     table: table,

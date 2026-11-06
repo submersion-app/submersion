@@ -54,7 +54,6 @@ const _foldedTables = {
   'equipment_set_items',
   'pre_dive_checklist_template_items',
   'pre_dive_checklist_template_sections',
-  'pre_dive_session_items',
   'pre_dive_session_sections',
   'weight_preset_entries',
 };

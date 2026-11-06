@@ -26,7 +26,15 @@ extension _MergeRules on _Pass {
         'merge_into: no ${entry.name} record has id $into.',
       );
     }
-    if (survivor.ownerId != row.ownerId) {
+    if (entry.parent case final parent?
+        when survivor.parentId != row.parentId) {
+      return PlanBlock(
+        BlockReason.invalidValue,
+        'merge_into: $into belongs to another ${parent.entity} record; a '
+        '${entry.name} record merges only into one beside it.',
+      );
+    }
+    if (survivor.ownerId != row.ownerId && !entry.mergesAcrossProfiles) {
       return PlanBlock(
         BlockReason.otherProfileReference,
         'merge_into: $into belongs to another diver profile.',

@@ -292,6 +292,7 @@ which opens that step of Set up this device.
 | **Link buddy names** | Turn buddy names on imported dives into buddy records |
 | **Retype gear marked Other** | Give imported gear the type its name states |
 | **Data quality** | Choose which checks the [Data Quality Assistant](data-quality-assistant.md) runs |
+| **Agent access** | Let an AI agent on this computer read and change your logbook (desktop only; see [Agent Access](agent-access.md)) |
 
 ## App Security
 

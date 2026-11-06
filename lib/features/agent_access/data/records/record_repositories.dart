@@ -16,6 +16,7 @@ import 'package:submersion/features/cylinder_passports/data/repositories/cylinde
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_gear_note_repository.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
 import 'package:submersion/features/dive_lab/data/repositories/dive_scenario_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_custom_field_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -27,6 +28,7 @@ import 'package:submersion/features/dive_types/data/repositories/dive_type_repos
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/data/repositories/diver_weight_entry_repository.dart';
 import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
+import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
@@ -109,6 +111,7 @@ class RecordRepositories {
   late final gpsTracks = GpsTrackRepository();
   late final incidents = IncidentRepository();
   late final itemShares = ItemSharesRepository();
+  late final profileHides = ProfileHidesRepository();
   late final itineraryDays = ItineraryDayRepository();
   late final liveaboard = LiveaboardDetailsRepository();
   late final media = MediaRepository();
@@ -119,6 +122,7 @@ class RecordRepositories {
   late final savedQueries = SavedQueryRepository();
   late final serviceKinds = ServiceKindRepository();
   late final serviceRecords = ServiceRecordRepository();
+  late final safetyFindings = SafetyFindingsRepository();
   late final serviceSchedules = ServiceScheduleRepository();
   late final sideTrips = SideTripRepository();
   late final siteClassification = SiteClassificationRepository();
