@@ -102,6 +102,9 @@ Widget buildCard({
   return ProviderScope(
     overrides: [settingsProvider.overrideWith((ref) => MockSettingsNotifier())],
     child: MaterialApp(
+      // The assertions read English strings; pin the locale so they do not
+      // depend on the host's.
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       // Both real hosts (dive detail, current dive load page) scroll, so a

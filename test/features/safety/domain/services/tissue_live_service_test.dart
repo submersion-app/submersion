@@ -316,6 +316,24 @@ void main() {
       expect(TissueLiveService.isAtSurfaceEquilibrium(status), isTrue);
     });
 
+    test('false for a status without compartments', () {
+      const empty = DecoStatus(
+        compartments: [],
+        ndlSeconds: 0,
+        ceilingMeters: 0,
+        ttsSeconds: 0,
+        gfLow: 0.3,
+        gfHigh: 0.7,
+        decoStops: [],
+        currentDepthMeters: 0,
+        ambientPressureBar: 1.0,
+        inspiredN2Bar: inspiredSurfaceN2Bar,
+        inspiredHeBar: 0.0,
+      );
+
+      expect(TissueLiveService.isAtSurfaceEquilibrium(empty), isFalse);
+    });
+
     test('false while loaded, like hasResidualLoad', () {
       final status = statusAfter(loadedCompartments(), Duration.zero);
 
