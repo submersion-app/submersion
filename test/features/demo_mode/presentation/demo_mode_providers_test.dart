@@ -97,7 +97,7 @@ void main() {
       expect(units['depth_unit'], 'feet');
       expect(units['temperature_unit'], 'fahrenheit');
       expect(units['theme_mode'], 'dark');
-      // The sample logbook starts its weeks where the diver's do (#4232).
+      // The sample logbook starts its weeks on the diver's first day (#4232).
       expect(units['first_day_of_week'], 'sunday');
       expect(units.keys, everyElement(isIn(demoUnitSettingColumns)));
     });
