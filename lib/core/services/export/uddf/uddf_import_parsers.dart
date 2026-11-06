@@ -2,6 +2,7 @@ import 'package:xml/xml.dart';
 
 import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/core/services/export/uddf/uddf_gas_mix_writers.dart';
+import 'package:submersion/core/services/export/uddf/uddf_partial_pressure.dart';
 import 'package:submersion/core/services/export/uddf/uddf_service_clock_writers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
@@ -326,8 +327,8 @@ class UddfImportParsers {
   /// Parses a UDDF partial pressure into bar.
   ///
   /// The spec mandates Pascal (`1.27e5` for 1.27 bar), but exporters are
-  /// inconsistent: Shearwater Cloud writes plain bar (`0.849999964`), and our
-  /// own exporter has always written bar. The two differ by 10^5, so the
+  /// inconsistent: Shearwater Cloud writes plain bar (`0.849999964`), and
+  /// Submersion wrote bar until issue #4198. The two differ by 10^5, so the
   /// magnitude decides the unit. No breathable partial pressure reaches 100
   /// bar, and 100 Pa (0.001 bar) is not a plausible reading either, so
   /// anything above the threshold is Pascal.
@@ -336,7 +337,10 @@ class UddfImportParsers {
     final value = double.tryParse(text.trim());
     // double.tryParse accepts "NaN" and "Infinity", and neither is a reading.
     if (value == null || !value.isFinite || value <= 0) return null;
-    return value > 100 ? value / 100000 : value;
+    if (value <= 100) return value;
+    // Shifted as text rather than divided, so a value Submersion wrote comes
+    // back as the exact double it stored (issue #4198).
+    return UddfPartialPressure.barFromPascalText(text) ?? value / 100000;
   }
 
   /// Ordered O2 cell ids declared in the document.

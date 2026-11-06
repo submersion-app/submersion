@@ -178,6 +178,29 @@ void main() {
         );
       });
 
+      test(
+        'writes partial pressures in Pascal, under the UDDF names',
+        () async {
+          // Issue #4198: UDDF 3.2 defines every partial pressure in Pascal, so
+          // a strict reader took a 1.01 bar reading written as bar for 1.01 Pa.
+          final doc = XmlDocument.parse(await write(_dive(DiveMode.ccr)));
+          final waypoint = doc.findAllElements('waypoint').elementAt(1);
+
+          expect(waypoint.getElement('setpo2')?.innerText, '70000');
+          expect(waypoint.getElement('calculatedpo2')?.innerText, '101000');
+          expect(
+            {
+              for (final e in waypoint.findElements('measuredpo2'))
+                e.getAttribute('ref'): e.innerText,
+            },
+            {'o2cell_1': '102000', 'o2cell_2': '103000', 'o2cell_3': '104000'},
+          );
+          // The non-standard names older exports used are gone.
+          expect(doc.findAllElements('setpoint'), isEmpty);
+          expect(doc.findAllElements('ppo2'), isEmpty);
+        },
+      );
+
       test('an open circuit dive declares no cells', () async {
         final xml = await write(
           domain.Dive(
