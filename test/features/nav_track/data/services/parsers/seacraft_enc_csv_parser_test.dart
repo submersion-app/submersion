@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_track.dart';
 import 'package:submersion/features/nav_track/data/services/parsers/seacraft_enc_csv_parser.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track_marker.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 
 Uint8List _fixture(String name) =>
@@ -406,6 +407,104 @@ void main() {
         () => parseSeacraftEncCsv(_csv('$_header\n')),
         throwsA(isA<NavTrackParseException>()),
       );
+    });
+  });
+
+  group('parseSeacraftEncCsv markers (issue #4231)', () {
+    int at(int y, int mo, int d, int h, int mi, int s) =>
+        DateTime.utc(y, mo, d, h, mi, s).millisecondsSinceEpoch ~/ 1000;
+
+    test('reads a hold marker and a return marker, in file order', () {
+      final track = parseSeacraftEncCsv(_fixture('seacraft_enc3_gps_fix.csv'));
+
+      expect(track.markers.map((m) => m.rawValue), [-1, -101]);
+      expect(
+        track.points[track.markers[0].index].timestamp,
+        at(2026, 9, 6, 18, 16, 24),
+      );
+      expect(
+        track.points[track.markers[1].index].timestamp,
+        at(2026, 9, 6, 18, 16, 37),
+      );
+    });
+
+    test('reads the single return marker of the real dive', () {
+      final track = parseSeacraftEncCsv(_fixture('seacraft_enc3_real.csv'));
+
+      expect(track.markers, hasLength(1));
+      expect(track.markers.single.rawValue, -101);
+      expect(
+        track.points[track.markers.single.index].timestamp,
+        at(2026, 8, 22, 10, 29, 27),
+      );
+    });
+
+    test('keeps every marker even when values repeat or grow', () {
+      final track = parseSeacraftEncCsv(_fixture('seacraft_enc3_short.csv'));
+
+      expect(track.markers.map((m) => m.rawValue), [-1, -2, -3, -4]);
+    });
+
+    test('a marker row still carries no battery reading', () {
+      final track = parseSeacraftEncCsv(_fixture('seacraft_enc3_gps_fix.csv'));
+
+      for (final marker in track.markers) {
+        expect(track.points[marker.index].batteryVolts, isNull);
+      }
+    });
+
+    test('never reads the first row as a marker', () {
+      // The console keeps the magnetic declination on its first record,
+      // and a westerly one is negative.
+      final track = parseSeacraftEncCsv(
+        _csv(
+          '$_header\n'
+          '1.11.2026,11:46:14,0,0,2,246.4,-34.9,-5,0.45,27.7,14,-15\n'
+          '1.11.2026,11:46:16,0.1,0.2,2.2,252.4,-23.5,-14.4,0.9,10.5,14,3.91\n'
+          '1.11.2026,11:46:18,0.2,0.4,2.4,246.6,-20.9,-11.3,1.35,16.7,14,-101\n',
+        ),
+      );
+
+      expect(track.markers, [const NavTrackMarker(index: 2, rawValue: -101)]);
+    });
+
+    test('a file without markers has none', () {
+      final track = parseSeacraftEncCsv(_fixture('seacraft_enc3_bench.csv'));
+
+      expect(track.markers, isEmpty);
+    });
+  });
+
+  group('parseSeacraftEncCsv origin (issue #4231)', () {
+    test('rebases a recording that starts far from the console origin', () {
+      // A dive plan from another site was still stored on the console, so
+      // every row is metres from that plan's first point.
+      final track = parseSeacraftEncCsv(
+        _csv(
+          '$_header\n'
+          '1.11.2026,11:46:14,36512.324219,6966.21875,2,246.4,-34.9,-5,'
+          '0.45,27.7,14,3.92\n'
+          '1.11.2026,11:46:16,36512.175781,6965.859375,2.2,252.4,-23.5,-14.4,'
+          '0.9,10.5,14,3.91\n'
+          '1.11.2026,11:46:18,36512.035156,6965.480957,2.4,246.6,-20.9,-11.3,'
+          '1.35,16.7,14,3.91\n',
+        ),
+      );
+
+      expect(track.points.first.north, 0);
+      expect(track.points.first.east, 0);
+      expect(track.points[1].north, closeTo(-0.148438, 1e-6));
+      expect(track.points[1].east, closeTo(-0.359375, 1e-6));
+      expect(track.points[2].north, closeTo(-0.289063, 1e-6));
+    });
+
+    test('a recording that starts at the origin keeps its values', () {
+      final track = parseSeacraftEncCsv(_fixture('seacraft_enc3_gps_fix.csv'));
+
+      expect(track.points.first.north, 0);
+      expect(track.points.first.east, 0);
+      expect(track.points[1].north, closeTo(-0.218426, 1e-6));
+      expect(track.points[1].east, closeTo(-0.592998, 1e-6));
     });
   });
 }

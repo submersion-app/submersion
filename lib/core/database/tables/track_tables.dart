@@ -198,6 +198,11 @@ class NavTracks extends Table {
   /// [wallClockEpochSeconds, north, east, depth, course, pitch, roll,
   ///  distance, speed, temp, battV]; null for channels a source lacks.
   BlobColumn get points => blob()();
+
+  /// The original file this route was imported from, gzipped and byte for
+  /// byte as it arrived (v343, issue #4231); points are derived from it.
+  /// Null for a route imported before v343 or from a source that keeps none.
+  BlobColumn get sourceFile => blob().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
   TextColumn get hlc => text().nullable()();

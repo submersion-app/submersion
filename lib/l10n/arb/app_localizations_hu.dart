@@ -55666,9 +55666,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ez egy már ugyanabból a fájlból importált nyomvonalnak tűnik.';
 
   @override
-  String get navTrack_review_replaceLabel => 'Csere';
-
-  @override
   String get navTrack_review_linkToDive => 'Társítás merüléshez';
 
   @override
@@ -59870,4 +59867,61 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get search_openTooltip => 'Keresés';
+
+  @override
+  String get settings_conflict_field_sourceFile => 'Eredeti nyomvonalfájl';
+
+  @override
+  String get navTrack_review_duplicateUpdate =>
+      'A mentett nyomvonal frissítése';
+
+  @override
+  String get navTrack_review_duplicateUpdateHint =>
+      'Újra beolvassa az adatokat ebből a fájlból. A név, a merülés, a merülőhely, az eszköz és az igazítás változatlan marad.';
+
+  @override
+  String get navTrack_review_duplicateNew => 'Importálás új nyomvonalként';
+
+  @override
+  String get navTrack_review_updateAction => 'Frissítés';
+
+  @override
+  String get navTrack_review_trackUpdatedConfirmation =>
+      'A nyomvonal frissítve a fájlból. Ellenőrizd az igazítást: a nyomvonal elmozdulhatott.';
+
+  @override
+  String get navTrack_detail_menuUpdateFromFile => 'Frissítés fájlból';
+
+  @override
+  String get navTrack_detail_menuExportCsv => 'Exportálás CSV-ként';
+
+  @override
+  String get navTrack_detail_exportUnavailable =>
+      'Ehhez a nyomvonalhoz még nincs mentett eredeti fájl. Előbb frissítsd a saját fájljából.';
+
+  @override
+  String navTrack_detail_exportFailed(String error) {
+    return 'Az exportálás sikertelen: $error';
+  }
+
+  @override
+  String get navTrack_detail_updateNameMismatchTitle => 'Eltérő fájlnév';
+
+  @override
+  String navTrack_detail_updateNameMismatchMessage(
+    String expected,
+    String actual,
+  ) {
+    return 'Ezt a nyomvonalat a(z) „$expected” fájlból importálták, a kiválasztott fájl neve „$actual”. Mégis frissíted belőle a nyomvonalat?';
+  }
+
+  @override
+  String navTrack_marker_details(
+    int number,
+    String time,
+    String depth,
+    String distance,
+  ) {
+    return 'Jelölő $number: $time, $depth, $distance';
+  }
 }

@@ -52481,9 +52481,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navTrack_review_trackDuplicateWarning => '这看起来像是已从同一文件导入过的轨迹。';
 
   @override
-  String get navTrack_review_replaceLabel => '替换';
-
-  @override
   String get navTrack_review_linkToDive => '关联到潜水记录';
 
   @override
@@ -56520,4 +56517,59 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get search_openTooltip => '搜索';
+
+  @override
+  String get settings_conflict_field_sourceFile => '原始轨迹文件';
+
+  @override
+  String get navTrack_review_duplicateUpdate => '更新已保存的轨迹';
+
+  @override
+  String get navTrack_review_duplicateUpdateHint =>
+      '重新读取此文件中的数据。名称、潜水、潜点、设备和对齐方式保持不变。';
+
+  @override
+  String get navTrack_review_duplicateNew => '作为新轨迹导入';
+
+  @override
+  String get navTrack_review_updateAction => '更新';
+
+  @override
+  String get navTrack_review_trackUpdatedConfirmation =>
+      '已从文件更新轨迹。请检查对齐方式：轨迹可能已移动。';
+
+  @override
+  String get navTrack_detail_menuUpdateFromFile => '从文件更新';
+
+  @override
+  String get navTrack_detail_menuExportCsv => '导出为 CSV';
+
+  @override
+  String get navTrack_detail_exportUnavailable => '此轨迹尚未保存原始文件。请先从其文件更新。';
+
+  @override
+  String navTrack_detail_exportFailed(String error) {
+    return '导出失败：$error';
+  }
+
+  @override
+  String get navTrack_detail_updateNameMismatchTitle => '文件名不同';
+
+  @override
+  String navTrack_detail_updateNameMismatchMessage(
+    String expected,
+    String actual,
+  ) {
+    return '此轨迹是从“$expected”导入的，所选文件为“$actual”。仍要用它更新轨迹吗？';
+  }
+
+  @override
+  String navTrack_marker_details(
+    int number,
+    String time,
+    String depth,
+    String distance,
+  ) {
+    return '标记 $number：$time，$depth，$distance';
+  }
 }

@@ -34,6 +34,7 @@ import 'package:submersion/features/nav_track/presentation/providers/nav_track_p
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_align_geometry.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_align_map_layers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_align_rotation_control.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_marker_layer.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_position_row_controls.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_scale_control.dart';
@@ -414,6 +415,7 @@ class _AlignPageBody extends ConsumerWidget {
                         if (anchor != null)
                           BathymetryDepthOverlayLayer(location: anchor),
                         NavTrackPolylineLayer(route: transientRoute),
+                        NavTrackMarkerLayer(route: transientRoute),
                         if (anchor != null && hasFix)
                           NavTrackGpsFixDotsLayer(route: route, anchor: anchor),
                         if (anchor != null && state._terrainResult != null)

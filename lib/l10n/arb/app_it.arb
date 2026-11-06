@@ -16613,7 +16613,6 @@
   "navTrack_review_nameHint": "Nome (opzionale)",
   "navTrack_review_warningNoMovement": "Nessun movimento registrato: distanza e velocità restano a zero per tutto il file.",
   "navTrack_review_trackDuplicateWarning": "Questa sembra una traccia già importata dallo stesso file.",
-  "navTrack_review_replaceLabel": "Sostituisci",
   "navTrack_review_linkToDive": "Collega a un'immersione",
   "navTrack_review_diveSite": "Sito di immersione",
   "navTrack_review_equipment": "Attrezzatura",
@@ -17786,5 +17785,18 @@
   "search_everywhere": "Cerca \"{text}\" ovunque",
   "search_fieldHint": "Cerca, oppure scrivi una query",
   "search_closeTooltip": "Chiudi ricerca",
-  "search_openTooltip": "Cerca"
+  "search_openTooltip": "Cerca",
+  "settings_conflict_field_sourceFile": "File originale della traccia",
+  "navTrack_review_duplicateUpdate": "Aggiorna la traccia salvata",
+  "navTrack_review_duplicateUpdateHint": "Rilegge i dati da questo file. Nome, immersione, sito, dispositivo e allineamento restano invariati.",
+  "navTrack_review_duplicateNew": "Importa come nuova traccia",
+  "navTrack_review_updateAction": "Aggiorna",
+  "navTrack_review_trackUpdatedConfirmation": "Traccia aggiornata dal file. Controlla l'allineamento: la traccia potrebbe essersi spostata.",
+  "navTrack_detail_menuUpdateFromFile": "Aggiorna da file",
+  "navTrack_detail_menuExportCsv": "Esporta come CSV",
+  "navTrack_detail_exportUnavailable": "Questa traccia non ha ancora un file originale salvato. Aggiornala prima dal suo file.",
+  "navTrack_detail_exportFailed": "Esportazione non riuscita: {error}",
+  "navTrack_detail_updateNameMismatchTitle": "Nome file diverso",
+  "navTrack_detail_updateNameMismatchMessage": "Questa traccia è stata importata da \"{expected}\", il file scelto è \"{actual}\". Aggiornare comunque la traccia da questo file?",
+  "navTrack_marker_details": "Marcatore {number}: {time}, {depth}, {distance}"
 }

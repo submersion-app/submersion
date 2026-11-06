@@ -56662,9 +56662,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'يبدو هذا مسارًا تم استيراده مسبقًا من الملف نفسه.';
 
   @override
-  String get navTrack_review_replaceLabel => 'استبدال';
-
-  @override
   String get navTrack_review_linkToDive => 'الربط بغطسة';
 
   @override
@@ -61034,4 +61031,60 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get search_openTooltip => 'بحث';
+
+  @override
+  String get settings_conflict_field_sourceFile => 'ملف المسار الأصلي';
+
+  @override
+  String get navTrack_review_duplicateUpdate => 'تحديث المسار المحفوظ';
+
+  @override
+  String get navTrack_review_duplicateUpdateHint =>
+      'يعيد قراءة البيانات من هذا الملف. يبقى الاسم والغطسة والموقع والجهاز والمحاذاة كما هي.';
+
+  @override
+  String get navTrack_review_duplicateNew => 'استيراد كمسار جديد';
+
+  @override
+  String get navTrack_review_updateAction => 'تحديث';
+
+  @override
+  String get navTrack_review_trackUpdatedConfirmation =>
+      'تم تحديث المسار من الملف. تحقق من محاذاته: ربما تحرك المسار.';
+
+  @override
+  String get navTrack_detail_menuUpdateFromFile => 'تحديث من ملف';
+
+  @override
+  String get navTrack_detail_menuExportCsv => 'تصدير بصيغة CSV';
+
+  @override
+  String get navTrack_detail_exportUnavailable =>
+      'لا يوجد لهذا المسار ملف أصلي محفوظ بعد. حدّثه أولًا من ملفه.';
+
+  @override
+  String navTrack_detail_exportFailed(String error) {
+    return 'فشل التصدير: $error';
+  }
+
+  @override
+  String get navTrack_detail_updateNameMismatchTitle => 'اسم ملف مختلف';
+
+  @override
+  String navTrack_detail_updateNameMismatchMessage(
+    String expected,
+    String actual,
+  ) {
+    return 'تم استيراد هذا المسار من \"$expected\"، والملف المختار هو \"$actual\". هل تريد تحديث المسار منه على أي حال؟';
+  }
+
+  @override
+  String navTrack_marker_details(
+    int number,
+    String time,
+    String depth,
+    String distance,
+  ) {
+    return 'علامة $number: $time، $depth، $distance';
+  }
 }

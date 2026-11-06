@@ -55850,9 +55850,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Dies sieht nach einem bereits aus derselben Datei importierten Track aus.';
 
   @override
-  String get navTrack_review_replaceLabel => 'Ersetzen';
-
-  @override
   String get navTrack_review_linkToDive => 'Mit Tauchgang verknüpfen';
 
   @override
@@ -60086,4 +60083,61 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get search_openTooltip => 'Suchen';
+
+  @override
+  String get settings_conflict_field_sourceFile => 'Original-Trackdatei';
+
+  @override
+  String get navTrack_review_duplicateUpdate =>
+      'Gespeicherten Track aktualisieren';
+
+  @override
+  String get navTrack_review_duplicateUpdateHint =>
+      'Liest die Daten aus dieser Datei neu ein. Name, Tauchgang, Tauchplatz, Gerät und Ausrichtung bleiben erhalten.';
+
+  @override
+  String get navTrack_review_duplicateNew => 'Als neuen Track importieren';
+
+  @override
+  String get navTrack_review_updateAction => 'Aktualisieren';
+
+  @override
+  String get navTrack_review_trackUpdatedConfirmation =>
+      'Track aus der Datei aktualisiert. Prüfe die Ausrichtung: Der Track kann sich verschoben haben.';
+
+  @override
+  String get navTrack_detail_menuUpdateFromFile => 'Aus Datei aktualisieren';
+
+  @override
+  String get navTrack_detail_menuExportCsv => 'Als CSV exportieren';
+
+  @override
+  String get navTrack_detail_exportUnavailable =>
+      'Zu diesem Track ist noch keine Originaldatei gespeichert. Aktualisiere ihn zuerst aus seiner Datei.';
+
+  @override
+  String navTrack_detail_exportFailed(String error) {
+    return 'Export fehlgeschlagen: $error';
+  }
+
+  @override
+  String get navTrack_detail_updateNameMismatchTitle => 'Anderer Dateiname';
+
+  @override
+  String navTrack_detail_updateNameMismatchMessage(
+    String expected,
+    String actual,
+  ) {
+    return 'Dieser Track wurde aus „$expected“ importiert, die gewählte Datei heißt „$actual“. Den Track trotzdem daraus aktualisieren?';
+  }
+
+  @override
+  String navTrack_marker_details(
+    int number,
+    String time,
+    String depth,
+    String distance,
+  ) {
+    return 'Markierung $number: $time, $depth, $distance';
+  }
 }

@@ -22,6 +22,7 @@ extension TrackMigrations on AppDatabase {
     await _assertNavTrackDiverIdColumn();
     await _assertNavTrackSourceMetadataColumn();
     await _assertNavTrackScaleFactorColumn();
+    await _assertNavTrackSourceFileColumn();
   }
 
   /// v252: nav_tracks.diver_id, the route's owner, and its index.
@@ -57,6 +58,15 @@ extension TrackMigrations on AppDatabase {
       'scale_factor',
       'REAL NOT NULL DEFAULT 1.0',
     );
+  }
+
+  /// v343: nav_tracks.source_file, the route's original file (issue #4231).
+  /// Idempotent; called from the v343 onUpgrade step and from
+  /// [_assertNavTracksSchema], which the beforeOpen backstop runs on every
+  /// open.
+  Future<void> _assertNavTrackSourceFileColumn() async {
+    if (!await _tableExists('nav_tracks')) return;
+    await _addColumnIfMissing('nav_tracks', 'source_file', 'BLOB');
   }
 
   /// v252 backfill: a linked route takes its dive's diver. An unlinked

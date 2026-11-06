@@ -10,11 +10,15 @@ import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     show GeoPoint;
+import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_track.dart';
+import 'package:submersion/features/nav_track/data/services/parsers/seacraft_enc_csv_parser.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart'
     as domain;
+import 'package:submersion/features/nav_track/domain/entities/nav_track_marker.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_point_codec.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_source_file_codec.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_source_metadata_codec.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
 
@@ -111,6 +115,10 @@ class NavTrackRepository {
   /// east/north are relative to that fix, not to the site or entry.
   ///
   /// [sourceMetadata] is stored as-is (issue #3047).
+  ///
+  /// [sourceFile] is the original file [points] were parsed from, stored
+  /// byte for byte so the route can be derived again and exported unchanged
+  /// (issue #4231). Null for a source that keeps none.
   Future<String> insertImportedRoute({
     required List<NavTrackPoint> points,
     required domain.NavTrackSource source,
@@ -124,6 +132,7 @@ class NavTrackRepository {
     double? anchorLatitude,
     double? anchorLongitude,
     Map<String, Object?>? sourceMetadata,
+    Uint8List? sourceFile,
   }) async {
     try {
       if (points.length < 2) {
@@ -201,6 +210,11 @@ class NavTrackRepository {
                 encodeNavTrackSourceMetadata(sourceMetadata),
               ),
               points: encodeNavTrackPoints(points),
+              sourceFile: Value(
+                sourceFile == null
+                    ? null
+                    : encodeNavTrackSourceFile(sourceFile),
+              ),
               createdAt: now,
               updatedAt: now,
             ),
@@ -223,6 +237,80 @@ class NavTrackRepository {
       );
       rethrow;
     }
+  }
+
+  /// Replaces [routeId]'s data with a fresh parse of its file, keeping
+  /// every setting the diver made (issue #4231): the dive link and primary
+  /// role, the site, name, device, anchor and the whole correction.
+  ///
+  /// Writes [points], the statistics and recording window derived from
+  /// them, and [sourceFile], the original file they came from. A non-null
+  /// [sourceRef] also records the new file's name. Returns false when the
+  /// route no longer exists, so nothing was updated.
+  Future<bool> updateImportedData(
+    String routeId, {
+    required List<NavTrackPoint> points,
+    required Uint8List sourceFile,
+    String? sourceRef,
+  }) async {
+    try {
+      if (points.length < 2) {
+        throw ArgumentError.value(
+          points.length,
+          'points',
+          'a track needs at least two samples',
+        );
+      }
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final stats = NavTrackStats.of(points);
+      final rowsAffected =
+          await (_db.update(
+            _db.navTracks,
+          )..where((t) => t.id.equals(routeId))).write(
+            NavTracksCompanion(
+              sourceRef: sourceRef == null
+                  ? const Value.absent()
+                  : Value(sourceRef),
+              startTime: Value(points.first.timestamp * 1000),
+              endTime: Value(points.last.timestamp * 1000),
+              pointCount: Value(points.length),
+              totalDistance: Value(stats.totalDistance),
+              maxDepth: Value(stats.maxDepth),
+              maxSpeed: Value(stats.maxSpeed),
+              avgSpeed: Value(stats.avgSpeed),
+              durationSeconds: Value(stats.durationSeconds),
+              points: Value(encodeNavTrackPoints(points)),
+              sourceFile: Value(encodeNavTrackSourceFile(sourceFile)),
+              updatedAt: Value(now),
+            ),
+          );
+      if (rowsAffected == 0) return false;
+      await _markPending(routeId, now);
+      return true;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to update the data of nav track $routeId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// The original file [routeId] was imported from (issue #4231), or null
+  /// when the route keeps none or no longer exists.
+  ///
+  /// Throws [NavTrackSourceFileCodecException] when the stored blob cannot
+  /// be read: an export must fail visibly rather than hand back nothing.
+  Future<Uint8List?> getSourceFile(String routeId) async {
+    final table = _db.navTracks;
+    final row =
+        await (_db.selectOnly(table)
+              ..addColumns([table.sourceFile])
+              ..where(table.id.equals(routeId)))
+            .getSingleOrNull();
+    final blob = row?.read(table.sourceFile);
+    return blob == null ? null : decodeNavTrackSourceFile(blob);
   }
 
   Future<domain.NavTrack?> getById(
@@ -948,9 +1036,11 @@ class NavTrackRepository {
     await _markPending(siblingId, now);
   }
 
-  /// Rows of every column but `points`, which stands in as an empty blob.
+  /// Rows of every column but `points` and `source_file`, which stand in as
+  /// empty blobs (`source_file` stays null when the row has none, so
+  /// [_toDomain] can still tell whether it does).
   ///
-  /// For reads that never decode the points: the blob can be megabytes per
+  /// For reads that never decode the points: the blobs can be megabytes per
   /// route, and a plain select would still pull every one of them out of
   /// SQLite only for [_toDomain] to drop it. [where] and [orderBy] are SQL
   /// fragments over the table's own column names, with [variables] bound to
@@ -963,11 +1053,14 @@ class NavTrackRepository {
     final table = _db.navTracks;
     final columns = [
       for (final column in table.$columns)
-        if (column != table.points) '"${column.name}"',
+        if (column != table.points && column != table.sourceFile)
+          '"${column.name}"',
     ].join(', ');
     final rows = await _db
         .customSelect(
-          "SELECT $columns, X'' AS points FROM nav_tracks"
+          "SELECT $columns, X'' AS points, "
+          "CASE WHEN source_file IS NULL THEN NULL ELSE X'' END "
+          'AS source_file FROM nav_tracks'
           '${where == null ? '' : ' WHERE $where'}'
           '${orderBy == null ? '' : ' ORDER BY $orderBy'}',
           variables: variables,
@@ -1022,6 +1115,33 @@ class NavTrackRepository {
     }
   }
 
+  /// The console's markers in [row]'s original file, or none when it keeps
+  /// no file or the file cannot be read. Read from the file rather than
+  /// stored on their own, so they always match the points derived from it.
+  List<NavTrackMarker> _markersOf(NavTrackRow row) {
+    final blob = row.sourceFile;
+    if (blob == null || blob.isEmpty) return const [];
+    if (row.source != domain.NavTrackSource.seacraftEnc.wireValue) {
+      return const [];
+    }
+    try {
+      return parseSeacraftEncCsv(decodeNavTrackSourceFile(blob)).markers;
+    } on NavTrackSourceFileCodecException catch (e, stackTrace) {
+      _log.error(
+        'Unreadable source file on nav track ${row.id}; showing no markers',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    } on NavTrackParseException catch (e, stackTrace) {
+      _log.error(
+        'Unparseable source file on nav track ${row.id}; showing no markers',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+    return const [];
+  }
+
   domain.NavTrack _toDomain(NavTrackRow row, {required bool includePoints}) {
     return domain.NavTrack(
       id: row.id,
@@ -1056,6 +1176,8 @@ class NavTrackRepository {
       points: includePoints
           ? _decodePointsOrNull(row.id, row.points) ?? const []
           : const [],
+      hasSourceFile: row.sourceFile != null,
+      markers: includePoints ? _markersOf(row) : const [],
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
     );

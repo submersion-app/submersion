@@ -16613,7 +16613,6 @@
   "navTrack_review_nameHint": "שם (אופציונלי)",
   "navTrack_review_warningNoMovement": "לא נרשמה תנועה: המרחק והמהירות נשארים באפס לאורך כל הקובץ.",
   "navTrack_review_trackDuplicateWarning": "זה נראה כמו מסלול שכבר יובא מאותו קובץ.",
-  "navTrack_review_replaceLabel": "החלפה",
   "navTrack_review_linkToDive": "קישור לצלילה",
   "navTrack_review_diveSite": "אתר צלילה",
   "navTrack_review_equipment": "ציוד",
@@ -17786,5 +17785,18 @@
   "search_everywhere": "חיפוש \"{text}\" בכל מקום",
   "search_fieldHint": "חפשו, או הקלידו שאילתה",
   "search_closeTooltip": "סגירת החיפוש",
-  "search_openTooltip": "חיפוש"
+  "search_openTooltip": "חיפוש",
+  "settings_conflict_field_sourceFile": "קובץ המסלול המקורי",
+  "navTrack_review_duplicateUpdate": "עדכון המסלול השמור",
+  "navTrack_review_duplicateUpdateHint": "קורא מחדש את הנתונים מהקובץ הזה. השם, הצלילה, האתר, המכשיר והיישור נשארים כפי שהם.",
+  "navTrack_review_duplicateNew": "ייבוא כמסלול חדש",
+  "navTrack_review_updateAction": "עדכון",
+  "navTrack_review_trackUpdatedConfirmation": "המסלול עודכן מהקובץ. כדאי לבדוק את היישור: ייתכן שהמסלול זז.",
+  "navTrack_detail_menuUpdateFromFile": "עדכון מקובץ",
+  "navTrack_detail_menuExportCsv": "ייצוא כ-CSV",
+  "navTrack_detail_exportUnavailable": "למסלול הזה עדיין אין קובץ מקורי שמור. יש לעדכן אותו קודם מהקובץ שלו.",
+  "navTrack_detail_exportFailed": "הייצוא נכשל: {error}",
+  "navTrack_detail_updateNameMismatchTitle": "שם קובץ שונה",
+  "navTrack_detail_updateNameMismatchMessage": "המסלול הזה יובא מ-\"{expected}\", והקובץ שנבחר הוא \"{actual}\". לעדכן את המסלול ממנו בכל זאת?",
+  "navTrack_marker_details": "סמן {number}: {time}, {depth}, {distance}"
 }

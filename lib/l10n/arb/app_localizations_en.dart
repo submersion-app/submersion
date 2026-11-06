@@ -55083,9 +55083,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'This looks like a track already imported from the same file.';
 
   @override
-  String get navTrack_review_replaceLabel => 'Replace';
-
-  @override
   String get navTrack_review_linkToDive => 'Link to dive';
 
   @override
@@ -59264,4 +59261,60 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get search_openTooltip => 'Search';
+
+  @override
+  String get settings_conflict_field_sourceFile => 'Original track file';
+
+  @override
+  String get navTrack_review_duplicateUpdate => 'Update the stored track';
+
+  @override
+  String get navTrack_review_duplicateUpdateHint =>
+      'Reads the data from this file again. Name, dive, site, device and alignment stay as they are.';
+
+  @override
+  String get navTrack_review_duplicateNew => 'Import as a new track';
+
+  @override
+  String get navTrack_review_updateAction => 'Update';
+
+  @override
+  String get navTrack_review_trackUpdatedConfirmation =>
+      'Track updated from the file. Check its alignment: the track may have moved.';
+
+  @override
+  String get navTrack_detail_menuUpdateFromFile => 'Update from file';
+
+  @override
+  String get navTrack_detail_menuExportCsv => 'Export as CSV';
+
+  @override
+  String get navTrack_detail_exportUnavailable =>
+      'This track has no stored original file yet. Update it from its file first.';
+
+  @override
+  String navTrack_detail_exportFailed(String error) {
+    return 'Export failed: $error';
+  }
+
+  @override
+  String get navTrack_detail_updateNameMismatchTitle => 'Different file name';
+
+  @override
+  String navTrack_detail_updateNameMismatchMessage(
+    String expected,
+    String actual,
+  ) {
+    return 'This track was imported from \"$expected\", the chosen file is \"$actual\". Update the track from it anyway?';
+  }
+
+  @override
+  String navTrack_marker_details(
+    int number,
+    String time,
+    String depth,
+    String distance,
+  ) {
+    return 'Marker $number: $time, $depth, $distance';
+  }
 }

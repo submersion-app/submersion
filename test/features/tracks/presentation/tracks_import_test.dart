@@ -33,6 +33,21 @@ Uint8List _fixture(String name) =>
 
 /// Hands back a fixed preview so the flow can be followed past the picker.
 class _PreparedNavImport implements NavTrackImportService {
+  @override
+  Future<bool> updateFromFile({
+    required String routeId,
+    required ParsedNavTrack parsed,
+    required Uint8List sourceFile,
+    String? sourceRef,
+  }) async => true;
+
+  @override
+  Future<bool> updateFromBytes({
+    required String routeId,
+    required Uint8List bytes,
+    required String fileName,
+  }) async => true;
+
   int prepareCount = 0;
 
   @override
@@ -81,6 +96,7 @@ class _PreparedNavImport implements NavTrackImportService {
     String? deviceName,
     String? equipmentId,
     String? replacingRouteId,
+    Uint8List? sourceFile,
   }) async => throw UnimplementedError();
 }
 

@@ -16613,7 +16613,6 @@
   "navTrack_review_nameHint": "Nom (facultatif)",
   "navTrack_review_warningNoMovement": "Aucun mouvement enregistré : la distance et la vitesse restent à zéro tout au long de ce fichier.",
   "navTrack_review_trackDuplicateWarning": "Ceci ressemble à une trace déjà importée depuis le même fichier.",
-  "navTrack_review_replaceLabel": "Remplacer",
   "navTrack_review_linkToDive": "Lier à une plongée",
   "navTrack_review_diveSite": "Site de plongée",
   "navTrack_review_equipment": "Équipement",
@@ -17786,5 +17785,18 @@
   "search_everywhere": "Tout rechercher pour « {text} »",
   "search_fieldHint": "Rechercher, ou saisir une requête",
   "search_closeTooltip": "Fermer la recherche",
-  "search_openTooltip": "Rechercher"
+  "search_openTooltip": "Rechercher",
+  "settings_conflict_field_sourceFile": "Fichier d'origine de la trace",
+  "navTrack_review_duplicateUpdate": "Mettre à jour la trace enregistrée",
+  "navTrack_review_duplicateUpdateHint": "Relit les données de ce fichier. Le nom, la plongée, le site, l'appareil et l'alignement restent inchangés.",
+  "navTrack_review_duplicateNew": "Importer comme nouvelle trace",
+  "navTrack_review_updateAction": "Mettre à jour",
+  "navTrack_review_trackUpdatedConfirmation": "Trace mise à jour depuis le fichier. Vérifiez son alignement : la trace a pu se déplacer.",
+  "navTrack_detail_menuUpdateFromFile": "Mettre à jour depuis un fichier",
+  "navTrack_detail_menuExportCsv": "Exporter en CSV",
+  "navTrack_detail_exportUnavailable": "Cette trace n'a pas encore de fichier d'origine enregistré. Mettez-la d'abord à jour depuis son fichier.",
+  "navTrack_detail_exportFailed": "Échec de l'export : {error}",
+  "navTrack_detail_updateNameMismatchTitle": "Nom de fichier différent",
+  "navTrack_detail_updateNameMismatchMessage": "Cette trace a été importée depuis « {expected} », le fichier choisi est « {actual} ». Mettre quand même la trace à jour depuis ce fichier ?",
+  "navTrack_marker_details": "Repère {number} : {time}, {depth}, {distance}"
 }

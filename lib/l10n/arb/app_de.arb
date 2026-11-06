@@ -16767,7 +16767,6 @@
   "navTrack_review_nameHint": "Name (optional)",
   "navTrack_review_warningNoMovement": "Keine Bewegung aufgezeichnet: Distanz und Geschwindigkeit bleiben in dieser Datei durchgehend bei null.",
   "navTrack_review_trackDuplicateWarning": "Dies sieht nach einem bereits aus derselben Datei importierten Track aus.",
-  "navTrack_review_replaceLabel": "Ersetzen",
   "navTrack_review_linkToDive": "Mit Tauchgang verknüpfen",
   "navTrack_review_diveSite": "Tauchplatz",
   "navTrack_review_equipment": "Ausrüstung",
@@ -17911,5 +17910,18 @@
   "search_everywhere": "Überall nach „{text}“ suchen",
   "search_fieldHint": "Suchen oder eine Abfrage eingeben",
   "search_closeTooltip": "Suche schließen",
-  "search_openTooltip": "Suchen"
+  "search_openTooltip": "Suchen",
+  "settings_conflict_field_sourceFile": "Original-Trackdatei",
+  "navTrack_review_duplicateUpdate": "Gespeicherten Track aktualisieren",
+  "navTrack_review_duplicateUpdateHint": "Liest die Daten aus dieser Datei neu ein. Name, Tauchgang, Tauchplatz, Gerät und Ausrichtung bleiben erhalten.",
+  "navTrack_review_duplicateNew": "Als neuen Track importieren",
+  "navTrack_review_updateAction": "Aktualisieren",
+  "navTrack_review_trackUpdatedConfirmation": "Track aus der Datei aktualisiert. Prüfe die Ausrichtung: Der Track kann sich verschoben haben.",
+  "navTrack_detail_menuUpdateFromFile": "Aus Datei aktualisieren",
+  "navTrack_detail_menuExportCsv": "Als CSV exportieren",
+  "navTrack_detail_exportUnavailable": "Zu diesem Track ist noch keine Originaldatei gespeichert. Aktualisiere ihn zuerst aus seiner Datei.",
+  "navTrack_detail_exportFailed": "Export fehlgeschlagen: {error}",
+  "navTrack_detail_updateNameMismatchTitle": "Anderer Dateiname",
+  "navTrack_detail_updateNameMismatchMessage": "Dieser Track wurde aus „{expected}“ importiert, die gewählte Datei heißt „{actual}“. Den Track trotzdem daraus aktualisieren?",
+  "navTrack_marker_details": "Markierung {number}: {time}, {depth}, {distance}"
 }

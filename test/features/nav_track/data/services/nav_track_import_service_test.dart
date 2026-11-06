@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_import_service.dart';
 import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_track.dart';
+import 'package:submersion/features/nav_track/data/services/parsers/seacraft_enc_csv_parser.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 
@@ -494,6 +495,172 @@ void main() {
 
       expect((await routeRepo.getById(newId))!.isPrimary, isTrue);
       expect((await routeRepo.getById(earlierId))!.isPrimary, isFalse);
+    });
+  });
+
+  group('original file (issue #4231)', () {
+    test('prepare keeps the bytes it read', () async {
+      final bytes = _fixture('seacraft_enc3_gps_fix.csv');
+
+      final preview = await service.prepare(bytes, fileName: '011.DAT.csv');
+
+      expect(preview.sourceBytes, bytes);
+    });
+
+    test('commit stores the file with the route', () async {
+      final bytes = _fixture('seacraft_enc3_gps_fix.csv');
+      final preview = await service.prepare(bytes, fileName: '011.DAT.csv');
+
+      final id = await service.commit(
+        parsed: preview.parsed,
+        sourceRef: preview.sourceRef,
+        diverId: preview.diverId,
+        sourceFile: preview.sourceBytes,
+      );
+
+      expect(await routeRepo.getSourceFile(id), bytes);
+      expect((await routeRepo.getById(id))!.markers, hasLength(2));
+    });
+  });
+
+  group('duplicate window (issue #4231)', () {
+    /// The short fixture's recording, shifted by [offset].
+    Future<String> storeShifted(Duration offset) {
+      final points = [
+        for (final p in parseSeacraftEncCsv(
+          _fixture('seacraft_enc3_short.csv'),
+        ).points)
+          p.copyWith(timestamp: p.timestamp + offset.inSeconds),
+      ];
+      return routeRepo.insertImportedRoute(
+        points: points,
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: '005.DAT.csv',
+      );
+    }
+
+    test('flags a file of the same name recorded days apart', () async {
+      final storedId = await storeShifted(const Duration(days: 6));
+
+      final preview = await service.prepare(
+        _fixture('seacraft_enc3_short.csv'),
+        fileName: '005.DAT.csv',
+      );
+
+      expect(preview.duplicateOfRouteId, storedId);
+    });
+
+    test(
+      'a file of the same name recorded weeks apart is a new route',
+      () async {
+        await storeShifted(const Duration(days: 30));
+
+        final preview = await service.prepare(
+          _fixture('seacraft_enc3_short.csv'),
+          fileName: '005.DAT.csv',
+        );
+
+        expect(preview.duplicateOfRouteId, isNull);
+      },
+    );
+
+    test('a file of another name in the same window is a new route', () async {
+      await routeRepo.insertImportedRoute(
+        points: parseSeacraftEncCsv(_fixture('seacraft_enc3_short.csv')).points,
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: '006.DAT.csv',
+      );
+
+      final preview = await service.prepare(
+        _fixture('seacraft_enc3_short.csv'),
+        fileName: '005.DAT.csv',
+      );
+
+      expect(preview.duplicateOfRouteId, isNull);
+    });
+  });
+
+  group('updateFromFile (issue #4231)', () {
+    test('replaces the data and keeps the dive link, site and name', () async {
+      await seedDive('d1', 1000000, exitTimeMs: 1100000);
+      final dive = await diveRepo.getDiveById('d1');
+      final first = await service.prepare(
+        _fixture('seacraft_enc3_real.csv'),
+        fileName: '011.DAT.csv',
+      );
+      final id = await service.commit(
+        parsed: first.parsed,
+        sourceRef: first.sourceRef,
+        diverId: first.diverId,
+        dive: dive,
+        name: 'Kept name',
+      );
+      final bytes = _fixture('seacraft_enc3_gps_fix.csv');
+      final again = await service.prepare(bytes, fileName: '011.DAT.csv');
+
+      final updated = await service.updateFromFile(
+        routeId: id,
+        parsed: again.parsed,
+        sourceFile: bytes,
+      );
+
+      expect(updated, isTrue);
+      final route = (await routeRepo.getById(id))!;
+      expect(route.diveId, 'd1');
+      expect(route.name, 'Kept name');
+      expect(route.pointCount, again.parsed.points.length);
+      expect(await routeRepo.getSourceFile(id), bytes);
+      // Updating never creates a second route.
+      expect(await routeRepo.getAll(), hasLength(1));
+    });
+
+    test('updateFromBytes parses the file and records its name', () async {
+      final first = await service.prepare(
+        _fixture('seacraft_enc3_real.csv'),
+        fileName: '008.DAT.csv',
+      );
+      final id = await service.commit(
+        parsed: first.parsed,
+        sourceRef: first.sourceRef,
+        diverId: first.diverId,
+      );
+      final bytes = _fixture('seacraft_enc3_gps_fix.csv');
+
+      final updated = await service.updateFromBytes(
+        routeId: id,
+        bytes: bytes,
+        fileName: '011.DAT.csv',
+      );
+
+      expect(updated, isTrue);
+      final route = (await routeRepo.getById(id))!;
+      expect(route.sourceRef, '011.DAT.csv');
+      expect(route.markers.map((m) => m.rawValue), [-1, -101]);
+    });
+
+    test('updateFromBytes rejects a file it cannot read and leaves the route '
+        'as it was', () async {
+      final first = await service.prepare(
+        _fixture('seacraft_enc3_real.csv'),
+        fileName: '008.DAT.csv',
+      );
+      final id = await service.commit(
+        parsed: first.parsed,
+        sourceRef: first.sourceRef,
+        diverId: first.diverId,
+      );
+
+      await expectLater(
+        service.updateFromBytes(
+          routeId: id,
+          bytes: Uint8List.fromList('not,a,route\n1,2,3'.codeUnits),
+          fileName: 'bad.csv',
+        ),
+        throwsA(isA<NavTrackParseException>()),
+      );
+      final route = (await routeRepo.getById(id))!;
+      expect(route.sourceRef, '008.DAT.csv');
+      expect(route.pointCount, first.parsed.points.length);
     });
   });
 }

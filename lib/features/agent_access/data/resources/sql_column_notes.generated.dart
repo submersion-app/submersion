@@ -566,6 +566,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'points': 'Gzipped JSON array of [wallClockEpochSeconds, north, east, depth, course, pitch, roll, distance, speed, temp, battV]',
     'scale_factor': 'Multiplier on the route\'s horizontal size about the dive\'s first active sample',
     'source': '\'seacraft_enc\' | \'suunto_route\'',
+    'source_file': 'The original file this route was imported from, gzipped and byte for byte as it arrived',
     'source_ref': 'originating file name',
     'start_time': 'Wall-clock-as-UTC epoch milliseconds (dives.entryTime convention)',
     'time_offset_seconds': 'Seconds added to the device\'s clock to place it on the linked dive\'s timeline (same idea as dive_data_sources.time_offset_seconds)',

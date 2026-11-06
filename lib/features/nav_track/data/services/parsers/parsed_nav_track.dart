@@ -1,3 +1,4 @@
+import 'package:submersion/features/nav_track/domain/entities/nav_track_marker.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_point_codec.dart'
     show kMaxNavTrackPointCount;
@@ -9,7 +10,12 @@ import 'package:submersion/features/nav_track/domain/nav_track_point_codec.dart'
 class ParsedNavTrack {
   final List<NavTrackPoint> points;
 
-  const ParsedNavTrack({required this.points});
+  /// Markers the console set during the recording, in file order, each
+  /// pointing at its sample in [points] (issue #4231). Empty for a source
+  /// that has none.
+  final List<NavTrackMarker> markers;
+
+  const ParsedNavTrack({required this.points, this.markers = const []});
 }
 
 /// Why a file could not be understood as a navigation route, in terms a

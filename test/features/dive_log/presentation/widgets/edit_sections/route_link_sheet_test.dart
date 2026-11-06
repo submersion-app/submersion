@@ -33,6 +33,21 @@ class _FakeRouteRepository extends NavTrackRepository {
 
 /// A fixed preview, and a commit that "saves" as `new-route`.
 class _FakeImportService implements NavTrackImportService {
+  @override
+  Future<bool> updateFromFile({
+    required String routeId,
+    required ParsedNavTrack parsed,
+    required Uint8List sourceFile,
+    String? sourceRef,
+  }) async => true;
+
+  @override
+  Future<bool> updateFromBytes({
+    required String routeId,
+    required Uint8List bytes,
+    required String fileName,
+  }) async => true;
+
   _FakeImportService({this.duplicateOfRouteId, this.prepareError});
 
   final String? duplicateOfRouteId;
@@ -70,6 +85,7 @@ class _FakeImportService implements NavTrackImportService {
     String? deviceName,
     String? equipmentId,
     String? replacingRouteId,
+    Uint8List? sourceFile,
   }) async {
     lastSiteId = siteId;
     return 'new-route';
@@ -276,28 +292,27 @@ void main() {
     );
   });
 
-  testWidgets('importing a re-export that replaces this dive\'s route swaps '
-      'it in the draft without unlinking the deleted one', (tester) async {
+  testWidgets('importing a re-export of this dive\'s route updates that route '
+      'in place and keeps it in the draft', (tester) async {
     _mockPickedFile();
     final old = testNavTrack('old', diveId: 'd1');
-    final saved = testNavTrack('new-route');
     final changes = await _openSheet(
       tester,
       draft: DiveRouteLinkDraft.initial([old]),
-      repository: _FakeRouteRepository({'new-route': saved}),
+      repository: _FakeRouteRepository({'old': old}),
       service: _FakeImportService(duplicateOfRouteId: 'old'),
     );
 
     await tester.tap(find.byKey(const ValueKey('route-sheet-import-button')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byType(Checkbox));
-    await tester.pumpAndSettle();
+    // Updating the stored route is the default choice (issue #4231): it is
+    // re-read in place, so the draft keeps it as it was.
     await _saveReviewPage(tester);
 
-    expect(changes.last.current.map((r) => r.id), ['new-route']);
+    expect(changes.last.current.map((r) => r.id), ['old']);
     expect(changes.last.toUnlink, isEmpty);
-    expect(changes.last.toLink, ['new-route']);
-    expect(changes.last.replacements, {'old': 'new-route'});
+    expect(changes.last.toLink, isEmpty);
+    expect(changes.last.replacements, isEmpty);
   });
 
   testWidgets('an imported route is saved without a site, so it takes the '

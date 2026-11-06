@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track_marker.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 
@@ -155,6 +156,14 @@ class NavTrack extends Equatable {
   /// Hydrated on demand; empty on a list row.
   final List<NavTrackPoint> points;
 
+  /// True when the row keeps the original file the route was imported
+  /// from (`nav_tracks.source_file`, issue #4231), so it can be exported.
+  final bool hasSourceFile;
+
+  /// Markers the console set, read from the original file. Hydrated with
+  /// [points]; empty on a list row and for a route with no original file.
+  final List<NavTrackMarker> markers;
+
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -189,6 +198,8 @@ class NavTrack extends Equatable {
     this.scaleFactor = 1,
     this.sourceMetadata,
     this.points = const [],
+    this.hasSourceFile = false,
+    this.markers = const [],
     required this.createdAt,
     required this.updatedAt,
   });
@@ -254,6 +265,8 @@ class NavTrack extends Equatable {
     scaleFactor: correction.scaleFactor,
     sourceMetadata: sourceMetadata,
     points: points,
+    hasSourceFile: hasSourceFile,
+    markers: markers,
     createdAt: createdAt,
     updatedAt: updatedAt,
   );
@@ -289,6 +302,8 @@ class NavTrack extends Equatable {
     double? scaleFactor,
     Map<String, Object?>? sourceMetadata,
     List<NavTrackPoint>? points,
+    bool? hasSourceFile,
+    List<NavTrackMarker>? markers,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -323,6 +338,8 @@ class NavTrack extends Equatable {
       scaleFactor: scaleFactor ?? this.scaleFactor,
       sourceMetadata: sourceMetadata ?? this.sourceMetadata,
       points: points ?? this.points,
+      hasSourceFile: hasSourceFile ?? this.hasSourceFile,
+      markers: markers ?? this.markers,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -360,6 +377,8 @@ class NavTrack extends Equatable {
     scaleFactor,
     sourceMetadata,
     points,
+    hasSourceFile,
+    markers,
     createdAt,
     updatedAt,
   ];
