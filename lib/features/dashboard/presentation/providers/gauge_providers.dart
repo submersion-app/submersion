@@ -1,7 +1,7 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
+import 'package:submersion/features/backup/presentation/providers/newest_backup_time_provider.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_currency_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_requirement_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
@@ -292,7 +292,8 @@ final dashboardGaugesProvider = FutureProvider<DashboardGauges>((ref) async {
   final courses = await ref.watch(activeCoursesProgressProvider.future);
   final uploads =
       ref.watch(mediaTransferSummaryProvider).valueOrNull?.total ?? 0;
-  final lastBackup = ref.watch(lastBackupTimeProvider);
+  // Counts the copy taken before an upgrade (issue #4204).
+  final lastBackup = ref.watch(newestBackupTimeProvider);
   final syncEnabled = ref.watch(isSyncEnabledProvider);
   final syncPending = ref.watch(pendingChangesCountProvider);
   final findings = ref.watch(openQualityFindingsCountProvider).valueOrNull ?? 0;
