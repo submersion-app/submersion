@@ -8476,7 +8476,7 @@
   "settings_units_dialog_timeFormat": "Tijdnotatie",
   "settings_units_dialog_volumeUnit": "Volume-eenheid",
   "settings_units_dialog_weightUnit": "Gewichtseenheid",
-  "settings_units_header_gasPlanning": "Gas & planning",
+  "settings_units_header_gasPlanning": "Gas en planning",
   "settings_units_header_displayFormats": "Weergave & notaties",
   "settings_units_appliesTo": "Geldt voor de volgende eenheden",
   "settings_units_gasConsumption_unitHint": "Eenheid volgt uit druk en volume",

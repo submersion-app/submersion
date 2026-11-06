@@ -29380,7 +29380,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_units_dialog_weightUnit => 'Gewichtseenheid';
 
   @override
-  String get settings_units_header_gasPlanning => 'Gas & planning';
+  String get settings_units_header_gasPlanning => 'Gas en planning';
 
   @override
   String get settings_units_header_displayFormats => 'Weergave & notaties';
