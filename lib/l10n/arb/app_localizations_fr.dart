@@ -40110,7 +40110,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get attrHelper_sku =>
-      'Référence du produit sur le ticket ou l\'étiquette, pas le numéro de série';
+      'Sur le ticket ou l\'étiquette, pas le numéro de série';
 
   @override
   String get attrLabel_retailer => 'Revendeur';

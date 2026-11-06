@@ -60,8 +60,9 @@ void main() {
     });
   });
 
-  test('the German SKU label spells out the abbreviation (issue #4236)', () {
+  test('the SKU label spells out the abbreviation (issue #4236)', () {
     final de = lookupAppLocalizations(const Locale('de'));
     expect(attributeLabel(de, EquipmentAttrKeys.sku), 'Artikelnummer (SKU)');
+    expect(attributeLabel(l10n, EquipmentAttrKeys.sku), 'Product number (SKU)');
   });
 }

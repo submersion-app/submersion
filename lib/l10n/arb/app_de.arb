@@ -11719,7 +11719,7 @@
   "attrLabel_tow_burn_factor": "Verbrauchsfaktor beim Schleppen",
   "attrLabel_tow_speed_factor": "Geschwindigkeitsfaktor beim Schleppen",
   "attrLabel_sku": "Artikelnummer (SKU)",
-  "attrHelper_sku": "Artikelnummer von Quittung oder Etikett, nicht die Seriennummer",
+  "attrHelper_sku": "Von Quittung oder Etikett, nicht die Seriennummer",
   "attrLabel_retailer": "Händler",
   "attrLabel_product_url": "Weblink",
   "attrLabel_color": "Farbe",

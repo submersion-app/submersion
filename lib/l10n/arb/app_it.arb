@@ -11572,7 +11572,7 @@
   "attrLabel_tow_burn_factor": "Fattore di consumo in traino",
   "attrLabel_tow_speed_factor": "Fattore di velocità in traino",
   "attrLabel_sku": "Codice articolo (SKU)",
-  "attrHelper_sku": "Codice del prodotto sullo scontrino o sull'etichetta, non il numero di serie",
+  "attrHelper_sku": "Dallo scontrino o dall'etichetta, non il numero di serie",
   "attrLabel_retailer": "Rivenditore",
   "attrLabel_product_url": "Link web",
   "attrLabel_color": "Colore",

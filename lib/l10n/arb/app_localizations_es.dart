@@ -40023,7 +40023,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get attrHelper_sku =>
-      'Referencia del producto en el recibo o la etiqueta, no el número de serie';
+      'Del recibo o la etiqueta, no el número de serie';
 
   @override
   String get attrLabel_retailer => 'Vendedor';

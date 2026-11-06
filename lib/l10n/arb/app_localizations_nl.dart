@@ -39725,8 +39725,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrLabel_sku => 'Artikelnummer (SKU)';
 
   @override
-  String get attrHelper_sku =>
-      'Artikelnummer op de bon of het etiket, niet het serienummer';
+  String get attrHelper_sku => 'Van de bon of het etiket, niet het serienummer';
 
   @override
   String get attrLabel_retailer => 'Verkoper';

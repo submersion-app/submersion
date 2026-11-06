@@ -40001,7 +40001,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get attrHelper_sku =>
-      'Codice del prodotto sullo scontrino o sull\'etichetta, non il numero di serie';
+      'Dallo scontrino o dall\'etichetta, non il numero di serie';
 
   @override
   String get attrLabel_retailer => 'Rivenditore';

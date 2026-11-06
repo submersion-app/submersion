@@ -39913,7 +39913,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attrHelper_sku =>
-      'Artikelnummer von Quittung oder Etikett, nicht die Seriennummer';
+      'Von Quittung oder Etikett, nicht die Seriennummer';
 
   @override
   String get attrLabel_retailer => 'Händler';

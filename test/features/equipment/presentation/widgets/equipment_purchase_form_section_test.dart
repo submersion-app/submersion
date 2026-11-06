@@ -103,6 +103,9 @@ void main() {
     final l10n = lookupAppLocalizations(const Locale('en'));
     expect(sku.decoration!.helperText, l10n.attrHelper_sku);
     expect(find.text(l10n.attrHelper_sku), findsOneWidget);
+    // Without room to wrap, a phone cuts the helper to one line and drops
+    // "not the serial number", the part that matters.
+    expect(sku.decoration!.helperMaxLines, greaterThanOrEqualTo(2));
   });
 
   testWidgets('the retailer field carries no helper text', (tester) async {

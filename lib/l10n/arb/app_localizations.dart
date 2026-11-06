@@ -63006,13 +63006,13 @@ abstract class AppLocalizations {
   /// No description provided for @attrLabel_sku.
   ///
   /// In en, this message translates to:
-  /// **'SKU'**
+  /// **'Product number (SKU)'**
   String get attrLabel_sku;
 
   /// No description provided for @attrHelper_sku.
   ///
   /// In en, this message translates to:
-  /// **'The product or article number from the receipt or label, not the serial number'**
+  /// **'From the receipt or product label, not the serial number'**
   String get attrHelper_sku;
 
   /// No description provided for @attrLabel_retailer.

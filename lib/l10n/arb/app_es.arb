@@ -11572,7 +11572,7 @@
   "attrLabel_tow_burn_factor": "Factor de consumo al remolcar",
   "attrLabel_tow_speed_factor": "Factor de velocidad al remolcar",
   "attrLabel_sku": "Referencia (SKU)",
-  "attrHelper_sku": "Referencia del producto en el recibo o la etiqueta, no el número de serie",
+  "attrHelper_sku": "Del recibo o la etiqueta, no el número de serie",
   "attrLabel_retailer": "Vendedor",
   "attrLabel_product_url": "Enlace web",
   "attrLabel_color": "Color",

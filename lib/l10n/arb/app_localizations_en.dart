@@ -39316,11 +39316,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrLabel_tow_speed_factor => 'Tow speed factor';
 
   @override
-  String get attrLabel_sku => 'SKU';
+  String get attrLabel_sku => 'Product number (SKU)';
 
   @override
   String get attrHelper_sku =>
-      'The product or article number from the receipt or label, not the serial number';
+      'From the receipt or product label, not the serial number';
 
   @override
   String get attrLabel_retailer => 'Retailer';

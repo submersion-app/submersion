@@ -11572,7 +11572,7 @@
   "attrLabel_tow_burn_factor": "Verbruiksfactor bij slepen",
   "attrLabel_tow_speed_factor": "Snelheidsfactor bij slepen",
   "attrLabel_sku": "Artikelnummer (SKU)",
-  "attrHelper_sku": "Artikelnummer op de bon of het etiket, niet het serienummer",
+  "attrHelper_sku": "Van de bon of het etiket, niet het serienummer",
   "attrLabel_retailer": "Verkoper",
   "attrLabel_product_url": "Weblink",
   "attrLabel_color": "Kleur",
