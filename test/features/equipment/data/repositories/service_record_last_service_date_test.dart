@@ -65,4 +65,15 @@ void main() {
 
     expect(await lastService(), DateTime(2026, 3, 1));
   });
+
+  test('a delete falls back to the newest record left, then clears', () async {
+    final newer = await log(DateTime(2026, 3, 1));
+    final older = await log(DateTime(2025, 3, 1));
+
+    await records.deleteRecord(newer.id);
+    expect(await lastService(), DateTime(2025, 3, 1));
+
+    await records.deleteRecord(older.id);
+    expect(await lastService(), isNull);
+  });
 }

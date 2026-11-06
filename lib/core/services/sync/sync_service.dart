@@ -1486,7 +1486,11 @@ class SyncService {
       await repairWeatherFetchedAtSeconds(db);
       await repairCombinedDiveSummaries(db, diveIds: combinedDiveIds);
       await moveComputerTissueScalars(db);
-      await repairLastServiceDates(db);
+      // Raw SQL, which Drift's streams do not see; tell open screens, as the
+      // base-file path runs this after its apply has committed.
+      if (await repairLastServiceDates(db) > 0) {
+        db.notifyUpdates({TableUpdate.onTable(db.equipment)});
+      }
     } catch (e, st) {
       // The applied rows are already in place; losing this repair costs only
       // the old values, never the sync.

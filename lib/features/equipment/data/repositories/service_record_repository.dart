@@ -239,46 +239,12 @@ class ServiceRecordRepository {
   /// it when the item has no record left.
   Future<void> _refreshEquipmentLastServiceDate(String equipmentId) async {
     final mostRecent = await getMostRecentRecord(equipmentId);
-    if (mostRecent == null) {
-      await _clearEquipmentLastServiceDate(equipmentId);
-    } else {
-      await _updateEquipmentLastServiceDate(
-        equipmentId,
-        mostRecent.serviceDate,
-      );
-    }
-  }
-
-  /// Update the equipment's lastServiceDate field
-  Future<void> _updateEquipmentLastServiceDate(
-    String equipmentId,
-    DateTime serviceDate,
-  ) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     await (_db.update(
       _db.equipment,
     )..where((t) => t.id.equals(equipmentId))).write(
       EquipmentCompanion(
-        lastServiceDate: Value(serviceDate.millisecondsSinceEpoch),
-        updatedAt: Value(now),
-      ),
-    );
-    await _syncRepository.markRecordPending(
-      entityType: 'equipment',
-      recordId: equipmentId,
-      localUpdatedAt: now,
-    );
-    SyncEventBus.notifyLocalChange();
-  }
-
-  /// Clear the equipment's lastServiceDate field
-  Future<void> _clearEquipmentLastServiceDate(String equipmentId) async {
-    final now = DateTime.now().millisecondsSinceEpoch;
-    await (_db.update(
-      _db.equipment,
-    )..where((t) => t.id.equals(equipmentId))).write(
-      EquipmentCompanion(
-        lastServiceDate: const Value(null),
+        lastServiceDate: Value(mostRecent?.serviceDate.millisecondsSinceEpoch),
         updatedAt: Value(now),
       ),
     );
