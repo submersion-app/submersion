@@ -36178,6 +36178,12 @@ abstract class AppLocalizations {
   /// **'Backup'**
   String get navShortcut_short_backup;
 
+  /// Short nav bar label for the Transfer > Dive Computers shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Computers'**
+  String get navShortcut_short_diveComputers;
+
   /// Short nav label for the shortcut to Insights > Species (marine life statistics); distinct from the Species section.
   ///
   /// In en, this message translates to:

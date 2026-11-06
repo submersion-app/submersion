@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/router/app_router.dart';
 import 'package:submersion/core/router/web_unavailable_routes.dart';
+import 'package:submersion/shared/widgets/nav/nav_shortcuts.dart';
 
 const _native = DeviceCapabilities(
   diveComputerDownload: true,
@@ -128,6 +129,37 @@ void main() {
       expect(webUnavailableFeatureFor('/transfer'), isNull);
     });
 
+    test('a nav shortcut takes the lock of the page it opens (#4210)', () {
+      expect(
+        webUnavailableFeatureFor('/shortcut/transfer-computers'),
+        WebUnavailableFeature.diveComputers,
+      );
+      expect(
+        webUnavailableFeatureFor('/shortcut/transfer-computers?selected=x'),
+        WebUnavailableFeature.diveComputers,
+      );
+      expect(
+        webUnavailableFeatureFor('/shortcut/offline-maps'),
+        WebUnavailableFeature.offlineMaps,
+      );
+      // A shortcut to a page a browser serves, and an id the catalog does
+      // not know.
+      expect(webUnavailableFeatureFor('/shortcut/records'), isNull);
+      expect(webUnavailableFeatureFor('/shortcut/import-wizard'), isNull);
+      expect(webUnavailableFeatureFor('/shortcut/no-such-page'), isNull);
+      expect(
+        webUnavailableRedirect(
+          DeviceCapabilities.web,
+          '/shortcut/transfer-computers',
+        ),
+        '/unavailable-in-browser?feature=diveComputers',
+      );
+      expect(
+        webUnavailableRedirect(_native, '/shortcut/transfer-computers'),
+        isNull,
+      );
+    });
+
     test('a query it cannot decode opens the page as it is', () {
       // A truncated UTF-8 escape, which Dart refuses to decode.
       expect(webUnavailableFeatureFor('/dives?q=%E0%A4%A'), isNull);
@@ -166,6 +198,31 @@ void main() {
         ),
         isNull,
       );
+    });
+  });
+
+  group('navShortcutServable (#4210)', () {
+    test('a browser cannot serve a shortcut to a locked page', () {
+      for (final id in ['transfer-computers', 'offline-maps']) {
+        expect(
+          navShortcutServable(DeviceCapabilities.web, navShortcutById(id)!),
+          isFalse,
+          reason: id,
+        );
+      }
+      expect(
+        navShortcutServable(
+          DeviceCapabilities.web,
+          navShortcutById('records')!,
+        ),
+        isTrue,
+      );
+    });
+
+    test('a native build serves every shortcut', () {
+      for (final s in kNavShortcuts) {
+        expect(navShortcutServable(_native, s), isTrue, reason: s.id);
+      }
     });
   });
 

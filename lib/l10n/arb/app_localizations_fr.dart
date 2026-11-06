@@ -22754,6 +22754,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navShortcut_short_backup => 'Sauvegarde';
 
   @override
+  String get navShortcut_short_diveComputers => 'Ordinateurs';
+
+  @override
   String get navShortcut_short_speciesStats => 'Stats espèces';
 
   @override

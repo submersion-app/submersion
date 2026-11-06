@@ -22616,6 +22616,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get navShortcut_short_backup => 'Mentés';
 
   @override
+  String get navShortcut_short_diveComputers => 'Komputerek';
+
+  @override
   String get navShortcut_short_speciesStats => 'Fajstatisztika';
 
   @override

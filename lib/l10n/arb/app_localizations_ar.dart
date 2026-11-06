@@ -23002,6 +23002,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navShortcut_short_backup => 'النسخ الاحتياطي';
 
   @override
+  String get navShortcut_short_diveComputers => 'حواسيب';
+
+  @override
   String get navShortcut_short_speciesStats => 'إحصاءات الأنواع';
 
   @override

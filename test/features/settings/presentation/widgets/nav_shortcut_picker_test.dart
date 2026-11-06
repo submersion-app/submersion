@@ -69,6 +69,37 @@ void main() {
     expect(find.byTooltip('Already in this layout'), findsOneWidget);
   });
 
+  testWidgets('an entry the caller rules out is not listed (#4210)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () => showNavShortcutPicker(
+                context,
+                alreadyAdded: const {},
+                isAvailable: (s) => s.id != 'gas-blender',
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'blender');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Trimix blender'), findsNothing);
+    expect(find.text('No matching pages'), findsOneWidget);
+  });
+
   testWidgets('a search with no match says so', (tester) async {
     await _open(tester, _host(const {}, (_) {}));
     await tester.enterText(find.byType(TextField), 'zzzz');

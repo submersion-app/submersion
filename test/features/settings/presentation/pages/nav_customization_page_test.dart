@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/pages/nav_customization_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -133,9 +134,15 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
     }
 
-    Widget buildHarness(AppSettingsRepository repo) {
+    Widget buildHarness(
+      AppSettingsRepository repo, {
+      DeviceCapabilities? caps,
+    }) {
       return ProviderScope(
-        overrides: [appSettingsRepositoryProvider.overrideWithValue(repo)],
+        overrides: [
+          appSettingsRepositoryProvider.overrideWithValue(repo),
+          if (caps != null) deviceCapabilitiesProvider.overrideWithValue(caps),
+        ],
         child: const MaterialApp(
           locale: Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -150,10 +157,11 @@ void main() {
       bool wide = false,
       double height = 3000,
       FakeAppSettingsRepository? repo,
+      DeviceCapabilities? caps,
     }) async {
       useSurface(tester, wide: wide, height: height);
       final resolved = repo ?? FakeAppSettingsRepository();
-      await tester.pumpWidget(buildHarness(resolved));
+      await tester.pumpWidget(buildHarness(resolved, caps: caps));
       await tester.pumpAndSettle();
       return resolved;
     }
@@ -629,6 +637,52 @@ void main() {
           find.byKey(const ValueKey('nav-item-shortcut:gas-blender')),
           findsNothing,
         );
+      });
+
+      group('pages a browser cannot serve (#4210)', () {
+        Future<void> search(WidgetTester tester, String query) async {
+          await tester.tap(find.text('Add shortcut'));
+          await tester.pumpAndSettle();
+          await tester.enterText(find.byType(TextField), query);
+          await tester.pumpAndSettle();
+        }
+
+        testWidgets('a browser is not offered them', (tester) async {
+          await pumpPage(tester, caps: DeviceCapabilities.web);
+          await search(tester, 'dive computers');
+          expect(
+            find.byKey(
+              const ValueKey('nav-shortcut-option-transfer-computers'),
+            ),
+            findsNothing,
+          );
+          await tester.enterText(find.byType(TextField), 'offline');
+          await tester.pumpAndSettle();
+          expect(
+            find.byKey(const ValueKey('nav-shortcut-option-offline-maps')),
+            findsNothing,
+          );
+          // A page a browser serves is still offered.
+          await tester.enterText(find.byType(TextField), 'records');
+          await tester.pumpAndSettle();
+          expect(
+            find.byKey(const ValueKey('nav-shortcut-option-records')),
+            findsOneWidget,
+          );
+        });
+
+        testWidgets('a native build is offered Dive Computers', (tester) async {
+          final repo = await pumpPage(tester);
+          await search(tester, 'dive computers');
+          await tester.tap(
+            find.byKey(
+              const ValueKey('nav-shortcut-option-transfer-computers'),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          expect(repo.navPrimaryIds!.first, 'shortcut:transfer-computers');
+        });
       });
 
       testWidgets('built-in rows have no remove button', (tester) async {
