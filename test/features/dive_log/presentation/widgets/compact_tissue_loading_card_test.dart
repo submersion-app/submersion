@@ -391,6 +391,31 @@ void main() {
       expect(find.text('M-value'), findsOneWidget);
     });
 
+    testWidgets('draws the M-value line in the full error color', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildCard(status: _multiCompStatus));
+      await tester.pumpAndSettle();
+
+      final error = Theme.of(
+        tester.element(find.byType(CompactTissueLoadingCard)),
+      ).colorScheme.error;
+      final line = tester.widget<ColoredBox>(
+        find.descendant(
+          of: find.byKey(const ValueKey('tissue-m-value-line')),
+          matching: find.byType(ColoredBox),
+        ),
+      );
+      // At half opacity it all but vanished against the dark card.
+      expect(line.color, error);
+      expect(
+        tester
+            .getSize(find.byKey(const ValueKey('tissue-m-value-line')))
+            .height,
+        1.5,
+      );
+    });
+
     testWidgets('sits at each compartment\'s own equilibrium loading', (
       tester,
     ) async {

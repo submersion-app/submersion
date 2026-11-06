@@ -54,7 +54,7 @@ class TissuePressureBarChart extends StatelessWidget {
       alpha: isDark ? 1.0 : 0.8,
     );
     final markerColor = surfaceLevelMarkerColor(colorScheme);
-    final mValueColor = colorScheme.error.withValues(alpha: 0.5);
+    final mValueColor = mValueLineColor(colorScheme);
     final equilibriumN2 = status.surfaceEquilibriumN2Bar;
 
     return Column(
@@ -112,14 +112,14 @@ class TissuePressureBarChart extends StatelessWidget {
                     ],
                   ),
                 ),
-                // M-value reference line
+                // M-value reference line, centered on 100%.
                 Positioned(
-                  bottom: mValueBottom,
+                  key: const ValueKey('tissue-m-value-line'),
+                  bottom: mValueBottom - mValueLineHeight / 2,
                   left: 0,
                   right: 0,
-                  child: IgnorePointer(
-                    child: Container(height: 1, color: mValueColor),
-                  ),
+                  height: mValueLineHeight,
+                  child: IgnorePointer(child: ColoredBox(color: mValueColor)),
                 ),
               ],
             ),
@@ -148,7 +148,7 @@ class TissuePressureBarChart extends StatelessWidget {
             _LegendItem(
               key: const ValueKey('tissue-legend-m-value'),
               color: mValueColor,
-              swatchHeight: 1,
+              swatchHeight: mValueLineHeight,
               label: l10n.diveLog_deco_mValue,
               style: labelStyle,
             ),
@@ -162,6 +162,13 @@ class TissuePressureBarChart extends StatelessWidget {
   /// green-to-red bars and the card, in light and dark mode.
   static Color surfaceLevelMarkerColor(ColorScheme colorScheme) =>
       colorScheme.onSurface.withValues(alpha: 0.85);
+
+  /// Thickness of the M-value line at 100%.
+  static const double mValueLineHeight = 1.5;
+
+  /// Color of the M-value line: the theme's full error color. At half
+  /// opacity it all but vanished against the dark card (issue #4228).
+  static Color mValueLineColor(ColorScheme colorScheme) => colorScheme.error;
 }
 
 class _CompartmentBar extends StatelessWidget {
