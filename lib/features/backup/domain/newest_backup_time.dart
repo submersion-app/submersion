@@ -15,14 +15,17 @@ import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 /// copy for a full period.
 ///
 /// A pre-downgrade copy does not count: it holds a schema newer than the
-/// build that took it can open.
+/// build that took it can open. Nor does an upgrade copy [isAvailable]
+/// rejects, such as one whose file is gone: it can no longer be restored.
 DateTime? newestBackupTime({
   required DateTime? lastBackupTime,
   required Iterable<BackupRecord> history,
+  required bool Function(BackupRecord record) isAvailable,
 }) {
   var newest = lastBackupTime;
   for (final record in history) {
     if (record.type != BackupType.preMigration) continue;
+    if (!isAvailable(record)) continue;
     if (newest == null || record.timestamp.isAfter(newest)) {
       newest = record.timestamp;
     }

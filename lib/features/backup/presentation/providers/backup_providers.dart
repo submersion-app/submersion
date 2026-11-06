@@ -758,6 +758,9 @@ final lastBackupTimeProvider = Provider<DateTime?>((ref) {
 ///
 /// A history that will not parse falls back to the last backup time, so a
 /// damaged registry costs the chip its upgrade copy, never the home strip.
+/// An upgrade copy whose file is gone does not count, by the same rule as
+/// [BackupService.getValidatedBackupHistory]. These copies are plain files
+/// (never SAF refs) and at most three are kept, so the check is a few stats.
 final newestBackupTimeProvider = Provider<DateTime?>((ref) {
   final lastBackupTime = ref.watch(lastBackupTimeProvider);
   final List<BackupRecord> history;
@@ -771,8 +774,22 @@ final newestBackupTimeProvider = Provider<DateTime?>((ref) {
     );
     return lastBackupTime;
   }
-  return newestBackupTime(lastBackupTime: lastBackupTime, history: history);
+  return newestBackupTime(
+    lastBackupTime: lastBackupTime,
+    history: history,
+    isAvailable: _localCopyPresent,
+  );
 });
+
+bool _localCopyPresent(BackupRecord record) {
+  final path = record.localPath;
+  if (path == null) return true;
+  try {
+    return File(path).existsSync();
+  } catch (_) {
+    return false;
+  }
+}
 
 /// Whether a backup operation is currently running
 final isBackupInProgressProvider = Provider<bool>((ref) {

@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
@@ -22,6 +25,8 @@ BackupRecord _record(
   type: type,
 );
 
+bool _always(BackupRecord _) => true;
+
 void main() {
   final regular = DateTime(2026, 10, 20, 9);
   final upgrade = DateTime(2026, 11, 3, 8);
@@ -32,6 +37,7 @@ void main() {
         newestBackupTime(
           lastBackupTime: upgrade,
           history: [_record('m', regular, type: BackupType.preMigration)],
+          isAvailable: _always,
         ),
         upgrade,
       );
@@ -47,6 +53,7 @@ void main() {
             _record('a', regular),
             _record('m', upgrade, type: BackupType.preMigration),
           ],
+          isAvailable: _always,
         ),
         upgrade,
       );
@@ -57,6 +64,7 @@ void main() {
         newestBackupTime(
           lastBackupTime: null,
           history: [_record('m', upgrade, type: BackupType.preMigration)],
+          isAvailable: _always,
         ),
         upgrade,
       );
@@ -69,6 +77,7 @@ void main() {
         newestBackupTime(
           lastBackupTime: regular,
           history: [_record('d', upgrade, type: BackupType.preDowngrade)],
+          isAvailable: _always,
         ),
         regular,
       );
@@ -81,13 +90,33 @@ void main() {
         newestBackupTime(
           lastBackupTime: regular,
           history: [_record('a', upgrade)],
+          isAvailable: _always,
         ),
         regular,
       );
     });
 
     test('is null with no backups at all', () {
-      expect(newestBackupTime(lastBackupTime: null, history: const []), isNull);
+      expect(
+        newestBackupTime(
+          lastBackupTime: null,
+          history: const [],
+          isAvailable: _always,
+        ),
+        isNull,
+      );
+    });
+
+    // A copy that can no longer be restored is no backup (Copilot on #4241).
+    test('ignores an upgrade copy that is not available', () {
+      expect(
+        newestBackupTime(
+          lastBackupTime: regular,
+          history: [_record('m', upgrade, type: BackupType.preMigration)],
+          isAvailable: (_) => false,
+        ),
+        regular,
+      );
     });
   });
 
@@ -108,6 +137,42 @@ void main() {
       addTearDown(container.dispose);
 
       expect(container.read(newestBackupTimeProvider), upgrade);
+    });
+
+    test('ignores an upgrade copy whose file is gone', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final dir = Directory.systemTemp.createTempSync('newest_backup_time');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final present = File(p.join(dir.path, 'present.db'))
+        ..writeAsStringSync('x');
+      final backupPrefs = BackupPreferences(prefs);
+      await backupPrefs.addRecord(
+        _record(
+          'gone',
+          upgrade,
+          type: BackupType.preMigration,
+        ).copyWith(localPath: p.join(dir.path, 'gone.db')),
+      );
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          lastBackupTimeProvider.overrideWithValue(regular),
+        ],
+      );
+      addTearDown(container.dispose);
+      expect(container.read(newestBackupTimeProvider), regular);
+
+      final earlier = upgrade.subtract(const Duration(hours: 1));
+      await backupPrefs.addRecord(
+        _record(
+          'present',
+          earlier,
+          type: BackupType.preMigration,
+        ).copyWith(localPath: present.path),
+      );
+      container.invalidate(newestBackupTimeProvider);
+      expect(container.read(newestBackupTimeProvider), earlier);
     });
 
     // A damaged registry must cost the chip its upgrade copy, not throw into
