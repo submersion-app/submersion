@@ -47,8 +47,10 @@ void main() {
       expect(marker.refId, isNull);
       expect(marker.x, projection.xOf(20));
       expect(marker.z, projection.zOf(15));
-      // Floats just above the line at its depth.
-      expect(marker.y, greaterThan(projection.yOf(34)));
+      // Exactly on the line at its depth, not lifted: a terrain scene's
+      // unit is a fraction of a metre, so a lift would float it to the
+      // surface.
+      expect(marker.y, projection.yOf(34));
       expect(marker.timestampSeconds, 120);
     });
 

@@ -2,16 +2,15 @@ import 'package:submersion/features/dive_3d/domain/geometry/marker_layout.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
 
-/// Lifts a marker's label above the ribbon it sits on, like the dive
-/// scene's own markers (`MarkerLayout`).
-const double _markerFloat = 0.4;
-
 /// [path]'s device markers as scene markers on the ribbon, at the sample
 /// each one belongs to (issue #4231).
 ///
 /// [path] is the path as drawn, already shifted into the scene's frame, and
 /// [projection] the one its ribbon was built with, so a marker sits exactly
-/// on the line. A marker pointing past the path's samples is left out.
+/// on the line. Not lifted the way the depth-over-time scene lifts its
+/// markers: a terrain scene spans a whole site, so a fixed lift in scene
+/// units is tens of metres here and floated a marker at 34 m up to the
+/// surface. A marker pointing past the path's samples is left out.
 List<SceneMarker> pathSceneMarkers(
   ReckonedPath path,
   SpatialProjection projection,
@@ -30,7 +29,7 @@ SceneMarker _sceneMarker(
   refId: null,
   label: label,
   x: projection.xOf(point.east),
-  y: projection.yOf(point.depth) + _markerFloat,
+  y: projection.yOf(point.depth),
   z: projection.zOf(point.north),
   timestampSeconds: point.timeSeconds.round(),
 );
