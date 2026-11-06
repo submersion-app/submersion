@@ -53,10 +53,6 @@ void main() {
       );
     });
 
-    test('automatic without a resolved day reads plainly', () {
-      expect(firstDayOfWeekSummary(en, FirstDayOfWeek.auto, null), 'Automatic');
-    });
-
     test('an explicit day ignores the resolved one', () {
       expect(
         firstDayOfWeekSummary(en, FirstDayOfWeek.monday, DateTime.sunday),

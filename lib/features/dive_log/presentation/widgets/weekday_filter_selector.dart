@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/core/constants/first_day_of_week.dart';
+
 /// A Monday, used only to derive locale-aware weekday labels via
 /// [DateFormat]; the specific date is irrelevant, only its weekday is.
 final DateTime _referenceMonday = DateTime(2024, 1, 1);
@@ -16,10 +18,9 @@ String weekdayAbbreviation(BuildContext context, int weekday) {
 
 /// Weekday chip selector for the dive list's Advanced Filter.
 ///
-/// Chips are ordered to match the diver's locale-specific week start
-/// (Monday- or Sunday-first), derived from
+/// Chips start on the diver's first day of the week, read from
 /// [MaterialLocalizations.firstDayOfWeekIndex] the same way the platform
-/// date picker orders its calendar grid.
+/// date picker orders its calendar grid (issue #4232).
 class WeekdayFilterSelector extends StatelessWidget {
   final List<int> selectedWeekdays;
   final ValueChanged<List<int>> onChanged;
@@ -32,16 +33,10 @@ class WeekdayFilterSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final materialLocalizations = MaterialLocalizations.of(context);
-    // firstDayOfWeekIndex: 0 = Sunday .. 6 = Saturday. Converted to
-    // DateTime.weekday numbering (1 = Monday .. 7 = Sunday) so the chip order
-    // follows the diver's locale-specific week start.
-    final firstWeekday = materialLocalizations.firstDayOfWeekIndex == 0
-        ? 7
-        : materialLocalizations.firstDayOfWeekIndex;
-    final orderedWeekdays = List.generate(
-      7,
-      (i) => ((firstWeekday - 1 + i) % 7) + 1,
+    final orderedWeekdays = weekdaysFrom(
+      weekdayFromMaterialIndex(
+        MaterialLocalizations.of(context).firstDayOfWeekIndex,
+      ),
     );
 
     return Wrap(

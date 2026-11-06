@@ -35,18 +35,16 @@ String firstDayOfWeekLabel(AppLocalizations l10n, FirstDayOfWeek value) =>
       ),
     };
 
-/// The settings row value: an explicit day by name, automatic with the day
-/// it currently resolves to ("Automatic (Monday)"), or plain "Automatic"
-/// when the device names no region.
+/// The settings row value: an explicit day by name, or automatic with the
+/// day the week starts on right now ("Automatic (Monday)"), [shownWeekday]
+/// in [DateTime.weekday] numbering.
 String firstDayOfWeekSummary(
   AppLocalizations l10n,
   FirstDayOfWeek value,
-  int? resolvedWeekday,
+  int shownWeekday,
 ) {
-  if (value != FirstDayOfWeek.auto || resolvedWeekday == null) {
-    return firstDayOfWeekLabel(l10n, value);
-  }
+  if (value != FirstDayOfWeek.auto) return firstDayOfWeekLabel(l10n, value);
   return l10n.settings_units_firstDayOfWeek_autoResolved(
-    weekdayName(resolvedWeekday, l10n.localeName),
+    weekdayName(shownWeekday, l10n.localeName),
   );
 }

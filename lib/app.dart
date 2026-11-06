@@ -14,7 +14,7 @@ import 'package:submersion/features/equipment/data/services/sensor_summary_sched
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/app/app_exit.dart';
 import 'package:submersion/core/app/app_exit_guard.dart';
-import 'package:submersion/core/presentation/localizations/week_start_scope.dart';
+import 'package:submersion/core/presentation/localizations/week_start_material_localizations.dart';
 import 'package:submersion/core/presentation/providers/app_lock_provider.dart';
 import 'package:submersion/core/presentation/widgets/lock_barrier.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -253,6 +253,13 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       stackTrace: stack,
     ),
   );
+
+  /// A first day of week left on Automatic follows the region the device
+  /// now names (issue #4232).
+  @override
+  void didChangeLocales(List<Locale>? locales) {
+    ref.invalidate(deviceRegionProvider);
+  }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -708,6 +715,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     final themeMode = ref.watch(themeModeProvider);
     final themePreset = ref.watch(themePresetProvider);
     final localeSetting = ref.watch(localeProvider);
+    final firstWeekday = ref.watch(firstWeekdayProvider);
 
     // Detect a database restore and re-baseline sync before anything reads
     // sync state, so a rewound baseline can't stall sync or resurrect deletes.
@@ -750,7 +758,13 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       localeListResolutionCallback: (preferredLocales, supportedLocales) {
         return resolveAppLocale(preferredLocales, supportedLocales);
       },
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      // Ahead of the generated delegates, so its MaterialLocalizations win:
+      // they start every week in the app on the diver's first day of the
+      // week (issue #4232).
+      localizationsDelegates: [
+        WeekStartMaterialLocalizationsDelegate(firstWeekday),
+        ...AppLocalizations.localizationsDelegates,
+      ],
       supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: router,
       builder: (context, child) {
@@ -785,10 +799,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
                   // the user clicks something.
                   child: Focus(
                     autofocus: true,
-                    child: DisplayZoomScope(
-                      zoom: zoom,
-                      child: WeekStartScope(child: child!),
-                    ),
+                    child: DisplayZoomScope(zoom: zoom, child: child!),
                   ),
                 );
               },

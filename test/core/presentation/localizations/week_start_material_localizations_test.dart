@@ -5,33 +5,29 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/presentation/localizations/week_start_material_localizations.dart';
-import 'package:submersion/core/presentation/localizations/week_start_scope.dart';
-import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-/// Pumps an app in [locale] whose Material localizations come through
-/// [WeekStartScope] with [firstWeekday], and returns a context below it.
-Future<BuildContext> _pumpScope(
+/// Pumps an app in [locale] with the delegate placed ahead of the generated
+/// ones, the way the app root places it, and returns a context below it.
+Future<BuildContext> _pumpApp(
   WidgetTester tester, {
   required int? firstWeekday,
   Locale locale = const Locale('en'),
 }) async {
   late BuildContext captured;
   await tester.pumpWidget(
-    ProviderScope(
-      overrides: [firstWeekdayProvider.overrideWithValue(firstWeekday)],
-      child: MaterialApp(
-        locale: locale,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        builder: (context, child) => WeekStartScope(child: child!),
-        home: Builder(
-          builder: (context) {
-            captured = context;
-            return const SizedBox();
-          },
-        ),
+    MaterialApp(
+      locale: locale,
+      localizationsDelegates: [
+        WeekStartMaterialLocalizationsDelegate(firstWeekday),
+        ...AppLocalizations.localizationsDelegates,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Builder(
+        builder: (context) {
+          captured = context;
+          return const SizedBox();
+        },
       ),
     ),
   );
@@ -97,9 +93,9 @@ void main() {
     });
   });
 
-  group('WeekStartScope', () {
+  group('in an app', () {
     testWidgets('starts an English app on Monday', (tester) async {
-      final context = await _pumpScope(tester, firstWeekday: DateTime.monday);
+      final context = await _pumpApp(tester, firstWeekday: DateTime.monday);
       final localizations = MaterialLocalizations.of(context);
       expect(localizations.firstDayOfWeekIndex, 1);
       // The rest of the app keeps its language.
@@ -107,7 +103,7 @@ void main() {
     });
 
     testWidgets('starts a German app on Sunday', (tester) async {
-      final context = await _pumpScope(
+      final context = await _pumpApp(
         tester,
         firstWeekday: DateTime.sunday,
         locale: const Locale('de'),
@@ -118,12 +114,12 @@ void main() {
     testWidgets('without a first day keeps the language default', (
       tester,
     ) async {
-      final context = await _pumpScope(tester, firstWeekday: null);
+      final context = await _pumpApp(tester, firstWeekday: null);
       expect(MaterialLocalizations.of(context).firstDayOfWeekIndex, 0);
     });
 
     testWidgets('the date picker opens under the override', (tester) async {
-      final context = await _pumpScope(tester, firstWeekday: DateTime.monday);
+      final context = await _pumpApp(tester, firstWeekday: DateTime.monday);
       unawaited(
         showDatePicker(
           context: context,

@@ -35,7 +35,7 @@ class InsightsTimePatternsPage extends ConsumerWidget {
 
   /// The strftime('%w') days (0 = Sunday .. 6 = Saturday) in the order the
   /// week runs here: from the first day the app's Material localizations
-  /// name, which `WeekStartScope` sets from the diver's setting.
+  /// name, which the app root sets from the diver's setting.
   List<int> _weekOrder(BuildContext context) {
     final first = weekdayFromMaterialIndex(
       MaterialLocalizations.of(context).firstDayOfWeekIndex,

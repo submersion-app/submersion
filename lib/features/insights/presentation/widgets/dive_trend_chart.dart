@@ -341,7 +341,7 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
   /// chart on every pointer move, and the data does not move with them.
   TrendChartDerived _currentDerived() {
     // Weekly buckets start on the diver's first day of the week (issue
-    // #4232), which WeekStartScope hands every Material widget.
+    // #4232), which the app root hands every Material widget.
     final firstWeekday = weekdayFromMaterialIndex(
       MaterialLocalizations.of(context).firstDayOfWeekIndex,
     );

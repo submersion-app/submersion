@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/first_day_of_week.dart';
@@ -39,31 +41,37 @@ void showFirstDayOfWeekPicker(
   FirstDayOfWeek current,
 ) {
   final l10n = context.l10n;
-  showDialog<void>(
-    context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: Text(l10n.settings_units_dialog_firstDayOfWeek),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (final option in FirstDayOfWeek.values)
-            ListTile(
-              title: Text(firstDayOfWeekLabel(l10n, option)),
-              subtitle: option == FirstDayOfWeek.auto
-                  ? Text(l10n.settings_units_firstDayOfWeek_auto_subtitle)
-                  : null,
-              trailing: option == current
-                  ? Icon(
-                      Icons.check,
-                      color: Theme.of(context).colorScheme.primary,
-                    )
-                  : null,
-              onTap: () {
-                Navigator.of(dialogContext).pop();
-                ref.read(settingsProvider.notifier).setFirstDayOfWeek(option);
-              },
-            ),
-        ],
+  unawaited(
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.settings_units_dialog_firstDayOfWeek),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final option in FirstDayOfWeek.values)
+              ListTile(
+                title: Text(firstDayOfWeekLabel(l10n, option)),
+                subtitle: option == FirstDayOfWeek.auto
+                    ? Text(l10n.settings_units_firstDayOfWeek_auto_subtitle)
+                    : null,
+                trailing: option == current
+                    ? Icon(
+                        Icons.check,
+                        color: Theme.of(context).colorScheme.primary,
+                      )
+                    : null,
+                onTap: () {
+                  Navigator.of(dialogContext).pop();
+                  unawaited(
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setFirstDayOfWeek(option),
+                  );
+                },
+              ),
+          ],
+        ),
       ),
     ),
   );
