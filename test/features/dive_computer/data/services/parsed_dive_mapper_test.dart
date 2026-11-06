@@ -541,6 +541,17 @@ void main() {
       expect(downloaded.surfacePressure, 0.996);
     });
 
+    test('a zero or implausible surface pressure is no reading', () {
+      // A converter that hands over a zeroed struct reports 0.0, not NaN.
+      for (final bar in [0.0, 0.05, 1013.0]) {
+        final downloaded = parsedDiveToDownloaded(
+          makeParsedDive(surfacePressureBar: bar),
+        );
+
+        expect(downloaded.surfacePressure, isNull, reason: '$bar bar');
+      }
+    });
+
     // --- Temperature derivation from samples ---
 
     test(

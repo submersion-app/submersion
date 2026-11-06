@@ -8,6 +8,7 @@ import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/surface_pressure_limits.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/features/dive_log/data/services/user_event_preservation.dart';
 import 'package:submersion/core/database/database.dart';
@@ -203,6 +204,15 @@ class ReparseService {
       )..where((t) => t.id.equals(diveId))).getSingle();
       final keepsSwitches = diveRow.gasSwitchesEdited;
 
+      // The surface pressure this re-parse fills, from whichever source it
+      // is: only a dive that has none takes it, as a secondary computer's
+      // download does (#4208), so a dive downloaded before the field was read
+      // can be backfilled. Until then a stored value was typed by the diver,
+      // or came from a file import or a weather fetch.
+      final filledSurfacePressure = diveRow.surfacePressure == null
+          ? plausibleSurfacePressureBar(parsed.surfacePressureBar)
+          : null;
+
       // ------------------------------------------------------------------
       // 3. Replace DiveProfiles for this source's computerId -- but only
       //    when this source actually authored that strand in its own parse
@@ -246,6 +256,14 @@ class ReparseService {
           now: now,
           vendor: descriptorVendor,
           beneathEdit: beneathEdit,
+          surfacePressure: filledSurfacePressure,
+        );
+      } else if (filledSurfacePressure != null) {
+        await (db.update(db.dives)..where((t) => t.id.equals(diveId))).write(
+          DivesCompanion(
+            surfacePressure: Value(filledSurfacePressure),
+            updatedAt: Value(now.millisecondsSinceEpoch),
+          ),
         );
       }
 
@@ -373,9 +391,10 @@ class ReparseService {
       // 7. Stage what this re-parse wrote. Each rewritten child is staged
       //    itself and travels without the dive
       //    (SyncDataSerializer.parentGatedChildEntities). The dive row is
-      //    staged only when it changed (the primary path): re-stamping an
-      //    unchanged dive would let this device's copy win over a newer edit
-      //    to it made on another device.
+      //    staged only when it changed (the primary path, or a secondary one
+      //    that filled the surface pressure): re-stamping an unchanged dive
+      //    would let this device's copy win over a newer edit to it made on
+      //    another device.
       // ------------------------------------------------------------------
       final stagedAt = now.millisecondsSinceEpoch;
       Future<void> stage(String entityType, Iterable<String> ids) async {
@@ -404,18 +423,21 @@ class ReparseService {
         // guards above.
         await stage('gasSwitches', await _idsOf(db.gasSwitches, diveId));
       }
-      if (sourceRow.isPrimary) await stage('dives', [diveId]);
+      if (sourceRow.isPrimary || filledSurfacePressure != null) {
+        await stage('dives', [diveId]);
+      }
 
       // ------------------------------------------------------------------
       // 8. Drop the stored safety review when this re-parse rewrote what it
       //    graded, so it recomputes on next view (#1641): the dive row's
-      //    gradient factors and mode (primary only), or the profile strand
-      //    and, under it, the events, tanks and gas switches (ownsStrand).
-      //    A re-parse that rewrote neither leaves a valid review alone,
-      //    rather than tombstoning it on every peer. Both reparseDive and
-      //    reparseAllForComputer land here.
+      //    gradient factors and mode (primary only), the surface pressure the
+      //    ppO2, CNS and OTU findings read (any source that filled it), or
+      //    the profile strand and, under it, the events, tanks and gas
+      //    switches (ownsStrand). A re-parse that rewrote none of them leaves
+      //    a valid review alone, rather than tombstoning it on every peer.
+      //    Both reparseDive and reparseAllForComputer land here.
       // ------------------------------------------------------------------
-      if (sourceRow.isPrimary || ownsStrand) {
+      if (sourceRow.isPrimary || ownsStrand || filledSurfacePressure != null) {
         await SafetyFindingsRepository.clearReviewForDive(db, _sync, diveId);
       }
 
@@ -749,12 +771,15 @@ class ReparseService {
     );
   }
 
+  /// [surfacePressure] is the value to fill, null to leave the stored one;
+  /// the caller decides from the dive row it read (see applyParsedUpdate).
   Future<void> _updateDiveRow({
     required String diveId,
     required pigeon.ParsedDive parsed,
     required DateTime now,
     required String? vendor,
     required bool beneathEdit,
+    required double? surfacePressure,
   }) async {
     // A parse with no date leaves both start columns as stored, and the exit
     // follows the dive's effective start (entry time when set, as
@@ -845,22 +870,10 @@ class ReparseService {
         exitLongitude: parsed.exitLongitude != null
             ? Value(parsed.exitLongitude)
             : const Value.absent(),
+        surfacePressure: Value.absentIfNull(surfacePressure),
         updatedAt: Value(now.millisecondsSinceEpoch),
       ),
     );
-    // Fills only a dive that has none: until #4208 this was a value the diver
-    // typed or a file import or weather fetch brought in.
-    final surfacePressure = parsed.surfacePressureBar;
-    if (surfacePressure != null) {
-      await (db.update(db.dives)..where((t) => t.id.equals(diveId))).write(
-        DivesCompanion.custom(
-          surfacePressure: coalesce([
-            db.dives.surfacePressure,
-            Variable(surfacePressure),
-          ]),
-        ),
-      );
-    }
   }
 
   /// [timeOffset] shifts every re-inserted sample onto the dive's timeline;

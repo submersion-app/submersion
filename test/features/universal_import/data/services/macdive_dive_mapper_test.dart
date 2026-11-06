@@ -500,6 +500,28 @@ void main() {
       }
     });
 
+    test('a zero raw surface pressure is no reading', () async {
+      final payload = await MacDiveDiveMapper.toPayload(
+        _rawDataLogbook(),
+        fetchDescriptors: _fakeDescriptors,
+        parseRaw: (v, p, m, d) async => _parsedDive(
+          samples: [
+            pigeon.ProfileSample(timeSeconds: 0, depthMeters: 0.0),
+            pigeon.ProfileSample(timeSeconds: 10, depthMeters: 5.5),
+          ],
+          surfacePressureBar: 0.0,
+        ),
+      );
+
+      final withProfile = payload
+          .entitiesOf(ImportEntityType.dives)
+          .where((d) => d.containsKey('profile'));
+      expect(withProfile, hasLength(2));
+      for (final dive in withProfile) {
+        expect(dive['surfacePressure'], isNull);
+      }
+    });
+
     test('a deco dive keeps its gas switch from the raw download', () async {
       final payload = await MacDiveDiveMapper.toPayload(
         _decoDiveLogbook(),

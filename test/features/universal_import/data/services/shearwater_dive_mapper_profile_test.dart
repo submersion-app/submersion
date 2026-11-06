@@ -316,6 +316,17 @@ void main() {
         expect(result['surfacePressure'], 0.961);
       });
 
+      test('an implausible raw reading fills nothing', () {
+        final result = ShearwaterDiveMapper.mergeWithParsedDive(
+          <String, dynamic>{
+            'surfacePressure': null,
+            'profile': <Map<String, dynamic>>[],
+          },
+          parsedWithSurfacePressure(0.0),
+        );
+        expect(result['surfacePressure'], isNull);
+      });
+
       test('keeps the surface pressure the export reported', () {
         final result = ShearwaterDiveMapper.mergeWithParsedDive(
           <String, dynamic>{

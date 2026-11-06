@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 
+import 'package:submersion/core/constants/surface_pressure_limits.dart';
 import 'package:submersion/core/constants/enums.dart'
     show EquipmentStatus, ServiceCategory;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
@@ -517,7 +518,9 @@ class MacDiveDiveMapper {
       map['gradientFactorLow'] ??= parsed.gfLow;
       map['gradientFactorHigh'] ??= parsed.gfHigh;
       map['waterTemp'] ??= ParsedDiveProfileMapper.minSampleTemperature(parsed);
-      map['surfacePressure'] ??= parsed.surfacePressureBar;
+      map['surfacePressure'] ??= plausibleSurfacePressureBar(
+        parsed.surfacePressureBar,
+      );
       if (map['runtime'] == null && parsed.durationSeconds > 0) {
         map['runtime'] = Duration(seconds: parsed.durationSeconds);
       }

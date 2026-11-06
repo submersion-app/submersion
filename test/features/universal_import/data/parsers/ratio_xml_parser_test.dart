@@ -234,6 +234,13 @@ void main() {
       final dive = payload.entities[ImportEntityType.dives]!.single;
       expect(dive['surfacePressure'], closeTo(0.9971, 0.0001));
     });
+
+    test('a zero surface pressure header is no reading (#4208)', () async {
+      final xml = _buildRatioXml(surfacePressureMbar: 0);
+      final payload = await parser.parse(_toBytes(xml));
+      final dive = payload.entities[ImportEntityType.dives]!.single;
+      expect(dive['surfacePressure'], isNull);
+    });
   });
 
   group('sample profile parsing', () {

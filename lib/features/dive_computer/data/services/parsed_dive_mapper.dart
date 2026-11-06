@@ -1,5 +1,6 @@
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/surface_pressure_limits.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_dive_mode.dart';
 import 'package:submersion/features/dive_computer/data/services/parsed_dive_start_time.dart';
@@ -61,7 +62,7 @@ DownloadedDive parsedDiveToDownloaded(
     avgDepth: parsed.avgDepthMeters != 0.0 ? parsed.avgDepthMeters : null,
     minTemperature: minTemp,
     maxTemperature: maxTemp,
-    surfacePressure: parsed.surfacePressureBar,
+    surfacePressure: plausibleSurfacePressureBar(parsed.surfacePressureBar),
     entryLatitude: _validCoord(parsed.entryLatitude, parsed.entryLongitude),
     entryLongitude: _validCoord(parsed.entryLongitude, parsed.entryLatitude),
     exitLatitude: _validCoord(parsed.exitLatitude, parsed.exitLongitude),
