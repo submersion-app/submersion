@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_3d/domain/geometry/marker_layout.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
@@ -130,6 +131,70 @@ void main() {
       expect(merged.layers, [terrain, ...overlay.layers, water]);
       expect(merged.scrubPath, same(overlay.scrubPath));
       expect(merged.bounds, same(scene.bounds));
+    });
+  });
+
+  group('device markers on the active path (issue #4231)', () {
+    final projection = SpatialProjection(
+      minEast: -50,
+      maxEast: 50,
+      minNorth: -50,
+      maxNorth: 50,
+      maxDepth: 20,
+    );
+    const path = ReckonedPath(
+      points: [
+        ReckonedPoint(east: 0, north: 0, depth: 0, timeSeconds: 0),
+        ReckonedPoint(east: 10, north: 0, depth: 10, timeSeconds: 100),
+      ],
+      provenance: PathProvenance.measured,
+      minEast: 0,
+      maxEast: 10,
+      minNorth: 0,
+      maxNorth: 0,
+      maxDepth: 10,
+      durationSeconds: 100,
+      markers: [PathMarker(pointIndex: 1, label: '1')],
+    );
+
+    test('the overlay places the path\'s markers with the site projection, '
+        'after the anchor shift', () {
+      final overlay = buildSiteActivePathOverlay(
+        path: path,
+        anchor: (east: 20.0, north: 0.0),
+        projection: projection,
+      )!;
+
+      final marker = overlay.markers.single;
+      expect(marker.kind, SceneMarkerKind.bookmark);
+      expect(marker.label, '1');
+      expect(marker.x, projection.xOf(30));
+    });
+
+    test('the merged scene keeps the site\'s markers and adds the path\'s', () {
+      final overlay = buildSiteActivePathOverlay(
+        path: path,
+        anchor: (east: 0.0, north: 0.0),
+        projection: projection,
+      )!;
+      const siteMarker = SceneMarker(
+        kind: SceneMarkerKind.site,
+        refId: null,
+        label: 'Site',
+        x: 0,
+        y: 0,
+        timestampSeconds: 0,
+      );
+      const scene = Scene3d(
+        layers: [],
+        markers: [siteMarker],
+        bounds: SceneBounds(durationSeconds: 1, maxDepthMeters: 1),
+      );
+
+      final merged = sceneWithActivePath(scene, overlay);
+
+      expect(merged.markers.first, same(siteMarker));
+      expect(merged.markers.map((m) => m.label), ['Site', '1']);
     });
   });
 }
