@@ -210,11 +210,7 @@ class NavTrackRepository {
                 encodeNavTrackSourceMetadata(sourceMetadata),
               ),
               points: encodeNavTrackPoints(points),
-              sourceFile: Value(
-                sourceFile == null
-                    ? null
-                    : encodeNavTrackSourceFile(sourceFile),
-              ),
+              sourceFile: Value(_encodeSourceFileOrNull(id, sourceFile)),
               createdAt: now,
               updatedAt: now,
             ),
@@ -280,7 +276,7 @@ class NavTrackRepository {
               avgSpeed: Value(stats.avgSpeed),
               durationSeconds: Value(stats.durationSeconds),
               points: Value(encodeNavTrackPoints(points)),
-              sourceFile: Value(encodeNavTrackSourceFile(sourceFile)),
+              sourceFile: Value(_encodeSourceFileOrNull(routeId, sourceFile)),
               updatedAt: Value(now),
             ),
           );
@@ -1115,6 +1111,27 @@ class NavTrackRepository {
     }
   }
 
+  /// [file] encoded for `source_file`, or null when there is none or it is
+  /// over the codec's cap. The original file is a companion to the points,
+  /// not the route itself: a file too large to keep must not fail an import
+  /// or an update whose points are fine. Such a route simply has no file to
+  /// export or read markers from.
+  Uint8List? _encodeSourceFileOrNull(String routeId, Uint8List? file) {
+    if (file == null) return null;
+    try {
+      return encodeNavTrackSourceFile(file);
+    } on NavTrackSourceFileCodecException catch (e) {
+      _log.warning('Not keeping the original file of nav track $routeId: $e');
+      return null;
+    }
+  }
+
+  /// Markers already read from a stored file, keyed by route and by the
+  /// write that stored it, so reopening a route does not inflate and parse
+  /// its file again. Bounded: only the routes opened most recently stay.
+  static final _markerCache = <(String, int, String?), List<NavTrackMarker>>{};
+  static const int _markerCacheSize = 16;
+
   /// The console's markers in [row]'s original file, or none when it keeps
   /// no file or the file cannot be read. Read from the file rather than
   /// stored on their own, so they always match the points derived from it.
@@ -1124,8 +1141,18 @@ class NavTrackRepository {
     if (row.source != domain.NavTrackSource.seacraftEnc.wireValue) {
       return const [];
     }
+    final key = (row.id, row.updatedAt, row.hlc);
+    final cached = _markerCache.remove(key);
+    if (cached != null) return _markerCache[key] = cached;
     try {
-      return parseSeacraftEncCsv(decodeNavTrackSourceFile(blob)).markers;
+      final markers = parseSeacraftEncCsv(
+        decodeNavTrackSourceFile(blob),
+      ).markers;
+      _markerCache.removeWhere((k, _) => k.$1 == row.id);
+      if (_markerCache.length >= _markerCacheSize) {
+        _markerCache.remove(_markerCache.keys.first);
+      }
+      return _markerCache[key] = markers;
     } on NavTrackSourceFileCodecException catch (e, stackTrace) {
       _log.error(
         'Unreadable source file on nav track ${row.id}; showing no markers',

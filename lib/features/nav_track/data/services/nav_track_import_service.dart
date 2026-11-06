@@ -36,6 +36,13 @@ class NavTrackImportPreview {
   /// whether to update that route or import a new one (issue #4231).
   final String? duplicateOfRouteId;
 
+  /// True when [duplicateOfRouteId]'s recording overlaps this one in time:
+  /// the same recording read again, which the review page proposes to
+  /// update. A file of the same name recorded at another time within the
+  /// window may be a different dive (a console that started its numbering
+  /// over), so the page leaves that choice to the diver.
+  final bool duplicateIsSameRecording;
+
   final String sourceRef;
 
   /// The file exactly as it was read, stored with the route so it can be
@@ -57,6 +64,7 @@ class NavTrackImportPreview {
     required this.candidateDives,
     required this.nearbyDives,
     required this.duplicateOfRouteId,
+    this.duplicateIsSameRecording = false,
     required this.sourceRef,
     this.diverId,
     this.sourceBytes,
@@ -123,7 +131,7 @@ class NavTrackImportService {
         : const <Dive>[];
 
     final sourceRef = fileName ?? 'import.csv';
-    final duplicateOfRouteId = await _findDuplicate(
+    final duplicate = await _findDuplicate(
       sourceRef,
       routeStartSeconds,
       routeEndSeconds,
@@ -136,7 +144,8 @@ class NavTrackImportService {
       segmentation: segmentation,
       candidateDives: candidates,
       nearbyDives: nearby,
-      duplicateOfRouteId: duplicateOfRouteId,
+      duplicateOfRouteId: duplicate?.id,
+      duplicateIsSameRecording: duplicate?.sameRecording ?? false,
       sourceRef: sourceRef,
       diverId: diverId,
       sourceBytes: bytes,
@@ -235,27 +244,34 @@ class NavTrackImportService {
   static const Duration duplicateWindow = Duration(days: 7);
 
   /// An existing route from the same source file recorded within
-  /// [duplicateWindow] of this one, or null. A cheap linear scan over every
+  /// [duplicateWindow] of this one, or null, preferring one whose recording
+  /// overlaps this one ([sameRecording]). A cheap linear scan over every
   /// stored route: import happens rarely enough (one file at a time, by
   /// hand) that this need not be indexed.
-  Future<String?> _findDuplicate(
+  Future<({String id, bool sameRecording})?> _findDuplicate(
     String sourceRef,
     int startSeconds,
     int endSeconds, {
     String? diverId,
   }) async {
     final windowMs = duplicateWindow.inMilliseconds;
-    final startMs = startSeconds * 1000 - windowMs;
-    final endMs = endSeconds * 1000 + windowMs;
+    final startMs = startSeconds * 1000;
+    final endMs = endSeconds * 1000;
     // Only routes [diverId] can see: updating overwrites the duplicate's
     // data, so another diver's recording of the same file must never be
     // offered.
     final existing = await _routeRepository.getAll(diverId: diverId);
+    String? nearId;
     for (final route in existing) {
       if (route.sourceRef != sourceRef) continue;
-      final near = route.startTime <= endMs && route.endTime >= startMs;
-      if (near) return route.id;
+      if (route.startTime <= endMs && route.endTime >= startMs) {
+        return (id: route.id, sameRecording: true);
+      }
+      final near =
+          route.startTime <= endMs + windowMs &&
+          route.endTime >= startMs - windowMs;
+      if (near) nearId ??= route.id;
     }
-    return null;
+    return nearId == null ? null : (id: nearId, sameRecording: false);
   }
 }

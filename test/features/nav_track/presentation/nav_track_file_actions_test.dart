@@ -24,9 +24,10 @@ class _FakeRepository extends NavTrackRepository {
 }
 
 class _FakeImportService implements NavTrackImportService {
-  _FakeImportService({this.error});
+  _FakeImportService({this.error, this.updated = true});
 
   final Object? error;
+  final bool updated;
   final updates = <({String routeId, Uint8List bytes, String fileName})>[];
 
   @override
@@ -37,7 +38,7 @@ class _FakeImportService implements NavTrackImportService {
   }) async {
     if (error != null) throw error!;
     updates.add((routeId: routeId, bytes: bytes, fileName: fileName));
-    return true;
+    return updated;
   }
 
   @override
@@ -199,6 +200,21 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(service.updates.single.fileName, '024.DAT.csv');
+    });
+
+    testWidgets('says the track is gone when it was deleted meanwhile', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        service: _FakeImportService(updated: false),
+        action: (context, ref) => NavTrackFileActions(
+          pickFile: () async => (bytes: _file, name: '023.DAT.csv'),
+        ).updateFromFile(context, ref, _route()),
+      );
+
+      expect(find.text('Track not found.'), findsOneWidget);
+      expect(find.textContaining('Track updated'), findsNothing);
     });
 
     testWidgets('does nothing when no file is picked', (tester) async {

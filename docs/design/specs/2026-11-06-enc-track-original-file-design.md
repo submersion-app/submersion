@@ -46,7 +46,11 @@ its alignment, site, name and dive link.
    a stored track's `source_ref` and the recordings start within seven
    days of each other. The ENC numbers files `001` to `050` and starts
    over, so a name alone matches different dives months apart. The review
-   page then asks: update the stored track (default) or import a new one.
+   page then asks: update the stored track or import a new one. Updating
+   is preselected only when the two recordings overlap in time (the same
+   recording read again); a file of the same name recorded at another
+   time within the window may be a different dive, so a new track is
+   preselected there.
    Updating rewrites only the data (file, points, statistics, times) and
    keeps every setting: dive link, primary role, site, name, device and
    the whole alignment. The detail page offers the same update without a

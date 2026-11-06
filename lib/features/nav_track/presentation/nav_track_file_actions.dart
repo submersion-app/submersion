@@ -87,13 +87,19 @@ class NavTrackFileActions {
     }
 
     try {
-      await ref
+      final updated = await ref
           .read(navTrackImportServiceProvider)
           .updateFromBytes(
             routeId: route.id,
             bytes: picked.bytes,
             fileName: picked.name,
           );
+      if (!updated) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.navTrack_common_trackNotFound)),
+        );
+        return;
+      }
     } on NavTrackParseException catch (e) {
       _log.warning('Route update rejected: ${e.message}');
       messenger.showSnackBar(

@@ -71,6 +71,7 @@ class _FakeImportService implements NavTrackImportService {
           candidateDives: const [],
           nearbyDives: const [],
           duplicateOfRouteId: duplicateOfRouteId,
+          duplicateIsSameRecording: duplicateOfRouteId != null,
           sourceRef: fileName ?? '',
         );
 

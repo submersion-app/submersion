@@ -548,7 +548,37 @@ void main() {
       );
 
       expect(preview.duplicateOfRouteId, storedId);
+      // Not the same recording, so the review does not propose updating it.
+      expect(preview.duplicateIsSameRecording, isFalse);
     });
+
+    test('the same recording read again is flagged as such', () async {
+      final storedId = await storeShifted(Duration.zero);
+
+      final preview = await service.prepare(
+        _fixture('seacraft_enc3_short.csv'),
+        fileName: '005.DAT.csv',
+      );
+
+      expect(preview.duplicateOfRouteId, storedId);
+      expect(preview.duplicateIsSameRecording, isTrue);
+    });
+
+    test(
+      'prefers the same recording over a nearby one of the same name',
+      () async {
+        await storeShifted(const Duration(days: 2));
+        final sameId = await storeShifted(Duration.zero);
+
+        final preview = await service.prepare(
+          _fixture('seacraft_enc3_short.csv'),
+          fileName: '005.DAT.csv',
+        );
+
+        expect(preview.duplicateOfRouteId, sameId);
+        expect(preview.duplicateIsSameRecording, isTrue);
+      },
+    );
 
     test(
       'a file of the same name recorded weeks apart is a new route',

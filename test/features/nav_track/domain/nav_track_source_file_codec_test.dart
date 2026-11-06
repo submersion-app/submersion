@@ -59,6 +59,22 @@ void main() {
       );
     });
 
+    test('reads back a file at the cap that does not compress', () {
+      // gzip grows input it cannot compress, so a stored blob may be
+      // larger than the file it holds and must still be accepted.
+      var seed = 4231;
+      final noise = Uint8List(kMaxNavTrackSourceFileBytes);
+      for (var i = 0; i < noise.length; i++) {
+        seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+        noise[i] = seed >> 16;
+      }
+
+      final blob = encodeNavTrackSourceFile(noise);
+
+      expect(blob.length, greaterThan(noise.length));
+      expect(decodeNavTrackSourceFile(blob), noise);
+    });
+
     test('rejects a blob that is not gzip', () {
       expect(
         () => decodeNavTrackSourceFile(_bytes('not a gzip stream')),

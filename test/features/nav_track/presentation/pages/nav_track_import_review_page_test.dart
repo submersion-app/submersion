@@ -25,6 +25,7 @@ import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_dive_choice_sheet.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_duplicate_choice_picker.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -69,6 +70,7 @@ NavTrackImportPreview _preview({
   List<Dive> candidateDives = const [],
   List<Dive> nearbyDives = const [],
   String? duplicateOfRouteId,
+  bool? duplicateIsSameRecording,
   List<NavTrackPoint>? points,
   String? diverId,
 }) {
@@ -80,6 +82,8 @@ NavTrackImportPreview _preview({
     candidateDives: candidateDives,
     nearbyDives: nearbyDives,
     duplicateOfRouteId: duplicateOfRouteId,
+    duplicateIsSameRecording:
+        duplicateIsSameRecording ?? duplicateOfRouteId != null,
     sourceRef: '005.DAT.csv',
     diverId: diverId,
   );
@@ -358,8 +362,11 @@ class _RecordingImportService implements NavTrackImportService {
     lastUpdatedRouteId = routeId;
     lastUpdatedSourceFile = sourceFile;
     updateCount++;
-    return true;
+    return updateResult;
   }
+
+  /// What `updateFromFile` reports: false when the route is gone.
+  bool updateResult = true;
 
   @override
   Future<bool> updateFromBytes({
@@ -965,6 +972,26 @@ void main() {
     );
   });
 
+  testWidgets('proposes a new track for a file of the same name recorded at '
+      'another time, which may be a different dive', (tester) async {
+    await _pump(
+      tester,
+      preview: _preview(
+        duplicateOfRouteId: 'existing-route',
+        duplicateIsSameRecording: false,
+      ),
+    );
+
+    final newTrack = tester.widget<RadioGroup<NavTrackDuplicateChoice>>(
+      find.byType(RadioGroup<NavTrackDuplicateChoice>),
+    );
+    expect(newTrack.groupValue, NavTrackDuplicateChoice.newTrack);
+    expect(
+      find.byKey(const ValueKey('nav-track-equipment-picker')),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('choosing a new track offers its name and device again', (
     tester,
   ) async {
@@ -1210,6 +1237,32 @@ void main() {
     expect(service.lastUpdatedSourceFile, isNotNull);
     expect(service.commitCount, 0);
     expect(find.text('ROUTE_DETAIL_PAGE'), findsOneWidget);
+  });
+
+  testWidgets('says the stored track is gone when it was deleted during the '
+      'review, and offers a new track instead', (tester) async {
+    final service = _RecordingImportService()..updateResult = false;
+    await _pumpWithRouter(
+      tester,
+      preview: _preview(duplicateOfRouteId: 'existing-route'),
+      service: service,
+    );
+
+    await tester.drag(find.byType(ListView), const Offset(0, -400));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('nav-track-import-save')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('ROUTE_DETAIL_PAGE'), findsNothing);
+    expect(find.text('Track not found.'), findsOneWidget);
+    expect(
+      tester
+          .widget<RadioGroup<NavTrackDuplicateChoice>>(
+            find.byType(RadioGroup<NavTrackDuplicateChoice>),
+          )
+          .groupValue,
+      NavTrackDuplicateChoice.newTrack,
+    );
   });
 
   testWidgets('imports a new track, keeping the duplicate, when the diver '

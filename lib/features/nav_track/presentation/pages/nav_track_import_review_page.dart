@@ -17,6 +17,8 @@ import 'package:submersion/features/nav_track/domain/nav_track_segmenter.dart';
 import 'package:submersion/features/nav_track/presentation/nav_track_parse_error_text.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_dive_choice_sheet.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_duplicate_choice_picker.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_review_warning_card.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_equipment_picker_sheet.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -54,16 +56,6 @@ Future<void> navigateToNavTrackReview(
 /// duplicate it replaced (already deleted), if any. A route updated in place
 /// from its file comes back as [routeId] with no replaced route.
 typedef NavTrackImportResult = ({String routeId, String? replacedRouteId});
-
-/// What the review page does with a file whose recording is already stored
-/// (issue #4231).
-enum NavTrackDuplicateChoice {
-  /// Re-read the stored route's data from this file and keep its settings.
-  update,
-
-  /// Store this file as a route of its own.
-  newTrack,
-}
 
 /// Opens the review page in return mode, for a caller that links the route
 /// itself later (the Dive Edit page's route sheet, which stages links until
@@ -168,6 +160,11 @@ class _NavTrackImportReviewPageState
   void _initializeDiveChoice(NavTrackImportPreview preview) {
     if (_diveChoiceInitialized) return;
     _diveChoiceInitialized = true;
+    // Updating is proposed only for the same recording read again: a file
+    // of the same name recorded at another time may be a different dive.
+    _duplicateChoice = preview.duplicateIsSameRecording
+        ? NavTrackDuplicateChoice.update
+        : NavTrackDuplicateChoice.newTrack;
     // The caller links the route itself, so nothing is pre-selected here.
     if (widget.returnResult) return;
     _selectedDive = preview.candidateDives.length == 1
@@ -300,13 +297,25 @@ class _NavTrackImportReviewPageState
       _error = null;
     });
     try {
-      await ref
+      final updated = await ref
           .read(navTrackImportServiceProvider)
           .updateFromFile(
             routeId: routeId,
             parsed: preview.parsed,
             sourceFile: preview.sourceBytes ?? widget.bytes,
           );
+      // Deleted since the review opened (here or by a sync): nothing was
+      // written, so say so rather than open a track that is gone. The diver
+      // can still import the file as a new track.
+      if (!updated) {
+        if (!mounted) return;
+        setState(() {
+          _busy = false;
+          _duplicateChoice = NavTrackDuplicateChoice.newTrack;
+          _error = l10n.navTrack_common_trackNotFound;
+        });
+        return;
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -510,19 +519,19 @@ class _NavTrackImportReviewPageState
         ),
         if (preview.hasNoMovement) ...[
           const SizedBox(height: 12),
-          _WarningCard(
+          NavTrackReviewWarningCard(
             key: const ValueKey('nav-track-warning-no-movement'),
             text: l10n.navTrack_review_warningNoMovement,
           ),
         ],
         if (preview.duplicateOfRouteId != null) ...[
           const SizedBox(height: 12),
-          _WarningCard(
+          NavTrackReviewWarningCard(
             key: const ValueKey('nav-track-warning-duplicate'),
             text: l10n.navTrack_review_trackDuplicateWarning,
           ),
           const SizedBox(height: 8),
-          _DuplicateChoicePicker(
+          NavTrackDuplicateChoicePicker(
             value: _duplicateChoice,
             onChanged: (choice) => setState(() => _duplicateChoice = choice),
           ),
@@ -586,45 +595,6 @@ class _NavTrackImportReviewPageState
         onTap: _pickSite,
       ),
     ];
-  }
-}
-
-/// Update the stored route from this file, or store it as a new one
-/// (issue #4231). Updating is first: re-reading the same recording is what
-/// a duplicate almost always is.
-class _DuplicateChoicePicker extends StatelessWidget {
-  const _DuplicateChoicePicker({required this.value, required this.onChanged});
-
-  final NavTrackDuplicateChoice value;
-  final ValueChanged<NavTrackDuplicateChoice> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return RadioGroup<NavTrackDuplicateChoice>(
-      groupValue: value,
-      onChanged: (choice) {
-        if (choice != null) onChanged(choice);
-      },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          RadioListTile<NavTrackDuplicateChoice>(
-            key: const ValueKey('nav-track-duplicate-update'),
-            value: NavTrackDuplicateChoice.update,
-            dense: true,
-            title: Text(l10n.navTrack_review_duplicateUpdate),
-            subtitle: Text(l10n.navTrack_review_duplicateUpdateHint),
-          ),
-          RadioListTile<NavTrackDuplicateChoice>(
-            key: const ValueKey('nav-track-duplicate-new'),
-            value: NavTrackDuplicateChoice.newTrack,
-            dense: true,
-            title: Text(l10n.navTrack_review_duplicateNew),
-          ),
-        ],
-      ),
-    );
   }
 }
 
@@ -810,37 +780,5 @@ class _DiveLinkPicker extends StatelessWidget {
     return deltaSeconds < 0
         ? l10n.navTrack_review_offsetBefore(amount)
         : l10n.navTrack_review_offsetAfter(amount);
-  }
-}
-
-class _WarningCard extends StatelessWidget {
-  const _WarningCard({super.key, required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      color: theme.colorScheme.errorContainer,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            Icon(
-              Icons.warning_amber,
-              color: theme.colorScheme.onErrorContainer,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                text,
-                style: TextStyle(color: theme.colorScheme.onErrorContainer),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

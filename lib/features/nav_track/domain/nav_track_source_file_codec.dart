@@ -23,6 +23,13 @@ class NavTrackSourceFileCodecException implements Exception {
 /// can make this device inflate.
 const int kMaxNavTrackSourceFileBytes = 16 * 1024 * 1024;
 
+/// The largest stored blob [decodeNavTrackSourceFile] accepts: the file cap
+/// plus headroom, because gzip can emit more than it was given for input
+/// that does not compress (about 5 bytes per 32 KiB block plus its header
+/// and trailer), and a file this codec stored must always read back.
+const int kMaxNavTrackSourceFileBlobBytes =
+    kMaxNavTrackSourceFileBytes + 64 * 1024;
+
 /// [file], the route's original file, gzipped for `nav_tracks.source_file`
 /// (issue #4231). The bytes are stored exactly as they arrived: line
 /// endings, byte order mark and a missing final newline included, so an
@@ -52,9 +59,7 @@ Uint8List decodeNavTrackSourceFile(Uint8List blob) {
       blob,
       framing: ZlibFraming.gzip,
       maxBytes: kMaxNavTrackSourceFileBytes,
-      // gzip can emit slightly more than it was given, so the compressed
-      // cap matches the body cap rather than sitting under it.
-      maxBlobBytes: kMaxNavTrackSourceFileBytes,
+      maxBlobBytes: kMaxNavTrackSourceFileBlobBytes,
     );
   } on BoundedInflateException catch (e) {
     throw NavTrackSourceFileCodecException(e.message);
