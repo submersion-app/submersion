@@ -15173,6 +15173,7 @@
   "settings_syncDevices_state_unreadable": "Geen leesbaar manifest: een onvoltooide upload, of versleuteld",
   "settings_syncDevices_summary": "{deviceCount, plural, =1{1 apparaat} other{{deviceCount} apparaten}}, {fileCount, plural, =1{1 bestand} other{{fileCount} bestanden}}, {size}",
   "settings_syncDevices_summary_removable": "{count, plural, =1{1 restant van een vervangen of buiten gebruik gestelde bibliotheek, goed voor {size}.} other{{count} restanten van vervangen of buiten gebruik gestelde bibliotheken, goed voor {size}.}}",
+  "settings_syncDevices_summary_removed": "{count, plural, =1{{count} verwijderd apparaat wordt onthouden zodat het geen gewiste gegevens kan terugbrengen.} other{{count} verwijderde apparaten worden onthouden zodat ze geen gewiste gegevens kunnen terugbrengen.}}",
   "settings_syncDevices_tile_filesSize": "{count, plural, =1{1 bestand} other{{count} bestanden}}, {size}",
   "settings_syncDevices_tile_filesSizeSeen": "{count, plural, =1{1 bestand} other{{count} bestanden}}, {size}, {when}",
   "settings_syncDevices_unnamedDevice": "Apparaat {shortId}",

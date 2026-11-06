@@ -50905,6 +50905,19 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String settings_syncDevices_summary_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count appareils supprimés restent mémorisés pour qu’ils ne puissent pas ramener des données effacées.',
+      one:
+          '$count appareil supprimé reste mémorisé pour qu’il ne puisse pas ramener des données effacées.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String settings_syncDevices_tile_filesSize(int count, String size) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

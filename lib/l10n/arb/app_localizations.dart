@@ -80527,6 +80527,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 left over from a replaced or retired library, holding {size}.} other{{count} left over from a replaced or retired library, holding {size}.}}'**
   String settings_syncDevices_summary_removable(int count, String size);
 
+  /// How many removed devices are hidden from the list. Each leaves a small marker on the backend, kept so the device cannot bring deleted data back if it comes online again.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} removed device is remembered so it cannot bring back deleted data.} other{{count} removed devices are remembered so they cannot bring back deleted data.}}'**
+  String settings_syncDevices_summary_removed(int count);
+
   /// Device row subtitle when no timestamp is known.
   ///
   /// In en, this message translates to:

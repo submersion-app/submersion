@@ -168,6 +168,76 @@ void main() {
     );
   });
 
+  // Issue #4219: removing a peer leaves its retirement marker on purpose, so a
+  // device that comes back cannot resurrect deleted data. A row for that
+  // marker alone kept a trash button that only rewrote the marker and moved
+  // the row to the top, so the removal looked like it never happened.
+  group('a device already removed', () {
+    final removed = [
+      device(
+        id: 'self',
+        state: SyncDeviceFootprintState.active,
+        name: 'Pixel',
+        isSelf: true,
+        files: 2,
+        bytes: 1024,
+      ),
+      device(
+        id: '37eaabc4ffff',
+        state: SyncDeviceFootprintState.retired,
+        files: 1,
+        bytes: 95,
+      ),
+      device(
+        id: '92756b49ffff',
+        state: SyncDeviceFootprintState.retired,
+        files: 1,
+        bytes: 95,
+      ),
+    ];
+
+    testWidgets('gets no row and no trash button', (tester) async {
+      await pump(tester, removed);
+
+      expect(find.text('Device 37eaabc4'), findsNothing);
+      expect(find.text('Device 92756b49'), findsNothing);
+      expect(find.byIcon(Icons.delete_outline), findsNothing);
+    });
+
+    testWidgets('is left out of the totals and counted on its own', (
+      tester,
+    ) async {
+      await pump(tester, removed);
+
+      expect(find.textContaining('1 device, 2 files'), findsOneWidget);
+      expect(
+        find.textContaining('2 removed devices are remembered'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('left over from a replaced or retired'),
+        findsNothing,
+        reason: 'a marker alone holds nothing left to remove',
+      );
+    });
+
+    testWidgets('a retired device that still holds files keeps its row', (
+      tester,
+    ) async {
+      await pump(tester, [
+        device(
+          id: 'partly1234',
+          state: SyncDeviceFootprintState.retired,
+          files: 6,
+        ),
+      ]);
+
+      expect(find.text('Device partly12'), findsOneWidget);
+      expect(find.byIcon(Icons.delete_outline), findsOneWidget);
+      expect(find.textContaining('removed device'), findsNothing);
+    });
+  });
+
   testWidgets('says so when the backend holds nothing', (tester) async {
     await pump(tester, []);
     expect(find.text('No sync files on this backend.'), findsOneWidget);

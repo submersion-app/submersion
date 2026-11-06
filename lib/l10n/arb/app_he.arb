@@ -15173,6 +15173,7 @@
   "settings_syncDevices_state_unreadable": "אין מניפסט קריא; העלאה שלא הושלמה או מוצפנת",
   "settings_syncDevices_summary": "{deviceCount, plural, one{מכשיר אחד} two{שני מכשירים} many{{deviceCount} מכשירים} other{{deviceCount} מכשירים}}, {fileCount, plural, one{קובץ אחד} two{שני קבצים} many{{fileCount} קבצים} other{{fileCount} קבצים}}, {size}",
   "settings_syncDevices_summary_removable": "{count, plural, one{אחד נותר מספרייה שהוחלפה או הוצאה משימוש, ותופסים {size}.} two{שניים נותרו מספרייה שהוחלפה או הוצאה משימוש, ותופסים {size}.} many{{count} נותרו מספרייה שהוחלפה או הוצאה משימוש, ותופסים {size}.} other{{count} נותרו מספרייה שהוחלפה או הוצאה משימוש, ותופסים {size}.}}",
+  "settings_syncDevices_summary_removed": "{count, plural, one{מכשיר אחד שהוסר נשמר בזיכרון כדי שלא יוכל להחזיר נתונים שנמחקו.} two{שני מכשירים שהוסרו נשמרים בזיכרון כדי שלא יוכלו להחזיר נתונים שנמחקו.} many{{count} מכשירים שהוסרו נשמרים בזיכרון כדי שלא יוכלו להחזיר נתונים שנמחקו.} other{{count} מכשירים שהוסרו נשמרים בזיכרון כדי שלא יוכלו להחזיר נתונים שנמחקו.}}",
   "settings_syncDevices_tile_filesSize": "{count, plural, one{קובץ אחד} two{שני קבצים} many{{count} קבצים} other{{count} קבצים}}, {size}",
   "settings_syncDevices_tile_filesSizeSeen": "{count, plural, one{קובץ אחד} two{שני קבצים} many{{count} קבצים} other{{count} קבצים}}, {size} · {when}",
   "settings_syncDevices_unnamedDevice": "מכשיר {shortId}",

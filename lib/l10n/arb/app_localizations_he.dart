@@ -49718,6 +49718,22 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String settings_syncDevices_summary_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count מכשירים שהוסרו נשמרים בזיכרון כדי שלא יוכלו להחזיר נתונים שנמחקו.',
+      many:
+          '$count מכשירים שהוסרו נשמרים בזיכרון כדי שלא יוכלו להחזיר נתונים שנמחקו.',
+      two:
+          'שני מכשירים שהוסרו נשמרים בזיכרון כדי שלא יוכלו להחזיר נתונים שנמחקו.',
+      one: 'מכשיר אחד שהוסר נשמר בזיכרון כדי שלא יוכל להחזיר נתונים שנמחקו.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String settings_syncDevices_tile_filesSize(int count, String size) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

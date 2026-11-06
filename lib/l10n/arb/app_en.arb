@@ -29199,6 +29199,7 @@
   "settings_syncDevices_state_unreadable": "No readable manifest - an unfinished upload, or encrypted",
   "settings_syncDevices_summary": "{deviceCount, plural, =1{1 device} other{{deviceCount} devices}}, {fileCount, plural, =1{1 file} other{{fileCount} files}}, {size}",
   "settings_syncDevices_summary_removable": "{count, plural, =1{1 left over from a replaced or retired library, holding {size}.} other{{count} left over from a replaced or retired library, holding {size}.}}",
+  "settings_syncDevices_summary_removed": "{count, plural, =1{{count} removed device is remembered so it cannot bring back deleted data.} other{{count} removed devices are remembered so they cannot bring back deleted data.}}",
   "settings_syncDevices_tile_filesSize": "{count, plural, =1{1 file} other{{count} files}}, {size}",
   "settings_syncDevices_tile_filesSizeSeen": "{count, plural, =1{1 file} other{{count} files}}, {size} - {when}",
   "settings_syncDevices_unnamedDevice": "Device {shortId}",
@@ -29463,6 +29464,15 @@
       "size": {
         "example": "900 KB",
         "type": "String"
+      }
+    }
+  },
+  "@settings_syncDevices_summary_removed": {
+    "description": "How many removed devices are hidden from the list. Each leaves a small marker on the backend, kept so the device cannot bring deleted data back if it comes online again.",
+    "placeholders": {
+      "count": {
+        "example": "24",
+        "type": "int"
       }
     }
   },

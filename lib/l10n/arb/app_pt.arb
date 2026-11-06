@@ -15173,6 +15173,7 @@
   "settings_syncDevices_state_unreadable": "Sem manifesto legível; um envio incompleto ou criptografado",
   "settings_syncDevices_summary": "{deviceCount, plural, one{{deviceCount} dispositivo} other{{deviceCount} dispositivos}}, {fileCount, plural, one{{fileCount} arquivo} other{{fileCount} arquivos}}, {size}",
   "settings_syncDevices_summary_removable": "{count, plural, one{{count} restante de uma biblioteca substituída ou aposentada, ocupando {size}.} other{{count} restantes de uma biblioteca substituída ou aposentada, ocupando {size}.}}",
+  "settings_syncDevices_summary_removed": "{count, plural, one{{count} dispositivo removido fica registado para não poder trazer de volta dados apagados.} other{{count} dispositivos removidos ficam registados para não poderem trazer de volta dados apagados.}}",
   "settings_syncDevices_tile_filesSize": "{count, plural, one{{count} arquivo} other{{count} arquivos}}, {size}",
   "settings_syncDevices_tile_filesSizeSeen": "{count, plural, one{{count} arquivo} other{{count} arquivos}}, {size} · {when}",
   "settings_syncDevices_unnamedDevice": "Dispositivo {shortId}",
