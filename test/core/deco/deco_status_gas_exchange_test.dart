@@ -43,13 +43,16 @@ void main() {
   );
 
   group('DecoStatus per-gas exchange', () {
-    test('after trimix at the surface, helium leaves while nitrogen enters', () {
-      final comp = comp1(pN2: 0.40, pHe: 0.30);
-      final status = statusWith(comp, inspiredN2: 0.74, inspiredHe: 0.0);
+    test(
+      'after trimix at the surface, helium leaves while nitrogen enters',
+      () {
+        final comp = comp1(pN2: 0.40, pHe: 0.30);
+        final status = statusWith(comp, inspiredN2: 0.74, inspiredHe: 0.0);
 
-      expect(status.n2Exchange(comp), GasExchange.ongassing);
-      expect(status.heExchange(comp), GasExchange.offgassing);
-    });
+        expect(status.n2Exchange(comp), GasExchange.ongassing);
+        expect(status.heExchange(comp), GasExchange.offgassing);
+      },
+    );
 
     test('a gas within the tolerance of the inspired pressure is in '
         'equilibrium', () {
@@ -101,7 +104,7 @@ void main() {
 
     test('matches percentLoading of a compartment that has fully '
         'equilibrated', () {
-      final eqN2 = (1.0 - waterVaporPressure) * airN2Fraction;
+      const eqN2 = (1.0 - waterVaporPressure) * airN2Fraction;
       final comp = comp1(pN2: eqN2);
 
       expect(
@@ -111,7 +114,7 @@ void main() {
     });
 
     test('ignores the helium the compartment still holds', () {
-      final eqN2 = (1.0 - waterVaporPressure) * airN2Fraction;
+      const eqN2 = (1.0 - waterVaporPressure) * airN2Fraction;
 
       expect(
         comp1(pN2: 0.4, pHe: 0.5).equilibriumLoadingPercent(eqN2),
