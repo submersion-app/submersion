@@ -79,8 +79,11 @@ class SyncDeviceFootprint {
   /// One marker per device id means a retired footprint of a single file is
   /// that marker alone. There is nothing left to delete, and removing it
   /// "again" would only rewrite the marker (issue #4219).
+  ///
+  /// Never this install: another device retiring it does not make its own row
+  /// something to hide, and its next sync rejoins through the fence.
   bool get isRemoved =>
-      state == SyncDeviceFootprintState.retired && fileCount <= 1;
+      !isSelf && state == SyncDeviceFootprintState.retired && fileCount <= 1;
 
   /// Deleting this device's files cannot lose anything the current library
   /// still depends on, and there are files left to delete.

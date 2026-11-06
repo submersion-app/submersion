@@ -238,6 +238,22 @@ void main() {
       expect(find.text('No sync files on this backend.'), findsNothing);
     });
 
+    testWidgets('this device keeps its row even when another retired it', (
+      tester,
+    ) async {
+      await pump(tester, [
+        device(
+          id: 'self',
+          state: SyncDeviceFootprintState.retired,
+          name: 'Pixel',
+          isSelf: true,
+        ),
+      ]);
+
+      expect(find.text('Pixel'), findsOneWidget);
+      expect(find.textContaining('removed device'), findsNothing);
+    });
+
     testWidgets('a retired device that still holds files keeps its row', (
       tester,
     ) async {
