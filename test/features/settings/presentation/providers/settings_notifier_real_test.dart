@@ -2,6 +2,7 @@ import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
+import 'package:submersion/core/constants/first_day_of_week.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/presentation/startup_brightness.dart';
@@ -123,6 +124,23 @@ void main() {
           .read(settingsProvider.notifier)
           .setShowDetailsPaneForSection('dives', true);
       expect(container.read(settingsProvider).showDetailsPaneDives, isTrue);
+    });
+
+    test('setFirstDayOfWeek sets the first day (#4232)', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(
+        container.read(settingsProvider).firstDayOfWeek,
+        FirstDayOfWeek.auto,
+      );
+      await container
+          .read(settingsProvider.notifier)
+          .setFirstDayOfWeek(FirstDayOfWeek.monday);
+      expect(
+        container.read(settingsProvider).firstDayOfWeek,
+        FirstDayOfWeek.monday,
+      );
     });
 
     test('setChamberHidden toggles hidden chamber ids', () async {

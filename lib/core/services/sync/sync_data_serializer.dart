@@ -11909,6 +11909,9 @@ class SyncDataSerializer {
       // Time/Date format settings
       'timeFormat': 'twelveHour',
       'dateFormat': 'mmmDYYYY',
+      // Issue #4232. Added in v343; a payload from an older peer hydrates to
+      // automatic, the column default.
+      'firstDayOfWeek': 'auto',
       // Theme
       'themeMode': 'system',
       'themePreset': 'submersion',

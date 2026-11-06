@@ -26070,6 +26070,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_field_timeFormat => 'Formato de hora';
 
   @override
+  String get settings_conflict_field_firstDayOfWeek =>
+      'Primer día de la semana';
+
+  @override
   String get settings_conflict_field_timeOffsetSeconds => 'Desfase horario';
 
   @override
@@ -29591,10 +29595,38 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_units_dialog_weightUnit => 'Unidad de peso';
 
   @override
-  String get settings_units_header_individualUnits => 'Unidades individuales';
+  String get settings_units_header_gasPlanning => 'Gas y planificación';
 
   @override
-  String get settings_units_header_timeDateFormat => 'Formato de hora y fecha';
+  String get settings_units_header_displayFormats => 'Visualización y formatos';
+
+  @override
+  String get settings_units_appliesTo => 'Se aplica a las siguientes unidades';
+
+  @override
+  String get settings_units_gasConsumption_unitHint =>
+      'La unidad depende de la presión y el volumen';
+
+  @override
+  String get settings_units_firstDayOfWeek => 'Primer día de la semana';
+
+  @override
+  String get settings_units_dialog_firstDayOfWeek => 'Primer día de la semana';
+
+  @override
+  String get settings_units_firstDayOfWeek_auto => 'Automático';
+
+  @override
+  String settings_units_firstDayOfWeek_autoResolved(String day) {
+    return 'Automático ($day)';
+  }
+
+  @override
+  String get settings_units_firstDayOfWeek_auto_subtitle =>
+      'Sigue la región del dispositivo';
+
+  @override
+  String get settings_units_header_timeDateFormat => 'Hora y fecha';
 
   @override
   String get settings_units_header_unitSystem => 'Sistema de unidades';

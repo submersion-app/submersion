@@ -20,6 +20,7 @@ import 'package:submersion/features/settings/presentation/pages/safety_hub_page.
 import 'package:submersion/features/settings/presentation/pages/security_settings_page.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/widgets/coordinate_format_picker.dart';
+import 'package:submersion/features/settings/presentation/widgets/first_day_of_week_tile.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_location_backfill_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/place_name_language_picker.dart';
@@ -458,16 +459,14 @@ class _UnitsSectionContent extends ConsumerWidget {
             context.l10n.settings_units_header_unitSystem,
           ),
           const SizedBox(height: 8),
-          _buildUnitPresetSelector(context, ref, settings),
-          const SizedBox(height: 24),
-          buildSettingsSectionHeader(
-            context,
-            context.l10n.settings_units_header_individualUnits,
-          ),
-          const SizedBox(height: 8),
+          // The quick select and the seven units it sets share one card, so
+          // what Metric / Imperial changes reads off the screen (issue
+          // #4232).
           Card(
             child: Column(
               children: [
+                _buildUnitPresetSelector(context, ref, settings),
+                const Divider(height: 1),
                 _buildUnitTile(
                   context,
                   title: context.l10n.settings_units_depth,
@@ -535,10 +534,22 @@ class _UnitsSectionContent extends ConsumerWidget {
                     settings.distanceUnit,
                   ),
                 ),
-                const Divider(height: 1),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          buildSettingsSectionHeader(
+            context,
+            context.l10n.settings_units_header_gasPlanning,
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
                 _buildUnitTile(
                   context,
                   title: context.l10n.settings_units_gasConsumption,
+                  subtitle: context.l10n.settings_units_gasConsumption_unitHint,
                   value: switch (settings.gasConsumptionDisplay) {
                     GasConsumptionDisplay.sac =>
                       '${context.l10n.gasConsumption_sac} '
@@ -576,18 +587,18 @@ class _UnitsSectionContent extends ConsumerWidget {
                     settings.defaultPlannerWaterType,
                   ),
                 ),
-                const Divider(height: 1),
-                _buildUnitTile(
-                  context,
-                  title: context.l10n.settings_units_defaultCurrency,
-                  value: settings.defaultCurrency,
-                  onTap: () => _showCurrencyPicker(
-                    context,
-                    ref,
-                    settings.defaultCurrency,
-                  ),
-                ),
-                const Divider(height: 1),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          buildSettingsSectionHeader(
+            context,
+            context.l10n.settings_units_header_displayFormats,
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
                 _buildUnitTile(
                   context,
                   title: context.l10n.settings_visibilityScale_title,
@@ -619,6 +630,17 @@ class _UnitsSectionContent extends ConsumerWidget {
                   onTap: () =>
                       unawaited(_pickPlaceNameLanguage(context, ref, settings)),
                 ),
+                const Divider(height: 1),
+                _buildUnitTile(
+                  context,
+                  title: context.l10n.settings_units_defaultCurrency,
+                  value: settings.defaultCurrency,
+                  onTap: () => _showCurrencyPicker(
+                    context,
+                    ref,
+                    settings.defaultCurrency,
+                  ),
+                ),
               ],
             ),
           ),
@@ -646,6 +668,8 @@ class _UnitsSectionContent extends ConsumerWidget {
                   onTap: () =>
                       _showDateFormatPicker(context, ref, settings.dateFormat),
                 ),
+                const Divider(height: 1),
+                const FirstDayOfWeekTile(),
               ],
             ),
           ),
@@ -659,49 +683,55 @@ class _UnitsSectionContent extends ConsumerWidget {
     WidgetRef ref,
     AppSettings settings,
   ) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              context.l10n.settings_units_quickSelect,
-              style: Theme.of(context).textTheme.titleSmall,
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            context.l10n.settings_units_quickSelect,
+            style: theme.textTheme.titleSmall,
+          ),
+          const SizedBox(height: 12),
+          SegmentedButton<UnitPreset>(
+            segments: [
+              ButtonSegment(
+                value: UnitPreset.metric,
+                label: Text(context.l10n.settings_units_metric),
+              ),
+              ButtonSegment(
+                value: UnitPreset.imperial,
+                label: Text(context.l10n.settings_units_imperial),
+              ),
+              ButtonSegment(
+                value: UnitPreset.custom,
+                label: Text(context.l10n.settings_units_custom),
+              ),
+            ],
+            selected: {settings.unitPreset},
+            onSelectionChanged: (selected) {
+              final preset = selected.first;
+              switch (preset) {
+                case UnitPreset.metric:
+                  ref.read(settingsProvider.notifier).setMetric();
+                  break;
+                case UnitPreset.imperial:
+                  ref.read(settingsProvider.notifier).setImperial();
+                  break;
+                case UnitPreset.custom:
+                  break;
+              }
+            },
+          ),
+          const SizedBox(height: 12),
+          Text(
+            context.l10n.settings_units_appliesTo,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
-            const SizedBox(height: 12),
-            SegmentedButton<UnitPreset>(
-              segments: [
-                ButtonSegment(
-                  value: UnitPreset.metric,
-                  label: Text(context.l10n.settings_units_metric),
-                ),
-                ButtonSegment(
-                  value: UnitPreset.imperial,
-                  label: Text(context.l10n.settings_units_imperial),
-                ),
-                ButtonSegment(
-                  value: UnitPreset.custom,
-                  label: Text(context.l10n.settings_units_custom),
-                ),
-              ],
-              selected: {settings.unitPreset},
-              onSelectionChanged: (selected) {
-                final preset = selected.first;
-                switch (preset) {
-                  case UnitPreset.metric:
-                    ref.read(settingsProvider.notifier).setMetric();
-                    break;
-                  case UnitPreset.imperial:
-                    ref.read(settingsProvider.notifier).setImperial();
-                    break;
-                  case UnitPreset.custom:
-                    break;
-                }
-              },
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

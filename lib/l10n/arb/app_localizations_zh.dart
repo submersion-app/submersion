@@ -24583,6 +24583,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_timeFormat => '时间格式';
 
   @override
+  String get settings_conflict_field_firstDayOfWeek => '每周第一天';
+
+  @override
   String get settings_conflict_field_timeOffsetSeconds => '时间偏移';
 
   @override
@@ -27887,10 +27890,36 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_units_dialog_weightUnit => '重量单位';
 
   @override
-  String get settings_units_header_individualUnits => '个别单位';
+  String get settings_units_header_gasPlanning => '气体与计划';
 
   @override
-  String get settings_units_header_timeDateFormat => '时间与日期格式';
+  String get settings_units_header_displayFormats => '显示与格式';
+
+  @override
+  String get settings_units_appliesTo => '适用于以下单位';
+
+  @override
+  String get settings_units_gasConsumption_unitHint => '单位随压力和体积而定';
+
+  @override
+  String get settings_units_firstDayOfWeek => '每周第一天';
+
+  @override
+  String get settings_units_dialog_firstDayOfWeek => '每周第一天';
+
+  @override
+  String get settings_units_firstDayOfWeek_auto => '自动';
+
+  @override
+  String settings_units_firstDayOfWeek_autoResolved(String day) {
+    return '自动（$day）';
+  }
+
+  @override
+  String get settings_units_firstDayOfWeek_auto_subtitle => '跟随设备所在地区';
+
+  @override
+  String get settings_units_header_timeDateFormat => '时间与日期';
 
   @override
   String get settings_units_header_unitSystem => '单位系统';

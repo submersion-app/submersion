@@ -25935,6 +25935,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_timeFormat => 'Időformátum';
 
   @override
+  String get settings_conflict_field_firstDayOfWeek => 'A hét első napja';
+
+  @override
   String get settings_conflict_field_timeOffsetSeconds => 'Időeltolás';
 
   @override
@@ -29434,10 +29437,40 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_units_dialog_weightUnit => 'Súly egység';
 
   @override
-  String get settings_units_header_individualUnits => 'Egyedi egységek';
+  String get settings_units_header_gasPlanning => 'Gáz és tervezés';
 
   @override
-  String get settings_units_header_timeDateFormat => 'Idő és dátum formátum';
+  String get settings_units_header_displayFormats =>
+      'Megjelenítés és formátumok';
+
+  @override
+  String get settings_units_appliesTo =>
+      'A következő mértékegységekre vonatkozik';
+
+  @override
+  String get settings_units_gasConsumption_unitHint =>
+      'A mértékegység a nyomásból és a térfogatból adódik';
+
+  @override
+  String get settings_units_firstDayOfWeek => 'A hét első napja';
+
+  @override
+  String get settings_units_dialog_firstDayOfWeek => 'A hét első napja';
+
+  @override
+  String get settings_units_firstDayOfWeek_auto => 'Automatikus';
+
+  @override
+  String settings_units_firstDayOfWeek_autoResolved(String day) {
+    return 'Automatikus ($day)';
+  }
+
+  @override
+  String get settings_units_firstDayOfWeek_auto_subtitle =>
+      'Az eszköz régióját követi';
+
+  @override
+  String get settings_units_header_timeDateFormat => 'Idő és dátum';
 
   @override
   String get settings_units_header_unitSystem => 'Mértékegység rendszer';

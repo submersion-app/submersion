@@ -41661,6 +41661,12 @@ abstract class AppLocalizations {
   /// **'Time format'**
   String get settings_conflict_field_timeFormat;
 
+  /// No description provided for @settings_conflict_field_firstDayOfWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'First day of week'**
+  String get settings_conflict_field_firstDayOfWeek;
+
   /// No description provided for @settings_conflict_field_timeOffsetSeconds.
   ///
   /// In en, this message translates to:
@@ -47421,16 +47427,64 @@ abstract class AppLocalizations {
   /// **'Weight Unit'**
   String get settings_units_dialog_weightUnit;
 
-  /// No description provided for @settings_units_header_individualUnits.
+  /// No description provided for @settings_units_header_gasPlanning.
   ///
   /// In en, this message translates to:
-  /// **'Individual Units'**
-  String get settings_units_header_individualUnits;
+  /// **'Gas & Planning'**
+  String get settings_units_header_gasPlanning;
+
+  /// No description provided for @settings_units_header_displayFormats.
+  ///
+  /// In en, this message translates to:
+  /// **'Display & Formats'**
+  String get settings_units_header_displayFormats;
+
+  /// No description provided for @settings_units_appliesTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Applies to the following units'**
+  String get settings_units_appliesTo;
+
+  /// No description provided for @settings_units_gasConsumption_unitHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit follows pressure and volume'**
+  String get settings_units_gasConsumption_unitHint;
+
+  /// No description provided for @settings_units_firstDayOfWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'First day of week'**
+  String get settings_units_firstDayOfWeek;
+
+  /// No description provided for @settings_units_dialog_firstDayOfWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'First Day of Week'**
+  String get settings_units_dialog_firstDayOfWeek;
+
+  /// No description provided for @settings_units_firstDayOfWeek_auto.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic'**
+  String get settings_units_firstDayOfWeek_auto;
+
+  /// No description provided for @settings_units_firstDayOfWeek_autoResolved.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic ({day})'**
+  String settings_units_firstDayOfWeek_autoResolved(String day);
+
+  /// No description provided for @settings_units_firstDayOfWeek_auto_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Follows your device\'s region'**
+  String get settings_units_firstDayOfWeek_auto_subtitle;
 
   /// No description provided for @settings_units_header_timeDateFormat.
   ///
   /// In en, this message translates to:
-  /// **'Time & Date Format'**
+  /// **'Time & Date'**
   String get settings_units_header_timeDateFormat;
 
   /// No description provided for @settings_units_header_unitSystem.

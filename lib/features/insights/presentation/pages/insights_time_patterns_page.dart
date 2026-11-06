@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:submersion/core/constants/first_day_of_week.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/elapsed_duration_format.dart';
@@ -31,6 +32,17 @@ class InsightsTimePatternsPage extends ConsumerWidget {
     context.l10n.insights_timePatterns_dayOfWeek_fri,
     context.l10n.insights_timePatterns_dayOfWeek_sat,
   ];
+
+  /// The strftime('%w') days (0 = Sunday .. 6 = Saturday) in the order the
+  /// week runs here: from the first day the app's Material localizations
+  /// name, which `WeekStartScope` sets from the diver's setting.
+  List<int> _weekOrder(BuildContext context) {
+    final first = weekdayFromMaterialIndex(
+      MaterialLocalizations.of(context).firstDayOfWeekIndex,
+    );
+    return [for (final weekday in weekdaysFrom(first)) weekday % 7];
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final content = SingleChildScrollView(
@@ -75,15 +87,24 @@ class InsightsTimePatternsPage extends ConsumerWidget {
               message: context.l10n.insights_timePatterns_dayOfWeek_empty,
             );
           }
-          // Fill in missing days with 0
+          // One bar per weekday, starting on the diver's first day of the
+          // week (issue #4232). Each bar keeps its strftime('%w') day
+          // (0 = Sunday) so a tap opens that day whatever the order; missing
+          // days are filled with 0.
           final dayLabels = _dayNames(context);
-          final fullData = List.generate(7, (day) {
-            final existing = data.firstWhere(
-              (d) => d.dayOfWeek == day,
-              orElse: () => (dayOfWeek: day, count: 0),
-            );
-            return (label: dayLabels[day], count: existing.count);
-          });
+          final days = _weekOrder(context);
+          final fullData = [
+            for (final day in days)
+              (
+                label: dayLabels[day],
+                count: data
+                    .firstWhere(
+                      (d) => d.dayOfWeek == day,
+                      orElse: () => (dayOfWeek: day, count: 0),
+                    )
+                    .count,
+              ),
+          ];
           final description = fullData
               .where((d) => d.count > 0)
               .map((d) => '${d.label}: ${d.count}')
@@ -95,12 +116,12 @@ class InsightsTimePatternsPage extends ConsumerWidget {
             child: CategoryBarChart(
               data: fullData,
               barColor: Colors.blue,
-              onOpenBar: (day) => openFilteredChartDives(
+              onOpenBar: (bar) => openFilteredChartDives(
                 context,
                 ref,
                 chart: context.l10n.insights_timePatterns_dayOfWeek_title,
-                row: fullData[day].label,
-                narrow: (scope) => weekdayDivesFilter(scope, day),
+                row: fullData[bar].label,
+                narrow: (scope) => weekdayDivesFilter(scope, days[bar]),
               ),
             ),
           );

@@ -25396,6 +25396,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_timeFormat => 'פורמט שעה';
 
   @override
+  String get settings_conflict_field_firstDayOfWeek => 'היום הראשון בשבוע';
+
+  @override
   String get settings_conflict_field_timeOffsetSeconds => 'הפרש זמן';
 
   @override
@@ -28834,10 +28837,38 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_units_dialog_weightUnit => 'יחידת משקל';
 
   @override
-  String get settings_units_header_individualUnits => 'יחידות בודדות';
+  String get settings_units_header_gasPlanning => 'גז ותכנון';
 
   @override
-  String get settings_units_header_timeDateFormat => 'פורמט שעה ותאריך';
+  String get settings_units_header_displayFormats => 'תצוגה ופורמטים';
+
+  @override
+  String get settings_units_appliesTo => 'חל על היחידות הבאות';
+
+  @override
+  String get settings_units_gasConsumption_unitHint =>
+      'היחידה נגזרת מהלחץ והנפח';
+
+  @override
+  String get settings_units_firstDayOfWeek => 'היום הראשון בשבוע';
+
+  @override
+  String get settings_units_dialog_firstDayOfWeek => 'היום הראשון בשבוע';
+
+  @override
+  String get settings_units_firstDayOfWeek_auto => 'אוטומטי';
+
+  @override
+  String settings_units_firstDayOfWeek_autoResolved(String day) {
+    return 'אוטומטי ($day)';
+  }
+
+  @override
+  String get settings_units_firstDayOfWeek_auto_subtitle =>
+      'לפי האזור של המכשיר';
+
+  @override
+  String get settings_units_header_timeDateFormat => 'שעה ותאריך';
 
   @override
   String get settings_units_header_unitSystem => 'מערכת יחידות';

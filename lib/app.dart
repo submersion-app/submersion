@@ -14,6 +14,7 @@ import 'package:submersion/features/equipment/data/services/sensor_summary_sched
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/app/app_exit.dart';
 import 'package:submersion/core/app/app_exit_guard.dart';
+import 'package:submersion/core/presentation/localizations/week_start_scope.dart';
 import 'package:submersion/core/presentation/providers/app_lock_provider.dart';
 import 'package:submersion/core/presentation/widgets/lock_barrier.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -784,7 +785,10 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
                   // the user clicks something.
                   child: Focus(
                     autofocus: true,
-                    child: DisplayZoomScope(zoom: zoom, child: child!),
+                    child: DisplayZoomScope(
+                      zoom: zoom,
+                      child: WeekStartScope(child: child!),
+                    ),
                   ),
                 );
               },
