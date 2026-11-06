@@ -15,6 +15,11 @@ class _ReadOnlyStamper extends LibraryEditStamper {
   Future<bool> mayEdit(String siteId, {String? actingDiverId}) async => false;
 }
 
+class _EditorStamper extends LibraryEditStamper {
+  @override
+  Future<bool> mayEdit(String siteId, {String? actingDiverId}) async => true;
+}
+
 void main() {
   late AppDatabase db;
   late RecordHarness h;
@@ -93,6 +98,7 @@ void main() {
       'access_notes': 'Boat only',
       'mooring_number': 'M4',
       'parking_info': 'Marina',
+      'is_shared': true,
     };
     expect(samples.keys.toSet(), writes.fields.keys.toSet());
 
@@ -228,5 +234,23 @@ void main() {
 
       expect(block, isNull);
     });
+  });
+
+  // A shared library site is shared by its library, even for a profile
+  // that may edit it.
+  test('a library site refuses is_shared for an editor too', () async {
+    final editor = SiteWrites(RecordRepositories(), stamper: _EditorStamper());
+
+    final block = await editor.refuse(
+      const WriteCheck(
+        kind: ChangeKind.update,
+        id: 's1',
+        ownerId: kDiverA,
+        values: {'is_shared': true},
+        document: {'shared_library_id': 'lib-1'},
+      ),
+    );
+
+    expect(block?.reason, BlockReason.notPermitted);
   });
 }

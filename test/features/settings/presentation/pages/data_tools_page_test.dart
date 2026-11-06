@@ -108,20 +108,18 @@ void main() {
     }
   });
 
-  testWidgets('hides the agent access row unless debug mode is on', (
-    tester,
-  ) async {
+  testWidgets('hides the agent access row off the desktop', (tester) async {
     await pumpPage(tester);
     expect(find.byType(DataRowTile), findsNWidgets(5));
     expect(find.text('Agent access'), findsNothing);
   });
 
-  testWidgets('shows the agent access row on desktop in debug mode', (
+  testWidgets('shows the agent access row on desktop, debug mode off', (
     tester,
   ) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
-    await pumpPage(tester, debugMode: true);
+    await pumpPage(tester);
     expect(find.byType(DataRowTile), findsNWidgets(6));
     expect(find.text('Agent access'), findsOneWidget);
     await tester.tap(find.text('Agent access'));

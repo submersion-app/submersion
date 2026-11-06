@@ -323,6 +323,40 @@ void main() {
   });
 
   group('courses', () {
+    test('a requirement lists the dives it credits when named', () async {
+      for (final (id, owner) in [('mine', kDiverA), ('theirs', kDiverB)]) {
+        await db
+            .into(db.dives)
+            .insert(
+              DivesCompanion.insert(
+                id: id,
+                diveDateTime: t,
+                createdAt: t,
+                updatedAt: t,
+                diverId: Value(owner),
+              ),
+            );
+        await db
+            .into(db.courseRequirementDives)
+            .insert(
+              CourseRequirementDivesCompanion.insert(
+                id: 'credit-$id',
+                requirementId: 'req-course-a',
+                diveId: id,
+                createdAt: t,
+              ),
+            );
+      }
+
+      final doc = (await h.one(
+        'course_requirements',
+        'req-course-a',
+        include: ['dive_ids'],
+      ))!;
+
+      expect(doc['dive_ids'], ['mine']);
+    });
+
     test('requirements follow their course', () async {
       final doc = (await h.one('course_requirements', 'req-course-a'))!;
       expect(doc['course_id'], 'course-a');

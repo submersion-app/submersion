@@ -300,7 +300,12 @@ void main() {
 
   test('an entity that cannot be changed yet is blocked', () async {
     final plan = await preview([
-      update('trips', 'tr1', fields: {'name': 'x'}),
+      // Settings are never agent writes; a create needs no stored row.
+      {
+        'op': 'create',
+        'entity': 'diver_settings',
+        'fields': {'name': 'x'},
+      },
     ]);
 
     expect(plan.items.single.block?.reason, BlockReason.notWritable);

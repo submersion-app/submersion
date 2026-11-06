@@ -1,6 +1,24 @@
 import 'dart:io';
 
+import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/writes/write_catalog.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+part 'agent_write_coverage_covered.dart';
+part 'agent_write_coverage_exempt.dart';
+
+/// The repository folders the covered and exempt maps name methods in.
+const gear = 'lib/features/equipment/data/repositories';
+const passports = 'lib/features/cylinder_passports/data/repositories';
+const trips = 'lib/features/trips/data/repositories';
+const checklists = 'lib/features/checklists/data/repositories';
+const divers = 'lib/features/divers/data/repositories';
+const certs = 'lib/features/certifications/data/repositories';
+const courses = 'lib/features/courses/data/repositories';
+const planner = 'lib/features/planner/data/repositories';
+const safety = 'lib/features/safety/data/repositories';
+const diveLog = 'lib/features/dive_log/data/repositories';
+const media = 'lib/features/media/data/repositories';
 
 /// Every editable record must be writable by an agent before release (spec,
 /// "Coverage and release gate"), so every repository method whose name says
@@ -10,325 +28,12 @@ import 'package:flutter_test/flutter_test.dart';
 /// that a write entity does not reach fails here, which is what keeps "any
 /// record" true.
 ///
-/// After covering a method, move it to [covered] and regenerate the baseline:
+/// After covering a method, add it to [covered] (in
+/// agent_write_coverage_covered.dart) and regenerate the baseline:
 /// `UPDATE_AGENT_WRITE_BASELINE=1 flutter test
 /// test/architecture/agent_write_coverage_test.dart`
 void main() {
-  const gear = 'lib/features/equipment/data/repositories';
   const baselinePath = 'test/architecture/agent_write_coverage_baseline.txt';
-
-  /// `repository file:method`, and the write entity that reaches it.
-  final covered = <String, String>{
-    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:createDive':
-        'dives',
-    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkUpdateFields':
-        'dives',
-    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkShiftDiveTimes':
-        'dives',
-    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkDeleteDives':
-        'dives',
-    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkSetSite':
-        'dives',
-    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkAddTags':
-        'dives',
-    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkRemoveTags':
-        'dives',
-    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkAddDiveTypes':
-        'dives',
-    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkRemoveDiveTypes':
-        'dives',
-    'lib/features/buddies/data/repositories/buddy_repository.dart:createBuddy':
-        'buddies',
-    'lib/features/buddies/data/repositories/buddy_repository.dart:updateFields':
-        'buddies',
-    'lib/features/buddies/data/repositories/buddy_repository.dart:deleteBuddy':
-        'buddies',
-    'lib/features/buddies/data/repositories/buddy_repository.dart:bulkAddBuddies':
-        'dives',
-    'lib/features/buddies/data/repositories/buddy_repository.dart:bulkRemoveBuddies':
-        'dives',
-    'lib/features/dive_sites/data/repositories/site_repository_impl.dart:createSite':
-        'sites',
-    'lib/features/dive_sites/data/repositories/site_repository_impl.dart:updateSite':
-        'sites',
-    'lib/features/dive_sites/data/repositories/site_repository_impl.dart:deleteSite':
-        'sites',
-    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkAddEquipment':
-        'dives',
-    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkRemoveEquipment':
-        'dives',
-    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkAddCourses':
-        'dives',
-    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkRemoveCourses':
-        'dives',
-    'lib/features/dive_log/data/repositories/dive_child_row_repository.dart:addTank':
-        'dive_tanks',
-    'lib/features/dive_log/data/repositories/dive_child_row_repository.dart:updateTank':
-        'dive_tanks',
-    'lib/features/dive_log/data/repositories/dive_child_row_repository.dart:deleteTank':
-        'dive_tanks',
-    'lib/features/dive_log/data/repositories/dive_child_row_repository.dart:addWeight':
-        'dive_weights',
-    'lib/features/dive_log/data/repositories/dive_child_row_repository.dart:updateWeight':
-        'dive_weights',
-    'lib/features/dive_log/data/repositories/dive_child_row_repository.dart:deleteWeight':
-        'dive_weights',
-    'lib/features/marine_life/data/repositories/species_repository.dart:addSighting':
-        'sightings',
-    'lib/features/marine_life/data/repositories/species_repository.dart:updateSighting':
-        'sightings',
-    'lib/features/marine_life/data/repositories/species_repository.dart:deleteSighting':
-        'sightings',
-    'lib/features/dive_log/data/repositories/dive_child_row_repository.dart:addCustomField':
-        'dive_custom_fields',
-    'lib/features/dive_log/data/repositories/dive_child_row_repository.dart:updateCustomField':
-        'dive_custom_fields',
-    'lib/features/dive_log/data/repositories/dive_child_row_repository.dart:deleteCustomField':
-        'dive_custom_fields',
-    'lib/features/dive_roles/data/repositories/dive_role_link_repository.dart:writeDiverRoles':
-        'dives',
-    'lib/features/dive_log/data/repositories/annotation_repository.dart:addAnnotation':
-        'dive_events',
-    'lib/features/dive_log/data/repositories/annotation_repository.dart:moveAnnotation':
-        'dive_events',
-    'lib/features/dive_log/data/repositories/annotation_repository.dart:removeAnnotation':
-        'dive_events',
-    'lib/features/dive_lab/data/repositories/dive_scenario_repository.dart:saveScenario':
-        'dive_scenarios',
-    'lib/features/dive_lab/data/repositories/dive_scenario_repository.dart:deleteScenario':
-        'dive_scenarios',
-    'lib/features/tags/data/repositories/tag_repository.dart:createTag': 'tags',
-    'lib/features/tags/data/repositories/tag_repository.dart:updateTag': 'tags',
-    'lib/features/tags/data/repositories/tag_repository.dart:deleteTag': 'tags',
-    'lib/features/tags/data/repositories/tag_repository.dart:mergeTags': 'tags',
-    'lib/features/dive_types/data/repositories/dive_type_repository.dart:createDiveType':
-        'dive_types',
-    'lib/features/dive_types/data/repositories/dive_type_repository.dart:updateDiveType':
-        'dive_types',
-    'lib/features/dive_types/data/repositories/dive_type_repository.dart:setDiveTypeVisibility':
-        'dive_types',
-    'lib/features/dive_types/data/repositories/dive_type_repository.dart:deleteDiveType':
-        'dive_types',
-    'lib/features/dive_roles/data/repositories/dive_role_repository.dart:createDiveRole':
-        'dive_roles',
-    'lib/features/dive_roles/data/repositories/dive_role_repository.dart:renameDiveRole':
-        'dive_roles',
-    'lib/features/dive_roles/data/repositories/dive_role_repository.dart:deleteDiveRole':
-        'dive_roles',
-    'lib/features/site_types/data/repositories/site_type_repository.dart:createSiteType':
-        'site_types',
-    'lib/features/site_types/data/repositories/site_type_repository.dart:updateSiteType':
-        'site_types',
-    'lib/features/site_types/data/repositories/site_type_repository.dart:deleteSiteType':
-        'site_types',
-    'lib/features/site_types/data/repositories/site_type_repository.dart:deleteSiteTypesWithLinks':
-        'site_types',
-    'lib/features/marine_life/data/repositories/species_repository.dart:createSpecies':
-        'species',
-    'lib/features/marine_life/data/repositories/species_repository.dart:updateSpecies':
-        'species',
-    'lib/features/marine_life/data/repositories/species_repository.dart:deleteSpecies':
-        'species',
-    'lib/features/marine_life/data/repositories/species_repository.dart:addExpectedSpecies':
-        'sites',
-    'lib/features/marine_life/data/repositories/species_repository.dart:removeExpectedSpecies':
-        'sites',
-    'lib/features/dive_sites/data/repositories/site_classification_repository.dart:replaceTags':
-        'sites',
-    'lib/features/dive_sites/data/repositories/site_classification_repository.dart:addTagsToSites':
-        'sites',
-    'lib/features/dive_centers/data/repositories/dive_center_repository.dart:createDiveCenter':
-        'centers',
-    'lib/features/dive_centers/data/repositories/dive_center_repository.dart:updateDiveCenter':
-        'centers',
-    'lib/features/dive_centers/data/repositories/dive_center_repository.dart:deleteDiveCenter':
-        'centers',
-    'lib/features/dive_centers/data/repositories/dive_center_gear_note_repository.dart:create':
-        'center_gear_notes',
-    'lib/features/dive_centers/data/repositories/dive_center_gear_note_repository.dart:update':
-        'center_gear_notes',
-    'lib/features/dive_centers/data/repositories/dive_center_gear_note_repository.dart:delete':
-        'center_gear_notes',
-    'lib/features/certification_agencies/data/repositories/custom_certification_repository.dart:createAgency':
-        'custom_agencies',
-    'lib/features/certification_agencies/data/repositories/custom_certification_repository.dart:updateAgency':
-        'custom_agencies',
-    'lib/features/certification_agencies/data/repositories/custom_certification_repository.dart:deleteAgency':
-        'custom_agencies',
-    'lib/features/certification_agencies/data/repositories/custom_certification_repository.dart:createLevel':
-        'custom_levels',
-    'lib/features/certification_agencies/data/repositories/custom_certification_repository.dart:updateLevel':
-        'custom_levels',
-    'lib/features/certification_agencies/data/repositories/custom_certification_repository.dart:deleteLevel':
-        'custom_levels',
-    'lib/features/certification_agencies/data/repositories/custom_certification_repository.dart:reorderProgression':
-        'custom_levels',
-    'lib/features/tank_presets/data/repositories/tank_preset_repository.dart:createPreset':
-        'tank_presets',
-    'lib/features/tank_presets/data/repositories/tank_preset_repository.dart:updatePreset':
-        'tank_presets',
-    'lib/features/tank_presets/data/repositories/tank_preset_repository.dart:deletePreset':
-        'tank_presets',
-    'lib/features/weight_presets/data/repositories/weight_preset_repository.dart:createPreset':
-        'weight_presets',
-    'lib/features/weight_presets/data/repositories/weight_preset_repository.dart:updatePreset':
-        'weight_presets',
-    'lib/features/weight_presets/data/repositories/weight_preset_repository.dart:renamePreset':
-        'weight_presets',
-    'lib/features/weight_presets/data/repositories/weight_preset_repository.dart:deletePreset':
-        'weight_presets',
-    'lib/features/cylinder_configs/data/repositories/cylinder_config_repository.dart:createConfig':
-        'cylinder_configs',
-    'lib/features/cylinder_configs/data/repositories/cylinder_config_repository.dart:updateConfig':
-        'cylinder_configs',
-    'lib/features/cylinder_configs/data/repositories/cylinder_config_repository.dart:deleteConfig':
-        'cylinder_configs',
-    'lib/features/cylinder_configs/data/repositories/cylinder_config_repository.dart:saveItems':
-        'cylinder_configs',
-    for (final method in const [
-      'createEquipment',
-      'updateEquipment',
-      'deleteEquipment',
-      'deleteOwnedEquipment',
-      'saveAttributes',
-    ])
-      '$gear/equipment_repository_impl.dart:$method': 'equipment',
-    '$gear/equipment_share_repository.dart:setShares': 'equipment',
-    for (final method in const [
-      'createSet',
-      'updateSet',
-      'deleteSet',
-      'setAsDefault',
-      'clearDefault',
-      'setShowFigure',
-      'addGeofence',
-      'updateGeofence',
-      'removeGeofence',
-    ])
-      '$gear/equipment_set_repository_impl.dart:$method': 'equipment_sets',
-    for (final method in const [
-      'createLocation',
-      'updateLocation',
-      'setArchived',
-      'deleteLocation',
-    ])
-      '$gear/equipment_location_repository.dart:$method': 'equipment_locations',
-    for (final method in const [
-      'addComponent',
-      'updateRole',
-      'replaceComponent',
-      'reorder',
-      'removeComponent',
-    ])
-      '$gear/equipment_component_repository.dart:$method':
-          'equipment_components',
-    for (final method in const ['recordMoves', 'updateMove', 'deleteMove'])
-      '$gear/equipment_location_move_repository.dart:$method':
-          'equipment_location_moves',
-    'lib/features/tags/data/repositories/tag_link_repository.dart:replaceTags':
-        'equipment',
-    for (final method in const ['createKind', 'updateKind', 'deleteKind'])
-      '$gear/service_kind_repository.dart:$method': 'service_kinds',
-    for (final method in const [
-      'createSchedule',
-      'updateSchedule',
-      'deleteSchedule',
-    ])
-      '$gear/service_schedule_repository.dart:$method': 'service_schedules',
-    // The item save calls it with the baselines its attributes name.
-    '$gear/service_schedule_repository.dart:applyBaselines': 'equipment',
-    for (final method in const ['createRecord', 'updateRecord', 'deleteRecord'])
-      '$gear/service_record_repository.dart:$method': 'service_records',
-    '$gear/equipment_repository_impl.dart:replaceChild': 'equipment',
-  };
-
-  /// Writes that change no record a diver keeps, so no change set entity
-  /// covers them, each with the reason. `path:*` exempts a whole repository
-  /// file. Anything a diver edits as a record of their diving stays out of
-  /// here, however small.
-  final exempt = <String, String>{
-    'lib/features/settings/data/repositories/app_settings_repository.dart:*':
-        'app preferences, not logbook records',
-    'lib/features/settings/data/repositories/diver_settings_repository.dart:*':
-        'a diver\'s preferences, not logbook records',
-    'lib/features/auto_update/data/repositories/update_preferences.dart:*':
-        'app preferences',
-    'lib/features/backup/data/repositories/backup_preferences.dart:*':
-        'app preferences and backup bookkeeping',
-    'lib/features/change_log/data/repositories/change_log_preferences.dart:*':
-        'app preferences',
-    'lib/features/change_log/data/repositories/change_log_repository.dart:*':
-        'the log of changes itself, written by every write',
-    'lib/features/notifications/data/repositories/scheduled_notification_repository.dart:*':
-        'reminders scheduled from records, rewritten when they change',
-    'lib/features/maps/data/repositories/offline_map_repository.dart:*':
-        'map downloads kept on this device',
-    'lib/features/reef/data/repositories/reef_cache_dao.dart:*': 'a cache',
-    'lib/features/tides/data/repositories/noaa_station_cache_repository.dart:*':
-        'a cache',
-    'lib/features/gps_log/data/repositories/track_geometry_cache_repository.dart:*':
-        'a cache',
-    'lib/features/insights/data/repositories/deco_classification_cache.dart:*':
-        'a cache',
-    'lib/features/insights/data/repositories/observation_dismissals_repository.dart:*':
-        'the state of derived findings, recomputed from records',
-    'lib/features/data_quality/data/repositories/quality_findings_repository.dart:*':
-        'the state of derived findings, recomputed from records',
-    'lib/features/dive_computer/data/repositories/dive_computer_connection_repository.dart:*':
-        'this device\'s pairing with a dive computer',
-    'lib/features/marine_life/data/repositories/species_repository.dart:resetBuiltInSpecies':
-        'restores the bundled catalogue; the edits it undoes are species '
-        'updates',
-    'lib/features/weight_presets/data/repositories/weight_preset_repository.dart:createFromWeights':
-        'a shortcut for a create with entries, which weight_presets covers',
-    'lib/features/nav_track/data/repositories/nav_track_repository.dart:updateImportedData':
-        're-reads a track\'s recording from the console file it was imported '
-        'from; the data is that file, not an edit (issue #4231)',
-    for (final method in const [
-      'retireEquipment',
-      'setStatusForMany',
-      'markEquipmentPurchased',
-    ])
-      '$gear/equipment_repository_impl.dart:$method':
-          'a shortcut for a status change, which equipment covers through '
-          'updateEquipment',
-    for (final method in const [
-      'createEquipmentWithTags',
-      'updateEquipmentWithTags',
-    ])
-      '$gear/equipment_repository_impl.dart:$method':
-          'the edit page\'s save, which equipment covers as fields and a tags '
-          'relation',
-    '$gear/dive_sensor_summary_repository.dart:*':
-        'a summary derived from dives, recomputed when they change',
-    '$gear/equipment_service_status_repository.dart:*':
-        'a status derived from the service ledger, recomputed from it',
-    '$gear/equipment_findings_repository.dart:*':
-        'the review state of derived findings, recomputed from records',
-    for (final step in const [
-      'cylinder_gear_links.dart:*',
-      'equipment_location_buddy_links.dart:*',
-      'equipment_location_center_links.dart:*',
-      'equipment_tag_repository.dart:deleteLinksForEquipment',
-      'equipment_share_repository.dart:deleteForEquipment',
-      'equipment_location_move_repository.dart:deleteForEquipment',
-    ])
-      '$gear/$step': 'an inner step of a delete of its owner',
-    '$gear/equipment_location_move_repository.dart:recordMoveGroups':
-        'a bulk shortcut for moves, which equipment_location_moves covers '
-        'one move at a time through recordMoves',
-    for (final method in const ['addItemToSet', 'removeItemFromSet'])
-      '$gear/equipment_set_repository_impl.dart:$method':
-          'a shortcut for a member change, which equipment_sets covers as '
-          'equipment_ids through updateSet',
-    for (final method in const ['shareMany', 'unshare', 'shareAllForDiver'])
-      '$gear/equipment_share_repository.dart:$method':
-          'a bulk shortcut for a share change, which equipment covers as '
-          'shared_with through setShares',
-    '$gear/equipment_repository_impl.dart:markAsServiced':
-        'a legacy field with no caller in the app, and a write that skips '
-        'sync; service_records covers servicing',
-  };
 
   /// A public `Future` method on a repository. The return type may sit on the
   /// line above the name. The type stops at `=` and at the end of its line, or
@@ -369,6 +74,14 @@ void main() {
       'shiftDiveTimes',
       'fillNotesIfEmpty',
       'recordConnection',
+      'startSession',
+      'completeSession',
+      'abortSession',
+      'cloneTemplate',
+      'dissolveSeries',
+      'pack',
+      'unpack',
+      'splitTrack',
     ]) {
       expect(isWriteName(name), isTrue, reason: name);
     }
@@ -442,6 +155,43 @@ void main() {
   test('every covered method exists', () {
     expect(covered.keys.toSet().difference(scanRepositories()), isEmpty);
   });
+
+  // Every write is covered or exempt, so a new one fails here until it is
+  // given a change set entity or a reason.
+  test('the baseline is empty', () {
+    expect(readBaseline(), isEmpty);
+  });
+
+  test('every covered method names an entity an agent can write', () {
+    final writable = {
+      for (final entry in WriteCatalog(RecordRepositories()).all) entry.name,
+    };
+
+    expect(covered.values.toSet().difference(writable), isEmpty);
+  });
+
+  test('every covered method is called by a writer, or through a call one '
+      'makes', () {
+    final writers = [
+      for (final file in Directory(
+        'lib/features/agent_access/data/writes',
+      ).listSync(recursive: true).whereType<File>())
+        if (file.path.endsWith('.dart')) file.readAsStringSync(),
+    ].join('\n');
+    bool named(String? name) =>
+        name != null && RegExp('\\b$name\\b').hasMatch(writers);
+
+    final unreached = [
+      for (final key in covered.keys)
+        if (!named(key.split(':').last) && !named(reachedThrough[key])) key,
+    ];
+
+    expect(unreached, isEmpty);
+    expect(
+      reachedThrough.keys.toSet().difference(covered.keys.toSet()),
+      isEmpty,
+    );
+  });
 }
 
 /// Whether a repository method's name says it writes. The verbs are the ones
@@ -453,6 +203,14 @@ bool isWriteName(String name) =>
 
 const _writeVerbs = [
   'create',
+  'start',
+  'complete',
+  'abort',
+  'clone',
+  'dissolve',
+  'pack',
+  'unpack',
+  'split',
   'add',
   'insert',
   'update',
