@@ -337,7 +337,7 @@ class UddfImportParsers {
     final value = double.tryParse(text.trim());
     // double.tryParse accepts "NaN" and "Infinity", and neither is a reading.
     if (value == null || !value.isFinite || value <= 0) return null;
-    if (value <= 100) return value;
+    if (value <= UddfPartialPressure.maxBar) return value;
     // Shifted as text rather than divided, so a value Submersion wrote comes
     // back as the exact double it stored (issue #4198).
     return UddfPartialPressure.barFromPascalText(text) ?? value / 100000;

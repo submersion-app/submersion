@@ -32,9 +32,6 @@ abstract final class UddfRebreatherWriters {
     _ => null,
   };
 
-  static String? _pascal(double? bar) =>
-      bar == null ? null : UddfPartialPressure.pascalText(bar);
-
   static int? _millivolt(DiveProfilePoint p, int index) => switch (index) {
     0 => p.o2SensorMv1,
     1 => p.o2SensorMv2,
@@ -87,15 +84,15 @@ abstract final class UddfRebreatherWriters {
   /// no name would let them read a Pascal value. Each cell's millivolts go in
   /// a `<measuredmillivolts ref>`, Submersion's own element: UDDF has none.
   static void writeSample(XmlBuilder builder, DiveProfilePoint point) {
-    if (_pascal(point.setpoint) case final setpoint?) {
+    if (UddfPartialPressure.pascalText(point.setpoint) case final setpoint?) {
       builder.element('setpo2', nest: setpoint);
     }
-    if (_pascal(point.ppO2) case final ppO2?) {
+    if (UddfPartialPressure.pascalText(point.ppO2) case final ppO2?) {
       builder.element('calculatedpo2', nest: ppO2);
     }
     const max = UddfImportParsers.maxO2Sensors;
     for (var i = 0; i < max; i++) {
-      if (_pascal(_cell(point, i)) case final value?) {
+      if (UddfPartialPressure.pascalText(_cell(point, i)) case final value?) {
         builder.element(
           'measuredpo2',
           attributes: {'ref': cellRef(i)},

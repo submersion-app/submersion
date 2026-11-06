@@ -27,13 +27,22 @@ void main() {
       );
     });
 
-    test('writes values Dart prints in exponent form as plain decimals', () {
-      expect(UddfPartialPressure.pascalText(1e-7), '0.01');
-      expect(UddfPartialPressure.pascalText(1.5e-12), '0.00000015');
+    test('writes a value Dart prints in exponent form as a plain decimal', () {
       expect(UddfPartialPressure.pascalText(2e21), '2${'0' * 26}');
+      expect(UddfPartialPressure.pascalText(1.5e22), '15${'0' * 26}');
+    });
+
+    test('writes nothing a reader would take for bar', () {
+      // 100 Pa or less reads back as bar, so 0.0004 bar would return as
+      // 40 bar. No plausible reading is that small.
+      expect(UddfPartialPressure.pascalText(0.0004), isNull);
+      expect(UddfPartialPressure.pascalText(0.001), isNull);
+      expect(UddfPartialPressure.pascalText(0.0010001), '100.01');
+      expect(UddfImportParsers.parsePartialPressureBar('100.01'), 0.0010001);
     });
 
     test('writes nothing for a value that is no reading', () {
+      expect(UddfPartialPressure.pascalText(null), isNull);
       expect(UddfPartialPressure.pascalText(double.nan), isNull);
       expect(UddfPartialPressure.pascalText(double.infinity), isNull);
       expect(UddfPartialPressure.pascalText(0), isNull);
@@ -58,6 +67,10 @@ void main() {
       expect(UddfPartialPressure.barFromPascalText('.'), isNull);
       expect(UddfPartialPressure.barFromPascalText('e5'), isNull);
       expect(UddfPartialPressure.barFromPascalText('abc'), isNull);
+      expect(
+        UddfPartialPressure.barFromPascalText('1e99999999999999999999'),
+        isNull,
+      );
     });
 
     test('still reads plain bar', () {
