@@ -187,6 +187,25 @@ List<RecordEntry> trainingEntries(RecordRepositories r) => [
     byParents: (courses) => eachParent(courses, (id) => _requirements(r, id)),
     document: courseRequirementDocument,
     summaryKeys: const ['course_id', 'name', 'kind', 'completed_at'],
+    blocks: {
+      // The dives credited to it that the diver can see.
+      'dive_ids': (requirement, load) async => RecordReader(r.db).visibleRows(
+        'dives',
+        rootScope(QuerySubject.dives),
+        [
+          for (final row
+              in await r.db
+                  .customSelect(
+                    'SELECT dive_id FROM course_requirement_dives '
+                    'WHERE requirement_id = ? ORDER BY created_at, id',
+                    variables: [Variable.withString(requirement.id)],
+                  )
+                  .get())
+            row.read<String>('dive_id'),
+        ],
+        load.diverId,
+      ),
+    },
   ),
   RecordEntity<Species>(
     name: 'species',

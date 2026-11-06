@@ -22681,6 +22681,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get navShortcut_short_backup => 'Mentés';
 
   @override
+  String get navShortcut_short_diveComputers => 'Komputerek';
+
+  @override
   String get navShortcut_short_speciesStats => 'Fajstatisztika';
 
   @override
@@ -41937,6 +41940,16 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String dataQuality_dive_tanks(String tanks) {
+    return 'Érintett: $tanks';
+  }
+
+  @override
+  String dataQuality_dive_tankPair(String first, String second) {
+    return '$first és $second';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => 'Adatminőség-ellenőrzés';
 
   @override
@@ -41955,9 +41968,9 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Az átvizsgálás kész - $count elem ellenőrzésre vár',
-      one: 'Az átvizsgálás kész - 1 elem ellenőrzésre vár',
-      zero: 'Az átvizsgálás kész - nincs új észlelés',
+      other: 'Az átvizsgálás kész - $count nyitott elem ellenőrzésre vár',
+      one: 'Az átvizsgálás kész - $count nyitott elem ellenőrzésre vár',
+      zero: 'Az átvizsgálás kész - nincs nyitott észlelés',
     );
     return '$_temp0';
   }
@@ -42088,8 +42101,25 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_clock_offset(int hours) {
-    return 'Az egyik forrás órája $hours órával eltér';
+  String dataQuality_msg_clock_offsetAhead(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'Az egyik forrás órája $hours órát siet',
+      one: 'Az egyik forrás órája $hours órát siet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_clock_offsetBehind(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'Az egyik forrás órája $hours órát késik',
+      one: 'Az egyik forrás órája $hours órát késik',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -42156,8 +42186,18 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_rate(String rate, int seconds) {
-    return '$rate függőleges sebesség $seconds másodpercen át fennmaradt';
+  String dataQuality_msg_rate(String rate, String duration) {
+    return '$rate függőleges sebesség $duration időtartamon át fennmaradt';
+  }
+
+  @override
+  String dataQuality_unit_seconds(int seconds) {
+    return '$seconds mp';
+  }
+
+  @override
+  String dataQuality_unit_minutes(int minutes) {
+    return '$minutes perc';
   }
 
   @override
@@ -42261,12 +42301,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Az állandó arány a sós/édesvíz beállítás eltérésére utal';
 
   @override
-  String get dataQuality_msg_sourceDuration =>
-      'A források nem egyeznek a merülés időtartamában';
+  String dataQuality_msg_sourceDuration(String primary, String source) {
+    return 'A források nem egyeznek a merülés időtartamában: $primary vs. $source';
+  }
 
   @override
-  String get dataQuality_msg_sourceTemp =>
-      'A források nem egyeznek a vízhőmérsékletben';
+  String dataQuality_msg_sourceTemp(String primary, String source) {
+    return 'A források nem egyeznek a vízhőmérsékletben: $primary vs. $source';
+  }
 
   @override
   String dataQuality_repairLabel_shiftTime(String offset) {
@@ -42285,6 +42327,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String dataQuality_repairLabel_fixSourceClock(String offset) {
     return 'A számítógép órájának javítása ennyivel: $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClockNamed(
+    String computer,
+    String offset,
+  ) {
+    return '$computer órájának javítása ennyivel: $offset';
   }
 
   @override
@@ -42463,6 +42513,33 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_split => 'Szétválasztás külön merülésekre';
+
+  @override
+  String dataQuality_repairLabel_setPrimaryNamed(String source) {
+    return '$source beállítása elsődleges forrásként';
+  }
+
+  @override
+  String dataQuality_repairLabel_splitNamed(String source) {
+    return '$source leválasztása külön merülésként';
+  }
+
+  @override
+  String dataQuality_setPrimary_title(String source) {
+    return 'Beállítja elsődleges forrásként ezt: $source?';
+  }
+
+  @override
+  String dataQuality_setPrimary_body(String source) {
+    return 'A merülés mélysége, időtartama és profilja ezután innen származik: $source. Ezt a merülés adatforrásainál később módosíthatja.';
+  }
+
+  @override
+  String get dataQuality_setPrimary_bodyUnnamed =>
+      'A merülés mélysége, időtartama és profilja ezután ebből a forrásból származik. Ezt a merülés adatforrásainál később módosíthatja.';
+
+  @override
+  String get dataQuality_setPrimary_confirm => 'Beállítás elsődlegesként';
 
   @override
   String get dataQuality_repairLabel_compare => 'Profilok összehasonlítása';

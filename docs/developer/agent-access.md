@@ -5,13 +5,10 @@ diver's logbook through the Model Context Protocol. The
 design is `docs/design/specs/2026-11-01-mcp-server-design.md`; this page is
 the map of the code and the rules it keeps.
 
-Until the write surface is complete, agent access exists only while debug
-mode is on, and only on macOS, Windows and Linux: `agentAccessAvailableProvider`
+Agent access exists on macOS, Windows and Linux: `agentAccessAvailableProvider`
 gates both the settings entry point (Settings > Data > Advanced > Data tools >
-Agent access) and the listener itself, so turning debug mode off stops a
-running server and a persisted "enabled" setting starts nothing without it.
-The final write PR removes the debug clause from that one provider; see the
-roadmap at the end of `docs/design/plans/2026-11-01-mcp-server-pr1-server-core.md`.
+Agent access) and the listener itself, so a persisted "enabled" setting starts
+nothing on a build without it. The user page is `docs/user/agent-access.md`.
 
 ## Where the code lives
 
@@ -305,6 +302,40 @@ part of itself is blocked before `addComponent` would throw. Status shortcuts, b
 and the inner steps of an item delete are in the coverage guard's `exempt`
 map.
 
+The service ledger is writable as `service_kinds`, `service_schedules` (an
+item's clocks, children of the item) and `service_records` (its history, also
+children). A built-in service type is the app's: the service types page lets a
+diver hide one in Settings but never edit or delete it, so an update or a
+delete of one is refused. A clock is one per type on an item, of a type that
+fits the item's type, is not another profile's custom type and is not a
+built-in the owner hid, never on wanted gear, and with an interval to count; a
+baseline it names is stamped as picked, as the clock's dialog stamps it. A new
+record takes the category and prices the log service dialog fills in
+(`resolveDefaultServiceCategory`, `resolveDefaultServiceCost`, then the
+diver's default currency). The record repository keeps the item's
+`last_service_date`, so a record's create, edit or delete lists the item under
+"Also changes" when it moves that date; a create writes the record's day as it
+is, even an older one (issue #4201). Clock and record writes re-arm the item's
+service reminders after the apply through a `GearReminderRefresh` callback the
+provider layer builds, as the record notifier does; it does nothing while
+reminders are off, and a failure there is logged. A revert does not call it,
+so reminders catch up at the next app start.
+
+An equipment create that names only `replaces_equipment_id` goes through
+`replaceChild`, as the children card's Replace does: the new part copies the
+old one's name, type, make and spec into its place, the old one is retired,
+and the plan lists both. Only a part fitted to an item in the kit, as the set
+leaves it, is replaced, once per set, and a part the set changes earlier is
+replaced in a set of its own. `afterApply` gets every change of its entity the
+apply wrote, each with the record's id and its parent, so work for one item
+runs once. `createTouched` and `DeleteReach.touched` let a create or a delete
+list the rows of other records it rewrites, as `SideEffects.touched` does for
+an update. `createDefaults` names what a create fills in that it does not name,
+as a form prefills it (a record's category, price and currency, an item's
+currency): the plan lists those values as indirect changes and the apply
+writes them as listed. `markAsServiced` is exempt: a legacy field with no
+caller in the app.
+
 ### Adding a writable entity
 
 1. Add a `WritableEntry` under `data/writes/families/` and list it in
@@ -358,6 +389,40 @@ map.
    instead, as `path:method` or `path:*` for a whole repository, with the
    reason. A shortcut that does what a covered method does, as
    `createFromWeights` does, belongs there too.
+
+### Every family
+
+Every repository write is an agent write or exempt with a reason, and
+`agent_write_coverage_test.dart` keeps it so: its baseline is empty, and a new
+write fails the guard until it is covered or exempt. The writers, one family
+per file under `data/writes/families/`:
+
+- Logbook: dives (with buddy roles and the trip link), tanks, weights,
+  sightings, custom fields, gas switches, annotations, scenarios, safety
+  finding dismissals, media.
+- Places and people: sites (types, sharing, hiding, features, merges),
+  buddies (merges), dive centers and their gear notes, divers and weight
+  entries.
+- Gear: equipment, sets, locations and moves, components, service kinds,
+  schedules and records, check-ins, cylinder fills and passports,
+  transmitters, dive computer settings and merges.
+- Trips: trips (dives, packed gear, sharing, hiding), liveaboard details,
+  itinerary days, the cylinder board and its fills, checklists with their
+  sections and items.
+- Training: certifications, currency rules, settings and events, courses and
+  requirements.
+- Catalogs: tags, dive types, roles, site types, species, agencies and
+  levels, presets, cylinder configs, checklist and pre-dive templates.
+- Planning and views: pre-dive runs and their items, dive plans and series,
+  rules, saved queries, connection maps, documents, smart albums, GPS tracks
+  and routes, incidents and emergency chambers.
+
+The exemptions, each grouped with its reason in the guard: inner steps a
+covered write runs; imports, devices and derived values; bulk shortcuts for a
+write made record by record; profile samples; settings and view state; device
+storage, credentials and sync bookkeeping; media attached in the app; planned
+dives the planner makes; profile delete and merge (decided against, 2026-11-04);
+and a trip removal path that does not mark the dive for sync.
 
 ### Known limits
 
@@ -519,10 +584,8 @@ app keeps running.
 The server factory runs per MCP session, and per request on the stateless
 2026 protocol, so it must stay cheap and must not touch the database.
 
-## Roadmap
+## Status
 
-The remaining PRs, all behind the debug-mode gate until the last one: the
-write core (`preview_changes`,
-`apply_changes`, `revert_operation`, the confirmation dialog, change log
-source `agent`); write coverage per entity family with a guard test; then
-the gate removal, user documentation and release note.
+Shipped: the read tools, the write core (`preview_changes`, `apply_changes`,
+`revert_operation`, the confirmation dialog, change log source `agent`) and
+write coverage for every family, kept whole by the guard above.

@@ -20,21 +20,19 @@ import 'package:submersion/features/agent_access/domain/agent_access_settings.da
 import 'package:submersion/features/agent_access/presentation/providers/agent_write_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 final agentAccessPreferencesProvider = Provider<AgentAccessPreferences>(
   (ref) => AgentAccessPreferences(ref.watch(sharedPreferencesProvider)),
 );
 
-/// Whether agent access exists on this device at all: desktop only, and,
-/// until the write surface lands, only while debug mode is on. The Data
-/// tools row and the server lifecycle both read this, so the final write PR
-/// removes the debug clause in one place.
+/// Whether agent access exists on this device at all: on the desktop. The
+/// Data tools row and the server lifecycle both read this.
 final agentAccessAvailableProvider = Provider<bool>(
-  (ref) =>
-      ref.watch(deviceCapabilitiesProvider).agentAccess &&
-      ref.watch(debugModeNotifierProvider),
+  (ref) => ref.watch(deviceCapabilitiesProvider).agentAccess,
 );
 
 /// The per-device agent access settings, persisted on every change.
@@ -138,6 +136,29 @@ class AgentAccessController {
   /// a restore, a storage move or an encryption change is seen by the next
   /// statement.
   static final _sqlRunner = SqlWindowRunner(file: liveSqlDatabaseFile);
+
+  /// Re-arms an item's service reminders after an agent changes its clocks
+  /// or history, as the service record notifier does: only while reminders
+  /// are on, and a failure is logged, never the write's.
+  Future<void> _refreshGearReminders(String equipmentId) async {
+    try {
+      final settings = _ref.read(settingsProvider);
+      if (!settings.notificationsEnabled) return;
+      final item = await _ref
+          .read(equipmentRepositoryProvider)
+          .getEquipmentById(equipmentId);
+      if (item == null) return;
+      await _ref
+          .read(notificationSchedulerProvider)
+          .updateForEquipment(item: item, globalSettings: settings);
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Failed to reschedule reminders after an agent service write',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
 
   /// Called when the owning provider is disposed (a scope rebuild). A sync
   /// still awaiting the keychain, the settings or the package info resumes
@@ -260,6 +281,8 @@ class AgentAccessController {
           confirmEnabled: () =>
               _ref.read(agentAccessSettingsProvider).confirmWrites,
           rearmDocuments: _ref.read(documentMutationsProvider).rearmReminders,
+          refreshGearReminders: _refreshGearReminders,
+          strings: () => l10nForLocaleTag(_ref.read(localeProvider)),
         ),
       ),
       gate: AgentToolGate(isLocked: () => _ref.read(appLockNotifierProvider)),

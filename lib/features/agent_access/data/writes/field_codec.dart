@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:convert';
 
 import 'package:submersion/features/agent_access/data/documents/document_dates.dart';
@@ -51,7 +52,8 @@ abstract class FieldCodec {
   /// A set of [values]' `.name`s, written as a list, at least [min] of them.
   /// The parsed value is the sorted names joined with commas, so a set
   /// compares with a document's list whatever order either is in.
-  factory FieldCodec.enumSet(Iterable<Enum> values, {int min}) = _EnumSetCodec;
+  factory FieldCodec.enumSet(Iterable<Enum> values, {int min, bool nullable}) =
+      _EnumSetCodec;
 
   /// A list of short texts in order, such as a dive center's affiliations.
   /// The parsed value is the list as JSON, so it compares with a document's.
@@ -59,14 +61,15 @@ abstract class FieldCodec {
     int maxItems,
     int maxLength,
     String? separator,
+    bool nullable,
   }) = _TextListCodec;
 
   /// A wall clock, written as documents write it, with a nominal `Z`.
-  const factory FieldCodec.wallClock() = _WallClockCodec;
+  const factory FieldCodec.wallClock({bool nullable}) = _WallClockCodec;
 
   /// A true moment, written as a read lists one, in UTC with a `Z`: when a
   /// gear item moved, not a local time of day.
-  const factory FieldCodec.instant() = _InstantCodec;
+  const factory FieldCodec.instant({bool nullable}) = _InstantCodec;
 
   /// A day written as documents write one, `YYYY-MM-DD`, with no time or
   /// zone: a purchase date, an inspection date.
@@ -77,6 +80,31 @@ abstract class FieldCodec {
   /// document's list.
   const factory FieldCodec.integerList({int min, int max, int maxItems}) =
       _IntegerListCodec;
+
+  /// An object whose keys are some of [keys], each a number from [min] to
+  /// [max], such as a clock's intervals by exposure unit. The parsed value is
+  /// the map as JSON with its keys sorted, so it compares with a document's
+  /// map whatever order either is in.
+  const factory FieldCodec.numberMap({
+    required Set<String> keys,
+    num min,
+    num max,
+    bool nullable,
+  }) = _NumberMapCodec;
+
+  /// An object naming each of [keys], each a text of at most [maxLength]
+  /// characters or null, trimmed and with a blank as null, such as an
+  /// emergency contact. The parsed value is the map as JSON with its keys
+  /// sorted, so it compares with a document's map.
+  const factory FieldCodec.textObject({
+    required Set<String> keys,
+    int maxLength,
+  }) = _TextObjectCodec;
+
+  /// An object of ids, each to a list of ids, such as a dive's buddies to
+  /// their roles. The parsed value is the map as JSON, keys and lists
+  /// sorted, so it compares with a document's whatever order either is in.
+  const factory FieldCodec.idLists({int maxKeys, int maxItems}) = _IdListsCodec;
 
   /// The id of a record of [refEntity]. The planner checks it as it checks
   /// a relation's links: the record must exist and be the owner's to use.
@@ -226,7 +254,7 @@ class _EnumCodec extends FieldCodec {
 }
 
 class _EnumSetCodec extends FieldCodec {
-  _EnumSetCodec(Iterable<Enum> values, {this.min = 0})
+  _EnumSetCodec(Iterable<Enum> values, {this.min = 0, super.nullable})
     : _names = [for (final value in values) value.name];
 
   final List<String> _names;
@@ -277,6 +305,7 @@ class _TextListCodec extends FieldCodec {
     this.maxItems = 20,
     this.maxLength = 100,
     this.separator,
+    super.nullable,
   });
 
   final int maxItems;
@@ -360,6 +389,160 @@ class _CalendarDateCodec extends FieldCodec {
   }
 }
 
+class _NumberMapCodec extends FieldCodec {
+  const _NumberMapCodec({
+    required this.keys,
+    this.min = 0,
+    this.max = 1e9,
+    super.nullable,
+  });
+
+  final Set<String> keys;
+  final num min;
+  final num max;
+
+  String get _keyList => ([...keys]..sort()).join(', ');
+
+  @override
+  String get describe => 'an object of numbers by $_keyList';
+
+  @override
+  Object parseValue(Object raw) {
+    if (raw is! Map) {
+      throw FieldRefusal('This field takes an object keyed by $_keyList.');
+    }
+    final sorted = SplayTreeMap<String, num>();
+    for (final MapEntry(:key, :value) in raw.entries) {
+      if (key is! String || !keys.contains(key)) {
+        throw FieldRefusal('This field takes the keys $_keyList.');
+      }
+      if (value is! num) {
+        throw FieldRefusal('$key takes a number.');
+      }
+      if (value < min || value > max) {
+        throw FieldRefusal('$key must be from $min to $max.');
+      }
+      sorted[key] = _plain(value);
+    }
+    return jsonEncode(sorted);
+  }
+
+  /// A whole number as an int, so 50 and a document's 50.0 read the same.
+  static num _plain(num value) =>
+      value == value.roundToDouble() ? value.toInt() : value.toDouble();
+
+  @override
+  Object? canonical(Object? documentValue) => documentValue is Map
+      ? jsonEncode(
+          SplayTreeMap<String, Object?>.of({
+            for (final MapEntry(:key, :value) in documentValue.entries)
+              '$key': value is num ? _plain(value) : value,
+          }),
+        )
+      : documentValue;
+
+  @override
+  Object? wire(Object? value) => value is String ? jsonDecode(value) : value;
+}
+
+class _TextObjectCodec extends FieldCodec {
+  const _TextObjectCodec({required this.keys, this.maxLength = 200});
+
+  final Set<String> keys;
+  final int maxLength;
+
+  String get _keyList => ([...keys]..sort()).join(', ');
+
+  @override
+  String get describe => 'an object naming $_keyList, each text or null';
+
+  @override
+  Object parseValue(Object raw) {
+    if (raw is! Map ||
+        raw.length != keys.length ||
+        !raw.keys.every(keys.contains)) {
+      throw FieldRefusal(
+        'This field takes an object naming $_keyList, each text or null.',
+      );
+    }
+    final sorted = SplayTreeMap<String, String?>();
+    for (final MapEntry(:key, :value) in raw.entries) {
+      if (value != null && value is! String) {
+        throw FieldRefusal('$key takes text or null.');
+      }
+      final text = (value as String?)?.trim();
+      if (text != null && text.length > maxLength) {
+        throw FieldRefusal('$key holds at most $maxLength characters.');
+      }
+      sorted[key as String] = text == null || text.isEmpty ? null : text;
+    }
+    return jsonEncode(sorted);
+  }
+
+  @override
+  Object? canonical(Object? documentValue) => documentValue is Map
+      ? jsonEncode(
+          SplayTreeMap<String, Object?>.of({
+            for (final MapEntry(:key, :value) in documentValue.entries)
+              '$key': value,
+          }),
+        )
+      : documentValue;
+
+  @override
+  Object? wire(Object? value) => value is String ? jsonDecode(value) : value;
+}
+
+class _IdListsCodec extends FieldCodec {
+  const _IdListsCodec({this.maxKeys = 100, this.maxItems = 20});
+
+  final int maxKeys;
+  final int maxItems;
+
+  @override
+  String get describe => 'an object of ids, each to a list of ids';
+
+  @override
+  Object parseValue(Object raw) {
+    if (raw is! Map || raw.length > maxKeys) {
+      throw FieldRefusal(
+        'This field takes an object of at most $maxKeys ids, each to a list '
+        'of ids.',
+      );
+    }
+    final sorted = SplayTreeMap<String, List<String>>();
+    for (final MapEntry(:key, :value) in raw.entries) {
+      if (key is! String || key.isEmpty || value is! List) {
+        throw const FieldRefusal('Each id takes a list of ids.');
+      }
+      if (value.length > maxItems || value.any((v) => v is! String)) {
+        throw FieldRefusal('$key takes at most $maxItems ids.');
+      }
+      final ids = {for (final v in value) v as String};
+      if (ids.length != value.length) {
+        throw FieldRefusal('$key names an id more than once.');
+      }
+      sorted[key] = ids.toList()..sort();
+    }
+    return jsonEncode(sorted);
+  }
+
+  @override
+  Object? canonical(Object? documentValue) => documentValue is Map
+      ? jsonEncode(
+          SplayTreeMap<String, Object?>.of({
+            for (final MapEntry(:key, :value) in documentValue.entries)
+              '$key': value is List
+                  ? ([for (final v in value) '$v']..sort())
+                  : value,
+          }),
+        )
+      : documentValue;
+
+  @override
+  Object? wire(Object? value) => value is String ? jsonDecode(value) : value;
+}
+
 class _IntegerListCodec extends FieldCodec {
   const _IntegerListCodec({
     this.min = 0,
@@ -400,14 +583,14 @@ class _IntegerListCodec extends FieldCodec {
 }
 
 class _InstantCodec extends _WallClockCodec {
-  const _InstantCodec();
+  const _InstantCodec({super.nullable});
 
   @override
   String get describe => 'a moment in UTC, YYYY-MM-DDTHH:MM:SSZ';
 }
 
 class _WallClockCodec extends FieldCodec {
-  const _WallClockCodec();
+  const _WallClockCodec({super.nullable});
 
   /// Date, time to the second or finer, and a literal Z. An offset or a
   /// missing suffix would mean the agent thinks of a zone, and a wall clock

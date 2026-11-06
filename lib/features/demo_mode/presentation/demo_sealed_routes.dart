@@ -36,13 +36,12 @@ const demoSealedRoutePrefixes = <String, DemoSealedFeature>{
 /// A nav shortcut's alias location is sealed as the page it opens is
 /// (#4187): a pinned Cloud Sync is still Cloud Sync.
 DemoSealedFeature? demoSealedFeatureFor(String location) {
-  var path = Uri.tryParse(location)?.path ?? location;
-  const shortcutPrefix = '$kShortcutLocationPrefix/';
-  if (path.startsWith(shortcutPrefix)) {
-    final id = path.substring(shortcutPrefix.length).split('/').first;
-    final shortcut = navShortcutById(id);
+  final uri = Uri.tryParse(location);
+  var path = uri?.path ?? location;
+  if (path.startsWith('$kShortcutLocationPrefix/')) {
+    final shortcut = uri == null ? null : navShortcutForLocation(uri);
     if (shortcut == null) return null;
-    path = Uri.parse(shortcut.canonicalPath).path;
+    path = shortcut.canonicalUri.path;
   }
   final segments = path.split('/').where((s) => s.isNotEmpty).toList();
   for (final MapEntry(key: route, value: feature)

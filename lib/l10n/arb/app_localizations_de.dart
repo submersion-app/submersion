@@ -22728,6 +22728,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get navShortcut_short_backup => 'Backup';
 
   @override
+  String get navShortcut_short_diveComputers => 'Computer';
+
+  @override
   String get navShortcut_short_speciesStats => 'Artenstatistik';
 
   @override
@@ -42093,6 +42096,16 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String dataQuality_dive_tanks(String tanks) {
+    return 'Betrifft $tanks';
+  }
+
+  @override
+  String dataQuality_dive_tankPair(String first, String second) {
+    return '$first und $second';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => 'Datenqualitätsprüfung';
 
   @override
@@ -42111,9 +42124,9 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Scan abgeschlossen - $count Elemente zu prüfen',
-      one: 'Scan abgeschlossen - 1 Element zu prüfen',
-      zero: 'Scan abgeschlossen - keine neuen Auffälligkeiten',
+      other: 'Scan abgeschlossen - $count offene Elemente zu prüfen',
+      one: 'Scan abgeschlossen - $count offenes Element zu prüfen',
+      zero: 'Scan abgeschlossen - keine offenen Auffälligkeiten',
     );
     return '$_temp0';
   }
@@ -42245,8 +42258,25 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_clock_offset(int hours) {
-    return 'Eine Quellenuhr weicht um $hours Stunden ab';
+  String dataQuality_msg_clock_offsetAhead(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'Eine Quellenuhr geht $hours Stunden vor',
+      one: 'Eine Quellenuhr geht $hours Stunde vor',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_clock_offsetBehind(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'Eine Quellenuhr geht $hours Stunden nach',
+      one: 'Eine Quellenuhr geht $hours Stunde nach',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -42313,8 +42343,18 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_rate(String rate, int seconds) {
-    return 'Vertikalrate von $rate über $seconds s gehalten';
+  String dataQuality_msg_rate(String rate, String duration) {
+    return 'Vertikalrate von $rate über $duration gehalten';
+  }
+
+  @override
+  String dataQuality_unit_seconds(int seconds) {
+    return '$seconds s';
+  }
+
+  @override
+  String dataQuality_unit_minutes(int minutes) {
+    return '$minutes min';
   }
 
   @override
@@ -42419,12 +42459,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Das konstante Verhältnis deutet auf eine unterschiedliche Salz-/Süßwasser-Einstellung hin';
 
   @override
-  String get dataQuality_msg_sourceDuration =>
-      'Quellen widersprechen sich bei der Tauchzeit';
+  String dataQuality_msg_sourceDuration(String primary, String source) {
+    return 'Quellen widersprechen sich bei der Tauchzeit: $primary vs. $source';
+  }
 
   @override
-  String get dataQuality_msg_sourceTemp =>
-      'Quellen widersprechen sich bei der Wassertemperatur';
+  String dataQuality_msg_sourceTemp(String primary, String source) {
+    return 'Quellen widersprechen sich bei der Wassertemperatur: $primary vs. $source';
+  }
 
   @override
   String dataQuality_repairLabel_shiftTime(String offset) {
@@ -42443,6 +42485,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String dataQuality_repairLabel_fixSourceClock(String offset) {
     return 'Uhr dieses Computers um $offset korrigieren';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClockNamed(
+    String computer,
+    String offset,
+  ) {
+    return 'Uhr von $computer um $offset korrigieren';
   }
 
   @override
@@ -42620,6 +42670,33 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_split =>
       'In separate Tauchgänge aufteilen';
+
+  @override
+  String dataQuality_repairLabel_setPrimaryNamed(String source) {
+    return '$source als primäre Quelle festlegen';
+  }
+
+  @override
+  String dataQuality_repairLabel_splitNamed(String source) {
+    return '$source als eigenen Tauchgang abtrennen';
+  }
+
+  @override
+  String dataQuality_setPrimary_title(String source) {
+    return '$source als primäre Quelle festlegen?';
+  }
+
+  @override
+  String dataQuality_setPrimary_body(String source) {
+    return 'Tiefe, Dauer und Profil des Tauchgangs stammen danach von $source. Du kannst das bei den Datenquellen des Tauchgangs wieder ändern.';
+  }
+
+  @override
+  String get dataQuality_setPrimary_bodyUnnamed =>
+      'Tiefe, Dauer und Profil des Tauchgangs stammen danach von dieser Quelle. Du kannst das bei den Datenquellen des Tauchgangs wieder ändern.';
+
+  @override
+  String get dataQuality_setPrimary_confirm => 'Als primär festlegen';
 
   @override
   String get dataQuality_repairLabel_compare => 'Profile vergleichen';

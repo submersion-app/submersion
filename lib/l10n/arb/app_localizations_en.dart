@@ -22422,6 +22422,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navShortcut_short_backup => 'Backup';
 
   @override
+  String get navShortcut_short_diveComputers => 'Computers';
+
+  @override
   String get navShortcut_short_speciesStats => 'Species stats';
 
   @override
@@ -41473,6 +41476,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String dataQuality_dive_tanks(String tanks) {
+    return 'Affects $tanks';
+  }
+
+  @override
+  String dataQuality_dive_tankPair(String first, String second) {
+    return '$first and $second';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => 'Data quality review';
 
   @override
@@ -41491,9 +41504,9 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Scan complete - $count items to review',
-      one: 'Scan complete - 1 item to review',
-      zero: 'Scan complete - no new findings',
+      other: 'Scan complete - $count open items to review',
+      one: 'Scan complete - $count open item to review',
+      zero: 'Scan complete - nothing open to review',
     );
     return '$_temp0';
   }
@@ -41622,8 +41635,25 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_clock_offset(int hours) {
-    return 'A source clock differs by $hours hours';
+  String dataQuality_msg_clock_offsetAhead(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'A source clock runs $hours hours ahead',
+      one: 'A source clock runs $hours hour ahead',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_clock_offsetBehind(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'A source clock runs $hours hours behind',
+      one: 'A source clock runs $hours hour behind',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -41690,8 +41720,18 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_rate(String rate, int seconds) {
-    return 'Vertical rate of $rate sustained for $seconds s';
+  String dataQuality_msg_rate(String rate, String duration) {
+    return 'Vertical rate of $rate sustained for $duration';
+  }
+
+  @override
+  String dataQuality_unit_seconds(int seconds) {
+    return '$seconds s';
+  }
+
+  @override
+  String dataQuality_unit_minutes(int minutes) {
+    return '$minutes min';
   }
 
   @override
@@ -41795,12 +41835,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'The consistent ratio suggests a salt/fresh water setting difference';
 
   @override
-  String get dataQuality_msg_sourceDuration =>
-      'Sources disagree on dive duration';
+  String dataQuality_msg_sourceDuration(String primary, String source) {
+    return 'Sources disagree on dive duration: $primary vs. $source';
+  }
 
   @override
-  String get dataQuality_msg_sourceTemp =>
-      'Sources disagree on water temperature';
+  String dataQuality_msg_sourceTemp(String primary, String source) {
+    return 'Sources disagree on water temperature: $primary vs. $source';
+  }
 
   @override
   String dataQuality_repairLabel_shiftTime(String offset) {
@@ -41819,6 +41861,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String dataQuality_repairLabel_fixSourceClock(String offset) {
     return 'Fix this computer\'s clock by $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClockNamed(
+    String computer,
+    String offset,
+  ) {
+    return 'Fix $computer\'s clock by $offset';
   }
 
   @override
@@ -41991,6 +42041,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_split => 'Split into separate dives';
+
+  @override
+  String dataQuality_repairLabel_setPrimaryNamed(String source) {
+    return 'Make $source the primary source';
+  }
+
+  @override
+  String dataQuality_repairLabel_splitNamed(String source) {
+    return 'Split $source into its own dive';
+  }
+
+  @override
+  String dataQuality_setPrimary_title(String source) {
+    return 'Make $source the primary source?';
+  }
+
+  @override
+  String dataQuality_setPrimary_body(String source) {
+    return 'The dive\'s depth, duration and profile will come from $source. You can change this again under the dive\'s data sources.';
+  }
+
+  @override
+  String get dataQuality_setPrimary_bodyUnnamed =>
+      'The dive\'s depth, duration and profile will come from this source. You can change this again under the dive\'s data sources.';
+
+  @override
+  String get dataQuality_setPrimary_confirm => 'Make primary';
 
   @override
   String get dataQuality_repairLabel_compare => 'Compare profiles';

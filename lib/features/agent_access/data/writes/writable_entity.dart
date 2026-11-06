@@ -110,6 +110,7 @@ class WriteCheck {
     this.relations = const {},
     this.document,
     this.soFar = const SetSoFar(),
+    this.mergeInto,
   });
 
   final ChangeKind kind;
@@ -128,6 +129,9 @@ class WriteCheck {
 
   /// The record as it stands. Null for a create.
   final Map<String, Object?>? document;
+
+  /// The record a delete merges this one into, or null for a plain delete.
+  final String? mergeInto;
 }
 
 /// A key a change claims, such as a folded name. A [shared] claim holds the
@@ -167,6 +171,32 @@ class SetSoFar {
   final Map<String, List<Map<String, Object?>>> created;
 }
 
+/// A change the applier wrote, for [WritableEntry.afterApply]: [id] is the
+/// record's (a create's new id), [parentId] the record it belongs to, and
+/// [changed] the document keys an update changed or a create named.
+class AppliedChange {
+  const AppliedChange({
+    required this.kind,
+    required this.id,
+    this.parentId,
+    this.changed = const {},
+  });
+
+  final ChangeKind kind;
+  final String id;
+  final String? parentId;
+  final Set<String> changed;
+}
+
+/// One apply, as every entity's [WritableEntry.afterApply] sees it.
+class ApplyRun {
+  final _done = <Object>{};
+
+  /// Whether [key] is asked for the first time in this apply, so follow-up
+  /// work for one item, such as re-arming its reminders, runs once.
+  bool once(Object key) => _done.add(key);
+}
+
 /// What an update does beyond what it names, through a repository's own
 /// rules. The planner lists these, so a diver sees everything a plan does.
 class SideEffects {
@@ -177,6 +207,7 @@ class SideEffects {
     this.parts = const {},
     this.detached = const {},
     this.touched = const {},
+    this.created = const {},
   });
 
   /// Document key to the value it will hold, as a document would read.
@@ -202,13 +233,18 @@ class SideEffects {
   /// computer a gear item's rename renames.
   final Map<String, int> touched;
 
+  /// Rows the update adds, by table, as a create's [WritableEntry.alsoCreates]
+  /// lists them: the items a template brings to a checklist.
+  final Map<String, int> created;
+
   bool get isEmpty =>
       fields.isEmpty &&
       relations.isEmpty &&
       lost.isEmpty &&
       parts.isEmpty &&
       detached.isEmpty &&
-      touched.isEmpty;
+      touched.isEmpty &&
+      created.isEmpty;
 
   /// The same text for the same effects, to compare a preview with a later
   /// read.
@@ -230,6 +266,7 @@ class SideEffects {
         key: (value.toList()..sort()),
     }),
     'touched': _sorted(touched),
+    'created': _sorted(created),
   });
 }
 
@@ -242,6 +279,7 @@ class DeleteReach {
     this.unlinked = const {},
     this.moved = const {},
     this.survivor = const {},
+    this.touched = const {},
     this.basis = '',
   });
 
@@ -265,6 +303,10 @@ class DeleteReach {
   /// the value it will hold, as a document would read.
   final Map<String, Object?> survivor;
 
+  /// Rows of other records the delete rewrites, by table, as
+  /// [SideEffects.touched] lists them for an update.
+  final Map<String, int> touched;
+
   /// What the reach was worked out from, such as the exact links a merge
   /// moves, when the counts alone would not show a change. The plan compares
   /// it at apply and never shows it.
@@ -276,7 +318,8 @@ class DeleteReach {
       parts.isEmpty &&
       unlinked.isEmpty &&
       moved.isEmpty &&
-      survivor.isEmpty;
+      survivor.isEmpty &&
+      touched.isEmpty;
 
   /// The same text for the same reach, to compare a preview with a later
   /// read.
@@ -289,6 +332,7 @@ class DeleteReach {
     'survivor': _sorted({
       for (final MapEntry(:key, :value) in survivor.entries) key: '$value',
     }),
+    'touched': _sorted(touched),
     'basis': basis,
   });
 }
@@ -311,6 +355,15 @@ abstract class WritableEntry {
 
   /// Fields a create must carry.
   Set<String> get requiredOnCreate;
+
+  /// The column of [table] naming the profile a record belongs to: a
+  /// profile belongs to itself.
+  String get ownerColumn => 'diver_id';
+
+  /// The profile a row of [table] aliased [alias] belongs to, as SQL: its
+  /// [ownerColumn], unless the owner lives elsewhere, as a buddy's card
+  /// belongs to the buddy's profile.
+  String ownerOf(String alias) => '$alias.$ownerColumn';
 
   /// The record this one belongs to. A child takes its parent's owner,
   /// names it in [ChildOf.field] when it is created, and stays on it.
@@ -350,11 +403,29 @@ abstract class WritableEntry {
   /// A block when this change may not happen, null when it may.
   Future<PlanBlock?> refuse(WriteCheck check) async => null;
 
-  /// Work the app does after a save of this record, run once the apply has
+  /// Work the app does after saves of these records, run once the apply has
   /// committed and outside its transaction, where a scheduled scan can read
-  /// the saved rows: [changed] are the document keys an update of [id]
-  /// changed. A failure here cannot undo the apply, so it is logged.
-  Future<void> afterApply(String id, Set<String> changed) async {}
+  /// the saved rows. [changes] are every change of this entity the apply
+  /// wrote, in order; [run] is shared by every entity of the apply, so work
+  /// two entities would both ask for runs once. A failure here cannot undo
+  /// the apply, so it is logged.
+  Future<void> afterApply(List<AppliedChange> changes, ApplyRun run) async {}
+
+  /// Values a create of [values] for [diverId] fills in that it does not
+  /// name, as the page's form prefills them, in the form [fields] parse to.
+  /// The plan lists them and the apply writes them as listed.
+  Future<Map<String, Object?>> createDefaults(
+    String diverId,
+    Map<String, Object?> values,
+  ) async => const {};
+
+  /// Rows of other records a create of [values] for [diverId] rewrites, by
+  /// table, as [SideEffects.touched] lists them for an update: the item
+  /// whose last service date a new record moves.
+  Future<Map<String, int>> createTouched(
+    String diverId,
+    Map<String, Object?> values,
+  ) async => const {};
 
   /// Rows of other tables a create of [values] for [diverId] adds alongside
   /// the record, by table, such as the service clocks a gear item gets.
@@ -368,6 +439,10 @@ abstract class WritableEntry {
   /// nothing. [refuse] checks the stored records; the planner blocks a second
   /// claim on one key within the same set, which the database cannot see yet.
   UniqueClaim? uniqueKey(WriteCheck check) => null;
+
+  /// Every key this change claims, for an entity whose change can claim
+  /// more than one; [uniqueKey]'s alone by default.
+  List<UniqueClaim> uniqueKeys(WriteCheck check) => [?uniqueKey(check)];
 
   /// [document] with stored values where a read shows a derived one, so a
   /// plan compares against what the row holds.
@@ -396,6 +471,20 @@ abstract class WritableEntry {
   /// Whether a delete may name `merge_into`: a record that takes over this
   /// one's links, as the app merges these records.
   bool get mergeable => false;
+
+  /// Whether a merge may keep a survivor another profile owns, as a site
+  /// merges into a site shared with its owner. [refuseMerge] then says
+  /// which such survivors may take the merge.
+  bool get mergesAcrossProfiles => false;
+
+  /// A block when [id] of [ownerId] may not merge into [intoId], null when
+  /// it may. Only asked of a [mergeable] entity, after the planner's own
+  /// merge rules pass.
+  Future<PlanBlock?> refuseMerge(
+    String id,
+    String intoId,
+    String? ownerId,
+  ) async => null;
 
   /// What merging [id] into [intoId] does to their links, and to the
   /// survivor in [DeleteReach.survivor]. [mergedBefore] are the records the

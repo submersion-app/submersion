@@ -49,6 +49,20 @@ List<RecordEntry> logbookEntries(RecordRepositories r) => [
       },
     },
   ),
+  // Each item of a run, for its state to be written one at a time.
+  childEntity<PreDiveSessionItem>(
+    r,
+    name: 'pre_dive_session_items',
+    table: 'pre_dive_session_items',
+    scope: viaParent('pre_dive_sessions', 'session_id', ownedOrNull()),
+    parentColumn: 'session_id',
+    orderBy: 'r0.session_id, r0.sort_order',
+    idOf: (i) => i.id,
+    byParents: (sessions) =>
+        eachParent(sessions, r.preDiveSessions.getItemsForSession),
+    document: preDiveSessionItemDocument,
+    summaryKeys: const ['session_id', 'title', 'state'],
+  ),
   RecordEntity<Incident>(
     name: 'incidents',
     table: 'incidents',

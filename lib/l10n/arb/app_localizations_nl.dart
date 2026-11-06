@@ -22611,6 +22611,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get navShortcut_short_backup => 'Back-up';
 
   @override
+  String get navShortcut_short_diveComputers => 'Computers';
+
+  @override
   String get navShortcut_short_speciesStats => 'Soortenstatistiek';
 
   @override
@@ -41893,6 +41896,16 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String dataQuality_dive_tanks(String tanks) {
+    return 'Betreft $tanks';
+  }
+
+  @override
+  String dataQuality_dive_tankPair(String first, String second) {
+    return '$first en $second';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => 'Controle van datakwaliteit';
 
   @override
@@ -41911,9 +41924,9 @@ class AppLocalizationsNl extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Scan voltooid - $count items om te bekijken',
-      one: 'Scan voltooid - 1 item om te bekijken',
-      zero: 'Scan voltooid - geen nieuwe bevindingen',
+      other: 'Scan voltooid - $count openstaande items om te bekijken',
+      one: 'Scan voltooid - $count openstaand item om te bekijken',
+      zero: 'Scan voltooid - geen openstaande bevindingen',
     );
     return '$_temp0';
   }
@@ -42043,8 +42056,25 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_clock_offset(int hours) {
-    return 'De klok van een bron wijkt $hours uur af';
+  String dataQuality_msg_clock_offsetAhead(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'De klok van een bron loopt $hours uur voor',
+      one: 'De klok van een bron loopt $hours uur voor',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_clock_offsetBehind(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'De klok van een bron loopt $hours uur achter',
+      one: 'De klok van een bron loopt $hours uur achter',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -42111,8 +42141,18 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_rate(String rate, int seconds) {
-    return 'Verticale snelheid van $rate aangehouden gedurende $seconds s';
+  String dataQuality_msg_rate(String rate, String duration) {
+    return 'Verticale snelheid van $rate aangehouden gedurende $duration';
+  }
+
+  @override
+  String dataQuality_unit_seconds(int seconds) {
+    return '$seconds s';
+  }
+
+  @override
+  String dataQuality_unit_minutes(int minutes) {
+    return '$minutes min';
   }
 
   @override
@@ -42215,12 +42255,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'De constante verhouding wijst op een verschil in de zout-/zoetwaterinstelling';
 
   @override
-  String get dataQuality_msg_sourceDuration =>
-      'Bronnen zijn het oneens over de duikduur';
+  String dataQuality_msg_sourceDuration(String primary, String source) {
+    return 'Bronnen zijn het oneens over de duikduur: $primary versus $source';
+  }
 
   @override
-  String get dataQuality_msg_sourceTemp =>
-      'Bronnen zijn het oneens over de watertemperatuur';
+  String dataQuality_msg_sourceTemp(String primary, String source) {
+    return 'Bronnen zijn het oneens over de watertemperatuur: $primary versus $source';
+  }
 
   @override
   String dataQuality_repairLabel_shiftTime(String offset) {
@@ -42239,6 +42281,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String dataQuality_repairLabel_fixSourceClock(String offset) {
     return 'Klok van deze computer corrigeren met $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClockNamed(
+    String computer,
+    String offset,
+  ) {
+    return 'Klok van $computer corrigeren met $offset';
   }
 
   @override
@@ -42417,6 +42467,33 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_split =>
       'Splitsen in afzonderlijke duiken';
+
+  @override
+  String dataQuality_repairLabel_setPrimaryNamed(String source) {
+    return '$source als primaire bron instellen';
+  }
+
+  @override
+  String dataQuality_repairLabel_splitNamed(String source) {
+    return '$source afsplitsen als eigen duik';
+  }
+
+  @override
+  String dataQuality_setPrimary_title(String source) {
+    return '$source als primaire bron instellen?';
+  }
+
+  @override
+  String dataQuality_setPrimary_body(String source) {
+    return 'Diepte, duur en profiel van de duik komen dan van $source. Je kunt dit weer wijzigen bij de gegevensbronnen van de duik.';
+  }
+
+  @override
+  String get dataQuality_setPrimary_bodyUnnamed =>
+      'Diepte, duur en profiel van de duik komen dan van deze bron. Je kunt dit weer wijzigen bij de gegevensbronnen van de duik.';
+
+  @override
+  String get dataQuality_setPrimary_confirm => 'Als primair instellen';
 
   @override
   String get dataQuality_repairLabel_compare => 'Profielen vergelijken';

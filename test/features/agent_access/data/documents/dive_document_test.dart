@@ -142,7 +142,11 @@ void main() {
       final m = mediaDocument(signature());
       expect(m.keys, isNot(contains('imageData')));
       expect(m.keys, isNot(contains('image_data')));
-      expect(m['local_path'], '/photos/sig.png');
+      // The spec keeps file paths from an agent: a path names the diver's
+      // own disk layout and is no use to a write.
+      for (final key in const ['file_path', 'local_path', 'thumbnail_path']) {
+        expect(m.keys, isNot(contains(key)), reason: key);
+      }
       expect(m['source_type'], 'localFile');
       // taken_at is stored as a wall clock, so it takes the wall-clock key.
       expect(m['captured_time'], '2024-05-01T10:00:00.000Z');

@@ -36,7 +36,11 @@ date. You can carry it two ways:
   back of the phone, then reads it back to check it. An NTAG213 holds the
   identity, type and name; an NTAG215 or NTAG216 holds everything. When a
   small tag cannot hold everything, the sheet says which details were left
-  off. Writing needs a phone with NFC.
+  off. Writing needs a phone with NFC. Small industrial tags with an ISO
+  15693 chip, such as the NXP ICODE SLIX micro and glass tags, work too and
+  suit gear where a sticker will not stay on; on metal, use a tag made for
+  metal. An ICODE SLIX holds less than an NTAG213, so more details are left
+  off.
 
 A tag already on the item can be attached with **Link an existing tag** by
 pasting its link.

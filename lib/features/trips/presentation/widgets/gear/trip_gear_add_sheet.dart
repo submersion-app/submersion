@@ -68,9 +68,9 @@ Future<void> showTripGearAddSheet(
   if (way == null || !context.mounted) return;
   switch (way) {
     case _Way.equipment:
-      final picked = await _pickItem(context, packed, slots);
-      if (picked == null || !context.mounted) return;
-      await _apply(context, ref, trip, slots, [picked], setName: null);
+      final picked = await _pickItems(context, packed, slots);
+      if (picked == null || picked.isEmpty || !context.mounted) return;
+      await _apply(context, ref, trip, slots, picked, setName: null);
     case _Way.set:
       final picked = await _pickSet(context);
       if (picked == null || !context.mounted) return;
@@ -116,11 +116,15 @@ Future<void> showTripGearAddSheet(
   }
 }
 
-Future<EquipmentItem?> _pickItem(
+/// The diver's gear not yet on the trip, ticked several at a time as in the
+/// dive editor (#4205). Null when cancelled. Assembly parts are hidden, as a
+/// packed assembly takes its parts along (#2727); retired gear is not
+/// offered, since a trip looks ahead.
+Future<List<EquipmentItem>?> _pickItems(
   BuildContext context,
   List<EquipmentItem> packed,
   List<TripCylinder> slots,
-) => showModalBottomSheet<EquipmentItem>(
+) => showModalBottomSheet<List<EquipmentItem>>(
   context: context,
   isScrollControlled: true,
   useSafeArea: true,
@@ -137,7 +141,8 @@ Future<EquipmentItem?> _pickItem(
           if (s.equipmentId != null) s.equipmentId!,
       },
       hideSpare: true,
-      onEquipmentSelected: (item) => Navigator.of(sheetContext).pop(item),
+      hideAssemblyParts: true,
+      onEquipmentConfirmed: (items) => Navigator.of(sheetContext).pop(items),
     ),
   ),
 );

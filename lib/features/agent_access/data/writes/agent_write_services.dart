@@ -1,4 +1,7 @@
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/writes/families/currency_writes.dart'
+    show AppStrings;
+import 'package:submersion/features/agent_access/data/writes/families/service_ledger_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/write_applier.dart';
 import 'package:submersion/features/agent_access/data/writes/write_catalog.dart';
 import 'package:submersion/features/agent_access/data/writes/write_plan_store.dart';
@@ -19,7 +22,14 @@ class AgentWriteServices {
     required bool Function() confirmEnabled,
     void Function(Iterable<String>) afterDiveWrites = refreshAfterRuleWrites,
     this.rearmDocuments,
-  }) : catalog = WriteCatalog(records),
+    GearReminderRefresh? refreshGearReminders,
+    AppStrings? strings,
+  }) : catalog = WriteCatalog(
+         records,
+         refreshReminders: refreshGearReminders,
+         rearmDocuments: rearmDocuments,
+         strings: strings,
+       ),
        _confirmer = confirmer,
        _confirmEnabled = confirmEnabled,
        _afterDiveWrites = afterDiveWrites;

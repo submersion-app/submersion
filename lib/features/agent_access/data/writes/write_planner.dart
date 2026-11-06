@@ -173,21 +173,27 @@ class _Pass {
   /// A block when an earlier change in the set claims [check]'s unique key,
   /// otherwise null, after claiming it for [op].
   PlanBlock? _claimUnique(ChangeOp op, WritableEntry entry, WriteCheck check) {
-    final claim = entry.uniqueKey(check);
-    if (claim == null) return null;
-    final earlier = _claims[(entry.name, claim.key)] ??= [];
-    final clash = earlier
-        .where((e) => claim.shared || e.shared || e.owner == check.ownerId)
-        .firstOrNull;
-    if (clash != null) {
-      return PlanBlock(
-        BlockReason.duplicateRecord,
-        'operation ${clash.index} of this set already claims '
-        '"${claim.key}" for a ${entry.name} record; two records that see '
-        'each other cannot share it.',
-      );
+    final claims = entry.uniqueKeys(check);
+    for (final claim in claims) {
+      final clash = (_claims[(entry.name, claim.key)] ?? const [])
+          .where((e) => claim.shared || e.shared || e.owner == check.ownerId)
+          .firstOrNull;
+      if (clash != null) {
+        return PlanBlock(
+          BlockReason.duplicateRecord,
+          'operation ${clash.index} of this set already claims '
+          '"${claim.key}" for a ${entry.name} record; two records that see '
+          'each other cannot share it.',
+        );
+      }
     }
-    earlier.add((owner: check.ownerId, shared: claim.shared, index: op.index));
+    for (final claim in claims) {
+      (_claims[(entry.name, claim.key)] ??= []).add((
+        owner: check.ownerId,
+        shared: claim.shared,
+        index: op.index,
+      ));
+    }
     return null;
   }
 
@@ -279,19 +285,36 @@ class _Pass {
       return _add(op, entry, kind: ChangeKind.create, block: block);
     }
     final diverId = owner.diverId!;
+    // What the save fills in joins the plan, so the diver sees it and the
+    // apply writes the value listed.
+    final filled = {
+      for (final MapEntry(:key, :value) in (await entry.createDefaults(
+        diverId,
+        parsed.values,
+      )).entries)
+        // Only a field the entry writes, so a stray key cannot break a plan.
+        if (!parsed.values.containsKey(key) && entry.fields.containsKey(key))
+          key: value,
+    };
+    final values = {...parsed.values, ...filled};
+    final changes = {
+      ...parsed.changes,
+      for (final MapEntry(:key, :value) in filled.entries)
+        key: FieldChange(null, entry.fields[key]!.wire(value), indirect: true),
+    };
     final check = WriteCheck(
       kind: ChangeKind.create,
       ownerId: diverId,
-      values: parsed.values,
+      values: values,
       soFar: _soFar,
     );
     final block =
-        await _checkFieldRefs(entry, parsed.values, diverId) ??
+        await _checkFieldRefs(entry, values, diverId) ??
         await entry.refuse(check) ??
         _claimUnique(op, entry, check);
     if (block == null) {
-      await _markFieldRefs(entry, parsed.values);
-      (_createdSoFar[op.entity] ??= []).add(parsed.values);
+      await _markFieldRefs(entry, values);
+      (_createdSoFar[op.entity] ??= []).add(values);
     }
     final parent = await _parentContext(entry, owner.parentId, diverId);
     _add(
@@ -302,11 +325,14 @@ class _Pass {
       parentId: owner.parentId,
       parentTitle: parent.title,
       date: parent.date,
-      fields: parsed.changes,
-      values: parsed.values,
-      names: await _referenceNames(entry, parsed.changes, diverId),
+      fields: changes,
+      values: values,
+      names: await _referenceNames(entry, changes, diverId),
       alsoCreates: block == null
-          ? await entry.alsoCreates(diverId, parsed.values)
+          ? await entry.alsoCreates(diverId, values)
+          : const {},
+      alsoChanges: block == null
+          ? await entry.createTouched(diverId, values)
           : const {},
       block: block,
     );
@@ -403,6 +429,7 @@ class _Pass {
       indirectRelations: effects.relations,
       indirectLost: effects.lost,
       reach: DeleteReach(parts: effects.parts),
+      alsoCreates: effects.created,
       alsoChanges: effects.touched,
       names: {
         ...await _names(entry, links.deltas, {
@@ -424,6 +451,9 @@ class _Pass {
     final into = op.mergeInto;
     final refused =
         (into == null ? null : _mergeBlock(op, entry, row)) ??
+        (into == null
+            ? null
+            : await entry.refuseMerge(op.id, into, row.ownerId)) ??
         _parentWritten(entry, row.parentId, ChangeKind.delete) ??
         await entry.refuse(
           WriteCheck(
@@ -432,6 +462,7 @@ class _Pass {
             ownerId: row.ownerId,
             document: document,
             soFar: _soFar,
+            mergeInto: into,
           ),
         );
     // Held as locals, so the closure a marker keeps holds these and not this
@@ -479,6 +510,7 @@ class _Pass {
       date: document['date_time'] as String? ?? parent.date,
       context: _context(entry, document),
       reach: reach,
+      alsoChanges: reach.touched,
       fields: survivor?.fields ?? const {},
       mergeInto: block == null ? into : null,
       mergeTitle: survivor?.title,

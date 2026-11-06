@@ -48,7 +48,15 @@ class NavShortcut {
 
   /// The page's real location. The shortcut stays selected on it, and on
   /// anything below it.
+  ///
+  /// A page that has no path of its own, such as a Transfer section, is a
+  /// location with a query (`/transfer?selected=computers`). Read it through
+  /// [canonicalUri]; such a page is matched by its [selection] alone.
   final String canonicalPath;
+
+  /// [canonicalPath] parsed: its path, and the query for a page that lives
+  /// in one.
+  Uri get canonicalUri => Uri.parse(canonicalPath);
 
   /// The built-in nav id whose accent colors this shortcut's icon.
   final String accent;
@@ -393,6 +401,23 @@ final List<NavShortcut> kNavShortcuts = List.unmodifiable([
     canonicalPath: '/transfer/import-wizard',
     accent: 'transfer',
   ),
+  // Transfer's Dive Computers section has no path of its own: both widths
+  // open it from the query (#4210).
+  NavShortcut(
+    id: 'transfer-computers',
+    group: NavShortcutGroup.settingsAndTools,
+    icon: Icons.bluetooth,
+    label: (l10n) => l10n.transfer_section_computersTitle,
+    navLabel: (l10n) => l10n.navShortcut_short_diveComputers,
+    parentLabel: (l10n) => l10n.nav_transfer,
+    canonicalPath: '/transfer?selected=computers',
+    accent: 'transfer',
+    selection: const NavSelectionMatch(
+      path: '/transfer',
+      queryKey: 'selected',
+      queryValue: 'computers',
+    ),
+  ),
 ]);
 
 /// Marks a nav order entry as a shortcut rather than a built-in id.
@@ -414,6 +439,16 @@ NavShortcut? navShortcutForOrderId(String orderId) =>
     ? _byId[orderId.substring(kNavShortcutIdPrefix.length)]
     : null;
 
+/// The shortcut whose alias location [location] is (`/shortcut/<id>`, with
+/// any trailing segment or query), or null for any other location and for an
+/// id this build does not know.
+NavShortcut? navShortcutForLocation(Uri location) {
+  const prefix = '$kShortcutLocationPrefix/';
+  if (!location.path.startsWith(prefix)) return null;
+  final id = location.path.substring(prefix.length).split('/').first;
+  return _byId[id];
+}
+
 /// The nav order entry of every catalog shortcut.
 final List<String> kNavShortcutOrderIds = List.unmodifiable(
   kNavShortcuts.map((s) => navShortcutOrderId(s.id)),
@@ -428,7 +463,11 @@ NavDestination navShortcutDestination(NavShortcut shortcut) => NavDestination(
   selectedIcon: shortcut.icon,
   label: shortcut.navLabel ?? shortcut.label,
   subtitle: shortcut.parentLabel,
-  extraMatchPaths: [shortcut.canonicalPath],
+  // A page that lives in a query shares its path with its section's other
+  // pages, so a path prefix would claim them all; its selection matches it.
+  extraMatchPaths: shortcut.canonicalUri.hasQuery
+      ? const []
+      : [shortcut.canonicalPath],
   selection: shortcut.selection,
   accent: shortcut.accent,
 );

@@ -121,7 +121,8 @@ void main() {
       tool.description,
       contains(
         'Each dive_tanks, dive_weights, sightings, dive_custom_fields, '
-        'gas_switches, dive_events, dive_scenarios record belongs to one '
+        'gas_switches, dive_events, dive_scenarios, safety_findings record '
+        'belongs to one '
         'record of dives: a create names it in dive_id',
       ),
     );

@@ -6,6 +6,9 @@ import 'package:submersion/core/database/database.dart'
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/agent_access/data/documents/document_dates.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/writes/families/dive_link_rules.dart';
+import 'package:submersion/features/agent_access/data/writes/families/trip_rules.dart'
+    show foreignSlotLinks;
 import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
@@ -79,6 +82,7 @@ class DiveWrites extends WritableEntry {
     'water_type': FieldCodec.enumName(WaterType.values, nullable: true),
     'altitude_m': const FieldCodec.number(min: -500, max: 6000, nullable: true),
     'weather_description': _text,
+    'buddy_roles': const FieldCodec.idLists(),
   };
 
   @override
@@ -90,7 +94,15 @@ class DiveWrites extends WritableEntry {
     'gear': RelationSpec(refEntity: 'equipment'),
     'courses': RelationSpec(refEntity: 'courses'),
     'roles': RelationSpec(refEntity: 'dive_roles'),
+    'trip': RelationSpec(refEntity: 'trips', single: true),
   };
+
+  @override
+  String get note =>
+      'buddy_roles names every buddy on the dive, each with its role ids '
+      '(an empty list is Buddy), and replaces the list; buddies adds or '
+      'removes buddies as Buddy. A dive put on a trip, or moved to another '
+      'day on one, stretches the trip to cover it.';
 
   @override
   Set<String> get requiredOnCreate => const {'date_time'};
@@ -115,6 +127,7 @@ class DiveWrites extends WritableEntry {
       'gear' => _ids('dive_equipment', 'equipment_id', id),
       'courses' => _ids('dive_courses', 'course_id', id),
       'roles' => (await _roles(id)).toSet(),
+      'trip' => {?(await _row(id))?.tripId},
       _ => const {},
     };
   }
@@ -134,6 +147,21 @@ class DiveWrites extends WritableEntry {
   /// would be planned as added and never written.
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {
+    if (check.values.containsKey('buddy_roles')) {
+      if (check.relations['buddies'] case final delta? when !delta.isEmpty) {
+        return const PlanBlock(
+          BlockReason.notPermitted,
+          'buddy_roles replaces the buddy list; change buddies in another '
+          'change.',
+        );
+      }
+      final problem = await buddyRolesProblem(
+        _r,
+        check.values['buddy_roles'],
+        check.ownerId,
+      );
+      if (problem != null) return problem;
+    }
     final roles = check.relations['roles'];
     if (roles == null || check.id == null) return null;
     final after = (await _rolesAfter(check.id!, roles)).toSet();
@@ -162,7 +190,11 @@ class DiveWrites extends WritableEntry {
     Map<String, Object?> document,
   ) async {
     final row = await _row(id);
-    return {...document, 'water_temp_c': row?.waterTemp};
+    return {
+      ...document,
+      'water_temp_c': row?.waterTemp,
+      'buddy_roles': await buddyRolesOf(_r, id),
+    };
   }
 
   @override
@@ -238,11 +270,20 @@ class DiveWrites extends WritableEntry {
         }
       }
     }
+    final stretched = await _tripsStretched(id, update);
+    final trip = update.relations['trip'];
+    final slots = trip == null
+        ? 0
+        : await foreignSlotLinks({id}, trip.add.firstOrNull);
     return SideEffects(
       fields: fields,
       relations: relations,
       lost: lost,
       parts: parts,
+      touched: {
+        if (stretched > 0) 'trips': stretched,
+        if (slots > 0) 'dive_tanks': slots,
+      },
     );
   }
 
@@ -362,7 +403,11 @@ class DiveWrites extends WritableEntry {
 
   @override
   Future<void> update(String id, String? ownerId, RecordUpdate update) async {
-    final scalars = _scalars(update.values);
+    final trip = update.relations['trip'];
+    final base = _scalars(update.values);
+    final scalars = trip == null
+        ? base
+        : base.copyWith(tripId: Value(trip.add.firstOrNull));
     final ops = await _ops(id, update.relations);
     if (scalars.toColumns(false).isNotEmpty || ops.isNotEmpty) {
       await _edits.apply(
@@ -375,6 +420,26 @@ class DiveWrites extends WritableEntry {
     if (update.values['notes'] case final String notes) {
       await _annotations.reconcile(diveId: id, notes: notes);
     }
+    if (update.values.containsKey('buddy_roles')) {
+      await setBuddyRoles(_r, id, update.values['buddy_roles']);
+    }
+    if (await _tripsStretched(id, update) > 0) {
+      await _r.trips.stretchToCoverDives([id]);
+    }
+  }
+
+  /// How many trips this change makes stretch: a dive put on a trip, or
+  /// moved to a day its trip does not cover.
+  Future<int> _tripsStretched(String id, RecordUpdate update) async {
+    final moved = update.values['date_time'] as DateTime?;
+    final trip = update.relations['trip'];
+    if (trip == null && moved == null) return 0;
+    final tripId = trip == null
+        ? (await _row(id))?.tripId
+        : trip.add.firstOrNull;
+    if (tripId == null) return 0;
+    final day = await diveDay(_r, id, moved: moved);
+    return day == null ? 0 : tripsStretched(_r, tripId, day);
   }
 
   @override
