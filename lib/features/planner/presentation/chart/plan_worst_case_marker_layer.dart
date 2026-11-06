@@ -108,12 +108,15 @@ PlacedWorstCaseMarker? placeWorstCaseMarker({
   final time = worstCase.runtimeSeconds.toDouble();
   if (time < 0 || time > profileEndSeconds) return null;
   final anchor = geometry.toPixel(time, depthAt(time));
-  // Off the plot either way: a drag freezes the axes while the profile it
-  // reshapes can run past them, below the plot as well as beyond its end.
-  if (anchor.dx < plot.left ||
+  // Off the plot: a drag freezes the axes while the profile it reshapes can
+  // run past them, beyond their end and below their depth. Below, the same
+  // 8 px margin the waypoint handles are drawn into, so the marker does not
+  // flicker off while its handle still shows. A depth is never negative, so
+  // nothing lands above the plot.
+  if (!anchor.isFinite ||
+      anchor.dx < plot.left ||
       anchor.dx > plot.right ||
-      anchor.dy < plot.top ||
-      anchor.dy > plot.bottom) {
+      anchor.dy > plot.bottom + 8) {
     return null;
   }
 

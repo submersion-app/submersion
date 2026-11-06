@@ -372,8 +372,8 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
                   direction,
                 ),
               );
-        // A marker not drawn takes its card along, so it never reopens unasked.
-        if (placedWorstCase == null) {
+        // A marker gone takes its card along; one out of frozen axes, not.
+        if (placedWorstCase == null && frozen == null) {
           _worstCasePinnedFor = null;
           _hoverWorstCase = false;
         }
