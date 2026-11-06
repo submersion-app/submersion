@@ -32,6 +32,7 @@ void main() {
       double? entryLongitude,
       double? exitLatitude,
       double? exitLongitude,
+      double? surfacePressureBar,
     }) {
       return pigeon.ParsedDive(
         fingerprint: fingerprint,
@@ -60,6 +61,7 @@ void main() {
         entryLongitude: entryLongitude,
         exitLatitude: exitLatitude,
         exitLongitude: exitLongitude,
+        surfacePressureBar: surfacePressureBar,
       );
     }
 
@@ -528,6 +530,15 @@ void main() {
       expect(downloaded.maxTemperature, isNull);
       expect(downloaded.profile, isEmpty);
       expect(downloaded.tanks, isEmpty);
+      expect(downloaded.surfacePressure, isNull);
+    });
+
+    test('carries the surface pressure the computer measured (#4208)', () {
+      final downloaded = parsedDiveToDownloaded(
+        makeParsedDive(surfacePressureBar: 0.996),
+      );
+
+      expect(downloaded.surfacePressure, 0.996);
     });
 
     // --- Temperature derivation from samples ---

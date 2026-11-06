@@ -2000,6 +2000,89 @@ void main() {
     });
   });
 
+  group('surface pressure from download (issue #4208)', () {
+    setUp(() {
+      when(
+        mockDiveRepo.getDiveNumberForDate(any, diverId: anyNamed('diverId')),
+      ).thenAnswer((_) async => 1);
+      when(
+        mockComputerRepo.importProfile(
+          computerId: anyNamed('computerId'),
+          profileStartTime: anyNamed('profileStartTime'),
+          points: anyNamed('points'),
+          durationSeconds: anyNamed('durationSeconds'),
+          maxDepth: anyNamed('maxDepth'),
+          avgDepth: anyNamed('avgDepth'),
+          isPrimary: anyNamed('isPrimary'),
+          diverId: anyNamed('diverId'),
+          tanks: anyNamed('tanks'),
+          decoAlgorithm: anyNamed('decoAlgorithm'),
+          gfLow: anyNamed('gfLow'),
+          gfHigh: anyNamed('gfHigh'),
+          decoConservatism: anyNamed('decoConservatism'),
+          events: anyNamed('events'),
+          gasSwitches: anyNamed('gasSwitches'),
+          diveNumber: anyNamed('diveNumber'),
+          forceNew: anyNamed('forceNew'),
+          rawData: anyNamed('rawData'),
+          rawFingerprint: anyNamed('rawFingerprint'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+          surfacePressure: anyNamed('surfacePressure'),
+        ),
+      ).thenAnswer((_) async => 'dive-id');
+    });
+
+    test('forwards the measured surface pressure to importProfile', () async {
+      await service.importDives(
+        dives: [
+          DownloadedDive(
+            fingerprint: 'fp-teric',
+            startTime: DateTime(2026, 3, 3, 9, 0),
+            durationSeconds: 2400,
+            maxDepth: 18.0,
+            surfacePressure: 0.996,
+            profile: const [],
+          ),
+        ],
+        computer: computer,
+      );
+
+      final captured = verify(
+        mockComputerRepo.importProfile(
+          computerId: anyNamed('computerId'),
+          profileStartTime: anyNamed('profileStartTime'),
+          points: anyNamed('points'),
+          durationSeconds: anyNamed('durationSeconds'),
+          maxDepth: anyNamed('maxDepth'),
+          avgDepth: anyNamed('avgDepth'),
+          isPrimary: anyNamed('isPrimary'),
+          diverId: anyNamed('diverId'),
+          tanks: anyNamed('tanks'),
+          decoAlgorithm: anyNamed('decoAlgorithm'),
+          gfLow: anyNamed('gfLow'),
+          gfHigh: anyNamed('gfHigh'),
+          decoConservatism: anyNamed('decoConservatism'),
+          events: anyNamed('events'),
+          gasSwitches: anyNamed('gasSwitches'),
+          diveNumber: anyNamed('diveNumber'),
+          forceNew: anyNamed('forceNew'),
+          rawData: anyNamed('rawData'),
+          rawFingerprint: anyNamed('rawFingerprint'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+          surfacePressure: captureAnyNamed('surfacePressure'),
+        ),
+      ).captured;
+
+      expect(captured.single, 0.996);
+    });
+  });
+
   group('diluent gas from download (issue #1879)', () {
     setUp(() {
       when(

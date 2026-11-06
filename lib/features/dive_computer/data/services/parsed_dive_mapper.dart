@@ -61,6 +61,7 @@ DownloadedDive parsedDiveToDownloaded(
     avgDepth: parsed.avgDepthMeters != 0.0 ? parsed.avgDepthMeters : null,
     minTemperature: minTemp,
     maxTemperature: maxTemp,
+    surfacePressure: parsed.surfacePressureBar,
     entryLatitude: _validCoord(parsed.entryLatitude, parsed.entryLongitude),
     entryLongitude: _validCoord(parsed.entryLongitude, parsed.entryLatitude),
     exitLatitude: _validCoord(parsed.exitLatitude, parsed.exitLongitude),

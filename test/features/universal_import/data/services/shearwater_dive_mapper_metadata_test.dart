@@ -206,6 +206,21 @@ void main() {
         expect(result['surfacePressure'], closeTo(1.013, 0.001));
       });
 
+      test('a zero surface pressure is no reading (#4208)', () {
+        const rawDive = ShearwaterRawDive(
+          diveId: 'test',
+          tankProfileData: {
+            'TankData': [
+              {'SurfacePressureMBar': 0},
+            ],
+          },
+        );
+
+        final result = ShearwaterDiveMapper.mapDiveMetadata(rawDive);
+
+        expect(result['surfacePressure'], isNull);
+      });
+
       test('handles dive with no metadata gracefully', () {
         const rawDive = ShearwaterRawDive(diveId: 'empty');
 

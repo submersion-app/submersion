@@ -517,6 +517,7 @@ class MacDiveDiveMapper {
       map['gradientFactorLow'] ??= parsed.gfLow;
       map['gradientFactorHigh'] ??= parsed.gfHigh;
       map['waterTemp'] ??= ParsedDiveProfileMapper.minSampleTemperature(parsed);
+      map['surfacePressure'] ??= parsed.surfacePressureBar;
       if (map['runtime'] == null && parsed.durationSeconds > 0) {
         map['runtime'] = Duration(seconds: parsed.durationSeconds);
       }

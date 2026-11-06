@@ -402,7 +402,8 @@ class ShearwaterDiveMapper {
 
     final firstTank = tankData[0] as Map<String, dynamic>;
     final mbar = _toDouble(firstTank['SurfacePressureMBar']);
-    if (mbar == null) return null;
+    // Zero, or anything no surface could read, is no reading.
+    if (mbar == null || mbar < 400 || mbar > 1200) return null;
     return ShearwaterValueMapper.mbarToBar(mbar);
   }
 
@@ -489,6 +490,9 @@ class ShearwaterDiveMapper {
     if (parsed.gfHigh != null) {
       merged['gradientFactorHigh'] = parsed.gfHigh;
     }
+
+    // The export's own reading wins; the raw log only fills a gap.
+    merged['surfacePressure'] ??= parsed.surfacePressureBar;
 
     // Override dive mode from parsed data (more accurate than apparatus guess).
     if (parsed.diveMode != null) {

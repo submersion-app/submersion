@@ -1579,6 +1579,10 @@ class DiveComputerRepository {
     // the dive header and never as a sample, so it cannot be recovered from
     // the profile points.
     double? minTemperature,
+    // Atmospheric pressure in bar the computer measured at the surface
+    // (issue #4208). A new dive takes it; see the update branch for an
+    // existing one.
+    double? surfacePressure,
     // A dive summary the source reported itself rather than one derived from
     // the profile (Garmin's FIT dive_summary, issue #1798). Like the diluent
     // above, the dive row only takes them when it is brand new; the
@@ -1726,6 +1730,7 @@ class DiveComputerRepository {
                 entryLongitude: Value(entryLongitude),
                 exitLatitude: Value(exitLatitude),
                 exitLongitude: Value(exitLongitude),
+                surfacePressure: Value(surfacePressure),
               ),
             );
 
@@ -2335,6 +2340,22 @@ class DiveComputerRepository {
         final fillsTarget = targetDiveId != null;
         Value<double> exposure(double? value) =>
             fillsTarget && value != null ? Value(value) : const Value.absent();
+        // A reading that took the primary role from a file import replaces
+        // that import's value; any other only fills a dive that has none.
+        if (surfacePressure != null) {
+          await (_db.update(
+            _db.dives,
+          )..where((t) => t.id.equals(diveId))).write(
+            DivesCompanion.custom(
+              surfacePressure: displacedPrimary
+                  ? Variable(surfacePressure)
+                  : coalesce([
+                      _db.dives.surfacePressure,
+                      Variable(surfacePressure),
+                    ]),
+            ),
+          );
+        }
         await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
           DivesCompanion(
             updatedAt: Value(now),

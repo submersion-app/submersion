@@ -266,6 +266,8 @@ LibdivecomputerPluginParsedDive* convert_parsed_dive(
     double* min_temp = isnan(min_t_val) ? NULL : &min_t_val;
     double max_t_val = dive->max_temp;
     double* max_temp = isnan(max_t_val) ? NULL : &max_t_val;
+    double surface_p_val = dive->surface_pressure;
+    double* surface_pressure = isnan(surface_p_val) ? NULL : &surface_p_val;
 
     // GPS entry/exit (Shearwater Swift): NULL when unavailable.
     double entry_lat_val = dive->entry_latitude;
@@ -308,7 +310,7 @@ LibdivecomputerPluginParsedDive* convert_parsed_dive(
             (int64_t)dive->duration, min_temp, max_temp, samples, tanks,
             gas_mixes, events, dive_mode, deco_algorithm, gf_low, gf_high,
             conservatism, raw_data, raw_data_length, raw_fp, raw_fp_length,
-            entry_lat, entry_lon, exit_lat, exit_lon);
+            entry_lat, entry_lon, exit_lat, exit_lon, surface_pressure);
 
     fl_value_unref(samples);
     fl_value_unref(gas_mixes);

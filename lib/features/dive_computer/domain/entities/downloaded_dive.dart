@@ -110,6 +110,10 @@ class DownloadedDive {
   /// Maximum temperature in Celsius (if available)
   final double? maxTemperature;
 
+  /// Atmospheric pressure in bar the computer measured at the surface (if
+  /// available)
+  final double? surfacePressure;
+
   /// GPS entry/exit fixes in decimal degrees (Shearwater Swift), if available
   final double? entryLatitude;
   final double? entryLongitude;
@@ -199,6 +203,7 @@ class DownloadedDive {
     this.avgDepth,
     this.minTemperature,
     this.maxTemperature,
+    this.surfacePressure,
     this.entryLatitude,
     this.entryLongitude,
     this.exitLatitude,

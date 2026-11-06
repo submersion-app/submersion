@@ -286,6 +286,47 @@ void main() {
         expect(result.containsKey('gradientFactorHigh'), isFalse);
       });
 
+      pigeon.ParsedDive parsedWithSurfacePressure(double? bar) =>
+          pigeon.ParsedDive(
+            fingerprint: '',
+            dateTimeYear: 2025,
+            dateTimeMonth: 1,
+            dateTimeDay: 1,
+            dateTimeHour: 0,
+            dateTimeMinute: 0,
+            dateTimeSecond: 0,
+            maxDepthMeters: 0,
+            avgDepthMeters: 0,
+            durationSeconds: 0,
+            samples: [],
+            tanks: [],
+            gasMixes: [],
+            events: [],
+            surfacePressureBar: bar,
+          );
+
+      test('fills a missing surface pressure from the raw log (#4208)', () {
+        final result = ShearwaterDiveMapper.mergeWithParsedDive(
+          <String, dynamic>{
+            'surfacePressure': null,
+            'profile': <Map<String, dynamic>>[],
+          },
+          parsedWithSurfacePressure(0.961),
+        );
+        expect(result['surfacePressure'], 0.961);
+      });
+
+      test('keeps the surface pressure the export reported', () {
+        final result = ShearwaterDiveMapper.mergeWithParsedDive(
+          <String, dynamic>{
+            'surfacePressure': 0.958,
+            'profile': <Map<String, dynamic>>[],
+          },
+          parsedWithSurfacePressure(0.961),
+        );
+        expect(result['surfacePressure'], 0.958);
+      });
+
       test('maps dive mode from parsed data', () {
         final baseMap = <String, dynamic>{'profile': <Map<String, dynamic>>[]};
         final parsed = pigeon.ParsedDive(

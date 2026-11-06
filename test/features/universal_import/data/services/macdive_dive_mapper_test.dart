@@ -478,6 +478,28 @@ void main() {
       expect(payload.warnings, isEmpty);
     });
 
+    test('the raw download supplies the surface pressure (#4208)', () async {
+      final payload = await MacDiveDiveMapper.toPayload(
+        _rawDataLogbook(),
+        fetchDescriptors: _fakeDescriptors,
+        parseRaw: (v, p, m, d) async => _parsedDive(
+          samples: [
+            pigeon.ProfileSample(timeSeconds: 0, depthMeters: 0.0),
+            pigeon.ProfileSample(timeSeconds: 10, depthMeters: 5.5),
+          ],
+          surfacePressureBar: 0.961,
+        ),
+      );
+
+      final withProfile = payload
+          .entitiesOf(ImportEntityType.dives)
+          .where((d) => d.containsKey('profile'));
+      expect(withProfile, hasLength(2));
+      for (final dive in withProfile) {
+        expect(dive['surfacePressure'], 0.961);
+      }
+    });
+
     test('a deco dive keeps its gas switch from the raw download', () async {
       final payload = await MacDiveDiveMapper.toPayload(
         _decoDiveLogbook(),
@@ -1844,6 +1866,7 @@ MacDiveRawLogbook _multiDiverLogbook({bool singleDiver = false}) {
 pigeon.ParsedDive _parsedDive({
   required List<pigeon.ProfileSample> samples,
   List<pigeon.GasMix> gasMixes = const [],
+  double? surfacePressureBar,
 }) {
   return pigeon.ParsedDive(
     fingerprint: 'fp',
@@ -1860,6 +1883,7 @@ pigeon.ParsedDive _parsedDive({
     tanks: [],
     gasMixes: gasMixes,
     events: [],
+    surfacePressureBar: surfacePressureBar,
   );
 }
 

@@ -88,6 +88,8 @@ static void test_parse_cressi_leonardo(void) {
     assert(result.duration > 0);
     assert(result.sample_count > 0);
     assert(result.samples != NULL);
+    /* The Leonardo logs no surface pressure. */
+    assert(isnan(result.surface_pressure));
 
     /* Verify samples are time-ordered and depths are non-negative. */
     for (unsigned int i = 0; i < result.sample_count; i++) {
@@ -674,6 +676,108 @@ static void test_parse_divesoft_liberty_gps(void) {
     free(blob);
 }
 
+/* Issue #4208: the surface pressure the computer measured must reach the
+   parsed dive. Shearwater logs it in the opening record. */
+static void test_shearwater_surface_pressure(void) {
+    unsigned char *data = NULL;
+    unsigned int size = load_fixture("fixtures/petrel3_ccr_o2_cells.bin", &data);
+    assert(size == 22400);
+
+    libdc_parsed_dive_t result;
+    char err[256] = {0};
+    int rc = libdc_parse_raw_dive("Shearwater", "Petrel 3", 10, data, size,
+                                  &result, err, sizeof(err));
+    assert(rc == 0);
+
+    assert(!isnan(result.surface_pressure));
+    assert(fabs(result.surface_pressure - 0.961) < 1e-9);
+
+    printf("PASS: test_shearwater_surface_pressure (%.3f bar)\n",
+           result.surface_pressure);
+
+    free(result.samples);
+    free(result.events);
+    free(data);
+}
+
+/* The Teric dive from issue #4208, serials anonymized. dctool reports
+   <atmospheric>0.99600</atmospheric> for it. */
+static void test_teric_issue_4208_surface_pressure(void) {
+    unsigned char *data = NULL;
+    unsigned int size = load_fixture("fixtures/teric_surface_pressure.bin", &data);
+    assert(size == 69248);
+
+    libdc_parsed_dive_t result;
+    char err[256] = {0};
+    int rc = libdc_parse_raw_dive("Shearwater", "Teric", 8, data, size,
+                                  &result, err, sizeof(err));
+    if (rc != 0) {
+        fprintf(stderr, "FAIL: parse returned %d: %s\n", rc, err);
+        free(data);
+        assert(0 && "libdc_parse_raw_dive failed for Teric");
+    }
+
+    assert(fabs(result.surface_pressure - 0.996) < 1e-9);
+
+    printf("PASS: test_teric_issue_4208_surface_pressure (%.3f bar)\n",
+           result.surface_pressure);
+
+    free(result.samples);
+    free(result.events);
+    free(data);
+}
+
+static unsigned char *ix3m_minimal_blob(unsigned int *size_out,
+                                        unsigned int atmospheric_e4) {
+    const unsigned int nrecords = 2;
+    const unsigned int size = IX3M_HEADER_SIZE + nrecords * IX3M_APOS4_SAMPLE_SIZE;
+    unsigned char *blob = (unsigned char *)calloc(1, size);
+    assert(blob != NULL);
+    put_u16le(blob + 1, nrecords);
+    put_u16le(blob + 11, atmospheric_e4);
+    put_u32le(blob + 0x2A, 40000000);
+    ix3m_put_sample(blob, 0, 0, 50);
+    ix3m_put_sample(blob, 1, 10, 120);
+    *size_out = size;
+    return blob;
+}
+
+/* The iX3M stores the surface pressure in 1/10000 bar at header byte 11. */
+static void test_ratio_ix3m_surface_pressure(void) {
+    unsigned int size = 0;
+    unsigned char *blob = ix3m_minimal_blob(&size, 9960);
+
+    libdc_parsed_dive_t result;
+    char err[256] = {0};
+    int rc = libdc_parse_raw_dive("Ratio", "iX3M 2 GPS Pro", IX3M2_GPS_PRO_MODEL,
+                                  blob, size, &result, err, sizeof(err));
+    assert(rc == 0);
+    assert(fabs(result.surface_pressure - 0.996) < 1e-9);
+
+    printf("PASS: test_ratio_ix3m_surface_pressure\n");
+    free(result.samples);
+    free(result.events);
+    free(blob);
+}
+
+/* A header that holds no reading (zero) is not a surface pressure. */
+static void test_ratio_ix3m_zero_surface_pressure_is_unknown(void) {
+    unsigned int size = 0;
+    unsigned char *blob = ix3m_minimal_blob(&size, 0);
+
+    libdc_parsed_dive_t result;
+    char err[256] = {0};
+    int rc = libdc_parse_raw_dive("Ratio", "iX3M 2 GPS Pro", IX3M2_GPS_PRO_MODEL,
+                                  blob, size, &result, err, sizeof(err));
+    assert(rc == 0);
+    assert(isnan(result.surface_pressure));
+
+    printf("PASS: test_ratio_ix3m_zero_surface_pressure_is_unknown\n");
+    free(result.samples);
+    free(result.events);
+    free(blob);
+}
+
 int main(void) {
     test_null_args();
     test_load_fixture_missing();
@@ -689,6 +793,10 @@ int main(void) {
     test_parse_divesoft_liberty_edge_gaps();
     test_parse_divesoft_liberty_no_depth_at_all();
     test_parse_divesoft_liberty_gps();
+    test_shearwater_surface_pressure();
+    test_teric_issue_4208_surface_pressure();
+    test_ratio_ix3m_surface_pressure();
+    test_ratio_ix3m_zero_surface_pressure_is_unknown();
     printf("\nAll parse_raw_dive tests passed.\n");
     return 0;
 }

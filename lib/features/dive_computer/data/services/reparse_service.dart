@@ -848,6 +848,19 @@ class ReparseService {
         updatedAt: Value(now.millisecondsSinceEpoch),
       ),
     );
+    // Fills only a dive that has none: until #4208 this was a value the diver
+    // typed or a file import or weather fetch brought in.
+    final surfacePressure = parsed.surfacePressureBar;
+    if (surfacePressure != null) {
+      await (db.update(db.dives)..where((t) => t.id.equals(diveId))).write(
+        DivesCompanion.custom(
+          surfacePressure: coalesce([
+            db.dives.surfacePressure,
+            Variable(surfacePressure),
+          ]),
+        ),
+      );
+    }
   }
 
   /// [timeOffset] shifts every re-inserted sample onto the dive's timeline;

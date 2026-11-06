@@ -858,6 +858,7 @@ class DiveImportService {
       // that log temperature only in the header (the Cressi Leonardo) have no
       // other route into the dive record.
       minTemperature: dive.minTemperature,
+      surfacePressure: dive.surfacePressure,
       // A summary the source reported itself (Garmin Connect, issue #1798).
       // All null for libdivecomputer downloads, which derive what they can.
       bottomTimeSeconds: dive.bottomTimeSeconds,
@@ -1020,6 +1021,7 @@ class DiveImportService {
       // that log temperature only in the header (the Cressi Leonardo) have no
       // other route into the dive record.
       minTemperature: dive.minTemperature,
+      surfacePressure: dive.surfacePressure,
       // Only the source row takes these on an existing dive (issue #1798).
       bottomTimeSeconds: dive.bottomTimeSeconds,
       surfaceIntervalSeconds: dive.surfaceIntervalSeconds,
@@ -1090,6 +1092,7 @@ class DiveImportService {
       exitLatitude: dive.exitLatitude,
       exitLongitude: dive.exitLongitude,
       minTemperature: dive.minTemperature,
+      surfacePressure: dive.surfacePressure,
       bottomTimeSeconds: dive.bottomTimeSeconds,
       surfaceIntervalSeconds: dive.surfaceIntervalSeconds,
       waterType: dive.waterType,
