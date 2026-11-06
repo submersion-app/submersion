@@ -160,14 +160,20 @@ Future<Map<String, SeriesFollow>> readSeriesActuals(
   DiveRepository repository,
   Future<SeriesFollow?> Function(String diveId) followOf,
 ) async {
-  final actuals = <String, SeriesFollow>{};
-  for (final (planId, diveId) in links) {
-    final dive = await repository.getDiveById(diveId);
-    if (dive == null || dive.isPlanned) continue;
-    final follow = await followOf(diveId);
-    if (follow != null) actuals[planId] = follow;
-  }
-  return actuals;
+  // Each link is read on its own, so all of them at once.
+  final read = await Future.wait([
+    for (final (planId, diveId) in links)
+      () async {
+        final dive = await repository.getDiveById(diveId);
+        if (dive == null || dive.isPlanned) return null;
+        final follow = await followOf(diveId);
+        return follow == null ? null : (planId, follow);
+      }(),
+  ]);
+  return {
+    for (final entry in read)
+      if (entry case (final planId, final follow)) planId: follow,
+  };
 }
 
 /// Logged dives whose Follow prompt the diver dismissed this session.
