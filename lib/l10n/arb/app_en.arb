@@ -13050,6 +13050,7 @@
     }
   },
   "plannerCanvas_chart_removeWaypoint": "Remove waypoint",
+  "plannerCanvas_chart_worstCase": "Worst case",
   "plannerCanvas_contingency_title": "Contingencies",
   "plannerCanvas_contingency_turnFraction": "Turn fraction",
   "plannerCanvas_contingency_turnRule": "Turn pressure rule",

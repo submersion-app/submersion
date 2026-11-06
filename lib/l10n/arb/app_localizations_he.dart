@@ -20489,6 +20489,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerCanvas_chart_removeWaypoint => 'הסרת נקודת הציון';
 
   @override
+  String get plannerCanvas_chart_worstCase => 'המקרה הגרוע';
+
+  @override
   String get plannerCanvas_contingency_title => 'תוכניות חירום';
 
   @override

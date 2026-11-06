@@ -20877,6 +20877,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerCanvas_chart_removeWaypoint => 'Útpont eltávolítása';
 
   @override
+  String get plannerCanvas_chart_worstCase => 'Legrosszabb eset';
+
+  @override
   String get plannerCanvas_contingency_title => 'Vészhelyzeti tervek';
 
   @override

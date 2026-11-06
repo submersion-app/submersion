@@ -6118,6 +6118,7 @@
     }
   },
   "plannerCanvas_chart_removeWaypoint": "Wegpunkt entfernen",
+  "plannerCanvas_chart_worstCase": "Schlimmster Fall",
   "plannerCanvas_contingency_title": "Eventualpläne",
   "plannerCanvas_contingency_turnFraction": "Umkehranteil",
   "plannerCanvas_contingency_turnRule": "Umkehrdruck-Regel",

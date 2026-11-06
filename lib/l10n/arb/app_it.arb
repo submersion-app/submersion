@@ -5890,6 +5890,7 @@
     }
   },
   "plannerCanvas_chart_removeWaypoint": "Rimuovi punto",
+  "plannerCanvas_chart_worstCase": "Caso peggiore",
   "plannerCanvas_contingency_title": "Contingenze",
   "plannerCanvas_contingency_turnFraction": "Frazione di rientro",
   "plannerCanvas_contingency_turnRule": "Regola pressione di rientro",
