@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/presentation/nav_track_parse_error_text.dart';
@@ -52,6 +54,7 @@ class NavTrackFileActions {
     WidgetRef ref,
     NavTrack route,
   ) async {
+    if (!demoSealGuard(context, DemoSealedFeature.fileImport)) return;
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     final picked = await _pickFile();
@@ -128,6 +131,7 @@ class NavTrackFileActions {
     WidgetRef ref,
     NavTrack route,
   ) async {
+    if (!demoSealGuard(context, DemoSealedFeature.share)) return;
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     try {

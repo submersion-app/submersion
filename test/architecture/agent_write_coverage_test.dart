@@ -281,6 +281,9 @@ void main() {
         'updates',
     'lib/features/weight_presets/data/repositories/weight_preset_repository.dart:createFromWeights':
         'a shortcut for a create with entries, which weight_presets covers',
+    'lib/features/nav_track/data/repositories/nav_track_repository.dart:updateImportedData':
+        're-reads a track\'s recording from the console file it was imported '
+        'from; the data is that file, not an edit (issue #4231)',
     for (final method in const [
       'retireEquipment',
       'setStatusForMany',
