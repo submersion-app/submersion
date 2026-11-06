@@ -19921,6 +19921,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerCanvas_chart_removeWaypoint => '删除航点';
 
   @override
+  String get plannerCanvas_chart_worstCase => '最坏情况';
+
+  @override
   String get plannerCanvas_contingency_title => '应急计划';
 
   @override

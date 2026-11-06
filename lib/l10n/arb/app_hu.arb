@@ -5889,6 +5889,7 @@
     }
   },
   "plannerCanvas_chart_removeWaypoint": "Útpont eltávolítása",
+  "plannerCanvas_chart_worstCase": "Legrosszabb eset",
   "plannerCanvas_contingency_title": "Vészhelyzeti tervek",
   "plannerCanvas_contingency_turnFraction": "Fordulási hányad",
   "plannerCanvas_contingency_turnRule": "Fordulónyomás-szabály",

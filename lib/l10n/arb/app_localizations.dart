@@ -33351,6 +33351,12 @@ abstract class AppLocalizations {
   /// **'Remove waypoint'**
   String get plannerCanvas_chart_removeWaypoint;
 
+  /// No description provided for @plannerCanvas_chart_worstCase.
+  ///
+  /// In en, this message translates to:
+  /// **'Worst case'**
+  String get plannerCanvas_chart_worstCase;
+
   /// No description provided for @plannerCanvas_contingency_title.
   ///
   /// In en, this message translates to:

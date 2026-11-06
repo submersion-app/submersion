@@ -5990,6 +5990,7 @@
     }
   },
   "plannerCanvas_chart_removeWaypoint": "إزالة نقطة الطريق",
+  "plannerCanvas_chart_worstCase": "أسوأ حالة",
   "plannerCanvas_contingency_title": "خطط الطوارئ",
   "plannerCanvas_contingency_turnFraction": "نسبة العودة",
   "plannerCanvas_contingency_turnRule": "قاعدة ضغط العودة",
