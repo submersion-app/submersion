@@ -1254,7 +1254,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('ROUTE_DETAIL_PAGE'), findsNothing);
-    expect(find.text('Track not found.'), findsOneWidget);
     expect(
       tester
           .widget<RadioGroup<NavTrackDuplicateChoice>>(
@@ -1263,6 +1262,14 @@ void main() {
           .groupValue,
       NavTrackDuplicateChoice.newTrack,
     );
+    // Choosing a new track brings back its own fields above the message,
+    // which the lazy list then builds further down.
+    await tester.scrollUntilVisible(
+      find.text('Track not found.'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Track not found.'), findsOneWidget);
   });
 
   testWidgets('imports a new track, keeping the duplicate, when the diver '
