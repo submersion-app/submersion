@@ -7579,6 +7579,11 @@ class AppLocalizationsEs extends AppLocalizations {
       'Carga: la presión de gas inerte de un compartimento como porcentaje del máximo que puede contener en superficie (su valor M, la línea roja al 100%).\n\nNivel de superficie: la marca en cada barra indica dónde se estabiliza un compartimento totalmente desaturado mientras respiras aire en superficie. Nunca está en 0%, porque tu cuerpo siempre contiene el nitrógeno del aire que respiras. Una barra en su marca ya no tiene carga residual del buceo.\n\nAbsorción y liberación: el gas siempre se mueve hacia la presión del gas que respiras. Tras una descompresión con oxígeno o con una mezcla rica en helio, los compartimentos rápidos pueden contener menos nitrógeno que el aire en superficie. Al volver a respirar aire, absorben nitrógeno de nuevo hasta alcanzar su marca. Es normal y no es una carga residual de la inmersión.\n\nHelio: el aire no contiene helio. Tras una inmersión con trimix, un compartimento libera helio mientras puede absorber nitrógeno al mismo tiempo. Las flechas junto a N₂ y He muestran cada gas por separado; la indicación junto al número del compartimento muestra la dirección neta de ambos.';
 
   @override
+  String diveLog_deco_barChartSemantics(int count, int number, String percent) {
+    return 'Gráfico de carga tisular. $count compartimentos, carga respecto al valor M; compartimento líder $number al $percent%.';
+  }
+
+  @override
   String get diveLog_deco_tissueFast => 'Rápido';
 
   @override
@@ -40792,7 +40797,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get safetyHub_tissueLoading_unavailable_body =>
-      'La última inmersión no tiene datos para calcular la carga tisular, por ejemplo una inmersión en modo profundímetro o con recirculador sin setpoint.';
+      'La última inmersión no tiene datos para calcular la carga tisular, por ejemplo una inmersión sin perfil de profundidad, en modo profundímetro o con recirculador sin setpoint.';
 
   @override
   String get safetyHub_tissueLoading_about_title => 'Sobre la carga tisular';

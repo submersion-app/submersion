@@ -529,6 +529,28 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text(l10n.diveLog_deco_info_body), findsOneWidget);
+      expect(find.byType(AlertDialog), findsNothing);
+    });
+
+    testWidgets('opens in a dialog when the card is stretched to a fixed '
+        'height, so it cannot overflow it', (tester) async {
+      await tester.pumpWidget(
+        buildCard(decoStatuses: [_status], expandVisualization: true),
+      );
+      await tester.pumpAndSettle();
+
+      final context = tester.element(find.byType(CompactTissueLoadingCard));
+      final l10n = AppLocalizations.of(context);
+      await tester.tap(find.text(l10n.diveLog_deco_info_title));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.text(l10n.diveLog_deco_info_body), findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      await tester.tap(find.text('Close'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
     });
   });
 }

@@ -2422,6 +2422,20 @@
   },
   "diveLog_deco_info_title": "Mit jelentenek ezek az értékek?",
   "diveLog_deco_info_body": "Terhelés: egy kamra inertgáz-nyomása annak a maximumnak a százalékában, amelyet a felszínen tartalmazhat (az M-értéke, a piros vonal 100%-nál).\n\nFelszíni szint: az egyes oszlopokon lévő jelölés mutatja, hol áll be egy teljesen telítetlenné vált kamra, miközben a felszínen levegőt lélegzel. Soha nincs 0%-on, mert a tested mindig tartalmazza a belélegzett levegő nitrogénjét. A jelölésénél álló oszlop már nem hordoz a merülésből visszamaradt terhelést.\n\nFeltöltődés és leürülés: a gáz mindig a belélegzett gáz nyomása felé mozog. Oxigénes vagy héliumban gazdag keverékkel végzett dekompresszió után a gyors kamrák kevesebb nitrogént tartalmazhatnak, mint a felszíni levegő. Ismét levegőt lélegezve újra nitrogént vesznek fel, amíg el nem érik a jelölésüket. Ez normális, és nem a merülésből visszamaradt terhelés.\n\nHélium: a levegő nem tartalmaz héliumot. Trimix merülés után egy kamra héliumot ad le, miközben egyidejűleg nitrogént vehet fel. Az N₂ és He melletti nyilak külön mutatják az egyes gázokat; a kamra száma melletti jelzés a kettő együttes irányát mutatja.",
+  "diveLog_deco_barChartSemantics": "Szövetterhelési diagram. {count} kamra, terhelés az M-értékhez viszonyítva; a vezető kamra a(z) {number}. {percent}%-on.",
+  "@diveLog_deco_barChartSemantics": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "number": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_deco_tissueFast": "Gyors",
   "diveLog_deco_tissueSlow": "Lassú",
   "diveLog_deco_title": "Dekó állapot",
@@ -12060,7 +12074,7 @@
   "safetyHub_tissueLoading_clear_title": "Nincs maradék szövetterhelés",
   "safetyHub_tissueLoading_clear_body": "Minden kamra ismét egyensúlyban van a felszíni levegővel. A normál szintjükön maradnak (az egyes oszlopokon lévő jelölésnél), nem 0%-on.",
   "safetyHub_tissueLoading_unavailable_title": "A szövetterhelés nem érhető el",
-  "safetyHub_tissueLoading_unavailable_body": "Az utolsó merüléshez nincs adat a szövetterhelés kiszámításához, például mélységmérő módban végzett merülésnél vagy setpoint nélküli rebreather-merülésnél.",
+  "safetyHub_tissueLoading_unavailable_body": "Az utolsó merüléshez nincs adat a szövetterhelés kiszámításához, például mélységprofil nélküli merülésnél, mélységmérő módban vagy setpoint nélküli rebreatherrel.",
   "safetyHub_tissueLoading_about_title": "A szövettelítődésről",
   "safetyHub_tissueLoading_about_body": "A testedben 16 szövetkamra van, amelyek különböző sebességgel veszik fel és adják le a nitrogént (trimix vagy rebreather merüléseknél a héliumot is). A gyors szövetek gyorsan telítődnek és ürülnek; a lassú szöveteknek mindkettőhöz sokkal több idő kell.\n\nA maradék terhelés csak az, ami a normál felszíni szint fölött van. Teljesen kiürülve sem esnek az oszlopok 0%-ra: minden kamra a belélegzett levegő nitrogénjének megfelelő jelölésnél áll be. Ezért egy gyors kamra itt magasabb értéket mutathat, mint egy oxigénes dekompressziós merülés végén, anélkül hogy a terhelés nőtt volna.\n\nHéliumos merülés után egy kamra héliumot ad le, miközben egyidejűleg nitrogént vesz fel, amíg mindkét gáz egyensúlyba nem kerül a belélegzett levegővel.",
   "safetyHub_noFly_category_single": "Egyetlen nullidős merülés után: {hours} ó irányelv",

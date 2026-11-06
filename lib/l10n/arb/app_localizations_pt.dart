@@ -7576,6 +7576,11 @@ class AppLocalizationsPt extends AppLocalizations {
       'Carga: a pressão de gás inerte de um compartimento como percentagem do máximo que pode conter à superfície (o seu valor M, a linha vermelha a 100%).\n\nNível de superfície: a marca em cada barra mostra onde um compartimento totalmente dessaturado se estabiliza enquanto respira ar à superfície. Nunca fica em 0%, porque o seu corpo contém sempre o azoto do ar que respira. Uma barra na sua marca já não tem carga residual do mergulho.\n\nAbsorção e liberação: o gás move-se sempre em direção à pressão do gás que respira. Após uma descompressão com oxigénio ou com uma mistura rica em hélio, os compartimentos rápidos podem conter menos azoto do que o ar à superfície. De volta ao ar, absorvem azoto novamente até atingirem a sua marca. Isto é normal e não é uma carga residual do mergulho.\n\nHélio: o ar não contém hélio. Após um mergulho com trimix, um compartimento liberta hélio enquanto pode absorver azoto ao mesmo tempo. As setas junto a N₂ e He mostram cada gás separadamente; a indicação junto ao número do compartimento mostra a direção global de ambos.';
 
   @override
+  String diveLog_deco_barChartSemantics(int count, int number, String percent) {
+    return 'Gráfico de carga tecidual. $count compartimentos, carga em relação ao valor M; compartimento líder $number a $percent%.';
+  }
+
+  @override
   String get diveLog_deco_tissueFast => 'Rápido';
 
   @override
@@ -40743,7 +40748,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get safetyHub_tissueLoading_unavailable_body =>
-      'O último mergulho não tem dados para calcular a carga tecidual, por exemplo um mergulho em modo profundímetro ou com rebreather sem setpoint.';
+      'O último mergulho não tem dados para calcular a carga tecidual, por exemplo um mergulho sem perfil de profundidade, em modo profundímetro ou com rebreather sem setpoint.';
 
   @override
   String get safetyHub_tissueLoading_about_title => 'Sobre a carga tissular';

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_tooltip_text.dart';
@@ -62,15 +61,13 @@ class TissuePressureBarChart extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Semantics(
-          label: chartSummaryLabel(
-            chartType: 'Tissue pressure diagram',
-            description:
-                '${status.compartments.length} compartments showing '
-                'nitrogen and helium loading relative to M-value, leading '
-                'compartment ${status.leadingCompartmentNumber} at '
-                '${status.leadingCompartmentLoading.toStringAsFixed(0)}'
-                ' percent',
-          ),
+          label: status.compartments.isEmpty
+              ? null
+              : l10n.diveLog_deco_barChartSemantics(
+                  status.compartments.length,
+                  status.leadingCompartmentNumber,
+                  status.leadingCompartmentLoading.toStringAsFixed(0),
+                ),
           child: SizedBox(
             height: chartHeight,
             child: Stack(

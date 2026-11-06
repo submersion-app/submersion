@@ -7191,6 +7191,11 @@ class AppLocalizationsZh extends AppLocalizations {
       '负荷：隔间内惰性气体压力占其在水面可容纳最大值（M 值，即 100% 处的红线）的百分比。\n\n水面水平：每根柱上的标记表示在水面呼吸空气时，完全脱饱和的隔间最终稳定的位置。它永远不会是 0%，因为你的身体始终含有所呼吸空气中的氮气。处于标记处的柱不再带有潜水遗留的负荷。\n\n吸收与释放：气体总是向你所呼吸气体的压力方向移动。使用氧气或富氦混合气减压后，快速隔间中的氮气可能少于水面空气中的氮气。重新呼吸空气后，它们会再次吸收氮气，直到达到各自的标记。这是正常现象，并非潜水遗留的负荷。\n\n氦气：空气中不含氦气。三混气潜水后，隔间在释放氦气的同时可能吸收氮气。N₂ 和 He 旁的箭头分别显示每种气体的方向；隔间编号旁的标识显示两者的总体方向。';
 
   @override
+  String diveLog_deco_barChartSemantics(int count, int number, String percent) {
+    return '组织饱和度图表。$count 个隔间，负荷相对于 M 值；前导隔间 $number 为 $percent%。';
+  }
+
+  @override
   String get diveLog_deco_tissueFast => '快速';
 
   @override
@@ -38375,7 +38380,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get safetyHub_tissueLoading_unavailable_body =>
-      '上一次潜水没有可用于计算组织饱和度的数据，例如深度计模式下的潜水或未设置设定点的循环呼吸器潜水。';
+      '上一次潜水没有可用于计算组织饱和度的数据，例如没有深度曲线的潜水、深度计模式下的潜水，或未设置设定点的循环呼吸器潜水。';
 
   @override
   String get safetyHub_tissueLoading_about_title => '关于组织饱和度';

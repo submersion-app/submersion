@@ -7559,6 +7559,11 @@ class AppLocalizationsHu extends AppLocalizations {
       'Terhelés: egy kamra inertgáz-nyomása annak a maximumnak a százalékában, amelyet a felszínen tartalmazhat (az M-értéke, a piros vonal 100%-nál).\n\nFelszíni szint: az egyes oszlopokon lévő jelölés mutatja, hol áll be egy teljesen telítetlenné vált kamra, miközben a felszínen levegőt lélegzel. Soha nincs 0%-on, mert a tested mindig tartalmazza a belélegzett levegő nitrogénjét. A jelölésénél álló oszlop már nem hordoz a merülésből visszamaradt terhelést.\n\nFeltöltődés és leürülés: a gáz mindig a belélegzett gáz nyomása felé mozog. Oxigénes vagy héliumban gazdag keverékkel végzett dekompresszió után a gyors kamrák kevesebb nitrogént tartalmazhatnak, mint a felszíni levegő. Ismét levegőt lélegezve újra nitrogént vesznek fel, amíg el nem érik a jelölésüket. Ez normális, és nem a merülésből visszamaradt terhelés.\n\nHélium: a levegő nem tartalmaz héliumot. Trimix merülés után egy kamra héliumot ad le, miközben egyidejűleg nitrogént vehet fel. Az N₂ és He melletti nyilak külön mutatják az egyes gázokat; a kamra száma melletti jelzés a kettő együttes irányát mutatja.';
 
   @override
+  String diveLog_deco_barChartSemantics(int count, int number, String percent) {
+    return 'Szövetterhelési diagram. $count kamra, terhelés az M-értékhez viszonyítva; a vezető kamra a(z) $number. $percent%-on.';
+  }
+
+  @override
   String get diveLog_deco_tissueFast => 'Gyors';
 
   @override
@@ -40533,7 +40538,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get safetyHub_tissueLoading_unavailable_body =>
-      'Az utolsó merüléshez nincs adat a szövetterhelés kiszámításához, például mélységmérő módban végzett merülésnél vagy setpoint nélküli rebreather-merülésnél.';
+      'Az utolsó merüléshez nincs adat a szövetterhelés kiszámításához, például mélységprofil nélküli merülésnél, mélységmérő módban vagy setpoint nélküli rebreatherrel.';
 
   @override
   String get safetyHub_tissueLoading_about_title => 'A szövettelítődésről';

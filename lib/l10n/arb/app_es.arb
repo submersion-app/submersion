@@ -2523,6 +2523,20 @@
   },
   "diveLog_deco_info_title": "¿Qué significan estos valores?",
   "diveLog_deco_info_body": "Carga: la presión de gas inerte de un compartimento como porcentaje del máximo que puede contener en superficie (su valor M, la línea roja al 100%).\n\nNivel de superficie: la marca en cada barra indica dónde se estabiliza un compartimento totalmente desaturado mientras respiras aire en superficie. Nunca está en 0%, porque tu cuerpo siempre contiene el nitrógeno del aire que respiras. Una barra en su marca ya no tiene carga residual del buceo.\n\nAbsorción y liberación: el gas siempre se mueve hacia la presión del gas que respiras. Tras una descompresión con oxígeno o con una mezcla rica en helio, los compartimentos rápidos pueden contener menos nitrógeno que el aire en superficie. Al volver a respirar aire, absorben nitrógeno de nuevo hasta alcanzar su marca. Es normal y no es una carga residual de la inmersión.\n\nHelio: el aire no contiene helio. Tras una inmersión con trimix, un compartimento libera helio mientras puede absorber nitrógeno al mismo tiempo. Las flechas junto a N₂ y He muestran cada gas por separado; la indicación junto al número del compartimento muestra la dirección neta de ambos.",
+  "diveLog_deco_barChartSemantics": "Gráfico de carga tisular. {count} compartimentos, carga respecto al valor M; compartimento líder {number} al {percent}%.",
+  "@diveLog_deco_barChartSemantics": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "number": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_deco_tissueFast": "Rápido",
   "diveLog_deco_tissueSlow": "Lento",
   "diveLog_deco_title": "Estado deco",
@@ -12060,7 +12074,7 @@
   "safetyHub_tissueLoading_clear_title": "Sin carga tisular residual",
   "safetyHub_tissueLoading_clear_body": "Todos los compartimentos han vuelto al equilibrio con el aire en superficie. Se quedan en su nivel normal (la marca en cada barra), no en 0%.",
   "safetyHub_tissueLoading_unavailable_title": "Carga tisular no disponible",
-  "safetyHub_tissueLoading_unavailable_body": "La última inmersión no tiene datos para calcular la carga tisular, por ejemplo una inmersión en modo profundímetro o con recirculador sin setpoint.",
+  "safetyHub_tissueLoading_unavailable_body": "La última inmersión no tiene datos para calcular la carga tisular, por ejemplo una inmersión sin perfil de profundidad, en modo profundímetro o con recirculador sin setpoint.",
   "safetyHub_tissueLoading_about_title": "Sobre la carga tisular",
   "safetyHub_tissueLoading_about_body": "Tu cuerpo tiene 16 compartimentos tisulares que absorben y liberan nitrógeno (y, en inmersiones con trimix o recirculador, también helio) a distintas velocidades. Los tejidos rápidos se saturan y desaturan enseguida; los lentos tardan mucho más en ambos casos.\n\nLa carga residual es solo lo que queda por encima del nivel normal en superficie. Incluso totalmente desaturadas, las barras no bajan a 0%: cada compartimento se estabiliza en la marca que corresponde al nitrógeno del aire que respiras. Por eso un compartimento rápido puede marcar aquí más que al final de una inmersión con descompresión con oxígeno, sin que la carga haya aumentado.\n\nTras una inmersión con helio, un compartimento libera helio mientras absorbe nitrógeno al mismo tiempo, hasta que ambos gases están en equilibrio con el aire que respiras.",
   "safetyHub_noFly_category_single": "Tras una única inmersión sin deco: pauta de {hours} h",

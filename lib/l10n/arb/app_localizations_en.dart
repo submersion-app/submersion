@@ -7460,6 +7460,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Load: a compartment\'s inert gas pressure as a percentage of the most it may hold at the surface (its M-value, the red line at 100%).\n\nSurface level: the marker on each bar shows where a fully desaturated compartment settles while you breathe air at the surface. It is never 0%, because your body always holds the nitrogen of the air you breathe. A bar at its marker carries no load left over from diving.\n\nOngassing and offgassing: gas always moves toward the pressure of the gas you breathe. After decompression on oxygen or on a mix rich in helium, the fast compartments can hold less nitrogen than the air at the surface. Back on air, they take nitrogen up again until they reach their marker. That is normal and not a residual load from the dive.\n\nHelium: air contains no helium. After a trimix dive, a compartment releases helium while it can take nitrogen up at the same time. The arrows next to N₂ and He show each gas on its own; the badge next to the compartment number shows the net direction of both.';
 
   @override
+  String diveLog_deco_barChartSemantics(int count, int number, String percent) {
+    return 'Tissue loading chart. $count compartments, loading relative to the M-value; leading compartment $number at $percent%.';
+  }
+
+  @override
   String get diveLog_deco_tissueFast => 'Fast';
 
   @override
@@ -40083,7 +40088,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get safetyHub_tissueLoading_unavailable_body =>
-      'The last dive has no data to calculate tissue loading from, for example a dive in gauge mode or a rebreather dive without a setpoint.';
+      'The last dive has no data to calculate tissue loading from, for example a dive without a depth profile, in gauge mode or on a rebreather without a setpoint.';
 
   @override
   String get safetyHub_tissueLoading_about_title => 'About Tissue Loading';

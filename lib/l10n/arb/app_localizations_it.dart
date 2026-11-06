@@ -7577,6 +7577,11 @@ class AppLocalizationsIt extends AppLocalizations {
       'Carico: la pressione di gas inerte di un compartimento come percentuale del massimo che può contenere in superficie (il suo valore M, la linea rossa al 100%).\n\nLivello in superficie: il segno su ogni barra indica dove si stabilizza un compartimento completamente desaturato mentre respiri aria in superficie. Non è mai a 0%, perché il tuo corpo contiene sempre l\'azoto dell\'aria che respiri. Una barra al suo segno non ha più carico residuo dell\'immersione.\n\nAssorbimento e rilascio: il gas si muove sempre verso la pressione del gas che respiri. Dopo una decompressione con ossigeno o con una miscela ricca di elio, i compartimenti veloci possono contenere meno azoto dell\'aria in superficie. Tornando a respirare aria, assorbono di nuovo azoto fino a raggiungere il loro segno. È normale e non è un carico residuo dell\'immersione.\n\nElio: l\'aria non contiene elio. Dopo un\'immersione in trimix, un compartimento rilascia elio mentre può assorbire azoto nello stesso momento. Le frecce accanto a N₂ e He mostrano ogni gas separatamente; l\'indicazione accanto al numero del compartimento mostra la direzione complessiva di entrambi.';
 
   @override
+  String diveLog_deco_barChartSemantics(int count, int number, String percent) {
+    return 'Grafico del carico tissutale. $count compartimenti, carico rispetto al valore M; compartimento principale $number al $percent%.';
+  }
+
+  @override
   String get diveLog_deco_tissueFast => 'Veloce';
 
   @override
@@ -40771,7 +40776,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get safetyHub_tissueLoading_unavailable_body =>
-      'L\'ultima immersione non ha dati per calcolare il carico tissutale, per esempio un\'immersione in modalità profondimetro o con rebreather senza setpoint.';
+      'L\'ultima immersione non ha dati per calcolare il carico tissutale, per esempio un\'immersione senza profilo di profondità, in modalità profondimetro o con rebreather senza setpoint.';
 
   @override
   String get safetyHub_tissueLoading_about_title =>

@@ -60,6 +60,8 @@ class TissueHeatMap extends StatelessWidget {
                   colorScheme: colorScheme,
                   textTheme: textTheme,
                   colorFn: colorFn,
+                  leftLabel: context.l10n.diveLog_deco_gasOngassing,
+                  rightLabel: context.l10n.diveLog_deco_gasOffgassing,
                 ),
               ],
             ),
@@ -318,8 +320,8 @@ class TissueHeatMapLegend extends StatelessWidget {
     required this.colorScheme,
     required this.textTheme,
     required this.colorFn,
-    this.leftLabel = 'On-gassing',
-    this.rightLabel = 'Off-gassing',
+    required this.leftLabel,
+    required this.rightLabel,
   });
 
   @override

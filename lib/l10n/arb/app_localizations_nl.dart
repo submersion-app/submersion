@@ -7529,6 +7529,11 @@ class AppLocalizationsNl extends AppLocalizations {
       'Belading: de inertgasdruk van een compartiment als percentage van het maximum dat het aan de oppervlakte mag bevatten (de M-waarde, de rode lijn bij 100%).\n\nOppervlakteniveau: de markering op elke balk toont waar een volledig ontzadigd compartiment uitkomt terwijl je aan de oppervlakte lucht ademt. Die ligt nooit op 0%, omdat je lichaam altijd de stikstof uit de ingeademde lucht bevat. Een balk op zijn markering draagt geen restbelading van het duiken meer.\n\nGasopname en gasafgifte: gas beweegt altijd naar de druk van het gas dat je ademt. Na decompressie op zuurstof of op een heliumrijk mengsel kunnen de snelle compartimenten minder stikstof bevatten dan de lucht aan de oppervlakte. Terug op lucht nemen ze weer stikstof op tot ze hun markering bereiken. Dat is normaal en geen restbelading van de duik.\n\nHelium: lucht bevat geen helium. Na een trimixduik geeft een compartiment helium af terwijl het tegelijk stikstof kan opnemen. De pijlen naast N₂ en He tonen elk gas afzonderlijk; de aanduiding naast het compartimentnummer toont de netto richting van beide.';
 
   @override
+  String diveLog_deco_barChartSemantics(int count, int number, String percent) {
+    return 'Grafiek van de weefselbelading. $count compartimenten, belading ten opzichte van de M-waarde; leidend compartiment $number op $percent%.';
+  }
+
+  @override
   String get diveLog_deco_tissueFast => 'Snel';
 
   @override
@@ -40492,7 +40497,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get safetyHub_tissueLoading_unavailable_body =>
-      'De laatste duik heeft geen gegevens om de weefselbelading uit te berekenen, bijvoorbeeld een duik in dieptemetermodus of een rebreatherduik zonder setpoint.';
+      'De laatste duik heeft geen gegevens om de weefselbelading uit te berekenen, bijvoorbeeld een duik zonder diepteprofiel, in dieptemetermodus of met een rebreather zonder setpoint.';
 
   @override
   String get safetyHub_tissueLoading_about_title => 'Over weefselverzadiging';

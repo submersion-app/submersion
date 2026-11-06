@@ -306,6 +306,8 @@ void main() {
       // CNS is unknown, so no CNS reading is offered at all.
       expect(find.text('CNS Oxygen Clock'), findsNothing);
       expect(find.text('#42'), findsOneWidget);
+      // The no-profile warning already explains the missing tissue data.
+      expect(find.text('Tissue loading not available'), findsNothing);
     });
 
     testWidgets('warns even with zero known totals', (tester) async {

@@ -7596,6 +7596,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Charge : la pression de gaz inerte d\'un compartiment en pourcentage du maximum qu\'il peut contenir en surface (sa valeur M, la ligne rouge à 100 %).\n\nNiveau de surface : le repère sur chaque barre indique où se stabilise un compartiment entièrement désaturé pendant que vous respirez de l\'air en surface. Il n\'est jamais à 0 %, car votre corps contient toujours l\'azote de l\'air que vous respirez. Une barre à son repère ne porte plus aucune charge résiduelle de la plongée.\n\nAbsorption et élimination : le gaz se déplace toujours vers la pression du gaz que vous respirez. Après une décompression à l\'oxygène ou avec un mélange riche en hélium, les compartiments rapides peuvent contenir moins d\'azote que l\'air en surface. De retour à l\'air, ils absorbent à nouveau de l\'azote jusqu\'à atteindre leur repère. C\'est normal et ce n\'est pas une charge résiduelle de la plongée.\n\nHélium : l\'air ne contient pas d\'hélium. Après une plongée au trimix, un compartiment élimine l\'hélium tout en pouvant absorber de l\'azote en même temps. Les flèches à côté de N₂ et He montrent chaque gaz séparément ; l\'indication à côté du numéro du compartiment montre la direction globale des deux.';
 
   @override
+  String diveLog_deco_barChartSemantics(int count, int number, String percent) {
+    return 'Graphique de saturation des tissus. $count compartiments, charge par rapport à la valeur M ; compartiment directeur $number à $percent %.';
+  }
+
+  @override
   String get diveLog_deco_tissueFast => 'Rapide';
 
   @override
@@ -40879,7 +40884,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get safetyHub_tissueLoading_unavailable_body =>
-      'La dernière plongée n\'a pas de données permettant de calculer la saturation des tissus, par exemple une plongée en mode profondimètre ou une plongée recycleur sans consigne.';
+      'La dernière plongée n\'a pas de données permettant de calculer la saturation des tissus, par exemple une plongée sans profil de profondeur, en mode profondimètre ou au recycleur sans consigne.';
 
   @override
   String get safetyHub_tissueLoading_about_title =>

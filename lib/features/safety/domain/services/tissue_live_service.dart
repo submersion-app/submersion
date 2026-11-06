@@ -2,6 +2,7 @@ import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
+import 'package:submersion/core/deco/entities/gas_exchange.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 
 /// Projects the diver's tissue state at the end of their last dive forward
@@ -191,6 +192,24 @@ class TissueLiveService {
         calculateInspiredN2(status.ambientPressureBar, airN2Fraction);
     return status.compartments.any(
       (comp) => comp.totalInertGas - surfaceTension > _residualLoadEpsilonBar,
+    );
+  }
+
+  /// Whether every compartment in [status] holds both nitrogen and helium at
+  /// the inspired pressure, each within [DecoStatus.gasEquilibriumToleranceBar]
+  /// (issue #4228): the condition the "no residual load" note states.
+  ///
+  /// Stricter than `!hasResidualLoad`, which only looks for total tension
+  /// ABOVE the surface level: right after oxygen or helium-rich deco the fast
+  /// compartments sit below it (taking nitrogen back up) or still hold helium
+  /// while their total stays low, and must not read as settled. Using the
+  /// same tolerance as the per-gas badges keeps the note and the badges from
+  /// contradicting each other. False when the inspired gas is unknown.
+  static bool isAtSurfaceEquilibrium(DecoStatus status) {
+    return status.compartments.every(
+      (comp) =>
+          status.n2Exchange(comp) == GasExchange.equilibrium &&
+          status.heExchange(comp) == GasExchange.equilibrium,
     );
   }
 }

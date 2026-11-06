@@ -200,7 +200,9 @@ class CnsOtuStatusCard extends StatelessWidget {
     final tissueSection = _TissueSection(
       status: currentTissue,
       timeline: tissueTimeline,
-      hasResidualLoad: hasResidualTissueLoad,
+      atSurfaceEquilibrium:
+          currentTissue != null &&
+          TissueLiveService.isAtSurfaceEquilibrium(currentTissue),
     );
     final tissueAbout = [
       if (currentTissue != null) ...[
@@ -226,9 +228,13 @@ class CnsOtuStatusCard extends StatelessWidget {
         const _NoProfileWarningCard(),
         const SizedBox(height: 8),
         _OtuTotalsCard(dailyOtu: dailyOtu, weeklyOtu: snap.weeklyOtu),
-        const SizedBox(height: 8),
-        tissueSection,
-        ...tissueAbout,
+        // Without a profile there is no tissue data either; the warning
+        // above already says why, so no second "not available" note.
+        if (currentTissue != null) ...[
+          const SizedBox(height: 8),
+          tissueSection,
+          ...tissueAbout,
+        ],
       ]);
     }
 
@@ -338,12 +344,14 @@ class _TissueSection extends StatelessWidget {
   /// Tissue state now, or null when the last dive carries no tissue data.
   final DecoStatus? status;
   final List<DecoStatus>? timeline;
-  final bool hasResidualLoad;
+
+  /// See [TissueLiveService.isAtSurfaceEquilibrium].
+  final bool atSurfaceEquilibrium;
 
   const _TissueSection({
     required this.status,
     required this.timeline,
-    required this.hasResidualLoad,
+    required this.atSurfaceEquilibrium,
   });
 
   @override
@@ -353,7 +361,7 @@ class _TissueSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (!hasResidualLoad) ...[
+        if (atSurfaceEquilibrium) ...[
           const TissueClearNote(),
           const SizedBox(height: 8),
         ],

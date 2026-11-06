@@ -189,7 +189,9 @@ class _CompactTissueLoadingCardState
             if (vizWidget != null)
               if (expand) Expanded(child: vizWidget) else vizWidget,
 
-            const TissueValuesInfo(),
+            // Opens as a dialog when the card is stretched to a fixed height:
+            // expanding in place would overflow it.
+            TissueValuesInfo(inline: !expand),
           ],
         ),
       ),

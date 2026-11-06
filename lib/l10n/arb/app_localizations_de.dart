@@ -7581,6 +7581,11 @@ class AppLocalizationsDe extends AppLocalizations {
       'Belastung: der Inertgasdruck eines Kompartiments in Prozent des Höchstwerts, den es an der Oberfläche halten darf (sein M-Wert, die rote Linie bei 100 %).\n\nOberflächenniveau: Die Markierung auf jedem Balken zeigt, wo sich ein vollständig entsättigtes Kompartiment einpendelt, während du an der Oberfläche Luft atmest. Sie liegt nie bei 0 %, weil dein Körper immer den Stickstoff der Atemluft enthält. Ein Balken auf seiner Markierung trägt keine Restbelastung vom Tauchen mehr.\n\nAufsättigung und Entsättigung: Gas bewegt sich immer in Richtung des Drucks des Gases, das du atmest. Nach einer Deko mit Sauerstoff oder einem heliumreichen Gemisch können die schnellen Kompartimente weniger Stickstoff enthalten als die Luft an der Oberfläche. Atmest du wieder Luft, nehmen sie Stickstoff auf, bis sie ihre Markierung erreichen. Das ist normal und keine Restbelastung vom Tauchgang.\n\nHelium: Luft enthält kein Helium. Nach einem Trimix-Tauchgang gibt ein Kompartiment Helium ab und kann gleichzeitig Stickstoff aufnehmen. Die Pfeile neben N₂ und He zeigen jedes Gas einzeln, die Anzeige neben der Kompartimentnummer zeigt die Gesamtrichtung beider Gase.';
 
   @override
+  String diveLog_deco_barChartSemantics(int count, int number, String percent) {
+    return 'Diagramm der Gewebesättigung. $count Kompartimente, Belastung im Verhältnis zum M-Wert; führendes Kompartiment $number bei $percent %.';
+  }
+
+  @override
   String get diveLog_deco_tissueFast => 'Schnell';
 
   @override
@@ -40682,7 +40687,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get safetyHub_tissueLoading_unavailable_body =>
-      'Für den letzten Tauchgang fehlen die Daten, um die Gewebesättigung zu berechnen, zum Beispiel bei einem Tauchgang im Gauge-Modus oder einem Rebreather-Tauchgang ohne Setpoint.';
+      'Für den letzten Tauchgang fehlen die Daten, um die Gewebesättigung zu berechnen, zum Beispiel bei einem Tauchgang ohne Tiefenprofil, im Gauge-Modus oder mit Rebreather ohne Setpoint.';
 
   @override
   String get safetyHub_tissueLoading_about_title => 'Über die Gewebesättigung';
