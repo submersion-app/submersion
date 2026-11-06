@@ -226,7 +226,8 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
           children: [
             Flexible(
               child: InkWell(
-                onTap: () => _showRenameDialog(context),
+                // A dived dive's plan keeps the name it was planned under.
+                onTap: locked ? null : () => _showRenameDialog(context),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -238,12 +239,14 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      Icons.edit_outlined,
-                      size: 14,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                    if (!locked) ...[
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.edit_outlined,
+                        size: 14,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ],
                   ],
                 ),
               ),

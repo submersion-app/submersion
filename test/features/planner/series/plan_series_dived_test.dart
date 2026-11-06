@@ -26,6 +26,7 @@ import 'package:submersion/features/planner/presentation/providers/plan_reposito
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_store.dart';
 import 'package:submersion/features/planner/presentation/widgets/logged/logged_dive_results.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_runtime_table.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../helpers/mock_providers.dart';
@@ -540,6 +541,40 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.byType(LoggedDiveResults), findsOneWidget);
+    });
+
+    testWidgets('its plan''s stop table and name cannot be edited', (
+      tester,
+    ) async {
+      final c = await pumpDived(tester);
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('planActualToggle')),
+          matching: find.text('Plan'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final tables = tester.widgetList<PlanRuntimeTable>(
+        find.byType(PlanRuntimeTable),
+      );
+      expect(tables, isNotEmpty);
+      expect(tables.every((table) => !table.editable), isTrue);
+
+      // The app bar's name offers no rename.
+      final name = c.read(divePlanNotifierProvider).name;
+      expect(
+        find.descendant(
+          of: find.byType(AppBar),
+          matching: find.byIcon(Icons.edit_outlined),
+        ),
+        findsNothing,
+      );
+      await tester.tap(
+        find.descendant(of: find.byType(AppBar), matching: find.text(name)),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(Dialog), findsNothing);
     });
 
     testWidgets('a dive still planned shows the planner, and can go', (
