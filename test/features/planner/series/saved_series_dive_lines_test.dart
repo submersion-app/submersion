@@ -19,6 +19,7 @@ void main() {
     String id, {
     String? linkedDiveId,
     bool linkedDiveIsPlanned = false,
+    bool linkedDiveExists = true,
     int? linkedDiveNumber,
   }) => DivePlanSummary(
     id: id,
@@ -27,6 +28,7 @@ void main() {
     seriesId: 's1',
     linkedDiveId: linkedDiveId,
     linkedDiveIsPlanned: linkedDiveIsPlanned,
+    linkedDiveExists: linkedDiveExists,
     linkedDiveNumber: linkedDiveNumber,
   );
 
@@ -103,6 +105,7 @@ void main() {
   ) async {
     late String none;
     late String some;
+    late String gone;
     await tester.pumpWidget(
       MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -128,6 +131,19 @@ void main() {
               ),
               units,
             );
+            // A link to a dive deleted on another device is not a dive.
+            gone = savedPlanRowSubtitle(
+              context,
+              SavedPlanRow(
+                plan: dive('a'),
+                dives: [
+                  dive('a', linkedDiveId: 'deleted', linkedDiveExists: false),
+                  dive('b'),
+                  dive('c'),
+                ],
+              ),
+              units,
+            );
             return const SizedBox();
           },
         ),
@@ -136,5 +152,6 @@ void main() {
 
     expect(none, startsWith('2 dives'));
     expect(some, startsWith('1 of 3 dived'));
+    expect(gone, startsWith('3 dives'));
   });
 }

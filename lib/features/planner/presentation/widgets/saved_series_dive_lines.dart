@@ -21,9 +21,14 @@ String savedPlanRowSubtitle(
 ) {
   final depth = row.maxDepth;
   final runtime = row.runtimeSeconds;
-  // Dived: linked to an entry in the log that is no longer planned.
+  // Dived: linked to an entry still in the log that is no longer planned.
   final dived = row.dives
-      .where((d) => d.linkedDiveId != null && !d.linkedDiveIsPlanned)
+      .where(
+        (d) =>
+            d.linkedDiveId != null &&
+            d.linkedDiveExists &&
+            !d.linkedDiveIsPlanned,
+      )
       .length;
   return [
     if (row.showsDives)
