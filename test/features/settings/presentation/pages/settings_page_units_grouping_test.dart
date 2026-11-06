@@ -89,6 +89,18 @@ void main() {
     }
   });
 
+  testWidgets('the quick select lines up with the unit rows below it', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+
+    // Left-aligned like the rows, not centred in the shared card.
+    expect(
+      tester.getTopLeft(find.text('Quick Select')).dx,
+      closeTo(tester.getTopLeft(find.text('Depth')).dx, 1),
+    );
+  });
+
   testWidgets('the other settings sit under their own headings', (
     tester,
   ) async {

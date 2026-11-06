@@ -464,6 +464,9 @@ class _UnitsSectionContent extends ConsumerWidget {
           // #4232).
           Card(
             child: Column(
+              // Stretched so the quick select lines up with the rows below it
+              // instead of centring in the card.
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _buildUnitPresetSelector(context, ref, settings),
                 const Divider(height: 1),
