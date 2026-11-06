@@ -167,6 +167,59 @@ void main() {
       expect(c.read(planSeriesResultsProvider)[0].state.startDateTime, later);
     });
 
+    test('a selected dived dive keeps its plan in the editor', () async {
+      await twoDivesInTheLog();
+      final bStart = c.read(divePlanNotifierProvider).startDateTime;
+      series().select(0);
+      final a = c.read(planSeriesNotifierProvider).dives[0].state;
+      final b = c.read(planSeriesNotifierProvider).dives[1].state;
+      final later = nine.add(const Duration(hours: 2));
+
+      series().setActuals({a.id: divedAt('x', later)});
+
+      // The editor and the series hold the plan, not what happened.
+      expect(c.read(divePlanNotifierProvider).startDateTime, nine);
+      final dived = c.read(planSeriesNotifierProvider).dives[0].state;
+      expect(dived.startDateTime, nine);
+      expect(dived.surfaceInterval, a.surfaceInterval);
+
+      // B dived too: its plan view carries from A's plan, not A's actual.
+      series().select(1);
+      series().setActuals({
+        a.id: divedAt('x', later),
+        b.id: divedAt('y', later.add(const Duration(hours: 3))),
+      });
+      expect(c.read(divePlanNotifierProvider).startDateTime, bStart);
+      expect(
+        c.read(planSeriesNotifierProvider).dives[1].state.startDateTime,
+        bStart,
+      );
+
+      // Once the actuals go, the plans are as they were.
+      series().setActuals(const {});
+      final after = c.read(planSeriesNotifierProvider).dives;
+      expect(after[0].state.surfaceInterval, a.surfaceInterval);
+      expect(after[1].state.startDateTime, bStart);
+    });
+
+    test('a single dived plan with no start keeps none', () async {
+      final editor = c.read(divePlanNotifierProvider.notifier);
+      editor.newPlan();
+      editor.addSimplePlan(maxDepth: 18, bottomTimeMinutes: 20);
+      await editor.save();
+      final id = c.read(divePlanNotifierProvider).id;
+
+      series().setActuals({id: divedAt('y', nine)});
+
+      final state = c.read(divePlanNotifierProvider);
+      expect(state.startDateTime, isNull);
+      expect(state.surfaceInterval, isNull);
+      expect(
+        c.read(planSeriesNotifierProvider).dives.single.state.startDateTime,
+        isNull,
+      );
+    });
+
     test('being dived is not an edit, on a series or one plan', () async {
       await twoDivesInTheLog();
       series().select(0);

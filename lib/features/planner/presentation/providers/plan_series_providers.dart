@@ -353,18 +353,20 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
 
   void _loadSelected() {
     final index = state.selectedIndex;
+    // A dive that has been dived is locked to its plan, which the editor
+    // holds and the series keeps: carried from what the dives before it were
+    // planned to leave, as "As planned" computes it, never from what
+    // happened, so the actual start never becomes the planned one.
+    final dives = state.dives[index].actual == null
+        ? state.dives
+        : [for (final dive in state.dives) dive.copyWith(clearActual: true)];
     _earlier = calculator.computeSeries(
-      state.dives.sublist(0, index),
+      dives.sublist(0, index),
       config: _getConfig(),
       follow: state.follow,
     );
     _push(
-      calculator.carriedState(
-        state.dives,
-        index,
-        _earlier,
-        follow: state.follow,
-      ),
+      calculator.carriedState(dives, index, _earlier, follow: state.follow),
     );
   }
 
