@@ -91,19 +91,23 @@ Widget buildCard({
   List<DecoStatus>? decoStatuses,
   bool expandVisualization = false,
   VoidCallback? onOpen3dView,
+  bool scrollable = false,
 }) {
+  final card = CompactTissueLoadingCard(
+    status: status,
+    decoStatuses: decoStatuses,
+    expandVisualization: expandVisualization,
+    onOpen3dView: onOpen3dView,
+  );
   return ProviderScope(
     overrides: [settingsProvider.overrideWith((ref) => MockSettingsNotifier())],
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
+      // Both real hosts (dive detail, current dive load page) scroll, so a
+      // test that grows the card (the inline explanation) scrolls too.
       home: Scaffold(
-        body: CompactTissueLoadingCard(
-          status: status,
-          decoStatuses: decoStatuses,
-          expandVisualization: expandVisualization,
-          onOpen3dView: onOpen3dView,
-        ),
+        body: scrollable ? SingleChildScrollView(child: card) : card,
       ),
     ),
   );
@@ -517,7 +521,7 @@ void main() {
 
   group('CompactTissueLoadingCard values explanation (issue #4228)', () {
     testWidgets('is collapsed by default and expands on tap', (tester) async {
-      await tester.pumpWidget(buildCard());
+      await tester.pumpWidget(buildCard(scrollable: true));
       await tester.pumpAndSettle();
 
       final context = tester.element(find.byType(CompactTissueLoadingCard));
