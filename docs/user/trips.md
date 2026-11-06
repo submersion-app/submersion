@@ -72,7 +72,7 @@ The itinerary has one entry per day. If a trip has none yet, **Generate itinerar
 
 ### Gear
 
-The **Gear** tab is what you will dive with. **Add** offers **From my equipment**, **An equipment set**, or **Rental cylinders**. Packed items are listed under **Packed**, and cylinders get slots on the trip's board under **Cylinders**; a cylinder you pack can be put on the board or left off it. Equipment due for service shows a service alert here.
+The **Gear** tab is what you will dive with. **Add** offers **From my equipment**, **An equipment set**, **Scan a tag**, or **Rental cylinders**. In **From my equipment**, tick as many items as you like and press **Add N** to add them all at once; the parts of an assembly are hidden, since packing the assembly takes them along. Packed items are listed under **Packed**, and cylinders get slots on the trip's board under **Cylinders**; a cylinder you pack can be put on the board or left off it. Equipment due for service shows a service alert here.
 
 ### Checklist
 
