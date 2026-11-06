@@ -117,6 +117,20 @@ void main() {
       expect(actuals[planId]?.followed.diveNumber, isNotNull);
     });
 
+    test('a dived entry with no analysis leaves CNS and OTU unknown', () async {
+      final first = await twoDivesInTheLog();
+      final planId = c.read(planSeriesNotifierProvider).dives[0].state.id;
+
+      await c.read(diveRepositoryProvider).convertPlanToActualDive(first);
+      c.invalidate(seriesActualsProvider);
+      c.invalidate(divesProvider);
+      final actual = (await c.read(seriesActualsProvider.future))[planId];
+
+      // Unknown, not zero, so the next dive falls back to the plan.
+      expect(actual?.endCns, isNull);
+      expect(actual?.followed.otu, isNull);
+    });
+
     test('an undone download takes the dive back to its plan', () async {
       await twoDivesInTheLog();
       final dive = c.read(planSeriesNotifierProvider).dives[0];

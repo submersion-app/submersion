@@ -59,7 +59,7 @@ final seriesFollowProvider = FutureProvider.family<SeriesFollow?, String>((
         start: dive.effectiveEntryTime,
         end: end,
         endInstant: diveEndInstant(dive),
-        otu: analysis?.o2Exposure.otu ?? 0,
+        otu: analysis?.o2Exposure.otu,
         maxDepth: dive.maxDepth,
       ),
     );
@@ -72,7 +72,7 @@ final seriesFollowProvider = FutureProvider.family<SeriesFollow?, String>((
         ? null
         : statuses.last.compartments,
     endEnvironment: followed.environment,
-    endCns: analysis?.o2Exposure.cnsEnd ?? 0,
+    endCns: analysis?.o2Exposure.cnsEnd,
     endTanks: followed.tanks,
   );
 });

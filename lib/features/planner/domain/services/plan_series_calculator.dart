@@ -232,9 +232,9 @@ DivePlanState carriedState(
   ];
 
   return timed.copyWith(
-    // A dive that has been dived carries the tissues it really ended with,
-    // in the conditions it was dived in; one with no profile to analyse
-    // carries its plan's.
+    // A dive that has been dived carries the tissues and CNS it really ended
+    // with, in the conditions it was dived in; one with no profile to
+    // analyse carries its plan's.
     initialTissueState:
         actualTissues ?? previous.outcome.surfacedTissue.compartments,
     initialTissueEnvironment: actualTissues != null
@@ -347,7 +347,7 @@ double _carriedOtu(
     for (final logged in follow.loggedDives) {
       final sinceEnd =
           start + firstStart + followedEnd.difference(logged.end).inSeconds;
-      if (sinceEnd < otuCarryWindow.inSeconds) otu += logged.otu;
+      if (sinceEnd < otuCarryWindow.inSeconds) otu += logged.otu ?? 0;
     }
   }
   for (var j = 0; j < index; j++) {

@@ -29,8 +29,8 @@ void main() {
   SeriesFollow dived({
     DateTime? start,
     int minutes = 90,
-    double otu = 77,
-    double cns = 55,
+    double? otu = 77,
+    double? cns = 55,
     double endPressure = 60,
     double maxDepth = 42,
     GasMix gas = ean32,
@@ -226,5 +226,19 @@ void main() {
       plain[0].outcome.surfacedTissue.compartments,
     );
     expect(results[1].state.initialCns, 55);
+  });
+
+  test('a dive with no analysis carries the plan CNS and OTU', () {
+    final plain = compute(series());
+    final results = compute(
+      withFirstDived(
+        series(),
+        dived(otu: null, cns: null).copyWith(clearEndTissues: true),
+      ),
+    );
+
+    expect(results[1].state.initialCns, plain[1].state.initialCns);
+    expect(results[0].ownOtu, plain[0].ownOtu);
+    expect(results[1].state.initialOtu, plain[1].state.initialOtu);
   });
 }
