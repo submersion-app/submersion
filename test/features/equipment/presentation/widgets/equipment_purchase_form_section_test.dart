@@ -82,6 +82,45 @@ void main() {
     expect(find.byKey(const ValueKey('attr-field-product_url')), findsNothing);
   });
 
+  testWidgets('the SKU field explains itself before anything is typed', (
+    tester,
+  ) async {
+    // Issue #4236: the abbreviation alone left divers guessing, most likely
+    // at the serial number. The explanation is helper text, not hint text,
+    // because a hint only shows once the field is focused.
+    await pumpSection(
+      tester,
+      type: EquipmentType.regulator,
+      group: AttributeGroup.purchase,
+    );
+
+    final sku = tester.widget<TextField>(
+      find.descendant(
+        of: find.byKey(const ValueKey('attr-field-sku')),
+        matching: find.byType(TextField),
+      ),
+    );
+    final l10n = lookupAppLocalizations(const Locale('en'));
+    expect(sku.decoration!.helperText, l10n.attrHelper_sku);
+    expect(find.text(l10n.attrHelper_sku), findsOneWidget);
+  });
+
+  testWidgets('the retailer field carries no helper text', (tester) async {
+    await pumpSection(
+      tester,
+      type: EquipmentType.regulator,
+      group: AttributeGroup.purchase,
+    );
+
+    final retailer = tester.widget<TextField>(
+      find.descendant(
+        of: find.byKey(const ValueKey('attr-field-retailer')),
+        matching: find.byType(TextField),
+      ),
+    );
+    expect(retailer.decoration!.helperText, isNull);
+  });
+
   testWidgets('typing a SKU emits a curated attribute', (tester) async {
     EquipmentAttribute? emitted;
     await pumpSection(

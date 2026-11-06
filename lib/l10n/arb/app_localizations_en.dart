@@ -39319,6 +39319,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrLabel_sku => 'SKU';
 
   @override
+  String get attrHelper_sku =>
+      'The product or article number from the receipt or label, not the serial number';
+
+  @override
   String get attrLabel_retailer => 'Retailer';
 
   @override

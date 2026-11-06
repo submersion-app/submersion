@@ -39763,6 +39763,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_sku => 'Cikkszám';
 
   @override
+  String get attrHelper_sku =>
+      'A blokkon vagy a címkén szereplő cikkszám, nem a sorozatszám';
+
+  @override
   String get attrLabel_retailer => 'Forgalmazó';
 
   @override

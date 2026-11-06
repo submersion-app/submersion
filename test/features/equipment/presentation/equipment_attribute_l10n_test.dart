@@ -43,4 +43,25 @@ void main() {
     expect(attributeLabel(l10n, 'my_custom_field'), 'my_custom_field');
     expect(attributeChoiceLabel(l10n, 'foo', 'bar'), 'bar');
   });
+
+  group('attributeHelperText (issue #4236)', () {
+    test('the SKU is told apart from the serial number', () {
+      expect(
+        attributeHelperText(l10n, EquipmentAttrKeys.sku),
+        l10n.attrHelper_sku,
+      );
+      expect(attributeHelperText(l10n, EquipmentAttrKeys.sku), isNotEmpty);
+    });
+
+    test('self-explanatory keys and custom fields carry none', () {
+      expect(attributeHelperText(l10n, EquipmentAttrKeys.retailer), isNull);
+      expect(attributeHelperText(l10n, EquipmentAttrKeys.productUrl), isNull);
+      expect(attributeHelperText(l10n, 'my_custom_field'), isNull);
+    });
+  });
+
+  test('the German SKU label spells out the abbreviation (issue #4236)', () {
+    final de = lookupAppLocalizations(const Locale('de'));
+    expect(attributeLabel(de, EquipmentAttrKeys.sku), 'Artikelnummer (SKU)');
+  });
 }

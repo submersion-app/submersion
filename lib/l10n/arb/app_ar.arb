@@ -11572,6 +11572,7 @@
   "attrLabel_tow_burn_factor": "معامل استهلاك البطارية أثناء السحب",
   "attrLabel_tow_speed_factor": "معامل السرعة أثناء السحب",
   "attrLabel_sku": "رمز المنتج (SKU)",
+  "attrHelper_sku": "رقم المنتج من الإيصال أو الملصق، وليس الرقم التسلسلي",
   "attrLabel_retailer": "المتجر",
   "attrLabel_product_url": "رابط الويب",
   "attrLabel_color": "اللون",

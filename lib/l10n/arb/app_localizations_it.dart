@@ -40000,6 +40000,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get attrLabel_sku => 'Codice articolo (SKU)';
 
   @override
+  String get attrHelper_sku =>
+      'Codice del prodotto sullo scontrino o sull\'etichetta, non il numero di serie';
+
+  @override
   String get attrLabel_retailer => 'Rivenditore';
 
   @override

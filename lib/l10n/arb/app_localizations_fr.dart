@@ -40109,6 +40109,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get attrLabel_sku => 'Référence (SKU)';
 
   @override
+  String get attrHelper_sku =>
+      'Référence du produit sur le ticket ou l\'étiquette, pas le numéro de série';
+
+  @override
   String get attrLabel_retailer => 'Revendeur';
 
   @override

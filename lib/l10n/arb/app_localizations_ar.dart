@@ -40490,6 +40490,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_sku => 'رمز المنتج (SKU)';
 
   @override
+  String get attrHelper_sku =>
+      'رقم المنتج من الإيصال أو الملصق، وليس الرقم التسلسلي';
+
+  @override
   String get attrLabel_retailer => 'المتجر';
 
   @override
