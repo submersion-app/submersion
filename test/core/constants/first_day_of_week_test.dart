@@ -72,6 +72,31 @@ void main() {
     });
   });
 
+  group('firstNamedRegion', () {
+    test('takes the first locale that names a region', () {
+      expect(firstNamedRegion(['CH', 'US']), 'CH');
+    });
+
+    test('looks past a bare language to a later region', () {
+      // A browser reporting ['de', 'de-CH'] still names Switzerland.
+      expect(firstNamedRegion([null, 'CH']), 'CH');
+      expect(firstNamedRegion(['', 'US']), 'US');
+    });
+
+    test('is null when no locale names a region', () {
+      expect(firstNamedRegion(const []), isNull);
+      expect(firstNamedRegion([null, '']), isNull);
+    });
+  });
+
+  group('dateOnWeekday', () {
+    test('falls on every weekday it is asked for', () {
+      for (var day = DateTime.monday; day <= DateTime.sunday; day++) {
+        expect(dateOnWeekday(day).weekday, day);
+      }
+    });
+  });
+
   group('weekdaysFrom', () {
     test('starts on the given day and wraps around', () {
       expect(weekdaysFrom(DateTime.monday), [1, 2, 3, 4, 5, 6, 7]);

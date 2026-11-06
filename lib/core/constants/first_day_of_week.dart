@@ -27,6 +27,19 @@ int? resolveFirstWeekday(FirstDayOfWeek setting, String? regionCode) {
   };
 }
 
+/// The first region named in [regionCodes], the device's preferred locales'
+/// country codes in order of preference, or null when none names one.
+///
+/// The first locale alone is not enough: a browser often leads with a bare
+/// language (`en`, `de`) and names the region only further down (`en-US`,
+/// `de-CH`), which would leave Automatic without a region.
+String? firstNamedRegion(Iterable<String?> regionCodes) {
+  for (final region in regionCodes) {
+    if (region != null && region.isNotEmpty) return region;
+  }
+  return null;
+}
+
 /// The first day of the week CLDR assigns to [regionCode], or null when
 /// there is no region to look up. A region CLDR does not list starts on
 /// Monday, its world default (`001`) and the ISO 8601 week.
@@ -73,3 +86,8 @@ int weekdayFromMaterialIndex(int index) => index == 0 ? DateTime.sunday : index;
 /// [firstWeekday].
 List<int> weekdaysFrom(int firstWeekday) =>
     List.generate(7, (i) => (firstWeekday - 1 + i) % 7 + 1, growable: false);
+
+/// A date that falls on [weekday] ([DateTime.weekday] numbering), for naming
+/// weekdays through `DateFormat`; only its weekday matters. 1 to 7 January
+/// 2024 run Monday to Sunday.
+DateTime dateOnWeekday(int weekday) => DateTime(2024, 1, weekday);

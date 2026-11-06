@@ -3,6 +3,14 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'package:submersion/core/constants/first_day_of_week.dart';
 
+/// The first day of the week, in [DateTime.weekday] numbering, that weeks
+/// below [context] are laid out with: the diver's choice, which the app root
+/// hands every Material widget through [WeekStartMaterialLocalizationsDelegate]
+/// (issue #4232).
+int firstWeekdayOf(BuildContext context) => weekdayFromMaterialIndex(
+  MaterialLocalizations.of(context).firstDayOfWeekIndex,
+);
+
 /// Loads the app's [MaterialLocalizations] and replaces only their
 /// [MaterialLocalizations.firstDayOfWeekIndex] with [firstWeekday] (issue
 /// #4232).

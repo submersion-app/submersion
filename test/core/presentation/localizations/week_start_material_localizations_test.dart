@@ -118,6 +118,15 @@ void main() {
       expect(MaterialLocalizations.of(context).firstDayOfWeekIndex, 0);
     });
 
+    testWidgets('firstWeekdayOf reads the first day back', (tester) async {
+      final saturday = await _pumpApp(tester, firstWeekday: DateTime.saturday);
+      expect(firstWeekdayOf(saturday), DateTime.saturday);
+
+      // English alone starts on Sunday.
+      final english = await _pumpApp(tester, firstWeekday: null);
+      expect(firstWeekdayOf(english), DateTime.sunday);
+    });
+
     testWidgets('the date picker opens under the override', (tester) async {
       final context = await _pumpApp(tester, firstWeekday: DateTime.monday);
       unawaited(

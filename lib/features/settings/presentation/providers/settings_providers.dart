@@ -3926,10 +3926,16 @@ final dateFormatProvider = Provider<DateFormatPreference>((ref) {
   return ref.watch(settingsProvider.select((s) => s.dateFormat));
 });
 
-/// The device's region (an ISO 3166 country code such as `CH`), or null when
-/// the platform names none. Read once; overridden in tests.
+/// The device's region (an ISO 3166 country code such as `CH`), the first
+/// one its preferred locales name, or null when the platform names none.
+/// The app root invalidates it when the device's locales change, so it is
+/// read again then; overridden in tests.
 final deviceRegionProvider = Provider<String?>((ref) {
-  return WidgetsBinding.instance.platformDispatcher.locale.countryCode;
+  return firstNamedRegion(
+    WidgetsBinding.instance.platformDispatcher.locales.map(
+      (locale) => locale.countryCode,
+    ),
+  );
 });
 
 /// The first day of the week in [DateTime.weekday] numbering, or null when

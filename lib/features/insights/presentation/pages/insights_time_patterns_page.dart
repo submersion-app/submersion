@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/first_day_of_week.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/presentation/localizations/week_start_material_localizations.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/elapsed_duration_format.dart';
 
@@ -35,13 +36,12 @@ class InsightsTimePatternsPage extends ConsumerWidget {
 
   /// The strftime('%w') days (0 = Sunday .. 6 = Saturday) in the order the
   /// week runs here: from the first day the app's Material localizations
-  /// name, which the app root sets from the diver's setting.
-  List<int> _weekOrder(BuildContext context) {
-    final first = weekdayFromMaterialIndex(
-      MaterialLocalizations.of(context).firstDayOfWeekIndex,
-    );
-    return [for (final weekday in weekdaysFrom(first)) weekday % 7];
-  }
+  /// name, which the app root sets from the diver's setting. Material's
+  /// weekday index counts the same way strftime('%w') does.
+  List<int> _weekOrder(BuildContext context) => [
+    for (final weekday in weekdaysFrom(firstWeekdayOf(context)))
+      materialWeekdayIndex(weekday),
+  ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

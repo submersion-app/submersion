@@ -2,8 +2,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import 'package:submersion/core/constants/first_day_of_week.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/presentation/localizations/week_start_material_localizations.dart';
 import 'package:submersion/core/presentation/widgets/chart_zoom_controls.dart';
 import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
@@ -342,9 +342,7 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
   TrendChartDerived _currentDerived() {
     // Weekly buckets start on the diver's first day of the week (issue
     // #4232), which the app root hands every Material widget.
-    final firstWeekday = weekdayFromMaterialIndex(
-      MaterialLocalizations.of(context).firstDayOfWeekIndex,
-    );
+    final firstWeekday = firstWeekdayOf(context);
     final key = (
       widget.points,
       widget.secondarySeries,
