@@ -106,6 +106,20 @@ void main() {
       );
     });
 
+    test('a worst case below the plot is not placed', () {
+      // Axes frozen for a drag that takes the profile deeper than they reach.
+      expect(
+        placeWorstCaseMarker(
+          worstCase: _worstCase(),
+          geometry: _geometry,
+          depthAt: (_) => 60,
+          profileEndSeconds: 1800,
+          pillSize: _pillSize,
+        ),
+        isNull,
+      );
+    });
+
     test('a worst case past the end of the profile is not placed, even '
         'inside the padded time axis', () {
       // A stale result for a longer plan: 1850 s is on the axis (padded to

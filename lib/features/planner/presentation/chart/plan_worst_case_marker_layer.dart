@@ -108,7 +108,14 @@ PlacedWorstCaseMarker? placeWorstCaseMarker({
   final time = worstCase.runtimeSeconds.toDouble();
   if (time < 0 || time > profileEndSeconds) return null;
   final anchor = geometry.toPixel(time, depthAt(time));
-  if (anchor.dx < plot.left || anchor.dx > plot.right) return null;
+  // Off the plot either way: a drag freezes the axes while the profile it
+  // reshapes can run past them, below the plot as well as beyond its end.
+  if (anchor.dx < plot.left ||
+      anchor.dx > plot.right ||
+      anchor.dy < plot.top ||
+      anchor.dy > plot.bottom) {
+    return null;
+  }
 
   final aboveTop = anchor.dy - worstCasePillGap - pillSize.height;
   final above = aboveTop >= plot.top + _flagRowHeight;
