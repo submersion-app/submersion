@@ -41,6 +41,23 @@ void main() {
     });
   });
 
+  // A temperature jump is a difference: in Fahrenheit it scales by 9/5
+  // without the 32 degree offset a reading takes (issue #4209).
+  test('temperatureDelta converts a difference, not a reading', () {
+    final fahrenheit = qualityUnitFormattersFor(
+      const UnitFormatter(
+        AppSettings(temperatureUnit: TemperatureUnit.fahrenheit),
+      ),
+    );
+    expect(fahrenheit.temperatureDelta(3), '5.4°F');
+    expect(
+      qualityUnitFormattersFor(
+        const UnitFormatter(AppSettings()),
+      ).temperatureDelta(3),
+      '3°C',
+    );
+  });
+
   // A shared gear finding names each dive's clock time alone, in the
   // diver's 12 or 24 hour setting (#2853). The instant is a UTC wall clock
   // and formats as recorded.

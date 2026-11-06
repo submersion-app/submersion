@@ -41078,6 +41078,16 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String dataQuality_dive_tanks(String tanks) {
+    return 'נוגע ל-$tanks';
+  }
+
+  @override
+  String dataQuality_dive_tankPair(String first, String second) {
+    return '$first ו$second';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => 'בדיקת איכות הנתונים';
 
   @override
@@ -41096,9 +41106,9 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'הסריקה הושלמה - $count פריטים לבדיקה',
-      one: 'הסריקה הושלמה - פריט אחד לבדיקה',
-      zero: 'הסריקה הושלמה - אין ממצאים חדשים',
+      other: 'הסריקה הושלמה - $count פריטים פתוחים לבדיקה',
+      one: 'הסריקה הושלמה - פריט פתוח אחד לבדיקה',
+      zero: 'הסריקה הושלמה - אין ממצאים פתוחים',
     );
     return '$_temp0';
   }
@@ -41226,8 +41236,27 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_clock_offset(int hours) {
-    return 'שעון של מקור אחד שונה ב-$hours שעות';
+  String dataQuality_msg_clock_offsetAhead(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'שעון של מקור אחד מקדים ב-$hours שעות',
+      two: 'שעון של מקור אחד מקדים בשעתיים',
+      one: 'שעון של מקור אחד מקדים בשעה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_clock_offsetBehind(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'שעון של מקור אחד מאחר ב-$hours שעות',
+      two: 'שעון של מקור אחד מאחר בשעתיים',
+      one: 'שעון של מקור אחד מאחר בשעה אחת',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -41294,8 +41323,18 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_rate(String rate, int seconds) {
-    return 'קצב אנכי של $rate נשמר במשך $seconds שנ׳';
+  String dataQuality_msg_rate(String rate, String duration) {
+    return 'קצב אנכי של $rate נשמר במשך $duration';
+  }
+
+  @override
+  String dataQuality_unit_seconds(int seconds) {
+    return '$seconds שנ׳';
+  }
+
+  @override
+  String dataQuality_unit_minutes(int minutes) {
+    return '$minutes דק׳';
   }
 
   @override
@@ -41397,10 +41436,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'היחס הקבוע מרמז על הבדל בהגדרת מים מלוחים/מתוקים';
 
   @override
-  String get dataQuality_msg_sourceDuration => 'המקורות חלוקים לגבי משך הצלילה';
+  String dataQuality_msg_sourceDuration(String primary, String source) {
+    return 'המקורות חלוקים לגבי משך הצלילה: $primary מול $source';
+  }
 
   @override
-  String get dataQuality_msg_sourceTemp => 'המקורות חלוקים לגבי טמפרטורת המים';
+  String dataQuality_msg_sourceTemp(String primary, String source) {
+    return 'המקורות חלוקים לגבי טמפרטורת המים: $primary מול $source';
+  }
 
   @override
   String dataQuality_repairLabel_shiftTime(String offset) {
@@ -41418,6 +41461,14 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String dataQuality_repairLabel_fixSourceClock(String offset) {
     return 'תיקון שעון המחשב הזה ב-$offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClockNamed(
+    String computer,
+    String offset,
+  ) {
+    return 'תיקון השעון של $computer ב-$offset';
   }
 
   @override
@@ -41589,6 +41640,33 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_split => 'פיצול לצלילות נפרדות';
+
+  @override
+  String dataQuality_repairLabel_setPrimaryNamed(String source) {
+    return 'הגדרת $source כמקור הראשי';
+  }
+
+  @override
+  String dataQuality_repairLabel_splitNamed(String source) {
+    return 'פיצול $source לצלילה נפרדת';
+  }
+
+  @override
+  String dataQuality_setPrimary_title(String source) {
+    return 'להגדיר את $source כמקור הראשי?';
+  }
+
+  @override
+  String dataQuality_setPrimary_body(String source) {
+    return 'העומק, המשך והפרופיל של הצלילה יגיעו מ-$source. אפשר לשנות זאת שוב במקורות הנתונים של הצלילה.';
+  }
+
+  @override
+  String get dataQuality_setPrimary_bodyUnnamed =>
+      'העומק, המשך והפרופיל של הצלילה יגיעו מהמקור הזה. אפשר לשנות זאת שוב במקורות הנתונים של הצלילה.';
+
+  @override
+  String get dataQuality_setPrimary_confirm => 'הגדרה כראשי';
 
   @override
   String get dataQuality_repairLabel_compare => 'השוואת פרופילים';
