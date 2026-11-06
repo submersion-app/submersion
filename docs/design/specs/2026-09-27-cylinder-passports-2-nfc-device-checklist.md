@@ -12,6 +12,8 @@ OS version, build and tag model for each line.
   provisioning profiles regenerated.
 - One each of NTAG213, NTAG215 and NTAG216, blank; one locked tag; one tag
   holding another app's link.
+- One NDEF-formatted ISO 15693 (Type 5) tag, such as an NXP ICODE SLIX or
+  SLIX2 micro or glass tag (issue #4226).
 
 ## Write
 
@@ -19,6 +21,9 @@ OS version, build and tag model for each line.
       written and checked", the type and capacity, "Everything fits".
 - [ ] Android: the same.
 - [ ] NTAG213: written, with "Left off to fit" naming the dropped fields.
+- [ ] iPhone and Android: the ICODE SLIX tag is found, written and checked,
+      with "Left off to fit" naming the dropped fields; on Android the type
+      reads "NFC Forum Type 5". Scanning it opens the passport.
 - [ ] Locked tag: "This tag is locked", nothing written.
 - [ ] Lift the tag mid-write: "The tag was not written", Try again writes
       it cleanly.

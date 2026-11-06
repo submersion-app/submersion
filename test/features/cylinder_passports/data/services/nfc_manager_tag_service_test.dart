@@ -114,10 +114,25 @@ void main() {
     );
     await started();
     expect(manager.invalidateAfterFirstReadIos, isTrue);
-    expect(manager.pollingOptions, {NfcPollingOption.iso14443});
     manager.onDiscovered!(tag);
     expect(await session, 1);
     expect(manager.stops, 1);
+  });
+
+  test('polls for Type 2 and Type 5 tags (issue #4226)', () async {
+    // ISO 14443 covers NTAG21x stickers; ISO 15693 covers NXP ICODE SLIX
+    // and the other small on-metal and glass tags made for gear.
+    final session = service.withTag<int>(
+      promptIos: 'Hold near',
+      onTag: (_) async => 1,
+    );
+    await started();
+    expect(manager.pollingOptions, {
+      NfcPollingOption.iso14443,
+      NfcPollingOption.iso15693,
+    });
+    manager.onDiscovered!(tag);
+    await session;
   });
 
   test('the session is active from its start until it has stopped', () async {

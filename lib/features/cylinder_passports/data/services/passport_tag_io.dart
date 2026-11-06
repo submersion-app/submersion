@@ -117,5 +117,7 @@ String? friendlyTagType(String? platformType) {
     return 'NFC Forum Type ${platformType.substring(forum.length)}';
   }
   if (platformType == 'com.nxp.ndef.mifareclassic') return 'MIFARE Classic';
+  // Android's name for NDEF on an NXP ICODE SLI-family (ISO 15693) chip.
+  if (platformType == 'com.nxp.ndef.icodesli') return 'NFC Forum Type 5';
   return platformType;
 }
