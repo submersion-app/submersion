@@ -7,6 +7,7 @@ import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_tissue_loading_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_area_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_heat_map.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tissue_pressure_bar_chart.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -92,6 +93,7 @@ Widget buildCard({
   bool expandVisualization = false,
   VoidCallback? onOpen3dView,
   bool scrollable = false,
+  ThemeData? theme,
 }) {
   final card = CompactTissueLoadingCard(
     status: status,
@@ -105,6 +107,7 @@ Widget buildCard({
       // The assertions read English strings; pin the locale so they do not
       // depend on the host's.
       locale: const Locale('en'),
+      theme: theme,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       // Both real hosts (dive detail, current dive load page) scroll, so a
@@ -394,30 +397,37 @@ void main() {
       expect(find.text('M-value'), findsOneWidget);
     });
 
-    testWidgets('draws the M-value line in the full error color', (
-      tester,
-    ) async {
-      await tester.pumpWidget(buildCard(status: _multiCompStatus));
-      await tester.pumpAndSettle();
+    for (final brightness in Brightness.values) {
+      testWidgets('draws the M-value line in the full error color '
+          '(${brightness.name} theme)', (tester) async {
+        await tester.pumpWidget(
+          buildCard(
+            status: _multiCompStatus,
+            theme: ThemeData(brightness: brightness),
+          ),
+        );
+        await tester.pumpAndSettle();
 
-      final error = Theme.of(
-        tester.element(find.byType(CompactTissueLoadingCard)),
-      ).colorScheme.error;
-      final line = tester.widget<ColoredBox>(
-        find.descendant(
-          of: find.byKey(const ValueKey('tissue-m-value-line')),
-          matching: find.byType(ColoredBox),
-        ),
-      );
-      // At half opacity it all but vanished against the dark card.
-      expect(line.color, error);
-      expect(
-        tester
-            .getSize(find.byKey(const ValueKey('tissue-m-value-line')))
-            .height,
-        1.5,
-      );
-    });
+        final colorScheme = Theme.of(
+          tester.element(find.byType(CompactTissueLoadingCard)),
+        ).colorScheme;
+        expect(colorScheme.brightness, brightness);
+        final line = tester.widget<ColoredBox>(
+          find.descendant(
+            of: find.byKey(const ValueKey('tissue-m-value-line')),
+            matching: find.byType(ColoredBox),
+          ),
+        );
+        // At half opacity it all but vanished against the dark card.
+        expect(line.color, colorScheme.error);
+        expect(
+          tester
+              .getSize(find.byKey(const ValueKey('tissue-m-value-line')))
+              .height,
+          TissuePressureBarChart.mValueLineHeight,
+        );
+      });
+    }
 
     testWidgets('sits at each compartment\'s own equilibrium loading', (
       tester,

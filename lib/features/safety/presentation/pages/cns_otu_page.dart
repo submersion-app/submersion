@@ -357,7 +357,10 @@ class _TissueSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final current = status;
-    if (current == null) return const TissueUnavailableNote();
+    // An empty status has nothing to draw either: same note as no data.
+    if (current == null || current.compartments.isEmpty) {
+      return const TissueUnavailableNote();
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [

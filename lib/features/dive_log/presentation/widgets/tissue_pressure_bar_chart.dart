@@ -163,8 +163,9 @@ class TissuePressureBarChart extends StatelessWidget {
   static Color surfaceLevelMarkerColor(ColorScheme colorScheme) =>
       colorScheme.onSurface.withValues(alpha: 0.85);
 
-  /// Thickness of the M-value line at 100%.
-  static const double mValueLineHeight = 1.5;
+  /// Thickness of the M-value line at 100%: whole pixels, since a
+  /// fractional height antialiases into a fainter smear at 1.0 DPR.
+  static const double mValueLineHeight = 2.0;
 
   /// Color of the M-value line: the theme's full error color. At half
   /// opacity it all but vanished against the dark card (issue #4228).
