@@ -11572,7 +11572,7 @@
   "attrLabel_tow_burn_factor": "Fogyasztási tényező vontatáskor",
   "attrLabel_tow_speed_factor": "Sebességtényező vontatáskor",
   "attrLabel_sku": "Cikkszám",
-  "attrHelper_sku": "A blokkról vagy a címkéről, nem a sorozatszám",
+  "attrHelper_sku": "A blokkon vagy a címkén található, nem a sorozatszám",
   "attrLabel_retailer": "Forgalmazó",
   "attrLabel_product_url": "Webhivatkozás",
   "attrLabel_color": "Szín",
