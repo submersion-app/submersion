@@ -150,6 +150,47 @@ void main() {
     expect(await loggedIds(tester), isEmpty);
   });
 
+  testWidgets('a dive with no segments is named as the reason', (tester) async {
+    await pumpPlan(tester);
+    await twoDives(tester, start: nine);
+    final editor = containerOf(tester).read(divePlanNotifierProvider.notifier);
+    for (final segment in containerOf(
+      tester,
+    ).read(divePlanNotifierProvider).segments) {
+      editor.removeSegment(segment.id);
+    }
+    await tester.pumpAndSettle();
+
+    await tapMenu(tester, 'Create planned dives');
+    await settleUntil(
+      tester,
+      () => find.byType(SnackBar).evaluate().isNotEmpty,
+    );
+
+    expect(
+      find.text("B has no segments, so the planned dives weren't updated"),
+      findsOneWidget,
+    );
+    expect(await loggedIds(tester), isEmpty);
+  });
+
+  testWidgets('a single plan with no segments says so', (tester) async {
+    await pumpPlan(tester);
+    containerOf(tester).read(divePlanNotifierProvider.notifier).newPlan();
+    await tester.pumpAndSettle();
+
+    await tapMenu(tester, 'Create planned dive');
+    await settleUntil(
+      tester,
+      () => find.byType(SnackBar).evaluate().isNotEmpty,
+    );
+
+    expect(
+      find.text("This plan has no segments, so it wasn't written to the log"),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('a series is added to the log, then offered for update', (
     tester,
   ) async {

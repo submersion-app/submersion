@@ -543,9 +543,8 @@ void main() {
       expect(find.byType(LoggedDiveResults), findsOneWidget);
     });
 
-    testWidgets('its plan''s stop table and name cannot be edited', (
-      tester,
-    ) async {
+    testWidgets('its plan'
+        's stop table and name cannot be edited', (tester) async {
       final c = await pumpDived(tester);
       await tester.tap(
         find.descendant(

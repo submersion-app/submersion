@@ -97,12 +97,13 @@ class PlannedLogEntry {
     isPlanned: true,
   );
 
-  /// [existing] rewritten to the plan, under its own id.
+  /// [existing] rewritten to the plan, under its own id. A plan with no
+  /// start keeps the entry's time: it was set when the entry was made.
   Dive update(Dive existing, DivePlanState state, DiveSite? site) =>
       existing.copyWith(
         name: name,
         clearName: name == null,
-        dateTime: _start(state),
+        dateTime: state.startDateTime ?? existing.dateTime,
         runtime: Duration(seconds: outcome.runtimeSeconds),
         maxDepth: outcome.maxDepth,
         avgDepth: avgDepth,
@@ -124,7 +125,8 @@ class PlannedLogEntry {
 
   /// Whether [existing], whose profile in the log is [storedProfile], is
   /// what an update would write for [state] at [site]: nothing for "Update
-  /// planned dives" to do. Only what the plan sets is compared. Depth stats
+  /// planned dives" to do. Only what the plan sets is compared, so a plan
+  /// with no start leaves the entry's time as it is. Depth stats
   /// are left out, since the log works them out again from the profile it
   /// stores, and so are the gas switches, which follow from the profile and
   /// the tanks.
@@ -134,9 +136,8 @@ class PlannedLogEntry {
     DivePlanState state,
     DiveSite? site,
   ) {
-    if (state.startDateTime == null) return false;
     return existing.name == name &&
-        existing.dateTime == _start(state) &&
+        existing.dateTime == (state.startDateTime ?? existing.dateTime) &&
         existing.runtime == Duration(seconds: outcome.runtimeSeconds) &&
         existing.site?.id == site?.id &&
         existing.notes == state.notes &&
@@ -183,23 +184,27 @@ bool _sameProfile(List<DiveProfilePoint> stored, List<DiveProfilePoint> next) {
   return true;
 }
 
-/// Each dive's entry in the log, by its index in [series]: the dive its
+/// Each dive's entry in the log, by its plan id: the dive its
 /// plan row links, or the series' own link for a dive not saved yet. Null
 /// for a dive with no link, or one whose entry has since been deleted. The
 /// rows are read rather than the series in memory, which can hold a stale
 /// link for a dive linked while another was in the editor.
-Future<Map<int, Dive?>> linkedEntries(
+Future<Map<String, Dive?>> linkedEntries(
   PlanSeries series,
   DivePlanRepository plans,
   DiveRepository dives,
 ) async {
-  final linked = <int, Dive?>{};
-  for (final (i, dive) in series.dives.indexed) {
-    final row = await plans.getPlan(dive.state.id);
-    final id = row == null ? dive.state.linkedDiveId : row.linkedDiveId;
-    linked[i] = id == null ? null : await dives.getDiveById(id);
-  }
-  return linked;
+  final entries = await Future.wait([
+    for (final dive in series.dives)
+      () async {
+        final row = await plans.getPlan(dive.state.id);
+        final id = row == null ? dive.state.linkedDiveId : row.linkedDiveId;
+        return id == null ? null : await dives.getDiveById(id);
+      }(),
+  ]);
+  return {
+    for (final (i, dive) in series.dives.indexed) dive.state.id: entries[i],
+  };
 }
 
 /// The log's mode for a plan's: every rebreather but a closed circuit is

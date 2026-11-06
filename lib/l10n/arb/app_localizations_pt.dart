@@ -21221,6 +21221,15 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String plannerSeries_cannotUpdateEmpty(String dive) {
+    return '$dive não tem segmentos, por isso os mergulhos planeados não foram atualizados';
+  }
+
+  @override
+  String get plannerSeries_cannotUpdateEmptyPlan =>
+      'Este plano não tem segmentos, por isso não foi escrito no registo';
+
+  @override
   String plannerSeries_created(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -29,6 +29,10 @@ class PlannedDivesUpdate {
   /// In a series, which dive stopped it: its name, else its letter.
   final String? blockedBy;
 
+  /// Whether what stopped it is a dive with no segments, rather than one
+  /// with a critical warning.
+  final bool blockedEmpty;
+
   /// A single plan linked to a dived dive: a new entry would take its link,
   /// so nothing was written until the diver agrees to move it.
   final bool needsLinkMove;
@@ -48,6 +52,7 @@ class PlannedDivesUpdate {
   const PlannedDivesUpdate({
     this.valid = true,
     this.blockedBy,
+    this.blockedEmpty = false,
     this.needsLinkMove = false,
     this.created = 0,
     this.updated = 0,
@@ -90,37 +95,42 @@ Future<PlannedDivesUpdate> updatePlannedDives(
 
   // Resolved before the plan is read for writing: the diver can still edit
   // while these lookups run, and what is written must be the plan as it is
-  // after them.
+  // after them. Entries are matched to dives by plan id, never by position,
+  // so a dive added or removed meanwhile cannot take another's entry.
   final diverId = container.read(currentDiverIdProvider);
-  final sites = <String, DiveSite?>{};
-  for (final dive in container.read(planSeriesNotifierProvider).dives) {
-    final id = dive.state.siteId;
-    if (id != null && !sites.containsKey(id)) {
-      sites[id] = await visiblePlanSite(
-        await container.read(siteProvider(id).future),
-        diverId,
-        container.read(itemSharesRepositoryProvider),
-      );
-    }
-  }
   final linked = await linkedEntries(
     container.read(planSeriesNotifierProvider),
     plans,
     repository,
   );
+  final sites = await _visibleSites(
+    container,
+    container.read(planSeriesNotifierProvider),
+    linked,
+    diverId,
+  );
 
   final series = container.read(planSeriesNotifierProvider);
   final results = container.read(planSeriesResultsProvider);
-  bool dived(int i) => linked[i] != null && !linked[i]!.isPlanned;
+  final entries = {
+    for (final dive in series.dives) dive.state.id: linked[dive.state.id],
+  };
+  bool dived(int i) {
+    final entry = entries[series.dives[i].state.id];
+    return entry != null && !entry.isPlanned;
+  }
+
   if (!series.isSeries && dived(0)) {
     if (!moveDivedLink) return const PlannedDivesUpdate(needsLinkMove: true);
-    linked[0] = null;
+    entries[series.dives[0].state.id] = null;
   }
   for (final (i, result) in results.indexed) {
     if (dived(i)) continue;
-    if (result.state.segments.isEmpty || !result.outcome.isDiveable) {
+    final empty = result.state.segments.isEmpty;
+    if (empty || !result.outcome.isDiveable) {
       return PlannedDivesUpdate(
         valid: false,
+        blockedEmpty: empty,
         blockedBy: series.isSeries
             ? series.dives[i].name ?? seriesDiveLetter(i)
             : null,
@@ -133,47 +143,61 @@ Future<PlannedDivesUpdate> updatePlannedDives(
   var updated = 0;
   var skipped = 0;
   final links = <int, String>{};
-  for (var i = 0; i < series.dives.length; i++) {
-    if (dived(i)) {
-      skipped++;
-      continue;
-    }
-    final dive = series.dives[i];
-    final result = results[i];
-    final entry = PlannedLogEntry.of(
-      result,
-      name: series.isSeries ? dive.name : result.state.name,
-      config: config,
-    );
-    // addDive reads the diver once on entry, with nothing awaited in between,
-    // so a site checked for another diver is never attached.
-    final site = container.read(currentDiverIdProvider) == diverId
-        ? sites[result.state.siteId]
-        : null;
-    // A link to an entry since deleted from the log is a dive with none.
-    final existing = linked[i];
-    if (existing == null) {
-      final added = await log.addDive(entry.newDive(result.state, site));
-      links[i] = added.id;
-      created++;
-      await _writeGasSwitches(repository, added.id, result);
-    } else {
-      await log.updateDive(entry.update(existing, result.state, site));
-      await repository.saveEditedProfileWithKind(
-        diveId: existing.id,
-        editedPoints: entry.profile,
-        editKind: 'plan_update',
+  // A write that fails part way still saves and links what was written, so
+  // an entry already made is never orphaned and made again by the next
+  // Create. The failure is rethrown once that is done.
+  Object? failure;
+  StackTrace? failureStack;
+  try {
+    for (var i = 0; i < series.dives.length; i++) {
+      if (dived(i)) {
+        skipped++;
+        continue;
+      }
+      final dive = series.dives[i];
+      final result = results[i];
+      final entry = PlannedLogEntry.of(
+        result,
+        name: series.isSeries ? dive.name : result.state.name,
+        config: config,
       );
-      await repository.deleteGasSwitchesForDive(existing.id);
-      await _writeGasSwitches(repository, existing.id, result);
-      updated++;
+      // A link to an entry since deleted from the log is a dive with none.
+      final existing = entries[dive.state.id];
+      if (existing == null) {
+        // addDive reads the diver once on entry, with nothing awaited in
+        // between, so a site checked for another diver is never attached.
+        final site = container.read(currentDiverIdProvider) == diverId
+            ? sites[(result.state.siteId, diverId)]
+            : null;
+        final added = await log.addDive(entry.newDive(result.state, site));
+        links[i] = added.id;
+        created++;
+        await _writeGasSwitches(repository, added.id, result);
+      } else {
+        // The entry keeps its own diver, so the site is checked for them.
+        final site = sites[(result.state.siteId, existing.diverId)];
+        await log.updateDive(entry.update(existing, result.state, site));
+        await repository.replacePlannedProfile(
+          diveId: existing.id,
+          points: entry.profile,
+        );
+        await repository.deleteGasSwitchesForDive(existing.id);
+        await _writeGasSwitches(repository, existing.id, result);
+        updated++;
+      }
     }
+  } catch (error, stack) {
+    failure = error;
+    failureStack = stack;
   }
 
   final selected = series.selectedIndex;
-  final selectedDiveId = links[selected] ?? linked[selected]?.id;
+  final selectedDiveId =
+      links[selected] ?? entries[series.dives[selected].state.id]?.id;
 
-  if (created + updated > 0) {
+  // A removed dive's row still links its entry until the series is saved,
+  // so it is saved even when every dive left has been dived.
+  if (created + updated > 0 || notifier.removedLinkedDiveIds.isNotEmpty) {
     if (container.read(planSeriesNotifierProvider).savesAsSeries) {
       await saveCurrentSeries(container);
     } else {
@@ -198,6 +222,7 @@ Future<PlannedDivesUpdate> updatePlannedDives(
     adopted[planId] = diveId;
   }
   if (notifier.mounted) notifier.adoptLinks(adopted);
+  if (failure != null) Error.throwWithStackTrace(failure, failureStack!);
 
   return PlannedDivesUpdate(
     created: created,
@@ -206,6 +231,31 @@ Future<PlannedDivesUpdate> updatePlannedDives(
     selectedDiveId: selectedDiveId,
     orphans: await _orphans(container, notifier.removedLinkedDiveIds),
   );
+}
+
+/// Each site of [series] as it may go on an entry, by (site id, diver id):
+/// for a dive with an entry, checked for the entry's own diver, which an
+/// update keeps; for one without, for [diverId], who a new entry belongs to.
+Future<Map<(String?, String?), DiveSite?>> _visibleSites(
+  ProviderContainer container,
+  PlanSeries series,
+  Map<String, Dive?> linked,
+  String? diverId,
+) async {
+  final sites = <(String?, String?), DiveSite?>{};
+  for (final dive in series.dives) {
+    final id = dive.state.siteId;
+    if (id == null) continue;
+    final entry = linked[dive.state.id];
+    final owner = entry == null ? diverId : entry.diverId;
+    if (sites.containsKey((id, owner))) continue;
+    sites[(id, owner)] = await visiblePlanSite(
+      await container.read(siteProvider(id).future),
+      owner,
+      container.read(itemSharesRepositoryProvider),
+    );
+  }
+  return sites;
 }
 
 /// The entries of [ids] still only planned that no plan links any more. Read
@@ -249,3 +299,11 @@ Future<void> _writeGasSwitches(
     ),
   );
 }
+
+/// Whether "Update planned dives" must ask for the first dive's start: a
+/// series where some dive still to write has none to lay it out on. A dived
+/// dive starts when it did, and the dives after it carry from that, so a
+/// series begun by one needs none.
+bool seriesNeedsFirstStart(PlanSeries series, List<SeriesDiveResult> results) =>
+    series.isSeries &&
+    results.any((r) => r.actual == null && r.state.startDateTime == null);

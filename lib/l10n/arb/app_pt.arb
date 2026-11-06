@@ -6071,6 +6071,8 @@
   "plannerSeries_updatePlannedDive": "Atualizar mergulho planeado",
   "plannerSeries_updatePlannedDives": "Atualizar mergulhos planeados",
   "plannerSeries_cannotUpdate": "{dive} tem um aviso crítico, por isso os mergulhos planeados não foram atualizados",
+  "plannerSeries_cannotUpdateEmpty": "{dive} não tem segmentos, por isso os mergulhos planeados não foram atualizados",
+  "plannerSeries_cannotUpdateEmptyPlan": "Este plano não tem segmentos, por isso não foi escrito no registo",
   "plannerSeries_created": "{count, plural, one{{count} mergulho planeado adicionado ao registo} other{{count} mergulhos planeados adicionados ao registo}}",
   "plannerSeries_updated": "{count, plural, one{{count} mergulho planeado atualizado no registo} other{{count} mergulhos planeados atualizados no registo}}",
   "plannerSeries_orphans_title": "Eliminar do registo?",

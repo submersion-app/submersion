@@ -5970,6 +5970,8 @@
   "plannerSeries_updatePlannedDive": "Aggiorna immersione pianificata",
   "plannerSeries_updatePlannedDives": "Aggiorna immersioni pianificate",
   "plannerSeries_cannotUpdate": "{dive} ha un avviso critico, quindi le immersioni pianificate non sono state aggiornate",
+  "plannerSeries_cannotUpdateEmpty": "{dive} non ha segmenti, quindi le immersioni pianificate non sono state aggiornate",
+  "plannerSeries_cannotUpdateEmptyPlan": "Questo piano non ha segmenti, quindi non è stato scritto nel registro",
   "plannerSeries_created": "{count, plural, one{{count} immersione pianificata aggiunta al registro} other{{count} immersioni pianificate aggiunte al registro}}",
   "plannerSeries_updated": "{count, plural, one{{count} immersione pianificata aggiornata nel registro} other{{count} immersioni pianificate aggiornate nel registro}}",
   "plannerSeries_orphans_title": "Eliminare dal registro?",

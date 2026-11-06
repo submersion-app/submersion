@@ -20755,6 +20755,15 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String plannerSeries_cannotUpdateEmpty(String dive) {
+    return 'ל-$dive אין מקטעים, ולכן הצלילות המתוכננות לא עודכנו';
+  }
+
+  @override
+  String get plannerSeries_cannotUpdateEmptyPlan =>
+      'לתוכנית זו אין מקטעים, ולכן היא לא נכתבה ביומן';
+
+  @override
   String plannerSeries_created(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

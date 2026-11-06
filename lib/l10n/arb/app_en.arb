@@ -13282,6 +13282,15 @@
       }
     }
   },
+  "plannerSeries_cannotUpdateEmpty": "{dive} has no segments, so the planned dives weren't updated",
+  "@plannerSeries_cannotUpdateEmpty": {
+    "placeholders": {
+      "dive": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerSeries_cannotUpdateEmptyPlan": "This plan has no segments, so it wasn't written to the log",
   "plannerSeries_created": "{count, plural, one{{count} planned dive added to the log} other{{count} planned dives added to the log}}",
   "@plannerSeries_created": {
     "placeholders": {

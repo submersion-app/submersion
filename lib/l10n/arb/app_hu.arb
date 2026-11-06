@@ -5970,6 +5970,8 @@
   "plannerSeries_updatePlannedDive": "Tervezett merülés frissítése",
   "plannerSeries_updatePlannedDives": "Tervezett merülések frissítése",
   "plannerSeries_cannotUpdate": "{dive} kritikus figyelmeztetést tartalmaz, ezért a tervezett merülések nem frissültek",
+  "plannerSeries_cannotUpdateEmpty": "{dive} nem tartalmaz szakaszokat, ezért a tervezett merülések nem frissültek",
+  "plannerSeries_cannotUpdateEmptyPlan": "Ez a terv nem tartalmaz szakaszokat, ezért nem került a naplóba",
   "plannerSeries_created": "{count, plural, one{{count} tervezett merülés hozzáadva a naplóhoz} other{{count} tervezett merülés hozzáadva a naplóhoz}}",
   "plannerSeries_updated": "{count, plural, one{{count} tervezett merülés frissítve a naplóban} other{{count} tervezett merülés frissítve a naplóban}}",
   "plannerSeries_orphans_title": "Törli a naplóból?",

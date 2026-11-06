@@ -1571,6 +1571,50 @@ class DiveRepository {
     }
   }
 
+  /// Rewrites a planned dive's profile from its plan (issue #3565). The plan
+  /// is regenerated, not edited, so a primary series no computer recorded is
+  /// replaced in place: each update adds no demoted copy and no revision.
+  /// One from a computer is kept, and the plan becomes an edit over it, as
+  /// [saveEditedProfileWithKind] makes one.
+  Future<void> replacePlannedProfile({
+    required String diveId,
+    required List<domain.DiveProfilePoint> points,
+  }) async {
+    final primaryId = await _profileSeries.primarySeriesIdForDive(diveId);
+    final primary = primaryId == null
+        ? null
+        : await _profileSeries.getSeriesById(primaryId);
+    if (primary == null || primary.computerId != null || points.isEmpty) {
+      return saveEditedProfileWithKind(
+        diveId: diveId,
+        editedPoints: points,
+        editKind: 'plan_update',
+      );
+    }
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _db.transaction(() async {
+      await _profileSeries.replaceSamples(primary.id, [
+        for (final point in points) profileSampleFromPoint(point),
+      ], now: now);
+      final depths = profileDepthSummary(points);
+      if (depths != null) {
+        await _writeDepthSummary(diveId, depths, now: now);
+      }
+    });
+    // Profile changed: drop the stored safety review so it recomputes.
+    await SafetyFindingsRepository.clearReviewForDive(
+      _db,
+      _syncRepository,
+      diveId,
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'dives',
+      recordId: diveId,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
+  }
+
   static String _composeEditRevisionKind(String editKind) {
     final normalized = editKind.trim().toLowerCase();
     if (normalized.isEmpty) return 'edit';

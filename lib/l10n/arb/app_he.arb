@@ -5970,6 +5970,8 @@
   "plannerSeries_updatePlannedDive": "עדכון צלילה מתוכננת",
   "plannerSeries_updatePlannedDives": "עדכון צלילות מתוכננות",
   "plannerSeries_cannotUpdate": "ל-{dive} יש אזהרה קריטית, ולכן הצלילות המתוכננות לא עודכנו",
+  "plannerSeries_cannotUpdateEmpty": "ל-{dive} אין מקטעים, ולכן הצלילות המתוכננות לא עודכנו",
+  "plannerSeries_cannotUpdateEmptyPlan": "לתוכנית זו אין מקטעים, ולכן היא לא נכתבה ביומן",
   "plannerSeries_created": "{count, plural, one{{count} צלילה מתוכננת נוספה ליומן} other{{count} צלילות מתוכננות נוספו ליומן}}",
   "plannerSeries_updated": "{count, plural, one{{count} צלילה מתוכננת עודכנה ביומן} other{{count} צלילות מתוכננות עודכנו ביומן}}",
   "plannerSeries_orphans_title": "למחוק מהיומן?",

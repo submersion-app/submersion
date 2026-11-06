@@ -5970,6 +5970,8 @@
   "plannerSeries_updatePlannedDive": "Mettre à jour la plongée planifiée",
   "plannerSeries_updatePlannedDives": "Mettre à jour les plongées planifiées",
   "plannerSeries_cannotUpdate": "{dive} a un avertissement critique : les plongées planifiées n'ont pas été mises à jour",
+  "plannerSeries_cannotUpdateEmpty": "{dive} n'a aucun segment : les plongées planifiées n'ont pas été mises à jour",
+  "plannerSeries_cannotUpdateEmptyPlan": "Ce plan n'a aucun segment : il n'a pas été écrit dans le carnet",
   "plannerSeries_created": "{count, plural, one{{count} plongée planifiée ajoutée au carnet} other{{count} plongées planifiées ajoutées au carnet}}",
   "plannerSeries_updated": "{count, plural, one{{count} plongée planifiée mise à jour dans le carnet} other{{count} plongées planifiées mises à jour dans le carnet}}",
   "plannerSeries_orphans_title": "Supprimer du carnet ?",

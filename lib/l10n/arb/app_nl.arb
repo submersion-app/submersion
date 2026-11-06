@@ -6071,6 +6071,8 @@
   "plannerSeries_updatePlannedDive": "Geplande duik bijwerken",
   "plannerSeries_updatePlannedDives": "Geplande duiken bijwerken",
   "plannerSeries_cannotUpdate": "{dive} heeft een kritieke waarschuwing, dus de geplande duiken zijn niet bijgewerkt",
+  "plannerSeries_cannotUpdateEmpty": "{dive} heeft geen segmenten, dus de geplande duiken zijn niet bijgewerkt",
+  "plannerSeries_cannotUpdateEmptyPlan": "Dit plan heeft geen segmenten, dus het is niet in het logboek gezet",
   "plannerSeries_created": "{count, plural, one{{count} geplande duik toegevoegd aan het logboek} other{{count} geplande duiken toegevoegd aan het logboek}}",
   "plannerSeries_updated": "{count, plural, one{{count} geplande duik bijgewerkt in het logboek} other{{count} geplande duiken bijgewerkt in het logboek}}",
   "plannerSeries_orphans_title": "Uit het logboek verwijderen?",

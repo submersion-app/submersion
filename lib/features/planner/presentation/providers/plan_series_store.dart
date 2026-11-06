@@ -59,6 +59,7 @@ Future<void> saveCurrentSeries(ProviderContainer container) async {
       follow: stored.followedDiveId == null ? null : series.follow,
       selectedIndex: series.selectedIndex,
     ),
+    justSaved: true,
   );
 }
 

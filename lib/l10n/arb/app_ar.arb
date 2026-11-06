@@ -6071,6 +6071,8 @@
   "plannerSeries_updatePlannedDive": "تحديث الغطسة المخططة",
   "plannerSeries_updatePlannedDives": "تحديث الغطسات المخططة",
   "plannerSeries_cannotUpdate": "يوجد تحذير حرج في {dive}، لذا لم يتم تحديث الغطسات المخططة",
+  "plannerSeries_cannotUpdateEmpty": "لا يحتوي {dive} على مقاطع، لذا لم يتم تحديث الغطسات المخططة",
+  "plannerSeries_cannotUpdateEmptyPlan": "لا تحتوي هذه الخطة على مقاطع، لذا لم تُكتب في السجل",
   "plannerSeries_created": "{count, plural, one{تمت إضافة {count} غطسة مخططة إلى السجل} two{تمت إضافة غطستين مخططتين إلى السجل} few{تمت إضافة {count} غطسات مخططة إلى السجل} many{تمت إضافة {count} غطسة مخططة إلى السجل} other{تمت إضافة {count} غطسة مخططة إلى السجل}}",
   "plannerSeries_updated": "{count, plural, one{تم تحديث {count} غطسة مخططة في السجل} two{تم تحديث غطستين مخططتين في السجل} few{تم تحديث {count} غطسات مخططة في السجل} many{تم تحديث {count} غطسة مخططة في السجل} other{تم تحديث {count} غطسة مخططة في السجل}}",
   "plannerSeries_orphans_title": "هل تريد الحذف من السجل؟",

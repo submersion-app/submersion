@@ -6198,6 +6198,8 @@
   "plannerSeries_updatePlannedDive": "Geplanten Tauchgang aktualisieren",
   "plannerSeries_updatePlannedDives": "Geplante Tauchgänge aktualisieren",
   "plannerSeries_cannotUpdate": "{dive} hat eine kritische Warnung, daher wurden die geplanten Tauchgänge nicht aktualisiert",
+  "plannerSeries_cannotUpdateEmpty": "{dive} hat keine Segmente, daher wurden die geplanten Tauchgänge nicht aktualisiert",
+  "plannerSeries_cannotUpdateEmptyPlan": "Dieser Plan hat keine Segmente und wurde daher nicht ins Logbuch geschrieben",
   "plannerSeries_created": "{count, plural, one{{count} geplanter Tauchgang zum Logbuch hinzugefügt} other{{count} geplante Tauchgänge zum Logbuch hinzugefügt}}",
   "plannerSeries_updated": "{count, plural, one{{count} geplanter Tauchgang im Logbuch aktualisiert} other{{count} geplante Tauchgänge im Logbuch aktualisiert}}",
   "plannerSeries_orphans_title": "Aus dem Logbuch löschen?",

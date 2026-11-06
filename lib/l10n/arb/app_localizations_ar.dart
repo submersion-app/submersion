@@ -21523,6 +21523,15 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String plannerSeries_cannotUpdateEmpty(String dive) {
+    return 'لا يحتوي $dive على مقاطع، لذا لم يتم تحديث الغطسات المخططة';
+  }
+
+  @override
+  String get plannerSeries_cannotUpdateEmptyPlan =>
+      'لا تحتوي هذه الخطة على مقاطع، لذا لم تُكتب في السجل';
+
+  @override
   String plannerSeries_created(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

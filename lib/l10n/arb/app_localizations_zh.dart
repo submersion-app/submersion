@@ -20184,6 +20184,14 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String plannerSeries_cannotUpdateEmpty(String dive) {
+    return '$dive 没有分段，因此未更新计划潜水';
+  }
+
+  @override
+  String get plannerSeries_cannotUpdateEmptyPlan => '此计划没有分段，因此未写入日志';
+
+  @override
   String plannerSeries_created(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

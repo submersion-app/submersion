@@ -6222,6 +6222,8 @@
   "plannerSeries_updatePlannedDive": "更新计划潜水",
   "plannerSeries_updatePlannedDives": "更新计划潜水",
   "plannerSeries_cannotUpdate": "{dive} 有严重警告，因此未更新计划潜水",
+  "plannerSeries_cannotUpdateEmpty": "{dive} 没有分段，因此未更新计划潜水",
+  "plannerSeries_cannotUpdateEmptyPlan": "此计划没有分段，因此未写入日志",
   "plannerSeries_created": "{count, plural, other{已将 {count} 次计划潜水添加到日志}}",
   "plannerSeries_updated": "{count, plural, other{已在日志中更新 {count} 次计划潜水}}",
   "plannerSeries_orphans_title": "从日志中删除？",

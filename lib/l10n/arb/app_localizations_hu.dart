@@ -21147,6 +21147,15 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String plannerSeries_cannotUpdateEmpty(String dive) {
+    return '$dive nem tartalmaz szakaszokat, ezért a tervezett merülések nem frissültek';
+  }
+
+  @override
+  String get plannerSeries_cannotUpdateEmptyPlan =>
+      'Ez a terv nem tartalmaz szakaszokat, ezért nem került a naplóba';
+
+  @override
   String plannerSeries_created(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -6071,6 +6071,8 @@
   "plannerSeries_updatePlannedDive": "Actualizar inmersión planificada",
   "plannerSeries_updatePlannedDives": "Actualizar inmersiones planificadas",
   "plannerSeries_cannotUpdate": "{dive} tiene una advertencia crítica, por lo que las inmersiones planificadas no se actualizaron",
+  "plannerSeries_cannotUpdateEmpty": "{dive} no tiene segmentos, por lo que las inmersiones planificadas no se actualizaron",
+  "plannerSeries_cannotUpdateEmptyPlan": "Este plan no tiene segmentos, por lo que no se escribió en el registro",
   "plannerSeries_created": "{count, plural, one{{count} inmersión planificada añadida al registro} other{{count} inmersiones planificadas añadidas al registro}}",
   "plannerSeries_updated": "{count, plural, one{{count} inmersión planificada actualizada en el registro} other{{count} inmersiones planificadas actualizadas en el registro}}",
   "plannerSeries_orphans_title": "¿Eliminar del registro?",

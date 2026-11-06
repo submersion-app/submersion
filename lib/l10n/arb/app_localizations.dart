@@ -33795,6 +33795,18 @@ abstract class AppLocalizations {
   /// **'{dive} has a critical warning, so the planned dives weren\'t updated'**
   String plannerSeries_cannotUpdate(String dive);
 
+  /// No description provided for @plannerSeries_cannotUpdateEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'{dive} has no segments, so the planned dives weren\'t updated'**
+  String plannerSeries_cannotUpdateEmpty(String dive);
+
+  /// No description provided for @plannerSeries_cannotUpdateEmptyPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'This plan has no segments, so it wasn\'t written to the log'**
+  String get plannerSeries_cannotUpdateEmptyPlan;
+
   /// No description provided for @plannerSeries_created.
   ///
   /// In en, this message translates to:

@@ -19,15 +19,15 @@ mixin _PlanCanvasLogFlows on ConsumerState<PlanCanvasPage> {
 
   /// Writes the plan's dives to the log as planned entries, or brings the
   /// ones already there up to date. A series needs a start to lay its dives
-  /// out on, so one with none asks for the first dive's. A single plan
+  /// out on, so one where a dive still to write has none asks for the first
+  /// dive's. A dived dive starts when it did, and the dives after it carry
+  /// from that, so a series begun by one asks nothing. A single plan
   /// linked to a dived dive asks before a new entry takes its link, as
   /// Convert to Dive did.
   Future<void> _updatePlannedDives() async {
     final l10n = context.l10n;
     final series = ref.read(planSeriesNotifierProvider);
-    if (series.isSeries &&
-        series.follow == null &&
-        series.dives.first.state.startDateTime == null) {
+    if (seriesNeedsFirstStart(series, ref.read(planSeriesResultsProvider))) {
       final start = await pickPlanStart(context);
       if (start == null || !mounted) return;
       ref.read(planSeriesNotifierProvider.notifier).setFirstStart(start);
@@ -49,11 +49,12 @@ mixin _PlanCanvasLogFlows on ConsumerState<PlanCanvasPage> {
     if (!result.valid) {
       messenger.showSnackBar(
         SnackBar(
-          content: Text(
-            result.blockedBy == null
-                ? l10n.divePlanner_error_cannotConvert
-                : l10n.plannerSeries_cannotUpdate(result.blockedBy!),
-          ),
+          content: Text(switch ((result.blockedBy, result.blockedEmpty)) {
+            (null, false) => l10n.divePlanner_error_cannotConvert,
+            (null, true) => l10n.plannerSeries_cannotUpdateEmptyPlan,
+            (final dive?, false) => l10n.plannerSeries_cannotUpdate(dive),
+            (final dive?, true) => l10n.plannerSeries_cannotUpdateEmpty(dive),
+          }),
           backgroundColor: Colors.red,
         ),
       );
@@ -64,6 +65,8 @@ mixin _PlanCanvasLogFlows on ConsumerState<PlanCanvasPage> {
     if (!mounted) return;
 
     if (result.created + result.updated == 0) {
+      // Removing a dive's entry was the whole of it: nothing to report.
+      if (result.orphans.isNotEmpty) return;
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.plannerSeries_allDived)),
       );

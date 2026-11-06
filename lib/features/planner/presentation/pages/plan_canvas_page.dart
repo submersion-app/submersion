@@ -187,8 +187,11 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage>
     final locked = ref.watch(planLockedProvider);
     // Watched here rather than in the menu's builder: an open menu does not
     // rebuild, so it must open on a value already settled.
+    // While it settles after a change, the last value describes another
+    // plan, so the item stays offered until the new one lands.
+    final logAsync = ref.watch(plannedDivesLogStateProvider);
     final logState =
-        ref.watch(plannedDivesLogStateProvider).valueOrNull ??
+        (logAsync.isLoading ? null : logAsync.valueOrNull) ??
         PlannedDivesLogState.unsettled(
           linked: ref.watch(
             planSeriesNotifierProvider.select(
