@@ -4,8 +4,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
+import 'package:submersion/features/backup/domain/newest_backup_time.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
-import 'package:submersion/features/backup/presentation/providers/newest_backup_time_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 BackupRecord _record(
@@ -109,5 +109,25 @@ void main() {
 
       expect(container.read(newestBackupTimeProvider), upgrade);
     });
+
+    // A damaged registry must cost the chip its upgrade copy, not throw into
+    // the home strip that reads it.
+    test(
+      'falls back to the last backup time when history will not parse',
+      () async {
+        SharedPreferences.setMockInitialValues({'backup_history': '[not json'});
+        final prefs = await SharedPreferences.getInstance();
+
+        final container = ProviderContainer(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            lastBackupTimeProvider.overrideWithValue(regular),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        expect(container.read(newestBackupTimeProvider), regular);
+      },
+    );
   });
 }

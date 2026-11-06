@@ -1,8 +1,5 @@
-import 'package:submersion/core/providers/provider.dart';
-
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
-import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 
 /// When this device last made a copy of the library the diver could restore,
 /// counting the copy taken before an upgrade (issue #4204).
@@ -32,13 +29,3 @@ DateTime? newestBackupTime({
   }
   return newest;
 }
-
-/// [newestBackupTime] over the stored history. Rebuilds whenever a backup
-/// moves the last backup time; an upgrade copy is taken at startup, before
-/// anything reads this.
-final newestBackupTimeProvider = Provider<DateTime?>((ref) {
-  return newestBackupTime(
-    lastBackupTime: ref.watch(lastBackupTimeProvider),
-    history: ref.watch(backupPreferencesProvider).getHistory(),
-  );
-});
