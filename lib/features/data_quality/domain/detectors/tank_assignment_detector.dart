@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/ccr_bailout_timeline.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/dive_log/domain/services/breathing_gas_switches.dart';
+import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 
 class TankAssignmentDetector extends QualityDetector {
   const TankAssignmentDetector();
@@ -70,10 +71,7 @@ class TankAssignmentDetector extends QualityDetector {
     // Consumption attributed to a tank the switch timeline says was idle.
     // A suit inflation bottle is never the gas in use, and a switch to it
     // counts against the breathing cylinder on its mix (issue #4243).
-    final breathing = [
-      for (final t in ctx.tanks)
-        if (t.role.isBreathingGas) t,
-    ];
+    final breathing = breathingTanks(ctx.tanks);
     final switches = breathingRawGasSwitches(ctx.gasSwitches, ctx.tanks);
     if (switches.isNotEmpty && breathing.isNotEmpty) {
       final ordered = [...breathing]
@@ -150,6 +148,11 @@ class TankAssignmentDetector extends QualityDetector {
     if (candidates.isEmpty) return const [];
 
     final roleById = {for (final t in ctx.tanks) t.id: t.role};
+    // Re-targeted once for every candidate below (issue #4243).
+    final breathingSwitches = breathingRawGasSwitches(
+      ctx.gasSwitches,
+      ctx.tanks,
+    );
     final inWaterEnd = lastTimeBelowSurfaceThreshold(
       ctx.primarySamples.map((s) => (t: s.t, depth: s.depth)),
     );
@@ -163,7 +166,7 @@ class TankAssignmentDetector extends QualityDetector {
         // A switch to a suit inflation bottle counts against the breathing
         // cylinder on its mix, never as a move off the loop (issue #4243).
         switches: [
-          for (final sw in breathingRawGasSwitches(ctx.gasSwitches, ctx.tanks))
+          for (final sw in breathingSwitches)
             if (tank.computerId == null || sw.appliesTo(tank.computerId!))
               (t: sw.timestamp, tankKey: sw.tankId),
         ],
