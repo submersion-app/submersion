@@ -1156,12 +1156,13 @@ void main() {
       final notifier = c.read(divePlanNotifierProvider.notifier);
       final before = c.read(divePlanNotifierProvider).tanks;
 
-      expect(notifier.addTank(suit), isFalse);
+      notifier.addTank(suit);
       expect(c.read(divePlanNotifierProvider).tanks, before);
-      expect(
-        notifier.addTank(const DiveTank(id: 'stage', gasMix: GasMix(o2: 50))),
-        isTrue,
-      );
+      notifier.addTank(const DiveTank(id: 'stage', gasMix: GasMix(o2: 50)));
+      expect(c.read(divePlanNotifierProvider).tanks.map((t) => t.id), [
+        ...before.map((t) => t.id),
+        'stage',
+      ]);
     });
 
     test('is refused as the role of an edited tank', () {

@@ -493,15 +493,13 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   // --------------------------------------------------------------------------
 
   /// Add a new tank to the plan. A suit inflation bottle is not breathing
-  /// gas, so it never joins a plan (issue #4243): returns false and changes
-  /// nothing for one, true otherwise.
-  bool addTank(DiveTank tank) {
-    if (!tank.role.isBreathingGas) return false;
+  /// gas, so it never joins a plan (issue #4243): the plan is left as it is.
+  void addTank(DiveTank tank) {
+    if (!tank.role.isBreathingGas) return;
     final tanks = [...state.tanks, tank];
     state = _withMissionSegments(
       state.copyWith(tanks: tanks, isDirty: true, updatedAt: DateTime.now()),
     );
-    return true;
   }
 
   /// Replace the equipment attached to the plan (Gear & Weights, v104).
@@ -565,14 +563,13 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   /// this is the backstop that keeps the plan from losing a slot.
   void updateTank(String id, DiveTank tank) {
     var updated = tank;
+    final original = state.tanks.where((t) => t.id == id).firstOrNull;
     // A plan never holds a suit inflation bottle (issue #4243): an edit that
     // would make one keeps the tank's role.
     if (!updated.role.isBreathingGas) {
-      final original = state.tanks.where((t) => t.id == id).firstOrNull;
       updated = updated.copyWith(role: original?.role ?? TankRole.backGas);
     }
     if (state.mode == domain.PlanMode.ccr) {
-      final original = state.tanks.where((t) => t.id == id).firstOrNull;
       if (original?.role == TankRole.oxygenSupply) {
         updated = updated.copyWith(
           role: TankRole.oxygenSupply,

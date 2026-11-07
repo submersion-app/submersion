@@ -160,21 +160,9 @@ extension _GasSwitchEditing on _DiveEditPageState {
     });
   }
 
-  /// The cylinder breathed at [timestamp] in the editor's own list: the last
-  /// switch at or before it, else the starting cylinder.
-  String? _gasSwitchActiveTankIdAt(int timestamp) {
-    GasSwitch? active;
-    for (final s in _gasSwitches) {
-      if (s.timestamp <= timestamp &&
-          (active == null || s.timestamp >= active.timestamp)) {
-        active = s;
-      }
-    }
-    return active?.tankId ?? _gasSwitchStartingTank?.id;
-  }
-
   /// A new row a minute after the last switch (at the start with none),
-  /// within the dive, onto the first cylinder not breathed at that moment.
+  /// within the dive, onto the first breathing cylinder not breathed at that
+  /// moment (see [newGasSwitchTank]); none without a breathing cylinder.
   void _addGasSwitch() {
     var timestamp = 0;
     for (final s in _gasSwitches) {
@@ -182,16 +170,13 @@ extension _GasSwitchEditing on _DiveEditPageState {
     }
     final max = _gasSwitchMaxTimestamp;
     if (max != null && timestamp > max) timestamp = max;
-    final activeId = _gasSwitchActiveTankIdAt(timestamp);
-    // A new switch goes to a breathing cylinder, never a suit inflation
-    // bottle (issue #4243).
-    // With none, there is nothing to switch to.
-    final breathing = breathingTanks(_tanks);
-    if (breathing.isEmpty) return;
-    final tank = breathing.firstWhere(
-      (t) => t.id != activeId,
-      orElse: () => breathing.first,
+    final tank = newGasSwitchTank(
+      tanks: _tanks,
+      switches: _gasSwitches,
+      timestamp: timestamp,
+      startingTankId: _gasSwitchStartingTank?.id,
     );
+    if (tank == null) return;
     final added = GasSwitch(
       id: _uuid.v4(),
       diveId: widget.diveId ?? '',

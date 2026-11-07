@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 
 import 'package:submersion/core/constants/app_enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart';
+import 'package:submersion/features/dive_log/domain/services/breathing_gas_switches.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_usage_range.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
@@ -20,8 +21,9 @@ const Set<TankRole> _rebreatherRoles = {
 ///
 /// A suit inflation bottle is not breathing gas (issue #4243): the dive is
 /// sorted as if it were not carried, so a dive with only one has no tanks
-/// and one never adds a gas. A switch naming one is dropped here, since this
-/// only decides which cylinders were breathed and the bottle never was.
+/// and one never adds a gas. A switch naming one counts against the
+/// breathing cylinder on its mix, or is dropped when none holds it, as every
+/// breathing gas reading takes it.
 TankConfigurationResult classifyTankConfiguration(TankConfigurationDive dive) {
   final breathing = _breathingOnly(dive);
   return (base: _base(breathing), extras: _extras(breathing));
@@ -29,14 +31,14 @@ TankConfigurationResult classifyTankConfiguration(TankConfigurationDive dive) {
 
 TankConfigurationDive _breathingOnly(TankConfigurationDive dive) {
   if (dive.tanks.every((t) => t.role.isBreathingGas)) return dive;
-  final tanks = breathingTanks(dive.tanks);
-  final ids = {for (final t in tanks) t.id};
+  final target = breathingSwitchTarget(dive.tanks);
   return TankConfigurationDive(
     diveMode: dive.diveMode,
-    tanks: tanks,
+    tanks: breathingTanks(dive.tanks),
     gasSwitches: [
       for (final s in dive.gasSwitches)
-        if (ids.contains(s.tankId)) s,
+        if (target(s.tankId) case final tankId?)
+          (tankId: tankId, timestamp: s.timestamp),
     ],
     hasProfile: dive.hasProfile,
   );

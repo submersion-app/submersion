@@ -1318,19 +1318,15 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       if (sizeChanged && liters != null) {
         if (settings.volumeUnit == VolumeUnit.cubicFeet) {
           // Gas capacity needs a pressure. With none, the field is in
-          // liters, as _metricSpecs reads it.
+          // liters, as _metricSpecs reads it, and a small bottle keeps its
+          // two decimals there too (issue #4243).
+          final hasPressure = pressureBar != null && pressureBar > 0;
           final value =
               match?.volumeCuft ??
-              (pressureBar != null && pressureBar > 0
-                  ? liters * pressureBar / 28.3168
-                  : liters);
-          // Without a pressure the field holds liters, so a small bottle
-          // keeps its two decimals there too (issue #4243).
-          final inLiters =
-              match == null && !(pressureBar != null && pressureBar > 0);
+              (hasPressure ? liters * pressureBar / 28.3168 : liters);
           _volumeController.text = formatRoundedForInput(
             value,
-            inLiters ? UnitFormatter.tankVolumeLiterDecimals(liters) : 1,
+            hasPressure ? 1 : UnitFormatter.tankVolumeLiterDecimals(liters),
           );
         } else {
           _volumeController.text = formatRoundedForInput(

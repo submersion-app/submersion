@@ -75,9 +75,22 @@ class DiveSnapshot extends Equatable {
       for (final t in dive.tanks)
         if (!t.role.isBreathingGas) t.id,
     };
-    return DiveSnapshot._fromDive(
-      dive: dive,
-      profile: profile,
+    return DiveSnapshot(
+      diveId: dive.id,
+      diveDateTime: dive.dateTime,
+      siteName: siteName ?? dive.site?.name,
+      diveMode: dive.diveMode,
+      gfLow: dive.gradientFactorLow,
+      gfHigh: dive.gradientFactorHigh,
+      altitudeMeters: dive.altitude,
+      waterType: dive.waterType,
+      surfacePressureBar: dive.surfacePressure,
+      setpointHigh: dive.setpointHigh,
+      setpointLow: dive.setpointLow,
+      scrInjectionRate: dive.scrInjectionRate,
+      assumedVo2: dive.assumedVo2,
+      diluentGas: dive.diluentGas,
+      tanks: dive.breathingTanks,
       gasSwitches: [
         for (final s in gasSwitches)
           if (target(s.tankId) case final tankId?)
@@ -85,54 +98,25 @@ class DiveSnapshot extends Equatable {
                 ? s
                 : ScenarioGasSwitch(timestamp: s.timestamp, tankId: tankId),
       ],
+      profile: [
+        for (final p in profile)
+          DiveProfilePoint(
+            timestamp: p.timestamp,
+            depth: p.depth,
+            temperature: p.temperature,
+            setpoint: p.setpoint,
+            ppO2: p.ppO2,
+          ),
+      ],
       tankPressures: bottles.isEmpty
           ? tankPressures
           : {
               for (final e in tankPressures.entries)
                 if (!bottles.contains(e.key)) e.key: e.value,
             },
-      siteName: siteName,
       computerName: computerName,
     );
   }
-
-  factory DiveSnapshot._fromDive({
-    required Dive dive,
-    required List<DiveProfilePoint> profile,
-    required List<ScenarioGasSwitch> gasSwitches,
-    required Map<String, List<TankPressureSample>> tankPressures,
-    String? siteName,
-    String? computerName,
-  }) => DiveSnapshot(
-    diveId: dive.id,
-    diveDateTime: dive.dateTime,
-    siteName: siteName ?? dive.site?.name,
-    diveMode: dive.diveMode,
-    gfLow: dive.gradientFactorLow,
-    gfHigh: dive.gradientFactorHigh,
-    altitudeMeters: dive.altitude,
-    waterType: dive.waterType,
-    surfacePressureBar: dive.surfacePressure,
-    setpointHigh: dive.setpointHigh,
-    setpointLow: dive.setpointLow,
-    scrInjectionRate: dive.scrInjectionRate,
-    assumedVo2: dive.assumedVo2,
-    diluentGas: dive.diluentGas,
-    tanks: dive.breathingTanks,
-    gasSwitches: gasSwitches,
-    profile: [
-      for (final p in profile)
-        DiveProfilePoint(
-          timestamp: p.timestamp,
-          depth: p.depth,
-          temperature: p.temperature,
-          setpoint: p.setpoint,
-          ppO2: p.ppO2,
-        ),
-    ],
-    tankPressures: tankPressures,
-    computerName: computerName,
-  );
 
   Map<String, Object?> toJson() => {
     'diveId': diveId,

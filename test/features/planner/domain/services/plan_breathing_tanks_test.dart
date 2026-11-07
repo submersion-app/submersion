@@ -73,5 +73,11 @@ void main() {
     expect(tank.id, isNot('suit'));
     expect(result.segments.single.tankId, tank.id);
     expect(result.segments.single.gasMix, tank.gasMix);
+    // The same plan loads the same every time.
+    final again = withoutSuitInflationCylinders(
+      plan(const [smallSuit], [segment('s1', 'suit')]),
+    );
+    expect(again.tanks, result.tanks);
+    expect(again.segments, result.segments);
   });
 }

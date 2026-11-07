@@ -6,7 +6,11 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 
-const _uuid = Uuid();
+/// Namespace for the id of the cylinder a plan with only suit inflation
+/// bottles gets in their place (issue #4243). Frozen: the same plan must
+/// give the same cylinder on every load and every device.
+const String kSuitOnlyPlanTankNamespace =
+    'eb31c324-c1a9-4a86-afd2-270a5d95dea2';
 
 /// The cylinder a new plan starts with: an AL80 of air at the plan fill
 /// pressure.
@@ -36,7 +40,9 @@ typedef BreathingPlanParts = ({
 /// to the first remaining tank and takes its gas, since the engine reads a
 /// segment's own mix. A plan whose only tanks are bottles gets a new plan's
 /// cylinder ([defaultPlanTank]) in their place, since the engine needs one
-/// tank to plan on; a bottle's own volume and mix are never planned on.
+/// tank to plan on; a bottle's own volume and mix are never planned on. Its
+/// id is derived from the first bottle's, so the same plan always gives the
+/// same cylinder.
 ///
 /// Returns the same lists when there is no bottle.
 BreathingPlanParts breathingPlanParts(
@@ -54,7 +60,15 @@ BreathingPlanParts breathingPlanParts(
     for (final tank in tanks)
       if (!tank.role.isBreathingGas) tank.id,
   };
-  final fallback = breathing.firstOrNull ?? defaultPlanTank(id: _uuid.v4());
+  // Named from the first bottle's id, so one plan always loads the same.
+  final fallback =
+      breathing.firstOrNull ??
+      defaultPlanTank(
+        id: const Uuid().v5(
+          kSuitOnlyPlanTankNamespace,
+          'submersion:suit-only-plan-tank:${tanks.first.id}',
+        ),
+      );
   return (
     tanks: breathing.isEmpty ? [fallback] : breathing,
     segments: [
