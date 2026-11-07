@@ -283,6 +283,7 @@ class SyncData {
   final List<Map<String, dynamic>> qualityFindings;
   final List<Map<String, dynamic>> equipmentAttributes;
   final List<Map<String, dynamic>> equipmentComponents;
+  final List<Map<String, dynamic>> cylinderPairings;
   final List<Map<String, dynamic>> mediaSmartAlbums;
   final List<Map<String, dynamic>> media;
   final List<Map<String, dynamic>> mediaEnrichment;
@@ -431,6 +432,7 @@ class SyncData {
     this.qualityFindings = const [],
     this.equipmentAttributes = const [],
     this.equipmentComponents = const [],
+    this.cylinderPairings = const [],
     this.mediaSmartAlbums = const [],
     this.media = const [],
     this.mediaEnrichment = const [],
@@ -567,6 +569,7 @@ class SyncData {
     'qualityFindings': qualityFindings,
     'equipmentAttributes': equipmentAttributes,
     'equipmentComponents': equipmentComponents,
+    'cylinderPairings': cylinderPairings,
     'mediaSmartAlbums': mediaSmartAlbums,
     'media': media,
     'mediaEnrichment': mediaEnrichment,
@@ -704,6 +707,7 @@ class SyncData {
       qualityFindings: _parseList(json['qualityFindings']),
       equipmentAttributes: _parseList(json['equipmentAttributes']),
       equipmentComponents: _parseList(json['equipmentComponents']),
+      cylinderPairings: _parseList(json['cylinderPairings']),
       mediaSmartAlbums: _parseList(json['mediaSmartAlbums']),
       media: _parseList(json['media']),
       mediaEnrichment: _parseList(json['mediaEnrichment']),
@@ -1140,6 +1144,12 @@ class SyncDataSerializer {
     (
       key: 'equipmentComponents',
       table: _db.equipmentComponents,
+      blob: false,
+      full: null,
+    ),
+    (
+      key: 'cylinderPairings',
+      table: _db.cylinderPairings,
       blob: false,
       full: null,
     ),
@@ -2480,6 +2490,10 @@ class SyncDataSerializer {
         'equipmentComponents',
         () => _exportEquipmentComponents(hlcSince),
       ),
+      cylinderPairings: await _safeExport(
+        'cylinderPairings',
+        () => _exportCylinderPairings(hlcSince),
+      ),
       mediaSmartAlbums: await _safeExport(
         'mediaSmartAlbums',
         () => _exportMediaSmartAlbums(hlcSince),
@@ -3374,6 +3388,11 @@ class SyncDataSerializer {
           _db.equipmentComponents,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'cylinderPairings':
+        final row = await (_db.select(
+          _db.cylinderPairings,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'equipmentSetItems':
         final parts = _splitCompositeId(recordId);
         if (parts.length != 2) return null;
@@ -4078,6 +4097,11 @@ class SyncDataSerializer {
       case 'equipmentComponents':
         final rows = await (_db.select(
           _db.equipmentComponents,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'cylinderPairings':
+        final rows = await (_db.select(
+          _db.cylinderPairings,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'buddies':
@@ -5414,6 +5438,13 @@ class SyncDataSerializer {
               EquipmentComponentRow.fromJson(data).toCompanion(false),
             );
         return;
+      case 'cylinderPairings':
+        await _db
+            .into(_db.cylinderPairings)
+            .insertOnConflictUpdate(
+              CylinderPairingRow.fromJson(data).toCompanion(false),
+            );
+        return;
       case 'equipmentSetItems':
         await _upsertGearJunction(entityType, [data]);
         return;
@@ -6532,6 +6563,16 @@ class SyncDataSerializer {
                 .map(
                   (r) => EquipmentComponentRow.fromJson(r).toCompanion(false),
                 )
+                .toList(),
+          ),
+        );
+        return;
+      case 'cylinderPairings':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.cylinderPairings,
+            records
+                .map((r) => CylinderPairingRow.fromJson(r).toCompanion(false))
                 .toList(),
           ),
         );
@@ -8152,6 +8193,8 @@ class SyncDataSerializer {
         return plain(_db.equipmentAttributes, _db.equipmentAttributes.id);
       case 'equipmentComponents':
         return plain(_db.equipmentComponents, _db.equipmentComponents.id);
+      case 'cylinderPairings':
+        return plain(_db.cylinderPairings, _db.cylinderPairings.id);
       case 'diveTypes':
         return plain(_db.diveTypes, _db.diveTypes.id);
       case 'siteTypes':
@@ -8703,6 +8746,8 @@ class SyncDataSerializer {
         return _db.equipmentAttributes;
       case 'equipmentComponents':
         return _db.equipmentComponents;
+      case 'cylinderPairings':
+        return _db.cylinderPairings;
       case 'diveTypes':
         return _db.diveTypes;
       case 'siteTypes':
@@ -8985,6 +9030,11 @@ class SyncDataSerializer {
       case 'equipmentComponents':
         await (_db.delete(
           _db.equipmentComponents,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'cylinderPairings':
+        await (_db.delete(
+          _db.cylinderPairings,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'equipmentSetItems':
@@ -9877,6 +9927,17 @@ class SyncDataSerializer {
     String? hlcSince,
   ) async {
     final query = _db.select(_db.equipmentComponents);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportCylinderPairings(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.cylinderPairings);
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
