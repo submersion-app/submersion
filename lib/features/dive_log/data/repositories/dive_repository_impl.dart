@@ -3760,6 +3760,26 @@ class DiveRepository {
     }
   }
 
+  /// The ids of the divers with a dive at [siteId], each once, read without
+  /// hydrating the dives (issue #4252). Dives with no diver are left out.
+  Future<Set<String>> getDiverIdsAtSite(String siteId) async {
+    try {
+      final diverId = _db.dives.diverId;
+      final query = _db.selectOnly(_db.dives, distinct: true)
+        ..addColumns([diverId])
+        ..where(_db.dives.siteId.equals(siteId) & diverId.isNotNull());
+      final rows = await query.get();
+      return {for (final row in rows) row.read(diverId)!};
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get diver ids at site: $siteId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// The [limit] newest dives at [siteId], or when it is null the newest
   /// that started between [from] and [to] (each bound optional, inclusive),
   /// as id and start only, newest first.
