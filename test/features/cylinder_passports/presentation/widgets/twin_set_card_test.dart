@@ -74,6 +74,7 @@ class FakePairingRepository extends CylinderPairingRepository {
     required String cylinderAId,
     required String cylinderBId,
     required DateTime pairedOn,
+    DateTime? unpairedOn,
     bool replace = false,
   }) async {
     creates.add((
