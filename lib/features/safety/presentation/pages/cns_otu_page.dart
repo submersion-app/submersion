@@ -186,8 +186,13 @@ class CnsOtuStatusCard extends StatelessWidget {
     // once, and _TissueTimelineCache keeps it for the rest of the minute:
     // rebuilds in between (the minute tick, theme or provider changes) reuse
     // it instead of re-running every sampled deco evaluation.
+    // An empty list is no tissue data too. It must be caught here, before
+    // the projection: restoring an empty state leaves the algorithm with its
+    // default surface-saturated compartments, which would then read as a
+    // real, settled diver.
     final endOfDiveCompartments = snap.endOfDiveCompartments;
-    final tissueTimeline = endOfDiveCompartments != null
+    final tissueTimeline =
+        endOfDiveCompartments != null && endOfDiveCompartments.isNotEmpty
         ? _TissueTimelineCache.timeline(
             endOfDiveCompartments: endOfDiveCompartments,
             lastDiveEnd: snap.lastDiveEnd,
