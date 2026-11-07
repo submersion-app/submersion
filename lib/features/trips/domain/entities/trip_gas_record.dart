@@ -22,6 +22,7 @@ class TripGasRecordTank extends Equatable {
     this.endPressure,
     this.gasMix = const GasMix(),
     required this.tripCylinderId,
+    this.breathing = true,
   });
 
   final String tankId;
@@ -39,6 +40,11 @@ class TripGasRecordTank extends Equatable {
   final GasMix gasMix;
   final String tripCylinderId;
 
+  /// Whether the tank holds breathing gas. A suit inflation bottle does not
+  /// (issue #4243): its fills and analysis stay on the record, but it adds
+  /// no litres breathed.
+  final bool breathing;
+
   @override
   List<Object?> get props => [
     tankId,
@@ -53,6 +59,7 @@ class TripGasRecordTank extends Equatable {
     endPressure,
     gasMix,
     tripCylinderId,
+    breathing,
   ];
 }
 
