@@ -143,7 +143,7 @@ Mark who is in a photo or video, yourself included. People tags are what make a 
 
 To fix a tag, tap its box while tagging: drag the corners to fit, drag the middle to move it, or use **Change person** or **Remove tag**. Where a spot cannot be marked (a video that will not play on this device, for example), **Tag without a spot** records who is in it without a box.
 
-Tagged people appear as chips beside the species chips in the viewer; a video tag shows the moment, such as "Alex · 0:42", and marks it on the scrub bar. Tapping a buddy's chip opens that buddy, and tapping **Me** opens the library showing every photo and video you are tagged in. A buddy you tag gains a **Photos and videos** card on their page (see [Buddies](buddies-and-dive-centers.md#photos-and-videos-of-a-buddy)).
+Tagged people appear as chips beside the species chips in the viewer; a video tag shows the moment, such as "Alex · 0:42", and marks it on the scrub bar. Tapping a chip with a moment jumps the video to that moment. Any other buddy chip opens that buddy, and any other **Me** chip opens the library showing every photo and video you are tagged in. A buddy you tag gains a **Photos and videos** card on their page (see [Buddies](buddies-and-dive-centers.md#photos-and-videos-of-a-buddy)).
 
 If you tag a buddy who is not logged on the photo's dive, Submersion offers to add them to that dive's buddies. Ignoring the offer leaves the dive as it was.
 
