@@ -358,6 +358,8 @@ class GpsTrackRepository {
     var rowsRead = rows.length;
     if (cursor != null && _appendsInOrder(cursor.lastTimestamp, rows)) {
       encodedRows = rows;
+      // Before formatting anything, so the cap bounds allocation here too.
+      checkTrackPointCount(cursor.tuples.length + rows.length);
       tuples = [
         ...cursor.tuples,
         for (final r in rows) encodeTrackPointTuple(_pointOf(r)),
@@ -370,6 +372,7 @@ class GpsTrackRepository {
           ? rows
           : await _bufferRows(trackId, timeOrder: true);
       if (cursor != null) rowsRead += encodedRows.length;
+      checkTrackPointCount(encodedRows.length);
       tuples = [
         for (final r in encodedRows) encodeTrackPointTuple(_pointOf(r)),
       ];

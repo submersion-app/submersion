@@ -80,7 +80,7 @@ const int kMaxTrackBodyCommas = 4 * kMaxTrackPointCount;
 /// Throws [TrackPointCodecException] if [points] is longer than
 /// [kMaxTrackPointCount].
 Uint8List encodeTrackPoints(List<GpsTrackPoint> points) {
-  _checkEncodeCount(points.length);
+  checkTrackPointCount(points.length);
   return encodeTrackPointTuples([
     for (final p in points) encodeTrackPointTuple(p),
   ]);
@@ -101,11 +101,16 @@ String encodeTrackPointTuple(GpsTrackPoint p) =>
 /// Throws [TrackPointCodecException] if there are more than
 /// [kMaxTrackPointCount] tuples.
 Uint8List encodeTrackPointTuples(List<String> tuples) {
-  _checkEncodeCount(tuples.length);
+  checkTrackPointCount(tuples.length);
   return PlatformZlib.gzip(utf8.encode('[${tuples.join(',')}]'));
 }
 
-void _checkEncodeCount(int count) {
+/// Throws [TrackPointCodecException] if a track of [count] points is more
+/// than this codec can read back.
+///
+/// For a caller that formats tuples itself: checking before formatting keeps
+/// the cap a bound on allocation, not just on what is written.
+void checkTrackPointCount(int count) {
   if (count > kMaxTrackPointCount) {
     throw TrackPointCodecException(
       'track of $count point(s) exceeds the '

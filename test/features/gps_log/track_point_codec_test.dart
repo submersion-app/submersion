@@ -86,6 +86,14 @@ void main() {
       expect(decodeTrackPoints(encodeTrackPointTuples(const [])), isEmpty);
     });
 
+    test('checkTrackPointCount accepts the cap and refuses one more', () {
+      expect(() => checkTrackPointCount(kMaxTrackPointCount), returnsNormally);
+      expect(
+        () => checkTrackPointCount(kMaxTrackPointCount + 1),
+        throwsA(isA<TrackPointCodecException>()),
+      );
+    });
+
     test('refuse more tuples than the codec can read back', () {
       final tuples = List.filled(
         kMaxTrackPointCount + 1,
