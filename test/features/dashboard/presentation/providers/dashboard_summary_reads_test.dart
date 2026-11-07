@@ -5,7 +5,9 @@ import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
+import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -25,6 +27,10 @@ class _CountingRepository implements DiveRepository {
   final DiveRepository _inner;
   final detailReads = <String>[];
   final sampleFreeReads = <List<String>>[];
+
+  /// Returns the sample-free read's dives in reverse, so a caller that keeps
+  /// that read's order instead of its own ids' order shows up.
+  bool reverseSampleFreeRead = false;
 
   @override
   Stream<void> watchDivesChanges() => _inner.watchDivesChanges();
@@ -68,10 +74,11 @@ class _CountingRepository implements DiveRepository {
   @override
   Future<List<Dive>> getDivesByIdsWithoutSamples(
     List<String> ids, {
-    int chunkSize = 900,
-  }) {
+    int chunkSize = kSeriesIdChunkSize,
+  }) async {
     sampleFreeReads.add(ids);
-    return _inner.getDivesByIdsWithoutSamples(ids);
+    final dives = await _inner.getDivesByIdsWithoutSamples(ids);
+    return reverseSampleFreeRead ? dives.reversed.toList() : dives;
   }
 
   @override
@@ -88,12 +95,13 @@ class _CountingRepository implements DiveRepository {
 /// dive through `getDiveById`, which decodes its merged profile and tank
 /// pressure series, to show values the dive row already stores.
 void main() {
+  late AppDatabase db;
   late DiveRepository dives;
   late _CountingRepository repo;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
-    await setUpTestDatabase();
+    db = await setUpTestDatabase();
     dives = DiveRepository();
     repo = _CountingRepository(dives);
   });
@@ -130,19 +138,44 @@ void main() {
   });
 
   test('recent dives keep the summary order, not the read order', () async {
-    // Same instant: the summary query and the sample-free read each break
-    // the tie on their own, so the provider must keep the summary's order.
-    final at = DateTime.utc(2026, 3, 1, 10);
-    for (final id in ['a', 'b', 'c']) {
-      await dives.createDive(Dive(id: id, dateTime: at));
+    // The sample-free read sorts on its own, and can break a tie on the
+    // dive time differently from the summary query; the fake hands its
+    // rows back reversed so following that order would show.
+    for (var n = 1; n <= 3; n++) {
+      await dives.createDive(
+        Dive(id: 'd$n', diveNumber: n, dateTime: DateTime.utc(2026, 3, n)),
+      );
     }
-    final summaryOrder = [
-      for (final s in await dives.getDiveSummaries(limit: 3)) s.id,
-    ];
+    repo.reverseSampleFreeRead = true;
 
     final recent = await makeContainer().read(recentDivesProvider.future);
 
-    expect(recent.map((d) => d.id), summaryOrder);
+    expect(recent.map((d) => d.id), ['d3', 'd2', 'd1']);
+  });
+
+  test('a value the row leaves to its samples still shows', () async {
+    // A legacy dive with no stored water temperature: the cards' configurable
+    // fields take it from the profile, as the full read did.
+    await dives.createDive(
+      Dive(
+        id: 'legacy',
+        dateTime: DateTime.utc(2026, 3, 1, 10),
+        profile: const [
+          DiveProfilePoint(timestamp: 0, depth: 0, temperature: 24),
+          DiveProfilePoint(timestamp: 1500, depth: 18, temperature: 24),
+          DiveProfilePoint(timestamp: 3000, depth: 0, temperature: 24),
+        ],
+      ),
+    );
+    await db.customStatement(
+      'UPDATE dives SET water_temp = NULL WHERE id = ?',
+      ['legacy'],
+    );
+
+    final recent = await makeContainer().read(recentDivesProvider.future);
+
+    expect(recent.single.waterTemp, 24);
+    expect(repo.detailReads, isEmpty);
   });
 
   test('on this day loads its matches in one sample-free read', () async {
