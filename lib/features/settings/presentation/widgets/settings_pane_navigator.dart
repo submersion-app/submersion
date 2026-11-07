@@ -200,22 +200,30 @@ class _SettingsPaneNavigatorState extends State<SettingsPaneNavigator> {
       onPopWithResult: (_) => _navigatorKey.currentState?.maybePop(),
       child: _SettingsPaneScope(
         pane: this,
-        child: Navigator(
-          key: _navigatorKey,
-          pages: [
-            MaterialPage<void>(
-              key: ValueKey('${widget.sectionId}-hub'),
-              child: widget.hub,
-            ),
-            for (final (location, page) in pages)
-              MaterialPage<void>(key: ValueKey(location), child: page),
-          ],
-          // Back or Navigator.pop closed a page: drop it, and every page above
-          // it, from the URL so the next build does not reopen it.
-          onDidRemovePage: (page) {
-            final index = _stack.indexWhere((l) => ValueKey(l) == page.key);
-            if (index >= 0) _go(_stack.sublist(0, index));
-          },
+        // A semantics node of its own. Each pane page paints a modal barrier,
+        // which blocks the semantics of everything painted before it up to
+        // the nearest semantics boundary; without one here that reached the
+        // section list beside the pane, and a screen reader lost it
+        // (issue #4166).
+        child: Semantics(
+          container: true,
+          child: Navigator(
+            key: _navigatorKey,
+            pages: [
+              MaterialPage<void>(
+                key: ValueKey('${widget.sectionId}-hub'),
+                child: widget.hub,
+              ),
+              for (final (location, page) in pages)
+                MaterialPage<void>(key: ValueKey(location), child: page),
+            ],
+            // Back or Navigator.pop closed a page: drop it, and every page above
+            // it, from the URL so the next build does not reopen it.
+            onDidRemovePage: (page) {
+              final index = _stack.indexWhere((l) => ValueKey(l) == page.key);
+              if (index >= 0) _go(_stack.sublist(0, index));
+            },
+          ),
         ),
       ),
     );
