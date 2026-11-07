@@ -7518,6 +7518,70 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_deco_semantics_required => 'Decompressione richiesta';
 
   @override
+  String diveLog_deco_compartmentLeading(int number) {
+    return 'Principale: #$number';
+  }
+
+  @override
+  String diveLog_deco_compartmentOther(int number) {
+    return 'Compartimento: #$number';
+  }
+
+  @override
+  String get diveLog_deco_metricLoad => 'Carico';
+
+  @override
+  String get diveLog_deco_gasOngassing => 'Assorbimento';
+
+  @override
+  String get diveLog_deco_gasOffgassing => 'Rilascio';
+
+  @override
+  String get diveLog_deco_gasEquilibrium => 'Equilibrio';
+
+  @override
+  String get diveLog_deco_heatMapRows =>
+      'Righe: veloce (in alto) a lento (in basso)';
+
+  @override
+  String get diveLog_deco_surfaceLevel => 'Livello in superficie';
+
+  @override
+  String get diveLog_deco_mValue => 'Valore M';
+
+  @override
+  String diveLog_deco_tooltipCompartment(int number) {
+    return 'Compartimento $number';
+  }
+
+  @override
+  String diveLog_deco_tooltipLoaded(String percent) {
+    return '$percent% di carico';
+  }
+
+  @override
+  String diveLog_deco_tooltipHalfTime(String minutes) {
+    return 'Emitempo: $minutes min';
+  }
+
+  @override
+  String diveLog_deco_tooltipSurfaceLevel(String percent) {
+    return 'Livello in superficie: $percent%';
+  }
+
+  @override
+  String get diveLog_deco_info_title => 'Cosa significano questi valori?';
+
+  @override
+  String get diveLog_deco_info_body =>
+      'Carico: la pressione di gas inerte di un compartimento come percentuale del massimo che può contenere in superficie (il suo valore M, la linea rossa al 100%).\n\nLivello in superficie: il segno su ogni barra indica dove si stabilizza un compartimento completamente desaturato mentre respiri aria in superficie. Non è mai a 0%, perché il tuo corpo contiene sempre l\'azoto dell\'aria che respiri. Una barra al suo segno non ha più carico residuo dell\'immersione.\n\nAssorbimento e rilascio: il gas si muove sempre verso la pressione del gas che respiri. Dopo una decompressione con ossigeno o con una miscela ricca di elio, i compartimenti veloci possono contenere meno azoto dell\'aria in superficie. Tornando a respirare aria, assorbono di nuovo azoto fino a raggiungere il loro segno. È normale e non è un carico residuo dell\'immersione.\n\nElio: l\'aria non contiene elio. Dopo un\'immersione in trimix, un compartimento rilascia elio mentre può assorbire azoto nello stesso momento. Le frecce accanto a N₂ e He mostrano ogni gas separatamente; l\'indicazione accanto al numero del compartimento mostra la direzione complessiva di entrambi.';
+
+  @override
+  String diveLog_deco_barChartSemantics(int count, int number, String percent) {
+    return 'Grafico del carico tissutale. $count compartimenti, carico rispetto al valore M; compartimento principale $number al $percent%.';
+  }
+
+  @override
   String get diveLog_deco_tissueFast => 'Veloce';
 
   @override
@@ -40837,12 +40901,28 @@ class AppLocalizationsIt extends AppLocalizations {
       'Il tuo CNS% (orologio dell\'ossigeno) decade dopo l\'immersione con un\'emivita di 90 minuti -- torna praticamente a 0 dopo circa un giorno.\n\nL\'OTU giornaliero si azzera ogni notte a mezzanotte. L\'OTU settimanale è un totale mobile degli ultimi 7 giorni: le immersioni più vecchie escono automaticamente dal calcolo non appena restano fuori da questa finestra.';
 
   @override
+  String get safetyHub_tissueLoading_clear_title =>
+      'Nessun carico tissutale residuo';
+
+  @override
+  String get safetyHub_tissueLoading_clear_body =>
+      'Tutti i compartimenti sono tornati in equilibrio con l\'aria in superficie. Restano al loro livello normale (il segno su ogni barra), non a 0%.';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_title =>
+      'Carico tissutale non disponibile';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_body =>
+      'L\'ultima immersione non ha dati per calcolare il carico tissutale, per esempio un\'immersione senza profilo di profondità, in modalità profondimetro o con rebreather senza setpoint.';
+
+  @override
   String get safetyHub_tissueLoading_about_title =>
       'Informazioni sul carico tissutale';
 
   @override
   String get safetyHub_tissueLoading_about_body =>
-      'Il tuo corpo ha 16 compartimenti tissutali che assorbono e rilasciano azoto (e, nelle immersioni in trimix o con ricircolatore, anche elio) a velocità diverse. I tessuti veloci si saturano e desaturano rapidamente; quelli lenti impiegano molto più tempo per entrambi i processi.\n\nDopo un\'immersione con elio, azoto ed elio in uno stesso compartimento possono muoversi brevemente in direzioni opposte: mentre l\'elio sta ancora uscendo, lo stesso compartimento può contemporaneamente assorbire un po\' di azoto, finché entrambi i gas non raggiungono l\'equilibrio con l\'aria che respiri. Per questo un compartimento può mostrare brevemente \"Ongassing\" anche mentre il suo carico complessivo continua a scendere.';
+      'Il tuo corpo ha 16 compartimenti tissutali che assorbono e rilasciano azoto (e, nelle immersioni in trimix o con rebreather, anche elio) a velocità diverse. I tessuti veloci si saturano e desaturano rapidamente; quelli lenti impiegano molto più tempo in entrambi i casi.\n\nIl carico residuo è solo ciò che supera il livello normale in superficie. Anche completamente desaturate, le barre non scendono a 0%: ogni compartimento si stabilizza al segno che corrisponde all\'azoto dell\'aria che respiri. Per questo un compartimento veloce può risultare qui più alto che alla fine di un\'immersione con decompressione a ossigeno, senza che il carico sia aumentato.\n\nDopo un\'immersione con elio, un compartimento rilascia elio mentre assorbe azoto nello stesso momento, finché entrambi i gas sono in equilibrio con l\'aria che respiri.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {

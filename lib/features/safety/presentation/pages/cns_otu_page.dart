@@ -4,6 +4,7 @@ import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -19,6 +20,7 @@ import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/safety/domain/services/tissue_live_service.dart';
 import 'package:submersion/features/safety/presentation/formatters/cns_otu_format.dart';
 import 'package:submersion/features/safety/presentation/providers/cns_otu_providers.dart';
+import 'package:submersion/features/safety/presentation/widgets/tissue_load_notes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -163,13 +165,76 @@ class CnsOtuStatusCard extends StatelessWidget {
       now: NoFlyService.wallClockNowUtc(),
     );
 
+    // Independent of exposure: a gauge-mode or gas-segment-less rebreather
+    // dive can have a known exposure but withheld tissue data (see
+    // CnsOtuSnapshot.endOfDiveCompartments) -- hence the separate null check
+    // rather than reusing `exposure`.
+    //
+    // Shown in every state, not only while a load remains (issue #4228): a
+    // diver checking whether they have desaturated must see the bars back at
+    // their surface level markers, not the tissue view simply vanishing. The
+    // timeline off-gasses the surface interval in sampled steps (a deco
+    // evaluation per sample, re-run on every tick) so CompactTissueLoadingCard
+    // can draw its heat map / area chart over that off-gassing the same way
+    // it draws one over a dive.
+    // The timeline's last entry is the state now (see
+    // TissueLiveService.surfaceIntervalTimeline), so the off-gassing runs once.
+    final endOfDiveCompartments = snap.endOfDiveCompartments;
+    final tissueTimeline = endOfDiveCompartments != null
+        ? TissueLiveService.surfaceIntervalTimeline(
+            endOfDiveCompartments: endOfDiveCompartments,
+            lastDiveEnd: snap.lastDiveEnd,
+            now: now,
+            gfLow: gfLow,
+            gfHigh: gfHigh,
+            environment: snap.surfaceEnvironment,
+          )
+        : null;
+    final currentTissue = tissueTimeline?.last;
+    // Gated on magnitude (hasResidualLoad), not a fixed time span: a trivial,
+    // shallow dive should not read as "still loaded" for days just because
+    // little real time has passed.
+    final hasResidualTissueLoad =
+        currentTissue != null &&
+        TissueLiveService.hasResidualLoad(currentTissue);
+    final tissueSection = _TissueSection(
+      status: currentTissue,
+      timeline: tissueTimeline,
+      atSurfaceEquilibrium:
+          currentTissue != null &&
+          TissueLiveService.isAtSurfaceEquilibrium(currentTissue),
+    );
+    final tissueAbout = [
+      if (currentTissue != null) ...[
+        const SizedBox(height: 8),
+        _AboutCard(
+          title: l10n.safetyHub_tissueLoading_about_title,
+          body: l10n.safetyHub_tissueLoading_about_body,
+        ),
+      ],
+    ];
+
     final exposure = snap.exposure;
     if (exposure == null) {
-      if (elapsed >= _unknownExposureSpan) return _clearCard(l10n, theme);
+      if (elapsed >= _unknownExposureSpan) {
+        return _withLastDiveHeader(snap, elapsed, l10n, theme, [
+          _clearCard(l10n, theme),
+          const SizedBox(height: 8),
+          tissueSection,
+          ...tissueAbout,
+        ]);
+      }
       return _withLastDiveHeader(snap, elapsed, l10n, theme, [
         const _NoProfileWarningCard(),
         const SizedBox(height: 8),
         _OtuTotalsCard(dailyOtu: dailyOtu, weeklyOtu: snap.weeklyOtu),
+        // Without a profile there is no tissue data either; the warning
+        // above already says why, so no second "not available" note.
+        if (currentTissue != null) ...[
+          const SizedBox(height: 8),
+          tissueSection,
+          ...tissueAbout,
+        ],
       ]);
     }
 
@@ -188,45 +253,6 @@ class CnsOtuStatusCard extends StatelessWidget {
         unknownDiveAge != null &&
         unknownDiveAge + elapsed < CnsTable.cnsRecoveryWindow;
 
-    // Independent of exposure: a gauge-mode or gas-segment-less rebreather
-    // dive can have a known exposure but withheld tissue data (see
-    // CnsOtuSnapshot.endOfDiveCompartments) -- hence the separate null check
-    // rather than reusing `exposure`. Gated on magnitude (hasResidualLoad),
-    // not a fixed time span: a trivial, shallow dive should not read as
-    // "still loaded" for days just because little real time has passed.
-    //
-    // The gate runs on the single current status; only a load still worth
-    // showing pays for the full timeline, which off-gasses the surface
-    // interval in sampled steps (a deco evaluation per sample, re-run on
-    // every tick) so CompactTissueLoadingCard can draw its heat map / area
-    // chart over that off-gassing the same way it draws one over a dive.
-    final endOfDiveCompartments = snap.endOfDiveCompartments;
-    final currentTissue = endOfDiveCompartments != null
-        ? TissueLiveService.currentStatus(
-            endOfDiveCompartments: endOfDiveCompartments,
-            lastDiveEnd: snap.lastDiveEnd,
-            now: now,
-            gfLow: gfLow,
-            gfHigh: gfHigh,
-            environment: snap.surfaceEnvironment,
-          )
-        : null;
-    final tissueStatus =
-        currentTissue != null &&
-            TissueLiveService.hasResidualLoad(currentTissue)
-        ? currentTissue
-        : null;
-    final tissueTimeline = tissueStatus != null
-        ? TissueLiveService.surfaceIntervalTimeline(
-            endOfDiveCompartments: endOfDiveCompartments!,
-            lastDiveEnd: snap.lastDiveEnd,
-            now: now,
-            gfLow: gfLow,
-            gfHigh: gfHigh,
-            environment: snap.surfaceEnvironment,
-          )
-        : null;
-
     // A tissue load still worth showing counts as active too -- without
     // this, CNS/OTU decaying below their own epsilons (CNS within ~15h,
     // daily OTU at midnight) would read as "no active load" while the
@@ -236,9 +262,14 @@ class CnsOtuStatusCard extends StatelessWidget {
         cnsMayBeHigher ||
         dailyOtu >= _loadEpsilon ||
         snap.weeklyOtu >= _loadEpsilon ||
-        tissueStatus != null;
+        hasResidualTissueLoad;
     if (!hasActiveLoad) {
-      return _clearCard(l10n, theme);
+      return _withLastDiveHeader(snap, elapsed, l10n, theme, [
+        _clearCard(l10n, theme),
+        const SizedBox(height: 8),
+        tissueSection,
+        ...tissueAbout,
+      ]);
     }
 
     return _withLastDiveHeader(snap, elapsed, l10n, theme, [
@@ -253,13 +284,8 @@ class CnsOtuStatusCard extends StatelessWidget {
         weeklyOtu: snap.weeklyOtu,
         showCnsMinimumNote: cnsMayBeHigher,
       ),
-      if (tissueStatus != null) ...[
-        const SizedBox(height: 8),
-        CompactTissueLoadingCard(
-          status: tissueStatus,
-          decoStatuses: tissueTimeline,
-        ),
-      ],
+      const SizedBox(height: 8),
+      tissueSection,
       // Explanations last, below every readout they describe, so they never
       // push the numbers themselves further down the page.
       const SizedBox(height: 8),
@@ -267,13 +293,7 @@ class CnsOtuStatusCard extends StatelessWidget {
         title: l10n.safetyHub_cnsOtu_about_title,
         body: l10n.safetyHub_cnsOtu_about_body,
       ),
-      if (tissueStatus != null) ...[
-        const SizedBox(height: 8),
-        _AboutCard(
-          title: l10n.safetyHub_tissueLoading_about_title,
-          body: l10n.safetyHub_tissueLoading_about_body,
-        ),
-      ],
+      ...tissueAbout,
     ]);
   }
 
@@ -312,6 +332,44 @@ class CnsOtuStatusCard extends StatelessWidget {
         title: Text(l10n.safetyHub_cnsOtu_clear_title),
         subtitle: Text(l10n.safetyHub_cnsOtu_clear_subtitle),
       ),
+    );
+  }
+}
+
+/// The tissue part of the readout, in every state (issue #4228): the live
+/// tissue card, preceded by a "no residual load" note once every compartment
+/// is back at surface equilibrium, or a note saying why there is no tissue
+/// data at all.
+class _TissueSection extends StatelessWidget {
+  /// Tissue state now, or null when the last dive carries no tissue data.
+  final DecoStatus? status;
+  final List<DecoStatus>? timeline;
+
+  /// See [TissueLiveService.isAtSurfaceEquilibrium].
+  final bool atSurfaceEquilibrium;
+
+  const _TissueSection({
+    required this.status,
+    required this.timeline,
+    required this.atSurfaceEquilibrium,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final current = status;
+    // An empty status has nothing to draw either: same note as no data.
+    if (current == null || current.compartments.isEmpty) {
+      return const TissueUnavailableNote();
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (atSurfaceEquilibrium) ...[
+          const TissueClearNote(),
+          const SizedBox(height: 8),
+        ],
+        CompactTissueLoadingCard(status: current, decoStatuses: timeline),
+      ],
     );
   }
 }

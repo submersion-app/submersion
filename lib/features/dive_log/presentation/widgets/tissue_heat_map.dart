@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tissue_tooltip_text.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A Subsurface-style tissue loading heat map that visualizes all 16
@@ -59,6 +60,8 @@ class TissueHeatMap extends StatelessWidget {
                   colorScheme: colorScheme,
                   textTheme: textTheme,
                   colorFn: colorFn,
+                  leftLabel: context.l10n.diveLog_deco_gasOngassing,
+                  rightLabel: context.l10n.diveLog_deco_gasOffgassing,
                 ),
               ],
             ),
@@ -210,21 +213,7 @@ class _TissueHeatMapStripState extends State<TissueHeatMapStrip> {
 
     final status = widget.decoStatuses[timeIdx];
     final comp = status.compartments[compIdx];
-    final ambientPressure = status.ambientPressureBar;
-    final isOffgassing = status.isOffgassing(comp);
-
-    final gfAtDepth = comp.gradientFactor(ambientPressure);
-    final lines = <String>[
-      'Compartment ${comp.compartmentNumber}',
-      '${comp.percentLoading.toStringAsFixed(1)}% loaded',
-      'GF: ${(gfAtDepth * 100).toStringAsFixed(0)}%',
-      'N\u2082: ${comp.currentPN2.toStringAsFixed(2)} bar',
-      if (comp.currentPHe > 0.001)
-        'He: ${comp.currentPHe.toStringAsFixed(2)} bar',
-      'Half-time: ${comp.halfTimeN2.toStringAsFixed(0)} min',
-      if (isOffgassing != null) isOffgassing ? 'Offgassing' : 'Ongassing',
-    ];
-    final message = lines.join('\n');
+    final message = tissueCompartmentTooltip(context.l10n, status, comp);
 
     // Position tooltip horizontally at the cell center, above the heat map
     final numTimePoints = widget.decoStatuses.length;
@@ -331,8 +320,8 @@ class TissueHeatMapLegend extends StatelessWidget {
     required this.colorScheme,
     required this.textTheme,
     required this.colorFn,
-    this.leftLabel = 'On-gassing',
-    this.rightLabel = 'Off-gassing',
+    required this.leftLabel,
+    required this.rightLabel,
   });
 
   @override

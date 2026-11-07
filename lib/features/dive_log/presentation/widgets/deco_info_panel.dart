@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tissue_pressure_bar_chart.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Panel displaying decompression status and tissue loading.
@@ -286,14 +287,17 @@ class DecoInfoPanel extends StatelessWidget {
                     );
                   }).toList(),
                 ),
-                // M-value reference line at 100%
+                // M-value reference line at 100%, styled like the tissue
+                // loading card's so the same limit reads the same everywhere.
                 Positioned(
-                  bottom: mValueBottom,
+                  bottom:
+                      mValueBottom -
+                      TissuePressureBarChart.mValueLineHeight / 2,
                   left: 0,
                   right: 0,
-                  child: Container(
-                    height: 1,
-                    color: colorScheme.error.withValues(alpha: 0.5),
+                  height: TissuePressureBarChart.mValueLineHeight,
+                  child: ColoredBox(
+                    color: TissuePressureBarChart.mValueLineColor(colorScheme),
                   ),
                 ),
               ],

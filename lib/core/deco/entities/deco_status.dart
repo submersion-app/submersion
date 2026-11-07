@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/entities/gas_exchange.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 
 /// Represents the current decompression status at a point in time.
@@ -109,6 +111,57 @@ class DecoStatus extends Equatable {
         (pHe - compartment.currentPHe) / compartment.halfTimeHe;
     return netRate < _netRateNoiseFloor;
   }
+
+  /// Distance, in bar, between a compartment's tension and the inspired
+  /// pressure of one gas below which that gas reads as in equilibrium rather
+  /// than still moving. Far above the floating-point noise a long surface
+  /// projection leaves behind, and below anything a diver would care about.
+  static const double gasEquilibriumToleranceBar = 0.005;
+
+  /// Direction nitrogen alone moves in [compartment], or null when the
+  /// inspired gas is unknown.
+  GasExchange? n2Exchange(TissueCompartment compartment) {
+    final inspired = inspiredN2Bar;
+    if (inspired == null) return null;
+    return _exchange(inspired, compartment.currentPN2);
+  }
+
+  /// Direction helium alone moves in [compartment], or null when the
+  /// inspired gas is unknown. After a trimix dive at the surface this reads
+  /// off-gassing while [n2Exchange] can read on-gassing at the same time.
+  GasExchange? heExchange(TissueCompartment compartment) {
+    final inspired = inspiredHeBar;
+    if (inspired == null) return null;
+    return _exchange(inspired, compartment.currentPHe);
+  }
+
+  /// Net direction of both gases together: [GasExchange.equilibrium] when
+  /// neither is moving, otherwise the sign [isOffgassing] reads. Null when
+  /// the inspired gas is unknown.
+  GasExchange? netExchange(TissueCompartment compartment) {
+    final n2 = n2Exchange(compartment);
+    final he = heExchange(compartment);
+    final offgassing = isOffgassing(compartment);
+    if (n2 == null || he == null || offgassing == null) return null;
+    if (n2 == GasExchange.equilibrium && he == GasExchange.equilibrium) {
+      return GasExchange.equilibrium;
+    }
+    return offgassing ? GasExchange.offgassing : GasExchange.ongassing;
+  }
+
+  static GasExchange _exchange(double inspired, double tension) {
+    final difference = inspired - tension;
+    if (difference.abs() < gasEquilibriumToleranceBar) {
+      return GasExchange.equilibrium;
+    }
+    return difference > 0 ? GasExchange.ongassing : GasExchange.offgassing;
+  }
+
+  /// Inspired N2 when breathing air at [surfacePressureBar]: the tension a
+  /// fully desaturated compartment settles at on land. Never zero, because
+  /// the body always holds the nitrogen of the air it breathes.
+  double get surfaceEquilibriumN2Bar =>
+      calculateInspiredN2(surfacePressureBar, airN2Fraction);
 
   /// Whether the diver is currently in decompression obligation.
   ///

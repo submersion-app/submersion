@@ -18,12 +18,6 @@ enum TissueColorScheme {
 
   const TissueColorScheme(this.displayName);
 
-  /// Legend label for the low end of the color scale.
-  String get leftLabel => 'On-gassing';
-
-  /// Legend label for the high end of the color scale.
-  String get rightLabel => 'Off-gassing';
-
   /// Parse a [TissueColorScheme] from its [name] string.
   ///
   /// Returns [TissueColorScheme.classic] if [name] is not recognized.

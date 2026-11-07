@@ -7500,6 +7500,70 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_deco_semantics_required => 'Dekompresszió szükséges';
 
   @override
+  String diveLog_deco_compartmentLeading(int number) {
+    return 'Vezető: #$number';
+  }
+
+  @override
+  String diveLog_deco_compartmentOther(int number) {
+    return 'Kamra: #$number';
+  }
+
+  @override
+  String get diveLog_deco_metricLoad => 'Terhelés';
+
+  @override
+  String get diveLog_deco_gasOngassing => 'Feltöltődés';
+
+  @override
+  String get diveLog_deco_gasOffgassing => 'Leürülés';
+
+  @override
+  String get diveLog_deco_gasEquilibrium => 'Egyensúly';
+
+  @override
+  String get diveLog_deco_heatMapRows =>
+      'Sorok: gyors (fent) és lassú (lent) között';
+
+  @override
+  String get diveLog_deco_surfaceLevel => 'Felszíni szint';
+
+  @override
+  String get diveLog_deco_mValue => 'M-érték';
+
+  @override
+  String diveLog_deco_tooltipCompartment(int number) {
+    return '$number. kamra';
+  }
+
+  @override
+  String diveLog_deco_tooltipLoaded(String percent) {
+    return '$percent% terhelés';
+  }
+
+  @override
+  String diveLog_deco_tooltipHalfTime(String minutes) {
+    return 'Felezési idő: $minutes perc';
+  }
+
+  @override
+  String diveLog_deco_tooltipSurfaceLevel(String percent) {
+    return 'Felszíni szint: $percent%';
+  }
+
+  @override
+  String get diveLog_deco_info_title => 'Mit jelentenek ezek az értékek?';
+
+  @override
+  String get diveLog_deco_info_body =>
+      'Terhelés: egy kamra inertgáz-nyomása annak a maximumnak a százalékában, amelyet a felszínen tartalmazhat (az M-értéke, a piros vonal 100%-nál).\n\nFelszíni szint: az egyes oszlopokon lévő jelölés mutatja, hol áll be egy teljesen telítetlenné vált kamra, miközben a felszínen levegőt lélegzel. Soha nincs 0%-on, mert a tested mindig tartalmazza a belélegzett levegő nitrogénjét. A jelölésénél álló oszlop már nem hordoz a merülésből visszamaradt terhelést.\n\nFeltöltődés és leürülés: a gáz mindig a belélegzett gáz nyomása felé mozog. Oxigénes vagy héliumban gazdag keverékkel végzett dekompresszió után a gyors kamrák kevesebb nitrogént tartalmazhatnak, mint a felszíni levegő. Ismét levegőt lélegezve újra nitrogént vesznek fel, amíg el nem érik a jelölésüket. Ez normális, és nem a merülésből visszamaradt terhelés.\n\nHélium: a levegő nem tartalmaz héliumot. Trimix merülés után egy kamra héliumot ad le, miközben egyidejűleg nitrogént vehet fel. Az N₂ és He melletti nyilak külön mutatják az egyes gázokat; a kamra száma melletti jelzés a kettő együttes irányát mutatja.';
+
+  @override
+  String diveLog_deco_barChartSemantics(int count, int number, String percent) {
+    return 'Szövetterhelési diagram. $count kamra, terhelés az M-értékhez viszonyítva; a vezető kamra a(z) $number. $percent%-on.';
+  }
+
+  @override
   String get diveLog_deco_tissueFast => 'Gyors';
 
   @override
@@ -40598,11 +40662,27 @@ class AppLocalizationsHu extends AppLocalizations {
       'A CNS% (oxigénóra) a merülés után 90 perces felezési idővel csökken -- körülbelül egy nap múlva gyakorlatilag visszatér 0-ra.\n\nA napi OTU minden éjjel éjfélkor nullázódik. A heti OTU az utolsó 7 nap gördülő összege: a régebbi merülések automatikusan kikerülnek a számításból, amint kiesnek ebből az időablakból.';
 
   @override
+  String get safetyHub_tissueLoading_clear_title =>
+      'Nincs maradék szövetterhelés';
+
+  @override
+  String get safetyHub_tissueLoading_clear_body =>
+      'Minden kamra ismét egyensúlyban van a felszíni levegővel. A normál szintjükön maradnak (az egyes oszlopokon lévő jelölésnél), nem 0%-on.';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_title =>
+      'A szövetterhelés nem érhető el';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_body =>
+      'Az utolsó merüléshez nincs adat a szövetterhelés kiszámításához, például mélységprofil nélküli merülésnél, mélységmérő módban vagy setpoint nélküli rebreatherrel.';
+
+  @override
   String get safetyHub_tissueLoading_about_title => 'A szövettelítődésről';
 
   @override
   String get safetyHub_tissueLoading_about_body =>
-      'A testednek 16 szövetkompartmentje van, amelyek különböző sebességgel vesznek fel és adnak le nitrogént (trimix- vagy újralégzős merüléseknél héliumot is). A gyors szövetek gyorsan telítődnek és ürülnek; a lassú szövetek mindkettőhöz sokkal több időt igényelnek.\n\nHéliumos merülés után egyazon kompartmentben a nitrogén és a hélium rövid ideig ellentétes irányba mozoghat: amíg a hélium még távozik, ugyanaz a kompartment egyidejűleg kis mennyiségű nitrogént vehet fel, amíg mindkét gáz egyensúlyba nem kerül a belélegzett levegővel. Ezért egy kompartment rövid időre \"Ongassing\" jelzést mutathat, miközben a teljes terhelése továbbra is csökken.';
+      'A testedben 16 szövetkamra van, amelyek különböző sebességgel veszik fel és adják le a nitrogént (trimix vagy rebreather merüléseknél a héliumot is). A gyors szövetek gyorsan telítődnek és ürülnek; a lassú szöveteknek mindkettőhöz sokkal több idő kell.\n\nA maradék terhelés csak az, ami a normál felszíni szint fölött van. Teljesen kiürülve sem esnek az oszlopok 0%-ra: minden kamra a belélegzett levegő nitrogénjének megfelelő jelölésnél áll be. Ezért egy gyors kamra itt magasabb értéket mutathat, mint egy oxigénes dekompressziós merülés végén, anélkül hogy a terhelés nőtt volna.\n\nHéliumos merülés után egy kamra héliumot ad le, miközben egyidejűleg nitrogént vesz fel, amíg mindkét gáz egyensúlyba nem kerül a belélegzett levegővel.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {

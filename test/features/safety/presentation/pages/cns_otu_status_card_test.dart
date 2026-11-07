@@ -306,6 +306,8 @@ void main() {
       // CNS is unknown, so no CNS reading is offered at all.
       expect(find.text('CNS Oxygen Clock'), findsNothing);
       expect(find.text('#42'), findsOneWidget);
+      // The no-profile warning already explains the missing tissue data.
+      expect(find.text('Tissue loading not available'), findsNothing);
     });
 
     testWidgets('warns even with zero known totals', (tester) async {
@@ -396,8 +398,8 @@ void main() {
     );
 
     testWidgets(
-      'no tissue card without end-of-dive compartments (e.g. gauge mode, '
-      'withheld rebreather)',
+      'says why there is no tissue card without end-of-dive compartments '
+      '(e.g. gauge mode, withheld rebreather)',
       (tester) async {
         final lastDiveEnd = endedAgo(const Duration(minutes: 30));
         await pumpCard(
@@ -410,20 +412,19 @@ void main() {
         );
 
         expect(find.text('Tissue Loading'), findsNothing);
+        expect(find.text('Tissue loading not available'), findsOneWidget);
       },
     );
 
     testWidgets(
-      'no tissue card once the loaded compartments have off-gassed back to '
-      'surface equilibrium',
+      'keeps the tissue card once the compartments are back at surface '
+      'equilibrium, with a no residual load note (issue #4228)',
       (tester) async {
         await pumpCard(
           tester,
           snapshotOf(
-            // Four days: every compartment is at surface equilibrium, but
-            // weeklyOtu keeps the card itself in its active state so the
-            // absence of the tissue section is what is actually being
-            // checked, not the whole card falling to "clear".
+            // Four days: every compartment is at surface equilibrium, while
+            // weeklyOtu keeps the CNS/OTU part in its active state.
             lastDiveEnd: endedAgo(const Duration(days: 4)),
             exposure: const O2Exposure(),
             weeklyOtu: 50.0,
@@ -431,8 +432,46 @@ void main() {
           ),
         );
 
-        expect(find.text('Tissue Loading'), findsNothing);
+        expect(find.text('Tissue Loading'), findsOneWidget);
+        expect(find.text('No residual tissue load'), findsOneWidget);
+        expect(find.text('About Tissue Loading'), findsOneWidget);
       },
     );
+
+    testWidgets(
+      'still shows the tissue card once CNS, OTU and tissues have all '
+      'cleared (issue #4228)',
+      (tester) async {
+        await pumpCard(
+          tester,
+          snapshotOf(
+            lastDiveEnd: endedAgo(const Duration(days: 9)),
+            exposure: const O2Exposure(),
+            endOfDiveCompartments: loadedCompartments(),
+          ),
+        );
+
+        expect(find.text('No active load'), findsOneWidget);
+        expect(find.text('No residual tissue load'), findsOneWidget);
+        expect(find.text('Tissue Loading'), findsOneWidget);
+        // Which dive the readout is projected from stays identified.
+        expect(find.text('#42'), findsOneWidget);
+      },
+    );
+
+    testWidgets('no residual load note while a load remains', (tester) async {
+      await pumpCard(
+        tester,
+        snapshotOf(
+          lastDiveEnd: endedAgo(const Duration(minutes: 30)),
+          exposure: const O2Exposure(cnsEnd: 40.0, otu: 20.0),
+          weeklyOtu: 50.0,
+          endOfDiveCompartments: loadedCompartments(),
+        ),
+      );
+
+      expect(find.text('Tissue Loading'), findsOneWidget);
+      expect(find.text('No residual tissue load'), findsNothing);
+    });
   });
 }

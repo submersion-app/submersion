@@ -7522,6 +7522,70 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_deco_semantics_required => 'Dekompression erforderlich';
 
   @override
+  String diveLog_deco_compartmentLeading(int number) {
+    return 'Führend: #$number';
+  }
+
+  @override
+  String diveLog_deco_compartmentOther(int number) {
+    return 'Kompartiment: #$number';
+  }
+
+  @override
+  String get diveLog_deco_metricLoad => 'Belastung';
+
+  @override
+  String get diveLog_deco_gasOngassing => 'Aufsättigung';
+
+  @override
+  String get diveLog_deco_gasOffgassing => 'Entsättigung';
+
+  @override
+  String get diveLog_deco_gasEquilibrium => 'Gleichgewicht';
+
+  @override
+  String get diveLog_deco_heatMapRows =>
+      'Zeilen: schnell (oben) bis langsam (unten)';
+
+  @override
+  String get diveLog_deco_surfaceLevel => 'Oberflächenniveau';
+
+  @override
+  String get diveLog_deco_mValue => 'M-Wert';
+
+  @override
+  String diveLog_deco_tooltipCompartment(int number) {
+    return 'Kompartiment $number';
+  }
+
+  @override
+  String diveLog_deco_tooltipLoaded(String percent) {
+    return '$percent% Belastung';
+  }
+
+  @override
+  String diveLog_deco_tooltipHalfTime(String minutes) {
+    return 'Halbwertszeit: $minutes min';
+  }
+
+  @override
+  String diveLog_deco_tooltipSurfaceLevel(String percent) {
+    return 'Oberflächenniveau: $percent%';
+  }
+
+  @override
+  String get diveLog_deco_info_title => 'Was bedeuten diese Werte?';
+
+  @override
+  String get diveLog_deco_info_body =>
+      'Belastung: der Inertgasdruck eines Kompartiments in Prozent des Höchstwerts, den es an der Oberfläche halten darf (sein M-Wert, die rote Linie bei 100 %).\n\nOberflächenniveau: Die Markierung auf jedem Balken zeigt, wo sich ein vollständig entsättigtes Kompartiment einpendelt, während du an der Oberfläche Luft atmest. Sie liegt nie bei 0 %, weil dein Körper immer den Stickstoff der Atemluft enthält. Ein Balken auf seiner Markierung trägt keine Restbelastung vom Tauchen mehr.\n\nAufsättigung und Entsättigung: Gas bewegt sich immer in Richtung des Drucks des Gases, das du atmest. Nach einer Deko mit Sauerstoff oder einem heliumreichen Gemisch können die schnellen Kompartimente weniger Stickstoff enthalten als die Luft an der Oberfläche. Atmest du wieder Luft, nehmen sie Stickstoff auf, bis sie ihre Markierung erreichen. Das ist normal und keine Restbelastung vom Tauchgang.\n\nHelium: Luft enthält kein Helium. Nach einem Trimix-Tauchgang gibt ein Kompartiment Helium ab und kann gleichzeitig Stickstoff aufnehmen. Die Pfeile neben N₂ und He zeigen jedes Gas einzeln, die Anzeige neben der Kompartimentnummer zeigt die Gesamtrichtung beider Gase.';
+
+  @override
+  String diveLog_deco_barChartSemantics(int count, int number, String percent) {
+    return 'Diagramm der Gewebesättigung. $count Kompartimente, Belastung im Verhältnis zum M-Wert; führendes Kompartiment $number bei $percent %.';
+  }
+
+  @override
   String get diveLog_deco_tissueFast => 'Schnell';
 
   @override
@@ -40746,11 +40810,27 @@ class AppLocalizationsDe extends AppLocalizations {
       'Der CNS-Wert (Sauerstoff-Uhr) sinkt nach dem Tauchgang mit einer Halbwertszeit von 90 Minuten – nach rund einem Tag ist er praktisch auf 0 zurückgegangen.\n\nDie Tages-OTU wird jede Nacht um Mitternacht zurückgesetzt. Die Wochen-OTU ist eine rollierende Summe der letzten 7 Tage: ältere Tauchgänge fallen automatisch wieder aus der Berechnung heraus, sobald sie ausserhalb dieses Fensters liegen.';
 
   @override
+  String get safetyHub_tissueLoading_clear_title =>
+      'Keine Restbelastung der Gewebe';
+
+  @override
+  String get safetyHub_tissueLoading_clear_body =>
+      'Alle Kompartimente sind wieder im Gleichgewicht mit der Luft an der Oberfläche. Sie bleiben auf ihrem Normalwert (der Markierung auf jedem Balken) und fallen nicht auf 0 %.';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_title =>
+      'Gewebesättigung nicht verfügbar';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_body =>
+      'Für den letzten Tauchgang fehlen die Daten, um die Gewebesättigung zu berechnen, zum Beispiel bei einem Tauchgang ohne Tiefenprofil, im Gauge-Modus oder mit Rebreather ohne Setpoint.';
+
+  @override
   String get safetyHub_tissueLoading_about_title => 'Über die Gewebesättigung';
 
   @override
   String get safetyHub_tissueLoading_about_body =>
-      'Ihr Körper hat 16 Gewebekompartimente, die Stickstoff (und bei Trimix- oder Rebreather-Tauchgängen auch Helium) mit unterschiedlichen Geschwindigkeiten aufnehmen und abgeben. Schnelle Gewebe sättigen und entsättigen rasch, langsame Gewebe brauchen dafür deutlich länger.\n\nNach einem Tauchgang mit Helium können sich Stickstoff und Helium in einem Kompartiment kurzzeitig gegenläufig verhalten: Während das Helium noch ausgast, nimmt derselbe Bereich gleichzeitig wieder etwas Stickstoff auf, bis beide Gase das Gleichgewicht mit der Atemluft erreicht haben. Deshalb kann ein Kompartiment vorübergehend \"Ongassing\" anzeigen, auch wenn die Gesamtbelastung insgesamt weiter sinkt.';
+      'Dein Körper hat 16 Gewebekompartimente, die Stickstoff (und bei Trimix- oder Rebreather-Tauchgängen auch Helium) unterschiedlich schnell aufnehmen und abgeben. Schnelle Gewebe sättigen und entsättigen rasch, langsame brauchen dafür deutlich länger.\n\nRestbelastung ist nur der Anteil über dem Normalwert an der Oberfläche. Auch vollständig entsättigt fallen die Balken nicht auf 0 %: Jedes Kompartiment pendelt sich auf der Markierung ein, die dem Stickstoff der Atemluft entspricht. Darum kann ein schnelles Kompartiment nach einer Deko mit Sauerstoff hier höher stehen als am Ende des Tauchgangs, ohne dass die Belastung gestiegen ist.\n\nNach einem Tauchgang mit Helium gibt ein Kompartiment Helium ab und nimmt gleichzeitig Stickstoff auf, bis beide Gase im Gleichgewicht mit der Atemluft sind.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {

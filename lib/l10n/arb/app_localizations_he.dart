@@ -7359,6 +7359,70 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_deco_semantics_required => 'דקומפרסיה נדרשת';
 
   @override
+  String diveLog_deco_compartmentLeading(int number) {
+    return 'מוביל: #$number';
+  }
+
+  @override
+  String diveLog_deco_compartmentOther(int number) {
+    return 'תא: #$number';
+  }
+
+  @override
+  String get diveLog_deco_metricLoad => 'עומס';
+
+  @override
+  String get diveLog_deco_gasOngassing => 'ספיגה';
+
+  @override
+  String get diveLog_deco_gasOffgassing => 'שחרור';
+
+  @override
+  String get diveLog_deco_gasEquilibrium => 'שיווי משקל';
+
+  @override
+  String get diveLog_deco_heatMapRows =>
+      'שורות: מהירים (למעלה) עד איטיים (למטה)';
+
+  @override
+  String get diveLog_deco_surfaceLevel => 'רמת פני המים';
+
+  @override
+  String get diveLog_deco_mValue => 'ערך M';
+
+  @override
+  String diveLog_deco_tooltipCompartment(int number) {
+    return 'תא $number';
+  }
+
+  @override
+  String diveLog_deco_tooltipLoaded(String percent) {
+    return 'עומס $percent%';
+  }
+
+  @override
+  String diveLog_deco_tooltipHalfTime(String minutes) {
+    return 'זמן מחצית: $minutes דק\'';
+  }
+
+  @override
+  String diveLog_deco_tooltipSurfaceLevel(String percent) {
+    return 'רמת פני המים: $percent%';
+  }
+
+  @override
+  String get diveLog_deco_info_title => 'מה המשמעות של הערכים האלה?';
+
+  @override
+  String get diveLog_deco_info_body =>
+      'עומס: לחץ הגז האינרטי בתא כאחוז מהמקסימום שהוא רשאי להכיל על פני המים (ערך ה-M שלו, הקו האדום ב-100%).\n\nרמת פני המים: הסימון על כל עמודה מראה היכן מתייצב תא שהתרוקן לגמרי בזמן שאתה נושם אוויר על פני המים. הוא אף פעם לא ב-0%, כי הגוף שלך תמיד מכיל את החנקן שבאוויר שאתה נושם. עמודה שעומדת על הסימון שלה כבר לא נושאת עומס שנותר מהצלילה.\n\nספיגה ושחרור: גז נע תמיד לכיוון הלחץ של הגז שאתה נושם. אחרי דקומפרסיה בחמצן או בתערובת עשירה בהליום, התאים המהירים עשויים להכיל פחות חנקן מהאוויר על פני המים. כשחוזרים לנשום אוויר, הם סופגים שוב חנקן עד שהם מגיעים לסימון שלהם. זה תקין ואינו עומס שנותר מהצלילה.\n\nהליום: אוויר אינו מכיל הליום. אחרי צלילת טרימיקס, תא משחרר הליום ובאותו זמן יכול לספוג חנקן. החיצים ליד N₂ ו-He מציגים כל גז בנפרד; הציון ליד מספר התא מציג את הכיוון הכולל של שניהם.';
+
+  @override
+  String diveLog_deco_barChartSemantics(int count, int number, String percent) {
+    return 'תרשים רוויית רקמות. $count תאים, עומס ביחס לערך M; תא מוביל $number ב-$percent%.';
+  }
+
+  @override
   String get diveLog_deco_tissueFast => 'מהירה';
 
   @override
@@ -39828,11 +39892,26 @@ class AppLocalizationsHe extends AppLocalizations {
       'אחוז ה-CNS שלך (שעון החמצן) דועך לאחר הצלילה עם מחצית חיים של 90 דקות -- הוא חוזר כמעט לגמרי ל-0 אחרי כיום אחד בערך.\n\nה-OTU היומי מתאפס בכל לילה בחצות. ה-OTU השבועי הוא סכום מתגלגל של 7 הימים האחרונים: צלילות ישנות יותר נופלות אוטומטית מהחישוב ברגע שהן יוצאות מחלון הזמן הזה.';
 
   @override
+  String get safetyHub_tissueLoading_clear_title => 'אין עומס שארי ברקמות';
+
+  @override
+  String get safetyHub_tissueLoading_clear_body =>
+      'כל התאים חזרו לשיווי משקל עם האוויר על פני המים. הם נשארים ברמה הרגילה שלהם (הסימון על כל עמודה), ולא ב-0%.';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_title =>
+      'רוויית הרקמות אינה זמינה';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_body =>
+      'לצלילה האחרונה אין נתונים לחישוב רוויית הרקמות, למשל צלילה ללא פרופיל עומק, במצב מד עומק או במחזר ללא נקודת כיוון.';
+
+  @override
   String get safetyHub_tissueLoading_about_title => 'אודות רוויית הרקמות';
 
   @override
   String get safetyHub_tissueLoading_about_body =>
-      'לגוף שלך יש 16 תאי רקמה הסופגים ומשחררים חנקן (ובצלילות טרימיקס או רה-ברית\'ר, גם הליום) במהירויות שונות. רקמות מהירות נרוות ומתרוקנות במהירות; רקמות איטיות לוקחות הרבה יותר זמן לשני התהליכים.\n\nלאחר צלילה עם הליום, חנקן והליום באותו תא רקמה יכולים לנוע לרגע בכיוונים מנוגדים: בעוד ההליום עדיין משתחרר, אותו תא עשוי לספוג במקביל מעט חנקן, עד ששני הגזים מגיעים לשיווי משקל עם האוויר שאתה נושם. זו הסיבה שתא רקמה עשוי להציג לרגע \"Ongassing\" גם כאשר העומס הכולל שלו ממשיך לרדת.';
+      'בגוף שלך יש 16 תאי רקמה שסופגים ומשחררים חנקן (ובצלילות טרימיקס או מחזר גם הליום) במהירויות שונות. רקמות מהירות נרוות ומתרוקנות במהירות; רקמות איטיות צריכות הרבה יותר זמן לשני התהליכים.\n\nעומס שארי הוא רק מה שנמצא מעל הרמה הרגילה על פני המים. גם אחרי התרוקנות מלאה העמודות לא יורדות ל-0%: כל תא מתייצב על הסימון שמתאים לחנקן שבאוויר שאתה נושם. לכן תא מהיר יכול להראות כאן ערך גבוה יותר מאשר בסוף צלילה עם דקומפרסיה בחמצן, בלי שהעומס גדל.\n\nאחרי צלילה עם הליום, תא משחרר הליום ובאותו זמן סופג חנקן, עד ששני הגזים בשיווי משקל עם האוויר שאתה נושם.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
