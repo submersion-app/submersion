@@ -36,9 +36,11 @@ img.ExifData? readLocalExif(File file, String mime) {
 ///
 /// `decodeJpgExif` itself needs the whole file in memory: a folder import of
 /// 28 MB camera JPEGs read every byte of every file to reach an EXIF block of
-/// a few KB. APPn segments always precede the scan, so the walk ends at the
-/// SOS, and an APP1 length is a uint16, so one read is at most 64 KB. Other
-/// APP1 payloads (an XMP packet, say) are skipped after a 6-byte peek.
+/// a few KB. The Exif spec puts its APP1 directly after SOI, so the walk
+/// ends at the SOS, and an APP1 length is a uint16, so one read is at most
+/// 64 KB. Other APP1 payloads (an XMP packet, say) are skipped after a
+/// 6-byte peek. A file cut off inside its EXIF segment yields what survives
+/// of it, as `decodeJpgExif` did.
 img.ExifData? _readJpegExif(File file) {
   RandomAccessFile? raf;
   try {

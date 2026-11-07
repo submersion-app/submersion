@@ -278,17 +278,33 @@ void main() {
       );
     });
 
-    test('returns null for truncated or malformed headers', () {
+    test('reads what survives of an EXIF segment cut off at EOF, '
+        'as decodeJpgExif did', () {
       final exif = exifSegment(setDateAndGps);
-      // The EXIF segment's declared length runs past EOF.
-      final truncated = write('truncated.jpg', [
-        0xFF,
-        0xD8,
-        ...exif.sublist(0, exif.length ~/ 2),
-      ]);
-      // EXIF segment bytes without the SOI that makes them a JPEG.
+      String? date(img.ExifData? e) =>
+          e?.exifIfd['DateTimeOriginal']?.toString();
+      // A file that ends partway through its APP1, as an interrupted copy
+      // leaves it: the declared length runs past EOF.
+      for (final keep in [exif.length ~/ 2, exif.length * 9 ~/ 10]) {
+        final bytes = [0xFF, 0xD8, ...exif.sublist(0, keep)];
+        final cut = write('cut_$keep.jpg', bytes);
+        expect(
+          date(readLocalExif(cut, 'image/jpeg')),
+          date(img.decodeJpgExif(Uint8List.fromList(bytes))),
+          reason: 'cut after $keep of ${exif.length} bytes',
+        );
+      }
+      // Not vacuous: a cut past the date keeps it.
+      final late = [0xFF, 0xD8, ...exif.sublist(0, exif.length * 9 ~/ 10)];
+      expect(
+        date(readLocalExif(write('late.jpg', late), 'image/jpeg')),
+        '2025:12:27 12:08:19',
+      );
+    });
+
+    test('returns null without the SOI that makes it a JPEG', () {
+      final exif = exifSegment(setDateAndGps);
       final noSoi = write('nosoi.jpg', [...exif, ...jpegBytes().sublist(2)]);
-      expect(readLocalExif(truncated, 'image/jpeg'), isNull);
       expect(readLocalExif(noSoi, 'image/jpeg'), isNull);
     });
 
