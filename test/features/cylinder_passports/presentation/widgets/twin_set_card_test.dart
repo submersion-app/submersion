@@ -62,9 +62,15 @@ CylinderPairing pairing(
 /// Records what the flow asked of the repository, and throws a clash for
 /// the first create when [clashOnce] is set.
 class FakePairingRepository extends CylinderPairingRepository {
-  FakePairingRepository({this.clashOnce});
+  FakePairingRepository({this.clashOnce, this.createError, this.endError});
 
   final List<CylinderPairing>? clashOnce;
+
+  /// Thrown by every create when set, in place of the clash.
+  final Object? createError;
+
+  /// Thrown by endPairing when set.
+  final Object? endError;
   final creates = <({String a, String b, DateTime on, bool replace})>[];
   final ends = <({String id, DateTime end})>[];
   final deletes = <String>[];
@@ -83,13 +89,16 @@ class FakePairingRepository extends CylinderPairingRepository {
       on: pairedOn,
       replace: replace,
     ));
+    if (createError case final e?) throw e;
     if (clashOnce != null && !replace) throw PairingClash(clashOnce!);
     return pairing('new', cylinderAId, cylinderBId, calendarDay(pairedOn));
   }
 
   @override
-  Future<void> endPairing(String id, DateTime unpairedOn) async =>
-      ends.add((id: id, end: unpairedOn));
+  Future<void> endPairing(String id, DateTime unpairedOn) async {
+    if (endError case final e?) throw e;
+    ends.add((id: id, end: unpairedOn));
+  }
 
   @override
   Future<void> deletePairing(String id) async => deletes.add(id);
@@ -382,5 +391,99 @@ void main() {
       ],
     );
     expect(find.byType(Card), findsNothing);
+  });
+
+  Future<void> linkTo(
+    WidgetTester tester,
+    AppLocalizations l10n,
+    String name,
+  ) async {
+    await tester.tap(find.text(l10n.twinSet_link));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(name));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('with no other cylinder the picker says so', (tester) async {
+    final l10n = await pump(tester, gear: [cylinder('A')]);
+    await tester.tap(find.text(l10n.twinSet_link));
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.twinSet_pickerEmpty), findsOneWidget);
+  });
+
+  testWidgets('a clash replacing cannot clear names the pairing and saves '
+      'nothing more', (tester) async {
+    final repository = FakePairingRepository(
+      clashOnce: [
+        pairing(
+          'later',
+          'B',
+          'C',
+          DateTime.now().add(const Duration(days: 30)),
+        ),
+      ],
+    );
+    final l10n = await pump(
+      tester,
+      repository: repository,
+      gear: [cylinder('A'), cylinder('B'), cylinder('C')],
+    );
+    await linkTo(tester, l10n, 'Double 12 B');
+    expect(find.text(l10n.twinSet_clashTitle), findsOneWidget);
+    expect(
+      find.textContaining(l10n.twinSet_pairNames('Double 12 B', 'Double 12 C')),
+      findsOneWidget,
+    );
+    expect(repository.creates.map((c) => c.replace), [false]);
+  });
+
+  testWidgets('a failed save says so', (tester) async {
+    final l10n = await pump(
+      tester,
+      repository: FakePairingRepository(createError: StateError('disk')),
+      gear: [cylinder('A'), cylinder('B')],
+    );
+    await linkTo(tester, l10n, 'Double 12 B');
+    expect(find.text(l10n.twinSet_saveFailed), findsOneWidget);
+  });
+
+  testWidgets('an unlink that would overlap a later pairing names it', (
+    tester,
+  ) async {
+    final l10n = await pump(
+      tester,
+      repository: FakePairingRepository(
+        endError: PairingClash([
+          pairing('x', 'B', 'C', DateTime.utc(2026, 5, 1)),
+        ]),
+      ),
+      gear: [cylinder('A'), cylinder('B'), cylinder('C')],
+      pairings: [pairing('p', 'A', 'B', DateTime.utc(2026, 3, 3))],
+    );
+    await tester.tap(find.text(l10n.twinSet_unlink));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.twinSet_clashTitle), findsOneWidget);
+  });
+
+  testWidgets('an unlink before the start says when the pairing began', (
+    tester,
+  ) async {
+    final l10n = await pump(
+      tester,
+      repository: FakePairingRepository(endError: ArgumentError('early')),
+      gear: [cylinder('A'), cylinder('B')],
+      pairings: [pairing('p', 'A', 'B', DateTime.utc(2026, 3, 3))],
+    );
+    await tester.tap(find.text(l10n.twinSet_unlink));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    // The message up to the date it names.
+    final prefix = l10n.twinSet_endBeforeStart('#').split('#').first;
+    expect(find.textContaining(prefix), findsOneWidget);
   });
 }
