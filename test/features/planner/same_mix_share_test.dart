@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/planner/domain/services/same_mix_share.dart';
 
@@ -101,6 +102,10 @@ void main() {
       expect(share, {'only': 700});
     });
 
+    test('no cylinders take no share', () {
+      expect(balancedShare(500, const []), isEmpty);
+    });
+
     test('nothing to draw gives nothing to anyone', () {
       final share = balancedShare(0, const [
         (id: 'a', capacityLiters: 2000, usedLiters: 0),
@@ -108,6 +113,70 @@ void main() {
       ]);
 
       expect(share.values.every((v) => v == 0), isTrue);
+    });
+  });
+
+  group('fillCapacityLiters', () {
+    const air = GasMix(o2: 21);
+
+    test('a cylinder with no fill holds nothing', () {
+      expect(
+        fillCapacityLiters(
+          const DiveTank(id: 'a', volume: 12, gasMix: air),
+          GasModel.ideal,
+        ),
+        0,
+      );
+    });
+
+    test('size times fill on the ideal model, 11 L when unset', () {
+      expect(
+        fillCapacityLiters(
+          const DiveTank(id: 'a', volume: 12, startPressure: 200, gasMix: air),
+          GasModel.ideal,
+        ),
+        closeTo(2400, 1e-6),
+      );
+      expect(
+        fillCapacityLiters(
+          const DiveTank(id: 'a', startPressure: 200, gasMix: air),
+          GasModel.ideal,
+        ),
+        closeTo(2200, 1e-6),
+      );
+    });
+  });
+
+  group('spreadAcrossSameMix', () {
+    const air = GasMix(o2: 21);
+    const ean50 = GasMix(o2: 50);
+    const tanks = [
+      DiveTank(id: 'a', gasMix: air, role: TankRole.bailout),
+      DiveTank(id: 'b', gasMix: air, role: TankRole.bailout),
+      DiveTank(id: 'deco', gasMix: ean50, role: TankRole.bailout),
+    ];
+
+    test('spreads each mix across its cylinders, balanced on prior use', () {
+      final spread = spreadAcrossSameMix(
+        const {'a': 1000, 'deco': 300},
+        tanks: tanks,
+        capacityOf: (_) => 2000,
+        alreadyUsed: const {'a': 400},
+      );
+
+      expect(spread['a'], closeTo(300, 1e-9));
+      expect(spread['b'], closeTo(700, 1e-9));
+      expect(spread['deco'], closeTo(300, 1e-9));
+    });
+
+    test('keeps a key that names no cylinder as it is', () {
+      final spread = spreadAcrossSameMix(
+        const {'': 250},
+        tanks: tanks,
+        capacityOf: (_) => 2000,
+      );
+
+      expect(spread, {'': 250});
     });
   });
 
