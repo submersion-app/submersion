@@ -139,7 +139,13 @@ class NearbyTransferFiles {
     try {
       await from.rename(to.path);
     } on FileSystemException {
-      await from.copy(to.path);
+      try {
+        await from.copy(to.path);
+      } on Object {
+        // A copy cut short (a full disk) must not stay beside the export.
+        if (await to.exists()) await to.delete();
+        rethrow;
+      }
       await from.delete();
     }
   }
