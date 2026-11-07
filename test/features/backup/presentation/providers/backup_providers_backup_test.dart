@@ -43,8 +43,15 @@ class _FakeBackupService extends BackupService {
   BackupLocation location = BackupLocation.local;
   String? lastNote;
 
-  _FakeBackupService(BackupPreferences prefs)
-    : super(dbAdapter: _NoopAdapter(), preferences: prefs);
+  final BackupPreferences _prefs;
+
+  _FakeBackupService(this._prefs)
+    : super(dbAdapter: _NoopAdapter(), preferences: _prefs);
+
+  /// Drops the record only: these tests have no backup files on disk.
+  @override
+  Future<void> deleteBackup(BackupRecord record) =>
+      _prefs.removeRecord(record.id);
 
   @override
   Future<BackupRecord> performBackup({
@@ -108,6 +115,34 @@ void main() {
         .read(backupOperationProvider.notifier)
         .performBackup(note: 'Before the trip');
     expect(service.lastNote, 'Before the trip');
+  });
+
+  // Issue #4204: the home chip counts the copy taken before an upgrade, and
+  // deleting that copy changes no other value the chip's time watches.
+  test('deleting the upgrade copy refreshes the home chip time', () async {
+    final regular = DateTime(2026, 10, 20, 9);
+    final upgrade = BackupRecord(
+      id: 'pre-migration',
+      filename: 'pre-migration.db',
+      timestamp: DateTime(2026, 11, 3, 8),
+      sizeBytes: 1,
+      location: BackupLocation.local,
+      isAutomatic: true,
+      type: BackupType.preMigration,
+    );
+    final backupPrefs = BackupPreferences(prefs);
+    await backupPrefs.setLastBackupTime(regular);
+    await backupPrefs.addRecord(upgrade);
+    final container = makeContainer();
+    final sub = container.listen(newestBackupTimeProvider, (_, _) {});
+    addTearDown(sub.close);
+    expect(sub.read(), upgrade.timestamp);
+
+    await container
+        .read(backupOperationProvider.notifier)
+        .deleteBackup(upgrade);
+
+    expect(sub.read(), regular);
   });
 
   group('manual backup message (issue #3089)', () {
