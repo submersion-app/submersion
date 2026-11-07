@@ -60567,4 +60567,203 @@ class AppLocalizationsEs extends AppLocalizations {
   ) {
     return 'Marcador $number: $time, $depth, $distance';
   }
+
+  @override
+  String get twinSet_title => 'Bibotella';
+
+  @override
+  String get twinSet_none => 'No forma parte de una bibotella';
+
+  @override
+  String get twinSet_link => 'Vincular con una botella pareja';
+
+  @override
+  String twinSet_since(String date) {
+    return 'Desde $date';
+  }
+
+  @override
+  String get twinSet_replace => 'Cambiar pareja';
+
+  @override
+  String get twinSet_unlink => 'Desvincular';
+
+  @override
+  String get twinSet_history => 'Historial';
+
+  @override
+  String twinSet_historyRange(String partner, String from, String to) {
+    return '$partner, del $from al $to';
+  }
+
+  @override
+  String get twinSet_deletePairing => 'Eliminar emparejamiento';
+
+  @override
+  String get twinSet_deletePairingConfirm =>
+      '¿Eliminar este emparejamiento del historial? Las cargas y las inmersiones no cambian.';
+
+  @override
+  String get twinSet_pickerTitle => 'Botella pareja';
+
+  @override
+  String get twinSet_pickerEmpty => 'No hay otras botellas para emparejar.';
+
+  @override
+  String get twinSet_pairedOnHelp => 'Emparejadas desde';
+
+  @override
+  String get twinSet_unpairedOnHelp => 'Desvinculadas el';
+
+  @override
+  String get twinSet_pressureMismatchTitle => 'Presiones de trabajo distintas';
+
+  @override
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  ) {
+    return '$a tiene una presión de trabajo de $aPressure y $b de $bPressure. Un par con grifería se carga a una sola presión.';
+  }
+
+  @override
+  String get twinSet_continue => 'Continuar';
+
+  @override
+  String get twinSet_replaceTitle => '¿Cambiar de pareja?';
+
+  @override
+  String twinSet_replaceClash(String cylinder, String partner) {
+    return '$cylinder está emparejada con $partner.';
+  }
+
+  @override
+  String twinSet_replaceQuestion(String a, String b) {
+    return '¿Emparejar $a con $b en su lugar?';
+  }
+
+  @override
+  String twinSet_leftAlone(String name) {
+    return '$name quedará sola.';
+  }
+
+  @override
+  String get twinSet_replaceConfirm => 'Cambiar';
+
+  @override
+  String get twinSet_clashTitle => 'Emparejamiento superpuesto';
+
+  @override
+  String twinSet_clashBody(String pairs) {
+    return 'Se superpone con el emparejamiento de $pairs. Una botella solo puede estar en una bibotella cada día.';
+  }
+
+  @override
+  String twinSet_pairNames(String a, String b) {
+    return '$a y $b';
+  }
+
+  @override
+  String twinSet_endBeforeStart(String date) {
+    return 'La fecha de fin debe ser posterior al $date.';
+  }
+
+  @override
+  String get twinSet_saveFailed =>
+      'No se pudo guardar el cambio de la bibotella.';
+
+  @override
+  String twinSet_with(String partner) {
+    return 'Bibotella con $partner';
+  }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return 'Las dos botellas de la bibotella ($partner)';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner, $status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => 'Editar carga';
+
+  @override
+  String get passport_logFill_overPressureTitle =>
+      'Por encima de la presión de trabajo';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure supera la presión de trabajo de $name, $workingPressure.';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => 'Guardar igualmente';
+
+  @override
+  String get passport_logFill_back => 'Volver';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return '¿Aplicar también a la carga de $partner?';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => 'Sí';
+
+  @override
+  String get passport_logFill_onlyThisOne => 'Solo esta';
+
+  @override
+  String get passport_history_anotherCylinder => 'otra botella';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return 'Cargada junto con $partner';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      '¿Eliminar esta carga de las dos botellas o solo de esta?';
+
+  @override
+  String get passport_history_deleteBoth => 'Las dos botellas';
+
+  @override
+  String get passport_history_edit => 'Editar carga';
+
+  @override
+  String get twinSet_choiceTitle => '¿Usar la bibotella?';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'Bibotella ($a + $b, $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return 'Solo $a';
+  }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'Emparejadas desde';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'Desvinculadas el';
+
+  @override
+  String get settings_conflict_field_filledTogetherId =>
+      'Carga de la bibotella';
+
+  @override
+  String get settings_conflict_field_twinPassportId =>
+      'Pasaporte de la botella pareja';
 }

@@ -22,6 +22,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_entry_card.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/twin_set_card.dart';
 import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observations_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
@@ -245,6 +246,9 @@ class _EquipmentDetailContent extends ConsumerWidget {
           const SizedBox(height: 24),
           if (equipment.type == EquipmentType.tank) ...[
             PassportEntryCard(equipment: equipment),
+            const SizedBox(height: 24),
+            // Twin set pairing (issue #4242).
+            TwinSetCard(equipmentId: equipmentId),
             const SizedBox(height: 24),
           ] else if (!equipment.isWanted) ...[
             // Any other gear's tag (issue #2652).

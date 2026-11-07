@@ -88,6 +88,12 @@ class DiveTank extends Equatable {
   /// [tripCylinderId]: downloads never touch it.
   final String? passportId;
 
+  /// The passport id of the second cylinder when this tank is a twin set
+  /// picked from a linked cylinder (issue #4242): [passportId] names the
+  /// cylinder picked, this its partner, so both passports count the dive.
+  /// Set and cleared with [passportId]; a later swap never rewrites it.
+  final String? twinPassportId;
+
   /// The gear item this cylinder is (the `dive_tanks.equipment_id` link the
   /// transmitter registry writes when a serial is assigned to an item).
   /// Read-only on the domain side: edit flows rebuild the tank field by
@@ -137,6 +143,7 @@ class DiveTank extends Equatable {
     this.extraRegulatorIds = const [],
     this.tripCylinderId,
     this.passportId,
+    this.twinPassportId,
     this.equipmentId,
     this.usageDuration,
     this.decoSwitchDepth,
@@ -208,6 +215,8 @@ class DiveTank extends Equatable {
     bool clearTripCylinderId = false,
     String? passportId,
     bool clearPassportId = false,
+    String? twinPassportId,
+    bool clearTwinPassportId = false,
     double? decoSwitchDepth,
     bool clearDecoSwitchDepth = false,
     bool? isTravelGas,
@@ -242,6 +251,9 @@ class DiveTank extends Equatable {
           ? null
           : (tripCylinderId ?? this.tripCylinderId),
       passportId: clearPassportId ? null : (passportId ?? this.passportId),
+      twinPassportId: clearTwinPassportId
+          ? null
+          : (twinPassportId ?? this.twinPassportId),
       equipmentId: equipmentId ?? this.equipmentId,
       usageDuration: clearUsageDuration
           ? null
@@ -277,6 +289,7 @@ class DiveTank extends Equatable {
     equipmentId,
     tripCylinderId,
     passportId,
+    twinPassportId,
     usageDuration,
     decoSwitchDepth,
     isTravelGas,

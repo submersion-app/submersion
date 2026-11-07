@@ -2436,6 +2436,7 @@ class DiveRepository {
                   validTripCylinderLink(tank.tripCylinderId, validSlots),
                 ),
                 passportId: Value(tank.passportId),
+                twinPassportId: Value(tank.twinPassportId),
                 sourceTankIndex: Value(tank.sourceTankIndex),
                 sharedComputerIds: Value(
                   encodeSharedComputerIds(tank.sharedComputerIds),
@@ -2777,6 +2778,7 @@ class DiveRepository {
                 // The tagged cylinder is user-authored like the slot, so an
                 // edit writes it (issue #2650).
                 passportId: Value(tank.passportId),
+                twinPassportId: Value(tank.twinPassportId),
               ),
             );
             // Log as pending update (assuming sync handles updates)
@@ -2815,6 +2817,7 @@ class DiveRepository {
                       validTripCylinderLink(tank.tripCylinderId, validSlots),
                     ),
                     passportId: Value(tank.passportId),
+                    twinPassportId: Value(tank.twinPassportId),
                     sourceTankIndex: Value(tank.sourceTankIndex),
                     sharedComputerIds: Value(
                       encodeSharedComputerIds(tank.sharedComputerIds),
@@ -5106,6 +5109,7 @@ class DiveRepository {
               extraRegulatorIds: decodeExtraRegulatorIds(t.extraRegulatorIds),
               tripCylinderId: t.tripCylinderId,
               passportId: t.passportId,
+              twinPassportId: t.twinPassportId,
               equipmentId: t.equipmentId,
               sourceTankIndex: t.sourceTankIndex,
               sharedComputerIds: decodeSharedComputerIds(t.sharedComputerIds),
@@ -5568,6 +5572,7 @@ class DiveRepository {
           extraRegulatorIds: decodeExtraRegulatorIds(t.extraRegulatorIds),
           tripCylinderId: t.tripCylinderId,
           passportId: t.passportId,
+          twinPassportId: t.twinPassportId,
           equipmentId: t.equipmentId,
           sourceTankIndex: t.sourceTankIndex,
           sharedComputerIds: decodeSharedComputerIds(t.sharedComputerIds),

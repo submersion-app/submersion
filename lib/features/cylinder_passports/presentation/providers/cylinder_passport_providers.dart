@@ -10,6 +10,7 @@ import 'package:submersion/features/cylinder_passports/data/repositories/passpor
 import 'package:submersion/features/cylinder_passports/data/services/nfc_manager_tag_service.dart';
 import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_service.dart';
 import 'package:submersion/features/cylinder_passports/data/services/passport_adoption_service.dart';
+import 'package:submersion/features/cylinder_passports/data/services/twin_fill_service.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/passport_usage.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -26,6 +27,38 @@ final cylinderPassportRepositoryProvider = Provider<CylinderPassportRepository>(
 final passportUsageRepositoryProvider = Provider<PassportUsageRepository>(
   (ref) => PassportUsageRepository(),
 );
+
+/// Twin set fills (issue #4242): one fill for both cylinders, and the edit
+/// and delete that can follow on the other.
+final twinFillServiceProvider = Provider<TwinFillService>(
+  (ref) => TwinFillService(
+    fills: ref.watch(cylinderFillRepositoryProvider),
+    passports: ref.watch(cylinderPassportRepositoryProvider),
+  ),
+);
+
+/// The other fill of the twin set fill a fill belongs to (issue #4242), or
+/// null for a fill of one cylinder or when the other row is gone.
+/// Keyed by the fill's id and its tie, not the whole fill, so an edit does
+/// not mint a new key; auto-disposed, like [passportUsageProvider], so a
+/// kept one per fill does not re-query on every fill write.
+final tiedFillProvider = FutureProvider.autoDispose
+    .family<CylinderFill?, ({String id, String? together})>((ref, key) async {
+      final together = key.together;
+      if (together == null) return null;
+      final repository = ref.watch(cylinderFillRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchFillsChanges());
+      return repository.tiedFill(id: key.id, together: together);
+    });
+
+/// The ids of the passport copies of trip fills on a cylinder, which the
+/// fill history does not offer to edit (issue #4242).
+final tripCopyFillIdsProvider = FutureProvider.autoDispose
+    .family<Set<String>, String>((ref, equipmentId) async {
+      final repository = ref.watch(cylinderFillRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchFillsChanges());
+      return repository.tripCopyIds(equipmentId);
+    });
 
 /// The active diver's dives with a tank from the cylinder whose passport id
 /// is the key, newest first (issue #2650). Auto-disposed: the key is any tag

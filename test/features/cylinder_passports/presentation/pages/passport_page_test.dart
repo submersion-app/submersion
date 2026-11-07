@@ -8,6 +8,8 @@ import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/passport_usage.dart';
 import 'package:submersion/features/cylinder_passports/presentation/pages/passport_page.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_pairing.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_pairing_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
@@ -207,6 +209,44 @@ void main() {
     ) async {
       final l10n = await pump(tester, passportId: null, usage: twoDives);
       expect(find.text(l10n.passport_usage_title), findsNothing);
+    });
+  });
+
+  group('twin set line (#4242)', () {
+    testWidgets('names the current partner under the header', (tester) async {
+      final l10n = await pump(
+        tester,
+        extraOverrides: [
+          allPairingsProvider.overrideWith(
+            (ref) async => [
+              CylinderPairing(
+                id: 'p',
+                cylinderAId: id,
+                cylinderBId: 'partner',
+                pairedOn: DateTime.utc(2026, 3, 3),
+                createdAt: now,
+                updatedAt: now,
+              ),
+            ],
+          ),
+          equipmentItemProvider('partner').overrideWith(
+            (ref) async => const EquipmentItem(
+              id: 'partner',
+              name: 'Faber 12 B',
+              type: EquipmentType.tank,
+            ),
+          ),
+        ],
+      );
+      expect(find.text(l10n.twinSet_with('Faber 12 B')), findsOneWidget);
+    });
+
+    testWidgets('an unpaired cylinder shows no line', (tester) async {
+      final l10n = await pump(
+        tester,
+        extraOverrides: [allPairingsProvider.overrideWith((ref) async => [])],
+      );
+      expect(find.textContaining(l10n.twinSet_with('')), findsNothing);
     });
   });
 

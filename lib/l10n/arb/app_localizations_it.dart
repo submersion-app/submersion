@@ -60531,4 +60531,203 @@ class AppLocalizationsIt extends AppLocalizations {
   ) {
     return 'Marcatore $number: $time, $depth, $distance';
   }
+
+  @override
+  String get twinSet_title => 'Bibombola';
+
+  @override
+  String get twinSet_none => 'Non fa parte di una bibombola';
+
+  @override
+  String get twinSet_link => 'Collega a una bombola gemella';
+
+  @override
+  String twinSet_since(String date) {
+    return 'Dal $date';
+  }
+
+  @override
+  String get twinSet_replace => 'Sostituisci gemella';
+
+  @override
+  String get twinSet_unlink => 'Scollega';
+
+  @override
+  String get twinSet_history => 'Cronologia';
+
+  @override
+  String twinSet_historyRange(String partner, String from, String to) {
+    return '$partner, dal $from al $to';
+  }
+
+  @override
+  String get twinSet_deletePairing => 'Elimina abbinamento';
+
+  @override
+  String get twinSet_deletePairingConfirm =>
+      'Eliminare questo abbinamento dalla cronologia? Ricariche e immersioni non cambiano.';
+
+  @override
+  String get twinSet_pickerTitle => 'Bombola gemella';
+
+  @override
+  String get twinSet_pickerEmpty => 'Nessun\'altra bombola da abbinare.';
+
+  @override
+  String get twinSet_pairedOnHelp => 'Abbinate dal';
+
+  @override
+  String get twinSet_unpairedOnHelp => 'Scollegate il';
+
+  @override
+  String get twinSet_pressureMismatchTitle => 'Pressioni di esercizio diverse';
+
+  @override
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  ) {
+    return '$a ha una pressione di esercizio di $aPressure e $b di $bPressure. Una coppia con rubinetteria si ricarica a una sola pressione.';
+  }
+
+  @override
+  String get twinSet_continue => 'Continua';
+
+  @override
+  String get twinSet_replaceTitle => 'Sostituire la gemella?';
+
+  @override
+  String twinSet_replaceClash(String cylinder, String partner) {
+    return '$cylinder è abbinata a $partner.';
+  }
+
+  @override
+  String twinSet_replaceQuestion(String a, String b) {
+    return 'Abbinare invece $a a $b?';
+  }
+
+  @override
+  String twinSet_leftAlone(String name) {
+    return '$name resterà da sola.';
+  }
+
+  @override
+  String get twinSet_replaceConfirm => 'Sostituisci';
+
+  @override
+  String get twinSet_clashTitle => 'Abbinamento sovrapposto';
+
+  @override
+  String twinSet_clashBody(String pairs) {
+    return 'Si sovrappone all\'abbinamento di $pairs. Una bombola può far parte di una sola bibombola al giorno.';
+  }
+
+  @override
+  String twinSet_pairNames(String a, String b) {
+    return '$a e $b';
+  }
+
+  @override
+  String twinSet_endBeforeStart(String date) {
+    return 'La data di fine deve essere successiva al $date.';
+  }
+
+  @override
+  String get twinSet_saveFailed =>
+      'Impossibile salvare la modifica della bibombola.';
+
+  @override
+  String twinSet_with(String partner) {
+    return 'Bibombola con $partner';
+  }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return 'Entrambe le bombole della bibombola ($partner)';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner, $status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => 'Modifica ricarica';
+
+  @override
+  String get passport_logFill_overPressureTitle =>
+      'Oltre la pressione di esercizio';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure supera la pressione di esercizio di $name, $workingPressure.';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => 'Salva comunque';
+
+  @override
+  String get passport_logFill_back => 'Indietro';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return 'Applicare anche alla ricarica di $partner?';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => 'Sì';
+
+  @override
+  String get passport_logFill_onlyThisOne => 'Solo questa';
+
+  @override
+  String get passport_history_anotherCylinder => 'un\'altra bombola';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return 'Ricaricata insieme a $partner';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'Eliminare questa ricarica da entrambe le bombole o solo da questa?';
+
+  @override
+  String get passport_history_deleteBoth => 'Entrambe le bombole';
+
+  @override
+  String get passport_history_edit => 'Modifica ricarica';
+
+  @override
+  String get twinSet_choiceTitle => 'Usare la bibombola?';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'Bibombola ($a + $b, $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return 'Solo $a';
+  }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'Abbinate dal';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'Scollegate il';
+
+  @override
+  String get settings_conflict_field_filledTogetherId =>
+      'Ricarica della bibombola';
+
+  @override
+  String get settings_conflict_field_twinPassportId =>
+      'Passaporto della bombola gemella';
 }
