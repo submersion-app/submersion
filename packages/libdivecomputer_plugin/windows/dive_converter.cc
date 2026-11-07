@@ -268,6 +268,10 @@ ParsedDive ConvertParsedDive(const libdc_parsed_dive_t& dive) {
     std::optional<double> max_temp =
         std::isnan(dive.max_temp) ? std::nullopt
                                   : std::optional<double>(dive.max_temp);
+    std::optional<double> surface_pressure =
+        std::isnan(dive.surface_pressure)
+            ? std::nullopt
+            : std::optional<double>(dive.surface_pressure);
 
     // Nullable GPS entry/exit (Shearwater Swift).
     std::optional<double> entry_lat =
@@ -341,7 +345,8 @@ ParsedDive ConvertParsedDive(const libdc_parsed_dive_t& dive) {
         entry_lat ? &*entry_lat : nullptr,
         entry_lon ? &*entry_lon : nullptr,
         exit_lat ? &*exit_lat : nullptr,
-        exit_lon ? &*exit_lon : nullptr);
+        exit_lon ? &*exit_lon : nullptr,
+        surface_pressure ? &*surface_pressure : nullptr);
 }
 
 }  // namespace libdivecomputer_plugin

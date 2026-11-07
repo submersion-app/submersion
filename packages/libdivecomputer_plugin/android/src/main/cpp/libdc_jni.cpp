@@ -1076,6 +1076,13 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveMaxTemp(
 }
 
 extern "C" JNIEXPORT jdouble JNICALL
+Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveSurfacePressure(
+    JNIEnv *, jclass, jlong divePtr) {
+    auto *dive = reinterpret_cast<const libdc_parsed_dive_t *>(divePtr);
+    return dive->surface_pressure;
+}
+
+extern "C" JNIEXPORT jdouble JNICALL
 Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveEntryLatitude(
     JNIEnv *, jclass, jlong divePtr) {
     auto *dive = reinterpret_cast<const libdc_parsed_dive_t *>(divePtr);

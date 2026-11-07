@@ -997,7 +997,8 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
             entryLatitude: dive.entry_latitude.isNaN ? nil : dive.entry_latitude,
             entryLongitude: dive.entry_longitude.isNaN ? nil : dive.entry_longitude,
             exitLatitude: dive.exit_latitude.isNaN ? nil : dive.exit_latitude,
-            exitLongitude: dive.exit_longitude.isNaN ? nil : dive.exit_longitude
+            exitLongitude: dive.exit_longitude.isNaN ? nil : dive.exit_longitude,
+            surfacePressureBar: dive.surface_pressure.isNaN ? nil : dive.surface_pressure
         )
     }
 

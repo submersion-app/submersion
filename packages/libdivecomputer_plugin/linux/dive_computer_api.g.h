@@ -774,12 +774,13 @@ G_DECLARE_FINAL_TYPE(LibdivecomputerPluginParsedDive, libdivecomputer_plugin_par
  * entry_longitude: field in this object.
  * exit_latitude: field in this object.
  * exit_longitude: field in this object.
+ * surface_pressure_bar: field in this object.
  *
  * Creates a new #ParsedDive object.
  *
  * Returns: a new #LibdivecomputerPluginParsedDive
  */
-LibdivecomputerPluginParsedDive* libdivecomputer_plugin_parsed_dive_new(const gchar* fingerprint, int64_t date_time_year, int64_t date_time_month, int64_t date_time_day, int64_t date_time_hour, int64_t date_time_minute, int64_t date_time_second, int64_t* date_time_timezone_offset, double max_depth_meters, double avg_depth_meters, int64_t duration_seconds, double* min_temperature_celsius, double* max_temperature_celsius, FlValue* samples, FlValue* tanks, FlValue* gas_mixes, FlValue* events, const gchar* dive_mode, const gchar* deco_algorithm, int64_t* gf_low, int64_t* gf_high, int64_t* deco_conservatism, const uint8_t* raw_data, size_t raw_data_length, const uint8_t* raw_fingerprint, size_t raw_fingerprint_length, double* entry_latitude, double* entry_longitude, double* exit_latitude, double* exit_longitude);
+LibdivecomputerPluginParsedDive* libdivecomputer_plugin_parsed_dive_new(const gchar* fingerprint, int64_t date_time_year, int64_t date_time_month, int64_t date_time_day, int64_t date_time_hour, int64_t date_time_minute, int64_t date_time_second, int64_t* date_time_timezone_offset, double max_depth_meters, double avg_depth_meters, int64_t duration_seconds, double* min_temperature_celsius, double* max_temperature_celsius, FlValue* samples, FlValue* tanks, FlValue* gas_mixes, FlValue* events, const gchar* dive_mode, const gchar* deco_algorithm, int64_t* gf_low, int64_t* gf_high, int64_t* deco_conservatism, const uint8_t* raw_data, size_t raw_data_length, const uint8_t* raw_fingerprint, size_t raw_fingerprint_length, double* entry_latitude, double* entry_longitude, double* exit_latitude, double* exit_longitude, double* surface_pressure_bar);
 
 /**
  * libdivecomputer_plugin_parsed_dive_get_fingerprint
@@ -1062,6 +1063,16 @@ double* libdivecomputer_plugin_parsed_dive_get_exit_latitude(LibdivecomputerPlug
  * Returns: the field value.
  */
 double* libdivecomputer_plugin_parsed_dive_get_exit_longitude(LibdivecomputerPluginParsedDive* object);
+
+/**
+ * libdivecomputer_plugin_parsed_dive_get_surface_pressure_bar
+ * @object: a #LibdivecomputerPluginParsedDive.
+ *
+ * Gets the value of the surfacePressureBar field of @object.
+ *
+ * Returns: the field value.
+ */
+double* libdivecomputer_plugin_parsed_dive_get_surface_pressure_bar(LibdivecomputerPluginParsedDive* object);
 
 /**
  * LibdivecomputerPluginDownloadProgress:

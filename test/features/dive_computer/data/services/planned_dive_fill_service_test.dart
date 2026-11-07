@@ -60,12 +60,14 @@ void main() {
     ComputerTissueSnapshot? computerTissue,
     bool reportsDecoSettings = true,
     DateTime? startTime,
+    double? surfacePressure,
   }) => DownloadedDive(
     startTime: startTime ?? DateTime(2026, 6, 1, 9, 3),
     durationSeconds: 2700,
     maxDepth: 18.4,
     avgDepth: 11.2,
     minTemperature: 17,
+    surfacePressure: surfacePressure,
     profile: [
       for (var t = 0; t <= 2700; t += 30)
         ProfileSample(timeSeconds: t, depth: t < 2400 ? 15 : 3),
@@ -94,6 +96,7 @@ void main() {
       id: '',
       diverId: eric,
       dateTime: dateTime ?? DateTime(2026, 6, 1, 9),
+      surfacePressure: 0.9,
       name: 'Blue Hole plan',
       notes: 'bring the camera',
       rating: 4,
@@ -144,6 +147,36 @@ void main() {
       expect(filled?.gradientFactorLow, 40);
       expect(filled?.computerId, computerId);
       expect(filled?.profile.length, greaterThan(50));
+    },
+  );
+
+  test(
+    'fill takes the surface pressure the computer measured (#4208)',
+    () async {
+      final planned = await plannedDive();
+
+      await service.fill(
+        plannedDiveId: planned.id,
+        dive: download(surfacePressure: 0.961),
+        computerId: computerId,
+      );
+
+      expect((await dives.getDiveById(planned.id))?.surfacePressure, 0.961);
+    },
+  );
+
+  test(
+    'fill keeps the planned surface pressure when the computer has none',
+    () async {
+      final planned = await plannedDive();
+
+      await service.fill(
+        plannedDiveId: planned.id,
+        dive: download(),
+        computerId: computerId,
+      );
+
+      expect((await dives.getDiveById(planned.id))?.surfacePressure, 0.9);
     },
   );
 
