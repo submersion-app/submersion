@@ -7872,6 +7872,24 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_profile_pointsAndProfiles(
+    num pointCount,
+    num profileCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      pointCount,
+      locale: localeName,
+      other: '$pointCount 个点',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      profileCount,
+      locale: localeName,
+      other: '$profileCount 次修订',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
   String get diveLog_edit_row_addSite => '添加潜点';
 
   @override
@@ -10592,9 +10610,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divePlanner_action_addTank => '添加气瓶';
 
   @override
-  String get divePlanner_action_convertToDive => '转换为潜水';
-
-  @override
   String get divePlanner_action_deletePlan => '删除计划';
 
   @override
@@ -10727,6 +10742,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get divePlanner_label_minutesUnit => '分钟';
+
+  @override
+  String get divePlanner_label_secondsUnit => '秒';
 
   @override
   String get divePlanner_label_ndl => 'NDL';
@@ -19939,9 +19957,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerCanvas_contingency_turnRule => '折返压力规则';
 
   @override
-  String get plannerCanvas_convert_success => '已从计划创建潜水';
-
-  @override
   String get plannerCanvas_convert_view => '查看';
 
   @override
@@ -20018,6 +20033,17 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get plannerSeries_openInLog => '在潜水日志中打开';
+
+  @override
+  String get plannerSeries_view_actual => '实际';
+
+  @override
+  String get plannerSeries_view_plan => '计划';
+
+  @override
+  String plannerSeries_saved_divedCount(int dived, int count) {
+    return '已潜 $dived/$count';
+  }
 
   @override
   String get plannerSeries_stopFollowing => '停止跟随';
@@ -20165,7 +20191,68 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerSeries_fillAll => '加满所有气瓶';
 
   @override
-  String get plannerSeries_convertUnavailable => '暂时无法将潜水系列转换为已记录的潜水';
+  String get plannerSeries_createPlannedDive => '创建计划潜水';
+
+  @override
+  String get plannerSeries_createPlannedDives => '创建计划潜水';
+
+  @override
+  String get plannerSeries_updatePlannedDive => '更新计划潜水';
+
+  @override
+  String get plannerSeries_updatePlannedDives => '更新计划潜水';
+
+  @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return '$dive 有严重警告，因此未更新计划潜水';
+  }
+
+  @override
+  String plannerSeries_cannotUpdateEmpty(String dive) {
+    return '$dive 没有分段，因此未更新计划潜水';
+  }
+
+  @override
+  String get plannerSeries_cannotUpdateEmptyPlan => '此计划没有分段，因此未写入日志';
+
+  @override
+  String plannerSeries_created(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已将 $count 次计划潜水添加到日志',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerSeries_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已在日志中更新 $count 次计划潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_title => '从日志中删除？';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '有 $count 次不再属于此系列的计划潜水仍在日志中。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => '保留';
+
+  @override
+  String get plannerSeries_allDived => '此计划的所有潜水均已完成，没有需要更新的内容';
 
   @override
   String get plannerSeries_missionUnavailable => '潜水系列无法规划为 DPV 任务';
@@ -24592,6 +24679,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_timeFormat => '时间格式';
 
   @override
+  String get settings_conflict_field_firstDayOfWeek => '每周第一天';
+
+  @override
   String get settings_conflict_field_timeOffsetSeconds => '时间偏移';
 
   @override
@@ -27896,10 +27986,36 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_units_dialog_weightUnit => '重量单位';
 
   @override
-  String get settings_units_header_individualUnits => '个别单位';
+  String get settings_units_header_gasPlanning => '气体与计划';
 
   @override
-  String get settings_units_header_timeDateFormat => '时间与日期格式';
+  String get settings_units_header_displayFormats => '显示与格式';
+
+  @override
+  String get settings_units_appliesTo => '适用于以下单位';
+
+  @override
+  String get settings_units_gasConsumption_unitHint => '单位随压力和体积而定';
+
+  @override
+  String get settings_units_firstDayOfWeek => '每周第一天';
+
+  @override
+  String get settings_units_dialog_firstDayOfWeek => '每周第一天';
+
+  @override
+  String get settings_units_firstDayOfWeek_auto => '自动';
+
+  @override
+  String settings_units_firstDayOfWeek_autoResolved(String day) {
+    return '自动（$day）';
+  }
+
+  @override
+  String get settings_units_firstDayOfWeek_auto_subtitle => '跟随设备所在地区';
+
+  @override
+  String get settings_units_header_timeDateFormat => '时间与日期';
 
   @override
   String get settings_units_header_unitSystem => '单位系统';
@@ -37626,6 +37742,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_sku => '商品编号 (SKU)';
 
   @override
+  String get attrHelper_sku => '见收据或标签，并非序列编号';
+
+  @override
   String get attrLabel_retailer => '零售商';
 
   @override
@@ -38764,6 +38883,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_planned_bannerBody => '等待潜水电脑数据。如果没有使用潜水电脑，请标记为已记录。';
+
+  @override
+  String get diveLog_planned_openInPlanner => '在计划器中打开';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => '在计划器中查看';
 
   @override
   String get diveLog_detail_menu_markLogged => '标记为已记录';
@@ -47708,6 +47833,16 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String settings_syncDevices_summary_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已记住 $count 台已移除的设备，使其无法带回已删除的数据。',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String settings_syncDevices_tile_filesSize(int count, String size) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -49202,13 +49337,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_profileEditor_applyToSelection => '应用到所选范围';
 
   @override
-  String get diveLog_profileEditor_outlierDetection => '异常值检测';
+  String get diveLog_profileEditor_cleanup => '清理';
 
   @override
-  String get diveLog_profileEditor_detect => '检测';
+  String get diveLog_profileEditor_detectOutliers => '检测离群值';
 
   @override
-  String get diveLog_profileEditor_removeAll => '全部移除';
+  String get diveLog_profileEditor_removeOutliers => '移除离群值';
 
   @override
   String diveLog_profileEditor_outliersDetected(int count) {
@@ -49234,9 +49369,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_trimMode => '修剪模式';
-
-  @override
-  String get diveLog_profileEditor_trimHint => '修剪轮廓端点';
 
   @override
   String get diveLog_profileEditor_trimEnd => '修剪末端';
@@ -49286,7 +49418,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_profileEditor_mode_select => '选择';
 
   @override
-  String get diveLog_profileEditor_mode_outlier => '异常值';
+  String get diveLog_profileEditor_mode_cleanup => '清理';
 
   @override
   String get diveLog_profileEditor_mode_draw => '绘制';
@@ -49300,6 +49432,23 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_revisionSwitchFailed => '无法切换剖面版本。';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_title => '删除整个轮廓';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_permanentWarning =>
+      '删除此轮廓版本是永久性的、无法撤销，并且会立即生效。';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_computerImportWarning =>
+      '此轮廓从潜水电脑导入，很可能包含原始源数据。';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_confirmNow => '立即永久删除';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_failed => '无法删除剖面版本。';
 
   @override
   String get diveLog_profileEditor_revisionLegacyHint => '保存于版本历史之前；未关联潜水电脑';
@@ -52573,9 +52722,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navTrack_review_trackDuplicateWarning => '这看起来像是已从同一文件导入过的轨迹。';
 
   @override
-  String get navTrack_review_replaceLabel => '替换';
-
-  @override
   String get navTrack_review_linkToDive => '关联到潜水记录';
 
   @override
@@ -52766,6 +52912,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get navTrack_editSheet_removeTrackTooltip => '移除轨迹';
+
+  @override
+  String get navTrack_editSheet_trackOnAnotherDive =>
+      '此轨迹属于另一次潜水。请在那次潜水中更新它，或将文件作为新轨迹导入。';
 
   @override
   String navTrack_editRow_tracksSaveFailed(String error) {
@@ -56612,4 +56762,70 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get search_openTooltip => '搜索';
+
+  @override
+  String get settings_conflict_field_sourceFile => '原始轨迹文件';
+
+  @override
+  String get navTrack_review_duplicateUpdate => '更新已保存的轨迹';
+
+  @override
+  String get navTrack_review_duplicateUpdateHint =>
+      '重新读取此文件中的数据。名称、潜水、潜点、设备和对齐方式保持不变。';
+
+  @override
+  String get navTrack_review_duplicateNew => '作为新轨迹导入';
+
+  @override
+  String get navTrack_review_updateAction => '更新';
+
+  @override
+  String get navTrack_review_trackUpdatedConfirmation =>
+      '已从文件更新轨迹。请检查对齐方式：轨迹可能已移动。';
+
+  @override
+  String get navTrack_detail_menuUpdateFromFile => '从文件更新';
+
+  @override
+  String get navTrack_detail_menuExportCsv => '导出为 CSV';
+
+  @override
+  String get navTrack_detail_exportUnavailable => '此轨迹尚未保存原始文件。请先从其文件更新。';
+
+  @override
+  String navTrack_detail_exportFailed(String error) {
+    return '导出失败：$error';
+  }
+
+  @override
+  String get navTrack_detail_updateNameMismatchTitle => '文件名不同';
+
+  @override
+  String navTrack_detail_updateNameMismatchMessage(
+    String expected,
+    String actual,
+  ) {
+    return '此轨迹是从“$expected”导入的，所选文件为“$actual”。仍要用它更新轨迹吗？';
+  }
+
+  @override
+  String get navTrack_detail_updateOtherRecordingTitle => '录制不同';
+
+  @override
+  String navTrack_detail_updateOtherRecordingMessage(
+    String fileDate,
+    String trackDate,
+  ) {
+    return '此文件录制于 $fileDate，轨迹录制于 $trackDate，可能是另一次潜水。仍要用它更新轨迹吗？';
+  }
+
+  @override
+  String navTrack_marker_details(
+    int number,
+    String time,
+    String depth,
+    String distance,
+  ) {
+    return '标记 $number：$time，$depth，$distance';
+  }
 }

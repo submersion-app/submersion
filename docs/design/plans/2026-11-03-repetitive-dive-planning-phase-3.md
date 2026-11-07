@@ -97,9 +97,10 @@ Those commits also carry phase 2 fields: `fixedStart`, `settingOverrides`,
 
 - **Phase 2:** shared settings and their groups, start time and site, series
   warnings, the tank carry rule changes.
-- **Create or Update planned dives** (writing the series to the log, R2). It
-  depends on #4058's link actions and its Convert confirmation, so it gets its
-  own PR after this one. Convert to Dive keeps its current hold for a series.
+- **Create or Update planned dives** (writing the series to the log,
+  phase 2b). It depends on #4058's link actions and its Convert
+  confirmation, so it gets its own PR after this one. Convert to Dive keeps
+  its current hold for a series.
 - **Phase 5:** a dived dive replacing its plan in the chain (R4), and plan
   against actual (R5).
 - Diver scoping of single saved plans (#4074).
@@ -166,7 +167,7 @@ These cover the whole feature, so later phases can use them too.
 - Alt+Left and Alt+Right move between dives. No Alt+N (it beeped on Windows
   and is not a convention in the app).
 
-### Planned dives in the log (R2, after phase 3)
+### Planned dives in the log (phase 2b, after phase 3)
 
 - The menu item reads "Create planned dives" until there are some, then
   "Update planned dives", with plural forms matched to the count.

@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
@@ -81,6 +82,49 @@ class SceneProjector {
   /// Projects an already-rotated view-space position onto the canvas.
   Offset projectView((double, double, double) v) =>
       Offset(v.$1 * _scale, -v.$2 * _scale) + _offset;
+
+  /// [viewOf] and [projectView] for a whole mesh, without allocating: the
+  /// [count] xyz triplets of [positions] land at [start] onward in the
+  /// view-space ([vx], [vy], [vz]) and canvas ([sx], [sy]) buffers. [vzSort]
+  /// gets the depth to sort at: the view depth, moved to [sortHeights] where
+  /// a mesh declares them (see [depthPerUnitY]). The arithmetic is exactly
+  /// that of the single-point methods, so both give the same values; the
+  /// painter runs this on every vertex of every frame, where a record and
+  /// two Offsets per vertex added up (issue #4259).
+  void projectAll(
+    Float32List positions,
+    int count, {
+    required int start,
+    required Float32List vx,
+    required Float32List vy,
+    required Float32List vz,
+    required Float32List vzSort,
+    required Float32List sx,
+    required Float32List sy,
+    Float32List? sortHeights,
+  }) {
+    final dx = _offset.dx, dy = _offset.dy;
+    for (var i = 0; i < count; i++) {
+      final x = positions[i * 3];
+      final y = positions[i * 3 + 1];
+      final z = positions[i * 3 + 2];
+      final cx = x - SceneBounds.xSpan / 2;
+      final cyy = y - _yCenter;
+      final rx = cx * _cy + z * _sy;
+      final rz = -cx * _sy + z * _cy;
+      final ry = cyy * _cp - rz * _sp;
+      final rz2 = cyy * _sp + rz * _cp;
+      final gi = start + i;
+      vx[gi] = rx;
+      vy[gi] = ry;
+      vz[gi] = rz2;
+      vzSort[gi] = sortHeights == null
+          ? rz2
+          : rz2 + (sortHeights[i] - y) * depthPerUnitY;
+      sx[gi] = rx * _scale + dx;
+      sy[gi] = -ry * _scale + dy;
+    }
+  }
 
   /// Larger = nearer to camera. Used for back-to-front triangle sorting.
   double viewDepth(double x, double y, double z) => _view(x, y, z).$3;

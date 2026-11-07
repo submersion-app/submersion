@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/bathymetry_terrain_builder.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/contour_builder.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/path_scene_markers.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_axes.dart';
@@ -214,7 +215,7 @@ class SpatialGeometryService {
         SceneLayer(exitPin),
         SceneLayer(terrain.water, overlay: SceneOverlay.water),
       ],
-      markers: const [],
+      markers: pathSceneMarkers(placed, proj),
       bounds: bounds,
       scrubPath: scrub,
     );

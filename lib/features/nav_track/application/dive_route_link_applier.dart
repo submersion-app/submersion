@@ -7,13 +7,14 @@ import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 /// primary route against what is actually left. A removal is unlinked only
 /// while it is still on this dive (the check is part of the write), so one
 /// that sync moved elsewhere while the form was open is left alone. Staged
-/// re-imports replace their old route last, once linked, so the repository
-/// hands the old route's primary role over before deleting it; a re-import
-/// that could not be linked replaces nothing, so the dive keeps its route.
+/// file updates (issue #4231) are written next, before any link: a route
+/// deleted meanwhile is not linked either.
 ///
-/// Returns the ids `link` skipped because the route was already linked by
-/// the time this ran (synced from another device, or auto-linked when a new
-/// dive was created). Repository errors propagate to the caller.
+/// Returns the ids that did not end up on this dive: `link` skipped them
+/// because the route was already linked by the time this ran (synced from
+/// another device, or auto-linked when a new dive was created), or the
+/// route was gone when its staged update was written. Repository errors
+/// propagate to the caller.
 Future<List<String>> applyDiveRouteLinkDraft(
   NavTrackRepository repository, {
   required String diveId,
@@ -23,17 +24,22 @@ Future<List<String>> applyDiveRouteLinkDraft(
     await repository.unlink(routeId, onlyFromDiveId: diveId);
   }
   final skipped = <String>[];
+  for (final MapEntry(key: routeId, value: update) in draft.updates.entries) {
+    final updated = await repository.updateImportedData(
+      routeId,
+      points: update.points,
+      sourceFile: update.sourceFile,
+    );
+    if (!updated) skipped.add(routeId);
+  }
   for (final routeId in draft.toLink) {
+    if (skipped.contains(routeId)) continue;
     final linked = await repository.link(
       routeId,
       diveId,
       linkMode: NavTrackLinkMode.manual,
     );
     if (!linked) skipped.add(routeId);
-  }
-  for (final MapEntry(key: oldId, value: newId) in draft.replacements.entries) {
-    if (skipped.contains(newId)) continue;
-    await repository.replace(oldId, withRouteId: newId);
   }
   return List.unmodifiable(skipped);
 }

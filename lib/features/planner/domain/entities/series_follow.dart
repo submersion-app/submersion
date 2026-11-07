@@ -18,8 +18,9 @@ class SeriesLoggedDive extends Equatable {
   final DateTime endInstant;
 
   /// The OTU of this dive alone, for the rolling daily total: 0 for a dive
-  /// that ended too long before the followed one to count.
-  final double otu;
+  /// that ended too long before the followed one to count, and null for one
+  /// with no profile to analyse, so a dived dive falls back to its plan.
+  final double? otu;
 
   /// How deep it went; null when not recorded.
   final double? maxDepth;
@@ -31,7 +32,7 @@ class SeriesLoggedDive extends Equatable {
     required this.start,
     required this.end,
     required this.endInstant,
-    this.otu = 0,
+    this.otu,
     this.maxDepth,
   });
 
@@ -101,8 +102,9 @@ class SeriesFollow extends Equatable {
   /// The conditions the followed dive ended [endTissues] in.
   final DiveEnvironment endEnvironment;
 
-  /// The followed dive's end CNS%, residual from the dives before it included.
-  final double endCns;
+  /// The followed dive's end CNS%, residual from the dives before it
+  /// included; null when it has no profile to analyse.
+  final double? endCns;
 
   /// The followed dive's tanks as logged, end pressures included.
   final List<DiveTank> endTanks;
@@ -117,7 +119,7 @@ class SeriesFollow extends Equatable {
     required this.loggedDives,
     this.endTissues,
     this.endEnvironment = DiveEnvironment.standard,
-    this.endCns = 0,
+    this.endCns,
     this.endTanks = const [],
     this.ownStartPressures = const {},
   }) : assert(loggedDives.isNotEmpty);

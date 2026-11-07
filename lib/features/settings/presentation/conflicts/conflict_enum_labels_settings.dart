@@ -1,6 +1,7 @@
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/first_day_of_week.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -27,6 +28,7 @@ import 'package:submersion/features/media/presentation/widgets/media_info_panel.
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/settings/presentation/conflicts/conflict_enum_labels.dart';
 import 'package:submersion/features/settings/presentation/conflicts/conflict_field.dart';
+import 'package:submersion/features/settings/presentation/first_day_of_week_labels.dart';
 import 'package:submersion/features/settings/presentation/format_enum_display.dart';
 import 'package:submersion/features/settings/presentation/widgets/coordinate_format_picker.dart';
 import 'package:submersion/features/settings/presentation/widgets/visibility_scale_picker.dart';
@@ -74,6 +76,11 @@ final ConflictEnumLabeler dateFormatLabeler = enumLabeler(
 final ConflictEnumLabeler timeFormatLabeler = enumLabeler(
   TimeFormat.values,
   (l, v) => v.localizedName(l),
+);
+
+final ConflictEnumLabeler firstDayOfWeekLabeler = enumLabeler(
+  FirstDayOfWeek.values,
+  firstDayOfWeekLabel,
 );
 
 final ConflictEnumLabeler listViewModeLabeler = enumLabeler(

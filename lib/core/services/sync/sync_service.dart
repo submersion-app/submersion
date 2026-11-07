@@ -9,6 +9,7 @@ import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_files.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/computer_tissue_scalar_move.dart';
+import 'package:submersion/core/database/last_service_date_repair.dart';
 import 'package:submersion/core/database/weather_fetched_at_repair.dart';
 import 'package:submersion/core/database/combined_dive_summary_repair.dart';
 import 'package:submersion/core/database/device_gear_heal.dart';
@@ -1466,15 +1467,17 @@ class SyncService {
   /// peer is current, and each leaves the sync stamp alone, as its rung does:
   /// the sending peer makes the same change when it upgrades. A combined dive
   /// keeps its shape once repaired, so that repair reads only
-  /// [combinedDiveIds], the dives a payload touched; null, for a base file,
-  /// sweeps them all.
+  /// [combinedDiveIds], the dives a payload touched; null, for a base file or
+  /// an adopted library, sweeps them all.
   ///
   /// A peer below v318 still publishes the CNS, OTU and deco model inside a
   /// dive's computer tissue snapshot, with the dive's own columns empty
   /// (issue #2555). One below v337 publishes `weather_fetched_at` in
   /// milliseconds, as does a sync store written before it (issue #4119). One
   /// below v340 publishes a combined dive with its first segment's water
-  /// temperature, CNS and OTU (issue #4136).
+  /// temperature, CNS and OTU (issue #4136). One below v346 publishes an
+  /// item's last service date older than its newest service record when an
+  /// older record was logged there (issue #4201).
   Future<void> _repairLegacyPeerRows({
     Iterable<String>? combinedDiveIds,
   }) async {
@@ -1483,6 +1486,11 @@ class SyncService {
       await repairWeatherFetchedAtSeconds(db);
       await repairCombinedDiveSummaries(db, diveIds: combinedDiveIds);
       await moveComputerTissueScalars(db);
+      // Raw SQL, which Drift's streams do not see; tell open screens, as the
+      // base-file path runs this after its apply has committed.
+      if (await repairLastServiceDates(db) > 0) {
+        db.notifyUpdates({TableUpdate.onTable(db.equipment)});
+      }
     } catch (e, st) {
       // The applied rows are already in place; losing this repair costs only
       // the old values, never the sync.
@@ -5517,6 +5525,7 @@ class SyncService {
     }
 
     await _serializer.repairDanglingForeignKeys();
+    await _repairLegacyPeerRows();
   }
 
   /// Lands the explicit fact clears an adopt's upsert would drop.
@@ -5636,6 +5645,10 @@ class SyncService {
         baseExportedAt: baseExportedAt,
         changesets: changesets,
       );
+      // An adopted library is rows from peers like any other apply's, so
+      // the data rungs run over them too, inside the caller's transaction
+      // and change-log scope.
+      await _repairLegacyPeerRows();
     } finally {
       // The device-local values the table clears remembered belong to this
       // adopt's refill only (issue #2947).

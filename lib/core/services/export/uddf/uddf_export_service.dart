@@ -5,22 +5,21 @@ import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:xml/xml.dart';
 
-import 'package:submersion/core/constants/enums.dart' show DiveMode;
 import 'package:submersion/core/services/export/models/uddf_export_options.dart';
+import 'package:submersion/core/services/export/shared/export_text_spool.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
-import 'package:submersion/core/services/export/uddf/uddf_dive_custom_fields.dart';
-import 'package:submersion/core/services/export/uddf/uddf_dive_durations.dart';
-import 'package:submersion/core/services/export/uddf/uddf_dive_logistics.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dive_chunk.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dive_stream_writer.dart';
+import 'package:submersion/core/services/export/uddf/uddf_export_profiles.dart';
+import 'package:submersion/core/services/export/uddf/uddf_shared_dive_writer.dart';
+import 'package:submersion/core/services/export/uddf/uddf_streamed_sections.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
-import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_builders.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gas_mix_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
-import 'package:submersion/core/services/export/uddf/uddf_rebreather_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_site_classification_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_site_feature_writers.dart';
-import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
@@ -37,37 +36,27 @@ import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 class UddfExportService {
   final _dateFormat = DateFormat('yyyy-MM-dd');
 
-  /// Build the UDDF document for [dives] without delivering it anywhere.
-  Future<String> generateDivesUddfContent(
+  /// The day a dive's `<repetitiongroup>` is for.
+  String _dayOf(Dive dive) => _dateFormat.format(dive.dateTime);
+
+  /// Writes the dives-only document for [dives] into [out].
+  ///
+  /// Each run of [chunkSize] dives gets its samples, tank pressures and data
+  /// sources from [loadDiveChunk] as the run is written, and lets them go
+  /// after, as the full backup does (issue #4249); [spools] holds the
+  /// sections they fill until the rest of the document is known.
+  Future<void> _writeDives(
     List<Dive> dives, {
+    required ExportTextSink out,
+    required ExportSpoolStore spools,
+    required UddfDiveChunkLoader loadDiveChunk,
+    required int chunkSize,
     List<DiveSite>? sites,
-    Map<String, DiveTankPressureExport>? diveTankPressures,
-    List<DiveSourceExport>? dataSources,
     CertificationCatalog? certificationCatalog,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
   }) async {
-    // Encoding happens before the XML build so the builders stay pure
-    // synchronous functions, and bzip2 runs on a worker isolate rather than
-    // whichever isolate called the export.
-    // The raw data box keeps or drops only the original bytes. The rows go
-    // either way: they are the dive's computers and each one's samples, and
-    // without them a restore keeps one computer (issue #4180).
-    final sources = dataSources ?? const <DiveSourceExport>[];
-    final sourcesByDive = UddfSourceAttribution.groupByDive(sources);
-    final withBytes = options.includeRawData
-        ? sources.where((s) => s.hasDump).toList(growable: false)
-        : const <DiveSourceExport>[];
-    final encoded = await UddfDumpCodec.encodeAll(
-      withBytes.map((s) => s.rawData!).toList(growable: false),
-    );
-    final encodedById = <String, String?>{
-      for (var i = 0; i < withBytes.length; i++) withBytes[i].id: encoded[i],
-    };
-
-    // Sample pressures: the export actions load them into the extras; an
-    // explicit map is for callers that assemble the document themselves.
-    final pressuresByDive = diveTankPressures ?? extras.diveTankPressures;
+    final sections = UddfStreamedSections(spools);
 
     // Participants (issue #1796): only the people on the exported dives,
     // in dive order, and nobody at all when the user left them out of a
@@ -118,9 +107,36 @@ class UddfExportService {
     final computerIds = options.includeGear
         ? UddfGearWriters.computerIds(dives)
         : const <String>{};
-    // The O2 cells the samples name, declared under the owner however the
-    // gear option is set: they are no gear, only what each reading names.
-    final o2CellCount = UddfRebreatherWriters.cellCount(dives);
+    // The dives go first: the O2 cells their samples name are declared under
+    // the owner however the gear option is set, since they are no gear, only
+    // what each reading names. The raw data box keeps or drops only the
+    // original bytes; the source rows go either way, since without them a
+    // restore keeps one computer (issue #4180).
+    final o2CellCount =
+        await UddfDiveStreamWriter(
+          sections: sections,
+          dayOf: _dayOf,
+          includeRawData: options.includeRawData,
+          // A dump links only to a computer the owner block declares, which
+          // it does only when gear is included.
+          declaredComputerIds: computerIds,
+          // The computers are gear: a share without gear names none.
+          includeSourceIdentity: options.includeGear,
+          writeDive: (builder, dive, chunk, sources) =>
+              UddfSharedDiveWriter.write(
+                builder,
+                dive,
+                options: options,
+                buddies: diveBuddies[dive.id] ?? const [],
+                tankPressures: chunk.tankPressures[dive.id]?.displayedByTank,
+                gasSwitches: extras.diveGasSwitches[dive.id] ?? const [],
+                sources: sources,
+              ),
+        ).write(
+          uddfDiveWriteOrder(dives, _dayOf),
+          loadChunk: loadDiveChunk,
+          chunkSize: chunkSize,
+        );
     // Provenance may name only what this file declares: it shares no
     // equipment sets, and a parent assembly counts only when it is itself one
     // of the exported items. A row left with neither is plain gear, which the
@@ -272,374 +288,12 @@ class UddfExportService {
         // Gas definitions
         UddfGasMixWriters.writeGasDefinitions(builder, dives);
 
-        // Profile data (repetition groups and dives)
-        builder.element(
-          'profiledata',
-          nest: () {
-            // Group dives by date for repetition groups
-            final divesByDate = <String, List<Dive>>{};
-            for (final dive in dives) {
-              final dateKey = _dateFormat.format(dive.dateTime);
-              divesByDate.putIfAbsent(dateKey, () => []);
-              divesByDate[dateKey]!.add(dive);
-            }
-
-            for (final dateEntry in divesByDate.entries) {
-              builder.element(
-                'repetitiongroup',
-                nest: () {
-                  for (final dive in dateEntry.value) {
-                    builder.element(
-                      'dive',
-                      attributes: {'id': 'dive_${dive.id}'},
-                      nest: () {
-                        builder.element(
-                          'informationbeforedive',
-                          nest: () {
-                            builder.element(
-                              'datetime',
-                              nest: dive.dateTime.toIso8601String(),
-                            );
-                            if (dive.diveNumber != null) {
-                              builder.element(
-                                'divenumber',
-                                nest: dive.diveNumber.toString(),
-                              );
-                            }
-                            if (dive.airTemp != null) {
-                              builder.element(
-                                'airtemperature',
-                                nest: (dive.airTemp! + 273.15).toString(),
-                              ); // Kelvin
-                            }
-                            if (dive.surfacePressure != null) {
-                              // UDDF stores pressure in Pascal (bar * 100000)
-                              builder.element(
-                                'atmosphericpressure',
-                                nest: (dive.surfacePressure! * 100000)
-                                    .toString(),
-                              );
-                            }
-                            // Surface interval before dive
-                            if (dive.surfaceInterval != null) {
-                              builder.element(
-                                'surfaceintervalbeforedive',
-                                nest: () {
-                                  builder.element(
-                                    'passedtime',
-                                    nest: dive.surfaceInterval!.inSeconds
-                                        .toString(),
-                                  );
-                                },
-                              );
-                            }
-                            if (dive.site != null) {
-                              builder.element(
-                                'link',
-                                attributes: {'ref': 'site_${dive.site!.id}'},
-                              );
-                            }
-                            if (options.includeParticipants) {
-                              UddfParticipantWriters.writeLeaders(
-                                builder,
-                                dive,
-                                diveBuddies[dive.id] ?? const [],
-                              );
-                            }
-                            if (dive.diveCenter != null) {
-                              builder.element(
-                                'link',
-                                attributes: {
-                                  'ref': 'center_${dive.diveCenter!.id}',
-                                },
-                              );
-                            }
-                            // Dive type(s)
-                            for (final typeId in dive.diveTypeIds) {
-                              builder.element('divetype', nest: typeId);
-                            }
-                            // Dive mode (ccr, scr), as in the full backup.
-                            // Without it a rebreather dive imports as open
-                            // circuit (issue #4178).
-                            if (dive.diveMode != DiveMode.oc) {
-                              builder.element(
-                                'divemode',
-                                nest: dive.diveMode.name,
-                              );
-                            }
-                            // Entry method
-                            if (dive.effectiveEntryMethod != null) {
-                              builder.element(
-                                'entrytype',
-                                nest: dive.effectiveEntryMethod!.name,
-                              );
-                            }
-                            UddfExportBuilders.buildDiverRole(builder, dive);
-                            UddfExportBuilders.buildDiveGpsElements(
-                              builder,
-                              'entry',
-                              dive.entryLocation,
-                            );
-                            if (options.includeParticipants) {
-                              UddfParticipantWriters.writeLinks(
-                                builder,
-                                diveBuddies[dive.id] ?? const [],
-                              );
-                            }
-                            if (options.includeGear) {
-                              UddfGearWriters.writeEquipmentUsed(builder, dive);
-                            }
-                          },
-                        );
-
-                        // Samples: only what was recorded. <samples> is
-                        // optional in UDDF 3.2.1, so a dive without a profile
-                        // writes none rather than an invented one a restore
-                        // would store (issue #1874).
-                        if (dive.profile.isNotEmpty) {
-                          builder.element(
-                            'samples',
-                            nest: () {
-                              final startMix = UddfExportBuilders.startMixId(
-                                dive,
-                              );
-                              // One curve per cylinder, the one the app
-                              // draws; the <tankpressureseries> block keeps
-                              // what this cannot (issues #2492, #3917).
-                              final divePressures =
-                                  pressuresByDive[dive.id]?.displayedByTank;
-                              for (final (index, point)
-                                  in dive.profile.indexed) {
-                                builder.element(
-                                  'waypoint',
-                                  nest: () {
-                                    builder.element(
-                                      'divetime',
-                                      nest: point.timestamp.toString(),
-                                    );
-                                    builder.element(
-                                      'depth',
-                                      nest: point.depth.toString(),
-                                    );
-                                    // The starting mix rides on the first
-                                    // recorded sample, as in the full backup.
-                                    if (index == 0 && startMix != null) {
-                                      builder.element(
-                                        'switchmix',
-                                        attributes: {'ref': startMix},
-                                      );
-                                    }
-                                    if (point.temperature != null) {
-                                      builder.element(
-                                        'temperature',
-                                        nest: (point.temperature! + 273.15)
-                                            .toString(),
-                                      ); // Kelvin
-                                    }
-                                    // Tank pressure from tank_pressure_series,
-                                    // naming the <tankdata> declared below.
-                                    if (divePressures != null) {
-                                      for (final entry
-                                          in divePressures.entries) {
-                                        final pressure =
-                                            UddfSourceAttribution.findPressureAtTimestamp(
-                                              entry.value,
-                                              point.timestamp,
-                                            );
-                                        if (pressure != null) {
-                                          builder.element(
-                                            'tankpressure',
-                                            attributes: {
-                                              'ref': 'tank_${entry.key}',
-                                            },
-                                            nest: (pressure * 100000)
-                                                .toString(),
-                                          );
-                                        }
-                                      }
-                                    }
-                                    // CCR/SCR setpoint, loop ppO2 and cell
-                                    // readings, as in the full backup.
-                                    UddfRebreatherWriters.writeSample(
-                                      builder,
-                                      point,
-                                    );
-                                    // Computer-reported GF99, as Shearwater
-                                    // Cloud writes it, so a round trip keeps
-                                    // the recorded value.
-                                    if (point.gf99 != null) {
-                                      builder.element(
-                                        'gradientfactor',
-                                        nest: point.gf99.toString(),
-                                      );
-                                    }
-                                  },
-                                );
-                              }
-                            },
-                          );
-                        }
-
-                        // The dive's cylinders, where the full backup
-                        // declares them; their name and transmitter only
-                        // travel with the gear.
-                        UddfExportBuilders.writeTankData(
-                          builder,
-                          dive,
-                          includeIdentity: options.includeGear,
-                        );
-
-                        // Rebreather settings, as in the full backup.
-                        UddfRebreatherWriters.writeConfiguration(builder, dive);
-
-                        builder.element(
-                          'informationafterdive',
-                          nest: () {
-                            if (dive.maxDepth != null) {
-                              builder.element(
-                                'greatestdepth',
-                                nest: dive.maxDepth.toString(),
-                              );
-                            }
-                            if (dive.avgDepth != null) {
-                              builder.element(
-                                'averagedepth',
-                                nest: dive.avgDepth.toString(),
-                              );
-                            }
-                            UddfDiveDurations.write(builder, dive);
-                            if (dive.waterTemp != null) {
-                              builder.element(
-                                'lowesttemperature',
-                                nest: (dive.waterTemp! + 273.15).toString(),
-                              ); // Kelvin
-                            }
-                            if (UddfExportBuilders.visibilityForUddf(dive)
-                                case final vis?) {
-                              builder.element('visibility', nest: vis);
-                            }
-                            if (dive.rating != null) {
-                              builder.element(
-                                'rating',
-                                nest: () {
-                                  builder.element(
-                                    'ratingvalue',
-                                    nest: dive.rating.toString(),
-                                  );
-                                },
-                              );
-                            }
-                            // Conditions
-                            if (dive.effectiveWaterType != null) {
-                              builder.element(
-                                'watertype',
-                                nest: dive.effectiveWaterType!.name,
-                              );
-                            }
-                            if (dive.currentDirection != null) {
-                              builder.element(
-                                'currentdirection',
-                                nest: dive.currentDirection!.name,
-                              );
-                            }
-                            if (dive.currentStrength != null) {
-                              builder.element(
-                                'currentstrength',
-                                nest: dive.currentStrength!.name,
-                              );
-                            }
-                            if (dive.swellHeight != null) {
-                              builder.element(
-                                'swellheight',
-                                nest: dive.swellHeight.toString(),
-                              );
-                            }
-                            if (dive.exitMethod != null) {
-                              builder.element(
-                                'exittype',
-                                nest: dive.exitMethod!.name,
-                              );
-                            }
-                            UddfDiveLogistics.write(builder, dive);
-                            UddfExportBuilders.buildDiveGpsElements(
-                              builder,
-                              'exit',
-                              dive.exitLocation,
-                            );
-                            // Weight system
-                            if (dive.weightAmount != null) {
-                              builder.element(
-                                'weightused',
-                                nest: () {
-                                  builder.element(
-                                    'amount',
-                                    nest: dive.weightAmount.toString(),
-                                  );
-                                  if (dive.weightType != null) {
-                                    builder.element(
-                                      'type',
-                                      nest: dive.weightType!.name,
-                                    );
-                                  }
-                                },
-                              );
-                            }
-                            // Sightings
-                            if (dive.sightings.isNotEmpty) {
-                              builder.element(
-                                'sightings',
-                                nest: () {
-                                  for (final sighting in dive.sightings) {
-                                    builder.element(
-                                      'sighting',
-                                      attributes: {
-                                        'speciesref':
-                                            'species_${sighting.speciesId}',
-                                        'count': sighting.count.toString(),
-                                      },
-                                      nest: () {
-                                        if (sighting.notes.isNotEmpty) {
-                                          builder.element(
-                                            'notes',
-                                            nest: sighting.notes,
-                                          );
-                                        }
-                                      },
-                                    );
-                                  }
-                                },
-                              );
-                            }
-                            if (dive.notes.isNotEmpty) {
-                              builder.element(
-                                'notes',
-                                nest: () {
-                                  builder.element('para', nest: dive.notes);
-                                },
-                              );
-                            }
-                            if (options.includeParticipants) {
-                              UddfParticipantWriters.writeInlineBuddies(
-                                builder,
-                                dive,
-                                diveBuddies[dive.id] ?? const [],
-                              );
-                            }
-                            UddfDiveCustomFields.write(builder, dive);
-                            UddfExportBuilders.buildGasSwitches(
-                              builder,
-                              extras.diveGasSwitches[dive.id] ?? const [],
-                              sourcesByDive[dive.id] ?? const [],
-                            );
-                          },
-                        );
-                      },
-                    );
-                  }
-                },
-              );
-            }
-          },
+        // Profile data (repetition groups and dives), already written a run
+        // at a time. Written even with no dives, as it always was.
+        sections.writeSlot(
+          builder,
+          UddfStreamedSections.profileData,
+          evenIfEmpty: true,
         );
 
         // Every private section in one top level <applicationdata>
@@ -653,36 +307,89 @@ class UddfExportService {
           omitPurchaseDetails: true,
           components: components,
           gearLinkDives: gearLinkDives,
-          computerTissueDives: dives,
           visibilityRangeDives: dives,
           diveBuddies: diveBuddies,
           customDiveRoles: customRoles,
-          dataSources: sources,
-          dataSourceDumps: encodedById,
-          // The computers are gear: a share without gear names none.
-          includeSourceIdentity: options.includeGear,
-          attributedDives: dives,
-          diveTankPressures: pressuresByDive,
+          streamed: sections,
           // The definitions the sites' type and tag references need.
           tags: extras.siteTags,
           customSiteTypes: extras.customSiteTypes,
         );
 
-        // Last section, per the UDDF specification. A dump links only to a
-        // computer the owner block above declared, which it does only when
-        // gear is included.
-        UddfExportBuilders.buildDiveComputerControl(
-          builder,
-          sources,
-          encodedById,
-          declaredComputerIds: computerIds,
-        );
+        // Last section, per the UDDF specification.
+        sections.writeSlot(builder, UddfStreamedSections.diveComputerControl);
       },
     );
 
-    final xmlDoc = builder.buildDocument();
-    return xmlDoc.toXmlString(pretty: true, indent: '  ');
+    await sections.writeDocument(
+      builder.buildDocument().toXmlString(pretty: true, indent: '  '),
+      out,
+    );
   }
+
+  /// [_writeDives] for one of the public methods, reading each run's
+  /// recordings through [loadDiveChunk], or from [dives] (with whatever
+  /// profile each carries), [diveTankPressures] and [dataSources] without
+  /// one.
+  Future<void> Function(ExportTextSink, ExportSpoolStore) _writer(
+    List<Dive> dives, {
+    required UddfDiveChunkLoader? loadDiveChunk,
+    required int chunkSize,
+    required Map<String, DiveTankPressureExport>? diveTankPressures,
+    required List<DiveSourceExport>? dataSources,
+    required List<DiveSite>? sites,
+    required CertificationCatalog? certificationCatalog,
+    required UddfDivesExtras extras,
+    required UddfExportOptions options,
+  }) =>
+      (out, spools) => _writeDives(
+        dives,
+        out: out,
+        spools: spools,
+        loadDiveChunk:
+            loadDiveChunk ??
+            inMemoryUddfDiveChunks(
+              tankPressures: diveTankPressures ?? const {},
+              sources: dataSources ?? const [],
+            ),
+        chunkSize: chunkSize,
+        sites: sites,
+        certificationCatalog: certificationCatalog,
+        extras: extras,
+        options: options,
+      );
+
+  /// Build the UDDF document for [dives] without delivering it anywhere.
+  ///
+  /// [loadDiveChunk] reads each run's samples, tank pressures and sources;
+  /// without it they come from [dives], [diveTankPressures] and
+  /// [dataSources].
+  Future<String> generateDivesUddfContent(
+    List<Dive> dives, {
+    List<DiveSite>? sites,
+    Map<String, DiveTankPressureExport>? diveTankPressures,
+    List<DiveSourceExport>? dataSources,
+    CertificationCatalog? certificationCatalog,
+    UddfDivesExtras extras = const UddfDivesExtras.empty(),
+    UddfExportOptions options = const UddfExportOptions(),
+    UddfDiveChunkLoader? loadDiveChunk,
+    int chunkSize = kUddfProfileChunkSize,
+  }) => buildTextExport(
+    _fileName(),
+    _writer(
+      dives,
+      loadDiveChunk: loadDiveChunk,
+      chunkSize: chunkSize,
+      diveTankPressures: diveTankPressures,
+      dataSources: dataSources,
+      sites: sites,
+      certificationCatalog: certificationCatalog,
+      extras: extras,
+      options: options,
+    ),
+    inMemory: (xml) async => xml,
+    onFile: (file) => file.readAsString(),
+  );
 
   String _fileName() =>
       'dives_export_${_dateFormat.format(DateTime.now())}.uddf';
@@ -696,17 +403,27 @@ class UddfExportService {
     CertificationCatalog? certificationCatalog,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
-  }) async {
-    final xmlString = await generateDivesUddfContent(
-      dives,
-      sites: sites,
-      diveTankPressures: diveTankPressures,
-      dataSources: dataSources,
-      certificationCatalog: certificationCatalog,
-      extras: extras,
-      options: options,
+    UddfDiveChunkLoader? loadDiveChunk,
+    int chunkSize = kUddfProfileChunkSize,
+  }) {
+    final fileName = _fileName();
+    return buildTextExport(
+      fileName,
+      _writer(
+        dives,
+        loadDiveChunk: loadDiveChunk,
+        chunkSize: chunkSize,
+        diveTankPressures: diveTankPressures,
+        dataSources: dataSources,
+        sites: sites,
+        certificationCatalog: certificationCatalog,
+        extras: extras,
+        options: options,
+      ),
+      inMemory: (xml) => saveAndShareFile(xml, fileName, 'application/xml'),
+      onFile: (file) =>
+          saveAndShareExportFile(file, fileName, 'application/xml'),
     );
-    return saveAndShareFile(xmlString, _fileName(), 'application/xml');
   }
 
   /// Export [dives] to UDDF and save to a user-selected location.
@@ -720,28 +437,41 @@ class UddfExportService {
     CertificationCatalog? certificationCatalog,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
-  }) async {
-    final xmlString = await generateDivesUddfContent(
-      dives,
-      sites: sites,
-      diveTankPressures: diveTankPressures,
-      dataSources: dataSources,
-      certificationCatalog: certificationCatalog,
-      extras: extras,
-      options: options,
+    UddfDiveChunkLoader? loadDiveChunk,
+    int chunkSize = kUddfProfileChunkSize,
+  }) {
+    final fileName = _fileName();
+
+    // The save dialog writes the bytes itself and takes no stream, so the
+    // finished file is read back once; nothing else of the build is held.
+    Future<String?> save(Uint8List bytes) async {
+      DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.export);
+      final result = await FilePicker.saveFile(
+        dialogTitle: 'Save UDDF File',
+        fileName: fileName,
+        type: FileType.custom,
+        bytes: bytes,
+        mimeType: 'application/xml',
+      );
+      if (result == null) return null;
+      return savedFileLocation(result);
+    }
+
+    return buildTextExport(
+      fileName,
+      _writer(
+        dives,
+        loadDiveChunk: loadDiveChunk,
+        chunkSize: chunkSize,
+        diveTankPressures: diveTankPressures,
+        dataSources: dataSources,
+        sites: sites,
+        certificationCatalog: certificationCatalog,
+        extras: extras,
+        options: options,
+      ),
+      inMemory: (xml) => save(Uint8List.fromList(utf8.encode(xml))),
+      onFile: (file) async => save(await file.readAsBytes()),
     );
-
-    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.export);
-
-    final result = await FilePicker.saveFile(
-      dialogTitle: 'Save UDDF File',
-      fileName: _fileName(),
-      type: FileType.custom,
-      bytes: Uint8List.fromList(utf8.encode(xmlString)),
-      mimeType: 'application/xml',
-    );
-
-    if (result == null) return null;
-    return savedFileLocation(result);
   }
 }

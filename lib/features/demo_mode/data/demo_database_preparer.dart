@@ -19,6 +19,7 @@ const demoUnitSettingColumns = {
   'coordinate_format',
   'time_format',
   'date_format',
+  'first_day_of_week',
   'theme_mode',
 };
 

@@ -25,6 +25,7 @@ import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_dive_choice_sheet.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_duplicate_choice_picker.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -69,6 +70,7 @@ NavTrackImportPreview _preview({
   List<Dive> candidateDives = const [],
   List<Dive> nearbyDives = const [],
   String? duplicateOfRouteId,
+  bool? duplicateIsSameRecording,
   List<NavTrackPoint>? points,
   String? diverId,
 }) {
@@ -80,6 +82,8 @@ NavTrackImportPreview _preview({
     candidateDives: candidateDives,
     nearbyDives: nearbyDives,
     duplicateOfRouteId: duplicateOfRouteId,
+    duplicateIsSameRecording:
+        duplicateIsSameRecording ?? duplicateOfRouteId != null,
     sourceRef: '005.DAT.csv',
     diverId: diverId,
   );
@@ -343,8 +347,31 @@ Future<GoRouter> _pumpWithRouter(
 /// Records the parameters `commit` was called with, so a test can assert on
 /// them without touching a real database.
 class _RecordingImportService implements NavTrackImportService {
+  @override
+  ParsedNavTrack parseFile(Uint8List bytes) => throw UnimplementedError();
+
+  String? lastUpdatedRouteId;
+  Uint8List? lastUpdatedSourceFile;
+  Uint8List? lastCommittedSourceFile;
+  int updateCount = 0;
+
+  @override
+  Future<bool> updateFromFile({
+    required String routeId,
+    required ParsedNavTrack parsed,
+    required Uint8List sourceFile,
+    String? sourceRef,
+  }) async {
+    lastUpdatedRouteId = routeId;
+    lastUpdatedSourceFile = sourceFile;
+    updateCount++;
+    return updateResult;
+  }
+
+  /// What `updateFromFile` reports: false when the route is gone.
+  bool updateResult = true;
+
   String? lastEquipmentId;
-  String? lastReplacingRouteId;
   String? lastDiverId;
   Dive? lastDive;
   String? lastSiteId;
@@ -366,13 +393,13 @@ class _RecordingImportService implements NavTrackImportService {
     String? name,
     String? deviceName,
     String? equipmentId,
-    String? replacingRouteId,
+    Uint8List? sourceFile,
   }) async {
     lastEquipmentId = equipmentId;
-    lastReplacingRouteId = replacingRouteId;
     lastDiverId = diverId;
     lastDive = dive;
     lastSiteId = siteId;
+    lastCommittedSourceFile = sourceFile;
     commitCount++;
     return 'new-route-id';
   }
@@ -381,6 +408,17 @@ class _RecordingImportService implements NavTrackImportService {
 /// A `commit` that rejects the parsed recording, to exercise the save path's
 /// own parse-error branch (as opposed to the preview's).
 class _ParseRejectingImportService implements NavTrackImportService {
+  @override
+  ParsedNavTrack parseFile(Uint8List bytes) => throw UnimplementedError();
+
+  @override
+  Future<bool> updateFromFile({
+    required String routeId,
+    required ParsedNavTrack parsed,
+    required Uint8List sourceFile,
+    String? sourceRef,
+  }) async => true;
+
   @override
   Future<NavTrackImportPreview> prepare(
     Uint8List bytes, {
@@ -397,7 +435,7 @@ class _ParseRejectingImportService implements NavTrackImportService {
     String? name,
     String? deviceName,
     String? equipmentId,
-    String? replacingRouteId,
+    Uint8List? sourceFile,
   }) async {
     throw const NavTrackParseException(
       'bad file',
@@ -410,6 +448,17 @@ class _ParseRejectingImportService implements NavTrackImportService {
 /// of a commit that never lands.
 class _ThrowingImportService implements NavTrackImportService {
   @override
+  ParsedNavTrack parseFile(Uint8List bytes) => throw UnimplementedError();
+
+  @override
+  Future<bool> updateFromFile({
+    required String routeId,
+    required ParsedNavTrack parsed,
+    required Uint8List sourceFile,
+    String? sourceRef,
+  }) async => true;
+
+  @override
   Future<NavTrackImportPreview> prepare(
     Uint8List bytes, {
     String? fileName,
@@ -425,7 +474,7 @@ class _ThrowingImportService implements NavTrackImportService {
     String? name,
     String? deviceName,
     String? equipmentId,
-    String? replacingRouteId,
+    Uint8List? sourceFile,
   }) async {
     throw StateError('commit failed');
   }
@@ -876,7 +925,8 @@ void main() {
     );
   });
 
-  testWidgets('warns about a duplicate and offers replace', (tester) async {
+  testWidgets('warns about a duplicate and offers to update it or import a '
+      'new track, update first (issue #4231)', (tester) async {
     await _pump(
       tester,
       preview: _preview(duplicateOfRouteId: 'existing-route'),
@@ -885,7 +935,61 @@ void main() {
       find.byKey(const ValueKey('nav-track-warning-duplicate')),
       findsOneWidget,
     );
-    expect(find.byType(Checkbox), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('nav-track-duplicate-update')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('nav-track-duplicate-new')),
+      findsOneWidget,
+    );
+    final update = tester.widget<RadioListTile<NavTrackDuplicateChoice>>(
+      find.byKey(const ValueKey('nav-track-duplicate-update')),
+    );
+    expect(update.value, NavTrackDuplicateChoice.update);
+    // An update keeps the stored track's own name and device, so the page
+    // offers neither.
+    expect(
+      find.byKey(const ValueKey('nav-track-equipment-picker')),
+      findsNothing,
+    );
+  });
+
+  testWidgets('proposes a new track for a file of the same name recorded at '
+      'another time, which may be a different dive', (tester) async {
+    await _pump(
+      tester,
+      preview: _preview(
+        duplicateOfRouteId: 'existing-route',
+        duplicateIsSameRecording: false,
+      ),
+    );
+
+    final newTrack = tester.widget<RadioGroup<NavTrackDuplicateChoice>>(
+      find.byType(RadioGroup<NavTrackDuplicateChoice>),
+    );
+    expect(newTrack.groupValue, NavTrackDuplicateChoice.newTrack);
+    expect(
+      find.byKey(const ValueKey('nav-track-equipment-picker')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('choosing a new track offers its name and device again', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      preview: _preview(duplicateOfRouteId: 'existing-route'),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('nav-track-duplicate-new')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('nav-track-equipment-picker')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('shows a site picker entry point defaulting to no site chosen', (
@@ -986,8 +1090,8 @@ void main() {
   });
 
   testWidgets(
-    'stays on the page when replacing a duplicate and commit fails (the '
-    'service only removes the original after the new route is stored)',
+    'stays on the page when importing a duplicate as a new track and commit '
+    'fails',
     (tester) async {
       await _pumpWithRouter(
         tester,
@@ -995,7 +1099,7 @@ void main() {
         service: _ThrowingImportService(),
       );
 
-      await tester.tap(find.byType(Checkbox));
+      await tester.tap(find.byKey(const ValueKey('nav-track-duplicate-new')));
       await tester.pumpAndSettle();
       await tester.drag(find.byType(ListView), const Offset(0, -400));
       await tester.pumpAndSettle();
@@ -1097,9 +1201,8 @@ void main() {
     expect(save.onPressed, isNotNull);
   });
 
-  testWidgets('hands the ticked duplicate to commit as the route to replace', (
-    tester,
-  ) async {
+  testWidgets('updates the duplicate in place by default and opens it, '
+      'storing nothing new (issue #4231)', (tester) async {
     final service = _RecordingImportService();
     await _pumpWithRouter(
       tester,
@@ -1107,21 +1210,21 @@ void main() {
       service: service,
     );
 
-    await tester.tap(find.byType(Checkbox));
-    await tester.pumpAndSettle();
     await tester.drag(find.byType(ListView), const Offset(0, -400));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('nav-track-import-save')));
     await tester.pumpAndSettle();
 
-    expect(service.commitCount, 1);
-    expect(service.lastReplacingRouteId, 'existing-route');
+    expect(service.updateCount, 1);
+    expect(service.lastUpdatedRouteId, 'existing-route');
+    expect(service.lastUpdatedSourceFile, isNotNull);
+    expect(service.commitCount, 0);
+    expect(find.text('ROUTE_DETAIL_PAGE'), findsOneWidget);
   });
 
-  testWidgets('keeps the duplicate when replace is left unticked', (
-    tester,
-  ) async {
-    final service = _RecordingImportService();
+  testWidgets('says the stored track is gone when it was deleted during the '
+      'review, and offers a new track instead', (tester) async {
+    final service = _RecordingImportService()..updateResult = false;
     await _pumpWithRouter(
       tester,
       preview: _preview(duplicateOfRouteId: 'existing-route'),
@@ -1133,8 +1236,45 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('nav-track-import-save')));
     await tester.pumpAndSettle();
 
+    expect(find.text('ROUTE_DETAIL_PAGE'), findsNothing);
+    expect(
+      tester
+          .widget<RadioGroup<NavTrackDuplicateChoice>>(
+            find.byType(RadioGroup<NavTrackDuplicateChoice>),
+          )
+          .groupValue,
+      NavTrackDuplicateChoice.newTrack,
+    );
+    // Choosing a new track brings back its own fields above the message,
+    // which the lazy list then builds further down.
+    await tester.scrollUntilVisible(
+      find.text('Track not found.'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Track not found.'), findsOneWidget);
+  });
+
+  testWidgets('imports a new track, keeping the duplicate, when the diver '
+      'chooses it', (tester) async {
+    final service = _RecordingImportService();
+    await _pumpWithRouter(
+      tester,
+      preview: _preview(duplicateOfRouteId: 'existing-route'),
+      service: service,
+    );
+
+    await tester.tap(find.byKey(const ValueKey('nav-track-duplicate-new')));
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView), const Offset(0, -400));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('nav-track-import-save')));
+    await tester.pumpAndSettle();
+
     expect(service.commitCount, 1);
-    expect(service.lastReplacingRouteId, isNull);
+    expect(service.updateCount, 0);
+    // The new route keeps the file it came from.
+    expect(service.lastCommittedSourceFile, isNotNull);
   });
 
   testWidgets('shows a parse-error message when the preview future rejects', (
@@ -1252,12 +1392,14 @@ void main() {
 
       expect(service.commitCount, 1);
       expect(service.lastDive, isNull);
-      expect(results, [(routeId: 'new-route-id', replacedRouteId: null)]);
+      expect(results, [(routeId: 'new-route-id', update: null)]);
       // Back on the host page: nothing navigated past it.
       expect(find.text('HOST'), findsOneWidget);
     });
 
-    testWidgets('reports the duplicate it replaced', (tester) async {
+    testWidgets('hands the duplicate\'s update back for the caller to stage', (
+      tester,
+    ) async {
       final service = _RecordingImportService();
       final results = await _pumpReturnMode(
         tester,
@@ -1265,16 +1407,14 @@ void main() {
         service: service,
       );
 
-      await tester.tap(find.byType(Checkbox));
-      await tester.pumpAndSettle();
       await _tapSave(tester);
 
-      expect(results, [
-        (routeId: 'new-route-id', replacedRouteId: 'existing-route'),
-      ]);
-      // The caller replaces it on its own Save, so the duplicate survives a
-      // cancelled edit.
-      expect(service.lastReplacingRouteId, isNull);
+      // Nothing written yet: the Dive Edit page stages the update until
+      // its own Save, so a cancelled edit keeps the stored track.
+      expect(results.single!.routeId, 'existing-route');
+      expect(results.single!.update!.points, hasLength(greaterThan(1)));
+      expect(service.updateCount, 0);
+      expect(service.commitCount, 0);
     });
 
     testWidgets('pops null when the diver backs out', (tester) async {
@@ -1293,6 +1433,17 @@ void main() {
 }
 
 class _FailingImportService implements NavTrackImportService {
+  @override
+  ParsedNavTrack parseFile(Uint8List bytes) => throw UnimplementedError();
+
+  @override
+  Future<bool> updateFromFile({
+    required String routeId,
+    required ParsedNavTrack parsed,
+    required Uint8List sourceFile,
+    String? sourceRef,
+  }) async => true;
+
   @override
   Future<NavTrackImportPreview> prepare(
     Uint8List bytes, {
@@ -1314,7 +1465,7 @@ class _FailingImportService implements NavTrackImportService {
     String? name,
     String? deviceName,
     String? equipmentId,
-    String? replacingRouteId,
+    Uint8List? sourceFile,
   }) async => throw UnimplementedError();
 }
 
@@ -1322,6 +1473,17 @@ class _FailingImportService implements NavTrackImportService {
 /// [NavTrackParseException], to exercise the page's generic import-error
 /// branch (as opposed to the localized parse-reason text).
 class _GenericFailingImportService implements NavTrackImportService {
+  @override
+  ParsedNavTrack parseFile(Uint8List bytes) => throw UnimplementedError();
+
+  @override
+  Future<bool> updateFromFile({
+    required String routeId,
+    required ParsedNavTrack parsed,
+    required Uint8List sourceFile,
+    String? sourceRef,
+  }) async => true;
+
   @override
   Future<NavTrackImportPreview> prepare(
     Uint8List bytes, {
@@ -1340,6 +1502,6 @@ class _GenericFailingImportService implements NavTrackImportService {
     String? name,
     String? deviceName,
     String? equipmentId,
-    String? replacingRouteId,
+    Uint8List? sourceFile,
   }) async => throw UnimplementedError();
 }

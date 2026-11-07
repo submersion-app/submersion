@@ -21,6 +21,17 @@ List<int> _zxu() =>
             'ZDT|1|1|18.29|20240612093600|0.000000|0|\n')
         .codeUnits;
 
+/// A valid one-member ZIP whose end-of-central-directory record points the
+/// directory offset (bytes 16-19 of the trailing 22-byte record) past the end
+/// of the data.
+Uint8List _zipWithDirectoryPastEnd() {
+  final bytes = _buildZip({'dive.zxu': _zxu()});
+  final eocd = bytes.length - 22;
+  return bytes
+    ..[eocd + 16] = 0xFF
+    ..[eocd + 17] = 0xFF;
+}
+
 void main() {
   const service = ZipExpansionService();
   late Directory tmp;
@@ -223,7 +234,195 @@ void main() {
     });
   });
 
+  // Issue #4248: extraction used to read the whole ZIP into one buffer and
+  // inflate every member with readBytes(), which caches the inflated bytes on
+  // its ArchiveFile for as long as the Archive lives.
+  group('memory retention (#4248)', () {
+    // Highly compressible, so the encoder deflates it.
+    final photo = List<int>.filled(256 * 1024, 0x41);
+
+    test(
+      'archive members read from the file, not a whole-file buffer',
+      () async {
+        final zipPath = await writeZip('backed.zip', {
+          'dive.zxu': _zxu(),
+          'dive_photo.jpg': photo,
+        });
+
+        final rawStreams = await ZipExpansionService.withArchiveFile(
+          zipPath,
+          (archive) async => [
+            for (final entry in archive)
+              if (entry.isFile)
+                (entry.rawContent! as ZipFile).getStream(decompress: false),
+          ],
+        );
+
+        expect(rawStreams, hasLength(2));
+        expect(rawStreams, everyElement(isA<InputFileStream>()));
+      },
+    );
+
+    test('writing a member leaves no inflated copy on the entry', () async {
+      final zipPath = await writeZip('inflate.zip', {'dive_photo.jpg': photo});
+      final outPath = p.join(tmp.path, 'out.jpg');
+
+      await ZipExpansionService.withArchiveFile(zipPath, (archive) async {
+        final entry = archive.single;
+        expect(entry.isCompressed, isTrue, reason: 'precondition: deflated');
+
+        await ZipExpansionService.writeEntryToFile(entry, outPath);
+
+        expect(
+          entry.isCompressed,
+          isTrue,
+          reason: 'inflated bytes must stream to disk, not stay cached',
+        );
+      });
+
+      expect(File(outPath).readAsBytesSync(), photo);
+    });
+
+    test('a stored (uncompressed) member is written intact', () async {
+      final archive = Archive()
+        ..addFile(
+          ArchiveFile('dive.zxu', _zxu().length, _zxu())
+            ..compression = CompressionType.none,
+        );
+      final zipPath = p.join(tmp.path, 'stored.zip');
+      await File(zipPath).writeAsBytes(ZipEncoder().encode(archive));
+      await ZipExpansionService.withArchiveFile(zipPath, (decoded) async {
+        expect(
+          decoded.single.isCompressed,
+          isFalse,
+          reason: 'precondition: the member is stored, not deflated',
+        );
+      });
+
+      final expansion = await service.expandAll([zipPath]);
+
+      expect(File(expansion.filePaths.single).readAsBytesSync(), _zxu());
+    });
+
+    test('expandAll extracts large deflated photos byte for byte', () async {
+      final zipPath = await writeZip('photos.zip', {
+        'dive.zxu': _zxu(),
+        for (var i = 0; i < 4; i++) 'dive_$i.jpg': photo,
+      });
+
+      final expansion = await service.expandAll([zipPath]);
+
+      final photos = expansion.photoPathsByBaseName['dive']!;
+      expect(photos, hasLength(4));
+      for (final path in photos) {
+        expect(File(path).readAsBytesSync(), photo);
+      }
+    });
+
+    test('withArchiveFile closes the archive file afterwards', () async {
+      final zipPath = await writeZip('release.zip', {'dive.zxu': _zxu()});
+
+      // Member streams share the archive's file handle, so one of them shows
+      // whether the handle is still open.
+      final raw = await ZipExpansionService.withArchiveFile(zipPath, (
+        archive,
+      ) async {
+        final stream =
+            (archive.single.rawContent! as ZipFile).getStream(decompress: false)
+                as InputFileStream;
+        expect(stream.file.isOpen, isTrue, reason: 'precondition');
+        return stream;
+      });
+
+      expect(raw.file.isOpen, isFalse);
+    });
+
+    test('withArchiveFile closes the archive file when use throws', () async {
+      final zipPath = await writeZip('throws.zip', {'dive.zxu': _zxu()});
+      late InputFileStream raw;
+
+      await expectLater(
+        ZipExpansionService.withArchiveFile<void>(zipPath, (archive) async {
+          raw =
+              (archive.single.rawContent! as ZipFile).getStream(
+                    decompress: false,
+                  )
+                  as InputFileStream;
+          throw StateError('extraction failed');
+        }),
+        throwsStateError,
+      );
+
+      expect(raw.file.isOpen, isFalse);
+    });
+  });
+
+  group('expandZipFile', () {
+    test('reads the signature itself when no header is given', () async {
+      final zipPath = await writeZip('no_header.zip', {
+        'dive.zxu': _zxu(),
+        'dive_pic.jpg': [7],
+      });
+
+      final expansion = await service.expandZipFile(zipPath);
+
+      expect(expansion.filePaths, hasLength(1));
+      expect(expansion.photoPathsByBaseName['dive'], hasLength(1));
+    });
+
+    test('reports a directory offset past the end as corrupt', () async {
+      final bad = p.join(tmp.path, 'stub.zip');
+      await File(bad).writeAsBytes(_zipWithDirectoryPastEnd());
+
+      await expectLater(
+        service.expandZipFile(bad),
+        throwsA(
+          isA<FormatException>().having(
+            (e) => e.message,
+            'message',
+            contains('stub.zip'),
+          ),
+        ),
+      );
+    });
+
+    test('renames members whose basenames collide', () async {
+      final zipPath = await writeZip('collide.zip', {
+        'a/dive.zxu': _zxu(),
+        'b/dive.zxu': _zxu(),
+      });
+
+      final expansion = await service.expandZipFile(zipPath);
+
+      expect(
+        expansion.filePaths.map(p.basename),
+        unorderedEquals(['dive.zxu', 'dive_1.zxu']),
+      );
+    });
+  });
+
+  test('expandAll passes an unreadable path through unchanged', () async {
+    final missing = p.join(tmp.path, 'missing.zip');
+    final expansion = await service.expandAll([missing]);
+    expect(expansion.filePaths, [missing]);
+  });
+
   group('expandZipBytes', () {
+    test('wraps a decoder failure in a FormatException', () async {
+      // The in-memory decoder throws a RangeError on this input; callers
+      // must see the documented FormatException instead.
+      await expectLater(
+        service.expandZipBytes(_zipWithDirectoryPastEnd(), 'stub.zip'),
+        throwsA(
+          isA<FormatException>().having(
+            (e) => e.message,
+            'message',
+            allOf(contains('stub.zip'), contains('RangeError')),
+          ),
+        ),
+      );
+    });
+
     test('expands raw zip bytes (share-intent path)', () async {
       final bytes = _buildZip({
         'dive.zxu': _zxu(),

@@ -270,7 +270,25 @@ void main() {
       expect(summary(), equals(summary()));
       expect(summary().hashCode, summary().hashCode);
       expect(summary(), isNot(equals(summary(name: 'Wreck'))));
-      expect(summary().props, hasLength(14));
+      expect(summary().props, hasLength(15));
+    });
+
+    test('a link to a dive no longer in the log is a difference', () {
+      final linked = DivePlanSummary(
+        id: 'p',
+        name: 'n',
+        updatedAt: DateTime(2026),
+        linkedDiveId: 'd',
+      );
+      final gone = DivePlanSummary(
+        id: 'p',
+        name: 'n',
+        updatedAt: DateTime(2026),
+        linkedDiveId: 'd',
+        linkedDiveExists: false,
+      );
+      expect(linked.linkedDiveExists, isTrue);
+      expect(linked, isNot(equals(gone)));
     });
 
     test('mode defaults to open circuit', () {

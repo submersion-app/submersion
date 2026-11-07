@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
 import 'package:submersion/features/planner/domain/utils/hours_minutes.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The surface interval before the selected dive (issue #3565), in h:mm with
@@ -115,6 +116,33 @@ class _PlanSurfaceIntervalFieldState
 
     final l10n = context.l10n;
     final enabled = widget.enabled;
+    // A plan whose dive has been dived only reads (issue #3565): the
+    // interval as a plain field, no steppers.
+    if (ref.watch(planLockedProvider)) {
+      return InputDecorator(
+        key: const Key('surfaceIntervalReadOnly'),
+        decoration: InputDecoration(
+          isDense: true,
+          enabled: enabled,
+          border: const OutlineInputBorder(),
+          labelText: l10n.plannerSeries_surfaceInterval,
+          floatingLabelBehavior: FloatingLabelBehavior.always,
+          prefixIcon: const Icon(Icons.timer_outlined),
+        ),
+        child: Text(
+          enabled
+              ? formatHoursMinutes(
+                  ref.watch(
+                        divePlanNotifierProvider.select(
+                          (s) => s.surfaceInterval,
+                        ),
+                      ) ??
+                      defaultSeriesSurfaceInterval,
+                )
+              : '',
+        ),
+      );
+    }
     // Greyed out like the disabled controls below it.
     final labelColor = enabled ? null : Theme.of(context).disabledColor;
     return Column(

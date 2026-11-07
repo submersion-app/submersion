@@ -4851,6 +4851,18 @@
       }
     }
   },
+  "diveLog_edit_profile_pointsAndProfiles": "{pointCount, plural, one{1 point} other{{pointCount} points}} · {profileCount, plural, one{1 revision} other{{profileCount} revisions}}",
+  "@diveLog_edit_profile_pointsAndProfiles": {
+    "description": "Dive profile row value: recorded profile samples and number of available profile revisions",
+    "placeholders": {
+      "pointCount": {
+        "type": "num"
+      },
+      "profileCount": {
+        "type": "num"
+      }
+    }
+  },
   "diveLog_edit_row_addSite": "Add site",
   "@diveLog_edit_row_addSite": {
     "description": "Placeholder when no site selected"
@@ -6786,7 +6798,6 @@
     }
   },
   "divePlanner_action_addTank": "Add Tank",
-  "divePlanner_action_convertToDive": "Convert to Dive",
   "divePlanner_action_deletePlan": "Delete plan",
   "divePlanner_action_editTank": "Edit Tank",
   "divePlanner_action_fillBestMix": "Best mix for {depth}: {mix}",
@@ -6851,6 +6862,10 @@
   "divePlanner_label_gfHigh": "GF High",
   "divePlanner_label_gfLow": "GF Low",
   "divePlanner_label_minutesUnit": "min",
+  "divePlanner_label_secondsUnit": "s",
+  "@divePlanner_label_secondsUnit": {
+    "description": "Unit suffix for a planner field entered in seconds, such as the gas switch stop"
+  },
   "divePlanner_label_ndl": "NDL",
   "divePlanner_label_planSettings": "Plan Settings",
   "divePlanner_label_reserve": "Reserve",
@@ -13055,7 +13070,6 @@
   "plannerCanvas_contingency_title": "Contingencies",
   "plannerCanvas_contingency_turnFraction": "Turn fraction",
   "plannerCanvas_contingency_turnRule": "Turn pressure rule",
-  "plannerCanvas_convert_success": "Dive created from plan",
   "plannerCanvas_convert_view": "View",
   "plannerCanvas_export_failed": "Export failed: {error}",
   "@plannerCanvas_export_failed": {
@@ -13134,6 +13148,26 @@
     }
   },
   "plannerSeries_openInLog": "Open in dive log",
+  "plannerSeries_view_actual": "Actual",
+  "@plannerSeries_view_actual": {
+    "description": "Toggle segment showing what really happened on a dive of a series that has been dived"
+  },
+  "plannerSeries_view_plan": "Plan",
+  "@plannerSeries_view_plan": {
+    "description": "Toggle segment showing the original plan of a dive of a series that has been dived"
+  },
+  "plannerSeries_saved_divedCount": "{dived} of {count} dived",
+  "@plannerSeries_saved_divedCount": {
+    "description": "How many dives of a saved series have been dived, in the saved plans list",
+    "placeholders": {
+      "dived": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "plannerSeries_stopFollowing": "Stop following",
   "plannerSeries_compareWithPlan": "Compare with its plan",
   "plannerSeries_asPlanned": "As planned",
@@ -13253,7 +13287,54 @@
     }
   },
   "plannerSeries_fillAll": "Fill all tanks",
-  "plannerSeries_convertUnavailable": "A series of dives can't be converted to logged dives yet",
+  "plannerSeries_createPlannedDive": "Create planned dive",
+  "plannerSeries_createPlannedDives": "Create planned dives",
+  "plannerSeries_updatePlannedDive": "Update planned dive",
+  "plannerSeries_updatePlannedDives": "Update planned dives",
+  "plannerSeries_cannotUpdate": "{dive} has a critical warning, so the planned dives weren't updated",
+  "@plannerSeries_cannotUpdate": {
+    "placeholders": {
+      "dive": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerSeries_cannotUpdateEmpty": "{dive} has no segments, so the planned dives weren't updated",
+  "@plannerSeries_cannotUpdateEmpty": {
+    "placeholders": {
+      "dive": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerSeries_cannotUpdateEmptyPlan": "This plan has no segments, so it wasn't written to the log",
+  "plannerSeries_created": "{count, plural, one{{count} planned dive added to the log} other{{count} planned dives added to the log}}",
+  "@plannerSeries_created": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "plannerSeries_updated": "{count, plural, one{{count} planned dive updated in the log} other{{count} planned dives updated in the log}}",
+  "@plannerSeries_updated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "plannerSeries_orphans_title": "Delete from the log?",
+  "plannerSeries_orphans_body": "{count, plural, one{{count} planned dive no longer in this series is still in the log.} other{{count} planned dives no longer in this series are still in the log.}}",
+  "@plannerSeries_orphans_body": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "plannerSeries_orphans_keep": "Keep",
+  "plannerSeries_allDived": "Every dive in this plan has been dived, so there's nothing to update",
   "plannerSeries_missionUnavailable": "A series of dives can't be planned as a DPV mission",
   "plannerSeries_followUnavailableInReplan": "A replan can't follow another dive",
   "plannerCanvas_follow_title": "Follow a dive",
@@ -15292,6 +15373,7 @@
   "settings_conflict_field_thumbnailGeneratedAt": "Thumbnail made",
   "settings_conflict_field_tideState": "Tide",
   "settings_conflict_field_timeFormat": "Time format",
+  "settings_conflict_field_firstDayOfWeek": "First day of week",
   "settings_conflict_field_timeOffsetSeconds": "Time offset",
   "settings_conflict_field_timestamp": "Time into dive",
   "settings_conflict_field_timestampOffsetSeconds": "Time offset",
@@ -16748,8 +16830,23 @@
   "settings_units_dialog_timeFormat": "Time Format",
   "settings_units_dialog_volumeUnit": "Volume Unit",
   "settings_units_dialog_weightUnit": "Weight Unit",
-  "settings_units_header_individualUnits": "Individual Units",
-  "settings_units_header_timeDateFormat": "Time & Date Format",
+  "settings_units_header_gasPlanning": "Gas & Planning",
+  "settings_units_header_displayFormats": "Display & Formats",
+  "settings_units_appliesTo": "Applies to the following units",
+  "settings_units_gasConsumption_unitHint": "Unit follows pressure and volume",
+  "settings_units_firstDayOfWeek": "First day of week",
+  "settings_units_dialog_firstDayOfWeek": "First Day of Week",
+  "settings_units_firstDayOfWeek_auto": "Automatic",
+  "settings_units_firstDayOfWeek_autoResolved": "Automatic ({day})",
+  "settings_units_firstDayOfWeek_auto_subtitle": "Follows your device's region",
+  "@settings_units_firstDayOfWeek_autoResolved": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_units_header_timeDateFormat": "Time & Date",
   "settings_units_header_unitSystem": "Unit System",
   "settings_units_imperial": "Imperial",
   "settings_units_metric": "Metric",
@@ -24231,7 +24328,8 @@
   "attrLabel_speed_mps": "Top speed",
   "attrLabel_tow_burn_factor": "Tow burn factor",
   "attrLabel_tow_speed_factor": "Tow speed factor",
-  "attrLabel_sku": "SKU",
+  "attrLabel_sku": "Product number (SKU)",
+  "attrHelper_sku": "From the receipt or product label, not the serial number",
   "attrLabel_retailer": "Retailer",
   "attrLabel_product_url": "Web link",
   "attrLabel_color": "Color",
@@ -24832,6 +24930,8 @@
   "diveLog_planned_chip": "Planned",
   "diveLog_planned_bannerTitle": "Planned dive",
   "diveLog_planned_bannerBody": "Awaiting dive computer data. Mark it as logged if you dived without one.",
+  "diveLog_planned_openInPlanner": "Open in planner",
+  "diveLog_detail_menu_viewInPlanner": "View in planner",
   "diveLog_detail_menu_markLogged": "Mark as logged",
   "diveLog_planned_markedLogged": "Marked as logged",
   "diveLog_planned_markLoggedFailed": "Couldn't mark the dive as logged.",
@@ -29203,6 +29303,7 @@
   "settings_syncDevices_state_unreadable": "No readable manifest - an unfinished upload, or encrypted",
   "settings_syncDevices_summary": "{deviceCount, plural, =1{1 device} other{{deviceCount} devices}}, {fileCount, plural, =1{1 file} other{{fileCount} files}}, {size}",
   "settings_syncDevices_summary_removable": "{count, plural, =1{1 left over from a replaced or retired library, holding {size}.} other{{count} left over from a replaced or retired library, holding {size}.}}",
+  "settings_syncDevices_summary_removed": "{count, plural, =1{{count} removed device is remembered so it cannot bring back deleted data.} other{{count} removed devices are remembered so they cannot bring back deleted data.}}",
   "settings_syncDevices_tile_filesSize": "{count, plural, =1{1 file} other{{count} files}}, {size}",
   "settings_syncDevices_tile_filesSizeSeen": "{count, plural, =1{1 file} other{{count} files}}, {size} - {when}",
   "settings_syncDevices_unnamedDevice": "Device {shortId}",
@@ -29467,6 +29568,15 @@
       "size": {
         "example": "900 KB",
         "type": "String"
+      }
+    }
+  },
+  "@settings_syncDevices_summary_removed": {
+    "description": "How many removed devices are hidden from the list. Each leaves a small marker on the backend, kept so the device cannot bring deleted data back if it comes online again.",
+    "placeholders": {
+      "count": {
+        "example": "24",
+        "type": "int"
       }
     }
   },
@@ -30466,16 +30576,15 @@
   "diveLog_profileEditor_smoothHeavy": "Heavy",
   "diveLog_profileEditor_applyToAll": "Apply to All",
   "diveLog_profileEditor_applyToSelection": "Apply to Selection",
-  "diveLog_profileEditor_outlierDetection": "Outlier Detection",
-  "diveLog_profileEditor_detect": "Detect",
-  "diveLog_profileEditor_removeAll": "Remove All",
+  "diveLog_profileEditor_cleanup": "Cleanup",
+  "diveLog_profileEditor_detectOutliers": "Detect Outliers",
+  "diveLog_profileEditor_removeOutliers": "Remove Outliers",
   "diveLog_profileEditor_outliersDetected": "{count, plural, =1{1 potential outlier detected} other{{count} potential outliers detected}}",
   "diveLog_profileEditor_manualDrawing": "Manual Drawing",
   "diveLog_profileEditor_drawHint": "Tap on the chart to place waypoints",
   "diveLog_profileEditor_clearWaypoints": "Clear",
   "diveLog_profileEditor_generateProfile": "Generate Profile",
   "diveLog_profileEditor_trimMode": "Trim Mode",
-  "diveLog_profileEditor_trimHint": "Trim profile endpoints",
   "diveLog_profileEditor_trimEnd": "Trim End",
   "diveLog_profileEditor_mode_smooth": "Smooth",
   "diveLog_profileEditor_title": "Edit Profile",
@@ -30490,11 +30599,16 @@
   "diveLog_profileEditor_smoothTooFewBlocked": "Can't smooth: select at least three samples",
   "diveLog_profileEditor_undo": "Undo",
   "diveLog_profileEditor_mode_select": "Select",
-  "diveLog_profileEditor_mode_outlier": "Outlier",
+  "diveLog_profileEditor_mode_cleanup": "Cleanup",
   "diveLog_profileEditor_mode_draw": "Draw",
   "diveLog_profileEditor_mode_trim": "Trim",
   "diveLog_profileEditor_revisionSelectorTooltip": "Switch active revision. This takes effect immediately and all future edits will be based on this revision.",
   "diveLog_profileEditor_revisionSwitchFailed": "Could not switch profile revision.",
+  "diveLog_profileEditor_deleteProfile_title": "Delete Entire Profile",
+  "diveLog_profileEditor_deleteProfile_permanentWarning": "Deleting this profile revision is permanent, cannot be undone, and takes effect immediately.",
+  "diveLog_profileEditor_deleteProfile_computerImportWarning": "This profile was imported from a dive computer and likely contains the original source data.",
+  "diveLog_profileEditor_deleteProfile_confirmNow": "Delete Permanently Now",
+  "diveLog_profileEditor_deleteProfile_failed": "Could not delete the profile revision.",
   "diveLog_profileEditor_revisionLegacyHint": "Saved before revision history; not linked to a computer",
   "diveLog_sources_sectionTitle": "{count, plural, =0{Data Source} =1{Data Source} other{Data Sources}}",
   "diveLog_sources_badge_manual": "Manual",
@@ -30870,8 +30984,8 @@
   "@diveLog_profileEditor_mode_select": {
     "description": "Profile editor mode: select a range of the depth curve."
   },
-  "@diveLog_profileEditor_mode_outlier": {
-    "description": "Profile editor mode: find and remove suspect depth samples."
+  "@diveLog_profileEditor_mode_cleanup": {
+    "description": "Profile editor mode: find and remove unnecessary depth samples or the entire profile."
   },
   "@diveLog_profileEditor_mode_draw": {
     "description": "Profile editor mode: draw the depth curve by placing waypoints."
@@ -33092,7 +33206,6 @@
   "navTrack_review_nameHint": "Name (optional)",
   "navTrack_review_warningNoMovement": "No movement recorded: distance and speed stay at zero throughout this file.",
   "navTrack_review_trackDuplicateWarning": "This looks like a track already imported from the same file.",
-  "navTrack_review_replaceLabel": "Replace",
   "navTrack_review_linkToDive": "Link to dive",
   "navTrack_review_diveSite": "Dive site",
   "navTrack_review_equipment": "Equipment",
@@ -33215,6 +33328,8 @@
     }
   },
   "navTrack_editSheet_removeTrackTooltip": "Remove track",
+  "navTrack_editSheet_trackOnAnotherDive": "This track belongs to another dive. Update it from that dive, or import the file as a new track.",
+  "@navTrack_editSheet_trackOnAnotherDive": {"description": "Dive Edit route sheet: the stored track a re-imported file would update is linked to another dive"},
   "navTrack_editRow_tracksSaveFailed": "Could not update this dive's underwater tracks: {error}",
   "@navTrack_editRow_tracksSaveFailed": {
     "placeholders": {
@@ -35183,5 +35298,35 @@
   "search_closeTooltip": "Close search",
   "@search_closeTooltip": {"description": "A list's search row, shared by every list"},
   "search_openTooltip": "Search",
-  "@search_openTooltip": {"description": "A list's search row, shared by every list"}
+  "@search_openTooltip": {"description": "A list's search row, shared by every list"},
+  "settings_conflict_field_sourceFile": "Original track file",
+  "@settings_conflict_field_sourceFile": {"description": "Field label in the sync conflict view: the original file an underwater track was imported from"},
+  "navTrack_review_duplicateUpdate": "Update the stored track",
+  "@navTrack_review_duplicateUpdate": {"description": "Import review choice when the file was imported before: re-read the stored track from this file"},
+  "navTrack_review_duplicateUpdateHint": "Reads the data from this file again. Name, dive, site, device and alignment stay as they are.",
+  "@navTrack_review_duplicateUpdateHint": {"description": "Explains the update choice on the import review page"},
+  "navTrack_review_duplicateNew": "Import as a new track",
+  "@navTrack_review_duplicateNew": {"description": "Import review choice when the file was imported before: keep both"},
+  "navTrack_review_updateAction": "Update",
+  "@navTrack_review_updateAction": {"description": "Button that updates a stored track from a file"},
+  "navTrack_review_trackUpdatedConfirmation": "Track updated from the file. Check its alignment: the track may have moved.",
+  "@navTrack_review_trackUpdatedConfirmation": {"description": "Snackbar after a track was updated from its file"},
+  "navTrack_detail_menuUpdateFromFile": "Update from file",
+  "@navTrack_detail_menuUpdateFromFile": {"description": "Track detail overflow menu item"},
+  "navTrack_detail_menuExportCsv": "Export as CSV",
+  "@navTrack_detail_menuExportCsv": {"description": "Track detail overflow menu item"},
+  "navTrack_detail_exportUnavailable": "This track has no stored original file yet. Update it from its file first.",
+  "@navTrack_detail_exportUnavailable": {"description": "Snackbar when a track keeps no original file to export"},
+  "navTrack_detail_exportFailed": "Export failed: {error}",
+  "@navTrack_detail_exportFailed": {"placeholders": {"error": {"type": "String"}}},
+  "navTrack_detail_updateNameMismatchTitle": "Different file name",
+  "@navTrack_detail_updateNameMismatchTitle": {"description": "Dialog title when the chosen file has another name than the track"},
+  "navTrack_detail_updateNameMismatchMessage": "This track was imported from \"{expected}\", the chosen file is \"{actual}\". Update the track from it anyway?",
+  "@navTrack_detail_updateNameMismatchMessage": {"placeholders": {"expected": {"type": "String"}, "actual": {"type": "String"}}},
+  "navTrack_detail_updateOtherRecordingTitle": "Different recording",
+  "@navTrack_detail_updateOtherRecordingTitle": {"description": "Dialog title when the file picked to update a track was recorded at another time than the track"},
+  "navTrack_detail_updateOtherRecordingMessage": "This file was recorded on {fileDate}, the track on {trackDate}, so it may be a different dive. Update the track from it anyway?",
+  "@navTrack_detail_updateOtherRecordingMessage": {"description": "Dialog asking whether to update a track from a file recorded at another time; both dates are formatted dates", "placeholders": {"fileDate": {"type": "String"}, "trackDate": {"type": "String"}}},
+  "navTrack_marker_details": "Marker {number}: {time}, {depth}, {distance}",
+  "@navTrack_marker_details": {"description": "Tooltip of a marker the recording console set: its number, time, depth and distance into the dive", "placeholders": {"number": {"type": "int"}, "time": {"type": "String"}, "depth": {"type": "String"}, "distance": {"type": "String"}}}
 }

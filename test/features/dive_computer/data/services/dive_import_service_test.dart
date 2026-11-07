@@ -2000,6 +2000,116 @@ void main() {
     });
   });
 
+  group('surface pressure from download (issue #4208)', () {
+    final dive = DownloadedDive(
+      fingerprint: 'fp-teric',
+      startTime: DateTime(2026, 3, 3, 9, 0),
+      durationSeconds: 2400,
+      maxDepth: 18.0,
+      surfacePressure: 0.996,
+      profile: const [],
+    );
+
+    // Every route into importProfile: the replace-source re-import adds
+    // missing tanks and the planned-dive fill names its target.
+    Future<String> importProfileCall({double? surfacePressure}) =>
+        mockComputerRepo.importProfile(
+          computerId: anyNamed('computerId'),
+          profileStartTime: anyNamed('profileStartTime'),
+          points: anyNamed('points'),
+          durationSeconds: anyNamed('durationSeconds'),
+          maxDepth: anyNamed('maxDepth'),
+          avgDepth: anyNamed('avgDepth'),
+          isPrimary: anyNamed('isPrimary'),
+          diverId: anyNamed('diverId'),
+          tanks: anyNamed('tanks'),
+          decoAlgorithm: anyNamed('decoAlgorithm'),
+          gfLow: anyNamed('gfLow'),
+          gfHigh: anyNamed('gfHigh'),
+          decoConservatism: anyNamed('decoConservatism'),
+          computerTissue: anyNamed('computerTissue'),
+          events: anyNamed('events'),
+          gasSwitches: anyNamed('gasSwitches'),
+          diveNumber: anyNamed('diveNumber'),
+          forceNew: anyNamed('forceNew'),
+          rawData: anyNamed('rawData'),
+          rawFingerprint: anyNamed('rawFingerprint'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+          surfacePressure: surfacePressure,
+          targetDiveId: anyNamed('targetDiveId'),
+          addMissingTanks: anyNamed('addMissingTanks'),
+        );
+
+    double? capturedSurfacePressure() =>
+        verify(
+              importProfileCall(
+                surfacePressure: captureAnyNamed('surfacePressure'),
+              ),
+            ).captured.single
+            as double?;
+
+    setUp(() {
+      when(
+        mockDiveRepo.getDiveNumberForDate(any, diverId: anyNamed('diverId')),
+      ).thenAnswer((_) async => 1);
+      when(
+        importProfileCall(surfacePressure: anyNamed('surfacePressure')),
+      ).thenAnswer((_) async => 'dive-id');
+    });
+
+    test('forwards the measured surface pressure to importProfile', () async {
+      await service.importDives(dives: [dive], computer: computer);
+
+      expect(capturedSurfacePressure(), 0.996);
+    });
+
+    test('a replace-source re-import forwards it too', () async {
+      when(
+        mockComputerRepo.clearSourceAndProfiles(
+          diveId: anyNamed('diveId'),
+          computerId: anyNamed('computerId'),
+        ),
+      ).thenAnswer((_) async => true);
+      final conflict = ImportConflict(
+        downloaded: dive,
+        existingDiveId: 'dive-id',
+        duplicateResult: const DuplicateResult(
+          matchingDiveId: 'dive-id',
+          confidence: DuplicateConfidence.exact,
+          score: 0.95,
+        ),
+      );
+
+      await service.resolveConflict(
+        conflict,
+        ConflictResolution.replaceSource,
+        computer.id,
+      );
+
+      expect(capturedSurfacePressure(), 0.996);
+    });
+
+    test('attaching to a planned dive forwards it too', () async {
+      await service.attachToPlannedDive(
+        dive,
+        'dive-id',
+        computer.id,
+        settled: (
+          gfLow: null,
+          gfHigh: null,
+          decoAlgorithm: null,
+          decoConservatism: null,
+          computerTissue: null,
+        ),
+      );
+
+      expect(capturedSurfacePressure(), 0.996);
+    });
+  });
+
   group('diluent gas from download (issue #1879)', () {
     setUp(() {
       when(

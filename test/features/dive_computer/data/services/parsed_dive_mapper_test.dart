@@ -32,6 +32,7 @@ void main() {
       double? entryLongitude,
       double? exitLatitude,
       double? exitLongitude,
+      double? surfacePressureBar,
     }) {
       return pigeon.ParsedDive(
         fingerprint: fingerprint,
@@ -60,6 +61,7 @@ void main() {
         entryLongitude: entryLongitude,
         exitLatitude: exitLatitude,
         exitLongitude: exitLongitude,
+        surfacePressureBar: surfacePressureBar,
       );
     }
 
@@ -528,6 +530,26 @@ void main() {
       expect(downloaded.maxTemperature, isNull);
       expect(downloaded.profile, isEmpty);
       expect(downloaded.tanks, isEmpty);
+      expect(downloaded.surfacePressure, isNull);
+    });
+
+    test('carries the surface pressure the computer measured (#4208)', () {
+      final downloaded = parsedDiveToDownloaded(
+        makeParsedDive(surfacePressureBar: 0.996),
+      );
+
+      expect(downloaded.surfacePressure, 0.996);
+    });
+
+    test('a zero or implausible surface pressure is no reading', () {
+      // A converter that hands over a zeroed struct reports 0.0, not NaN.
+      for (final bar in [0.0, 0.05, 1013.0]) {
+        final downloaded = parsedDiveToDownloaded(
+          makeParsedDive(surfacePressureBar: bar),
+        );
+
+        expect(downloaded.surfacePressure, isNull, reason: '$bar bar');
+      }
     });
 
     // --- Temperature derivation from samples ---

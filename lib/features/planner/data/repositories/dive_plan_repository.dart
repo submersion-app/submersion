@@ -647,6 +647,9 @@ class DivePlanRepository {
 
   Future<List<domain.DivePlanSummary>> getAllPlanSummaries() async {
     final dives = _db.dives;
+    // Whether the linked dive is still in the log. Read as an expression:
+    // the joined row's own `id` column would be ambiguous with the plan's.
+    final linkedDiveFound = dives.id.isNotNull();
     final query =
         _db.select(_db.divePlans).join([
             leftOuterJoin(
@@ -656,6 +659,7 @@ class DivePlanRepository {
             ),
           ])
           ..addColumns([
+            linkedDiveFound,
             dives.diveNumber,
             dives.isPlanned,
             dives.entryTime,
@@ -678,6 +682,8 @@ class DivePlanRepository {
         linkedDiveId: r.linkedDiveId,
         linkedDiveNumber: row.read(dives.diveNumber),
         linkedDiveIsPlanned: row.read(dives.isPlanned) ?? false,
+        linkedDiveExists:
+            r.linkedDiveId == null || (row.read(linkedDiveFound) ?? false),
         // Dive times are the wall clock flagged UTC.
         linkedDiveDate: diveMillis == null
             ? null

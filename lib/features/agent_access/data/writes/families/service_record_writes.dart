@@ -206,21 +206,31 @@ class ServiceRecordWrites extends WritableEntry {
     }
   }
 
-  /// The item a create moves the last service date of: the repository
-  /// writes the new record's day as it is (issue #4201).
+  /// The item a create moves the last service date of: the repository sets
+  /// it to the newest record's day, the new one's included, so an older
+  /// record leaves it (issue #4201) unless a build before that fix left it
+  /// behind the newest.
   @override
   Future<Map<String, int>> createTouched(
     String diverId,
     Map<String, Object?> values,
-  ) async => _moved(
-    values['equipment_id']! as String,
-    calendarDay(values['service_date']),
-  );
+  ) async {
+    final itemId = values['equipment_id']! as String;
+    return _moved(
+      itemId,
+      _newest([
+        for (final r in await _r.serviceRecords.getRecordsForEquipment(itemId))
+          r.serviceDate,
+        ?calendarDay(values['service_date']),
+      ]),
+    );
+  }
 
   /// The item an edit moves the last service date of: the repository sets
-  /// it to the newest record's day on every edit, which after an older
-  /// record was logged (#4201) can move it even when the day stays. Read
-  /// with the set's earlier changes to the item's records.
+  /// it to the newest record's day on every edit, which can move it even
+  /// when the day stays, on an item a build before #4201 left behind its
+  /// newest record. Read with the set's earlier changes to the item's
+  /// records.
   @override
   Future<SideEffects> sideEffects(
     String id,

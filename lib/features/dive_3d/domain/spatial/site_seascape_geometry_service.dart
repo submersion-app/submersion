@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/bathymetry_terrain_builder.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/contour_builder.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/path_scene_markers.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_path_builder.dart';
@@ -216,9 +217,12 @@ class SiteSeascapeGeometryService {
         ),
       );
     }
+    // Each dive's own device markers, on its own ribbon (issue #4231).
+    final pathMarkers = <SceneMarker>[];
     for (final d in input.divePaths) {
       final placed = offsetReckonedPath(d.path, d.anchor);
       if (placed.points.length < 2) continue;
+      pathMarkers.addAll(pathSceneMarkers(placed, proj));
       layers
         ..add(
           SceneLayer(
@@ -284,6 +288,7 @@ class SiteSeascapeGeometryService {
           z: proj.zOf(f.offset.north),
           timestampSeconds: 0,
         ),
+      ...pathMarkers,
     ];
 
     final zHalf = proj.zHalfExtent + SceneBounds.zHalfWidth;

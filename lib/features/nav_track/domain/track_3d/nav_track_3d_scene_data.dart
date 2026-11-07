@@ -2,6 +2,19 @@ import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/domain/track_3d/track_scene_metric.dart';
 
+/// A console marker inside the scene's active range (issue #4231).
+class NavTrack3dMarker {
+  /// The marker's number among all of the route's markers, 1-based, the
+  /// same number the 2D map shows.
+  final int number;
+
+  /// Index into the scene's own series ([NavTrack3dSceneData.times] and the
+  /// rest), which start at the active range.
+  final int sampleIndex;
+
+  const NavTrack3dMarker({required this.number, required this.sampleIndex});
+}
+
 /// Everything the track 3D scene needs, extracted from [NavTrack] into
 /// parallel plain-Dart series. Pure data, mirroring `dive_3d`'s
 /// `Dive3dSceneData`: no Drift, no Riverpod, no engine imports, so it
@@ -22,6 +35,9 @@ class NavTrack3dSceneData {
   final double durationSeconds;
   final double maxDepthMeters;
 
+  /// The console's markers that fall inside the active range, in order.
+  final List<NavTrack3dMarker> markers;
+
   const NavTrack3dSceneData({
     required this.times,
     required this.depths,
@@ -30,6 +46,7 @@ class NavTrack3dSceneData {
     required this.batteryVolts,
     required this.durationSeconds,
     required this.maxDepthMeters,
+    this.markers = const [],
   });
 
   factory NavTrack3dSceneData.fromRoute(NavTrack route) {
@@ -67,6 +84,14 @@ class NavTrack3dSceneData {
       batteryVolts: [for (final p in active) p.plausibleBatteryVolts],
       durationSeconds: (active.last.timestamp - startTimestamp).toDouble(),
       maxDepthMeters: maxDepth,
+      markers: [
+        for (final (i, marker) in route.markers.indexed)
+          if (marker.index >= range.start && marker.index <= range.end)
+            NavTrack3dMarker(
+              number: i + 1,
+              sampleIndex: marker.index - range.start,
+            ),
+      ],
     );
   }
 

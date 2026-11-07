@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart'
     hide Dive, DiveTank, Diver;
@@ -59,12 +60,14 @@ void main() {
     ComputerTissueSnapshot? computerTissue,
     bool reportsDecoSettings = true,
     DateTime? startTime,
+    double? surfacePressure,
   }) => DownloadedDive(
     startTime: startTime ?? DateTime(2026, 6, 1, 9, 3),
     durationSeconds: 2700,
     maxDepth: 18.4,
     avgDepth: 11.2,
     minTemperature: 17,
+    surfacePressure: surfacePressure,
     profile: [
       for (var t = 0; t <= 2700; t += 30)
         ProfileSample(timeSeconds: t, depth: t < 2400 ? 15 : 3),
@@ -93,6 +96,7 @@ void main() {
       id: '',
       diverId: eric,
       dateTime: dateTime ?? DateTime(2026, 6, 1, 9),
+      surfacePressure: 0.9,
       name: 'Blue Hole plan',
       notes: 'bring the camera',
       rating: 4,
@@ -143,6 +147,36 @@ void main() {
       expect(filled?.gradientFactorLow, 40);
       expect(filled?.computerId, computerId);
       expect(filled?.profile.length, greaterThan(50));
+    },
+  );
+
+  test(
+    'fill takes the surface pressure the computer measured (#4208)',
+    () async {
+      final planned = await plannedDive();
+
+      await service.fill(
+        plannedDiveId: planned.id,
+        dive: download(surfacePressure: 0.961),
+        computerId: computerId,
+      );
+
+      expect((await dives.getDiveById(planned.id))?.surfacePressure, 0.961);
+    },
+  );
+
+  test(
+    'fill keeps the planned surface pressure when the computer has none',
+    () async {
+      final planned = await plannedDive();
+
+      await service.fill(
+        plannedDiveId: planned.id,
+        dive: download(),
+        computerId: computerId,
+      );
+
+      expect((await dives.getDiveById(planned.id))?.surfacePressure, 0.9);
     },
   );
 
@@ -290,6 +324,54 @@ void main() {
     ]);
     expect(series, hasLength(1));
     expect(series.single.computerId, computerId);
+  });
+
+  group('a planned gas switch', () {
+    Future<Dive> withSwitch() async {
+      final planned = await plannedDive();
+      final stored = await dives.getDiveById(planned.id);
+      await dives.insertGasSwitches([
+        GasSwitch(
+          id: '',
+          diveId: planned.id,
+          timestamp: 300,
+          tankId: stored!.tanks.single.id,
+          depth: 6,
+          createdAt: DateTime(2026),
+        ),
+      ]);
+      return planned;
+    }
+
+    test(
+      "goes with the plan's profile when a download fills the dive",
+      () async {
+        final planned = await withSwitch();
+
+        await service.fill(
+          plannedDiveId: planned.id,
+          dive: download(),
+          computerId: computerId,
+        );
+
+        final switches = await dives.getGasSwitchesForDive(planned.id);
+        expect(switches.where((s) => s.gasSwitch.timestamp == 300), isEmpty);
+      },
+    );
+
+    test('comes back when the download is undone', () async {
+      final planned = await withSwitch();
+      final outcome = await service.fill(
+        plannedDiveId: planned.id,
+        dive: download(),
+        computerId: computerId,
+      );
+
+      await service.undo(outcome);
+
+      final switches = await dives.getGasSwitchesForDive(planned.id);
+      expect(switches.map((s) => s.gasSwitch.timestamp), [300]);
+    });
   });
 
   test('planned tanks are matched by gas mix and receive pressures', () async {

@@ -1034,7 +1034,7 @@ void main() {
         300,
         scrollable: find.byType(Scrollable).first,
       );
-      expect(find.text('SKU'), findsOneWidget);
+      expect(find.text('Product number (SKU)'), findsOneWidget);
       expect(find.text('SP-MK25-EVO'), findsOneWidget);
       expect(find.text('Retailer'), findsOneWidget);
       expect(find.text('Dive Shop Ltd'), findsOneWidget);
@@ -1047,7 +1047,7 @@ void main() {
     ) async {
       await pump(tester, itemWith(const {}));
 
-      expect(find.text('SKU'), findsNothing);
+      expect(find.text('Product number (SKU)'), findsNothing);
       expect(find.text('Retailer'), findsNothing);
       expect(find.text('Web link'), findsNothing);
     });

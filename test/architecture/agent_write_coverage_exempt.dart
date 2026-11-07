@@ -141,8 +141,11 @@ final exempt = <String, String>{
     'lib/features/media/data/repositories/media_repository.dart:markVerified',
     'lib/features/media/data/repositories/media_repository.dart:saveEnrichment',
     'lib/features/media/data/repositories/media_repository.dart:saveEnrichments',
-    'lib/features/nav_track/data/repositories/nav_track_repository.dart:insertImportedRoute',
+    'lib/features/nav_track/data/repositories/nav_track_repository_imports.dart:insertImportedRoute',
     'lib/features/nav_track/data/repositories/nav_track_repository.dart:replace',
+    // Re-reads a track's recording from the console file it was imported
+    // from (issue #4231).
+    'lib/features/nav_track/data/repositories/nav_track_repository_imports.dart:updateImportedData',
     'lib/features/rules/data/repositories/rule_run_repository.dart:deleteAllRuns',
     'lib/features/rules/data/repositories/rule_run_repository.dart:deleteRun',
     'lib/features/rules/data/repositories/rule_run_repository.dart:insertRun',
@@ -263,10 +266,12 @@ final exempt = <String, String>{
   for (final method in const [
     'lib/features/dive_log/data/repositories/dive_repository_impl.dart:createPlannedDive',
     'lib/features/dive_log/data/repositories/dive_repository_impl.dart:deletePlannedDive',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:replacePlannedProfile',
   ])
     method: 'a planned dive is made and removed by the planner, from its plan',
   // Profile samples.
   for (final method in const [
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:deleteProfileSeriesWithHistoryForDive',
     'lib/features/dive_log/data/repositories/dive_repository_impl.dart:saveEditedProfile',
     'lib/features/dive_log/data/repositories/dive_repository_impl.dart:saveEditedProfileWithKind',
     'lib/features/dive_log/data/repositories/dive_repository_impl.dart:setActiveProfileSeries',
@@ -280,7 +285,9 @@ final exempt = <String, String>{
     'lib/features/dive_log/data/repositories/profile_series_repository.dart:deleteForDive',
     'lib/features/dive_log/data/repositories/profile_series_repository.dart:deleteOwnedBy',
     'lib/features/dive_log/data/repositories/profile_series_repository.dart:deleteRevisionsForDives',
+    'lib/features/dive_log/data/repositories/profile_series_repository.dart:deleteSeriesWithHistory',
     'lib/features/dive_log/data/repositories/profile_series_repository.dart:deleteUndoneEdit',
+    'lib/features/dive_log/data/repositories/profile_series_repository.dart:replaceSamples',
     'lib/features/dive_log/data/repositories/profile_series_repository.dart:insertSeries',
     'lib/features/dive_log/data/repositories/profile_series_repository.dart:promoteAll',
     'lib/features/dive_log/data/repositories/profile_series_repository.dart:promoteByComputer',

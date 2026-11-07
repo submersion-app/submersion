@@ -11,8 +11,9 @@ import 'package:submersion/features/planner/presentation/widgets/planned_dive_ic
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// What a saved plans row says under its name: the dive count for a series,
-/// then the depth and runtime, in the diver's own units. A plan's link badge
-/// is left to the caller, since a series shows one on each dive instead.
+/// and how many have been dived once any have, then the depth and runtime,
+/// in the diver's own units. A plan's link badge is left to the caller,
+/// since a series shows one on each dive instead.
 String savedPlanRowSubtitle(
   BuildContext context,
   SavedPlanRow row,
@@ -20,9 +21,23 @@ String savedPlanRowSubtitle(
 ) {
   final depth = row.maxDepth;
   final runtime = row.runtimeSeconds;
+  // Dived: linked to an entry still in the log that is no longer planned.
+  final dived = row.dives
+      .where(
+        (d) =>
+            d.linkedDiveId != null &&
+            d.linkedDiveExists &&
+            !d.linkedDiveIsPlanned,
+      )
+      .length;
   return [
     if (row.showsDives)
-      context.l10n.plannerSeries_saved_diveCount(row.dives.length),
+      dived == 0
+          ? context.l10n.plannerSeries_saved_diveCount(row.dives.length)
+          : context.l10n.plannerSeries_saved_divedCount(
+              dived,
+              row.dives.length,
+            ),
     if (depth != null) units.formatDepth(depth),
     if (runtime != null) '${(runtime / 60).ceil()}′',
   ].join(' · ');
@@ -31,19 +46,22 @@ String savedPlanRowSubtitle(
 /// The dives of a saved series, each a line under its row that opens the
 /// series on that dive (issue #3565). Each carries what it was dived as, and
 /// with [linkActions] its own Link and Unlink: a link is one dive's, never
-/// the series'.
+/// the series'. A dive in the log opens its entry there through [onOpenInLog]
+/// (issue #3565).
 class SavedSeriesDiveLines extends ConsumerWidget {
   const SavedSeriesDiveLines({
     super.key,
     required this.row,
     required this.units,
     required this.onOpen,
+    required this.onOpenInLog,
     this.linkActions = false,
   });
 
   final SavedPlanRow row;
   final UnitFormatter units;
   final ValueChanged<String> onOpen;
+  final ValueChanged<String> onOpenInLog;
   final bool linkActions;
 
   @override
@@ -73,7 +91,13 @@ class SavedSeriesDiveLines extends ConsumerWidget {
                   ),
                   if (planLinkBadge(context.l10n, dive, units)
                       case final badge?)
-                    PlanLinkBadge(label: badge),
+                    PlanLinkBadge(
+                      label: badge,
+                      onOpen: switch (dive.linkedDiveId) {
+                        final id? => () => onOpenInLog(id),
+                        null => null,
+                      },
+                    ),
                 ],
               ),
               trailing: linkActions ? _LinkMenu(dive: dive) : null,
@@ -130,16 +154,32 @@ class _LinkMenu extends ConsumerWidget {
 }
 
 /// A linked plan's mark: what it was dived as. A linked plan is read as saved,
-/// so an edit changes the comparison, and this is how the diver knows.
+/// so an edit changes the comparison, and this is how the diver knows. With
+/// [onOpen] it opens the linked dive in the log (issue #3565), the planned
+/// entry or the dived one.
 class PlanLinkBadge extends StatelessWidget {
-  const PlanLinkBadge({super.key, required this.label});
+  const PlanLinkBadge({super.key, required this.label, this.onOpen});
 
   final String label;
+  final VoidCallback? onOpen;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final color = theme.colorScheme.primary;
+    final badge = _badge(color, theme);
+    if (onOpen == null) return badge;
+    return Tooltip(
+      message: context.l10n.plannerSeries_openInLog,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(4),
+        onTap: onOpen,
+        child: badge,
+      ),
+    );
+  }
+
+  Widget _badge(Color color, ThemeData theme) {
     return Padding(
       padding: const EdgeInsets.only(top: 2),
       child: Row(

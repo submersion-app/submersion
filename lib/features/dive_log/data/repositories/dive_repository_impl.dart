@@ -27,6 +27,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_list_snapshot.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_picker_rows.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
+import 'package:submersion/features/dive_log/data/repositories/latest_ended_dive.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_site_snap.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/data/services/user_event_preservation.dart';
@@ -1572,6 +1573,50 @@ class DiveRepository {
     }
   }
 
+  /// Rewrites a planned dive's profile from its plan (issue #3565). The plan
+  /// is regenerated, not edited, so a primary series no computer recorded is
+  /// replaced in place: each update adds no demoted copy and no revision.
+  /// One from a computer is kept, and the plan becomes an edit over it, as
+  /// [saveEditedProfileWithKind] makes one.
+  Future<void> replacePlannedProfile({
+    required String diveId,
+    required List<domain.DiveProfilePoint> points,
+  }) async {
+    final primaryId = await _profileSeries.primarySeriesIdForDive(diveId);
+    final primary = primaryId == null
+        ? null
+        : await _profileSeries.getSeriesById(primaryId);
+    if (primary == null || primary.computerId != null || points.isEmpty) {
+      return saveEditedProfileWithKind(
+        diveId: diveId,
+        editedPoints: points,
+        editKind: 'plan_update',
+      );
+    }
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _db.transaction(() async {
+      await _profileSeries.replaceSamples(primary.id, [
+        for (final point in points) profileSampleFromPoint(point),
+      ], now: now);
+      final depths = profileDepthSummary(points);
+      if (depths != null) {
+        await _writeDepthSummary(diveId, depths, now: now);
+      }
+    });
+    // Profile changed: drop the stored safety review so it recomputes.
+    await SafetyFindingsRepository.clearReviewForDive(
+      _db,
+      _syncRepository,
+      diveId,
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'dives',
+      recordId: diveId,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
+  }
+
   static String _composeEditRevisionKind(String editKind) {
     final normalized = editKind.trim().toLowerCase();
     if (normalized.isEmpty) return 'edit';
@@ -1698,7 +1743,7 @@ class DiveRepository {
         )) {
           (seriesByDive[s.diveId] ??= []).add(s);
         }
-        final rowsByDive = await _sourceRowsWithoutBlobs([
+        final rowsByDive = await _sourceRowsInShownOrderForDives([
           ...seriesByDive.keys,
         ]);
         return {
@@ -1796,12 +1841,18 @@ class DiveRepository {
     );
   }
 
-  /// [_sourceRowsInShownOrderForDives] without the raw download columns: a row
-  /// can carry a whole download, which a read over a selection has no use
-  /// for. Those fields read as null, so never write a row back.
-  Future<Map<String, List<DiveDataSourcesData>>> _sourceRowsWithoutBlobs(
-    List<String> diveIds,
-  ) async {
+  /// Every source row of each dive of [diveIds], keyed by dive and in shown
+  /// order within it (primary first, then oldest), one chunked statement; a
+  /// dive with no source row is absent. The single-dive
+  /// [_sourceRowsInShownOrder] reads through this so the two cannot drift.
+  ///
+  /// The raw download columns are left out: a row can carry a whole computer
+  /// download, which the column converter inflates on every read, and the
+  /// labels, strand routing and primary switches built on these rows read
+  /// only scalars (issue #4253). Those fields read as null, so never write a
+  /// row back; reparse, export and sync read the full row themselves.
+  Future<Map<String, List<DiveDataSourcesData>>>
+  _sourceRowsInShownOrderForDives(List<String> diveIds) async {
     final table = _db.diveDataSources;
     final columns = [
       for (final column in table.$columns)
@@ -1815,6 +1866,8 @@ class DiveRepository {
           .customSelect(
             'SELECT $columns FROM ${table.actualTableName} '
             'WHERE dive_id IN ($placeholders) '
+            // Combine copies rows with one createdAt; the id keeps the row
+            // that speaks for a strand the same on every read.
             'ORDER BY dive_id, is_primary DESC, created_at ASC, id ASC',
             variables: [for (final diveId in chunk) Variable<String>(diveId)],
             readsFrom: {table},
@@ -1823,33 +1876,6 @@ class DiveRepository {
       for (final row in rows) {
         final source = table.map(row.data);
         (byDive[source.diveId] ??= []).add(source);
-      }
-    }
-    return byDive;
-  }
-
-  /// Every source row of each dive of [diveIds], keyed by dive and in shown
-  /// order within it (primary first, then oldest), one chunked statement; a
-  /// dive with no source row is absent. The single-dive
-  /// [_sourceRowsInShownOrder] reads through this so the two cannot drift.
-  Future<Map<String, List<DiveDataSourcesData>>>
-  _sourceRowsInShownOrderForDives(List<String> diveIds) async {
-    final byDive = <String, List<DiveDataSourcesData>>{};
-    for (final chunk in seriesIdChunks(diveIds)) {
-      final rows =
-          await (_db.select(_db.diveDataSources)
-                ..where((t) => t.diveId.isIn(chunk))
-                ..orderBy([
-                  (t) => OrderingTerm.asc(t.diveId),
-                  (t) => OrderingTerm.desc(t.isPrimary),
-                  (t) => OrderingTerm.asc(t.createdAt),
-                  // Combine copies rows with one createdAt; the id keeps the
-                  // row that speaks for a strand the same on every read.
-                  (t) => OrderingTerm.asc(t.id),
-                ]))
-              .get();
-      for (final row in rows) {
-        byDive.putIfAbsent(row.diveId, () => []).add(row);
       }
     }
     return byDive;
@@ -2022,6 +2048,83 @@ class DiveRepository {
       return null;
     }
     return ownerRow;
+  }
+
+  /// Deletes the profile revision [seriesId] of [diveId]: its series rows
+  /// (tombstoned for sync) and their local history nodes. A revision split
+  /// into disjoint segments is one revision, so every segment that goes live
+  /// with [seriesId] goes with it (see
+  /// [ProfileSeriesRepository.segmentsOfRevision]).
+  ///
+  /// Throws [ArgumentError] when [seriesId] is not a revision of [diveId], or
+  /// when no other revision would remain. Both checks run inside the
+  /// transaction that deletes, so two deletes racing on a dive with two
+  /// revisions cannot remove both.
+  ///
+  /// When the deleted revision was live, the newest remaining revision goes
+  /// live in its place, and the data source that owns it becomes primary as
+  /// [setActiveProfileSeries] does (issue #3067). Profile events and gas
+  /// switches belong to the dive, not to a series, so they stay.
+  Future<void> deleteProfileSeriesWithHistoryForDive(
+    String diveId,
+    String seriesId,
+  ) async {
+    _log.info('Deleting profile series $seriesId for dive $diveId');
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await _db.transaction(() async {
+        final revisions = await getProfileHistory(diveId);
+        final segments = await _profileSeries.segmentsOfRevision(
+          diveId,
+          seriesId,
+        );
+        if (segments.isEmpty || !revisions.any((r) => r.seriesId == seriesId)) {
+          throw ArgumentError(
+            'Series $seriesId not found in revisions for dive $diveId',
+          );
+        }
+        final segmentIds = {for (final row in segments) row.id};
+        final remaining = [
+          for (final r in revisions)
+            if (!segmentIds.contains(r.seriesId)) r,
+        ];
+        if (remaining.isEmpty) {
+          throw ArgumentError(
+            'Cannot delete the only profile revision. At least 1 revision '
+            'must remain.',
+          );
+        }
+
+        if (segments.any((row) => row.isPrimary)) {
+          // History is newest first.
+          final replacement = remaining.first.seriesId;
+          final newPrimary = await _sourceToPromoteForSeries(
+            diveId,
+            replacement,
+          );
+          if (newPrimary != null) {
+            await _makeDataSourcePrimary(diveId, newPrimary, now: now);
+          }
+          await _profileSeries.activateSeriesForDive(
+            diveId: diveId,
+            seriesId: replacement,
+            now: now,
+          );
+        }
+
+        for (final id in segmentIds) {
+          await _profileSeries.deleteSeriesWithHistory(id);
+        }
+      });
+      await _refreshDiveAfterProfileSwitch(diveId, now: now);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to delete profile series $seriesId for dive $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
   }
 
   /// Brings the dive in line with a profile that a restore or a revision
@@ -2965,8 +3068,14 @@ class DiveRepository {
   /// so such a dive costs what it always did and the rest cost almost
   /// nothing. [domain.Dive.profile] is therefore empty on nearly every dive
   /// returned: never draw it, or derive anything else from it, here.
+  ///
+  /// [offUiIsolate] decodes each such dive's samples on a background isolate,
+  /// as [getDiveById] does. It suits a read of a handful of dives, such as
+  /// Home's cards (issue #4251); a bulk read leaves it off, since it starts
+  /// one isolate per dive at once (see [_reduceRows]).
   Future<List<domain.Dive>> getDivesByIdsWithoutSamples(
     List<String> ids, {
+    bool offUiIsolate = false,
     @visibleForTesting int chunkSize = kSeriesIdChunkSize,
   }) async {
     if (ids.isEmpty) return [];
@@ -2990,7 +3099,7 @@ class DiveRepository {
           final sampled = await Future.wait(
             chunkRows
                 .where((r) => needSamples.contains(r.id))
-                .map(_mapRowToDive),
+                .map((r) => _mapRowToDive(r, offUiIsolate: offUiIsolate)),
           );
           final chunkDives = [
             ...await _mapRowsWithPreloadedData(
@@ -3653,6 +3762,26 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get dives for site: $siteId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// The ids of the divers with a dive at [siteId], each once, read without
+  /// hydrating the dives (issue #4252). Dives with no diver are left out.
+  Future<Set<String>> getDiverIdsAtSite(String siteId) async {
+    try {
+      final diverId = _db.dives.diverId;
+      final query = _db.selectOnly(_db.dives, distinct: true)
+        ..addColumns([diverId])
+        ..where(_db.dives.siteId.equals(siteId) & diverId.isNotNull());
+      final rows = await query.get();
+      return {for (final row in rows) row.read(diverId)!};
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get diver ids at site: $siteId',
         error: e,
         stackTrace: stackTrace,
       );
@@ -6624,6 +6753,43 @@ class DiveRepository {
     }
   }
 
+  /// The logged dive that ended last after [endedAfter] and at or before
+  /// [notAfter], or null when none did: what the planner offers to follow
+  /// (issue #4250). See [latestEndedDiveId].
+  ///
+  /// Read as [_mapRowsWithPreloadedData] reads a dive, so no sample is
+  /// decoded, even for a downloaded dive that only its profile measures.
+  /// `profile` is empty, and a water temperature or tank pressure taken from
+  /// the samples is missing, but `profileSpan` keeps its end where the SQL
+  /// put it. The prompt shows only the dive's name, number and times.
+  Future<domain.Dive?> getLatestEndedDive({
+    String? diverId,
+    required DateTime endedAfter,
+    required DateTime notAfter,
+  }) async {
+    try {
+      final id = await latestEndedDiveId(
+        _db,
+        diverId: diverId,
+        endedAfter: endedAfter,
+        notAfter: notAfter,
+      );
+      if (id == null) return null;
+      final row = await (_db.select(
+        _db.dives,
+      )..where((t) => t.id.equals(id))).getSingleOrNull();
+      // Null when the dive went between the lookup and this read.
+      return (await _mapRowsWithPreloadedData([?row])).firstOrNull;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get the latest ended dive for diver: $diverId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// A version token for what [diveId]'s residual load reads: the dives in its
   /// lookback ([earlierDivesRevisionSql]), and whether it is a plan nobody has
   /// dived, which decides which of them count. 0 when it has no such history.
@@ -6884,11 +7050,7 @@ class DiveRepository {
   Future<({bool hasSources, String? computerId})> _primarySourceComputer(
     String diveId,
   ) async {
-    return _primaryFromRows(
-      await (_db.select(
-        _db.diveDataSources,
-      )..where((t) => t.diveId.equals(diveId))).get(),
-    );
+    return _primaryFromRows(await _sourceRowsInShownOrder(diveId));
   }
 
   /// [_primarySourceComputer] for many dives in one statement.
@@ -6904,20 +7066,7 @@ class DiveRepository {
   _primarySourceComputers(List<String> diveIds) async {
     if (diveIds.isEmpty) return const {};
 
-    final rows = <DiveDataSourcesData>[];
-    for (final chunk in seriesIdChunks(diveIds)) {
-      rows.addAll(
-        await (_db.select(
-          _db.diveDataSources,
-        )..where((t) => t.diveId.isIn(chunk))).get(),
-      );
-    }
-
-    final byDive = <String, List<DiveDataSourcesData>>{};
-    for (final row in rows) {
-      byDive.putIfAbsent(row.diveId, () => []).add(row);
-    }
-
+    final byDive = await _sourceRowsInShownOrderForDives(diveIds);
     return {
       for (final id in diveIds) id: _primaryFromRows(byDive[id] ?? const []),
     };
@@ -6925,19 +7074,16 @@ class DiveRepository {
 
   /// The primary-source answer for one dive's `dive_data_sources` [rows].
   ///
-  /// Ordering happens here rather than in SQL so the batched read and the
-  /// single-dive read pick the same row, which is what keeps the export and
-  /// the on-screen chart on the same samples. The first row in shown order
-  /// is always the one the dive's first source shows, so no strand pass is
-  /// needed to find it.
+  /// [rows] come in shown order from [_sourceRowsInShownOrderForDives], which
+  /// the batched and the single-dive reads share, so both pick the same row:
+  /// that is what keeps the export and the on-screen chart on the same
+  /// samples. The first row in shown order is always the one the dive's
+  /// first source shows, so no strand pass is needed to find it.
   ({bool hasSources, String? computerId}) _primaryFromRows(
     List<DiveDataSourcesData> rows,
   ) {
     if (rows.isEmpty) return (hasSources: false, computerId: null);
-    final first = rows.reduce(
-      (a, b) => compareDataSourcesInShownOrder(a, b) <= 0 ? a : b,
-    );
-    return (hasSources: true, computerId: first.computerId);
+    return (hasSources: true, computerId: rows.first.computerId);
   }
 
   /// Lean hydration for decompression/exposure analysis: the dive row's
@@ -9662,15 +9808,22 @@ class DiveRepository {
   }) async {
     try {
       await _db.transaction(() async {
-        // Load the reading that is being promoted.
-        final newPrimary = await (_db.select(
-          _db.diveDataSources,
-        )..where((t) => t.id.equals(computerReadingId))).getSingleOrNull();
+        // Load the reading that is being promoted, without its raw download
+        // (issue #4253): the switch reads only its scalars.
+        final sources = await _sourceRowsInShownOrder(diveId);
+        final newPrimary = sources
+            .where((row) => row.id == computerReadingId)
+            .firstOrNull;
 
         if (newPrimary == null) return;
 
         final now = DateTime.now().millisecondsSinceEpoch;
-        await _makeDataSourcePrimary(diveId, newPrimary, now: now);
+        await _makeDataSourcePrimary(
+          diveId,
+          newPrimary,
+          now: now,
+          sources: sources,
+        );
 
         // Swap isPrimary on the profile series.
         //
@@ -9720,12 +9873,16 @@ class DiveRepository {
   /// the stored safety review, which graded the previous primary's samples.
   /// Leaves the profile series to the caller, which knows which of them go
   /// live. Run inside a transaction.
+  ///
+  /// [sources] is every source row of [diveId] in shown order, for a caller
+  /// that has just read them; it is read here otherwise.
   Future<void> _makeDataSourcePrimary(
     String diveId,
     DiveDataSourcesData newPrimary, {
     required int now,
+    List<DiveDataSourcesData>? sources,
   }) async {
-    final sources = await _sourceRowsInShownOrder(diveId);
+    sources ??= await _sourceRowsInShownOrder(diveId);
     final timing = dataSourceStrandTiming(sources, newPrimary);
 
     // Demote all readings for this dive to non-primary. Both writes

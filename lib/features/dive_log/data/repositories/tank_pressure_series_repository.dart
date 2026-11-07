@@ -302,13 +302,20 @@ class TankPressureSeriesRepository {
   /// The source [selectTankSeriesPerSource] prefers wherever two sources
   /// recorded the same stretch of a tank (issue #2440), so every reader of a
   /// dive's pressures narrows them the same way.
+  ///
+  /// Reads the id alone: a source row can carry a whole computer download,
+  /// which a full row read would inflate only to drop (issue #4253).
   Future<String?> primarySourceId(String diveId) async {
+    final sources = _db.diveDataSources;
     final row =
-        await (_db.select(_db.diveDataSources)
-              ..where((s) => s.diveId.equals(diveId) & s.isPrimary.equals(true))
+        await (_db.selectOnly(sources)
+              ..addColumns([sources.id])
+              ..where(
+                sources.diveId.equals(diveId) & sources.isPrimary.equals(true),
+              )
               ..limit(1))
             .getSingleOrNull();
-    return row?.id;
+    return row?.read(sources.id);
   }
 
   /// [primarySourceId] of many dives at once, keyed by dive id; a dive with
@@ -316,13 +323,21 @@ class TankPressureSeriesRepository {
   Future<Map<String, String>> primarySourceIdsForDives(
     List<String> diveIds,
   ) async {
+    final sources = _db.diveDataSources;
     final byDive = <String, String>{};
     for (final chunk in seriesIdChunks(diveIds)) {
-      final rows = await (_db.select(
-        _db.diveDataSources,
-      )..where((s) => s.diveId.isIn(chunk) & s.isPrimary.equals(true))).get();
+      final rows =
+          await (_db.selectOnly(sources)
+                ..addColumns([sources.id, sources.diveId])
+                ..where(
+                  sources.diveId.isIn(chunk) & sources.isPrimary.equals(true),
+                ))
+              .get();
       for (final row in rows) {
-        byDive.putIfAbsent(row.diveId, () => row.id);
+        byDive.putIfAbsent(
+          row.read(sources.diveId)!,
+          () => row.read(sources.id)!,
+        );
       }
     }
     return byDive;

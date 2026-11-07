@@ -8,15 +8,16 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Renders different controls based on the current [EditorMode]:
 /// - Select: range shift/delete/smooth operations
 /// - Smooth: window size selection and apply buttons
-/// - Outlier: detect and remove outlier controls
+/// - Cleanup: detect and remove outlier controls, trim, and profile deletion
 /// - Draw: waypoint management and profile generation
-/// - Trim: profile trimming controls
 class EditorContextPanel extends StatefulWidget {
   final EditorMode mode;
   final ProfileEditorNotifier notifier;
   final int? outlierCount;
   final ({int start, int end})? selectedRange;
   final bool hasWaypoints;
+  final VoidCallback? onDeleteProfile;
+  final bool canDeleteProfile;
 
   const EditorContextPanel({
     super.key,
@@ -25,6 +26,8 @@ class EditorContextPanel extends StatefulWidget {
     this.outlierCount,
     this.selectedRange,
     this.hasWaypoints = false,
+    this.onDeleteProfile,
+    this.canDeleteProfile = false,
   });
 
   @override
@@ -68,7 +71,6 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
         EditorMode.smooth => _buildSmoothPanel(context),
         EditorMode.outlier => _buildOutlierPanel(context),
         EditorMode.draw => _buildDrawPanel(context),
-        EditorMode.trim => _buildTrimPanel(context),
       },
     );
   }
@@ -212,7 +214,7 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
         Row(
           children: [
             Text(
-              context.l10n.diveLog_profileEditor_outlierDetection,
+              context.l10n.diveLog_profileEditor_cleanup,
               style: Theme.of(context).textTheme.titleSmall,
             ),
             if (count > 0) ...[
@@ -225,20 +227,40 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
           ],
         ),
         const SizedBox(height: 12),
-        Row(
+        // Four buttons do not fit one line on a phone, so they wrap.
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
           children: [
             FilledButton.tonalIcon(
               onPressed: () => widget.notifier.detectOutliers(),
               icon: const Icon(Icons.search, size: 18),
-              label: Text(context.l10n.diveLog_profileEditor_detect),
+              label: Text(context.l10n.diveLog_profileEditor_detectOutliers),
             ),
-            const SizedBox(width: 8),
             FilledButton.icon(
               onPressed: count > 0
                   ? () => widget.notifier.removeAllOutliers()
                   : null,
               icon: const Icon(Icons.cleaning_services, size: 18),
-              label: Text(context.l10n.diveLog_profileEditor_removeAll),
+              label: Text(context.l10n.diveLog_profileEditor_removeOutliers),
+            ),
+            FilledButton.tonalIcon(
+              onPressed: () => widget.notifier.trimEndZeros(),
+              icon: const Icon(Icons.content_cut, size: 18),
+              label: Text(context.l10n.diveLog_profileEditor_trimEnd),
+            ),
+            FilledButton.icon(
+              onPressed: widget.canDeleteProfile
+                  ? widget.onDeleteProfile
+                  : null,
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+                foregroundColor: Theme.of(context).colorScheme.onError,
+              ),
+              icon: const Icon(Icons.delete_outline, size: 18),
+              label: Text(
+                context.l10n.diveLog_profileEditor_deleteProfile_title,
+              ),
             ),
           ],
         ),
@@ -291,34 +313,6 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
               label: Text(context.l10n.diveLog_profileEditor_generateProfile),
             ),
           ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTrimPanel(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          context.l10n.diveLog_profileEditor_trimMode,
-          style: Theme.of(context).textTheme.titleSmall,
-        ),
-        Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: Text(
-            context.l10n.diveLog_profileEditor_trimHint,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        FilledButton.tonalIcon(
-          onPressed: () => widget.notifier.trimEndZeros(),
-          icon: const Icon(Icons.content_cut, size: 18),
-          label: Text(context.l10n.diveLog_profileEditor_trimEnd),
         ),
       ],
     );

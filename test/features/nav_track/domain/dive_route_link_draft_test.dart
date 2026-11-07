@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/nav_track/domain/dive_route_link_draft.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
@@ -42,29 +44,35 @@ void main() {
     expect(draft.hasChanges, isFalse);
   });
 
-  test('replaced stages the swap for Save without unlinking the old route', () {
-    // "c" re-imports "a"; the old row is only replaced once the dive saves.
-    final draft = DiveRouteLinkDraft.initial([a]).replaced('a', c);
-    expect(draft.current.map((r) => r.id), ['c']);
-    expect(draft.toLink, ['c']);
+  StagedRouteFileUpdate stagedUpdate() =>
+      (points: kTestNavTrackPoints, sourceFile: Uint8List.fromList([1, 2]));
+
+  test('updated stages a file update for Save on a route already here', () {
+    // Issue #4231: nothing is written until the dive saves.
+    final update = stagedUpdate();
+    final draft = DiveRouteLinkDraft.initial([a]).updated(a, update);
+    expect(draft.current.map((r) => r.id), ['a']);
+    expect(draft.toLink, isEmpty);
     expect(draft.toUnlink, isEmpty);
-    expect(draft.removed, isEmpty);
-    expect(draft.replacements, {'a': 'c'});
+    expect(draft.updates, {'a': update});
     expect(draft.hasChanges, isTrue);
   });
 
-  test('replaced stages the swap for a just-added route as well', () {
-    final draft = DiveRouteLinkDraft.initial(const []).add(b).replaced('b', c);
+  test('updated adds a route that was not on the dive yet', () {
+    final draft = DiveRouteLinkDraft.initial(
+      const [],
+    ).updated(c, stagedUpdate());
     expect(draft.current.map((r) => r.id), ['c']);
     expect(draft.toLink, ['c']);
-    expect(draft.replacements, {'b': 'c'});
+    expect(draft.updates.keys, ['c']);
   });
 
-  test('removing the re-import drops its pending replacement', () {
-    final draft = DiveRouteLinkDraft.initial([a]).replaced('a', c).remove('c');
-    expect(draft.replacements, isEmpty);
+  test('removing an updated route drops its staged update', () {
+    final draft = DiveRouteLinkDraft.initial([
+      a,
+    ]).updated(a, stagedUpdate()).remove('a');
+    expect(draft.updates, isEmpty);
     expect(draft.current, isEmpty);
-    // The original is still a real row, so taking it off the dive unlinks it.
     expect(draft.toUnlink, ['a']);
   });
 

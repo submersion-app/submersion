@@ -21,6 +21,7 @@ import 'package:submersion/core/services/export/uddf/uddf_service_clock_writers.
 import 'package:submersion/core/services/export/uddf/uddf_site_classification_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_site_feature_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
+import 'package:submersion/core/services/export/uddf/uddf_streamed_sections.dart';
 import 'package:submersion/core/services/export/uddf/uddf_tag_writers.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
@@ -729,6 +730,11 @@ class UddfExportBuilders {
     // The dives whose visibility range goes in the <visibilityranges> block
     // (issue #3226); a dive without one writes none.
     List<Dive>? visibilityRangeDives,
+    // A streamed backup (issue #4249) has already written the sections that
+    // carry the dives' recordings: the computer tissue, the data sources and
+    // the attribution blocks. When given, those go in as its slots, and
+    // [computerTissueDives], [dataSources] and [attributedDives] are not read.
+    UddfStreamedSections? streamed,
     // A file shared with other people carries no purchase date, price or
     // currency on its items; a backup keeps them.
     bool omitPurchaseDetails = false,
@@ -795,7 +801,8 @@ class UddfExportBuilders {
           dives: attributedDives,
           pressures: diveTankPressures,
           sources: dataSources ?? const [],
-        );
+        ) ||
+        (streamed?.hasApplicationData ?? false);
 
     if (!hasData) return;
 
@@ -1456,10 +1463,14 @@ class UddfExportBuilders {
 
             // The tissue state each dive's computer reported, which no
             // standard element holds.
-            UddfComputerTissue.write(
-              builder,
-              computerTissueDives ?? const <Dive>[],
-            );
+            if (streamed != null) {
+              streamed.writeSlot(builder, UddfStreamedSections.computerTissue);
+            } else {
+              UddfComputerTissue.write(
+                builder,
+                computerTissueDives ?? const <Dive>[],
+              );
+            }
 
             // Each band-picked dive's visibility range, which the standard
             // <visibility> element cannot hold.
@@ -1701,20 +1712,31 @@ class UddfExportBuilders {
               }
             }
 
-            // Per-source provenance for the dumps in <divecomputercontrol>.
-            buildDataSources(
-              builder,
-              dataSources ?? const [],
-              dataSourceDumps,
-              includeIdentity: includeSourceIdentity,
-            );
-            // Which of those sources recorded each tank and its pressures.
-            UddfSourceAttribution.write(
-              builder,
-              dives: attributedDives,
-              pressures: diveTankPressures,
-              sources: dataSources ?? const [],
-            );
+            if (streamed != null) {
+              for (final section in const [
+                UddfStreamedSections.dataSources,
+                UddfStreamedSections.tankSources,
+                UddfStreamedSections.tankPressureSeries,
+                UddfStreamedSections.sourceProfiles,
+              ]) {
+                streamed.writeSlot(builder, section);
+              }
+            } else {
+              // Per-source provenance for the dumps in <divecomputercontrol>.
+              buildDataSources(
+                builder,
+                dataSources ?? const [],
+                dataSourceDumps,
+                includeIdentity: includeSourceIdentity,
+              );
+              // Which of those sources recorded each tank and its pressures.
+              UddfSourceAttribution.write(
+                builder,
+                dives: attributedDives,
+                pressures: diveTankPressures,
+                sources: dataSources ?? const [],
+              );
+            }
           },
         );
       },

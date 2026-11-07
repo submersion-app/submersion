@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track_marker.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/track_3d/nav_track_3d_scene_data.dart';
 import 'package:submersion/features/nav_track/domain/track_3d/track_scene_metric.dart';
@@ -162,6 +163,45 @@ void main() {
           isNot(contains(TrackSceneMetric.batteryVoltage)),
         );
       });
+    });
+  });
+
+  group('NavTrack3dSceneData.fromRoute markers (issue #4231)', () {
+    test('keeps the markers inside the active range, numbered among all of '
+        'the route\'s markers', () {
+      // A pre-dive GPS calibration (the 120 m jump at the surface) moves the
+      // active range to the third sample, so the marker before it is not
+      // part of the dive the scene draws.
+      final route =
+          _route([
+            _p(timestamp: 0),
+            _p(timestamp: 2),
+            _p(timestamp: 4, north: 120),
+            _p(timestamp: 6, north: 120, depth: 2),
+            _p(timestamp: 8, north: 121, depth: 4),
+            _p(timestamp: 10, north: 122, depth: 3),
+          ]).copyWith(
+            markers: const [
+              NavTrackMarker(index: 1, rawValue: -1),
+              NavTrackMarker(index: 4, rawValue: -101),
+            ],
+          );
+
+      final data = NavTrack3dSceneData.fromRoute(route);
+
+      expect(data.markers, hasLength(1));
+      expect(data.markers.single.number, 2);
+      // Seconds since the active range began, at the fourth sample.
+      expect(data.times[data.markers.single.sampleIndex], 2);
+      expect(data.depths[data.markers.single.sampleIndex], 4);
+    });
+
+    test('a route without markers has none', () {
+      final data = NavTrack3dSceneData.fromRoute(
+        _route([_p(timestamp: 0, depth: 2), _p(timestamp: 2, depth: 3)]),
+      );
+
+      expect(data.markers, isEmpty);
     });
   });
 }

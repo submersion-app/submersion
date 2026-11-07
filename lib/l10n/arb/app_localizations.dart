@@ -13090,6 +13090,15 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{1 point} other{{count} points}}'**
   String diveLog_edit_profile_points(num count);
 
+  /// Dive profile row value: recorded profile samples and number of available profile revisions
+  ///
+  /// In en, this message translates to:
+  /// **'{pointCount, plural, one{1 point} other{{pointCount} points}} · {profileCount, plural, one{1 revision} other{{profileCount} revisions}}'**
+  String diveLog_edit_profile_pointsAndProfiles(
+    num pointCount,
+    num profileCount,
+  );
+
   /// Placeholder when no site selected
   ///
   /// In en, this message translates to:
@@ -17794,12 +17803,6 @@ abstract class AppLocalizations {
   /// **'Add Tank'**
   String get divePlanner_action_addTank;
 
-  /// No description provided for @divePlanner_action_convertToDive.
-  ///
-  /// In en, this message translates to:
-  /// **'Convert to Dive'**
-  String get divePlanner_action_convertToDive;
-
   /// No description provided for @divePlanner_action_deletePlan.
   ///
   /// In en, this message translates to:
@@ -18039,6 +18042,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'min'**
   String get divePlanner_label_minutesUnit;
+
+  /// Unit suffix for a planner field entered in seconds, such as the gas switch stop
+  ///
+  /// In en, this message translates to:
+  /// **'s'**
+  String get divePlanner_label_secondsUnit;
 
   /// No description provided for @divePlanner_label_ndl.
   ///
@@ -33387,12 +33396,6 @@ abstract class AppLocalizations {
   /// **'Turn pressure rule'**
   String get plannerCanvas_contingency_turnRule;
 
-  /// No description provided for @plannerCanvas_convert_success.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive created from plan'**
-  String get plannerCanvas_convert_success;
-
   /// No description provided for @plannerCanvas_convert_view.
   ///
   /// In en, this message translates to:
@@ -33512,6 +33515,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open in dive log'**
   String get plannerSeries_openInLog;
+
+  /// Toggle segment showing what really happened on a dive of a series that has been dived
+  ///
+  /// In en, this message translates to:
+  /// **'Actual'**
+  String get plannerSeries_view_actual;
+
+  /// Toggle segment showing the original plan of a dive of a series that has been dived
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get plannerSeries_view_plan;
+
+  /// How many dives of a saved series have been dived, in the saved plans list
+  ///
+  /// In en, this message translates to:
+  /// **'{dived} of {count} dived'**
+  String plannerSeries_saved_divedCount(int dived, int count);
 
   /// No description provided for @plannerSeries_stopFollowing.
   ///
@@ -33765,11 +33786,83 @@ abstract class AppLocalizations {
   /// **'Fill all tanks'**
   String get plannerSeries_fillAll;
 
-  /// No description provided for @plannerSeries_convertUnavailable.
+  /// No description provided for @plannerSeries_createPlannedDive.
   ///
   /// In en, this message translates to:
-  /// **'A series of dives can\'t be converted to logged dives yet'**
-  String get plannerSeries_convertUnavailable;
+  /// **'Create planned dive'**
+  String get plannerSeries_createPlannedDive;
+
+  /// No description provided for @plannerSeries_createPlannedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Create planned dives'**
+  String get plannerSeries_createPlannedDives;
+
+  /// No description provided for @plannerSeries_updatePlannedDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Update planned dive'**
+  String get plannerSeries_updatePlannedDive;
+
+  /// No description provided for @plannerSeries_updatePlannedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Update planned dives'**
+  String get plannerSeries_updatePlannedDives;
+
+  /// No description provided for @plannerSeries_cannotUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'{dive} has a critical warning, so the planned dives weren\'t updated'**
+  String plannerSeries_cannotUpdate(String dive);
+
+  /// No description provided for @plannerSeries_cannotUpdateEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'{dive} has no segments, so the planned dives weren\'t updated'**
+  String plannerSeries_cannotUpdateEmpty(String dive);
+
+  /// No description provided for @plannerSeries_cannotUpdateEmptyPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'This plan has no segments, so it wasn\'t written to the log'**
+  String get plannerSeries_cannotUpdateEmptyPlan;
+
+  /// No description provided for @plannerSeries_created.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} planned dive added to the log} other{{count} planned dives added to the log}}'**
+  String plannerSeries_created(int count);
+
+  /// No description provided for @plannerSeries_updated.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} planned dive updated in the log} other{{count} planned dives updated in the log}}'**
+  String plannerSeries_updated(int count);
+
+  /// No description provided for @plannerSeries_orphans_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete from the log?'**
+  String get plannerSeries_orphans_title;
+
+  /// No description provided for @plannerSeries_orphans_body.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} planned dive no longer in this series is still in the log.} other{{count} planned dives no longer in this series are still in the log.}}'**
+  String plannerSeries_orphans_body(int count);
+
+  /// No description provided for @plannerSeries_orphans_keep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep'**
+  String get plannerSeries_orphans_keep;
+
+  /// No description provided for @plannerSeries_allDived.
+  ///
+  /// In en, this message translates to:
+  /// **'Every dive in this plan has been dived, so there\'s nothing to update'**
+  String get plannerSeries_allDived;
 
   /// No description provided for @plannerSeries_missionUnavailable.
   ///
@@ -41679,6 +41772,12 @@ abstract class AppLocalizations {
   /// **'Time format'**
   String get settings_conflict_field_timeFormat;
 
+  /// No description provided for @settings_conflict_field_firstDayOfWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'First day of week'**
+  String get settings_conflict_field_firstDayOfWeek;
+
   /// No description provided for @settings_conflict_field_timeOffsetSeconds.
   ///
   /// In en, this message translates to:
@@ -47439,16 +47538,64 @@ abstract class AppLocalizations {
   /// **'Weight Unit'**
   String get settings_units_dialog_weightUnit;
 
-  /// No description provided for @settings_units_header_individualUnits.
+  /// No description provided for @settings_units_header_gasPlanning.
   ///
   /// In en, this message translates to:
-  /// **'Individual Units'**
-  String get settings_units_header_individualUnits;
+  /// **'Gas & Planning'**
+  String get settings_units_header_gasPlanning;
+
+  /// No description provided for @settings_units_header_displayFormats.
+  ///
+  /// In en, this message translates to:
+  /// **'Display & Formats'**
+  String get settings_units_header_displayFormats;
+
+  /// No description provided for @settings_units_appliesTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Applies to the following units'**
+  String get settings_units_appliesTo;
+
+  /// No description provided for @settings_units_gasConsumption_unitHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit follows pressure and volume'**
+  String get settings_units_gasConsumption_unitHint;
+
+  /// No description provided for @settings_units_firstDayOfWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'First day of week'**
+  String get settings_units_firstDayOfWeek;
+
+  /// No description provided for @settings_units_dialog_firstDayOfWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'First Day of Week'**
+  String get settings_units_dialog_firstDayOfWeek;
+
+  /// No description provided for @settings_units_firstDayOfWeek_auto.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic'**
+  String get settings_units_firstDayOfWeek_auto;
+
+  /// No description provided for @settings_units_firstDayOfWeek_autoResolved.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic ({day})'**
+  String settings_units_firstDayOfWeek_autoResolved(String day);
+
+  /// No description provided for @settings_units_firstDayOfWeek_auto_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Follows your device\'s region'**
+  String get settings_units_firstDayOfWeek_auto_subtitle;
 
   /// No description provided for @settings_units_header_timeDateFormat.
   ///
   /// In en, this message translates to:
-  /// **'Time & Date Format'**
+  /// **'Time & Date'**
   String get settings_units_header_timeDateFormat;
 
   /// No description provided for @settings_units_header_unitSystem.
@@ -63018,8 +63165,14 @@ abstract class AppLocalizations {
   /// No description provided for @attrLabel_sku.
   ///
   /// In en, this message translates to:
-  /// **'SKU'**
+  /// **'Product number (SKU)'**
   String get attrLabel_sku;
+
+  /// No description provided for @attrHelper_sku.
+  ///
+  /// In en, this message translates to:
+  /// **'From the receipt or product label, not the serial number'**
+  String get attrHelper_sku;
 
   /// No description provided for @attrLabel_retailer.
   ///
@@ -65132,6 +65285,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Awaiting dive computer data. Mark it as logged if you dived without one.'**
   String get diveLog_planned_bannerBody;
+
+  /// No description provided for @diveLog_planned_openInPlanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in planner'**
+  String get diveLog_planned_openInPlanner;
+
+  /// No description provided for @diveLog_detail_menu_viewInPlanner.
+  ///
+  /// In en, this message translates to:
+  /// **'View in planner'**
+  String get diveLog_detail_menu_viewInPlanner;
 
   /// No description provided for @diveLog_detail_menu_markLogged.
   ///
@@ -80551,6 +80716,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 left over from a replaced or retired library, holding {size}.} other{{count} left over from a replaced or retired library, holding {size}.}}'**
   String settings_syncDevices_summary_removable(int count, String size);
 
+  /// How many removed devices are hidden from the list. Each leaves a small marker on the backend, kept so the device cannot bring deleted data back if it comes online again.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} removed device is remembered so it cannot bring back deleted data.} other{{count} removed devices are remembered so they cannot bring back deleted data.}}'**
+  String settings_syncDevices_summary_removed(int count);
+
   /// Device row subtitle when no timestamp is known.
   ///
   /// In en, this message translates to:
@@ -82875,23 +83046,23 @@ abstract class AppLocalizations {
   /// **'Apply to Selection'**
   String get diveLog_profileEditor_applyToSelection;
 
-  /// No description provided for @diveLog_profileEditor_outlierDetection.
+  /// No description provided for @diveLog_profileEditor_cleanup.
   ///
   /// In en, this message translates to:
-  /// **'Outlier Detection'**
-  String get diveLog_profileEditor_outlierDetection;
+  /// **'Cleanup'**
+  String get diveLog_profileEditor_cleanup;
 
-  /// No description provided for @diveLog_profileEditor_detect.
+  /// No description provided for @diveLog_profileEditor_detectOutliers.
   ///
   /// In en, this message translates to:
-  /// **'Detect'**
-  String get diveLog_profileEditor_detect;
+  /// **'Detect Outliers'**
+  String get diveLog_profileEditor_detectOutliers;
 
-  /// No description provided for @diveLog_profileEditor_removeAll.
+  /// No description provided for @diveLog_profileEditor_removeOutliers.
   ///
   /// In en, this message translates to:
-  /// **'Remove All'**
-  String get diveLog_profileEditor_removeAll;
+  /// **'Remove Outliers'**
+  String get diveLog_profileEditor_removeOutliers;
 
   /// Number of suspect depth samples the profile editor found.
   ///
@@ -82928,12 +83099,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Trim Mode'**
   String get diveLog_profileEditor_trimMode;
-
-  /// No description provided for @diveLog_profileEditor_trimHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Trim profile endpoints'**
-  String get diveLog_profileEditor_trimHint;
 
   /// No description provided for @diveLog_profileEditor_trimEnd.
   ///
@@ -83019,11 +83184,11 @@ abstract class AppLocalizations {
   /// **'Select'**
   String get diveLog_profileEditor_mode_select;
 
-  /// Profile editor mode: find and remove suspect depth samples.
+  /// Profile editor mode: find and remove unnecessary depth samples or the entire profile.
   ///
   /// In en, this message translates to:
-  /// **'Outlier'**
-  String get diveLog_profileEditor_mode_outlier;
+  /// **'Cleanup'**
+  String get diveLog_profileEditor_mode_cleanup;
 
   /// Profile editor mode: draw the depth curve by placing waypoints.
   ///
@@ -83048,6 +83213,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not switch profile revision.'**
   String get diveLog_profileEditor_revisionSwitchFailed;
+
+  /// No description provided for @diveLog_profileEditor_deleteProfile_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Entire Profile'**
+  String get diveLog_profileEditor_deleteProfile_title;
+
+  /// No description provided for @diveLog_profileEditor_deleteProfile_permanentWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleting this profile revision is permanent, cannot be undone, and takes effect immediately.'**
+  String get diveLog_profileEditor_deleteProfile_permanentWarning;
+
+  /// No description provided for @diveLog_profileEditor_deleteProfile_computerImportWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This profile was imported from a dive computer and likely contains the original source data.'**
+  String get diveLog_profileEditor_deleteProfile_computerImportWarning;
+
+  /// No description provided for @diveLog_profileEditor_deleteProfile_confirmNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Permanently Now'**
+  String get diveLog_profileEditor_deleteProfile_confirmNow;
+
+  /// No description provided for @diveLog_profileEditor_deleteProfile_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete the profile revision.'**
+  String get diveLog_profileEditor_deleteProfile_failed;
 
   /// No description provided for @diveLog_profileEditor_revisionLegacyHint.
   ///
@@ -88501,12 +88696,6 @@ abstract class AppLocalizations {
   /// **'This looks like a track already imported from the same file.'**
   String get navTrack_review_trackDuplicateWarning;
 
-  /// No description provided for @navTrack_review_replaceLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Replace'**
-  String get navTrack_review_replaceLabel;
-
   /// No description provided for @navTrack_review_linkToDive.
   ///
   /// In en, this message translates to:
@@ -88818,6 +89007,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove track'**
   String get navTrack_editSheet_removeTrackTooltip;
+
+  /// Dive Edit route sheet: the stored track a re-imported file would update is linked to another dive
+  ///
+  /// In en, this message translates to:
+  /// **'This track belongs to another dive. Update it from that dive, or import the file as a new track.'**
+  String get navTrack_editSheet_trackOnAnotherDive;
 
   /// No description provided for @navTrack_editRow_tracksSaveFailed.
   ///
@@ -95079,6 +95274,107 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search'**
   String get search_openTooltip;
+
+  /// Field label in the sync conflict view: the original file an underwater track was imported from
+  ///
+  /// In en, this message translates to:
+  /// **'Original track file'**
+  String get settings_conflict_field_sourceFile;
+
+  /// Import review choice when the file was imported before: re-read the stored track from this file
+  ///
+  /// In en, this message translates to:
+  /// **'Update the stored track'**
+  String get navTrack_review_duplicateUpdate;
+
+  /// Explains the update choice on the import review page
+  ///
+  /// In en, this message translates to:
+  /// **'Reads the data from this file again. Name, dive, site, device and alignment stay as they are.'**
+  String get navTrack_review_duplicateUpdateHint;
+
+  /// Import review choice when the file was imported before: keep both
+  ///
+  /// In en, this message translates to:
+  /// **'Import as a new track'**
+  String get navTrack_review_duplicateNew;
+
+  /// Button that updates a stored track from a file
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get navTrack_review_updateAction;
+
+  /// Snackbar after a track was updated from its file
+  ///
+  /// In en, this message translates to:
+  /// **'Track updated from the file. Check its alignment: the track may have moved.'**
+  String get navTrack_review_trackUpdatedConfirmation;
+
+  /// Track detail overflow menu item
+  ///
+  /// In en, this message translates to:
+  /// **'Update from file'**
+  String get navTrack_detail_menuUpdateFromFile;
+
+  /// Track detail overflow menu item
+  ///
+  /// In en, this message translates to:
+  /// **'Export as CSV'**
+  String get navTrack_detail_menuExportCsv;
+
+  /// Snackbar when a track keeps no original file to export
+  ///
+  /// In en, this message translates to:
+  /// **'This track has no stored original file yet. Update it from its file first.'**
+  String get navTrack_detail_exportUnavailable;
+
+  /// No description provided for @navTrack_detail_exportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Export failed: {error}'**
+  String navTrack_detail_exportFailed(String error);
+
+  /// Dialog title when the chosen file has another name than the track
+  ///
+  /// In en, this message translates to:
+  /// **'Different file name'**
+  String get navTrack_detail_updateNameMismatchTitle;
+
+  /// No description provided for @navTrack_detail_updateNameMismatchMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This track was imported from \"{expected}\", the chosen file is \"{actual}\". Update the track from it anyway?'**
+  String navTrack_detail_updateNameMismatchMessage(
+    String expected,
+    String actual,
+  );
+
+  /// Dialog title when the file picked to update a track was recorded at another time than the track
+  ///
+  /// In en, this message translates to:
+  /// **'Different recording'**
+  String get navTrack_detail_updateOtherRecordingTitle;
+
+  /// Dialog asking whether to update a track from a file recorded at another time; both dates are formatted dates
+  ///
+  /// In en, this message translates to:
+  /// **'This file was recorded on {fileDate}, the track on {trackDate}, so it may be a different dive. Update the track from it anyway?'**
+  String navTrack_detail_updateOtherRecordingMessage(
+    String fileDate,
+    String trackDate,
+  );
+
+  /// Tooltip of a marker the recording console set: its number, time, depth and distance into the dive
+  ///
+  /// In en, this message translates to:
+  /// **'Marker {number}: {time}, {depth}, {distance}'**
+  String navTrack_marker_details(
+    int number,
+    String time,
+    String depth,
+    String distance,
+  );
 }
 
 class _AppLocalizationsDelegate

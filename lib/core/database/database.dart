@@ -313,7 +313,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 342;
+  static const int currentSchemaVersion = 346;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1570,6 +1570,19 @@ class AppDatabase extends _$AppDatabase {
     // dive keeps its own (issue #3565, phase 2). Defaulted columns an older
     // peer omits, so the floor does not move.
     342,
+    // v343: diver_settings.first_day_of_week, the day a week starts on
+    // (issue #4232). A defaulted column an older peer omits, so the floor
+    // does not move.
+    343,
+    // v344: nav_tracks.source_file, the original file a route was imported
+    // from (issue #4231). A nullable column an older peer omits, so the floor
+    // does not move.
+    344,
+    // v346: equipment.last_service_date moves forward to the item's newest
+    // service record where logging an older record had moved it back (issue
+    // #4201). Data only, a value every reader already holds, so the floor
+    // does not move. Numbered 346 so an open PR can take 345.
+    346,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

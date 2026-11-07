@@ -10449,32 +10449,40 @@ class SyncDataSerializer {
   /// `length()` on a blob column reads the record header, not the payload,
   /// so this costs a scan of a few small tables and no blob reads.
   Future<int> pendingSeriesBlobBytes(String? hlcSince) async {
-    const blobColumnByTable = {
-      'dive_profile_series': 'samples',
-      'tank_pressure_series': 'samples',
-      'nav_tracks': 'points',
+    const blobColumnsByTable = {
+      'dive_profile_series': ['samples'],
+      'tank_pressure_series': ['samples'],
+      // A route carries its original file next to its points (issue #4231),
+      // which moves in the same delta.
+      'nav_tracks': ['points', 'source_file'],
       // Document pages run up to 10 MB each (issue #2613): a burst of scans
       // must trip the streamed-base fallback rather than build one giant
       // in-memory delta.
-      'document_pages': 'bytes',
+      'document_pages': ['bytes'],
     };
     var total = 0;
-    for (final entry in blobColumnByTable.entries) {
+    for (final entry in blobColumnsByTable.entries) {
       final table = entry.key;
-      final column = entry.value;
-      // Guarded per table: _assertProfileSeriesSchema/_assertNavTracksSchema
-      // wait for each table's foreign key parents, so a partially built
-      // database can reach a publish without one.
-      final exists = await _db
-          .customSelect(
-            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
-            variables: [Variable<String>(table)],
-          )
-          .get();
-      if (exists.isEmpty) continue;
+      // Guarded per table and column: _assertProfileSeriesSchema and
+      // _assertNavTracksSchema wait for each table's foreign key parents,
+      // so a partially built database can reach a publish without one, or
+      // with an older table that lacks a later column.
+      final present = {
+        for (final c
+            in await _db.customSelect("PRAGMA table_info('$table')").get())
+          c.read<String>('name'),
+      };
+      final columns = [
+        for (final column in entry.value)
+          if (present.contains(column)) column,
+      ];
+      if (columns.isEmpty) continue;
+      final length = columns
+          .map((column) => 'COALESCE(LENGTH($column), 0)')
+          .join(' + ');
       final row = await _db
           .customSelect(
-            'SELECT COALESCE(SUM(LENGTH($column)), 0) AS n FROM $table'
+            'SELECT COALESCE(SUM($length), 0) AS n FROM $table'
             '${hlcSince == null ? '' : ' WHERE hlc > ?'}',
             variables: hlcSince == null
                 ? const []
@@ -11909,6 +11917,9 @@ class SyncDataSerializer {
       // Time/Date format settings
       'timeFormat': 'twelveHour',
       'dateFormat': 'mmmDYYYY',
+      // Issue #4232. Added in v343; a payload from an older peer hydrates to
+      // automatic, the column default.
+      'firstDayOfWeek': 'auto',
       // Theme
       'themeMode': 'system',
       'themePreset': 'submersion',

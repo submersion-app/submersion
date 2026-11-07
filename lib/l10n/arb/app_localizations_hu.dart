@@ -8270,6 +8270,26 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_profile_pointsAndProfiles(
+    num pointCount,
+    num profileCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      pointCount,
+      locale: localeName,
+      other: '$pointCount pont',
+      one: '1 pont',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      profileCount,
+      locale: localeName,
+      other: '$profileCount revízió',
+      one: '1 revízió',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
   String get diveLog_edit_row_addSite => 'Merülőhely hozzáadása';
 
   @override
@@ -11124,9 +11144,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divePlanner_action_addTank => 'Palack hozzáadása';
 
   @override
-  String get divePlanner_action_convertToDive => 'Átalakítás merüléssé';
-
-  @override
   String get divePlanner_action_deletePlan => 'Terv törlése';
 
   @override
@@ -11263,6 +11280,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get divePlanner_label_minutesUnit => 'perc';
+
+  @override
+  String get divePlanner_label_secondsUnit => 'mp';
 
   @override
   String get divePlanner_label_ndl => 'NDL';
@@ -20892,9 +20912,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerCanvas_contingency_turnRule => 'Fordulónyomás-szabály';
 
   @override
-  String get plannerCanvas_convert_success => 'Merülés létrehozva a tervből';
-
-  @override
   String get plannerCanvas_convert_view => 'Megtekintés';
 
   @override
@@ -20972,6 +20989,17 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get plannerSeries_openInLog => 'Megnyitás a naplóban';
+
+  @override
+  String get plannerSeries_view_actual => 'Tényleges';
+
+  @override
+  String get plannerSeries_view_plan => 'Terv';
+
+  @override
+  String plannerSeries_saved_divedCount(int dived, int count) {
+    return '$dived/$count lemerülve';
+  }
 
   @override
   String get plannerSeries_stopFollowing => 'Követés leállítása';
@@ -21126,8 +21154,77 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerSeries_fillAll => 'Minden palack töltése';
 
   @override
-  String get plannerSeries_convertUnavailable =>
-      'Merülések sorozata még nem alakítható naplózott merülésekké';
+  String get plannerSeries_createPlannedDive => 'Tervezett merülés létrehozása';
+
+  @override
+  String get plannerSeries_createPlannedDives =>
+      'Tervezett merülések létrehozása';
+
+  @override
+  String get plannerSeries_updatePlannedDive => 'Tervezett merülés frissítése';
+
+  @override
+  String get plannerSeries_updatePlannedDives =>
+      'Tervezett merülések frissítése';
+
+  @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return '$dive kritikus figyelmeztetést tartalmaz, ezért a tervezett merülések nem frissültek';
+  }
+
+  @override
+  String plannerSeries_cannotUpdateEmpty(String dive) {
+    return '$dive nem tartalmaz szakaszokat, ezért a tervezett merülések nem frissültek';
+  }
+
+  @override
+  String get plannerSeries_cannotUpdateEmptyPlan =>
+      'Ez a terv nem tartalmaz szakaszokat, ezért nem került a naplóba';
+
+  @override
+  String plannerSeries_created(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tervezett merülés hozzáadva a naplóhoz',
+      one: '$count tervezett merülés hozzáadva a naplóhoz',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerSeries_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tervezett merülés frissítve a naplóban',
+      one: '$count tervezett merülés frissítve a naplóban',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_title => 'Törli a naplóból?';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count tervezett merülés már nincs ebben a sorozatban, de még a naplóban van.',
+      one:
+          '$count tervezett merülés már nincs ebben a sorozatban, de még a naplóban van.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'Megtartás';
+
+  @override
+  String get plannerSeries_allDived =>
+      'A terv minden merülése megtörtént, nincs mit frissíteni';
 
   @override
   String get plannerSeries_missionUnavailable =>
@@ -25944,6 +26041,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_timeFormat => 'Időformátum';
 
   @override
+  String get settings_conflict_field_firstDayOfWeek => 'A hét első napja';
+
+  @override
   String get settings_conflict_field_timeOffsetSeconds => 'Időeltolás';
 
   @override
@@ -29443,10 +29543,40 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_units_dialog_weightUnit => 'Súly egység';
 
   @override
-  String get settings_units_header_individualUnits => 'Egyedi egységek';
+  String get settings_units_header_gasPlanning => 'Gáz és tervezés';
 
   @override
-  String get settings_units_header_timeDateFormat => 'Idő és dátum formátum';
+  String get settings_units_header_displayFormats =>
+      'Megjelenítés és formátumok';
+
+  @override
+  String get settings_units_appliesTo =>
+      'A következő mértékegységekre vonatkozik';
+
+  @override
+  String get settings_units_gasConsumption_unitHint =>
+      'A mértékegység a nyomásból és a térfogatból adódik';
+
+  @override
+  String get settings_units_firstDayOfWeek => 'A hét első napja';
+
+  @override
+  String get settings_units_dialog_firstDayOfWeek => 'A hét első napja';
+
+  @override
+  String get settings_units_firstDayOfWeek_auto => 'Automatikus';
+
+  @override
+  String settings_units_firstDayOfWeek_autoResolved(String day) {
+    return 'Automatikus ($day)';
+  }
+
+  @override
+  String get settings_units_firstDayOfWeek_auto_subtitle =>
+      'Az eszköz régióját követi';
+
+  @override
+  String get settings_units_header_timeDateFormat => 'Idő és dátum';
 
   @override
   String get settings_units_header_unitSystem => 'Mértékegység rendszer';
@@ -39769,6 +39899,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_sku => 'Cikkszám';
 
   @override
+  String get attrHelper_sku =>
+      'A blokkon vagy a címkén található, nem a sorozatszám';
+
+  @override
   String get attrLabel_retailer => 'Forgalmazó';
 
   @override
@@ -40939,6 +41073,12 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_planned_bannerBody =>
       'Búvárkomputer-adatokra vár. Jelöld naplózottnak, ha komputer nélkül merültél.';
+
+  @override
+  String get diveLog_planned_openInPlanner => 'Megnyitás a tervezőben';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'Megtekintés a tervezőben';
 
   @override
   String get diveLog_detail_menu_markLogged => 'Naplózottnak jelölés';
@@ -50521,6 +50661,19 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String settings_syncDevices_summary_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count eltávolított eszközt megjegyez az alkalmazás, hogy ne hozhasson vissza törölt adatokat.',
+      one:
+          '$count eltávolított eszközt megjegyez az alkalmazás, hogy ne hozhasson vissza törölt adatokat.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String settings_syncDevices_tile_filesSize(int count, String size) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -52138,14 +52291,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Alkalmazás a kijelölésre';
 
   @override
-  String get diveLog_profileEditor_outlierDetection =>
-      'Kiugró értékek keresése';
+  String get diveLog_profileEditor_cleanup => 'Takarítás';
 
   @override
-  String get diveLog_profileEditor_detect => 'Keresés';
+  String get diveLog_profileEditor_detectOutliers => 'Szórványértékek keresése';
 
   @override
-  String get diveLog_profileEditor_removeAll => 'Összes eltávolítása';
+  String get diveLog_profileEditor_removeOutliers =>
+      'Szórványértékek eltávolítása';
 
   @override
   String diveLog_profileEditor_outliersDetected(int count) {
@@ -52173,10 +52326,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_trimMode => 'Vágás mód';
-
-  @override
-  String get diveLog_profileEditor_trimHint =>
-      'A profil végpontjainak levágása';
 
   @override
   String get diveLog_profileEditor_trimEnd => 'Vég levágása';
@@ -52230,7 +52379,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_profileEditor_mode_select => 'Kijelölés';
 
   @override
-  String get diveLog_profileEditor_mode_outlier => 'Kiugró érték';
+  String get diveLog_profileEditor_mode_cleanup => 'Tisztít';
 
   @override
   String get diveLog_profileEditor_mode_draw => 'Rajzolás';
@@ -52245,6 +52394,26 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_profileEditor_revisionSwitchFailed =>
       'Nem sikerült a profilverzió váltása.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_title =>
+      'Teljes profil törlése';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_permanentWarning =>
+      'A profilverzió törlése végleges, nem vonható vissza, és azonnal életbe lép.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_computerImportWarning =>
+      'Ezt a profilt búvárkomputerből importálták, és valószínűleg az eredeti forrásadatokat tartalmazza.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_confirmNow =>
+      'Végleges törlés most';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_failed =>
+      'Nem sikerült törölni a profilverziót.';
 
   @override
   String get diveLog_profileEditor_revisionLegacyHint =>
@@ -55758,9 +55927,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ez egy már ugyanabból a fájlból importált nyomvonalnak tűnik.';
 
   @override
-  String get navTrack_review_replaceLabel => 'Csere';
-
-  @override
   String get navTrack_review_linkToDive => 'Társítás merüléshez';
 
   @override
@@ -55963,6 +56129,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get navTrack_editSheet_removeTrackTooltip => 'Nyomvonal eltávolítása';
+
+  @override
+  String get navTrack_editSheet_trackOnAnotherDive =>
+      'Ez a nyomvonal egy másik merüléshez tartozik. Frissítsd annál a merülésnél, vagy importáld a fájlt új nyomvonalként.';
 
   @override
   String navTrack_editRow_tracksSaveFailed(String error) {
@@ -59962,4 +60132,72 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get search_openTooltip => 'Keresés';
+
+  @override
+  String get settings_conflict_field_sourceFile => 'Eredeti nyomvonalfájl';
+
+  @override
+  String get navTrack_review_duplicateUpdate =>
+      'A mentett nyomvonal frissítése';
+
+  @override
+  String get navTrack_review_duplicateUpdateHint =>
+      'Újra beolvassa az adatokat ebből a fájlból. A név, a merülés, a merülőhely, az eszköz és az igazítás változatlan marad.';
+
+  @override
+  String get navTrack_review_duplicateNew => 'Importálás új nyomvonalként';
+
+  @override
+  String get navTrack_review_updateAction => 'Frissítés';
+
+  @override
+  String get navTrack_review_trackUpdatedConfirmation =>
+      'A nyomvonal frissítve a fájlból. Ellenőrizd az igazítást: a nyomvonal elmozdulhatott.';
+
+  @override
+  String get navTrack_detail_menuUpdateFromFile => 'Frissítés fájlból';
+
+  @override
+  String get navTrack_detail_menuExportCsv => 'Exportálás CSV-ként';
+
+  @override
+  String get navTrack_detail_exportUnavailable =>
+      'Ehhez a nyomvonalhoz még nincs mentett eredeti fájl. Előbb frissítsd a saját fájljából.';
+
+  @override
+  String navTrack_detail_exportFailed(String error) {
+    return 'Az exportálás sikertelen: $error';
+  }
+
+  @override
+  String get navTrack_detail_updateNameMismatchTitle => 'Eltérő fájlnév';
+
+  @override
+  String navTrack_detail_updateNameMismatchMessage(
+    String expected,
+    String actual,
+  ) {
+    return 'Ezt a nyomvonalat a(z) „$expected” fájlból importálták, a kiválasztott fájl neve „$actual”. Mégis frissíted belőle a nyomvonalat?';
+  }
+
+  @override
+  String get navTrack_detail_updateOtherRecordingTitle => 'Eltérő felvétel';
+
+  @override
+  String navTrack_detail_updateOtherRecordingMessage(
+    String fileDate,
+    String trackDate,
+  ) {
+    return 'Ez a fájl $fileDate napon készült, a nyomvonal $trackDate napon, így lehet, hogy másik merülés. Mégis frissíted belőle a nyomvonalat?';
+  }
+
+  @override
+  String navTrack_marker_details(
+    int number,
+    String time,
+    String depth,
+    String distance,
+  ) {
+    return 'Jelölő $number: $time, $depth, $distance';
+  }
 }
