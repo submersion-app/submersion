@@ -11306,6 +11306,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get divePlanner_label_minutesUnit => 'min';
 
   @override
+  String get divePlanner_label_secondsUnit => 's';
+
+  @override
   String get divePlanner_label_ndl => 'NDL';
 
   @override

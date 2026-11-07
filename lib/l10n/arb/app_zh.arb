@@ -3606,6 +3606,7 @@
   "divePlanner_label_gfHigh": "GF 高值",
   "divePlanner_label_gfLow": "GF 低值",
   "divePlanner_label_minutesUnit": "分钟",
+  "divePlanner_label_secondsUnit": "秒",
   "divePlanner_label_ndl": "NDL",
   "divePlanner_label_planSettings": "计划设置",
   "divePlanner_label_reserve": "储备",

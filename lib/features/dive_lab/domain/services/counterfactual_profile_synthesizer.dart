@@ -224,13 +224,14 @@ SynthesizedRemainder synthesizeRemainder({
   // to the first stop, the intermediate and shallow rates between stops,
   // and the final rate from the last stop.
   var depth = b.depths.last;
+  var phase = AscentPhase.toFirstStop;
   final stops = outcome.stops;
   for (var k = 0; k < stops.length; k++) {
     final stop = stops[k];
     final legSeconds = policy.ascentSeconds(
       fromDepth: depth,
       toDepth: stop.depthMeters,
-      phase: k == 0 ? AscentPhase.toFirstStop : AscentPhase.betweenStops,
+      phase: phase,
     );
     b.leg(
       stop.depthMeters,
@@ -243,12 +244,15 @@ SynthesizedRemainder synthesizeRemainder({
         (k == stops.length - 1 ? extraLastStopSeconds : 0);
     b.leg(stop.depthMeters, hold, (t, d) => b.ascentGasAt(t, d, ascentPlan));
     depth = stop.depthMeters;
+    // A stop held only to switch gas does not end the working ascent
+    // (issue #4160), the same walk the engine's own schedule takes.
+    phase = phase.afterStop(gasSwitchOnly: stop.isGasSwitchOnly);
   }
   if (depth > 0) {
     final legSeconds = policy.ascentSeconds(
       fromDepth: depth,
       toDepth: 0,
-      phase: stops.isEmpty ? AscentPhase.toFirstStop : AscentPhase.fromLastStop,
+      phase: AscentPhase.surfacingAfter(phase),
     );
     b.leg(0.0, legSeconds, (t, d) => b.ascentGasAt(t, d, ascentPlan));
   }

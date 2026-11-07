@@ -6862,6 +6862,10 @@
   "divePlanner_label_gfHigh": "GF High",
   "divePlanner_label_gfLow": "GF Low",
   "divePlanner_label_minutesUnit": "min",
+  "divePlanner_label_secondsUnit": "s",
+  "@divePlanner_label_secondsUnit": {
+    "description": "Unit suffix for a planner field entered in seconds, such as the gas switch stop"
+  },
   "divePlanner_label_ndl": "NDL",
   "divePlanner_label_planSettings": "Plan Settings",
   "divePlanner_label_reserve": "Reserve",
