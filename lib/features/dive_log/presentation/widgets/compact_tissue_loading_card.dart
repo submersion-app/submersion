@@ -179,6 +179,9 @@ class _CompactTissueLoadingCardState
             TissuePressureBarChart(
               status: widget.status,
               highlightedIndex: displayIndex,
+              // The compartment the visible "Leading" text names, so the
+              // screen reader announces the same one.
+              leadingIndex: hasCompartments ? _leadingCompartmentIndex() : null,
               onCompartmentHover: (index) =>
                   _setHoveredCompartment(index, fromBarChart: true),
               onHoverExit: _clearHoveredCompartment,
@@ -240,14 +243,19 @@ class _CompactTissueLoadingCardState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Trailing end, so it follows the text direction (left in RTL).
         Align(
-          alignment: Alignment.centerRight,
+          alignment: AlignmentDirectional.centerEnd,
+          // The heat map colors each compartment against the AMBIENT
+          // pressure, not the gas breathed, so its legend says so rather
+          // than borrowing the badges' "Ongassing"/"Offgassing", which are
+          // measured against the inspired pressure and would contradict it.
           child: TissueHeatMapLegend(
             colorScheme: colorScheme,
             textTheme: textTheme,
             colorFn: colorFn,
-            leftLabel: l10n.diveLog_deco_gasOngassing,
-            rightLabel: l10n.diveLog_deco_gasOffgassing,
+            leftLabel: l10n.diveLog_deco_heatMapBelowAmbient,
+            rightLabel: l10n.diveLog_deco_heatMapAboveAmbient,
           ),
         ),
         const SizedBox(height: 4),

@@ -4550,6 +4550,24 @@
       }
     }
   },
+  "diveLog_deco_heatMapBelowAmbient": "Below ambient",
+  "diveLog_deco_heatMapAboveAmbient": "Above ambient",
+  "diveLog_deco_percentValue": "{value}%",
+  "@diveLog_deco_percentValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_minutesValue": "{value} min",
+  "@diveLog_deco_minutesValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_deco_tissueFast": "Fast",
   "diveLog_deco_tissueSlow": "Slow",
   "diveLog_deco_title": "Deco Status",

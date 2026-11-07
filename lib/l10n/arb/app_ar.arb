@@ -2537,6 +2537,24 @@
       }
     }
   },
+  "diveLog_deco_heatMapBelowAmbient": "دون الضغط المحيط",
+  "diveLog_deco_heatMapAboveAmbient": "فوق الضغط المحيط",
+  "diveLog_deco_percentValue": "{value}%",
+  "@diveLog_deco_percentValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_minutesValue": "{value} دقيقة",
+  "@diveLog_deco_minutesValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_deco_tissueFast": "سريعة",
   "diveLog_deco_tissueSlow": "بطيئة",
   "diveLog_deco_title": "حالة الديكو",

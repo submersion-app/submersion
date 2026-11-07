@@ -2563,6 +2563,24 @@
       }
     }
   },
+  "diveLog_deco_heatMapBelowAmbient": "Unter Umgebungsdruck",
+  "diveLog_deco_heatMapAboveAmbient": "Über Umgebungsdruck",
+  "diveLog_deco_percentValue": "{value}%",
+  "@diveLog_deco_percentValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_minutesValue": "{value} min",
+  "@diveLog_deco_minutesValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_deco_tissueFast": "Schnell",
   "diveLog_deco_tissueSlow": "Langsam",
   "diveLog_deco_title": "Dekostatus",

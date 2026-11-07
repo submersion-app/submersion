@@ -459,6 +459,58 @@ void main() {
       },
     );
 
+    testWidgets(
+      'tissues still refilling after oxygen deco keep the load active '
+      '(issue #4228)',
+      (tester) async {
+        // Surface-saturated, then 20 minutes on pure oxygen at 6 m: the fast
+        // compartments end far below the surface N2 level. Ten minutes on
+        // air later, nothing sits above it (hasResidualLoad reads clear) but
+        // the medium compartments are still taking nitrogen back up. With
+        // CNS and OTU clear this used to read "No active load" next to a
+        // tissue card that was visibly still moving.
+        final algorithm = BuhlmannAlgorithm();
+        algorithm.calculateSegment(
+          depthMeters: 6,
+          durationSeconds: 20 * 60,
+          fN2: 0.0,
+          fHe: 0.0,
+        );
+        await pumpCard(
+          tester,
+          snapshotOf(
+            lastDiveEnd: endedAgo(const Duration(minutes: 10)),
+            exposure: const O2Exposure(),
+            endOfDiveCompartments: algorithm.compartments,
+          ),
+        );
+
+        expect(find.text('No active load'), findsNothing);
+        expect(find.text('No residual tissue load'), findsNothing);
+        expect(find.text('Tissue Loading'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'an empty tissue status reads as not available, without the tissue '
+      'explanation',
+      (tester) async {
+        await pumpCard(
+          tester,
+          snapshotOf(
+            lastDiveEnd: endedAgo(const Duration(minutes: 30)),
+            exposure: const O2Exposure(cnsEnd: 40.0, otu: 20.0),
+            weeklyOtu: 50.0,
+            endOfDiveCompartments: const [],
+          ),
+        );
+
+        expect(find.text('Tissue loading not available'), findsOneWidget);
+        expect(find.text('About Tissue Loading'), findsNothing);
+        expect(find.text('Tissue Loading'), findsNothing);
+      },
+    );
+
     testWidgets('no residual load note while a load remains', (tester) async {
       await pumpCard(
         tester,

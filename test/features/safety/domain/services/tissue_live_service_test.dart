@@ -5,6 +5,7 @@ import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/features/safety/domain/entities/tissue_load_state.dart';
 import 'package:submersion/features/safety/domain/services/tissue_live_service.dart';
 
 void main() {
@@ -295,6 +296,52 @@ void main() {
       expect(
         TissueLiveService.hasResidualLoad(projectAt(DiveEnvironment.standard)),
         isFalse,
+      );
+    });
+  });
+
+  group('classify (issue #4228)', () {
+    DecoStatus statusAfter(List<TissueCompartment> end, Duration elapsed) =>
+        TissueLiveService.currentStatus(
+          endOfDiveCompartments: end,
+          lastDiveEnd: diveEnd,
+          now: diveEnd.add(elapsed),
+          gfLow: 0.3,
+          gfHigh: 0.7,
+        );
+
+    test('loaded right after a dive', () {
+      expect(
+        TissueLiveService.classify(
+          statusAfter(loadedCompartments(), Duration.zero),
+        ),
+        TissueLoadState.loaded,
+      );
+    });
+
+    test('settling while gas still moves with nothing above the surface '
+        'level', () {
+      final algorithm = BuhlmannAlgorithm();
+      algorithm.calculateSegment(
+        depthMeters: 6,
+        durationSeconds: 20 * 60,
+        fN2: 0.0,
+        fHe: 0.0,
+      );
+      expect(
+        TissueLiveService.classify(
+          statusAfter(algorithm.compartments, Duration.zero),
+        ),
+        TissueLoadState.settling,
+      );
+    });
+
+    test('settled once every gas is at the inspired pressure', () {
+      expect(
+        TissueLiveService.classify(
+          statusAfter(loadedCompartments(), const Duration(days: 4)),
+        ),
+        TissueLoadState.settled,
       );
     });
   });

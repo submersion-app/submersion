@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/loading_severity_color.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_tooltip_text.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -12,38 +13,81 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// compartment stands at its marker, never at 0%, so the marker is what shows
 /// whether a bar still holds load left over from diving. The red line is the
 /// surface M-value (100%).
+///
+/// Used by the tissue loading card and the deco calculator's panel, so both
+/// draw, label and explain the same chart.
 class TissuePressureBarChart extends StatelessWidget {
   final DecoStatus status;
 
   /// Compartment (0-based) drawn with an outline, or null for none.
   final int? highlightedIndex;
 
-  /// Called with a compartment's index when it is hovered or tapped.
-  final ValueChanged<int> onCompartmentHover;
+  /// Compartment (0-based) the screen reader names as leading. The host
+  /// passes the one its visible "Leading" text shows, so both name the same
+  /// compartment; null falls back to [DecoStatus.leadingCompartment].
+  final int? leadingIndex;
+
+  /// Called with a compartment's index when it is hovered or tapped; null
+  /// when the host has nothing to follow the hover (deco calculator).
+  final ValueChanged<int>? onCompartmentHover;
 
   /// Called when the pointer leaves the chart.
-  final VoidCallback onHoverExit;
+  final VoidCallback? onHoverExit;
+
+  /// Height of the bars' area.
+  final double chartHeight;
 
   const TissuePressureBarChart({
     super.key,
     required this.status,
-    required this.highlightedIndex,
-    required this.onCompartmentHover,
-    required this.onHoverExit,
+    this.highlightedIndex,
+    this.leadingIndex,
+    this.onCompartmentHover,
+    this.onHoverExit,
+    this.chartHeight = 50.0,
   });
 
-  static const double chartHeight = 50.0;
   static const double maxLoadingPercent = 120.0;
 
   /// Height of the surface level marker drawn across each bar.
   static const double markerHeight = 2.0;
+
+  /// Thickness of the M-value line at 100%: whole pixels, since a
+  /// fractional height antialiases into a fainter smear at 1.0 DPR.
+  static const double mValueLineHeight = 2.0;
+
+  /// Bottom offset of a band [height] high centered on [percent] of a chart
+  /// [chartHeight] high, rounded to whole pixels so the band covers full
+  /// pixel rows instead of antialiasing across three.
+  static double bandBottom({
+    required double chartHeight,
+    required double percent,
+    required double height,
+  }) {
+    final center =
+        chartHeight *
+        (percent.clamp(0.0, maxLoadingPercent) / maxLoadingPercent);
+    return (center - height / 2).roundToDouble().clamp(
+      0.0,
+      chartHeight - height,
+    );
+  }
+
+  /// Color of the surface level marker: high contrast against both the
+  /// green-to-red bars and the card, in light and dark mode.
+  static Color surfaceLevelMarkerColor(ColorScheme colorScheme) =>
+      colorScheme.onSurface.withValues(alpha: 0.85);
+
+  /// Color of the M-value line: the theme's full error color. At half
+  /// opacity it all but vanished against the dark card (issue #4228).
+  static Color mValueLineColor(ColorScheme colorScheme) => colorScheme.error;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = context.l10n;
-    const mValueBottom = chartHeight * (100.0 / maxLoadingPercent);
+    final comps = status.compartments;
 
     final labelStyle = textTheme.labelSmall?.copyWith(
       fontSize: 11,
@@ -57,36 +101,50 @@ class TissuePressureBarChart extends StatelessWidget {
     final mValueColor = mValueLineColor(colorScheme);
     final equilibriumN2 = status.surfaceEquilibriumN2Bar;
 
+    final leadingIdx = leadingIndex;
+    final leading = comps.isEmpty
+        ? null
+        : (leadingIdx != null && leadingIdx >= 0 && leadingIdx < comps.length)
+        ? comps[leadingIdx]
+        : status.leadingCompartment;
+
+    final hover = onCompartmentHover;
+    final exit = onHoverExit;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Semantics(
-          label: status.compartments.isEmpty
+          label: leading == null
               ? null
               : l10n.diveLog_deco_barChartSemantics(
-                  status.compartments.length,
-                  status.leadingCompartmentNumber,
-                  status.leadingCompartmentLoading.toStringAsFixed(0),
+                  comps.length,
+                  leading.compartmentNumber,
+                  leading.percentLoading.toStringAsFixed(0),
                 ),
           child: SizedBox(
             height: chartHeight,
             child: Stack(
               children: [
                 MouseRegion(
-                  onExit: (_) => onHoverExit(),
+                  onExit: exit == null ? null : (_) => exit(),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      for (final entry in status.compartments.asMap().entries)
+                      for (final entry in comps.asMap().entries)
                         Expanded(
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 0.5,
                             ),
                             child: MouseRegion(
-                              onEnter: (_) => onCompartmentHover(entry.key),
+                              onEnter: hover == null
+                                  ? null
+                                  : (_) => hover(entry.key),
                               child: GestureDetector(
-                                onTapDown: (_) => onCompartmentHover(entry.key),
+                                onTapDown: hover == null
+                                    ? null
+                                    : (_) => hover(entry.key),
                                 child: Tooltip(
                                   message: tissueCompartmentTooltip(
                                     l10n,
@@ -95,6 +153,7 @@ class TissuePressureBarChart extends StatelessWidget {
                                   ),
                                   child: _CompartmentBar(
                                     comp: entry.value,
+                                    chartHeight: chartHeight,
                                     equilibriumPercent: entry.value
                                         .equilibriumLoadingPercent(
                                           equilibriumN2,
@@ -112,10 +171,15 @@ class TissuePressureBarChart extends StatelessWidget {
                     ],
                   ),
                 ),
-                // M-value reference line, centered on 100%.
+                // M-value reference line, centered on 100%. IgnorePointer so
+                // hovering a bar at that height still reaches its tooltip.
                 Positioned(
                   key: const ValueKey('tissue-m-value-line'),
-                  bottom: mValueBottom - mValueLineHeight / 2,
+                  bottom: bandBottom(
+                    chartHeight: chartHeight,
+                    percent: 100,
+                    height: mValueLineHeight,
+                  ),
                   left: 0,
                   right: 0,
                   height: mValueLineHeight,
@@ -157,29 +221,18 @@ class TissuePressureBarChart extends StatelessWidget {
       ],
     );
   }
-
-  /// Color of the surface level marker: high contrast against both the
-  /// green-to-red bars and the card, in light and dark mode.
-  static Color surfaceLevelMarkerColor(ColorScheme colorScheme) =>
-      colorScheme.onSurface.withValues(alpha: 0.85);
-
-  /// Thickness of the M-value line at 100%: whole pixels, since a
-  /// fractional height antialiases into a fainter smear at 1.0 DPR.
-  static const double mValueLineHeight = 2.0;
-
-  /// Color of the M-value line: the theme's full error color. At half
-  /// opacity it all but vanished against the dark card (issue #4228).
-  static Color mValueLineColor(ColorScheme colorScheme) => colorScheme.error;
 }
 
 class _CompartmentBar extends StatelessWidget {
   final TissueCompartment comp;
+  final double chartHeight;
   final double equilibriumPercent;
   final Color markerColor;
   final Color? outlineColor;
 
   const _CompartmentBar({
     required this.comp,
+    required this.chartHeight,
     required this.equilibriumPercent,
     required this.markerColor,
     required this.outlineColor,
@@ -187,7 +240,6 @@ class _CompartmentBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const chartHeight = TissuePressureBarChart.chartHeight;
     const maxLoading = TissuePressureBarChart.maxLoadingPercent;
     const markerHeight = TissuePressureBarChart.markerHeight;
 
@@ -215,7 +267,7 @@ class _CompartmentBar extends StatelessWidget {
         Container(
           height: n2Height.clamp(0.0, barHeight),
           decoration: BoxDecoration(
-            color: _n2Color(totalLoading),
+            color: loadingSeverityColor(totalLoading),
             borderRadius: BorderRadius.vertical(
               top: heHeight > 0.5 ? Radius.zero : const Radius.circular(1),
             ),
@@ -229,22 +281,16 @@ class _CompartmentBar extends StatelessWidget {
     // add its width to the box on every side, making the bar taller than its
     // fixed-height slot (overflowing when the bar is already full height) and
     // wider than its unhighlighted neighbours (hover jitter).
-    final bar = outlineColor != null
+    final outline = outlineColor;
+    final bar = outline != null
         ? Container(
             foregroundDecoration: BoxDecoration(
-              border: Border.all(color: outlineColor!, width: 2),
+              border: Border.all(color: outline, width: 2),
               borderRadius: BorderRadius.circular(2),
             ),
             child: barColumn,
           )
         : barColumn;
-
-    // Centered on the equilibrium loading, kept inside the slot.
-    final markerBottom =
-        (chartHeight *
-                    (equilibriumPercent.clamp(0.0, maxLoading) / maxLoading) -
-                markerHeight / 2)
-            .clamp(0.0, chartHeight - markerHeight);
 
     return SizedBox(
       height: chartHeight,
@@ -260,20 +306,17 @@ class _CompartmentBar extends StatelessWidget {
             key: ValueKey('tissue-surface-marker-${comp.compartmentNumber}'),
             left: 0,
             right: 0,
-            bottom: markerBottom,
+            bottom: TissuePressureBarChart.bandBottom(
+              chartHeight: chartHeight,
+              percent: equilibriumPercent,
+              height: markerHeight,
+            ),
             height: markerHeight,
             child: IgnorePointer(child: ColoredBox(color: markerColor)),
           ),
         ],
       ),
     );
-  }
-
-  static Color _n2Color(double loading) {
-    if (loading >= 100) return Colors.red;
-    if (loading >= 80) return Colors.orange;
-    if (loading >= 60) return Colors.amber;
-    return Colors.green;
   }
 }
 

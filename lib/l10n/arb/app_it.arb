@@ -2436,6 +2436,24 @@
       }
     }
   },
+  "diveLog_deco_heatMapBelowAmbient": "Sotto la pressione ambiente",
+  "diveLog_deco_heatMapAboveAmbient": "Sopra la pressione ambiente",
+  "diveLog_deco_percentValue": "{value}%",
+  "@diveLog_deco_percentValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_minutesValue": "{value} min",
+  "@diveLog_deco_minutesValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_deco_tissueFast": "Veloce",
   "diveLog_deco_tissueSlow": "Lento",
   "diveLog_deco_title": "Stato deco",

@@ -7423,6 +7423,22 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_heatMapBelowAmbient => 'מתחת ללחץ הסביבה';
+
+  @override
+  String get diveLog_deco_heatMapAboveAmbient => 'מעל לחץ הסביבה';
+
+  @override
+  String diveLog_deco_percentValue(String value) {
+    return '$value%';
+  }
+
+  @override
+  String diveLog_deco_minutesValue(String value) {
+    return '$value דק\'';
+  }
+
+  @override
   String get diveLog_deco_tissueFast => 'מהירה';
 
   @override

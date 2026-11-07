@@ -7564,6 +7564,22 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_heatMapBelowAmbient => 'Környezeti nyomás alatt';
+
+  @override
+  String get diveLog_deco_heatMapAboveAmbient => 'Környezeti nyomás felett';
+
+  @override
+  String diveLog_deco_percentValue(String value) {
+    return '$value%';
+  }
+
+  @override
+  String diveLog_deco_minutesValue(String value) {
+    return '$value perc';
+  }
+
+  @override
   String get diveLog_deco_tissueFast => 'Gyors';
 
   @override

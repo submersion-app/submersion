@@ -2436,6 +2436,24 @@
       }
     }
   },
+  "diveLog_deco_heatMapBelowAmbient": "מתחת ללחץ הסביבה",
+  "diveLog_deco_heatMapAboveAmbient": "מעל לחץ הסביבה",
+  "diveLog_deco_percentValue": "{value}%",
+  "@diveLog_deco_percentValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_minutesValue": "{value} דק'",
+  "@diveLog_deco_minutesValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_deco_tissueFast": "מהירה",
   "diveLog_deco_tissueSlow": "איטית",
   "diveLog_deco_title": "מצב דקו",

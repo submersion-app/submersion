@@ -2436,6 +2436,24 @@
       }
     }
   },
+  "diveLog_deco_heatMapBelowAmbient": "Környezeti nyomás alatt",
+  "diveLog_deco_heatMapAboveAmbient": "Környezeti nyomás felett",
+  "diveLog_deco_percentValue": "{value}%",
+  "@diveLog_deco_percentValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_minutesValue": "{value} perc",
+  "@diveLog_deco_minutesValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_deco_tissueFast": "Gyors",
   "diveLog_deco_tissueSlow": "Lassú",
   "diveLog_deco_title": "Dekó állapot",

@@ -55,13 +55,19 @@ class TissueHeatMap extends StatelessWidget {
                   context.l10n.diveLog_tissue_title,
                   style: textTheme.titleSmall,
                 ),
-                const Spacer(),
-                TissueHeatMapLegend(
-                  colorScheme: colorScheme,
-                  textTheme: textTheme,
-                  colorFn: colorFn,
-                  leftLabel: context.l10n.diveLog_deco_gasOngassing,
-                  rightLabel: context.l10n.diveLog_deco_gasOffgassing,
+                const SizedBox(width: 8),
+                // Bounded width, so the legend's labels can shorten.
+                Expanded(
+                  child: Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: TissueHeatMapLegend(
+                      colorScheme: colorScheme,
+                      textTheme: textTheme,
+                      colorFn: colorFn,
+                      leftLabel: context.l10n.diveLog_deco_heatMapBelowAmbient,
+                      rightLabel: context.l10n.diveLog_deco_heatMapAboveAmbient,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -341,7 +347,16 @@ class TissueHeatMapLegend extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(leftLabel, style: labelStyle),
+        // Flexible: some locales' labels are long, and a narrow card must
+        // shorten them rather than overflow.
+        Flexible(
+          child: Text(
+            leftLabel,
+            style: labelStyle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
         const SizedBox(width: 4),
         Container(
           width: 60,
@@ -352,7 +367,14 @@ class TissueHeatMapLegend extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 4),
-        Text(rightLabel, style: labelStyle),
+        Flexible(
+          child: Text(
+            rightLabel,
+            style: labelStyle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       ],
     );
   }

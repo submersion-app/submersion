@@ -138,9 +138,19 @@ class DecoStatus extends Equatable {
   /// Net direction of both gases together: [GasExchange.equilibrium] when
   /// neither is moving, otherwise the sign [isOffgassing] reads. Null when
   /// the inspired gas is unknown.
-  GasExchange? netExchange(TissueCompartment compartment) {
-    final n2 = n2Exchange(compartment);
-    final he = heExchange(compartment);
+  GasExchange? netExchange(TissueCompartment compartment) => combineExchanges(
+    compartment,
+    n2: n2Exchange(compartment),
+    he: heExchange(compartment),
+  );
+
+  /// [netExchange] from per-gas directions the caller already has, so a
+  /// view showing all three (tooltip, detail panel) evaluates each once.
+  GasExchange? combineExchanges(
+    TissueCompartment compartment, {
+    required GasExchange? n2,
+    required GasExchange? he,
+  }) {
     final offgassing = isOffgassing(compartment);
     if (n2 == null || he == null || offgassing == null) return null;
     if (n2 == GasExchange.equilibrium && he == GasExchange.equilibrium) {

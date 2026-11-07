@@ -11926,6 +11926,30 @@ abstract class AppLocalizations {
   /// **'Tissue loading chart. {count} compartments, loading relative to the M-value; leading compartment {number} at {percent}%.'**
   String diveLog_deco_barChartSemantics(int count, int number, String percent);
 
+  /// No description provided for @diveLog_deco_heatMapBelowAmbient.
+  ///
+  /// In en, this message translates to:
+  /// **'Below ambient'**
+  String get diveLog_deco_heatMapBelowAmbient;
+
+  /// No description provided for @diveLog_deco_heatMapAboveAmbient.
+  ///
+  /// In en, this message translates to:
+  /// **'Above ambient'**
+  String get diveLog_deco_heatMapAboveAmbient;
+
+  /// No description provided for @diveLog_deco_percentValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}%'**
+  String diveLog_deco_percentValue(String value);
+
+  /// No description provided for @diveLog_deco_minutesValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} min'**
+  String diveLog_deco_minutesValue(String value);
+
   /// No description provided for @diveLog_deco_tissueFast.
   ///
   /// In en, this message translates to:

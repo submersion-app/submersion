@@ -7586,6 +7586,22 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_heatMapBelowAmbient => 'Unter Umgebungsdruck';
+
+  @override
+  String get diveLog_deco_heatMapAboveAmbient => 'Über Umgebungsdruck';
+
+  @override
+  String diveLog_deco_percentValue(String value) {
+    return '$value%';
+  }
+
+  @override
+  String diveLog_deco_minutesValue(String value) {
+    return '$value min';
+  }
+
+  @override
   String get diveLog_deco_tissueFast => 'Schnell';
 
   @override

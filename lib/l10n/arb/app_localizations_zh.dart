@@ -7196,6 +7196,22 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_heatMapBelowAmbient => '低于环境压力';
+
+  @override
+  String get diveLog_deco_heatMapAboveAmbient => '高于环境压力';
+
+  @override
+  String diveLog_deco_percentValue(String value) {
+    return '$value%';
+  }
+
+  @override
+  String diveLog_deco_minutesValue(String value) {
+    return '$value 分钟';
+  }
+
+  @override
   String get diveLog_deco_tissueFast => '快速';
 
   @override

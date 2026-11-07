@@ -342,9 +342,29 @@ void main() {
       expect(find.text(l10n.diveLog_deco_tissueFast), findsOneWidget);
       expect(find.text(l10n.diveLog_deco_tissueSlow), findsOneWidget);
       expect(find.text(l10n.diveLog_deco_heatMapRows), findsOneWidget);
-      // The legend is localized rather than hardcoded English.
-      expect(find.text(l10n.diveLog_deco_gasOngassing), findsOneWidget);
-      expect(find.text(l10n.diveLog_deco_gasOffgassing), findsOneWidget);
+      // The heat map colors against AMBIENT pressure, so its legend says so
+      // instead of borrowing the badges' "Ongassing"/"Offgassing", which are
+      // measured against the inspired pressure.
+      expect(find.text(l10n.diveLog_deco_heatMapBelowAmbient), findsOneWidget);
+      expect(find.text(l10n.diveLog_deco_heatMapAboveAmbient), findsOneWidget);
+      expect(find.text(l10n.diveLog_deco_gasOngassing), findsNothing);
+      expect(find.text(l10n.diveLog_deco_gasOffgassing), findsNothing);
+    });
+
+    testWidgets('keeps the legend at the trailing end, which is the left in '
+        'RTL', (tester) async {
+      await tester.pumpWidget(buildCard(decoStatuses: [_status]));
+      await tester.pumpAndSettle();
+
+      final align = tester.widget<Align>(
+        find
+            .ancestor(
+              of: find.byType(TissueHeatMapLegend),
+              matching: find.byType(Align),
+            )
+            .first,
+      );
+      expect(align.alignment, AlignmentDirectional.centerEnd);
     });
 
     testWidgets(
@@ -428,6 +448,57 @@ void main() {
         );
       });
     }
+
+    testWidgets('sits the M-value line on whole pixels and lets hovers '
+        'through to the bars', (tester) async {
+      await tester.pumpWidget(buildCard(status: _multiCompStatus));
+      await tester.pumpAndSettle();
+
+      final lineFinder = find.byKey(const ValueKey('tissue-m-value-line'));
+      final chartStack = find
+          .ancestor(of: lineFinder, matching: find.byType(Stack))
+          .first;
+      final offset =
+          tester.getRect(chartStack).bottom - tester.getRect(lineFinder).bottom;
+      // Unrounded, 50 * 100 / 120 - 1 = 40.67 straddles three pixel rows.
+      expect(offset, offset.roundToDouble());
+      expect(
+        find.descendant(of: lineFinder, matching: find.byType(IgnorePointer)),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('names the same leading compartment to the screen reader as '
+        'the visible text', (tester) async {
+      // Both compartments at the surface N2 tension, at the surface: the
+      // depth-aware ranking ties and keeps #1, while percentLoading alone
+      // would pick #2 (its surface M-value is smaller).
+      const settled = DecoStatus(
+        compartments: [_comp, _comp2],
+        ndlSeconds: 600,
+        ceilingMeters: 0.0,
+        ttsSeconds: 0,
+        gfLow: 0.4,
+        gfHigh: 0.85,
+        decoStops: [],
+        currentDepthMeters: 0.0,
+        ambientPressureBar: 1.0,
+      );
+      final handle = tester.ensureSemantics();
+      await tester.pumpWidget(buildCard(status: settled));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Leading: #1'), findsOneWidget);
+      expect(
+        find.bySemanticsLabel(RegExp('leading compartment 1 at')),
+        findsOneWidget,
+      );
+      expect(
+        find.bySemanticsLabel(RegExp('leading compartment 2 at')),
+        findsNothing,
+      );
+      handle.dispose();
+    });
 
     testWidgets('sits at each compartment\'s own equilibrium loading', (
       tester,

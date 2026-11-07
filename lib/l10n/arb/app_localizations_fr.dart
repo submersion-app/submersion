@@ -7601,6 +7601,23 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_heatMapBelowAmbient => 'Sous la pression ambiante';
+
+  @override
+  String get diveLog_deco_heatMapAboveAmbient =>
+      'Au-dessus de la pression ambiante';
+
+  @override
+  String diveLog_deco_percentValue(String value) {
+    return '$value %';
+  }
+
+  @override
+  String diveLog_deco_minutesValue(String value) {
+    return '$value min';
+  }
+
+  @override
   String get diveLog_deco_tissueFast => 'Rapide';
 
   @override

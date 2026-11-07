@@ -4,6 +4,7 @@ import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/gas_exchange.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/features/safety/domain/entities/tissue_load_state.dart';
 
 /// Projects the diver's tissue state at the end of their last dive forward
 /// to the current moment.
@@ -195,17 +196,30 @@ class TissueLiveService {
     );
   }
 
+  /// The one classification the surface readouts share: [TissueLoadState.settled]
+  /// by [isAtSurfaceEquilibrium], [TissueLoadState.loaded] by
+  /// [hasResidualLoad], [TissueLoadState.settling] in between. Using a single
+  /// call keeps the page's "active load" gate and its "no residual tissue
+  /// load" note from ever disagreeing (two tolerances used to leave a gap
+  /// where the page read clear while the tissues were still moving).
+  static TissueLoadState classify(DecoStatus status) {
+    if (isAtSurfaceEquilibrium(status)) return TissueLoadState.settled;
+    if (hasResidualLoad(status)) return TissueLoadState.loaded;
+    return TissueLoadState.settling;
+  }
+
   /// Whether every compartment in [status] holds both nitrogen and helium at
   /// the inspired pressure, each within [DecoStatus.gasEquilibriumToleranceBar]
-  /// (issue #4228): the condition the "no residual load" note states.
+  /// (issue #4228).
   ///
   /// Stricter than `!hasResidualLoad`, which only looks for total tension
   /// ABOVE the surface level: right after oxygen or helium-rich deco the fast
   /// compartments sit below it (taking nitrogen back up) or still hold helium
   /// while their total stays low, and must not read as settled. Using the
-  /// same tolerance as the per-gas badges keeps the note and the badges from
-  /// contradicting each other. False when the inspired gas is unknown, and
-  /// for a status without compartments, which shows nothing to call settled.
+  /// same tolerance as the per-gas badges keeps the readouts and the badges
+  /// from contradicting each other. False when the inspired gas is unknown,
+  /// and for a status without compartments, which shows nothing to call
+  /// settled.
   static bool isAtSurfaceEquilibrium(DecoStatus status) {
     if (status.compartments.isEmpty) return false;
     return status.compartments.every(

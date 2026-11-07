@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/gas_exchange.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_exchange_style.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/loading_severity_color.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One compartment's key values above the tissue charts: load, GF, the
@@ -42,8 +43,11 @@ class TissueCompartmentDetail extends StatelessWidget {
       double.infinity,
     );
     // Null when the status carries no inspired gas: the badge and arrows are
-    // left out rather than guessed from ambient pressure (issue #2593).
-    final net = status.netExchange(comp);
+    // left out rather than guessed from ambient pressure (issue #2593). Each
+    // direction once: the net one is combined from the per-gas results.
+    final n2 = status.n2Exchange(comp);
+    final he = status.heExchange(comp);
+    final net = status.combineExchanges(comp, n2: n2, he: he);
     final withHelium = showsHelium(comp, status.inspiredHeBar);
 
     final labelStyle = textTheme.labelSmall?.copyWith(
@@ -82,21 +86,23 @@ class TissueCompartmentDetail extends StatelessWidget {
           children: [
             _Metric(
               label: l10n.diveLog_deco_metricLoad,
-              value: '${comp.percentLoading.toStringAsFixed(0)}%',
+              value: l10n.diveLog_deco_percentValue(
+                comp.percentLoading.toStringAsFixed(0),
+              ),
               labelStyle: labelStyle,
               valueStyle: valueStyle,
             ),
             _Metric(
               label: 'GF',
-              value: '${gf.toStringAsFixed(0)}%',
+              value: l10n.diveLog_deco_percentValue(gf.toStringAsFixed(0)),
               labelStyle: labelStyle,
-              valueStyle: valueStyle?.copyWith(color: _gfColor(gf)),
+              valueStyle: valueStyle?.copyWith(color: loadingSeverityColor(gf)),
             ),
             _Metric(
               key: const ValueKey('tissue-detail-n2'),
               label: 'N₂',
               value: '${comp.currentPN2.toStringAsFixed(2)} bar',
-              exchange: status.n2Exchange(comp),
+              exchange: n2,
               labelStyle: labelStyle,
               valueStyle: valueStyle,
             ),
@@ -105,13 +111,15 @@ class TissueCompartmentDetail extends StatelessWidget {
                 key: const ValueKey('tissue-detail-he'),
                 label: 'He',
                 value: '${comp.currentPHe.toStringAsFixed(2)} bar',
-                exchange: status.heExchange(comp),
+                exchange: he,
                 labelStyle: labelStyle,
                 valueStyle: valueStyle,
               ),
             _Metric(
               label: withHelium ? 't½ N₂ / He' : 't½',
-              value: '${halfTimeText(comp, withHelium: withHelium)} min',
+              value: l10n.diveLog_deco_minutesValue(
+                halfTimeText(comp, withHelium: withHelium),
+              ),
               labelStyle: labelStyle,
               valueStyle: valueStyle,
             ),
@@ -119,13 +127,6 @@ class TissueCompartmentDetail extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  static Color _gfColor(double gfPercent) {
-    if (gfPercent >= 100) return Colors.red;
-    if (gfPercent >= 80) return Colors.orange;
-    if (gfPercent >= 60) return Colors.amber;
-    return Colors.green;
   }
 }
 
