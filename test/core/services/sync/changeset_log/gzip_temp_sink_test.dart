@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 
+import 'package:archive/archive.dart' show getCrc32;
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/platform/zlib/platform_zlib_pure.dart';
 import 'package:submersion/core/services/sync/changeset_log/gzip_temp_sink.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_files.dart';
@@ -74,18 +77,45 @@ void main() {
 
   test('random bodies round trip, whatever the head length', () async {
     final random = Random(4256);
-    for (final headLength in [0, 1, 64, 300]) {
-      final head = List<int>.generate(headLength, (_) => random.nextInt(256));
-      final body = List<int>.generate(50000, (_) => random.nextInt(256));
-      final sink = await create('random$headLength.gz');
-      await sink.add(head);
-      await sink.endHead();
-      await sink.add(body);
-      final path = await sink.close();
+    // 70000 spans two stored blocks; 0 is one empty block.
+    for (final headLength in [0, 1, 64, 300, 70000]) {
+      for (final bodyLength in [0, 1, 50000]) {
+        final head = List<int>.generate(headLength, (_) => random.nextInt(256));
+        final body = List<int>.generate(bodyLength, (_) => random.nextInt(256));
+        final sink = await create('random$headLength-$bodyLength.gz');
+        await sink.add(head);
+        await sink.endHead();
+        await sink.add(body);
+        final path = await sink.close();
+        final bytes = await File(path).readAsBytes();
+        final reason = 'head $headLength, body $bodyLength';
 
-      expect(gzip.decode(await File(path).readAsBytes()), [...head, ...body]);
+        expect(gzip.decode(bytes), [...head, ...body], reason: reason);
+        // A second, independent decoder, strict about the framing.
+        expect(pureGunzip(bytes), [...head, ...body], reason: reason);
+      }
     }
   });
+
+  test(
+    'it is one gzip member, whose trailer covers the whole document',
+    () async {
+      final sink = await create('member.gz');
+      await sink.add(utf8.encode('{"checksum":"0000'));
+      await sink.endHead();
+      await sink.add(utf8.encode('","data":[${'1,' * 5000}1]}'));
+      await sink.writeAt(13, utf8.encode('beef'));
+      final path = await sink.close();
+      final bytes = await File(path).readAsBytes();
+      final document = gzip.decode(bytes);
+      final trailer = ByteData.sublistView(bytes, bytes.length - 8);
+
+      expect(bytes.sublist(0, 3), [0x1f, 0x8b, 0x08]);
+      expect(trailer.getUint32(0, Endian.little), getCrc32(document));
+      expect(trailer.getUint32(4, Endian.little), document.length);
+      expect(utf8.decode(document), startsWith('{"checksum":"beef"'));
+    },
+  );
 
   test('a sink closed without ending its head keeps it all', () async {
     final sink = await create('head_only.gz');

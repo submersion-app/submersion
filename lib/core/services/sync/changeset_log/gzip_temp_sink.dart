@@ -2,20 +2,24 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:archive/archive.dart' show getCrc32;
+
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_sink.dart';
 
 /// A [SyncTempSink] that gzips as it writes, so a base streamed to disk is
 /// stored compressed only, never staged plain with a compressed copy written
 /// beside it (issue #4256).
 ///
-/// The file holds two gzip members, which a gzip reader joins into one
-/// document. Bytes added before [endHead] are the head: kept in memory,
-/// patchable through [writeAt] (the base export fills its checksum in over a
-/// placeholder there), and written on [close] as a stored, uncompressed
-/// member into space reserved for it at the start of the file. A stored
-/// member's size depends only on how many bytes it holds, so the reservation
+/// The file is one ordinary gzip member (RFC 1952), so any gzip reader takes
+/// it. Bytes added before [endHead] are the head: kept in memory, patchable
+/// through [writeAt] (the base export fills its checksum in over a
+/// placeholder there), and written on [close] as stored, uncompressed deflate
+/// blocks into space reserved for them after the gzip header. A stored
+/// block's size depends only on how many bytes it holds, so the reservation
 /// is exact before the head's final bytes are known. Everything added after
-/// [endHead] streams through the gzip encoder as the second member.
+/// [endHead] streams through a raw deflate encoder, whose stream continues
+/// the stored blocks and ends the member. The trailer's CRC-32 joins the
+/// head's, known only at the end, with the body's, kept as it streams.
 ///
 /// [length] counts uncompressed bytes, the offsets [writeAt] takes;
 /// [diskLength] is the size of the file.
@@ -24,33 +28,51 @@ import 'package:submersion/core/services/sync/changeset_log/sync_temp_sink.dart'
 class GzipTempSink implements SyncTempSink {
   GzipTempSink(this._file);
 
-  static final GZipCodec _stored = GZipCodec(level: 0);
+  /// RFC 1952 header: magic, deflate, no flags, no mtime, no extra flags,
+  /// unknown OS.
+  static const List<int> _gzipHeader = [
+    0x1f,
+    0x8b,
+    0x08,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0xff,
+  ];
+
+  /// The most bytes one stored deflate block holds.
+  static const int _maxStoredBlock = 0xffff;
 
   final SyncTempSink _file;
   final List<int> _head = [];
   final List<List<int>> _compressed = [];
   ByteConversionSink? _encoder;
   int _reserved = 0;
-  int _length = 0;
+  int _bodyCrc = 0;
+  int _bodyLength = 0;
   bool _closing = false;
 
   @override
   String get path => _file.path;
 
   @override
-  int get length => _length;
+  int get length => _head.length + _bodyLength;
 
   /// Bytes on disk so far; the file's size once closed.
   int get diskLength => _file.length;
 
   @override
   Future<void> add(List<int> bytes) async {
-    _length += bytes.length;
     final encoder = _encoder;
     if (encoder == null) {
       _head.addAll(bytes);
       return;
     }
+    _bodyCrc = getCrc32(bytes, _bodyCrc);
+    _bodyLength += bytes.length;
     encoder.add(bytes);
     await _drain();
   }
@@ -59,11 +81,11 @@ class GzipTempSink implements SyncTempSink {
   /// one is compressed on its way to disk.
   Future<void> endHead() async {
     if (_encoder != null) throw StateError('the head has already ended');
-    _reserved = _stored.encode(_head).length;
+    _reserved = _gzipHeader.length + _storedBlocks(_head).length;
     await _file.add(Uint8List(_reserved));
-    _encoder = gzip.encoder.startChunkedConversion(
-      _ChunkCollector(_compressed),
-    );
+    _encoder = ZLibEncoder(
+      raw: true,
+    ).startChunkedConversion(_ChunkCollector(_compressed));
   }
 
   /// Overwrites [bytes] at [offset], which must lie within the head.
@@ -89,13 +111,15 @@ class GzipTempSink implements SyncTempSink {
       if (_encoder == null) await endHead();
       _encoder!.close();
       await _drain();
-      final head = _stored.encode(_head);
-      if (head.length != _reserved) {
+      final crc = _crc32Combine(getCrc32(_head), _bodyCrc, _bodyLength);
+      await _file.add(_uint32Le(crc) + _uint32Le(length & 0xffffffff));
+      final front = [..._gzipHeader, ..._storedBlocks(_head)];
+      if (front.length != _reserved) {
         throw StateError(
-          'stored gzip head is ${head.length} bytes, $_reserved reserved',
+          'stored gzip head is ${front.length} bytes, $_reserved reserved',
         );
       }
-      await _file.writeAt(0, head);
+      await _file.writeAt(0, front);
     } catch (_) {
       await _file.close().catchError((Object _) => path);
       rethrow;
@@ -108,6 +132,87 @@ class GzipTempSink implements SyncTempSink {
       await _file.add(chunk);
     }
     _compressed.clear();
+  }
+
+  /// [bytes] as stored deflate blocks, none of them final: the body's raw
+  /// deflate stream follows and carries the final block. An empty head is
+  /// one empty block.
+  static List<int> _storedBlocks(List<int> bytes) {
+    final out = <int>[];
+    var start = 0;
+    do {
+      final end = bytes.length - start > _maxStoredBlock
+          ? start + _maxStoredBlock
+          : bytes.length;
+      final n = end - start;
+      // BFINAL 0, BTYPE 00, padded to the byte; then LEN and its complement.
+      out
+        ..add(0x00)
+        ..addAll(_uint16Le(n))
+        ..addAll(_uint16Le(~n & 0xffff))
+        ..addAll(bytes.sublist(start, end));
+      start = end;
+    } while (start < bytes.length);
+    return out;
+  }
+
+  static List<int> _uint16Le(int v) => [v & 0xff, (v >> 8) & 0xff];
+
+  static List<int> _uint32Le(int v) => [
+    v & 0xff,
+    (v >> 8) & 0xff,
+    (v >> 16) & 0xff,
+    (v >> 24) & 0xff,
+  ];
+}
+
+/// The CRC-32 of A followed by B, from A's CRC [crc1], B's CRC [crc2] and
+/// B's length [len2]: zlib's `crc32_combine`, which shifts [crc1] past
+/// [len2] zero bytes by repeated squaring of the CRC's GF(2) operator.
+int _crc32Combine(int crc1, int crc2, int len2) {
+  if (len2 <= 0) return crc1;
+  final odd = List<int>.filled(32, 0);
+  final even = List<int>.filled(32, 0);
+  // The operator for one zero bit.
+  odd[0] = 0xedb88320;
+  var row = 1;
+  for (var n = 1; n < 32; n++) {
+    odd[n] = row;
+    row <<= 1;
+  }
+  _gf2Square(even, odd); // two zero bits
+  _gf2Square(odd, even); // four zero bits
+  var crc = crc1;
+  var len = len2;
+  // Each pass squares the operator into a whole byte, then two, four...,
+  // applying it wherever [len] has a bit set.
+  do {
+    _gf2Square(even, odd);
+    if (len & 1 != 0) crc = _gf2Times(even, crc);
+    len >>= 1;
+    if (len == 0) break;
+    _gf2Square(odd, even);
+    if (len & 1 != 0) crc = _gf2Times(odd, crc);
+    len >>= 1;
+  } while (len != 0);
+  return crc ^ crc2;
+}
+
+int _gf2Times(List<int> mat, int vec) {
+  var sum = 0;
+  var v = vec;
+  var i = 0;
+  while (v != 0) {
+    if (v & 1 != 0) sum ^= mat[i];
+    v >>= 1;
+    i++;
+  }
+  return sum;
+}
+
+void _gf2Square(List<int> square, List<int> mat) {
+  for (var n = 0; n < 32; n++) {
+    square[n] = _gf2Times(mat, mat[n]);
   }
 }
 
