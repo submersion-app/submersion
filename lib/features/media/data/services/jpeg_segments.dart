@@ -23,6 +23,12 @@ typedef JpegSegment = ({int marker, int start, int length});
 /// spread.
 const _maxResyncBytes = 64 * 1024;
 
+/// How many segments one walk will step through before the scan. A camera
+/// JPEG carries a few dozen (APPn blocks, tables, the frame header), and even
+/// an ICC profile split across 64 KB APP2 chunks stays far below this; a file
+/// of thousands of tiny segments is crafted or corrupt.
+const _maxSegments = 1024;
+
 /// Lazily yields the segments ahead of the scan, in file order.
 ///
 /// Stray bytes where a marker should begin (anything but `0xFF`, or a
@@ -32,7 +38,8 @@ const _maxResyncBytes = 64 * 1024;
 ///
 /// Stops without error at the SOS (start of scan) or EOI marker, and at
 /// corruption it cannot step past: a missing SOI, more than [_maxResyncBytes]
-/// of stray and fill bytes in all, or a length that is shorter than its own
+/// of stray bytes, fill bytes and standalone markers in all, more than
+/// [_maxSegments] segments, or a length that is shorter than its own
 /// field or runs past EOF. Callers therefore read "the walk ended" as "not
 /// found".
 Iterable<JpegSegment> jpegHeaderSegments(RandomAccessFile raf, int end) sync* {
@@ -42,16 +49,22 @@ Iterable<JpegSegment> jpegHeaderSegments(RandomAccessFile raf, int end) sync* {
 
   var pos = 2;
   var resyncBudget = _maxResyncBytes;
+  var segments = 0;
   while (pos + 2 <= end) {
     final head = readBytesAt(raf, pos, 2);
     if (head.length < 2) return;
     // 0xFF00 is a stuffed data byte, which cannot appear between segments:
     // like any other non-marker byte, it is junk to step over.
     if (head[0] != 0xff || head[1] == 0x00) {
-      final from = pos + 1;
-      final next = _nextMarkerByte(raf, from, min(end, from + resyncBudget));
+      // Every skipped byte is charged, the one at [pos] included, so junk
+      // found one byte before a marker still draws on the budget.
+      final next = _nextMarkerByte(
+        raf,
+        pos + 1,
+        min(end, pos + 1 + resyncBudget),
+      );
       if (next == null) return;
-      resyncBudget -= next - from;
+      resyncBudget -= next - pos;
       pos = next;
       continue;
     }
@@ -66,10 +79,13 @@ Iterable<JpegSegment> jpegHeaderSegments(RandomAccessFile raf, int end) sync* {
       pos -= 1;
       continue;
     }
-    // Standalone markers carry no length payload: TEM, SOI, RSTn.
+    // Standalone markers carry no length payload: TEM, SOI, RSTn. None
+    // belongs between header segments, so they draw on the budget too.
     if (marker == 0x01 ||
         marker == 0xd8 ||
         (marker >= 0xd0 && marker <= 0xd7)) {
+      resyncBudget -= 2;
+      if (resyncBudget < 0) return;
       continue;
     }
     // EOI, or the start of the scan. Everything past an SOS is entropy-coded
@@ -82,6 +98,7 @@ Iterable<JpegSegment> jpegHeaderSegments(RandomAccessFile raf, int end) sync* {
     // is corrupt.
     if (length < 2 || pos + length > end) return;
 
+    if (++segments > _maxSegments) return;
     yield (marker: marker, start: pos + 2, length: length - 2);
     pos += length;
   }
@@ -89,9 +106,13 @@ Iterable<JpegSegment> jpegHeaderSegments(RandomAccessFile raf, int end) sync* {
 
 /// The position of the first `0xFF` in [from, limit), or null when there is
 /// none.
+///
+/// The first read is small because real junk is a byte or two, and a file of
+/// many short gaps would otherwise read a full chunk per gap; longer gaps
+/// widen to 512-byte reads.
 int? _nextMarkerByte(RandomAccessFile raf, int from, int limit) {
-  const chunk = 512;
-  for (var pos = from; pos < limit; pos += chunk) {
+  var chunk = 16;
+  for (var pos = from; pos < limit; pos += chunk, chunk = 512) {
     final bytes = readBytesAt(raf, pos, min(chunk, limit - pos));
     if (bytes.isEmpty) return null;
     final i = bytes.indexOf(0xff);

@@ -340,5 +340,52 @@ void main() {
       expect(readLocalExif(f, 'image/jpeg'), isNull);
       expect(f.bytesRead, lessThan(256 * 1024));
     });
+
+    test('charges every junk byte, even one right before a marker', () {
+      // One junk byte, then a standalone TEM marker, over and over: each gap
+      // is found one byte in, which must still draw on the budget.
+      final f = _CountingFile(
+        write(
+          'tem.jpg',
+          jpegBytes(
+            before: [
+              for (var k = 0; k < 1024 * 1024; k++) ...[0x00, 0xFF, 0x01],
+              ...exifSegment(setDateAndGps),
+            ],
+          ),
+        ),
+      );
+      expect(readLocalExif(f, 'image/jpeg'), isNull);
+      expect(f.bytesRead, lessThan(1024 * 1024));
+    });
+
+    test('bounds runs of standalone markers and empty segments', () {
+      final tems = _CountingFile(
+        write(
+          'tems.jpg',
+          jpegBytes(
+            before: [
+              for (var k = 0; k < 256 * 1024; k++) ...[0xFF, 0x01],
+              ...exifSegment(setDateAndGps),
+            ],
+          ),
+        ),
+      );
+      final empties = _CountingFile(
+        write(
+          'empties.jpg',
+          jpegBytes(
+            before: [
+              for (var k = 0; k < 256 * 1024; k++) ...appSegment(0xE0, []),
+              ...exifSegment(setDateAndGps),
+            ],
+          ),
+        ),
+      );
+      expect(readLocalExif(tems, 'image/jpeg'), isNull);
+      expect(tems.bytesRead, lessThan(512 * 1024));
+      expect(readLocalExif(empties, 'image/jpeg'), isNull);
+      expect(empties.bytesRead, lessThan(512 * 1024));
+    });
   });
 }
