@@ -9742,10 +9742,11 @@ class DiveRepository {
   }) async {
     try {
       await _db.transaction(() async {
-        // Load the reading that is being promoted.
-        final newPrimary = await (_db.select(
-          _db.diveDataSources,
-        )..where((t) => t.id.equals(computerReadingId))).getSingleOrNull();
+        // Load the reading that is being promoted, without its raw download
+        // (issue #4253): the switch reads only its scalars.
+        final newPrimary = (await _sourceRowsInShownOrder(
+          diveId,
+        )).where((row) => row.id == computerReadingId).firstOrNull;
 
         if (newPrimary == null) return;
 

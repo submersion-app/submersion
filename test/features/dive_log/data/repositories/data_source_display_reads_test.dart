@@ -213,6 +213,44 @@ void main() {
       });
     });
 
+    test('a primary switch reads no raw download', () async {
+      await seedDives();
+
+      await expectNoRawDownloadRead(
+        () => repository.setPrimaryDataSource(
+          diveId: 'd1',
+          computerReadingId: 'd1-b',
+        ),
+      );
+    });
+
+    test('activating another source\'s series reads no raw download', () async {
+      await seedDives();
+      final other = (await quietly(
+        () => series.getRowsForDives(['d1']),
+      )).singleWhere((row) => row.sourceId == 'd1-b');
+
+      await expectNoRawDownloadRead(
+        () => repository.setActiveProfileSeries('d1', other.id),
+      );
+      final sources = await quietly(() => repository.getDataSources('d1'));
+      expect(sources.singleWhere((s) => s.isPrimary).id, 'd1-b');
+    });
+
+    test('a primary switch ignores a source of another dive', () async {
+      await seedDives();
+
+      await quietly(
+        () => repository.setPrimaryDataSource(
+          diveId: 'd1',
+          computerReadingId: 'd2-b',
+        ),
+      );
+
+      final sources = await quietly(() => repository.getDataSources('d1'));
+      expect(sources.singleWhere((s) => s.isPrimary).id, 'd1-a');
+    });
+
     test('a primary switch keeps every raw download in place', () async {
       await seedDives();
 
