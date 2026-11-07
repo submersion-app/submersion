@@ -36,7 +36,8 @@ class FesCell {
       100.0;
 }
 
-bool _hasMagic(ByteData data, String magic) {
+/// Whether [data] starts with [magic].
+bool hasFesMagic(ByteData data, String magic) {
   if (data.lengthInBytes < magic.length) return false;
   for (var i = 0; i < magic.length; i++) {
     if (data.getUint8(i) != magic.codeUnitAt(i)) return false;
@@ -72,7 +73,7 @@ class FesTile {
   /// Parses a tile. Throws [FormatException] for a wrong magic, version,
   /// constituent count or length.
   static FesTile parse(ByteData data, {required int expectedConstituents}) {
-    if (data.lengthInBytes < _headerBytes || !_hasMagic(data, magic)) {
+    if (data.lengthInBytes < _headerBytes || !hasFesMagic(data, magic)) {
       throw const FormatException('Not an FES grid tile');
     }
     final version = data.getUint16(4, Endian.little);
@@ -159,7 +160,7 @@ class FesGlobalLayer {
     ByteData data, {
     required int expectedConstituents,
   }) {
-    if (data.lengthInBytes < _headerBytes || !_hasMagic(data, magic)) {
+    if (data.lengthInBytes < _headerBytes || !hasFesMagic(data, magic)) {
       throw const FormatException('Not an FES global layer');
     }
     final version = data.getUint16(4, Endian.little);

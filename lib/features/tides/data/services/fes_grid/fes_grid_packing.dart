@@ -106,13 +106,8 @@ Future<ByteData> unpackFesGlobalLayer(ByteData packed) async {
 }
 
 void _checkHeader(ByteData data, String magic, int headerBytes, String what) {
-  if (data.lengthInBytes < headerBytes) {
+  if (data.lengthInBytes < headerBytes || !hasFesMagic(data, magic)) {
     throw FormatException('Not a packed $what');
-  }
-  for (var i = 0; i < magic.length; i++) {
-    if (data.getUint8(i) != magic.codeUnitAt(i)) {
-      throw FormatException('Not a packed $what');
-    }
   }
   final version = data.getUint16(4, Endian.little);
   if (version != _packedVersion) {

@@ -66,9 +66,9 @@ def main() -> None:
     tiles = []
     digests = {}
 
-    def write_packed(relative, decoded, pack):
+    def write_packed(relative, decoded, coastal):
         digests[relative] = hashlib.sha256(decoded).hexdigest()
-        (ROOT / relative).write_bytes(pack(decoded))
+        (ROOT / relative).write_bytes(fmt.pack_checked(decoded, coastal))
 
     for tile_row in range((ROWS + TILE - 1) // TILE):
         for tile_col in range(COLS // TILE):
@@ -79,7 +79,7 @@ def main() -> None:
             data = fmt.encode_tile(tile_row, tile_col, present[rs, cs],
                                    amp_mm[rs, cs], ph_cd[rs, cs])
             write_packed(f"coastal/tile_{tile_row}_{tile_col}.bin", data,
-                         fmt.pack_tile)
+                         coastal=True)
             tiles.append([tile_row, tile_col])
 
     g_amp = np.zeros((5, 72, 2))
@@ -91,7 +91,7 @@ def main() -> None:
     g_amp[0, 0] = np.nan
     g_amp_mm, g_ph_cd = fmt.quantize(g_amp, g_ph)
     write_packed("global.bin", fmt.encode_global(g_amp_mm, g_ph_cd),
-                 fmt.pack_global)
+                 coastal=False)
 
     fmt.write_manifest(
         ROOT,

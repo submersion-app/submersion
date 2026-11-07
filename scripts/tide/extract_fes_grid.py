@@ -173,11 +173,11 @@ def write(amp_c, ph_c, present_c, amp_g, ph_g, vectors):
     tiles = []
     digests = {}
 
-    def write_packed(relative, decoded, pack):
+    def write_packed(relative, decoded, coastal):
         # The digest is of the decoded bytes, so the Dart test can prove its
         # unpacker restores every value exactly.
         digests[relative] = hashlib.sha256(decoded).hexdigest()
-        (OUT / relative).write_bytes(pack(decoded))
+        (OUT / relative).write_bytes(fmt.pack_checked(decoded, coastal))
 
     for tile_row in range((rows_c + TILE - 1) // TILE):
         for tile_col in range(cols_c // TILE):
@@ -190,12 +190,12 @@ def write(amp_c, ph_c, present_c, amp_g, ph_g, vectors):
             data = fmt.encode_tile(tile_row, tile_col, present_c[rs, cs],
                                    amp_mm, ph_cd)
             write_packed(f"coastal/tile_{tile_row}_{tile_col}.bin", data,
-                         fmt.pack_tile)
+                         coastal=True)
             tiles.append([tile_row, tile_col])
 
     g_amp_mm, g_ph_cd = fmt.quantize(amp_g, ph_g)
     write_packed("global.bin", fmt.encode_global(g_amp_mm, g_ph_cd),
-                 fmt.pack_global)
+                 coastal=False)
     fmt.write_manifest(
         OUT, model="FES2022b",
         extraction_date=datetime.date.today().isoformat(), band_km=30,

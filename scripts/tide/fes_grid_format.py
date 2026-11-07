@@ -216,6 +216,15 @@ def unpack_global(packed):
             + cells.tobytes())
 
 
+def pack_checked(decoded, coastal):
+    """Packs a decoded tile (coastal) or global layer, refusing to return a
+    file that does not unpack to exactly [decoded]."""
+    packed = (pack_tile if coastal else pack_global)(decoded)
+    if (unpack_tile if coastal else unpack_global)(packed) != decoded:
+        raise ValueError("packed file does not unpack to its decoded bytes")
+    return packed
+
+
 def write_manifest(root: Path, *, model, extraction_date, band_km, coastal,
                    tile_size, tiles, global_, constituents=CONSTITUENTS):
     manifest = {
