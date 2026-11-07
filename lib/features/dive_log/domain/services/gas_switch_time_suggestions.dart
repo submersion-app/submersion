@@ -13,9 +13,11 @@ const int kGasSwitchMaxSuggestions = 3;
 
 /// Whether a falling pressure on [tank] means it was breathed. A cylinder that
 /// feeds a rebreather loop falls with the loop's demand, whatever the diver is
-/// breathing, so its pressure says nothing about a switch.
+/// breathing, so its pressure says nothing about a switch, and a suit
+/// inflation bottle is never breathed at all (issue #4243).
 bool hasBreathingStarts(DiveTank? tank) =>
     tank != null &&
+    tank.role.isBreathingGas &&
     tank.role != TankRole.diluent &&
     tank.role != TankRole.oxygenSupply;
 

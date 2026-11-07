@@ -7,6 +7,7 @@ import 'package:submersion/features/data_quality/domain/detectors/quality_detect
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/ccr_bailout_timeline.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
+import 'package:submersion/features/dive_log/domain/services/breathing_gas_switches.dart';
 
 class TankAssignmentDetector extends QualityDetector {
   const TankAssignmentDetector();
@@ -67,12 +68,19 @@ class TankAssignmentDetector extends QualityDetector {
     }
 
     // Consumption attributed to a tank the switch timeline says was idle.
-    if (ctx.gasSwitches.isNotEmpty) {
-      final ordered = [...ctx.tanks]
+    // A suit inflation bottle is never the gas in use, and a switch to it
+    // counts against the breathing cylinder on its mix (issue #4243).
+    final breathing = [
+      for (final t in ctx.tanks)
+        if (t.role.isBreathingGas) t,
+    ];
+    final switches = breathingRawGasSwitches(ctx.gasSwitches, ctx.tanks);
+    if (switches.isNotEmpty && breathing.isNotEmpty) {
+      final ordered = [...breathing]
         ..sort((a, b) => a.order.compareTo(b.order));
       String activeAt(int t) {
         var id = ordered.first.id;
-        for (final sw in ctx.gasSwitches) {
+        for (final sw in switches) {
           if (sw.timestamp <= t) {
             id = sw.tankId;
           } else {
@@ -83,8 +91,12 @@ class TankAssignmentDetector extends QualityDetector {
       }
 
       for (final tank in ctx.tanks) {
-        // A loop cylinder is not on the open-circuit timeline; see below.
-        if (isLoopTankRole(tank.role.name)) continue;
+        // A loop cylinder is not on the open-circuit timeline; see below. A
+        // suit inflation bottle is never breathed, so its falling pressure
+        // says nothing about the gas in use (issue #4243).
+        if (isLoopTankRole(tank.role.name) || !tank.role.isBreathingGas) {
+          continue;
+        }
         final series = ctx.pressuresByTankId[tank.id] ?? const [];
         if (series.length < 2) continue;
         var total = 0.0;
@@ -148,8 +160,10 @@ class TankAssignmentDetector extends QualityDetector {
       // breathed from it; a second computer logs its own switches, and the
       // merged series can be that computer's reading.
       final evidence = bailoutEvidence<String>(
+        // A switch to a suit inflation bottle counts against the breathing
+        // cylinder on its mix, never as a move off the loop (issue #4243).
         switches: [
-          for (final sw in ctx.gasSwitches)
+          for (final sw in breathingRawGasSwitches(ctx.gasSwitches, ctx.tanks))
             if (tank.computerId == null || sw.appliesTo(tank.computerId!))
               (t: sw.timestamp, tankKey: sw.tankId),
         ],

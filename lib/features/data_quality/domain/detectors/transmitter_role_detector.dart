@@ -4,6 +4,7 @@ import 'package:submersion/features/data_quality/domain/detectors/quality_detect
 import 'package:submersion/features/data_quality/domain/entities/dive_quality_context.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/dive_log/domain/services/ccr_bailout_timeline.dart';
+import 'package:submersion/features/dive_log/domain/services/breathing_gas_switches.dart';
 
 /// A CCR transmitter whose role was read off its name drained like a
 /// bailout: flat on the loop, fast after the switch to open circuit (issue
@@ -41,8 +42,10 @@ class TransmitterRoleDetector extends QualityDetector {
       // Only this transmitter's own computer's switches describe what was
       // breathed from it; a second computer logs its own switches.
       final evidence = bailoutEvidence<String>(
+        // A switch to a suit inflation bottle counts against the breathing
+        // cylinder on its mix, never as a move off the loop (issue #4243).
         switches: [
-          for (final sw in ctx.gasSwitches)
+          for (final sw in breathingRawGasSwitches(ctx.gasSwitches, ctx.tanks))
             if (tank.computerId == null || sw.appliesTo(tank.computerId!))
               (t: sw.timestamp, tankKey: sw.tankId),
         ],
