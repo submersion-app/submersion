@@ -8293,6 +8293,26 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_profile_pointsAndProfiles(
+    num pointCount,
+    num profileCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      pointCount,
+      locale: localeName,
+      other: '$pointCount puntos',
+      one: '1 punto',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      profileCount,
+      locale: localeName,
+      other: '$profileCount revisiones',
+      one: '1 revisión',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
   String get diveLog_edit_row_addSite => 'Añadir punto';
 
   @override
@@ -52589,14 +52609,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_profileEditor_applyToSelection => 'Aplicar a la selección';
 
   @override
-  String get diveLog_profileEditor_outlierDetection =>
-      'Detección de valores atípicos';
+  String get diveLog_profileEditor_cleanup => 'Limpieza';
 
   @override
-  String get diveLog_profileEditor_detect => 'Detectar';
+  String get diveLog_profileEditor_detectOutliers =>
+      'Detectar valores atípicos';
 
   @override
-  String get diveLog_profileEditor_removeAll => 'Eliminar todo';
+  String get diveLog_profileEditor_removeOutliers =>
+      'Eliminar valores atípicos';
 
   @override
   String diveLog_profileEditor_outliersDetected(int count) {
@@ -52624,10 +52645,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_trimMode => 'Modo recorte';
-
-  @override
-  String get diveLog_profileEditor_trimHint =>
-      'Recortar los extremos del perfil';
 
   @override
   String get diveLog_profileEditor_trimEnd => 'Recortar el final';
@@ -52682,7 +52699,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_profileEditor_mode_select => 'Seleccionar';
 
   @override
-  String get diveLog_profileEditor_mode_outlier => 'Atípico';
+  String get diveLog_profileEditor_mode_cleanup => 'Limpiar';
 
   @override
   String get diveLog_profileEditor_mode_draw => 'Dibujar';
@@ -52697,6 +52714,26 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diveLog_profileEditor_revisionSwitchFailed =>
       'No se pudo cambiar la revisión del perfil.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_title =>
+      'Eliminar perfil completo';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_permanentWarning =>
+      'La eliminación de esta revisión del perfil es permanente, no se puede deshacer y surte efecto de inmediato.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_computerImportWarning =>
+      'Este perfil se importó desde un ordenador de buceo y probablemente contiene los datos originales de origen.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_confirmNow =>
+      'Eliminar permanentemente ahora';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_failed =>
+      'No se pudo eliminar la revisión del perfil.';
 
   @override
   String get diveLog_profileEditor_revisionLegacyHint =>

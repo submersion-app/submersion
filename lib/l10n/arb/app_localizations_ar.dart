@@ -8410,6 +8410,32 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_profile_pointsAndProfiles(
+    num pointCount,
+    num profileCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      pointCount,
+      locale: localeName,
+      other: '$pointCount نقطة',
+      many: '$pointCount نقطة',
+      few: '$pointCount نقاط',
+      two: 'نقطتان',
+      one: 'نقطة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      profileCount,
+      locale: localeName,
+      other: '$profileCount مراجعة',
+      many: '$profileCount مراجعة',
+      few: '$profileCount مراجعات',
+      two: 'مراجعتان',
+      one: 'مراجعة واحدة',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
   String get diveLog_edit_row_addSite => 'إضافة موقع';
 
   @override
@@ -53254,13 +53280,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_profileEditor_applyToSelection => 'تطبيق على التحديد';
 
   @override
-  String get diveLog_profileEditor_outlierDetection => 'كشف القيم الشاذة';
+  String get diveLog_profileEditor_cleanup => 'تنظيف';
 
   @override
-  String get diveLog_profileEditor_detect => 'كشف';
+  String get diveLog_profileEditor_detectOutliers => 'كشف القيم المتطرفة';
 
   @override
-  String get diveLog_profileEditor_removeAll => 'إزالة الكل';
+  String get diveLog_profileEditor_removeOutliers => 'إزالة القيم المتطرفة';
 
   @override
   String diveLog_profileEditor_outliersDetected(int count) {
@@ -53292,9 +53318,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_trimMode => 'وضع القص';
-
-  @override
-  String get diveLog_profileEditor_trimHint => 'قص أطراف ملف الغوصة';
 
   @override
   String get diveLog_profileEditor_trimEnd => 'قص النهاية';
@@ -53349,7 +53372,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_profileEditor_mode_select => 'تحديد';
 
   @override
-  String get diveLog_profileEditor_mode_outlier => 'قيمة شاذة';
+  String get diveLog_profileEditor_mode_cleanup => 'نظف';
 
   @override
   String get diveLog_profileEditor_mode_draw => 'رسم';
@@ -53364,6 +53387,24 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_profileEditor_revisionSwitchFailed =>
       'تعذر تبديل مراجعة الملف الشخصي.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_title => 'حذف الملف الكامل';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_permanentWarning =>
+      'حذف مراجعة ملف الغوص هذه نهائي، ولا يمكن التراجع عنه، ويسري مفعوله فورًا.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_computerImportWarning =>
+      'تم استيراد هذا الملف من حاسوب غوص ومن المحتمل أن يحتوي على بيانات المصدر الأصلية.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_confirmNow => 'حذف نهائي الآن';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_failed =>
+      'تعذر حذف مراجعة الملف الشخصي.';
 
   @override
   String get diveLog_profileEditor_revisionLegacyHint =>

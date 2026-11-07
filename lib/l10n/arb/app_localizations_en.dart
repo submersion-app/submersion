@@ -8163,6 +8163,26 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_profile_pointsAndProfiles(
+    num pointCount,
+    num profileCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      pointCount,
+      locale: localeName,
+      other: '$pointCount points',
+      one: '1 point',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      profileCount,
+      locale: localeName,
+      other: '$profileCount revisions',
+      one: '1 revision',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
   String get diveLog_edit_row_addSite => 'Add site';
 
   @override
@@ -51735,13 +51755,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_profileEditor_applyToSelection => 'Apply to Selection';
 
   @override
-  String get diveLog_profileEditor_outlierDetection => 'Outlier Detection';
+  String get diveLog_profileEditor_cleanup => 'Cleanup';
 
   @override
-  String get diveLog_profileEditor_detect => 'Detect';
+  String get diveLog_profileEditor_detectOutliers => 'Detect Outliers';
 
   @override
-  String get diveLog_profileEditor_removeAll => 'Remove All';
+  String get diveLog_profileEditor_removeOutliers => 'Remove Outliers';
 
   @override
   String diveLog_profileEditor_outliersDetected(int count) {
@@ -51769,9 +51789,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_trimMode => 'Trim Mode';
-
-  @override
-  String get diveLog_profileEditor_trimHint => 'Trim profile endpoints';
 
   @override
   String get diveLog_profileEditor_trimEnd => 'Trim End';
@@ -51825,7 +51842,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_profileEditor_mode_select => 'Select';
 
   @override
-  String get diveLog_profileEditor_mode_outlier => 'Outlier';
+  String get diveLog_profileEditor_mode_cleanup => 'Cleanup';
 
   @override
   String get diveLog_profileEditor_mode_draw => 'Draw';
@@ -51840,6 +51857,26 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLog_profileEditor_revisionSwitchFailed =>
       'Could not switch profile revision.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_title =>
+      'Delete Entire Profile';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_permanentWarning =>
+      'Deleting this profile revision is permanent, cannot be undone, and takes effect immediately.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_computerImportWarning =>
+      'This profile was imported from a dive computer and likely contains the original source data.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_confirmNow =>
+      'Delete Permanently Now';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_failed =>
+      'Could not delete the profile revision.';
 
   @override
   String get diveLog_profileEditor_revisionLegacyHint =>

@@ -8118,6 +8118,26 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_profile_pointsAndProfiles(
+    num pointCount,
+    num profileCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      pointCount,
+      locale: localeName,
+      other: '$pointCount נקודות',
+      one: 'נקודה אחת',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      profileCount,
+      locale: localeName,
+      other: '$profileCount גרסאות',
+      one: 'גרסה אחת',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
   String get diveLog_edit_row_addSite => 'הוספת אתר';
 
   @override
@@ -51453,13 +51473,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_profileEditor_applyToSelection => 'החלה על הבחירה';
 
   @override
-  String get diveLog_profileEditor_outlierDetection => 'זיהוי חריגות';
+  String get diveLog_profileEditor_cleanup => 'ניקוי';
 
   @override
-  String get diveLog_profileEditor_detect => 'זיהוי';
+  String get diveLog_profileEditor_detectOutliers => 'זיהוי חריגים';
 
   @override
-  String get diveLog_profileEditor_removeAll => 'הסרת הכל';
+  String get diveLog_profileEditor_removeOutliers => 'הסרת חריגים';
 
   @override
   String diveLog_profileEditor_outliersDetected(int count) {
@@ -51489,9 +51509,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_trimMode => 'מצב חיתוך';
-
-  @override
-  String get diveLog_profileEditor_trimHint => 'חיתוך קצות הפרופיל';
 
   @override
   String get diveLog_profileEditor_trimEnd => 'חיתוך הסוף';
@@ -51545,7 +51562,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_profileEditor_mode_select => 'בחירה';
 
   @override
-  String get diveLog_profileEditor_mode_outlier => 'חריגה';
+  String get diveLog_profileEditor_mode_cleanup => 'לנקות';
 
   @override
   String get diveLog_profileEditor_mode_draw => 'ציור';
@@ -51560,6 +51577,25 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveLog_profileEditor_revisionSwitchFailed =>
       'לא ניתן להחליף את גרסת הפרופיל.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_title => 'מחק את כל הפרופיל';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_permanentWarning =>
+      'מחיקת גרסת הפרופיל הזו היא סופית, אינה ניתנת לביטול ונכנסת לתוקף באופן מיידי.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_computerImportWarning =>
+      'הפרופיל הזה יובא ממחשב צלילה וככל הנראה מכיל את נתוני המקור המקוריים.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_confirmNow =>
+      'מחיקה סופית עכשיו';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_failed =>
+      'לא ניתן למחוק את גרסת הפרופיל.';
 
   @override
   String get diveLog_profileEditor_revisionLegacyHint =>

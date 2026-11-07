@@ -323,25 +323,8 @@ class ProfileSeriesRepository {
       if (target == null) return;
       changed = true;
 
-      final rows =
-          await (_db.select(_db.diveProfileSeries)
-                ..where((t) => t.diveId.equals(diveId))
-                ..orderBy([(t) => OrderingTerm.asc(t.startTimestamp)]))
-              .get();
-      final live = <DiveProfileSeriesRow>[target];
-      for (final row in rows) {
-        if (row.id == target.id ||
-            row.sourceId != target.sourceId ||
-            row.computerId != target.computerId) {
-          continue;
-        }
-        final overlaps = live.any(
-          (chosen) =>
-              row.startTimestamp <= chosen.endTimestamp &&
-              chosen.startTimestamp <= row.endTimestamp,
-        );
-        if (!overlaps) live.add(row);
-      }
+      final rows = await _rowsByStart(diveId);
+      final live = _segmentsOf(target, rows);
       final liveIds = {for (final row in live) row.id};
       final toDemote = [
         for (final r in rows)
@@ -959,6 +942,79 @@ class ProfileSeriesRepository {
   /// Deletes exactly [ids], one tombstone each. Empty input is a no-op.
   Future<List<String>> deleteByIds(List<String> ids) =>
       ids.isEmpty ? Future.value(const []) : _delete((t) => t.id.isIn(ids));
+
+  /// The series that make up one revision with [seriesId] of [diveId], the
+  /// set [activateSeriesForDive] makes live together: the series itself and
+  /// every disjoint segment of the same reading (same source and computer,
+  /// not overlapping a segment already taken). Empty when [seriesId] is not
+  /// a series of [diveId].
+  Future<List<DiveProfileSeriesRow>> segmentsOfRevision(
+    String diveId,
+    String seriesId,
+  ) async {
+    final rows = await _rowsByStart(diveId);
+    final target = rows.where((r) => r.id == seriesId).firstOrNull;
+    return target == null ? const [] : _segmentsOf(target, rows);
+  }
+
+  Future<List<DiveProfileSeriesRow>> _rowsByStart(String diveId) =>
+      (_db.select(_db.diveProfileSeries)
+            ..where((t) => t.diveId.equals(diveId))
+            ..orderBy([(t) => OrderingTerm.asc(t.startTimestamp)]))
+          .get();
+
+  /// [target] and the segments of its reading in [rows] (oldest start
+  /// first) that go live with it.
+  static List<DiveProfileSeriesRow> _segmentsOf(
+    DiveProfileSeriesRow target,
+    List<DiveProfileSeriesRow> rows,
+  ) {
+    final segments = <DiveProfileSeriesRow>[target];
+    for (final row in rows) {
+      if (row.id == target.id ||
+          row.sourceId != target.sourceId ||
+          row.computerId != target.computerId) {
+        continue;
+      }
+      final overlaps = segments.any(
+        (chosen) =>
+            row.startTimestamp <= chosen.endTimestamp &&
+            chosen.startTimestamp <= row.endTimestamp,
+      );
+      if (!overlaps) segments.add(row);
+    }
+    return segments;
+  }
+
+  /// Deletes the series row [seriesId] with its sync tombstone, and its local
+  /// node in `dive_profile_series_history`, as one write.
+  ///
+  /// It deletes nothing else: profile events and gas switches belong to the
+  /// dive, not to a series. A missing [seriesId] deletes nothing and logs no
+  /// tombstone. It checks nothing else: a caller that needs the series to
+  /// exist, or another revision to remain, checks that inside its own
+  /// transaction (see `DiveRepository.deleteProfileSeriesWithHistoryForDive`).
+  Future<void> deleteSeriesWithHistory(String seriesId) async {
+    await _db.transaction(() async {
+      final deleted = await (_db.delete(
+        _db.diveProfileSeries,
+      )..where((t) => t.id.equals(seriesId))).go();
+      // A tombstone for a row that was never here would still delete it on
+      // every peer.
+      if (deleted > 0) {
+        await _syncRepository.logDeletion(
+          entityType: entityType,
+          recordId: seriesId,
+        );
+      }
+
+      await _db.customStatement(
+        'DELETE FROM $_historyTable WHERE series_id = ?',
+        [seriesId],
+      );
+    });
+    SyncEventBus.notifyLocalChange();
+  }
 
   /// Nulls `source_id` on every series of [sourceId] and restamps each, the
   /// `clearComputer` rule applied to the other identity column.

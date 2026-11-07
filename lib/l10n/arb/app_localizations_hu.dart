@@ -8270,6 +8270,26 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_profile_pointsAndProfiles(
+    num pointCount,
+    num profileCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      pointCount,
+      locale: localeName,
+      other: '$pointCount pont',
+      one: '1 pont',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      profileCount,
+      locale: localeName,
+      other: '$profileCount revízió',
+      one: '1 revízió',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
   String get diveLog_edit_row_addSite => 'Merülőhely hozzáadása';
 
   @override
@@ -52256,14 +52276,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Alkalmazás a kijelölésre';
 
   @override
-  String get diveLog_profileEditor_outlierDetection =>
-      'Kiugró értékek keresése';
+  String get diveLog_profileEditor_cleanup => 'Takarítás';
 
   @override
-  String get diveLog_profileEditor_detect => 'Keresés';
+  String get diveLog_profileEditor_detectOutliers => 'Szórványértékek keresése';
 
   @override
-  String get diveLog_profileEditor_removeAll => 'Összes eltávolítása';
+  String get diveLog_profileEditor_removeOutliers =>
+      'Szórványértékek eltávolítása';
 
   @override
   String diveLog_profileEditor_outliersDetected(int count) {
@@ -52291,10 +52311,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_trimMode => 'Vágás mód';
-
-  @override
-  String get diveLog_profileEditor_trimHint =>
-      'A profil végpontjainak levágása';
 
   @override
   String get diveLog_profileEditor_trimEnd => 'Vég levágása';
@@ -52348,7 +52364,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_profileEditor_mode_select => 'Kijelölés';
 
   @override
-  String get diveLog_profileEditor_mode_outlier => 'Kiugró érték';
+  String get diveLog_profileEditor_mode_cleanup => 'Tisztít';
 
   @override
   String get diveLog_profileEditor_mode_draw => 'Rajzolás';
@@ -52363,6 +52379,26 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_profileEditor_revisionSwitchFailed =>
       'Nem sikerült a profilverzió váltása.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_title =>
+      'Teljes profil törlése';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_permanentWarning =>
+      'A profilverzió törlése végleges, nem vonható vissza, és azonnal életbe lép.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_computerImportWarning =>
+      'Ezt a profilt búvárkomputerből importálták, és valószínűleg az eredeti forrásadatokat tartalmazza.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_confirmNow =>
+      'Végleges törlés most';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_failed =>
+      'Nem sikerült törölni a profilverziót.';
 
   @override
   String get diveLog_profileEditor_revisionLegacyHint =>

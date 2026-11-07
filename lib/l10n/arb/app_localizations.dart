@@ -13090,6 +13090,15 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{1 point} other{{count} points}}'**
   String diveLog_edit_profile_points(num count);
 
+  /// Dive profile row value: recorded profile samples and number of available profile revisions
+  ///
+  /// In en, this message translates to:
+  /// **'{pointCount, plural, one{1 point} other{{pointCount} points}} · {profileCount, plural, one{1 revision} other{{profileCount} revisions}}'**
+  String diveLog_edit_profile_pointsAndProfiles(
+    num pointCount,
+    num profileCount,
+  );
+
   /// Placeholder when no site selected
   ///
   /// In en, this message translates to:
@@ -83007,23 +83016,23 @@ abstract class AppLocalizations {
   /// **'Apply to Selection'**
   String get diveLog_profileEditor_applyToSelection;
 
-  /// No description provided for @diveLog_profileEditor_outlierDetection.
+  /// No description provided for @diveLog_profileEditor_cleanup.
   ///
   /// In en, this message translates to:
-  /// **'Outlier Detection'**
-  String get diveLog_profileEditor_outlierDetection;
+  /// **'Cleanup'**
+  String get diveLog_profileEditor_cleanup;
 
-  /// No description provided for @diveLog_profileEditor_detect.
+  /// No description provided for @diveLog_profileEditor_detectOutliers.
   ///
   /// In en, this message translates to:
-  /// **'Detect'**
-  String get diveLog_profileEditor_detect;
+  /// **'Detect Outliers'**
+  String get diveLog_profileEditor_detectOutliers;
 
-  /// No description provided for @diveLog_profileEditor_removeAll.
+  /// No description provided for @diveLog_profileEditor_removeOutliers.
   ///
   /// In en, this message translates to:
-  /// **'Remove All'**
-  String get diveLog_profileEditor_removeAll;
+  /// **'Remove Outliers'**
+  String get diveLog_profileEditor_removeOutliers;
 
   /// Number of suspect depth samples the profile editor found.
   ///
@@ -83060,12 +83069,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Trim Mode'**
   String get diveLog_profileEditor_trimMode;
-
-  /// No description provided for @diveLog_profileEditor_trimHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Trim profile endpoints'**
-  String get diveLog_profileEditor_trimHint;
 
   /// No description provided for @diveLog_profileEditor_trimEnd.
   ///
@@ -83151,11 +83154,11 @@ abstract class AppLocalizations {
   /// **'Select'**
   String get diveLog_profileEditor_mode_select;
 
-  /// Profile editor mode: find and remove suspect depth samples.
+  /// Profile editor mode: find and remove unnecessary depth samples or the entire profile.
   ///
   /// In en, this message translates to:
-  /// **'Outlier'**
-  String get diveLog_profileEditor_mode_outlier;
+  /// **'Cleanup'**
+  String get diveLog_profileEditor_mode_cleanup;
 
   /// Profile editor mode: draw the depth curve by placing waypoints.
   ///
@@ -83180,6 +83183,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not switch profile revision.'**
   String get diveLog_profileEditor_revisionSwitchFailed;
+
+  /// No description provided for @diveLog_profileEditor_deleteProfile_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Entire Profile'**
+  String get diveLog_profileEditor_deleteProfile_title;
+
+  /// No description provided for @diveLog_profileEditor_deleteProfile_permanentWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleting this profile revision is permanent, cannot be undone, and takes effect immediately.'**
+  String get diveLog_profileEditor_deleteProfile_permanentWarning;
+
+  /// No description provided for @diveLog_profileEditor_deleteProfile_computerImportWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This profile was imported from a dive computer and likely contains the original source data.'**
+  String get diveLog_profileEditor_deleteProfile_computerImportWarning;
+
+  /// No description provided for @diveLog_profileEditor_deleteProfile_confirmNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Permanently Now'**
+  String get diveLog_profileEditor_deleteProfile_confirmNow;
+
+  /// No description provided for @diveLog_profileEditor_deleteProfile_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete the profile revision.'**
+  String get diveLog_profileEditor_deleteProfile_failed;
 
   /// No description provided for @diveLog_profileEditor_revisionLegacyHint.
   ///

@@ -2067,6 +2067,83 @@ class DiveRepository {
     return ownerRow;
   }
 
+  /// Deletes the profile revision [seriesId] of [diveId]: its series rows
+  /// (tombstoned for sync) and their local history nodes. A revision split
+  /// into disjoint segments is one revision, so every segment that goes live
+  /// with [seriesId] goes with it (see
+  /// [ProfileSeriesRepository.segmentsOfRevision]).
+  ///
+  /// Throws [ArgumentError] when [seriesId] is not a revision of [diveId], or
+  /// when no other revision would remain. Both checks run inside the
+  /// transaction that deletes, so two deletes racing on a dive with two
+  /// revisions cannot remove both.
+  ///
+  /// When the deleted revision was live, the newest remaining revision goes
+  /// live in its place, and the data source that owns it becomes primary as
+  /// [setActiveProfileSeries] does (issue #3067). Profile events and gas
+  /// switches belong to the dive, not to a series, so they stay.
+  Future<void> deleteProfileSeriesWithHistoryForDive(
+    String diveId,
+    String seriesId,
+  ) async {
+    _log.info('Deleting profile series $seriesId for dive $diveId');
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await _db.transaction(() async {
+        final revisions = await getProfileHistory(diveId);
+        final segments = await _profileSeries.segmentsOfRevision(
+          diveId,
+          seriesId,
+        );
+        if (segments.isEmpty || !revisions.any((r) => r.seriesId == seriesId)) {
+          throw ArgumentError(
+            'Series $seriesId not found in revisions for dive $diveId',
+          );
+        }
+        final segmentIds = {for (final row in segments) row.id};
+        final remaining = [
+          for (final r in revisions)
+            if (!segmentIds.contains(r.seriesId)) r,
+        ];
+        if (remaining.isEmpty) {
+          throw ArgumentError(
+            'Cannot delete the only profile revision. At least 1 revision '
+            'must remain.',
+          );
+        }
+
+        if (segments.any((row) => row.isPrimary)) {
+          // History is newest first.
+          final replacement = remaining.first.seriesId;
+          final newPrimary = await _sourceToPromoteForSeries(
+            diveId,
+            replacement,
+          );
+          if (newPrimary != null) {
+            await _makeDataSourcePrimary(diveId, newPrimary, now: now);
+          }
+          await _profileSeries.activateSeriesForDive(
+            diveId: diveId,
+            seriesId: replacement,
+            now: now,
+          );
+        }
+
+        for (final id in segmentIds) {
+          await _profileSeries.deleteSeriesWithHistory(id);
+        }
+      });
+      await _refreshDiveAfterProfileSwitch(diveId, now: now);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to delete profile series $seriesId for dive $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Brings the dive in line with a profile that a restore or a revision
   /// switch just made live, as [saveEditedProfileWithKind] does for an edit:
   /// depth stats from the live samples, the safety review dropped so it

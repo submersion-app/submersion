@@ -8292,6 +8292,26 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_profile_pointsAndProfiles(
+    num pointCount,
+    num profileCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      pointCount,
+      locale: localeName,
+      other: '$pointCount Punkte',
+      one: '1 Punkt',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      profileCount,
+      locale: localeName,
+      other: '$profileCount Revisionen',
+      one: '1 Revision',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
   String get diveLog_edit_row_addSite => 'Tauchplatz hinzufügen';
 
   @override
@@ -52425,13 +52445,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_profileEditor_applyToSelection => 'Auf Auswahl anwenden';
 
   @override
-  String get diveLog_profileEditor_outlierDetection => 'Ausreißererkennung';
+  String get diveLog_profileEditor_cleanup => 'Bereinigung';
 
   @override
-  String get diveLog_profileEditor_detect => 'Erkennen';
+  String get diveLog_profileEditor_detectOutliers => 'Ausreißer erkennen';
 
   @override
-  String get diveLog_profileEditor_removeAll => 'Alle entfernen';
+  String get diveLog_profileEditor_removeOutliers => 'Ausreißer entfernen';
 
   @override
   String diveLog_profileEditor_outliersDetected(int count) {
@@ -52459,9 +52479,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_trimMode => 'Zuschneidemodus';
-
-  @override
-  String get diveLog_profileEditor_trimHint => 'Profilenden zuschneiden';
 
   @override
   String get diveLog_profileEditor_trimEnd => 'Ende zuschneiden';
@@ -52516,7 +52533,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_profileEditor_mode_select => 'Auswählen';
 
   @override
-  String get diveLog_profileEditor_mode_outlier => 'Ausreißer';
+  String get diveLog_profileEditor_mode_cleanup => 'Bereinigen';
 
   @override
   String get diveLog_profileEditor_mode_draw => 'Zeichnen';
@@ -52531,6 +52548,26 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveLog_profileEditor_revisionSwitchFailed =>
       'Profilrevision konnte nicht gewechselt werden.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_title =>
+      'Gesamtes Profil löschen';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_permanentWarning =>
+      'Das Löschen dieser Profilrevision ist dauerhaft, kann nicht rückgängig gemacht werden und wird sofort wirksam.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_computerImportWarning =>
+      'Dieses Profil wurde von einem Tauchcomputer importiert und enthält wahrscheinlich die ursprünglichen Quelldaten.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_confirmNow =>
+      'Jetzt dauerhaft löschen';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_failed =>
+      'Profilrevision konnte nicht gelöscht werden.';
 
   @override
   String get diveLog_profileEditor_revisionLegacyHint =>

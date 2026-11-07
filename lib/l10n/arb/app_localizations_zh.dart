@@ -7872,6 +7872,24 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_profile_pointsAndProfiles(
+    num pointCount,
+    num profileCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      pointCount,
+      locale: localeName,
+      other: '$pointCount 个点',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      profileCount,
+      locale: localeName,
+      other: '$profileCount 次修订',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
   String get diveLog_edit_row_addSite => '添加潜点';
 
   @override
@@ -49304,13 +49322,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_profileEditor_applyToSelection => '应用到所选范围';
 
   @override
-  String get diveLog_profileEditor_outlierDetection => '异常值检测';
+  String get diveLog_profileEditor_cleanup => '清理';
 
   @override
-  String get diveLog_profileEditor_detect => '检测';
+  String get diveLog_profileEditor_detectOutliers => '检测离群值';
 
   @override
-  String get diveLog_profileEditor_removeAll => '全部移除';
+  String get diveLog_profileEditor_removeOutliers => '移除离群值';
 
   @override
   String diveLog_profileEditor_outliersDetected(int count) {
@@ -49336,9 +49354,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_trimMode => '修剪模式';
-
-  @override
-  String get diveLog_profileEditor_trimHint => '修剪轮廓端点';
 
   @override
   String get diveLog_profileEditor_trimEnd => '修剪末端';
@@ -49388,7 +49403,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_profileEditor_mode_select => '选择';
 
   @override
-  String get diveLog_profileEditor_mode_outlier => '异常值';
+  String get diveLog_profileEditor_mode_cleanup => '清理';
 
   @override
   String get diveLog_profileEditor_mode_draw => '绘制';
@@ -49402,6 +49417,23 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_revisionSwitchFailed => '无法切换剖面版本。';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_title => '删除整个轮廓';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_permanentWarning =>
+      '删除此轮廓版本是永久性的、无法撤销，并且会立即生效。';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_computerImportWarning =>
+      '此轮廓从潜水电脑导入，很可能包含原始源数据。';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_confirmNow => '立即永久删除';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_failed => '无法删除剖面版本。';
 
   @override
   String get diveLog_profileEditor_revisionLegacyHint => '保存于版本历史之前；未关联潜水电脑';

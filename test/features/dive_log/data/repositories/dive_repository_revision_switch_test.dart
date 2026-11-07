@@ -123,6 +123,19 @@ void main() {
     expect(dive.maxDepth, 22.0);
   });
 
+  test('deleting the live revision of one computer makes the computer of '
+      'the revision that replaces it the primary data source', () async {
+    await dives.deleteProfileSeriesWithHistoryForDive('dive-1', seriesA);
+
+    expect(await primarySeries(), {seriesB});
+    expect(await primarySources(), {'src-2'});
+    final dive = await (db.select(
+      db.dives,
+    )..where((t) => t.id.equals('dive-1'))).getSingle();
+    expect(dive.diveComputerModel, 'Teric');
+    expect(dive.maxDepth, 22.0);
+  });
+
   test('switching to an edit of another computer makes that computer the '
       'primary data source too', () async {
     await dives.setPrimaryDataSource(

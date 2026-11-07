@@ -8243,6 +8243,26 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_profile_pointsAndProfiles(
+    num pointCount,
+    num profileCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      pointCount,
+      locale: localeName,
+      other: '$pointCount punten',
+      one: '1 punt',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      profileCount,
+      locale: localeName,
+      other: '$profileCount revisies',
+      one: '1 revisie',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
   String get diveLog_edit_row_addSite => 'Duikstek toevoegen';
 
   @override
@@ -52208,13 +52228,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_profileEditor_applyToSelection => 'Op selectie toepassen';
 
   @override
-  String get diveLog_profileEditor_outlierDetection => 'Uitschieterdetectie';
+  String get diveLog_profileEditor_cleanup => 'Opschoning';
 
   @override
-  String get diveLog_profileEditor_detect => 'Detecteren';
+  String get diveLog_profileEditor_detectOutliers => 'Uitschieters detecteren';
 
   @override
-  String get diveLog_profileEditor_removeAll => 'Alles verwijderen';
+  String get diveLog_profileEditor_removeOutliers => 'Uitschieters verwijderen';
 
   @override
   String diveLog_profileEditor_outliersDetected(int count) {
@@ -52242,10 +52262,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_trimMode => 'Bijsnijmodus';
-
-  @override
-  String get diveLog_profileEditor_trimHint =>
-      'Uiteinden van het profiel bijsnijden';
 
   @override
   String get diveLog_profileEditor_trimEnd => 'Einde bijsnijden';
@@ -52300,7 +52316,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_profileEditor_mode_select => 'Selecteren';
 
   @override
-  String get diveLog_profileEditor_mode_outlier => 'Uitschieter';
+  String get diveLog_profileEditor_mode_cleanup => 'Opschonen';
 
   @override
   String get diveLog_profileEditor_mode_draw => 'Tekenen';
@@ -52315,6 +52331,26 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_profileEditor_revisionSwitchFailed =>
       'Kan niet wisselen van profielrevisie.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_title =>
+      'Hele profiel verwijderen';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_permanentWarning =>
+      'Het verwijderen van deze profielrevisie is permanent, kan niet ongedaan worden gemaakt en gaat direct in.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_computerImportWarning =>
+      'Dit profiel is geïmporteerd vanaf een duikcomputer en bevat waarschijnlijk de oorspronkelijke brongegevens.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_confirmNow =>
+      'Nu permanent verwijderen';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_failed =>
+      'Kan de profielrevisie niet verwijderen.';
 
   @override
   String get diveLog_profileEditor_revisionLegacyHint =>

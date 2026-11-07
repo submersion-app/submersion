@@ -4851,6 +4851,18 @@
       }
     }
   },
+  "diveLog_edit_profile_pointsAndProfiles": "{pointCount, plural, one{1 point} other{{pointCount} points}} · {profileCount, plural, one{1 revision} other{{profileCount} revisions}}",
+  "@diveLog_edit_profile_pointsAndProfiles": {
+    "description": "Dive profile row value: recorded profile samples and number of available profile revisions",
+    "placeholders": {
+      "pointCount": {
+        "type": "num"
+      },
+      "profileCount": {
+        "type": "num"
+      }
+    }
+  },
   "diveLog_edit_row_addSite": "Add site",
   "@diveLog_edit_row_addSite": {
     "description": "Placeholder when no site selected"
@@ -30556,16 +30568,15 @@
   "diveLog_profileEditor_smoothHeavy": "Heavy",
   "diveLog_profileEditor_applyToAll": "Apply to All",
   "diveLog_profileEditor_applyToSelection": "Apply to Selection",
-  "diveLog_profileEditor_outlierDetection": "Outlier Detection",
-  "diveLog_profileEditor_detect": "Detect",
-  "diveLog_profileEditor_removeAll": "Remove All",
+  "diveLog_profileEditor_cleanup": "Cleanup",
+  "diveLog_profileEditor_detectOutliers": "Detect Outliers",
+  "diveLog_profileEditor_removeOutliers": "Remove Outliers",
   "diveLog_profileEditor_outliersDetected": "{count, plural, =1{1 potential outlier detected} other{{count} potential outliers detected}}",
   "diveLog_profileEditor_manualDrawing": "Manual Drawing",
   "diveLog_profileEditor_drawHint": "Tap on the chart to place waypoints",
   "diveLog_profileEditor_clearWaypoints": "Clear",
   "diveLog_profileEditor_generateProfile": "Generate Profile",
   "diveLog_profileEditor_trimMode": "Trim Mode",
-  "diveLog_profileEditor_trimHint": "Trim profile endpoints",
   "diveLog_profileEditor_trimEnd": "Trim End",
   "diveLog_profileEditor_mode_smooth": "Smooth",
   "diveLog_profileEditor_title": "Edit Profile",
@@ -30580,11 +30591,16 @@
   "diveLog_profileEditor_smoothTooFewBlocked": "Can't smooth: select at least three samples",
   "diveLog_profileEditor_undo": "Undo",
   "diveLog_profileEditor_mode_select": "Select",
-  "diveLog_profileEditor_mode_outlier": "Outlier",
+  "diveLog_profileEditor_mode_cleanup": "Cleanup",
   "diveLog_profileEditor_mode_draw": "Draw",
   "diveLog_profileEditor_mode_trim": "Trim",
   "diveLog_profileEditor_revisionSelectorTooltip": "Switch active revision. This takes effect immediately and all future edits will be based on this revision.",
   "diveLog_profileEditor_revisionSwitchFailed": "Could not switch profile revision.",
+  "diveLog_profileEditor_deleteProfile_title": "Delete Entire Profile",
+  "diveLog_profileEditor_deleteProfile_permanentWarning": "Deleting this profile revision is permanent, cannot be undone, and takes effect immediately.",
+  "diveLog_profileEditor_deleteProfile_computerImportWarning": "This profile was imported from a dive computer and likely contains the original source data.",
+  "diveLog_profileEditor_deleteProfile_confirmNow": "Delete Permanently Now",
+  "diveLog_profileEditor_deleteProfile_failed": "Could not delete the profile revision.",
   "diveLog_profileEditor_revisionLegacyHint": "Saved before revision history; not linked to a computer",
   "diveLog_sources_sectionTitle": "{count, plural, =0{Data Source} =1{Data Source} other{Data Sources}}",
   "diveLog_sources_badge_manual": "Manual",
@@ -30960,8 +30976,8 @@
   "@diveLog_profileEditor_mode_select": {
     "description": "Profile editor mode: select a range of the depth curve."
   },
-  "@diveLog_profileEditor_mode_outlier": {
-    "description": "Profile editor mode: find and remove suspect depth samples."
+  "@diveLog_profileEditor_mode_cleanup": {
+    "description": "Profile editor mode: find and remove unnecessary depth samples or the entire profile."
   },
   "@diveLog_profileEditor_mode_draw": {
     "description": "Profile editor mode: draw the depth curve by placing waypoints."
