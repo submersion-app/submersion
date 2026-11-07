@@ -61122,4 +61122,114 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get search_openTooltip => 'بحث';
+
+  @override
+  String get twinSet_title => 'طقم مزدوج';
+
+  @override
+  String get twinSet_none => 'ليست جزءا من طقم مزدوج';
+
+  @override
+  String get twinSet_link => 'ربط بأسطوانة شريكة في طقم مزدوج';
+
+  @override
+  String twinSet_since(String date) {
+    return 'منذ $date';
+  }
+
+  @override
+  String get twinSet_replace => 'استبدال الشريكة';
+
+  @override
+  String get twinSet_unlink => 'فك الربط';
+
+  @override
+  String get twinSet_history => 'السجل';
+
+  @override
+  String twinSet_historyRange(String partner, String from, String to) {
+    return '$partner، من $from إلى $to';
+  }
+
+  @override
+  String get twinSet_deletePairing => 'حذف الربط';
+
+  @override
+  String get twinSet_deletePairingConfirm =>
+      'حذف هذا الربط من السجل؟ لن تتغير التعبئات ولا الغطسات.';
+
+  @override
+  String get twinSet_pickerTitle => 'الأسطوانة الشريكة';
+
+  @override
+  String get twinSet_pickerEmpty => 'لا توجد أسطوانات أخرى للربط معها.';
+
+  @override
+  String get twinSet_pairedOnHelp => 'مربوطة منذ';
+
+  @override
+  String get twinSet_unpairedOnHelp => 'فك الربط في';
+
+  @override
+  String get twinSet_pressureMismatchTitle => 'ضغوط تشغيل مختلفة';
+
+  @override
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  ) {
+    return 'ضغط تشغيل $a هو $aPressure و$b هو $bPressure. الطقم الموصول بمشعب يُعبأ إلى ضغط واحد.';
+  }
+
+  @override
+  String get twinSet_continue => 'متابعة';
+
+  @override
+  String get twinSet_replaceTitle => 'استبدال الشريكة؟';
+
+  @override
+  String twinSet_replaceClash(String cylinder, String partner) {
+    return '$cylinder مربوطة مع $partner.';
+  }
+
+  @override
+  String twinSet_replaceQuestion(String a, String b) {
+    return 'ربط $a مع $b بدلا من ذلك؟';
+  }
+
+  @override
+  String twinSet_leftAlone(String name) {
+    return 'ستبقى $name منفردة.';
+  }
+
+  @override
+  String get twinSet_replaceConfirm => 'استبدال';
+
+  @override
+  String get twinSet_clashTitle => 'ربط متداخل';
+
+  @override
+  String twinSet_clashBody(String pairs) {
+    return 'يتداخل هذا مع ربط $pairs. يمكن أن تكون الأسطوانة في طقم مزدوج واحد في أي يوم.';
+  }
+
+  @override
+  String twinSet_pairNames(String a, String b) {
+    return '$a و$b';
+  }
+
+  @override
+  String twinSet_endBeforeStart(String date) {
+    return 'يجب أن يكون تاريخ الانتهاء بعد $date.';
+  }
+
+  @override
+  String get twinSet_saveFailed => 'تعذر حفظ تغيير الطقم المزدوج.';
+
+  @override
+  String twinSet_with(String partner) {
+    return 'طقم مزدوج مع $partner';
+  }
 }

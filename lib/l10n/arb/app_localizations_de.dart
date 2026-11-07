@@ -60166,4 +60166,115 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get search_openTooltip => 'Suchen';
+
+  @override
+  String get twinSet_title => 'Doppelgerät';
+
+  @override
+  String get twinSet_none => 'Nicht Teil eines Doppelgeräts';
+
+  @override
+  String get twinSet_link => 'Mit einer Partnerflasche verbinden';
+
+  @override
+  String twinSet_since(String date) {
+    return 'Seit $date';
+  }
+
+  @override
+  String get twinSet_replace => 'Partner tauschen';
+
+  @override
+  String get twinSet_unlink => 'Trennen';
+
+  @override
+  String get twinSet_history => 'Verlauf';
+
+  @override
+  String twinSet_historyRange(String partner, String from, String to) {
+    return '$partner, $from bis $to';
+  }
+
+  @override
+  String get twinSet_deletePairing => 'Paarung löschen';
+
+  @override
+  String get twinSet_deletePairingConfirm =>
+      'Diese Paarung aus dem Verlauf löschen? Füllungen und Tauchgänge bleiben unverändert.';
+
+  @override
+  String get twinSet_pickerTitle => 'Partnerflasche';
+
+  @override
+  String get twinSet_pickerEmpty => 'Keine anderen Flaschen zum Paaren.';
+
+  @override
+  String get twinSet_pairedOnHelp => 'Gepaart seit';
+
+  @override
+  String get twinSet_unpairedOnHelp => 'Getrennt am';
+
+  @override
+  String get twinSet_pressureMismatchTitle => 'Unterschiedliche Betriebsdrücke';
+
+  @override
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  ) {
+    return '$a ist für $aPressure ausgelegt und $b für $bPressure. Ein verbundenes Paar wird auf einen Druck gefüllt.';
+  }
+
+  @override
+  String get twinSet_continue => 'Fortfahren';
+
+  @override
+  String get twinSet_replaceTitle => 'Partner tauschen?';
+
+  @override
+  String twinSet_replaceClash(String cylinder, String partner) {
+    return '$cylinder ist mit $partner gepaart.';
+  }
+
+  @override
+  String twinSet_replaceQuestion(String a, String b) {
+    return 'Stattdessen $a mit $b paaren?';
+  }
+
+  @override
+  String twinSet_leftAlone(String name) {
+    return '$name bleibt dann einzeln.';
+  }
+
+  @override
+  String get twinSet_replaceConfirm => 'Tauschen';
+
+  @override
+  String get twinSet_clashTitle => 'Überschneidende Paarung';
+
+  @override
+  String twinSet_clashBody(String pairs) {
+    return 'Das überschneidet sich mit der Paarung von $pairs. Eine Flasche kann an einem Tag nur zu einem Doppelgerät gehören.';
+  }
+
+  @override
+  String twinSet_pairNames(String a, String b) {
+    return '$a und $b';
+  }
+
+  @override
+  String twinSet_endBeforeStart(String date) {
+    return 'Das Enddatum muss nach dem $date liegen.';
+  }
+
+  @override
+  String get twinSet_saveFailed =>
+      'Die Änderung am Doppelgerät konnte nicht gespeichert werden.';
+
+  @override
+  String twinSet_with(String partner) {
+    return 'Doppelgerät mit $partner';
+  }
 }

@@ -95055,6 +95055,179 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search'**
   String get search_openTooltip;
+
+  /// No description provided for @twinSet_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Twin set'**
+  String get twinSet_title;
+
+  /// No description provided for @twinSet_none.
+  ///
+  /// In en, this message translates to:
+  /// **'Not part of a twin set'**
+  String get twinSet_none;
+
+  /// No description provided for @twinSet_link.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to a twin set partner'**
+  String get twinSet_link;
+
+  /// No description provided for @twinSet_since.
+  ///
+  /// In en, this message translates to:
+  /// **'Since {date}'**
+  String twinSet_since(String date);
+
+  /// No description provided for @twinSet_replace.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace partner'**
+  String get twinSet_replace;
+
+  /// No description provided for @twinSet_unlink.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink'**
+  String get twinSet_unlink;
+
+  /// No description provided for @twinSet_history.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get twinSet_history;
+
+  /// No description provided for @twinSet_historyRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{partner}, {from} to {to}'**
+  String twinSet_historyRange(String partner, String from, String to);
+
+  /// No description provided for @twinSet_deletePairing.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete pairing'**
+  String get twinSet_deletePairing;
+
+  /// No description provided for @twinSet_deletePairingConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this pairing from the history? Fills and dives are not changed.'**
+  String get twinSet_deletePairingConfirm;
+
+  /// No description provided for @twinSet_pickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Twin set partner'**
+  String get twinSet_pickerTitle;
+
+  /// No description provided for @twinSet_pickerEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No other cylinders to pair with.'**
+  String get twinSet_pickerEmpty;
+
+  /// No description provided for @twinSet_pairedOnHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Paired since'**
+  String get twinSet_pairedOnHelp;
+
+  /// No description provided for @twinSet_unpairedOnHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlinked on'**
+  String get twinSet_unpairedOnHelp;
+
+  /// No description provided for @twinSet_pressureMismatchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Different working pressures'**
+  String get twinSet_pressureMismatchTitle;
+
+  /// No description provided for @twinSet_pressureMismatchBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{a} is rated {aPressure} and {b} {bPressure}. A manifolded pair fills to one pressure.'**
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  );
+
+  /// No description provided for @twinSet_continue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get twinSet_continue;
+
+  /// No description provided for @twinSet_replaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace partner?'**
+  String get twinSet_replaceTitle;
+
+  /// No description provided for @twinSet_replaceClash.
+  ///
+  /// In en, this message translates to:
+  /// **'{cylinder} is paired with {partner}.'**
+  String twinSet_replaceClash(String cylinder, String partner);
+
+  /// No description provided for @twinSet_replaceQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Pair {a} with {b} instead?'**
+  String twinSet_replaceQuestion(String a, String b);
+
+  /// No description provided for @twinSet_leftAlone.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} will be left on its own.'**
+  String twinSet_leftAlone(String name);
+
+  /// No description provided for @twinSet_replaceConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get twinSet_replaceConfirm;
+
+  /// No description provided for @twinSet_clashTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Overlapping pairing'**
+  String get twinSet_clashTitle;
+
+  /// No description provided for @twinSet_clashBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This overlaps the pairing of {pairs}. A cylinder can be in one twin set on any day.'**
+  String twinSet_clashBody(String pairs);
+
+  /// No description provided for @twinSet_pairNames.
+  ///
+  /// In en, this message translates to:
+  /// **'{a} and {b}'**
+  String twinSet_pairNames(String a, String b);
+
+  /// No description provided for @twinSet_endBeforeStart.
+  ///
+  /// In en, this message translates to:
+  /// **'The end date must be after {date}.'**
+  String twinSet_endBeforeStart(String date);
+
+  /// No description provided for @twinSet_saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the twin set change.'**
+  String get twinSet_saveFailed;
+
+  /// No description provided for @twinSet_with.
+  ///
+  /// In en, this message translates to:
+  /// **'Twin set with {partner}'**
+  String twinSet_with(String partner);
 }
 
 class _AppLocalizationsDelegate

@@ -59950,4 +59950,114 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get search_openTooltip => 'Keresés';
+
+  @override
+  String get twinSet_title => 'Ikerpalack';
+
+  @override
+  String get twinSet_none => 'Nem része ikerpalacknak';
+
+  @override
+  String get twinSet_link => 'Társpalack hozzákapcsolása';
+
+  @override
+  String twinSet_since(String date) {
+    return '$date óta';
+  }
+
+  @override
+  String get twinSet_replace => 'Társ cseréje';
+
+  @override
+  String get twinSet_unlink => 'Szétválasztás';
+
+  @override
+  String get twinSet_history => 'Előzmények';
+
+  @override
+  String twinSet_historyRange(String partner, String from, String to) {
+    return '$partner, $from és $to között';
+  }
+
+  @override
+  String get twinSet_deletePairing => 'Párosítás törlése';
+
+  @override
+  String get twinSet_deletePairingConfirm =>
+      'Törli ezt a párosítást az előzményekből? A töltések és a merülések nem változnak.';
+
+  @override
+  String get twinSet_pickerTitle => 'Társpalack';
+
+  @override
+  String get twinSet_pickerEmpty => 'Nincs más palack a párosításhoz.';
+
+  @override
+  String get twinSet_pairedOnHelp => 'Párosítva ekkortól';
+
+  @override
+  String get twinSet_unpairedOnHelp => 'Szétválasztva ekkor';
+
+  @override
+  String get twinSet_pressureMismatchTitle => 'Eltérő üzemi nyomások';
+
+  @override
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  ) {
+    return '$a üzemi nyomása $aPressure, $b palacké $bPressure. Az összekötött pár egy nyomásra töltődik.';
+  }
+
+  @override
+  String get twinSet_continue => 'Folytatás';
+
+  @override
+  String get twinSet_replaceTitle => 'Lecseréli a társat?';
+
+  @override
+  String twinSet_replaceClash(String cylinder, String partner) {
+    return '$cylinder párja jelenleg $partner.';
+  }
+
+  @override
+  String twinSet_replaceQuestion(String a, String b) {
+    return 'Inkább $a és $b legyen pár?';
+  }
+
+  @override
+  String twinSet_leftAlone(String name) {
+    return '$name egyedül marad.';
+  }
+
+  @override
+  String get twinSet_replaceConfirm => 'Csere';
+
+  @override
+  String get twinSet_clashTitle => 'Átfedő párosítás';
+
+  @override
+  String twinSet_clashBody(String pairs) {
+    return 'Ez átfedi ezt a párosítást: $pairs. Egy palack egy napon csak egy ikerpalack része lehet.';
+  }
+
+  @override
+  String twinSet_pairNames(String a, String b) {
+    return '$a és $b';
+  }
+
+  @override
+  String twinSet_endBeforeStart(String date) {
+    return 'A záró dátumnak $date utáninak kell lennie.';
+  }
+
+  @override
+  String get twinSet_saveFailed => 'Az ikerpalack módosítása nem menthető.';
+
+  @override
+  String twinSet_with(String partner) {
+    return 'Ikerpalack ezzel: $partner';
+  }
 }

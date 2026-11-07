@@ -60277,4 +60277,115 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get search_openTooltip => 'Pesquisar';
+
+  @override
+  String get twinSet_title => 'Bi-cilindro';
+
+  @override
+  String get twinSet_none => 'Não faz parte de um bi-cilindro';
+
+  @override
+  String get twinSet_link => 'Vincular a um cilindro parceiro';
+
+  @override
+  String twinSet_since(String date) {
+    return 'Desde $date';
+  }
+
+  @override
+  String get twinSet_replace => 'Trocar parceiro';
+
+  @override
+  String get twinSet_unlink => 'Desvincular';
+
+  @override
+  String get twinSet_history => 'Histórico';
+
+  @override
+  String twinSet_historyRange(String partner, String from, String to) {
+    return '$partner, de $from a $to';
+  }
+
+  @override
+  String get twinSet_deletePairing => 'Excluir pareamento';
+
+  @override
+  String get twinSet_deletePairingConfirm =>
+      'Excluir este pareamento do histórico? Cargas e mergulhos não mudam.';
+
+  @override
+  String get twinSet_pickerTitle => 'Cilindro parceiro';
+
+  @override
+  String get twinSet_pickerEmpty => 'Nenhum outro cilindro para parear.';
+
+  @override
+  String get twinSet_pairedOnHelp => 'Pareados desde';
+
+  @override
+  String get twinSet_unpairedOnHelp => 'Desvinculados em';
+
+  @override
+  String get twinSet_pressureMismatchTitle => 'Pressões de trabalho diferentes';
+
+  @override
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  ) {
+    return '$a tem pressão de trabalho de $aPressure e $b de $bPressure. Um par com manifold é carregado a uma só pressão.';
+  }
+
+  @override
+  String get twinSet_continue => 'Continuar';
+
+  @override
+  String get twinSet_replaceTitle => 'Trocar de parceiro?';
+
+  @override
+  String twinSet_replaceClash(String cylinder, String partner) {
+    return '$cylinder está pareado com $partner.';
+  }
+
+  @override
+  String twinSet_replaceQuestion(String a, String b) {
+    return 'Parear $a com $b em vez disso?';
+  }
+
+  @override
+  String twinSet_leftAlone(String name) {
+    return '$name ficará sozinho.';
+  }
+
+  @override
+  String get twinSet_replaceConfirm => 'Trocar';
+
+  @override
+  String get twinSet_clashTitle => 'Pareamento sobreposto';
+
+  @override
+  String twinSet_clashBody(String pairs) {
+    return 'Isto se sobrepõe ao pareamento de $pairs. Um cilindro só pode estar em um bi-cilindro por dia.';
+  }
+
+  @override
+  String twinSet_pairNames(String a, String b) {
+    return '$a e $b';
+  }
+
+  @override
+  String twinSet_endBeforeStart(String date) {
+    return 'A data de término deve ser posterior a $date.';
+  }
+
+  @override
+  String get twinSet_saveFailed =>
+      'Não foi possível salvar a alteração do bi-cilindro.';
+
+  @override
+  String twinSet_with(String partner) {
+    return 'Bi-cilindro com $partner';
+  }
 }

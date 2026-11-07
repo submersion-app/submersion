@@ -60294,4 +60294,115 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get search_openTooltip => 'Cerca';
+
+  @override
+  String get twinSet_title => 'Bibombola';
+
+  @override
+  String get twinSet_none => 'Non fa parte di una bibombola';
+
+  @override
+  String get twinSet_link => 'Collega a una bombola gemella';
+
+  @override
+  String twinSet_since(String date) {
+    return 'Dal $date';
+  }
+
+  @override
+  String get twinSet_replace => 'Sostituisci gemella';
+
+  @override
+  String get twinSet_unlink => 'Scollega';
+
+  @override
+  String get twinSet_history => 'Cronologia';
+
+  @override
+  String twinSet_historyRange(String partner, String from, String to) {
+    return '$partner, dal $from al $to';
+  }
+
+  @override
+  String get twinSet_deletePairing => 'Elimina abbinamento';
+
+  @override
+  String get twinSet_deletePairingConfirm =>
+      'Eliminare questo abbinamento dalla cronologia? Ricariche e immersioni non cambiano.';
+
+  @override
+  String get twinSet_pickerTitle => 'Bombola gemella';
+
+  @override
+  String get twinSet_pickerEmpty => 'Nessun\'altra bombola da abbinare.';
+
+  @override
+  String get twinSet_pairedOnHelp => 'Abbinate dal';
+
+  @override
+  String get twinSet_unpairedOnHelp => 'Scollegate il';
+
+  @override
+  String get twinSet_pressureMismatchTitle => 'Pressioni di esercizio diverse';
+
+  @override
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  ) {
+    return '$a ha una pressione di esercizio di $aPressure e $b di $bPressure. Una coppia con rubinetteria si ricarica a una sola pressione.';
+  }
+
+  @override
+  String get twinSet_continue => 'Continua';
+
+  @override
+  String get twinSet_replaceTitle => 'Sostituire la gemella?';
+
+  @override
+  String twinSet_replaceClash(String cylinder, String partner) {
+    return '$cylinder è abbinata a $partner.';
+  }
+
+  @override
+  String twinSet_replaceQuestion(String a, String b) {
+    return 'Abbinare invece $a a $b?';
+  }
+
+  @override
+  String twinSet_leftAlone(String name) {
+    return '$name resterà da sola.';
+  }
+
+  @override
+  String get twinSet_replaceConfirm => 'Sostituisci';
+
+  @override
+  String get twinSet_clashTitle => 'Abbinamento sovrapposto';
+
+  @override
+  String twinSet_clashBody(String pairs) {
+    return 'Si sovrappone all\'abbinamento di $pairs. Una bombola può far parte di una sola bibombola al giorno.';
+  }
+
+  @override
+  String twinSet_pairNames(String a, String b) {
+    return '$a e $b';
+  }
+
+  @override
+  String twinSet_endBeforeStart(String date) {
+    return 'La data di fine deve essere successiva al $date.';
+  }
+
+  @override
+  String get twinSet_saveFailed =>
+      'Impossibile salvare la modifica della bibombola.';
+
+  @override
+  String twinSet_with(String partner) {
+    return 'Bibombola con $partner';
+  }
 }

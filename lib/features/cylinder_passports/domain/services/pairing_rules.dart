@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_pairing.dart';
 
 /// Rules for twin set pairings (issue #4242). Pure, so the repository, the
@@ -84,3 +85,15 @@ List<CylinderPairing> clashesWith(
         rangesOverlap(p.pairedOn, p.unpairedOn, pairedOn, unpairedOn))
       p,
 ];
+
+/// Whether a partner in [status] is away from the pair: retired, sold, lost,
+/// loaned out or in for service. Its fill switch starts off and the dive
+/// prompt names the status, so a fill never lands on a cylinder the diver
+/// has parted with unless they choose it (issue #4242).
+bool isPartnerOutOfUse(EquipmentStatus status) => const {
+  EquipmentStatus.retired,
+  EquipmentStatus.sold,
+  EquipmentStatus.lost,
+  EquipmentStatus.loaned,
+  EquipmentStatus.inService,
+}.contains(status);

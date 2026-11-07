@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_pairing.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/pairing_rules.dart';
 
@@ -140,5 +141,21 @@ void main() {
       ),
       isEmpty,
     );
+  });
+
+  test('a partner retired, sold, lost, loaned or in service is out of use', () {
+    for (final s in EquipmentStatus.values) {
+      expect(
+        isPartnerOutOfUse(s),
+        const {
+          EquipmentStatus.retired,
+          EquipmentStatus.sold,
+          EquipmentStatus.lost,
+          EquipmentStatus.loaned,
+          EquipmentStatus.inService,
+        }.contains(s),
+        reason: s.name,
+      );
+    }
   });
 }
