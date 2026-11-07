@@ -1164,6 +1164,21 @@ void main() {
       );
     });
 
+    test('is refused as the role of an edited tank', () {
+      final c = container();
+      final notifier = c.read(divePlanNotifierProvider.notifier);
+      final tank = c.read(divePlanNotifierProvider).tanks.first;
+
+      notifier.updateTank(
+        tank.id,
+        tank.copyWith(role: TankRole.suitInflation, volume: 0.85),
+      );
+
+      final updated = c.read(divePlanNotifierProvider).tanks.first;
+      expect(updated.role, tank.role);
+      expect(updated.volume, 0.85);
+    });
+
     test('is stripped from a plan opened for editing', () {
       final c = container();
       final notifier = c.read(divePlanNotifierProvider.notifier);

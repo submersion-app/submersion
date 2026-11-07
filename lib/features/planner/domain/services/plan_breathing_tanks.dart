@@ -15,7 +15,8 @@ typedef BreathingPlanParts = ({
 /// every tank it is given, so a suit inflation bottle must never reach one.
 /// Every way into a plan (the What-if conversion, a saved cylinder, a stored
 /// or imported plan) strips it. A segment that named a stripped bottle moves
-/// to the first remaining tank. A plan whose only tanks are bottles keeps
+/// to the first remaining tank and takes its gas, since the engine reads a
+/// segment's own mix. A plan whose only tanks are bottles keeps
 /// them as back gas rather than become a plan with no gas, which the planner
 /// cannot open.
 ///
@@ -41,13 +42,13 @@ BreathingPlanParts breathingPlanParts(
     for (final tank in tanks)
       if (!tank.role.isBreathingGas) tank.id,
   };
-  final fallback = breathing.first.id;
+  final fallback = breathing.first;
   return (
     tanks: breathing,
     segments: [
       for (final segment in segments)
         stripped.contains(segment.tankId)
-            ? segment.copyWith(tankId: fallback)
+            ? segment.copyWith(tankId: fallback.id, gasMix: fallback.gasMix)
             : segment,
     ],
   );

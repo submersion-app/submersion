@@ -44,6 +44,12 @@ List<GasSwitchWithTank> breathingGasSwitches(
   ];
 }
 
+/// The rule [breathingRawGasSwitches] applies, for a switch type of its own
+/// (the Dive Lab's): the cylinder a switch to a tank id counts against, the
+/// id itself for a breathing or unknown tank, null to drop it.
+String? Function(String tankId) breathingSwitchTarget(List<DiveTank> tanks) =>
+    _Targets(tanks).resolve;
+
 GasSwitchWithTank _relabel(GasSwitchWithTank sw, DiveTank tank) =>
     GasSwitchWithTank(
       gasSwitch: sw.gasSwitch.copyWith(tankId: tank.id),

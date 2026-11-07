@@ -40,11 +40,19 @@ void main() {
 
   test('strips the bottle and moves its segments to the first tank', () {
     final result = withoutSuitInflationCylinders(
-      plan(const [suit, back], [segment('s1', 'suit'), segment('s2', 'back')]),
+      plan(
+        const [suit, back],
+        [
+          segment('s1', 'suit').copyWith(gasMix: const GasMix(o2: 21)),
+          segment('s2', 'back'),
+        ],
+      ),
     );
 
     expect(result.tanks, const [back]);
     expect(result.segments.map((s) => s.tankId), ['back', 'back']);
+    // A moved segment breathes its new tank's gas, not the bottle's.
+    expect(result.segments.first.gasMix, back.gasMix);
   });
 
   test('a plan with only a bottle keeps it as back gas', () {

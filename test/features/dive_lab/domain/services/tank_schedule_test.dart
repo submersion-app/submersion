@@ -154,6 +154,26 @@ void main() {
       expect(s.tankIdAt(0), 'left');
     });
 
+    test('a switch to it moves to the breathing tank on its mix, or goes', () {
+      const airSuit = DiveTank(
+        id: 'airSuit',
+        gasMix: GasMix(o2: 21),
+        role: TankRole.suitInflation,
+      );
+      final s = TankSchedule.fromDive(
+        tanks: const [back, deco50, suit, airSuit],
+        switches: const [
+          ScenarioGasSwitch(timestamp: 600, tankId: 'deco50'),
+          ScenarioGasSwitch(timestamp: 1200, tankId: 'airSuit'),
+          ScenarioGasSwitch(timestamp: 1800, tankId: 'suit'),
+        ],
+      );
+
+      expect(s.tankIdAt(1300), 'back');
+      expect(s.tankIdAt(1900), 'back');
+      expect(s.intervals.map((i) => i.tankId), isNot(contains('suit')));
+    });
+
     test('is never the best tank for a depth', () {
       expect(bestTankForDepth(const [suit, back], 5, maxPpO2: 1.6)?.id, 'back');
       expect(bestTankForDepth(const [suit], 5, maxPpO2: 1.6), isNull);

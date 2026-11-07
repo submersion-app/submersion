@@ -342,7 +342,10 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     if (plan == null || !mounted) return false;
     _loaded = plan;
     _loadCount++;
-    state = _withCcrSlots(stateFromDivePlan(plan));
+    // A plan holds breathing gas only (issue #4243).
+    state = _withCcrSlots(
+      withoutSuitInflationCylinders(stateFromDivePlan(plan)),
+    );
     final mission = plan.mission;
     if (mission != null) {
       // A scooter picked from equipment follows the live item; a manual or
@@ -576,6 +579,12 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   /// this is the backstop that keeps the plan from losing a slot.
   void updateTank(String id, DiveTank tank) {
     var updated = tank;
+    // A plan never holds a suit inflation bottle (issue #4243): an edit that
+    // would make one keeps the tank's role.
+    if (!updated.role.isBreathingGas) {
+      final original = state.tanks.where((t) => t.id == id).firstOrNull;
+      updated = updated.copyWith(role: original?.role ?? TankRole.backGas);
+    }
     if (state.mode == domain.PlanMode.ccr) {
       final original = state.tanks.where((t) => t.id == id).firstOrNull;
       if (original?.role == TankRole.oxygenSupply) {
