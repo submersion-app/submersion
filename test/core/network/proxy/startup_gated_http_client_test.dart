@@ -112,6 +112,16 @@ void main() {
       expect(inner.calls.map((c) => c.memberName), [#close]);
     });
 
+    test('a request opened after a forced close is refused at once', () async {
+      final inner = _Recording();
+      final client = StartupGatedHttpClient(
+        inner,
+        () => Completer<void>().future,
+      )..close(force: true);
+      await expectLater(client.getUrl(url), throwsStateError);
+      expect(inner.calls.map((c) => c.memberName), [#close]);
+    });
+
     test('a forced close goes through at once', () {
       final inner = _Recording();
       StartupGatedHttpClient(

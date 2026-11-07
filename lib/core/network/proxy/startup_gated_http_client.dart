@@ -20,8 +20,8 @@ class StartupGatedHttpClient implements HttpClient {
   final HttpClient _inner;
   final Future<void>? Function() _pending;
 
-  /// Set by a plain [close] made while requests may still be waiting; the
-  /// real client closes once they have opened.
+  /// Set by [close]: later requests are refused at once, rather than
+  /// waiting for the startup lookup only to fail on the closed client.
   bool _closing = false;
 
   Future<HttpClientRequest> _afterStartup(
@@ -172,12 +172,12 @@ class StartupGatedHttpClient implements HttpClient {
   /// goes through at once and fails the waiting requests.
   @override
   void close({bool force = false}) {
+    _closing = true;
     final pending = _pending();
     if (force || pending == null) {
       _inner.close(force: force);
       return;
     }
-    _closing = true;
     // Registered after every waiting request's open, so it runs after them.
     unawaited(pending.then((_) => _inner.close()));
   }
