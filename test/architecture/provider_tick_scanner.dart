@@ -226,12 +226,13 @@ ScanResult scanForTickViolations({
   final parsedFiles = [for (final file in providerFiles) (file, _parse(file))];
   final publicHelpers = <String, List<AstNode>>{};
   for (final (_, parsed) in parsedFiles) {
-    final functions = _TopLevelFunctions();
-    parsed.unit.accept(functions);
-    for (final MapEntry(:key, :value) in functions.bodies.entries) {
-      if (!key.startsWith('_')) {
-        publicHelpers.putIfAbsent(key, () => []).add(value);
-      }
+    // Declarations of the unit itself: a function nested in another body
+    // cannot be called from another file.
+    for (final helper
+        in parsed.unit.declarations.whereType<FunctionDeclaration>()) {
+      final name = helper.name.lexeme;
+      if (name.startsWith('_')) continue;
+      publicHelpers.putIfAbsent(name, () => []).add(helper.functionExpression);
     }
   }
 

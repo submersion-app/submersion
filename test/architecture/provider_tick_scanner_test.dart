@@ -144,6 +144,17 @@ void _subscribeToFoo(Ref ref) {
       expect(result.violations.single.provider, 'fooProvider');
     });
 
+    test('does not count a function nested in another body', () {
+      final result = scanWith('''
+void outer(Ref ref) {
+  void subscribeToFoo(Ref ref) {
+    ref.invalidateSelfWhen(ref.read(fooRepositoryProvider).watchFooChanges());
+  }
+}
+''', reader);
+      expect(result.violations.single.provider, 'fooProvider');
+    });
+
     test('does not count when another declaration of the name does not '
         'subscribe', () {
       final repository = write('repo.dart', repositorySource);
