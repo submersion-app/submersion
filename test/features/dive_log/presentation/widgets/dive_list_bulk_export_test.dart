@@ -619,7 +619,8 @@ void main() {
 
       expect(repository().withoutSamplesReads, 1);
       // A bulk read keeps decoding on the UI isolate: off-isolate decoding
-      // starts one isolate per dive at once (issue #4302).
+      // starts one isolate per dive at once (see offUiIsolate on
+      // DiveRepository.getDivesByIdsWithoutSamples).
       expect(repository().offUiIsolateFlags, [false]);
       expect(exportService.uddfDives?.map((d) => d.id), ['d1', 'd2']);
       expect(
