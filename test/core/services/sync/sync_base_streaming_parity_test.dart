@@ -386,9 +386,10 @@ void main() {
 
     test('through the inline fallback', () => expectParity(inline: true));
 
-    test('a truncated copy is refused and applies nothing', () async {
-      // gzip.decoder hands back what it has for a cut-off gzip without an
-      // error, so it is the document's own end that refuses the copy.
+    Future<void> expectRefused(
+      List<int> Function(List<int> whole) cut, {
+      required bool inline,
+    }) async {
       await _seedRichLibrary();
       final payload = await SyncDataSerializer().exportData(
         deviceId: 'peer',
@@ -401,17 +402,42 @@ void main() {
       addTearDown(() => tmpDir.delete(recursive: true));
       final whole = gzip.encode(utf8.encode(jsonEncode(payload.toJson())));
       final gz = File(p.join(tmpDir.path, 'base.json.gz'));
-      await gz.writeAsBytes(whole.sublist(0, whole.length ~/ 2));
+      await gz.writeAsBytes(cut(whole));
+      final svc = SyncService(
+        syncRepository: SyncRepository(),
+        serializer: SyncDataSerializer(),
+      );
+      if (inline) {
+        svc.baseParseClientSpawn = (_, {gzipped = false}) async =>
+            throw StateError('forced failure');
+      }
 
       await expectLater(
-        SyncService(
-          syncRepository: SyncRepository(),
-          serializer: SyncDataSerializer(),
-        ).debugApplyBaseFile(gz.path, gzipped: true),
+        svc.debugApplyBaseFile(gz.path, gzipped: true),
         throwsA(anything),
       );
       expect(await _exportCanonical(), empty);
-    });
+    }
+
+    // gzip.decoder hands back what it has for a cut-off gzip without an
+    // error: a copy cut mid-document fails on the document's own end, and
+    // one cut inside the trailer, its document whole, on the trailer size.
+    for (final inline in [false, true]) {
+      final via = inline ? 'inline' : 'worker';
+      test('a copy cut mid-document is refused ($via)', () {
+        return expectRefused(
+          (whole) => whole.sublist(0, whole.length ~/ 2),
+          inline: inline,
+        );
+      });
+
+      test('a copy cut inside its trailer is refused ($via)', () {
+        return expectRefused(
+          (whole) => whole.sublist(0, whole.length - 4),
+          inline: inline,
+        );
+      });
+    }
   });
 
   group('base apply progress', () {

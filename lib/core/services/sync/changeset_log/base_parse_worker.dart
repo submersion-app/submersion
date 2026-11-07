@@ -5,6 +5,7 @@ import 'dart:isolate';
 
 import 'package:submersion/core/services/sync/changeset_log/base_json_stream_reader.dart';
 import 'package:submersion/core/services/sync/changeset_log/byte_progress_stream.dart';
+import 'package:submersion/core/services/sync/changeset_log/gzip_size_check.dart';
 
 /// Isolate entrypoint for the base-file parse worker.
 ///
@@ -57,6 +58,8 @@ void baseParseWorkerMain(List<Object> args) {
   });
 
   final total = File(filePath).lengthSync();
+  // A gzipped file is checked against its trailer's size on every pass.
+  final isize = gzipped ? _trailerSize(filePath, total) : 0;
   Stream<List<int>> openWithProgress() {
     final read = withByteProgress(
       File(filePath).openRead(),
@@ -66,7 +69,9 @@ void baseParseWorkerMain(List<Object> args) {
         'total': total,
       }),
     );
-    return gzipped ? read.transform(gzip.decoder) : read;
+    return gzipped
+        ? checkedGzipLength(read.transform(gzip.decoder), isize)
+        : read;
   }
 
   Future<void> runDeletions() async {
@@ -157,4 +162,16 @@ void baseParseWorkerMain(List<Object> args) {
       runDataRows((m['tables'] as List).cast<String>().toSet());
     }
   });
+}
+
+/// The expanded size the gzip at [filePath], [length] bytes long, records
+/// in its trailer.
+int _trailerSize(String filePath, int length) {
+  final file = File(filePath).openSync();
+  try {
+    file.setPositionSync(length < 4 ? 0 : length - 4);
+    return gzipTrailerSize(file.readSync(4));
+  } finally {
+    file.closeSync();
+  }
 }

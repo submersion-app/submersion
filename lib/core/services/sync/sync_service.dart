@@ -32,6 +32,7 @@ import 'package:submersion/core/services/sync/changeset_log/base_json_stream_rea
 import 'package:submersion/core/services/sync/changeset_log/base_parse_client.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_part_file_sink.dart';
 import 'package:submersion/core/services/sync/changeset_log/byte_progress_stream.dart';
+import 'package:submersion/core/services/sync/changeset_log/gzip_size_check.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_sweep.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
@@ -2562,6 +2563,14 @@ class SyncService {
     bool gzipped = false,
   }) async {
     final lastSyncMs = localLastSync?.millisecondsSinceEpoch;
+    // A gzipped file is checked against its trailer's size on every pass.
+    var isize = 0;
+    if (gzipped) {
+      final length = await SyncTempFiles.length(filePath);
+      isize = gzipTrailerSize(
+        await SyncTempFiles.read(filePath, length < 4 ? 0 : length - 4, 4),
+      );
+    }
     // The inline parse blocks the UI isolate, so its heartbeats are what
     // keep the bar moving; the fallback runs the whole file three times.
     Stream<List<int>> openWithProgress() {
@@ -2569,7 +2578,9 @@ class SyncService {
         SyncTempFiles.openRead(filePath),
         onProgress: progress.consumed,
       );
-      return gzipped ? SyncTempFiles.gunzip(read) : read;
+      return gzipped
+          ? checkedGzipLength(SyncTempFiles.gunzip(read), isize)
+          : read;
     }
 
     // ---- Pass 1: exportedAt + deletions ----
