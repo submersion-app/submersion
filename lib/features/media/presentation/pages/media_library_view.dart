@@ -82,7 +82,13 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
     // and entering the mode starts from an empty checked set with nothing
     // stale to drop. Selection changes alone do not reach here at all; the
     // ValueListenableBuilder below owns those.
-    if (_selection.value.isActive) {
+    //
+    // Not while page one loads: a new filter, sort or view grouping builds a
+    // new notifier that starts with no rows, and pruning against that would
+    // drop every checked row, even ones the new query brings straight back
+    // (issue #4268 made a mode switch one of these). The prune runs once the
+    // rows land.
+    if (_selection.value.isActive && !state.isLoading) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _selection.pruneTo(visibleIds);
       });

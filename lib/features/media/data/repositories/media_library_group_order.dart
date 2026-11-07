@@ -38,6 +38,10 @@ class LibraryGroupKey<T extends Comparable<dynamic>> {
 
 /// The leading keys for [grouping], or none for an ungrouped page.
 ///
+/// Day grouping under a date sort needs none either: date order already
+/// keeps each day in one run, and a leading key would stop the date sort
+/// using its index (`idx_media_library`).
+///
 /// [dateDescending] is the direction groups follow: newest first unless the
 /// diver sorts by date ascending, whatever field the rows inside a group
 /// are sorted by. [dateKey] is the library's own date key, so a day here is
@@ -47,6 +51,7 @@ class LibraryGroupKey<T extends Comparable<dynamic>> {
 List<LibraryGroupKey> libraryGroupKeys(
   MediaLibraryGrouping grouping, {
   required AppDatabase db,
+  required MediaSortField sortField,
   required bool dateDescending,
   required Expression<int> dateKey,
   required $DivesTable dives,
@@ -58,11 +63,16 @@ List<LibraryGroupKey> libraryGroupKeys(
     case MediaLibraryGrouping.none:
       return const [];
     case MediaLibraryGrouping.day:
-      // Wall-clock-as-UTC millis, so whole days since the epoch are the
-      // calendar days the timeline shows, with no zone involved.
+      if (sortField == MediaSortField.dateTaken) return const [];
+      // Wall-clock-as-UTC millis, so whole days are the calendar days the
+      // timeline shows, with no zone involved. SQLite's integer division
+      // truncates toward zero, which would put the last day of 1969 and the
+      // first of 1970 under one key, so the key counts days from a point far
+      // enough back that no date key is before it.
       return [
         LibraryGroupKey<int>(
-          dateKey / const Constant(Duration.millisecondsPerDay),
+          (dateKey + const Constant(_dayKeyOffsetMillis)) /
+              const Constant(Duration.millisecondsPerDay),
           descending: dateDescending,
         ),
       ];
@@ -126,6 +136,10 @@ List<LibraryGroupKey> libraryGroupKeys(
       ];
   }
 }
+
+/// 200,000 days, about 547 years: day keys start in the 15th century, well
+/// before any photo's date.
+const int _dayKeyOffsetMillis = 200000 * Duration.millisecondsPerDay;
 
 /// Whether grouped pages list the newest group first for [direction] of a
 /// sort on [field].

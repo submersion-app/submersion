@@ -117,4 +117,50 @@ void main() {
       visibleAfterFilter: 1,
     );
   });
+
+  // Issue #4268: switching to a grouped view mode builds a new notifier,
+  // which reloads page one from no rows. The checked rows it brings back
+  // stay checked.
+  testWidgets('a reload from no rows keeps the rows it brings back checked', (
+    tester,
+  ) async {
+    final notifier = _SeededLibraryNotifier(
+      MediaLibraryState(entries: [_entry('a'), _entry('b')]),
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          mediaLibraryNotifierProvider.overrideWith((ref) => notifier),
+          appSettingsRepositoryProvider.overrideWithValue(_FakeSettingsRepo()),
+          mediaSourceResolverRegistryProvider.overrideWithValue(
+            MediaSourceResolverRegistry({
+              MediaSourceType.localFile: _UnavailableResolver(),
+            }),
+          ),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: MediaLibraryView()),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('enter_selection')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+    await tester.pump();
+    expect(find.text('2 selected'), findsOneWidget);
+
+    notifier.state = const MediaLibraryState(isLoading: true);
+    await tester.pump();
+    await tester.pump();
+    notifier.seed([_entry('a'), _entry('b')]);
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('2 selected'), findsOneWidget);
+  });
 }

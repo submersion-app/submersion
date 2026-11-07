@@ -303,6 +303,23 @@ void main() {
       );
     });
 
+    test('days before 1970 keep apart', () async {
+      // Either side of the epoch, where truncating division would give both
+      // days the key 0 and the name sort would interleave them.
+      await db.delete(db.media).go();
+      await insertMedia('n31', DateTime(1969, 12, 31, 12), name: 'a.jpg');
+      await insertMedia('j01', DateTime(1970, 1, 1, 12), name: 'b.jpg');
+      await insertMedia('n31b', DateTime(1969, 12, 31, 13), name: 'c.jpg');
+      expect(
+        await pageThrough(
+          sortBy(MediaSortField.fileName, SortDirection.ascending),
+          MediaLibraryGrouping.day,
+          limit: 1,
+        ),
+        ['j01', 'n31', 'n31b'],
+      );
+    });
+
     test('a photo just before midnight stays on its own day', () async {
       await insertMedia('late', DateTime(2026, 6, 1, 23, 59), name: 'e.jpg');
       await insertMedia('early', DateTime(2026, 6, 2, 0, 1), name: 'f.jpg');
