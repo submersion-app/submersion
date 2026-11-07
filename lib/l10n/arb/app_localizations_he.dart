@@ -39107,6 +39107,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_sku => 'מק״ט';
 
   @override
+  String get attrHelper_sku => 'מהקבלה או מהתווית, לא המספר הסידורי';
+
+  @override
   String get attrLabel_retailer => 'קמעונאי';
 
   @override

@@ -39825,7 +39825,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrLabel_tow_speed_factor => 'Snelheidsfactor bij slepen';
 
   @override
-  String get attrLabel_sku => 'SKU';
+  String get attrLabel_sku => 'Artikelnummer (SKU)';
+
+  @override
+  String get attrHelper_sku => 'Van de bon of het etiket, niet het serienummer';
 
   @override
   String get attrLabel_retailer => 'Verkoper';

@@ -37715,6 +37715,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_sku => '商品编号 (SKU)';
 
   @override
+  String get attrHelper_sku => '见收据或标签，并非序列编号';
+
+  @override
   String get attrLabel_retailer => '零售商';
 
   @override

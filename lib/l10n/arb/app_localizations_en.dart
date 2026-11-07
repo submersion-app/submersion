@@ -39418,7 +39418,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrLabel_tow_speed_factor => 'Tow speed factor';
 
   @override
-  String get attrLabel_sku => 'SKU';
+  String get attrLabel_sku => 'Product number (SKU)';
+
+  @override
+  String get attrHelper_sku =>
+      'From the receipt or product label, not the serial number';
 
   @override
   String get attrLabel_retailer => 'Retailer';

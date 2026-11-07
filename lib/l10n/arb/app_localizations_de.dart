@@ -40015,7 +40015,11 @@ class AppLocalizationsDe extends AppLocalizations {
       'Geschwindigkeitsfaktor beim Schleppen';
 
   @override
-  String get attrLabel_sku => 'SKU';
+  String get attrLabel_sku => 'Artikelnummer (SKU)';
+
+  @override
+  String get attrHelper_sku =>
+      'Von Quittung oder Etikett, nicht die Seriennummer';
 
   @override
   String get attrLabel_retailer => 'Händler';

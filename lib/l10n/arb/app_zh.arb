@@ -11594,6 +11594,7 @@
   "attrLabel_tow_burn_factor": "拖带耗电系数",
   "attrLabel_tow_speed_factor": "拖带速度系数",
   "attrLabel_sku": "商品编号 (SKU)",
+  "attrHelper_sku": "见收据或标签，并非序列编号",
   "attrLabel_retailer": "零售商",
   "attrLabel_product_url": "网页链接",
   "attrLabel_color": "颜色",

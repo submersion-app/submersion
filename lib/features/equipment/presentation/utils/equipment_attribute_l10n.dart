@@ -97,6 +97,18 @@ String attributeLabel(AppLocalizations l10n, String key) => switch (key) {
   _ => key,
 };
 
+/// Localized helper text shown below a curated attribute's input, or null
+/// when the label speaks for itself. The SKU carries one because the retail
+/// abbreviation alone left divers guessing, most likely at the serial number
+/// (issue #4236).
+///
+/// Only free-text inputs ([AttributeKind.text]) show it; the other kinds
+/// already carry a hint or a picker of their own.
+String? attributeHelperText(AppLocalizations l10n, String key) => switch (key) {
+  'sku' => l10n.attrHelper_sku,
+  _ => null,
+};
+
 /// Localized label for a choice option. Unknown pairs fall back to the raw
 /// option key.
 String attributeChoiceLabel(

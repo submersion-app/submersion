@@ -40125,7 +40125,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get attrLabel_tow_speed_factor => 'Factor de velocidad al remolcar';
 
   @override
-  String get attrLabel_sku => 'SKU';
+  String get attrLabel_sku => 'Referencia (SKU)';
+
+  @override
+  String get attrHelper_sku =>
+      'Del recibo o la etiqueta, no el número de serie';
 
   @override
   String get attrLabel_retailer => 'Vendedor';
