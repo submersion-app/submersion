@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:image/image.dart' as img;
 
 import 'package:submersion/features/media/data/services/isobmff_boxes.dart';
+import 'package:submersion/features/media/data/services/jpeg_segments.dart';
 
 /// The stored pixel size of an image, as its container declares it.
 typedef ImageDimensions = ({int width, int height});
@@ -63,49 +64,18 @@ bool _isIsoBmff(Uint8List b) => fourCC(b, 4) == 'ftyp';
 /// that were already on the table at the SOF. Seeking segment to segment
 /// touches a few KB instead.
 ImageDimensions? _jpegDimensions(RandomAccessFile raf, int end) {
-  var pos = 2; // past the SOI matched by _isJpeg
-  while (pos + 2 <= end) {
-    final head = readBytesAt(raf, pos, 2);
-    if (head.length < 2 || head[0] != 0xff) return null;
-    final marker = head[1];
-    pos += 2;
-
-    // A marker may be preceded by any number of 0xFF fill bytes.
-    if (marker == 0xff) {
-      pos -= 1;
-      continue;
-    }
-    // 0xFF00 is a stuffed data byte, which cannot appear between segments.
-    if (marker == 0x00) return null;
-    // Standalone markers carry no length payload: TEM, SOI, RSTn.
-    if (marker == 0x01 ||
-        marker == 0xd8 ||
-        (marker >= 0xd0 && marker <= 0xd7)) {
-      continue;
-    }
-    // EOI, or the start of the scan, with no frame header seen. Everything
-    // past an SOS is entropy-coded data, and stepping through it is exactly
-    // the cost being avoided.
-    if (marker == 0xd9 || marker == 0xda) return null;
-
-    if (pos + 2 > end) return null;
-    final length = beU16(readBytesAt(raf, pos, 2), 0);
-    // A segment shorter than its own length field, or one running past EOF,
-    // is corrupt; stop rather than seek to a guessed position.
-    if (length < 2 || pos + length > end) return null;
-
-    if (_isFrameHeader(marker)) {
-      // SOFn payload: [precision:1][height:2][width:2][components:1]...
-      if (length < 8) return null;
-      final frame = readBytesAt(raf, pos + 2, 5);
-      final height = beU16(frame, 1);
-      final width = beU16(frame, 3);
-      if (width == 0 || height == 0) return null;
-      return (width: width, height: height);
-    }
-
-    pos += length;
+  for (final segment in jpegHeaderSegments(raf, end)) {
+    if (!_isFrameHeader(segment.marker)) continue;
+    // SOFn payload: [precision:1][height:2][width:2][components:1]...
+    if (segment.length < 6) return null;
+    final frame = readBytesAt(raf, segment.start, 5);
+    final height = beU16(frame, 1);
+    final width = beU16(frame, 3);
+    if (width == 0 || height == 0) return null;
+    return (width: width, height: height);
   }
+  // The walk reached the scan or EOI with no frame header, or hit a corrupt
+  // segment.
   return null;
 }
 
