@@ -168,6 +168,60 @@ void main() {
     expect(gasOut(pair, 'd2'), closeTo(expected, 1));
   });
 
+  test('a sidemount pair of the bottom mix shares the ascent', () {
+    // Only the cylinder the deepest leg breathes is back gas; its twin of
+    // the same mix resolves to a stage, which the ascent's lookup prefers.
+    // The pair still ends level rather than the stage taking all of it.
+    const air = GasMix(o2: 21);
+    DiveTank side(String id) =>
+        DiveTank(id: id, volume: 11, startPressure: 200, gasMix: air);
+    final plan = domain.DivePlan(
+      id: 'plan-4138-sidemount',
+      name: 'sidemount',
+      mode: domain.PlanMode.oc,
+      gfLow: 50,
+      gfHigh: 80,
+      problemSolvingMinutes: 0,
+      sacBottom: 20,
+      sacDeco: 16,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+      tanks: [side('left'), side('right')],
+      segments: [
+        PlanSegment.travel(
+          id: 'descent',
+          fromDepth: 0,
+          targetDepth: 30,
+          tankId: 'left',
+          gasMix: air,
+          order: 0,
+          ratePerMinute: 18,
+        ),
+        PlanSegment.hold(
+          id: 'on-left',
+          depth: 30,
+          durationMinutes: 12,
+          tankId: 'left',
+          gasMix: air,
+          order: 1,
+        ),
+        PlanSegment.hold(
+          id: 'on-right',
+          depth: 30,
+          durationMinutes: 12,
+          tankId: 'right',
+          gasMix: air,
+          order: 2,
+        ),
+      ],
+    );
+    final outcome = engine.compute(plan);
+    final left = _usage(outcome, 'left');
+    final right = _usage(outcome, 'right');
+
+    expect(left.remainingPressure, closeTo(right.remainingPressure!, 1e-6));
+  });
+
   test('an air break shares its gas across the stages carrying it', () {
     // Two stages of the bottom mix supply the air breaks on the O2 stops,
     // the last draws of that mix, so a break charged to the first alone

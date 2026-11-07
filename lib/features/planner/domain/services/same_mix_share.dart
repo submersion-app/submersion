@@ -43,28 +43,24 @@ double fillCapacityLiters(DiveTank tank, GasModel model) {
 }
 
 /// The cylinders in [tanks] that share what a computed ascent charged to
-/// [tankId]: those carrying its mix in the same role class. A deco or stage
-/// cylinder shares only with other deco or stage cylinders, the ones the
-/// engine's tank-for-gas lookup prefers, so back gas of the same mix is not
-/// billed for deco it did not supply. Pass roles as [TankRoleResolver]
-/// derives them, the roles the engine charged by. Empty when no cylinder has
-/// [tankId].
+/// [tankId]: every one carrying its mix, whatever its role. On open circuit
+/// only the cylinder the deepest leg breathes is back gas, so its twin of
+/// the same mix (the other side of a sidemount pair) resolves to a stage;
+/// the two share the ascent rather than the stage taking all of it. A deco
+/// mix is richer than the bottom mix by definition, so back gas never joins
+/// a deco gas's group. Empty when no cylinder has [tankId].
 List<DiveTank> sameMixShareGroup(List<DiveTank> tanks, String? tankId) {
   final charged = tanks.where((t) => t.id == tankId).firstOrNull;
   if (charged == null) return const [];
-  return [
-    for (final tank in sameMixTanks(
-      tanks,
-      fO2: charged.gasMix.o2 / 100.0,
-      fHe: charged.gasMix.he / 100.0,
-    ))
-      if (isDecoClassRole(tank.role) == isDecoClassRole(charged.role)) tank,
-  ];
+  return sameMixTanks(
+    tanks,
+    fO2: charged.gasMix.o2 / 100.0,
+    fHe: charged.gasMix.he / 100.0,
+  );
 }
 
 /// Whether [role] is a deco or stage role: the class the engine's
-/// tank-for-gas lookup prefers, and the one [sameMixShareGroup] keeps
-/// apart, so the two always agree on which cylinders a draw belongs to.
+/// tank-for-gas lookup prefers when several cylinders carry a mix.
 bool isDecoClassRole(TankRole role) =>
     role == TankRole.deco || role == TankRole.stage;
 

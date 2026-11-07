@@ -88,9 +88,8 @@ void main() {
     expect(_run([_stage('d1'), _stage('d2')]).gasShortfallMemberIds, isEmpty);
   });
 
-  test('stages share by the role the plan derives, not the stored one', () {
-    // A second stage left on the default Back Gas role is still a deco
-    // cylinder to the engine, so it shares the deco all the same.
+  test('a stage left on the default role still shares the mix', () {
+    // Every cylinder of the mix shares the draw, whatever role it carries.
     const unlabelled = DiveTank(
       id: 'd2',
       volume: 2,
@@ -101,10 +100,10 @@ void main() {
     expect(_run([_stage('d1'), unlabelled]).gasShortfallMemberIds, isEmpty);
   });
 
-  test('roles come from the legs the exit computes, not stored ones', () {
+  test('the plan\'s stored legs do not change who shares', () {
     // The stored plan's own deepest leg breathes d2, which would make it the
-    // bottom cylinder. The mission's legs never breathe it, so the engine
-    // charges its rows with d2 as a stage, and it shares the deco with d1.
+    // bottom cylinder there. The exit computes its own legs, and d2 shares
+    // the deco with d1 all the same.
     final plan = _plan([_stage('d1'), _stage('d2')]).copyWith(
       segments: [
         const PlanSegment(

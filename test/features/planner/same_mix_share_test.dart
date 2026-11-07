@@ -269,18 +269,23 @@ void main() {
       ]);
     });
 
-    test('a deco stage shares only with deco and stage cylinders', () {
+    test('every cylinder of the mix shares, whatever its role', () {
+      // Back gas and a stage of the bottom mix are a sidemount pair as often
+      // as not: the diver breathes them down together.
       final tanks = [
         const DiveTank(id: 'back', gasMix: nitrox),
         const DiveTank(id: 'deco', gasMix: nitrox, role: TankRole.deco),
         const DiveTank(id: 'stage', gasMix: nitrox, role: TankRole.stage),
+        const DiveTank(id: 'other', gasMix: air, role: TankRole.stage),
       ];
 
-      expect(sameMixShareGroup(tanks, 'deco').map((t) => t.id), [
-        'deco',
-        'stage',
-      ]);
-      expect(sameMixShareGroup(tanks, 'back').map((t) => t.id), ['back']);
+      for (final id in ['back', 'deco', 'stage']) {
+        expect(sameMixShareGroup(tanks, id).map((t) => t.id), [
+          'back',
+          'deco',
+          'stage',
+        ]);
+      }
     });
 
     test('an id on no cylinder has no group', () {
