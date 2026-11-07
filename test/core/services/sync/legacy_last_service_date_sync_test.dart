@@ -110,6 +110,15 @@ void main() {
     expect(row['lastServiceDate'], newer);
   }
 
+  /// [payload] written out as a base file, removed after the test.
+  Future<String> asBaseFile(SyncPayload payload) async {
+    final dir = await Directory.systemTemp.createTemp('legacy_last_service');
+    addTearDown(() => dir.delete(recursive: true));
+    final file = File(p.join(dir.path, 'base.json'));
+    await file.writeAsBytes(utf8.encode(jsonEncode(payload.toJson())));
+    return file.path;
+  }
+
   test('a payload applied from an older peer is repaired', () async {
     final payload = await legacyPeerPayload();
 
@@ -120,25 +129,17 @@ void main() {
 
   test('a base file applied from an older peer is repaired', () async {
     final payload = await legacyPeerPayload();
-    final dir = await Directory.systemTemp.createTemp('legacy_last_service');
-    addTearDown(() => dir.delete(recursive: true));
-    final file = File(p.join(dir.path, 'base.json'));
-    await file.writeAsBytes(utf8.encode(jsonEncode(payload.toJson())));
 
-    await buildService().debugApplyBaseFile(file.path);
+    await buildService().debugApplyBaseFile(await asBaseFile(payload));
 
     await expectRepaired();
   });
 
   test('a library adopted from an older peer is repaired', () async {
     final payload = await legacyPeerPayload();
-    final dir = await Directory.systemTemp.createTemp('legacy_last_service');
-    addTearDown(() => dir.delete(recursive: true));
-    final file = File(p.join(dir.path, 'base.json'));
-    await file.writeAsBytes(utf8.encode(jsonEncode(payload.toJson())));
 
     await buildService().debugAdoptStreaming(
-      [file.path],
+      [await asBaseFile(payload)],
       [payload.exportedAt],
       const [],
     );
@@ -146,8 +147,7 @@ void main() {
     await expectRepaired();
   });
 
-  test('the in-memory adopt the streaming one is checked against repairs '
-      'the same', () async {
+  test('the in-memory reference adopt repairs it too', () async {
     final payload = await legacyPeerPayload();
 
     await buildService().debugAdoptInMemory([payload]);
