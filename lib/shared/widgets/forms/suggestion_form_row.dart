@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/text/fuzzy_match.dart';
 import 'package:submersion/shared/widgets/forms/autocomplete_options_list.dart';
+import 'package:submersion/shared/widgets/forms/form_field_semantics.dart';
 import 'package:submersion/shared/widgets/forms/form_style.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
@@ -85,16 +86,9 @@ class _SuggestionFormRowState extends State<SuggestionFormRow> {
     return [...substring, ...fuzzy.map((pair) => pair.$1)];
   }
 
-  /// The row's label, kept out of the semantics tree because the field
-  /// carries the same words as its name.
-  Widget _visibleLabel(ThemeData theme) => ExcludeSemantics(
-    child: Text(widget.label, style: theme.textTheme.bodyMedium),
-  );
-
-  /// Names the field after its row, so a screen reader announces the label
-  /// with the text rather than an unnamed text box (issue #4166).
-  Widget _namedField(Widget field) =>
-      Semantics(container: true, label: widget.label, child: field);
+  /// The row's label beside its field, which carries the same words.
+  Widget _visibleLabel(ThemeData theme) =>
+      visibleFormLabel(widget.label, style: theme.textTheme.bodyMedium);
 
   Widget _caption(ThemeData theme) => Padding(
     padding: const EdgeInsets.only(top: 2),
@@ -168,7 +162,8 @@ class _SuggestionFormRowState extends State<SuggestionFormRow> {
                   optionsBuilder: (value) => _optionsFor(value.text),
                   fieldViewBuilder:
                       (context, controller, focusNode, onFieldSubmitted) {
-                        return _namedField(
+                        return namedFormField(
+                          widget.label,
                           TextFormField(
                             controller: controller,
                             focusNode: focusNode,

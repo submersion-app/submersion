@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:submersion/shared/widgets/forms/form_field_semantics.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_editing.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_toolbar.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
@@ -181,9 +182,10 @@ class _MarkdownNotesFieldState extends State<MarkdownNotesField> {
       ),
     );
     final label = widget.semanticsLabel;
-    final field = label == null
-        ? textField
-        : Semantics(container: true, label: label, child: textField);
+    // While previewing, the field is offstage and the preview takes its name.
+    Widget named(Widget child) =>
+        label == null ? child : namedFormField(label, child);
+    final field = named(textField);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -203,22 +205,24 @@ class _MarkdownNotesFieldState extends State<MarkdownNotesField> {
           onAnnotate: widget.onAnnotate == null ? null : _annotate,
         ),
         if (_previewing) ...[
-          SizedBox(
-            key: const ValueKey('markdownNotesPreview'),
-            height: _previewHeight,
-            // The field's own decoration (label, icon, outline) stays around
-            // the preview, so the diver can still tell which notes these are.
-            child: InputDecorator(
-              decoration: (widget.decoration ?? const InputDecoration())
-                  .applyDefaults(Theme.of(context).inputDecorationTheme),
-              expands: _previewHeight != null,
-              child: SingleChildScrollView(
-                // Follows the notes, so a change made while previewing (a
-                // merge cycle) shows at once.
-                child: ValueListenableBuilder<TextEditingValue>(
-                  valueListenable: widget.controller,
-                  builder: (context, value, _) =>
-                      MarkdownNotesView(value.text, style: widget.style),
+          named(
+            SizedBox(
+              key: const ValueKey('markdownNotesPreview'),
+              height: _previewHeight,
+              // The field's own decoration (label, icon, outline) stays around
+              // the preview, so the diver can still tell which notes these are.
+              child: InputDecorator(
+                decoration: (widget.decoration ?? const InputDecoration())
+                    .applyDefaults(Theme.of(context).inputDecorationTheme),
+                expands: _previewHeight != null,
+                child: SingleChildScrollView(
+                  // Follows the notes, so a change made while previewing (a
+                  // merge cycle) shows at once.
+                  child: ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: widget.controller,
+                    builder: (context, value, _) =>
+                        MarkdownNotesView(value.text, style: widget.style),
+                  ),
                 ),
               ),
             ),

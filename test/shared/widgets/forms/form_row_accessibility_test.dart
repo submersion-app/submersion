@@ -91,6 +91,17 @@ void main() {
     }
   });
 
+  testWidgets('a previewing Markdown row keeps its name', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await _openRow(tester, markdown: true, label: 'Notes', text: 'Ok');
+    await tester.tap(find.text('Preview'));
+    await tester.pumpAndSettle();
+
+    // The field is offstage while previewing; the preview takes its name.
+    expect(find.bySemanticsLabel(RegExp(r'^Notes\b')), findsOneWidget);
+    semantics.dispose();
+  });
+
   group('SuggestionFormRow with a screen reader (#4166)', () {
     for (final markdown in [false, true]) {
       final kind = markdown ? 'Markdown' : 'plain';
