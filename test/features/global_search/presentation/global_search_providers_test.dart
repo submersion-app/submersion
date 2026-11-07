@@ -126,6 +126,12 @@ void main() {
     );
   });
 
+  test('a section key gives back the ids it was made from', () {
+    expect(globalSearchIdsOf(globalSearchIdsKey(['b', 'a'])), ['b', 'a']);
+    // No ids is no ids, not one empty one, so a read of none sends nothing.
+    expect(globalSearchIdsOf(globalSearchIdsKey(const [])), isEmpty);
+  });
+
   test('text no record type can read is a refusal', () async {
     await expectLater(search('"oops'), throwsA(isA<GlobalSearchRefused>()));
   });

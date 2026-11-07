@@ -39,10 +39,8 @@ class _FakeCertificationRepository extends CertificationRepository {
   Stream<void> watchCertificationsChanges() => const Stream<void>.empty();
 
   @override
-  Future<List<Certification>> getAllCertifications({
-    String? diverId,
-    List<String>? ids,
-  }) async => certifications;
+  Future<List<Certification>> getAllCertifications({String? diverId}) async =>
+      certifications;
 }
 
 final _now = DateTime(2026, 8, 9);

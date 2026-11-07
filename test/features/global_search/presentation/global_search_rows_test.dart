@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -117,6 +119,7 @@ Widget _host(
   List<EquipmentItem> equipment = const [
     EquipmentItem(id: 'x', name: 'Primary', type: EquipmentType.regulator),
   ],
+  Future<void>? extras,
 }) => ProviderScope(
   overrides: [
     sharedPreferencesProvider.overrideWithValue(_prefs),
@@ -192,9 +195,10 @@ Widget _host(
         DiveCenter(id: 'x', name: 'Reef', createdAt: _now, updatedAt: _now),
       ],
     ),
-    globalSearchDiveCenterCountsProvider.overrideWith(
-      (ref, key) async => {for (final id in key.split(',')) id: 5},
-    ),
+    globalSearchDiveCenterCountsProvider.overrideWith((ref, key) async {
+      await extras;
+      return {for (final id in key.split(',')) id: 5};
+    }),
     globalSearchCertificationsProvider.overrideWith(
       (ref, key) async => [
         Certification(
@@ -220,18 +224,21 @@ Widget _host(
       ],
     ),
     globalSearchSpeciesProvider.overrideWith((ref, key) async => [_species]),
-    globalSearchSeenSpeciesProvider.overrideWith(
-      (ref, key) async => {for (final entry in seen) entry.species.id: entry},
-    ),
-    globalSearchSpeciesCoversProvider.overrideWith(
-      (ref, key) async => const {},
-    ),
+    globalSearchSeenSpeciesProvider.overrideWith((ref, key) async {
+      await extras;
+      return {for (final entry in seen) entry.species.id: entry};
+    }),
+    globalSearchSpeciesCoversProvider.overrideWith((ref, key) async {
+      await extras;
+      return const {};
+    }),
     globalSearchDocumentsProvider.overrideWith(
       (ref, key) async => documents ?? [DocumentListEntry(_document, null, 0)],
     ),
-    globalSearchDocumentTagsProvider.overrideWith(
-      (ref, key) async => const <String, List<Tag>>{},
-    ),
+    globalSearchDocumentTagsProvider.overrideWith((ref, key) async {
+      await extras;
+      return const <String, List<Tag>>{};
+    }),
     globalSearchDivePlansProvider.overrideWith(
       (ref, key) async =>
           plans ??
@@ -363,6 +370,46 @@ void main() {
     expect(find.byType(SeenSpeciesTile), findsOneWidget);
     expect(find.byType(SpeciesCatalogTile), findsNothing);
   });
+
+  // What a row shows beside its record (a center's dive count, a species'
+  // sightings and cover, a document's tags) is read with the records, and a
+  // row waits for it, so it is drawn once rather than redrawn as it arrives.
+  for (final MapEntry(key: kind, value: tile) in {
+    GlobalSearchKind.diveCenters: CompactDiveCenterListTile,
+    GlobalSearchKind.species: SeenSpeciesTile,
+    GlobalSearchKind.documents: DocumentTile,
+  }.entries) {
+    testWidgets('$kind draws its rows once, with their extras', (tester) async {
+      final extras = Completer<void>();
+      await tester.pumpWidget(
+        _host(
+          kind,
+          extras: extras.future,
+          seen: [
+            SeenSpecies(
+              species: _species,
+              totalSightings: 3,
+              diveCount: 2,
+              siteCount: 1,
+              firstSeen: _now,
+              lastSeen: _now,
+            ),
+          ],
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.byType(tile), findsNothing);
+      expect(find.byType(SpeciesCatalogTile), findsNothing);
+
+      extras.complete();
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.byType(tile), findsOneWidget);
+    });
+  }
 
   testWidgets('a document names the certification it is filed under', (
     tester,

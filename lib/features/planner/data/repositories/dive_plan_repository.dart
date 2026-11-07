@@ -652,16 +652,6 @@ class DivePlanRepository {
     List<String>? ids,
   }) async {
     if (ids != null && ids.isEmpty) return const [];
-    final seriesIds = ids == null
-        ? null
-        : await (_db.selectOnly(_db.divePlans, distinct: true)
-                ..addColumns([_db.divePlans.seriesId])
-                ..where(
-                  _db.divePlans.id.isIn(ids) &
-                      _db.divePlans.seriesId.isNotNull(),
-                ))
-              .map((row) => row.read(_db.divePlans.seriesId)!)
-              .get();
     final dives = _db.dives;
     // Whether the linked dive is still in the log. Read as an expression:
     // the joined row's own `id` column would be ambiguous with the plan's.
@@ -683,9 +673,15 @@ class DivePlanRepository {
           ])
           ..orderBy([OrderingTerm.desc(_db.divePlans.updatedAt)]);
     if (ids != null) {
+      // The shown plans' series, asked in the same statement.
+      final shownSeries = _db.selectOnly(_db.divePlans)
+        ..addColumns([_db.divePlans.seriesId])
+        ..where(
+          _db.divePlans.id.isIn(ids) & _db.divePlans.seriesId.isNotNull(),
+        );
       query.where(
         _db.divePlans.id.isIn(ids) |
-            _db.divePlans.seriesId.isIn(seriesIds ?? const []),
+            _db.divePlans.seriesId.isInQuery(shownSeries),
       );
     }
     final rows = await query.get();

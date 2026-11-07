@@ -1,6 +1,3 @@
-import 'dart:typed_data';
-
-import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
@@ -20,6 +17,7 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 
 import '../../../helpers/drift_statement_log.dart';
 import '../../../helpers/test_database.dart';
+import '../helpers/scoped_records_fixture.dart';
 
 /// Global Search draws a section's few rows from its list's own read,
 /// narrowed to the ids shown (issue #4247). Each narrowed read holds what
@@ -29,209 +27,10 @@ void main() {
   late AppDatabase db;
   const me = 'me';
   const ids = ['charlie', 'alpha'];
-  final now = DateTime.utc(2026, 1, 1).millisecondsSinceEpoch;
-
-  Future<void> seed() async {
-    await db
-        .into(db.divers)
-        .insert(
-          DiversCompanion.insert(
-            id: me,
-            name: 'Me',
-            createdAt: now,
-            updatedAt: now,
-          ),
-        );
-    await db.customStatement(
-      "INSERT INTO tags (id, name, created_at, updated_at) "
-      "VALUES ('t1', 'Renew', 0, 0)",
-    );
-    await db
-        .into(db.divePlanSeries)
-        .insert(
-          DivePlanSeriesCompanion.insert(
-            id: 'series',
-            name: 'Reef day',
-            createdAt: now,
-            updatedAt: now,
-          ),
-        );
-    for (final id in const ['alpha', 'bravo', 'charlie']) {
-      await db
-          .into(db.equipment)
-          .insert(
-            EquipmentCompanion.insert(
-              id: id,
-              diverId: const Value(me),
-              name: 'Gear $id',
-              type: 'regulator',
-              createdAt: now,
-              updatedAt: now,
-            ),
-          );
-      await db
-          .into(db.equipmentSets)
-          .insert(
-            EquipmentSetsCompanion.insert(
-              id: id,
-              diverId: const Value(me),
-              name: 'Set $id',
-              createdAt: now,
-              updatedAt: now,
-            ),
-          );
-      await db
-          .into(db.equipmentSetItems)
-          .insert(
-            EquipmentSetItemsCompanion.insert(setId: id, equipmentId: id),
-          );
-      await db
-          .into(db.diveCenters)
-          .insert(
-            DiveCentersCompanion.insert(
-              id: 'center-$id',
-              diverId: const Value(me),
-              name: 'Center $id',
-              createdAt: now,
-              updatedAt: now,
-            ),
-          );
-      await db
-          .into(db.dives)
-          .insert(
-            DivesCompanion.insert(
-              id: 'dive-$id',
-              diverId: const Value(me),
-              diveDateTime: now,
-              diveCenterId: Value('center-$id'),
-              createdAt: now,
-              updatedAt: now,
-            ),
-          );
-      await db
-          .into(db.certifications)
-          .insert(
-            CertificationsCompanion.insert(
-              id: id,
-              diverId: const Value(me),
-              name: 'Cert $id',
-              agency: 'padi',
-              createdAt: now,
-              updatedAt: now,
-            ),
-          );
-      await db
-          .into(db.courses)
-          .insert(
-            CoursesCompanion.insert(
-              id: id,
-              diverId: me,
-              name: 'Course $id',
-              agency: 'padi',
-              startDate: now,
-              createdAt: now,
-              updatedAt: now,
-            ),
-          );
-      await db
-          .into(db.species)
-          .insert(
-            SpeciesCompanion.insert(
-              id: id,
-              commonName: 'Fish $id',
-              category: 'fish',
-            ),
-          );
-      await db
-          .into(db.sightings)
-          .insert(
-            SightingsCompanion.insert(
-              id: 'sighting-$id',
-              diveId: 'dive-$id',
-              speciesId: id,
-            ),
-          );
-      await db
-          .into(db.media)
-          .insert(
-            MediaCompanion.insert(
-              id: 'media-$id',
-              filePath: '/photos/$id.jpg',
-              takenAt: Value(now),
-              createdAt: now,
-              updatedAt: now,
-            ),
-          );
-      await db
-          .into(db.mediaSpecies)
-          .insert(
-            MediaSpeciesCompanion.insert(
-              id: 'tag-$id',
-              mediaId: 'media-$id',
-              speciesId: id,
-              createdAt: now,
-            ),
-          );
-      await db
-          .into(db.documents)
-          .insert(
-            DocumentsCompanion.insert(
-              id: id,
-              diverId: me,
-              type: 'insurance',
-              title: Value('Doc $id'),
-              createdAt: now,
-              updatedAt: now,
-            ),
-          );
-      await TagLinkRepository(
-        TagScope.documents,
-      ).replaceTags(id, const ['t1'], notify: false);
-      await db
-          .into(db.divePlans)
-          .insert(
-            DivePlansCompanion.insert(
-              id: id,
-              name: 'Plan $id',
-              createdAt: now,
-              updatedAt: now,
-              // alpha and bravo are one saved series; charlie stands alone.
-              seriesId: Value(id == 'charlie' ? null : 'series'),
-              seriesIndex: Value(id == 'bravo' ? 1 : 0),
-            ),
-          );
-      await db
-          .into(db.gpsTracks)
-          .insert(
-            GpsTracksCompanion.insert(
-              id: id,
-              startTime: now,
-              endTime: Value(now + 60),
-              createdAt: now,
-              updatedAt: now,
-            ),
-          );
-      await db
-          .into(db.navTracks)
-          .insert(
-            NavTracksCompanion.insert(
-              id: id,
-              diverId: const Value(me),
-              source: 'seacraft_enc',
-              startTime: now,
-              endTime: now + 60,
-              pointCount: 0,
-              points: Uint8List(0),
-              createdAt: now,
-              updatedAt: now,
-            ),
-          );
-    }
-  }
 
   setUp(() async {
     db = await setUpStatementLoggingTestDatabase();
-    await withoutStatementLog(seed);
+    await withoutStatementLog(() => seedScopedRecords(db, diverId: me));
   });
 
   tearDown(tearDownTestDatabase);
@@ -303,11 +102,9 @@ void main() {
   test('certifications', () async {
     final repository = CertificationRepository();
     await expectNarrowed(
-      all: () => repository.getAllCertifications(diverId: me),
-      scoped: () => repository.getAllCertifications(diverId: me, ids: ids),
+      all: () => repository.getCertificationMetadata(diverId: me),
+      scoped: () => repository.getCertificationMetadata(diverId: me, ids: ids),
       idOf: (certification) => certification.id,
-      // A card image's pages, read by the shown certifications' documents.
-      derived: (s) => s.contains('FROM "document_pages"'),
     );
   });
 
@@ -375,6 +172,10 @@ void main() {
       // alpha's series brings bravo, for the row to count all its dives.
       extra: const {'bravo'},
     );
+    final sent = await wholeStatementsOf(
+      () => repository.getAllPlanSummaries(ids: ids),
+    );
+    expect(sent, hasLength(1), reason: 'the series are asked in the same one');
   });
 
   test('a plan outside any series brings no others', () async {
@@ -433,7 +234,7 @@ void main() {
         isEmpty,
       );
       expect(
-        await CertificationRepository().getAllCertifications(ids: const []),
+        await CertificationRepository().getCertificationMetadata(ids: const []),
         isEmpty,
       );
       expect(await CourseRepository().getAllCourses(ids: const []), isEmpty);

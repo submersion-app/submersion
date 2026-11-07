@@ -97,7 +97,9 @@ class GlobalSearchRows extends ConsumerWidget {
         (entry, onTap) => CompactBuddyListTile(entry: entry, onTap: onTap),
       ),
       GlobalSearchKind.diveCenters => _each(
-        ref.watch(globalSearchDiveCentersProvider(key)),
+        _alongside(ref.watch(globalSearchDiveCentersProvider(key)), [
+          ref.watch(globalSearchDiveCenterCountsProvider(key)),
+        ]),
         (center) => center.id,
         (center, onTap) =>
             _DiveCenterRow(center: center, idsKey: key, onTap: onTap),
@@ -114,13 +116,18 @@ class GlobalSearchRows extends ConsumerWidget {
         (course, onTap) => CourseCard(course: course, onTap: onTap),
       ),
       GlobalSearchKind.species => _each(
-        ref.watch(globalSearchSpeciesProvider(key)),
+        _alongside(ref.watch(globalSearchSpeciesProvider(key)), [
+          ref.watch(globalSearchSeenSpeciesProvider(key)),
+          ref.watch(globalSearchSpeciesCoversProvider(key)),
+        ]),
         (species) => species.id,
         (species, onTap) =>
             _SpeciesRow(species: species, idsKey: key, onTap: onTap),
       ),
       GlobalSearchKind.documents => _each(
-        ref.watch(globalSearchDocumentsProvider(key)),
+        _alongside(ref.watch(globalSearchDocumentsProvider(key)), [
+          ref.watch(globalSearchDocumentTagsProvider(key)),
+        ]),
         (entry) => entry.document.id,
         (entry, onTap) => _DocumentRow(entry: entry, idsKey: key, onTap: onTap),
       ),
@@ -141,6 +148,17 @@ class GlobalSearchRows extends ConsumerWidget {
       ),
     };
   }
+
+  /// [records], still loading until each of [extras] (what a row shows
+  /// beside its record) has first settled, so a row is drawn once rather
+  /// than redrawn as they arrive. Watched here, they are also read with the
+  /// records, not after them. A failed extra leaves its row without it.
+  static AsyncValue<List<T>> _alongside<T>(
+    AsyncValue<List<T>> records,
+    List<AsyncValue<Object?>> extras,
+  ) => records.hasValue && extras.any((e) => !e.hasValue && !e.hasError)
+      ? AsyncLoading<List<T>>()
+      : records;
 
   /// [records] in [ids]' order, for [build] to draw. A record the search
   /// found and the list no longer holds is left out: it has just gone.
