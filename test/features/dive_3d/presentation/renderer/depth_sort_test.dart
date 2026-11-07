@@ -48,6 +48,18 @@ void main() {
     expect(_sorted(depths), _reference(depths));
   });
 
+  test('every NaN sorts last, whatever its sign bit', () {
+    final depths = Float32List.fromList([1, 0, -2, 0]);
+    final bits = depths.buffer.asUint32List();
+    bits[1] = 0xFFC00000; // a NaN with the sign bit set
+    bits[3] = 0x7FC00001; // a positive NaN with a payload
+    expect(depths[1].isNaN && depths[3].isNaN, isTrue);
+    // compareTo puts every NaN after every number, NaNs tied with each
+    // other, so they keep their index order.
+    expect(_sorted(depths), [2, 0, 1, 3]);
+    expect(_reference(depths), [2, 0, 1, 3]);
+  });
+
   test('equal depths keep their original order', () {
     final depths = Float32List.fromList([1, 0, 1, 0, 1, 0]);
     expect(_sorted(depths), [1, 3, 5, 0, 2, 4]);

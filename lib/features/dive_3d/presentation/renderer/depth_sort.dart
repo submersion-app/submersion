@@ -43,7 +43,9 @@ void sortIndicesByDepth(
 
   // Reinterpret each float as an unsigned key that sorts the same way:
   // flip every bit of a negative (so more negative sorts lower), and only
-  // the sign bit of a positive (so it sorts above every negative).
+  // the sign bit of a positive (so it sorts above every negative). Every
+  // NaN, whatever its sign bit or payload, takes the top key: compareTo
+  // puts NaN after +infinity and ties NaNs with each other.
   final bits = depths.buffer.asUint32List(depths.offsetInBytes, n);
   var keys = scratch._keys;
   var idx = order;
@@ -51,7 +53,11 @@ void sortIndicesByDepth(
   var idxOut = scratch._orderOut;
   for (var i = 0; i < n; i++) {
     final b = bits[i];
-    keys[i] = (b & 0x80000000) != 0 ? ~b : b | 0x80000000;
+    keys[i] = (b & 0x7FFFFFFF) > 0x7F800000
+        ? 0xFFFFFFFF
+        : (b & 0x80000000) != 0
+        ? ~b
+        : b | 0x80000000;
     idx[i] = i;
   }
 
