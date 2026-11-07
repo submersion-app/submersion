@@ -17,6 +17,12 @@ const String certificationExpiredGroupKey = 'expired';
 const String certificationExpiringSoonGroupKey = 'expiringSoon';
 const String certificationValidGroupKey = 'valid';
 
+/// Key of the group holding [agencyId]'s professional ratings when
+/// grouping by agency (issue #730). The agency's own group keeps the bare
+/// agency id as its key.
+String certificationProfessionalGroupKey(String agencyId) =>
+    '$agencyId#professional';
+
 /// One group of certifications sharing a status or a primary agency. Color
 /// is a presentation concern -- the caller decides, from [key], whether and
 /// how to show one.
@@ -98,26 +104,52 @@ List<CertificationGroup> _groupByStatus(List<Certification> certifications) {
 /// a card with a cross-over credential groups only under its primary
 /// agency, per the issue's scope decision). Groups order alphabetically by
 /// the agency's localized name, case/accent folded.
+///
+/// A card whose primary level is a professional rating (divemaster,
+/// instructor and up) goes in a separate "`<agency>` Professional" group
+/// placed right after that agency's own group (issue #730). An agency with
+/// no professional ratings shows no such group, and one with only
+/// professional ratings shows only that group.
 List<CertificationGroup> _groupByAgency(
   List<Certification> certifications,
   CertificationCatalog catalog,
   AppLocalizations l10n,
 ) {
-  final buckets = <String, List<Certification>>{};
+  final buckets = <(String, bool), List<Certification>>{};
   for (final cert in certifications) {
-    buckets.putIfAbsent(cert.agency, () => []).add(cert);
+    final level = cert.level;
+    final professional =
+        level != null && catalog.level(level).isProfessionalLevel;
+    buckets.putIfAbsent((cert.agency, professional), () => []).add(cert);
   }
 
   final collator = TextCollator();
-  final groups = [
-    for (final entry in buckets.entries)
+  final agencyNames = <String, String>{
+    for (final (agency, _) in buckets.keys)
+      agency: catalog.agency(agency).localizedName(l10n),
+  };
+  final keys = buckets.keys.toList()
+    ..sort((a, b) {
+      final byName = collator.compare(agencyNames[a.$1]!, agencyNames[b.$1]!);
+      if (byName != 0) return byName;
+      // Two distinct agency ids with the same display name stay apart, and
+      // each agency's professional group follows its own group.
+      final byId = a.$1.compareTo(b.$1);
+      if (byId != 0) return byId;
+      return (a.$2 ? 1 : 0) - (b.$2 ? 1 : 0);
+    });
+  return [
+    for (final key in keys)
       CertificationGroup(
-        key: entry.key,
-        label: catalog.agency(entry.key).localizedName(l10n),
-        certifications: entry.value,
+        key: key.$2 ? certificationProfessionalGroupKey(key.$1) : key.$1,
+        label: key.$2
+            ? l10n.certifications_list_section_professional(
+                agencyNames[key.$1]!,
+              )
+            : agencyNames[key.$1]!,
+        certifications: buckets[key]!,
       ),
-  ]..sort((a, b) => collator.compare(a.label, b.label));
-  return groups;
+  ];
 }
 
 /// [sortedCertifications] unchanged for [CertificationGroupBy.none], else

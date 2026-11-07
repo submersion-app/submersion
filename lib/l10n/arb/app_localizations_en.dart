@@ -4577,6 +4577,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get certifications_list_section_expiringSoon => 'Expiring Soon';
 
   @override
+  String certifications_list_section_professional(String agency) {
+    return '$agency Professional';
+  }
+
+  @override
   String get certifications_list_section_valid => 'Valid';
 
   @override

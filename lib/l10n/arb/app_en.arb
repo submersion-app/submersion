@@ -2746,6 +2746,15 @@
   "certifications_list_groupBy_status": "Status",
   "certifications_list_section_expired": "Expired",
   "certifications_list_section_expiringSoon": "Expiring Soon",
+  "certifications_list_section_professional": "{agency} Professional",
+  "@certifications_list_section_professional": {
+    "description": "Header of the certification list section holding one agency's professional ratings (divemaster, instructor and up) when grouped by agency.",
+    "placeholders": {
+      "agency": {
+        "type": "String"
+      }
+    }
+  },
   "certifications_list_section_valid": "Valid",
   "certifications_list_sort_title": "Sort Certifications",
   "certifications_list_tile_expired": "Expired",

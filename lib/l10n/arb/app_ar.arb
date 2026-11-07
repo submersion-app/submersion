@@ -1208,6 +1208,7 @@
   "certifications_list_groupBy_status": "الحالة",
   "certifications_list_section_expired": "منتهية الصلاحية",
   "certifications_list_section_expiringSoon": "تنتهي قريبًا",
+  "certifications_list_section_professional": "شهادات {agency} الاحترافية",
   "certifications_list_section_valid": "سارية",
   "certifications_list_sort_title": "ترتيب الشهادات",
   "certifications_list_tile_expired": "منتهية الصلاحية",
