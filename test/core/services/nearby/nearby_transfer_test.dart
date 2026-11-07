@@ -58,6 +58,22 @@ void main() {
     expect((await files.reusableFull('peer'))!.file.path, out.file.path);
   });
 
+  test('a full copy that cannot be moved keeps the export and leaves nothing '
+      'behind', () async {
+    final exported = File(p.join(dir.path, 'export.json.gz'))
+      ..writeAsBytesSync(gzip.encode(utf8.encode('{"a":1}')));
+    // A directory in the way: the rename fails, and so does the copy.
+    Directory(p.join(dir.path, 'nearby-out-peer-id.gz')).createSync();
+
+    await expectLater(
+      files.prepareFull('peer', 'id', exported),
+      throwsA(isA<FileSystemException>()),
+    );
+
+    expect(exported.existsSync(), isTrue);
+    expect(await files.reusableFull('peer'), isNull);
+  });
+
   test('a large delta is compressed on a worker', () async {
     final hops = IsolateHops();
     final worker = NearbyTransferFiles(
