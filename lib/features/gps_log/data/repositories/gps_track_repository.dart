@@ -294,6 +294,16 @@ class GpsTrackRepository {
   /// (a fresh instance, or after a restart) rebuilds from the buffer.
   final Map<String, _CheckpointCursor> _checkpoints = {};
 
+  /// The longest a recording's blob goes unwritten when no fix arrives:
+  /// half of [staleOrphanThreshold], so an idle but live session is never
+  /// mistaken for a dead one on another device.
+  static final checkpointHeartbeat = staleOrphanThreshold ~/ 2;
+
+  /// The clock [checkpoint] measures [checkpointHeartbeat] against, in epoch
+  /// milliseconds; replaceable so a test can pass the heartbeat.
+  @visibleForTesting
+  int Function() debugNowMs = () => DateTime.now().millisecondsSinceEpoch;
+
   /// Test-only hook reporting what each [checkpoint] call read, encoded and
   /// wrote, so the work per checkpoint can be asserted (issue #4255).
   @visibleForTesting
@@ -318,10 +328,27 @@ class GpsTrackRepository {
       timeOrder: cursor == null,
     );
     if (rows.isEmpty) {
+      // Nothing new, but other devices tell a live remote session from a
+      // dead one by updatedAt (recoverOrphanedTracks), so a long idle spell
+      // (a stationary phone gets no fixes past the distance filter) still
+      // rewrites the blob well inside [staleOrphanThreshold].
+      final heartbeatDue =
+          cursor != null &&
+          debugNowMs() - cursor.writtenAtMs >=
+              checkpointHeartbeat.inMilliseconds;
+      if (heartbeatDue) {
+        await _writeEncodedBlob(
+          trackId,
+          encodeTrackPointTuples(cursor.tuples),
+          pointCount: cursor.tuples.length,
+          endTimeMs: null,
+        );
+        _checkpoints[trackId] = cursor.withWrittenAt(debugNowMs());
+      }
       debugOnCheckpoint?.call((
         rowsRead: 0,
         tuplesEncoded: 0,
-        wroteBlob: false,
+        wroteBlob: heartbeatDue,
       ));
       return;
     }
@@ -362,6 +389,7 @@ class GpsTrackRepository {
       lastRowId: encodedRows.map((r) => r.rowId).reduce(_max),
       lastTimestamp: encodedRows.map((r) => r.timestamp).reduce(_max),
       tuples: tuples,
+      writtenAtMs: debugNowMs(),
     );
     debugOnCheckpoint?.call((
       rowsRead: rowsRead,
@@ -609,16 +637,28 @@ class GpsTrackRepository {
 }
 
 /// What a recording's last checkpoint wrote: the highest buffer rowId it
-/// read, the latest fix time in the blob, and every tuple already encoded,
+/// read, the latest fix time in the blob, every tuple already encoded and
+/// when it was written,
 /// so the next checkpoint formats only fixes buffered since (issue #4255).
 class _CheckpointCursor {
   const _CheckpointCursor({
     required this.lastRowId,
     required this.lastTimestamp,
     required this.tuples,
+    required this.writtenAtMs,
   });
 
   final int lastRowId;
   final int lastTimestamp;
   final List<String> tuples;
+
+  /// When this cursor's blob was written, for [GpsTrackRepository.checkpointHeartbeat].
+  final int writtenAtMs;
+
+  _CheckpointCursor withWrittenAt(int ms) => _CheckpointCursor(
+    lastRowId: lastRowId,
+    lastTimestamp: lastTimestamp,
+    tuples: tuples,
+    writtenAtMs: ms,
+  );
 }

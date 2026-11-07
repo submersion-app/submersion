@@ -146,6 +146,33 @@ void main() {
         expect((await rowOf(id)).updatedAt, 1);
       });
 
+      test('an idle recording still rewrites once the heartbeat is due, so '
+          'another device does not close it as an orphan', () async {
+        var now = 1700000000000;
+        repo.debugNowMs = () => now;
+        final id = await startWith([at(1700000000)]);
+        await repo.checkpoint(id);
+
+        now += GpsTrackRepository.checkpointHeartbeat.inMilliseconds - 1;
+        await repo.checkpoint(id);
+        expect(stats.last.wroteBlob, isFalse);
+
+        await (db.update(db.gpsTracks)..where((t) => t.id.equals(id))).write(
+          const GpsTracksCompanion(updatedAt: Value(1)),
+        );
+        now += 1;
+        await repo.checkpoint(id);
+
+        expect(stats.last, (rowsRead: 0, tuplesEncoded: 0, wroteBlob: true));
+        final row = await rowOf(id);
+        expect(row.updatedAt, greaterThan(1));
+        expect(row.pointCount, 1);
+        expect(
+          GpsTrackRepository.checkpointHeartbeat,
+          lessThan(GpsTrackRepository.staleOrphanThreshold),
+        );
+      });
+
       test('a failed blob write leaves the cursor, so the next checkpoint '
           'still writes those fixes', () async {
         final id = await startWith([at(1700000000)]);
