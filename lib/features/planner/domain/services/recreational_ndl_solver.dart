@@ -8,7 +8,8 @@ import 'package:submersion/core/deco/entities/breathing_config.dart';
 ///
 /// This is a thin solver over a validated [DecoModel] (typically [BuhlmannGf]),
 /// not a new tissue model. It descends to the target depth, then binary-searches
-/// the longest whole-minute bottom time whose ascent schedule is empty. The NDL
+/// the longest whole-minute bottom time whose ascent schedule holds no
+/// decompression stop (a stop held only to switch gas does not count). The NDL
 /// boundary is therefore defined by the model's own ascent schedule — the same
 /// deco math the planner already trusts — rather than a re-derived NDL formula.
 /// Tests cross-check the result against the model's [DecoModel.ndlSeconds] so the
@@ -37,7 +38,7 @@ class RecreationalNdlSolver {
     }
   }
 
-  /// The decompression model whose empty-schedule boundary defines the NDL.
+  /// The decompression model whose no-stop schedule boundary defines the NDL.
   final DecoModel model;
 
   /// Descent rate (m/min) used to reach the target depth; the descent itself
@@ -96,10 +97,12 @@ class RecreationalNdlSolver {
           breathing,
         );
       }
+      // A stop held only to switch gas is not decompression: the model's
+      // policy can ask for one on a dive that owes nothing (issue #4160).
       return model
           .schedule(state, currentDepth: depthMeters, gases: gases)
           .stops
-          .isEmpty;
+          .every((stop) => stop.isGasSwitchOnly);
     }
 
     // Already in deco on arrival at depth.

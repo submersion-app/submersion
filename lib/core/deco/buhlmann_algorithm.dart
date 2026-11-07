@@ -431,20 +431,55 @@ class BuhlmannAlgorithm {
     final savedCompartments = List<TissueCompartment>.from(_compartments);
     final savedAnchor = _gfLowCeilingAnchor;
 
+    // A loop's own gas bookkeeping (LoopAscentGas.gasForDepth) is a
+    // continuously pAlv-normalized fraction for the tissue simulation, not
+    // the gas the diver actually feeds the loop. That fraction drifts with
+    // every depth change even on a single diluent or supply gas the whole
+    // ascent, which made [switched] fire at nearly every stop and floor every
+    // one of them to [SchedulePolicy.gasSwitchStopSeconds] as if the diver
+    // had genuinely switched cylinders there (#3225). Real gas switches (an
+    // OC plan's ascent, and a bailout schedule's own OptimalOcAscentGas) are
+    // unaffected: only a loop's own drift is excluded.
+    final isLoop = plan is LoopAscentGas;
+
     final double ceiling = calculateCeiling();
-    if (ceiling <= 0) {
+    // The deco walk starts at the grid level at or below the ceiling, but
+    // never shallower than the last stop, which is where a diver who owes
+    // anything at all has chosen to hold. 0 when nothing is owed.
+    final double decoStart = ceiling > 0
+        ? math.max(
+            (ceiling / p.stopIncrement).ceil() * p.stopIncrement,
+            p.lastStopDepth,
+          )
+        : 0.0;
+
+    // Gas switches the deco walk would never reach: deeper than its first
+    // level, or on a dive that owes nothing at all. Each is held at its own
+    // level when a switch stop is configured (issue #4160), instead of
+    // flooring whichever deco stop happens to come next.
+    final switchLevels = p.gasSwitchStopSeconds > 0 && !isLoop
+        ? _switchLevelsDeeperThan(decoStart, currentDepth, plan, p)
+        : const <double>[];
+
+    if (decoStart <= 0 && switchLevels.isEmpty) {
       _compartments = savedCompartments;
       _gfLowCeilingAnchor = savedAnchor;
       return stops; // No deco required
     }
 
-    // The first stop is the grid level at or below the ceiling - but never
-    // shallower than the last stop, which is where a diver who owes anything
-    // at all has chosen to hold.
-    double currentStopDepth = math.max(
-      (ceiling / p.stopIncrement).ceil() * p.stopIncrement,
-      p.lastStopDepth,
-    );
+    // The level after [depth]: the next pending switch level, then the deco
+    // walk's first level, then the stop grid.
+    double nextLevelAfter(double depth) {
+      for (final level in switchLevels) {
+        if (level < depth - _levelEpsilon) return level;
+      }
+      if (depth > decoStart + _levelEpsilon) return decoStart;
+      return decoStart > 0 ? _nextLevel(depth, p) : 0.0;
+    }
+
+    double currentStopDepth = switchLevels.isNotEmpty
+        ? switchLevels.first
+        : decoStart;
 
     // Travel to first stop may cross a gas MOD: _simulateAscent splits it.
     _simulateAscent(currentDepth, currentStopDepth, plan, p);
@@ -461,36 +496,46 @@ class BuhlmannAlgorithm {
     // stopped yet is still on the working ascent off the bottom, however many
     // grid levels they have passed through: loading those legs at the
     // between-stops rate made the tissues fly an ascent minutes longer than
-    // the one the schedule printed.
+    // the one the schedule printed. A stop held only to switch gas does not
+    // end the working ascent either (AscentPhase.afterStop).
     var clockSeconds = 0;
     var clockDepth = currentDepth;
     var clockPhase = AscentPhase.toFirstStop;
 
-    // A loop's own gas bookkeeping (LoopAscentGas.gasForDepth) is a
-    // continuously pAlv-normalized fraction for the tissue simulation, not
-    // the gas the diver actually feeds the loop. That fraction drifts with
-    // every depth change even on a single diluent or supply gas the whole
-    // ascent, which made [switched] fire at nearly every stop and floor every
-    // one of them to [SchedulePolicy.gasSwitchStopSeconds] as if the diver
-    // had genuinely switched cylinders there (#3225). Real gas switches (an
-    // OC plan's ascent, and a bailout schedule's own OptimalOcAscentGas) are
-    // unaffected: only a loop's own drift is excluded.
-    final isLoop = plan is LoopAscentGas;
     AscentGas previousGas = plan.gasForDepth(currentDepth);
     while (currentStopDepth > 0) {
       final stopGas = plan.gasForDepth(currentStopDepth);
       final switched =
           !isLoop &&
           (stopGas.fN2 != previousGas.fN2 || stopGas.fHe != previousGas.fHe);
+      // A switch level the deco walk would not have visited: anything held
+      // there is held for the switch alone.
+      final onDecoWalk =
+          decoStart > 0 && currentStopDepth <= decoStart + _levelEpsilon;
 
-      int stopTime = _calculateStopTime(currentStopDepth, plan, p, clockPhase);
+      final decoSeconds = _calculateStopTime(
+        currentStopDepth,
+        plan,
+        p,
+        clockPhase,
+      );
+      int stopTime = decoSeconds;
       if (switched && p.gasSwitchStopSeconds > 0) {
         stopTime = math.max(stopTime, p.gasSwitchStopSeconds);
       }
+      final heldForSwitch = decoSeconds == 0 && stopTime > 0;
+      // A minimum never turns a level the deco walk does not visit into a
+      // stop, but it does lengthen a switch stop held there anyway.
       final minStopSeconds = p.minStopSecondsByDepth[currentStopDepth.round()];
-      if (minStopSeconds != null && minStopSeconds > 0) {
+      if (minStopSeconds != null &&
+          minStopSeconds > 0 &&
+          (onDecoWalk || stopTime > 0)) {
         stopTime = math.max(stopTime, minStopSeconds);
       }
+      // Held for the switch alone only when nothing is owed here and the
+      // switch time, not a longer stop minimum the diver set, is what sets
+      // its length.
+      final gasSwitchOnly = heldForSwitch && stopTime == p.gasSwitchStopSeconds;
       final arrivalSeconds =
           clockSeconds +
           p.ascentSeconds(
@@ -498,10 +543,12 @@ class BuhlmannAlgorithm {
             toDepth: currentStopDepth,
             phase: clockPhase,
           );
-      if (p.snapStopsToWholeMinutes && stopTime > 0) {
+      if (p.snapStopsToWholeMinutes && stopTime > 0 && !gasSwitchOnly) {
         // The stop absorbs the odd seconds of the leg that led to it, so it
-        // ends on a whole minute of the ascent clock. Only a stop that is
-        // actually held snaps: a level cleared on arrival is not a stop.
+        // ends on a whole minute of the ascent clock. Only a decompression
+        // stop that is actually held snaps: a level cleared on arrival is not
+        // a stop, and a switch stop is held for exactly as long as the diver
+        // asked, the next deco stop absorbing its odd seconds instead.
         stopTime += (60 - (arrivalSeconds + stopTime) % 60) % 60;
       }
 
@@ -510,7 +557,7 @@ class BuhlmannAlgorithm {
           DecoStop(
             depthMeters: currentStopDepth,
             durationSeconds: stopTime,
-            isDeepStop: currentStopDepth > 9,
+            isDeepStop: currentStopDepth > 9 && !gasSwitchOnly,
             // Derived from the FINAL stop time (a gas-switch minimum may extend
             // it past the natural clearance) using the same gas sequence
             // _loadStopMinutes applies, so the annotation cannot diverge from
@@ -521,6 +568,7 @@ class BuhlmannAlgorithm {
               plan,
               p,
             ),
+            isGasSwitchOnly: gasSwitchOnly,
           ),
         );
 
@@ -528,11 +576,11 @@ class BuhlmannAlgorithm {
 
         clockSeconds = arrivalSeconds + stopTime;
         clockDepth = currentStopDepth;
-        clockPhase = AscentPhase.betweenStops;
+        clockPhase = clockPhase.afterStop(gasSwitchOnly: gasSwitchOnly);
       }
       previousGas = stopGas;
 
-      final nextStop = _nextLevel(currentStopDepth, p);
+      final nextStop = nextLevelAfter(currentStopDepth);
       if (nextStop > 0) {
         _simulateAscent(currentStopDepth, nextStop, plan, p, phase: clockPhase);
       }
@@ -544,6 +592,48 @@ class BuhlmannAlgorithm {
     _gfLowCeilingAnchor = savedAnchor;
 
     return stops;
+  }
+
+  /// Slack when comparing stop levels, which are built by repeated
+  /// arithmetic on the stop increment.
+  static const double _levelEpsilon = 1e-9;
+
+  /// The stop level a gas switched to at [switchDepth] is first breathed at:
+  /// the deepest level of the stop grid at or above it, the last stop
+  /// counting as a level. Null for a switch shallower than the last stop,
+  /// where there is no level left to hold it at.
+  ///
+  /// A switch depth is the gas's MOD in the plan's water, rarely a whole
+  /// stop: EAN50 at 1.6 bar is 21.86 m in seawater. A diver switches on the
+  /// way through it and holds the switch at the next stop up, 21 m, the same
+  /// level the schedule's grid and its table are read at.
+  double? _switchLevel(double switchDepth, SchedulePolicy p) {
+    if (switchDepth < p.lastStopDepth - _levelEpsilon) return null;
+    final grid =
+        ((switchDepth + _levelEpsilon) / p.stopIncrement).floor() *
+        p.stopIncrement;
+    return math.max(grid, p.lastStopDepth);
+  }
+
+  /// The levels, deepest first, of every gas switch on an ascent from
+  /// [currentDepth] that is held deeper than [decoStart], the first level the
+  /// deco walk visits (0 when nothing is owed, so every switch counts).
+  /// Switches at or above [decoStart] fall on levels the deco walk visits
+  /// itself.
+  List<double> _switchLevelsDeeperThan(
+    double decoStart,
+    double currentDepth,
+    AscentGasPlan plan,
+    SchedulePolicy p,
+  ) {
+    final levels = <double>{};
+    for (final switchDepth in plan.switchDepthsBetween(currentDepth, 0)) {
+      final level = _switchLevel(switchDepth, p);
+      if (level != null && level > decoStart + _levelEpsilon) {
+        levels.add(level);
+      }
+    }
+    return levels.toList()..sort((a, b) => b.compareTo(a));
   }
 
   /// The level the diver goes to after [stopDepth]: the next grid stop, the
@@ -899,6 +989,7 @@ class BuhlmannAlgorithm {
     tts += p.ascentTravelSeconds(
       fromDepth: currentDepth,
       stopDepths: stops.map((s) => s.depthMeters),
+      gasSwitchOnlyDepths: gasSwitchOnlyDepthsOf(stops),
     );
 
     return tts;

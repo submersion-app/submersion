@@ -11446,6 +11446,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divePlanner_label_minutesUnit => 'دقيقة';
 
   @override
+  String get divePlanner_label_secondsUnit => 'ثانية';
+
+  @override
   String get divePlanner_label_ndl => 'NDL';
 
   @override
