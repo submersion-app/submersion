@@ -26,6 +26,7 @@ import 'package:submersion/features/equipment/figure/presentation/figure_number_
 import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_selection.dart';
 import 'package:submersion/features/equipment/figure/presentation/gear_figure.dart';
+import 'package:submersion/features/equipment/presentation/helpers/equipment_set_history_save.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
@@ -734,7 +735,16 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
 
       final String savedId;
       if (widget.isEditing) {
-        await notifier.updateSet(set);
+        // Asks whether the dives that carry the set follow (issue #4283);
+        // a cancel saves nothing and keeps the editor open.
+        if (!mounted) return;
+        final saved = await saveSetWithHistory(
+          context,
+          ref,
+          set: set,
+          loaded: existingSet!,
+        );
+        if (!saved) return;
         savedId = set.id;
       } else {
         final created = await notifier.addSet(set);

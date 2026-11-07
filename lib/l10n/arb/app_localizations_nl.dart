@@ -1412,6 +1412,21 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_setEdit_figureSwitch_title => 'Duikerfiguur tonen';
 
   @override
+  String get equipment_setEdit_historyAsk =>
+      'De wijzigingen ook op die duiken toepassen, of alleen vanaf nu?';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Deze set staat op $count gelogde duiken.',
+      one: 'Deze set staat op 1 gelogde duik.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_color_red => 'Rood';
 
   @override

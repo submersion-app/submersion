@@ -82,6 +82,58 @@ void main() {
     expect([for (final p in await parts('reg')) p.id], [second]);
   });
 
+  test('a part change follows on planned dives only (#4283)', () async {
+    // d1 is logged, p1 planned; both carry reg with first under it.
+    await h.dive('p1');
+    await (db.update(db.dives)..where((d) => d.id.equals('p1'))).write(
+      const DivesCompanion(isPlanned: Value(true)),
+    );
+    final first = (await h.run([
+      createOp('equipment_components', part('reg', 'first')),
+    ])).created.single.id;
+    for (final dive in ['d1', 'p1']) {
+      await db
+          .into(db.diveEquipment)
+          .insert(
+            DiveEquipmentCompanion.insert(diveId: dive, equipmentId: 'reg'),
+          );
+      await db
+          .into(db.diveEquipment)
+          .insert(
+            DiveEquipmentCompanion.insert(
+              diveId: dive,
+              equipmentId: 'first',
+              viaEquipmentId: const Value('reg'),
+            ),
+          );
+    }
+    Future<Set<String>> gearOn(String dive) async => {
+      for (final row in await (db.select(
+        db.diveEquipment,
+      )..where((r) => r.diveId.equals(dive))).get())
+        row.equipmentId,
+    };
+
+    final added = await h.preview([
+      createOp('equipment_components', part('reg', 'second')),
+    ]);
+    expect(added.items.single.alsoChanges, {'dives': 1});
+    await h.apply(added);
+    expect(await gearOn('p1'), {'reg', 'first', 'second'});
+    expect(await gearOn('d1'), {'reg', 'first'});
+
+    await h.run([
+      updateOp('equipment_components', first, {
+        'component_equipment_id': 'octo',
+      }),
+    ]);
+    expect(await gearOn('p1'), {'reg', 'octo', 'second'});
+
+    await h.run([deleteOp('equipment_components', first)]);
+    expect(await gearOn('p1'), {'reg', 'second'});
+    expect(await gearOn('d1'), {'reg', 'first'});
+  });
+
   test('a part that would close a loop is blocked', () async {
     await h.run([createOp('equipment_components', part('reg', 'first'))]);
 

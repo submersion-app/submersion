@@ -1423,6 +1423,21 @@ class AppLocalizationsIt extends AppLocalizations {
       'Mostra figura del subacqueo';
 
   @override
+  String get equipment_setEdit_historyAsk =>
+      'Applicare le modifiche anche a quelle immersioni o solo da ora in poi?';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Questo set è su $count immersioni registrate.',
+      one: 'Questo set è su 1 immersione registrata.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_color_red => 'Rosso';
 
   @override

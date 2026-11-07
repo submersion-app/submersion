@@ -1,6 +1,8 @@
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_history_rewrite.dart';
 
 /// The parts of an assembly, through the repository its components card
 /// uses: a part is added at the end, given a role, swapped for another item
@@ -132,20 +134,86 @@ class EquipmentComponentWrites extends WritableEntry {
     return false;
   }
 
+  /// A part change follows on the planned dives that carry the assembly
+  /// (issue #4283); an agent never rewrites logged dives.
   @override
-  Future<String> create(String diverId, Map<String, Object?> values) async =>
-      (await _r.equipmentComponents.addComponent(
-        parentId: values['parent_equipment_id']! as String,
-        componentId: values['component_equipment_id']! as String,
-        role: values['role'] as String? ?? '',
-      )).id;
+  Future<Map<String, int>> createTouched(
+    String diverId,
+    Map<String, Object?> values,
+  ) async => _plannedTouched(values['parent_equipment_id'] as String?);
+
+  @override
+  Future<SideEffects> sideEffects(
+    String id,
+    String? ownerId,
+    RecordUpdate update,
+    Map<String, Object?> document,
+  ) async => update.values.containsKey('component_equipment_id')
+      ? SideEffects(
+          touched: await _plannedTouched(
+            document['parent_equipment_id'] as String?,
+          ),
+        )
+      : const SideEffects();
+
+  @override
+  Future<DeleteReach> deleteReach(
+    String id, {
+    Map<String, Set<String>> alongside = const {},
+  }) async => DeleteReach(
+    touched: await _plannedTouched((await _row(id))?.parentEquipmentId),
+  );
+
+  Future<Map<String, int>> _plannedTouched(String? assemblyId) async {
+    if (assemblyId == null) return const {};
+    final n = await _r.dives.countPlannedDivesWithAssembly(assemblyId);
+    return {if (n > 0) 'dives': n};
+  }
+
+  /// The stored part [id], or null when it is gone.
+  Future<EquipmentComponent?> _row(String id) async {
+    for (final c in await _r.equipmentComponents.getAllComponents()) {
+      if (c.id == id) return c;
+    }
+    return null;
+  }
+
+  Future<void> _followOnPlannedDives(
+    String assemblyId,
+    GearHistoryRewrite rewrite,
+  ) =>
+      _r.dives.rewriteAssemblyOnDives(assemblyId, [rewrite], alsoLogged: false);
+
+  @override
+  Future<String> create(String diverId, Map<String, Object?> values) async {
+    final parentId = values['parent_equipment_id']! as String;
+    final componentId = values['component_equipment_id']! as String;
+    final row = await _r.equipmentComponents.addComponent(
+      parentId: parentId,
+      componentId: componentId,
+      role: values['role'] as String? ?? '',
+    );
+    await _followOnPlannedDives(parentId, GearPartAdded(componentId));
+    return row.id;
+  }
 
   @override
   Future<void> update(String id, String? ownerId, RecordUpdate update) async {
     final components = _r.equipmentComponents;
     final v = update.values;
     if (v['component_equipment_id'] case final String componentId) {
+      // Read before the swap: the rewrite needs the part it replaces.
+      final before = await _row(id);
       await components.replaceComponent(id, componentId);
+      if (before != null) {
+        await _followOnPlannedDives(
+          before.parentEquipmentId,
+          GearPartReplaced(
+            oldPartId: before.componentEquipmentId,
+            newPartId: componentId,
+          ),
+        );
+      }
     }
     if (v['role'] case final String role) {
       await components.updateRole(id, role);
@@ -165,6 +233,14 @@ class EquipmentComponentWrites extends WritableEntry {
   }
 
   @override
-  Future<void> delete(String id, String? ownerId) =>
-      _r.equipmentComponents.removeComponent(id);
+  Future<void> delete(String id, String? ownerId) async {
+    final before = await _row(id);
+    await _r.equipmentComponents.removeComponent(id);
+    if (before != null) {
+      await _followOnPlannedDives(
+        before.parentEquipmentId,
+        GearPartRemoved(before.componentEquipmentId),
+      );
+    }
+  }
 }

@@ -1407,6 +1407,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_setEdit_figureSwitch_title => 'Show diver figure';
 
   @override
+  String get equipment_setEdit_historyAsk =>
+      'Apply the changes to those dives as well, or only from now on?';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'This set is on $count logged dives.',
+      one: 'This set is on 1 logged dive.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_color_red => 'Red';
 
   @override

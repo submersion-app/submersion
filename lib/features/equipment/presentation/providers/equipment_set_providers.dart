@@ -214,11 +214,15 @@ class EquipmentSetListNotifier
     return newSet;
   }
 
-  Future<void> updateSet(EquipmentSet set) async {
-    await _repository.updateSet(set);
+  /// Saves [set] and returns the members the save added and removed.
+  Future<({List<String> added, List<String> removed})> updateSet(
+    EquipmentSet set,
+  ) async {
+    final diff = await _repository.updateSet(set);
     await refresh();
     _ref.invalidate(equipmentSetsProvider);
     _ref.invalidate(equipmentSetProvider(set.id));
+    return diff;
   }
 
   Future<void> deleteSet(String id) async {

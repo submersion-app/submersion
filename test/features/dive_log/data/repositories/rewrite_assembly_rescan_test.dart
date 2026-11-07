@@ -79,9 +79,9 @@ void main() {
           DiveEquipmentCompanion.insert(diveId: 'a1', equipmentId: 'octo'),
         );
 
-    final touched = await DiveRepository().rewriteAssemblyOnPastDives('reg', [
+    final touched = await DiveRepository().rewriteAssemblyOnDives('reg', [
       const GearPartAdded('octo'),
-    ]);
+    ], alsoLogged: true);
     expect(touched, 1);
     await QualityScanScheduler.instance.idle;
 

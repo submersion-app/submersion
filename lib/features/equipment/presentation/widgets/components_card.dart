@@ -73,12 +73,12 @@ class ComponentsCard extends ConsumerWidget {
       await ref
           .read(equipmentComponentRepositoryProvider)
           .removeComponent(part.id);
-      if (choice == AssemblyHistoryChoice.alsoPast) {
-        await ref.read(diveRepositoryProvider).rewriteAssemblyOnPastDives(
-          equipmentId,
-          [GearPartRemoved(part.componentEquipmentId)],
-        );
-      }
+      // Planned dives follow on every answer (issue #4283).
+      await ref.read(diveRepositoryProvider).rewriteAssemblyOnDives(
+        equipmentId,
+        [GearPartRemoved(part.componentEquipmentId)],
+        alsoLogged: choice == AssemblyHistoryChoice.alsoPast,
+      );
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('$e')));
     }

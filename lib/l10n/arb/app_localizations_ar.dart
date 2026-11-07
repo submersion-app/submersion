@@ -1459,6 +1459,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_setEdit_figureSwitch_title => 'إظهار رسم الغواص';
 
   @override
+  String get equipment_setEdit_historyAsk =>
+      'تطبيق التغييرات على تلك الغطسات أيضًا، أم من الآن فصاعدًا فقط؟';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'هذه المجموعة موجودة في $count غطسة مسجلة.',
+      many: 'هذه المجموعة موجودة في $count غطسة مسجلة.',
+      few: 'هذه المجموعة موجودة في $count غطسات مسجلة.',
+      two: 'هذه المجموعة موجودة في غطستين مسجلتين.',
+      one: 'هذه المجموعة موجودة في غطسة مسجلة واحدة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_color_red => 'أحمر';
 
   @override

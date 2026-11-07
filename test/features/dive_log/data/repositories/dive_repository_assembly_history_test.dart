@@ -99,9 +99,9 @@ void main() {
     'an added part lands on every dive with the assembly, tagged with its set',
     () async {
       final before = await updatedAtOf('c');
-      final touched = await repo.rewriteAssemblyOnPastDives('reg', const [
+      final touched = await repo.rewriteAssemblyOnDives('reg', const [
         GearPartAdded('first'),
-      ]);
+      ], alsoLogged: true);
       expect(touched, 2);
       final a = await rowsOf('a');
       expect(a['first']!.viaEquipmentId, 'reg');
@@ -113,9 +113,9 @@ void main() {
   );
 
   test('a removed part leaves every dive and tombstones the rows', () async {
-    await repo.rewriteAssemblyOnPastDives('reg', const [
+    await repo.rewriteAssemblyOnDives('reg', const [
       GearPartRemoved('hose'),
-    ]);
+    ], alsoLogged: true);
     expect((await rowsOf('a')).keys, ['reg']);
     expect((await rowsOf('b')).keys, unorderedEquals(['reg', 'mask']));
     final tombstones = [
@@ -130,9 +130,9 @@ void main() {
     () async {
       final before = await updatedAtOf('a');
       await Future<void>.delayed(const Duration(milliseconds: 2));
-      await repo.rewriteAssemblyOnPastDives('reg', const [
+      await repo.rewriteAssemblyOnDives('reg', const [
         GearPartReplaced(oldPartId: 'hose', newPartId: 'newhose'),
-      ]);
+      ], alsoLogged: true);
       final a = await rowsOf('a');
       expect(a.keys, unorderedEquals(['reg', 'newhose']));
       expect(a['newhose']!.viaEquipmentId, 'reg');
@@ -143,19 +143,19 @@ void main() {
 
   test('a rewrite that changes nothing touches no dive', () async {
     final before = await updatedAtOf('a');
-    final touched = await repo.rewriteAssemblyOnPastDives('reg', const [
+    final touched = await repo.rewriteAssemblyOnDives('reg', const [
       GearPartRemoved('first'),
-    ]);
+    ], alsoLogged: true);
     expect(touched, 0);
     expect(await updatedAtOf('a'), before);
   });
 
   test('a batch applies every rewrite in one pass over the dives', () async {
-    final touched = await repo.rewriteAssemblyOnPastDives('reg', const [
+    final touched = await repo.rewriteAssemblyOnDives('reg', const [
       GearPartAdded('first'),
       GearPartAdded('newhose'),
       GearPartRemoved('hose'),
-    ]);
+    ], alsoLogged: true);
     expect(touched, 2);
     final a = await rowsOf('a');
     expect(a.keys, unorderedEquals(['reg', 'first', 'newhose']));
@@ -175,7 +175,10 @@ void main() {
 
   test('an empty batch touches nothing', () async {
     final before = await updatedAtOf('a');
-    expect(await repo.rewriteAssemblyOnPastDives('reg', const []), 0);
+    expect(
+      await repo.rewriteAssemblyOnDives('reg', const [], alsoLogged: true),
+      0,
+    );
     expect(await updatedAtOf('a'), before);
   });
 }

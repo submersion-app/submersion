@@ -44,34 +44,36 @@ class _FakeComponentRepository extends EquipmentComponentRepository {
   Future<List<String>> distinctRoles() async => const ['Necklace', 'Primary'];
 }
 
-/// How many logged dives carry the assembly, as the history dialog sees it.
-/// The real one logs and rethrows on a query failure.
-class _FakeEquipmentRepository extends EquipmentRepository {
+/// How many logged dives carry the assembly, as the history dialog reads it
+/// from the dive repository. The real one logs and rethrows on a failure.
+class _DiveCount {
   int diveCount = 0;
   Object? throwOnCount;
-
-  @override
-  Future<int> getDiveCountForEquipment(
-    String equipmentId, {
-    String? diverId,
-  }) async {
-    if (throwOnCount != null) throw throwOnCount!;
-    return diveCount;
-  }
 }
+
+/// Stands in for anything else that reads the equipment repository.
+class _FakeEquipmentRepository extends EquipmentRepository {}
 
 /// DiveRepository only has a factory, so a Fake stands in for it.
 class _FakeDiveRepository extends Fake implements DiveRepository {
-  final rewrites = <(String, List<GearHistoryRewrite>)>[];
+  final rewrites = <(String, List<GearHistoryRewrite>, bool)>[];
+  _DiveCount count = _DiveCount();
   Object? throwOnRewrite;
 
   @override
-  Future<int> rewriteAssemblyOnPastDives(
+  Future<int> countLoggedDivesWithAssembly(String assemblyId) async {
+    if (count.throwOnCount != null) throw count.throwOnCount!;
+    return count.diveCount;
+  }
+
+  @override
+  Future<int> rewriteAssemblyOnDives(
     String assemblyId,
-    List<GearHistoryRewrite> rewrites_,
-  ) async {
+    List<GearHistoryRewrite> rewrites_, {
+    required bool alsoLogged,
+  }) async {
     if (throwOnRewrite != null) throw throwOnRewrite!;
-    rewrites.add((assemblyId, rewrites_));
+    rewrites.add((assemblyId, rewrites_, alsoLogged));
     return 1;
   }
 }
@@ -138,7 +140,7 @@ void main() {
   Widget build(
     List<EquipmentComponent> parts,
     _FakeComponentRepository repo, {
-    _FakeEquipmentRepository? equipment,
+    _DiveCount? count,
     _FakeDiveRepository? dives,
     List<PartOfEntry> partOf = const [],
     Object? partOfError,
@@ -151,10 +153,10 @@ void main() {
         settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
         equipmentComponentRepositoryProvider.overrideWithValue(repo),
         equipmentRepositoryProvider.overrideWithValue(
-          equipment ?? _FakeEquipmentRepository(),
+          _FakeEquipmentRepository(),
         ),
         diveRepositoryProvider.overrideWithValue(
-          dives ?? _FakeDiveRepository(),
+          (dives ?? _FakeDiveRepository())..count = count ?? _DiveCount(),
         ),
         equipmentComponentsProvider('reg').overrideWith((ref) async => parts),
         equipmentPartOfProvider('reg').overrideWith((ref) async {
@@ -797,7 +799,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Update past dives?'), findsNothing);
     expect(repo.removed, ['c1']);
-    expect(dives.rewrites, isEmpty);
+    // Planned dives still follow the change (issue #4283).
+    expect(dives.rewrites, hasLength(1));
+    expect(dives.rewrites.single.$3, isFalse);
   });
 
   testWidgets(
@@ -809,7 +813,7 @@ void main() {
         build(
           [part('c1', first)],
           repo,
-          equipment: _FakeEquipmentRepository()..diveCount = 2,
+          count: _DiveCount()..diveCount = 2,
           dives: dives,
         ),
       );
@@ -826,6 +830,7 @@ void main() {
       expect(dives.rewrites, hasLength(1));
       expect(dives.rewrites.single.$1, 'reg');
       expect(dives.rewrites.single.$2, const [GearPartRemoved('first')]);
+      expect(dives.rewrites.single.$3, isTrue);
     },
   );
 
@@ -838,8 +843,7 @@ void main() {
       build(
         [part('c1', first)],
         repo,
-        equipment: _FakeEquipmentRepository()
-          ..throwOnCount = StateError('no database'),
+        count: _DiveCount()..throwOnCount = StateError('no database'),
         dives: dives,
       ),
     );
@@ -861,7 +865,7 @@ void main() {
       build(
         [part('c1', first)],
         repo,
-        equipment: _FakeEquipmentRepository()..diveCount = 2,
+        count: _DiveCount()..diveCount = 2,
         dives: dives,
       ),
     );
@@ -875,7 +879,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('from now on removes the part and leaves past dives alone', (
+  testWidgets('from now on removes the part and rewrites planned dives only', (
     tester,
   ) async {
     final repo = _FakeComponentRepository();
@@ -884,7 +888,7 @@ void main() {
       build(
         [part('c1', first)],
         repo,
-        equipment: _FakeEquipmentRepository()..diveCount = 2,
+        count: _DiveCount()..diveCount = 2,
         dives: dives,
       ),
     );
@@ -894,7 +898,9 @@ void main() {
     await tester.tap(find.text('From now on'));
     await tester.pumpAndSettle();
     expect(repo.removed, ['c1']);
-    expect(dives.rewrites, isEmpty);
+    expect(dives.rewrites, hasLength(1));
+    expect(dives.rewrites.single.$2, const [GearPartRemoved('first')]);
+    expect(dives.rewrites.single.$3, isFalse);
   });
 
   testWidgets('cancelling the question changes nothing', (tester) async {
@@ -904,7 +910,7 @@ void main() {
       build(
         [part('c1', first)],
         repo,
-        equipment: _FakeEquipmentRepository()..diveCount = 2,
+        count: _DiveCount()..diveCount = 2,
         dives: dives,
       ),
     );

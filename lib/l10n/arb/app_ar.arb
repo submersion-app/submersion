@@ -264,6 +264,8 @@
   "equipment_setDetail_showFigure": "إظهار رسم الغواص",
   "equipment_setDetail_hideFigure": "إخفاء رسم الغواص",
   "equipment_setEdit_figureSwitch_title": "إظهار رسم الغواص",
+  "equipment_setEdit_historyAsk": "تطبيق التغييرات على تلك الغطسات أيضًا، أم من الآن فصاعدًا فقط؟",
+  "equipment_setEdit_historyOnDives": "{count, plural, =1{هذه المجموعة موجودة في غطسة مسجلة واحدة.} two{هذه المجموعة موجودة في غطستين مسجلتين.} few{هذه المجموعة موجودة في {count} غطسات مسجلة.} many{هذه المجموعة موجودة في {count} غطسة مسجلة.} other{هذه المجموعة موجودة في {count} غطسة مسجلة.}}",
   "equipment_color_red": "أحمر",
   "equipment_color_orange": "برتقالي",
   "equipment_color_amber": "كهرماني",

@@ -264,6 +264,8 @@
   "equipment_setDetail_showFigure": "Duikerfiguur tonen",
   "equipment_setDetail_hideFigure": "Duikerfiguur verbergen",
   "equipment_setEdit_figureSwitch_title": "Duikerfiguur tonen",
+  "equipment_setEdit_historyAsk": "De wijzigingen ook op die duiken toepassen, of alleen vanaf nu?",
+  "equipment_setEdit_historyOnDives": "{count, plural, =1{Deze set staat op 1 gelogde duik.} other{Deze set staat op {count} gelogde duiken.}}",
   "equipment_color_red": "Rood",
   "equipment_color_orange": "Oranje",
   "equipment_color_amber": "Amber",

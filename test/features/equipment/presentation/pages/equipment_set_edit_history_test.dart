@@ -1,0 +1,204 @@
+import 'package:drift/drift.dart' show Value;
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:submersion/core/database/database.dart' hide EquipmentSet;
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    as domain;
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_page.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+
+import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/test_database.dart';
+
+/// Saving a set whose members changed offers to replay the change on the
+/// dives that carry the set (issue #4283): the logged ones on request, the
+/// planned ones always.
+void main() {
+  late AppDatabase db;
+  final dives = DiveRepository();
+
+  setUp(() async {
+    await setUpTestDatabase();
+    db = DatabaseService.instance.database;
+    final t = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.divers)
+        .insert(
+          DiversCompanion.insert(
+            id: 'd1',
+            name: 'd1',
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+    for (final id in ['wing', 'fins']) {
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: id,
+              name: id,
+              type: 'bcd',
+              createdAt: t,
+              updatedAt: t,
+              diverId: const Value('d1'),
+            ),
+          );
+    }
+    await EquipmentSetRepository().createSet(
+      EquipmentSet(
+        id: 's1',
+        diverId: 'd1',
+        name: 'Warm',
+        equipmentIds: const ['wing', 'fins'],
+        showFigure: false,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+    // logged is a logged dive, planned a planned one; both carry the set.
+    for (final (id, planned) in [('logged', false), ('planned', true)]) {
+      await dives.createDive(
+        domain.Dive(
+          id: id,
+          dateTime: DateTime(2026, 1, 1),
+          diverId: 'd1',
+          isPlanned: planned,
+        ),
+      );
+      await dives.replaceGearRows(id, const [
+        GearProvenance(equipmentId: 'wing', viaSetId: 's1'),
+        GearProvenance(equipmentId: 'fins', viaSetId: 's1'),
+      ]);
+    }
+  });
+  tearDown(tearDownTestDatabase);
+
+  Future<Widget> buildPage() async {
+    final overrides = await getBaseOverrides();
+    overrides.add(
+      validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
+    );
+    final router = GoRouter(
+      initialLocation: '/home/edit',
+      routes: [
+        GoRoute(
+          path: '/home',
+          builder: (_, _) => const Scaffold(body: Text('home')),
+          routes: [
+            GoRoute(
+              path: 'edit',
+              builder: (_, _) => const EquipmentSetEditPage(setId: 's1'),
+            ),
+          ],
+        ),
+      ],
+    );
+    return ProviderScope(
+      overrides: overrides,
+      child: MaterialApp.router(
+        routerConfig: router,
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+      ),
+    );
+  }
+
+  Finder appBarSave() => find.descendant(
+    of: find.byType(AppBar),
+    matching: find.widgetWithText(AppBarTextAction, 'Save'),
+  );
+
+  Future<Set<String>> gearOn(String diveId) async => {
+    for (final row in await (db.select(
+      db.diveEquipment,
+    )..where((r) => r.diveId.equals(diveId))).get())
+      row.equipmentId,
+  };
+
+  /// Opens the editor, unticks fins and saves.
+  Future<void> untickFinsAndSave(WidgetTester tester) async {
+    // Tall enough that the whole lazy form is built.
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(800, 4000);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(await buildPage());
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'fins'));
+    await tester.pump();
+    await tester.tap(appBarSave());
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('also update rewrites the logged and the planned dive', (
+    tester,
+  ) async {
+    await untickFinsAndSave(tester);
+    expect(find.text('Update past dives?'), findsOneWidget);
+    expect(
+      find.textContaining('This set is on 1 logged dive.'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Also update 1 dive'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('home'), findsOneWidget);
+    expect(await EquipmentSetRepository().getEquipmentIdsInSet('s1'), ['wing']);
+    expect(await gearOn('logged'), {'wing'});
+    expect(await gearOn('planned'), {'wing'});
+  });
+
+  testWidgets('from now on saves the set and follows on planned dives', (
+    tester,
+  ) async {
+    await untickFinsAndSave(tester);
+    await tester.tap(find.text('From now on'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('home'), findsOneWidget);
+    expect(await gearOn('logged'), {'wing', 'fins'});
+    expect(await gearOn('planned'), {'wing'});
+  });
+
+  testWidgets('cancel saves nothing and keeps the editor open', (tester) async {
+    await untickFinsAndSave(tester);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(EquipmentSetEditPage), findsOneWidget);
+    expect(
+      await EquipmentSetRepository().getEquipmentIdsInSet('s1'),
+      unorderedEquals(['wing', 'fins']),
+    );
+    expect(await gearOn('planned'), {'wing', 'fins'});
+  });
+
+  testWidgets('a save that leaves the members alone asks nothing', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(800, 4000);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(await buildPage());
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField).first, 'Tropical');
+    await tester.tap(appBarSave());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Update past dives?'), findsNothing);
+    expect(find.text('home'), findsOneWidget);
+    expect(await gearOn('logged'), {'wing', 'fins'});
+  });
+}

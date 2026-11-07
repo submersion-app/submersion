@@ -2192,6 +2192,18 @@ abstract class AppLocalizations {
   /// **'Show diver figure'**
   String get equipment_setEdit_figureSwitch_title;
 
+  /// No description provided for @equipment_setEdit_historyAsk.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply the changes to those dives as well, or only from now on?'**
+  String get equipment_setEdit_historyAsk;
+
+  /// No description provided for @equipment_setEdit_historyOnDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{This set is on 1 logged dive.} other{This set is on {count} logged dives.}}'**
+  String equipment_setEdit_historyOnDives(num count);
+
   /// No description provided for @equipment_color_red.
   ///
   /// In en, this message translates to:

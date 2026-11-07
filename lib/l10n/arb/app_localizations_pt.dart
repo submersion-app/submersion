@@ -1419,6 +1419,22 @@ class AppLocalizationsPt extends AppLocalizations {
       'Mostrar figura do mergulhador';
 
   @override
+  String get equipment_setEdit_historyAsk =>
+      'Aplicar as alterações também a esses mergulhos, ou só a partir de agora?';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Este conjunto de equipamentos está em $count mergulhos registados.',
+      one: 'Este conjunto de equipamentos está em $count mergulho registado.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_color_red => 'Vermelho';
 
   @override

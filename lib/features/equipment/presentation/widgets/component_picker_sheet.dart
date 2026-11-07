@@ -166,8 +166,13 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet> {
         // One pass over the dives for the whole batch rather than one per
         // part, and it runs even when a later part was refused, so what
         // reached the template and what reached the dives cannot drift.
-        if (alsoPast && changes.isNotEmpty) {
-          await dives.rewriteAssemblyOnPastDives(widget.parentId, changes);
+        // Planned dives follow on every answer (issue #4283).
+        if (changes.isNotEmpty) {
+          await dives.rewriteAssemblyOnDives(
+            widget.parentId,
+            changes,
+            alsoLogged: alsoPast,
+          );
         }
       }
       popped = true;

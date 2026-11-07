@@ -1419,6 +1419,21 @@ class AppLocalizationsEs extends AppLocalizations {
       'Mostrar figura del buceador';
 
   @override
+  String get equipment_setEdit_historyAsk =>
+      '¿Aplicar los cambios también a esas inmersiones o solo a partir de ahora?';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Este conjunto de equipo está en $count inmersiones registradas.',
+      one: 'Este conjunto de equipo está en 1 inmersión registrada.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_color_red => 'Rojo';
 
   @override

@@ -264,6 +264,8 @@
   "equipment_setDetail_showFigure": "Mostra figura del subacqueo",
   "equipment_setDetail_hideFigure": "Nascondi figura del subacqueo",
   "equipment_setEdit_figureSwitch_title": "Mostra figura del subacqueo",
+  "equipment_setEdit_historyAsk": "Applicare le modifiche anche a quelle immersioni o solo da ora in poi?",
+  "equipment_setEdit_historyOnDives": "{count, plural, =1{Questo set è su 1 immersione registrata.} other{Questo set è su {count} immersioni registrate.}}",
   "equipment_color_red": "Rosso",
   "equipment_color_orange": "Arancione",
   "equipment_color_amber": "Ambra",

@@ -12,6 +12,7 @@ import 'package:submersion/features/agent_access/data/writes/writable_entity.dar
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set_geofence.dart';
+import 'package:submersion/features/equipment/domain/entities/set_history_rewrite.dart';
 
 /// Equipment sets, through the repository the sets page uses: members the
 /// owner can use, one default per diver, the figure, and the places a set
@@ -115,7 +116,9 @@ class EquipmentSetWrites extends WritableEntry {
     return null;
   }
 
-  /// Making a set the default takes the flag from the diver's other one.
+  /// Making a set the default takes the flag from the diver's other one, and
+  /// a change to its members follows on the planned dives that carry it
+  /// (issue #4283).
   @override
   Future<SideEffects> sideEffects(
     String id,
@@ -123,7 +126,23 @@ class EquipmentSetWrites extends WritableEntry {
     RecordUpdate update,
     Map<String, Object?> document,
   ) async {
-    if (update.values['is_default'] != true) return const SideEffects();
+    final members = update.relations['equipment_ids'];
+    final planned = members == null || members.isEmpty
+        ? 0
+        : await _r.dives.countPlannedDivesWithSet(id);
+    final others = update.values['is_default'] != true
+        ? 0
+        : await _otherDefaults(id, ownerId);
+    return SideEffects(
+      touched: {
+        if (others > 0) 'equipment_sets': others,
+        if (planned > 0) 'dives': planned,
+      },
+    );
+  }
+
+  /// The diver's other sets marked default.
+  Future<int> _otherDefaults(String id, String? ownerId) async {
     final others = ownerId == null
         ? await countRows(
             'equipment_sets',
@@ -136,7 +155,7 @@ class EquipmentSetWrites extends WritableEntry {
             id,
             [ownerId],
           );
-    return SideEffects(touched: {if (others > 0) 'equipment_sets': others});
+    return others;
   }
 
   @override
@@ -188,7 +207,7 @@ class EquipmentSetWrites extends WritableEntry {
         ) ||
         (members != null && !members.isEmpty)) {
       final ids = current.equipmentIds.toSet();
-      await sets.updateSet(
+      final diff = await sets.updateSet(
         EquipmentSet(
           id: id,
           diverId: current.diverId,
@@ -210,6 +229,12 @@ class EquipmentSetWrites extends WritableEntry {
           updatedAt: current.updatedAt,
         ),
       );
+      // Planned dives follow the set, as the editor's "from now on" does;
+      // an agent never rewrites logged dives (issue #4283).
+      await _r.dives.rewriteSetOnDives(id, [
+        for (final e in diff.added) SetItemAdded(e),
+        for (final e in diff.removed) SetItemRemoved(e),
+      ], alsoLogged: false);
     }
     if (v['show_figure'] case final bool show) {
       await sets.setShowFigure(id, show);

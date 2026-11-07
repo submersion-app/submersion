@@ -76,6 +76,26 @@ void main() {
     expect(await result, AssemblyHistoryChoice.alsoPast);
   });
 
+  testWidgets('a set change names the set (issue #4283)', (tester) async {
+    final result = await open(
+      tester,
+      count: 4,
+      change: AssemblyHistoryChange.setMembers,
+    );
+    expect(find.text('Update past dives?'), findsOneWidget);
+    expect(
+      find.textContaining('This set is on 4 logged dives.'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('Apply the changes to those dives'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Also update 4 dives'));
+    await tester.pumpAndSettle();
+    expect(await result, AssemblyHistoryChoice.alsoPast);
+  });
+
   testWidgets('dismissing returns null', (tester) async {
     final result = await open(
       tester,

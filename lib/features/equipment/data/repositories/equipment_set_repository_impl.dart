@@ -258,7 +258,13 @@ class EquipmentSetRepository {
   /// both. Mirrors the composite-PK junction handling in
   /// DivePlanRepository.updatePlan, including running sync bookkeeping only
   /// after the transaction commits.
-  Future<void> updateSet(domain.EquipmentSet set) async {
+  ///
+  /// Returns the members it actually added and removed, after dropping dead
+  /// ids, so a caller can replay the change on the dives that carry the set
+  /// (issue #4283).
+  Future<({List<String> added, List<String> removed})> updateSet(
+    domain.EquipmentSet set,
+  ) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     final added = <String>[];
     final removed = <String>[];
@@ -328,6 +334,10 @@ class EquipmentSetRepository {
       );
     }
     SyncEventBus.notifyLocalChange();
+    return (
+      added: List<String>.unmodifiable(added),
+      removed: List<String>.unmodifiable(removed),
+    );
   }
 
   /// Delete an equipment set.
