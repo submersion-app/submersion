@@ -399,6 +399,36 @@ void main() {
       });
     }
 
+    testWidgets('an edit in psi keeps an untouched pressure exactly', (
+      tester,
+    ) async {
+      final twin = _Twin();
+      final l10n = await pump(
+        tester,
+        fills: _Fills(),
+        twin: twin,
+        gear: gear,
+        settings: const AppSettings(
+          pressureUnit: PressureUnit.psi,
+          temperatureUnit: TemperatureUnit.fahrenheit,
+        ),
+        sheet: LogFillSheet(
+          passportId: 'pp-1',
+          equipmentId: 'eq-1',
+          editing: existing.copyWith(temperatureC: 21.53),
+        ),
+      );
+      await tester.enterText(
+        find.widgetWithText(TextField, l10n.passport_logFill_notes),
+        'edited note',
+      );
+      await save(tester, l10n);
+      final saved = twin.edits.single.fill;
+      expect(saved.notes, 'edited note');
+      expect(saved.pressureBar, 220);
+      expect(saved.temperatureC, 21.53);
+    });
+
     testWidgets('a fill with no tied row saves without asking', (tester) async {
       final twin = _Twin();
       final l10n = await pump(

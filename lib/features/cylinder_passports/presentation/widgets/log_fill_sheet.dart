@@ -112,6 +112,12 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
   /// default again.
   bool? _twinChoice;
   String? _twinChoicePartnerId;
+
+  /// The pressure and temperature text an edit opened with: a field the
+  /// diver left alone keeps the stored value rather than its rounded
+  /// display (3191 psi reads back as 220.01 bar).
+  String? _prefilledPressure;
+  String? _prefilledTemperature;
   final _o2 = TextEditingController(text: '21');
   final _he = TextEditingController(text: '0');
   final _pressure = TextEditingController();
@@ -164,6 +170,8 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
     if (fill.temperatureC case final c?) {
       _temperature.text = formatRoundedForInput(units.convertTemperature(c), 1);
     }
+    _prefilledPressure = _pressure.text;
+    _prefilledTemperature = _temperature.text;
     _station.text = fill.stationName ?? '';
     _analyzer.text = fill.analyzer ?? '';
     _notes.text = fill.notes;
@@ -317,14 +325,20 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
     final LoggedFill logged;
     try {
       if (widget.editing case final editing?) {
+        final editedPressure = _pressure.text == _prefilledPressure
+            ? editing.pressureBar
+            : pressureBar;
+        final editedTemperature = _temperature.text == _prefilledTemperature
+            ? editing.temperatureC
+            : temperatureC;
         final edited = editing.copyWith(
           filledAt: _filledAt,
           o2Percent: o2,
           hePercent: he,
-          pressureBar: pressureBar,
-          clearPressureBar: pressureBar == null,
-          temperatureC: temperatureC,
-          clearTemperatureC: temperatureC == null,
+          pressureBar: editedPressure,
+          clearPressureBar: editedPressure == null,
+          temperatureC: editedTemperature,
+          clearTemperatureC: editedTemperature == null,
           analyzer: analyzer.isEmpty ? null : analyzer,
           clearAnalyzer: analyzer.isEmpty,
           stationName: station.isEmpty ? null : station,
