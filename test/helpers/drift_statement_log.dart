@@ -28,8 +28,10 @@ Future<List<String>> statementsOf(Future<void> Function() read) async {
 /// breaks after 300 characters and at each newline, and the newline itself
 /// is dropped. A piece that follows a full 300-character piece continues it
 /// directly; any shorter piece ended at a newline, which is put back so two
-/// lines of SQL do not run together. A print from outside drift during the
-/// read would be joined too, so keep [lines] to drift's own output.
+/// lines of SQL do not run together. A line of SQL exactly 300 characters
+/// long cannot be told from a cut, so its newline is not restored. A print
+/// from outside drift during the read would be joined too, so keep [lines]
+/// to drift's own output.
 List<String> joinDriftLogLines(Iterable<String> lines) {
   const pieceLength = 300;
   final entries = <String>[];
