@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dive_chunk.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
@@ -105,6 +106,35 @@ void main() {
   for (final save in [false, true]) {
     final path = save ? 'saving' : 'sharing';
 
+    test('$path reads each run\'s recordings as it is written, not up '
+        'front', () async {
+      // Issue #4249: every sample, tank pressure series and source row of
+      // the logbook used to be read before the build began.
+      await DiveRepository().createDive(
+        Dive(
+          id: 'recorded',
+          diverId: 'me',
+          diveNumber: 8,
+          dateTime: DateTime.utc(2026, 3, 2),
+          profile: const [
+            DiveProfilePoint(timestamp: 0, depth: 0),
+            DiveProfilePoint(timestamp: 30, depth: 9),
+          ],
+        ),
+      );
+      final export = _CapturingExportService();
+      final container = make(export);
+      final notifier = container.read(exportNotifierProvider.notifier);
+      await (save ? notifier.saveUddfToFile() : notifier.exportDivesToUddf());
+
+      expect(export.dives.map((d) => d.profile), everyElement(isEmpty));
+      expect(export.dataSources, isNull);
+      expect(export.diveTankPressures, isNull);
+      final recorded = export.dives.where((d) => d.id == 'recorded').toList();
+      final chunk = await export.loadDiveChunk!(recorded);
+      expect(chunk.dives.single.profile.map((p) => p.depth), [0, 9]);
+    });
+
     test('$path a library with gear and a bench check-in but no dives '
         'exports them', () async {
       // The builder takes an empty dive list; only a library with no dives,
@@ -152,6 +182,9 @@ void main() {
 class _CapturingExportService implements ExportService {
   List<Dive> dives = const [];
   List<EquipmentObservation> observations = const [];
+  Object? dataSources;
+  Object? diveTankPressures;
+  UddfDiveChunkLoader? loadDiveChunk;
 
   @override
   dynamic noSuchMethod(Invocation invocation) {
@@ -161,6 +194,10 @@ class _CapturingExportService implements ExportService {
       observations =
           invocation.namedArguments[#observations]
               as List<EquipmentObservation>;
+      dataSources = invocation.namedArguments[#dataSources];
+      diveTankPressures = invocation.namedArguments[#diveTankPressures];
+      loadDiveChunk =
+          invocation.namedArguments[#loadDiveChunk] as UddfDiveChunkLoader?;
       // The share path returns a path; the save path may return null.
       return name == #exportAllDataToUddf
           ? Future<String>.value('/tmp/export.uddf')

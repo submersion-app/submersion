@@ -144,6 +144,57 @@ Future<String> _saveViaDialog(
   return _writeToDocuments(bytes, fileName);
 }
 
+/// [saveAndShareFile] for an export already written to [built], which it
+/// moves out of the way: into the documents directory, where the share sheet
+/// takes it, or into the location picked in the save dialog where
+/// [canShareFiles] is false.
+///
+/// The share sheet reads the file from disk, so a large export is never
+/// held in memory to share (issue #4249). The save dialog takes only bytes,
+/// so there it is read back once. As with [saveAndShareFile], a cancelled
+/// dialog leaves the file in the documents directory, and the result is
+/// always a path.
+Future<String> saveAndShareExportFile(
+  File built,
+  String fileName,
+  String mimeType, {
+  Rect? sharePositionOrigin,
+}) async {
+  DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.share);
+  if (!canShareFiles) {
+    final saved = await FilePicker.saveFile(
+      fileName: fileName,
+      bytes: await built.readAsBytes(),
+      mimeType: mimeType,
+    );
+    if (saved != null) return savedFileLocation(saved);
+  }
+  final path = await _moveToDocuments(built, fileName);
+  if (canShareFiles) {
+    await SharePlus.instance.share(
+      ShareParams(
+        files: [XFile(path, mimeType: mimeType)],
+        subject: fileName,
+        sharePositionOrigin: sharePositionOrigin,
+      ),
+    );
+  }
+  return path;
+}
+
+/// [file] moved to [fileName] in the documents directory, replacing what
+/// was there; copied when the two are on different volumes.
+Future<String> _moveToDocuments(File file, String fileName) async {
+  final target = await getExportFilePath(fileName);
+  try {
+    return (await file.rename(target)).path;
+  } on FileSystemException {
+    await file.copy(target);
+    await file.delete();
+    return target;
+  }
+}
+
 /// Hand a file that already exists at [path] to the share sheet, or to the
 /// save dialog where [canShareFiles] is false.
 ///

@@ -8,14 +8,16 @@ import 'package:xml/xml.dart';
 import 'package:submersion/core/services/export/models/currency_backup_data.dart';
 import 'package:submersion/core/services/export/models/export_service_record.dart';
 import 'package:submersion/core/services/export/models/uddf_export_options.dart';
+import 'package:submersion/core/services/export/shared/export_text_spool.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
-import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dive_chunk.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dive_stream_writer.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_builders.dart';
+import 'package:submersion/core/services/export/uddf/uddf_export_profiles.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gas_mix_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
-import 'package:submersion/core/services/export/uddf/uddf_rebreather_writers.dart';
-import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
+import 'package:submersion/core/services/export/uddf/uddf_streamed_sections.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
@@ -51,15 +53,25 @@ import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 class UddfFullExportService {
   final _dateFormat = DateFormat('yyyy-MM-dd');
 
-  /// Export ALL application data to UDDF format.
-  /// This includes: dives, sites, equipment, buddies, certifications,
-  /// dive centers, species, service records, settings, trips, tags,
-  /// dive types, dive computers, equipment sets, and courses.
-  /// Generate comprehensive UDDF XML content as a string.
+  /// The day a dive's `<repetitiongroup>` is for.
+  String _dayOf(Dive dive) => _dateFormat.format(dive.dateTime);
+
+  /// Writes the full backup into [out]: every dive, site, piece of gear,
+  /// buddy, certification, dive center, species, service record, setting,
+  /// trip, tag, dive type, dive computer, equipment set and course.
   ///
-  /// Shared by both the share and save-to-file export paths.
-  Future<String> _generateAllDataXml({
+  /// [dives] is the dive list; each run of [chunkSize] of them gets its
+  /// samples, tank pressures and data sources from [loadDiveChunk] as the
+  /// run is written, and lets them go after (issue #4249). Everything else
+  /// is small, so it is built as one XML tree, with a slot for each section
+  /// the dives' recordings fill; see [UddfStreamedSections]. [spools] holds
+  /// those sections until the tree around them is known.
+  Future<void> _writeAllData({
+    required ExportTextSink out,
+    required ExportSpoolStore spools,
     required List<Dive> dives,
+    required UddfDiveChunkLoader loadDiveChunk,
+    required int chunkSize,
     List<DiveSite>? sites,
     List<EquipmentItem>? equipment,
     List<Buddy>? buddies,
@@ -97,35 +109,47 @@ class UddfFullExportService {
     List<EquipmentComponent>? components,
     List<Course>? courses,
     Map<String, List<GasSwitchWithTank>>? diveGasSwitches,
-    Map<String, DiveTankPressureExport>? diveTankPressures,
-    List<DiveSourceExport>? dataSources,
     UddfExportOptions options = const UddfExportOptions(),
   }) async {
-    // Encoding happens before the XML build, so the builders stay pure
-    // synchronous functions over already-encoded strings like every other
-    // builder in that file. bzip2 is slow in pure Dart, so it runs on a
-    // worker isolate rather than whichever isolate called the export.
-    // The raw data box keeps or drops only the original bytes. The rows go
-    // either way: they are the dive's computers and each one's samples, and
-    // without them a restore keeps one computer (issue #4180).
-    final sources = dataSources ?? const <DiveSourceExport>[];
-    final sourcesByDive = UddfSourceAttribution.groupByDive(sources);
-    final withBytes = options.includeRawData
-        ? sources.where((s) => s.hasDump).toList(growable: false)
-        : const <DiveSourceExport>[];
-    final encoded = await UddfDumpCodec.encodeAll(
-      withBytes.map((s) => s.rawData!).toList(growable: false),
-    );
-    final encodedById = <String, String?>{
-      for (var i = 0; i < withBytes.length; i++) withBytes[i].id: encoded[i],
-    };
+    final sections = UddfStreamedSections(spools);
 
-    // Which computers this document actually declares as
-    // <divecomputer id=...>, filled in by the owner block below from the
-    // same writer that declares them, so the two cannot disagree. Stays
-    // empty without an owner, since the declarations live under it. A dump
-    // may only link to an id in here.
-    var declaredComputerIds = const <String>{};
+    // Which computers this document declares as <divecomputer id=...>: the
+    // owner block below declares them from the same dives. Empty without an
+    // owner, since the declarations live under it. A dump may only link to
+    // an id in here.
+    final declaredComputerIds = owner == null
+        ? const <String>{}
+        : UddfGearWriters.computerIds(dives);
+
+    // The dives go first, so the O2 cells their samples name (issue #4178)
+    // are known before the owner block that declares them is built. The raw
+    // data box keeps or drops only the original bytes; the source rows go
+    // either way, since without them a restore keeps one computer (#4180).
+    final o2CellCount =
+        await UddfDiveStreamWriter(
+          sections: sections,
+          dayOf: _dayOf,
+          includeRawData: options.includeRawData,
+          declaredComputerIds: declaredComputerIds,
+          writeDive: (builder, dive, chunk, sources) =>
+              UddfExportBuilders.buildDiveElement(
+                builder,
+                dive,
+                buddies,
+                diveBuddies?[dive.id] ?? const [],
+                diveTags?[dive.id] ?? const [],
+                diveProfileEvents?[dive.id] ?? const [],
+                diveWeights?[dive.id] ?? const [],
+                trips,
+                diveGasSwitches?[dive.id] ?? const [],
+                tankPressures: chunk.tankPressures[dive.id]?.displayedByTank,
+                sources: sources,
+              ),
+        ).write(
+          uddfDiveWriteOrder(dives, _dayOf),
+          loadChunk: loadDiveChunk,
+          chunkSize: chunkSize,
+        );
 
     final builder = XmlBuilder();
 
@@ -152,10 +176,6 @@ class UddfFullExportService {
             );
           },
         );
-
-        // The O2 cells rebreather samples name, declared under the owner
-        // (issue #4178).
-        final o2CellCount = UddfRebreatherWriters.cellCount(dives);
 
         // Diver section with owner and buddy records (UDDF standard)
         if (owner != null ||
@@ -190,7 +210,7 @@ class UddfFullExportService {
                       },
                     );
                     // Export dive computers used in equipment section
-                    declaredComputerIds = UddfGearWriters.writeOwnerEquipment(
+                    UddfGearWriters.writeOwnerEquipment(
                       builder,
                       dives,
                       o2CellCount: o2CellCount,
@@ -327,50 +347,8 @@ class UddfFullExportService {
           );
         }
 
-        // Profile data (dives)
-        if (dives.isNotEmpty) {
-          builder.element(
-            'profiledata',
-            nest: () {
-              final divesByDate = <String, List<Dive>>{};
-              for (final dive in dives) {
-                final dateKey = _dateFormat.format(dive.dateTime);
-                divesByDate.putIfAbsent(dateKey, () => []);
-                divesByDate[dateKey]!.add(dive);
-              }
-
-              for (final dateEntry in divesByDate.entries) {
-                builder.element(
-                  'repetitiongroup',
-                  nest: () {
-                    for (final dive in dateEntry.value) {
-                      final diveBuddyList = diveBuddies?[dive.id] ?? [];
-                      final diveTagList = diveTags?[dive.id] ?? [];
-                      final profileEventList =
-                          diveProfileEvents?[dive.id] ?? [];
-                      final weightList = diveWeights?[dive.id] ?? [];
-                      final gasSwitchList = diveGasSwitches?[dive.id] ?? [];
-                      UddfExportBuilders.buildDiveElement(
-                        builder,
-                        dive,
-                        buddies,
-                        diveBuddyList,
-                        diveTagList,
-                        profileEventList,
-                        weightList,
-                        trips,
-                        gasSwitchList,
-                        tankPressures:
-                            diveTankPressures?[dive.id]?.displayedByTank,
-                        sources: sourcesByDive[dive.id] ?? const [],
-                      );
-                    }
-                  },
-                );
-              }
-            },
-          );
-        }
+        // Profile data (dives), already written a run at a time.
+        sections.writeSlot(builder, UddfStreamedSections.profileData);
 
         // Application data section for all non-standard data
         UddfExportBuilders.buildApplicationData(
@@ -398,31 +376,27 @@ class UddfFullExportService {
           equipmentSets: equipmentSets,
           trips: trips,
           courses: courses,
-          dataSources: sources,
-          dataSourceDumps: encodedById,
-          attributedDives: dives,
-          diveTankPressures: diveTankPressures ?? const {},
           components: components,
           gearLinkDives: dives,
           diveBuddies: diveBuddies,
-          computerTissueDives: dives,
           visibilityRangeDives: dives,
+          streamed: sections,
         );
 
         // The UDDF specification places <divecomputercontrol> last, so this
         // stays the final child of <uddf>.
-        UddfExportBuilders.buildDiveComputerControl(
-          builder,
-          sources,
-          encodedById,
-          declaredComputerIds: declaredComputerIds,
-        );
+        sections.writeSlot(builder, UddfStreamedSections.diveComputerControl);
       },
     );
 
-    final xmlDoc = builder.buildDocument();
-    return xmlDoc.toXmlString(pretty: true, indent: '  ');
+    await sections.writeDocument(
+      builder.buildDocument().toXmlString(pretty: true, indent: '  '),
+      out,
+    );
   }
+
+  String get _fileName =>
+      'submersion_backup_${_dateFormat.format(DateTime.now())}.uddf';
 
   /// The document this service would write, without delivering it anywhere.
   ///
@@ -465,37 +439,53 @@ class UddfFullExportService {
     // A backup's courses and their links (issue #2515).
     List<Course>? courses,
     UddfExportOptions options = const UddfExportOptions(),
-  }) => _generateAllDataXml(
-    dives: dives,
-    certifications: certifications,
-    courses: courses,
-    certificationCatalog: certificationCatalog,
-    sites: sites,
-    tags: tags,
-    customSiteTypes: customSiteTypes,
-    siteTypeIdsBySite: siteTypeIdsBySite,
-    siteTagIdsBySite: siteTagIdsBySite,
-    siteFeaturesBySite: siteFeaturesBySite,
-    equipmentTagIdsByItem: equipmentTagIdsByItem,
-    owner: owner,
-    buddies: buddies,
-    diveBuddies: diveBuddies,
-    customDiveRoles: customDiveRoles,
-    equipment: equipment,
-    equipmentSets: equipmentSets,
-    components: components,
-    dataSources: dataSources,
-    observations: observations,
-    fills: fills,
-    serviceKinds: serviceKinds,
-    serviceSchedulesByItem: serviceSchedulesByItem,
-    serviceRecords: serviceRecords,
-    diveTags: diveTags,
-    diveWeights: diveWeights,
-    diveGasSwitches: diveGasSwitches,
-    diveProfileEvents: diveProfileEvents,
-    diveTankPressures: diveTankPressures,
-    options: options,
+    // Read each run's heavy data through this instead of from [dives],
+    // [diveTankPressures] and [dataSources], as the settings export does.
+    UddfDiveChunkLoader? loadDiveChunk,
+    int chunkSize = kUddfProfileChunkSize,
+  }) => buildTextExport(
+    _fileName,
+    (out, spools) => _writeAllData(
+      out: out,
+      spools: spools,
+      loadDiveChunk:
+          loadDiveChunk ??
+          inMemoryUddfDiveChunks(
+            tankPressures: diveTankPressures ?? const {},
+            sources: dataSources ?? const [],
+          ),
+      chunkSize: chunkSize,
+      dives: dives,
+      certifications: certifications,
+      courses: courses,
+      certificationCatalog: certificationCatalog,
+      sites: sites,
+      tags: tags,
+      customSiteTypes: customSiteTypes,
+      siteTypeIdsBySite: siteTypeIdsBySite,
+      siteTagIdsBySite: siteTagIdsBySite,
+      siteFeaturesBySite: siteFeaturesBySite,
+      equipmentTagIdsByItem: equipmentTagIdsByItem,
+      owner: owner,
+      buddies: buddies,
+      diveBuddies: diveBuddies,
+      customDiveRoles: customDiveRoles,
+      equipment: equipment,
+      equipmentSets: equipmentSets,
+      components: components,
+      observations: observations,
+      fills: fills,
+      serviceKinds: serviceKinds,
+      serviceSchedulesByItem: serviceSchedulesByItem,
+      serviceRecords: serviceRecords,
+      diveTags: diveTags,
+      diveWeights: diveWeights,
+      diveGasSwitches: diveGasSwitches,
+      diveProfileEvents: diveProfileEvents,
+      options: options,
+    ),
+    inMemory: (xml) async => xml,
+    onFile: (file) => file.readAsString(),
   );
 
   /// Export ALL application data to UDDF and share via the system share sheet.
@@ -542,49 +532,64 @@ class UddfFullExportService {
     Map<String, DiveTankPressureExport>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
     UddfExportOptions options = const UddfExportOptions(),
+    UddfDiveChunkLoader? loadDiveChunk,
+    int chunkSize = kUddfProfileChunkSize,
   }) async {
-    final xmlString = await _generateAllDataXml(
-      dives: dives,
-      sites: sites,
-      equipment: equipment,
-      buddies: buddies,
-      certifications: certifications,
-      currency: currency,
-      certificationCatalog: certificationCatalog,
-      diveCenters: diveCenters,
-      species: species,
-      serviceRecords: serviceRecords,
-      observations: observations,
-      fills: fills,
-      serviceKinds: serviceKinds,
-      serviceSchedulesByItem: serviceSchedulesByItem,
-      settings: settings,
-      diveBuddies: diveBuddies,
-      owner: owner,
-      trips: trips,
-      tags: tags,
-      diveTags: diveTags,
-      customDiveTypes: customDiveTypes,
-      customSiteTypes: customSiteTypes,
-      siteTypeIdsBySite: siteTypeIdsBySite,
-      siteTagIdsBySite: siteTagIdsBySite,
-      siteFeaturesBySite: siteFeaturesBySite,
-      equipmentTagIdsByItem: equipmentTagIdsByItem,
-      customDiveRoles: customDiveRoles,
-      diveComputers: diveComputers,
-      diveProfileEvents: diveProfileEvents,
-      diveWeights: diveWeights,
-      equipmentSets: equipmentSets,
-      components: components,
-      courses: courses,
-      diveGasSwitches: diveGasSwitches,
-      diveTankPressures: diveTankPressures,
-      dataSources: dataSources,
-      options: options,
+    Future<void> write(ExportTextSink out, ExportSpoolStore spools) =>
+        _writeAllData(
+          out: out,
+          spools: spools,
+          loadDiveChunk:
+              loadDiveChunk ??
+              inMemoryUddfDiveChunks(
+                tankPressures: diveTankPressures ?? const {},
+                sources: dataSources ?? const [],
+              ),
+          chunkSize: chunkSize,
+          dives: dives,
+          sites: sites,
+          equipment: equipment,
+          buddies: buddies,
+          certifications: certifications,
+          currency: currency,
+          certificationCatalog: certificationCatalog,
+          diveCenters: diveCenters,
+          species: species,
+          serviceRecords: serviceRecords,
+          observations: observations,
+          fills: fills,
+          serviceKinds: serviceKinds,
+          serviceSchedulesByItem: serviceSchedulesByItem,
+          settings: settings,
+          diveBuddies: diveBuddies,
+          owner: owner,
+          trips: trips,
+          tags: tags,
+          diveTags: diveTags,
+          customDiveTypes: customDiveTypes,
+          customSiteTypes: customSiteTypes,
+          siteTypeIdsBySite: siteTypeIdsBySite,
+          siteTagIdsBySite: siteTagIdsBySite,
+          siteFeaturesBySite: siteFeaturesBySite,
+          equipmentTagIdsByItem: equipmentTagIdsByItem,
+          customDiveRoles: customDiveRoles,
+          diveComputers: diveComputers,
+          diveProfileEvents: diveProfileEvents,
+          diveWeights: diveWeights,
+          equipmentSets: equipmentSets,
+          components: components,
+          courses: courses,
+          diveGasSwitches: diveGasSwitches,
+          options: options,
+        );
+    final fileName = _fileName;
+    return buildTextExport(
+      fileName,
+      write,
+      inMemory: (xml) => saveAndShareFile(xml, fileName, 'application/xml'),
+      onFile: (file) =>
+          saveAndShareExportFile(file, fileName, 'application/xml'),
     );
-    final fileName =
-        'submersion_backup_${_dateFormat.format(DateTime.now())}.uddf';
-    return saveAndShareFile(xmlString, fileName, 'application/xml');
   }
 
   /// Export ALL application data to UDDF and save to a user-selected file.
@@ -631,60 +636,78 @@ class UddfFullExportService {
     Map<String, DiveTankPressureExport>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
     UddfExportOptions options = const UddfExportOptions(),
+    UddfDiveChunkLoader? loadDiveChunk,
+    int chunkSize = kUddfProfileChunkSize,
   }) async {
-    final xmlString = await _generateAllDataXml(
-      dives: dives,
-      sites: sites,
-      equipment: equipment,
-      buddies: buddies,
-      certifications: certifications,
-      currency: currency,
-      certificationCatalog: certificationCatalog,
-      diveCenters: diveCenters,
-      species: species,
-      serviceRecords: serviceRecords,
-      observations: observations,
-      fills: fills,
-      serviceKinds: serviceKinds,
-      serviceSchedulesByItem: serviceSchedulesByItem,
-      settings: settings,
-      diveBuddies: diveBuddies,
-      owner: owner,
-      trips: trips,
-      tags: tags,
-      diveTags: diveTags,
-      customDiveTypes: customDiveTypes,
-      customSiteTypes: customSiteTypes,
-      siteTypeIdsBySite: siteTypeIdsBySite,
-      siteTagIdsBySite: siteTagIdsBySite,
-      siteFeaturesBySite: siteFeaturesBySite,
-      equipmentTagIdsByItem: equipmentTagIdsByItem,
-      customDiveRoles: customDiveRoles,
-      diveComputers: diveComputers,
-      diveProfileEvents: diveProfileEvents,
-      diveWeights: diveWeights,
-      equipmentSets: equipmentSets,
-      components: components,
-      courses: courses,
-      diveGasSwitches: diveGasSwitches,
-      diveTankPressures: diveTankPressures,
-      dataSources: dataSources,
-      options: options,
+    Future<void> write(ExportTextSink out, ExportSpoolStore spools) =>
+        _writeAllData(
+          out: out,
+          spools: spools,
+          loadDiveChunk:
+              loadDiveChunk ??
+              inMemoryUddfDiveChunks(
+                tankPressures: diveTankPressures ?? const {},
+                sources: dataSources ?? const [],
+              ),
+          chunkSize: chunkSize,
+          dives: dives,
+          sites: sites,
+          equipment: equipment,
+          buddies: buddies,
+          certifications: certifications,
+          currency: currency,
+          certificationCatalog: certificationCatalog,
+          diveCenters: diveCenters,
+          species: species,
+          serviceRecords: serviceRecords,
+          observations: observations,
+          fills: fills,
+          serviceKinds: serviceKinds,
+          serviceSchedulesByItem: serviceSchedulesByItem,
+          settings: settings,
+          diveBuddies: diveBuddies,
+          owner: owner,
+          trips: trips,
+          tags: tags,
+          diveTags: diveTags,
+          customDiveTypes: customDiveTypes,
+          customSiteTypes: customSiteTypes,
+          siteTypeIdsBySite: siteTypeIdsBySite,
+          siteTagIdsBySite: siteTagIdsBySite,
+          siteFeaturesBySite: siteFeaturesBySite,
+          equipmentTagIdsByItem: equipmentTagIdsByItem,
+          customDiveRoles: customDiveRoles,
+          diveComputers: diveComputers,
+          diveProfileEvents: diveProfileEvents,
+          diveWeights: diveWeights,
+          equipmentSets: equipmentSets,
+          components: components,
+          courses: courses,
+          diveGasSwitches: diveGasSwitches,
+          options: options,
+        );
+    final fileName = _fileName;
+
+    // The save dialog writes the bytes itself and takes no stream, so the
+    // finished file is read back once; nothing else of the build is held.
+    Future<String?> save(Uint8List bytes) async {
+      DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.export);
+      final result = await FilePicker.saveFile(
+        dialogTitle: 'Save UDDF File',
+        fileName: fileName,
+        type: FileType.custom,
+        bytes: bytes,
+        mimeType: 'application/xml',
+      );
+      if (result == null) return null;
+      return savedFileLocation(result);
+    }
+
+    return buildTextExport(
+      fileName,
+      write,
+      inMemory: (xml) => save(Uint8List.fromList(utf8.encode(xml))),
+      onFile: (file) async => save(await file.readAsBytes()),
     );
-    final fileName =
-        'submersion_backup_${_dateFormat.format(DateTime.now())}.uddf';
-
-    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.export);
-
-    final result = await FilePicker.saveFile(
-      dialogTitle: 'Save UDDF File',
-      fileName: fileName,
-      type: FileType.custom,
-      bytes: Uint8List.fromList(utf8.encode(xmlString)),
-      mimeType: 'application/xml',
-    );
-
-    if (result == null) return null;
-    return savedFileLocation(result);
   }
 }

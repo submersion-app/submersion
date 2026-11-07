@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dive_chunk.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/export_service.dart';
@@ -153,6 +154,7 @@ class _RecordingExportService implements ExportService {
     CertificationCatalog? certificationCatalog,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
+    UddfDiveChunkLoader? loadDiveChunk,
   }) async {
     uddfSites = sites;
     uddfExtras = extras;
@@ -169,6 +171,7 @@ class _RecordingExportService implements ExportService {
     CertificationCatalog? certificationCatalog,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
+    UddfDiveChunkLoader? loadDiveChunk,
   }) async {
     uddfSites = sites;
     uddfExtras = extras;
