@@ -116,6 +116,54 @@ void main() {
         isNull,
       );
     });
+
+    test('a dive whose only cylinder is the bottle has none', () {
+      // A stale switch (a tank id a re-import left behind) must not fall
+      // back onto the bottle and give it a SAC.
+      const gone = DiveTank(id: 'gone', gasMix: GasMix(o2: 32));
+      expect(
+        service.calculateGasSwitchSegments(
+          profile: profile,
+          tanks: const [suit],
+          gasSwitches: [switchTo(gone, 1200)],
+        ),
+        isNull,
+      );
+    });
+  });
+
+  test('phase segments read a dropped bottle switch as no switch', () {
+    // No backmount cylinder, so the stage's window comes from the fallback,
+    // which must see the switch to the air bottle dropped, as it is for
+    // every other reading (no breathing cylinder is on air).
+    const stage = DiveTank(
+      id: 'stage',
+      volume: 11.1,
+      startPressure: 200,
+      endPressure: 100,
+      gasMix: GasMix(o2: 32),
+      role: TankRole.stage,
+    );
+    const deco = DiveTank(
+      id: 'deco',
+      volume: 7,
+      gasMix: GasMix(o2: 50),
+      role: TankRole.deco,
+      order: 1,
+    );
+    List<double?>? sacs(List<DiveTank> tanks, List<GasSwitchWithTank> sw) =>
+        service
+            .calculatePhaseSegments(
+              profile: profile,
+              tanks: tanks,
+              gasSwitches: sw,
+            )
+            ?.map((s) => s.sacRate)
+            .toList();
+
+    final without = sacs(const [stage, deco], const []);
+    expect(without, isNotEmpty);
+    expect(sacs(const [stage, deco, suit], [switchTo(suit, 1200)]), without);
   });
 
   group('rebreather gas use', () {

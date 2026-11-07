@@ -48,7 +48,8 @@ class GasAnalysisService {
   ///
   /// Segments are divided at each gas/tank switch event, with the time before
   /// the first switch on the cylinder the dive started on.
-  /// Returns null if no gas switches recorded.
+  /// Returns null if no gas switches recorded, or when no cylinder holds
+  /// breathing gas (a suit inflation bottle alone, issue #4243).
   List<SacSegment>? calculateGasSwitchSegments({
     required List<DiveProfilePoint> profile,
     required List<DiveTank> tanks,
@@ -57,7 +58,10 @@ class GasAnalysisService {
     DiveEnvironment environment = DiveEnvironment.standard,
     bool onLoop = false,
   }) {
-    if (profile.isEmpty || gasSwitches.isEmpty) return null;
+    final breathing = breathingTanks(tanks);
+    if (profile.isEmpty || gasSwitches.isEmpty || breathing.isEmpty) {
+      return null;
+    }
 
     final resolvedPressures = resolveTankPressureSeries(tanks, tankPressures);
     final segments = <SacSegment>[];
@@ -156,7 +160,7 @@ class GasAnalysisService {
       // Find the tank for this segment
       final tank = tanks.firstWhere(
         (t) => t.id == currentSwitch.gasSwitch.tankId,
-        orElse: () => breathingTanks(tanks).firstOrNull ?? tanks.first,
+        orElse: () => breathing.first,
       );
 
       addStretch(
@@ -196,6 +200,12 @@ class GasAnalysisService {
     bool onLoop = false,
   }) {
     if (profile.length < 10) return null;
+    // A switch to a suit inflation bottle counts against the breathing
+    // cylinder on its mix (issue #4243), once for every segment below, so
+    // the proration fallback reads the same switches the windows do.
+    if (gasSwitches != null) {
+      gasSwitches = breathingGasSwitches(gasSwitches, tanks);
+    }
 
     final resolvedPressures = resolveTankPressureSeries(tanks, tankPressures);
 

@@ -19,8 +19,8 @@ List<GasSwitch> breathingRawGasSwitches(
   List<GasSwitch> switches,
   List<DiveTank> tanks,
 ) {
+  if (!_carriesSuitBottle(tanks)) return switches;
   final targets = _Targets(tanks);
-  if (!targets.hasSuit) return switches;
   return [
     for (final sw in switches)
       if (targets.resolve(sw.tankId) case final tankId?)
@@ -34,13 +34,14 @@ List<GasSwitchWithTank> breathingGasSwitches(
   List<GasSwitchWithTank> switches,
   List<DiveTank> tanks,
 ) {
+  if (!_carriesSuitBottle(tanks)) return switches;
   final targets = _Targets(tanks);
-  if (!targets.hasSuit) return switches;
-  final byId = {for (final tank in tanks) tank.id: tank};
   return [
     for (final sw in switches)
       if (targets.resolve(sw.gasSwitch.tankId) case final tankId?)
-        tankId == sw.gasSwitch.tankId ? sw : _relabel(sw, byId[tankId]!),
+        tankId == sw.gasSwitch.tankId
+            ? sw
+            : _relabel(sw, targets.tankById(tankId)!),
   ];
 }
 
@@ -48,7 +49,12 @@ List<GasSwitchWithTank> breathingGasSwitches(
 /// (the Dive Lab's): the cylinder a switch to a tank id counts against, the
 /// id itself for a breathing or unknown tank, null to drop it.
 String? Function(String tankId) breathingSwitchTarget(List<DiveTank> tanks) =>
-    _Targets(tanks).resolve;
+    _carriesSuitBottle(tanks) ? _Targets(tanks).resolve : (tankId) => tankId;
+
+/// Whether any of [tanks] is a suit inflation bottle. Nearly every dive
+/// carries none, and then no switch moves, so nothing else is built.
+bool _carriesSuitBottle(List<DiveTank> tanks) =>
+    tanks.any((t) => !t.role.isBreathingGas);
 
 GasSwitchWithTank _relabel(GasSwitchWithTank sw, DiveTank tank) =>
     GasSwitchWithTank(
@@ -63,17 +69,18 @@ GasSwitchWithTank _relabel(GasSwitchWithTank sw, DiveTank tank) =>
 class _Targets {
   _Targets(List<DiveTank> tanks)
     : _byId = {for (final tank in tanks) tank.id: tank},
-      _breathing = breathingTanks(tanks),
-      hasSuit = tanks.any((t) => !t.role.isBreathingGas);
+      _breathing = breathingTanks(tanks);
 
   final Map<String, DiveTank> _byId;
   final List<DiveTank> _breathing;
-  final bool hasSuit;
 
   /// Where each suit inflation bottle's switches land, worked out once per
   /// bottle rather than once per switch.
   final Map<String, String?> _resolved = {};
   late final DiveTank? _reference = sacReferenceTankOf(_breathing);
+
+  /// The cylinder of the dive with [id], if any.
+  DiveTank? tankById(String id) => _byId[id];
 
   /// The cylinder a switch to [tankId] counts against, or null to drop it.
   String? resolve(String tankId) {

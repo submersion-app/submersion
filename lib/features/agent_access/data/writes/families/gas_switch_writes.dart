@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart' show Variable;
 import 'package:uuid/uuid.dart';
 
-import 'package:submersion/core/constants/enums.dart' show DiveMode;
+import 'package:submersion/core/constants/enums.dart' show DiveMode, TankRole;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_time_limit.dart';
@@ -9,6 +9,7 @@ import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/dive_log/data/services/diver_gas_switch_writer.dart';
+import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/services/gas_switch_editing.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_depth_at.dart';
@@ -47,8 +48,9 @@ class GasSwitchWrites extends WritableEntry {
   @override
   String get note =>
       'The switches the dive editor shows: the primary computer\'s and '
-      'untagged ones, on a dive with two or more cylinders; a moved switch '
-      'takes the profile\'s depth unless depth_m is given';
+      'untagged ones, on a dive with two or more breathing cylinders (a '
+      'suit inflation bottle is not one, and no switch is aimed at it); a '
+      'moved switch takes the profile\'s depth unless depth_m is given';
 
   @override
   String? titleOf(Map<String, Object?> document) =>
@@ -62,7 +64,7 @@ class GasSwitchWrites extends WritableEntry {
     final dive = await _dive(diveId);
     if (dive == null) return null;
     if (!gasSwitchesEditable(
-      tankCount: dive.tanks,
+      breathingTankCount: dive.breathingTanks,
       // As every dive read parses it: a mode the app does not know is open
       // circuit, and the dive editor shows that dive's switches.
       mode: DiveMode.fromCode(dive.mode),
@@ -70,8 +72,9 @@ class GasSwitchWrites extends WritableEntry {
     )) {
       return const PlanBlock(
         BlockReason.notPermitted,
-        'A dive has gas switches to change only with two or more cylinders, '
-        'and not on a gauge or planned dive, as the dive editor shows them.',
+        'A dive has gas switches to change only with two or more breathing '
+        'cylinders (a suit inflation bottle is not one), and not on a gauge '
+        'or planned dive, as the dive editor shows them.',
       );
     }
     if (check.id case final id?) {
@@ -87,11 +90,20 @@ class GasSwitchWrites extends WritableEntry {
       return block;
     }
     if (check.values['tank_id'] case final String tankId) {
-      final tankDive = await _tankDive(tankId);
-      if (tankDive != diveId) {
+      final tank = await _tank(tankId);
+      if (tank?.diveId != diveId) {
         return PlanBlock(
           BlockReason.invalidValue,
           'tank_id: $tankId is not a cylinder of dive $diveId.',
+        );
+      }
+      // The editor never offers a suit inflation bottle as a target: it is
+      // not breathed (issue #4243). A switch already on one may still move.
+      if (!tank!.role.isBreathingGas && check.document?['tank_id'] != tankId) {
+        return PlanBlock(
+          BlockReason.invalidValue,
+          'tank_id: $tankId is a suit inflation bottle, which is not '
+          'breathed, so no gas switch is made to it.',
         );
       }
     }
@@ -206,20 +218,20 @@ class GasSwitchWrites extends WritableEntry {
     ];
   }
 
-  Future<({int tanks, String mode, bool planned, String? computer})?> _dive(
-    String diveId,
-  ) async {
+  Future<({int breathingTanks, String mode, bool planned, String? computer})?>
+  _dive(String diveId) async {
     final row = await DatabaseService.instance.database
         .customSelect(
           'SELECT d.dive_mode, d.is_planned, d.computer_id, '
-          '(SELECT COUNT(*) FROM dive_tanks t WHERE t.dive_id = d.id) AS tanks '
+          '(SELECT COUNT(*) FROM dive_tanks t WHERE t.dive_id = d.id '
+          "AND ${breathingTankSql('t')}) AS tanks "
           'FROM dives d WHERE d.id = ?',
           variables: [Variable.withString(diveId)],
         )
         .getSingleOrNull();
     if (row == null) return null;
     return (
-      tanks: row.read<int>('tanks'),
+      breathingTanks: row.read<int>('tanks'),
       mode: row.read<String>('dive_mode'),
       planned: row.read<bool>('is_planned'),
       computer: row.readNullable<String>('computer_id'),
@@ -236,14 +248,18 @@ class GasSwitchWrites extends WritableEntry {
     return row?.readNullable<String>('computer_id');
   }
 
-  Future<String?> _tankDive(String tankId) async {
+  Future<({String diveId, TankRole role})?> _tank(String tankId) async {
     final row = await DatabaseService.instance.database
         .customSelect(
-          'SELECT dive_id FROM dive_tanks WHERE id = ?',
+          'SELECT dive_id, tank_role FROM dive_tanks WHERE id = ?',
           variables: [Variable.withString(tankId)],
         )
         .getSingleOrNull();
-    return row?.read<String>('dive_id');
+    if (row == null) return null;
+    return (
+      diveId: row.read<String>('dive_id'),
+      role: TankRole.fromName(row.readNullable<String>('tank_role')),
+    );
   }
 
   Future<String> _diveOf(String id) async {

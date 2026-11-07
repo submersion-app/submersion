@@ -4,10 +4,11 @@ part of 'dive_edit_page.dart';
 /// it, answers the editor and saves it. A part of the page, so the page
 /// itself grows by its five fields, one setState seam and four call sites.
 extension _GasSwitchEditing on _DiveEditPageState {
-  /// With one cylinder there is nothing to switch to; a gauge dive logs no
-  /// gas; a planned dive's switches belong to the plan.
+  /// With one breathing cylinder there is nothing to switch to (a suit
+  /// inflation bottle is not one, issue #4243); a gauge dive logs no gas; a
+  /// planned dive's switches belong to the plan.
   bool get _gasSwitchesVisible => gasSwitchesEditable(
-    tankCount: _tanks.length,
+    breathingTankCount: breathingTanks(_tanks).length,
     mode: _diveMode,
     isPlanned: _isPlanned,
   );

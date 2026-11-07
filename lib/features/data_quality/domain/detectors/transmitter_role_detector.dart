@@ -32,6 +32,10 @@ class TransmitterRoleDetector extends QualityDetector {
     if (candidates.isEmpty) return const [];
 
     final roleById = {for (final t in ctx.tanks) t.id: t.role};
+    // A switch to a suit inflation bottle counts against the breathing
+    // cylinder on its mix, never as a move off the loop (issue #4243).
+    // Re-targeted once for every candidate below.
+    final switches = breathingRawGasSwitches(ctx.gasSwitches, ctx.tanks);
     final ordered = [...ctx.tanks]..sort((a, b) => a.order.compareTo(b.order));
     final inWaterEnd = lastTimeBelowSurfaceThreshold(
       ctx.primarySamples.map((s) => (t: s.t, depth: s.depth)),
@@ -42,10 +46,8 @@ class TransmitterRoleDetector extends QualityDetector {
       // Only this transmitter's own computer's switches describe what was
       // breathed from it; a second computer logs its own switches.
       final evidence = bailoutEvidence<String>(
-        // A switch to a suit inflation bottle counts against the breathing
-        // cylinder on its mix, never as a move off the loop (issue #4243).
         switches: [
-          for (final sw in breathingRawGasSwitches(ctx.gasSwitches, ctx.tanks))
+          for (final sw in switches)
             if (tank.computerId == null || sw.appliesTo(tank.computerId!))
               (t: sw.timestamp, tankKey: sw.tankId),
         ],

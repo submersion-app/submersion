@@ -222,32 +222,29 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
     if (_roleTouched) return;
     // A cylinder marked as a suit inflation bottle says what the transmitter
     // reads, ahead of any role its history suggests (issue #4243).
-    if (item.isSuitInflationCylinder) {
-      setState(() {
-        _role = TankRole.suitInflation;
-        _roleFieldGeneration++;
-      });
-      return;
-    }
     final TankRole role;
-    try {
-      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-      role = await ref
-          .read(transmitterRepositoryProvider)
-          .lastRoleForEquipment(item.id, diverId: diverId);
-    } catch (e, stackTrace) {
-      // The suggestion is a convenience: a failed lookup leaves Role as it
-      // is rather than blocking the pick.
-      _log.warning(
-        'Could not suggest a role from the cylinder history',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return;
+    if (item.isSuitInflationCylinder) {
+      role = TankRole.suitInflation;
+    } else {
+      try {
+        final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+        role = await ref
+            .read(transmitterRepositoryProvider)
+            .lastRoleForEquipment(item.id, diverId: diverId);
+      } catch (e, stackTrace) {
+        // The suggestion is a convenience: a failed lookup leaves Role as it
+        // is rather than blocking the pick.
+        _log.warning(
+          'Could not suggest a role from the cylinder history',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        return;
+      }
+      // The diver may have chosen a Role, or picked another cylinder, while
+      // the lookup ran; a late answer must not overwrite either.
+      if (!mounted || _roleTouched || _equipmentId != item.id) return;
     }
-    // The diver may have chosen a Role, or picked another cylinder, while
-    // the lookup ran; a late answer must not overwrite either.
-    if (!mounted || _roleTouched || _equipmentId != item.id) return;
     setState(() {
       _role = role;
       _roleFieldGeneration++;

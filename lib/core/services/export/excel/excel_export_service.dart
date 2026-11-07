@@ -685,7 +685,6 @@ class ExcelExportService {
         } else if (dive.diveMode == DiveMode.scr) {
           scrCount++;
         } else if (dive.breathingTanks case [final primaryTank, ...]) {
-          // A suit inflation bottle is not the dive's gas (issue #4243).
           if (primaryTank.gasMix.he > 0) {
             trimixCount++;
           } else if (primaryTank.gasMix.o2 > 22) {

@@ -182,7 +182,6 @@ class InsightsGasPage extends ConsumerWidget {
         'pony' => context.l10n.insights_gas_tankRole_pony,
         'diluent' => context.l10n.insights_gas_tankRole_diluent,
         'oxygenSupply' => context.l10n.insights_gas_tankRole_oxygenSupply,
-        'suitInflation' => context.l10n.enum_tankRole_suitInflation,
         _ => role,
       };
     }
