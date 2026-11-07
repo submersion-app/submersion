@@ -1467,8 +1467,8 @@ class SyncService {
   /// peer is current, and each leaves the sync stamp alone, as its rung does:
   /// the sending peer makes the same change when it upgrades. A combined dive
   /// keeps its shape once repaired, so that repair reads only
-  /// [combinedDiveIds], the dives a payload touched; null, for a base file,
-  /// sweeps them all.
+  /// [combinedDiveIds], the dives a payload touched; null, for a base file or
+  /// an adopted library, sweeps them all.
   ///
   /// A peer below v318 still publishes the CNS, OTU and deco model inside a
   /// dive's computer tissue snapshot, with the dive's own columns empty
@@ -5525,6 +5525,7 @@ class SyncService {
     }
 
     await _serializer.repairDanglingForeignKeys();
+    await _repairLegacyPeerRows();
   }
 
   /// Lands the explicit fact clears an adopt's upsert would drop.
@@ -5644,6 +5645,10 @@ class SyncService {
         baseExportedAt: baseExportedAt,
         changesets: changesets,
       );
+      // An adopted library is rows from peers like any other apply's, so
+      // the data rungs run over them too, inside the caller's transaction
+      // and change-log scope.
+      await _repairLegacyPeerRows();
     } finally {
       // The device-local values the table clears remembered belong to this
       // adopt's refill only (issue #2947).

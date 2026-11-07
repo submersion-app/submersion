@@ -129,4 +129,29 @@ void main() {
 
     await expectRepaired();
   });
+
+  test('a library adopted from an older peer is repaired', () async {
+    final payload = await legacyPeerPayload();
+    final dir = await Directory.systemTemp.createTemp('legacy_last_service');
+    addTearDown(() => dir.delete(recursive: true));
+    final file = File(p.join(dir.path, 'base.json'));
+    await file.writeAsBytes(utf8.encode(jsonEncode(payload.toJson())));
+
+    await buildService().debugAdoptStreaming(
+      [file.path],
+      [payload.exportedAt],
+      const [],
+    );
+
+    await expectRepaired();
+  });
+
+  test('the in-memory adopt the streaming one is checked against repairs '
+      'the same', () async {
+    final payload = await legacyPeerPayload();
+
+    await buildService().debugAdoptInMemory([payload]);
+
+    await expectRepaired();
+  });
 }
