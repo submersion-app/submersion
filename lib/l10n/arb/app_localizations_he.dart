@@ -54978,9 +54978,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'זה נראה כמו מסלול שכבר יובא מאותו קובץ.';
 
   @override
-  String get navTrack_review_replaceLabel => 'החלפה';
-
-  @override
   String get navTrack_review_linkToDive => 'קישור לצלילה';
 
   @override
@@ -55181,6 +55178,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get navTrack_editSheet_removeTrackTooltip => 'הסרת מסלול';
+
+  @override
+  String get navTrack_editSheet_trackOnAnotherDive =>
+      'המסלול הזה שייך לצלילה אחרת. יש לעדכן אותו מאותה צלילה, או לייבא את הקובץ כמסלול חדש.';
 
   @override
   String navTrack_editRow_tracksSaveFailed(String error) {
@@ -59157,4 +59158,71 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get search_openTooltip => 'חיפוש';
+
+  @override
+  String get settings_conflict_field_sourceFile => 'קובץ המסלול המקורי';
+
+  @override
+  String get navTrack_review_duplicateUpdate => 'עדכון המסלול השמור';
+
+  @override
+  String get navTrack_review_duplicateUpdateHint =>
+      'קורא מחדש את הנתונים מהקובץ הזה. השם, הצלילה, האתר, המכשיר והיישור נשארים כפי שהם.';
+
+  @override
+  String get navTrack_review_duplicateNew => 'ייבוא כמסלול חדש';
+
+  @override
+  String get navTrack_review_updateAction => 'עדכון';
+
+  @override
+  String get navTrack_review_trackUpdatedConfirmation =>
+      'המסלול עודכן מהקובץ. כדאי לבדוק את היישור: ייתכן שהמסלול זז.';
+
+  @override
+  String get navTrack_detail_menuUpdateFromFile => 'עדכון מקובץ';
+
+  @override
+  String get navTrack_detail_menuExportCsv => 'ייצוא כ-CSV';
+
+  @override
+  String get navTrack_detail_exportUnavailable =>
+      'למסלול הזה עדיין אין קובץ מקורי שמור. יש לעדכן אותו קודם מהקובץ שלו.';
+
+  @override
+  String navTrack_detail_exportFailed(String error) {
+    return 'הייצוא נכשל: $error';
+  }
+
+  @override
+  String get navTrack_detail_updateNameMismatchTitle => 'שם קובץ שונה';
+
+  @override
+  String navTrack_detail_updateNameMismatchMessage(
+    String expected,
+    String actual,
+  ) {
+    return 'המסלול הזה יובא מ-\"$expected\", והקובץ שנבחר הוא \"$actual\". לעדכן את המסלול ממנו בכל זאת?';
+  }
+
+  @override
+  String get navTrack_detail_updateOtherRecordingTitle => 'הקלטה שונה';
+
+  @override
+  String navTrack_detail_updateOtherRecordingMessage(
+    String fileDate,
+    String trackDate,
+  ) {
+    return 'הקובץ הזה הוקלט ב-$fileDate, והמסלול ב-$trackDate, כך שייתכן שזו צלילה אחרת. לעדכן את המסלול ממנו בכל זאת?';
+  }
+
+  @override
+  String navTrack_marker_details(
+    int number,
+    String time,
+    String depth,
+    String distance,
+  ) {
+    return 'סמן $number: $time, $depth, $distance';
+  }
 }

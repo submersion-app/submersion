@@ -32,6 +32,7 @@ import 'package:submersion/core/services/sync/crypto/sync_encryption_service.dar
 import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
+import 'package:submersion/features/backup/domain/newest_backup_time.dart';
 import 'package:submersion/features/backup/presentation/providers/post_restore_safety_review.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -263,6 +264,7 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
         message: _l10n.backup_operation_deleted,
       );
       _ref.invalidate(backupHistoryProvider);
+      _ref.invalidate(newestBackupTimeProvider);
     } catch (e) {
       state = BackupOperationState(
         status: BackupOperationStatus.error,
@@ -747,6 +749,47 @@ final backupOriginResolverProvider = Provider.autoDispose<BackupOriginResolver>(
 final lastBackupTimeProvider = Provider<DateTime?>((ref) {
   return ref.watch(backupSettingsProvider).lastBackupTime;
 });
+
+/// The home backup chip's time: [newestBackupTime] over the stored history,
+/// so the copy taken before an upgrade counts (issue #4204). Rebuilds when a
+/// backup moves the last backup time; [BackupOperationNotifier.deleteBackup]
+/// invalidates it, since a deleted upgrade copy moves nothing else. An upgrade
+/// copy is taken at startup, before anything reads this.
+///
+/// A history that will not parse falls back to the last backup time, so a
+/// damaged registry costs the chip its upgrade copy, never the home strip.
+/// An upgrade copy whose file is gone does not count, by the same rule as
+/// [BackupService.getValidatedBackupHistory]. These copies are plain files
+/// (never SAF refs) and at most three are kept, so the check is a few stats.
+final newestBackupTimeProvider = Provider<DateTime?>((ref) {
+  final lastBackupTime = ref.watch(lastBackupTimeProvider);
+  final List<BackupRecord> history;
+  try {
+    history = ref.watch(backupPreferencesProvider).getHistory();
+  } catch (e, stack) {
+    LoggerService.forClass(BackupOperationNotifier).warning(
+      'Backup history unreadable; the home chip uses the last backup time',
+      error: e,
+      stackTrace: stack,
+    );
+    return lastBackupTime;
+  }
+  return newestBackupTime(
+    lastBackupTime: lastBackupTime,
+    history: history,
+    isAvailable: _localCopyPresent,
+  );
+});
+
+bool _localCopyPresent(BackupRecord record) {
+  final path = record.localPath;
+  if (path == null) return true;
+  try {
+    return File(path).existsSync();
+  } catch (_) {
+    return false;
+  }
+}
 
 /// Whether a backup operation is currently running
 final isBackupInProgressProvider = Provider<bool>((ref) {

@@ -74,6 +74,7 @@ object LibdcWrapper {
     external fun nativeGetDiveEntryLongitude(divePtr: Long): Double
     external fun nativeGetDiveExitLatitude(divePtr: Long): Double
     external fun nativeGetDiveExitLongitude(divePtr: Long): Double
+    external fun nativeGetDiveSurfacePressure(divePtr: Long): Double
     external fun nativeGetDiveMode(divePtr: Long): Int
     external fun nativeGetDiveFingerprint(divePtr: Long): String
     external fun nativeGetDiveSampleCount(divePtr: Long): Int

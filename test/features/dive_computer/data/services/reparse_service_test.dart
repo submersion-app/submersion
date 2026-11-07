@@ -51,6 +51,7 @@ void main() {
     int? runtime,
     int? diveDateTime,
     double? waterTemp,
+    double? surfacePressure,
     String? notes,
     int? rating,
     String? siteId,
@@ -74,6 +75,7 @@ void main() {
             avgDepth: Value(avgDepth),
             runtime: Value(runtime),
             waterTemp: Value(waterTemp),
+            surfacePressure: Value(surfacePressure),
             notes: Value(notes ?? ''),
             rating: Value(rating),
             siteId: Value(siteId),
@@ -205,6 +207,7 @@ void main() {
     List<pigeon.TankInfo>? tanks,
     List<pigeon.GasMix>? gasMixes,
     List<pigeon.DiveEvent>? events,
+    double? surfacePressureBar,
   }) {
     return pigeon.ParsedDive(
       fingerprint: 'test-fp',
@@ -238,6 +241,7 @@ void main() {
       gfLow: gfLow,
       gfHigh: gfHigh,
       decoConservatism: decoConservatism,
+      surfacePressureBar: surfacePressureBar,
     );
   }
 
@@ -1022,6 +1026,165 @@ void main() {
         expect(src.waterTemp, isNull);
       },
     );
+
+    test('takes the surface pressure the computer measured (#4208)', () async {
+      await insertDive('dive-1');
+      await insertComputer('comp-1');
+      await insertSource(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        isPrimary: true,
+      );
+
+      await service.applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-1',
+        parsed: makeParsedDive(surfacePressureBar: 0.961),
+        descriptorVendor: null,
+        descriptorProduct: null,
+        descriptorModel: null,
+        libdivecomputerVersion: null,
+      );
+
+      expect((await getDive('dive-1')).surfacePressure, 0.961);
+    });
+
+    test('a re-parse keeps a surface pressure the dive already has', () async {
+      await insertDive('dive-1', surfacePressure: 0.8);
+      await insertComputer('comp-1');
+      await insertSource(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        isPrimary: true,
+      );
+
+      await service.applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-1',
+        parsed: makeParsedDive(surfacePressureBar: 0.961),
+        descriptorVendor: null,
+        descriptorProduct: null,
+        descriptorModel: null,
+        libdivecomputerVersion: null,
+      );
+
+      expect((await getDive('dive-1')).surfacePressure, 0.8);
+    });
+
+    test(
+      'a re-parse without a surface pressure keeps the stored one',
+      () async {
+        await insertDive('dive-1', surfacePressure: 0.85);
+        await insertComputer('comp-1');
+        await insertSource(
+          id: 'src-1',
+          diveId: 'dive-1',
+          computerId: 'comp-1',
+          isPrimary: true,
+        );
+
+        await service.applyParsedUpdate(
+          diveId: 'dive-1',
+          sourceRowId: 'src-1',
+          parsed: makeParsedDive(),
+          descriptorVendor: null,
+          descriptorProduct: null,
+          descriptorModel: null,
+          libdivecomputerVersion: null,
+        );
+
+        expect((await getDive('dive-1')).surfacePressure, 0.85);
+      },
+    );
+
+    Future<bool> divePending(String diveId) async => [
+      for (final r in await SyncRepository(database: db).getPendingRecords())
+        if (r.entityType == 'dives' && r.recordId == diveId) r,
+    ].isNotEmpty;
+
+    Future<void> twoComputerDive({double? surfacePressure}) async {
+      await insertDive('dive-1', surfacePressure: surfacePressure);
+      await insertComputer('comp-1');
+      await insertComputer('comp-2');
+      await insertSource(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        isPrimary: true,
+      );
+      await insertSource(
+        id: 'src-2',
+        diveId: 'dive-1',
+        computerId: 'comp-2',
+        isPrimary: false,
+      );
+    }
+
+    test('a secondary reading fills a dive with none, as its download '
+        'does', () async {
+      await twoComputerDive();
+
+      await service.applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-2',
+        parsed: makeParsedDive(surfacePressureBar: 0.961),
+        descriptorVendor: null,
+        descriptorProduct: null,
+        descriptorModel: null,
+        libdivecomputerVersion: null,
+      );
+
+      final dive = await getDive('dive-1');
+      expect(dive.surfacePressure, 0.961);
+      // A changed dive travels, and its derived metrics read as stale.
+      expect(dive.updatedAt, greaterThan(nowMs));
+      expect(await divePending('dive-1'), isTrue);
+    });
+
+    test('a secondary reading leaves a stored surface pressure and the dive '
+        'alone', () async {
+      await twoComputerDive(surfacePressure: 0.8);
+
+      await service.applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-2',
+        parsed: makeParsedDive(surfacePressureBar: 0.961),
+        descriptorVendor: null,
+        descriptorProduct: null,
+        descriptorModel: null,
+        libdivecomputerVersion: null,
+      );
+
+      final dive = await getDive('dive-1');
+      expect(dive.surfacePressure, 0.8);
+      expect(dive.updatedAt, nowMs);
+      expect(await divePending('dive-1'), isFalse);
+    });
+
+    test('a zero re-parsed surface pressure is no reading', () async {
+      await insertDive('dive-1');
+      await insertComputer('comp-1');
+      await insertSource(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        isPrimary: true,
+      );
+
+      await service.applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-1',
+        parsed: makeParsedDive(surfacePressureBar: 0.0),
+        descriptorVendor: null,
+        descriptorProduct: null,
+        descriptorModel: null,
+        libdivecomputerVersion: null,
+      );
+
+      expect((await getDive('dive-1')).surfacePressure, isNull);
+    });
 
     test('refreshes the source row entry/exit window from the re-parsed '
         'clock (#1207)', () async {

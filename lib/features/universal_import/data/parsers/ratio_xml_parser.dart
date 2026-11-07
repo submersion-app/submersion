@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:xml/xml.dart';
 
+import 'package:submersion/core/constants/surface_pressure_limits.dart';
 import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
@@ -189,10 +190,14 @@ class RatioXmlParser implements ImportParser {
     }
 
     // Surface pressure (stored as mbar * 10, e.g. 9971 = 997.1 mbar)
-    // Converted to bar: 9971 / 10000.0 = 0.9971 bar
-    final surfacePressure = _intElement(header, 'surfacePressureMbar');
+    // Converted to bar: 9971 / 10000.0 = 0.9971 bar. A header with no
+    // reading holds zero, which is no surface pressure (#4208).
+    final surfacePressureE4 = _intElement(header, 'surfacePressureMbar');
+    final surfacePressure = surfacePressureE4 == null
+        ? null
+        : plausibleSurfacePressureBar(surfacePressureE4 / 10000.0);
     if (surfacePressure != null) {
-      diveData['surfacePressure'] = surfacePressure / 10000.0;
+      diveData['surfacePressure'] = surfacePressure;
     }
   }
 

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/surface_pressure_limits.dart';
 import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -403,7 +404,8 @@ class ShearwaterDiveMapper {
     final firstTank = tankData[0] as Map<String, dynamic>;
     final mbar = _toDouble(firstTank['SurfacePressureMBar']);
     if (mbar == null) return null;
-    return ShearwaterValueMapper.mbarToBar(mbar);
+    // Zero, or anything no surface could read, is no reading.
+    return plausibleSurfacePressureBar(ShearwaterValueMapper.mbarToBar(mbar));
   }
 
   /// The tissue state the computer reported, or null when the export carries
@@ -489,6 +491,11 @@ class ShearwaterDiveMapper {
     if (parsed.gfHigh != null) {
       merged['gradientFactorHigh'] = parsed.gfHigh;
     }
+
+    // The export's own reading wins; the raw log only fills a gap.
+    merged['surfacePressure'] ??= plausibleSurfacePressureBar(
+      parsed.surfacePressureBar,
+    );
 
     // Override dive mode from parsed data (more accurate than apparatus guess).
     if (parsed.diveMode != null) {

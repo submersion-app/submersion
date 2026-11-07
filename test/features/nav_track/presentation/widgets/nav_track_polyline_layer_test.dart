@@ -24,6 +24,25 @@ NavTrack _route({GeoPoint? anchor, List<NavTrackPoint> points = const []}) =>
     );
 
 void main() {
+  test('walks a route once for every reader of the same route', () {
+    final route = _route(
+      anchor: const GeoPoint(47, 8),
+      points: const [
+        NavTrackPoint(timestamp: 0, north: 0, east: 0, depth: 2),
+        NavTrackPoint(timestamp: 2, north: 5, east: 0, depth: 4),
+        NavTrackPoint(timestamp: 4, north: 10, east: 0, depth: 3),
+      ],
+    );
+
+    final first = navTrackDrawnSamples(route);
+
+    // The polyline, the marker layer and the camera all read this route:
+    // the second reader gets the walk the first one paid for.
+    expect(first, isNotEmpty);
+    expect(identical(navTrackDrawnSamples(route), first), isTrue);
+    expect(() => first.add(first.first), throwsUnsupportedError);
+  });
+
   testWidgets('renders nothing without an anchor', (tester) async {
     await tester.pumpWidget(
       MaterialApp(

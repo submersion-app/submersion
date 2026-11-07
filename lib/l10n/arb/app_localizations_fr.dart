@@ -56299,9 +56299,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ceci ressemble à une trace déjà importée depuis le même fichier.';
 
   @override
-  String get navTrack_review_replaceLabel => 'Remplacer';
-
-  @override
   String get navTrack_review_linkToDive => 'Lier à une plongée';
 
   @override
@@ -56506,6 +56503,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get navTrack_editSheet_removeTrackTooltip => 'Retirer la trace';
+
+  @override
+  String get navTrack_editSheet_trackOnAnotherDive =>
+      'Cette trace appartient à une autre plongée. Mettez-la à jour depuis cette plongée, ou importez le fichier comme nouvelle trace.';
 
   @override
   String navTrack_editRow_tracksSaveFailed(String error) {
@@ -60551,4 +60552,76 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get search_openTooltip => 'Rechercher';
+
+  @override
+  String get settings_conflict_field_sourceFile =>
+      'Fichier d\'origine de la trace';
+
+  @override
+  String get navTrack_review_duplicateUpdate =>
+      'Mettre à jour la trace enregistrée';
+
+  @override
+  String get navTrack_review_duplicateUpdateHint =>
+      'Relit les données de ce fichier. Le nom, la plongée, le site, l\'appareil et l\'alignement restent inchangés.';
+
+  @override
+  String get navTrack_review_duplicateNew => 'Importer comme nouvelle trace';
+
+  @override
+  String get navTrack_review_updateAction => 'Mettre à jour';
+
+  @override
+  String get navTrack_review_trackUpdatedConfirmation =>
+      'Trace mise à jour depuis le fichier. Vérifiez son alignement : la trace a pu se déplacer.';
+
+  @override
+  String get navTrack_detail_menuUpdateFromFile =>
+      'Mettre à jour depuis un fichier';
+
+  @override
+  String get navTrack_detail_menuExportCsv => 'Exporter en CSV';
+
+  @override
+  String get navTrack_detail_exportUnavailable =>
+      'Cette trace n\'a pas encore de fichier d\'origine enregistré. Mettez-la d\'abord à jour depuis son fichier.';
+
+  @override
+  String navTrack_detail_exportFailed(String error) {
+    return 'Échec de l\'export : $error';
+  }
+
+  @override
+  String get navTrack_detail_updateNameMismatchTitle =>
+      'Nom de fichier différent';
+
+  @override
+  String navTrack_detail_updateNameMismatchMessage(
+    String expected,
+    String actual,
+  ) {
+    return 'Cette trace a été importée depuis « $expected », le fichier choisi est « $actual ». Mettre quand même la trace à jour depuis ce fichier ?';
+  }
+
+  @override
+  String get navTrack_detail_updateOtherRecordingTitle =>
+      'Enregistrement différent';
+
+  @override
+  String navTrack_detail_updateOtherRecordingMessage(
+    String fileDate,
+    String trackDate,
+  ) {
+    return 'Ce fichier a été enregistré le $fileDate, la trace le $trackDate : il peut s\'agir d\'une autre plongée. Mettre quand même la trace à jour depuis ce fichier ?';
+  }
+
+  @override
+  String navTrack_marker_details(
+    int number,
+    String time,
+    String depth,
+    String distance,
+  ) {
+    return 'Repère $number : $time, $depth, $distance';
+  }
 }

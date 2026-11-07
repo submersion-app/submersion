@@ -14,6 +14,19 @@ class ReckonedPoint {
   });
 }
 
+/// A marker set along a [ReckonedPath] by the device that recorded it: a
+/// Seacraft ENC's hold and return markers (issue #4231).
+class PathMarker {
+  /// Index into [ReckonedPath.points] of the sample the marker sits on.
+  final int pointIndex;
+
+  /// What the scene shows on it: the marker's number, the same one every
+  /// other view of the recording gives it.
+  final String label;
+
+  const PathMarker({required this.pointIndex, required this.label});
+}
+
 /// Where a [ReckonedPath]'s horizontal shape came from.
 enum PathProvenance {
   /// A measured underwater route (e.g. a linked Seacraft ENC / Suunto
@@ -46,6 +59,10 @@ class ReckonedPath {
   final double maxDepth;
   final double durationSeconds;
 
+  /// Markers the recording device set along the path. Empty for anything
+  /// but a measured route that carries some.
+  final List<PathMarker> markers;
+
   const ReckonedPath({
     required this.points,
     PathProvenance? provenance,
@@ -57,6 +74,7 @@ class ReckonedPath {
     required this.maxNorth,
     required this.maxDepth,
     required this.durationSeconds,
+    this.markers = const [],
   }) : provenance =
            provenance ??
            (reconstructed == true
@@ -97,5 +115,7 @@ ReckonedPath offsetReckonedPath(
     maxNorth: path.maxNorth + anchor.north,
     maxDepth: path.maxDepth,
     durationSeconds: path.durationSeconds,
+    // Indexed into the points, which keep their order, so they carry over.
+    markers: path.markers,
   );
 }

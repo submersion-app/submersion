@@ -6,7 +6,7 @@ import java.nio.ByteBuffer
  * Encodes/decodes a ParsedDive to a byte[] using the plugin's OWN Pigeon codec
  * (via the public DiveComputerHostApi.codec), so a dive can cross the AIDL
  * boundary from :dc back to the main process without hand-duplicating the
- * 28-field, nested ParsedDive schema. The codec (StandardMessageCodec) already
+ * 29-field, nested ParsedDive schema. The codec (StandardMessageCodec) already
  * knows how to write/read ParsedDive and its nested ProfileSample/TankInfo/
  * GasMix/DiveEvent types (type byte 136 and friends). See issue #318.
  */

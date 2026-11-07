@@ -1574,10 +1574,14 @@ class AppDatabase extends _$AppDatabase {
     // (issue #4232). A defaulted column an older peer omits, so the floor
     // does not move.
     343,
+    // v344: nav_tracks.source_file, the original file a route was imported
+    // from (issue #4231). A nullable column an older peer omits, so the floor
+    // does not move.
+    344,
     // v346: equipment.last_service_date moves forward to the item's newest
     // service record where logging an older record had moved it back (issue
     // #4201). Data only, a value every reader already holds, so the floor
-    // does not move. Numbered past 343 so two open PRs can take 344, 345.
+    // does not move. Numbered 346 so an open PR can take 345.
     346,
   ];
 

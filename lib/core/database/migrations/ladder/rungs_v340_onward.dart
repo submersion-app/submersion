@@ -45,10 +45,17 @@ extension RungsFromV340 on AppDatabase {
     if (from < 343) await _assertFirstDayOfWeekColumn();
     if (from < 343) await reportProgress();
 
+    // v344: nav_tracks.source_file, the original file a route was imported
+    // from (issue #4231). A nullable column with no backfill: a route
+    // imported before keeps none until it is updated from its file.
+    // Re-asserted in beforeOpen.
+    if (from < 344) await _assertNavTrackSourceFileColumn();
+    if (from < 344) await reportProgress();
+
     // v346: an item's last service date is its newest service record's
     // again where logging an older record had moved it back (issue #4201).
-    // Data only, so the compatibility floor does not move. Numbered past
-    // 343 so the two open PRs that also claimed 343 can take 344 and 345.
+    // Data only, so the compatibility floor does not move. Numbered 346 so
+    // an open PR that also claimed 343 can take 345.
     if (from < 346) await _repairLastServiceDates();
     if (from < 346) await reportProgress();
   }

@@ -448,6 +448,7 @@ struct ParsedDive {
   var entryLongitude: Double? = nil
   var exitLatitude: Double? = nil
   var exitLongitude: Double? = nil
+  var surfacePressureBar: Double? = nil
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -480,6 +481,7 @@ struct ParsedDive {
     let entryLongitude: Double? = nilOrValue(pigeonVar_list[25])
     let exitLatitude: Double? = nilOrValue(pigeonVar_list[26])
     let exitLongitude: Double? = nilOrValue(pigeonVar_list[27])
+    let surfacePressureBar: Double? = nilOrValue(pigeonVar_list[28])
 
     return ParsedDive(
       fingerprint: fingerprint,
@@ -509,7 +511,8 @@ struct ParsedDive {
       entryLatitude: entryLatitude,
       entryLongitude: entryLongitude,
       exitLatitude: exitLatitude,
-      exitLongitude: exitLongitude
+      exitLongitude: exitLongitude,
+      surfacePressureBar: surfacePressureBar
     )
   }
   func toList() -> [Any?] {
@@ -542,6 +545,7 @@ struct ParsedDive {
       entryLongitude,
       exitLatitude,
       exitLongitude,
+      surfacePressureBar,
     ]
   }
 }

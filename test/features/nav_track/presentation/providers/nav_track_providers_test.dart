@@ -3,11 +3,13 @@ import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_service_providers.dart';
+import 'package:submersion/features/nav_track/data/services/parsers/seacraft_enc_csv_parser.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
@@ -228,6 +230,28 @@ void main() {
 
     expect(route, isNotNull);
     expect(route!.points, hasLength(points.length));
+  });
+
+  test('navTrackWithMarkersProvider adds the markers of the stored file that '
+      'navTrackByIdProvider leaves out (issue #4231)', () async {
+    final bytes = File(
+      p.join('test', 'fixtures', 'nav_tracks', 'seacraft_enc3_gps_fix.csv'),
+    ).readAsBytesSync();
+    final id = await repo.insertImportedRoute(
+      points: parseSeacraftEncCsv(bytes).points,
+      source: NavTrackSource.seacraftEnc,
+      sourceRef: 'seacraft_enc3_gps_fix.csv',
+      sourceFile: bytes,
+    );
+
+    final plain = await container.read(navTrackByIdProvider(id).future);
+    final withMarkers = await container.read(
+      navTrackWithMarkersProvider(id).future,
+    );
+
+    expect(plain!.markers, isEmpty);
+    expect(withMarkers!.markers.map((m) => m.rawValue), [-1, -101]);
+    expect(withMarkers.points, plain.points);
   });
 
   test(

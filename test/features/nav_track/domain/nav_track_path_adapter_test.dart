@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track_marker.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_path_adapter.dart';
@@ -182,6 +183,49 @@ void main() {
 
       expect(path.isEmpty, isTrue);
       expect(path.provenance, PathProvenance.measured);
+    });
+  });
+
+  group('device markers (issue #4231)', () {
+    test('carries the route\'s markers onto the drawn samples, numbered '
+        'among all of them', () {
+      // A pre-dive GPS calibration (the 120 m surface jump) moves the active
+      // range to the fourth sample, so the first marker is not on the dive.
+      final route =
+          _route(
+            points: [
+              _p(timestamp: 0, north: 0, east: 0, depth: 0),
+              _p(timestamp: 2, north: 0, east: 0, depth: 0),
+              _p(timestamp: 4, north: 120, east: 0, depth: 0),
+              _p(timestamp: 6, north: 120, east: 0, depth: 2),
+              _p(timestamp: 8, north: 121, east: 1, depth: 4),
+              _p(timestamp: 10, north: 122, east: 2, depth: 3),
+            ],
+          ).copyWith(
+            markers: const [
+              NavTrackMarker(index: 1, rawValue: -1),
+              NavTrackMarker(index: 4, rawValue: -101),
+            ],
+          );
+
+      final path = NavTrackPathAdapter.toReckonedPath(route);
+
+      expect(path.markers, hasLength(1));
+      expect(path.markers.single.label, '2');
+      expect(path.points[path.markers.single.pointIndex].depth, 4);
+    });
+
+    test('a route without markers gives a path without markers', () {
+      final path = NavTrackPathAdapter.toReckonedPath(
+        _route(
+          points: [
+            _p(timestamp: 0, north: 0, east: 0, depth: 2),
+            _p(timestamp: 2, north: 1, east: 0, depth: 3),
+          ],
+        ),
+      );
+
+      expect(path.markers, isEmpty);
     });
   });
 }

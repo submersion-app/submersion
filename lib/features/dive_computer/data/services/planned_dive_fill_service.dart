@@ -95,6 +95,7 @@ class PlannedDiveFillService {
         maxDepth: dive.maxDepth,
         avgDepth: dive.avgDepth ?? planned.avgDepth,
         waterTemp: dive.minTemperature ?? planned.waterTemp,
+        surfacePressure: dive.surfacePressure ?? planned.surfacePressure,
         gradientFactorLow: dive.gfLow ?? planned.gradientFactorLow,
         gradientFactorHigh: dive.gfHigh ?? planned.gradientFactorHigh,
         decoAlgorithm: dive.decoAlgorithm ?? planned.decoAlgorithm,

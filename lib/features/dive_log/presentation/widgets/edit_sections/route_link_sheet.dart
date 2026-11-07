@@ -147,11 +147,23 @@ class _RouteLinkSheetState extends ConsumerState<_RouteLinkSheet> {
     final saved = await ref
         .read(navTrackRepositoryProvider)
         .getById(result.routeId, includePoints: false);
-    if (saved == null || !mounted) return;
-    final replaced = result.replacedRouteId;
-    _update(
-      replaced == null ? _draft.add(saved) : _draft.replaced(replaced, saved),
-    );
+    if (saved == null || !mounted) {
+      if (mounted) setState(() => _error = l10n.navTrack_common_trackNotFound);
+      return;
+    }
+    final update = result.update;
+    if (update == null) {
+      _update(_draft.add(saved));
+      return;
+    }
+    // An update keeps the stored track's dive link, so a track that belongs
+    // to another dive cannot come here: Save's link would refuse it and the
+    // dive would end up without it. Nothing is staged or written.
+    if (saved.diveId != null && !_draft.wasLinkedOnOpen(saved.id)) {
+      setState(() => _error = l10n.navTrack_editSheet_trackOnAnotherDive);
+      return;
+    }
+    _update(_draft.updated(saved, update));
   }
 
   @override

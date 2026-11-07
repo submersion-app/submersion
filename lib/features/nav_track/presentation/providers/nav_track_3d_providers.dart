@@ -16,7 +16,9 @@ import 'package:submersion/features/nav_track/presentation/providers/nav_track_p
 /// `NavTrackRepository.watchRouteChanges`.
 final navTrack3dSceneDataProvider =
     FutureProvider.family<NavTrack3dSceneData?, String>((ref, trackId) async {
-      final route = await ref.watch(navTrackByIdProvider(trackId).future);
+      final route = await ref.watch(
+        navTrackWithMarkersProvider(trackId).future,
+      );
       if (route == null) return null;
       final data = NavTrack3dSceneData.fromRoute(route);
       return data.hasProfile ? data : null;
