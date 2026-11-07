@@ -96,4 +96,31 @@ void main() {
       expect(ids.skip(20), [for (var i = 0; i < 40; i += 2) i]);
     });
   });
+
+  group('foldedTextComparator', () {
+    const labels = {
+      'bcd': 'Stab',
+      'tank': 'Bouteille',
+      'transmitter': '\u00c9metteur',
+      'wing': 'stab',
+    };
+    final compare = foldedTextComparator<String>(
+      (k) => labels[k]!,
+      tieBreak: (k) => k,
+    );
+
+    test('orders by folded label, so an accented initial files in place', () {
+      expect(['bcd', 'transmitter', 'tank']..sort(compare), [
+        'tank',
+        'transmitter',
+        'bcd',
+      ]);
+    });
+
+    test('labels that fold alike fall back to the tie-break key', () {
+      // "Stab" and "stab" fold alike; the stored key decides, not the case.
+      expect(['wing', 'bcd']..sort(compare), ['bcd', 'wing']);
+      expect(compare('bcd', 'bcd'), 0);
+    });
+  });
 }

@@ -12,7 +12,7 @@ import 'package:submersion/core/query/registry/query_relation.dart';
 import 'package:submersion/core/query/syntax/query_parser.dart';
 import 'package:submersion/core/query/syntax/query_printer.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
-import 'package:submersion/core/text/fuzzy_match.dart' show normalize;
+import 'package:submersion/core/text/text_sort.dart' show foldedTextComparator;
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart'
     show numberInputFormatters;
@@ -73,13 +73,9 @@ List<QueryOp> opsFor(PathResolution target) {
 List<String> enumOptions(QueryField field, QueryLabels labels) {
   final values = field.enumValues!;
   if (field.enumOrder == EnumOrder.declared) return values;
-  final keys = {
-    for (final v in values) v: normalize(labels.enumValue(field, v)),
-  };
-  return [...values]..sort((a, b) {
-    final byLabel = keys[a]!.compareTo(keys[b]!);
-    return byLabel != 0 ? byLabel : a.compareTo(b);
-  });
+  return [...values]..sort(
+    foldedTextComparator((v) => labels.enumValue(field, v), tieBreak: (v) => v),
+  );
 }
 
 /// The value a fresh row holds for [op] on [target]; null when [op] takes
