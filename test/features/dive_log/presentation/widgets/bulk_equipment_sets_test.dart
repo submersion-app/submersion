@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_equipment_sets.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 
@@ -31,12 +33,14 @@ void main() {
   testWidgets('the remove picker is titled for removing and returns the set', (
     tester,
   ) async {
+    // A set with no items cannot be tapped in the picker.
+    const bcd = EquipmentItem(id: 'bcd', name: 'BCD', type: EquipmentType.bcd);
     final set = EquipmentSet(
       id: 'warm',
       name: 'Warm water',
       description: '',
-      equipmentIds: const [],
-      items: const [],
+      equipmentIds: const ['bcd'],
+      items: const [bcd],
       createdAt: DateTime(2026, 6, 1),
       updatedAt: DateTime(2026, 6, 1),
     );
@@ -74,13 +78,10 @@ void main() {
         const {'bcd': 'warm', 'reg': 'warm', 'fins': 'photo'},
       );
 
+      // Records compare a list field by identity, so the ids are joined.
       expect(
-        [for (final op in ops) (op.viaSetId, op.equipmentIds)],
-        [
-          (null, ['lamp']),
-          ('warm', ['bcd', 'reg']),
-          ('photo', ['fins']),
-        ],
+        [for (final op in ops) '${op.viaSetId}: ${op.equipmentIds.join(',')}'],
+        ['null: lamp', 'warm: bcd,reg', 'photo: fins'],
       );
       expect(ops.map((op) => op.mode).toSet(), {BulkCollectionMode.add});
     });
