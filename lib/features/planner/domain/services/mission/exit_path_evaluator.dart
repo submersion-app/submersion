@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
@@ -13,6 +14,8 @@ import 'package:submersion/features/planner/domain/services/mission/member_gas_s
 import 'package:submersion/features/planner/domain/services/mission/mission_geometry.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_segment_builder.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
+import 'package:submersion/features/planner/domain/services/same_mix_share.dart';
+import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 
 /// One diver on an exit: their own bottom SAC, and whether they breathe the
 /// plan's stressed SAC on the exit's bottom part (never less than their own).
@@ -125,7 +128,8 @@ class ExitPathEvaluator {
       exitLegs: exitLegs,
       exitSpeedMps: exitSpeedMps,
     );
-    final outcome = engine.compute(plan.copyWith(segments: segments));
+    final exitPlan = plan.copyWith(segments: segments);
+    final outcome = engine.compute(exitPlan);
     final authoredRuntime = outcome.runtimeSeconds - outcome.ttsAtBottom;
     final exitBottomSeconds = math.max(
       0,
@@ -160,6 +164,18 @@ class ExitPathEvaluator {
         .problemSolvingMinutes;
     final failureTankId =
         outboundRows.lastOrNull?.tankId ?? exitRows.firstOrNull?.tankId;
+    // The exit legs the diver swims, then the ascent the engine computed.
+    final authoredExitRows = exitRows
+        .where((r) => r.runtimeSeconds <= authoredRuntime)
+        .toList();
+    final ascentRows = exitRows
+        .where((r) => r.runtimeSeconds > authoredRuntime)
+        .toList();
+    final ascentStartDepth =
+        authoredExitRows.lastOrNull?.depthMeters ?? failureDepth;
+    // The roles the engine charged the rows by: derived from the same
+    // segments it computed, not the stored roles or the plan's own legs.
+    final resolvedTanks = const TankRoleResolver().apply(exitPlan).tanks;
 
     final liters = <String, double>{};
     final shortfall = <String>{};
@@ -172,26 +188,43 @@ class ExitPathEvaluator {
         environment: environment,
         sacFor: (_) => diver.sacBottom,
       );
-      final exit = gas.litersByTank(
-        rows: exitRows,
+      double exitSac(PlanScheduleRow row) {
+        if (firstStopStart != null &&
+            row.startRuntimeSeconds >= firstStopStart) {
+          return plan.sacDecoEffective;
+        }
+        return workingSac;
+      }
+
+      final exitLegs = gas.litersByTank(
+        rows: authoredExitRows,
         environment: environment,
         startDepth: failureDepth,
-        sacFor: (row) {
-          if (firstStopStart != null &&
-              row.startRuntimeSeconds >= firstStopStart) {
-            return plan.sacDecoEffective;
-          }
-          return workingSac;
-        },
+        sacFor: exitSac,
       );
       final problemSolving =
           problemSolvingMinutes *
           workingSac *
           environment.pressureAtDepth(failureDepth);
-      final charged = {
-        ...exit,
-        ?failureTankId: (exit[failureTankId] ?? 0.0) + problemSolving,
+      final beforeAscent = {
+        ...exitLegs,
+        ?failureTankId: (exitLegs[failureTankId] ?? 0.0) + problemSolving,
       };
+      // The engine names the first cylinder of each ascent mix; every
+      // cylinder carrying it shares the draw, balanced against what the dive
+      // had already taken from each (#4138).
+      final ascent = spreadAcrossSameMix(
+        gas.litersByTank(
+          rows: ascentRows,
+          environment: environment,
+          startDepth: ascentStartDepth,
+          sacFor: exitSac,
+        ),
+        tanks: resolvedTanks,
+        capacityOf: _capacityOf,
+        alreadyUsed: _sum(outbound, beforeAscent),
+      );
+      final charged = _sum(beforeAscent, ascent);
       liters[diver.id] = charged.values.fold(0.0, (a, b) => a + b);
       if (_gasShort(plan, outbound, charged)) shortfall.add(diver.id);
     }
@@ -232,6 +265,22 @@ class ExitPathEvaluator {
     final factor = plan.sacStressedEffective / planSacBottom;
     return sacBottom * math.max(1.0, factor);
   }
+
+  /// What [tank] holds at its fill, in surface liters; 0 when its size is
+  /// unknown too, as [MemberGasService.remainingBar] cannot check it either,
+  /// so it takes no share of a mix it carries.
+  double _capacityOf(DiveTank tank) => tank.volume == null
+      ? 0.0
+      : fillCapacityLiters(tank, engine.config.gasModel);
+
+  /// Per-cylinder totals of [a] and [b] together.
+  static Map<String, double> _sum(
+    Map<String, double> a,
+    Map<String, double> b,
+  ) => {
+    ...a,
+    for (final MapEntry(:key, :value) in b.entries) key: (a[key] ?? 0) + value,
+  };
 
   /// True when any tank the diver breathes, with a known size and fill,
   /// would end below the plan reserve after [outbound] plus [exit] litres.

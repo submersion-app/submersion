@@ -24,6 +24,7 @@ import 'package:submersion/features/planner/domain/services/air_break_runs.dart'
 import 'package:submersion/features/planner/domain/services/diluent_switch_time.dart';
 import 'package:submersion/features/planner/domain/services/issue_onset.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
+import 'package:submersion/features/planner/domain/services/same_mix_share.dart';
 import 'package:submersion/features/planner/domain/services/segment_rate_split.dart';
 import 'package:submersion/features/planner/domain/services/setpoint_switch_split.dart';
 import 'package:submersion/features/planner/domain/services/tank_mod.dart';
@@ -1659,6 +1660,49 @@ class PlanEngine {
     String? ascentTankFor(AscentGas gas) =>
         loopSupplyTankId ?? _tankForGas(plan.tanks, gas.fO2, gas.fHe);
 
+    // The computed ascent picks a cylinder by mix; every cylinder carrying
+    // that mix shares the draw, balanced so they end at the same fraction,
+    // rather than the first taking all of it (#4138). A loop's supply is the
+    // one cylinder feeding it, so it shares nothing.
+    void chargeAscent(
+      String? tankId,
+      double amount, {
+      required int atRuntime,
+      required int seconds,
+    }) {
+      final group = loopSupplyTankId == null
+          ? sameMixShareGroup(plan.tanks, tankId)
+          : const <DiveTank>[];
+      if (group.length < 2) {
+        charge(tankId, amount, atRuntime: atRuntime, seconds: seconds);
+        return;
+      }
+      final phases = balancedDrawPhases(amount, [
+        for (final tank in group)
+          (
+            id: tank.id,
+            capacityLiters: fillCapacityLiters(tank, config.gasModel),
+            usedLiters: liters[tank.id] ?? 0.0,
+          ),
+      ]);
+      // Each phase its own stretch of the draw, so a cylinder that joins once
+      // the levels meet is not timed as drawing from the start, and its
+      // reserve and gas-out markers land where it really reaches them.
+      var covered = 0.0;
+      for (var i = 0; i < phases.length; i++) {
+        final from = (covered * seconds).round();
+        covered += phases[i].fraction;
+        final to = i == phases.length - 1
+            ? seconds
+            : (covered * seconds).round();
+        for (final MapEntry(key: id, value: part) in phases[i].liters.entries) {
+          if (part > 0) {
+            charge(id, part, atRuntime: atRuntime + from, seconds: to - from);
+          }
+        }
+      }
+    }
+
     final ascentMode = loopSupplyTankId == null
         ? domain.PlanMode.oc
         : _modeFor(plan, legs.last.segment);
@@ -1721,7 +1765,7 @@ class PlanEngine {
         toDepth: to,
         seconds: seconds,
       )) {
-        charge(
+        chargeAscent(
           ascentTankFor(ascentPlan.gasForDepth(span.fromDepth)),
           ascentLiters(
             span.seconds,
@@ -1753,14 +1797,14 @@ class PlanEngine {
       );
       final stopPressure = environment.pressureAtDepth(stop.depthMeters);
       final primarySeconds = stop.durationSeconds - stop.airBreakSeconds;
-      charge(
+      chargeAscent(
         stop.tankId,
         ascentLiters(primarySeconds, stopPressure),
         atRuntime: stop.arrivalRuntimeSeconds,
         seconds: primarySeconds,
       );
       if (stop.airBreakSeconds > 0) {
-        charge(
+        chargeAscent(
           stop.airBreakTankId,
           ascentLiters(stop.airBreakSeconds, stopPressure),
           atRuntime: stop.arrivalRuntimeSeconds + primarySeconds,
@@ -3132,23 +3176,18 @@ class PlanEngine {
     bool isCcr = false,
   }) {
     DiveTank? match;
-    for (final tank in tanks) {
+    for (final tank in sameMixTanks(tanks, fO2: fO2, fHe: fHe)) {
       if (isCcr &&
           tank.role != TankRole.diluent &&
           tank.role != TankRole.oxygenSupply) {
         continue;
       }
-      final tankFO2 = tank.gasMix.o2 / 100.0;
-      final tankFHe = tank.gasMix.he / 100.0;
-      if ((tankFO2 - fO2).abs() < 0.005 && (tankFHe - fHe).abs() < 0.005) {
-        final isDeco =
-            tank.role == TankRole.deco || tank.role == TankRole.stage;
-        if (match == null ||
-            (isDeco &&
-                match.role != TankRole.deco &&
-                match.role != TankRole.stage)) {
-          match = tank;
-        }
+      final isDeco = tank.role == TankRole.deco || tank.role == TankRole.stage;
+      if (match == null ||
+          (isDeco &&
+              match.role != TankRole.deco &&
+              match.role != TankRole.stage)) {
+        match = tank;
       }
     }
     return match?.id;
