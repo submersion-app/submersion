@@ -14446,6 +14446,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Törli ezt a töltési bejegyzést?';
 
   @override
+  String get passport_history_deleteFailed =>
+      'A töltés törlése nem sikerült. Próbálja újra.';
+
+  @override
   String get passport_tag_title => 'Címke';
 
   @override

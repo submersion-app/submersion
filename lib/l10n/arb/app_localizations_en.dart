@@ -14267,6 +14267,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passport_history_deleteConfirm => 'Delete this fill record?';
 
   @override
+  String get passport_history_deleteFailed =>
+      'Could not delete the fill. Try again.';
+
+  @override
   String get passport_tag_title => 'Tag';
 
   @override

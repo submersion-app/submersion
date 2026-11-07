@@ -14672,6 +14672,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get passport_history_deleteConfirm => 'هل تريد حذف سجل التعبئة هذا؟';
 
   @override
+  String get passport_history_deleteFailed =>
+      'تعذّر حذف التعبئة. حاول مرة أخرى.';
+
+  @override
   String get passport_tag_title => 'البطاقة';
 
   @override

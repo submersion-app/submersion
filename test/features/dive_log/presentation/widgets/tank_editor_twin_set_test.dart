@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,6 +11,8 @@ import 'package:submersion/features/cylinder_passports/data/repositories/cylinde
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_pairing_repository.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_pairing.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_pairing_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_editor.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -37,6 +41,20 @@ class _PresetListNotifier
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+/// Holds every pairing lookup until [_gate] opens, so a test can choose a
+/// preset while a picked cylinder's twin set is still being read.
+class _HeldPairings extends CylinderPairingRepository {
+  _HeldPairings(this._gate);
+
+  final Future<void> _gate;
+
+  @override
+  Future<CylinderPairing?> pairingOn(String equipmentId, DateTime day) async {
+    await _gate;
+    return super.pairingOn(equipmentId, day);
+  }
 }
 
 EquipmentItem _tank(
@@ -368,6 +386,85 @@ void main() {
     await pick(tester, sized);
     expect(find.text(l10n.twinSet_choiceTitle), findsNothing);
     expect(changed!.volume, 10);
+  });
+
+  Future<void> choosePreset(WidgetTester tester, String label) async {
+    await tester.tap(find.byKey(const Key('tank-preset-dropdown')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(label).last);
+    await tester.pumpAndSettle();
+  }
+
+  const twinTank = DiveTank(
+    id: 'tank-1',
+    role: TankRole.twinSet,
+    volume: 24,
+    passportId: 'p-a',
+    twinPassportId: 'p-b',
+  );
+
+  testWidgets('a preset on a twin set tank drops both cylinders and the '
+      'Twin Set role', (tester) async {
+    DiveTank? changed;
+    await pump(
+      tester,
+      gear: [a, b],
+      tank: twinTank,
+      onChanged: (t) => changed = t,
+      onOwnCylinderUsed: (_) async {},
+    );
+    await choosePreset(tester, 'AL80');
+    expect(changed!.presetName, 'al80');
+    expect(changed!.passportId, isNull);
+    expect(changed!.twinPassportId, isNull);
+    expect(changed!.role, TankRole.backGas);
+  });
+
+  testWidgets('no preset on a twin set tank drops both cylinders and the '
+      'Twin Set role', (tester) async {
+    DiveTank? changed;
+    final l10n = await pump(
+      tester,
+      gear: [a, b],
+      tank: twinTank,
+      onChanged: (t) => changed = t,
+      onOwnCylinderUsed: (_) async {},
+    );
+    await choosePreset(tester, l10n.diveLog_tank_selectPreset);
+    expect(changed!.passportId, isNull);
+    expect(changed!.twinPassportId, isNull);
+    expect(changed!.role, TankRole.backGas);
+  });
+
+  testWidgets('a preset chosen while the pairing is read wins', (tester) async {
+    final gate = Completer<void>();
+    DiveTank? changed;
+    final used = <String>[];
+    final l10n = await pump(
+      tester,
+      gear: [a, b],
+      onChanged: (t) => changed = t,
+      onOwnCylinderUsed: (item) async => used.add(item.id),
+      extra: [
+        cylinderPairingRepositoryProvider.overrideWithValue(
+          _HeldPairings(gate.future),
+        ),
+      ],
+    );
+    await pick(tester, a);
+    await choosePreset(tester, 'AL80');
+    gate.complete();
+    for (var i = 0; i < 3; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 300)),
+      );
+      await tester.pumpAndSettle();
+    }
+    expect(find.text(l10n.twinSet_choiceTitle), findsNothing);
+    expect(changed!.presetName, 'al80');
+    expect(changed!.volume, closeTo(11.1, 0.01));
+    expect(changed!.passportId, isNull);
+    expect(used, isEmpty);
   });
 
   testWidgets('doubles kept as one gear item keep their Twin Set role', (

@@ -37,10 +37,13 @@ CylinderFill fill(
 );
 
 class _Fills extends CylinderFillRepository {
-  _Fills(this.tied);
+  _Fills(this.tied, {this.deleteError});
 
   final Map<String, CylinderFill> tied;
+  final Object? deleteError;
   final deleted = <String>[];
+  var tiedFillReads = 0;
+  var tiedFillsReads = 0;
 
   @override
   Future<CylinderFill?> tiedFillOf(CylinderFill fill) async => tied[fill.id];
@@ -49,10 +52,24 @@ class _Fills extends CylinderFillRepository {
   Future<CylinderFill?> tiedFill({
     required String id,
     required String together,
-  }) async => tied[id];
+  }) async {
+    tiedFillReads++;
+    return tied[id];
+  }
 
   @override
-  Future<void> delete(String id) async => deleted.add(id);
+  Future<Map<String, CylinderFill>> tiedFillsOf(
+    Iterable<CylinderFill> fills,
+  ) async {
+    tiedFillsReads++;
+    return {for (final f in fills) f.id: ?tied[f.id]};
+  }
+
+  @override
+  Future<void> delete(String id) async {
+    if (deleteError case final error?) throw error;
+    deleted.add(id);
+  }
 
   @override
   Future<List<String>> recentStationNames({int limit = 8}) async => const [];
@@ -62,11 +79,16 @@ class _Fills extends CylinderFillRepository {
 }
 
 class _Twin extends TwinFillService {
+  _Twin({this.deleteError});
+
+  final Object? deleteError;
   final deletes = <({String id, bool tiedToo})>[];
 
   @override
-  Future<void> delete(CylinderFill fill, {required bool tiedToo}) async =>
-      deletes.add((id: fill.id, tiedToo: tiedToo));
+  Future<void> delete(CylinderFill fill, {required bool tiedToo}) async {
+    if (deleteError case final error?) throw error;
+    deletes.add((id: fill.id, tiedToo: tiedToo));
+  }
 }
 
 void main() {
@@ -147,6 +169,26 @@ void main() {
     );
   });
 
+  testWidgets('one read names the partners of every tied fill', (tester) async {
+    final repository = _Fills({
+      for (final id in ['f1', 'f3', 'f4'])
+        id: fill('$id-b', together: id, equipmentId: 'eq-2'),
+    });
+    final l10n = await pump(
+      tester,
+      fills: [
+        for (final id in ['f1', 'f3', 'f4']) fill(id, together: id),
+      ],
+      repository: repository,
+    );
+    expect(
+      find.textContaining(l10n.passport_history_filledWith('Double 12 B')),
+      findsNWidgets(3),
+    );
+    expect(repository.tiedFillReads, 0);
+    expect(repository.tiedFillsReads, 1);
+  });
+
   testWidgets('a manual fill opens the sheet in edit mode', (tester) async {
     final l10n = await pump(tester, fills: [fill('f1')]);
     await tester.tap(find.byTooltip(l10n.passport_history_edit));
@@ -203,6 +245,37 @@ void main() {
       expect(twin.deletes.single.id, 'f1');
     });
   }
+
+  testWidgets('a failed delete says so', (tester) async {
+    final l10n = await pump(
+      tester,
+      fills: [fill('f1')],
+      repository: _Fills(const {}, deleteError: StateError('locked')),
+    );
+    await tester.tap(find.byTooltip(l10n.passport_history_delete));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.widgetWithText(FilledButton, l10n.passport_history_delete),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text(l10n.passport_history_deleteFailed), findsOneWidget);
+  });
+
+  testWidgets('a failed delete of a tied fill says so', (tester) async {
+    final l10n = await pump(
+      tester,
+      fills: [fill('f1', together: 'g')],
+      tied: {'f1': partnerFill},
+      twin: _Twin(deleteError: StateError('locked')),
+    );
+    await tester.tap(find.byTooltip(l10n.passport_history_delete));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10n.passport_history_deleteBoth));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text(l10n.passport_history_deleteFailed), findsOneWidget);
+  });
 
   testWidgets('a tied fill whose other row is gone deletes as before', (
     tester,

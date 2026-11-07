@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_rules.dart';
@@ -12,6 +13,8 @@ import 'package:submersion/features/cylinder_passports/presentation/widgets/tied
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+const _log = LoggerService('passportFillHistoryCard');
 
 /// Every fill, newest first, with the count since the last hydro
 /// (spec section 8, Fill history card).
@@ -26,18 +29,36 @@ class PassportFillHistoryCard extends ConsumerWidget {
     CylinderFill fill,
   ) async {
     final l10n = context.l10n;
-    // One fill of a twin set fill (issue #4242): ask whether its other fill
-    // goes too, unless that row is already gone.
-    final tied = await ref
-        .read(cylinderFillRepositoryProvider)
-        .tiedFillOf(fill);
-    if (!context.mounted) return;
-    if (tied != null) {
-      final both = await askDeleteTiedFill(context);
-      if (both == null) return;
-      await ref.read(twinFillServiceProvider).delete(fill, tiedToo: both);
-      return;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      // One fill of a twin set fill (issue #4242): ask whether its other
+      // fill goes too, unless that row is already gone.
+      final tied = await ref
+          .read(cylinderFillRepositoryProvider)
+          .tiedFillOf(fill);
+      if (!context.mounted) return;
+      if (tied != null) {
+        final both = await askDeleteTiedFill(context);
+        if (both == null) return;
+        await ref.read(twinFillServiceProvider).delete(fill, tiedToo: both);
+        return;
+      }
+      await _confirmDeleteOne(context, ref, fill);
+    } catch (e, stackTrace) {
+      _log.error('Failed to delete a fill', error: e, stackTrace: stackTrace);
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.passport_history_deleteFailed)),
+      );
     }
+  }
+
+  /// Asks before deleting [fill], a fill of one cylinder, and deletes it.
+  Future<void> _confirmDeleteOne(
+    BuildContext context,
+    WidgetRef ref,
+    CylinderFill fill,
+  ) async {
+    final l10n = context.l10n;
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -60,12 +81,9 @@ class PassportFillHistoryCard extends ConsumerWidget {
     }
   }
 
-  /// "Filled with `partner`" for one fill of a twin set fill, or null.
-  String? _filledWith(BuildContext context, WidgetRef ref, CylinderFill fill) {
-    if (fill.filledTogetherId == null) return null;
-    final tied = ref
-        .watch(tiedFillProvider((id: fill.id, together: fill.filledTogetherId)))
-        .value;
+  /// "Filled with `partner`" for a fill whose twin set fill's other fill is
+  /// [tied], or null for a fill of one cylinder.
+  String? _filledWith(BuildContext context, WidgetRef ref, CylinderFill? tied) {
     if (tied == null) return null;
     final partnerId = tied.equipmentId;
     final name = partnerId == null
@@ -107,6 +125,9 @@ class PassportFillHistoryCard extends ConsumerWidget {
     final tripCopies =
         ref.watch(tripCopyFillIdsProvider(equipmentId)).value ??
         const <String>{};
+    final tiedFills =
+        ref.watch(tiedFillsProvider(equipmentId)).value ??
+        const <String, CylinderFill>{};
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -134,7 +155,7 @@ class PassportFillHistoryCard extends ConsumerWidget {
                     if (fill.pressureBar != null)
                       units.formatPressure(fill.pressureBar),
                     if (fill.stationName != null) fill.stationName!,
-                    ?_filledWith(context, ref, fill),
+                    ?_filledWith(context, ref, tiedFills[fill.id]),
                   ].join(', '),
                 ),
                 trailing: Row(

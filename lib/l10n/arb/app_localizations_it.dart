@@ -14485,6 +14485,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get passport_history_deleteConfirm => 'Eliminare questa ricarica?';
 
   @override
+  String get passport_history_deleteFailed =>
+      'Impossibile eliminare la ricarica. Riprova.';
+
+  @override
   String get passport_tag_title => 'Tag';
 
   @override

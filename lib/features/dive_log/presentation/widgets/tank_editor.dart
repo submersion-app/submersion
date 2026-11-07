@@ -650,8 +650,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                 _specChoice++;
                 setState(() {
                   _selectedPreset = null;
-                  _passportId = null;
-                  _twinPassportId = null;
+                  _nameCylinders(null);
                 });
                 _notifyChange();
               }
@@ -1118,7 +1117,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       // Already resolved for the fills above.
       final passportId = await ref.read(passportIdProvider(item.id).future);
       if (!mounted || choice != _specChoice) return;
-      await _useOwnCylinder(item, fills, passportId, messenger, l10n);
+      await _useOwnCylinder(item, fills, passportId, choice, messenger, l10n);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to fill a tank from an own cylinder',
@@ -1183,7 +1182,14 @@ class _TankEditorState extends ConsumerState<TankEditor> {
           if (item == null) {
             throw StateError('Scanned cylinder $equipmentId has no row');
           }
-          await _useOwnCylinder(item, fills, tag.passportId, messenger, l10n);
+          await _useOwnCylinder(
+            item,
+            fills,
+            tag.passportId,
+            choice,
+            messenger,
+            l10n,
+          );
         case ForeignCylinder(:final tag):
           if (choice != _specChoice) return;
           final filled = _applyScannedSpec(
@@ -1250,28 +1256,38 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   /// spec, newest of [fills] and [passportId] (issue #2650), then goes to
   /// the host to join the dive's gear: a copy, never a link
   /// (`DiveTank.equipmentId` belongs to the transmitter registry). Throws
-  /// what the host's gear add throws.
+  /// what the host's gear add throws. Like its callers, it stops when a
+  /// newer spec choice than [choice] comes in while it reads the pairing.
   Future<void> _useOwnCylinder(
     EquipmentItem item,
     List<CylinderFill> fills,
     String? passportId,
+    int choice,
     ScaffoldMessengerState messenger,
     AppLocalizations l10n,
   ) async {
     final partner = await _twinPartnerOf(item);
-    if (!mounted) return;
+    if (!mounted || choice != _specChoice) return;
     // A pair with a cylinder of unknown size has no volume to log, so it is
     // not offered; the pick is the cylinder alone.
     if (partner != null && twinPairVolume(item, partner) != null) {
-      final choice = await askTwinSetChoice(
+      final kind = await askTwinSetChoice(
         context,
-        UnitFormatter(ref.read(settingsProvider)),
+        ref.read(unitFormatterProvider),
         picked: item,
         partner: partner,
       );
-      if (choice == null || !mounted) return;
-      if (choice == TwinSetChoice.twinSet) {
-        await _useTwinSet(item, partner, fills, passportId, messenger, l10n);
+      if (kind == null || !mounted || choice != _specChoice) return;
+      if (kind == TwinSetChoice.twinSet) {
+        await _useTwinSet(
+          item,
+          partner,
+          fills,
+          passportId,
+          choice,
+          messenger,
+          l10n,
+        );
         return;
       }
     }
@@ -1312,6 +1328,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     EquipmentItem partner,
     List<CylinderFill> fills,
     String? passportId,
+    int choice,
     ScaffoldMessengerState messenger,
     AppLocalizations l10n,
   ) async {
@@ -1325,7 +1342,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       partner.id,
       diverId: diverId,
     );
-    if (!mounted) return;
+    if (!mounted || choice != _specChoice) return;
     setState(() => _role = TankRole.twinSet);
     _applyScannedSpec(
       passportId: pickedPassportId,
@@ -1364,16 +1381,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   }) {
     final idChanged =
         passportId != _passportId || twinPassportId != _twinPassportId;
-    // A single cylinder, picked or scanned, on a tank a twin set pick made
-    // is back gas again. Only a tank that named a twin passport: doubles
-    // kept as one gear item keep the role the diver set.
-    if (_twinPassportId != null &&
-        twinPassportId == null &&
-        _role == TankRole.twinSet) {
-      setState(() => _role = TankRole.backGas);
-    }
-    _passportId = passportId;
-    _twinPassportId = twinPassportId;
+    setState(() => _nameCylinders(passportId, twin: twinPassportId));
     // A computer logged what this tank breathed; the cylinder's last fill
     // does not replace it (issue #3021).
     final fillMix = isComputerRecordedTank(widget.tank) ? null : mix;
@@ -1438,6 +1446,20 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     return true;
   }
 
+  /// Names the cylinders the tank is: [passportId], and [twin] for the
+  /// second cylinder of a twin set (issue #4242). Every pick, scan and
+  /// preset goes through here, so the two ids change together, and a tank a
+  /// twin set pick made is back gas again once its twin is gone. Only a tank
+  /// that named a twin passport: doubles kept as one gear item keep the role
+  /// the diver set. Call inside setState.
+  void _nameCylinders(String? passportId, {String? twin}) {
+    if (_twinPassportId != null && twin == null && _role == TankRole.twinSet) {
+      _role = TankRole.backGas;
+    }
+    _passportId = passportId;
+    _twinPassportId = twin;
+  }
+
   void _applyPreset(TankPresetEntity preset) {
     _specChoice++;
     final settings = ref.read(settingsProvider);
@@ -1446,7 +1468,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
 
     setState(() {
       // A preset describes a size, not this cylinder (issue #2650).
-      _passportId = null;
+      _nameCylinders(null);
       _selectedPreset = preset;
       // For volume: use cuft (gas capacity) for imperial, liters (water volume) for metric
       // This is because "tank size" in imperial is rated by gas capacity (e.g., AL80 = 80 cuft),

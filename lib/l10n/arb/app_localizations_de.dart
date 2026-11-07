@@ -14477,6 +14477,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get passport_history_deleteConfirm => 'Diesen Fülleintrag löschen?';
 
   @override
+  String get passport_history_deleteFailed =>
+      'Die Füllung konnte nicht gelöscht werden. Bitte erneut versuchen.';
+
+  @override
   String get passport_tag_title => 'Tag';
 
   @override

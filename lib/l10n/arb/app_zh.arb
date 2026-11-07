@@ -4514,6 +4514,7 @@
   "passport_history_sinceHydro": "{count, plural, =0{上次水压测试以来无充气} =1{上次水压测试以来 {count} 次充气} other{上次水压测试以来 {count} 次充气}}",
   "passport_history_delete": "删除充气记录",
   "passport_history_deleteConfirm": "删除此充气记录？",
+  "passport_history_deleteFailed": "无法删除充气记录。请重试。",
   "passport_tag_title": "标签",
   "passport_tag_written": "写入于 {date}",
   "passport_tag_stale": "该标签写入于最近一次保养或规格变更之前。请重新打印。",

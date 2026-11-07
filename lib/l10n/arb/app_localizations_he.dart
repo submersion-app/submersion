@@ -14176,6 +14176,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get passport_history_deleteConfirm => 'למחוק את רשומת המילוי הזו?';
 
   @override
+  String get passport_history_deleteFailed =>
+      'לא ניתן היה למחוק את המילוי. נסו שוב.';
+
+  @override
   String get passport_tag_title => 'תג';
 
   @override

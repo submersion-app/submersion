@@ -178,21 +178,18 @@ void main() {
   testWidgets('a fill dated before a swap names the partner of that day', (
     tester,
   ) async {
-    final swap = today.subtract(const Duration(days: 10));
+    // The swap is tomorrow: today's fill is still the old partner's, though
+    // the newest pairing (and the open one) is the new partner's.
+    final swap = today.add(const Duration(days: 1));
     final l10n = await pump(
       tester,
       fills: _Fills(),
       twin: _Twin(),
       gear: gear,
       pairings: [
-        pairing('old', 'eq-3', DateTime.utc(2025, 1, 1), swap),
         pairing('new', 'eq-2', swap),
+        pairing('old', 'eq-3', DateTime.utc(2025, 1, 1), swap),
       ],
-      sheet: LogFillSheet(
-        passportId: 'pp-1',
-        equipmentId: 'eq-1',
-        initialFilledAt: DateTime.now().subtract(const Duration(days: 11)),
-      ),
     );
     expect(
       find.text(l10n.passport_logFill_twinSwitch('Double 12 C')),
@@ -396,6 +393,100 @@ void main() {
         expect(twin.edits.single.toTied, toTied);
         expect(twin.edits.single.fill.id, 'f1');
         expect(twin.edits.single.fill.pressureBar, 230);
+      });
+    }
+
+    // The partner is rated 232 bar, the cylinder edited 300 bar, so only the
+    // partner can be above its rating.
+    final ratedGear = [
+      cylinder('eq-1', 'Double 12 A', workingPressureBar: 300),
+      cylinder('eq-2', 'Double 12 B'),
+    ];
+
+    testWidgets('a raised pressure applied to both warns above the '
+        'partner\'s rating', (tester) async {
+      final fills = _Fills()
+        ..tied = existing.copyWith(id: 'f2', equipmentId: 'eq-2');
+      final twin = _Twin();
+      final l10n = await pump(
+        tester,
+        fills: fills,
+        twin: twin,
+        gear: ratedGear,
+        sheet: LogFillSheet(
+          passportId: 'pp-1',
+          equipmentId: 'eq-1',
+          editing: existing,
+        ),
+      );
+      await tester.enterText(find.byKey(const Key('logFill_pressure')), '260');
+      await save(tester, l10n);
+      await tester.tap(find.text(l10n.passport_logFill_applyBoth));
+      await tester.pumpAndSettle();
+      expect(
+        find.text(l10n.passport_logFill_overPressureTitle),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.textContaining('Double 12 B'),
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(find.text(l10n.passport_logFill_back));
+      await tester.pumpAndSettle();
+      expect(twin.edits, isEmpty);
+
+      await save(tester, l10n);
+      await tester.tap(find.text(l10n.passport_logFill_applyBoth));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10n.passport_logFill_saveAnyway));
+      await tester.pumpAndSettle();
+      expect(twin.edits.single.toTied, isTrue);
+      expect(twin.edits.single.fill.pressureBar, 260);
+    });
+
+    for (final (label, onlyThisOne, pressure) in [
+      ('only this one', true, '260'),
+      ('an untouched pressure', false, null),
+    ]) {
+      testWidgets('$label does not warn', (tester) async {
+        final above = existing.copyWith(pressureBar: 250);
+        final fills = _Fills()
+          ..tied = above.copyWith(id: 'f2', equipmentId: 'eq-2');
+        final twin = _Twin();
+        final l10n = await pump(
+          tester,
+          fills: fills,
+          twin: twin,
+          gear: ratedGear,
+          sheet: LogFillSheet(
+            passportId: 'pp-1',
+            equipmentId: 'eq-1',
+            editing: above,
+          ),
+        );
+        if (pressure != null) {
+          await tester.enterText(
+            find.byKey(const Key('logFill_pressure')),
+            pressure,
+          );
+        }
+        await save(tester, l10n);
+        await tester.tap(
+          find.text(
+            onlyThisOne
+                ? l10n.passport_logFill_onlyThisOne
+                : l10n.passport_logFill_applyBoth,
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(
+          find.text(l10n.passport_logFill_overPressureTitle),
+          findsNothing,
+        );
+        expect(twin.edits, hasLength(1));
       });
     }
 

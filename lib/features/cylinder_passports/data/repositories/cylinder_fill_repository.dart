@@ -125,6 +125,30 @@ class CylinderFillRepository {
     return row == null ? null : _fromRow(row);
   }
 
+  /// The other fill of each twin set fill among [fills], keyed by the id of
+  /// the fill in [fills], in one read (issue #4242): a fill history names
+  /// every partner without a lookup per row. A single fill, or one whose
+  /// other row is gone, has no entry.
+  Future<Map<String, CylinderFill>> tiedFillsOf(
+    Iterable<CylinderFill> fills,
+  ) async {
+    final groups = {for (final f in fills) ?f.filledTogetherId};
+    if (groups.isEmpty) return const {};
+    final rows = await (_db.select(
+      _db.cylinderFills,
+    )..where((t) => t.filledTogetherId.isIn(groups))).get();
+    // The other row of a tie is the one that is not the fill itself.
+    final byGroup = <String, List<CylinderFill>>{};
+    for (final row in rows) {
+      byGroup.putIfAbsent(row.filledTogetherId!, () => []).add(_fromRow(row));
+    }
+    return {
+      for (final f in fills)
+        if (f.filledTogetherId case final group?)
+          f.id: ?byGroup[group]?.where((o) => o.id != f.id).firstOrNull,
+    };
+  }
+
   /// The ids of the passport copies of trip fills on [equipmentId]'s trip
   /// cylinders. A copy is rewritten whenever its trip fill is saved, so the
   /// fill history does not offer to edit one.

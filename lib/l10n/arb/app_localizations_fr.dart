@@ -14528,6 +14528,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Supprimer cet enregistrement de gonflage ?';
 
   @override
+  String get passport_history_deleteFailed =>
+      'Impossible de supprimer le gonflage. Réessayez.';
+
+  @override
   String get passport_tag_title => 'Étiquette';
 
   @override

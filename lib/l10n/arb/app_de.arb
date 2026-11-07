@@ -4421,6 +4421,7 @@
   "passport_history_sinceHydro": "{count, plural, =0{Keine Füllungen seit der letzten Druckprüfung} =1{{count} Füllung seit der letzten Druckprüfung} other{{count} Füllungen seit der letzten Druckprüfung}}",
   "passport_history_delete": "Füllung löschen",
   "passport_history_deleteConfirm": "Diesen Fülleintrag löschen?",
+  "passport_history_deleteFailed": "Die Füllung konnte nicht gelöscht werden. Bitte erneut versuchen.",
   "passport_tag_title": "Tag",
   "passport_tag_written": "Geschrieben {date}",
   "passport_tag_stale": "Der Tag wurde vor der letzten Wartung oder Spezifikationsänderung geschrieben. Neu drucken.",

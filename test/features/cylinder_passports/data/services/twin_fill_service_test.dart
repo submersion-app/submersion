@@ -107,6 +107,38 @@ void main() {
     expect((await fills.tiedFillOf(b))!.id, a.id);
   });
 
+  test(
+    'tiedFillsOf gives the other fill of every twin fill in one read',
+    () async {
+      final passportA = await passports.ensurePassportId('A', diverId: 'd1');
+      final first = await service.recordTwinFill(
+        fillFor(passportA, 'A'),
+        partnerEquipmentId: 'B',
+      );
+      final second = await service.recordTwinFill(
+        fillFor(passportA, 'A'),
+        partnerEquipmentId: 'B',
+      );
+      final gone = await service.recordTwinFill(
+        fillFor(passportA, 'A'),
+        partnerEquipmentId: 'B',
+      );
+      await fills.delete(gone.partnerFill.id);
+      final single = await fills.create(fillFor(passportA, 'A'));
+
+      final tied = await fills.tiedFillsOf([
+        first.fill,
+        second.fill,
+        gone.fill,
+        single,
+      ]);
+      expect(tied.keys, unorderedEquals([first.fill.id, second.fill.id]));
+      expect(tied[first.fill.id]!.id, first.partnerFill.id);
+      expect(tied[second.fill.id]!.id, second.partnerFill.id);
+      expect(await fills.tiedFillsOf([single]), isEmpty);
+    },
+  );
+
   test('a single fill has no tied fill', () async {
     final single = await fills.create(fillFor('pp', 'A'));
     expect(await fills.tiedFillOf(single), isNull);

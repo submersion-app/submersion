@@ -80,7 +80,6 @@ class LogFillSheet extends ConsumerStatefulWidget {
     this.initialTemperatureC,
     this.mixFromPlan = false,
     this.editing,
-    this.initialFilledAt,
   });
 
   final String passportId;
@@ -96,16 +95,12 @@ class LogFillSheet extends ConsumerStatefulWidget {
   /// The fill being edited, prefilled; null to log a new fill.
   final CylinderFill? editing;
 
-  /// When a new fill happened, for a caller that knows; now otherwise.
-  final DateTime? initialFilledAt;
-
   @override
   ConsumerState<LogFillSheet> createState() => _LogFillSheetState();
 }
 
 class _LogFillSheetState extends ConsumerState<LogFillSheet> {
-  late DateTime _filledAt =
-      widget.editing?.filledAt ?? widget.initialFilledAt ?? DateTime.now();
+  late DateTime _filledAt = widget.editing?.filledAt ?? DateTime.now();
 
   /// The diver's twin switch choice, and the partner it was made for: a
   /// date change that lands on another partner starts from that partner's
@@ -345,14 +340,24 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
           clearStationName: station.isEmpty,
           notes: _notes.text.trim(),
         );
-        final toTied = await _askApplyToTied(editing);
-        if (toTied == null) {
+        final tied = await _askApplyToTied(editing);
+        if (tied == null) {
+          if (mounted) setState(() => _saving = false);
+          return;
+        }
+        // An edit that reaches the partner's fill too is a twin fill again:
+        // a new pressure above either cylinder's rating warns, as it does
+        // when the twin fill is logged.
+        if (tied.toTied &&
+            editedPressure != null &&
+            editedPressure != editing.pressureBar &&
+            !await _acceptPressure(editedPressure, tied.partner, units)) {
           if (mounted) setState(() => _saving = false);
           return;
         }
         await ref
             .read(twinFillServiceProvider)
-            .applyEdit(edited, toTied: toTied);
+            .applyEdit(edited, toTied: tied.toTied);
         logged = LoggedFill(fill: edited);
       } else {
         final now = DateTime.now();
@@ -417,10 +422,11 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
   }
 
   /// Warns when a twin fill's [pressureBar] is above either cylinder's
-  /// working pressure. True to go on saving.
+  /// working pressure. True to go on saving. A [partner] that could not be
+  /// read is not checked.
   Future<bool> _acceptPressure(
     double pressureBar,
-    EquipmentItem partner,
+    EquipmentItem? partner,
     UnitFormatter units,
   ) async {
     EquipmentItem? self;
@@ -430,7 +436,7 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
       self = null;
     }
     // Each cylinder above its rating is named in turn; Back on any stops.
-    for (final item in [?self, partner]) {
+    for (final item in [?self, ?partner]) {
       final rated = item.workingPressureBar;
       if (rated == null || pressureBar <= rated + 0.5) continue;
       if (!mounted) return false;
@@ -446,22 +452,26 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
   }
 
   /// For an edit of one fill of a twin set fill: whether the other fill
-  /// takes the edit too. False when there is no other fill, null when the
-  /// diver backed out.
-  Future<bool?> _askApplyToTied(CylinderFill editing) async {
+  /// takes the edit too, and the cylinder that fill is on when it could be
+  /// read. Not to the other fill when there is none; null when the diver
+  /// backed out.
+  Future<({bool toTied, EquipmentItem? partner})?> _askApplyToTied(
+    CylinderFill editing,
+  ) async {
     final tied = await ref
         .read(cylinderFillRepositoryProvider)
         .tiedFillOf(editing);
-    if (tied == null || !mounted) return false;
+    if (tied == null || !mounted) return (toTied: false, partner: null);
     final partnerId = tied.equipmentId;
     final partner = partnerId == null
         ? null
         : await ref.read(equipmentItemProvider(partnerId).future);
     if (!mounted) return null;
-    return askApplyToTiedFill(
+    final toTied = await askApplyToTiedFill(
       context,
       partner?.name ?? context.l10n.passport_history_anotherCylinder,
     );
+    return toTied == null ? null : (toTied: toTied, partner: partner);
   }
 
   @override

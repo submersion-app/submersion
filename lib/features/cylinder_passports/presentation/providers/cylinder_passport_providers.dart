@@ -37,18 +37,18 @@ final twinFillServiceProvider = Provider<TwinFillService>(
   ),
 );
 
-/// The other fill of the twin set fill a fill belongs to (issue #4242), or
-/// null for a fill of one cylinder or when the other row is gone.
-/// Keyed by the fill's id and its tie, not the whole fill, so an edit does
-/// not mint a new key; auto-disposed, like [passportUsageProvider], so a
-/// kept one per fill does not re-query on every fill write.
-final tiedFillProvider = FutureProvider.autoDispose
-    .family<CylinderFill?, ({String id, String? together})>((ref, key) async {
-      final together = key.together;
-      if (together == null) return null;
+/// The other fill of each twin set fill in a cylinder's fill history (issue
+/// #4242), keyed by the id of the cylinder's fill: one read for the whole
+/// history, redone on any fill write, the partner's included. Auto-disposed, like [passportUsageProvider], so it goes with
+/// the passport page.
+final tiedFillsProvider = FutureProvider.autoDispose
+    .family<Map<String, CylinderFill>, String>((ref, equipmentId) async {
       final repository = ref.watch(cylinderFillRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchFillsChanges());
-      return repository.tiedFill(id: key.id, together: together);
+      final fills = await ref.watch(
+        fillsForEquipmentProvider(equipmentId).future,
+      );
+      return repository.tiedFillsOf(fills);
     });
 
 /// The ids of the passport copies of trip fills on a cylinder, which the

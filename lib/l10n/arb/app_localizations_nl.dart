@@ -14384,6 +14384,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get passport_history_deleteConfirm => 'Deze vulling verwijderen?';
 
   @override
+  String get passport_history_deleteFailed =>
+      'De vulling kon niet worden verwijderd. Probeer het opnieuw.';
+
+  @override
   String get passport_tag_title => 'Tag';
 
   @override

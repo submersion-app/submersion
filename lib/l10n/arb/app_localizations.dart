@@ -23377,6 +23377,12 @@ abstract class AppLocalizations {
   /// **'Delete this fill record?'**
   String get passport_history_deleteConfirm;
 
+  /// No description provided for @passport_history_deleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete the fill. Try again.'**
+  String get passport_history_deleteFailed;
+
   /// No description provided for @passport_tag_title.
   ///
   /// In en, this message translates to:

@@ -13799,6 +13799,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passport_history_deleteConfirm => '删除此充气记录？';
 
   @override
+  String get passport_history_deleteFailed => '无法删除充气记录。请重试。';
+
+  @override
   String get passport_tag_title => '标签';
 
   @override

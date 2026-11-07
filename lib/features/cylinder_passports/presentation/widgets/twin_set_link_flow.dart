@@ -10,7 +10,6 @@ import 'package:submersion/features/cylinder_passports/domain/services/pairing_r
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_pairing_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
@@ -195,7 +194,7 @@ Future<void> unlinkTwinSet(
 ) async {
   final l10n = context.l10n;
   final messenger = ScaffoldMessenger.of(context);
-  final units = UnitFormatter(ref.read(settingsProvider));
+  final units = ref.read(unitFormatterProvider);
   final today = calendarDay(DateTime.now());
   final firstEnd = pairing.pairedOn.add(const Duration(days: 1));
   final lastDate = firstEnd.isAfter(today) ? firstEnd : today;
@@ -277,7 +276,7 @@ Future<bool> _acceptPressures(
   final bBar = b.workingPressureBar;
   if (aBar == null || bBar == null || (aBar - bBar).abs() < 1) return true;
   final l10n = context.l10n;
-  final units = UnitFormatter(ref.read(settingsProvider));
+  final units = ref.read(unitFormatterProvider);
   final go = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(

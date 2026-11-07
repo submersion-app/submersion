@@ -14486,6 +14486,10 @@ class AppLocalizationsEs extends AppLocalizations {
       '¿Eliminar este registro de carga?';
 
   @override
+  String get passport_history_deleteFailed =>
+      'No se pudo eliminar la carga. Inténtalo de nuevo.';
+
+  @override
   String get passport_tag_title => 'Etiqueta';
 
   @override
