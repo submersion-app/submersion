@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/cylinder_passports/domain/services/pairing_rules.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// What a dive tank picked from a linked cylinder is (issue #4242).
@@ -39,5 +43,46 @@ Future<TwinSetChoice?> showTwinSetChoiceDialog(
         ),
       ],
     ),
+  );
+}
+
+/// The pair's volume in liters, or null when either cylinder has none.
+double? twinPairVolume(EquipmentItem a, EquipmentItem b) {
+  final va = a.volumeL;
+  final vb = b.volumeL;
+  return va == null || vb == null ? null : va + vb;
+}
+
+/// The lower of two working pressures: the pair fills to one pressure, and
+/// cannot hold more than its weaker cylinder. Either alone when the other is
+/// unknown.
+double? twinPairWorkingPressure(EquipmentItem a, EquipmentItem b) {
+  final pa = a.workingPressureBar;
+  final pb = b.workingPressureBar;
+  if (pa == null) return pb;
+  if (pb == null) return pa;
+  return pa < pb ? pa : pb;
+}
+
+/// Asks whether a tank picked from [picked], linked with [partner], is the
+/// twin set or [picked] alone, with the pair's volume in the diver's units.
+Future<TwinSetChoice?> askTwinSetChoice(
+  BuildContext context,
+  UnitFormatter units, {
+  required EquipmentItem picked,
+  required EquipmentItem partner,
+}) {
+  final status = partner.effectiveStatus;
+  return showTwinSetChoiceDialog(
+    context,
+    pickedName: picked.name,
+    partnerName: partner.name,
+    combinedVolume: units.formatTankVolume(
+      twinPairVolume(picked, partner),
+      twinPairWorkingPressure(picked, partner),
+    ),
+    partnerStatus: isPartnerOutOfUse(status)
+        ? status.localizedName(context.l10n)
+        : null,
   );
 }

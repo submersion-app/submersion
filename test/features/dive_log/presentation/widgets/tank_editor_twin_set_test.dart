@@ -325,7 +325,13 @@ void main() {
     final l10n = await pump(
       tester,
       gear: [a, b],
-      tank: const DiveTank(id: 'tank-1', role: TankRole.twinSet, volume: 24),
+      tank: const DiveTank(
+        id: 'tank-1',
+        role: TankRole.twinSet,
+        volume: 24,
+        passportId: 'p-a',
+        twinPassportId: 'p-b',
+      ),
       onChanged: (t) => changed = t,
       onOwnCylinderUsed: (_) async {},
     );
@@ -362,5 +368,26 @@ void main() {
     await pick(tester, sized);
     expect(find.text(l10n.twinSet_choiceTitle), findsNothing);
     expect(changed!.volume, 10);
+  });
+
+  testWidgets('doubles kept as one gear item keep their Twin Set role', (
+    tester,
+  ) async {
+    final doubles = await tester.runAsync(
+      () => EquipmentRepository().createEquipment(
+        _tank('Doubles', volumeL: 24, workingPressureBar: 232),
+      ),
+    );
+    DiveTank? changed;
+    await pump(
+      tester,
+      gear: [doubles!],
+      tank: const DiveTank(id: 'tank-1', role: TankRole.twinSet),
+      onChanged: (t) => changed = t,
+      onOwnCylinderUsed: (_) async {},
+    );
+    await pick(tester, doubles);
+    expect(changed!.volume, 24);
+    expect(changed!.role, TankRole.twinSet);
   });
 }

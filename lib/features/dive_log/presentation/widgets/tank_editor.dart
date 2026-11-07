@@ -18,7 +18,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_pairing.dart';
-import 'package:submersion/features/cylinder_passports/domain/services/pairing_rules.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_pairing_providers.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_resolver.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
@@ -42,7 +41,6 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/cylinder_passports/presentation/utils/import_tag_fill.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_tank_link.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
@@ -1264,8 +1262,13 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     if (!mounted) return;
     // A pair with a cylinder of unknown size has no volume to log, so it is
     // not offered; the pick is the cylinder alone.
-    if (partner != null && _pairVolume(item, partner) != null) {
-      final choice = await _askTwinSet(item, partner);
+    if (partner != null && twinPairVolume(item, partner) != null) {
+      final choice = await askTwinSetChoice(
+        context,
+        UnitFormatter(ref.read(settingsProvider)),
+        picked: item,
+        partner: partner,
+      );
       if (choice == null || !mounted) return;
       if (choice == TwinSetChoice.twinSet) {
         await _useTwinSet(item, partner, fills, passportId, messenger, l10n);
@@ -1273,7 +1276,11 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       }
     }
     // A single cylinder on a tank a twin set pick made is back gas again.
-    if (_role == TankRole.twinSet) setState(() => _role = TankRole.backGas);
+    // Only a tank an earlier pairing pick made a twin set (it names a twin
+    // passport); doubles kept as one gear item keep the role the diver set.
+    if (_role == TankRole.twinSet && _twinPassportId != null) {
+      setState(() => _role = TankRole.backGas);
+    }
     final filled = _applyScannedSpec(
       passportId: passportId,
       volumeL: item.volumeL,
@@ -1300,45 +1307,6 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         .pairingOn(item.id, calendarDay(widget.diveDate ?? DateTime.now()));
     if (pairing == null) return null;
     return ref.read(equipmentItemProvider(pairing.partnerOf(item.id)).future);
-  }
-
-  /// The pair's volume in liters, or null when either cylinder has none.
-  static double? _pairVolume(EquipmentItem a, EquipmentItem b) {
-    final va = a.volumeL;
-    final vb = b.volumeL;
-    return va == null || vb == null ? null : va + vb;
-  }
-
-  /// The lower of two working pressures: the pair fills to one pressure, and
-  /// cannot hold more than its weaker cylinder. Either alone when the other
-  /// is unknown.
-  static double? _pairWorkingPressure(EquipmentItem a, EquipmentItem b) {
-    final pa = a.workingPressureBar;
-    final pb = b.workingPressureBar;
-    if (pa == null) return pb;
-    if (pb == null) return pa;
-    return pa < pb ? pa : pb;
-  }
-
-  Future<TwinSetChoice?> _askTwinSet(
-    EquipmentItem item,
-    EquipmentItem partner,
-  ) {
-    final l10n = context.l10n;
-    final units = UnitFormatter(ref.read(settingsProvider));
-    final status = partner.effectiveStatus;
-    return showTwinSetChoiceDialog(
-      context,
-      pickedName: item.name,
-      partnerName: partner.name,
-      combinedVolume: units.formatTankVolume(
-        _pairVolume(item, partner),
-        _pairWorkingPressure(item, partner),
-      ),
-      partnerStatus: isPartnerOutOfUse(status)
-          ? status.localizedName(l10n)
-          : null,
-    );
   }
 
   /// Fills the tank as the twin set of [item] and [partner] (issue #4242):
@@ -1368,8 +1336,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     _applyScannedSpec(
       passportId: pickedPassportId,
       twinPassportId: partnerPassportId,
-      volumeL: _pairVolume(item, partner),
-      workingPressureBar: _pairWorkingPressure(item, partner),
+      volumeL: twinPairVolume(item, partner),
+      workingPressureBar: twinPairWorkingPressure(item, partner),
       material: item.tankMaterial,
       mix: fills.isEmpty ? null : fills.first.gasMix,
     );

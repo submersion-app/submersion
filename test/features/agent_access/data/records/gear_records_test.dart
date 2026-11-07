@@ -456,6 +456,29 @@ void main() {
       expect(doc['unpaired_on'], isNull);
     });
 
+    test('a pairing is visible through its second cylinder too', () async {
+      await db
+          .into(db.cylinderPairings)
+          .insert(
+            CylinderPairingsCompanion.insert(
+              id: 'pair-b',
+              cylinderAId: 'theirs',
+              cylinderBId: 'mine',
+              // Before the setup's pairing of 'mine', so it does not overlap.
+              pairedOn: DateTime.utc(2025, 1, 1).millisecondsSinceEpoch,
+              unpairedOn: Value(
+                DateTime.utc(2026, 1, 1).millisecondsSinceEpoch,
+              ),
+              createdAt: t,
+              updatedAt: t,
+            ),
+          );
+      expect(
+        (await h.one('cylinder_pairings', 'pair-b'))!['cylinder_b_id'],
+        'mine',
+      );
+    });
+
     test('shares read for the item', () async {
       expect(await h.list('equipment_shares', parentId: 'lent'), ['share']);
       expect((await h.one('equipment_shares', 'share'))!['diver_id'], kDiverA);

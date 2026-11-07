@@ -27,15 +27,12 @@ List<EquipmentItem> twinPartnerCandidates(
   String? currentPartnerId,
 }) => [
   for (final item in gear)
+    // In the kit (not retired, sold or wished for) and not lost.
     if (item.type == EquipmentType.tank &&
         item.id != cylinderId &&
         item.id != currentPartnerId &&
-        !const {
-          EquipmentStatus.retired,
-          EquipmentStatus.sold,
-          EquipmentStatus.lost,
-          EquipmentStatus.wanted,
-        }.contains(item.effectiveStatus))
+        item.isFitted &&
+        item.effectiveStatus != EquipmentStatus.lost)
       item,
 ];
 

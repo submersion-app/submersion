@@ -164,7 +164,21 @@ List<RecordEntry> gearEntries(RecordRepositories r) => [
     r,
     name: 'cylinder_pairings',
     table: 'cylinder_pairings',
-    scope: viaParent('equipment', 'cylinder_a_id', _equipmentScope),
+    // Visible through either cylinder, as the Twin set card shows it on both.
+    scope: (diverId, alias) {
+      final a = viaParent('equipment', 'cylinder_a_id', _equipmentScope)(
+        diverId,
+        alias,
+      )!;
+      final b = viaParent('equipment', 'cylinder_b_id', _equipmentScope)(
+        diverId,
+        alias,
+      )!;
+      return (
+        sql: '(${a.sql} OR ${b.sql})',
+        params: [...a.params, ...b.params],
+      );
+    },
     parentColumn: 'cylinder_a_id',
     orderBy: 'r0.cylinder_a_id, r0.paired_on DESC',
     idOf: (p) => p.id,
