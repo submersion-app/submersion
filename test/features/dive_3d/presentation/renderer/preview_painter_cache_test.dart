@@ -268,9 +268,16 @@ void main() {
     expect(cache.soupCount, 2, reason: 'merged group plus the rest layer');
     final merged = cache.soupAt(0);
     expect(merged.buildCount, 1);
+    final screen = merged.screen;
+    final order = merged.order;
 
     await paint(_scene(_terrain()), null);
     expect(merged.buildCount, 2, reason: 'different mesh objects');
+    expect(
+      identical(merged.screen, screen) && identical(merged.order, order),
+      isTrue,
+      reason: 'same-sized meshes refill the buffers they had',
+    );
 
     final single = Scene3d(
       layers: [SceneLayer(_terrain())],

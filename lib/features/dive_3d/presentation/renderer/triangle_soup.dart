@@ -112,10 +112,14 @@ class TriangleSoup {
     _triangleCount = tn;
     _hasTextureCoordinates = meshes.any((m) => m.textureCoordinates != null);
 
-    _triIndices = Uint32List(tn * 3);
-    _triAlpha = Int32List(tn);
-    _triUnshaded = Uint8List(tn);
-    _vertexColors = Float32List(vn * 3);
+    // Same-sized meshes (a terrain patch swapped for the next one on the
+    // same grid) refill the buffers already held instead of reallocating.
+    _triIndices = _triIndices.length == tn * 3
+        ? _triIndices
+        : Uint32List(tn * 3);
+    _triAlpha = _triAlpha.length == tn ? _triAlpha : Int32List(tn);
+    _triUnshaded = _triUnshaded.length == tn ? _triUnshaded : Uint8List(tn);
+    _vertexColors = _f32(_vertexColors, vn * 3);
     var vOff = 0;
     var tOff = 0;
     for (final mesh in meshes) {
@@ -138,18 +142,23 @@ class TriangleSoup {
       tOff += mesh.triangleCount;
     }
 
-    _vx = Float32List(vn);
-    _vy = Float32List(vn);
-    _vz = Float32List(vn);
-    _vzSort = Float32List(vn);
-    _sx = Float32List(vn);
-    _sy = Float32List(vn);
-    _depths = Float32List(tn);
-    _order = Uint32List(tn);
-    _screen = Float32List(tn * 3 * 2);
-    _colors = Int32List(tn * 3);
+    _vx = _f32(_vx, vn);
+    _vy = _f32(_vy, vn);
+    _vz = _f32(_vz, vn);
+    _vzSort = _f32(_vzSort, vn);
+    _sx = _f32(_sx, vn);
+    _sy = _f32(_sy, vn);
+    _depths = _f32(_depths, tn);
+    _order = _order.length == tn ? _order : Uint32List(tn);
+    _screen = _f32(_screen, tn * 3 * 2);
+    _colors = _colors.length == tn * 3 ? _colors : Int32List(tn * 3);
     _textureOut = null;
   }
+
+  /// [current] when it already holds exactly [length] floats, else a new
+  /// list. drawVertices takes whole lists, so the length must be exact.
+  static Float32List _f32(Float32List current, int length) =>
+      current.length == length ? current : Float32List(length);
 
   bool _sameMeshes(List<MeshData> meshes) {
     if (buildCount == 0 || meshes.length != _meshes.length) return false;

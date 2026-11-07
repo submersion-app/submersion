@@ -198,4 +198,39 @@ void main() {
       expect(b.shouldRepaint(a), isTrue);
     });
   });
+
+  // Issue #4259: the painter keeps its triangle buffers in a cache the
+  // viewport owns, so the cache has to survive the rebuild that every
+  // camera move makes.
+  testWidgets('every painter the viewport builds shares one paint cache', (
+    tester,
+  ) async {
+    final scrub = ValueNotifier(0.0);
+    addTearDown(scrub.dispose);
+    final scene = buildScene();
+    Future<void> pump(Set<SceneOverlay> overlays) => tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: Dive3dInteractiveViewport(
+            scene: scene,
+            scrubPosition: scrub,
+            visibleOverlays: overlays,
+          ),
+        ),
+      ),
+    );
+    Dive3dScenePainter painter() =>
+        _sceneRenderObject(tester).painter! as Dive3dScenePainter;
+
+    await pump(SceneOverlay.values.toSet());
+    final first = painter();
+    expect(first.cache, isNotNull);
+
+    await pump({SceneOverlay.markers});
+    final second = painter();
+    expect(identical(second, first), isFalse, reason: 'a rebuilt painter');
+    expect(identical(second.cache, first.cache), isTrue);
+  });
 }
