@@ -21,14 +21,14 @@ void main() {
         final spools = store();
         final spool = spools.create()
           ..write('<a>')
-          ..write('Cozumel – Palancar ')
+          ..write('Mañana Reef ü ')
           ..write('</a>');
         await spool.flush();
         final out = MemoryTextSink();
 
         await spool.copyTo(out);
 
-        expect(out.toString(), '<a>Cozumel – Palancar </a>');
+        expect(out.toString(), '<a>Mañana Reef ü </a>');
         await spools.dispose();
       });
 

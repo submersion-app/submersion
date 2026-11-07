@@ -1,13 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart' show FlutterError;
-import 'package:flutter/services.dart' show MissingPluginException;
 import 'package:path/path.dart' as p;
 
-import 'package:submersion/core/platform/app_directories.dart';
 import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 
 /// Where an export writes its text, a piece at a time.
 abstract interface class ExportTextSink {
@@ -173,26 +171,10 @@ class _FileSpool implements ExportTextSpool {
 }
 
 /// A new, empty directory for one export's working files, in the app's
-/// temp space. Delete it when the export is done.
-///
-/// The app's own temp directory, not `Directory.systemTemp`: a sandboxed
-/// macOS app may not write `/tmp` (issue #509). That one is the fallback only
-/// where path_provider has no platform behind it, a unit test.
-Future<Directory> createExportWorkDirectory() async {
-  Directory base;
-  try {
-    base = Directory(await AppDirectories.temp());
-    await base.create(recursive: true);
-  } on MissingPluginException {
-    base = Directory.systemTemp;
-  } on FlutterError catch (e) {
-    if (!e.toString().contains('Binding has not yet been initialized')) {
-      rethrow;
-    }
-    base = Directory.systemTemp;
-  }
-  return base.createTemp('submersion_export_');
-}
+/// temp space (see [resolveSyncTempDir] for why not `/tmp`). Delete it when
+/// the export is done.
+Future<Directory> createExportWorkDirectory() async =>
+    (await resolveSyncTempDir()).createTemp('submersion_export_');
 
 final _log = LoggerService.forClass(ExportTextSink);
 
@@ -221,10 +203,19 @@ Future<T> buildTextExport<T>(
     final spools = ExportSpoolStore.inDirectory(workDir);
     try {
       await write(out, spools);
+    } catch (_) {
+      // The write's own error is the one worth reporting; a sink that
+      // failed with it may fail again on close.
+      try {
+        await out.close();
+      } on Object catch (e) {
+        _log.warning('Could not close a failed export: $e');
+      }
+      rethrow;
     } finally {
-      await out.close();
       await spools.dispose();
     }
+    await out.close();
     return await onFile(file);
   } finally {
     try {

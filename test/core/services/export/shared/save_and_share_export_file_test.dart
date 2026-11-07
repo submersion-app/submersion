@@ -111,16 +111,13 @@ void main() {
       picker.saveFileResult = Uri.file(target);
 
       final path = await saveAndShareExportFile(
-        built('<name>Cozumel – Palancar</name>'),
+        built('<name>Mañana Reef ü</name>'),
         'backup.uddf',
         'application/xml',
       );
 
       expect(path, target);
-      expect(
-        File(target).readAsStringSync(),
-        '<name>Cozumel – Palancar</name>',
-      );
+      expect(File(target).readAsStringSync(), '<name>Mañana Reef ü</name>');
       expect(picker.lastSavedFileName, 'backup.uddf');
       expect(sharePlatform.calls, isEmpty);
       expect(documents.listSync(), isEmpty);
