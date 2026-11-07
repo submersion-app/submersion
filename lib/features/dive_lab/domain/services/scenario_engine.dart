@@ -372,7 +372,10 @@ class ScenarioEngine {
       ),
     );
     var planOutcome = engine.compute(plan, startState: branch.tissueState);
-    if (compiled.extraLastStopSeconds > 0 && planOutcome.stops.isNotEmpty) {
+    // Only a decompression stop is extended: a no-deco plan's stops are held
+    // only to switch gas (issue #4160), and lengthening one would turn it
+    // into deco the diver does not owe.
+    if (compiled.extraLastStopSeconds > 0 && planOutcome.owesDecompression) {
       final last = planOutcome.stops.last;
       // Recompute with an explicit minimum so the table, exposure, gas use,
       // and synthesized profile all include the same extra stop time.

@@ -26,6 +26,22 @@ AscentGasPlan _airEan50() => OptimalOcAscentGas(
   ],
 );
 
+/// Air, then from 21.86 m a trimix 21/70: a switch that adds helium.
+class _OntoHeliumAt21 extends AscentGasPlan {
+  static const double _switchDepth = 21.86;
+
+  @override
+  AscentGas gasForDepth(double depthMeters) => depthMeters > _switchDepth
+      ? const AscentGas(fN2: 0.79, fHe: 0.0)
+      : const AscentGas(fN2: 0.09, fHe: 0.7);
+
+  @override
+  List<double> switchDepthsBetween(double deeperDepth, double shallowerDepth) =>
+      deeperDepth > _switchDepth && shallowerDepth < _switchDepth
+      ? const [_switchDepth]
+      : const [];
+}
+
 BuhlmannAlgorithm _dive(double depth, int minutes) {
   final algo = BuhlmannAlgorithm(gfLow: 0.4, gfHigh: 0.8);
   algo.calculateSegment(depthMeters: depth, durationSeconds: minutes * 60);
@@ -211,6 +227,23 @@ void main() {
       );
       expect(stop.isGasSwitchOnly, isFalse);
     }
+  });
+
+  test('a switch whose hold raises the ceiling walks the grid from there '
+      'instead of skipping to the first deco stop', () {
+    // Switching onto a helium-rich gas at 21 m loads the fast helium
+    // compartments, so the diver can no longer fly straight from the switch
+    // stop to the 9 m stop the bottom's ceiling asked for.
+    final stops = _dive(30, 15).calculateDecoSchedule(
+      currentDepth: 30,
+      ascentGas: _OntoHeliumAt21(),
+      policy: const SchedulePolicy(gasSwitchStopSeconds: 60),
+    );
+    expect(stops.first.depthMeters, 21.0);
+    expect(stops.first.isGasSwitchOnly, isTrue);
+    final twelve = _stopAt(stops, 12);
+    expect(twelve, isNotNull, reason: 'the walk stages up from 21 m');
+    expect(twelve!.isGasSwitchOnly, isFalse);
   });
 
   group('SchedulePolicy.ascentLegs', () {

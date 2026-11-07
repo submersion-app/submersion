@@ -445,8 +445,9 @@ class BuhlmannAlgorithm {
     final double ceiling = calculateCeiling();
     // The deco walk starts at the grid level at or below the ceiling, but
     // never shallower than the last stop, which is where a diver who owes
-    // anything at all has chosen to hold. 0 when nothing is owed.
-    final double decoStart = ceiling > 0
+    // anything at all has chosen to hold. 0 when nothing is owed. A switch
+    // stop held deeper can move it down (see the end of the walk below).
+    double decoStart = ceiling > 0
         ? math.max(
             (ceiling / p.stopIncrement).ceil() * p.stopIncrement,
             p.lastStopDepth,
@@ -468,10 +469,14 @@ class BuhlmannAlgorithm {
     }
 
     // The level after [depth]: the next pending switch level, then the deco
-    // walk's first level, then the stop grid.
+    // walk's first level, then the stop grid. A switch level at or above
+    // [decoStart] is on the grid the deco walk visits anyway.
     double nextLevelAfter(double depth) {
       for (final level in switchLevels) {
-        if (level < depth - _levelEpsilon) return level;
+        if (level < depth - _levelEpsilon &&
+            level > decoStart + _levelEpsilon) {
+          return level;
+        }
       }
       if (depth > decoStart + _levelEpsilon) return decoStart;
       return decoStart > 0 ? _nextLevel(depth, p) : 0.0;
@@ -580,7 +585,25 @@ class BuhlmannAlgorithm {
       }
       previousGas = stopGas;
 
-      final nextStop = nextLevelAfter(currentStopDepth);
+      var nextStop = nextLevelAfter(currentStopDepth);
+      final gridNext = _nextLevel(currentStopDepth, p);
+      // From a switch level the walk skips the grid levels down to the next
+      // switch, the first deco stop or the surface. The stop time above only
+      // asked about the next grid level, so check the leg actually flown,
+      // after the switch hold. Should it not clear (a switch onto more helium
+      // can raise the ceiling), the deco walk starts at the next grid level
+      // instead of leaving the diver above their ceiling.
+      if (nextStop < gridNext - _levelEpsilon &&
+          !_trialAscentClears(
+            currentStopDepth,
+            nextStop,
+            plan,
+            p,
+            clockPhase,
+          )) {
+        decoStart = gridNext;
+        nextStop = gridNext;
+      }
       if (nextStop > 0) {
         _simulateAscent(currentStopDepth, nextStop, plan, p, phase: clockPhase);
       }

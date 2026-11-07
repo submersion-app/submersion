@@ -129,6 +129,24 @@ void main() {
     expect(g.fN2, closeTo(1 - loopO2, 1e-10));
     expect(o.compiledPlan!.segments.last.gasMix.o2, 50);
   });
+  test('extra last-stop seconds leave a no-deco switch stop alone', () {
+    // A no-deco replan whose only stop is the EAN50 switch (issue #4160):
+    // there is no decompression stop to extend, so the dive stays no-deco.
+    final d = squareDive(depth: 30, bottomMinutes: 10);
+    final o = engine.run(
+      request(d, 300, ScenarioMode.replan, const [
+        AscentPolicyIntervention(
+          gasSwitchStopSeconds: 60,
+          extraLastStopSeconds: 120,
+        ),
+      ]),
+    );
+    final outcome = o.planOutcome!;
+    expect(outcome.stops, isNotEmpty, reason: 'precondition');
+    expect(outcome.stops.every((s) => s.isGasSwitchOnly), isTrue);
+    expect(outcome.stops.map((s) => s.durationSeconds), everyElement(60));
+    expect(outcome.owesDecompression, isFalse);
+  });
   test('runtime table includes extra last-stop seconds', () {
     final d = squareDive(depth: 45, bottomMinutes: 30);
     final o = engine.run(
