@@ -10802,6 +10802,16 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_figureNow(String pressure) {
+    return 'Most $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureNowEstimated(String pressure) {
+    return 'Most $pressure (becs.)';
+  }
+
+  @override
   String diveLog_cylinders_gasSemantics(String mix) {
     return 'Gáz $mix';
   }

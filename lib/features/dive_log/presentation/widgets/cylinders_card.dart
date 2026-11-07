@@ -15,11 +15,15 @@ import 'package:submersion/features/dive_log/domain/services/logged_tank_mod.dar
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_pressure_lookup.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
+import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/cylinder_block.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_cursor_reading.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_figure.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_fill_levels.dart';
@@ -233,6 +237,28 @@ class CylindersCard extends ConsumerWidget {
     return byComputer.values.any((n) => n >= 2);
   }
 
+  /// [tank]'s pressure at the profile cursor, read from the lines the chart
+  /// draws. The cursor is an index into the chart's own series, so it is
+  /// resolved against that series (#543); that is only watched while the
+  /// cursor is on the chart. The lines are always watched, so the figure
+  /// keeps room for the label before the cursor arrives.
+  TankCursorReading? _cursorReading(WidgetRef ref, DiveTank tank) {
+    final index = ref.watch(profileTrackingIndexProvider(dive.id));
+    int? cursorSeconds;
+    if (index != null && index >= 0) {
+      final chartProfile = watchChartProfile(ref, dive);
+      if (index < chartProfile.length) {
+        cursorSeconds = chartProfile[index].timestamp;
+      }
+    }
+    return tankCursorReading(
+      tank: tank,
+      tanks: dive.tanks,
+      chartSeries: ref.watch(estimatedTankPressuresProvider(dive.id)).value,
+      cursorSeconds: cursorSeconds,
+    );
+  }
+
   Widget _tankRow(
     BuildContext context, {
     required int index,
@@ -267,27 +293,45 @@ class CylindersCard extends ConsumerWidget {
     // zero or negative value is "not recorded", not a rating, so it is a gap.
     double? positive(double? value) =>
         value != null && value > 0 ? value : null;
-    final figure = TankFigure(
-      levels: TankFillLevels.resolve(
-        start: pressures.$1,
-        end: pressures.$2,
-        rated: positive(tank.workingPressure) ?? preset?.workingPressureBar,
-      ),
-      gasColor: GasColors.forGasMix(tank.gasMix),
-      volumeLiters: positive(tank.volume) ?? preset?.volumeLiters,
-      startLabel: l10n.diveLog_cylinders_figureStart(
-        units.formatPressure(pressures.$1),
-      ),
-      endLabel: l10n.diveLog_cylinders_figureEnd(
-        units.formatPressure(pressures.$2),
-      ),
-      usedLabel: pressureUsed != null && pressureUsed >= 0
-          ? l10n.diveLog_cylinders_figureUsed(
-              units.formatPressure(pressureUsed),
-            )
-          : null,
-      markStart: pressures.$1 != null,
-      markEnd: pressures.$2 != null,
+    // Only the figure follows the profile cursor (issue #4291), so only it
+    // rebuilds on every hover frame, not the whole card.
+    final figure = Consumer(
+      builder: (context, ref, _) {
+        final reading = _cursorReading(ref, tank);
+        String? nowLabel(double? pressure) {
+          if (pressure == null) return null;
+          final shown = units.formatPressure(pressure);
+          return reading!.estimated
+              ? l10n.diveLog_cylinders_figureNowEstimated(shown)
+              : l10n.diveLog_cylinders_figureNow(shown);
+        }
+
+        return TankFigure(
+          levels: TankFillLevels.resolve(
+            start: pressures.$1,
+            end: pressures.$2,
+            rated: positive(tank.workingPressure) ?? preset?.workingPressureBar,
+            now: reading?.pressure,
+          ),
+          gasColor: GasColors.forGasMix(tank.gasMix),
+          volumeLiters: positive(tank.volume) ?? preset?.volumeLiters,
+          startLabel: l10n.diveLog_cylinders_figureStart(
+            units.formatPressure(pressures.$1),
+          ),
+          endLabel: l10n.diveLog_cylinders_figureEnd(
+            units.formatPressure(pressures.$2),
+          ),
+          usedLabel: pressureUsed != null && pressureUsed >= 0
+              ? l10n.diveLog_cylinders_figureUsed(
+                  units.formatPressure(pressureUsed),
+                )
+              : null,
+          markStart: pressures.$1 != null,
+          markEnd: pressures.$2 != null,
+          nowLabel: nowLabel(reading?.pressure),
+          nowLabelReserve: nowLabel(reading?.peak),
+        );
+      },
     );
     final sizeLabel =
         preset?.displayName ??

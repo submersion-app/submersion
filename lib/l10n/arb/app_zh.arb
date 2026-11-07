@@ -3476,6 +3476,8 @@
   "diveLog_cylinders_figureStart": "起始 {pressure}",
   "diveLog_cylinders_figureEnd": "结束 {pressure}",
   "diveLog_cylinders_figureUsed": "已用 {pressure}",
+  "diveLog_cylinders_figureNow": "当前 {pressure}",
+  "diveLog_cylinders_figureNowEstimated": "当前 {pressure} (估算)",
   "diveLog_cylinders_gasSemantics": "气体 {mix}",
   "diveLog_cylinders_gasUsed": "已用气体 {amount}",
   "diveLog_cylinders_loopUse": "回路用量 {rate}",

@@ -17221,6 +17221,18 @@ abstract class AppLocalizations {
   /// **'Used {pressure}'**
   String diveLog_cylinders_figureUsed(String pressure);
 
+  /// Cylinders card tank figure label: the tank's pressure at the moment the profile chart's cursor is on, beside a line across the tank figure at that level, e.g. "Now 130 bar". Shown only while hovering or dragging on the profile or tissue charts. pressure is the value with its unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Now {pressure}'**
+  String diveLog_cylinders_figureNow(String pressure);
+
+  /// Cylinders card tank figure label: as diveLog_cylinders_figureNow, for a tank with no transmitter whose pressure is estimated as a straight line from its start and end pressures, e.g. "Now 130 bar (est.)". Use the same estimate marker as diveLog_pressure_estimatedSuffix. pressure is the value with its unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Now {pressure} (est.)'**
+  String diveLog_cylinders_figureNowEstimated(String pressure);
+
   /// Cylinders card: what a screen reader says for a cylinder's gas pill, e.g. "Gas EAN32". mix is the gas mix name.
   ///
   /// In en, this message translates to:
