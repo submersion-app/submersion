@@ -265,9 +265,7 @@ int equipmentTypeRank(EquipmentType type, List<EquipmentType> table) {
 /// stable. Each key is computed once per comparator, not once per comparison.
 Comparator<EquipmentType> equipmentTypeLabelComparator(
   String Function(EquipmentType) label,
-) {
-  return foldedTextComparator(label, tieBreak: (type) => type.name);
-}
+) => foldedTextComparator(label, tieBreak: (type) => type.name);
 
 /// [types] as a new list in [equipmentTypeLabelComparator] order.
 ///
