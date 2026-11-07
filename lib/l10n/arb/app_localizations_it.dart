@@ -56183,9 +56183,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Questa sembra una traccia già importata dallo stesso file.';
 
   @override
-  String get navTrack_review_replaceLabel => 'Sostituisci';
-
-  @override
   String get navTrack_review_linkToDive => 'Collega a un\'immersione';
 
   @override
@@ -56390,6 +56387,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get navTrack_editSheet_removeTrackTooltip => 'Rimuovi traccia';
+
+  @override
+  String get navTrack_editSheet_trackOnAnotherDive =>
+      'Questa traccia appartiene a un\'altra immersione. Aggiornala da quell\'immersione oppure importa il file come nuova traccia.';
 
   @override
   String navTrack_editRow_tracksSaveFailed(String error) {
@@ -60422,4 +60423,73 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get search_openTooltip => 'Cerca';
+
+  @override
+  String get settings_conflict_field_sourceFile =>
+      'File originale della traccia';
+
+  @override
+  String get navTrack_review_duplicateUpdate => 'Aggiorna la traccia salvata';
+
+  @override
+  String get navTrack_review_duplicateUpdateHint =>
+      'Rilegge i dati da questo file. Nome, immersione, sito, dispositivo e allineamento restano invariati.';
+
+  @override
+  String get navTrack_review_duplicateNew => 'Importa come nuova traccia';
+
+  @override
+  String get navTrack_review_updateAction => 'Aggiorna';
+
+  @override
+  String get navTrack_review_trackUpdatedConfirmation =>
+      'Traccia aggiornata dal file. Controlla l\'allineamento: la traccia potrebbe essersi spostata.';
+
+  @override
+  String get navTrack_detail_menuUpdateFromFile => 'Aggiorna da file';
+
+  @override
+  String get navTrack_detail_menuExportCsv => 'Esporta come CSV';
+
+  @override
+  String get navTrack_detail_exportUnavailable =>
+      'Questa traccia non ha ancora un file originale salvato. Aggiornala prima dal suo file.';
+
+  @override
+  String navTrack_detail_exportFailed(String error) {
+    return 'Esportazione non riuscita: $error';
+  }
+
+  @override
+  String get navTrack_detail_updateNameMismatchTitle => 'Nome file diverso';
+
+  @override
+  String navTrack_detail_updateNameMismatchMessage(
+    String expected,
+    String actual,
+  ) {
+    return 'Questa traccia è stata importata da \"$expected\", il file scelto è \"$actual\". Aggiornare comunque la traccia da questo file?';
+  }
+
+  @override
+  String get navTrack_detail_updateOtherRecordingTitle =>
+      'Registrazione diversa';
+
+  @override
+  String navTrack_detail_updateOtherRecordingMessage(
+    String fileDate,
+    String trackDate,
+  ) {
+    return 'Questo file è stato registrato il $fileDate, la traccia il $trackDate: potrebbe essere un\'altra immersione. Aggiornare comunque la traccia da questo file?';
+  }
+
+  @override
+  String navTrack_marker_details(
+    int number,
+    String time,
+    String depth,
+    String distance,
+  ) {
+    return 'Marcatore $number: $time, $depth, $distance';
+  }
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -116,6 +117,14 @@ class _RecordingNavTrackRepository extends NavTrackRepository {
   @override
   Future<void> delete(String routeId) async {
     deletedId = routeId;
+  }
+
+  String? sourceFileRequestedFor;
+
+  @override
+  Future<Uint8List?> getSourceFile(String routeId) async {
+    sourceFileRequestedFor = routeId;
+    return null;
   }
 }
 
@@ -403,6 +412,24 @@ void main() {
         expect(find.text('Choose device'), findsOneWidget);
       },
     );
+
+    testWidgets('the overflow menu offers updating from the file and the CSV '
+        'export (issue #4231)', (tester) async {
+      final repository = await _pump(tester, route: _route());
+
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('nav-track-update-from-file')),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(const ValueKey('nav-track-export-csv')));
+      await tester.pumpAndSettle();
+
+      // A track imported before its file was kept has none to export.
+      expect(repository.sourceFileRequestedFor, 'r1');
+      expect(find.textContaining('no stored original file'), findsOneWidget);
+    });
 
     testWidgets(
       'no "Change device" entry left in the overflow menu (moved to its '

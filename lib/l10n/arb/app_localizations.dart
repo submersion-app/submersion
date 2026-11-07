@@ -88627,12 +88627,6 @@ abstract class AppLocalizations {
   /// **'This looks like a track already imported from the same file.'**
   String get navTrack_review_trackDuplicateWarning;
 
-  /// No description provided for @navTrack_review_replaceLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Replace'**
-  String get navTrack_review_replaceLabel;
-
   /// No description provided for @navTrack_review_linkToDive.
   ///
   /// In en, this message translates to:
@@ -88944,6 +88938,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove track'**
   String get navTrack_editSheet_removeTrackTooltip;
+
+  /// Dive Edit route sheet: the stored track a re-imported file would update is linked to another dive
+  ///
+  /// In en, this message translates to:
+  /// **'This track belongs to another dive. Update it from that dive, or import the file as a new track.'**
+  String get navTrack_editSheet_trackOnAnotherDive;
 
   /// No description provided for @navTrack_editRow_tracksSaveFailed.
   ///
@@ -95205,6 +95205,107 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search'**
   String get search_openTooltip;
+
+  /// Field label in the sync conflict view: the original file an underwater track was imported from
+  ///
+  /// In en, this message translates to:
+  /// **'Original track file'**
+  String get settings_conflict_field_sourceFile;
+
+  /// Import review choice when the file was imported before: re-read the stored track from this file
+  ///
+  /// In en, this message translates to:
+  /// **'Update the stored track'**
+  String get navTrack_review_duplicateUpdate;
+
+  /// Explains the update choice on the import review page
+  ///
+  /// In en, this message translates to:
+  /// **'Reads the data from this file again. Name, dive, site, device and alignment stay as they are.'**
+  String get navTrack_review_duplicateUpdateHint;
+
+  /// Import review choice when the file was imported before: keep both
+  ///
+  /// In en, this message translates to:
+  /// **'Import as a new track'**
+  String get navTrack_review_duplicateNew;
+
+  /// Button that updates a stored track from a file
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get navTrack_review_updateAction;
+
+  /// Snackbar after a track was updated from its file
+  ///
+  /// In en, this message translates to:
+  /// **'Track updated from the file. Check its alignment: the track may have moved.'**
+  String get navTrack_review_trackUpdatedConfirmation;
+
+  /// Track detail overflow menu item
+  ///
+  /// In en, this message translates to:
+  /// **'Update from file'**
+  String get navTrack_detail_menuUpdateFromFile;
+
+  /// Track detail overflow menu item
+  ///
+  /// In en, this message translates to:
+  /// **'Export as CSV'**
+  String get navTrack_detail_menuExportCsv;
+
+  /// Snackbar when a track keeps no original file to export
+  ///
+  /// In en, this message translates to:
+  /// **'This track has no stored original file yet. Update it from its file first.'**
+  String get navTrack_detail_exportUnavailable;
+
+  /// No description provided for @navTrack_detail_exportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Export failed: {error}'**
+  String navTrack_detail_exportFailed(String error);
+
+  /// Dialog title when the chosen file has another name than the track
+  ///
+  /// In en, this message translates to:
+  /// **'Different file name'**
+  String get navTrack_detail_updateNameMismatchTitle;
+
+  /// No description provided for @navTrack_detail_updateNameMismatchMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This track was imported from \"{expected}\", the chosen file is \"{actual}\". Update the track from it anyway?'**
+  String navTrack_detail_updateNameMismatchMessage(
+    String expected,
+    String actual,
+  );
+
+  /// Dialog title when the file picked to update a track was recorded at another time than the track
+  ///
+  /// In en, this message translates to:
+  /// **'Different recording'**
+  String get navTrack_detail_updateOtherRecordingTitle;
+
+  /// Dialog asking whether to update a track from a file recorded at another time; both dates are formatted dates
+  ///
+  /// In en, this message translates to:
+  /// **'This file was recorded on {fileDate}, the track on {trackDate}, so it may be a different dive. Update the track from it anyway?'**
+  String navTrack_detail_updateOtherRecordingMessage(
+    String fileDate,
+    String trackDate,
+  );
+
+  /// Tooltip of a marker the recording console set: its number, time, depth and distance into the dive
+  ///
+  /// In en, this message translates to:
+  /// **'Marker {number}: {time}, {depth}, {distance}'**
+  String navTrack_marker_details(
+    int number,
+    String time,
+    String depth,
+    String distance,
+  );
 }
 
 class _AppLocalizationsDelegate

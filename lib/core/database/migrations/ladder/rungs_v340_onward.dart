@@ -44,5 +44,12 @@ extension RungsFromV340 on AppDatabase {
     // beforeOpen.
     if (from < 343) await _assertFirstDayOfWeekColumn();
     if (from < 343) await reportProgress();
+
+    // v344: nav_tracks.source_file, the original file a route was imported
+    // from (issue #4231). A nullable column with no backfill: a route
+    // imported before keeps none until it is updated from its file.
+    // Re-asserted in beforeOpen.
+    if (from < 344) await _assertNavTrackSourceFileColumn();
+    if (from < 344) await reportProgress();
   }
 }

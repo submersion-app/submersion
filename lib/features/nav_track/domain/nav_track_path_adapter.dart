@@ -88,6 +88,17 @@ class NavTrackPathAdapter {
       points: kept,
       provenance: PathProvenance.measured,
       sourceLabel: route.source.label,
+      // Numbered among all of the route's markers, like the map and the
+      // track's 3D view, and kept only when the ribbon draws their sample.
+      markers: [
+        for (final (number, marker) in route.markers.indexed)
+          if (marker.index >= activeStart &&
+              marker.index - activeStart < kept.length)
+            PathMarker(
+              pointIndex: marker.index - activeStart,
+              label: '${number + 1}',
+            ),
+      ],
       minEast: minEast,
       maxEast: maxEast,
       minNorth: minNorth,

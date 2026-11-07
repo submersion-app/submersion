@@ -55811,9 +55811,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Dit lijkt op een track die al uit hetzelfde bestand is geïmporteerd.';
 
   @override
-  String get navTrack_review_replaceLabel => 'Vervangen';
-
-  @override
   String get navTrack_review_linkToDive => 'Koppelen aan duik';
 
   @override
@@ -56014,6 +56011,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get navTrack_editSheet_removeTrackTooltip => 'Track verwijderen';
+
+  @override
+  String get navTrack_editSheet_trackOnAnotherDive =>
+      'Deze track hoort bij een andere duik. Werk hem bij vanuit die duik, of importeer het bestand als nieuwe track.';
 
   @override
   String navTrack_editRow_tracksSaveFailed(String error) {
@@ -60037,4 +60038,72 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get search_openTooltip => 'Zoeken';
+
+  @override
+  String get settings_conflict_field_sourceFile =>
+      'Oorspronkelijk trackbestand';
+
+  @override
+  String get navTrack_review_duplicateUpdate => 'Opgeslagen track bijwerken';
+
+  @override
+  String get navTrack_review_duplicateUpdateHint =>
+      'Leest de gegevens uit dit bestand opnieuw in. Naam, duik, duikstek, apparaat en uitlijning blijven behouden.';
+
+  @override
+  String get navTrack_review_duplicateNew => 'Importeren als nieuwe track';
+
+  @override
+  String get navTrack_review_updateAction => 'Bijwerken';
+
+  @override
+  String get navTrack_review_trackUpdatedConfirmation =>
+      'Track bijgewerkt vanuit het bestand. Controleer de uitlijning: de track kan verschoven zijn.';
+
+  @override
+  String get navTrack_detail_menuUpdateFromFile => 'Bijwerken vanuit bestand';
+
+  @override
+  String get navTrack_detail_menuExportCsv => 'Exporteren als CSV';
+
+  @override
+  String get navTrack_detail_exportUnavailable =>
+      'Voor deze track is nog geen oorspronkelijk bestand opgeslagen. Werk hem eerst bij vanuit zijn bestand.';
+
+  @override
+  String navTrack_detail_exportFailed(String error) {
+    return 'Exporteren mislukt: $error';
+  }
+
+  @override
+  String get navTrack_detail_updateNameMismatchTitle => 'Andere bestandsnaam';
+
+  @override
+  String navTrack_detail_updateNameMismatchMessage(
+    String expected,
+    String actual,
+  ) {
+    return 'Deze track is geïmporteerd uit \"$expected\", het gekozen bestand heet \"$actual\". De track toch hieruit bijwerken?';
+  }
+
+  @override
+  String get navTrack_detail_updateOtherRecordingTitle => 'Andere opname';
+
+  @override
+  String navTrack_detail_updateOtherRecordingMessage(
+    String fileDate,
+    String trackDate,
+  ) {
+    return 'Dit bestand is opgenomen op $fileDate, de track op $trackDate, dus het kan een andere duik zijn. De track toch hieruit bijwerken?';
+  }
+
+  @override
+  String navTrack_marker_details(
+    int number,
+    String time,
+    String depth,
+    String distance,
+  ) {
+    return 'Markering $number: $time, $depth, $distance';
+  }
 }

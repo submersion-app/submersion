@@ -53,7 +53,7 @@ final primaryNavTrackForDiveProvider = FutureProvider.family<NavTrack?, String>(
       ).selectAsync((routes) => routes.firstOrNull?.id),
     );
     if (primaryId == null) return null;
-    return ref.watch(navTrackByIdProvider(primaryId).future);
+    return ref.watch(navTrackWithMarkersProvider(primaryId).future);
   },
 );
 
@@ -68,4 +68,24 @@ final navTrackByIdProvider = FutureProvider.family<NavTrack?, String>((
   final repository = ref.watch(navTrackRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchRouteChanges(id));
   return repository.getById(id, includePoints: true);
+});
+
+/// One route as [navTrackByIdProvider] hydrates it, plus the console's
+/// markers from its original file (issue #4231), for the views that draw
+/// them: the detail and alignment maps, the track's 3D view and the terrain
+/// views. A list thumbnail or the overview map reads [navTrackByIdProvider]
+/// instead and never parses the file.
+///
+/// A route that keeps no file comes back as it is, markers included.
+// no-tick: rebuilds through navTrackByIdProvider, which subscribes to
+// watchRouteChanges; every write of this row (its source_file included)
+// stamps updatedAt or hlc, so the markers are re-read with the points.
+final navTrackWithMarkersProvider = FutureProvider.family<NavTrack?, String>((
+  ref,
+  id,
+) async {
+  final route = await ref.watch(navTrackByIdProvider(id).future);
+  if (route == null || !route.hasSourceFile) return route;
+  final markers = await ref.watch(navTrackRepositoryProvider).getMarkers(route);
+  return route.copyWith(markers: markers);
 });

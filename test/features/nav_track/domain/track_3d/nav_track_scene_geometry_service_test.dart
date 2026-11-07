@@ -113,4 +113,52 @@ void main() {
       expect(scene.scrubPath!.zs, [0, 0]);
     });
   });
+
+  group('console markers (issue #4231)', () {
+    const data = NavTrack3dSceneData(
+      times: [0, 10, 20, 30],
+      depths: [0, 5, 10, 4],
+      temperatures: [null, null, null, null],
+      speeds: [null, null, null, null],
+      batteryVolts: [null, null, null, null],
+      durationSeconds: 30,
+      maxDepthMeters: 10,
+      markers: [
+        NavTrack3dMarker(number: 1, sampleIndex: 1),
+        NavTrack3dMarker(number: 3, sampleIndex: 2),
+      ],
+    );
+
+    test('places each marker on the path at its own sample', () {
+      final scene = service.build(data, TrackSceneMetric.depth);
+
+      expect(scene.markers, hasLength(2));
+      final first = scene.markers.first;
+      expect(first.x, scene.bounds.xOf(10));
+      expect(first.y, greaterThan(scene.bounds.yOf(5)));
+      expect(first.timestampSeconds, 10);
+      expect(scene.markers.last.timestampSeconds, 20);
+    });
+
+    test('labels a marker with the number the map gives it', () {
+      final scene = service.build(data, TrackSceneMetric.depth);
+
+      expect(scene.markers.map((m) => m.label), ['1', '3']);
+      expect(scene.markers.map((m) => m.refId), everyElement(isNull));
+    });
+
+    test('a track without markers has none', () {
+      const plain = NavTrack3dSceneData(
+        times: [0, 10],
+        depths: [0, 5],
+        temperatures: [null, null],
+        speeds: [null, null],
+        batteryVolts: [null, null],
+        durationSeconds: 10,
+        maxDepthMeters: 5,
+      );
+
+      expect(service.build(plain, TrackSceneMetric.depth).markers, isEmpty);
+    });
+  });
 }

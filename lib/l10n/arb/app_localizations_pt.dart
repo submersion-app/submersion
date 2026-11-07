@@ -56166,9 +56166,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Isso parece uma trilha já importada do mesmo arquivo.';
 
   @override
-  String get navTrack_review_replaceLabel => 'Substituir';
-
-  @override
   String get navTrack_review_linkToDive => 'Vincular a um mergulho';
 
   @override
@@ -56372,6 +56369,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get navTrack_editSheet_removeTrackTooltip => 'Remover trilha';
+
+  @override
+  String get navTrack_editSheet_trackOnAnotherDive =>
+      'Esta trilha pertence a outro mergulho. Atualize-a a partir desse mergulho ou importe o arquivo como nova trilha.';
 
   @override
   String navTrack_editRow_tracksSaveFailed(String error) {
@@ -60399,4 +60400,73 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get search_openTooltip => 'Pesquisar';
+
+  @override
+  String get settings_conflict_field_sourceFile => 'Arquivo original da trilha';
+
+  @override
+  String get navTrack_review_duplicateUpdate => 'Atualizar a trilha salva';
+
+  @override
+  String get navTrack_review_duplicateUpdateHint =>
+      'Lê novamente os dados deste arquivo. Nome, mergulho, local, dispositivo e alinhamento permanecem como estão.';
+
+  @override
+  String get navTrack_review_duplicateNew => 'Importar como nova trilha';
+
+  @override
+  String get navTrack_review_updateAction => 'Atualizar';
+
+  @override
+  String get navTrack_review_trackUpdatedConfirmation =>
+      'Trilha atualizada a partir do arquivo. Verifique o alinhamento: a trilha pode ter se deslocado.';
+
+  @override
+  String get navTrack_detail_menuUpdateFromFile =>
+      'Atualizar a partir de arquivo';
+
+  @override
+  String get navTrack_detail_menuExportCsv => 'Exportar como CSV';
+
+  @override
+  String get navTrack_detail_exportUnavailable =>
+      'Esta trilha ainda não tem um arquivo original salvo. Atualize-a primeiro a partir do arquivo dela.';
+
+  @override
+  String navTrack_detail_exportFailed(String error) {
+    return 'Falha ao exportar: $error';
+  }
+
+  @override
+  String get navTrack_detail_updateNameMismatchTitle =>
+      'Nome de arquivo diferente';
+
+  @override
+  String navTrack_detail_updateNameMismatchMessage(
+    String expected,
+    String actual,
+  ) {
+    return 'Esta trilha foi importada de \"$expected\" e o arquivo escolhido é \"$actual\". Atualizar a trilha a partir dele mesmo assim?';
+  }
+
+  @override
+  String get navTrack_detail_updateOtherRecordingTitle => 'Gravação diferente';
+
+  @override
+  String navTrack_detail_updateOtherRecordingMessage(
+    String fileDate,
+    String trackDate,
+  ) {
+    return 'Este arquivo foi gravado em $fileDate e a trilha em $trackDate, então pode ser outro mergulho. Atualizar a trilha a partir dele mesmo assim?';
+  }
+
+  @override
+  String navTrack_marker_details(
+    int number,
+    String time,
+    String depth,
+    String distance,
+  ) {
+    return 'Marcador $number: $time, $depth, $distance';
+  }
 }

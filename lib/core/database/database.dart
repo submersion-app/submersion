@@ -313,7 +313,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 343;
+  static const int currentSchemaVersion = 344;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1574,6 +1574,10 @@ class AppDatabase extends _$AppDatabase {
     // (issue #4232). A defaulted column an older peer omits, so the floor
     // does not move.
     343,
+    // v344: nav_tracks.source_file, the original file a route was imported
+    // from (issue #4231). A nullable column an older peer omits, so the floor
+    // does not move.
+    344,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
