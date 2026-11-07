@@ -91,14 +91,7 @@ Map<String, List<TankPressurePoint>> resolveTankPressureSeries(
 double? pressureAtTime(List<TankPressurePoint> pressurePoints, int timestamp) {
   if (pressurePoints.isEmpty) return null;
 
-  var sorted = pressurePoints;
-  for (var i = 1; i < sorted.length; i++) {
-    if (sorted[i].timestamp < sorted[i - 1].timestamp) {
-      sorted = List<TankPressurePoint>.from(pressurePoints)
-        ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
-      break;
-    }
-  }
+  final sorted = _inTimestampOrder(pressurePoints);
 
   // First sample at or after [timestamp]: an exact match (the first of
   // any that share the timestamp), else the sample after it.
@@ -120,4 +113,57 @@ double? pressureAtTime(List<TankPressurePoint> pressurePoints, int timestamp) {
   final ratio =
       (timestamp - before.timestamp) / (after.timestamp - before.timestamp);
   return before.pressure + (after.pressure - before.pressure) * ratio;
+}
+
+/// The pressure in bar the profile chart reads at [timestamp] for its line
+/// and tooltip, so anything following the chart's cursor shows the same
+/// value. Where samples share a timestamp the last of them wins, and
+/// between timestamps it interpolates from the last sample before to the
+/// first sample after. [pressureAtTime] differs only there: it takes the
+/// first of samples sharing [timestamp]. Before the first sample or after
+/// the last, the nearest sample's pressure. Null when [pressurePoints] is
+/// empty.
+double? pressureAtCursor(
+  List<TankPressurePoint> pressurePoints,
+  int timestamp,
+) {
+  if (pressurePoints.isEmpty) return null;
+
+  final sorted = _inTimestampOrder(pressurePoints);
+
+  // First sample after [timestamp]; the one before it is the last sample
+  // at or before [timestamp].
+  var low = 0;
+  var high = sorted.length;
+  while (low < high) {
+    final mid = (low + high) >> 1;
+    if (sorted[mid].timestamp <= timestamp) {
+      low = mid + 1;
+    } else {
+      high = mid;
+    }
+  }
+  if (low == 0) return sorted.first.pressure;
+  final before = sorted[low - 1];
+  if (low == sorted.length || before.timestamp == timestamp) {
+    return before.pressure;
+  }
+
+  final after = sorted[low];
+  final ratio =
+      (timestamp - before.timestamp) / (after.timestamp - before.timestamp);
+  return before.pressure + (after.pressure - before.pressure) * ratio;
+}
+
+/// [points] itself when already in timestamp order (as the repository
+/// returns series), else a sorted copy. Sorting is stable, so samples that
+/// share a timestamp keep their order.
+List<TankPressurePoint> _inTimestampOrder(List<TankPressurePoint> points) {
+  for (var i = 1; i < points.length; i++) {
+    if (points[i].timestamp < points[i - 1].timestamp) {
+      return List<TankPressurePoint>.from(points)
+        ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    }
+  }
+  return points;
 }

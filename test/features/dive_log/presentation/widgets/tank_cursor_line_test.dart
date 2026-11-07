@@ -38,11 +38,47 @@ void main() {
     });
 
     test('a negative reading is no pressure', () {
-      expect(_line([(0, -5), (100, -5)])!.pressureAt(50), isNull);
+      expect(_line([(0, -5), (100, -10)])!.pressureAt(50), isNull);
     });
 
     test('a series keyed by an old tank id is matched', () {
       expect(_line([(0, 200), (100, 100)], key: 'old')!.pressureAt(50), 150);
+    });
+
+    test(
+      'a timestamp shared by two readings reads the last, as the chart does',
+      () {
+        expect(
+          _line([(0, 200), (50, 160), (50, 150), (100, 100)])!.pressureAt(50),
+          150,
+        );
+      },
+    );
+
+    test('no lines when the chart cannot scale them', () {
+      // Every reading of every tank identical (a pressure channel logged
+      // with no transmitter paired): the chart draws no pressure line.
+      expect(_line([(0, 0), (100, 0)]), isNull);
+      // A single reading has no range either.
+      expect(_line([(30, 200)]), isNull);
+    });
+
+    test('a flat tank beside a draining one keeps its line', () {
+      const stage = DiveTank(id: 't2', gasMix: GasMix(o2: 50));
+      final lines = TankCursorLine.forTanks(
+        const [_tank, stage],
+        const EstimatedTankPressures({
+          't1': [
+            TankPressurePoint(tankId: 't1', timestamp: 0, pressure: 200),
+            TankPressurePoint(tankId: 't1', timestamp: 100, pressure: 100),
+          ],
+          't2': [
+            TankPressurePoint(tankId: 't2', timestamp: 0, pressure: 200),
+            TankPressurePoint(tankId: 't2', timestamp: 100, pressure: 200),
+          ],
+        }, {}),
+      );
+      expect(lines['t2']!.pressureAt(50), 200);
     });
 
     test('no line for the tank, none here', () {

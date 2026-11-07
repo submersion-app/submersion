@@ -27,6 +27,7 @@ import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_position.dart';
+import 'package:submersion/features/dive_log/domain/services/tank_pressure_lookup.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gas_consumption_tooltip.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/chart_series_cache.dart';
@@ -1154,45 +1155,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       ? _metricColor(ProfileMetric.depth)
       : _getAscentRateColor(category);
 
-  /// Interpolate tank pressure at a given timestamp
+  /// Interpolate tank pressure at a given timestamp. Shared with the
+  /// Cylinders card, which follows this cursor (issue #4291).
   double? _interpolateTankPressure(
     List<TankPressurePoint> points,
     int timestamp,
-  ) {
-    if (points.isEmpty) return null;
-
-    // Find surrounding points
-    TankPressurePoint? before;
-    TankPressurePoint? after;
-
-    for (final point in points) {
-      if (point.timestamp <= timestamp) {
-        before = point;
-      } else {
-        after = point;
-        break;
-      }
-    }
-
-    // Exact match or only before point
-    if (before != null && (after == null || before.timestamp == timestamp)) {
-      return before.pressure;
-    }
-
-    // Only after point (timestamp before first data point)
-    if (before == null && after != null) {
-      return after.pressure;
-    }
-
-    // Interpolate between before and after
-    if (before != null && after != null) {
-      final t =
-          (timestamp - before.timestamp) / (after.timestamp - before.timestamp);
-      return before.pressure + (after.pressure - before.pressure) * t;
-    }
-
-    return null;
-  }
+  ) => pressureAtCursor(points, timestamp);
 
   /// Get color for tank by index (fallback when no gas mix info)
   Color _getTankColor(int index) {
