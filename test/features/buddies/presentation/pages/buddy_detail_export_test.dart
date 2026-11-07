@@ -93,6 +93,7 @@ class _FakeDiveRepository implements DiveRepository {
   @override
   Future<List<Dive>> getDivesByIdsWithoutSamples(
     List<String> ids, {
+    bool offUiIsolate = false,
     int chunkSize = 50,
   }) async => [
     for (final dive in dives)
