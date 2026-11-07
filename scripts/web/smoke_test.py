@@ -193,9 +193,12 @@ def click_until_taken(page, name, settle_ms=5000):
     pointerup to the button's semantics node but no click, as a browser
     does when the element changes between the two (a Flutter frame landed
     in between), and the bare pointer pair did not tap the button either.
-    The click made again five seconds later arrived whole and took. A
-    click that never took is made once more, and the log says so; an app
-    that ignores both still fails."""
+    The click made again five seconds later arrived whole and took. So a
+    click the page never received is made once more, and the log says so.
+    One the page did receive is never repeated, since a starved page may
+    simply not have drawn its effect yet; an app that ignored it fails on
+    the next step."""
+    page.evaluate(COUNT_CLICKS)
     button(page, name).click(timeout=STEP_TIMEOUT_MS)
     deadline = time.monotonic() + settle_ms / 1000
     while time.monotonic() < deadline:
@@ -208,8 +211,23 @@ def click_until_taken(page, name, settle_ms=5000):
         except PlaywrightTimeout:
             return  # it left the tree between the count and the read
         page.wait_for_timeout(100)
-    print("[retry] the click on %s did not take; clicking again" % name.pattern)
+    if page.evaluate("window.__smokeClicks"):
+        print("[click] %s received a click and stayed idle" % name.pattern)
+        return
+    print("[retry] no click reached %s; clicking again" % name.pattern)
     button(page, name).click(timeout=STEP_TIMEOUT_MS)
+
+
+# Counts the DOM clicks the page receives from here on, in the capture
+# phase so no handler can hide one: zero after a click means the browser
+# never dispatched it.
+COUNT_CLICKS = """() => {
+  window.__smokeClicks = 0;
+  if (!window.__smokeClickCounter) {
+    window.__smokeClickCounter = () => { window.__smokeClicks += 1; };
+    document.addEventListener('click', window.__smokeClickCounter, true);
+  }
+}"""
 
 
 def click_text(page, text):
