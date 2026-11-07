@@ -94,6 +94,57 @@ void main() {
     expect(file.readAsStringSync(), '<a>ü</a>');
   });
 
+  test(
+    'a built export reaches onFile whole, then its directory goes',
+    () async {
+      late Directory workDir;
+      final text = await buildTextExport<String>(
+        'out.xml',
+        (out, spools) async {
+          final spool = spools.create()..write('<b/>');
+          out.write('<a>');
+          await spool.copyTo(out);
+          out.write('</a>');
+        },
+        inMemory: (text) async => fail('a VM test has a file system'),
+        onFile: (file) async {
+          workDir = file.parent;
+          return file.readAsString();
+        },
+      );
+
+      expect(text, '<a><b/></a>');
+      expect(workDir.existsSync(), isFalse);
+    },
+  );
+
+  test('a failed build reports its own error and leaves nothing', () async {
+    late Directory workDir;
+    final build = buildTextExport<String>(
+      'out.xml',
+      (out, spools) async {
+        workDir = (out as FileTextSink).file.parent;
+        spools.create().write('<b/>');
+        out.write('<a>');
+        throw const FileSystemException('disk full');
+      },
+      inMemory: (text) async => text,
+      onFile: (file) async => fail('a failed build is not delivered'),
+    );
+
+    await expectLater(
+      build,
+      throwsA(
+        isA<FileSystemException>().having(
+          (e) => e.message,
+          'message',
+          'disk full',
+        ),
+      ),
+    );
+    expect(workDir.existsSync(), isFalse);
+  });
+
   test('an export work directory is new and empty', () async {
     final first = await createExportWorkDirectory();
     final second = await createExportWorkDirectory();
