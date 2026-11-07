@@ -66,8 +66,8 @@ final recentDivesProvider = FutureProvider<List<Dive>>((ref) async {
 /// One batched read with no series decoded, buddies included (#3039), where
 /// a `getDiveById` per dive decoded each one's merged profile and tank
 /// pressures. Values the row leaves to its samples still come from them:
-/// [DiveRepository.getDivesByIdsWithoutSamples] reads those dives in full.
-/// Its own order is newest first, which can break a tie differently from
+/// [DiveRepository.getDivesByIdsWithoutSamples] reads those dives in full,
+/// decoding off the UI isolate as `getDiveById` did. Its own order is newest first, which can break a tie differently from
 /// the query that picked [ids], so this keeps theirs. A dive deleted since
 /// [ids] was read is left out.
 Future<List<Dive>> _diveRowsInOrder(
@@ -76,7 +76,10 @@ Future<List<Dive>> _diveRowsInOrder(
 ) async {
   if (ids.isEmpty) return const [];
   final byId = {
-    for (final dive in await repository.getDivesByIdsWithoutSamples(ids))
+    for (final dive in await repository.getDivesByIdsWithoutSamples(
+      ids,
+      offUiIsolate: true,
+    ))
       dive.id: dive,
   };
   return [for (final id in ids) ?byId[id]];

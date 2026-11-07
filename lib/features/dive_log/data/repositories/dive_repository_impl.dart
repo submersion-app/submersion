@@ -3085,8 +3085,14 @@ class DiveRepository {
   /// so such a dive costs what it always did and the rest cost almost
   /// nothing. [domain.Dive.profile] is therefore empty on nearly every dive
   /// returned: never draw it, or derive anything else from it, here.
+  ///
+  /// [offUiIsolate] decodes each such dive's samples on a background isolate,
+  /// as [getDiveById] does. It suits a read of a handful of dives, such as
+  /// Home's cards (issue #4251); a bulk read leaves it off, since it starts
+  /// one isolate per dive at once (see [_reduceRows]).
   Future<List<domain.Dive>> getDivesByIdsWithoutSamples(
     List<String> ids, {
+    bool offUiIsolate = false,
     @visibleForTesting int chunkSize = kSeriesIdChunkSize,
   }) async {
     if (ids.isEmpty) return [];
@@ -3110,7 +3116,7 @@ class DiveRepository {
           final sampled = await Future.wait(
             chunkRows
                 .where((r) => needSamples.contains(r.id))
-                .map(_mapRowToDive),
+                .map((r) => _mapRowToDive(r, offUiIsolate: offUiIsolate)),
           );
           final chunkDives = [
             ...await _mapRowsWithPreloadedData(

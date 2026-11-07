@@ -48,8 +48,9 @@ class _GatedProfileRepository implements DiveRepository {
   @override
   Future<List<Dive>> getDivesByIdsWithoutSamples(
     List<String> ids, {
+    bool offUiIsolate = false,
     int chunkSize = kSeriesIdChunkSize,
-  }) => _inner.getDivesByIdsWithoutSamples(ids);
+  }) => _inner.getDivesByIdsWithoutSamples(ids, offUiIsolate: offUiIsolate);
 
   @override
   Future<Map<String, List<DiveProfilePoint>>> getBatchProfileSummaries(

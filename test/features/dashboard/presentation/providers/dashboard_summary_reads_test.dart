@@ -28,6 +28,9 @@ class _CountingRepository implements DiveRepository {
   final detailReads = <String>[];
   final sampleFreeReads = <List<String>>[];
 
+  /// The `offUiIsolate` of each sample-free read, in order.
+  final offUiIsolateFlags = <bool>[];
+
   /// Returns the sample-free read's dives in reverse, so a caller that keeps
   /// that read's order instead of its own ids' order shows up.
   bool reverseSampleFreeRead = false;
@@ -74,10 +77,15 @@ class _CountingRepository implements DiveRepository {
   @override
   Future<List<Dive>> getDivesByIdsWithoutSamples(
     List<String> ids, {
+    bool offUiIsolate = false,
     int chunkSize = kSeriesIdChunkSize,
   }) async {
     sampleFreeReads.add(ids);
-    final dives = await _inner.getDivesByIdsWithoutSamples(ids);
+    offUiIsolateFlags.add(offUiIsolate);
+    final dives = await _inner.getDivesByIdsWithoutSamples(
+      ids,
+      offUiIsolate: offUiIsolate,
+    );
     return reverseSampleFreeRead ? dives.reversed.toList() : dives;
   }
 
@@ -176,6 +184,8 @@ void main() {
 
     expect(recent.single.waterTemp, 24);
     expect(repo.detailReads, isEmpty);
+    // The full decode stays off the UI isolate, as getDiveById kept it.
+    expect(repo.offUiIsolateFlags, [true]);
   });
 
   test('on this day loads its matches in one sample-free read', () async {
@@ -207,5 +217,6 @@ void main() {
     expect(repo.sampleFreeReads, [
       ['y1', 'y2', 'y3'],
     ]);
+    expect(repo.offUiIsolateFlags, [true]);
   });
 }
