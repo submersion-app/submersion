@@ -15197,6 +15197,7 @@
   "settings_syncDevices_state_unreadable": "没有可读的清单；上传未完成或已加密",
   "settings_syncDevices_summary": "{deviceCount, plural, other{{deviceCount} 台设备}}、{fileCount, plural, other{{fileCount} 个文件}}、{size}",
   "settings_syncDevices_summary_removable": "{count, plural, other{其中 {count} 台是已替换或已退役资料库的残留，占用 {size}。}}",
+  "settings_syncDevices_summary_removed": "{count, plural, other{已记住 {count} 台已移除的设备，使其无法带回已删除的数据。}}",
   "settings_syncDevices_tile_filesSize": "{count, plural, other{{count} 个文件}}、{size}",
   "settings_syncDevices_tile_filesSizeSeen": "{count, plural, other{{count} 个文件}}、{size} · {when}",
   "settings_syncDevices_unnamedDevice": "设备 {shortId}",

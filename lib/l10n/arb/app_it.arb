@@ -15197,6 +15197,7 @@
   "settings_syncDevices_state_unreadable": "Nessun manifesto leggibile: un caricamento incompleto oppure criptato",
   "settings_syncDevices_summary": "{deviceCount, plural, =1{1 dispositivo} other{{deviceCount} dispositivi}}, {fileCount, plural, =1{1 file} other{{fileCount} file}}, {size}",
   "settings_syncDevices_summary_removable": "{count, plural, =1{1 residuo di una libreria sostituita o dismessa, occupa {size}.} other{{count} residui di librerie sostituite o dismesse, occupano {size}.}}",
+  "settings_syncDevices_summary_removed": "{count, plural, =1{{count} dispositivo rimosso viene ricordato perché non possa riportare dati eliminati.} other{{count} dispositivi rimossi vengono ricordati perché non possano riportare dati eliminati.}}",
   "settings_syncDevices_tile_filesSize": "{count, plural, =1{1 file} other{{count} file}}, {size}",
   "settings_syncDevices_tile_filesSizeSeen": "{count, plural, =1{1 file} other{{count} file}}, {size}, {when}",
   "settings_syncDevices_unnamedDevice": "Dispositivo {shortId}",

@@ -15197,6 +15197,7 @@
   "settings_syncDevices_state_unreadable": "Aucun manifeste lisible : un envoi inachevé, ou chiffré",
   "settings_syncDevices_summary": "{deviceCount, plural, =1{{deviceCount} appareil} other{{deviceCount} appareils}}, {fileCount, plural, =1{{fileCount} fichier} other{{fileCount} fichiers}}, {size}",
   "settings_syncDevices_summary_removable": "{count, plural, =1{{count} vestige d’une bibliothèque remplacée ou retirée, occupant {size}.} other{{count} vestiges de bibliothèques remplacées ou retirées, occupant {size}.}}",
+  "settings_syncDevices_summary_removed": "{count, plural, =1{{count} appareil supprimé reste mémorisé pour qu’il ne puisse pas ramener des données effacées.} other{{count} appareils supprimés restent mémorisés pour qu’ils ne puissent pas ramener des données effacées.}}",
   "settings_syncDevices_tile_filesSize": "{count, plural, =1{{count} fichier} other{{count} fichiers}}, {size}",
   "settings_syncDevices_tile_filesSizeSeen": "{count, plural, =1{{count} fichier} other{{count} fichiers}}, {size}, {when}",
   "settings_syncDevices_unnamedDevice": "Appareil {shortId}",

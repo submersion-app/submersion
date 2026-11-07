@@ -50622,6 +50622,19 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String settings_syncDevices_summary_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count eltávolított eszközt megjegyez az alkalmazás, hogy ne hozhasson vissza törölt adatokat.',
+      one:
+          '$count eltávolított eszközt megjegyez az alkalmazás, hogy ne hozhasson vissza törölt adatokat.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String settings_syncDevices_tile_filesSize(int count, String size) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

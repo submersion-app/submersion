@@ -15197,6 +15197,7 @@
   "settings_syncDevices_state_unreadable": "Sin manifiesto legible: una subida sin terminar o cifrada",
   "settings_syncDevices_summary": "{deviceCount, plural, =1{1 dispositivo} other{{deviceCount} dispositivos}}, {fileCount, plural, =1{1 archivo} other{{fileCount} archivos}}, {size}",
   "settings_syncDevices_summary_removable": "{count, plural, =1{1 resto de una biblioteca reemplazada o retirada, que ocupa {size}.} other{{count} restos de bibliotecas reemplazadas o retiradas, que ocupan {size}.}}",
+  "settings_syncDevices_summary_removed": "{count, plural, =1{{count} dispositivo eliminado se recuerda para que no pueda recuperar datos borrados.} other{{count} dispositivos eliminados se recuerdan para que no puedan recuperar datos borrados.}}",
   "settings_syncDevices_tile_filesSize": "{count, plural, =1{1 archivo} other{{count} archivos}}, {size}",
   "settings_syncDevices_tile_filesSizeSeen": "{count, plural, =1{1 archivo} other{{count} archivos}}, {size}, {when}",
   "settings_syncDevices_unnamedDevice": "Dispositivo {shortId}",

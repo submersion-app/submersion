@@ -15351,6 +15351,7 @@
   "settings_syncDevices_state_unreadable": "Kein lesbares Manifest, ein unvollständiger Upload oder verschlüsselt",
   "settings_syncDevices_summary": "{deviceCount, plural, =1{1 Gerät} other{{deviceCount} Geräte}}, {fileCount, plural, =1{1 Datei} other{{fileCount} Dateien}}, {size}",
   "settings_syncDevices_summary_removable": "{count, plural, =1{1 Rest einer ersetzten oder ausgemusterten Bibliothek, belegt {size}.} other{{count} Reste ersetzter oder ausgemusterter Bibliotheken, belegen {size}.}}",
+  "settings_syncDevices_summary_removed": "{count, plural, =1{{count} entferntes Gerät bleibt vermerkt, damit es keine gelöschten Daten zurückbringen kann.} other{{count} entfernte Geräte bleiben vermerkt, damit sie keine gelöschten Daten zurückbringen können.}}",
   "settings_syncDevices_tile_filesSize": "{count, plural, =1{1 Datei} other{{count} Dateien}}, {size}",
   "settings_syncDevices_tile_filesSizeSeen": "{count, plural, =1{1 Datei} other{{count} Dateien}}, {size}, {when}",
   "settings_syncDevices_unnamedDevice": "Gerät {shortId}",

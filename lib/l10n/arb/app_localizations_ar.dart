@@ -51565,6 +51565,21 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String settings_syncDevices_summary_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count جهاز محذوف محفوظ حتى لا تعيد بيانات حُذفت.',
+      many: '$count جهازًا محذوفًا محفوظًا حتى لا تعيد بيانات حُذفت.',
+      few: '$count أجهزة محذوفة محفوظة حتى لا تعيد بيانات حُذفت.',
+      two: 'جهازان محذوفان محفوظان حتى لا يعيدا بيانات حُذفت.',
+      one: 'جهاز واحد محذوف محفوظ حتى لا يعيد بيانات حُذفت.',
+      zero: 'لا توجد أجهزة محذوفة محفوظة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String settings_syncDevices_tile_filesSize(int count, String size) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
