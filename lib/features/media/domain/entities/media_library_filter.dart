@@ -232,14 +232,24 @@ class MediaLibraryFilter {
 /// expression, because a NULL key makes the keyset predicate (`key < ?`)
 /// evaluate to NULL, which is falsy, and silently truncates the result set at
 /// the first NULL row.
+///
+/// [groupKeys] holds the last entry's group keys when the page was grouped
+/// (issue #4268), in the order the query sorts by them, ahead of [sortKey].
+/// They are coalesced for the same reason, and are empty for an ungrouped
+/// page.
 class MediaLibraryCursor extends Equatable {
-  const MediaLibraryCursor({required this.sortKey, required this.id});
+  const MediaLibraryCursor({
+    required this.sortKey,
+    required this.id,
+    this.groupKeys = const [],
+  });
 
   final Object sortKey;
   final String id;
+  final List<Object> groupKeys;
 
   @override
-  List<Object?> get props => [sortKey, id];
+  List<Object?> get props => [groupKeys, sortKey, id];
 }
 
 /// One library row: the media item plus denormalized dive header fields for

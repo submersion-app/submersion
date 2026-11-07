@@ -9,6 +9,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/media/data/repositories/media_library_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
+import 'package:submersion/features/media/domain/entities/media_library_grouping.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 import 'package:submersion/features/media/domain/entities/media_library_sort.dart';
@@ -51,6 +52,7 @@ class _FakeLibraryRepo implements MediaLibraryRepository {
   int pageCalls = 0;
   MediaLibraryFilter? lastFilter;
   SortState<MediaSortField>? lastSort;
+  MediaLibraryGrouping? lastGrouping;
   String? lastDiverId;
   final changes = StreamController<void>.broadcast();
 
@@ -62,12 +64,14 @@ class _FakeLibraryRepo implements MediaLibraryRepository {
     required String? diverId,
     MediaLibraryFilter filter = MediaLibraryFilter.none,
     SortState<MediaSortField> sort = _unpassedSortSentinel,
+    MediaLibraryGrouping grouping = MediaLibraryGrouping.none,
     MediaLibraryCursor? after,
     int limit = 60,
   }) async {
     pageCalls++;
     lastFilter = filter;
     lastSort = sort;
+    lastGrouping = grouping;
     lastDiverId = diverId;
     if (after == null) {
       return MediaLibraryPageResult(
@@ -265,6 +269,57 @@ void main() {
           direction: SortDirection.ascending,
         ),
       );
+    });
+  });
+
+  // Issue #4268: the grouped modes group what they load, so they ask for
+  // pages ordered by group.
+  group('grouping', () {
+    test('the grid asks for ungrouped pages', () async {
+      container.read(mediaLibraryNotifierProvider);
+      await tick();
+
+      expect(fakeRepo.lastGrouping, MediaLibraryGrouping.none);
+    });
+
+    for (final (mode, grouping) in [
+      (MediaLibraryViewMode.byDive, MediaLibraryGrouping.dive),
+      (MediaLibraryViewMode.timeline, MediaLibraryGrouping.day),
+    ]) {
+      test(
+        '${mode.name} reloads page one grouped by ${grouping.name}',
+        () async {
+          container.read(mediaLibraryNotifierProvider);
+          await tick();
+          final callsBefore = fakeRepo.pageCalls;
+
+          await container
+              .read(mediaLibraryViewModeProvider.notifier)
+              .setMode(mode);
+          container.read(mediaLibraryNotifierProvider);
+          await tick();
+
+          expect(fakeRepo.pageCalls, greaterThan(callsBefore));
+          expect(fakeRepo.lastGrouping, grouping);
+        },
+      );
+    }
+
+    test('moving from the grid to the map keeps the loaded rows', () async {
+      final before = container.read(mediaLibraryNotifierProvider.notifier);
+      await tick();
+      final callsBefore = fakeRepo.pageCalls;
+
+      await container
+          .read(mediaLibraryViewModeProvider.notifier)
+          .setMode(MediaLibraryViewMode.map);
+      await tick();
+
+      expect(
+        container.read(mediaLibraryNotifierProvider.notifier),
+        same(before),
+      );
+      expect(fakeRepo.pageCalls, callsBefore);
     });
   });
 
