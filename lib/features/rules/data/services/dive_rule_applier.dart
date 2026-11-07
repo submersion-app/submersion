@@ -121,6 +121,7 @@ class DiveRuleApplier {
         DiveCollection.equipment => db.equipment,
         DiveCollection.buddies => db.buddies,
         DiveCollection.courses => db.courses,
+        DiveCollection.equipmentSets => db.equipmentSets,
       };
 
   Future<AppliedAction> _membership(
@@ -128,6 +129,9 @@ class DiveRuleApplier {
     DiveMembershipAction a,
     List<String> ids,
   ) async {
+    if (a.collection == DiveCollection.equipmentSets) {
+      return _equipmentSets(rule, a, ids);
+    }
     final (present: wanted, :missing) = await presentRefs(
       _db,
       refTable(_db, a.collection),
@@ -159,6 +163,41 @@ class DiveRuleApplier {
       for (final id in changed)
         if (!sameList(before[id]!, after[id]!))
           ruleChange(rule, id, a.collection.name, before[id], after[id]),
+    ], skippedMissingRef: missing);
+  }
+
+  /// Adds or removes whole equipment sets (#4284). The repository reports
+  /// the dives whose gear changed, so only those are recorded, each as a
+  /// gear change: the history, change list and undo read it as one.
+  Future<AppliedAction> _equipmentSets(
+    Rule rule,
+    DiveMembershipAction a,
+    List<String> ids,
+  ) async {
+    final (present: setIds, :missing) = await presentRefs(
+      _db,
+      _db.equipmentSets,
+      a.ids,
+    );
+    if (setIds.isEmpty) {
+      return AppliedAction(const [], skippedMissingRef: missing);
+    }
+    const gear = DiveCollection.equipment;
+    final before = await members(gear, ids);
+    final changed = <String>[];
+    for (final chunk in ruleIdChunks(ids)) {
+      changed.addAll(
+        a.mode == MembershipMode.add
+            ? await _dives.bulkAddEquipmentSets(chunk, setIds)
+            : await _dives.bulkRemoveEquipmentSets(chunk, setIds),
+      );
+    }
+    final after = changed.isEmpty
+        ? const <String, List<Object>>{}
+        : await members(gear, changed);
+    return AppliedAction([
+      for (final id in changed)
+        ruleChange(rule, id, gear.name, before[id], after[id]),
     ], skippedMissingRef: missing);
   }
 
@@ -206,6 +245,10 @@ class DiveRuleApplier {
         add
             ? await _dives.bulkAddEquipment(diveIds, ids)
             : await _dives.bulkRemoveEquipment(diveIds, ids);
+      case DiveCollection.equipmentSets:
+        add
+            ? await _dives.bulkAddEquipmentSets(diveIds, ids)
+            : await _dives.bulkRemoveEquipmentSets(diveIds, ids);
       case DiveCollection.courses:
         add
             ? await _dives.bulkAddCourses(diveIds, ids)
@@ -292,7 +335,8 @@ class DiveRuleApplier {
                 {'id': b, 'roles': e.value[b]!},
             ];
           }
-        case DiveCollection.equipment:
+        // A set's members are the gear it changes.
+        case DiveCollection.equipment || DiveCollection.equipmentSets:
           for (final r in await _rows(
             'SELECT dive_id, equipment_id, via_equipment_id, via_set_id '
             'FROM dive_equipment WHERE dive_id IN (?) ORDER BY equipment_id',

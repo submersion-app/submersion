@@ -394,6 +394,10 @@ class RuleUndoService {
     return (removeNow: removeNow, addBack: addBack, blocked: absent.isNotEmpty);
   }
 
+  /// Whether two stored gear rows carry the same assembly and set.
+  bool _sameItem(Map<Object?, Object?>? a, Map<Object?, Object?>? b) =>
+      a?['via'] == b?['via'] && a?['set'] == b?['set'];
+
   GearProvenance _gear(String id, Map<Object?, Object?>? m) => GearProvenance(
     equipmentId: id,
     viaEquipmentId: m?['via'] as String?,
@@ -419,7 +423,19 @@ class RuleUndoService {
           ? (id) => '${_roles(current[id])}' == '${_roles(after[id])}'
           : null,
     );
-    if (removeNow.isEmpty && addBack.isEmpty) {
+    // Gear the run only re-tagged (a hand-added item a set took on, #4284)
+    // and that is still as the run left it gets its old provenance back.
+    final retagged = collection == DiveCollection.equipment
+        ? {
+            for (final id in before.keys)
+              if (after.containsKey(id) &&
+                  current.containsKey(id) &&
+                  !_sameItem(before[id], after[id]) &&
+                  _sameItem(current[id], after[id]))
+                id,
+          }
+        : const <String>{};
+    if (removeNow.isEmpty && addBack.isEmpty && retagged.isEmpty) {
       return blocked ? _Outcome.blocked : _Outcome.edited;
     }
     final diveId = c.targetId;
@@ -436,10 +452,11 @@ class RuleUndoService {
           types.insert(order.indexOf(t).clamp(0, types.length), t);
         }
         await _dives.replaceDiveTypes(diveId, types);
-      case DiveCollection.equipment:
+      // A set action is recorded as a gear change, so only gear lands here.
+      case DiveCollection.equipment || DiveCollection.equipmentSets:
         await _dives.replaceGear(
           diveId,
-          _restoredGear(before, current, removeNow, addBack),
+          _restoredGear(before, current, removeNow, addBack, retagged),
         );
       case DiveCollection.buddies:
         if (removeNow.isNotEmpty) {
@@ -485,12 +502,14 @@ class RuleUndoService {
     Map<String, Map<Object?, Object?>?> current,
     List<String> removeNow,
     List<String> addBack,
+    Set<String> retagged,
   ) {
     final gone = removeNow.toSet();
     final rows = [
       for (final e in current.entries)
         if (!gone.contains(e.key))
           switch (_gear(e.key, e.value)) {
+            _ when retagged.contains(e.key) => _gear(e.key, before[e.key]),
             final g when gone.contains(g.viaEquipmentId) =>
               before.containsKey(e.key)
                   ? _gear(e.key, before[e.key])

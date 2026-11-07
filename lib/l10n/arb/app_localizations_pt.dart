@@ -8630,6 +8630,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_edit_useSet => 'Usar Conjunto';
 
   @override
+  String get diveLog_edit_removeSet => 'Remover Conjunto';
+
+  @override
+  String get diveLog_bulkEdit_setsToRemove => 'Conjuntos a remover';
+
+  @override
+  String get diveLog_bulkEdit_equipmentSets => 'Conjuntos de equipamento';
+
+  @override
   String get diveLog_edit_weightPreset_use => 'Usar predefinição';
 
   @override
@@ -57896,6 +57905,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get rules_collection_courses => 'cursos';
+
+  @override
+  String get rules_collection_equipmentSets => 'conjuntos de equipamento';
 
   @override
   String get rules_collection_siteTags => 'etiquetas de local';

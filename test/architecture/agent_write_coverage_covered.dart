@@ -26,6 +26,10 @@ final reachedThrough = <String, String>{
       'BulkDiveEditService',
   'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkRemoveEquipment':
       'BulkDiveEditService',
+  'lib/features/dive_log/data/repositories/dive_repository_gear_sets.dart:bulkAddEquipmentSets':
+      'BulkDiveEditService',
+  'lib/features/dive_log/data/repositories/dive_repository_gear_sets.dart:bulkRemoveEquipmentSets':
+      'BulkDiveEditService',
   'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkAddCourses':
       'BulkDiveEditService',
   'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkRemoveCourses':
@@ -205,6 +209,10 @@ final covered = <String, String>{
   'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkAddEquipment':
       'dives',
   'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkRemoveEquipment':
+      'dives',
+  'lib/features/dive_log/data/repositories/dive_repository_gear_sets.dart:bulkAddEquipmentSets':
+      'dives',
+  'lib/features/dive_log/data/repositories/dive_repository_gear_sets.dart:bulkRemoveEquipmentSets':
       'dives',
   'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkAddCourses':
       'dives',

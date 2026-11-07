@@ -59,6 +59,7 @@ import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/features/equipment/presentation/widgets/assembly_chips.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_arrange_sheet.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/bulk_equipment_sets.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_gear_tree_view.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
@@ -1440,6 +1441,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// application a fresh request, even for the same set.
   ({int serial, Set<String> ids})? _equipmentEnsureOn;
 
+  /// Which set "Use Set" switched each equipment row on with, so those adds
+  /// carry the set (#4284).
+  Map<String, String> _equipmentSetOf = const {};
+
+  /// Sets staged to come off every selected dive with what they brought.
+  List<BulkStagedSet> _equipmentSetRemovals = const [];
+
   Map<String, int> _tagCounts = {};
   List<BulkMembershipItem> _tagMembers = [];
   MembershipDelta _tagDelta = MembershipDelta.empty;
@@ -1950,6 +1958,16 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               ? AssemblyChips(itemId: item.id)
               : null,
         ),
+        BulkEquipmentSetRemovals(
+          sets: _equipmentSetRemovals,
+          onPick: _bulkRemoveEquipmentSet,
+          onUnstage: (id) => setState(
+            () => _equipmentSetRemovals = [
+              for (final s in _equipmentSetRemovals)
+                if (s.id != id) s,
+            ],
+          ),
+        ),
         BulkMembershipEditor(
           title: l10n.diveLog_edit_group_buddies,
           total: total,
@@ -2075,14 +2093,17 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     ]) {
       if (ids.isNotEmpty) ops.add(DiveCoursesOp(mode: mode, courseIds: ids));
     }
-    if (_equipmentDelta.addIds.isNotEmpty) {
+    // Sets come off before any gear goes on, so a set removed and another
+    // added in one edit cannot take gear the two share (#4284).
+    if (_equipmentSetRemovals.isNotEmpty) {
       ops.add(
-        EquipmentOp(
-          mode: BulkCollectionMode.add,
-          equipmentIds: _equipmentDelta.addIds,
+        EquipmentSetsOp(
+          mode: BulkCollectionMode.remove,
+          setIds: [for (final s in _equipmentSetRemovals) s.id],
         ),
       );
     }
+    ops.addAll(equipmentAddOps(_equipmentDelta.addIds, _equipmentSetOf));
     if (_equipmentDelta.removeIds.isNotEmpty) {
       ops.add(
         EquipmentOp(
@@ -2591,6 +2612,16 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         title: l10n.diveLog_edit_group_buddies,
         delta: _buddyDelta,
         members: _buddyMembers,
+      ),
+      (
+        title: l10n.diveLog_bulkEdit_equipmentSets,
+        delta: MembershipDelta(const [], [
+          for (final s in _equipmentSetRemovals) s.id,
+        ]),
+        members: [
+          for (final s in _equipmentSetRemovals)
+            BulkMembershipItem(id: s.id, label: s.name),
+        ],
       ),
     ]);
 
@@ -4834,6 +4865,39 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 serial: (_equipmentEnsureOn?.serial ?? 0) + 1,
                 ids: {for (final item in items) item.id},
               );
+              _equipmentSetOf = withSetItems(_equipmentSetOf, set.id, [
+                for (final item in items) item.id,
+              ]);
+            });
+            Navigator.of(context).pop();
+          },
+        ),
+      ),
+    );
+  }
+
+  /// Stages a set to come off every selected dive with the gear it brought
+  /// (#4284). Nothing is written until the edit is applied.
+  void _bulkRemoveEquipmentSet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) => EquipmentSetPickerSheet(
+          scrollController: scrollController,
+          onSetSelected: (set, _) {
+            setState(() {
+              if (_equipmentSetRemovals.every((s) => s.id != set.id)) {
+                _equipmentSetRemovals = [
+                  ..._equipmentSetRemovals,
+                  (id: set.id, name: set.name),
+                ];
+              }
             });
             Navigator.of(context).pop();
           },

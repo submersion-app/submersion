@@ -8652,6 +8652,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_edit_useSet => 'Utiliser un ensemble';
 
   @override
+  String get diveLog_edit_removeSet => 'Retirer un ensemble';
+
+  @override
+  String get diveLog_bulkEdit_setsToRemove => 'Ensembles à retirer';
+
+  @override
+  String get diveLog_bulkEdit_equipmentSets => 'Ensembles d\'équipement';
+
+  @override
   String get diveLog_edit_weightPreset_use => 'Utiliser un preset';
 
   @override
@@ -58034,6 +58043,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get rules_collection_courses => 'cours';
+
+  @override
+  String get rules_collection_equipmentSets => 'ensembles d\'équipement';
 
   @override
   String get rules_collection_siteTags => 'étiquettes de site';

@@ -287,6 +287,20 @@ its items are added to the dive, and you can still add or remove items after.
 **Save as Set** turns a dive's current equipment into a new set. See
 [Logging Dives](dive-logging.md).
 
+Gear added through a set remembers the set it came from. That is what
+removing a set goes by: it takes off what the set brought, with any parts
+attached to it, and leaves gear you added by hand.
+
+### Sets on many dives at once
+
+- **Bulk edit:** select dives, choose **Edit**, and under **Equipment** tap
+  **Use Set** to put a set's items on every selected dive, or **Remove Set**
+  to take a set off them.
+- **Rules:** in **Settings > Manage > Rules**, a dive rule can **Add
+  equipment sets** or **Remove equipment sets**. The rule uses the set as it
+  is when the rule runs, so items you add to the set later come along. A
+  rule naming a deleted set skips that action and says so.
+
 > [!NOTE]
 > A Tank item in a set is added to the dive's equipment only; it does not add a
 > tank to the dive's **Tanks** list, so it brings no gas data. For a cylinder

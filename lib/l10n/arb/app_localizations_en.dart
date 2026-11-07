@@ -8501,6 +8501,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_edit_useSet => 'Use Set';
 
   @override
+  String get diveLog_edit_removeSet => 'Remove Set';
+
+  @override
+  String get diveLog_bulkEdit_setsToRemove => 'Sets to remove';
+
+  @override
+  String get diveLog_bulkEdit_equipmentSets => 'Equipment sets';
+
+  @override
   String get diveLog_edit_weightPreset_use => 'Use preset';
 
   @override
@@ -57000,6 +57009,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rules_collection_courses => 'courses';
+
+  @override
+  String get rules_collection_equipmentSets => 'equipment sets';
 
   @override
   String get rules_collection_siteTags => 'site tags';

@@ -8608,6 +8608,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_useSet => 'Készlet használata';
 
   @override
+  String get diveLog_edit_removeSet => 'Készlet eltávolítása';
+
+  @override
+  String get diveLog_bulkEdit_setsToRemove => 'Eltávolítandó készletek';
+
+  @override
+  String get diveLog_bulkEdit_equipmentSets => 'Felszerelés-készletek';
+
+  @override
   String get diveLog_edit_weightPreset_use => 'Séma használata';
 
   @override
@@ -57599,6 +57608,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get rules_collection_courses => 'tanfolyamok';
+
+  @override
+  String get rules_collection_equipmentSets => 'felszerelés-készletek';
 
   @override
   String get rules_collection_siteTags => 'helyszíncímkék';

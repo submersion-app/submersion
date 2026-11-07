@@ -13591,6 +13591,24 @@ abstract class AppLocalizations {
   /// **'Use Set'**
   String get diveLog_edit_useSet;
 
+  /// Bulk edit: button that stages an equipment set to remove from every selected dive
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Set'**
+  String get diveLog_edit_removeSet;
+
+  /// Bulk edit: heading over the equipment sets staged for removal
+  ///
+  /// In en, this message translates to:
+  /// **'Sets to remove'**
+  String get diveLog_bulkEdit_setsToRemove;
+
+  /// Bulk edit confirmation: section title for equipment sets
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment sets'**
+  String get diveLog_bulkEdit_equipmentSets;
+
   /// No description provided for @diveLog_edit_weightPreset_use.
   ///
   /// In en, this message translates to:
@@ -91725,6 +91743,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'courses'**
   String get rules_collection_courses;
+
+  /// Lower-case collection name in an action summary
+  ///
+  /// In en, this message translates to:
+  /// **'equipment sets'**
+  String get rules_collection_equipmentSets;
 
   /// Lower-case collection name in an action summary
   ///

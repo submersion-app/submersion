@@ -8452,6 +8452,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_useSet => 'שימוש בסט';
 
   @override
+  String get diveLog_edit_removeSet => 'הסרת סט';
+
+  @override
+  String get diveLog_bulkEdit_setsToRemove => 'סטים להסרה';
+
+  @override
+  String get diveLog_bulkEdit_equipmentSets => 'סטים של ציוד';
+
+  @override
   String get diveLog_edit_weightPreset_use => 'שימוש בקבוע מראש';
 
   @override
@@ -56693,6 +56702,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get rules_collection_courses => 'קורסים';
+
+  @override
+  String get rules_collection_equipmentSets => 'סטים של ציוד';
 
   @override
   String get rules_collection_siteTags => 'תגיות אתר';
