@@ -115,6 +115,69 @@ void main() {
     });
   });
 
+  // A page under another route keeps its subscriptions but pauses them, which
+  // the provider sees as its last active listener leaving.
+  test('a listener paused past the window holds the entry, and leaving '
+      'then disposes it at once', () {
+    fakeAsync((async) {
+      final container = ProviderContainer();
+      final sub = container.listen(family('a'), (_, _) {});
+      async.flushMicrotasks();
+      sub.pause();
+      async.elapse(_idle * 2);
+      expect(container.exists(family('a')), isTrue);
+
+      sub.close();
+      // Riverpod disposes on a zero-length timer, not a microtask.
+      async.elapse(Duration.zero);
+      expect(container.exists(family('a')), isFalse);
+      container.dispose();
+    });
+  });
+
+  test('a listener paused past the window that comes back gets a full '
+      'window when it leaves', () {
+    fakeAsync((async) {
+      final container = ProviderContainer();
+      final sub = container.listen(family('a'), (_, _) {});
+      async.flushMicrotasks();
+      sub.pause();
+      async.elapse(_idle * 2);
+      sub.resume();
+      async.flushMicrotasks();
+      async.elapse(_idle * 2);
+
+      sub.close();
+      async.flushMicrotasks();
+      async.elapse(_idle - const Duration(seconds: 1));
+      expect(container.exists(family('a')), isTrue);
+      expect(builds, 1);
+      async.elapse(const Duration(seconds: 2));
+      expect(container.exists(family('a')), isFalse);
+      container.dispose();
+    });
+  });
+
+  test('a listener that comes back and leaves at once still gets a window, '
+      'and the entry is then released', () {
+    fakeAsync((async) {
+      final container = ProviderContainer();
+      final sub = container.listen(family('a'), (_, _) {});
+      async.flushMicrotasks();
+      sub.pause();
+      async.elapse(_idle * 2);
+      sub.resume();
+      sub.close();
+
+      async.elapse(_idle - const Duration(seconds: 1));
+      expect(container.exists(family('a')), isTrue);
+      async.elapse(const Duration(seconds: 2));
+      expect(container.exists(family('a')), isFalse);
+      expect(disposals, 1);
+      container.dispose();
+    });
+  });
+
   test('a dependency is released together with its dependent', () {
     fakeAsync((async) {
       final dependent = FutureProvider.autoDispose.family<int, String>((

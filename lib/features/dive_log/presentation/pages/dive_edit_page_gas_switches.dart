@@ -94,8 +94,9 @@ extension _GasSwitchEditing on _DiveEditPageState {
     UnitFormatter units,
   ) async {
     final diveId = widget.diveId;
-    // Awaited, not read synchronously: this page never watches the family,
-    // and it no longer stays cached once the detail page lets go (#4254).
+    // Awaited, not read as a value: the breath starts above keep the family
+    // loaded while this section shows, but a pick made before it finishes
+    // loading still gets the recorded pressures.
     final recorded = diveId == null
         ? null
         : await ref

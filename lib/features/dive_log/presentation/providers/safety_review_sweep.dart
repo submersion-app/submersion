@@ -100,12 +100,13 @@ class SafetyReviewSweep {
         );
       }
       try {
-        // Invalidate first. safetyReviewProvider is not autoDispose, so any
-        // dive whose detail page was opened this session holds a cached
-        // AsyncValue -- including a cached null from a dive opened mid-sync
+        // Invalidate first. safetyReviewProvider keeps a dive's entry for
+        // diveDataRetention after its detail page lets go, and for as long
+        // as the page is open, so a dive viewed recently holds a cached
+        // AsyncValue, including a cached null from a dive opened mid-sync
         // before its profile arrived. A bare read would return that cached
         // value and never run the compute-through-cache, leaving the review
-        // missing until an app restart.
+        // missing until the entry was released.
         //
         // Recompute invalidates before computing, too, so a build already
         // under way for this dive (its detail page is open) stands down

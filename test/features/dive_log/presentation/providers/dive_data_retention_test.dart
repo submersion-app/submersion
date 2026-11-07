@@ -25,7 +25,8 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
     final start = DateTime.utc(2026, 6, 1, 9).millisecondsSinceEpoch;
-    // Two dives an hour apart, so the second's analysis reads the first's.
+    // Two dives two hours apart, well inside the residual lookback, so the
+    // second's analysis reads the first's.
     for (final (id, entry) in [
       ('first', start),
       ('second', start + const Duration(hours: 2).inMilliseconds),

@@ -27,6 +27,19 @@ class DisposingProviderScope extends StatefulWidget {
 
 class _DisposingProviderScopeState extends State<DisposingProviderScope> {
   @override
+  void didUpdateWidget(DisposingProviderScope oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Only the container in place at unmount is disposed, so a replaced one
+    // would keep its retention timers and fail the pending-timer audit with
+    // an error naming a provider rather than this scope.
+    assert(
+      identical(oldWidget.container, widget.container),
+      'DisposingProviderScope owns one container for its lifetime; give a '
+      'new container its own scope (a new key) instead of swapping it.',
+    );
+  }
+
+  @override
   void dispose() {
     widget.container.dispose();
     super.dispose();

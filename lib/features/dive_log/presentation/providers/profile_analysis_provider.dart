@@ -1049,10 +1049,9 @@ ProfileAnalysis _runProfileAnalysis(_ProfileAnalysisInput input) {
 /// residual-chain walk over a repetitive dive week hydrates each prior dive
 /// once while you browse that week instead of fully re-hydrating on every
 /// detail open, and a dive left alone frees itself (#4254). Self-invalidates
-/// on the
-/// analysis-input tick (the tables this hydration actually reads), so the
-/// residual-chain cache survives writes to unrelated detail tables such as
-/// media.
+/// on the analysis-input tick (the tables this hydration actually reads), so
+/// the residual-chain cache survives writes to unrelated detail tables such
+/// as media.
 final analysisDiveProvider = FutureProvider.autoDispose.family<Dive?, String>((
   ref,
   diveId,

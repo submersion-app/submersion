@@ -59,9 +59,10 @@ class DecoClassificationService {
   /// The whole cache is read in one query up front, so a warm library performs
   /// a single SELECT and hydrates no profiles at all. Only genuine misses are
   /// analyzed, with their analysis invalidated afterwards:
-  /// [profileAnalysisProvider] and [analysisDiveProvider] are keepAlive
-  /// families, so a library-wide pass would otherwise retain every profile's
-  /// curves for the whole session.
+  /// [profileAnalysisProvider] and [analysisDiveProvider] hold an unused entry
+  /// for `diveDataRetention`, so a library-wide pass would otherwise keep
+  /// every profile's curves it analyzed in that window; invalidating an
+  /// unused entry frees it at once.
   Future<Map<String, bool>> classify(
     Ref ref,
     Map<String, int> revisions, {
