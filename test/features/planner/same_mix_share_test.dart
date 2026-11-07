@@ -116,6 +116,80 @@ void main() {
     });
   });
 
+  group('balancedDrawPhases', () {
+    test('a fuller cylinder draws alone until the pair is level', () {
+      // b needs 800 L to reach a's 40%, the first two thirds of the draw;
+      // the last 400 L come from both.
+      final phases = balancedDrawPhases(1200, const [
+        (id: 'a', capacityLiters: 2000, usedLiters: 800),
+        (id: 'b', capacityLiters: 2000, usedLiters: 0),
+      ]);
+
+      expect(phases, hasLength(2));
+      expect(phases.first.fraction, closeTo(2 / 3, 1e-9));
+      expect(phases.first.liters.keys, ['b']);
+      expect(phases.first.liters['b'], closeTo(800, 1e-9));
+      expect(phases.last.fraction, closeTo(1 / 3, 1e-9));
+      expect(phases.last.liters['a'], closeTo(200, 1e-9));
+      expect(phases.last.liters['b'], closeTo(200, 1e-9));
+    });
+
+    test('a level pair draws together for the whole draw', () {
+      final phases = balancedDrawPhases(600, const [
+        (id: 'a', capacityLiters: 1000, usedLiters: 0),
+        (id: 'b', capacityLiters: 2000, usedLiters: 0),
+      ]);
+
+      expect(phases, hasLength(1));
+      expect(phases.single.fraction, closeTo(1, 1e-9));
+      expect(phases.single.liters['a'], closeTo(200, 1e-9));
+      expect(phases.single.liters['b'], closeTo(400, 1e-9));
+    });
+
+    test('a draw ending before the levels meet is one phase', () {
+      final phases = balancedDrawPhases(300, const [
+        (id: 'a', capacityLiters: 2000, usedLiters: 800),
+        (id: 'b', capacityLiters: 2000, usedLiters: 0),
+      ]);
+
+      expect(phases, hasLength(1));
+      expect(phases.single.liters, {'b': 300});
+    });
+
+    test('phases add up to balancedShare and to the whole draw', () {
+      const cylinders = [
+        (id: 'a', capacityLiters: 1400.0, usedLiters: 900.0),
+        (id: 'b', capacityLiters: 2200.0, usedLiters: 100.0),
+        (id: 'c', capacityLiters: 800.0, usedLiters: 50.0),
+      ];
+      final phases = balancedDrawPhases(1234.5, cylinders);
+      final share = balancedShare(1234.5, cylinders);
+      final summed = <String, double>{};
+      for (final phase in phases) {
+        for (final MapEntry(:key, :value) in phase.liters.entries) {
+          summed[key] = (summed[key] ?? 0) + value;
+        }
+      }
+
+      expect(
+        phases.fold<double>(0, (sum, p) => sum + p.fraction),
+        closeTo(1, 1e-9),
+      );
+      for (final MapEntry(:key, :value) in share.entries) {
+        expect(summed[key] ?? 0, closeTo(value, 1e-9), reason: key);
+      }
+    });
+
+    test('nothing to draw has no phases', () {
+      expect(
+        balancedDrawPhases(0, const [
+          (id: 'a', capacityLiters: 2000, usedLiters: 0),
+        ]),
+        isEmpty,
+      );
+    });
+  });
+
   group('fillCapacityLiters', () {
     const air = GasMix(o2: 21);
 

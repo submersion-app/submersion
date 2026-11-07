@@ -1677,7 +1677,7 @@ class PlanEngine {
         charge(tankId, amount, atRuntime: atRuntime, seconds: seconds);
         return;
       }
-      final share = balancedShare(amount, [
+      final phases = balancedDrawPhases(amount, [
         for (final tank in group)
           (
             id: tank.id,
@@ -1685,8 +1685,21 @@ class PlanEngine {
             usedLiters: liters[tank.id] ?? 0.0,
           ),
       ]);
-      for (final MapEntry(key: id, value: part) in share.entries) {
-        if (part > 0) charge(id, part, atRuntime: atRuntime, seconds: seconds);
+      // Each phase its own stretch of the draw, so a cylinder that joins once
+      // the levels meet is not timed as drawing from the start, and its
+      // reserve and gas-out markers land where it really reaches them.
+      var covered = 0.0;
+      for (var i = 0; i < phases.length; i++) {
+        final from = (covered * seconds).round();
+        covered += phases[i].fraction;
+        final to = i == phases.length - 1
+            ? seconds
+            : (covered * seconds).round();
+        for (final MapEntry(key: id, value: part) in phases[i].liters.entries) {
+          if (part > 0) {
+            charge(id, part, atRuntime: atRuntime + from, seconds: to - from);
+          }
+        }
       }
     }
 

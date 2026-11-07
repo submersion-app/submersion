@@ -117,39 +117,75 @@ Map<String, double> spreadAcrossSameMix(
 /// another has one; when none does, the draw splits evenly.
 ///
 /// The level only rises, so calling this once per draw gives the same totals
-/// as one call for their sum: a caller timing each draw can split it as it
-/// goes.
+/// as one call for their sum. A caller timing each draw needs
+/// [balancedDrawPhases] instead: within one draw, a cylinder that joins once
+/// the levels meet does not draw from the start.
 Map<String, double> balancedShare(
   double liters,
   List<SharedCylinder> cylinders,
 ) {
   if (cylinders.isEmpty) return const {};
-  if (liters <= 0) return {for (final c in cylinders) c.id: 0.0};
+  final share = {for (final c in cylinders) c.id: 0.0};
+  for (final phase in balancedDrawPhases(liters, cylinders)) {
+    for (final MapEntry(:key, :value) in phase.liters.entries) {
+      share[key] = share[key]! + value;
+    }
+  }
+  return share;
+}
+
+/// One stretch of a [balancedDrawPhases] draw: the [fraction] of the draw it
+/// covers, and the [liters] each cylinder breathing in it gives.
+typedef DrawPhase = ({double fraction, Map<String, double> liters});
+
+/// [balancedShare]'s split of [liters] in the order it is breathed: first
+/// the least-used cylinders alone until they level with the next, then that
+/// larger pool together, and so on. Each phase's cylinders draw together for
+/// its [DrawPhase.fraction] of the draw, so a caller placing the draw in time
+/// can place each cylinder's part where it is actually breathed (#4138).
+/// Empty when there is nothing to draw.
+List<DrawPhase> balancedDrawPhases(
+  double liters,
+  List<SharedCylinder> cylinders,
+) {
+  if (cylinders.isEmpty || liters <= 0) return const [];
   final known = cylinders.where((c) => c.capacityLiters > 0).toList();
   if (known.isEmpty) {
     final each = liters / cylinders.length;
-    return {for (final c in cylinders) c.id: each};
+    return [
+      (fraction: 1.0, liters: {for (final c in cylinders) c.id: each}),
+    ];
   }
-  if (known.length == 1) return {known.single.id: liters};
 
   double fraction(SharedCylinder c) => c.usedLiters / c.capacityLiters;
   final byUse = [...known]..sort((a, b) => fraction(a).compareTo(fraction(b)));
 
-  // Fill the least-used cylinders up to the next one's fraction, adding a
-  // cylinder to the pool each time the level reaches it.
-  var pooledCapacity = 0.0;
-  var pooledUsed = 0.0;
-  var level = 0.0;
-  var pooled = 0;
-  while (pooled < byUse.length) {
+  final phases = <DrawPhase>[];
+  var remaining = liters;
+  var pooled = 1;
+  var pooledCapacity = byUse.first.capacityLiters;
+  var level = fraction(byUse.first);
+  while (remaining > 0) {
+    // What brings the pool level with the next cylinder, if there is one.
+    final next = pooled < byUse.length ? fraction(byUse[pooled]) : null;
+    final toNext = next == null
+        ? double.infinity
+        : (next - level) * pooledCapacity;
+    final drawn = toNext < remaining ? toNext : remaining;
+    if (drawn > 0) {
+      phases.add((
+        fraction: drawn / liters,
+        liters: {
+          for (var i = 0; i < pooled; i++)
+            byUse[i].id: drawn * byUse[i].capacityLiters / pooledCapacity,
+        },
+      ));
+    }
+    remaining -= drawn;
+    if (next == null || remaining <= 0) break;
+    level = next;
     pooledCapacity += byUse[pooled].capacityLiters;
-    pooledUsed += byUse[pooled].usedLiters;
     pooled++;
-    level = (liters + pooledUsed) / pooledCapacity;
-    if (pooled == byUse.length || fraction(byUse[pooled]) >= level) break;
   }
-  return {
-    for (var i = 0; i < pooled; i++)
-      byUse[i].id: level * byUse[i].capacityLiters - byUse[i].usedLiters,
-  };
+  return phases;
 }

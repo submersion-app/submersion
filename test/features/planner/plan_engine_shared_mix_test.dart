@@ -121,6 +121,52 @@ void main() {
     expect(d1.remainingPressure, closeTo(d2.remainingPressure!, 1e-6));
   });
 
+  test('a stage that joins once the pair is level is timed from there', () {
+    // d1 is half breathed by the time the computed ascent starts and d2 is
+    // full: d2 draws alone until they level, then both together. Two tiny
+    // stages run out inside that levelling draw, at the moment one stage of
+    // their combined size, breathed the same way, would: neither earlier
+    // because d1's share was timed as starting with d2's.
+    domain.DivePlan plan(List<DiveTank> stages) {
+      final base = _plan(stages).copyWith(sacDeco: 30);
+      return base.copyWith(
+        segments: [
+          ...base.segments,
+          PlanSegment.travel(
+            id: 'up',
+            fromDepth: 50,
+            targetDepth: 6,
+            tankId: 'back',
+            gasMix: _tx,
+            order: 2,
+            ratePerMinute: 9,
+          ),
+          PlanSegment.hold(
+            id: 'on-d1',
+            depth: 6,
+            durationMinutes: 2,
+            tankId: 'd1',
+            gasMix: _ean50,
+            order: 3,
+          ),
+        ],
+      );
+    }
+
+    int? gasOut(PlanOutcome outcome, String id) => outcome.issues
+        .firstWhere((i) => i.type == PlanIssueType.gasOut && i.tankId == id)
+        .atRuntime;
+
+    final single = engine.compute(plan([_stage('d1', volume: 1)]));
+    final pair = engine.compute(
+      plan([_stage('d1', volume: 0.5), _stage('d2', volume: 0.5)]),
+    );
+    final expected = gasOut(single, 'd1')!;
+
+    expect(gasOut(pair, 'd1'), closeTo(expected, 1));
+    expect(gasOut(pair, 'd2'), closeTo(expected, 1));
+  });
+
   test('a stage too small for its share runs out with its twin', () {
     final outcome = engine.compute(
       _plan([
