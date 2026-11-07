@@ -174,7 +174,8 @@ class TissueLiveService {
   /// does not linger as "still loaded" for days; large enough to survive
   /// floating-point noise as a compartment's tension asymptotically
   /// approaches the surface value without ever exactly reaching it.
-  static const double _residualLoadEpsilonBar = 0.01;
+  static const double _residualLoadEpsilonBar =
+      DecoStatus.gasEquilibriumToleranceBar;
 
   /// Whether [status] (as returned by [currentStatus]) still carries
   /// residual tissue loading worth showing, i.e. at least one compartment's

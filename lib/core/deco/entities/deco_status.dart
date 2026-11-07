@@ -116,7 +116,11 @@ class DecoStatus extends Equatable {
   /// pressure of one gas below which that gas reads as in equilibrium rather
   /// than still moving. Far above the floating-point noise a long surface
   /// projection leaves behind, and below anything a diver would care about.
-  static const double gasEquilibriumToleranceBar = 0.005;
+  /// The same 0.01 bar the live residual-load check uses
+  /// (`TissueLiveService.hasResidualLoad`), so "settled" and "no residual
+  /// load" share one threshold and a trivial dive does not read as still
+  /// moving for an extra slow-compartment half-time.
+  static const double gasEquilibriumToleranceBar = 0.01;
 
   /// Direction nitrogen alone moves in [compartment], or null when the
   /// inspired gas is unknown.

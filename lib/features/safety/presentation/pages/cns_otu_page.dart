@@ -227,7 +227,10 @@ class CnsOtuStatusCard extends StatelessWidget {
 
     final exposure = snap.exposure;
     if (exposure == null) {
-      if (elapsed >= _unknownExposureSpan) {
+      // The unknown exposure no longer matters, but "no active load" still
+      // waits for the tissues, the same classification as below.
+      if (elapsed >= _unknownExposureSpan &&
+          (tissueState == null || tissueState == TissueLoadState.settled)) {
         return _withLastDiveHeader(snap, elapsed, l10n, theme, [
           _clearCard(l10n, theme),
           const SizedBox(height: 8),
@@ -353,15 +356,16 @@ class CnsOtuStatusCard extends StatelessWidget {
 ///
 /// The page rebuilds every minute (and on theme or provider changes); each
 /// timeline is 60 sampled deco evaluations, so a rebuild within the same
-/// minute for the same dive and settings reuses the previous one. Keyed on
-/// the end-of-dive compartment list by identity, so a new snapshot (a dive
-/// written, a test building its own list) never sees a stale entry.
+/// minute for the same dive and settings reuses the previous one.
+///
+/// Attached to the snapshot's end-of-dive compartment list through an
+/// [Expando], not held in a static field: the entry lives exactly as long as
+/// that snapshot, a new snapshot (a dive written, a test building its own
+/// list) starts empty, and every other input is part of the entry's key.
 class _TissueTimelineCache {
   _TissueTimelineCache._();
 
-  static List<TissueCompartment>? _compartments;
-  static Object? _key;
-  static List<DecoStatus>? _timeline;
+  static final Expando<(Object, List<DecoStatus>)> _entries = Expando();
 
   static List<DecoStatus> timeline({
     required List<TissueCompartment> endOfDiveCompartments,
@@ -380,12 +384,8 @@ class _TissueTimelineCache {
       isUtc: true,
     );
     final key = (lastDiveEnd, minute, gfLow, gfHigh, environment);
-    final cached = _timeline;
-    if (cached != null &&
-        identical(_compartments, endOfDiveCompartments) &&
-        _key == key) {
-      return cached;
-    }
+    final cached = _entries[endOfDiveCompartments];
+    if (cached != null && cached.$1 == key) return cached.$2;
     final fresh = TissueLiveService.surfaceIntervalTimeline(
       endOfDiveCompartments: endOfDiveCompartments,
       lastDiveEnd: lastDiveEnd,
@@ -394,9 +394,7 @@ class _TissueTimelineCache {
       gfHigh: gfHigh,
       environment: environment,
     );
-    _compartments = endOfDiveCompartments;
-    _key = key;
-    _timeline = fresh;
+    _entries[endOfDiveCompartments] = (key, fresh);
     return fresh;
   }
 }

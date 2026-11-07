@@ -59,18 +59,24 @@ class TissuePressureBarChart extends StatelessWidget {
   /// Bottom offset of a band [height] high centered on [percent] of a chart
   /// [chartHeight] high, rounded to whole pixels so the band covers full
   /// pixel rows instead of antialiasing across three.
+  ///
+  /// Rounded on the device pixel grid ([devicePixelRatio]), not to whole
+  /// logical pixels, which at a fractional ratio still straddle device rows.
+  /// Kept inside the chart, and at 0 when the chart is shorter than the band.
   static double bandBottom({
     required double chartHeight,
     required double percent,
     required double height,
+    double devicePixelRatio = 1.0,
   }) {
     final center =
         chartHeight *
         (percent.clamp(0.0, maxLoadingPercent) / maxLoadingPercent);
-    return (center - height / 2).roundToDouble().clamp(
-      0.0,
-      chartHeight - height,
-    );
+    final dpr = devicePixelRatio > 0 ? devicePixelRatio : 1.0;
+    final snapped = ((center - height / 2) * dpr).roundToDouble() / dpr;
+    final top = chartHeight - height;
+    if (top <= 0) return 0.0;
+    return snapped.clamp(0.0, top);
   }
 
   /// Color of the surface level marker: high contrast against both the
@@ -179,6 +185,7 @@ class TissuePressureBarChart extends StatelessWidget {
                     chartHeight: chartHeight,
                     percent: 100,
                     height: mValueLineHeight,
+                    devicePixelRatio: MediaQuery.devicePixelRatioOf(context),
                   ),
                   left: 0,
                   right: 0,
@@ -310,6 +317,7 @@ class _CompartmentBar extends StatelessWidget {
               chartHeight: chartHeight,
               percent: equilibriumPercent,
               height: markerHeight,
+              devicePixelRatio: MediaQuery.devicePixelRatioOf(context),
             ),
             height: markerHeight,
             child: IgnorePointer(child: ColoredBox(color: markerColor)),

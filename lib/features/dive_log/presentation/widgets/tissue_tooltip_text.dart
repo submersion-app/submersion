@@ -3,11 +3,13 @@ import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_exchange_style.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-/// The last tooltip built for each compartment, with the localizations and
-/// status it was built for. The bar chart rebuilds on every hover with the
-/// same status, so all 16 tooltips are reused instead of re-derived; a new
-/// status (another sample, a profile scrub) or another locale misses.
-final Expando<(AppLocalizations, DecoStatus, String)> _cache = Expando();
+/// The tooltips built for each status, per compartment index, with the
+/// localizations they were built for. The bar chart rebuilds on every hover
+/// with the same status, so all 16 tooltips are reused instead of
+/// re-derived; a new status (another sample, a profile scrub, a copyWith)
+/// starts its own entry, and another locale rebuilds them. Held by an
+/// [Expando] on the status, so the entries go away with it.
+final Expando<(AppLocalizations, Map<int, String>)> _cache = Expando();
 
 /// The tooltip text for one compartment in [status], shared by the tissue
 /// bar chart, heat map, area chart and the deco calculator's panel so all of
@@ -17,15 +19,12 @@ String tissueCompartmentTooltip(
   DecoStatus status,
   TissueCompartment comp,
 ) {
-  final cached = _cache[comp];
-  if (cached != null &&
-      identical(cached.$1, l10n) &&
-      identical(cached.$2, status)) {
-    return cached.$3;
+  var entry = _cache[status];
+  if (entry == null || !identical(entry.$1, l10n)) {
+    entry = (l10n, <int, String>{});
+    _cache[status] = entry;
   }
-  final text = _buildTooltip(l10n, status, comp);
-  _cache[comp] = (l10n, status, text);
-  return text;
+  return entry.$2[comp.compartmentNumber] ??= _buildTooltip(l10n, status, comp);
 }
 
 String _buildTooltip(

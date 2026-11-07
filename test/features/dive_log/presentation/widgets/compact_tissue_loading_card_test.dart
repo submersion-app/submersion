@@ -461,10 +461,44 @@ void main() {
       final offset =
           tester.getRect(chartStack).bottom - tester.getRect(lineFinder).bottom;
       // Unrounded, 50 * 100 / 120 - 1 = 40.67 straddles three pixel rows.
-      expect(offset, offset.roundToDouble());
+      // Snapped on the device pixel grid of the test view.
+      final dpr = tester.view.devicePixelRatio;
+      expect(offset * dpr, closeTo((offset * dpr).roundToDouble(), 1e-6));
       expect(
         find.descendant(of: lineFinder, matching: find.byType(IgnorePointer)),
         findsOneWidget,
+      );
+    });
+
+    test('bandBottom snaps to device pixels and survives a tiny chart', () {
+      // 50 * 100 / 120 - 1 = 40.67: at 1.5x the nearest device row is
+      // 61 / 1.5 = 40.67, at 1x it is 41.
+      expect(
+        TissuePressureBarChart.bandBottom(
+          chartHeight: 50,
+          percent: 100,
+          height: 2,
+        ),
+        41,
+      );
+      expect(
+        TissuePressureBarChart.bandBottom(
+              chartHeight: 50,
+              percent: 100,
+              height: 2,
+              devicePixelRatio: 1.5,
+            ) *
+            1.5,
+        closeTo(61, 1e-9),
+      );
+      // Shorter than the band: no ArgumentError from clamp.
+      expect(
+        TissuePressureBarChart.bandBottom(
+          chartHeight: 1,
+          percent: 100,
+          height: 2,
+        ),
+        0,
       );
     });
 

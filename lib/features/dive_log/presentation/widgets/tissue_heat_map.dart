@@ -363,7 +363,13 @@ class TissueHeatMapLegend extends StatelessWidget {
           height: 8,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(2),
-            gradient: LinearGradient(colors: colors),
+            // Directional, like the Row around it: in RTL the labels swap
+            // sides, so the low end must follow leftLabel to the right.
+            gradient: LinearGradient(
+              begin: AlignmentDirectional.centerStart,
+              end: AlignmentDirectional.centerEnd,
+              colors: colors,
+            ),
           ),
         ),
         const SizedBox(width: 4),
