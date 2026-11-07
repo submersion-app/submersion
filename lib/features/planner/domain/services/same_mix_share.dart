@@ -52,17 +52,21 @@ double fillCapacityLiters(DiveTank tank, GasModel model) {
 List<DiveTank> sameMixShareGroup(List<DiveTank> tanks, String? tankId) {
   final charged = tanks.where((t) => t.id == tankId).firstOrNull;
   if (charged == null) return const [];
-  bool isDeco(DiveTank tank) =>
-      tank.role == TankRole.deco || tank.role == TankRole.stage;
   return [
     for (final tank in sameMixTanks(
       tanks,
       fO2: charged.gasMix.o2 / 100.0,
       fHe: charged.gasMix.he / 100.0,
     ))
-      if (isDeco(tank) == isDeco(charged)) tank,
+      if (isDecoClassRole(tank.role) == isDecoClassRole(charged.role)) tank,
   ];
 }
+
+/// Whether [role] is a deco or stage role: the class the engine's
+/// tank-for-gas lookup prefers, and the one [sameMixShareGroup] keeps
+/// apart, so the two always agree on which cylinders a draw belongs to.
+bool isDecoClassRole(TankRole role) =>
+    role == TankRole.deco || role == TankRole.stage;
 
 /// [litersByTank] with each cylinder's liters spread across its
 /// [sameMixShareGroup] in [tanks], through [balancedShare].
@@ -124,7 +128,6 @@ Map<String, double> balancedShare(
   double liters,
   List<SharedCylinder> cylinders,
 ) {
-  if (cylinders.isEmpty) return const {};
   final share = {for (final c in cylinders) c.id: 0.0};
   for (final phase in balancedDrawPhases(liters, cylinders)) {
     for (final MapEntry(:key, :value) in phase.liters.entries) {

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
@@ -165,6 +166,40 @@ void main() {
 
     expect(gasOut(pair, 'd1'), closeTo(expected, 1));
     expect(gasOut(pair, 'd2'), closeTo(expected, 1));
+  });
+
+  test('an air break shares its gas across the stages carrying it', () {
+    // Two stages of the bottom mix supply the air breaks on the O2 stops,
+    // the last draws of that mix, so a break charged to the first alone
+    // would leave it below its twin.
+    DiveTank bottomStage(String id) => DiveTank(
+      id: id,
+      volume: 7,
+      startPressure: 200,
+      gasMix: _tx,
+      role: TankRole.stage,
+    );
+    final outcome = engine.compute(
+      _plan([
+        const DiveTank(
+          id: 'o2',
+          volume: 7,
+          startPressure: 200,
+          gasMix: GasMix(o2: 100),
+          role: TankRole.deco,
+        ),
+        bottomStage('s1'),
+        bottomStage('s2'),
+      ]).copyWith(
+        airBreaks: const AirBreakPolicy(o2Seconds: 300, breakSeconds: 300),
+      ),
+    );
+
+    expect(outcome.stops.any((s) => s.airBreakSeconds > 0), isTrue);
+    expect(
+      _usage(outcome, 's1').litersUsed,
+      closeTo(_usage(outcome, 's2').litersUsed, 1e-6),
+    );
   });
 
   test('a stage too small for its share runs out with its twin', () {

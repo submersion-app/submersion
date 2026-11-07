@@ -1664,6 +1664,10 @@ class PlanEngine {
     // that mix shares the draw, balanced so they end at the same fraction,
     // rather than the first taking all of it (#4138). A loop's supply is the
     // one cylinder feeding it, so it shares nothing.
+    late final capacityById = {
+      for (final tank in plan.tanks)
+        tank.id: fillCapacityLiters(tank, config.gasModel),
+    };
     void chargeAscent(
       String? tankId,
       double amount, {
@@ -1681,7 +1685,7 @@ class PlanEngine {
         for (final tank in group)
           (
             id: tank.id,
-            capacityLiters: fillCapacityLiters(tank, config.gasModel),
+            capacityLiters: capacityById[tank.id]!,
             usedLiters: liters[tank.id] ?? 0.0,
           ),
       ]);
@@ -3182,11 +3186,8 @@ class PlanEngine {
           tank.role != TankRole.oxygenSupply) {
         continue;
       }
-      final isDeco = tank.role == TankRole.deco || tank.role == TankRole.stage;
       if (match == null ||
-          (isDeco &&
-              match.role != TankRole.deco &&
-              match.role != TankRole.stage)) {
+          (isDecoClassRole(tank.role) && !isDecoClassRole(match.role))) {
         match = tank;
       }
     }
