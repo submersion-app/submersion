@@ -1664,15 +1664,6 @@ class PlanEngine {
     // that mix shares the draw, balanced so they end at the same fraction,
     // rather than the first taking all of it (#4138). A loop's supply is the
     // one cylinder feeding it, so it shares nothing.
-    double capacityOf(DiveTank tank) => tank.startPressure == null
-        ? 0.0
-        : gasVolume(
-            tankSizeLiters: tank.volume ?? 11.0,
-            pressureBar: tank.startPressure!,
-            o2Percent: tank.gasMix.o2,
-            hePercent: tank.gasMix.he,
-            model: config.gasModel,
-          );
     void chargeAscent(
       String? tankId,
       double amount, {
@@ -1690,7 +1681,7 @@ class PlanEngine {
         for (final tank in group)
           (
             id: tank.id,
-            capacityLiters: capacityOf(tank),
+            capacityLiters: fillCapacityLiters(tank, config.gasModel),
             usedLiters: liters[tank.id] ?? 0.0,
           ),
       ]);
@@ -3172,23 +3163,18 @@ class PlanEngine {
     bool isCcr = false,
   }) {
     DiveTank? match;
-    for (final tank in tanks) {
+    for (final tank in sameMixTanks(tanks, fO2: fO2, fHe: fHe)) {
       if (isCcr &&
           tank.role != TankRole.diluent &&
           tank.role != TankRole.oxygenSupply) {
         continue;
       }
-      final tankFO2 = tank.gasMix.o2 / 100.0;
-      final tankFHe = tank.gasMix.he / 100.0;
-      if ((tankFO2 - fO2).abs() < 0.005 && (tankFHe - fHe).abs() < 0.005) {
-        final isDeco =
-            tank.role == TankRole.deco || tank.role == TankRole.stage;
-        if (match == null ||
-            (isDeco &&
-                match.role != TankRole.deco &&
-                match.role != TankRole.stage)) {
-          match = tank;
-        }
+      final isDeco = tank.role == TankRole.deco || tank.role == TankRole.stage;
+      if (match == null ||
+          (isDeco &&
+              match.role != TankRole.deco &&
+              match.role != TankRole.stage)) {
+        match = tank;
       }
     }
     return match?.id;

@@ -1,4 +1,6 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/gas_model.dart';
+import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// One cylinder in a group carrying the same mix: what it holds at its fill
@@ -26,11 +28,27 @@ List<DiveTank> sameMixTanks(
       tank,
 ];
 
+/// What [tank] holds at its fill in surface liters, the planner's own
+/// pricing: an unset size reads as 11 L, and no fill pressure holds nothing.
+double fillCapacityLiters(DiveTank tank, GasModel model) {
+  final start = tank.startPressure;
+  if (start == null) return 0.0;
+  return gasVolume(
+    tankSizeLiters: tank.volume ?? 11.0,
+    pressureBar: start,
+    o2Percent: tank.gasMix.o2,
+    hePercent: tank.gasMix.he,
+    model: model,
+  );
+}
+
 /// The cylinders in [tanks] that share what a computed ascent charged to
 /// [tankId]: those carrying its mix in the same role class. A deco or stage
 /// cylinder shares only with other deco or stage cylinders, the ones the
 /// engine's tank-for-gas lookup prefers, so back gas of the same mix is not
-/// billed for deco it did not supply. Empty when no cylinder has [tankId].
+/// billed for deco it did not supply. Pass roles as [TankRoleResolver]
+/// derives them, the roles the engine charged by. Empty when no cylinder has
+/// [tankId].
 List<DiveTank> sameMixShareGroup(List<DiveTank> tanks, String? tankId) {
   final charged = tanks.where((t) => t.id == tankId).firstOrNull;
   if (charged == null) return const [];

@@ -88,6 +88,19 @@ void main() {
     expect(_run([_stage('d1'), _stage('d2')]).gasShortfallMemberIds, isEmpty);
   });
 
+  test('stages share by the role the plan derives, not the stored one', () {
+    // A second stage left on the default Back Gas role is still a deco
+    // cylinder to the engine, so it shares the deco all the same.
+    const unlabelled = DiveTank(
+      id: 'd2',
+      volume: 2,
+      startPressure: 230,
+      gasMix: _ean50,
+    );
+
+    expect(_run([_stage('d1'), unlabelled]).gasShortfallMemberIds, isEmpty);
+  });
+
   test('sharing moves no gas: the diver breathes the same total', () {
     final single = _run([_stage('d1')]);
     final pair = _run([_stage('d1'), _stage('d2')]);

@@ -126,6 +126,25 @@ void main() {
       ]);
     });
 
+    test('a deco stage shares only with deco and stage cylinders', () {
+      final tanks = [
+        const DiveTank(id: 'back', gasMix: nitrox),
+        const DiveTank(id: 'deco', gasMix: nitrox, role: TankRole.deco),
+        const DiveTank(id: 'stage', gasMix: nitrox, role: TankRole.stage),
+      ];
+
+      expect(sameMixShareGroup(tanks, 'deco').map((t) => t.id), [
+        'deco',
+        'stage',
+      ]);
+      expect(sameMixShareGroup(tanks, 'back').map((t) => t.id), ['back']);
+    });
+
+    test('an id on no cylinder has no group', () {
+      expect(sameMixShareGroup([tank('a', air)], 'gone'), isEmpty);
+      expect(sameMixShareGroup([tank('a', air)], null), isEmpty);
+    });
+
     test('tolerates the rounding a gas plan carries', () {
       final tanks = [tank('a', air)];
 

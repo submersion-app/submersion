@@ -273,13 +273,8 @@ class BailoutSolver {
     );
     final bailoutPlan = config.bailoutAscentGas(bailoutTanks, environment);
 
-    double capacityOf(DiveTank tank) => gasVolume(
-      tankSizeLiters: tank.volume ?? 11.0,
-      pressureBar: tank.startPressure ?? 0,
-      o2Percent: tank.gasMix.o2,
-      hePercent: tank.gasMix.he,
-      model: config.gasModel,
-    );
+    double capacityOf(DiveTank tank) =>
+        fillCapacityLiters(tank, config.gasModel);
     final carriedLiters = bailoutTanks.fold<double>(
       0,
       (sum, tank) => sum + capacityOf(tank),
@@ -657,16 +652,10 @@ class BailoutSolver {
     double? previousFO2;
     double? previousFHe;
 
-    String? tankForGas(double fO2, double fHe) {
-      for (final tank in bailoutTanks) {
-        final tankFO2 = tank.gasMix.o2 / 100.0;
-        final tankFHe = tank.gasMix.he / 100.0;
-        if ((tankFO2 - fO2).abs() < 0.005 && (tankFHe - fHe).abs() < 0.005) {
-          return tank.id;
-        }
-      }
-      return null;
-    }
+    // The first cylinder of the mix; its sameMixShareGroup shares the
+    // liters charged to it afterwards (#4138).
+    String? tankForGas(double fO2, double fHe) =>
+        sameMixTanks(bailoutTanks, fO2: fO2, fHe: fHe).firstOrNull?.id;
 
     // Same per-leg liters formula as _ascentLiters (a travel leg's linear
     // depth range, the stop's own depth across a stop, split at the

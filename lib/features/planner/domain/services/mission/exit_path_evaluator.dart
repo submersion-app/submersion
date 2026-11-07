@@ -16,6 +16,7 @@ import 'package:submersion/features/planner/domain/services/mission/mission_geom
 import 'package:submersion/features/planner/domain/services/mission/mission_segment_builder.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/same_mix_share.dart';
+import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 
 /// One diver on an exit: their own bottom SAC, and whether they breathe the
 /// plan's stressed SAC on the exit's bottom part (never less than their own).
@@ -172,6 +173,8 @@ class ExitPathEvaluator {
         .toList();
     final ascentStartDepth =
         authoredExitRows.lastOrNull?.depthMeters ?? failureDepth;
+    // The roles the engine charged the rows by, not the stored ones.
+    final resolvedTanks = const TankRoleResolver().apply(plan).tanks;
 
     final liters = <String, double>{};
     final shortfall = <String>{};
@@ -216,7 +219,7 @@ class ExitPathEvaluator {
           startDepth: ascentStartDepth,
           sacFor: exitSac,
         ),
-        tanks: plan.tanks,
+        tanks: resolvedTanks,
         capacityOf: _capacityOf,
         alreadyUsed: _sum(outbound, beforeAscent),
       );
