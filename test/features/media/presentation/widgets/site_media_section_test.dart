@@ -92,6 +92,7 @@ void main() {
     List<String>? divePhotoReads,
     Future<List<MediaItem>>? pendingDivePhotos,
     Object? divePhotosError,
+    FutureOr<int> Function(Ref ref)? loadDivePhotoCount,
     List<MediaItem> attachments = const [],
     Future<List<MediaItem>>? pendingAttachments,
     Object? attachmentsError,
@@ -106,9 +107,11 @@ void main() {
           if (attachmentsError != null) throw attachmentsError;
           return attachments;
         }),
-        mediaCountFromDivesAtSiteProvider(
-          'site-1',
-        ).overrideWith((ref) async => divePhotos.length),
+        mediaCountFromDivesAtSiteProvider('site-1').overrideWith(
+          (ref) async => loadDivePhotoCount != null
+              ? loadDivePhotoCount(ref)
+              : divePhotos.length,
+        ),
         flatMediaFromDivesAtSiteProvider('site-1').overrideWith((ref) async {
           divePhotoReads?.add('site-1');
           if (pendingDivePhotos != null) return pendingDivePhotos;
@@ -231,6 +234,34 @@ void main() {
     await tester.pumpAndSettle();
     expect(reads, ['site-1']);
     expect(find.byType(MediaThumbnailTile), findsOneWidget);
+  });
+
+  // Every media or dive write re-reads the count; the header keeps the count
+  // it has meanwhile rather than vanishing for a frame.
+  testWidgets('dive photos header stays up while its count reloads', (
+    tester,
+  ) async {
+    final tick = StateProvider<int>((ref) => 0);
+    final reload = Completer<int>();
+    await tester.pumpWidget(
+      await host(
+        loadDivePhotoCount: (ref) =>
+            ref.watch(tick) == 0 ? Future.value(2) : reload.future,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Photos from dives here (2)'), findsOneWidget);
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(SiteMediaSection)),
+    );
+    container.read(tick.notifier).state = 1;
+    await tester.pump();
+    expect(find.text('Photos from dives here (2)'), findsOneWidget);
+
+    reload.complete(3);
+    await tester.pumpAndSettle();
+    expect(find.text('Photos from dives here (3)'), findsOneWidget);
   });
 
   group('attachments grid', () {
