@@ -6,6 +6,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_pairing_repository.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_pairing.dart';
+import 'package:submersion/features/cylinder_passports/domain/services/pairing_rules.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_pairing_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -22,11 +23,13 @@ const _log = LoggerService('twinSetLinkFlow');
 /// test.
 List<EquipmentItem> twinPartnerCandidates(
   List<EquipmentItem> gear,
-  String cylinderId,
-) => [
+  String cylinderId, {
+  String? currentPartnerId,
+}) => [
   for (final item in gear)
     if (item.type == EquipmentType.tank &&
         item.id != cylinderId &&
+        item.id != currentPartnerId &&
         !const {
           EquipmentStatus.retired,
           EquipmentStatus.sold,
@@ -40,17 +43,22 @@ List<EquipmentItem> twinPartnerCandidates(
 Future<EquipmentItem?> showTwinPartnerPicker(
   BuildContext context, {
   required String cylinderId,
+  String? currentPartnerId,
 }) => showModalBottomSheet<EquipmentItem>(
   context: context,
   isScrollControlled: true,
   useSafeArea: true,
-  builder: (context) => _TwinPartnerPicker(cylinderId: cylinderId),
+  builder: (context) => _TwinPartnerPicker(
+    cylinderId: cylinderId,
+    currentPartnerId: currentPartnerId,
+  ),
 );
 
 class _TwinPartnerPicker extends ConsumerWidget {
-  const _TwinPartnerPicker({required this.cylinderId});
+  const _TwinPartnerPicker({required this.cylinderId, this.currentPartnerId});
 
   final String cylinderId;
+  final String? currentPartnerId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -59,7 +67,11 @@ class _TwinPartnerPicker extends ConsumerWidget {
     final gear = ref.watch(activeEquipmentProvider).value;
     final candidates = gear == null
         ? null
-        : twinPartnerCandidates(gear, cylinderId);
+        : twinPartnerCandidates(
+            gear,
+            cylinderId,
+            currentPartnerId: currentPartnerId,
+          );
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -117,11 +129,16 @@ class _TwinPartnerPicker extends ConsumerWidget {
 Future<void> linkTwinSetPartner(
   BuildContext context,
   WidgetRef ref,
-  EquipmentItem cylinder,
-) async {
+  EquipmentItem cylinder, {
+  String? currentPartnerId,
+}) async {
   final l10n = context.l10n;
   final messenger = ScaffoldMessenger.of(context);
-  final partner = await showTwinPartnerPicker(context, cylinderId: cylinder.id);
+  final partner = await showTwinPartnerPicker(
+    context,
+    cylinderId: cylinder.id,
+    currentPartnerId: currentPartnerId,
+  );
   if (partner == null || !context.mounted) return;
   final now = DateTime.now();
   final pairedOn = await showAppDatePicker(
@@ -145,9 +162,7 @@ Future<void> linkTwinSetPartner(
     } on PairingClash catch (clash) {
       if (!context.mounted) return;
       final start = calendarDay(pairedOn);
-      final replaceable = clash.clashes.every(
-        (c) => c.isOpen && c.pairedOn.isBefore(start),
-      );
+      final replaceable = clash.clashes.every((c) => isReplaceable(c, start));
       if (!replaceable) {
         await _showClash(context, ref, clash.clashes);
         return;
@@ -212,6 +227,36 @@ Future<void> unlinkTwinSet(
   } catch (e, stackTrace) {
     _log.error('Failed to unlink a twin set', error: e, stackTrace: stackTrace);
     messenger.showSnackBar(SnackBar(content: Text(l10n.twinSet_saveFailed)));
+  }
+}
+
+/// Asks before deleting [pairing], made by mistake, and deletes it. Fills
+/// and dives are not changed.
+Future<void> confirmDeletePairing(
+  BuildContext context,
+  WidgetRef ref,
+  CylinderPairing pairing,
+) async {
+  final l10n = context.l10n;
+  final ok = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(l10n.twinSet_deletePairing),
+      content: Text(l10n.twinSet_deletePairingConfirm),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, false),
+          child: Text(l10n.forms_cancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(dialogContext, true),
+          child: Text(l10n.twinSet_deletePairing),
+        ),
+      ],
+    ),
+  );
+  if (ok == true) {
+    await ref.read(cylinderPairingRepositoryProvider).deletePairing(pairing.id);
   }
 }
 

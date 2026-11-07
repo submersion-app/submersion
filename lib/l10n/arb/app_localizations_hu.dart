@@ -60133,4 +60133,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String twinSet_choiceSingle(String a) {
     return 'Csak $a';
   }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'Párosítva ekkortól';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'Szétválasztva ekkor';
+
+  @override
+  String get settings_conflict_field_filledTogetherId => 'Ikerpalack-töltés';
+
+  @override
+  String get settings_conflict_field_twinPassportId => 'Társpalack útlevele';
 }

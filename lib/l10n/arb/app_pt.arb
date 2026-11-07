@@ -17846,5 +17846,9 @@
   "passport_history_edit": "Editar carga",
   "twinSet_choiceTitle": "Usar o bi-cilindro?",
   "twinSet_choicePair": "Bi-cilindro ({a} + {b}, {volume})",
-  "twinSet_choiceSingle": "Só {a}"
+  "twinSet_choiceSingle": "Só {a}",
+  "settings_conflict_field_pairedOn": "Pareados desde",
+  "settings_conflict_field_unpairedOn": "Desvinculados em",
+  "settings_conflict_field_filledTogetherId": "Carga do bi-cilindro",
+  "settings_conflict_field_twinPassportId": "Passaporte do cilindro parceiro"
 }

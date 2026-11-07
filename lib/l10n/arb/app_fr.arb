@@ -17846,5 +17846,9 @@
   "passport_history_edit": "Modifier le gonflage",
   "twinSet_choiceTitle": "Utiliser le bi-bouteille ?",
   "twinSet_choicePair": "Bi-bouteille ({a} + {b}, {volume})",
-  "twinSet_choiceSingle": "Seulement {a}"
+  "twinSet_choiceSingle": "Seulement {a}",
+  "settings_conflict_field_pairedOn": "Associées depuis",
+  "settings_conflict_field_unpairedOn": "Dissociées le",
+  "settings_conflict_field_filledTogetherId": "Gonflage du bi-bouteille",
+  "settings_conflict_field_twinPassportId": "Passeport de la bouteille partenaire"
 }

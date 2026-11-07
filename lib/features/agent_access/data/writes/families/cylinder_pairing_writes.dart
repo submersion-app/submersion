@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
@@ -62,6 +63,15 @@ class CylinderPairingWrites extends WritableEntry {
           BlockReason.invalidValue,
           'cylinder_b_id: a cylinder cannot pair with itself.',
         );
+      }
+      for (final id in [a, b]) {
+        final item = await _r.equipment.getEquipmentById(id);
+        if (item?.type != EquipmentType.tank) {
+          return PlanBlock(
+            BlockReason.invalidValue,
+            '$id is not a cylinder; only two cylinders form a twin set.',
+          );
+        }
       }
       final clashes = clashesWith(
         await pairings.getAll(),

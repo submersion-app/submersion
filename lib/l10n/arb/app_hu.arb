@@ -17846,5 +17846,9 @@
   "passport_history_edit": "Töltés szerkesztése",
   "twinSet_choiceTitle": "Az ikerpalackot használja?",
   "twinSet_choicePair": "Ikerpalack ({a} + {b}, {volume})",
-  "twinSet_choiceSingle": "Csak {a}"
+  "twinSet_choiceSingle": "Csak {a}",
+  "settings_conflict_field_pairedOn": "Párosítva ekkortól",
+  "settings_conflict_field_unpairedOn": "Szétválasztva ekkor",
+  "settings_conflict_field_filledTogetherId": "Ikerpalack-töltés",
+  "settings_conflict_field_twinPassportId": "Társpalack útlevele"
 }

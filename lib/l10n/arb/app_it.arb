@@ -17846,5 +17846,9 @@
   "passport_history_edit": "Modifica ricarica",
   "twinSet_choiceTitle": "Usare la bibombola?",
   "twinSet_choicePair": "Bibombola ({a} + {b}, {volume})",
-  "twinSet_choiceSingle": "Solo {a}"
+  "twinSet_choiceSingle": "Solo {a}",
+  "settings_conflict_field_pairedOn": "Abbinate dal",
+  "settings_conflict_field_unpairedOn": "Scollegate il",
+  "settings_conflict_field_filledTogetherId": "Ricarica della bibombola",
+  "settings_conflict_field_twinPassportId": "Passaporto della bombola gemella"
 }

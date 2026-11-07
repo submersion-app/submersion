@@ -17846,5 +17846,9 @@
   "passport_history_edit": "Editar carga",
   "twinSet_choiceTitle": "¿Usar la bibotella?",
   "twinSet_choicePair": "Bibotella ({a} + {b}, {volume})",
-  "twinSet_choiceSingle": "Solo {a}"
+  "twinSet_choiceSingle": "Solo {a}",
+  "settings_conflict_field_pairedOn": "Emparejadas desde",
+  "settings_conflict_field_unpairedOn": "Desvinculadas el",
+  "settings_conflict_field_filledTogetherId": "Carga de la bibotella",
+  "settings_conflict_field_twinPassportId": "Pasaporte de la botella pareja"
 }

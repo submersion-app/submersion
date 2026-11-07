@@ -217,7 +217,8 @@ void main() {
     final d = tester.getTopLeft(find.textContaining('Double 12 D,')).dy;
     expect(c, lessThan(d));
 
-    await tester.tap(find.byTooltip(l10n.twinSet_deletePairing).first);
+    // The first delete is the current pairing's; the first history row is next.
+    await tester.tap(find.byTooltip(l10n.twinSet_deletePairing).at(1));
     await tester.pumpAndSettle();
     expect(find.text(l10n.twinSet_deletePairingConfirm), findsOneWidget);
     await tester.tap(
@@ -329,5 +330,56 @@ void main() {
     await tester.tap(find.text('OK'));
     await tester.pumpAndSettle();
     expect(repository.ends.single.id, 'p');
+  });
+
+  testWidgets('the current pairing can be deleted when it was a mistake', (
+    tester,
+  ) async {
+    final repository = FakePairingRepository();
+    final l10n = await pump(
+      tester,
+      repository: repository,
+      gear: [cylinder('A'), cylinder('B')],
+      pairings: [pairing('p', 'A', 'B', DateTime.utc(2026, 3, 3))],
+    );
+    await tester.tap(find.byTooltip(l10n.twinSet_deletePairing));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.widgetWithText(FilledButton, l10n.twinSet_deletePairing),
+    );
+    await tester.pumpAndSettle();
+    expect(repository.deletes, ['p']);
+  });
+
+  testWidgets('replace partner does not offer the current partner', (
+    tester,
+  ) async {
+    final l10n = await pump(
+      tester,
+      gear: [cylinder('A'), cylinder('B'), cylinder('C')],
+      pairings: [pairing('p', 'A', 'B', DateTime.utc(2026, 3, 3))],
+    );
+    await tester.tap(find.text(l10n.twinSet_replace));
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.twinSet_pickerTitle), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.text('Double 12 B'),
+      ),
+      findsNothing,
+    );
+    expect(find.text('Double 12 C'), findsOneWidget);
+  });
+
+  testWidgets('a wanted cylinder has no twin set card', (tester) async {
+    await pump(
+      tester,
+      gear: [
+        cylinder('A', status: EquipmentStatus.wanted),
+        cylinder('B'),
+      ],
+    );
+    expect(find.byType(Card), findsNothing);
   });
 }

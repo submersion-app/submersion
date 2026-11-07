@@ -17846,5 +17846,9 @@
   "passport_history_edit": "تعديل التعبئة",
   "twinSet_choiceTitle": "استخدام الطقم المزدوج؟",
   "twinSet_choicePair": "طقم مزدوج ({a} + {b}، {volume})",
-  "twinSet_choiceSingle": "{a} فقط"
+  "twinSet_choiceSingle": "{a} فقط",
+  "settings_conflict_field_pairedOn": "مربوطة منذ",
+  "settings_conflict_field_unpairedOn": "فك الربط في",
+  "settings_conflict_field_filledTogetherId": "تعبئة الطقم المزدوج",
+  "settings_conflict_field_twinPassportId": "جواز الأسطوانة الشريكة"
 }

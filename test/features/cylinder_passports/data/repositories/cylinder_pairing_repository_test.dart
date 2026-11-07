@@ -42,6 +42,18 @@ void main() {
     for (final id in const ['A', 'B', 'C', 'D']) {
       await seedCylinder(id);
     }
+    final t = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'REG',
+            name: 'REG',
+            type: 'regulator',
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
   });
 
   tearDown(tearDownTestDatabase);
@@ -192,5 +204,40 @@ void main() {
         )
         .get();
     expect(tombstones.single.read<String>('record_id'), ab.id);
+  });
+
+  test('replacing a pairing made the same day deletes it, so a wrong link '
+      'made today can be put right', () async {
+    final wrong = await repo.createPairing(
+      cylinderAId: 'A',
+      cylinderBId: 'C',
+      pairedOn: d(2026, 11, 6),
+    );
+    final right = await repo.createPairing(
+      cylinderAId: 'A',
+      cylinderBId: 'B',
+      pairedOn: d(2026, 11, 6),
+      replace: true,
+    );
+    expect((await repo.getForCylinder('A')).map((p) => p.id), [right.id]);
+    expect(await repo.getForCylinder('C'), isEmpty);
+    final tombstones = await db
+        .customSelect(
+          'SELECT record_id FROM deletion_log WHERE entity_type = ?',
+          variables: [Variable.withString('cylinderPairings')],
+        )
+        .get();
+    expect(tombstones.single.read<String>('record_id'), wrong.id);
+  });
+
+  test('only two cylinders can be paired', () async {
+    expect(
+      () => repo.createPairing(
+        cylinderAId: 'A',
+        cylinderBId: 'REG',
+        pairedOn: d(2026, 1, 1),
+      ),
+      throwsArgumentError,
+    );
   });
 }

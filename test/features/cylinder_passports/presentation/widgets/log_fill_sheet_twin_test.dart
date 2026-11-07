@@ -287,6 +287,38 @@ void main() {
     expect(twin.twins, hasLength(1));
   });
 
+  testWidgets('both cylinders above their rating are each named', (
+    tester,
+  ) async {
+    final twin = _Twin();
+    final l10n = await pump(
+      tester,
+      fills: _Fills(),
+      twin: twin,
+      gear: [
+        cylinder('eq-1', 'Double 12 A', workingPressureBar: 200),
+        cylinder('eq-2', 'Double 12 B', workingPressureBar: 210),
+      ],
+      pairings: [pairing('p', 'eq-2', DateTime.utc(2026, 1, 1))],
+    );
+    await tester.enterText(find.byKey(const Key('logFill_pressure')), '230');
+    await save(tester, l10n);
+    expect(find.textContaining('Double 12 A'), findsWidgets);
+    await tester.tap(find.text(l10n.passport_logFill_saveAnyway));
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.passport_logFill_overPressureTitle), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.textContaining('Double 12 B'),
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(find.text(l10n.passport_logFill_saveAnyway));
+    await tester.pumpAndSettle();
+    expect(twin.twins, hasLength(1));
+  });
+
   group('edit mode', () {
     final existing = CylinderFill(
       id: 'f1',

@@ -28,7 +28,8 @@ class TwinSetCard extends ConsumerWidget {
     final pairings =
         ref.watch(pairingsForCylinderProvider(equipmentId)).value ??
         const <CylinderPairing>[];
-    if (cylinder == null) return const SizedBox.shrink();
+    // Wanted gear is not owned yet, so it is in no twin set.
+    if (cylinder == null || cylinder.isWanted) return const SizedBox.shrink();
     final current = currentPairing(pairings, equipmentId);
     final history = [
       for (final p in pairings)
@@ -102,7 +103,11 @@ class _CurrentPartner extends ConsumerWidget {
           contentPadding: EdgeInsets.zero,
           title: Text(partner?.name ?? ''),
           subtitle: Text(subtitle),
-          trailing: const Icon(Icons.chevron_right),
+          trailing: IconButton(
+            icon: const Icon(Icons.delete_outline),
+            tooltip: l10n.twinSet_deletePairing,
+            onPressed: () => confirmDeletePairing(context, ref, pairing),
+          ),
           onTap: () => context.push('/equipment/$partnerId'),
         ),
         Wrap(
@@ -114,7 +119,12 @@ class _CurrentPartner extends ConsumerWidget {
               child: Text(l10n.twinSet_unlink),
             ),
             FilledButton.tonal(
-              onPressed: () => linkTwinSetPartner(context, ref, cylinder),
+              onPressed: () => linkTwinSetPartner(
+                context,
+                ref,
+                cylinder,
+                currentPartnerId: partnerId,
+              ),
               child: Text(l10n.twinSet_replace),
             ),
           ],
@@ -129,32 +139,6 @@ class _HistoryRow extends ConsumerWidget {
 
   final String cylinderId;
   final CylinderPairing pairing;
-
-  Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
-    final l10n = context.l10n;
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.twinSet_deletePairing),
-        content: Text(l10n.twinSet_deletePairingConfirm),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(l10n.forms_cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(l10n.twinSet_deletePairing),
-          ),
-        ],
-      ),
-    );
-    if (ok == true) {
-      await ref
-          .read(cylinderPairingRepositoryProvider)
-          .deletePairing(pairing.id);
-    }
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -175,7 +159,7 @@ class _HistoryRow extends ConsumerWidget {
       trailing: IconButton(
         icon: const Icon(Icons.delete_outline),
         tooltip: l10n.twinSet_deletePairing,
-        onPressed: () => _confirmDelete(context, ref),
+        onPressed: () => confirmDeletePairing(context, ref, pairing),
       ),
     );
   }

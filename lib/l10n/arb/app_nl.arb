@@ -17846,5 +17846,9 @@
   "passport_history_edit": "Vulling bewerken",
   "twinSet_choiceTitle": "De dubbelset gebruiken?",
   "twinSet_choicePair": "Dubbelset ({a} + {b}, {volume})",
-  "twinSet_choiceSingle": "Alleen {a}"
+  "twinSet_choiceSingle": "Alleen {a}",
+  "settings_conflict_field_pairedOn": "Gekoppeld sinds",
+  "settings_conflict_field_unpairedOn": "Ontkoppeld op",
+  "settings_conflict_field_filledTogetherId": "Vulling van de dubbelset",
+  "settings_conflict_field_twinPassportId": "Paspoort van de partnerfles"
 }

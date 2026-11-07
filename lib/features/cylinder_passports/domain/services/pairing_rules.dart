@@ -97,3 +97,11 @@ bool isPartnerOutOfUse(EquipmentStatus status) => const {
   EquipmentStatus.loaned,
   EquipmentStatus.inService,
 }.contains(status);
+
+/// Whether replacing a partner may take [clash] out of the way of a pairing
+/// starting [start]: an open pairing that started on or before that day. One
+/// that started before is ended on [start]; one that started that same day
+/// covered no day and is removed, so a wrong link made today can be put
+/// right.
+bool isReplaceable(CylinderPairing clash, DateTime start) =>
+    clash.isOpen && !clash.pairedOn.isAfter(start);

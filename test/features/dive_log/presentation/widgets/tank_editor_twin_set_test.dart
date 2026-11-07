@@ -295,4 +295,72 @@ void main() {
     expect(find.text(l10n.twinSet_choiceTitle), findsNothing);
     expect(changed!.volume, 12);
   });
+
+  testWidgets('a picked cylinder with no passport gets one, so both count '
+      'the dive', (tester) async {
+    DiveTank? changed;
+    final l10n = await pump(
+      tester,
+      gear: [a, b],
+      onChanged: (t) => changed = t,
+      onOwnCylinderUsed: (_) async {},
+    );
+    await pick(tester, b);
+    await choose(
+      tester,
+      l10n.twinSet_choicePair('Faber 12 B', 'Faber 12 A', '24 L'),
+    );
+    final passportB = await tester.runAsync(
+      () => CylinderPassportRepository().getPassportId(b.id),
+    );
+    expect(passportB, isNotNull);
+    expect(changed!.passportId, passportB);
+    expect(changed!.twinPassportId, passportA);
+  });
+
+  testWidgets('Just A on a tank that was a twin set goes back to back gas', (
+    tester,
+  ) async {
+    DiveTank? changed;
+    final l10n = await pump(
+      tester,
+      gear: [a, b],
+      tank: const DiveTank(id: 'tank-1', role: TankRole.twinSet, volume: 24),
+      onChanged: (t) => changed = t,
+      onOwnCylinderUsed: (_) async {},
+    );
+    await pick(tester, a);
+    await choose(tester, l10n.twinSet_choiceSingle('Faber 12 A'));
+    expect(changed!.role, TankRole.backGas);
+    expect(changed!.volume, 12);
+  });
+
+  testWidgets('a pair with a cylinder of unknown size is not offered', (
+    tester,
+  ) async {
+    final repo = EquipmentRepository();
+    final sized = await tester.runAsync(
+      () => repo.createEquipment(_tank('Sized', volumeL: 10)),
+    );
+    final unsized = await tester.runAsync(
+      () => repo.createEquipment(_tank('Unsized')),
+    );
+    await tester.runAsync(
+      () => CylinderPairingRepository().createPairing(
+        cylinderAId: sized!.id,
+        cylinderBId: unsized!.id,
+        pairedOn: DateTime(2026, 1, 1),
+      ),
+    );
+    DiveTank? changed;
+    final l10n = await pump(
+      tester,
+      gear: [sized!, unsized!],
+      onChanged: (t) => changed = t,
+      onOwnCylinderUsed: (_) async {},
+    );
+    await pick(tester, sized);
+    expect(find.text(l10n.twinSet_choiceTitle), findsNothing);
+    expect(changed!.volume, 10);
+  });
 }

@@ -56781,4 +56781,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String twinSet_choiceSingle(String a) {
     return '仅 $a';
   }
+
+  @override
+  String get settings_conflict_field_pairedOn => '配对起始日期';
+
+  @override
+  String get settings_conflict_field_unpairedOn => '解除关联日期';
+
+  @override
+  String get settings_conflict_field_filledTogetherId => '双瓶组充气';
+
+  @override
+  String get settings_conflict_field_twinPassportId => '双瓶搭档护照';
 }

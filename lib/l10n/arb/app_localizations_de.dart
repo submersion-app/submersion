@@ -60350,4 +60350,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String twinSet_choiceSingle(String a) {
     return 'Nur $a';
   }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'Gepaart seit';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'Getrennt am';
+
+  @override
+  String get settings_conflict_field_filledTogetherId =>
+      'Füllung des Doppelgeräts';
+
+  @override
+  String get settings_conflict_field_twinPassportId =>
+      'Pass der Partnerflasche';
 }

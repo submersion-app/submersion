@@ -65,6 +65,15 @@ class CylinderPairingRepository {
     if (cylinderAId == cylinderBId) {
       throw ArgumentError.value(cylinderBId, 'cylinderBId', 'same cylinder');
     }
+    final types =
+        await (_db.selectOnly(_db.equipment)
+              ..addColumns([_db.equipment.id, _db.equipment.type])
+              ..where(_db.equipment.id.isIn([cylinderAId, cylinderBId])))
+            .map((r) => r.read(_db.equipment.type))
+            .get();
+    if (types.length != 2 || types.any((t) => t != 'tank')) {
+      throw ArgumentError('Only two cylinders can be paired as a twin set');
+    }
     final start = calendarDay(pairedOn);
     final now = DateTime.now().millisecondsSinceEpoch;
     final pairing = await _db.transaction(() async {
@@ -76,14 +85,20 @@ class CylinderPairingRepository {
       );
       final replaceable = [
         for (final c in clashes)
-          if (c.isOpen && c.pairedOn.isBefore(start)) c,
+          if (rules.isReplaceable(c, start)) c,
       ];
       if (clashes.isNotEmpty &&
           (!replace || replaceable.length != clashes.length)) {
         throw PairingClash(clashes);
       }
       for (final c in replaceable) {
-        await _writeEnd(c.id, start, now);
+        if (c.pairedOn == start) {
+          // Made the same day: it would cover no day once ended, so it was a
+          // wrong link, and goes.
+          await _deleteRow(c.id);
+        } else {
+          await _writeEnd(c.id, start, now);
+        }
       }
       final created = CylinderPairing(
         id: _uuid.v4(),
@@ -144,11 +159,15 @@ class CylinderPairingRepository {
   /// Deletes pairing [id], for one made by mistake. Fills and dives are not
   /// touched.
   Future<void> deletePairing(String id) async {
+    await _deleteRow(id);
+    SyncEventBus.notifyLocalChange();
+  }
+
+  Future<void> _deleteRow(String id) async {
     await (_db.delete(
       _db.cylinderPairings,
     )..where((t) => t.id.equals(id))).go();
     await _syncRepository.logDeletion(entityType: entity, recordId: id);
-    SyncEventBus.notifyLocalChange();
   }
 
   Future<void> _writeEnd(String id, DateTime end, int now) async {

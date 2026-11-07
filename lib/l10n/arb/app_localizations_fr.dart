@@ -60610,4 +60610,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String twinSet_choiceSingle(String a) {
     return 'Seulement $a';
   }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'Associées depuis';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'Dissociées le';
+
+  @override
+  String get settings_conflict_field_filledTogetherId =>
+      'Gonflage du bi-bouteille';
+
+  @override
+  String get settings_conflict_field_twinPassportId =>
+      'Passeport de la bouteille partenaire';
 }

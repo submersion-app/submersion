@@ -39,11 +39,8 @@ final currentPairingProvider = FutureProvider.family<CylinderPairing?, String>(
 
 /// The pairing a cylinder was in on a day: what a fill or a dive dated then
 /// uses (spec, "Which pairing counts").
-final pairingOnProvider =
-    FutureProvider.family<
-      CylinderPairing?,
-      ({String equipmentId, DateTime day})
-    >(
+final pairingOnProvider = FutureProvider.autoDispose
+    .family<CylinderPairing?, ({String equipmentId, DateTime day})>(
       (ref, key) async => pairingOn(
         await ref.watch(allPairingsProvider.future),
         key.equipmentId,

@@ -46,6 +46,12 @@ class _Fills extends CylinderFillRepository {
   Future<CylinderFill?> tiedFillOf(CylinderFill fill) async => tied[fill.id];
 
   @override
+  Future<CylinderFill?> tiedFill({
+    required String id,
+    required String together,
+  }) async => tied[id];
+
+  @override
   Future<void> delete(String id) async => deleted.add(id);
 
   @override
@@ -146,6 +152,13 @@ void main() {
     await tester.tap(find.byTooltip(l10n.passport_history_edit));
     await tester.pumpAndSettle();
     expect(find.byType(LogFillSheet), findsOneWidget);
+    expect(find.text(l10n.passport_logFill_editTitle), findsOneWidget);
+  });
+
+  testWidgets('tapping a manual fill opens it for editing', (tester) async {
+    final l10n = await pump(tester, fills: [fill('f1')]);
+    await tester.tap(find.text('EAN32'));
+    await tester.pumpAndSettle();
     expect(find.text(l10n.passport_logFill_editTitle), findsOneWidget);
   });
 

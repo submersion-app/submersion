@@ -17971,5 +17971,9 @@
   "passport_history_edit": "Füllung bearbeiten",
   "twinSet_choiceTitle": "Das Doppelgerät verwenden?",
   "twinSet_choicePair": "Doppelgerät ({a} + {b}, {volume})",
-  "twinSet_choiceSingle": "Nur {a}"
+  "twinSet_choiceSingle": "Nur {a}",
+  "settings_conflict_field_pairedOn": "Gepaart seit",
+  "settings_conflict_field_unpairedOn": "Getrennt am",
+  "settings_conflict_field_filledTogetherId": "Füllung des Doppelgeräts",
+  "settings_conflict_field_twinPassportId": "Pass der Partnerflasche"
 }

@@ -95340,6 +95340,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Just {a}'**
   String twinSet_choiceSingle(String a);
+
+  /// No description provided for @settings_conflict_field_pairedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Paired since'**
+  String get settings_conflict_field_pairedOn;
+
+  /// No description provided for @settings_conflict_field_unpairedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlinked on'**
+  String get settings_conflict_field_unpairedOn;
+
+  /// No description provided for @settings_conflict_field_filledTogetherId.
+  ///
+  /// In en, this message translates to:
+  /// **'Twin set fill'**
+  String get settings_conflict_field_filledTogetherId;
+
+  /// No description provided for @settings_conflict_field_twinPassportId.
+  ///
+  /// In en, this message translates to:
+  /// **'Twin set partner passport'**
+  String get settings_conflict_field_twinPassportId;
 }
 
 class _AppLocalizationsDelegate

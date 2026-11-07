@@ -125,4 +125,27 @@ void main() {
     ]);
     expect(plan.items.single.block!.reason, BlockReason.invalidValue);
   });
+
+  test('only two cylinders can be paired', () async {
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'REG',
+            name: 'Regulator',
+            type: 'regulator',
+            createdAt: t,
+            updatedAt: t,
+            diverId: const Value(kDiverA),
+          ),
+        );
+    final plan = await h.preview([
+      createOp('cylinder_pairings', {
+        'cylinder_a_id': 'A',
+        'cylinder_b_id': 'REG',
+        'paired_on': '2026-03-03',
+      }),
+    ]);
+    expect(plan.items.single.block!.reason, BlockReason.invalidValue);
+  });
 }

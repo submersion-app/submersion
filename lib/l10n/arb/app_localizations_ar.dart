@@ -61305,4 +61305,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String twinSet_choiceSingle(String a) {
     return '$a فقط';
   }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'مربوطة منذ';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'فك الربط في';
+
+  @override
+  String get settings_conflict_field_filledTogetherId => 'تعبئة الطقم المزدوج';
+
+  @override
+  String get settings_conflict_field_twinPassportId => 'جواز الأسطوانة الشريكة';
 }

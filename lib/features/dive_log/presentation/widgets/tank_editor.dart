@@ -1262,7 +1262,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   ) async {
     final partner = await _twinPartnerOf(item);
     if (!mounted) return;
-    if (partner != null) {
+    // A pair with a cylinder of unknown size has no volume to log, so it is
+    // not offered; the pick is the cylinder alone.
+    if (partner != null && _pairVolume(item, partner) != null) {
       final choice = await _askTwinSet(item, partner);
       if (choice == null || !mounted) return;
       if (choice == TwinSetChoice.twinSet) {
@@ -1270,6 +1272,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         return;
       }
     }
+    // A single cylinder on a tank a twin set pick made is back gas again.
+    if (_role == TankRole.twinSet) setState(() => _role = TankRole.backGas);
     final filled = _applyScannedSpec(
       passportId: passportId,
       volumeL: item.volumeL,
@@ -1289,12 +1293,11 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   /// The cylinder [item] was paired with on the dive's day (issue #4242), or
   /// null when it was not paired then.
   Future<EquipmentItem?> _twinPartnerOf(EquipmentItem item) async {
-    final pairing = await ref.read(
-      pairingOnProvider((
-        equipmentId: item.id,
-        day: calendarDay(widget.diveDate ?? DateTime.now()),
-      )).future,
-    );
+    // Read once at pick time, straight from the repository: nothing here
+    // watches the pairing.
+    final pairing = await ref
+        .read(cylinderPairingRepositoryProvider)
+        .pairingOn(item.id, calendarDay(widget.diveDate ?? DateTime.now()));
     if (pairing == null) return null;
     return ref.read(equipmentItemProvider(pairing.partnerOf(item.id)).future);
   }
@@ -1351,13 +1354,19 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     AppLocalizations l10n,
   ) async {
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-    final partnerPassportId = await ref
-        .read(cylinderPassportRepositoryProvider)
-        .ensurePassportId(partner.id, diverId: diverId);
+    final passports = ref.read(cylinderPassportRepositoryProvider);
+    // Both cylinders need a passport id for each to count the dive.
+    final pickedPassportId =
+        passportId ??
+        await passports.ensurePassportId(item.id, diverId: diverId);
+    final partnerPassportId = await passports.ensurePassportId(
+      partner.id,
+      diverId: diverId,
+    );
     if (!mounted) return;
     setState(() => _role = TankRole.twinSet);
     _applyScannedSpec(
-      passportId: passportId,
+      passportId: pickedPassportId,
       twinPassportId: partnerPassportId,
       volumeL: _pairVolume(item, partner),
       workingPressureBar: _pairWorkingPressure(item, partner),

@@ -59527,4 +59527,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String twinSet_choiceSingle(String a) {
     return 'Just $a';
   }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'Paired since';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'Unlinked on';
+
+  @override
+  String get settings_conflict_field_filledTogetherId => 'Twin set fill';
+
+  @override
+  String get settings_conflict_field_twinPassportId =>
+      'Twin set partner passport';
 }

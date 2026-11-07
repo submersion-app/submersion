@@ -35242,5 +35242,9 @@
   "twinSet_choicePair": "Twin set ({a} + {b}, {volume})",
   "@twinSet_choicePair": {"placeholders": {"a": {"type": "String"}, "b": {"type": "String"}, "volume": {"type": "String"}}},
   "twinSet_choiceSingle": "Just {a}",
-  "@twinSet_choiceSingle": {"placeholders": {"a": {"type": "String"}}}
+  "@twinSet_choiceSingle": {"placeholders": {"a": {"type": "String"}}},
+  "settings_conflict_field_pairedOn": "Paired since",
+  "settings_conflict_field_unpairedOn": "Unlinked on",
+  "settings_conflict_field_filledTogetherId": "Twin set fill",
+  "settings_conflict_field_twinPassportId": "Twin set partner passport"
 }

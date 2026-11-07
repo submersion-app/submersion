@@ -63,7 +63,9 @@ class PassportFillHistoryCard extends ConsumerWidget {
   /// "Filled with `partner`" for one fill of a twin set fill, or null.
   String? _filledWith(BuildContext context, WidgetRef ref, CylinderFill fill) {
     if (fill.filledTogetherId == null) return null;
-    final tied = ref.watch(tiedFillProvider(fill)).value;
+    final tied = ref
+        .watch(tiedFillProvider((id: fill.id, together: fill.filledTogetherId)))
+        .value;
     if (tied == null) return null;
     final partnerId = tied.equipmentId;
     final name = partnerId == null
@@ -73,6 +75,14 @@ class PassportFillHistoryCard extends ConsumerWidget {
       name ?? context.l10n.passport_history_anotherCylinder,
     );
   }
+
+  Future<void> _edit(BuildContext context, CylinderFill fill) =>
+      showLogFillSheet(
+        context,
+        passportId: fill.passportId,
+        equipmentId: equipmentId,
+        editing: fill,
+      );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -113,6 +123,10 @@ class PassportFillHistoryCard extends ConsumerWidget {
             for (final fill in fills)
               ListTile(
                 contentPadding: EdgeInsets.zero,
+                // A fill the diver typed in opens for editing (issue #4242).
+                onTap: isEditableFill(fill, tripCopyIds: tripCopies)
+                    ? () => _edit(context, fill)
+                    : null,
                 title: Text(fill.gasMix.name),
                 subtitle: Text(
                   [
@@ -131,12 +145,7 @@ class PassportFillHistoryCard extends ConsumerWidget {
                       IconButton(
                         icon: const Icon(Icons.edit_outlined),
                         tooltip: l10n.passport_history_edit,
-                        onPressed: () => showLogFillSheet(
-                          context,
-                          passportId: fill.passportId,
-                          equipmentId: equipmentId,
-                          editing: fill,
-                        ),
+                        onPressed: () => _edit(context, fill),
                       ),
                     IconButton(
                       icon: const Icon(Icons.delete_outline),

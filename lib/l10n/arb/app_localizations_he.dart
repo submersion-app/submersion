@@ -59217,4 +59217,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String twinSet_choiceSingle(String a) {
     return 'רק $a';
   }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'בצימוד מאז';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'נותקו בתאריך';
+
+  @override
+  String get settings_conflict_field_filledTogetherId => 'מילוי צמד';
+
+  @override
+  String get settings_conflict_field_twinPassportId => 'דרכון הבלון השותף';
 }

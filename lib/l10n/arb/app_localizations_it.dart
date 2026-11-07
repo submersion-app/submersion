@@ -60479,4 +60479,18 @@ class AppLocalizationsIt extends AppLocalizations {
   String twinSet_choiceSingle(String a) {
     return 'Solo $a';
   }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'Abbinate dal';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'Scollegate il';
+
+  @override
+  String get settings_conflict_field_filledTogetherId =>
+      'Ricarica della bibombola';
+
+  @override
+  String get settings_conflict_field_twinPassportId =>
+      'Passaporto della bombola gemella';
 }

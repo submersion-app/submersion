@@ -301,17 +301,19 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
         : units.temperatureToCelsius(temperature);
     final analyzer = _analyzer.text.trim();
     final station = _station.text.trim();
+    // Saving from here: a second tap while the partner is read or a warning
+    // is open must not save twice.
+    setState(() => _saving = true);
     final partner = widget.editing == null ? await _partnerForSave() : null;
     if (!mounted) return;
     final twin = partner != null && _twinOn(partner);
     if (twin &&
         pressureBar != null &&
         !await _acceptPressure(pressureBar, partner, units)) {
+      if (mounted) setState(() => _saving = false);
       return;
     }
     if (!mounted) return;
-
-    setState(() => _saving = true);
     final LoggedFill logged;
     try {
       if (widget.editing case final editing?) {
@@ -413,16 +415,18 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
     } catch (_) {
       self = null;
     }
+    // Each cylinder above its rating is named in turn; Back on any stops.
     for (final item in [?self, partner]) {
       final rated = item.workingPressureBar;
       if (rated == null || pressureBar <= rated + 0.5) continue;
       if (!mounted) return false;
-      return confirmOverPressure(
+      final go = await confirmOverPressure(
         context,
         pressure: units.formatPressure(pressureBar),
         name: item.name,
         workingPressure: units.formatPressure(rated),
       );
+      if (!go) return false;
     }
     return true;
   }

@@ -60099,4 +60099,18 @@ class AppLocalizationsNl extends AppLocalizations {
   String twinSet_choiceSingle(String a) {
     return 'Alleen $a';
   }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'Gekoppeld sinds';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'Ontkoppeld op';
+
+  @override
+  String get settings_conflict_field_filledTogetherId =>
+      'Vulling van de dubbelset';
+
+  @override
+  String get settings_conflict_field_twinPassportId =>
+      'Paspoort van de partnerfles';
 }

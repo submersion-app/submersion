@@ -8,7 +8,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
-import 'package:submersion/features/trips/data/services/trip_fill_passport_copy.dart';
+import 'package:submersion/features/trips/domain/services/trip_fill_copy_id.dart';
 
 /// Fill history of physical cylinders (spec section 10.2), keyed by passport
 /// id. Registered for sync like the transmitter registry: every write marks
@@ -106,12 +106,19 @@ class CylinderFillRepository {
   Future<CylinderFill?> tiedFillOf(CylinderFill fill) async {
     final group = fill.filledTogetherId;
     if (group == null) return null;
+    return tiedFill(id: fill.id, together: group);
+  }
+
+  /// The fill other than [id] that shares the twin set fill tie [together].
+  Future<CylinderFill?> tiedFill({
+    required String id,
+    required String together,
+  }) async {
     final row =
         await (_db.select(_db.cylinderFills)
               ..where(
                 (t) =>
-                    t.filledTogetherId.equals(group) &
-                    t.id.equals(fill.id).not(),
+                    t.filledTogetherId.equals(together) & t.id.equals(id).not(),
               )
               ..limit(1))
             .getSingleOrNull();

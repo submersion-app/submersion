@@ -17846,5 +17846,9 @@
   "passport_history_edit": "编辑充气记录",
   "twinSet_choiceTitle": "使用双瓶组？",
   "twinSet_choicePair": "双瓶组（{a} + {b}，{volume}）",
-  "twinSet_choiceSingle": "仅 {a}"
+  "twinSet_choiceSingle": "仅 {a}",
+  "settings_conflict_field_pairedOn": "配对起始日期",
+  "settings_conflict_field_unpairedOn": "解除关联日期",
+  "settings_conflict_field_filledTogetherId": "双瓶组充气",
+  "settings_conflict_field_twinPassportId": "双瓶搭档护照"
 }

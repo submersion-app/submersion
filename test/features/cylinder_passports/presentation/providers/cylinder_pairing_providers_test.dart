@@ -32,6 +32,13 @@ void main() {
     addTearDown(container.dispose);
     final sub = container.listen(currentPairingProvider('A'), (_, _) {});
     addTearDown(sub.close);
+    for (final day in [DateTime(2026, 3, 3, 9), DateTime(2026, 3, 2)]) {
+      final keep = container.listen(
+        pairingOnProvider((equipmentId: 'B', day: day)),
+        (_, _) {},
+      );
+      addTearDown(keep.close);
+    }
     expect(await container.read(currentPairingProvider('A').future), isNull);
 
     await container

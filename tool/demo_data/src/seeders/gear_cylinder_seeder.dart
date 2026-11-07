@@ -1,6 +1,7 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/cylinder_configs/data/repositories/cylinder_config_repository.dart';
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config_item.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_pairing_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/dive_computer/data/repositories/dive_computer_connection_repository.dart';
 import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
@@ -192,12 +193,19 @@ class GearCylinderSeeder implements DemoSeeder {
     final passports = CylinderPassportRepository();
     // Each owned cylinder carries a passport; its fills are written with the
     // dives they were filled for.
-    for (final key in ['tank-12', 'twin', 'stage-1', 'stage-2']) {
+    for (final key in ['tank-12', 'tank-12-b', 'twin', 'stage-1', 'stage-2']) {
       await passports.ensurePassportId(
         e[key]!,
         diverId: DemoSeedContext.diverId,
       );
     }
+    // The two HP100s are a twin set from the day the second one was bought
+    // (issue #4242).
+    await CylinderPairingRepository().createPairing(
+      cylinderAId: e['tank-12']!,
+      cylinderBId: e['tank-12-b']!,
+      pairedOn: ctx.timeline.boughtOn('tank-12-b')!,
+    );
   }
 }
 
