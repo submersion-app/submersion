@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:archive/archive.dart' show getCrc32;
 import 'package:submersion/core/platform/zlib/platform_zlib.dart';
 import 'package:submersion/core/utils/bounded_inflate.dart';
 
@@ -52,10 +53,24 @@ Uint8List encodeNavTrackSourceFile(Uint8List file) {
 ///
 /// The blob is peer-supplied (the column syncs as base64), so it is bounded
 /// before it is inflated. Throws [NavTrackSourceFileCodecException] for a
-/// blob that is not gzip or inflates past [kMaxNavTrackSourceFileBytes].
+/// blob that is not gzip, inflates past [kMaxNavTrackSourceFileBytes], or
+/// does not match its own trailer.
+///
+/// The trailer is checked here because [inflateBounded] is not a
+/// completeness check: the native decoder returns whatever it managed to
+/// inflate from a truncated stream. Without this, a blob cut short in sync
+/// or storage would be exported, and parsed for markers, as if it were the
+/// whole file.
 Uint8List decodeNavTrackSourceFile(Uint8List blob) {
+  // A gzip member is at least a 10-byte header and an 8-byte trailer.
+  if (blob.length < 18) {
+    throw NavTrackSourceFileCodecException(
+      'blob of ${blob.length} byte(s) is too short to be gzip',
+    );
+  }
+  final Uint8List file;
   try {
-    return inflateBounded(
+    file = inflateBounded(
       blob,
       framing: ZlibFraming.gzip,
       maxBytes: kMaxNavTrackSourceFileBytes,
@@ -64,4 +79,15 @@ Uint8List decodeNavTrackSourceFile(Uint8List blob) {
   } on BoundedInflateException catch (e) {
     throw NavTrackSourceFileCodecException(e.message);
   }
+  // The encoder writes a single member, so its trailer is the blob's last
+  // 8 bytes: CRC-32 of the file, then its length mod 2^32, little-endian.
+  final trailer = ByteData.sublistView(blob, blob.length - 8);
+  final crc = trailer.getUint32(0, Endian.little);
+  final size = trailer.getUint32(4, Endian.little);
+  if (size != (file.length & 0xffffffff) || crc != getCrc32(file)) {
+    throw const NavTrackSourceFileCodecException(
+      'blob is truncated or corrupted: its trailer does not match',
+    );
+  }
+  return file;
 }

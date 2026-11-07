@@ -92,5 +92,57 @@ void main() {
         throwsA(isA<NavTrackSourceFileCodecException>()),
       );
     });
+
+    group('refuses a damaged blob rather than return part of a file', () {
+      final original = _bytes(
+        List.generate(400, (i) => '1.11.2026,11:46:$i,0,0,2,$i\n').join(),
+      );
+      final blob = encodeNavTrackSourceFile(original);
+
+      test('missing its trailer', () {
+        expect(
+          () => decodeNavTrackSourceFile(
+            Uint8List.sublistView(blob, 0, blob.length - 8),
+          ),
+          throwsA(isA<NavTrackSourceFileCodecException>()),
+        );
+      });
+
+      test('cut off part way through its body', () {
+        expect(
+          () => decodeNavTrackSourceFile(
+            Uint8List.sublistView(blob, 0, blob.length ~/ 2),
+          ),
+          throwsA(isA<NavTrackSourceFileCodecException>()),
+        );
+      });
+
+      test('with a checksum that does not match', () {
+        final corrupted = Uint8List.fromList(blob);
+        corrupted[corrupted.length - 8] ^= 0xFF;
+
+        expect(
+          () => decodeNavTrackSourceFile(corrupted),
+          throwsA(isA<NavTrackSourceFileCodecException>()),
+        );
+      });
+
+      test('with a size that does not match', () {
+        final corrupted = Uint8List.fromList(blob);
+        corrupted[corrupted.length - 4] ^= 0x01;
+
+        expect(
+          () => decodeNavTrackSourceFile(corrupted),
+          throwsA(isA<NavTrackSourceFileCodecException>()),
+        );
+      });
+
+      test('shorter than a gzip header and trailer', () {
+        expect(
+          () => decodeNavTrackSourceFile(Uint8List.sublistView(blob, 0, 10)),
+          throwsA(isA<NavTrackSourceFileCodecException>()),
+        );
+      });
+    });
   });
 }
