@@ -1,3 +1,5 @@
+import 'package:meta/meta.dart';
+
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
@@ -179,6 +181,11 @@ class EquipmentComponentWrites extends WritableEntry {
     return null;
   }
 
+  /// The planned dives this entity's writes rewrote, held for [afterApply].
+  /// An apply that rolls back never reaches it, and the next apply's rescan
+  /// then takes these along too: a rescan of an unchanged dive is harmless.
+  final _rewrittenDives = <String>{};
+
   /// Inside the apply's transaction, so a revert takes it back with the
   /// part; the rescan waits for [afterApply], once the rows are committed.
   Future<void> _followOnPlannedDives(
@@ -188,7 +195,7 @@ class EquipmentComponentWrites extends WritableEntry {
     assemblyId,
     [rewrite],
     alsoLogged: false,
-    notify: false,
+    deferTo: _rewrittenDives,
   );
 
   /// The planned dives a part change rewrote are rescanned, as a save would
@@ -196,15 +203,14 @@ class EquipmentComponentWrites extends WritableEntry {
   /// from the applier itself.
   @override
   Future<void> afterApply(List<AppliedChange> changes, ApplyRun run) async {
-    for (final change in changes) {
-      final assemblyId = change.parentId;
-      if (assemblyId == null || !run.once(('planned-dives', assemblyId))) {
-        continue;
-      }
-      final dives = await _r.dives.plannedDiveIdsWithAssembly(assemblyId);
-      if (dives.isNotEmpty) scheduleQualityScan(dives);
-    }
+    if (_rewrittenDives.isEmpty) return;
+    final dives = Set.of(_rewrittenDives);
+    _rewrittenDives.clear();
+    scheduleQualityScan(dives);
   }
+
+  @visibleForTesting
+  Set<String> get pendingRescan => Set.unmodifiable(_rewrittenDives);
 
   @override
   Future<String> create(String diverId, Map<String, Object?> values) async {

@@ -144,6 +144,7 @@ void main() {
     for (var i = 0; i < 100 && question.evaluate().isEmpty; i++) {
       await tester.pump(const Duration(milliseconds: 50));
     }
+    expect(question, findsOneWidget, reason: 'saving asks about the dives');
   }
 
   testWidgets('also update rewrites the logged and the planned dive', (

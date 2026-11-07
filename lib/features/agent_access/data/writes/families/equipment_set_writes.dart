@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart' show Variable;
+import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/services/database_service.dart';
@@ -165,20 +166,24 @@ class EquipmentSetWrites extends WritableEntry {
     return others;
   }
 
+  /// The planned dives this entity's writes rewrote, held for [afterApply].
+  /// An apply that rolls back never reaches it, and the next apply's rescan
+  /// then takes these along too: a rescan of an unchanged dive is harmless.
+  final _rewrittenDives = <String>{};
+
   /// The planned dives a member change rewrote are rescanned, as a save
   /// would (issue #2853), once the apply has committed. Sync hears of the
   /// apply from the applier itself.
   @override
   Future<void> afterApply(List<AppliedChange> changes, ApplyRun run) async {
-    for (final change in changes) {
-      if (change.kind != ChangeKind.update ||
-          !run.once(('planned-dives-of-set', change.id))) {
-        continue;
-      }
-      final dives = await _r.dives.plannedDiveIdsWithSet(change.id);
-      if (dives.isNotEmpty) scheduleQualityScan(dives);
-    }
+    if (_rewrittenDives.isEmpty) return;
+    final dives = Set.of(_rewrittenDives);
+    _rewrittenDives.clear();
+    scheduleQualityScan(dives);
   }
+
+  @visibleForTesting
+  Set<String> get pendingRescan => Set.unmodifiable(_rewrittenDives);
 
   @override
   Future<DeleteReach> deleteReach(
@@ -262,7 +267,7 @@ class EquipmentSetWrites extends WritableEntry {
           for (final e in diff.removed) SetItemRemoved(e),
         ],
         alsoLogged: false,
-        notify: false,
+        deferTo: _rewrittenDives,
       );
     }
     if (v['show_figure'] case final bool show) {

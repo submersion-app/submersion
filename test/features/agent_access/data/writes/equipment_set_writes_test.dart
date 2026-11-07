@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/features/agent_access/data/writes/families/equipment_set_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -141,6 +142,23 @@ void main() {
 
     expect(await gearOn('p1'), {'fins'});
     expect(await gearOn('d1'), {'wing'});
+
+    // The rewritten dive waits for afterApply, which rescans it once the
+    // apply has committed, then lets it go.
+    final entry = h.writes.named('equipment_sets')! as EquipmentSetWrites;
+    expect(entry.pendingRescan, isEmpty);
+    await entry.update(
+      id,
+      kDiverA,
+      const RecordUpdate(
+        relations: {
+          'equipment_ids': RelationDelta(remove: {'fins'}),
+        },
+      ),
+    );
+    expect(entry.pendingRescan, {'p1'});
+    await entry.afterApply(const [], ApplyRun());
+    expect(entry.pendingRescan, isEmpty);
   });
 
   test('a member the owner cannot see is blocked', () async {
