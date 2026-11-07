@@ -694,9 +694,9 @@ void main() {
         expect(point['o2Sensor1'], isNull);
       });
 
-      test('still reads the names our own exporter writes', () async {
-        // Submersion exports bare <setpoint>/<ppo2> in bar; re-importing our
-        // own file has to keep working.
+      test('still reads the names older Submersion exports use', () async {
+        // Submersion wrote bare <setpoint>/<ppo2> in bar until issue #4198;
+        // those files have to keep importing.
         final profile = await profileFrom('''
           <waypoint>
             <depth>30</depth>
