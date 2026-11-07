@@ -34,16 +34,19 @@ EffectiveProxy socks(int port, {String? user, String? pass}) => EffectiveProxy(
   source: ProxySource.manual,
 );
 
+/// No startup proxy lookup pending: requests open at once.
+Future<void>? settledStartup() => null;
+
 HttpClient clientFor(
   EffectiveProxy Function() current, {
   bool everything = true,
-  Future<void>? Function()? pendingStartup,
+  Future<void>? Function() pendingStartup = settledStartup,
 }) {
   final overrides = AppHttpOverrides(
     currentProxy: current,
     shouldProxy: everything ? proxyEverything : defaultShouldProxy,
     fallbackContext: () => null,
-    pendingStartup: pendingStartup ?? () => null,
+    pendingStartup: pendingStartup,
   );
   final client = overrides.createHttpClient(null)
     ..connectionTimeout = const Duration(seconds: 5);
@@ -420,7 +423,7 @@ void main() {
     test('a request opened after the lookup settles goes at once', () async {
       final c = clientFor(
         () => const EffectiveProxy.direct(),
-        pendingStartup: () => null,
+        pendingStartup: settledStartup,
       );
       expect(await get(c, 'http://127.0.0.1:${target.port}/f'), 'ok /f');
     });
