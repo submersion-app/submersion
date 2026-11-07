@@ -121,11 +121,9 @@ class ServiceRecordRepository {
     );
     SyncEventBus.notifyLocalChange();
 
-    // Update the equipment's lastServiceDate
-    await _updateEquipmentLastServiceDate(
-      record.equipmentId,
-      record.serviceDate,
-    );
+    // The newest record's date, so a record back-filled from paper does not
+    // move the item's last service date back (issue #4201).
+    await _refreshEquipmentLastServiceDate(record.equipmentId);
 
     return record.copyWith(id: id, createdAt: now, updatedAt: now);
   }
@@ -157,14 +155,7 @@ class ServiceRecordRepository {
     );
     SyncEventBus.notifyLocalChange();
 
-    // Update equipment's lastServiceDate if this is the most recent record
-    final mostRecent = await getMostRecentRecord(record.equipmentId);
-    if (mostRecent != null) {
-      await _updateEquipmentLastServiceDate(
-        record.equipmentId,
-        mostRecent.serviceDate,
-      );
-    }
+    await _refreshEquipmentLastServiceDate(record.equipmentId);
   }
 
   /// Delete a service record
@@ -179,18 +170,8 @@ class ServiceRecordRepository {
     );
     SyncEventBus.notifyLocalChange();
 
-    // Update equipment's lastServiceDate if needed
     if (record != null) {
-      final mostRecent = await getMostRecentRecord(record.equipmentId);
-      if (mostRecent != null) {
-        await _updateEquipmentLastServiceDate(
-          record.equipmentId,
-          mostRecent.serviceDate,
-        );
-      } else {
-        // No more service records, clear the date
-        await _clearEquipmentLastServiceDate(record.equipmentId);
-      }
+      await _refreshEquipmentLastServiceDate(record.equipmentId);
     }
   }
 
@@ -254,38 +235,22 @@ class ServiceRecordRepository {
     return result.data['count'] as int? ?? 0;
   }
 
-  /// Update the equipment's lastServiceDate field
-  Future<void> _updateEquipmentLastServiceDate(
-    String equipmentId,
-    DateTime serviceDate,
-  ) async {
+  /// Sets the item's lastServiceDate to its newest record's date, or clears
+  /// it when the item has no record left. An item already holding that date
+  /// is left unwritten, so a record back-filled from paper does not send it
+  /// to every peer with nothing changed.
+  Future<void> _refreshEquipmentLastServiceDate(String equipmentId) async {
+    final mostRecent = await getMostRecentRecord(equipmentId);
+    final newest = mostRecent?.serviceDate.millisecondsSinceEpoch;
+    final item = await (_db.select(
+      _db.equipment,
+    )..where((t) => t.id.equals(equipmentId))).getSingleOrNull();
+    if (item == null || item.lastServiceDate == newest) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     await (_db.update(
       _db.equipment,
     )..where((t) => t.id.equals(equipmentId))).write(
-      EquipmentCompanion(
-        lastServiceDate: Value(serviceDate.millisecondsSinceEpoch),
-        updatedAt: Value(now),
-      ),
-    );
-    await _syncRepository.markRecordPending(
-      entityType: 'equipment',
-      recordId: equipmentId,
-      localUpdatedAt: now,
-    );
-    SyncEventBus.notifyLocalChange();
-  }
-
-  /// Clear the equipment's lastServiceDate field
-  Future<void> _clearEquipmentLastServiceDate(String equipmentId) async {
-    final now = DateTime.now().millisecondsSinceEpoch;
-    await (_db.update(
-      _db.equipment,
-    )..where((t) => t.id.equals(equipmentId))).write(
-      EquipmentCompanion(
-        lastServiceDate: const Value(null),
-        updatedAt: Value(now),
-      ),
+      EquipmentCompanion(lastServiceDate: Value(newest), updatedAt: Value(now)),
     );
     await _syncRepository.markRecordPending(
       entityType: 'equipment',

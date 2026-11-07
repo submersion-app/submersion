@@ -315,7 +315,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 345;
+  static const int currentSchemaVersion = 346;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1585,6 +1585,11 @@ class AppDatabase extends _$AppDatabase {
     // (issue #4242). A new synced table and nullable columns an older peer
     // omits, with no backfill, so the floor does not move.
     345,
+    // v346: equipment.last_service_date moves forward to the item's newest
+    // service record where logging an older record had moved it back (issue
+    // #4201). Data only, a value every reader already holds, so the floor
+    // does not move. Numbered 346 so an open PR can take 345.
+    346,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

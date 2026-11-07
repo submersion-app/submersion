@@ -350,4 +350,14 @@ extension ServiceMigrations on AppDatabase {
     if (!await _tableExists('equipment')) return;
     await Migrator(this).createTable(equipmentServiceStatus);
   }
+
+  /// v346: [repairLastServiceDates] (issue #4201). Guarded on both columns,
+  /// as the other helpers are, for migration fixtures that build only part
+  /// of the schema.
+  Future<void> _repairLastServiceDates() async {
+    if (await _columnExists('equipment', 'last_service_date') &&
+        await _columnExists('service_records', 'service_date')) {
+      await repairLastServiceDates(this);
+    }
+  }
 }

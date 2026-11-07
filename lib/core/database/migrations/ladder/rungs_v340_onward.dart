@@ -58,5 +58,12 @@ extension RungsFromV340 on AppDatabase {
     // only, no backfill. Re-asserted in beforeOpen.
     if (from < 345) await _assertTwinSetSchema();
     if (from < 345) await reportProgress();
+
+    // v346: an item's last service date is its newest service record's
+    // again where logging an older record had moved it back (issue #4201).
+    // Data only, so the compatibility floor does not move. Numbered 346 so
+    // an open PR that also claimed 343 can take 345.
+    if (from < 346) await _repairLastServiceDates();
+    if (from < 346) await reportProgress();
   }
 }

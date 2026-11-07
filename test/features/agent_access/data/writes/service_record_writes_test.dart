@@ -31,6 +31,13 @@ void main() {
         : DateTime.fromMillisecondsSinceEpoch(row.lastServiceDate!);
   }
 
+  /// Stores [day] as the item's last service date directly, as a build
+  /// before #4201 did when an older record was logged.
+  Future<void> setLastService(DateTime day) =>
+      (db.update(db.equipment)..where((e) => e.id.equals('suit'))).write(
+        EquipmentCompanion(lastServiceDate: Value(day.millisecondsSinceEpoch)),
+      );
+
   Map<String, Object?> record(String day, {String kind = 'seals'}) => {
     'equipment_id': 'suit',
     'service_kind_id': kind,
@@ -120,18 +127,33 @@ void main() {
     expect(await lastService(), isNull);
   });
 
-  // createRecord writes the new record's date as is (#4201), so the plan
-  // says so, and this pins it until that issue is fixed.
-  test('an older record moves the last service date back', () async {
+  // The date is the newest record's (#4201), so a record back-filled from
+  // paper leaves it, and the plan says so.
+  test('an older record leaves the last service date', () async {
     await h.run([createOp('service_records', record('2026-03-01'))]);
 
     final plan = await h.preview([
       createOp('service_records', record('2025-03-01')),
     ]);
+    expect(plan.items.single.alsoChanges, isEmpty);
+    await h.apply(plan);
+
+    expect(await lastService(), DateTime(2026, 3, 1));
+  });
+
+  // An item a build before #4201 left on an older date is put right by the
+  // next record, even an older one, and the plan says so.
+  test('any new record lists the date it puts back to the newest', () async {
+    await h.run([createOp('service_records', record('2026-03-01'))]);
+    await setLastService(DateTime(2025, 3, 1));
+
+    final plan = await h.preview([
+      createOp('service_records', record('2024-03-01')),
+    ]);
     expect(plan.items.single.alsoChanges, {'equipment': 1});
     await h.apply(plan);
 
-    expect(await lastService(), DateTime(2025, 3, 1));
+    expect(await lastService(), DateTime(2026, 3, 1));
   });
 
   test(
@@ -216,12 +238,12 @@ void main() {
   });
 
   // updateRecord sets the date to the newest record's, so an edit of any
-  // field can move it after an older record was logged (#4201).
+  // field moves it on an item a build before #4201 left on an older date.
   test('any edit lists the date it puts back to the newest', () async {
     final newer = (await h.run([
       createOp('service_records', record('2026-03-01')),
     ])).created.single.id;
-    await h.run([createOp('service_records', record('2025-03-01'))]);
+    await setLastService(DateTime(2025, 3, 1));
 
     final plan = await h.preview([
       updateOp('service_records', newer, {'notes': 'New seals'}),
