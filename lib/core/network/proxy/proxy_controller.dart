@@ -77,8 +77,10 @@ class ProxyController {
   /// Launch does not wait for [initialize] (a slow PAC lookup would hold the
   /// first frame, #4246); network requests opened before it settles wait on
   /// this instead, so the first one already uses the saved route: the OS
-  /// answer in system mode, the keychain password in manual mode. It never
-  /// fails, and it is bounded by the startup timeout once [initialize] runs.
+  /// answer in system mode, the keychain password in manual mode. It settles
+  /// when the first settled snapshot is applied, which may come from a
+  /// refresh that superseded the startup lookup, and never fails. It is
+  /// bounded by the startup timeout once [initialize] runs.
   Future<void>? get pendingStartup =>
       _startup.isCompleted ? null : _startup.future;
 
@@ -92,12 +94,17 @@ class ProxyController {
     try {
       _store = store;
       final settings = store.load();
-      await _recompute(settings).timeout(
-        startupTimeout,
-        onTimeout: () {
-          _log.info('System proxy detection is slow; starting direct');
-        },
-      );
+      // A refresh started meanwhile (a network change at launch) supersedes
+      // this recompute, which then returns without applying anything; the
+      // wait goes on until that newer one applies its snapshot.
+      await _recompute(settings)
+          .then((_) => _startup.future)
+          .timeout(
+            startupTimeout,
+            onTimeout: () {
+              _log.info('System proxy detection is slow; starting direct');
+            },
+          );
     } finally {
       if (!_startup.isCompleted) _startup.complete();
     }
@@ -222,6 +229,11 @@ class ProxyController {
       detecting: detecting,
       effective: effective,
     );
+    // The first settled snapshot since initialize releases the requests
+    // waiting on [pendingStartup].
+    if (!detecting && _store != null && !_startup.isCompleted) {
+      _startup.complete();
+    }
     if (!_changes.isClosed) _changes.add(_state);
   }
 

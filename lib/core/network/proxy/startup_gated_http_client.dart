@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 /// An [HttpClient] that holds every request it opens until the app's
@@ -19,9 +20,16 @@ class StartupGatedHttpClient implements HttpClient {
   final HttpClient _inner;
   final Future<void>? Function() _pending;
 
+  /// Set by a plain [close] made while requests may still be waiting; the
+  /// real client closes once they have opened.
+  bool _closing = false;
+
   Future<HttpClientRequest> _afterStartup(
     Future<HttpClientRequest> Function() open,
   ) {
+    if (_closing) {
+      return Future.error(StateError('HttpClient is closed'));
+    }
     final pending = _pending();
     return pending == null ? open() : pending.then((_) => open());
   }
@@ -158,6 +166,19 @@ class StartupGatedHttpClient implements HttpClient {
   @override
   set keyLog(Function(String line)? callback) => _inner.keyLog = callback;
 
+  /// A plain close lets requests already opened finish, as dart:io's does,
+  /// so one still waiting for the startup lookup opens before the real
+  /// client closes; requests opened after it are refused. A forced close
+  /// goes through at once and fails the waiting requests.
   @override
-  void close({bool force = false}) => _inner.close(force: force);
+  void close({bool force = false}) {
+    final pending = _pending();
+    if (force || pending == null) {
+      _inner.close(force: force);
+      return;
+    }
+    _closing = true;
+    // Registered after every waiting request's open, so it runs after them.
+    unawaited(pending.then((_) => _inner.close()));
+  }
 }

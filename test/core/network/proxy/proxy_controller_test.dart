@@ -396,6 +396,29 @@ void main() {
       expect(c.current.endpoint, 'corp:8080');
     });
 
+    test('a refresh that supersedes the startup lookup holds it until its '
+        'own answer applies', () async {
+      // A network change at launch (connectivity streams report the current
+      // state as soon as they are listened to) supersedes the startup
+      // lookup; the stale answer it then drops must not release requests
+      // onto the still-direct snapshot.
+      final r = _Resolver();
+      final c = ProxyController(resolver: r);
+      addTearDown(c.dispose);
+      final init = c.initialize(store);
+      await pumpEventQueue();
+      final refreshed = c.refresh();
+      await pumpEventQueue();
+      expect(r.calls, 2);
+      r.answers.first.complete(_fixed);
+      await pumpEventQueue();
+      expect(c.pendingStartup, isNotNull);
+      r.answers.last.complete(_fixed);
+      await Future.wait([init, refreshed]);
+      expect(c.pendingStartup, isNull);
+      expect(c.current.endpoint, 'corp:8080');
+    });
+
     test(
       'clears at the startup timeout when the OS has not answered',
       () async {
