@@ -82,18 +82,27 @@ String formatAttributeNumberForEditing(
   // the value is whole, then drops a trailing zero. A per-time round trip
   // (100 min -> 1.666..h -> 100.000...1) is binary noise, not a fraction the
   // diver typed, and must still read as "100" rather than "100.0".
-  return formatRoundedForInput(display, _editingFractionDigits(dimension));
+  return formatRoundedForInput(
+    display,
+    _editingFractionDigits(dimension, metricValue),
+  );
 }
 
 /// Decimal places [formatAttributeNumberForEditing] rounds to before
 /// rendering. One digit is plenty for most dimensions, but a mass like a
 /// 0.35 kg (350 g) trim weight needs two: at one digit it seeded and
 /// displayed as "0.3", silently dropping the tens-of-grams digit rather than
-/// just trailing noise.
-int _editingFractionDigits(AttributeDimension dimension) => switch (dimension) {
-  AttributeDimension.massKg => 2,
-  _ => 1,
-};
+/// just trailing noise. A cylinder's volume follows the tank editor's rule
+/// ([UnitFormatter.tankVolumeLiterDecimals]): a 0.85 L argon bottle keeps
+/// both its digits (issue #4243).
+int _editingFractionDigits(AttributeDimension dimension, double metricValue) =>
+    switch (dimension) {
+      AttributeDimension.massKg => 2,
+      AttributeDimension.volumeL => UnitFormatter.tankVolumeLiterDecimals(
+        metricValue,
+      ),
+      _ => 1,
+    };
 
 /// Display string for a stored attribute value on the detail page. The
 /// equipment CSV does not use it: Metric mode writes each attribute's raw

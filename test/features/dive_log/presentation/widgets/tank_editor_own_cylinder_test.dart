@@ -397,6 +397,24 @@ void main() {
     await pick(tester, argon);
 
     expect(changed!.role, TankRole.suitInflation);
+    // A small bottle keeps its two decimals (#4243): 0.85 L, not 0.8 L.
+    expect(changed!.volume, 0.85);
+  });
+
+  testWidgets('a small bottle opens and saves at two decimals (#4243)', (
+    tester,
+  ) async {
+    DiveTank? changed;
+    await pump(
+      tester,
+      onChanged: (t) => changed = t,
+      tank: const DiveTank(id: 'tank-1', volume: 0.85, workingPressure: 200),
+    );
+
+    expect(find.widgetWithText(TextFormField, '0.85'), findsOneWidget);
+    await tester.enterText(find.widgetWithText(TextFormField, '0.85'), '0.4');
+    await tester.pumpAndSettle();
+    expect(changed!.volume, 0.4);
   });
 
   testWidgets('an unmarked cylinder leaves the role alone', (tester) async {

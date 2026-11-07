@@ -193,7 +193,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             (widget.tank.volume! * widget.tank.workingPressure!) / 28.3168;
         volumeText = formatRoundedForInput(cuft, 1);
       } else {
-        volumeText = formatRoundedForInput(widget.tank.volume!, 1);
+        volumeText = formatRoundedForInput(
+          widget.tank.volume!,
+          UnitFormatter.tankVolumeLiterDecimals(widget.tank.volume!),
+        );
       }
     }
 
@@ -1323,7 +1326,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                   : liters);
           _volumeController.text = formatRoundedForInput(value, 1);
         } else {
-          _volumeController.text = formatRoundedForInput(liters, 1);
+          _volumeController.text = formatRoundedForInput(
+            liters,
+            UnitFormatter.tankVolumeLiterDecimals(liters),
+          );
         }
       }
       if (workingPressureBar != null) {
@@ -1360,7 +1366,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       if (settings.volumeUnit == VolumeUnit.cubicFeet) {
         _volumeController.text = formatRoundedForInput(preset.volumeCuft, 1);
       } else {
-        _volumeController.text = formatRoundedForInput(preset.volumeLiters, 1);
+        _volumeController.text = formatRoundedForInput(
+          preset.volumeLiters,
+          UnitFormatter.tankVolumeLiterDecimals(preset.volumeLiters),
+        );
       }
       _workingPressureController.text = formatRoundedForInput(
         units.convertPressure(preset.workingPressureBar),

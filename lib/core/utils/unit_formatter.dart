@@ -229,6 +229,12 @@ class UnitFormatter {
   /// output and hand the result to `localiseDecimalText` afterwards. Run the
   /// other way round it does nothing under a comma locale, and under a
   /// grouping locale the '.' it would match is the group separator.
+  /// How many decimals a cylinder's water volume in liters is shown and
+  /// entered at: two below 3 L, where a drysuit's 0.85 L argon bottle must
+  /// not read as 0.8 L (issue #4243), one from 3 L up, where 11.1 L is how a
+  /// cylinder is known.
+  static int tankVolumeLiterDecimals(double liters) => liters < 3 ? 2 : 1;
+
   static String _trimTrailingZeros(String text) {
     if (!text.contains('.')) return text;
     final trimmed = text.replaceFirst(RegExp(r'0+$'), '');
@@ -366,7 +372,9 @@ class UnitFormatter {
 
     // For liters, show the physical volume the cylinder is named by
     return localiseDecimalText(
-      _trimTrailingZeros(volumeLiters.toStringAsFixed(1)),
+      _trimTrailingZeros(
+        volumeLiters.toStringAsFixed(tankVolumeLiterDecimals(volumeLiters)),
+      ),
     );
   }
 
