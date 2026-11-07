@@ -136,23 +136,68 @@ void main() {
     });
 
     // The size and stamp columns sit after grid_blob in each record, so a
-    // table scan for them pages through every grid's overflow chain.
-    test('reads its columns from an index, never from a grid', () async {
+    // table scan for them pages through every grid's overflow chain. The
+    // index serves them; a legacy row's size comes from octet_length,
+    // which reads only its record header.
+    test('reads its columns through the index, never by a scan', () async {
+      const size = 'COALESCE(grid_bytes, octet_length(grid_json))';
       for (final sql in [
-        'SELECT SUM(grid_bytes) FROM bathymetry_cache',
-        'SELECT cache_key, grid_bytes, last_used_at, fetched_at '
+        'SELECT SUM($size) FROM bathymetry_cache',
+        'SELECT cache_key, $size, last_used_at, fetched_at '
             'FROM bathymetry_cache',
-        'SELECT AVG(grid_bytes) FROM bathymetry_cache',
+        'SELECT AVG($size) FROM bathymetry_cache',
       ]) {
-        final plan = await db
-            .customSelect("EXPLAIN QUERY PLAN $sql WHERE status = 'ok'")
-            .get();
+        final plan =
+            (await db
+                    .customSelect("EXPLAIN QUERY PLAN $sql WHERE status = 'ok'")
+                    .get())
+                .map((r) => r.read<String>('detail'))
+                .join('; ');
         expect(
-          plan.map((r) => r.read<String>('detail')).join('; '),
-          contains('COVERING INDEX bathymetry_cache_budget_idx'),
+          plan,
+          contains('INDEX bathymetry_cache_budget_idx'),
           reason: sql,
         );
+        expect(plan, isNot(contains('SCAN')), reason: sql);
       }
+    });
+
+    test('counts a legacy row not yet read at its JSON bytes', () async {
+      final json = jsonEncode(_grid().toJson());
+      await db
+          .into(db.bathymetryCache)
+          .insert(
+            BathymetryCacheCompanion.insert(
+              cacheKey: 'legacy',
+              centerLat: 0,
+              centerLon: 0,
+              status: 'ok',
+              gridJson: Value(json),
+              fetchedAt: 1,
+            ),
+          );
+      await putRow('new', bytes: 100, lastUsedAt: 2);
+      final total = json.length + 100;
+      expect(await evictBathymetryCacheOverBudget(db, budgetBytes: total), 0);
+      expect(
+        await evictBathymetryCacheOverBudget(db, budgetBytes: total - 1),
+        1,
+      );
+      expect(await keys(), {'new'});
+    });
+
+    test('keeps grids used since keepUsedSince, past the budget', () async {
+      await putRow('old', bytes: 80, lastUsedAt: 1);
+      await putRow('recent', bytes: 200, lastUsedAt: 50);
+      expect(
+        await evictBathymetryCacheOverBudget(
+          db,
+          budgetBytes: 100,
+          keepUsedSince: 50,
+        ),
+        1,
+      );
+      expect(await keys(), {'recent'});
     });
 
     test('deletes past the 999 variable limit in one pass', () async {
@@ -208,7 +253,6 @@ void main() {
               status: 'ok',
               sourceId: const Value('gmrt'),
               gridJson: Value(json),
-              gridBytes: Value(json.length),
               fetchedAt: 1,
             ),
           );
@@ -275,7 +319,6 @@ void main() {
               centerLon: -68.29,
               status: 'ok',
               gridJson: Value(json),
-              gridBytes: Value(json.length),
               fetchedAt: 1,
             ),
           );

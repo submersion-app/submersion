@@ -179,6 +179,28 @@ void main() {
         );
       });
 
+      for (final (field, index) in [
+        ('origin latitude', 0),
+        ('origin longitude', 1),
+        ('latitude cell size', 2),
+        ('longitude cell size', 3),
+        ('resolution', 4),
+      ]) {
+        for (final bad in [double.nan, double.infinity]) {
+          test('a $bad $field', () {
+            final blob = BathymetryGridCodec.encode(_grid());
+            ByteData.sublistView(
+              blob,
+            ).setFloat64(12 + index * 8, bad, Endian.little);
+            expect(
+              () => BathymetryGridCodec.decode(blob),
+              throwsA(isA<FormatException>()),
+            );
+            expect(BathymetryGridCodec.decodeStored(blob: blob), isNull);
+          });
+        }
+      }
+
       test('a body that inflates past its header shape', () {
         final blob = BathymetryGridCodec.encode(_grid(rows: 4, cols: 4));
         // Header now claims one row; the stream still holds four.

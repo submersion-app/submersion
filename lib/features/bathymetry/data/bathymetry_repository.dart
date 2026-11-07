@@ -556,14 +556,15 @@ class BathymetryRepository {
   /// reset). Used only for the "3D Maps" reload confirmation dialog's
   /// approximate size estimate -- computed BEFORE any deletion, since the
   /// estimate would otherwise have nothing left to average from. Averages
-  /// the recorded sizes, so no grid is read to compute it.
+  /// each row's [bathymetryStoredBytes], so no grid is read to compute it.
   Future<int?> averageCachedGridBytes() async {
     final t = _db.bathymetryCache;
-    final average = t.gridBytes.avg();
+    // AVG skips a row whose size is null: an 'ok' row holding no grid.
+    final average = bathymetryStoredBytes(t).avg();
     final row =
         await (_db.selectOnly(t)
               ..addColumns([average])
-              ..where(t.status.equals('ok') & t.gridBytes.isNotNull()))
+              ..where(t.status.equals('ok')))
             .getSingle();
     return row.read(average)?.toInt();
   }

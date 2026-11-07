@@ -4,6 +4,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart' show Database;
 import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/features/bathymetry/data/bathymetry_cache_budget.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_grid_codec.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 
@@ -79,7 +80,8 @@ void main() {
       };
       final ok = rows['12.16,-68.30@8000v6']!;
       expect(ok.gridBlob, isNull);
-      expect(ok.gridBytes, utf8.encode(ok.gridJson!).length);
+      // Not backfilled: the upgrade rewrites no grid.
+      expect(ok.gridBytes, isNull);
       expect(ok.lastUsedAt, isNull);
       expect(
         BathymetryGridCodec.decodeStored(
@@ -97,6 +99,16 @@ void main() {
       expect(
         await _indexes(db, 'bathymetry_cache'),
         contains('bathymetry_cache_budget_idx'),
+      );
+
+      // The budget sizes the unconverted row from its JSON in UTF-8 bytes,
+      // one more than its characters for the source id's ü.
+      final bytes = utf8.encode(ok.gridJson!).length;
+      expect(bytes, ok.gridJson!.length + 1);
+      expect(await evictBathymetryCacheOverBudget(db, budgetBytes: bytes), 0);
+      expect(
+        await evictBathymetryCacheOverBudget(db, budgetBytes: bytes - 1),
+        1,
       );
     });
   }

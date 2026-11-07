@@ -15,6 +15,16 @@ const Duration kBathymetryCacheTouchInterval = Duration(hours: 1);
 /// Rows deleted per statement, under SQLite's oldest variable limit of 999.
 const int _deleteChunk = 500;
 
+/// The grid bytes a `bathymetry_cache` row stores: its recorded
+/// `grid_bytes`, or, for a row cached as JSON before v20 and not read since,
+/// its JSON's size in UTF-8 bytes. `octet_length` reads that size from the
+/// record header, so sizing a legacy row never loads its grid, and the v20
+/// upgrade did not have to rewrite every legacy row to record it.
+Expression<int> bathymetryStoredBytes($BathymetryCacheTable t) => coalesce([
+  t.gridBytes,
+  FunctionCallExpression('octet_length', [t.gridJson]),
+]);
+
 /// Evicts the least recently read 'ok' grids in `bathymetry_cache` until
 /// their stored bytes fit [budgetBytes], and returns how many it deleted.
 ///
@@ -25,18 +35,23 @@ const int _deleteChunk = 500;
 /// hold no grid, cost a few bytes, and save a network round trip each, so
 /// they are left alone.
 ///
-/// Reads only the key, size and stamps, through the covering
-/// `bathymetry_cache_budget_idx`, so never a grid page. A legacy row whose
-/// size predates the `grid_bytes` column counts as zero; the v20 rung
-/// backfills every such row, so none is expected.
+/// Rows last used at or after [keepUsedSince] (epoch millis) are kept too.
+/// The weekly sweep runs without knowing which loads are in flight, and a
+/// grid a load has just written is stamped now, so this keeps the sweep from
+/// evicting it whatever order the stamps fall in.
+///
+/// Reads only the key, size and stamps through `bathymetry_cache_budget_idx`
+/// (see [bathymetryStoredBytes]), so never a grid page.
 Future<int> evictBathymetryCacheOverBudget(
   LocalCacheDatabase db, {
   int budgetBytes = kBathymetryCacheByteBudget,
   Set<String> keepKeys = const {},
+  int? keepUsedSince,
 }) async {
   final t = db.bathymetryCache;
+  final size = bathymetryStoredBytes(t);
   // The common case, well under budget, answered by one scalar.
-  final stored = t.gridBytes.sum();
+  final stored = size.sum();
   final sum =
       await (db.selectOnly(t)
             ..addColumns([stored])
@@ -47,12 +62,12 @@ Future<int> evictBathymetryCacheOverBudget(
 
   final rows =
       await (db.selectOnly(t)
-            ..addColumns([t.cacheKey, t.gridBytes, t.lastUsedAt, t.fetchedAt])
+            ..addColumns([t.cacheKey, size, t.lastUsedAt, t.fetchedAt])
             ..where(t.status.equals('ok')))
           .map(
             (r) => (
               key: r.read(t.cacheKey)!,
-              bytes: r.read(t.gridBytes) ?? 0,
+              bytes: r.read(size) ?? 0,
               usedAt: r.read(t.lastUsedAt) ?? r.read(t.fetchedAt)!,
             ),
           )
@@ -70,6 +85,7 @@ Future<int> evictBathymetryCacheOverBudget(
   for (final row in oldestFirst) {
     if (total <= budgetBytes) break;
     if (keepKeys.contains(row.key)) continue;
+    if (keepUsedSince != null && row.usedAt >= keepUsedSince) continue;
     evict.add(row.key);
     total -= row.bytes;
   }

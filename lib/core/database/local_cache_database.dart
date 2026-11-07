@@ -85,8 +85,10 @@ class BathymetryCache extends Table {
   /// The grid in `bathymetry_grid_codec.dart`'s compact binary form (v20).
   BlobColumn get gridBlob => blob().nullable()();
 
-  /// Stored bytes of whichever grid column the row holds, so the byte
-  /// budget can total the cache without reading a single grid (v20).
+  /// Stored bytes of [gridBlob], so the byte budget can total the cache
+  /// without reading a single grid (v20). Null for a row cached as JSON
+  /// before v20 until its first read converts it; the budget sizes such a
+  /// row from its JSON instead (`bathymetryStoredBytes`).
   IntColumn get gridBytes => integer().nullable()();
 
   /// Epoch millis this row last served a read, the eviction order for the
@@ -690,23 +692,17 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
   );
 
   /// The v20 columns, added wherever a table lacks them. Idempotent, so the
-  /// rung and the open backstop share it. A legacy row's size is backfilled
-  /// once, when `grid_bytes` is added, as UTF-8 bytes: the cast to BLOB
-  /// makes length() count bytes rather than characters.
+  /// rung and the open backstop share it. Legacy rows are not backfilled:
+  /// an UPDATE that grows a record rewrites its whole JSON grid, which on
+  /// the unbounded caches #4258 is about meant seconds of blocked open at
+  /// launch. The budget sizes them from their JSON on demand instead.
   Future<void> _addGridBlobColumns() async {
-    final added = await _addMissingColumns('bathymetry_cache', const {
+    final hasTable = await _addMissingColumns('bathymetry_cache', const {
       'grid_blob': 'BLOB NULL',
       'grid_bytes': 'INTEGER NULL',
       'last_used_at': 'INTEGER NULL',
     });
-    if (added != null) {
-      if (added.contains('grid_bytes')) {
-        await customStatement(
-          'UPDATE bathymetry_cache '
-          'SET grid_bytes = length(CAST(grid_json AS BLOB)) '
-          'WHERE grid_json IS NOT NULL',
-        );
-      }
+    if (hasTable) {
       // The byte budget's columns sit after grid_blob in every record, so a
       // table scan for them walks each grid's overflow pages: the whole
       // cache, after every write. This covering index answers the budget's
@@ -722,23 +718,21 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
     });
   }
 
-  /// Adds each of [columns] (name to SQL type) that [table] lacks and
-  /// returns the names it added, or null when [table] does not exist yet:
+  /// Adds each of [columns] (name to SQL type) that [table] lacks, and
+  /// returns whether [table] exists. A missing table is left alone:
   /// whatever creates it later builds the current shape.
-  Future<Set<String>?> _addMissingColumns(
+  Future<bool> _addMissingColumns(
     String table,
     Map<String, String> columns,
   ) async {
     final existing = (await customSelect(
       "PRAGMA table_info('$table')",
     ).get()).map((c) => c.read<String>('name')).toSet();
-    if (existing.isEmpty) return null;
-    final added = <String>{};
+    if (existing.isEmpty) return false;
     for (final MapEntry(key: name, value: type) in columns.entries) {
       if (existing.contains(name)) continue;
       await customStatement('ALTER TABLE $table ADD COLUMN $name $type');
-      added.add(name);
     }
-    return added;
+    return true;
   }
 }

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:submersion/core/platform/zlib/platform_zlib.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 
 /// The compact, lossless form the terrain caches store a [BathymetryGrid]
@@ -30,6 +31,8 @@ import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 /// The fetch time travels as a float64 rather than an int64 because the web
 /// build's `ByteData` has no 64-bit integer accessors; microseconds stay
 /// exact in a double until the year 2255.
+const _log = LoggerService('BathymetryGridCodec');
+
 abstract final class BathymetryGridCodec {
   static const List<int> _magic = [0x53, 0x42, 0x47, 0x01];
   static const int _rowsAt = 4;
@@ -140,8 +143,12 @@ abstract final class BathymetryGridCodec {
     }
     final cells = rows * cols;
     // DateTime's own range, so a damaged stamp fails here as a format error
-    // rather than as an ArgumentError from the constructor.
-    if (bytes.length < bodyStart || !(fields[5].abs() <= _maxMicros)) {
+    // rather than as an ArgumentError from the constructor. Unlike JSON, the
+    // header can hold NaN or infinity, which no encoded grid does and which
+    // would place a decoded one nowhere.
+    if (bytes.length < bodyStart ||
+        !(fields[5].abs() <= _maxMicros) ||
+        !fields.every((v) => v.isFinite)) {
       throw const FormatException('bathymetry grid header is damaged');
     }
 
@@ -205,8 +212,15 @@ abstract final class BathymetryGridCodec {
         );
       }
       return null;
-    } catch (_) {
+    } catch (e, stackTrace) {
       // Any failure, a cast as much as a parse, means the row is unusable.
+      // Logged because the caller deletes and refetches it: without a line
+      // here, a codec fault would show only as slow terrain and data use.
+      _log.warning(
+        'stored bathymetry grid did not decode',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return null;
     }
   }

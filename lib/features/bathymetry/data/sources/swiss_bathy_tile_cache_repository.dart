@@ -120,16 +120,27 @@ class SwissBathyTileCacheRepository {
       )..where((t) => t.tileKey.equals(tileKey))).go();
       return null;
     }
+    final SwissBathyTileCacheEntry entry;
+    try {
+      entry = SwissBathyTileCacheEntry(
+        grid: grid,
+        sourceDatetime: row.sourceDatetime,
+        checkedAt: row.checkedAt == null
+            ? null
+            : DateTime.fromMillisecondsSinceEpoch(row.checkedAt!),
+        sourceHref: row.sourceHref,
+        referenceLevelMeters: row.referenceLevelMeters,
+      );
+    } on RangeError {
+      // A check stamp past DateTime's range is corruption like a bad grid:
+      // delete so callers retry instead of failing on every read.
+      await (_db.delete(
+        _db.swissBathyTileCache,
+      )..where((t) => t.tileKey.equals(tileKey))).go();
+      return null;
+    }
     if (row.gridBlob == null) await _convertLegacyRow(tileKey, grid);
-    return SwissBathyTileCacheEntry(
-      grid: grid,
-      sourceDatetime: row.sourceDatetime,
-      checkedAt: row.checkedAt == null
-          ? null
-          : DateTime.fromMillisecondsSinceEpoch(row.checkedAt!),
-      sourceHref: row.sourceHref,
-      referenceLevelMeters: row.referenceLevelMeters,
-    );
+    return entry;
   }
 
   /// Rewrites a tile cached as JSON before v20 in the compact form (issue

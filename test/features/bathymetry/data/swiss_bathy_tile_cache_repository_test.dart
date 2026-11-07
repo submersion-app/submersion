@@ -529,6 +529,18 @@ void main() {
       expect(await repo.hasCachedAnswer('2726_1221'), isFalse);
     });
 
+    test('a tile with a damaged check stamp is deleted, not thrown', () async {
+      await repo.writeOk('2726_1221', grid, referenceLevelMeters: 405.92);
+      // Past DateTime's range, which no clock reading can produce.
+      await db
+          .update(db.swissBathyTileCache)
+          .write(
+            const SwissBathyTileCacheCompanion(checkedAt: Value(9e15 ~/ 1)),
+          );
+      expect(await repo.read('2726_1221'), isNull);
+      expect(await repo.hasCachedAnswer('2726_1221'), isFalse);
+    });
+
     test('a gap replacing an ok tile drops its grid', () async {
       await repo.writeOk('2726_1221', grid, referenceLevelMeters: 405.92);
       await repo.writeEmpty('2726_1221', referenceLevelMeters: 405.92);

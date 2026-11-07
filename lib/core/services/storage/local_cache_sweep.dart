@@ -105,7 +105,8 @@ class LocalCacheSweep {
 
   /// Throws on a database failure the caller should see.
   Future<LocalCacheSweepReport> run({DateTime? now}) async {
-    final bathymetryRows = await _sweepBathymetry();
+    final at = now ?? DateTime.now();
+    final bathymetryRows = await _sweepBathymetry(at);
     final trackGeometryRows = await _sweepOrphans(
       localTable: _local.gpsTrackGeometryCache,
       localId: _local.gpsTrackGeometryCache.trackId,
@@ -124,7 +125,6 @@ class LocalCacheSweep {
       libraryTable: _library.media,
       libraryId: _library.media.id,
     );
-    final at = now ?? DateTime.now();
     final reefRows = await ReefCacheDao(_local, now: () => at).deleteExpired();
     final vacuumed = await _vacuumIfWorthIt();
 
@@ -144,7 +144,7 @@ class LocalCacheSweep {
 
   /// Reads only the keys and sizes: the grids themselves run to hundreds of
   /// kilobytes a row.
-  Future<int> _sweepBathymetry() async {
+  Future<int> _sweepBathymetry(DateTime now) async {
     final table = _local.bathymetryCache;
     final keys = await (_local.selectOnly(
       table,
@@ -153,7 +153,15 @@ class LocalCacheSweep {
         .where((key) => !BathymetryRepository.isCurrentKey(key))
         .toList();
     final stale = await _deleteWhereIn(table, table.cacheKey, dead);
-    return stale + await evictBathymetryCacheOverBudget(_local);
+    // Grids used within the last hour are kept: a load may have just
+    // written one, and the sweep cannot see the repository's loads.
+    final evicted = await evictBathymetryCacheOverBudget(
+      _local,
+      keepUsedSince: now
+          .subtract(kBathymetryCacheTouchInterval)
+          .millisecondsSinceEpoch,
+    );
+    return stale + evicted;
   }
 
   Future<int> _sweepOrphans({

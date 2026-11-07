@@ -231,6 +231,35 @@ void main() {
       );
     });
 
+    test('never evicts a grid used within the last hour, which a load may '
+        'have just written', () async {
+      final recent = now
+          .subtract(const Duration(minutes: 5))
+          .millisecondsSinceEpoch;
+      for (final (lat, usedAt) in [(10.0, 1), (20.0, recent)]) {
+        await local
+            .into(local.bathymetryCache)
+            .insert(
+              BathymetryCacheCompanion.insert(
+                cacheKey: BathymetryRepository.keyFor(GeoPoint(lat, 10)),
+                centerLat: lat,
+                centerLon: 10,
+                status: 'ok',
+                gridBytes: const Value(kBathymetryCacheByteBudget + 1),
+                fetchedAt: 0,
+                lastUsedAt: Value(usedAt),
+              ),
+            );
+      }
+
+      final report = await sweep().run(now: now);
+
+      expect(report.bathymetryRows, 1);
+      expect(await gridKeys(), [
+        BathymetryRepository.keyFor(const GeoPoint(20, 10)),
+      ]);
+    });
+
     test('deletes cache rows whose dive, media or track is gone', () async {
       await addDive('dive-live');
       await addMedia('media-live');
