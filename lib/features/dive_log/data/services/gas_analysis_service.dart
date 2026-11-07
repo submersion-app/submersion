@@ -68,6 +68,9 @@ class GasAnalysisService {
     final sortedSwitches = List<GasSwitchWithTank>.from(
       breathingGasSwitches(gasSwitches, tanks),
     )..sort((a, b) => a.gasSwitch.timestamp.compareTo(b.gasSwitch.timestamp));
+    // Every switch may have named a bottle no breathing cylinder shares a
+    // mix with, leaving none to segment at.
+    if (sortedSwitches.isEmpty) return null;
 
     void addStretch({
       required int startTime,

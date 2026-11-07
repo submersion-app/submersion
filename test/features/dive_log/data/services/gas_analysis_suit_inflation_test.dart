@@ -103,6 +103,21 @@ void main() {
     });
   });
 
+  group('gas switch segments', () {
+    test('a switch only to a bottle on no breathing mix gives none', () {
+      // The air bottle's switch has no breathing cylinder to land on
+      // beside EAN32 back gas, so it is dropped and nothing is left.
+      expect(
+        service.calculateGasSwitchSegments(
+          profile: profile,
+          tanks: const [suit, back],
+          gasSwitches: [switchTo(suit, 1200)],
+        ),
+        isNull,
+      );
+    });
+  });
+
   group('rebreather gas use', () {
     CcrDiveUse use(List<DiveTank> tanks) => ccrDiveUse(
       tanks: tanks,

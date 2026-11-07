@@ -64,17 +64,15 @@ List<CcrGasChange> classifyCcrGasChanges(
   final roles = {
     for (final tank in breathingTanks(tanks)) tank.id: ccrCylinderRole(tank),
   };
+  final breathing = breathingGasSwitches(switches, tanks);
   final ordered =
-      breathingGasSwitches(
-        switches,
-        tanks,
-      ).where((s) => roles.containsKey(s.gasSwitch.tankId)).toList()..sort((
-        a,
-        b,
-      ) {
-        final byTime = a.gasSwitch.timestamp.compareTo(b.gasSwitch.timestamp);
-        return byTime != 0 ? byTime : a.gasSwitch.id.compareTo(b.gasSwitch.id);
-      });
+      breathing.where((s) => roles.containsKey(s.gasSwitch.tankId)).toList()
+        ..sort((a, b) {
+          final byTime = a.gasSwitch.timestamp.compareTo(b.gasSwitch.timestamp);
+          return byTime != 0
+              ? byTime
+              : a.gasSwitch.id.compareTo(b.gasSwitch.id);
+        });
 
   var onLoop = true;
   final changes = <CcrGasChange>[];
