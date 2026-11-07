@@ -384,7 +384,7 @@ class BathymetryRepository {
               lastUsedAt: Value(now),
             ),
           );
-      await _enforceBudget(key);
+      await _enforceBudget();
       return grid;
     }
     if (res.definitive) {
@@ -446,14 +446,17 @@ class BathymetryRepository {
     }
   }
 
-  /// Runs the byte budget after a write. Like [_recordHit], a failure here
-  /// is logged rather than allowed to lose the grid just fetched.
-  Future<void> _enforceBudget(String keepKey) async {
+  /// Runs the byte budget after a write. Every key still in [_inFlight] is
+  /// kept, the caller's own included: a concurrent load for another key may
+  /// have written its grid already, and evicting it here would lose it.
+  /// Like [_recordHit], a failure is logged rather than allowed to lose the
+  /// grid just fetched.
+  Future<void> _enforceBudget() async {
     try {
       await evictBathymetryCacheOverBudget(
         _db,
         budgetBytes: _byteBudget,
-        keepKey: keepKey,
+        keepKeys: _inFlight.keys.toSet(),
       );
     } catch (e, stackTrace) {
       _log.warning(

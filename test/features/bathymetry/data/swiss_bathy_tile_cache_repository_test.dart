@@ -537,5 +537,55 @@ void main() {
       expect(row.gridBlob, isNull);
       expect(row.gridJson, isNull);
     });
+
+    // A write started while a read of the legacy row is in flight runs
+    // between the read's SELECT and its conversion UPDATE.
+    group('a write racing a legacy conversion wins', () {
+      final fresh = BathymetryGrid(
+        originLat: grid.originLat,
+        originLon: grid.originLon,
+        cellSizeLatDeg: grid.cellSizeLatDeg,
+        cellSizeLonDeg: grid.cellSizeLonDeg,
+        rows: 2,
+        cols: 2,
+        depthsMeters: const [9.0, 9.0, 9.0, 9.0],
+        sourceId: grid.sourceId,
+        resolutionMeters: grid.resolutionMeters,
+        fetchedAt: DateTime.utc(2026, 6, 1),
+      );
+
+      setUp(
+        () => db
+            .into(db.swissBathyTileCache)
+            .insert(
+              SwissBathyTileCacheCompanion.insert(
+                tileKey: '2726_1221',
+                status: 'ok',
+                gridJson: Value(jsonEncode(grid.toJson())),
+                fetchedAt: 1,
+              ),
+            ),
+      );
+
+      test('a new grid is not overwritten with the stale one', () async {
+        final reading = repo.read('2726_1221');
+        await repo.writeOk('2726_1221', fresh, referenceLevelMeters: 405.92);
+        await reading;
+        final row = await db.select(db.swissBathyTileCache).getSingle();
+        expect(
+          BathymetryGridCodec.decode(row.gridBlob!).depthsMeters,
+          fresh.depthsMeters,
+        );
+      });
+
+      test('a gap is not refilled with the stale grid', () async {
+        final reading = repo.read('2726_1221');
+        await repo.writeEmpty('2726_1221', referenceLevelMeters: 405.92);
+        await reading;
+        final row = await db.select(db.swissBathyTileCache).getSingle();
+        expect(row.status, SwissBathyTileCacheRepository.gapStatus);
+        expect(row.gridBlob, isNull);
+      });
+    });
   });
 }

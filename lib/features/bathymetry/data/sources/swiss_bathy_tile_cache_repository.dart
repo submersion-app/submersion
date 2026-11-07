@@ -135,16 +135,25 @@ class SwissBathyTileCacheRepository {
   /// Rewrites a tile cached as JSON before v20 in the compact form (issue
   /// #4258), touching nothing else in the row. A failure is logged, not
   /// thrown: the tile is already decoded, and the next read tries again.
+  ///
+  /// Compare-and-set: a write that landed after [read]'s SELECT (a fresh
+  /// grid, or a gap) leaves the row no longer legacy, and the update then
+  /// matches nothing instead of restoring the stale grid over it.
   Future<void> _convertLegacyRow(String tileKey, BathymetryGrid grid) async {
     try {
-      await (_db.update(
-        _db.swissBathyTileCache,
-      )..where((t) => t.tileKey.equals(tileKey))).write(
-        SwissBathyTileCacheCompanion(
-          gridJson: const Value(null),
-          gridBlob: Value(BathymetryGridCodec.encode(grid)),
-        ),
-      );
+      await (_db.update(_db.swissBathyTileCache)..where(
+            (t) =>
+                t.tileKey.equals(tileKey) &
+                t.status.equals('ok') &
+                t.gridBlob.isNull() &
+                t.gridJson.isNotNull(),
+          ))
+          .write(
+            SwissBathyTileCacheCompanion(
+              gridJson: const Value(null),
+              gridBlob: Value(BathymetryGridCodec.encode(grid)),
+            ),
+          );
     } catch (e, stackTrace) {
       _log.warning(
         'converting tile $tileKey failed',

@@ -103,13 +103,13 @@ void main() {
       expect(await keys(), {'read-recently', 'fetched-at-40'});
     });
 
-    test('never evicts the kept key, even when it is the oldest', () async {
+    test('never evicts a kept key, even when it is the oldest', () async {
       await putRow('kept', bytes: 80, lastUsedAt: 1);
       await putRow('other', bytes: 80, lastUsedAt: 2);
       await evictBathymetryCacheOverBudget(
         db,
         budgetBytes: 100,
-        keepKey: 'kept',
+        keepKeys: {'kept'},
       );
       expect(await keys(), {'kept'});
     });
@@ -120,7 +120,7 @@ void main() {
         await evictBathymetryCacheOverBudget(
           db,
           budgetBytes: 100,
-          keepKey: 'huge',
+          keepKeys: {'huge'},
         ),
         0,
       );
@@ -250,6 +250,16 @@ void main() {
       const budget = 2000 + 50; // room for both old rows, not a third grid
       await repo(_CountingSource(), byteBudget: budget).getGrid(bonaire);
       expect(await keys(), {'fresh', BathymetryRepository.keyFor(bonaire)});
+    });
+
+    test('a write never evicts a grid another load just wrote', () async {
+      final r = repo(_CountingSource(), byteBudget: 10);
+      const cozumel = GeoPoint(20.42, -86.92);
+      await Future.wait([r.getGrid(bonaire), r.getGrid(cozumel)]);
+      expect(await keys(), {
+        BathymetryRepository.keyFor(bonaire),
+        BathymetryRepository.keyFor(cozumel),
+      });
     });
 
     test('a failed bookkeeping write still serves the cached grid', () async {

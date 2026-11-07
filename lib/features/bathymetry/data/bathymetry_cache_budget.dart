@@ -18,9 +18,12 @@ const int _deleteChunk = 500;
 /// Evicts the least recently read 'ok' grids in `bathymetry_cache` until
 /// their stored bytes fit [budgetBytes], and returns how many it deleted.
 ///
-/// [keepKey] is never evicted: it is the grid the caller just wrote, which
-/// the scene is about to draw. 'empty' rows hold no grid, cost a few bytes,
-/// and save a network round trip each, so they are left alone.
+/// [keepKeys] are never evicted: the grids the caller has just written or
+/// is still loading, which a scene is about to draw. A load running for
+/// another key may have written a row this pass would otherwise evict, so
+/// the caller passes every key in flight, not only its own. 'empty' rows
+/// hold no grid, cost a few bytes, and save a network round trip each, so
+/// they are left alone.
 ///
 /// Reads only the key, size and stamps, through the covering
 /// `bathymetry_cache_budget_idx`, so never a grid page. A legacy row whose
@@ -29,7 +32,7 @@ const int _deleteChunk = 500;
 Future<int> evictBathymetryCacheOverBudget(
   LocalCacheDatabase db, {
   int budgetBytes = kBathymetryCacheByteBudget,
-  String? keepKey,
+  Set<String> keepKeys = const {},
 }) async {
   final t = db.bathymetryCache;
   // The common case, well under budget, answered by one scalar.
@@ -66,7 +69,7 @@ Future<int> evictBathymetryCacheOverBudget(
   final evict = <String>[];
   for (final row in oldestFirst) {
     if (total <= budgetBytes) break;
-    if (row.key == keepKey) continue;
+    if (keepKeys.contains(row.key)) continue;
     evict.add(row.key);
     total -= row.bytes;
   }
