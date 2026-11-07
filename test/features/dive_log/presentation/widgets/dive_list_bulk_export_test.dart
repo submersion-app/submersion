@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dive_chunk.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
@@ -63,6 +64,8 @@ class _RecordingExportService implements ExportService {
   List<DiveSite>? uddfSites;
   UddfDivesExtras? uddfExtras;
   UddfExportOptions? uddfOptions;
+  List<Dive>? uddfDives;
+  UddfDiveChunkLoader? uddfLoader;
 
   /// Return value for every `save*ToFile`; null simulates a cancelled panel.
   String? savePath = '/tmp/export_out';
@@ -187,10 +190,13 @@ class _RecordingExportService implements ExportService {
     CertificationCatalog? certificationCatalog,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
+    UddfDiveChunkLoader? loadDiveChunk,
   }) async {
     uddfSites = sites;
     uddfExtras = extras;
     uddfOptions = options;
+    uddfDives = dives;
+    uddfLoader = loadDiveChunk;
     return _share('uddf');
   }
 
@@ -203,10 +209,13 @@ class _RecordingExportService implements ExportService {
     CertificationCatalog? certificationCatalog,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
+    UddfDiveChunkLoader? loadDiveChunk,
   }) async {
     uddfSites = sites;
     uddfExtras = extras;
     uddfOptions = options;
+    uddfDives = dives;
+    uddfLoader = loadDiveChunk;
     return _save('uddf');
   }
 
@@ -238,6 +247,17 @@ class _FakeDiveRepository implements DiveRepository {
       dives.where((d) => ids.contains(d.id)).toList();
 
   @override
+  Future<List<Dive>> getDivesByIdsWithoutSamples(
+    List<String> ids, {
+    int chunkSize = 50,
+  }) async {
+    withoutSamplesReads++;
+    return dives.where((d) => ids.contains(d.id)).toList();
+  }
+
+  int withoutSamplesReads = 0;
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -265,11 +285,16 @@ Finder _tile(String id) =>
 void main() {
   late _RecordingExportService exportService;
   late List<Dive> dives;
+  // Made on first use, so a test can change [dives] before it pumps.
+  _FakeDiveRepository? fakeRepository;
+  _FakeDiveRepository repository() =>
+      fakeRepository ??= _FakeDiveRepository(dives);
   const extrasSentinel = UddfDivesExtras(diveBuddies: {'d1': []});
   final extrasCalls = <(List<String>, UddfExportOptions)>[];
 
   setUp(() {
     exportService = _RecordingExportService();
+    fakeRepository = null;
     extrasCalls.clear();
     dives = [
       _dive(
@@ -299,7 +324,7 @@ void main() {
           paginatedDiveListProvider.overrideWith(
             (ref) => _MockPaginatedNotifier(summaries),
           ),
-          diveRepositoryProvider.overrideWithValue(_FakeDiveRepository(dives)),
+          diveRepositoryProvider.overrideWithValue(repository()),
           exportServiceProvider.overrideWithValue(exportService),
           // These tests have no database. The real fetch would reach the
           // repository, so the export would never be issued.
@@ -579,6 +604,24 @@ void main() {
     expect(exportService.uddfSites?.map((s) => s.id), ['s1']);
   });
 
+  for (final destination in ['Share', 'Save to File']) {
+    testWidgets('bulk UDDF export ($destination) hands over the dives without '
+        'their samples, and a loader for each run', (tester) async {
+      // Issue #4249: every selected dive's samples were read and held before
+      // the file was built. Now the writer reads them a run at a time.
+      await pumpAndOpenExportSheet(tester);
+      await chooseFormatAndDestination(tester, 'UDDF', destination);
+
+      expect(repository().withoutSamplesReads, 1);
+      expect(exportService.uddfDives?.map((d) => d.id), ['d1', 'd2']);
+      expect(
+        exportService.uddfDives?.map((d) => d.profile),
+        everyElement(isEmpty),
+      );
+      expect(exportService.uddfLoader, isNotNull);
+    });
+  }
+
   testWidgets('bulk UDDF export passes the selected dives\' sites', (
     tester,
   ) async {
@@ -673,7 +716,7 @@ void main() {
           paginatedDiveListProvider.overrideWith(
             (ref) => _MockPaginatedNotifier(summaries),
           ),
-          diveRepositoryProvider.overrideWithValue(_FakeDiveRepository(dives)),
+          diveRepositoryProvider.overrideWithValue(repository()),
           exportServiceProvider.overrideWithValue(exportService),
           // These tests have no database. The real fetch would reach the
           // repository, so the export would never be issued.
