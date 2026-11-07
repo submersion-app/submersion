@@ -21,9 +21,9 @@ class FesGridSample {
 /// Reads the bundled FES2022 grid: the 0.1-degree coastal tiles first, the
 /// 1-degree global layer when no coastal corner has data, else nothing.
 /// Tiles load on demand into a small least-recently-used cache, each
-/// unpacked from its bundled file as it loads. Every
-/// failure (missing or malformed file) degrades to the next layer and is
-/// logged; nothing throws to the caller.
+/// unpacked from its bundled file as it loads. Every failure (missing or
+/// malformed file) degrades to the next layer and is logged; nothing throws
+/// to the caller.
 class FesGridReader {
   static const bundledRoot = 'assets/data/tide/fes';
 

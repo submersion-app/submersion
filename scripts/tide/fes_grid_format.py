@@ -163,10 +163,14 @@ def _cells_view(data, offset, n, count):
                          offset=offset).reshape(n, count, 2)
 
 
+def _check_header(data, magic, version, what):
+    if data[:4] != magic or struct.unpack_from("<H", data, 4)[0] != version:
+        raise ValueError(f"not a version {version} {what}")
+
+
 def pack_tile(decoded):
     """Decoded tile bytes (encode_tile's output) to the packed tile."""
-    if decoded[:4] != TILE_MAGIC:
-        raise ValueError("not a decoded FES tile")
+    _check_header(decoded, TILE_MAGIC, DECODED_VERSION, "decoded FES tile")
     _, _, _, rows, cols, count = struct.unpack_from("<HhhHHH", decoded, 4)
     bitmap_len = (rows * cols + 7) // 8
     bitmap = decoded[16:16 + bitmap_len]
@@ -179,8 +183,7 @@ def pack_tile(decoded):
 
 def unpack_tile(packed):
     """Inverse of pack_tile: the decoded tile bytes."""
-    if packed[:4] != PACKED_TILE_MAGIC:
-        raise ValueError("not a packed FES tile")
+    _check_header(packed, PACKED_TILE_MAGIC, PACKED_VERSION, "packed FES tile")
     tile_row, tile_col, rows, cols, count = struct.unpack_from("<hhHHH", packed, 6)
     body = zlib.decompress(packed[16:])
     bitmap_len = (rows * cols + 7) // 8
@@ -197,8 +200,8 @@ def unpack_tile(packed):
 
 def pack_global(decoded):
     """Decoded global layer bytes (encode_global's output) to the packed one."""
-    if decoded[:4] != GLOBAL_MAGIC:
-        raise ValueError("not a decoded FES global layer")
+    _check_header(decoded, GLOBAL_MAGIC, DECODED_VERSION,
+                  "decoded FES global layer")
     _, rows, cols, count = struct.unpack_from("<HHHH", decoded, 4)
     cells = _cells_view(decoded, 12, rows * cols, count)
     header = PACKED_GLOBAL_MAGIC + struct.pack("<HHHH", PACKED_VERSION, rows,
@@ -208,8 +211,8 @@ def pack_global(decoded):
 
 def unpack_global(packed):
     """Inverse of pack_global: the decoded global layer bytes."""
-    if packed[:4] != PACKED_GLOBAL_MAGIC:
-        raise ValueError("not a packed FES global layer")
+    _check_header(packed, PACKED_GLOBAL_MAGIC, PACKED_VERSION,
+                  "packed FES global layer")
     _, rows, cols, count = struct.unpack_from("<HHHH", packed, 4)
     cells = _unpack_planes(zlib.decompress(packed[12:]), rows * cols, count)
     return (GLOBAL_MAGIC + struct.pack("<HHHH", DECODED_VERSION, rows, cols, count)
