@@ -29,9 +29,12 @@ extension DiveGearSets on DiveRepository {
 
   /// Adds every item of [setIds] to each dive, expanded as
   /// [bulkAddEquipment] expands, each row tagged with the set it came
-  /// through. One expansion per dive, so on overlap the first set wins,
-  /// and a row already from another set keeps it. Writes and bumps only the
-  /// dives whose rows change, and returns their ids. No notify/txn.
+  /// through. The tagging is `GearExpander`'s, as everywhere gear goes on:
+  /// one expansion per dive, so on overlap the first set wins; a top-level
+  /// row already from another set keeps it; a row with no set (added by
+  /// hand) takes this one; and a row an added assembly adopts as its part
+  /// takes the assembly's set. Writes and bumps only the dives whose rows
+  /// change, and returns their ids. No notify/txn.
   Future<List<String>> bulkAddEquipmentSets(
     List<String> diveIds,
     List<String> setIds,
@@ -61,10 +64,11 @@ extension DiveGearSets on DiveRepository {
     );
   }
 
-  /// Removes from each dive every row one of [setIds] brought, with what is
-  /// attached through it. Gear added any other way stays, even when a set
-  /// holds it. Writes and bumps only the dives whose rows change, and
-  /// returns their ids. No notify/txn.
+  /// Removes from each dive every row tagged with one of [setIds], with what
+  /// is attached through it. A row with no set, or another set, stays, even
+  /// when one of [setIds] holds the item; a hand-added row a set later took
+  /// on carries that set, and goes with it. Writes and bumps only the dives
+  /// whose rows change, and returns their ids. No notify/txn.
   Future<List<String>> bulkRemoveEquipmentSets(
     List<String> diveIds,
     List<String> setIds,

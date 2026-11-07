@@ -182,6 +182,20 @@ void main() {
       expect(await gear(), ['bcd:-', 'reg:-']);
     });
 
+    test('puts gear back untagged when its set was deleted since', () async {
+      await db.customStatement(
+        'INSERT INTO dive_equipment (dive_id, equipment_id, via_set_id) '
+        "VALUES ('d40', 'bcd', 'warm'), ('d40', 'reg', 'warm')",
+      );
+      final result = await runRule(sets(MembershipMode.remove, ['warm']));
+      await db.customStatement("DELETE FROM equipment_sets WHERE id = 'warm'");
+
+      final undone = await undo.undo(result.runId!);
+
+      expect(undone.restoredTargets, 1);
+      expect(await gear(), ['bcd:-', 'reg:-']);
+    });
+
     test('puts a removed set back with its provenance', () async {
       await db.customStatement(
         'INSERT INTO dive_equipment (dive_id, equipment_id, via_set_id) '

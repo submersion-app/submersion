@@ -4878,32 +4878,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   /// Stages a set to come off every selected dive with the gear it brought
   /// (#4284). Nothing is written until the edit is applied.
-  void _bulkRemoveEquipmentSet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, scrollController) => EquipmentSetPickerSheet(
-          scrollController: scrollController,
-          title: context.l10n.diveLog_bulkEdit_removeSetTitle,
-          onSetSelected: (set, _) {
-            setState(() {
-              if (_equipmentSetRemovals.every((s) => s.id != set.id)) {
-                _equipmentSetRemovals = [
-                  ..._equipmentSetRemovals,
-                  (id: set.id, name: set.name),
-                ];
-              }
-            });
-            Navigator.of(context).pop();
-          },
-        ),
-      ),
+  Future<void> _bulkRemoveEquipmentSet() async {
+    final set = await pickEquipmentSetToRemove(context);
+    if (set == null || !mounted) return;
+    setState(
+      () => _equipmentSetRemovals = withStagedSet(_equipmentSetRemovals, set),
     );
   }
 

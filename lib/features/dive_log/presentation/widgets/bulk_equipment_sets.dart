@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One equipment set staged in a bulk edit (#4284).
@@ -39,6 +40,33 @@ List<EquipmentOp> equipmentAddOps(
       ),
   ];
 }
+
+/// [staged] with [set] added, unless it is already there.
+List<BulkStagedSet> withStagedSet(
+  List<BulkStagedSet> staged,
+  BulkStagedSet set,
+) => staged.any((s) => s.id == set.id) ? staged : [...staged, set];
+
+/// The set picker, titled for taking a set off: the set picked, or null
+/// when the diver backs out.
+Future<BulkStagedSet?> pickEquipmentSetToRemove(BuildContext context) =>
+    showModalBottomSheet<BulkStagedSet>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) => EquipmentSetPickerSheet(
+          scrollController: scrollController,
+          title: context.l10n.diveLog_bulkEdit_removeSetTitle,
+          onSetSelected: (set, _) =>
+              Navigator.of(context).pop((id: set.id, name: set.name)),
+        ),
+      ),
+    );
 
 /// The bulk equipment group's "Remove set" row: the button that stages a
 /// set, and the staged sets as chips, each removable again. A staged set

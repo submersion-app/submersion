@@ -289,7 +289,9 @@ its items are added to the dive, and you can still add or remove items after.
 
 Gear added through a set remembers the set it came from. That is what
 removing a set goes by: it takes off what the set brought, with any parts
-attached to it, and leaves gear you added by hand.
+attached to it, and leaves the rest. An item you added by hand counts as
+the set's once the set is used on that dive, so removing the set takes it
+too.
 
 ### Sets on many dives at once
 

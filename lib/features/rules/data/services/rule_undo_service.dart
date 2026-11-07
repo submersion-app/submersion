@@ -454,10 +454,24 @@ class RuleUndoService {
         await _dives.replaceDiveTypes(diveId, types);
       // A set action is recorded as a gear change, so only gear lands here.
       case DiveCollection.equipment || DiveCollection.equipmentSets:
-        await _dives.replaceGear(
-          diveId,
-          _restoredGear(before, current, removeNow, addBack, retagged),
+        final rows = _restoredGear(
+          before,
+          current,
+          removeNow,
+          addBack,
+          retagged,
         );
+        // A set deleted since the run cannot be named again: the row comes
+        // back untagged, as the delete left every other row of that set.
+        final live = await existingRowIds(_db, _db.equipmentSets, [
+          for (final r in rows) ?r.viaSetId,
+        ]);
+        await _dives.replaceGear(diveId, [
+          for (final r in rows)
+            r.viaSetId == null || live.contains(r.viaSetId)
+                ? r
+                : r.copyWith(clearViaSetId: true),
+        ]);
       case DiveCollection.buddies:
         if (removeNow.isNotEmpty) {
           await _dives.writeMembership(
