@@ -81,13 +81,16 @@ class CombineModeSelector extends StatelessWidget {
 }
 
 /// The clock note and the Best fit / Align starts toggle, shown above the
-/// consolidation preview when a secondary does not overlap the primary.
+/// consolidation preview when a secondary's clock is not trusted: it does
+/// not overlap the primary, or its profile fits the primary's at another
+/// time than its clock gives (#4296).
 class ConsolidationAlignmentControls extends StatelessWidget {
   const ConsolidationAlignmentControls({
     super.key,
     required this.alignment,
     required this.onChanged,
     this.showFallbackNote = false,
+    this.recordsOverlap = false,
   });
 
   final ConsolidationAlignment alignment;
@@ -95,6 +98,10 @@ class ConsolidationAlignmentControls extends StatelessWidget {
 
   /// Whether best fit had no profile to match for some record.
   final bool showFallbackNote;
+
+  /// Whether every realigned record overlaps the primary in time, so the
+  /// clock note explains the mismatch by the profiles instead of by the gap.
+  final bool recordsOverlap;
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
@@ -105,13 +112,16 @@ class ConsolidationAlignmentControls extends StatelessWidget {
   Widget _build(BuildContext context, {required bool compact}) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
+    final clockNote = recordsOverlap
+        ? l10n.diveLog_consolidate_clockNoteOverlap
+        : l10n.diveLog_consolidate_clockNote;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (compact)
           // One short line; the full explanation is a tap away.
           Tooltip(
-            message: l10n.diveLog_consolidate_clockNote,
+            message: clockNote,
             triggerMode: TooltipTriggerMode.tap,
             showDuration: const Duration(seconds: 8),
             child: _Note(
@@ -120,7 +130,7 @@ class ConsolidationAlignmentControls extends StatelessWidget {
             ),
           )
         else ...[
-          _Note(icon: Icons.schedule, text: l10n.diveLog_consolidate_clockNote),
+          _Note(icon: Icons.schedule, text: clockNote),
           const SizedBox(height: 12),
           Text(
             l10n.diveLog_consolidate_alignmentLabel,

@@ -584,6 +584,11 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
                       showFallbackNote:
                           _alignment == ConsolidationAlignment.bestFit &&
                           plan.alignments.values.any((a) => a.usedFallback),
+                      // A clock wrong by less than the dive lasted still
+                      // overlaps, so "they don't overlap" would be false.
+                      recordsOverlap:
+                          ready.clockMismatchIds.length ==
+                          ready.realignedIds.length,
                     ),
                   ],
                   if (hasProfileData) ...[

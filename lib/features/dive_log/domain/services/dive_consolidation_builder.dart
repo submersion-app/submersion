@@ -29,16 +29,25 @@ class ConsolidationReady extends DiveConsolidationClassification {
     required this.primary,
     required this.secondaries,
     this.realignedIds = const {},
+    this.clockMismatchIds = const {},
   });
   final Dive primary;
 
   /// Chronological by entry time; excludes [primary].
   final List<Dive> secondaries;
 
-  /// Secondaries that do not overlap [primary] in time, accepted only because
-  /// an alignment mode was given. Their clocks are not trusted, so `build`
-  /// places them by that mode instead of by entry time (#552).
+  /// Secondaries whose clocks are not trusted, so `build` places them by the
+  /// alignment mode (best fit without one) instead of by entry time: those
+  /// that do not overlap [primary] in time, accepted only because a mode was
+  /// given (#552), and every one in [clockMismatchIds].
   final Set<String> realignedIds;
+
+  /// The secondaries in [realignedIds] that do overlap [primary] in time,
+  /// but whose depth trace fits the primary's at an offset more than
+  /// [DiveConsolidationBuilder.clockTolerance] away from the one their entry
+  /// times give. A clock wrong by less than the dive lasted still overlaps,
+  /// so overlap alone does not show the clocks agree (#4296).
+  final Set<String> clockMismatchIds;
 }
 
 /// Everything the consolidation service needs to persist the merge.
@@ -78,6 +87,11 @@ class DiveConsolidationBuilder {
   static const double _gasTolerancePct = 0.5;
   static const double _pressureToleranceBar = 5.0;
 
+  /// How far a strong profile fit may sit from the entry-time offset before
+  /// the two computers' clocks are judged to disagree. Wide enough for clocks
+  /// set by hand a few minutes apart.
+  static const Duration clockTolerance = Duration(minutes: 5);
+
   /// The segment's occupied span: declared runtime or last profile sample,
   /// whichever is later (same rule as DiveMergeBuilder._segmentExtent).
   Duration _extent(Dive dive) {
@@ -116,9 +130,27 @@ class DiveConsolidationBuilder {
     return aStart.isBefore(bEnd) && bStart.isBefore(aEnd);
   }
 
+  /// Whether [secondary], which overlaps [primary] in time, is the same dive
+  /// on a computer whose clock is wrong: its depth trace fits the primary's
+  /// strongly, at an offset more than [clockTolerance] away from the one the
+  /// entry times give. A weak fit, or none, leaves the clocks trusted.
+  bool _clockDisagrees(Dive primary, Dive secondary) {
+    final fit = const ProfileAligner().align(
+      primary.profile,
+      secondary.profile,
+    );
+    if (!fit.isStrongMatch) return false;
+    final byClock = secondary.effectiveEntryTime
+        .difference(primary.effectiveEntryTime)
+        .inSeconds;
+    return (fit.offsetSeconds - byClock).abs() > clockTolerance.inSeconds;
+  }
+
   /// [alignment] null rejects a secondary that does not overlap the primary
   /// in time. With a mode, that secondary is accepted and listed in
-  /// [ConsolidationReady.realignedIds] for `build` to align.
+  /// [ConsolidationReady.realignedIds] for `build` to align. An overlapping
+  /// secondary whose clock disagrees with the primary's is listed there with
+  /// or without a mode, and in [ConsolidationReady.clockMismatchIds].
   DiveConsolidationClassification classify(
     List<Dive> dives, {
     String? primaryDiveId,
@@ -164,8 +196,15 @@ class DiveConsolidationBuilder {
         if (d.id != primary.id) d,
     ];
     final realigned = <String>{};
+    final clockMismatch = <String>{};
     for (final s in secondaries) {
-      if (_overlaps(primary, s)) continue;
+      if (_overlaps(primary, s)) {
+        if (_clockDisagrees(primary, s)) {
+          realigned.add(s.id);
+          clockMismatch.add(s.id);
+        }
+        continue;
+      }
       if (alignment == null) {
         return const ConsolidationInvalid(
           ConsolidationInvalidReason.notOverlapping,
@@ -177,6 +216,7 @@ class DiveConsolidationBuilder {
       primary: primary,
       secondaries: secondaries,
       realignedIds: realigned,
+      clockMismatchIds: clockMismatch,
     );
   }
 
@@ -251,14 +291,19 @@ class DiveConsolidationBuilder {
     final primary = classification.primary;
     final secondaries = classification.secondaries;
 
-    // A realigned secondary's clock disagrees with the primary's by more
-    // than the dive lasted, so its entry time would reproduce that error.
-    // The best-fit score is kept under "starts" too, so the same-dive hint
-    // does not change when the user flips the toggle.
+    // A realigned secondary's clock disagrees with the primary's, so its
+    // entry time would reproduce that error. The best-fit score is kept
+    // under "starts" too, so the same-dive hint does not change when the user
+    // flips the toggle. Only a clock mismatch is realigned without a mode,
+    // and its fit is a strong one, so best fit is the default.
     final alignments = <String, ProfileAlignmentResult>{
       for (final s in secondaries)
         if (classification.realignedIds.contains(s.id))
-          s.id: _aligned(primary, s, alignment!),
+          s.id: _aligned(
+            primary,
+            s,
+            alignment ?? ConsolidationAlignment.bestFit,
+          ),
     };
     final offsets = <String, int>{
       primary.id: 0,

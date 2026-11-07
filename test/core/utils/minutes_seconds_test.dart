@@ -32,6 +32,12 @@ void main() {
       expect(formatMinutesSeconds(0), '0:00');
     });
 
+    test('signs a time before the start instead of wrapping it (#4296)', () {
+      expect(formatMinutesSeconds(-65), '-1:05');
+      expect(formatMinutesSeconds(-5), '-0:05');
+      expect(formatMinutesSeconds(-600), '-10:00');
+    });
+
     test('is the shape a gas switch formats its own time in', () {
       final gasSwitch = GasSwitch(
         id: 'gs',
