@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:window_manager/window_manager.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/router/app_router.dart';
@@ -108,11 +107,4 @@ class AppWriteConfirmer implements WriteConfirmer {
 
 /// Brings the app's window to the front so the diver sees the dialog.
 @visibleForTesting
-Future<void> raiseAppWindow() async {
-  if (!hasDesktopWindow()) return;
-  // The macOS plugin finds the window only here; a window call before it
-  // unwraps nil in native code and the app quits (#4298).
-  await windowManager.ensureInitialized();
-  await windowManager.show();
-  await windowManager.focus();
-}
+Future<void> raiseAppWindow() => revealDesktopWindow(focus: true);

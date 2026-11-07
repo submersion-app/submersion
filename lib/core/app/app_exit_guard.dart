@@ -7,6 +7,7 @@ import 'package:window_manager/window_manager.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/window_fullscreen.dart';
 
 final _log = LoggerService.forClass(AppExitGuard);
 
@@ -63,19 +64,7 @@ class AppExitGuard {
   static Future<void> _exitThroughThePlatform() =>
       ServicesBinding.instance.exitApplication(AppExitType.cancelable);
 
-  static Future<void> _revealThroughThePlugin() async {
-    final desktop =
-        !kIsWeb &&
-        const {
-          TargetPlatform.macOS,
-          TargetPlatform.windows,
-          TargetPlatform.linux,
-        }.contains(defaultTargetPlatform);
-    if (!desktop) return;
-    await windowManager.ensureInitialized();
-    if (await windowManager.isMinimized()) await windowManager.restore();
-    await windowManager.show();
-  }
+  static Future<void> _revealThroughThePlugin() => revealDesktopWindow();
 
   Future<void> Function(bool prevent) _platformPreventWindowClose() {
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.macOS) {
