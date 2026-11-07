@@ -39,10 +39,12 @@ abstract final class BathymetryGridCodec {
   static const int _fixedHeaderBytes = _sourceIdLengthAt + 2;
   static const double _maxMicros = 8.64e18;
 
-  /// More cells than any shipped source produces (a superFine patch is
-  /// capped at 600 x 600, a swissBATHY3D tile is 1 km at its native ~2 m).
-  /// Bounds what a damaged header can make [decode] allocate.
-  static const int maxCells = 4096 * 4096;
+  /// Bounds what a damaged header can make [decode] allocate: a 32 MiB body
+  /// and the depth list it fills. Production grids sit far below it (a
+  /// superFine patch is capped at 600 x 600, a swissBATHY3D tile is 1 km at
+  /// its native ~2 m), while a 1 km tile at 0.5 m would still fit, so a
+  /// finer source release cannot leave tiles uncacheable and re-downloaded.
+  static const int maxCells = 2048 * 2048;
 
   /// Whether [bytes] starts with this codec's magic. Cheap: reads 4 bytes.
   static bool isEncoded(List<int> bytes) {
@@ -160,10 +162,15 @@ abstract final class BathymetryGridCodec {
       throw const FormatException('bathymetry grid body is truncated');
     }
 
-    final values = ByteData.sublistView(_unshuffle(shuffled, cells));
+    // Gathered straight from the byte planes, so decoding never holds a
+    // second body-sized buffer.
+    final scratch = ByteData(8);
     final depths = List<double?>.filled(cells, null);
     for (var i = 0; i < cells; i++) {
-      final v = values.getFloat64(i * 8, Endian.little);
+      for (var k = 0; k < 8; k++) {
+        scratch.setUint8(k, shuffled[k * cells + i]);
+      }
+      final v = scratch.getFloat64(0, Endian.little);
       if (!v.isNaN) depths[i] = v;
     }
     return BathymetryGrid(
@@ -209,16 +216,6 @@ abstract final class BathymetryGridCodec {
     for (var i = 0; i < count; i++) {
       for (var k = 0; k < 8; k++) {
         out[k * count + i] = interleaved[i * 8 + k];
-      }
-    }
-    return out;
-  }
-
-  static Uint8List _unshuffle(Uint8List planes, int count) {
-    final out = Uint8List(planes.length);
-    for (var i = 0; i < count; i++) {
-      for (var k = 0; k < 8; k++) {
-        out[i * 8 + k] = planes[k * count + i];
       }
     }
     return out;
