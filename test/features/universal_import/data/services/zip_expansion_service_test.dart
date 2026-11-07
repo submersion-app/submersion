@@ -21,6 +21,17 @@ List<int> _zxu() =>
             'ZDT|1|1|18.29|20240612093600|0.000000|0|\n')
         .codeUnits;
 
+/// A valid one-member ZIP whose end-of-central-directory record points the
+/// directory offset (bytes 16-19 of the trailing 22-byte record) past the end
+/// of the data.
+Uint8List _zipWithDirectoryPastEnd() {
+  final bytes = _buildZip({'dive.zxu': _zxu()});
+  final eocd = bytes.length - 22;
+  return bytes
+    ..[eocd + 16] = 0xFF
+    ..[eocd + 17] = 0xFF;
+}
+
 void main() {
   const service = ZipExpansionService();
   late Directory tmp;
@@ -346,7 +357,72 @@ void main() {
     });
   });
 
+  group('expandZipFile', () {
+    test('reads the signature itself when no header is given', () async {
+      final zipPath = await writeZip('no_header.zip', {
+        'dive.zxu': _zxu(),
+        'dive_pic.jpg': [7],
+      });
+
+      final expansion = await service.expandZipFile(zipPath);
+
+      expect(expansion.filePaths, hasLength(1));
+      expect(expansion.photoPathsByBaseName['dive'], hasLength(1));
+    });
+
+    test('reports a directory offset past the end as corrupt', () async {
+      final bad = p.join(tmp.path, 'stub.zip');
+      await File(bad).writeAsBytes(_zipWithDirectoryPastEnd());
+
+      await expectLater(
+        service.expandZipFile(bad),
+        throwsA(
+          isA<FormatException>().having(
+            (e) => e.message,
+            'message',
+            contains('stub.zip'),
+          ),
+        ),
+      );
+    });
+
+    test('renames members whose basenames collide', () async {
+      final zipPath = await writeZip('collide.zip', {
+        'a/dive.zxu': _zxu(),
+        'b/dive.zxu': _zxu(),
+      });
+
+      final expansion = await service.expandZipFile(zipPath);
+
+      expect(
+        expansion.filePaths.map(p.basename),
+        unorderedEquals(['dive.zxu', 'dive_1.zxu']),
+      );
+    });
+  });
+
+  test('expandAll passes an unreadable path through unchanged', () async {
+    final missing = p.join(tmp.path, 'missing.zip');
+    final expansion = await service.expandAll([missing]);
+    expect(expansion.filePaths, [missing]);
+  });
+
   group('expandZipBytes', () {
+    test('wraps a decoder failure in a FormatException', () async {
+      // The in-memory decoder throws a RangeError on this input; callers
+      // must see the documented FormatException instead.
+      await expectLater(
+        service.expandZipBytes(_zipWithDirectoryPastEnd(), 'stub.zip'),
+        throwsA(
+          isA<FormatException>().having(
+            (e) => e.message,
+            'message',
+            allOf(contains('stub.zip'), contains('RangeError')),
+          ),
+        ),
+      );
+    });
+
     test('expands raw zip bytes (share-intent path)', () async {
       final bytes = _buildZip({
         'dive.zxu': _zxu(),
