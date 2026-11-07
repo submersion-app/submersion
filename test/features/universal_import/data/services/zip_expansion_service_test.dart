@@ -301,12 +301,41 @@ void main() {
       }
     });
 
-    test('expandAll releases the archive so it can be deleted', () async {
+    test('withArchiveFile closes the archive file afterwards', () async {
       final zipPath = await writeZip('release.zip', {'dive.zxu': _zxu()});
-      await service.expandAll([zipPath]);
-      // Windows refuses to delete a file with an open handle.
-      await File(zipPath).delete();
-      expect(File(zipPath).existsSync(), isFalse);
+
+      // Member streams share the archive's file handle, so one of them shows
+      // whether the handle is still open.
+      final raw = await ZipExpansionService.withArchiveFile(zipPath, (
+        archive,
+      ) async {
+        final stream =
+            (archive.single.rawContent! as ZipFile).getStream(decompress: false)
+                as InputFileStream;
+        expect(stream.file.isOpen, isTrue, reason: 'precondition');
+        return stream;
+      });
+
+      expect(raw.file.isOpen, isFalse);
+    });
+
+    test('withArchiveFile closes the archive file when use throws', () async {
+      final zipPath = await writeZip('throws.zip', {'dive.zxu': _zxu()});
+      late InputFileStream raw;
+
+      await expectLater(
+        ZipExpansionService.withArchiveFile<void>(zipPath, (archive) async {
+          raw =
+              (archive.single.rawContent! as ZipFile).getStream(
+                    decompress: false,
+                  )
+                  as InputFileStream;
+          throw StateError('extraction failed');
+        }),
+        throwsStateError,
+      );
+
+      expect(raw.file.isOpen, isFalse);
     });
   });
 

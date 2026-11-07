@@ -86,16 +86,9 @@ class ZipExpansionService {
     var skipped = 0;
 
     for (final path in paths) {
-      final file = File(path);
       Uint8List header;
       try {
-        final raf = await file.open();
-        // close in finally so a failed read never leaks the descriptor.
-        try {
-          header = await raf.read(4);
-        } finally {
-          await raf.close();
-        }
+        header = await _readHeader(path);
       } catch (_) {
         filePaths.add(path); // unreadable: let downstream report the error
         continue;
@@ -196,7 +189,12 @@ class ZipExpansionService {
     ArchiveFile entry,
     String outPath,
   ) async {
-    final output = OutputFileStream(outPath);
+    // Size the write buffer to the member, as archive's own
+    // extractArchiveToDisk does: a few-KB dive file needs no 1 MiB buffer.
+    final output = OutputFileStream(
+      outPath,
+      bufferSize: entry.size.clamp(1, OutputFileStream.kDefaultBufferSize),
+    );
     try {
       entry.writeContent(output);
     } finally {
@@ -206,6 +204,7 @@ class ZipExpansionService {
 
   static Future<Uint8List> _readHeader(String path) async {
     final raf = await File(path).open();
+    // close in finally so a failed read never leaks the descriptor.
     try {
       return await raf.read(4);
     } finally {
