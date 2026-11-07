@@ -17828,5 +17828,16 @@
   "twinSet_pairNames": "{a} ו-{b}",
   "twinSet_endBeforeStart": "תאריך הסיום חייב להיות אחרי {date}.",
   "twinSet_saveFailed": "לא ניתן לשמור את השינוי בצמד.",
-  "twinSet_with": "צמד עם {partner}"
+  "twinSet_with": "צמד עם {partner}",
+  "passport_logFill_twinSwitch": "שני הבלונים בצמד ({partner})",
+  "twinSet_partnerStatus": "{partner}, {status}",
+  "passport_logFill_editTitle": "עריכת מילוי",
+  "passport_logFill_overPressureTitle": "מעל לחץ העבודה",
+  "passport_logFill_overPressureBody": "{pressure} גבוה מלחץ העבודה של {name}, {workingPressure}.",
+  "passport_logFill_saveAnyway": "לשמור בכל זאת",
+  "passport_logFill_back": "חזרה",
+  "passport_logFill_applyToTied": "להחיל גם על המילוי של {partner}?",
+  "passport_logFill_applyBoth": "כן",
+  "passport_logFill_onlyThisOne": "רק זה",
+  "passport_history_anotherCylinder": "בלון אחר"
 }

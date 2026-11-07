@@ -17828,5 +17828,16 @@
   "twinSet_pairNames": "{a} et {b}",
   "twinSet_endBeforeStart": "La date de fin doit être après le {date}.",
   "twinSet_saveFailed": "Impossible d'enregistrer la modification du bi-bouteille.",
-  "twinSet_with": "Bi-bouteille avec {partner}"
+  "twinSet_with": "Bi-bouteille avec {partner}",
+  "passport_logFill_twinSwitch": "Les deux bouteilles du bi-bouteille ({partner})",
+  "twinSet_partnerStatus": "{partner}, {status}",
+  "passport_logFill_editTitle": "Modifier le gonflage",
+  "passport_logFill_overPressureTitle": "Au-dessus de la pression de service",
+  "passport_logFill_overPressureBody": "{pressure} dépasse la pression de service de {name}, {workingPressure}.",
+  "passport_logFill_saveAnyway": "Enregistrer quand même",
+  "passport_logFill_back": "Retour",
+  "passport_logFill_applyToTied": "Appliquer aussi au gonflage de {partner} ?",
+  "passport_logFill_applyBoth": "Oui",
+  "passport_logFill_onlyThisOne": "Seulement celui-ci",
+  "passport_history_anotherCylinder": "une autre bouteille"
 }

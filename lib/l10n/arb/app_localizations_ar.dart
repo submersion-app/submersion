@@ -61232,4 +61232,49 @@ class AppLocalizationsAr extends AppLocalizations {
   String twinSet_with(String partner) {
     return 'طقم مزدوج مع $partner';
   }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return 'كلتا الأسطوانتين في الطقم المزدوج ($partner)';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner، $status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => 'تعديل التعبئة';
+
+  @override
+  String get passport_logFill_overPressureTitle => 'أعلى من ضغط التشغيل';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure أعلى من ضغط تشغيل $name البالغ $workingPressure.';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => 'حفظ على أي حال';
+
+  @override
+  String get passport_logFill_back => 'رجوع';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return 'تطبيق التغيير على تعبئة $partner أيضا؟';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => 'نعم';
+
+  @override
+  String get passport_logFill_onlyThisOne => 'هذه فقط';
+
+  @override
+  String get passport_history_anotherCylinder => 'أسطوانة أخرى';
 }

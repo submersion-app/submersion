@@ -60277,4 +60277,49 @@ class AppLocalizationsDe extends AppLocalizations {
   String twinSet_with(String partner) {
     return 'Doppelgerät mit $partner';
   }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return 'Beide Flaschen des Doppelgeräts ($partner)';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner, $status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => 'Füllung bearbeiten';
+
+  @override
+  String get passport_logFill_overPressureTitle => 'Über dem Betriebsdruck';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure liegt über dem Betriebsdruck von $name, $workingPressure.';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => 'Trotzdem speichern';
+
+  @override
+  String get passport_logFill_back => 'Zurück';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return 'Auch auf die Füllung von $partner anwenden?';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => 'Ja';
+
+  @override
+  String get passport_logFill_onlyThisOne => 'Nur diese';
+
+  @override
+  String get passport_history_anotherCylinder => 'eine andere Flasche';
 }

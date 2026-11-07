@@ -17828,5 +17828,16 @@
   "twinSet_pairNames": "{a} en {b}",
   "twinSet_endBeforeStart": "De einddatum moet na {date} liggen.",
   "twinSet_saveFailed": "De wijziging van de dubbelset kon niet worden opgeslagen.",
-  "twinSet_with": "Dubbelset met {partner}"
+  "twinSet_with": "Dubbelset met {partner}",
+  "passport_logFill_twinSwitch": "Beide flessen van de dubbelset ({partner})",
+  "twinSet_partnerStatus": "{partner}, {status}",
+  "passport_logFill_editTitle": "Vulling bewerken",
+  "passport_logFill_overPressureTitle": "Boven de werkdruk",
+  "passport_logFill_overPressureBody": "{pressure} ligt boven de werkdruk van {name}, {workingPressure}.",
+  "passport_logFill_saveAnyway": "Toch opslaan",
+  "passport_logFill_back": "Terug",
+  "passport_logFill_applyToTied": "Ook toepassen op de vulling van {partner}?",
+  "passport_logFill_applyBoth": "Ja",
+  "passport_logFill_onlyThisOne": "Alleen deze",
+  "passport_history_anotherCylinder": "een andere fles"
 }

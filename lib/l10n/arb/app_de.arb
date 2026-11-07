@@ -17953,5 +17953,16 @@
   "twinSet_pairNames": "{a} und {b}",
   "twinSet_endBeforeStart": "Das Enddatum muss nach dem {date} liegen.",
   "twinSet_saveFailed": "Die Änderung am Doppelgerät konnte nicht gespeichert werden.",
-  "twinSet_with": "Doppelgerät mit {partner}"
+  "twinSet_with": "Doppelgerät mit {partner}",
+  "passport_logFill_twinSwitch": "Beide Flaschen des Doppelgeräts ({partner})",
+  "twinSet_partnerStatus": "{partner}, {status}",
+  "passport_logFill_editTitle": "Füllung bearbeiten",
+  "passport_logFill_overPressureTitle": "Über dem Betriebsdruck",
+  "passport_logFill_overPressureBody": "{pressure} liegt über dem Betriebsdruck von {name}, {workingPressure}.",
+  "passport_logFill_saveAnyway": "Trotzdem speichern",
+  "passport_logFill_back": "Zurück",
+  "passport_logFill_applyToTied": "Auch auf die Füllung von {partner} anwenden?",
+  "passport_logFill_applyBoth": "Ja",
+  "passport_logFill_onlyThisOne": "Nur diese",
+  "passport_history_anotherCylinder": "eine andere Flasche"
 }

@@ -5,10 +5,17 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_pairing.dart';
+import 'package:submersion/features/cylinder_passports/domain/services/pairing_rules.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_pairing_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/tied_fill_dialogs.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -23,10 +30,20 @@ double? parseDecimal(String text) => switch (readNumber(text)) {
   NumberBlank() || NumberInvalid() => null,
 };
 
-/// Opens the manual fill sheet. Resolves with the saved fill, or null when
+/// What the fill sheet saved: the fill on this cylinder and, for a twin set
+/// fill (issue #4242), the same fill on its partner.
+class LoggedFill {
+  const LoggedFill({required this.fill, this.partnerFill});
+
+  final CylinderFill fill;
+  final CylinderFill? partnerFill;
+}
+
+/// Opens the manual fill sheet. Resolves with what was saved, or null when
 /// the diver backed out. The initial values prefill a planned fill, such as
 /// a blend; with [mixFromPlan] the sheet asks for the analysed mix instead.
-Future<CylinderFill?> showLogFillSheet(
+/// With [editing] the sheet edits that fill rather than logging a new one.
+Future<LoggedFill?> showLogFillSheet(
   BuildContext context, {
   required String passportId,
   required String equipmentId,
@@ -34,7 +51,8 @@ Future<CylinderFill?> showLogFillSheet(
   double? initialPressureBar,
   double? initialTemperatureC,
   bool mixFromPlan = false,
-}) => showModalBottomSheet<CylinderFill>(
+  CylinderFill? editing,
+}) => showModalBottomSheet<LoggedFill>(
   context: context,
   isScrollControlled: true,
   useSafeArea: true,
@@ -47,6 +65,7 @@ Future<CylinderFill?> showLogFillSheet(
       initialPressureBar: initialPressureBar,
       initialTemperatureC: initialTemperatureC,
       mixFromPlan: mixFromPlan,
+      editing: editing,
     ),
   ),
 );
@@ -60,6 +79,8 @@ class LogFillSheet extends ConsumerStatefulWidget {
     this.initialPressureBar,
     this.initialTemperatureC,
     this.mixFromPlan = false,
+    this.editing,
+    this.initialFilledAt,
   });
 
   final String passportId;
@@ -72,12 +93,25 @@ class LogFillSheet extends ConsumerStatefulWidget {
   /// enter what they analysed.
   final bool mixFromPlan;
 
+  /// The fill being edited, prefilled; null to log a new fill.
+  final CylinderFill? editing;
+
+  /// When a new fill happened, for a caller that knows; now otherwise.
+  final DateTime? initialFilledAt;
+
   @override
   ConsumerState<LogFillSheet> createState() => _LogFillSheetState();
 }
 
 class _LogFillSheetState extends ConsumerState<LogFillSheet> {
-  DateTime _filledAt = DateTime.now();
+  late DateTime _filledAt =
+      widget.editing?.filledAt ?? widget.initialFilledAt ?? DateTime.now();
+
+  /// The diver's twin switch choice, and the partner it was made for: a
+  /// date change that lands on another partner starts from that partner's
+  /// default again.
+  bool? _twinChoice;
+  String? _twinChoicePartnerId;
   final _o2 = TextEditingController(text: '21');
   final _he = TextEditingController(text: '0');
   final _pressure = TextEditingController();
@@ -113,8 +147,51 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
     if (widget.initialTemperatureC case final c?) {
       _temperature.text = formatRoundedForInput(units.convertTemperature(c), 1);
     }
+    if (widget.editing case final fill?) _prefill(fill, units);
     _loadHistory();
   }
+
+  void _prefill(CylinderFill fill, UnitFormatter units) {
+    _o2.text = formatDecimalForInput(fill.o2Percent);
+    _he.text = formatDecimalForInput(fill.hePercent);
+    if (fill.pressureBar case final bar?) {
+      final decimals = units.settings.pressureUnit == PressureUnit.bar ? 1 : 0;
+      _pressure.text = formatRoundedForInput(
+        units.convertPressure(bar),
+        decimals,
+      );
+    }
+    if (fill.temperatureC case final c?) {
+      _temperature.text = formatRoundedForInput(units.convertTemperature(c), 1);
+    }
+    _station.text = fill.stationName ?? '';
+    _analyzer.text = fill.analyzer ?? '';
+    _notes.text = fill.notes;
+  }
+
+  /// The twin set partner of this cylinder on the fill's day (issue #4242),
+  /// or null when it had none or the sheet edits a fill.
+  EquipmentItem? _watchPartner() {
+    if (widget.editing != null) return null;
+    final pairing = ref
+        .watch(
+          pairingOnProvider((
+            equipmentId: widget.equipmentId,
+            day: calendarDay(_filledAt),
+          )),
+        )
+        .value;
+    if (pairing == null) return null;
+    return ref
+        .watch(equipmentItemProvider(pairing.partnerOf(widget.equipmentId)))
+        .value;
+  }
+
+  /// Whether the twin switch is on for [partner]: the diver's choice, or on
+  /// unless the partner is away from the pair.
+  bool _twinOn(EquipmentItem partner) =>
+      (_twinChoicePartnerId == partner.id ? _twinChoice : null) ??
+      !isPartnerOutOfUse(partner.effectiveStatus);
 
   /// Recent stations and analyzers for suggestions; the analyzer a diver
   /// used last is filled in, since it is usually the same instrument.
@@ -127,7 +204,9 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
       setState(() {
         _recentStations = stations;
         _recentAnalyzers = analyzers;
-        if (_analyzer.text.isEmpty && analyzers.isNotEmpty) {
+        if (widget.editing == null &&
+            _analyzer.text.isEmpty &&
+            analyzers.isNotEmpty) {
           _analyzer.text = analyzers.first;
         }
       });
@@ -216,31 +295,80 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
       return;
     }
 
+    final pressureBar = pressure == null ? null : units.pressureToBar(pressure);
+    final temperatureC = temperature == null
+        ? null
+        : units.temperatureToCelsius(temperature);
+    final analyzer = _analyzer.text.trim();
+    final station = _station.text.trim();
+    final partner = widget.editing == null ? await _partnerForSave() : null;
+    if (!mounted) return;
+    final twin = partner != null && _twinOn(partner);
+    if (twin &&
+        pressureBar != null &&
+        !await _acceptPressure(pressureBar, partner, units)) {
+      return;
+    }
+    if (!mounted) return;
+
     setState(() => _saving = true);
-    final now = DateTime.now();
-    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-    final fill = CylinderFill(
-      id: '',
-      diverId: diverId,
-      passportId: widget.passportId,
-      equipmentId: widget.equipmentId,
-      filledAt: _filledAt,
-      o2Percent: o2!,
-      hePercent: he!,
-      pressureBar: pressure == null ? null : units.pressureToBar(pressure),
-      temperatureC: temperature == null
-          ? null
-          : units.temperatureToCelsius(temperature),
-      analyzer: _analyzer.text.trim().isEmpty ? null : _analyzer.text.trim(),
-      stationName: _station.text.trim().isEmpty ? null : _station.text.trim(),
-      source: FillSource.manual,
-      notes: _notes.text.trim(),
-      createdAt: now,
-      updatedAt: now,
-    );
-    final CylinderFill saved;
+    final LoggedFill logged;
     try {
-      saved = await ref.read(cylinderFillRepositoryProvider).create(fill);
+      if (widget.editing case final editing?) {
+        final edited = editing.copyWith(
+          filledAt: _filledAt,
+          o2Percent: o2,
+          hePercent: he,
+          pressureBar: pressureBar,
+          clearPressureBar: pressureBar == null,
+          temperatureC: temperatureC,
+          clearTemperatureC: temperatureC == null,
+          analyzer: analyzer.isEmpty ? null : analyzer,
+          clearAnalyzer: analyzer.isEmpty,
+          stationName: station.isEmpty ? null : station,
+          clearStationName: station.isEmpty,
+          notes: _notes.text.trim(),
+        );
+        final toTied = await _askApplyToTied(editing);
+        if (toTied == null) {
+          if (mounted) setState(() => _saving = false);
+          return;
+        }
+        await ref
+            .read(twinFillServiceProvider)
+            .applyEdit(edited, toTied: toTied);
+        logged = LoggedFill(fill: edited);
+      } else {
+        final now = DateTime.now();
+        final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+        final fill = CylinderFill(
+          id: '',
+          diverId: diverId,
+          passportId: widget.passportId,
+          equipmentId: widget.equipmentId,
+          filledAt: _filledAt,
+          o2Percent: o2!,
+          hePercent: he!,
+          pressureBar: pressureBar,
+          temperatureC: temperatureC,
+          analyzer: analyzer.isEmpty ? null : analyzer,
+          stationName: station.isEmpty ? null : station,
+          source: FillSource.manual,
+          notes: _notes.text.trim(),
+          createdAt: now,
+          updatedAt: now,
+        );
+        if (twin) {
+          final saved = await ref
+              .read(twinFillServiceProvider)
+              .recordTwinFill(fill, partnerEquipmentId: partner.id);
+          logged = LoggedFill(fill: saved.fill, partnerFill: saved.partnerFill);
+        } else {
+          logged = LoggedFill(
+            fill: await ref.read(cylinderFillRepositoryProvider).create(fill),
+          );
+        }
+      }
     } catch (_) {
       if (!mounted) return;
       setState(() => _saving = false);
@@ -250,13 +378,79 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
       return;
     }
     if (!mounted) return;
-    Navigator.of(context).pop(saved);
+    Navigator.of(context).pop(logged);
+  }
+
+  /// The partner a new fill would also go on, read fresh at save time.
+  Future<EquipmentItem?> _partnerForSave() async {
+    try {
+      final pairing = await ref.read(
+        pairingOnProvider((
+          equipmentId: widget.equipmentId,
+          day: calendarDay(_filledAt),
+        )).future,
+      );
+      if (pairing == null) return null;
+      return await ref.read(
+        equipmentItemProvider(pairing.partnerOf(widget.equipmentId)).future,
+      );
+    } catch (_) {
+      // The pairing could not be read: the fill goes on this cylinder only.
+      return null;
+    }
+  }
+
+  /// Warns when a twin fill's [pressureBar] is above either cylinder's
+  /// working pressure. True to go on saving.
+  Future<bool> _acceptPressure(
+    double pressureBar,
+    EquipmentItem partner,
+    UnitFormatter units,
+  ) async {
+    EquipmentItem? self;
+    try {
+      self = await ref.read(equipmentItemProvider(widget.equipmentId).future);
+    } catch (_) {
+      self = null;
+    }
+    for (final item in [?self, partner]) {
+      final rated = item.workingPressureBar;
+      if (rated == null || pressureBar <= rated + 0.5) continue;
+      if (!mounted) return false;
+      return confirmOverPressure(
+        context,
+        pressure: units.formatPressure(pressureBar),
+        name: item.name,
+        workingPressure: units.formatPressure(rated),
+      );
+    }
+    return true;
+  }
+
+  /// For an edit of one fill of a twin set fill: whether the other fill
+  /// takes the edit too. False when there is no other fill, null when the
+  /// diver backed out.
+  Future<bool?> _askApplyToTied(CylinderFill editing) async {
+    final tied = await ref
+        .read(cylinderFillRepositoryProvider)
+        .tiedFillOf(editing);
+    if (tied == null || !mounted) return false;
+    final partnerId = tied.equipmentId;
+    final partner = partnerId == null
+        ? null
+        : await ref.read(equipmentItemProvider(partnerId).future);
+    if (!mounted) return null;
+    return askApplyToTiedFill(
+      context,
+      partner?.name ?? context.l10n.passport_history_anotherCylinder,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final units = ref.watch(unitFormatterProvider);
+    final partner = _watchPartner();
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
       child: Column(
@@ -264,7 +458,9 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            l10n.passport_fill_log,
+            widget.editing == null
+                ? l10n.passport_fill_log
+                : l10n.passport_logFill_editTitle,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 16),
@@ -282,6 +478,26 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
             subtitle: Text(units.formatTime(_filledAt)),
             onTap: _pickTime,
           ),
+          if (partner != null)
+            SwitchListTile(
+              key: const Key('log-fill-twin'),
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                l10n.passport_logFill_twinSwitch(
+                  isPartnerOutOfUse(partner.effectiveStatus)
+                      ? l10n.twinSet_partnerStatus(
+                          partner.name,
+                          partner.effectiveStatus.localizedName(l10n),
+                        )
+                      : partner.name,
+                ),
+              ),
+              value: _twinOn(partner),
+              onChanged: (on) => setState(() {
+                _twinChoice = on;
+                _twinChoicePartnerId = partner.id;
+              }),
+            ),
           Row(
             // Top-aligned, so the He field stays level with O2 when O2
             // carries the analysed-values hint.

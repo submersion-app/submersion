@@ -56709,4 +56709,49 @@ class AppLocalizationsZh extends AppLocalizations {
   String twinSet_with(String partner) {
     return '与 $partner 组成双瓶';
   }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return '双瓶组的两个气瓶（$partner）';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner，$status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => '编辑充气记录';
+
+  @override
+  String get passport_logFill_overPressureTitle => '超过工作压力';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure 超过了 $name 的工作压力 $workingPressure。';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => '仍然保存';
+
+  @override
+  String get passport_logFill_back => '返回';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return '同时应用到 $partner 的充气记录？';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => '是';
+
+  @override
+  String get passport_logFill_onlyThisOne => '仅此一条';
+
+  @override
+  String get passport_history_anotherCylinder => '另一个气瓶';
 }

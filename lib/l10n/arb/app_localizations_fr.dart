@@ -60536,4 +60536,50 @@ class AppLocalizationsFr extends AppLocalizations {
   String twinSet_with(String partner) {
     return 'Bi-bouteille avec $partner';
   }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return 'Les deux bouteilles du bi-bouteille ($partner)';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner, $status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => 'Modifier le gonflage';
+
+  @override
+  String get passport_logFill_overPressureTitle =>
+      'Au-dessus de la pression de service';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure dépasse la pression de service de $name, $workingPressure.';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => 'Enregistrer quand même';
+
+  @override
+  String get passport_logFill_back => 'Retour';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return 'Appliquer aussi au gonflage de $partner ?';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => 'Oui';
+
+  @override
+  String get passport_logFill_onlyThisOne => 'Seulement celui-ci';
+
+  @override
+  String get passport_history_anotherCylinder => 'une autre bouteille';
 }

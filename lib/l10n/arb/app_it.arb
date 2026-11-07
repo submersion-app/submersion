@@ -17828,5 +17828,16 @@
   "twinSet_pairNames": "{a} e {b}",
   "twinSet_endBeforeStart": "La data di fine deve essere successiva al {date}.",
   "twinSet_saveFailed": "Impossibile salvare la modifica della bibombola.",
-  "twinSet_with": "Bibombola con {partner}"
+  "twinSet_with": "Bibombola con {partner}",
+  "passport_logFill_twinSwitch": "Entrambe le bombole della bibombola ({partner})",
+  "twinSet_partnerStatus": "{partner}, {status}",
+  "passport_logFill_editTitle": "Modifica ricarica",
+  "passport_logFill_overPressureTitle": "Oltre la pressione di esercizio",
+  "passport_logFill_overPressureBody": "{pressure} supera la pressione di esercizio di {name}, {workingPressure}.",
+  "passport_logFill_saveAnyway": "Salva comunque",
+  "passport_logFill_back": "Indietro",
+  "passport_logFill_applyToTied": "Applicare anche alla ricarica di {partner}?",
+  "passport_logFill_applyBoth": "Sì",
+  "passport_logFill_onlyThisOne": "Solo questa",
+  "passport_history_anotherCylinder": "un'altra bombola"
 }

@@ -95228,6 +95228,76 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Twin set with {partner}'**
   String twinSet_with(String partner);
+
+  /// No description provided for @passport_logFill_twinSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Both cylinders in the twin set ({partner})'**
+  String passport_logFill_twinSwitch(String partner);
+
+  /// No description provided for @twinSet_partnerStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'{partner}, {status}'**
+  String twinSet_partnerStatus(String partner, String status);
+
+  /// No description provided for @passport_logFill_editTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit fill'**
+  String get passport_logFill_editTitle;
+
+  /// No description provided for @passport_logFill_overPressureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Above working pressure'**
+  String get passport_logFill_overPressureTitle;
+
+  /// No description provided for @passport_logFill_overPressureBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{pressure} is above the working pressure of {name}, {workingPressure}.'**
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  );
+
+  /// No description provided for @passport_logFill_saveAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Save anyway'**
+  String get passport_logFill_saveAnyway;
+
+  /// No description provided for @passport_logFill_back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get passport_logFill_back;
+
+  /// No description provided for @passport_logFill_applyToTied.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply to the fill of {partner} too?'**
+  String passport_logFill_applyToTied(String partner);
+
+  /// No description provided for @passport_logFill_applyBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get passport_logFill_applyBoth;
+
+  /// No description provided for @passport_logFill_onlyThisOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Only this one'**
+  String get passport_logFill_onlyThisOne;
+
+  /// No description provided for @passport_history_anotherCylinder.
+  ///
+  /// In en, this message translates to:
+  /// **'another cylinder'**
+  String get passport_history_anotherCylinder;
 }
 
 class _AppLocalizationsDelegate

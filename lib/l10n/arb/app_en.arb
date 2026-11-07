@@ -35217,5 +35217,20 @@
   "@twinSet_endBeforeStart": {"placeholders": {"date": {"type": "String"}}},
   "twinSet_saveFailed": "Could not save the twin set change.",
   "twinSet_with": "Twin set with {partner}",
-  "@twinSet_with": {"placeholders": {"partner": {"type": "String"}}}
+  "@twinSet_with": {"placeholders": {"partner": {"type": "String"}}},
+  "passport_logFill_twinSwitch": "Both cylinders in the twin set ({partner})",
+  "@passport_logFill_twinSwitch": {"placeholders": {"partner": {"type": "String"}}},
+  "twinSet_partnerStatus": "{partner}, {status}",
+  "@twinSet_partnerStatus": {"placeholders": {"partner": {"type": "String"}, "status": {"type": "String"}}},
+  "passport_logFill_editTitle": "Edit fill",
+  "passport_logFill_overPressureTitle": "Above working pressure",
+  "passport_logFill_overPressureBody": "{pressure} is above the working pressure of {name}, {workingPressure}.",
+  "@passport_logFill_overPressureBody": {"placeholders": {"pressure": {"type": "String"}, "name": {"type": "String"}, "workingPressure": {"type": "String"}}},
+  "passport_logFill_saveAnyway": "Save anyway",
+  "passport_logFill_back": "Back",
+  "passport_logFill_applyToTied": "Apply to the fill of {partner} too?",
+  "@passport_logFill_applyToTied": {"placeholders": {"partner": {"type": "String"}}},
+  "passport_logFill_applyBoth": "Yes",
+  "passport_logFill_onlyThisOne": "Only this one",
+  "passport_history_anotherCylinder": "another cylinder"
 }

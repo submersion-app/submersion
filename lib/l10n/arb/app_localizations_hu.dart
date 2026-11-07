@@ -60060,4 +60060,49 @@ class AppLocalizationsHu extends AppLocalizations {
   String twinSet_with(String partner) {
     return 'Ikerpalack ezzel: $partner';
   }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return 'Az ikerpalack mindkét palackja ($partner)';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner, $status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => 'Töltés szerkesztése';
+
+  @override
+  String get passport_logFill_overPressureTitle => 'Az üzemi nyomás felett';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure meghaladja $name üzemi nyomását ($workingPressure).';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => 'Mentés mégis';
+
+  @override
+  String get passport_logFill_back => 'Vissza';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return '$partner töltésére is alkalmazza?';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => 'Igen';
+
+  @override
+  String get passport_logFill_onlyThisOne => 'Csak ezt';
+
+  @override
+  String get passport_history_anotherCylinder => 'egy másik palack';
 }

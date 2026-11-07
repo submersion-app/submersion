@@ -60026,4 +60026,49 @@ class AppLocalizationsNl extends AppLocalizations {
   String twinSet_with(String partner) {
     return 'Dubbelset met $partner';
   }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return 'Beide flessen van de dubbelset ($partner)';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner, $status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => 'Vulling bewerken';
+
+  @override
+  String get passport_logFill_overPressureTitle => 'Boven de werkdruk';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure ligt boven de werkdruk van $name, $workingPressure.';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => 'Toch opslaan';
+
+  @override
+  String get passport_logFill_back => 'Terug';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return 'Ook toepassen op de vulling van $partner?';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => 'Ja';
+
+  @override
+  String get passport_logFill_onlyThisOne => 'Alleen deze';
+
+  @override
+  String get passport_history_anotherCylinder => 'een andere fles';
 }

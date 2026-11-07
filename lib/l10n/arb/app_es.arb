@@ -17828,5 +17828,16 @@
   "twinSet_pairNames": "{a} y {b}",
   "twinSet_endBeforeStart": "La fecha de fin debe ser posterior al {date}.",
   "twinSet_saveFailed": "No se pudo guardar el cambio de la bibotella.",
-  "twinSet_with": "Bibotella con {partner}"
+  "twinSet_with": "Bibotella con {partner}",
+  "passport_logFill_twinSwitch": "Las dos botellas de la bibotella ({partner})",
+  "twinSet_partnerStatus": "{partner}, {status}",
+  "passport_logFill_editTitle": "Editar carga",
+  "passport_logFill_overPressureTitle": "Por encima de la presión de trabajo",
+  "passport_logFill_overPressureBody": "{pressure} supera la presión de trabajo de {name}, {workingPressure}.",
+  "passport_logFill_saveAnyway": "Guardar igualmente",
+  "passport_logFill_back": "Volver",
+  "passport_logFill_applyToTied": "¿Aplicar también a la carga de {partner}?",
+  "passport_logFill_applyBoth": "Sí",
+  "passport_logFill_onlyThisOne": "Solo esta",
+  "passport_history_anotherCylinder": "otra botella"
 }

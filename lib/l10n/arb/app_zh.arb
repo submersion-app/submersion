@@ -17828,5 +17828,16 @@
   "twinSet_pairNames": "{a} 和 {b}",
   "twinSet_endBeforeStart": "结束日期必须晚于 {date}。",
   "twinSet_saveFailed": "无法保存双瓶组的更改。",
-  "twinSet_with": "与 {partner} 组成双瓶"
+  "twinSet_with": "与 {partner} 组成双瓶",
+  "passport_logFill_twinSwitch": "双瓶组的两个气瓶（{partner}）",
+  "twinSet_partnerStatus": "{partner}，{status}",
+  "passport_logFill_editTitle": "编辑充气记录",
+  "passport_logFill_overPressureTitle": "超过工作压力",
+  "passport_logFill_overPressureBody": "{pressure} 超过了 {name} 的工作压力 {workingPressure}。",
+  "passport_logFill_saveAnyway": "仍然保存",
+  "passport_logFill_back": "返回",
+  "passport_logFill_applyToTied": "同时应用到 {partner} 的充气记录？",
+  "passport_logFill_applyBoth": "是",
+  "passport_logFill_onlyThisOne": "仅此一条",
+  "passport_history_anotherCylinder": "另一个气瓶"
 }

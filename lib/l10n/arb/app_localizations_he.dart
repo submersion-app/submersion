@@ -59144,4 +59144,49 @@ class AppLocalizationsHe extends AppLocalizations {
   String twinSet_with(String partner) {
     return 'צמד עם $partner';
   }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return 'שני הבלונים בצמד ($partner)';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner, $status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => 'עריכת מילוי';
+
+  @override
+  String get passport_logFill_overPressureTitle => 'מעל לחץ העבודה';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure גבוה מלחץ העבודה של $name, $workingPressure.';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => 'לשמור בכל זאת';
+
+  @override
+  String get passport_logFill_back => 'חזרה';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return 'להחיל גם על המילוי של $partner?';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => 'כן';
+
+  @override
+  String get passport_logFill_onlyThisOne => 'רק זה';
+
+  @override
+  String get passport_history_anotherCylinder => 'בלון אחר';
 }

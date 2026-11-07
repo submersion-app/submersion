@@ -17828,5 +17828,16 @@
   "twinSet_pairNames": "{a} e {b}",
   "twinSet_endBeforeStart": "A data de término deve ser posterior a {date}.",
   "twinSet_saveFailed": "Não foi possível salvar a alteração do bi-cilindro.",
-  "twinSet_with": "Bi-cilindro com {partner}"
+  "twinSet_with": "Bi-cilindro com {partner}",
+  "passport_logFill_twinSwitch": "Os dois cilindros do bi-cilindro ({partner})",
+  "twinSet_partnerStatus": "{partner}, {status}",
+  "passport_logFill_editTitle": "Editar carga",
+  "passport_logFill_overPressureTitle": "Acima da pressão de trabalho",
+  "passport_logFill_overPressureBody": "{pressure} está acima da pressão de trabalho de {name}, {workingPressure}.",
+  "passport_logFill_saveAnyway": "Salvar mesmo assim",
+  "passport_logFill_back": "Voltar",
+  "passport_logFill_applyToTied": "Aplicar também à carga de {partner}?",
+  "passport_logFill_applyBoth": "Sim",
+  "passport_logFill_onlyThisOne": "Só esta",
+  "passport_history_anotherCylinder": "outro cilindro"
 }

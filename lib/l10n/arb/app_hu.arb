@@ -17828,5 +17828,16 @@
   "twinSet_pairNames": "{a} és {b}",
   "twinSet_endBeforeStart": "A záró dátumnak {date} utáninak kell lennie.",
   "twinSet_saveFailed": "Az ikerpalack módosítása nem menthető.",
-  "twinSet_with": "Ikerpalack ezzel: {partner}"
+  "twinSet_with": "Ikerpalack ezzel: {partner}",
+  "passport_logFill_twinSwitch": "Az ikerpalack mindkét palackja ({partner})",
+  "twinSet_partnerStatus": "{partner}, {status}",
+  "passport_logFill_editTitle": "Töltés szerkesztése",
+  "passport_logFill_overPressureTitle": "Az üzemi nyomás felett",
+  "passport_logFill_overPressureBody": "{pressure} meghaladja {name} üzemi nyomását ({workingPressure}).",
+  "passport_logFill_saveAnyway": "Mentés mégis",
+  "passport_logFill_back": "Vissza",
+  "passport_logFill_applyToTied": "{partner} töltésére is alkalmazza?",
+  "passport_logFill_applyBoth": "Igen",
+  "passport_logFill_onlyThisOne": "Csak ezt",
+  "passport_history_anotherCylinder": "egy másik palack"
 }

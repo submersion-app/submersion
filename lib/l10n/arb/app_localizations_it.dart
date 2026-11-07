@@ -60405,4 +60405,50 @@ class AppLocalizationsIt extends AppLocalizations {
   String twinSet_with(String partner) {
     return 'Bibombola con $partner';
   }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return 'Entrambe le bombole della bibombola ($partner)';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner, $status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => 'Modifica ricarica';
+
+  @override
+  String get passport_logFill_overPressureTitle =>
+      'Oltre la pressione di esercizio';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure supera la pressione di esercizio di $name, $workingPressure.';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => 'Salva comunque';
+
+  @override
+  String get passport_logFill_back => 'Indietro';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return 'Applicare anche alla ricarica di $partner?';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => 'Sì';
+
+  @override
+  String get passport_logFill_onlyThisOne => 'Solo questa';
+
+  @override
+  String get passport_history_anotherCylinder => 'un\'altra bombola';
 }
