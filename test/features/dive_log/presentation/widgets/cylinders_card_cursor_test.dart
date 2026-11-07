@@ -205,6 +205,46 @@ void main() {
     expect(find.text('Now 125 bar'), findsOneWidget);
   });
 
+  testWidgets('an old-id transmitter series wins over an estimate', (
+    tester,
+  ) async {
+    // As the chart's provider builds it: the measured series kept the
+    // tank's old id, and the tank has start and end pressures to estimate
+    // from. The card follows the transmitter, not an estimate.
+    final dive = _dive([_air]);
+    final chartSeries = synthesizeEstimatedTankPressures(
+      existing: {
+        'old-air-id': [
+          const TankPressurePoint(
+            tankId: 'old-air-id',
+            timestamp: 0,
+            pressure: 200,
+          ),
+          const TankPressurePoint(
+            tankId: 'old-air-id',
+            timestamp: 1500,
+            pressure: 110,
+          ),
+          const TankPressurePoint(
+            tankId: 'old-air-id',
+            timestamp: 3000,
+            pressure: 50,
+          ),
+        ],
+      },
+      tanks: dive.tanks,
+      gasSwitches: const [],
+      diveDurationSeconds: 3000,
+    );
+    await tester.pumpWidget(
+      _card(dive: dive, cursor: 150, chartSeries: chartSeries),
+    );
+    await tester.pumpAndSettle();
+
+    // The estimate would read 125 at 25:00.
+    expect(find.text('Now 110 bar'), findsOneWidget);
+  });
+
   testWidgets('the pressure follows the diver units', (tester) async {
     const settings = AppSettings(pressureUnit: PressureUnit.psi);
     await tester.pumpWidget(
