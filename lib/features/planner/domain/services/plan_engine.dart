@@ -24,6 +24,7 @@ import 'package:submersion/features/planner/domain/services/air_break_runs.dart'
 import 'package:submersion/features/planner/domain/services/diluent_switch_time.dart';
 import 'package:submersion/features/planner/domain/services/issue_onset.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
+import 'package:submersion/features/planner/domain/services/same_mix_share.dart';
 import 'package:submersion/features/planner/domain/services/segment_rate_split.dart';
 import 'package:submersion/features/planner/domain/services/setpoint_switch_split.dart';
 import 'package:submersion/features/planner/domain/services/tank_mod.dart';
@@ -1659,6 +1660,45 @@ class PlanEngine {
     String? ascentTankFor(AscentGas gas) =>
         loopSupplyTankId ?? _tankForGas(plan.tanks, gas.fO2, gas.fHe);
 
+    // The computed ascent picks a cylinder by mix; every cylinder carrying
+    // that mix shares the draw, balanced so they end at the same fraction,
+    // rather than the first taking all of it (#4138). A loop's supply is the
+    // one cylinder feeding it, so it shares nothing.
+    double capacityOf(DiveTank tank) => tank.startPressure == null
+        ? 0.0
+        : gasVolume(
+            tankSizeLiters: tank.volume ?? 11.0,
+            pressureBar: tank.startPressure!,
+            o2Percent: tank.gasMix.o2,
+            hePercent: tank.gasMix.he,
+            model: config.gasModel,
+          );
+    void chargeAscent(
+      String? tankId,
+      double amount, {
+      required int atRuntime,
+      required int seconds,
+    }) {
+      final group = loopSupplyTankId == null
+          ? sameMixShareGroup(plan.tanks, tankId)
+          : const <DiveTank>[];
+      if (group.length < 2) {
+        charge(tankId, amount, atRuntime: atRuntime, seconds: seconds);
+        return;
+      }
+      final share = balancedShare(amount, [
+        for (final tank in group)
+          (
+            id: tank.id,
+            capacityLiters: capacityOf(tank),
+            usedLiters: liters[tank.id] ?? 0.0,
+          ),
+      ]);
+      for (final MapEntry(key: id, value: part) in share.entries) {
+        if (part > 0) charge(id, part, atRuntime: atRuntime, seconds: seconds);
+      }
+    }
+
     final ascentMode = loopSupplyTankId == null
         ? domain.PlanMode.oc
         : _modeFor(plan, legs.last.segment);
@@ -1721,7 +1761,7 @@ class PlanEngine {
         toDepth: to,
         seconds: seconds,
       )) {
-        charge(
+        chargeAscent(
           ascentTankFor(ascentPlan.gasForDepth(span.fromDepth)),
           ascentLiters(
             span.seconds,
@@ -1753,14 +1793,14 @@ class PlanEngine {
       );
       final stopPressure = environment.pressureAtDepth(stop.depthMeters);
       final primarySeconds = stop.durationSeconds - stop.airBreakSeconds;
-      charge(
+      chargeAscent(
         stop.tankId,
         ascentLiters(primarySeconds, stopPressure),
         atRuntime: stop.arrivalRuntimeSeconds,
         seconds: primarySeconds,
       );
       if (stop.airBreakSeconds > 0) {
-        charge(
+        chargeAscent(
           stop.airBreakTankId,
           ascentLiters(stop.airBreakSeconds, stopPressure),
           atRuntime: stop.arrivalRuntimeSeconds + primarySeconds,
