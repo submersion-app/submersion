@@ -10,6 +10,7 @@ import 'package:submersion/features/cylinder_passports/data/repositories/passpor
 import 'package:submersion/features/cylinder_passports/data/services/nfc_manager_tag_service.dart';
 import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_service.dart';
 import 'package:submersion/features/cylinder_passports/data/services/passport_adoption_service.dart';
+import 'package:submersion/features/cylinder_passports/data/services/twin_fill_service.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/passport_usage.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -26,6 +27,26 @@ final cylinderPassportRepositoryProvider = Provider<CylinderPassportRepository>(
 final passportUsageRepositoryProvider = Provider<PassportUsageRepository>(
   (ref) => PassportUsageRepository(),
 );
+
+/// Twin set fills (issue #4242): one fill for both cylinders, and the edit
+/// and delete that can follow on the other.
+final twinFillServiceProvider = Provider<TwinFillService>(
+  (ref) => TwinFillService(
+    fills: ref.watch(cylinderFillRepositoryProvider),
+    passports: ref.watch(cylinderPassportRepositoryProvider),
+  ),
+);
+
+/// The ids of the passport copies of trip fills on a cylinder, which the
+/// fill history does not offer to edit (issue #4242).
+final tripCopyFillIdsProvider = FutureProvider.family<Set<String>, String>((
+  ref,
+  equipmentId,
+) async {
+  final repository = ref.watch(cylinderFillRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchFillsChanges());
+  return repository.tripCopyIds(equipmentId);
+});
 
 /// The active diver's dives with a tank from the cylinder whose passport id
 /// is the key, newest first (issue #2650). Auto-disposed: the key is any tag

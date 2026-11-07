@@ -191,6 +191,7 @@ Map<String, Object?> cylinderFillDocument(CylinderFill f) => {
   'signed_record': f.signedRecord,
   'source': f.source.name,
   'notes': f.notes,
+  'filled_together_id': f.filledTogetherId,
 };
 
 Map<String, Object?> transmitterDocument(Transmitter x) => {
