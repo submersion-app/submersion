@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/media/presentation/widgets/perdix_overlay/perdix_face_resolver.dart';
 
 DiveProfilePoint p(
@@ -357,6 +358,182 @@ void main() {
       final d = r.resolve(-5);
       expect(d.gasLabel, isNull);
       expect(d.tankPressureBar, isNull);
+    });
+  });
+
+  group('forSource on a consolidated dive (#4300)', () {
+    // Two overlapping recordings of one OC dive. The cylinders are A's,
+    // shared with B; B logged the switch to EAN50 at 600 s, A at 900 s.
+    const tanks = [
+      DiveTank(
+        id: 'air',
+        name: 'Air back gas',
+        computerId: 'computer-a',
+        sharedComputerIds: ['computer-b'],
+        gasMix: GasMix(o2: 21),
+        order: 0,
+      ),
+      DiveTank(
+        id: 'deco',
+        name: 'EAN50 deco',
+        computerId: 'computer-a',
+        sharedComputerIds: ['computer-b'],
+        gasMix: GasMix(o2: 50),
+        role: TankRole.deco,
+        order: 1,
+      ),
+    ];
+    final activeProfile = [
+      p(0, 0, ppO2: 0.21),
+      p(400, 20, ppO2: 0.63),
+      p(750, 12, ppO2: 0.462),
+      p(950, 6, ppO2: 0.8),
+      p(1200, 0, ppO2: 0.5),
+    ];
+    GasSwitchWithTank change(String computer, int time) => GasSwitchWithTank(
+      gasSwitch: GasSwitch(
+        id: 'switch-$computer',
+        diveId: 'dive',
+        timestamp: time,
+        tankId: 'deco',
+        computerId: computer,
+        createdAt: DateTime.utc(2026),
+      ),
+      tankName: 'EAN50 deco',
+      gasMix: 'EAN50',
+      o2Fraction: 0.5,
+    );
+    final switches = [change('computer-b', 600), change('computer-a', 900)];
+    const pressures = {
+      'air': [
+        TankPressurePoint(tankId: 'air', timestamp: 0, pressure: 200),
+        TankPressurePoint(tankId: 'air', timestamp: 750, pressure: 145),
+        TankPressurePoint(tankId: 'air', timestamp: 1200, pressure: 130),
+      ],
+      'deco': [
+        TankPressurePoint(tankId: 'deco', timestamp: 0, pressure: 200),
+        TankPressurePoint(tankId: 'deco', timestamp: 750, pressure: 200),
+        TankPressurePoint(tankId: 'deco', timestamp: 1200, pressure: 180),
+      ],
+    };
+    final dive = Dive(
+      id: 'dive',
+      dateTime: DateTime.utc(2026),
+      diveMode: DiveMode.oc,
+      tanks: tanks,
+      profile: activeProfile,
+    );
+
+    PerdixFaceResolver resolverFor(String? computerId) =>
+        PerdixFaceResolver.forSource(
+          dive,
+          profile: activeProfile,
+          gasSwitches: switches,
+          tankPressures: pressures,
+          computerId: computerId,
+        );
+
+    test('another computer\'s earlier switch does not change the gas', () {
+      final face = resolverFor('computer-a').resolve(750);
+      expect(face.gasLabel, 'Air');
+      expect(face.tankPressureBar, 145);
+      expect(face.ppO2Bar, 0.462);
+    });
+
+    test('the selected computer\'s own switch still changes the gas', () {
+      final r = resolverFor('computer-a');
+      expect(r.resolve(400).gasLabel, 'Air');
+      expect(r.resolve(950).gasLabel, 'EAN50');
+      expect(r.resolve(950).tankPressureBar, 200);
+    });
+
+    test('the other computer reads its own schedule', () {
+      final face = resolverFor('computer-b').resolve(750);
+      expect(face.gasLabel, 'EAN50');
+      expect(face.tankPressureBar, 200);
+    });
+
+    test('a whole-dive series (no computer) counts every switch', () {
+      // Sequential halves of a Combine draw as one series, as on the chart.
+      final face = resolverFor(null).resolve(750);
+      expect(face.gasLabel, 'EAN50');
+      expect(face.tankPressureBar, 200);
+    });
+
+    test('labels every moment as the profile chart\'s gas strip does', () {
+      for (final computerId in ['computer-a', 'computer-b', null]) {
+        final r = resolverFor(computerId);
+        final strip = activeGasUsageSegments(
+          dive,
+          gasSwitches: switches,
+          profile: activeProfile,
+          computerId: computerId,
+        );
+        for (var t = 0; t <= 1200; t += 50) {
+          final segment = strip.lastWhere((s) => t >= s.startSeconds);
+          expect(
+            r.resolve(t).gasLabel,
+            segment.label,
+            reason: 'computer $computerId at $t s',
+          );
+        }
+      }
+    });
+  });
+
+  group('forSource on an open-circuit dive with a diluent-tagged cylinder', () {
+    // An OC dive is off the loop, so a diluent tag does not take the start:
+    // the chart's strip starts on the back gas, and so must the face.
+    const tanks = [
+      DiveTank(
+        id: 'dil',
+        name: 'Diluent',
+        gasMix: GasMix(o2: 10, he: 50),
+        role: TankRole.diluent,
+        order: 0,
+      ),
+      DiveTank(
+        id: 'back',
+        name: 'Back gas',
+        gasMix: GasMix(o2: 21),
+        role: TankRole.backGas,
+        order: 1,
+      ),
+    ];
+    const pressures = {
+      'dil': [
+        TankPressurePoint(tankId: 'dil', timestamp: 0, pressure: 190),
+        TankPressurePoint(tankId: 'dil', timestamp: 40, pressure: 190),
+      ],
+      'back': [
+        TankPressurePoint(tankId: 'back', timestamp: 0, pressure: 210),
+        TankPressurePoint(tankId: 'back', timestamp: 40, pressure: 150),
+      ],
+    };
+    final dive = Dive(
+      id: 'oc',
+      dateTime: DateTime.utc(2026),
+      diveMode: DiveMode.oc,
+      tanks: tanks,
+      profile: profile,
+    );
+
+    test('starts on the back gas and reads its pressure', () {
+      final r = PerdixFaceResolver.forSource(
+        dive,
+        profile: profile,
+        tankPressures: pressures,
+      );
+      final strip = activeGasUsageSegments(
+        dive,
+        gasSwitches: const [],
+        profile: profile,
+      );
+      expect(strip.single.label, 'Air');
+      final face = r.resolve(20);
+      expect(face.gasLabel, 'Air');
+      // The back gas's reading (held from 0 s), not the diluent's 190 bar.
+      expect(face.tankPressureBar, 210);
     });
   });
 }
