@@ -43,6 +43,11 @@ abstract final class SyncTempFiles {
     }
   }
 
+  /// Native only: a browser never receives a compressed base, which only a
+  /// nearby full copy is.
+  static Stream<List<int>> gunzip(Stream<List<int>> compressed) =>
+      throw UnsupportedError('a browser never reads a gzipped sync temp file');
+
   /// Bytes per worker round trip when streaming a file back.
   static const int chunkBytes = 1 << 20;
 

@@ -27,10 +27,13 @@ import 'package:submersion/core/services/sync/changeset_log/byte_progress_stream
 /// multi-hundred-MB base can legitimately take minutes without being mistaken
 /// for a dead worker (issue #1421).
 ///
-/// [args] is `[mainSendPort, filePath]` (Isolate.spawn passes one message).
+/// [args] is `[mainSendPort, filePath]` (Isolate.spawn passes one message),
+/// optionally followed by `true` when the file is gzipped: each pass then
+/// reads it through the decoder, and progress counts compressed bytes.
 void baseParseWorkerMain(List<Object> args) {
   final mainSendPort = args[0] as SendPort;
   final filePath = args[1] as String;
+  final gzipped = args.length > 2 && args[2] == true;
   final rx = ReceivePort();
   mainSendPort.send(<String, Object>{'type': 'ready', 'port': rx.sendPort});
 
@@ -54,14 +57,17 @@ void baseParseWorkerMain(List<Object> args) {
   });
 
   final total = File(filePath).lengthSync();
-  Stream<List<int>> openWithProgress() => withByteProgress(
-    File(filePath).openRead(),
-    onProgress: (consumed) => mainSendPort.send(<String, Object>{
-      'type': 'progress',
-      'bytes': consumed,
-      'total': total,
-    }),
-  );
+  Stream<List<int>> openWithProgress() {
+    final read = withByteProgress(
+      File(filePath).openRead(),
+      onProgress: (consumed) => mainSendPort.send(<String, Object>{
+        'type': 'progress',
+        'bytes': consumed,
+        'total': total,
+      }),
+    );
+    return gzipped ? read.transform(gzip.decoder) : read;
+  }
 
   Future<void> runDeletions() async {
     try {
