@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/gpx/gpx_export_service.dart';
 import 'package:submersion/core/services/export/kml/kml_export_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/gps_log/data/repositories/track_geometry_cache_repository.dart';
 import 'package:submersion/features/gps_log/data/services/track_import/track_import_service.dart';
@@ -13,7 +14,6 @@ import 'package:submersion/features/gps_log/domain/gps_track_matcher.dart';
 import 'package:submersion/features/gps_log/domain/track_colorization.dart';
 import 'package:submersion/features/gps_log/domain/track_geometry.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 
 /// Argument bundle for the isolate. compute() takes exactly one argument.
 class _SimplifyRequest {

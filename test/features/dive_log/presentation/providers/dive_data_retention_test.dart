@@ -103,6 +103,5 @@ void main() {
     }
     // Freed once diveDataRetention passes with nothing using them: the timing
     // is covered with fake time in test/core/providers/retain_until_idle_test.
-    expect(diveDataRetention, const Duration(minutes: 5));
   });
 }

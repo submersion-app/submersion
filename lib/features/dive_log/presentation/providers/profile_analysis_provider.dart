@@ -16,6 +16,7 @@ import 'package:submersion/core/deco/scr_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
@@ -36,7 +37,6 @@ import 'package:submersion/features/dive_log/presentation/providers/analysis_set
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/otu_window_totals.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 
 /// Reports which data source was actually used for each metric in the current profile.
 /// Updated as a side-effect of profileAnalysisProvider.
@@ -1045,9 +1045,11 @@ ProfileAnalysis _runProfileAnalysis(_ProfileAnalysisInput input) {
 
 /// Lean dive hydration for the analysis pipeline: dive-row scalars, tanks,
 /// and the merged profile only -- no joined display entities (WS2, large-DB
-/// performance). keepAlive family, so a residual-chain walk over a
-/// repetitive dive week hydrates each prior dive once per session instead
-/// of fully re-hydrating on every detail open. Self-invalidates on the
+/// performance). Held for [diveDataRetention] after its last use, so a
+/// residual-chain walk over a repetitive dive week hydrates each prior dive
+/// once while you browse that week instead of fully re-hydrating on every
+/// detail open, and a dive left alone frees itself (#4254). Self-invalidates
+/// on the
 /// analysis-input tick (the tables this hydration actually reads), so the
 /// residual-chain cache survives writes to unrelated detail tables such as
 /// media.

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_annotations_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
@@ -14,7 +15,6 @@ import 'package:submersion/features/dive_3d/domain/geometry/z_axis_spec.dart';
 import 'package:submersion/features/dive_3d/domain/metric_palette.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/domain/scene_geometry_service.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 
 /// Assembles scene data from the primary/active source. Returns null when
 /// the dive has no usable profile (manual logs) so the UI can hide all 3D

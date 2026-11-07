@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
@@ -14,7 +15,6 @@ import 'package:submersion/features/planner/domain/services/dive_to_plan_convert
 import 'package:submersion/features/planner/domain/services/logged_dive_chain.dart';
 import 'package:submersion/features/planner/presentation/planner_navigation.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 
 /// Present the "What if..." sheet as a modal bottom sheet.
 ///

@@ -9,12 +9,12 @@ import 'package:submersion/features/dive_lab/domain/entities/scenario_request.da
 import 'package:submersion/features/dive_lab/domain/entities/scenario_settings.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/ccr_gas_schedule.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 
 /// Everything the lab needs about a dive, assembled from the same providers
 /// the dive detail analysis uses, minus the scenario itself.

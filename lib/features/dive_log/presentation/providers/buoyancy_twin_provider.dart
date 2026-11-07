@@ -5,10 +5,10 @@ import 'package:submersion/core/buoyancy/twin_analyzer.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 
 /// The buoyancy twin for one dive, computed on demand.
 ///

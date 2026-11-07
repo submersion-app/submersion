@@ -1,8 +1,8 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/profile_editing_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/outlier_result.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 
 /// Detects outliers in a dive's profile for showing suggestion badges.
 ///

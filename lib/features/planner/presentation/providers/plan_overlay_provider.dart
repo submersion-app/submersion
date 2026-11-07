@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
@@ -12,7 +13,6 @@ import 'package:submersion/features/planner/presentation/providers/plan_canvas_p
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_store.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 
 /// Seconds between points on a plan's chart line. The chart curves between
 /// points, so a flat bottom held by two far-apart points would bow past the

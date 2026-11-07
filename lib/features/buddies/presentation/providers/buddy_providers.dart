@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/view_config_repository.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
@@ -19,7 +20,6 @@ import 'package:submersion/shared/providers/entity_card_config_providers.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 
 /// Repository provider
 final buddyRepositoryProvider = Provider<BuddyRepository>((ref) {

@@ -3,10 +3,10 @@ import 'package:submersion/features/dive_log/data/services/estimated_tank_pressu
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show TankPressurePoint;
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 
 /// The tank pressure curves the profile chart surfaces draw.
 ///

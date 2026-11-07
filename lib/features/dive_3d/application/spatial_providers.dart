@@ -20,12 +20,12 @@ import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.d
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_axes.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_geometry_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_path_adapter.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 
 /// Whether the dive's 3D seascape should draw the linked measured route
 /// (the default) rather than the dead-reckoned estimate, when both are

@@ -1,5 +1,6 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
 import 'package:submersion/features/planner/domain/services/range_table_service.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
@@ -8,7 +9,6 @@ import 'package:submersion/features/planner/presentation/providers/plan_follow_p
 import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 
 /// What the planner shows for a logged dive picked in the series bar (issue
 /// #3565): the plan it was dived from, if any, and what its safety review

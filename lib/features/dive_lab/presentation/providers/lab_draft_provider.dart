@@ -6,9 +6,9 @@ import 'package:submersion/features/dive_lab/domain/entities/scenario_interventi
 import 'package:submersion/features/dive_lab/domain/entities/scenario_mode.dart';
 import 'package:submersion/features/dive_lab/domain/services/remaining_bottom_compiler.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_request_inputs_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 
 /// The scenario being explored on the lab page; ephemeral until saved.
 class LabDraft extends Equatable {

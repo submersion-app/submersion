@@ -6,10 +6,10 @@ import 'package:submersion/features/dive_lab/domain/entities/dive_scenario.dart'
 import 'package:submersion/features/dive_lab/domain/entities/scenario_outcome.dart';
 import 'package:submersion/features/dive_lab/domain/services/compare_columns.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/dive_scenario_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 
 /// Whether a dive has a linked plan, for deciding if Compare shows at all.
 final hasLinkedPlanProvider = Provider.autoDispose.family<bool, String>((

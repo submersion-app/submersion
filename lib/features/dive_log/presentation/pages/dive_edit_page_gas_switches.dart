@@ -94,9 +94,17 @@ extension _GasSwitchEditing on _DiveEditPageState {
     UnitFormatter units,
   ) async {
     final diveId = widget.diveId;
+    // Awaited, not read synchronously: this page never watches the family,
+    // and it no longer stays cached once the detail page lets go (#4254).
     final recorded = diveId == null
         ? null
-        : ref.read(tankPressuresProvider(diveId)).value;
+        : await ref
+              .read(tankPressuresProvider(diveId).future)
+              .then<Map<String, List<TankPressurePoint>>?>(
+                (value) => value,
+                onError: (Object _) => null,
+              );
+    if (!mounted) return;
     final seconds = await showGasSwitchTimeSheet(
       context,
       profile: profile,

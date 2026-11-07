@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/planner/domain/entities/series_follow.dart';
@@ -11,7 +12,6 @@ import 'package:submersion/features/planner/domain/services/logged_dive_chain.da
 import 'package:submersion/features/planner/domain/services/plan_series_calculator.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 
 /// What a series following the logged dive [diveId] starts from (issue
 /// #3565): the dive and the dives before it back to the first 48-hour gap,

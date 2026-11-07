@@ -21,6 +21,7 @@ import 'package:submersion/features/dive_log/data/services/dive_consolidation_se
 import 'package:submersion/features/dive_log/data/services/dive_merge_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_split_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_uncombine_service.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_list_loader.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_profile_batcher.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
@@ -41,7 +42,6 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 
 // Re-export DiveFilterState so existing imports continue to work
 export 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';

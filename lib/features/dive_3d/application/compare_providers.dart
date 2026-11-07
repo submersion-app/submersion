@@ -6,9 +6,9 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 
 /// Language-neutral fallback labels for [resolveSourceName] used off the
 /// widget tree (providers cannot read context.l10n). Comparison labels favor

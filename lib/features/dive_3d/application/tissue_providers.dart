@@ -5,11 +5,11 @@ import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/domain/tissue/subsurface_tissue_builder.dart';
 import 'package:submersion/features/dive_3d/domain/tissue/tissue_surface_grid.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 
 /// The per-sample decompression status series for a dive's active source -
 /// the same data that feeds the 2D tissue heat map.
