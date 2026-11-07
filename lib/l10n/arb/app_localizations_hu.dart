@@ -19706,6 +19706,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_photoPicker_selectAllButton => 'Összes kijelölése';
 
   @override
+  String get media_photoPicker_albumFilter_all => 'Összes album';
+
+  @override
+  String media_photoPicker_albumFilter_chip(String album, int count) {
+    return '$album ($count)';
+  }
+
+  @override
+  String get media_photoPicker_albumFilter_label => 'Szűrés album szerint';
+
+  @override
   String media_photoPicker_selectedCount(int count) {
     return '$count kijelölve';
   }
