@@ -1155,13 +1155,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       ? _metricColor(ProfileMetric.depth)
       : _getAscentRateColor(category);
 
-  /// Interpolate tank pressure at a given timestamp. Shared with the
-  /// Cylinders card, which follows this cursor (issue #4291).
-  double? _interpolateTankPressure(
-    List<TankPressurePoint> points,
-    int timestamp,
-  ) => pressureAtCursor(points, timestamp);
-
   /// Get color for tank by index (fallback when no gas mix info)
   Color _getTankColor(int index) {
     const colors = [
@@ -2682,7 +2675,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         if (!_isComputerVisible(tankComputerIds[tankId])) continue;
         final pressurePoints = widget.tankPressures![tankId];
         if (pressurePoints == null || pressurePoints.isEmpty) continue;
-        final pressure = _interpolateTankPressure(pressurePoints, timestamp);
+        // Shared with the Cylinders card, which follows this cursor (#4291).
+        final pressure = pressureAtCursor(pressurePoints, timestamp);
         final tank = _getTankById(tankId);
         final color =
             _singleTankPressureColor ??

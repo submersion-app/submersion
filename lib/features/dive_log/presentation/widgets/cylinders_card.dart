@@ -69,6 +69,10 @@ class CylindersCard extends ConsumerWidget {
     // `.value`, not `valueOrNull`, here and below: a reload keeps what is
     // already shown rather than dropping it from every row.
     final tankPressures = ref.watch(tankPressuresProvider(dive.id)).value;
+    // Each tank's own series, matched as everywhere else when it is still
+    // keyed by an old tank id (#276), so the figure's Start and End read the
+    // same series as its cursor line.
+    final seriesByTank = resolveTankPressureSeries(dive.tanks, tankPressures);
     final cylinderSacs =
         ref.watch(cylinderSacProvider(dive.id)).value ?? const <CylinderSac>[];
     final sacByTankId = {for (final c in cylinderSacs) c.tankId: c};
@@ -77,7 +81,7 @@ class CylindersCard extends ConsumerWidget {
     // room for its cursor label before the cursor arrives.
     final cursorLines = TankCursorLine.forTanks(
       dive.tanks,
-      ref.watch(estimatedTankPressuresProvider(dive.id)).value,
+      watchChartTankSeries(ref, dive.id),
     );
     final dataSources =
         ref.watch(diveDataSourcesProvider(dive.id)).value ??
@@ -125,7 +129,7 @@ class CylindersCard extends ConsumerWidget {
           tank: entry.value,
           cylinderSac: sacByTankId[entry.value.id],
           cursorLine: cursorLines[entry.value.id],
-          tankPressures: tankPressures,
+          series: seriesByTank[entry.value.id],
           sourceName: showSourceBadges && entry.value.computerId != null
               ? computerNames[entry.value.computerId]
               : null,
@@ -261,7 +265,7 @@ class CylindersCard extends ConsumerWidget {
     required DiveTank tank,
     required CylinderSac? cylinderSac,
     required TankCursorLine? cursorLine,
-    required Map<String, List<TankPressurePoint>>? tankPressures,
+    required List<TankPressurePoint>? series,
     required String? sourceName,
     required Set<String> knownSerials,
     required TripCylinderTankLabel? slotLabel,
@@ -273,7 +277,7 @@ class CylindersCard extends ConsumerWidget {
     final serialKnown = serial != null && knownSerials.contains(serial);
     final nameDerivedRole = tank.roleSource == TankRoleSource.transmitterName;
 
-    final pressures = resolvedTankPressures(tank, tankPressures?[tank.id]);
+    final pressures = resolvedTankPressures(tank, series);
     final pressureUsed = pressures.$1 != null && pressures.$2 != null
         ? pressures.$1! - pressures.$2!
         : null;

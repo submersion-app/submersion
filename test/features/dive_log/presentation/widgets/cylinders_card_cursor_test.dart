@@ -75,6 +75,8 @@ Widget _card({
   required Dive dive,
   int? cursor,
   EstimatedTankPressures chartSeries = _chartSeries,
+  bool estimatesFail = false,
+  Map<String, List<TankPressurePoint>> measured = const {},
   AppSettings settings = const AppSettings(),
 }) {
   final units = UnitFormatter(settings);
@@ -83,15 +85,15 @@ Widget _card({
       cylinderSacProvider.overrideWith(
         (ref, id) async => const <CylinderSac>[],
       ),
-      tankPressuresProvider.overrideWith(
-        (ref, id) async => const <String, List<TankPressurePoint>>{},
-      ),
+      tankPressuresProvider.overrideWith((ref, id) async => measured),
       diveDataSourcesProvider.overrideWith(
         (ref, id) async => const <DiveDataSource>[],
       ),
       transmittersProvider.overrideWith((ref) async => const <Transmitter>[]),
       estimatedTankPressuresProvider.overrideWith(
-        (ref, id) async => chartSeries,
+        (ref, id) async => estimatesFail
+            ? throw StateError('gas switches failed to load')
+            : chartSeries,
       ),
       activeSourceProfileProvider.overrideWith((ref, id) => null),
       profileTrackingIndexProvider.overrideWith((ref, id) => cursor),
@@ -243,6 +245,60 @@ void main() {
 
     // The estimate would read 125 at 25:00.
     expect(find.text('Now 110 bar'), findsOneWidget);
+  });
+
+  testWidgets('follows the measured lines the chart falls back to', (
+    tester,
+  ) async {
+    // The estimates failed to load, so the chart draws the measured series
+    // alone; the card follows those same lines.
+    await tester.pumpWidget(
+      _card(
+        dive: _dive([_air, _stage]),
+        cursor: 150,
+        estimatesFail: true,
+        measured: {'air': _chartSeries.pressures['air']!},
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Now 125 bar'), findsOneWidget);
+    expect(find.textContaining('(est.)'), findsNothing);
+  });
+
+  testWidgets('start and end read a series keyed by an old tank id', (
+    tester,
+  ) async {
+    // No stored start or end pressure, and a reparse left the transmitter
+    // series under the tank's old id: the figure's Start and End come from
+    // the same series its now line follows.
+    const bare = DiveTank(
+      id: 'air',
+      volume: 11.1,
+      workingPressure: 232,
+      gasMix: GasMix(o2: 21),
+    );
+    final series = [
+      for (final p in _chartSeries.pressures['air']!)
+        TankPressurePoint(
+          tankId: 'old-air-id',
+          timestamp: p.timestamp,
+          pressure: p.pressure,
+        ),
+    ];
+    await tester.pumpWidget(
+      _card(
+        dive: _dive([bare]),
+        cursor: 150,
+        measured: {'old-air-id': series},
+        chartSeries: EstimatedTankPressures({'old-air-id': series}, const {}),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Start 200 bar'), findsOneWidget);
+    expect(find.text('End 50 bar'), findsOneWidget);
+    expect(find.text('Now 125 bar'), findsOneWidget);
   });
 
   testWidgets('the pressure follows the diver units', (tester) async {
