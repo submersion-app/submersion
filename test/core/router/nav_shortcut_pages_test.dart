@@ -5,6 +5,7 @@ import 'package:submersion/features/connections/presentation/pages/connections_p
 import 'package:submersion/features/gas_calculators/presentation/pages/gas_calculator_detail_page.dart';
 import 'package:submersion/features/import_wizard/presentation/pages/universal_import_wizard_route.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_gas_page.dart';
+import 'package:submersion/features/transfer/presentation/pages/transfer_computers_page.dart';
 import 'package:submersion/shared/widgets/nav/nav_shortcuts.dart';
 
 void main() {
@@ -43,6 +44,10 @@ void main() {
     expect(
       kNavShortcutPages['import-wizard']!(const {}),
       isA<UniversalImportWizardRoute>(),
+    );
+    expect(
+      kNavShortcutPages['transfer-computers']!(const {}),
+      isA<TransferComputersPage>(),
     );
   });
 

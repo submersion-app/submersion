@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_planner/data/services/plan_calculator_service.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -20,7 +19,7 @@ void main() {
   late DivePlanNotifier notifier;
 
   setUp(() {
-    notifier = DivePlanNotifier(PlanCalculatorService());
+    notifier = DivePlanNotifier();
     // The starter plan must carry a back-gas cylinder for segments to exist.
     notifier.addTank(
       const DiveTank(
@@ -225,7 +224,6 @@ void main() {
       () async {
         await saveMissionPlan();
         final opener = DivePlanNotifier(
-          PlanCalculatorService(),
           repository: DivePlanRepository(),
           loadEquipment: () async => [dpvItem('eq-1')],
         );
@@ -244,7 +242,6 @@ void main() {
     test('a failed equipment load keeps the stored scooter', () async {
       await saveMissionPlan();
       final opener = DivePlanNotifier(
-        PlanCalculatorService(),
         repository: DivePlanRepository(),
         loadEquipment: () async => throw StateError('equipment unavailable'),
       );
@@ -260,7 +257,6 @@ void main() {
       final called = Completer<void>();
       final items = Completer<List<EquipmentItem>>();
       final opener = DivePlanNotifier(
-        PlanCalculatorService(),
         repository: DivePlanRepository(),
         loadEquipment: () {
           called.complete();
@@ -322,10 +318,7 @@ void main() {
           updatedAt: DateTime(2026, 9, 28),
         ),
       );
-      final opener = DivePlanNotifier(
-        PlanCalculatorService(),
-        repository: DivePlanRepository(),
-      );
+      final opener = DivePlanNotifier(repository: DivePlanRepository());
       addTearDown(opener.dispose);
       expect(await opener.loadPlanById('plan-2'), isTrue);
       expect(

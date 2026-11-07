@@ -16,6 +16,7 @@ void main() {
     limitDepth: (m) => 'L${m.toStringAsFixed(1)}',
     pressure: (bar) => 'P${bar.toStringAsFixed(1)}',
     temperature: (c) => 'T${c.toStringAsFixed(1)}',
+    temperatureDelta: (c) => 'TD${c.toStringAsFixed(1)}',
     sac: (lpm) => 'S${lpm.toStringAsFixed(1)}',
     // Renders the UTC calendar date so assertions can prove the clock message
     // routes through the diver's date formatter rather than an ISO timestamp.
@@ -76,8 +77,24 @@ void main() {
   });
 
   group('clock_offset', () {
-    test('offsetHours branch', () {
-      expect(detailFor('clock_offset', {'offsetHours': 3}), isNotEmpty);
+    // The offset says which way the clock is off, and one hour is singular
+    // (issue #4209).
+    test('a positive offset is a clock running ahead', () {
+      expect(
+        detailFor('clock_offset', {'offsetHours': 3}),
+        'A source clock runs 3 hours ahead',
+      );
+      expect(
+        detailFor('clock_offset', {'offsetHours': 1}),
+        'A source clock runs 1 hour ahead',
+      );
+    });
+
+    test('a negative offset is a clock running behind', () {
+      expect(
+        detailFor('clock_offset', {'offsetHours': -2}),
+        'A source clock runs 2 hours behind',
+      );
     });
 
     test('overlapMinutes branch', () {
@@ -139,8 +156,44 @@ void main() {
   test('sample_gap renders gap count and longest gap', () {
     expect(
       detailFor('sample_gap', {'gapCount': 3, 'longestGapSeconds': 45}),
-      isNotEmpty,
+      '3 gaps in samples, longest 45 s',
     );
+  });
+
+  group('qualityDurationLabel', () {
+    test('keeps seconds below two minutes', () {
+      expect(qualityDurationLabel(l10n, 0), '0 s');
+      expect(qualityDurationLabel(l10n, 119), '119 s');
+    });
+
+    test('switches to whole minutes from two minutes on', () {
+      expect(qualityDurationLabel(l10n, 120), '2 min');
+      expect(qualityDurationLabel(l10n, 1620), '27 min');
+      expect(qualityDurationLabel(l10n, 1650), '28 min');
+    });
+  });
+
+  group('qualityGasLabel', () {
+    test('air and oxygen use the localized gas names', () {
+      expect(qualityGasLabel(l10n, 21, 0), l10n.gas_air_displayName);
+      expect(qualityGasLabel(l10n, 100, 0), l10n.gas_oxygen_displayName);
+    });
+
+    test('nitrox and trimix keep their notation', () {
+      expect(qualityGasLabel(l10n, 50, 0), 'EAN50');
+      expect(qualityGasLabel(l10n, 18, 45), 'Tx 18/45');
+    });
+
+    test('a hypoxic helium-free mix reads as its oxygen share', () {
+      expect(qualityGasLabel(l10n, 12, 0), '12% O2');
+    });
+
+    // A finding stored before helium was recorded could be a trimix; naming
+    // its 21% "Air" would be a claim the finding cannot make.
+    test('an unknown helium share names the oxygen share alone', () {
+      expect(qualityGasLabel(l10n, 21, null), '21% O2');
+      expect(qualityGasLabel(l10n, 32, null), '32% O2');
+    });
   });
 
   group('depth_spike', () {
@@ -174,11 +227,24 @@ void main() {
     });
     expect(d, contains('R30.0'));
     expect(d, isNot(contains('/min')));
+    expect(d, endsWith('for 10 s'));
+  });
+
+  test('impossible_rate renders a long run in minutes', () {
+    final d = detailFor('impossible_rate', {
+      'maxRateMetersPerMinute': 30.0,
+      'durationSeconds': 1620,
+    });
+    expect(d, endsWith('for 27 min'));
   });
 
   group('temp_anomaly', () {
-    test('delta jump branch', () {
-      expect(detailFor('temp_anomaly', {'deltaC': 8.0}), contains('T8.0'));
+    // A jump is a difference; the absolute formatter would add the 32 degree
+    // Fahrenheit offset to it (issue #4209).
+    test('delta jump branch formats a difference', () {
+      final d = detailFor('temp_anomaly', {'deltaC': 8.0});
+      expect(d, contains('TD8.0'));
+      expect(d, isNot(contains('T8.0')));
     });
 
     test('scalar branch', () {
@@ -263,10 +329,33 @@ void main() {
       final d = detailFor('gas_mod', {
         'peakPpO2': 1.61,
         'o2Percent': 32.0,
+        'hePercent': 0.0,
         'depthAtPeak': 40.0,
       });
       expect(d, contains('1.61'));
+      expect(d, contains('EAN32'));
       expect(d, contains('D40.0'));
+    });
+
+    test('ppO2 branch keeps the helium of a trimix', () {
+      final d = detailFor('gas_mod', {
+        'peakPpO2': 1.7,
+        'o2Percent': 18.0,
+        'hePercent': 45.0,
+        'depthAtPeak': 85.0,
+      });
+      expect(d, contains('Tx 18/45'));
+    });
+
+    test('ppO2 branch names oxygen as a gas, not EAN100', () {
+      final d = detailFor('gas_mod', {
+        'peakPpO2': 1.9,
+        'o2Percent': 100.0,
+        'hePercent': 0.0,
+        'depthAtPeak': 9.0,
+      });
+      expect(d, contains(l10n.gas_oxygen_displayName));
+      expect(d, isNot(contains('EAN100')));
     });
 
     test('switch/MOD branch', () {
@@ -277,7 +366,11 @@ void main() {
     });
 
     test('hypoxic-at-surface branch', () {
-      expect(detailFor('gas_mod', {'o2Percent': 12.0}), isNotEmpty);
+      expect(detailFor('gas_mod', {'o2Percent': 12.0}), contains('12% O2'));
+      expect(
+        detailFor('gas_mod', {'o2Percent': 10.0, 'hePercent': 70.0}),
+        contains('Tx 10/70'),
+      );
     });
   });
 
@@ -317,15 +410,25 @@ void main() {
       expect(flagged.length, greaterThan(plain.length));
     });
 
-    test('duration branch', () {
+    // Both values, like the depth branch, so the diver can see which source
+    // is plausible (issue #4209).
+    test('duration branch shows both durations', () {
       expect(
-        detailFor('source_conflict', {'primarySeconds': 3000}),
-        isNotEmpty,
+        detailFor('source_conflict', {
+          'primarySeconds': 1390,
+          'sourceSeconds': 4018,
+        }),
+        'Sources disagree on dive duration: 23 min vs. 67 min',
       );
     });
 
-    test('temperature branch', () {
-      expect(detailFor('source_conflict', {}), isNotEmpty);
+    test('temperature branch shows both temperatures', () {
+      final d = detailFor('source_conflict', {
+        'primaryTempC': 24.0,
+        'sourceTempC': 27.5,
+      });
+      expect(d, contains('T24.0'));
+      expect(d, contains('T27.5'));
     });
   });
 

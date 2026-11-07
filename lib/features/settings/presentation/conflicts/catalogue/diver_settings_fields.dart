@@ -323,6 +323,11 @@ final Map<String, ConflictField> diverSettingsFields = {
     FieldKind.enumValue,
     enumLabel: listViewModeLabeler,
   ),
+  'firstDayOfWeek': ConflictField(
+    (l) => l.settings_conflict_field_firstDayOfWeek,
+    FieldKind.enumValue,
+    enumLabel: firstDayOfWeekLabeler,
+  ),
   'gasConsumptionDisplay': ConflictField(
     (l) => l.settings_conflict_field_gasConsumptionDisplay,
     FieldKind.enumValue,

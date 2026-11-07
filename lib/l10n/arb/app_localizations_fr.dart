@@ -11187,9 +11187,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get divePlanner_action_addTank => 'Ajouter une bouteille';
 
   @override
-  String get divePlanner_action_convertToDive => 'Convertir en plongée';
-
-  @override
   String get divePlanner_action_deletePlan => 'Supprimer le plan';
 
   @override
@@ -21009,6 +21006,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get plannerCanvas_chart_removeWaypoint => 'Supprimer le point';
 
   @override
+  String get plannerCanvas_chart_worstCase => 'Pire cas';
+
+  @override
   String get plannerCanvas_contingency_title => 'Plans de secours';
 
   @override
@@ -21017,9 +21017,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get plannerCanvas_contingency_turnRule =>
       'Règle de pression de demi-tour';
-
-  @override
-  String get plannerCanvas_convert_success => 'Plongée créée à partir du plan';
 
   @override
   String get plannerCanvas_convert_view => 'Voir';
@@ -21100,6 +21097,17 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get plannerSeries_openInLog => 'Ouvrir dans le carnet';
+
+  @override
+  String get plannerSeries_view_actual => 'Réel';
+
+  @override
+  String get plannerSeries_view_plan => 'Plan';
+
+  @override
+  String plannerSeries_saved_divedCount(int dived, int count) {
+    return '$dived sur $count plongées';
+  }
 
   @override
   String get plannerSeries_stopFollowing => 'Ne plus suivre';
@@ -21254,8 +21262,78 @@ class AppLocalizationsFr extends AppLocalizations {
   String get plannerSeries_fillAll => 'Remplir tous les blocs';
 
   @override
-  String get plannerSeries_convertUnavailable =>
-      'Une série de plongées ne peut pas encore être convertie en plongées enregistrées';
+  String get plannerSeries_createPlannedDive => 'Créer la plongée planifiée';
+
+  @override
+  String get plannerSeries_createPlannedDives =>
+      'Créer les plongées planifiées';
+
+  @override
+  String get plannerSeries_updatePlannedDive =>
+      'Mettre à jour la plongée planifiée';
+
+  @override
+  String get plannerSeries_updatePlannedDives =>
+      'Mettre à jour les plongées planifiées';
+
+  @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return '$dive a un avertissement critique : les plongées planifiées n\'ont pas été mises à jour';
+  }
+
+  @override
+  String plannerSeries_cannotUpdateEmpty(String dive) {
+    return '$dive n\'a aucun segment : les plongées planifiées n\'ont pas été mises à jour';
+  }
+
+  @override
+  String get plannerSeries_cannotUpdateEmptyPlan =>
+      'Ce plan n\'a aucun segment : il n\'a pas été écrit dans le carnet';
+
+  @override
+  String plannerSeries_created(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées planifiées ajoutées au carnet',
+      one: '$count plongée planifiée ajoutée au carnet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerSeries_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées planifiées mises à jour dans le carnet',
+      one: '$count plongée planifiée mise à jour dans le carnet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_title => 'Supprimer du carnet ?';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count plongées planifiées qui ne sont plus dans cette série restent dans le carnet.',
+      one:
+          '$count plongée planifiée qui n\'est plus dans cette série reste dans le carnet.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'Conserver';
+
+  @override
+  String get plannerSeries_allDived =>
+      'Toutes les plongées de ce plan ont été effectuées, il n\'y a rien à mettre à jour';
 
   @override
   String get plannerSeries_missionUnavailable =>
@@ -22752,6 +22830,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get navShortcut_short_backup => 'Sauvegarde';
+
+  @override
+  String get navShortcut_short_diveComputers => 'Ordinateurs';
 
   @override
   String get navShortcut_short_speciesStats => 'Stats espèces';
@@ -26128,6 +26209,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_timeFormat => 'Format de l\'heure';
+
+  @override
+  String get settings_conflict_field_firstDayOfWeek =>
+      'Premier jour de la semaine';
 
   @override
   String get settings_conflict_field_timeOffsetSeconds => 'Décalage horaire';
@@ -29660,10 +29745,39 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_units_dialog_weightUnit => 'Unité de poids';
 
   @override
-  String get settings_units_header_individualUnits => 'Unités individuelles';
+  String get settings_units_header_gasPlanning => 'Gaz et planification';
 
   @override
-  String get settings_units_header_timeDateFormat => 'Format heure et date';
+  String get settings_units_header_displayFormats => 'Affichage et formats';
+
+  @override
+  String get settings_units_appliesTo => 'S\'applique aux unités suivantes';
+
+  @override
+  String get settings_units_gasConsumption_unitHint =>
+      'L\'unité découle de la pression et du volume';
+
+  @override
+  String get settings_units_firstDayOfWeek => 'Premier jour de la semaine';
+
+  @override
+  String get settings_units_dialog_firstDayOfWeek =>
+      'Premier jour de la semaine';
+
+  @override
+  String get settings_units_firstDayOfWeek_auto => 'Automatique';
+
+  @override
+  String settings_units_firstDayOfWeek_autoResolved(String day) {
+    return 'Automatique ($day)';
+  }
+
+  @override
+  String get settings_units_firstDayOfWeek_auto_subtitle =>
+      'Suit la région de l\'appareil';
+
+  @override
+  String get settings_units_header_timeDateFormat => 'Heure et date';
 
   @override
   String get settings_units_header_unitSystem => 'Système d\'unités';
@@ -41272,6 +41386,12 @@ class AppLocalizationsFr extends AppLocalizations {
       'En attente des données de l\'ordinateur. Marquez-la comme enregistrée si vous avez plongé sans ordinateur.';
 
   @override
+  String get diveLog_planned_openInPlanner => 'Ouvrir dans le planificateur';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'Voir dans le planificateur';
+
+  @override
   String get diveLog_detail_menu_markLogged => 'Marquer comme enregistrée';
 
   @override
@@ -42220,6 +42340,16 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String dataQuality_dive_tanks(String tanks) {
+    return 'Concerne $tanks';
+  }
+
+  @override
+  String dataQuality_dive_tankPair(String first, String second) {
+    return '$first et $second';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => 'Contrôle de la qualité des données';
 
   @override
@@ -42238,9 +42368,9 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Analyse terminée - $count éléments à vérifier',
-      one: 'Analyse terminée - $count élément à vérifier',
-      zero: 'Analyse terminée - aucune nouvelle anomalie',
+      other: 'Analyse terminée - $count éléments ouverts à vérifier',
+      one: 'Analyse terminée - $count élément ouvert à vérifier',
+      zero: 'Analyse terminée - aucune anomalie ouverte',
     );
     return '$_temp0';
   }
@@ -42371,8 +42501,25 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_clock_offset(int hours) {
-    return 'L\'horloge d\'une source diffère de $hours heures';
+  String dataQuality_msg_clock_offsetAhead(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'L\'horloge d\'une source avance de $hours heures',
+      one: 'L\'horloge d\'une source avance de $hours heure',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_clock_offsetBehind(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'L\'horloge d\'une source retarde de $hours heures',
+      one: 'L\'horloge d\'une source retarde de $hours heure',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -42439,8 +42586,18 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_rate(String rate, int seconds) {
-    return 'Vitesse verticale de $rate maintenue pendant $seconds s';
+  String dataQuality_msg_rate(String rate, String duration) {
+    return 'Vitesse verticale de $rate maintenue pendant $duration';
+  }
+
+  @override
+  String dataQuality_unit_seconds(int seconds) {
+    return '$seconds s';
+  }
+
+  @override
+  String dataQuality_unit_minutes(int minutes) {
+    return '$minutes min';
   }
 
   @override
@@ -42545,12 +42702,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Le rapport constant suggère une différence de réglage eau salée/eau douce';
 
   @override
-  String get dataQuality_msg_sourceDuration =>
-      'Les sources divergent sur la durée de la plongée';
+  String dataQuality_msg_sourceDuration(String primary, String source) {
+    return 'Les sources divergent sur la durée de la plongée : $primary contre $source';
+  }
 
   @override
-  String get dataQuality_msg_sourceTemp =>
-      'Les sources divergent sur la température de l\'eau';
+  String dataQuality_msg_sourceTemp(String primary, String source) {
+    return 'Les sources divergent sur la température de l\'eau : $primary contre $source';
+  }
 
   @override
   String dataQuality_repairLabel_shiftTime(String offset) {
@@ -42569,6 +42728,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String dataQuality_repairLabel_fixSourceClock(String offset) {
     return 'Corriger l\'horloge de cet ordinateur de $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClockNamed(
+    String computer,
+    String offset,
+  ) {
+    return 'Corriger l\'horloge de $computer de $offset';
   }
 
   @override
@@ -42748,6 +42915,33 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_split => 'Diviser en plongées distinctes';
+
+  @override
+  String dataQuality_repairLabel_setPrimaryNamed(String source) {
+    return 'Définir $source comme source principale';
+  }
+
+  @override
+  String dataQuality_repairLabel_splitNamed(String source) {
+    return 'Séparer $source en une plongée distincte';
+  }
+
+  @override
+  String dataQuality_setPrimary_title(String source) {
+    return 'Définir $source comme source principale ?';
+  }
+
+  @override
+  String dataQuality_setPrimary_body(String source) {
+    return 'La profondeur, la durée et le profil de la plongée proviendront de $source. Vous pourrez le modifier à nouveau dans les sources de données de la plongée.';
+  }
+
+  @override
+  String get dataQuality_setPrimary_bodyUnnamed =>
+      'La profondeur, la durée et le profil de la plongée proviendront de cette source. Vous pourrez le modifier à nouveau dans les sources de données de la plongée.';
+
+  @override
+  String get dataQuality_setPrimary_confirm => 'Définir comme principale';
 
   @override
   String get dataQuality_repairLabel_compare => 'Comparer les profils';
@@ -50820,6 +51014,19 @@ class AppLocalizationsFr extends AppLocalizations {
           '$count vestiges de bibliothèques remplacées ou retirées, occupant $size.',
       one:
           '$count vestige d’une bibliothèque remplacée ou retirée, occupant $size.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_syncDevices_summary_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count appareils supprimés restent mémorisés pour qu’ils ne puissent pas ramener des données effacées.',
+      one:
+          '$count appareil supprimé reste mémorisé pour qu’il ne puisse pas ramener des données effacées.',
     );
     return '$_temp0';
   }

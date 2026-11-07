@@ -11076,9 +11076,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get divePlanner_action_addTank => 'Fles toevoegen';
 
   @override
-  String get divePlanner_action_convertToDive => 'Omzetten naar duik';
-
-  @override
   String get divePlanner_action_deletePlan => 'Plan verwijderen';
 
   @override
@@ -20815,6 +20812,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerCanvas_chart_removeWaypoint => 'Punt verwijderen';
 
   @override
+  String get plannerCanvas_chart_worstCase => 'Slechtste geval';
+
+  @override
   String get plannerCanvas_contingency_title => 'Noodplannen';
 
   @override
@@ -20822,9 +20822,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get plannerCanvas_contingency_turnRule => 'Keerdruk-regel';
-
-  @override
-  String get plannerCanvas_convert_success => 'Duik aangemaakt vanuit plan';
 
   @override
   String get plannerCanvas_convert_view => 'Bekijk';
@@ -20904,6 +20901,17 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get plannerSeries_openInLog => 'Openen in logboek';
+
+  @override
+  String get plannerSeries_view_actual => 'Werkelijk';
+
+  @override
+  String get plannerSeries_view_plan => 'Plan';
+
+  @override
+  String plannerSeries_saved_divedCount(int dived, int count) {
+    return '$dived van $count gedoken';
+  }
 
   @override
   String get plannerSeries_stopFollowing => 'Niet meer volgen';
@@ -21058,8 +21066,75 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerSeries_fillAll => 'Alle flessen vullen';
 
   @override
-  String get plannerSeries_convertUnavailable =>
-      'Een reeks duiken kan nog niet worden omgezet in gelogde duiken';
+  String get plannerSeries_createPlannedDive => 'Geplande duik aanmaken';
+
+  @override
+  String get plannerSeries_createPlannedDives => 'Geplande duiken aanmaken';
+
+  @override
+  String get plannerSeries_updatePlannedDive => 'Geplande duik bijwerken';
+
+  @override
+  String get plannerSeries_updatePlannedDives => 'Geplande duiken bijwerken';
+
+  @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return '$dive heeft een kritieke waarschuwing, dus de geplande duiken zijn niet bijgewerkt';
+  }
+
+  @override
+  String plannerSeries_cannotUpdateEmpty(String dive) {
+    return '$dive heeft geen segmenten, dus de geplande duiken zijn niet bijgewerkt';
+  }
+
+  @override
+  String get plannerSeries_cannotUpdateEmptyPlan =>
+      'Dit plan heeft geen segmenten, dus het is niet in het logboek gezet';
+
+  @override
+  String plannerSeries_created(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count geplande duiken toegevoegd aan het logboek',
+      one: '$count geplande duik toegevoegd aan het logboek',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerSeries_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count geplande duiken bijgewerkt in het logboek',
+      one: '$count geplande duik bijgewerkt in het logboek',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_title => 'Uit het logboek verwijderen?';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count geplande duiken die niet meer in deze reeks zitten, staan nog in het logboek.',
+      one:
+          '$count geplande duik die niet meer in deze reeks zit, staat nog in het logboek.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'Behouden';
+
+  @override
+  String get plannerSeries_allDived =>
+      'Alle duiken van dit plan zijn al gedoken, er is niets bij te werken';
 
   @override
   String get plannerSeries_missionUnavailable =>
@@ -22546,6 +22621,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get navShortcut_short_backup => 'Back-up';
+
+  @override
+  String get navShortcut_short_diveComputers => 'Computers';
 
   @override
   String get navShortcut_short_speciesStats => 'Soortenstatistiek';
@@ -25885,6 +25963,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_conflict_field_timeFormat => 'Tijdnotatie';
+
+  @override
+  String get settings_conflict_field_firstDayOfWeek => 'Eerste dag van de week';
 
   @override
   String get settings_conflict_field_timeOffsetSeconds => 'Tijdsverschil';
@@ -29377,10 +29458,38 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_units_dialog_weightUnit => 'Gewichtseenheid';
 
   @override
-  String get settings_units_header_individualUnits => 'Individuele eenheden';
+  String get settings_units_header_gasPlanning => 'Gas en planning';
 
   @override
-  String get settings_units_header_timeDateFormat => 'Tijd- & datumnotatie';
+  String get settings_units_header_displayFormats => 'Weergave & notaties';
+
+  @override
+  String get settings_units_appliesTo => 'Geldt voor de volgende eenheden';
+
+  @override
+  String get settings_units_gasConsumption_unitHint =>
+      'Eenheid volgt uit druk en volume';
+
+  @override
+  String get settings_units_firstDayOfWeek => 'Eerste dag van de week';
+
+  @override
+  String get settings_units_dialog_firstDayOfWeek => 'Eerste dag van de week';
+
+  @override
+  String get settings_units_firstDayOfWeek_auto => 'Automatisch';
+
+  @override
+  String settings_units_firstDayOfWeek_autoResolved(String day) {
+    return 'Automatisch ($day)';
+  }
+
+  @override
+  String get settings_units_firstDayOfWeek_auto_subtitle =>
+      'Volgt de regio van het apparaat';
+
+  @override
+  String get settings_units_header_timeDateFormat => 'Tijd & datum';
 
   @override
   String get settings_units_header_unitSystem => 'Eenhedensysteem';
@@ -40883,6 +40992,12 @@ class AppLocalizationsNl extends AppLocalizations {
       'Wacht op duikcomputergegevens. Markeer als gelogd als je zonder computer hebt gedoken.';
 
   @override
+  String get diveLog_planned_openInPlanner => 'Openen in planner';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'Bekijken in planner';
+
+  @override
   String get diveLog_detail_menu_markLogged => 'Markeren als gelogd';
 
   @override
@@ -41824,6 +41939,16 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String dataQuality_dive_tanks(String tanks) {
+    return 'Betreft $tanks';
+  }
+
+  @override
+  String dataQuality_dive_tankPair(String first, String second) {
+    return '$first en $second';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => 'Controle van datakwaliteit';
 
   @override
@@ -41842,9 +41967,9 @@ class AppLocalizationsNl extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Scan voltooid - $count items om te bekijken',
-      one: 'Scan voltooid - 1 item om te bekijken',
-      zero: 'Scan voltooid - geen nieuwe bevindingen',
+      other: 'Scan voltooid - $count openstaande items om te bekijken',
+      one: 'Scan voltooid - $count openstaand item om te bekijken',
+      zero: 'Scan voltooid - geen openstaande bevindingen',
     );
     return '$_temp0';
   }
@@ -41974,8 +42099,25 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_clock_offset(int hours) {
-    return 'De klok van een bron wijkt $hours uur af';
+  String dataQuality_msg_clock_offsetAhead(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'De klok van een bron loopt $hours uur voor',
+      one: 'De klok van een bron loopt $hours uur voor',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_clock_offsetBehind(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'De klok van een bron loopt $hours uur achter',
+      one: 'De klok van een bron loopt $hours uur achter',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -42042,8 +42184,18 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_rate(String rate, int seconds) {
-    return 'Verticale snelheid van $rate aangehouden gedurende $seconds s';
+  String dataQuality_msg_rate(String rate, String duration) {
+    return 'Verticale snelheid van $rate aangehouden gedurende $duration';
+  }
+
+  @override
+  String dataQuality_unit_seconds(int seconds) {
+    return '$seconds s';
+  }
+
+  @override
+  String dataQuality_unit_minutes(int minutes) {
+    return '$minutes min';
   }
 
   @override
@@ -42146,12 +42298,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'De constante verhouding wijst op een verschil in de zout-/zoetwaterinstelling';
 
   @override
-  String get dataQuality_msg_sourceDuration =>
-      'Bronnen zijn het oneens over de duikduur';
+  String dataQuality_msg_sourceDuration(String primary, String source) {
+    return 'Bronnen zijn het oneens over de duikduur: $primary versus $source';
+  }
 
   @override
-  String get dataQuality_msg_sourceTemp =>
-      'Bronnen zijn het oneens over de watertemperatuur';
+  String dataQuality_msg_sourceTemp(String primary, String source) {
+    return 'Bronnen zijn het oneens over de watertemperatuur: $primary versus $source';
+  }
 
   @override
   String dataQuality_repairLabel_shiftTime(String offset) {
@@ -42170,6 +42324,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String dataQuality_repairLabel_fixSourceClock(String offset) {
     return 'Klok van deze computer corrigeren met $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClockNamed(
+    String computer,
+    String offset,
+  ) {
+    return 'Klok van $computer corrigeren met $offset';
   }
 
   @override
@@ -42348,6 +42510,33 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_split =>
       'Splitsen in afzonderlijke duiken';
+
+  @override
+  String dataQuality_repairLabel_setPrimaryNamed(String source) {
+    return '$source als primaire bron instellen';
+  }
+
+  @override
+  String dataQuality_repairLabel_splitNamed(String source) {
+    return '$source afsplitsen als eigen duik';
+  }
+
+  @override
+  String dataQuality_setPrimary_title(String source) {
+    return '$source als primaire bron instellen?';
+  }
+
+  @override
+  String dataQuality_setPrimary_body(String source) {
+    return 'Diepte, duur en profiel van de duik komen dan van $source. Je kunt dit weer wijzigen bij de gegevensbronnen van de duik.';
+  }
+
+  @override
+  String get dataQuality_setPrimary_bodyUnnamed =>
+      'Diepte, duur en profiel van de duik komen dan van deze bron. Je kunt dit weer wijzigen bij de gegevensbronnen van de duik.';
+
+  @override
+  String get dataQuality_setPrimary_confirm => 'Als primair instellen';
 
   @override
   String get dataQuality_repairLabel_compare => 'Profielen vergelijken';
@@ -50382,6 +50571,19 @@ class AppLocalizationsNl extends AppLocalizations {
           '$count restanten van vervangen of buiten gebruik gestelde bibliotheken, goed voor $size.',
       one:
           '1 restant van een vervangen of buiten gebruik gestelde bibliotheek, goed voor $size.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_syncDevices_summary_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count verwijderde apparaten worden onthouden zodat ze geen gewiste gegevens kunnen terugbrengen.',
+      one:
+          '$count verwijderd apparaat wordt onthouden zodat het geen gewiste gegevens kan terugbrengen.',
     );
     return '$_temp0';
   }

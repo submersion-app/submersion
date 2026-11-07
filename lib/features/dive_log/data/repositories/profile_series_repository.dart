@@ -153,6 +153,47 @@ class ProfileSeriesRepository {
     SyncEventBus.notifyLocalChange();
   }
 
+  /// Replaces the samples of the series [seriesId] with [samples], in place:
+  /// it keeps its id, its flags and its place in the lineage, and no
+  /// revision is added. For a profile that is regenerated rather than
+  /// edited, such as a planned dive's entry rewritten from its plan.
+  Future<void> replaceSamples(
+    String seriesId,
+    List<ProfileSample> samples, {
+    required int now,
+  }) async {
+    final encoded = _codec.encode(
+      dedupeExactSamples(_sortedByTimestamp(samples)),
+    );
+    final summary = encoded.summary;
+    await _db.transaction(() async {
+      await (_db.update(
+        _db.diveProfileSeries,
+      )..where((t) => t.id.equals(seriesId))).write(
+        DiveProfileSeriesCompanion(
+          sampleCount: Value(summary.sampleCount),
+          startTimestamp: Value(summary.startTimestamp),
+          endTimestamp: Value(summary.endTimestamp),
+          maxDepth: Value(summary.maxDepth),
+          firstDepth: Value(summary.firstDepth),
+          lastDepth: Value(summary.lastDepth),
+          hasDecoType: Value(summary.hasDecoType),
+          hasDecoStop: Value(summary.hasDecoStop),
+          hasPositiveCeiling: Value(summary.hasPositiveCeiling),
+          codecVersion: Value(encoded.codecVersion),
+          samples: Value(encoded.bytes),
+          updatedAt: Value(now),
+        ),
+      );
+      await _db.customStatement(
+        'UPDATE $_historyTable SET content_hash = ? WHERE series_id = ?',
+        [_seriesContentHash(encoded.bytes), seriesId],
+      );
+      await _markPending(seriesId, now);
+    });
+    SyncEventBus.notifyLocalChange();
+  }
+
   /// The currently active primary series id for [diveId], or null when the
   /// dive has no primary series.
   Future<String?> primarySeriesIdForDive(String diveId) async {

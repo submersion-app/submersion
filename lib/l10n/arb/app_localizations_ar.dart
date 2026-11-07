@@ -11284,9 +11284,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divePlanner_action_addTank => 'إضافة أسطوانة';
 
   @override
-  String get divePlanner_action_convertToDive => 'تحويل إلى غطسة';
-
-  @override
   String get divePlanner_action_deletePlan => 'حذف الخطة';
 
   @override
@@ -21247,6 +21244,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerCanvas_chart_removeWaypoint => 'إزالة نقطة الطريق';
 
   @override
+  String get plannerCanvas_chart_worstCase => 'أسوأ حالة';
+
+  @override
   String get plannerCanvas_contingency_title => 'خطط الطوارئ';
 
   @override
@@ -21254,9 +21254,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get plannerCanvas_contingency_turnRule => 'قاعدة ضغط العودة';
-
-  @override
-  String get plannerCanvas_convert_success => 'تم إنشاء غطسة من الخطة';
 
   @override
   String get plannerCanvas_convert_view => 'عرض';
@@ -21336,6 +21333,17 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get plannerSeries_openInLog => 'فتح في سجل الغطس';
+
+  @override
+  String get plannerSeries_view_actual => 'الفعلي';
+
+  @override
+  String get plannerSeries_view_plan => 'الخطة';
+
+  @override
+  String plannerSeries_saved_divedCount(int dived, int count) {
+    return '$dived من $count نُفّذت';
+  }
 
   @override
   String get plannerSeries_stopFollowing => 'إيقاف المتابعة';
@@ -21498,8 +21506,82 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerSeries_fillAll => 'ملء كل الأسطوانات';
 
   @override
-  String get plannerSeries_convertUnavailable =>
-      'لا يمكن تحويل سلسلة غطسات إلى غطسات مسجلة بعد';
+  String get plannerSeries_createPlannedDive => 'إنشاء الغطسة المخططة';
+
+  @override
+  String get plannerSeries_createPlannedDives => 'إنشاء الغطسات المخططة';
+
+  @override
+  String get plannerSeries_updatePlannedDive => 'تحديث الغطسة المخططة';
+
+  @override
+  String get plannerSeries_updatePlannedDives => 'تحديث الغطسات المخططة';
+
+  @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return 'يوجد تحذير حرج في $dive، لذا لم يتم تحديث الغطسات المخططة';
+  }
+
+  @override
+  String plannerSeries_cannotUpdateEmpty(String dive) {
+    return 'لا يحتوي $dive على مقاطع، لذا لم يتم تحديث الغطسات المخططة';
+  }
+
+  @override
+  String get plannerSeries_cannotUpdateEmptyPlan =>
+      'لا تحتوي هذه الخطة على مقاطع، لذا لم تُكتب في السجل';
+
+  @override
+  String plannerSeries_created(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تمت إضافة $count غطسة مخططة إلى السجل',
+      many: 'تمت إضافة $count غطسة مخططة إلى السجل',
+      few: 'تمت إضافة $count غطسات مخططة إلى السجل',
+      two: 'تمت إضافة غطستين مخططتين إلى السجل',
+      one: 'تمت إضافة $count غطسة مخططة إلى السجل',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerSeries_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تحديث $count غطسة مخططة في السجل',
+      many: 'تم تحديث $count غطسة مخططة في السجل',
+      few: 'تم تحديث $count غطسات مخططة في السجل',
+      two: 'تم تحديث غطستين مخططتين في السجل',
+      one: 'تم تحديث $count غطسة مخططة في السجل',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_title => 'هل تريد الحذف من السجل؟';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'لا تزال $count غطسة مخططة لم تعد في هذه السلسلة في السجل.',
+      many: 'لا تزال $count غطسة مخططة لم تعد في هذه السلسلة في السجل.',
+      few: 'لا تزال $count غطسات مخططة لم تعد في هذه السلسلة في السجل.',
+      two: 'لا تزال غطستان مخططتان لم تعودا في هذه السلسلة في السجل.',
+      one: 'لا تزال $count غطسة مخططة لم تعد في هذه السلسلة في السجل.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'إبقاء';
+
+  @override
+  String get plannerSeries_allDived =>
+      'تم تنفيذ جميع غطسات هذه الخطة، لذا لا يوجد ما يمكن تحديثه';
 
   @override
   String get plannerSeries_missionUnavailable =>
@@ -23000,6 +23082,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get navShortcut_short_backup => 'النسخ الاحتياطي';
+
+  @override
+  String get navShortcut_short_diveComputers => 'حواسيب';
 
   @override
   String get navShortcut_short_speciesStats => 'إحصاءات الأنواع';
@@ -26283,6 +26368,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_timeFormat => 'تنسيق الوقت';
+
+  @override
+  String get settings_conflict_field_firstDayOfWeek => 'أول يوم في الأسبوع';
 
   @override
   String get settings_conflict_field_timeOffsetSeconds => 'فارق الوقت';
@@ -29816,10 +29904,37 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_units_dialog_weightUnit => 'وحدة الوزن';
 
   @override
-  String get settings_units_header_individualUnits => 'الوحدات الفردية';
+  String get settings_units_header_gasPlanning => 'الغاز والتخطيط';
 
   @override
-  String get settings_units_header_timeDateFormat => 'تنسيق الوقت والتاريخ';
+  String get settings_units_header_displayFormats => 'العرض والتنسيقات';
+
+  @override
+  String get settings_units_appliesTo => 'ينطبق على الوحدات التالية';
+
+  @override
+  String get settings_units_gasConsumption_unitHint =>
+      'تتبع الوحدة الضغط والحجم';
+
+  @override
+  String get settings_units_firstDayOfWeek => 'أول يوم في الأسبوع';
+
+  @override
+  String get settings_units_dialog_firstDayOfWeek => 'أول يوم في الأسبوع';
+
+  @override
+  String get settings_units_firstDayOfWeek_auto => 'تلقائي';
+
+  @override
+  String settings_units_firstDayOfWeek_autoResolved(String day) {
+    return 'تلقائي ($day)';
+  }
+
+  @override
+  String get settings_units_firstDayOfWeek_auto_subtitle => 'يتبع منطقة جهازك';
+
+  @override
+  String get settings_units_header_timeDateFormat => 'الوقت والتاريخ';
 
   @override
   String get settings_units_header_unitSystem => 'نظام الوحدات';
@@ -41646,6 +41761,12 @@ class AppLocalizationsAr extends AppLocalizations {
       'في انتظار بيانات كمبيوتر الغوص. ضع علامة مسجلة إذا غصت بدون كمبيوتر.';
 
   @override
+  String get diveLog_planned_openInPlanner => 'فتح في المخطط';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'عرض في المخطط';
+
+  @override
   String get diveLog_detail_menu_markLogged => 'وضع علامة مسجلة';
 
   @override
@@ -42633,6 +42754,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String dataQuality_dive_tanks(String tanks) {
+    return 'يخص $tanks';
+  }
+
+  @override
+  String dataQuality_dive_tankPair(String first, String second) {
+    return '$first و$second';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => 'مراجعة جودة البيانات';
 
   @override
@@ -42651,12 +42782,12 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'اكتمل الفحص: $count عنصر للمراجعة',
-      many: 'اكتمل الفحص: $count عنصرًا للمراجعة',
-      few: 'اكتمل الفحص: $count عناصر للمراجعة',
-      two: 'اكتمل الفحص: عنصران للمراجعة',
-      one: 'اكتمل الفحص: عنصر واحد للمراجعة',
-      zero: 'اكتمل الفحص: لا توجد نتائج جديدة',
+      other: 'اكتمل الفحص: $count عنصر مفتوح للمراجعة',
+      many: 'اكتمل الفحص: $count عنصرًا مفتوحًا للمراجعة',
+      few: 'اكتمل الفحص: $count عناصر مفتوحة للمراجعة',
+      two: 'اكتمل الفحص: عنصران مفتوحان للمراجعة',
+      one: 'اكتمل الفحص: عنصر مفتوح واحد للمراجعة',
+      zero: 'اكتمل الفحص: لا توجد نتائج مفتوحة',
     );
     return '$_temp0';
   }
@@ -42784,8 +42915,31 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_clock_offset(int hours) {
-    return 'تختلف ساعة أحد المصادر بمقدار $hours ساعة';
+  String dataQuality_msg_clock_offsetAhead(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'تتقدم ساعة أحد المصادر بـ$hours ساعة',
+      many: 'تتقدم ساعة أحد المصادر بـ$hours ساعة',
+      few: 'تتقدم ساعة أحد المصادر بـ$hours ساعات',
+      two: 'تتقدم ساعة أحد المصادر بساعتين',
+      one: 'تتقدم ساعة أحد المصادر بساعة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_clock_offsetBehind(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'تتأخر ساعة أحد المصادر بـ$hours ساعة',
+      many: 'تتأخر ساعة أحد المصادر بـ$hours ساعة',
+      few: 'تتأخر ساعة أحد المصادر بـ$hours ساعات',
+      two: 'تتأخر ساعة أحد المصادر بساعتين',
+      one: 'تتأخر ساعة أحد المصادر بساعة واحدة',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -42858,8 +43012,18 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_rate(String rate, int seconds) {
-    return 'معدل رأسي قدره $rate استمر لمدة $seconds ثانية';
+  String dataQuality_msg_rate(String rate, String duration) {
+    return 'معدل رأسي قدره $rate استمر لمدة $duration';
+  }
+
+  @override
+  String dataQuality_unit_seconds(int seconds) {
+    return '$seconds ثانية';
+  }
+
+  @override
+  String dataQuality_unit_minutes(int minutes) {
+    return '$minutes دقيقة';
   }
 
   @override
@@ -42964,10 +43128,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'تشير النسبة الثابتة إلى اختلاف في إعداد الماء المالح/العذب';
 
   @override
-  String get dataQuality_msg_sourceDuration => 'تختلف المصادر حول مدة الغوصة';
+  String dataQuality_msg_sourceDuration(String primary, String source) {
+    return 'تختلف المصادر حول مدة الغوصة: $primary مقابل $source';
+  }
 
   @override
-  String get dataQuality_msg_sourceTemp => 'تختلف المصادر حول درجة حرارة الماء';
+  String dataQuality_msg_sourceTemp(String primary, String source) {
+    return 'تختلف المصادر حول درجة حرارة الماء: $primary مقابل $source';
+  }
 
   @override
   String dataQuality_repairLabel_shiftTime(String offset) {
@@ -42986,6 +43154,14 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String dataQuality_repairLabel_fixSourceClock(String offset) {
     return 'تصحيح ساعة هذا الكمبيوتر بمقدار $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClockNamed(
+    String computer,
+    String offset,
+  ) {
+    return 'تصحيح ساعة $computer بمقدار $offset';
   }
 
   @override
@@ -43179,6 +43355,33 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_split => 'التقسيم إلى غوصات منفصلة';
+
+  @override
+  String dataQuality_repairLabel_setPrimaryNamed(String source) {
+    return 'جعل $source المصدر الأساسي';
+  }
+
+  @override
+  String dataQuality_repairLabel_splitNamed(String source) {
+    return 'فصل $source في غوصة مستقلة';
+  }
+
+  @override
+  String dataQuality_setPrimary_title(String source) {
+    return 'جعل $source المصدر الأساسي؟';
+  }
+
+  @override
+  String dataQuality_setPrimary_body(String source) {
+    return 'سيأتي عمق الغوصة ومدتها ومخططها من $source. يمكنك تغيير ذلك مرة أخرى من مصادر بيانات الغوصة.';
+  }
+
+  @override
+  String get dataQuality_setPrimary_bodyUnnamed =>
+      'سيأتي عمق الغوصة ومدتها ومخططها من هذا المصدر. يمكنك تغيير ذلك مرة أخرى من مصادر بيانات الغوصة.';
+
+  @override
+  String get dataQuality_setPrimary_confirm => 'جعله أساسيًا';
 
   @override
   String get dataQuality_repairLabel_compare => 'مقارنة المخططات';
@@ -51357,6 +51560,21 @@ class AppLocalizationsAr extends AppLocalizations {
       two: 'جهازان متبقيان من مكتبة مستبدَلة أو متقاعدة، ويشغل $size.',
       one: 'جهاز واحد متبقٍ من مكتبة مستبدَلة أو متقاعدة، ويشغل $size.',
       zero: '$count جهاز متبقٍ من مكتبة مستبدَلة أو متقاعدة، ويشغل $size.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_syncDevices_summary_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count جهاز محذوف محفوظ حتى لا تعيد بيانات حُذفت.',
+      many: '$count جهازًا محذوفًا محفوظًا حتى لا تعيد بيانات حُذفت.',
+      few: '$count أجهزة محذوفة محفوظة حتى لا تعيد بيانات حُذفت.',
+      two: 'جهازان محذوفان محفوظان حتى لا يعيدا بيانات حُذفت.',
+      one: 'جهاز واحد محذوف محفوظ حتى لا يعيد بيانات حُذفت.',
+      zero: 'لا توجد أجهزة محذوفة محفوظة.',
     );
     return '$_temp0';
   }

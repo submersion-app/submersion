@@ -199,6 +199,48 @@ void main() {
       );
     });
 
+    group('a shortcut whose page lives in a query (#4210)', () {
+      final transfer = _d('transfer', '/transfer');
+
+      test('the section list still selects its section', () {
+        // Listed first, so a tie would go to the shortcut.
+        final rail = [_home, shortcut('transfer-computers'), transfer];
+        expect(railSelectedIndex(rail, Uri.parse('/transfer')), 2);
+        expect(
+          railSelectedIndex(rail, Uri.parse('/transfer?selected=import')),
+          2,
+        );
+        expect(
+          railSelectedIndex(rail, Uri.parse('/transfer/import-wizard')),
+          2,
+        );
+      });
+
+      test('the section itself and the alias select the shortcut', () {
+        final rail = [_home, transfer, shortcut('transfer-computers')];
+        expect(
+          railSelectedIndex(rail, Uri.parse('/transfer?selected=computers')),
+          2,
+        );
+        expect(
+          railSelectedIndex(rail, Uri.parse('/shortcut/transfer-computers')),
+          2,
+        );
+      });
+
+      test('without the shortcut on the surface, the alias selects '
+          'Transfer', () {
+        expect(
+          railSelectedIndex([
+            _home,
+            _dives,
+            transfer,
+          ], Uri.parse('/shortcut/transfer-computers')),
+          2,
+        );
+      });
+    });
+
     test('an unknown alias matches nothing but itself', () {
       expect(
         railSelectedIndex([_home, _planning], Uri.parse('/shortcut/retired')),

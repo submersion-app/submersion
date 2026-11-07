@@ -13,6 +13,7 @@ QualityUnitFormatters qualityUnitFormattersFor(UnitFormatter units) =>
       limitDepth: (m) => units.formatDepthFloor(m),
       pressure: (bar) => units.formatPressure(bar),
       temperature: (c) => units.formatTemperature(c),
+      temperatureDelta: (c) => units.formatTemperatureDelta(c),
       // Surface air consumption is a volume rate; honor the volume unit
       // preference (L/min vs cuft/min); this is an RMV, never a pressure rate.
       // formatRmv keeps 2 decimals for cuft/min, where values sit below 1.

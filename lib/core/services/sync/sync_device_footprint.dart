@@ -72,10 +72,24 @@ class SyncDeviceFootprint {
   final int? schemaVersion;
   final String? epochId;
 
+  /// Already removed: retired, with nothing left but its retirement marker.
+  ///
+  /// The marker is kept for good, because a device that comes back online must
+  /// find it and rejoin through the fence rather than resurrect deleted rows.
+  /// One marker per device id means a retired footprint of a single file is
+  /// that marker alone. There is nothing left to delete, and removing it
+  /// "again" would only rewrite the marker (issue #4219).
+  ///
+  /// Never this install: another device retiring it does not make its own row
+  /// something to hide, and its next sync rejoins through the fence.
+  bool get isRemoved =>
+      !isSelf && state == SyncDeviceFootprintState.retired && fileCount <= 1;
+
   /// Deleting this device's files cannot lose anything the current library
-  /// still depends on.
+  /// still depends on, and there are files left to delete.
   bool get isSafeToRemove =>
       !isSelf &&
+      !isRemoved &&
       (state == SyncDeviceFootprintState.staleEpoch ||
           state == SyncDeviceFootprintState.retired);
 

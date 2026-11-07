@@ -200,8 +200,8 @@ class NavTracks extends Table {
   BlobColumn get points => blob()();
 
   /// The original file this route was imported from, gzipped and byte for
-  /// byte as it arrived (v343, issue #4231); points are derived from it.
-  /// Null for a route imported before v343 or from a source that keeps none.
+  /// byte as it arrived (v344, issue #4231); points are derived from it.
+  /// Null for a route imported before v344 or from a source that keeps none.
   BlobColumn get sourceFile => blob().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/constants/first_day_of_week.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/demo_mode/data/demo_database_preparer.dart';
 import 'package:submersion/features/demo_mode/data/demo_downloader.dart';
@@ -88,6 +89,7 @@ void main() {
         depthUnit: DepthUnit.feet,
         temperatureUnit: TemperatureUnit.fahrenheit,
         themeMode: ThemeMode.dark,
+        firstDayOfWeek: FirstDayOfWeek.sunday,
       );
 
       final units = demoUnitsFromSettings(settings).values;
@@ -95,6 +97,8 @@ void main() {
       expect(units['depth_unit'], 'feet');
       expect(units['temperature_unit'], 'fahrenheit');
       expect(units['theme_mode'], 'dark');
+      // The sample logbook starts its weeks on the diver's first day (#4232).
+      expect(units['first_day_of_week'], 'sunday');
       expect(units.keys, everyElement(isIn(demoUnitSettingColumns)));
     });
 

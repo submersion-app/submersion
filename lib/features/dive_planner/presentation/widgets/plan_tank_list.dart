@@ -46,6 +46,9 @@ class PlanTankList extends ConsumerWidget {
     final roles = const TankRoleResolver().rolesFor(
       divePlanFromState(planState),
     );
+    // A plan whose dive has been dived is locked (issue #3565): its tanks
+    // show, with nothing that offers to change them.
+    final locked = ref.watch(planLockedProvider);
 
     return Card(
       child: Padding(
@@ -72,20 +75,21 @@ class PlanTankList extends ConsumerWidget {
                     ),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.add),
-                  tooltip: context.l10n.divePlanner_action_addTank,
-                  onPressed: () => _showAddTankDialog(context, ref, units),
-                ),
+                if (!locked)
+                  IconButton(
+                    icon: const Icon(Icons.add),
+                    tooltip: context.l10n.divePlanner_action_addTank,
+                    onPressed: () => _showAddTankDialog(context, ref, units),
+                  ),
               ],
             ),
             // In a series, whose tanks these are (issue #3565).
             const PlanSettingScopeLabel(PlanSettingGroup.tanks),
-            const PlanSettingScopeActions(PlanSettingGroup.tanks),
+            if (!locked) const PlanSettingScopeActions(PlanSettingGroup.tanks),
             // A later dive of a repetitive series starts its tanks where
             // the dive before left them (issue #3565). On its own line: the
             // header has no room for it in the editor pane.
-            if (ref.watch(seriesFillPressuresProvider).isNotEmpty)
+            if (!locked && ref.watch(seriesFillPressuresProvider).isNotEmpty)
               Align(
                 alignment: AlignmentDirectional.centerStart,
                 child: TextButton.icon(
@@ -100,7 +104,7 @@ class PlanTankList extends ConsumerWidget {
 
             // Saved tanks, collapsed by default: a bar that opens into the
             // diver's saved cylinders, each a tap away from joining the plan.
-            const PlanSavedTanksBar(),
+            if (!locked) const PlanSavedTanksBar(),
 
             // A CCR plan groups its two mandatory loop slots -- the
             // diluent(s) and the oxygen supply -- apart from the open-circuit
@@ -217,7 +221,8 @@ class PlanTankList extends ConsumerWidget {
           modExceedsLimit: modCheck?.exceedsLimit ?? false,
           roleBadge: isLoopSlot ? tank.role.localizedName(context.l10n) : null,
           onEdit: () => _showEditTankDialog(context, ref, tank, units),
-          onDelete: _canDelete(planState, tank)
+          onDelete:
+              !ref.watch(planLockedProvider) && _canDelete(planState, tank)
               ? () => ref
                     .read(divePlanNotifierProvider.notifier)
                     .removeTank(tank.id)

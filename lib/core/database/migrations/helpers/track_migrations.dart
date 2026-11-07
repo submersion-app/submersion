@@ -60,8 +60,8 @@ extension TrackMigrations on AppDatabase {
     );
   }
 
-  /// v343: nav_tracks.source_file, the route's original file (issue #4231).
-  /// Idempotent; called from the v343 onUpgrade step and from
+  /// v344: nav_tracks.source_file, the route's original file (issue #4231).
+  /// Idempotent; called from the v344 onUpgrade step and from
   /// [_assertNavTracksSchema], which the beforeOpen backstop runs on every
   /// open.
   Future<void> _assertNavTrackSourceFileColumn() async {

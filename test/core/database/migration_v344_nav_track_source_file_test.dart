@@ -4,18 +4,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// v343 adds `nav_tracks.source_file` (issue #4231): the original file a
+/// v344 adds `nav_tracks.source_file` (issue #4231): the original file a
 /// route was imported from, so its points can be derived again and the file
 /// exported unchanged. Nullable with no backfill: a route imported before
 /// keeps none until it is updated from its file.
 void main() {
-  test('v343 is in the migration ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(343));
-    expect(AppDatabase.migrationVersions, contains(343));
+  test('v344 is in the migration ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(344));
+    expect(AppDatabase.migrationVersions, contains(344));
   });
 
   test('the compatibility floor does not move for a nullable column', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(343));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(344));
   });
 
   test('a fresh database has the column as a nullable BLOB', () async {

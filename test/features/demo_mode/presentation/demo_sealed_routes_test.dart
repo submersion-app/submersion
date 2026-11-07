@@ -80,6 +80,15 @@ void main() {
       demoSealedFeatureFor('/shortcut/import-wizard'),
       DemoSealedFeature.fileImport,
     );
+    // A page that lives in a query takes the seal of its path (#4210).
+    expect(
+      demoSealedFeatureFor('/shortcut/transfer-computers'),
+      demoSealedFeatureFor('/transfer?selected=computers'),
+    );
+    expect(
+      demoSealedFeatureFor('/shortcut/transfer-computers'),
+      DemoSealedFeature.fileImport,
+    );
     // A shortcut to an unsealed page, and an id the catalog does not know.
     expect(demoSealedFeatureFor('/shortcut/records'), isNull);
     expect(demoSealedFeatureFor('/shortcut/no-such-page'), isNull);

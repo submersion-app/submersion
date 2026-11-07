@@ -94,6 +94,53 @@ void main() {
     });
   });
 
+  group('aggregate weekly from another first day (#4232)', () {
+    test('a Sunday-first week buckets to the Sunday before', () {
+      // 2024-03-07 is a Thursday; its Sunday is 2024-03-03.
+      final buckets = aggregate(
+        [p(2024, 3, 7, 10)],
+        TrendAggregation.weekly,
+        firstWeekday: DateTime.sunday,
+      );
+
+      expect(buckets.single.date, DateTime.utc(2024, 3, 3));
+    });
+
+    test('a Sunday opens its own Sunday-first week', () {
+      // The Sunday that closes a Monday-first week opens a Sunday-first one.
+      final buckets = aggregate(
+        [p(2024, 3, 9, 10), p(2024, 3, 10, 20)],
+        TrendAggregation.weekly,
+        firstWeekday: DateTime.sunday,
+      );
+
+      expect(buckets, hasLength(2));
+      expect(buckets[0].date, DateTime.utc(2024, 3, 3));
+      expect(buckets[1].date, DateTime.utc(2024, 3, 10));
+    });
+
+    test('a Saturday-first week reaches back across a month end', () {
+      // 2024-03-01 is a Friday; its Saturday is 2024-02-24, in February.
+      final buckets = aggregate(
+        [p(2024, 3, 1, 10)],
+        TrendAggregation.weekly,
+        firstWeekday: DateTime.saturday,
+      );
+
+      expect(buckets.single.date, DateTime.utc(2024, 2, 24));
+    });
+
+    test('monthly buckets ignore the first day', () {
+      final buckets = aggregate(
+        [p(2024, 3, 7, 10)],
+        TrendAggregation.monthly,
+        firstWeekday: DateTime.sunday,
+      );
+
+      expect(buckets.single.date, DateTime.utc(2024, 3));
+    });
+  });
+
   group('rollingMean', () {
     test('returns an empty list below the minimum point count', () {
       final points = List.generate(4, (i) => p(2024, 1, i + 1, 10));

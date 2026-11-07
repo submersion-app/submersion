@@ -21,7 +21,7 @@ its alignment, site, name and dive link.
 
 ## Decisions
 
-1. **Original file.** `nav_tracks.source_file` (v343, nullable BLOB)
+1. **Original file.** `nav_tracks.source_file` (v344, nullable BLOB)
    keeps the file gzipped and byte for byte as it arrived
    (`nav_track_source_file_codec.dart`, capped at 16 MB in both
    directions because the column syncs). `points` stays the derived cache
@@ -58,7 +58,7 @@ its alignment, site, name and dive link.
    the whole alignment. The detail page offers the same update without a
    time window, confirming first when the picked file has another name.
 5. **Export.** The detail page exports the stored file under its
-   `source_ref`. A track imported before v343 has none and is pointed at
+   `source_ref`. A track imported before v344 has none and is pointed at
    "Update from file" first.
 
 ## Out of scope

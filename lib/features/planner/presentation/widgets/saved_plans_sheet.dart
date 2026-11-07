@@ -177,6 +177,10 @@ class _SavedPlansSheetState extends ConsumerState<SavedPlansSheet> {
                                   context.pop();
                                   context.push('/planning/dive-planner/$id');
                                 },
+                                onOpenInLog: (id) {
+                                  context.pop();
+                                  context.push('/dives/$id');
+                                },
                               ),
                           ],
                         ),
@@ -294,7 +298,17 @@ class _PlanTile extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(subtitleParts.join(' · ')),
-          if (badge != null) PlanLinkBadge(label: badge),
+          if (badge != null)
+            PlanLinkBadge(
+              label: badge,
+              onOpen: switch (summary.linkedDiveId) {
+                final id? => () {
+                  context.pop();
+                  context.push('/dives/$id');
+                },
+                null => null,
+              },
+            ),
         ],
       ),
       onTap: () {

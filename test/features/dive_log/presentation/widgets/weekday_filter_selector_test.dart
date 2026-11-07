@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/presentation/localizations/week_start_material_localizations.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/weekday_filter_selector.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -114,5 +115,43 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(result, hasLength(6));
+  });
+
+  testWidgets('follows the diver\'s first day over the language (#4232)', (
+    tester,
+  ) async {
+    // English alone starts on Sunday; the diver chose Saturday.
+    late BuildContext context;
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: const [
+          WeekStartMaterialLocalizationsDelegate(DateTime.saturday),
+          ...AppLocalizations.localizationsDelegates,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: Builder(
+            builder: (c) {
+              context = c;
+              return WeekdayFilterSelector(
+                selectedWeekdays: const [],
+                onChanged: (_) {},
+              );
+            },
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final labels = [
+      for (final chip in tester.widgetList<FilterChip>(find.byType(FilterChip)))
+        (chip.label as Text).data,
+    ];
+    expect(labels, [
+      for (final day in [6, 7, 1, 2, 3, 4, 5])
+        weekdayAbbreviation(context, day),
+    ]);
   });
 }

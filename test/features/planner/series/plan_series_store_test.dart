@@ -139,7 +139,7 @@ void main() {
 
     expect(editor().id, id);
     expect(c.read(planSeriesNotifierProvider).id, isNull);
-    expect(c.read(planConvertAllowedProvider), isTrue);
+    expect(c.read(planSeriesSavesAsSeriesProvider), isFalse);
   });
 
   test('a saved followed plan reopens with what it carries, not as a fresh '
@@ -214,12 +214,12 @@ void main() {
       final kept = c.read(planSeriesNotifierProvider).dives.first.state.id;
 
       series().removeDive(1);
-      expect(c.read(planConvertAllowedProvider), isFalse);
+      expect(c.read(planSeriesSavesAsSeriesProvider), isTrue);
       await saveCurrentSeries(c);
 
       expect(c.read(planSeriesNotifierProvider).id, isNull);
       expect(c.read(planSeriesDirtyProvider), isFalse);
-      expect(c.read(planConvertAllowedProvider), isTrue);
+      expect(c.read(planSeriesSavesAsSeriesProvider), isFalse);
       expect(
         await c.read(divePlanSeriesRepositoryProvider).getSeries(seriesId),
         isNull,
@@ -249,7 +249,7 @@ void main() {
     await saveCurrentSeries(c);
 
     expect(c.read(planSeriesNotifierProvider).id, isNull);
-    expect(c.read(planConvertAllowedProvider), isTrue);
+    expect(c.read(planSeriesSavesAsSeriesProvider), isFalse);
     final summaries = await c
         .read(divePlanRepositoryProvider)
         .getAllPlanSummaries();

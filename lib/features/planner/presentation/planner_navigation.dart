@@ -11,12 +11,24 @@ const divePlannerLocation = '/planning/dive-planner';
 /// say), a second push would put the planning shell in the stack twice and
 /// go_router would fail on its duplicate page keys. The stack is replaced
 /// with the planner instead.
-void openDivePlanner(BuildContext context) {
+void openDivePlanner(BuildContext context) =>
+    _openInPlanner(context, divePlannerLocation);
+
+/// Opens the saved plan [planId] in the planner from elsewhere in the app,
+/// such as a planned dive in the log, with the same care as
+/// [openDivePlanner]. A dive of a saved series opens its whole series with
+/// that dive selected.
+void openSavedPlanInPlanner(BuildContext context, String planId) =>
+    _openInPlanner(context, '$divePlannerLocation/$planId');
+
+/// Pushes [location], in the planning section, or replaces the stack with it
+/// when the planner is already in it (see [openDivePlanner]).
+void _openInPlanner(BuildContext context, String location) {
   final router = GoRouter.of(context);
   if (plannerInStack(router.routerDelegate.currentConfiguration)) {
-    router.go(divePlannerLocation);
+    router.go(location);
   } else {
-    router.push(divePlannerLocation);
+    router.push(location);
   }
 }
 

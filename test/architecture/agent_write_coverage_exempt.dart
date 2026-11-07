@@ -266,6 +266,7 @@ final exempt = <String, String>{
   for (final method in const [
     'lib/features/dive_log/data/repositories/dive_repository_impl.dart:createPlannedDive',
     'lib/features/dive_log/data/repositories/dive_repository_impl.dart:deletePlannedDive',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:replacePlannedProfile',
   ])
     method: 'a planned dive is made and removed by the planner, from its plan',
   // Profile samples.
@@ -284,6 +285,7 @@ final exempt = <String, String>{
     'lib/features/dive_log/data/repositories/profile_series_repository.dart:deleteOwnedBy',
     'lib/features/dive_log/data/repositories/profile_series_repository.dart:deleteRevisionsForDives',
     'lib/features/dive_log/data/repositories/profile_series_repository.dart:deleteUndoneEdit',
+    'lib/features/dive_log/data/repositories/profile_series_repository.dart:replaceSamples',
     'lib/features/dive_log/data/repositories/profile_series_repository.dart:insertSeries',
     'lib/features/dive_log/data/repositories/profile_series_repository.dart:promoteAll',
     'lib/features/dive_log/data/repositories/profile_series_repository.dart:promoteByComputer',

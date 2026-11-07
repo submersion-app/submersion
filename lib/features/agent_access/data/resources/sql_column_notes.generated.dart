@@ -315,6 +315,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'equipment_arrangement': 'the gear arrangement as JSON, moved here from the app-wide `equipment_arrangement` settings key',
     'equipment_default_statuses': 'the statuses the Equipment list\'s default view shows, a JSON array of EquipmentStatus names',
     'equipment_group_by_location': 'the Equipment page\'s group-by-location switch, moved here from the app-wide `equipment_group_by_location` key',
+    'first_day_of_week': 'the day a week starts on, a FirstDayOfWeek name',
     'gas_consumption_display': 'renamed from sacUnit',
     'gas_model': 'which equation of state converts cylinder pressure to gas volume',
     'gf_low': 'Decompression settings The app\'s default (AppSettings, GF 50/85, the Medium preset)',

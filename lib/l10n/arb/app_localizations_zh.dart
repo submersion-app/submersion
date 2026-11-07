@@ -10592,9 +10592,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divePlanner_action_addTank => '添加气瓶';
 
   @override
-  String get divePlanner_action_convertToDive => '转换为潜水';
-
-  @override
   String get divePlanner_action_deletePlan => '删除计划';
 
   @override
@@ -19924,6 +19921,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerCanvas_chart_removeWaypoint => '删除航点';
 
   @override
+  String get plannerCanvas_chart_worstCase => '最坏情况';
+
+  @override
   String get plannerCanvas_contingency_title => '应急计划';
 
   @override
@@ -19931,9 +19931,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get plannerCanvas_contingency_turnRule => '折返压力规则';
-
-  @override
-  String get plannerCanvas_convert_success => '已从计划创建潜水';
 
   @override
   String get plannerCanvas_convert_view => '查看';
@@ -20012,6 +20009,17 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get plannerSeries_openInLog => '在潜水日志中打开';
+
+  @override
+  String get plannerSeries_view_actual => '实际';
+
+  @override
+  String get plannerSeries_view_plan => '计划';
+
+  @override
+  String plannerSeries_saved_divedCount(int dived, int count) {
+    return '已潜 $dived/$count';
+  }
 
   @override
   String get plannerSeries_stopFollowing => '停止跟随';
@@ -20159,7 +20167,68 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerSeries_fillAll => '加满所有气瓶';
 
   @override
-  String get plannerSeries_convertUnavailable => '暂时无法将潜水系列转换为已记录的潜水';
+  String get plannerSeries_createPlannedDive => '创建计划潜水';
+
+  @override
+  String get plannerSeries_createPlannedDives => '创建计划潜水';
+
+  @override
+  String get plannerSeries_updatePlannedDive => '更新计划潜水';
+
+  @override
+  String get plannerSeries_updatePlannedDives => '更新计划潜水';
+
+  @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return '$dive 有严重警告，因此未更新计划潜水';
+  }
+
+  @override
+  String plannerSeries_cannotUpdateEmpty(String dive) {
+    return '$dive 没有分段，因此未更新计划潜水';
+  }
+
+  @override
+  String get plannerSeries_cannotUpdateEmptyPlan => '此计划没有分段，因此未写入日志';
+
+  @override
+  String plannerSeries_created(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已将 $count 次计划潜水添加到日志',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerSeries_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已在日志中更新 $count 次计划潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_title => '从日志中删除？';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '有 $count 次不再属于此系列的计划潜水仍在日志中。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => '保留';
+
+  @override
+  String get plannerSeries_allDived => '此计划的所有潜水均已完成，没有需要更新的内容';
 
   @override
   String get plannerSeries_missionUnavailable => '潜水系列无法规划为 DPV 任务';
@@ -21547,6 +21616,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get navShortcut_short_backup => '备份';
+
+  @override
+  String get navShortcut_short_diveComputers => '电脑';
 
   @override
   String get navShortcut_short_speciesStats => '物种统计';
@@ -24581,6 +24653,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_timeFormat => '时间格式';
+
+  @override
+  String get settings_conflict_field_firstDayOfWeek => '每周第一天';
 
   @override
   String get settings_conflict_field_timeOffsetSeconds => '时间偏移';
@@ -27887,10 +27962,36 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_units_dialog_weightUnit => '重量单位';
 
   @override
-  String get settings_units_header_individualUnits => '个别单位';
+  String get settings_units_header_gasPlanning => '气体与计划';
 
   @override
-  String get settings_units_header_timeDateFormat => '时间与日期格式';
+  String get settings_units_header_displayFormats => '显示与格式';
+
+  @override
+  String get settings_units_appliesTo => '适用于以下单位';
+
+  @override
+  String get settings_units_gasConsumption_unitHint => '单位随压力和体积而定';
+
+  @override
+  String get settings_units_firstDayOfWeek => '每周第一天';
+
+  @override
+  String get settings_units_dialog_firstDayOfWeek => '每周第一天';
+
+  @override
+  String get settings_units_firstDayOfWeek_auto => '自动';
+
+  @override
+  String settings_units_firstDayOfWeek_autoResolved(String day) {
+    return '自动（$day）';
+  }
+
+  @override
+  String get settings_units_firstDayOfWeek_auto_subtitle => '跟随设备所在地区';
+
+  @override
+  String get settings_units_header_timeDateFormat => '时间与日期';
 
   @override
   String get settings_units_header_unitSystem => '单位系统';
@@ -38748,6 +38849,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_planned_bannerBody => '等待潜水电脑数据。如果没有使用潜水电脑，请标记为已记录。';
 
   @override
+  String get diveLog_planned_openInPlanner => '在计划器中打开';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => '在计划器中查看';
+
+  @override
   String get diveLog_detail_menu_markLogged => '标记为已记录';
 
   @override
@@ -39644,6 +39751,16 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String dataQuality_dive_tanks(String tanks) {
+    return '涉及 $tanks';
+  }
+
+  @override
+  String dataQuality_dive_tankPair(String first, String second) {
+    return '$first和$second';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => '数据质量审查';
 
   @override
@@ -39662,9 +39779,9 @@ class AppLocalizationsZh extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '扫描完成 - $count 个待审查项',
-      one: '扫描完成 - 1 个待审查项',
-      zero: '扫描完成 - 没有新发现',
+      other: '扫描完成 - $count 个未处理的待审查项',
+      one: '扫描完成 - $count 个未处理的待审查项',
+      zero: '扫描完成 - 没有未处理的发现',
     );
     return '$_temp0';
   }
@@ -39789,8 +39906,23 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_clock_offset(int hours) {
-    return '某个来源的时钟相差 $hours 小时';
+  String dataQuality_msg_clock_offsetAhead(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: '某个来源的时钟快了 $hours 小时',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_clock_offsetBehind(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: '某个来源的时钟慢了 $hours 小时',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -39856,8 +39988,18 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_rate(String rate, int seconds) {
-    return '$rate 的垂直速率持续了 $seconds 秒';
+  String dataQuality_msg_rate(String rate, String duration) {
+    return '$rate 的垂直速率持续了 $duration';
+  }
+
+  @override
+  String dataQuality_unit_seconds(int seconds) {
+    return '$seconds 秒';
+  }
+
+  @override
+  String dataQuality_unit_minutes(int minutes) {
+    return '$minutes 分钟';
   }
 
   @override
@@ -39956,10 +40098,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dataQuality_msg_salinityHint => '这一恒定比值表明盐水/淡水设置存在差异';
 
   @override
-  String get dataQuality_msg_sourceDuration => '各来源对潜水时长存在分歧';
+  String dataQuality_msg_sourceDuration(String primary, String source) {
+    return '各来源对潜水时长存在分歧：$primary 对 $source';
+  }
 
   @override
-  String get dataQuality_msg_sourceTemp => '各来源对水温存在分歧';
+  String dataQuality_msg_sourceTemp(String primary, String source) {
+    return '各来源对水温存在分歧：$primary 对 $source';
+  }
 
   @override
   String dataQuality_repairLabel_shiftTime(String offset) {
@@ -39977,6 +40123,14 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String dataQuality_repairLabel_fixSourceClock(String offset) {
     return '将此电脑的时钟校正 $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClockNamed(
+    String computer,
+    String offset,
+  ) {
+    return '将 $computer 的时钟校正 $offset';
   }
 
   @override
@@ -40147,6 +40301,33 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_split => '拆分为单独的潜水';
+
+  @override
+  String dataQuality_repairLabel_setPrimaryNamed(String source) {
+    return '将 $source 设为主要来源';
+  }
+
+  @override
+  String dataQuality_repairLabel_splitNamed(String source) {
+    return '将 $source 拆分为单独的潜水';
+  }
+
+  @override
+  String dataQuality_setPrimary_title(String source) {
+    return '将 $source 设为主要来源？';
+  }
+
+  @override
+  String dataQuality_setPrimary_body(String source) {
+    return '潜水的深度、时长和剖面将来自 $source。你可以在潜水的数据来源中再次更改。';
+  }
+
+  @override
+  String get dataQuality_setPrimary_bodyUnnamed =>
+      '潜水的深度、时长和剖面将来自此来源。你可以在潜水的数据来源中再次更改。';
+
+  @override
+  String get dataQuality_setPrimary_confirm => '设为主要来源';
 
   @override
   String get dataQuality_repairLabel_compare => '比较剖面';
@@ -47611,6 +47792,16 @@ class AppLocalizationsZh extends AppLocalizations {
       count,
       locale: localeName,
       other: '其中 $count 台是已替换或已退役资料库的残留，占用 $size。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_syncDevices_summary_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已记住 $count 台已移除的设备，使其无法带回已删除的数据。',
     );
     return '$_temp0';
   }

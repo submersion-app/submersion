@@ -140,6 +140,7 @@ DemoUnitSettings demoUnitsFromSettings(AppSettings s) => DemoUnitSettings({
   'coordinate_format': s.coordinateFormat.name,
   'time_format': s.timeFormat.name,
   'date_format': s.dateFormat.name,
+  'first_day_of_week': s.firstDayOfWeek.name,
   'theme_mode': s.themeMode.name,
 });
 
