@@ -1,10 +1,10 @@
-import 'dart:convert';
-
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/geo_math.dart';
+import 'package:submersion/features/bathymetry/data/bathymetry_cache_budget.dart';
+import 'package:submersion/features/bathymetry/data/bathymetry_grid_codec.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_resolver.dart';
 import 'package:submersion/features/bathymetry/data/sources/swiss_lake_levels.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
@@ -75,13 +75,22 @@ class BathymetryRepository {
 
   final LocalCacheDatabase _db;
   final BathymetryResolver _resolver;
+  final int _byteBudget;
+  final DateTime Function() _now;
   final Map<String, Future<BathymetryGrid?>> _inFlight = {};
 
+  /// [byteBudget] caps the stored grid bytes (see
+  /// [evictBathymetryCacheOverBudget]); [now] is the clock rows are stamped
+  /// with. Both are overridable for tests.
   BathymetryRepository({
     required LocalCacheDatabase db,
     required BathymetryResolver resolver,
+    int byteBudget = kBathymetryCacheByteBudget,
+    DateTime Function()? now,
   }) : _db = db,
-       _resolver = resolver;
+       _resolver = resolver,
+       _byteBudget = byteBudget,
+       _now = now ?? DateTime.now;
 
   /// The cache granularity that applies to [c]: 0 (no quantization, use the
   /// raw coordinate) inside a swissBATHY3D lake, [quantumDeg] everywhere
@@ -312,15 +321,13 @@ class BathymetryRepository {
       if (row.status != 'ok') {
         return null; // 'empty' / 'unavailable': definitive, no refetch
       }
-      final json = row.gridJson;
-      if (json != null) {
-        try {
-          return BathymetryGrid.fromJson(
-            jsonDecode(json) as Map<String, dynamic>,
-          );
-        } catch (_) {
-          // Fall through to the corruption handling below.
-        }
+      final cached = BathymetryGridCodec.decodeStored(
+        blob: row.gridBlob,
+        json: row.gridJson,
+      );
+      if (cached != null) {
+        await _recordHit(row, cached);
+        return cached;
       }
       // An 'ok' row without a decodable grid is corruption: left in place
       // it would wedge this cell on synthesized terrain forever AND read
@@ -358,6 +365,8 @@ class BathymetryRepository {
       // resolve retries the preferred source instead of the cache pinning
       // this fallback forever.
       if (!res.definitive) return grid;
+      final blob = BathymetryGridCodec.encode(grid);
+      final now = _now().millisecondsSinceEpoch;
       await _db
           .into(_db.bathymetryCache)
           .insertOnConflictUpdate(
@@ -368,10 +377,14 @@ class BathymetryRepository {
               status: 'ok',
               sourceId: Value(grid.sourceId),
               resolutionMeters: Value(grid.resolutionMeters),
-              gridJson: Value(jsonEncode(grid.toJson())),
-              fetchedAt: DateTime.now().millisecondsSinceEpoch,
+              gridJson: const Value(null),
+              gridBlob: Value(blob),
+              gridBytes: Value(blob.length),
+              fetchedAt: now,
+              lastUsedAt: Value(now),
             ),
           );
+      await _enforceBudget(key);
       return grid;
     }
     if (res.definitive) {
@@ -383,11 +396,72 @@ class BathymetryRepository {
               centerLat: fetchCenter.latitude,
               centerLon: fetchCenter.longitude,
               status: 'empty',
-              fetchedAt: DateTime.now().millisecondsSinceEpoch,
+              gridJson: const Value(null),
+              gridBlob: const Value(null),
+              gridBytes: const Value(null),
+              fetchedAt: _now().millisecondsSinceEpoch,
             ),
           );
     }
     return null; // transient: no row, next call retries
+  }
+
+  /// Bookkeeping for a cache hit: a legacy JSON row is rewritten in the
+  /// compact form (issue #4258), and the last-read stamp the byte budget
+  /// evicts by is refreshed once it is [kBathymetryCacheTouchInterval] old.
+  ///
+  /// Never fails the read: the grid is already in hand, and losing it to a
+  /// bookkeeping write would degrade the scene to synthesized terrain.
+  Future<void> _recordHit(BathymetryCacheData row, BathymetryGrid grid) async {
+    final now = _now();
+    try {
+      final BathymetryCacheCompanion update;
+      if (row.gridBlob == null) {
+        final blob = BathymetryGridCodec.encode(grid);
+        update = BathymetryCacheCompanion(
+          gridJson: const Value(null),
+          gridBlob: Value(blob),
+          gridBytes: Value(blob.length),
+          lastUsedAt: Value(now.millisecondsSinceEpoch),
+        );
+      } else {
+        final usedAt = row.lastUsedAt ?? row.fetchedAt;
+        final age = now.millisecondsSinceEpoch - usedAt;
+        if (age >= 0 && age < kBathymetryCacheTouchInterval.inMilliseconds) {
+          return;
+        }
+        update = BathymetryCacheCompanion(
+          lastUsedAt: Value(now.millisecondsSinceEpoch),
+        );
+      }
+      await (_db.update(
+        _db.bathymetryCache,
+      )..where((t) => t.cacheKey.equals(row.cacheKey))).write(update);
+    } catch (e, stackTrace) {
+      _log.warning(
+        'cache bookkeeping for ${row.cacheKey} failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  /// Runs the byte budget after a write. Like [_recordHit], a failure here
+  /// is logged rather than allowed to lose the grid just fetched.
+  Future<void> _enforceBudget(String keepKey) async {
+    try {
+      await evictBathymetryCacheOverBudget(
+        _db,
+        budgetBytes: _byteBudget,
+        keepKey: keepKey,
+      );
+    } catch (e, stackTrace) {
+      _log.warning(
+        'byte budget eviction failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   /// A `BathymetrySource.fetch` implementation is trusted to honor the
@@ -474,21 +548,21 @@ class BathymetryRepository {
     )..where((t) => t.sourceId.equals(sourceId))).go();
   }
 
-  /// Average byte size of a cached 'ok' grid's JSON across every provider,
+  /// Average stored byte size of a cached 'ok' grid across every provider,
   /// or null when there are no 'ok' rows to average from (e.g. right after a
   /// reset). Used only for the "3D Maps" reload confirmation dialog's
   /// approximate size estimate -- computed BEFORE any deletion, since the
-  /// estimate would otherwise have nothing left to average from.
+  /// estimate would otherwise have nothing left to average from. Averages
+  /// the recorded sizes, so no grid is read to compute it.
   Future<int?> averageCachedGridBytes() async {
-    final rows = await (_db.select(
-      _db.bathymetryCache,
-    )..where((t) => t.status.equals('ok') & t.gridJson.isNotNull())).get();
-    if (rows.isEmpty) return null;
-    final total = rows.fold<int>(
-      0,
-      (sum, r) => sum + utf8.encode(r.gridJson!).length,
-    );
-    return total ~/ rows.length;
+    final t = _db.bathymetryCache;
+    final average = t.gridBytes.avg();
+    final row =
+        await (_db.selectOnly(t)
+              ..addColumns([average])
+              ..where(t.status.equals('ok') & t.gridBytes.isNotNull()))
+            .getSingle();
+    return row.read(average)?.toInt();
   }
 
   /// Deletes every cached row NOT attributed to [sourceId] -- including rows
