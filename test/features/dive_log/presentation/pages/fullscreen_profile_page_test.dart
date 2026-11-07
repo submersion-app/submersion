@@ -113,6 +113,23 @@ void main() {
     expect(find.byIcon(Icons.close), findsOneWidget);
   });
 
+  testWidgets('a planned dive is titled as one, not Dive #0', (tester) async {
+    final planned = _dive().copyWith(isPlanned: true);
+    await tester.pumpWidget(
+      _wrap([
+        settingsProvider.overrideWith((ref) => _FakeSettingsNotifier()),
+        diveProvider(planned.id).overrideWith((ref) async => planned),
+        profileAnalysisProvider(planned.id).overrideWith((ref) async => null),
+        gasSwitchesProvider(planned.id).overrideWith((ref) async => []),
+        tankPressuresProvider(planned.id).overrideWith((ref) async => {}),
+      ]),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Planned dive'), findsOneWidget);
+    expect(find.textContaining('#0'), findsNothing);
+  });
+
   testWidgets('chart labels a ceiling calculated under computer stops', (
     tester,
   ) async {

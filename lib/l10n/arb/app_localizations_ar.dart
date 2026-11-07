@@ -11284,9 +11284,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divePlanner_action_addTank => 'إضافة أسطوانة';
 
   @override
-  String get divePlanner_action_convertToDive => 'تحويل إلى غطسة';
-
-  @override
   String get divePlanner_action_deletePlan => 'حذف الخطة';
 
   @override
@@ -21259,9 +21256,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerCanvas_contingency_turnRule => 'قاعدة ضغط العودة';
 
   @override
-  String get plannerCanvas_convert_success => 'تم إنشاء غطسة من الخطة';
-
-  @override
   String get plannerCanvas_convert_view => 'عرض';
 
   @override
@@ -21339,6 +21333,17 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get plannerSeries_openInLog => 'فتح في سجل الغطس';
+
+  @override
+  String get plannerSeries_view_actual => 'الفعلي';
+
+  @override
+  String get plannerSeries_view_plan => 'الخطة';
+
+  @override
+  String plannerSeries_saved_divedCount(int dived, int count) {
+    return '$dived من $count نُفّذت';
+  }
 
   @override
   String get plannerSeries_stopFollowing => 'إيقاف المتابعة';
@@ -21501,8 +21506,82 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerSeries_fillAll => 'ملء كل الأسطوانات';
 
   @override
-  String get plannerSeries_convertUnavailable =>
-      'لا يمكن تحويل سلسلة غطسات إلى غطسات مسجلة بعد';
+  String get plannerSeries_createPlannedDive => 'إنشاء الغطسة المخططة';
+
+  @override
+  String get plannerSeries_createPlannedDives => 'إنشاء الغطسات المخططة';
+
+  @override
+  String get plannerSeries_updatePlannedDive => 'تحديث الغطسة المخططة';
+
+  @override
+  String get plannerSeries_updatePlannedDives => 'تحديث الغطسات المخططة';
+
+  @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return 'يوجد تحذير حرج في $dive، لذا لم يتم تحديث الغطسات المخططة';
+  }
+
+  @override
+  String plannerSeries_cannotUpdateEmpty(String dive) {
+    return 'لا يحتوي $dive على مقاطع، لذا لم يتم تحديث الغطسات المخططة';
+  }
+
+  @override
+  String get plannerSeries_cannotUpdateEmptyPlan =>
+      'لا تحتوي هذه الخطة على مقاطع، لذا لم تُكتب في السجل';
+
+  @override
+  String plannerSeries_created(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تمت إضافة $count غطسة مخططة إلى السجل',
+      many: 'تمت إضافة $count غطسة مخططة إلى السجل',
+      few: 'تمت إضافة $count غطسات مخططة إلى السجل',
+      two: 'تمت إضافة غطستين مخططتين إلى السجل',
+      one: 'تمت إضافة $count غطسة مخططة إلى السجل',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerSeries_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تحديث $count غطسة مخططة في السجل',
+      many: 'تم تحديث $count غطسة مخططة في السجل',
+      few: 'تم تحديث $count غطسات مخططة في السجل',
+      two: 'تم تحديث غطستين مخططتين في السجل',
+      one: 'تم تحديث $count غطسة مخططة في السجل',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_title => 'هل تريد الحذف من السجل؟';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'لا تزال $count غطسة مخططة لم تعد في هذه السلسلة في السجل.',
+      many: 'لا تزال $count غطسة مخططة لم تعد في هذه السلسلة في السجل.',
+      few: 'لا تزال $count غطسات مخططة لم تعد في هذه السلسلة في السجل.',
+      two: 'لا تزال غطستان مخططتان لم تعودا في هذه السلسلة في السجل.',
+      one: 'لا تزال $count غطسة مخططة لم تعد في هذه السلسلة في السجل.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'إبقاء';
+
+  @override
+  String get plannerSeries_allDived =>
+      'تم تنفيذ جميع غطسات هذه الخطة، لذا لا يوجد ما يمكن تحديثه';
 
   @override
   String get plannerSeries_missionUnavailable =>
@@ -41650,6 +41729,12 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_planned_bannerBody =>
       'في انتظار بيانات كمبيوتر الغوص. ضع علامة مسجلة إذا غصت بدون كمبيوتر.';
+
+  @override
+  String get diveLog_planned_openInPlanner => 'فتح في المخطط';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'عرض في المخطط';
 
   @override
   String get diveLog_detail_menu_markLogged => 'وضع علامة مسجلة';

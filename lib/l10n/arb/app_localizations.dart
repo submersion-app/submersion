@@ -17794,12 +17794,6 @@ abstract class AppLocalizations {
   /// **'Add Tank'**
   String get divePlanner_action_addTank;
 
-  /// No description provided for @divePlanner_action_convertToDive.
-  ///
-  /// In en, this message translates to:
-  /// **'Convert to Dive'**
-  String get divePlanner_action_convertToDive;
-
   /// No description provided for @divePlanner_action_deletePlan.
   ///
   /// In en, this message translates to:
@@ -33381,12 +33375,6 @@ abstract class AppLocalizations {
   /// **'Turn pressure rule'**
   String get plannerCanvas_contingency_turnRule;
 
-  /// No description provided for @plannerCanvas_convert_success.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive created from plan'**
-  String get plannerCanvas_convert_success;
-
   /// No description provided for @plannerCanvas_convert_view.
   ///
   /// In en, this message translates to:
@@ -33506,6 +33494,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open in dive log'**
   String get plannerSeries_openInLog;
+
+  /// Toggle segment showing what really happened on a dive of a series that has been dived
+  ///
+  /// In en, this message translates to:
+  /// **'Actual'**
+  String get plannerSeries_view_actual;
+
+  /// Toggle segment showing the original plan of a dive of a series that has been dived
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get plannerSeries_view_plan;
+
+  /// How many dives of a saved series have been dived, in the saved plans list
+  ///
+  /// In en, this message translates to:
+  /// **'{dived} of {count} dived'**
+  String plannerSeries_saved_divedCount(int dived, int count);
 
   /// No description provided for @plannerSeries_stopFollowing.
   ///
@@ -33759,11 +33765,83 @@ abstract class AppLocalizations {
   /// **'Fill all tanks'**
   String get plannerSeries_fillAll;
 
-  /// No description provided for @plannerSeries_convertUnavailable.
+  /// No description provided for @plannerSeries_createPlannedDive.
   ///
   /// In en, this message translates to:
-  /// **'A series of dives can\'t be converted to logged dives yet'**
-  String get plannerSeries_convertUnavailable;
+  /// **'Create planned dive'**
+  String get plannerSeries_createPlannedDive;
+
+  /// No description provided for @plannerSeries_createPlannedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Create planned dives'**
+  String get plannerSeries_createPlannedDives;
+
+  /// No description provided for @plannerSeries_updatePlannedDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Update planned dive'**
+  String get plannerSeries_updatePlannedDive;
+
+  /// No description provided for @plannerSeries_updatePlannedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Update planned dives'**
+  String get plannerSeries_updatePlannedDives;
+
+  /// No description provided for @plannerSeries_cannotUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'{dive} has a critical warning, so the planned dives weren\'t updated'**
+  String plannerSeries_cannotUpdate(String dive);
+
+  /// No description provided for @plannerSeries_cannotUpdateEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'{dive} has no segments, so the planned dives weren\'t updated'**
+  String plannerSeries_cannotUpdateEmpty(String dive);
+
+  /// No description provided for @plannerSeries_cannotUpdateEmptyPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'This plan has no segments, so it wasn\'t written to the log'**
+  String get plannerSeries_cannotUpdateEmptyPlan;
+
+  /// No description provided for @plannerSeries_created.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} planned dive added to the log} other{{count} planned dives added to the log}}'**
+  String plannerSeries_created(int count);
+
+  /// No description provided for @plannerSeries_updated.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} planned dive updated in the log} other{{count} planned dives updated in the log}}'**
+  String plannerSeries_updated(int count);
+
+  /// No description provided for @plannerSeries_orphans_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete from the log?'**
+  String get plannerSeries_orphans_title;
+
+  /// No description provided for @plannerSeries_orphans_body.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} planned dive no longer in this series is still in the log.} other{{count} planned dives no longer in this series are still in the log.}}'**
+  String plannerSeries_orphans_body(int count);
+
+  /// No description provided for @plannerSeries_orphans_keep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep'**
+  String get plannerSeries_orphans_keep;
+
+  /// No description provided for @plannerSeries_allDived.
+  ///
+  /// In en, this message translates to:
+  /// **'Every dive in this plan has been dived, so there\'s nothing to update'**
+  String get plannerSeries_allDived;
 
   /// No description provided for @plannerSeries_missionUnavailable.
   ///
@@ -65108,6 +65186,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Awaiting dive computer data. Mark it as logged if you dived without one.'**
   String get diveLog_planned_bannerBody;
+
+  /// No description provided for @diveLog_planned_openInPlanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in planner'**
+  String get diveLog_planned_openInPlanner;
+
+  /// No description provided for @diveLog_detail_menu_viewInPlanner.
+  ///
+  /// In en, this message translates to:
+  /// **'View in planner'**
+  String get diveLog_detail_menu_viewInPlanner;
 
   /// No description provided for @diveLog_detail_menu_markLogged.
   ///

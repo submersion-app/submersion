@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/deco/deco_model.dart';
-import 'package:submersion/features/dive_planner/data/services/plan_calculator_service.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
@@ -51,7 +50,7 @@ PlanOutcome _outcomeWithStop() {
 }
 
 Future<DivePlanNotifier> _pumpSheet(WidgetTester tester) async {
-  final notifier = DivePlanNotifier(PlanCalculatorService());
+  final notifier = DivePlanNotifier();
   await tester.pumpWidget(
     testApp(
       locale: const Locale('en'),

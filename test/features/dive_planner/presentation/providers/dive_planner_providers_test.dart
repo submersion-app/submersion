@@ -6,7 +6,6 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_planner/data/services/plan_calculator_service.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
@@ -704,7 +703,7 @@ void main() {
       expect(state.reservePressure, isNull);
     });
 
-    test('toDive sets runtime from segment durations', () {
+    test('updateWaterType stores water type and marks dirty', () {
       final container = ProviderContainer(
         overrides: [
           settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
@@ -713,77 +712,21 @@ void main() {
       addTearDown(container.dispose);
 
       final notifier = container.read(divePlanNotifierProvider.notifier);
-
-      // Load a plan with a segment so totalTime > 0
-      final defaultState = container.read(divePlanNotifierProvider);
-      final tank = defaultState.tanks.first;
-      notifier.loadPlan(
-        defaultState.copyWith(
-          segments: [
-            PlanSegment(
-              id: 'seg-1',
-              targetDepth: 20,
-              durationSeconds: 30 * 60,
-              tankId: tank.id,
-              gasMix: tank.gasMix,
-              order: 0,
-            ),
-          ],
-        ),
+      expect(
+        container.read(divePlanNotifierProvider).waterType,
+        WaterType.salt,
       );
 
-      final dive = notifier.toDive();
+      notifier.updateWaterType(WaterType.fresh);
+      expect(
+        container.read(divePlanNotifierProvider).waterType,
+        WaterType.fresh,
+      );
+      expect(container.read(divePlanNotifierProvider).isDirty, isTrue);
 
-      expect(dive.runtime, isNotNull);
-      expect(dive.runtime!.inSeconds, 30 * 60);
-      expect(dive.isPlanned, isTrue);
+      notifier.updateWaterType(null);
+      expect(container.read(divePlanNotifierProvider).waterType, isNull);
     });
-
-    test('toDive dates the dive at the plan start time', () {
-      final container = ProviderContainer(
-        overrides: [
-          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
-        ],
-      );
-      addTearDown(container.dispose);
-
-      final notifier = container.read(divePlanNotifierProvider.notifier);
-      final start = DateTime(2026, 10, 3, 9, 30);
-      notifier.loadPlan(
-        container.read(divePlanNotifierProvider).copyWith(startDateTime: start),
-      );
-
-      expect(notifier.toDive().dateTime, start);
-    });
-
-    test(
-      'updateWaterType stores water type, marks dirty, and toDive copies it',
-      () {
-        final container = ProviderContainer(
-          overrides: [
-            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
-          ],
-        );
-        addTearDown(container.dispose);
-
-        final notifier = container.read(divePlanNotifierProvider.notifier);
-        expect(
-          container.read(divePlanNotifierProvider).waterType,
-          WaterType.salt,
-        );
-
-        notifier.updateWaterType(WaterType.fresh);
-        expect(
-          container.read(divePlanNotifierProvider).waterType,
-          WaterType.fresh,
-        );
-        expect(container.read(divePlanNotifierProvider).isDirty, isTrue);
-        expect(notifier.toDive().waterType, WaterType.fresh);
-
-        notifier.updateWaterType(null);
-        expect(container.read(divePlanNotifierProvider).waterType, isNull);
-      },
-    );
 
     test('selectCustomSalinity seeds from the current type and clears it', () {
       final container = ProviderContainer(
@@ -849,7 +792,6 @@ void main() {
       // An unset plan descent rate follows the diver's Settings (#3552),
       // not the 18 m/min spec constant.
       final notifier = DivePlanNotifier(
-        PlanCalculatorService(),
         getEngineConfig: () => const PlanEngineConfig(descentRate: 10),
       );
       addTearDown(notifier.dispose);
@@ -1034,7 +976,7 @@ void main() {
     test(
       'newPlan leaves gfLow/gfHigh unset even with no callback provided',
       () {
-        final notifier = DivePlanNotifier(PlanCalculatorService());
+        final notifier = DivePlanNotifier();
         addTearDown(notifier.dispose);
 
         notifier.newPlan();
@@ -1049,7 +991,7 @@ void main() {
     test(
       'newPlan leaves reservePressure unset even with no callback provided',
       () {
-        final notifier = DivePlanNotifier(PlanCalculatorService());
+        final notifier = DivePlanNotifier();
         addTearDown(notifier.dispose);
 
         notifier.newPlan();
@@ -1060,7 +1002,7 @@ void main() {
     );
 
     test('clearing the repetitive dive settings drops carried exposure', () {
-      final notifier = DivePlanNotifier(PlanCalculatorService());
+      final notifier = DivePlanNotifier();
       addTearDown(notifier.dispose);
       notifier.loadPlan(
         notifier.state.copyWith(initialCns: 30, initialOtu: 120),
@@ -1073,7 +1015,7 @@ void main() {
     });
 
     test('setLinkedDive records and clears the converted dive', () {
-      final notifier = DivePlanNotifier(PlanCalculatorService());
+      final notifier = DivePlanNotifier();
       addTearDown(notifier.dispose);
 
       notifier.setLinkedDive('dive-12');
@@ -1084,7 +1026,7 @@ void main() {
     });
 
     test('setEquipmentIds keeps provenance in step with the ids (#1487)', () {
-      final notifier = DivePlanNotifier(PlanCalculatorService());
+      final notifier = DivePlanNotifier();
       addTearDown(notifier.dispose);
 
       notifier.setGear(
@@ -1111,7 +1053,7 @@ void main() {
 
     test('fullGearProvenance gives every id a row so an assembly whose own '
         'row is missing still rolls up (#1487)', () {
-      final notifier = DivePlanNotifier(PlanCalculatorService());
+      final notifier = DivePlanNotifier();
       addTearDown(notifier.dispose);
 
       // A sparse list: the wing's row names the bcd as parent, but the bcd
