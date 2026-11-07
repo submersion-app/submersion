@@ -11300,6 +11300,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get divePlanner_label_minutesUnit => 'Min.';
 
   @override
+  String get divePlanner_label_secondsUnit => 'Sek.';
+
+  @override
   String get divePlanner_label_ndl => 'Nullzeit';
 
   @override

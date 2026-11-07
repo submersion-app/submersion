@@ -132,6 +132,11 @@ class PlanStop extends Equatable {
   final String? airBreakTankId;
   final int arrivalRuntimeSeconds;
 
+  /// Whether the stop is held only for the gas switch made here, with no
+  /// decompression owed at its depth (issue #4160). See
+  /// `DecoStop.isGasSwitchOnly`.
+  final bool isGasSwitchOnly;
+
   const PlanStop({
     required this.depthMeters,
     required this.durationSeconds,
@@ -141,6 +146,7 @@ class PlanStop extends Equatable {
     this.tankId,
     this.airBreakTankId,
     required this.arrivalRuntimeSeconds,
+    this.isGasSwitchOnly = false,
   });
 
   @override
@@ -153,6 +159,7 @@ class PlanStop extends Equatable {
     tankId,
     airBreakTankId,
     arrivalRuntimeSeconds,
+    isGasSwitchOnly,
   ];
 }
 
@@ -524,6 +531,16 @@ class PlanOutcome {
   bool get isDiveable =>
       !issues.any((i) => i.severity == PlanIssueSeverity.critical);
 
+  /// Whether the computed ascent owes any decompression. A stop held only to
+  /// switch gas ([PlanStop.isGasSwitchOnly], issue #4160) is not one, so a
+  /// no-deco dive that pauses at its gas switches still reads as no-deco.
+  bool get owesDecompression => stops.any((s) => !s.isGasSwitchOnly);
+
+  /// Time on decompression stops, authored and computed. Switch-only stops
+  /// are left out: nothing is owed while they are held.
   int get totalDecoSeconds =>
-      authoredDecoSeconds + stops.fold(0, (sum, s) => sum + s.durationSeconds);
+      authoredDecoSeconds +
+      stops
+          .where((s) => !s.isGasSwitchOnly)
+          .fold(0, (sum, s) => sum + s.durationSeconds);
 }

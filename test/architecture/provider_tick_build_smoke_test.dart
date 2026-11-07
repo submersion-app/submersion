@@ -847,8 +847,12 @@ void main() {
       read: (c) => c.read(mediaForSiteProvider(_id).future),
     ),
     (
-      name: 'mediaFromDivesAtSiteProvider',
-      read: (c) => c.read(mediaFromDivesAtSiteProvider(_id).future),
+      name: 'mediaCountFromDivesAtSiteProvider',
+      read: (c) => c.read(mediaCountFromDivesAtSiteProvider(_id).future),
+    ),
+    (
+      name: 'flatMediaFromDivesAtSiteProvider',
+      read: (c) => c.read(flatMediaFromDivesAtSiteProvider(_id).future),
     ),
     (
       name: 'mediaStoreStatusHintProvider',

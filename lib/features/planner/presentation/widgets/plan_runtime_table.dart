@@ -67,7 +67,7 @@ class PlanRuntimeTable extends ConsumerWidget {
 
     return Column(
       children: [
-        if (outcome.stops.isEmpty)
+        if (!outcome.owesDecompression)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Align(

@@ -6,7 +6,6 @@ import 'package:submersion/features/buddies/data/repositories/buddy_repository.d
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
@@ -25,7 +24,6 @@ import 'package:submersion/features/site_types/data/repositories/site_type_repos
 import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_export.dart';
 
 /// What a dives only UDDF export needs beyond the dives themselves.
 ///
@@ -44,14 +42,6 @@ class UddfDivesExtras {
   /// resolved as synthetic (an id with no row, or another diver's role) is
   /// never written out as a definition.
   final List<DiveRole> diveRoles;
-
-  /// Each exported dive's tank pressure series, by dive id: every series of
-  /// every source with its source, and the dive's primary source, not yet
-  /// grouped by tank (issue #2492). The samples read
-  /// [DiveTankPressureExport.displayedByTank]; the per-source block reads
-  /// the series. Tank pressure series are not hydrated on a dive either,
-  /// and a dive with none is absent (issue #1874).
-  final Map<String, DiveTankPressureExport> diveTankPressures;
 
   /// Each exported dive's gas switches, by dive id. Not hydrated on a dive
   /// either, and a dive with none is absent.
@@ -74,7 +64,6 @@ class UddfDivesExtras {
     this.diveBuddies = const {},
     this.components = const [],
     this.diveRoles = const [],
-    this.diveTankPressures = const {},
     this.diveGasSwitches = const {},
     this.siteTypeIdsBySite = const {},
     this.siteTagIdsBySite = const {},
@@ -103,7 +92,6 @@ final uddfDivesExtrasFetchProvider = Provider<UddfDivesExtrasFetch>((ref) {
     ref.read(buddyRepositoryProvider),
     ref.read(equipmentComponentRepositoryProvider),
     ref.read(diveRoleRepositoryProvider),
-    ref.read(tankPressureRepositoryProvider),
     // The same diver `allDiveRolesProvider` scopes the role list to.
     await ref.read(validatedCurrentDiverIdProvider.future),
     diveIds,
@@ -121,9 +109,11 @@ final uddfDivesExtrasFetchProvider = Provider<UddfDivesExtrasFetch>((ref) {
 ///
 /// [diverId]'s roles are read whatever the checkboxes: every dive writes
 /// its diver's own role, which is not a participant, so leaving
-/// participants out must not leave a custom one undefined. The sample
-/// pressures are too, and the gas switches when [dives] is given: they are
-/// the dive's own record, like its profile.
+/// participants out must not leave a custom one undefined. The gas switches
+/// are too, when [dives] is given: they are the dive's own record, like its
+/// profile. The tank pressures are not read here: they grow with the
+/// recordings, so the export reads them a run of dives at a time with the
+/// samples (issue #4249).
 ///
 /// Site types and tags (issue #1765) are not behind a checkbox either: they
 /// describe the exported sites, which always travel. They load only when
@@ -132,7 +122,6 @@ Future<UddfDivesExtras> resolveDivesExtras(
   BuddyRepository buddies,
   EquipmentComponentRepository components,
   DiveRoleRepository roles,
-  TankPressureRepository tankPressures,
   String? diverId,
   List<String> diveIds,
   UddfExportOptions options, {
@@ -150,9 +139,6 @@ Future<UddfDivesExtras> resolveDivesExtras(
       ? await components.getComponentsForDives(diveIds)
       : const <EquipmentComponent>[];
   final diveRoles = await roles.getAllDiveRoles(diverId: diverId);
-  final diveTankPressures = await tankPressures.getTankPressuresForDives(
-    diveIds,
-  );
   final diveGasSwitches =
       await dives?.getGasSwitchesForDives(diveIds) ??
       const <String, List<GasSwitchWithTank>>{};
@@ -161,7 +147,6 @@ Future<UddfDivesExtras> resolveDivesExtras(
       diveBuddies: diveBuddies,
       components: gear,
       diveRoles: diveRoles,
-      diveTankPressures: diveTankPressures,
       diveGasSwitches: diveGasSwitches,
     );
   }
@@ -177,7 +162,6 @@ Future<UddfDivesExtras> resolveDivesExtras(
     diveBuddies: diveBuddies,
     components: gear,
     diveRoles: diveRoles,
-    diveTankPressures: diveTankPressures,
     diveGasSwitches: diveGasSwitches,
     siteTypeIdsBySite: source.typeIdsBySite,
     siteTagIdsBySite: source.tagIdsBySite,

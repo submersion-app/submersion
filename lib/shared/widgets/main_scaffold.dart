@@ -77,6 +77,17 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     );
   }
 
+  /// The shell navigator's pages, fenced off as a semantics node of their own.
+  ///
+  /// Every page route paints a modal barrier, and a modal barrier blocks the
+  /// semantics of everything painted before it, up to the nearest semantics
+  /// boundary. Nothing in the shell was one, so the rail and the demo strip,
+  /// both painted before the page, fell out of the semantics tree and a
+  /// screen reader could not reach them (issue #4166). The boundary keeps the
+  /// barrier's reach inside the shell navigator, where its routes stack.
+  static Widget _pageArea(Widget page) =>
+      Semantics(container: true, child: page);
+
   /// The layout while a page holds a hide request: the page alone, edge to
   /// edge, with no rail, bottom bar, banner, strip or SafeArea inset.
   ///
@@ -89,7 +100,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
       child: Column(
         children: [
           const DemoModeStrip(),
-          Expanded(child: _belowDemoStrip(widget.child)),
+          Expanded(child: _pageArea(_belowDemoStrip(widget.child))),
         ],
       ),
     ),
@@ -414,7 +425,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
                     children: [
                       const DemoModeStrip(),
                       const UpdateBanner(),
-                      Expanded(child: widget.child),
+                      Expanded(child: _pageArea(widget.child)),
                       const GpsRecordingStrip(),
                     ],
                   ),
@@ -433,7 +444,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
           children: [
             const DemoModeStrip(),
             const UpdateBanner(),
-            Expanded(child: _belowDemoStrip(widget.child)),
+            Expanded(child: _pageArea(_belowDemoStrip(widget.child))),
             const GpsRecordingStrip(),
           ],
         ),

@@ -18043,6 +18043,12 @@ abstract class AppLocalizations {
   /// **'min'**
   String get divePlanner_label_minutesUnit;
 
+  /// Unit suffix for a planner field entered in seconds, such as the gas switch stop
+  ///
+  /// In en, this message translates to:
+  /// **'s'**
+  String get divePlanner_label_secondsUnit;
+
   /// No description provided for @divePlanner_label_ndl.
   ///
   /// In en, this message translates to:

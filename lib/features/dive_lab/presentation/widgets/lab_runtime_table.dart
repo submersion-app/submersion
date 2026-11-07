@@ -29,18 +29,24 @@ class LabRuntimeTable extends StatelessWidget {
     final header = theme.textTheme.labelSmall?.copyWith(
       color: theme.colorScheme.outline,
     );
-    if (outcome.stops.isEmpty) {
-      return Text(
-        l10n.plannerCanvas_results_noDeco,
-        style: theme.textTheme.bodySmall,
-      );
-    }
+    final noDeco = Text(
+      l10n.plannerCanvas_results_noDeco,
+      style: theme.textTheme.bodySmall,
+    );
+    if (outcome.stops.isEmpty) return noDeco;
     Widget cell(String text, {int flex = 1, TextStyle? style}) => Expanded(
       flex: flex,
       child: Text(text, style: style ?? theme.textTheme.bodySmall),
     );
     return Column(
       children: [
+        // Stops held only to switch gas still get their rows, but the dive
+        // owes no decompression (issue #4160), as the planner's table says.
+        if (!outcome.owesDecompression)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Align(alignment: Alignment.centerLeft, child: noDeco),
+          ),
         Row(
           children: [
             cell(l10n.plannerCanvas_table_depth, style: header),

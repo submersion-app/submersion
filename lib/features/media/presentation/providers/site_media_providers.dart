@@ -1,8 +1,8 @@
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/repositories/site_attachment_repository.dart';
+import 'package:submersion/features/media/data/repositories/site_dive_media_repository.dart';
 import 'package:submersion/features/media/data/services/document_import_service.dart';
 import 'package:submersion/features/media/data/services/media_unlink_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -33,56 +33,46 @@ final mediaCountForSiteProvider = FutureProvider.family<int, String>((
   return repository.getMediaCountForSite(siteId);
 });
 
-/// Media from dives logged at the site, grouped by dive with empty dives
-/// dropped. A bounded fan-out: a single Future.wait over every dive would
-/// fire hundreds of DB/IO calls at once on a busy site, while sequential
-/// awaits grow first paint linearly.
-final mediaFromDivesAtSiteProvider =
-    FutureProvider.family<Map<Dive, List<MediaItem>>, String>((
-      ref,
-      siteId,
-    ) async {
-      final diveRepository = ref.watch(diveRepositoryProvider);
-      // Which dives belong to the site is a dives-table read, so a merge, a
-      // bulk delete, or a sync pull changes this grid without the media tables
-      // being written. mediaCountForSiteProvider above already takes the media
-      // tick; this needs the dives one as well (issue #974).
-      ref.invalidateSelfWhen(diveRepository.watchDivesChanges());
+final siteDiveMediaRepositoryProvider = Provider<SiteDiveMediaRepository>(
+  (ref) => SiteDiveMediaRepository(),
+);
 
-      final dives = await diveRepository.getDivesForSite(siteId);
-      if (dives.isEmpty) return {};
+/// How many media items the dives logged at the site hold: all the collapsed
+/// "Photos from dives" group needs to decide whether to show and to title
+/// itself, so a site with hundreds of dives and no photos costs one count
+/// (issue #4252).
+///
+/// Which dives belong to the site is a dives-table read, so a merge, a bulk
+/// delete, or a sync pull changes this without the media table being written
+/// (issue #974); it takes the dives tick as well as the media one.
+final mediaCountFromDivesAtSiteProvider = FutureProvider.family<int, String>((
+  ref,
+  siteId,
+) async {
+  final repository = ref.watch(siteDiveMediaRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchCountChanges());
+  ref.invalidateSelfWhen(ref.watch(diveRepositoryProvider).watchDivesChanges());
+  return repository.countMediaFromDivesAtSite(siteId);
+});
 
-      const chunkSize = 12;
-      final mediaLists = <List<MediaItem>>[];
-      for (var offset = 0; offset < dives.length; offset += chunkSize) {
-        final chunk = dives.skip(offset).take(chunkSize);
-        mediaLists.addAll(
-          await Future.wait(
-            chunk.map(
-              (dive) => ref.watch(mediaForDiveProvider(dive.id).future),
-            ),
-          ),
-        );
-      }
-
-      final Map<Dive, List<MediaItem>> result = {};
-      for (var i = 0; i < dives.length; i++) {
-        if (mediaLists[i].isNotEmpty) {
-          result[dives[i]] = mediaLists[i];
-        }
-      }
-      return result;
-    });
-
-/// Flat, chronological dive-photo list for the site viewer.
-final flatMediaFromDivesAtSiteProvider =
-    FutureProvider.family<List<MediaItem>, String>((ref, siteId) async {
-      final grouped = await ref.watch(
-        mediaFromDivesAtSiteProvider(siteId).future,
+/// Every media item from the dives logged at the site, chronological, for
+/// the expanded group and the site viewer. Read in one statement and only
+/// while one of them is open; the collapsed group reads
+/// [mediaCountFromDivesAtSiteProvider] instead.
+///
+/// Takes the whole media tick, enrichment included, because the viewer shows
+/// the enrichment, and the dives tick for the same reason as the count.
+final flatMediaFromDivesAtSiteProvider = FutureProvider.autoDispose
+    .family<List<MediaItem>, String>((ref, siteId) async {
+      ref.invalidateSelfWhen(
+        ref.watch(mediaRepositoryProvider).watchMediaChanges(),
       );
-      final all = grouped.values.expand((list) => list).toList();
-      all.sort((a, b) => a.takenAt.compareTo(b.takenAt));
-      return all;
+      ref.invalidateSelfWhen(
+        ref.watch(diveRepositoryProvider).watchDivesChanges(),
+      );
+      return ref
+          .watch(siteDiveMediaRepositoryProvider)
+          .getMediaFromDivesAtSite(siteId);
     });
 
 /// Narrow writers for a site attachment's name, category and size

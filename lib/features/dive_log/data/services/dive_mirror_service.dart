@@ -275,9 +275,7 @@ class DiveMirrorService {
   Future<void> _takeBackSiteShares(MirrorOutcome outcome) async {
     final siteId = outcome.siteId;
     if (siteId == null || outcome.addedSiteShares.isEmpty) return;
-    final stillThere = {
-      for (final dive in await _dives.getDivesForSite(siteId)) ?dive.diverId,
-    };
+    final stillThere = await _dives.getDiverIdsAtSite(siteId);
     await _shares.dropShareRows(SharedItemKind.site, [
       for (final s in outcome.addedSiteShares)
         if (!stillThere.contains(s.diverId)) s.shareId,

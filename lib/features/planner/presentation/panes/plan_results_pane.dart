@@ -28,7 +28,7 @@ class PlanResultsPane extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final outcome = ref.watch(activePlanOutcomeProvider);
     final scheme = Theme.of(context).colorScheme;
-    final inDeco = outcome.stops.isNotEmpty;
+    final inDeco = outcome.owesDecompression;
 
     String minutes(int seconds) => "${(seconds / 60).round()}'";
 
