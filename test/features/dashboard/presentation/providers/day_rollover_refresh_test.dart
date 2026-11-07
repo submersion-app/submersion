@@ -5,7 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_summary_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -70,9 +69,6 @@ class _FakeDiveRepository implements DiveRepository {
     onThisDayAsked.add((month, day));
     return const [];
   }
-
-  @override
-  Future<Dive?> getDiveById(String id) async => null;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
