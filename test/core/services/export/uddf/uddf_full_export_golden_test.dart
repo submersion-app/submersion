@@ -12,8 +12,16 @@ import 'uddf_full_export_fixture.dart';
 ///
 /// The golden was written by the one-document builder the export used before
 /// issue #4249, which held every sample, the whole XML tree, its string and
-/// its bytes in memory at once. The streamed writer that replaced it must
-/// write the same file, however the dives are split into chunks.
+/// its bytes in memory at once, from data source rows given in dive order.
+/// The streamed writer that replaced it must write the same file, however
+/// the dives are split into chunks.
+///
+/// One thing differs by design: the old builder wrote `<datasources>` and
+/// `<divecomputerdump>` in the order the rows were handed to it, which from
+/// the database is dive id order. The streamed writer writes each dive's rows
+/// with the dive, so they follow the document's dive order whatever order
+/// they come in. A restore keys them by `diveref` and pairs each dive's dumps
+/// by ordinal, so the order across dives carries nothing.
 ///
 /// Set `UPDATE_UDDF_GOLDEN=1` to rewrite the golden after an intended
 /// change to the document.
@@ -77,6 +85,29 @@ void main() {
       expect(await streamed(chunkSize, reads), await golden.readAsString());
     });
   }
+
+  test(
+    'data source rows follow the dives, whatever order they come in',
+    () async {
+      final xml = stable(
+        await UddfFullExportService().generateAllDataXmlForTest(
+          dives: UddfFullExportFixture.dives,
+          sites: const [UddfFullExportFixture.site],
+          owner: UddfFullExportFixture.owner,
+          equipment: UddfFullExportFixture.equipment,
+          diveTankPressures: UddfFullExportFixture.tankPressures,
+          // The database's dive id order: dive-b before dive-d.
+          dataSources: [
+            for (final source in UddfFullExportFixture.sources)
+              if (source.diveId == 'dive-b') source,
+            for (final source in UddfFullExportFixture.sources)
+              if (source.diveId != 'dive-b') source,
+          ],
+        ),
+      );
+      expect(xml, await golden.readAsString());
+    },
+  );
 
   test('a run size below one is refused', () async {
     await expectLater(streamed(0, []), throwsArgumentError);

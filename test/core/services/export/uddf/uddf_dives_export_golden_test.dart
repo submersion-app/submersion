@@ -11,8 +11,10 @@ import 'uddf_full_export_fixture.dart';
 /// and without the gear and the raw data.
 ///
 /// The goldens were written by the one-document builder the export used
-/// before issue #4249. The streamed writer that replaced it must write the
-/// same files, however the dives are split into runs.
+/// before issue #4249, from data source rows given in dive order. The
+/// streamed writer that replaced it must write the same files, however the
+/// dives are split into runs; see the full export's golden test for why the
+/// rows now follow the dives whatever order they come in.
 ///
 /// Set `UPDATE_UDDF_GOLDEN=1` to rewrite the goldens after an intended
 /// change to the document.

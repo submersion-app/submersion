@@ -30,6 +30,12 @@ import 'package:submersion/features/dive_log/domain/entities/dive_source_export.
 /// section's text is the same whether its dives are written together or
 /// one at a time.
 ///
+/// A dive's data source rows and dumps are written with the dive, so across
+/// dives they follow the document's dive order rather than the order the
+/// loader returned them in (from the database, dive id order). A restore
+/// keys them by `diveref` and pairs each dive's dumps by ordinal, so that
+/// order carries nothing; within a dive they keep the loader's order.
+///
 /// It yields to the event loop after every dive, so building a long log
 /// never holds the isolate for longer than one dive takes.
 ///
