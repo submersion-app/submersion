@@ -10,6 +10,24 @@ import 'package:submersion/features/media/domain/entities/site_attachment_catego
 
 const _log = LoggerService('MediaRowMapper');
 
+/// The `media_enrichment` columns for a raw select that LEFT JOINs it as `e`
+/// next to `media.*`. Each is aliased `"e.<name>"` so it survives beside
+/// media's own columns of the same name, in the form drift's tablePrefix
+/// reads back. Pair with [mediaItemFromJoinedRow].
+String enrichmentSelectColumns(AppDatabase db) => db.mediaEnrichment.$columns
+    .map((c) => 'e.${c.$name} AS "e.${c.$name}"')
+    .join(', ');
+
+/// Maps a raw row holding `media.*` and [enrichmentSelectColumns]; the
+/// enrichment is null when the LEFT JOIN found none.
+domain.MediaItem mediaItemFromJoinedRow(AppDatabase db, QueryRow row) =>
+    mediaItemFromRow(
+      db.media.map(row.data),
+      row.data['e.id'] == null
+          ? null
+          : db.mediaEnrichment.map(row.data, tablePrefix: 'e'),
+    );
+
 /// Maps a Drift media row (plus optional enrichment row) to the domain
 /// MediaItem. Shared by MediaRepository and MediaLibraryRepository so the
 /// two can never drift apart on hydration rules (takenAt is UTC, source

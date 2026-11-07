@@ -90,6 +90,8 @@ void main() {
     void Function(MediaItem)? onOpenDocument,
     List<MediaItem> divePhotos = const [],
     List<String>? divePhotoReads,
+    Future<List<MediaItem>>? pendingDivePhotos,
+    Object? divePhotosError,
     List<MediaItem> attachments = const [],
     Future<List<MediaItem>>? pendingAttachments,
     Object? attachmentsError,
@@ -109,6 +111,8 @@ void main() {
         ).overrideWith((ref) async => divePhotos.length),
         flatMediaFromDivesAtSiteProvider('site-1').overrideWith((ref) async {
           divePhotoReads?.add('site-1');
+          if (pendingDivePhotos != null) return pendingDivePhotos;
+          if (divePhotosError != null) throw divePhotosError;
           return divePhotos;
         }),
         ...extraOverrides,
@@ -571,6 +575,42 @@ void main() {
   });
 
   group('dive photos group expanded', () {
+    testWidgets('shows a spinner while the opened group loads', (tester) async {
+      final pending = Completer<List<MediaItem>>();
+      await tester.pumpWidget(
+        await host(
+          divePhotos: [testMediaItem(id: 'dp-0', diveId: 'dive-1')],
+          pendingDivePhotos: pending.future,
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Photos from dives here (1)'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(GridView), findsNothing);
+      pending.complete(const []);
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('shows the error text when the opened group fails', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        await host(
+          divePhotos: [testMediaItem(id: 'dp-0', diveId: 'dive-1')],
+          divePhotosError: StateError('boom'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Photos from dives here (1)'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Error loading media'), findsOneWidget);
+      expect(find.byType(GridView), findsNothing);
+    });
+
     final divePhoto = testMediaItem(
       id: 'dp-1',
       diveId: 'dive-1',

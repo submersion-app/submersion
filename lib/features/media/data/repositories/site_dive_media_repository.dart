@@ -41,7 +41,6 @@ class SiteDiveMediaRepository {
         WHERE dive_id IN (SELECT id FROM dives WHERE site_id = ?)
       ''',
             variables: [Variable.withString(siteId)],
-            readsFrom: {_db.media, _db.dives},
           )
           .getSingle();
       return row.read<int>('media_count');
@@ -61,34 +60,20 @@ class SiteDiveMediaRepository {
   // excluded dives like the logbook shows the dives themselves.
   Future<List<MediaItem>> getMediaFromDivesAtSite(String siteId) async {
     try {
-      // Aliased so the enrichment columns survive next to media's own, in the
-      // form drift's tablePrefix reads them back.
-      final enrichmentColumns = _db.mediaEnrichment.$columns
-          .map((c) => 'e.${c.$name} AS "e.${c.$name}"')
-          .join(', ');
       final rows = await _db
           .customSelect(
             '''
-        SELECT m.*, $enrichmentColumns
+        SELECT m.*, ${enrichmentSelectColumns(_db)}
         FROM media m
         LEFT JOIN media_enrichment e ON e.media_id = m.id
         WHERE m.dive_id IN (SELECT id FROM dives WHERE site_id = ?)
         ORDER BY m.taken_at IS NULL, m.taken_at, m.id
       ''',
             variables: [Variable.withString(siteId)],
-            readsFrom: {_db.media, _db.mediaEnrichment, _db.dives},
           )
           .get();
 
-      return [
-        for (final row in rows)
-          mediaItemFromRow(
-            _db.media.map(row.data),
-            row.data['e.id'] == null
-                ? null
-                : _db.mediaEnrichment.map(row.data, tablePrefix: 'e'),
-          ),
-      ];
+      return [for (final row in rows) mediaItemFromJoinedRow(_db, row)];
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get media from dives at site: $siteId',
