@@ -146,6 +146,25 @@ void main() {
         expect((await rowOf(id)).updatedAt, 1);
       });
 
+      test('a failed blob write leaves the cursor, so the next checkpoint '
+          'still writes those fixes', () async {
+        final id = await startWith([at(1700000000)]);
+        await repo.checkpoint(id);
+        await repo.appendBufferPoint(id, at(1700000010));
+
+        await db.customStatement(
+          'CREATE TEMP TRIGGER fail_track_write BEFORE UPDATE ON gps_tracks '
+          "BEGIN SELECT RAISE(ABORT, 'write failed'); END",
+        );
+        await expectLater(repo.checkpoint(id), throwsA(anything));
+        await db.customStatement('DROP TRIGGER fail_track_write');
+
+        await repo.checkpoint(id);
+
+        expect(stats.last, (rowsRead: 1, tuplesEncoded: 1, wroteBlob: true));
+        expect((await rowOf(id)).pointCount, 2);
+      });
+
       test('a fix older than the last checkpointed one rebuilds the blob in '
           'time order', () async {
         final id = await startWith([at(1700000100), at(1700000200)]);

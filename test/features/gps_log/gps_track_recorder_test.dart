@@ -50,6 +50,18 @@ class _ObservedRepository extends GpsTrackRepository {
   }
 }
 
+/// Waits for [condition] instead of a fixed sleep, so a loaded runner that
+/// delays timers slows the test down rather than failing it.
+Future<void> _waitUntil(bool Function() condition) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 10));
+  while (!condition()) {
+    if (DateTime.now().isAfter(deadline)) {
+      fail('condition not met within 10 seconds');
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 5));
+  }
+}
+
 void main() {
   late AppDatabase db;
   late GpsTrackRepository repo;
@@ -207,7 +219,8 @@ void main() {
       await pumpEventQueue();
 
       // Several intervals pass while the first checkpoint is held open.
-      await Future<void>.delayed(const Duration(milliseconds: 90));
+      await _waitUntil(() => observed.events.isNotEmpty);
+      await Future<void>.delayed(const Duration(milliseconds: 70));
       expect(observed.events, ['checkpoint:start']);
 
       final stopping = r.stop();
@@ -233,12 +246,9 @@ void main() {
       );
       await r.start(notificationTitle: 't', notificationText: 'x');
       controller.add(fix(lat: 10, lon: 20));
-      await Future<void>.delayed(const Duration(milliseconds: 70));
-
       // Each tick still runs after a failure, and recording carries on.
-      expect(
-        observed.events.where((e) => e == 'checkpoint:start').length,
-        greaterThanOrEqualTo(2),
+      await _waitUntil(
+        () => observed.events.where((e) => e == 'checkpoint:start').length >= 2,
       );
       expect(r.isRecording, isTrue);
       await r.stop();
