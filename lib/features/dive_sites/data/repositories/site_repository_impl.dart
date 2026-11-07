@@ -103,6 +103,7 @@ class SiteRepository {
     String? diverId,
     List<String>? ids,
   }) async {
+    if (ids != null && ids.isEmpty) return const [];
     try {
       return await PerfTimer.measure('getAllSites', () async {
         final query = _db.select(_db.diveSites)

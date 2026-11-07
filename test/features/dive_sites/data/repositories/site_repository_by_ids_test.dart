@@ -94,12 +94,10 @@ void main() {
   });
 
   test('reads nothing for no ids', () async {
-    final sent = await statementsOf(
-      () async => expect(
-        await repository.getSitesWithDiveCounts(ids: const []),
-        isEmpty,
-      ),
-    );
+    final sent = await statementsOf(() async {
+      expect(await repository.getSitesWithDiveCounts(ids: const []), isEmpty);
+      expect(await repository.getAllSites(ids: const []), isEmpty);
+    });
 
     expect(sent, isEmpty);
   });
