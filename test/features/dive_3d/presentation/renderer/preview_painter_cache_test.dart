@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_3d/domain/entities/mesh_data.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/stroke_strip.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/preview_painter.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/triangle_soup.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
@@ -64,10 +65,21 @@ MeshData _rest() => MeshData(
   opacity: 0.5,
 );
 
+/// A fixed-pixel-width line, like the dive path: its canvas edges are set
+/// per frame from the zoom, so a zoom-only frame must still restroke it.
+/// Its sort heights also put it on the cached depth key's other branch.
+MeshData _stroke() => buildStrokeStrip(
+  xyz: const [1, -3, -2, 4, -2, 0, 6, -4, 1, 9, -3, 2],
+  strokeHalfWidthPx: 3,
+  colorAt: (i) => (1, i / 4, 0.2),
+  sortHeightAt: (i) => -2.5 + i * 0.3,
+);
+
 Scene3d _scene(MeshData terrain) => Scene3d(
   layers: [
     SceneLayer(terrain),
     SceneLayer(_drape(), overlay: SceneOverlay.contours, drapedOnTerrain: true),
+    SceneLayer(_stroke(), drapedOnTerrain: true),
     SceneLayer(_rest()),
   ],
   markers: const [],

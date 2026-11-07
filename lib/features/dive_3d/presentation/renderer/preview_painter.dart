@@ -265,24 +265,25 @@ class Dive3dScenePainter extends CustomPainter {
       vOff += mesh.vertexCount;
     }
 
+    // The order, shading and texture coordinates hold for as long as the
+    // camera's rotation does; only a new rotation sorts and emits them.
+    if (!soup.emittedFor(rotationKey)) {
+      _sortAndEmit(soup);
+      soup.markEmitted(rotationKey);
+    }
+    // The canvas positions move with the zoom and canvas size too, so they
+    // are written on every frame, in the sorted order.
     final triIndices = soup.triIndices;
     final order = soup.order;
     final screen = soup.screen;
-    if (soup.emittedFor(rotationKey)) {
-      // Same rotation as the last frame: the order, shading and texture
-      // coordinates still hold, only the canvas positions moved.
-      for (var t = 0; t < triCount; t++) {
-        final tri = order[t];
-        for (var k = 0; k < 3; k++) {
-          final vi = triIndices[tri * 3 + k];
-          final slot = (t * 3 + k) * 2;
-          screen[slot] = sx[vi];
-          screen[slot + 1] = sy[vi];
-        }
+    for (var t = 0; t < triCount; t++) {
+      final tri = order[t];
+      for (var k = 0; k < 3; k++) {
+        final vi = triIndices[tri * 3 + k];
+        final slot = (t * 3 + k) * 2;
+        screen[slot] = sx[vi];
+        screen[slot + 1] = sy[vi];
       }
-    } else {
-      _sortAndEmit(soup);
-      soup.markEmitted(rotationKey);
     }
 
     final texOut = soup.textureOut;
@@ -333,8 +334,6 @@ class Dive3dScenePainter extends CustomPainter {
     final vy = soup.vy;
     final vz = soup.vz;
     final vzSort = soup.vzSort;
-    final sx = soup.sx;
-    final sy = soup.sy;
 
     // Depth-sort triangles back-to-front by mean view depth, taken at each
     // mesh's sort heights where it declares them.
@@ -351,14 +350,12 @@ class Dive3dScenePainter extends CustomPainter {
     // De-index into flat-shaded triangles: each triangle owns its 3 vertices
     // so it can carry its own face-normal brightness. drawVertices only
     // interpolates colors, so shading has to be baked into those colors here.
-    final screen = soup.screen;
+    // The caller writes the matching canvas positions.
     final colors = soup.colors;
     final texOut = soup.textureOut;
     final tex = soup.vertexTexture;
 
     void emit(int slot, int vi, double shade, int alpha) {
-      screen[slot * 2] = sx[vi];
-      screen[slot * 2 + 1] = sy[vi];
       if (texOut != null) {
         texOut[slot * 2] = tex![vi * 2];
         texOut[slot * 2 + 1] = tex[vi * 2 + 1];

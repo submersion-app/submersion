@@ -41,7 +41,9 @@ class TriangleSoup {
   Uint32List get order => _order;
   Float32List get screen => _screen;
   Int32List get colors => _colors;
-  Float32List? get textureOut => _textureOut;
+
+  /// Null while the soup is untextured.
+  Float32List? get textureOut => _vertexTexture == null ? null : _textureOut;
   Float32List? get vertexTexture => _vertexTexture;
 
   // Mesh-derived: rebuilt only when [bind] sees different meshes.
@@ -73,7 +75,8 @@ class TriangleSoup {
   // in place on the next frame.
   Float32List _screen = Float32List(0);
   Int32List _colors = Int32List(0);
-  Float32List? _textureOut;
+  // Kept while the imagery is off, so turning it back on refills it.
+  Float32List _textureOut = Float32List(0);
 
   /// Image-pixel texture coordinates per vertex, and the image size and
   /// white texel they were scaled for. Null when the soup is untextured.
@@ -152,7 +155,6 @@ class TriangleSoup {
     _order = _order.length == tn ? _order : Uint32List(tn);
     _screen = _f32(_screen, tn * 3 * 2);
     _colors = _colors.length == tn * 3 ? _colors : Int32List(tn * 3);
-    _textureOut = null;
   }
 
   /// [current] when it already holds exactly [length] floats, else a new
@@ -177,10 +179,9 @@ class TriangleSoup {
     _emittedKey = null;
     if (key == null) {
       _vertexTexture = null;
-      _textureOut = null;
     } else {
       _vertexTexture = build();
-      _textureOut = Float32List(_triangleCount * 3 * 2);
+      _textureOut = _f32(_textureOut, _triangleCount * 3 * 2);
     }
   }
 
