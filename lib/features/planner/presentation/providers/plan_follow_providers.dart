@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 import 'package:submersion/features/planner/domain/services/logged_dive_chain.dart';
 import 'package:submersion/features/planner/domain/services/plan_series_calculator.dart';
@@ -99,25 +100,29 @@ Future<SeriesFollow?> followLoggedDive(WidgetRef ref, String diveId) async {
   return follow;
 }
 
-/// The most recent logged dive, when it ended less than 48 hours ago: the
-/// one the planner offers to follow with a single tap. Null otherwise.
+/// The current diver's most recent logged dive, when it ended less than 48
+/// hours ago: the one the planner offers to follow with a single tap. Null
+/// otherwise.
 ///
-/// Disposed with the planner, so each visit judges "recent" against the
+/// Reads only the dives of the last days, never the whole log (issue #4250),
+/// and only while the prompt can show: `PlanFollowPrompt` stops watching it
+/// once the plan follows a dive or is a replan, and it is disposed then.
+/// Disposed with the planner too, so each visit judges "recent" against the
 /// clock then. A dive stamped in the future, a device clock gone wrong, is
 /// passed over rather than hiding the one that really is the latest.
 final followSuggestionProvider = FutureProvider.autoDispose<Dive?>((ref) async {
-  final dives = await ref.watch(divesProvider.future);
+  final repository = ref.watch(diveRepositoryProvider);
+  final diverId = ref.watch(currentDiverIdProvider);
+  // A dive with no runtime ends where its profile does, and a profile write
+  // can leave the dive row alone, so this ticks on both.
+  ref.invalidateSelfWhen(repository.watchMeasuredRuntimeChanges());
   // Dive times are wall clock stored as UTC; compare in the same frame.
   final now = NoFlyService.wallClockNowUtc();
-  Dive? latest;
-  for (final dive in dives) {
-    if (dive.isPlanned || diveEnd(dive).isAfter(now)) continue;
-    if (latest == null || diveEnd(dive).isAfter(diveEnd(latest))) {
-      latest = dive;
-    }
-  }
-  if (latest == null) return null;
-  return now.difference(diveEnd(latest)) < followLookback ? latest : null;
+  return repository.getLatestEndedDive(
+    diverId: diverId,
+    endedAfter: now.subtract(followLookback),
+    notAfter: now,
+  );
 });
 
 /// What the log says about the dives of the series that have been dived, by

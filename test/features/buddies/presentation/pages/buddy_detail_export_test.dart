@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dive_chunk.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/services/export/export_service.dart';
@@ -32,6 +33,8 @@ class _RecordingExportService implements ExportService {
   UddfDivesExtras? uddfExtras;
   UddfExportOptions? uddfOptions;
   CertificationCatalog? catalog;
+  List<Dive>? uddfDives;
+  UddfDiveChunkLoader? uddfLoader;
 
   @override
   Future<String> exportDivesToUddf(
@@ -42,11 +45,14 @@ class _RecordingExportService implements ExportService {
     CertificationCatalog? certificationCatalog,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
+    UddfDiveChunkLoader? loadDiveChunk,
   }) async {
     this.sites = sites;
     catalog = certificationCatalog;
     uddfExtras = extras;
     uddfOptions = options;
+    uddfDives = dives;
+    uddfLoader = loadDiveChunk;
     calls.add('share:uddf');
     return '/tmp/shared.uddf';
   }
@@ -60,11 +66,14 @@ class _RecordingExportService implements ExportService {
     CertificationCatalog? certificationCatalog,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
+    UddfDiveChunkLoader? loadDiveChunk,
   }) async {
     this.sites = sites;
     catalog = certificationCatalog;
     uddfExtras = extras;
     uddfOptions = options;
+    uddfDives = dives;
+    uddfLoader = loadDiveChunk;
     calls.add('save:uddf');
     return '/tmp/saved.uddf';
   }
@@ -80,6 +89,15 @@ class _FakeDiveRepository implements DiveRepository {
   @override
   Future<Dive?> getDiveById(String id) async =>
       dives.where((d) => d.id == id).firstOrNull;
+
+  @override
+  Future<List<Dive>> getDivesByIdsWithoutSamples(
+    List<String> ids, {
+    int chunkSize = 50,
+  }) async => [
+    for (final dive in dives)
+      if (ids.contains(dive.id)) dive,
+  ];
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -255,5 +273,12 @@ void main() {
     expect(extrasCalls.single.$1, ['dive-1']);
     expect(identical(exportService.uddfExtras, extrasSentinel), isTrue);
     expect(exportService.uddfOptions?.includeParticipants, isFalse);
+    // Issue #4249: the samples are read a run at a time as the file is
+    // written, not for every one of the buddy's dives up front.
+    expect(
+      exportService.uddfDives?.map((d) => d.profile),
+      everyElement(isEmpty),
+    );
+    expect(exportService.uddfLoader, isNotNull);
   });
 }

@@ -578,12 +578,12 @@ mixin _DiveDetailPageExports on ConsumerState<DiveDetailPage> {
                         [dive],
                         sites: sites,
                         options: choice.options,
-                        dataSources: await ref.read(uddfSourceFetchProvider)([
-                          dive.id,
-                        ], choice.options),
                         extras: await ref.read(uddfDivesExtrasFetchProvider)([
                           dive.id,
                         ], choice.options),
+                        loadDiveChunk: ref.read(uddfDiveChunksProvider)(
+                          choice.options,
+                        ),
                         certificationCatalog: await ref.read(
                           allCustomCertificationsCatalogProvider.future,
                         ),
@@ -594,12 +594,12 @@ mixin _DiveDetailPageExports on ConsumerState<DiveDetailPage> {
                         [dive],
                         sites: sites,
                         options: choice.options,
-                        dataSources: await ref.read(uddfSourceFetchProvider)([
-                          dive.id,
-                        ], choice.options),
                         extras: await ref.read(uddfDivesExtrasFetchProvider)([
                           dive.id,
                         ], choice.options),
+                        loadDiveChunk: ref.read(uddfDiveChunksProvider)(
+                          choice.options,
+                        ),
                         certificationCatalog: await ref.read(
                           allCustomCertificationsCatalogProvider.future,
                         ),

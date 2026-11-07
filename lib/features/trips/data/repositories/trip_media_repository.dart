@@ -112,11 +112,7 @@ class TripMediaRepository {
   }) async {
     try {
       final diverClause = diverId != null ? 'AND diver_id = ?' : '';
-      // Aliased so the enrichment columns survive next to media's own, in the
-      // form drift's tablePrefix reads them back.
-      final enrichmentColumns = _db.mediaEnrichment.$columns
-          .map((c) => 'e.${c.$name} AS "e.${c.$name}"')
-          .join(', ');
+      final enrichmentColumns = enrichmentSelectColumns(_db);
       final rows = await _db
           .customSelect(
             '''
@@ -139,15 +135,7 @@ class TripMediaRepository {
           )
           .get();
 
-      return [
-        for (final row in rows)
-          mediaItemFromRow(
-            _db.media.map(row.data),
-            row.data['e.id'] == null
-                ? null
-                : _db.mediaEnrichment.map(row.data, tablePrefix: 'e'),
-          ),
-      ];
+      return [for (final row in rows) mediaItemFromJoinedRow(_db, row)];
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get media for trip: $tripId',

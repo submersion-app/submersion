@@ -10744,6 +10744,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divePlanner_label_minutesUnit => '分钟';
 
   @override
+  String get divePlanner_label_secondsUnit => '秒';
+
+  @override
   String get divePlanner_label_ndl => 'NDL';
 
   @override

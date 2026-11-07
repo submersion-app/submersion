@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
@@ -8,7 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:submersion/features/dive_3d/domain/entities/mesh_data.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/marker_layout.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
+import 'package:submersion/features/dive_3d/presentation/renderer/depth_sort.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/scene_projector.dart';
+import 'package:submersion/features/dive_3d/presentation/renderer/triangle_soup.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 
 /// Paints a Scene3d through SceneProjector with drawVertices. Layers paint
@@ -37,6 +38,11 @@ class Dive3dScenePainter extends CustomPainter {
   /// their vertex colors untouched.
   final ({double u, double v})? imageryWhiteTexel;
 
+  /// Buffers kept between paints; null allocates fresh ones each paint.
+  /// The interactive viewport passes one it owns, so orbiting a dense
+  /// terrain reuses the last frame's memory (#4259).
+  final ScenePaintCache? cache;
+
   const Dive3dScenePainter({
     required this.scene,
     this.yawDegrees = -32,
@@ -45,6 +51,7 @@ class Dive3dScenePainter extends CustomPainter {
     this.visibleOverlays,
     this.terrainImagery,
     this.imageryWhiteTexel,
+    this.cache,
   });
 
   // Studio lighting for flat shading. Ambient is the floor every surface
@@ -118,6 +125,14 @@ class Dive3dScenePainter extends CustomPainter {
       zoom: zoom,
     );
     final parts = partitionLayers(scene, visibleOverlays);
+    // Everything the depth order and the shading depend on: the rotation
+    // and the pivot height. Zoom and canvas size only move the points.
+    final rotationKey = (
+      yawDegrees,
+      pitchDegrees,
+      scene.bounds.sceneMinY,
+      scene.bounds.sceneMaxY,
+    );
     // Imagery/whiteTexel are passed to EVERY _paintMeshes call, merged or
     // rest: a mesh without textureCoordinates (paths, pins, water, and
     // every rest layer before the LOD patch) is unaffected -- soupTextureCoords
@@ -126,22 +141,19 @@ class Dive3dScenePainter extends CustomPainter {
     // terrain (see site_seascape_providers.dart) is deliberately a rest
     // layer, not draped -- it still needs the map imagery drape like the
     // base terrain, just without sharing the base's depth sort.
-    _paintMeshes(
-      canvas,
-      projector,
-      parts.merged,
-      imagery: terrainImagery,
-      whiteTexel: imageryWhiteTexel,
-    );
-    for (final group in parts.restGroups) {
+    final groups = [parts.merged, ...parts.restGroups];
+    for (var i = 0; i < groups.length; i++) {
       _paintMeshes(
         canvas,
         projector,
-        group,
+        groups[i],
+        cache?.soupAt(i) ?? TriangleSoup(),
+        rotationKey,
         imagery: terrainImagery,
         whiteTexel: imageryWhiteTexel,
       );
     }
+    cache?.retain(groups.length);
     if (_visible(SceneOverlay.markers)) _paintMarkers(canvas, projector);
   }
 
@@ -184,78 +196,63 @@ class Dive3dScenePainter extends CustomPainter {
   /// keeps its source mesh's opacity. When [imagery] and [whiteTexel] are
   /// present and any mesh carries UVs, the soup draws through an
   /// ImageShader modulated by the (shaded) vertex colors.
+  ///
+  /// [soup] holds the buffers. A cached one remembers the meshes and the
+  /// camera rotation it last painted, so an orbit frame skips the mesh
+  /// copies and a zoom frame also skips the sort and shading (#4259).
   void _paintMeshes(
     Canvas canvas,
     SceneProjector projector,
-    List<MeshData> meshes, {
+    List<MeshData> meshes,
+    TriangleSoup soup,
+    Object rotationKey, {
     ui.Image? imagery,
     ({double u, double v})? whiteTexel,
   }) {
-    var vn = 0;
-    var triCount = 0;
-    for (final mesh in meshes) {
-      vn += mesh.vertexCount;
-      triCount += mesh.triangleCount;
-    }
+    soup.bind(meshes);
+    final vn = soup.vertexCount;
+    final triCount = soup.triangleCount;
     if (vn == 0 || triCount == 0) return;
 
-    Float32List? vertexTex;
-    if (imagery != null &&
-        whiteTexel != null &&
-        meshes.any((m) => m.textureCoordinates != null)) {
-      vertexTex = soupTextureCoords(
+    final textured =
+        imagery != null && whiteTexel != null && soup.hasTextureCoordinates;
+    soup.syncTexture(
+      textured
+          ? (imagery.width, imagery.height, whiteTexel.u, whiteTexel.v)
+          : null,
+      () => soupTextureCoords(
         meshes,
-        whiteTexel,
-        imagery.width,
+        whiteTexel!,
+        imagery!.width,
         imagery.height,
-      );
-    }
+      ),
+    );
 
     // Rotate every vertex into view space once: (vx,vy,vz) drive both the
     // face normals and the depth sort, (sx,sy) are the canvas points.
-    // Vertices and triangles from all meshes concatenate with an offset;
-    // per-triangle alpha carries each source mesh's opacity.
-    final vx = Float32List(vn);
-    final vy = Float32List(vn);
-    final vz = Float32List(vn);
+    // Vertices from all meshes concatenate with an offset.
+    final vx = soup.vx;
+    final vy = soup.vy;
+    final vz = soup.vz;
     // Depth the sort uses: vz, except where a mesh declares sort heights.
-    final vzSort = Float32List(vn);
-    final sx = Float32List(vn);
-    final sy = Float32List(vn);
-    final vColors = Float32List(vn * 3);
-    final triIndices = Uint32List(triCount * 3);
-    final triAlpha = Int32List(triCount);
-    // 1 for triangles of a stroke mesh: drawn in their vertex colors as
-    // given, since a line has no face to light.
-    final triUnshaded = Uint8List(triCount);
+    final vzSort = soup.vzSort;
+    final sx = soup.sx;
+    final sy = soup.sy;
     var vOff = 0;
-    var tOff = 0;
     for (final mesh in meshes) {
-      final alpha = (mesh.opacity * 255).round() << 24;
-      final sortHeights = mesh.sortHeights;
       final strokeHalfWidthPx = mesh.strokeHalfWidthPx;
-      for (var i = 0; i < mesh.vertexCount; i++) {
-        final gi = vOff + i;
-        final v = projector.viewOf(
-          mesh.positions[i * 3],
-          mesh.positions[i * 3 + 1],
-          mesh.positions[i * 3 + 2],
-        );
-        vx[gi] = v.$1;
-        vy[gi] = v.$2;
-        vz[gi] = v.$3;
-        vzSort[gi] = sortHeights == null
-            ? v.$3
-            : v.$3 +
-                  (sortHeights[i] - mesh.positions[i * 3 + 1]) *
-                      projector.depthPerUnitY;
-        final o = projector.projectView(v);
-        sx[gi] = o.dx;
-        sy[gi] = o.dy;
-        vColors[gi * 3] = mesh.colors[i * 3];
-        vColors[gi * 3 + 1] = mesh.colors[i * 3 + 1];
-        vColors[gi * 3 + 2] = mesh.colors[i * 3 + 2];
-      }
+      projector.projectAll(
+        mesh.positions,
+        mesh.vertexCount,
+        start: vOff,
+        vx: vx,
+        vy: vy,
+        vz: vz,
+        vzSort: vzSort,
+        sx: sx,
+        sy: sy,
+        sortHeights: mesh.sortHeights,
+      );
       if (strokeHalfWidthPx != null) {
         strokeScreenEdges(
           sx,
@@ -265,48 +262,107 @@ class Dive3dScenePainter extends CustomPainter {
           halfWidthPx: strokeHalfWidthPx,
         );
       }
-      for (var t = 0; t < mesh.triangleCount; t++) {
-        final gt = tOff + t;
-        triIndices[gt * 3] = mesh.indices[t * 3] + vOff;
-        triIndices[gt * 3 + 1] = mesh.indices[t * 3 + 1] + vOff;
-        triIndices[gt * 3 + 2] = mesh.indices[t * 3 + 2] + vOff;
-        triAlpha[gt] = alpha;
-        triUnshaded[gt] = strokeHalfWidthPx == null ? 0 : 1;
-      }
       vOff += mesh.vertexCount;
-      tOff += mesh.triangleCount;
     }
+
+    // The order, shading and texture coordinates hold for as long as the
+    // camera's rotation does; only a new rotation sorts and emits them.
+    if (!soup.emittedFor(rotationKey)) {
+      _sortAndEmit(soup);
+      soup.markEmitted(rotationKey);
+    }
+    // The canvas positions move with the zoom and canvas size too, so they
+    // are written on every frame, in the sorted order.
+    final triIndices = soup.triIndices;
+    final order = soup.order;
+    final screen = soup.screen;
+    for (var t = 0; t < triCount; t++) {
+      final tri = order[t];
+      for (var k = 0; k < 3; k++) {
+        final vi = triIndices[tri * 3 + k];
+        final slot = (t * 3 + k) * 2;
+        screen[slot] = sx[vi];
+        screen[slot + 1] = sy[vi];
+      }
+    }
+
+    final texOut = soup.textureOut;
+    if (texOut != null) {
+      canvas.drawVertices(
+        ui.Vertices.raw(
+          ui.VertexMode.triangles,
+          screen,
+          colors: soup.colors,
+          textureCoordinates: texOut,
+        ),
+        BlendMode.modulate,
+        Paint()
+          ..shader = ui.ImageShader(
+            imagery!,
+            TileMode.clamp,
+            TileMode.clamp,
+            Matrix4.identity().storage,
+          ),
+      );
+    } else {
+      canvas.drawVertices(
+        ui.Vertices.raw(ui.VertexMode.triangles, screen, colors: soup.colors),
+        BlendMode.dst,
+        Paint(),
+      );
+    }
+  }
+
+  /// A 0..1 color channel as a 0..255 byte, clamped. The same value as
+  /// `(c.clamp(0.0, 1.0) * 255).round()`, NaN included (clamp treats it as
+  /// the largest double, so it becomes 255), without the num-typed clamp
+  /// call, which runs three times per emitted vertex.
+  @visibleForTesting
+  static int channelByte(double c) =>
+      ((c < 0.0 ? 0.0 : (c <= 1.0 ? c : 1.0)) * 255).round();
+
+  /// Depth-sorts [soup]'s triangles back-to-front and de-indexes them into
+  /// its flat-shaded draw buffers, from the view-space vertices the caller
+  /// just filled.
+  static void _sortAndEmit(TriangleSoup soup) {
+    final triCount = soup.triangleCount;
+    final triIndices = soup.triIndices;
+    final triAlpha = soup.triAlpha;
+    final triUnshaded = soup.triUnshaded;
+    final vColors = soup.vertexColors;
+    final vx = soup.vx;
+    final vy = soup.vy;
+    final vz = soup.vz;
+    final vzSort = soup.vzSort;
 
     // Depth-sort triangles back-to-front by mean view depth, taken at each
     // mesh's sort heights where it declares them.
-    final order = List<int>.generate(triCount, (i) => i);
-    final depths = Float32List(triCount);
+    final depths = soup.depths;
     for (var t = 0; t < triCount; t++) {
       final i0 = triIndices[t * 3];
       final i1 = triIndices[t * 3 + 1];
       final i2 = triIndices[t * 3 + 2];
       depths[t] = (vzSort[i0] + vzSort[i1] + vzSort[i2]) / 3;
     }
-    order.sort((a, b) => depths[a].compareTo(depths[b]));
+    final order = soup.order;
+    sortIndicesByDepth(depths, order, soup.sortScratch);
 
     // De-index into flat-shaded triangles: each triangle owns its 3 vertices
     // so it can carry its own face-normal brightness. drawVertices only
     // interpolates colors, so shading has to be baked into those colors here.
-    final screen = Float32List(triCount * 3 * 2);
-    final colors = Int32List(triCount * 3);
-    final texOut = vertexTex == null ? null : Float32List(triCount * 3 * 2);
-    final tex = vertexTex;
+    // The caller writes the matching canvas positions.
+    final colors = soup.colors;
+    final texOut = soup.textureOut;
+    final tex = soup.vertexTexture;
 
     void emit(int slot, int vi, double shade, int alpha) {
-      screen[slot * 2] = sx[vi];
-      screen[slot * 2 + 1] = sy[vi];
       if (texOut != null) {
         texOut[slot * 2] = tex![vi * 2];
         texOut[slot * 2 + 1] = tex[vi * 2 + 1];
       }
-      final r = ((vColors[vi * 3] * shade).clamp(0.0, 1.0) * 255).round();
-      final g = ((vColors[vi * 3 + 1] * shade).clamp(0.0, 1.0) * 255).round();
-      final b = ((vColors[vi * 3 + 2] * shade).clamp(0.0, 1.0) * 255).round();
+      final r = channelByte(vColors[vi * 3] * shade);
+      final g = channelByte(vColors[vi * 3 + 1] * shade);
+      final b = channelByte(vColors[vi * 3 + 2] * shade);
       colors[slot] = alpha | (r << 16) | (g << 8) | b;
     }
 
@@ -343,31 +399,6 @@ class Dive3dScenePainter extends CustomPainter {
       emit(tv, i0, shade, triAlpha[tri]);
       emit(tv + 1, i1, shade, triAlpha[tri]);
       emit(tv + 2, i2, shade, triAlpha[tri]);
-    }
-
-    if (texOut != null) {
-      canvas.drawVertices(
-        ui.Vertices.raw(
-          ui.VertexMode.triangles,
-          screen,
-          colors: colors,
-          textureCoordinates: texOut,
-        ),
-        BlendMode.modulate,
-        Paint()
-          ..shader = ui.ImageShader(
-            imagery!,
-            TileMode.clamp,
-            TileMode.clamp,
-            Matrix4.identity().storage,
-          ),
-      );
-    } else {
-      canvas.drawVertices(
-        ui.Vertices.raw(ui.VertexMode.triangles, screen, colors: colors),
-        BlendMode.dst,
-        Paint(),
-      );
     }
   }
 
@@ -588,5 +619,6 @@ class Dive3dScenePainter extends CustomPainter {
       // By content: hosts build a fresh set literal on every rebuild.
       !setEquals(oldDelegate.visibleOverlays, visibleOverlays) ||
       !identical(oldDelegate.terrainImagery, terrainImagery) ||
-      oldDelegate.imageryWhiteTexel != imageryWhiteTexel;
+      oldDelegate.imageryWhiteTexel != imageryWhiteTexel ||
+      !identical(oldDelegate.cache, cache);
 }

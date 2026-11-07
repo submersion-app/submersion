@@ -362,4 +362,41 @@ void main() {
     expect(find.text('Page Start'), findsNothing);
     expect(router.canPop(), isTrue);
   });
+
+  testWidgets('the master list beside the pane stays reachable by a screen '
+      'reader (#4166)', (tester) async {
+    // Each pane page paints a modal barrier, which blocks the semantics of
+    // whatever was painted before it: here, the section list on its left.
+    final semantics = tester.ensureSemantics();
+    final router = GoRouter(
+      initialLocation: '/settings?selected=data&dataPage=a',
+      routes: [
+        GoRoute(
+          path: '/settings',
+          builder: (context, state) => const Scaffold(
+            body: Row(
+              children: [
+                SizedBox(width: 200, child: Text('Section list')),
+                Expanded(
+                  child: SettingsPaneNavigator(
+                    sectionId: 'data',
+                    queryParam: 'dataPage',
+                    hub: _Hub(),
+                    pageFor: _pageFor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    await tester.pumpAndSettle();
+
+    expect(find.bySemanticsLabel('Section list'), findsOneWidget);
+    expect(find.bySemanticsLabel('Page A'), findsOneWidget);
+    semantics.dispose();
+  });
 }
