@@ -19,6 +19,7 @@ import 'package:submersion/features/dive_3d/presentation/renderer/preview_painte
 import 'package:submersion/features/dive_3d/presentation/renderer/scene_projector.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/scrub_cursor.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/tissue_chrome_painters.dart';
+import 'package:submersion/features/dive_3d/presentation/renderer/triangle_soup.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -137,6 +138,9 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
   /// not one per frame.
   static const Duration _zoomSettleDelay = Duration(milliseconds: 300);
   Timer? _zoomSettleTimer;
+  // The scene painter's buffers, kept across frames so an orbit over a
+  // dense terrain reuses them instead of allocating them again (#4259).
+  final ScenePaintCache _paintCache = ScenePaintCache();
   CameraPose _pose = CameraPose.defaultView;
   double _yaw = CameraPose.defaultView.yawDegrees;
   double _pitch = CameraPose.defaultView.pitchDegrees;
@@ -450,6 +454,7 @@ class _Dive3dInteractiveViewportState extends State<Dive3dInteractiveViewport> {
                 visibleOverlays: widget.visibleOverlays,
                 terrainImagery: widget.terrainImagery,
                 imageryWhiteTexel: widget.imageryWhiteTexel,
+                cache: _paintCache,
               ),
               child: const SizedBox.expand(),
             ),
