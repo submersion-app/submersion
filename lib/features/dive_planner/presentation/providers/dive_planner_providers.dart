@@ -28,6 +28,7 @@ import 'package:submersion/features/planner/domain/services/ccr_loop_slots.dart'
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
+import 'package:submersion/features/planner/domain/services/plan_breathing_tanks.dart';
 
 const _uuid = Uuid();
 
@@ -229,10 +230,11 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     );
   }
 
-  /// Load an existing plan for editing.
+  /// Load an existing plan for editing. A plan holds breathing gas only, so
+  /// a suit inflation bottle is left out (issue #4243).
   void loadPlan(DivePlanState plan) {
     _loadCount++;
-    state = _withCcrSlots(plan);
+    state = _withCcrSlots(withoutSuitInflationCylinders(plan));
   }
 
   // --------------------------------------------------------------------------
@@ -326,7 +328,10 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     if (plan == null || !mounted) return false;
     _loaded = plan;
     _loadCount++;
-    state = _withCcrSlots(stateFromDivePlan(plan));
+    // A plan holds breathing gas only (issue #4243).
+    state = _withCcrSlots(
+      withoutSuitInflationCylinders(stateFromDivePlan(plan)),
+    );
     final mission = plan.mission;
     if (mission != null) {
       // A scooter picked from equipment follows the live item; a manual or
@@ -487,12 +492,16 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   // Tank CRUD
   // --------------------------------------------------------------------------
 
-  /// Add a new tank to the plan.
-  void addTank(DiveTank tank) {
+  /// Add a new tank to the plan. A suit inflation bottle is not breathing
+  /// gas, so it never joins a plan (issue #4243): returns false and changes
+  /// nothing for one, true otherwise.
+  bool addTank(DiveTank tank) {
+    if (!tank.role.isBreathingGas) return false;
     final tanks = [...state.tanks, tank];
     state = _withMissionSegments(
       state.copyWith(tanks: tanks, isDirty: true, updatedAt: DateTime.now()),
     );
+    return true;
   }
 
   /// Replace the equipment attached to the plan (Gear & Weights, v104).
@@ -556,6 +565,12 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   /// this is the backstop that keeps the plan from losing a slot.
   void updateTank(String id, DiveTank tank) {
     var updated = tank;
+    // A plan never holds a suit inflation bottle (issue #4243): an edit that
+    // would make one keeps the tank's role.
+    if (!updated.role.isBreathingGas) {
+      final original = state.tanks.where((t) => t.id == id).firstOrNull;
+      updated = updated.copyWith(role: original?.role ?? TankRole.backGas);
+    }
     if (state.mode == domain.PlanMode.ccr) {
       final original = state.tanks.where((t) => t.id == id).firstOrNull;
       if (original?.role == TankRole.oxygenSupply) {

@@ -249,4 +249,33 @@ void main() {
       TankConfigurationExtra.decoGas: 2,
     });
   });
+
+  // A suit inflation bottle is not breathing gas (issue #4243).
+  group('a suit inflation bottle', () {
+    test('adds no gas to a hand-logged single', () {
+      final result = classify([
+        tank(TankRole.suitInflation, o2: 21),
+        tank(TankRole.backGas, o2: 32),
+      ], hasProfile: false);
+
+      expect(result.base, TankBaseConfiguration.singleBackmount);
+      expect(result.extras, isEmpty);
+    });
+
+    test('adds no gas when it dropped', () {
+      final result = classify([
+        tank(TankRole.backGas, o2: 32, start: 200, end: 60),
+        tank(TankRole.suitInflation, o2: 21, start: 200, end: 150),
+      ]);
+
+      expect(result.extras, isNot(contains(TankConfigurationExtra.multiGas)));
+    });
+
+    test('alone is no tanks', () {
+      expect(
+        classify([tank(TankRole.suitInflation)]).base,
+        TankBaseConfiguration.noTanks,
+      );
+    });
+  });
 }

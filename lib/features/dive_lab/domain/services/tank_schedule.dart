@@ -6,6 +6,7 @@ import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_request.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
+import 'package:submersion/features/dive_log/domain/services/breathing_gas_switches.dart';
 
 /// Nitrogen fraction the deco engine breathes for [mix]: air is the exact
 /// atmospheric fraction, everything else the remainder after O2 and He
@@ -31,29 +32,41 @@ class TankSchedule extends Equatable {
   final List<TankInterval> intervals;
   final List<DiveTank> tanks;
 
-  /// The dive's schedule: back gas (else the first tank) from
+  /// The dive's schedule: back gas (else the first breathing tank) from
   /// [originTimestamp], then each recorded switch in time order. Switches to
   /// the tank already in force are dropped; two switches at one timestamp
-  /// keep the later-sorted one.
+  /// keep the later-sorted one. A suit inflation bottle never starts it
+  /// (issue #4243).
   factory TankSchedule.fromDive({
     required List<DiveTank> tanks,
     required List<ScenarioGasSwitch> switches,
     int originTimestamp = 0,
   }) {
-    final primary = tanks.isEmpty
+    final breathing = breathingTanks(tanks);
+    final primary = breathing.isEmpty
         ? null
-        : tanks.firstWhere(
+        : breathing.firstWhere(
             (t) => backmountRoles.contains(t.role),
-            orElse: () => tanks.first,
+            orElse: () => breathing.first,
           );
     final intervals = <TankInterval>[
       TankInterval(startTimestamp: originTimestamp, tankId: primary?.id),
     ];
-    final sorted = List<ScenarioGasSwitch>.from(switches)
-      ..sort((a, b) {
-        final c = a.timestamp.compareTo(b.timestamp);
-        return c != 0 ? c : a.tankId.compareTo(b.tankId);
-      });
+    // A switch to a suit inflation bottle counts against the breathing
+    // cylinder on its mix, or is dropped when none holds it (issue #4243),
+    // so no interval names a cylinder that is not breathed.
+    final target = breathingSwitchTarget(tanks);
+    final sorted =
+        [
+          for (final s in switches)
+            if (target(s.tankId) case final tankId?)
+              tankId == s.tankId
+                  ? s
+                  : ScenarioGasSwitch(timestamp: s.timestamp, tankId: tankId),
+        ]..sort((a, b) {
+          final c = a.timestamp.compareTo(b.timestamp);
+          return c != 0 ? c : a.tankId.compareTo(b.tankId);
+        });
     for (final s in sorted) {
       if (s.timestamp < originTimestamp) continue;
       if (intervals.last.startTimestamp == s.timestamp) {
@@ -160,6 +173,8 @@ DiveTank? bestTankForDepth(
   double depthMeters, {
   required double maxPpO2,
 }) {
+  // A suit inflation bottle is never a substitute gas (issue #4243).
+  tanks = breathingTanks(tanks);
   if (tanks.isEmpty) return null;
   DiveTank? best;
   for (final t in tanks) {

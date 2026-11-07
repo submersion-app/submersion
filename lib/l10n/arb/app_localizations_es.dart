@@ -14188,6 +14188,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get enum_tankRole_stage => 'Stage';
 
   @override
+  String get enum_tankRole_suitInflation => 'Inflado del traje';
+
+  @override
   String get enum_tankRole_twinSet => 'Bibotella';
 
   @override
@@ -39998,6 +40001,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get attrLabel_valve_type => 'Válvula';
 
   @override
+  String get attrLabel_cylinder_use => 'Uso de la botella';
+
+  @override
   String get attrLabel_tank_identifier => 'Identificador';
 
   @override
@@ -40357,6 +40363,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => 'Convertible';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => 'Gas respirable';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => 'Inflado del traje';
 
   @override
   String get attrChoice_connection_din => 'DIN';

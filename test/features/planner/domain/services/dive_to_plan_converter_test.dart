@@ -567,4 +567,78 @@ void main() {
       expect(state.segments.last.targetDepth, 12);
     });
   });
+
+  // A plan holds breathing gas only (issue #4243).
+  group('a suit inflation bottle', () {
+    const suit = DiveTank(
+      id: 'suit',
+      volume: 0.85,
+      startPressure: 200,
+      endPressure: 120,
+      gasMix: GasMix(o2: 21),
+      role: TankRole.suitInflation,
+      order: 0,
+    );
+    const back = DiveTank(
+      id: 'back',
+      volume: 11.1,
+      startPressure: 200,
+      endPressure: 80,
+      gasMix: GasMix(o2: 21),
+      role: TankRole.backGas,
+      order: 1,
+    );
+    const ean50 = DiveTank(
+      id: 'deco',
+      volume: 5.5,
+      gasMix: GasMix(o2: 50),
+      role: TankRole.deco,
+      order: 2,
+    );
+
+    test('is left out of the What-if plan, dropped and listed first', () {
+      final result = converter.convert(
+        dive: _dive(profile: _squareProfile(), tanks: const [suit, back]),
+        profile: _squareProfile(),
+        gasSwitches: const [],
+        levels: 2,
+        planName: 'What if',
+        defaults: _defaults(),
+      );
+
+      expect(result.tanks.map((t) => t.id), ['back']);
+      expect(result.segments.map((s) => s.tankId).toSet(), {'back'});
+    });
+
+    test('a switch to it counts as the breathing cylinder on its mix', () {
+      final dive = _dive(
+        profile: _squareProfile(),
+        tanks: const [suit, back, ean50],
+      );
+      final switches = [
+        GasSwitch(
+          id: 'g1',
+          diveId: 'dive-1',
+          timestamp: 600,
+          tankId: 'suit',
+          createdAt: DateTime(2026),
+        ),
+      ];
+
+      expect(DiveToPlanConverter.usedTankIds(dive, switches), {'back'});
+    });
+
+    test('a dive with only the bottle plans on the defaults', () {
+      final result = converter.convert(
+        dive: _dive(profile: _squareProfile(), tanks: const [suit]),
+        profile: _squareProfile(),
+        gasSwitches: const [],
+        levels: 2,
+        planName: 'What if',
+        defaults: _defaults(),
+      );
+
+      expect(result.tanks.map((t) => t.id), ['default-tank']);
+    });
+  });
 }

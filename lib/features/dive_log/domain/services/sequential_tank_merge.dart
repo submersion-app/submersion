@@ -127,6 +127,9 @@ bool? _serialIdentity(DiveTank earlier, DiveTank later) {
 }
 
 bool _continues(DiveTank earlier, DiveTank later) {
+  // A suit inflation bottle is only ever the same cylinder as another suit
+  // bottle: an air bottle must not fold into air back gas (issue #4243).
+  if (earlier.role.isBreathingGas != later.role.isBreathingGas) return false;
   final bySerial = _serialIdentity(earlier, later);
   if (bySerial == false) return false;
   if (!_didNotRise(earlier, later)) return false;

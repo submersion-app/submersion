@@ -141,8 +141,10 @@ class CylindersCard extends ConsumerWidget {
             ],
             // The ppO2 limits behind the MODs are said once here rather than
             // on each row. A rule closes the table first, so the note reads
-            // as the card's, not as a detail of the last cylinder.
-            if (rows.isNotEmpty) ...[
+            // as the card's, not as a detail of the last cylinder. A dive
+            // whose only cylinder is a suit inflation bottle shows no MOD,
+            // so it has no note (issue #4243).
+            if (rows.isNotEmpty && dive.breathingTanks.isNotEmpty) ...[
               Divider(height: 1, color: theme.colorScheme.outlineVariant),
               Padding(
                 padding: const EdgeInsets.only(top: 12),
@@ -190,8 +192,9 @@ class CylindersCard extends ConsumerWidget {
   /// card always said. Otherwise each limit in use with its ppO2, bottom
   /// first: "1.4 (bottom limit), 1.6 (deco limit)".
   String _modLimitsNote(AppLocalizations l10n) {
+    // A suit inflation bottle has no MOD, so no limit (issue #4243).
     final inUse = {
-      for (final tank in dive.tanks)
+      for (final tank in dive.breathingTanks)
         loggedTankModLimit(tank.role, tank.gasMix, dive.diveMode),
     };
     final limits = [
@@ -323,6 +326,9 @@ class CylindersCard extends ConsumerWidget {
     // The pressure drop and the gas volume are one fact in two units; the
     // volume opens the detail line (after the source badge, when shown).
     final gasUsedLiters = cylinderSac?.gasUsedLiters;
+    // A suit inflation bottle is listed with its pressures, but it is not
+    // breathed: no gas used, MOD or MND (issue #4243).
+    final breathing = tank.role.isBreathingGas;
 
     return CylinderBlock(
       figure: figure,
@@ -343,7 +349,7 @@ class CylindersCard extends ConsumerWidget {
           children: [
             if (sourceName != null)
               FieldAttributionBadge(sourceName: sourceName),
-            if (hasUsed && gasUsedLiters != null)
+            if (breathing && hasUsed && gasUsedLiters != null)
               Text(
                 l10n.diveLog_cylinders_gasUsed(
                   '${units.convertVolume(gasUsedLiters).round()} '
@@ -358,8 +364,10 @@ class CylindersCard extends ConsumerWidget {
             if (cylinderSac != null && cylinderSac.hasValidSac)
               for (final line in _consumptionLines(l10n, cylinderSac))
                 Text(line),
-            Text(l10n.diveLog_cylinders_mod(modDepth)),
-            Text(l10n.diveLog_cylinders_mnd(mndDepth)),
+            if (breathing) ...[
+              Text(l10n.diveLog_cylinders_mod(modDepth)),
+              Text(l10n.diveLog_cylinders_mnd(mndDepth)),
+            ],
           ],
         ),
         if (slotLabel != null)

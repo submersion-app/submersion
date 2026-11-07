@@ -328,6 +328,47 @@ void main() {
   );
 
   testWidgets(
+    'a cylinder marked for suit inflation sets the Role ahead of its history '
+    '(#4243)',
+    (tester) async {
+      final db = DatabaseService.instance.database;
+      await db.customStatement(
+        "INSERT INTO equipment (id, diver_id, name, type, created_at, "
+        "updated_at) VALUES ('tank1', 'diver-1', 'Argon 0.85', 'tank', 1, 1)",
+      );
+      await db.customStatement(
+        "INSERT INTO equipment_attributes (id, equipment_id, attr_key, "
+        "value_text, created_at, updated_at) VALUES ('a1', 'tank1', "
+        "'cylinder_use', 'suit_inflation', 1, 1)",
+      );
+      // Logged before as a pony, which the history would suggest.
+      await db.customStatement(
+        "INSERT INTO dives (id, diver_id, dive_date_time, created_at, "
+        "updated_at) VALUES ('d1', 'diver-1', 1, 1, 1)",
+      );
+      await db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion.insert(
+              id: 'k1',
+              diveId: 'd1',
+              equipmentId: const Value('tank1'),
+              tankRole: const Value('pony'),
+            ),
+          );
+      await _pumpPage(tester, _buildPage(diverIdNotifier, prefs));
+
+      await tester.tap(find.text('Cylinder from gear'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Argon 0.85'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Suit Inflation'), findsOneWidget);
+      expect(find.text('Pony Bottle'), findsNothing);
+    },
+  );
+
+  testWidgets(
     'picking a cylinder with no dive history leaves Role at Back Gas (#3367)',
     (tester) async {
       await DatabaseService.instance.database.customStatement(

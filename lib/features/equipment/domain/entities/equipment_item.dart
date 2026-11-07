@@ -188,6 +188,13 @@ class EquipmentItem extends Equatable {
   double? get dpvTowSpeedFactor => attrNum(EquipmentAttrKeys.towSpeedFactor);
   double? get dpvTowBurnFactor => attrNum(EquipmentAttrKeys.towBurnFactor);
 
+  /// Whether this cylinder is marked as a drysuit's inflation bottle
+  /// (issue #4243). Unset is breathing gas. A default for the role of a dive
+  /// tank picked or linked from it, never the source of truth: marking a
+  /// bottle rewrites no dive.
+  bool get isSuitInflationCylinder =>
+      attrText(EquipmentAttrKeys.cylinderUse) == 'suit_inflation';
+
   /// The catalog stores the choice key ('aluminum', 'steel',
   /// 'carbon_composite'); the enum name for the last one differs.
   TankMaterial? get tankMaterial =>

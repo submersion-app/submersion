@@ -72,7 +72,8 @@ bool usesDecoLimit(TankRole role, GasMix gas) => switch (role) {
   TankRole.sidemountLeft ||
   TankRole.sidemountRight ||
   TankRole.pony ||
-  TankRole.diluent => false,
+  TankRole.diluent ||
+  TankRole.suitInflation => false,
 };
 
 /// Whether [role] with [gas]'s MOD is [decoPpO2]'s explicit O2 depth

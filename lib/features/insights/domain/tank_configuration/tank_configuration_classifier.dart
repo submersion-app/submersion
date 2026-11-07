@@ -17,8 +17,30 @@ const Set<TankRole> _rebreatherRoles = {
 /// backmount only when a cylinder's role is Twin Set, never by a name, a
 /// size or a matched pair of Back Gas rows, so a sidemount dive logged as
 /// two untagged cylinders stays a single until the diver says otherwise.
-TankConfigurationResult classifyTankConfiguration(TankConfigurationDive dive) =>
-    (base: _base(dive), extras: _extras(dive));
+///
+/// A suit inflation bottle is not breathing gas (issue #4243): the dive is
+/// sorted as if it were not carried, so a dive with only one has no tanks
+/// and one never adds a gas. A switch naming one is dropped here, since this
+/// only decides which cylinders were breathed and the bottle never was.
+TankConfigurationResult classifyTankConfiguration(TankConfigurationDive dive) {
+  final breathing = _breathingOnly(dive);
+  return (base: _base(breathing), extras: _extras(breathing));
+}
+
+TankConfigurationDive _breathingOnly(TankConfigurationDive dive) {
+  if (dive.tanks.every((t) => t.role.isBreathingGas)) return dive;
+  final tanks = breathingTanks(dive.tanks);
+  final ids = {for (final t in tanks) t.id};
+  return TankConfigurationDive(
+    diveMode: dive.diveMode,
+    tanks: tanks,
+    gasSwitches: [
+      for (final s in dive.gasSwitches)
+        if (ids.contains(s.tankId)) s,
+    ],
+    hasProfile: dive.hasProfile,
+  );
+}
 
 TankBaseConfiguration _base(TankConfigurationDive dive) {
   final tanks = dive.tanks;

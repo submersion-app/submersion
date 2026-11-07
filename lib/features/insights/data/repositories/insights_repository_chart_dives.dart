@@ -153,7 +153,7 @@ mixin InsightsChartDives {
     return _diveIds(
       '''
       SELECT DISTINCT d.id AS id FROM dives d
-      JOIN dive_tanks t ON t.dive_id = d.id
+      JOIN dive_tanks t ON t.dive_id = d.id AND ${breathingTankSql('t')}
       WHERE $_gasTypeSql = ? ${_diverClause(diverId)} ${df.clause}
       ''',
       [gasType, ?diverId, ...df.params],

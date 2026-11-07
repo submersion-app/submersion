@@ -231,7 +231,13 @@ class _GasSwitchRowState extends State<_GasSwitchRow> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final sw = widget.gasSwitch;
-    final tankIds = {for (final t in widget.tanks) t.id};
+    // A suit inflation bottle is not breathed, so it is offered as a switch
+    // target only when a downloaded switch already names it (issue #4243).
+    final targets = [
+      for (final t in widget.tanks)
+        if (t.role.isBreathingGas || t.id == sw.tankId) t,
+    ];
+    final tankIds = {for (final t in targets) t.id};
     final onPickTime = widget.onPickTime;
 
     final time = MinutesSecondsField(
@@ -263,7 +269,7 @@ class _GasSwitchRowState extends State<_GasSwitchRow> {
         isDense: true,
       ),
       items: [
-        for (final tank in widget.tanks)
+        for (final tank in targets)
           DropdownMenuItem(
             value: tank.id,
             child: Text(

@@ -1050,7 +1050,9 @@ class DivePlanRepository {
               workingPressure: t.workingPressure,
               startPressure: t.startPressure,
               gasMix: GasMix(o2: t.gasO2, he: t.gasHe),
-              role: TankRole.values.byName(t.role),
+              // Tolerant: a role a later build adds must not crash a
+              // synced plan's load (issue #4243).
+              role: TankRole.fromName(t.role),
               material: t.material != null
                   ? TankMaterial.values.byName(t.material!)
                   : null,

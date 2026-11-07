@@ -111,4 +111,49 @@ void main() {
     addTearDown(c.dispose);
     expect(await c.read(labRequestInputsProvider(dive.id).future), isNull);
   });
+
+  test('a suit inflation bottle never reaches the lab (#4243)', () async {
+    final dive = await DiveRepository().createDive(
+      Dive(
+        id: '',
+        diveNumber: 1,
+        dateTime: DateTime(2026, 1, 1),
+        profile: _square(),
+        tanks: const [
+          DiveTank(
+            id: 'suit',
+            volume: 0.85,
+            startPressure: 200,
+            endPressure: 150,
+            gasMix: GasMix(o2: 21),
+            role: TankRole.suitInflation,
+          ),
+          DiveTank(
+            id: 'back',
+            volume: 24,
+            startPressure: 200,
+            endPressure: 80,
+            gasMix: GasMix(o2: 21),
+            role: TankRole.backGas,
+          ),
+        ],
+      ),
+    );
+    await DiveRepository().createGasSwitch(
+      GasSwitch(
+        id: 'sw1',
+        diveId: dive.id,
+        timestamp: 1600,
+        tankId: 'suit',
+        createdAt: DateTime(2026),
+      ),
+    );
+
+    final c = container();
+    addTearDown(c.dispose);
+    final inputs = await c.read(labRequestInputsProvider(dive.id).future);
+
+    expect(inputs!.tanks.map((t) => t.id), ['back']);
+    expect(inputs.gasSwitches.single.tankId, 'back');
+  });
 }

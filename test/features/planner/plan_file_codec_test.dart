@@ -364,4 +364,34 @@ void main() {
       expect(plan.segments.single.diveModeOverride, isNull);
     });
   });
+
+  test('a suit inflation bottle in a file is left out (#4243)', () {
+    final base = _plan();
+    final original = base.copyWith(
+      tanks: [
+        const DiveTank(
+          id: 'suit',
+          volume: 0.85,
+          gasMix: GasMix(o2: 21),
+          role: TankRole.suitInflation,
+          order: 2,
+        ),
+        ...base.tanks,
+      ],
+      segments: [
+        base.segments.first.copyWith(tankId: 'suit'),
+        ...base.segments.skip(1),
+      ],
+    );
+
+    final restored = subplanFromJson(planToSubplanJson(original));
+
+    expect(restored.tanks, hasLength(base.tanks.length));
+    expect(
+      restored.tanks.map((t) => t.role),
+      isNot(contains(TankRole.suitInflation)),
+    );
+    final tankIds = {for (final t in restored.tanks) t.id};
+    expect(restored.segments.every((s) => tankIds.contains(s.tankId)), isTrue);
+  });
 }

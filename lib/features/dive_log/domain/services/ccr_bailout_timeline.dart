@@ -35,11 +35,14 @@ bool isLoopTankRole(String? roleName) =>
 
 /// The role a name-derived transmitter tank takes once the timeline shows
 /// it was breathed as [ocRoleName]'s gas: that open-circuit role (bailout, or
-/// a deco or stage gas), or bailout when the cylinder is gone or is a loop
-/// gas.
+/// a deco or stage gas), or bailout when the cylinder is gone, is a loop
+/// gas, or is a suit inflation bottle, which a breathed cylinder never
+/// becomes (issue #4243).
 TankRole openCircuitTargetRole(String? ocRoleName) {
   if (ocRoleName == null || isLoopTankRole(ocRoleName)) return TankRole.bailout;
-  return TankRole.values.asNameMap()[ocRoleName] ?? TankRole.bailout;
+  final role = TankRole.values.asNameMap()[ocRoleName];
+  if (role == null || !role.isBreathingGas) return TankRole.bailout;
+  return role;
 }
 
 typedef TimelineSwitch<K> = ({int t, K tankKey});

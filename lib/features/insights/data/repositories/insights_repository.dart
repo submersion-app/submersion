@@ -387,7 +387,7 @@ class InsightsRepository with InsightsChartDives {
           t.o2_percent,
           t.he_percent
         FROM dives d
-        JOIN dive_tanks t ON t.dive_id = d.id
+        JOIN dive_tanks t ON t.dive_id = d.id AND ${breathingTankSql('t')}
         WHERE 1 = 1 $diverFilter ${df.clause}
           AND ${measuredRuntimeSecondsSql('d')} > 0
           AND d.avg_depth > 0
@@ -544,7 +544,7 @@ class InsightsRepository with InsightsChartDives {
           $_gasTypeSql AS gas_type,
           COUNT(DISTINCT d.id) AS dive_count
         FROM dives d
-        JOIN dive_tanks t ON t.dive_id = d.id
+        JOIN dive_tanks t ON t.dive_id = d.id AND ${breathingTankSql('t')}
         WHERE 1=1 $diverFilter ${df.clause}
         GROUP BY gas_type
         ORDER BY dive_count DESC
@@ -599,7 +599,7 @@ class InsightsRepository with InsightsChartDives {
           t.o2_percent,
           t.he_percent
         FROM dives d
-        JOIN dive_tanks t ON t.dive_id = d.id
+        JOIN dive_tanks t ON t.dive_id = d.id AND ${breathingTankSql('t')}
         LEFT JOIN dive_sites ds ON ds.id = d.site_id
         WHERE ${measuredRuntimeSecondsSql('d')} > 0
           AND d.avg_depth > 0
@@ -791,7 +791,7 @@ class InsightsRepository with InsightsChartDives {
           ${diveAmbientBarSql('d', 'd.avg_depth')} AS ambient_bar,
           ${measuredRuntimeSecondsSql('d')} AS duration_sec
         FROM dives d
-        INNER JOIN dive_tanks t ON t.dive_id = d.id
+        INNER JOIN dive_tanks t ON t.dive_id = d.id AND ${breathingTankSql('t')}
         WHERE t.start_pressure IS NOT NULL
           AND t.end_pressure IS NOT NULL
           AND t.start_pressure > t.end_pressure
@@ -881,7 +881,7 @@ class InsightsRepository with InsightsChartDives {
             END
           ) AS avg_sac
         FROM dives d
-        INNER JOIN dive_tanks t ON t.dive_id = d.id
+        INNER JOIN dive_tanks t ON t.dive_id = d.id AND ${breathingTankSql('t')}
         WHERE t.start_pressure IS NOT NULL
           AND t.end_pressure IS NOT NULL
           AND ${measuredRuntimeSecondsSql('d')} > 0

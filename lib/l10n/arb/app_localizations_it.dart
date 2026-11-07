@@ -14189,6 +14189,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_tankRole_stage => 'Stage';
 
   @override
+  String get enum_tankRole_suitInflation => 'Gonfiaggio muta';
+
+  @override
   String get enum_tankRole_twinSet => 'Bibombola';
 
   @override
@@ -39978,6 +39981,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get attrLabel_valve_type => 'Rubinetto';
 
   @override
+  String get attrLabel_cylinder_use => 'Uso della bombola';
+
+  @override
   String get attrLabel_tank_identifier => 'Identificativo';
 
   @override
@@ -40336,6 +40342,12 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => 'Convertibile';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => 'Gas respirabile';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => 'Gonfiaggio muta';
 
   @override
   String get attrChoice_connection_din => 'DIN';

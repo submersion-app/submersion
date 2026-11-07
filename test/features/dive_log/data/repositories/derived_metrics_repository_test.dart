@@ -536,4 +536,54 @@ void main() {
     expect(await r.staleDiveIds(), ['d1']);
     expect((await r.ensureCurrent('d1'))!.sourceUpdatedAt, now + 6000);
   });
+
+  test('a suit inflation bottle never feeds the SAC drift (#4243)', () async {
+    await insertDive('d1');
+    for (final (id, role) in [
+      ('suit', TankRole.suitInflation),
+      ('back', TankRole.backGas),
+    ]) {
+      await db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion.insert(
+              id: id,
+              diveId: 'd1',
+              tankRole: Value(role.name),
+            ),
+          );
+      await db
+          .into(db.tankPressureSeries)
+          .insert(
+            TankPressureSeriesCompanion.insert(
+              id: 's-$id',
+              diveId: 'd1',
+              tankId: id,
+              sampleCount: 2,
+              startTimestamp: 0,
+              endTimestamp: 600,
+              codecVersion: 1,
+              samples: Uint8List.fromList([1]),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+    }
+    List<String>? tankIds;
+    final r = DerivedMetricsRepository(
+      runner: (input) async {
+        tankIds = [for (final blob in input.tankBlobs) blob.tankId];
+        return DiveDerivedMetrics(
+          diveId: input.diveId,
+          engineVersion: DerivedMetricsService.version,
+          sourceUpdatedAt: input.sourceUpdatedAt,
+          computedAt: input.computedAtMs,
+        );
+      },
+    );
+
+    await r.ensureCurrent('d1');
+
+    expect(tankIds, ['back']);
+  });
 }

@@ -13505,6 +13505,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_tankRole_stage => '阶段';
 
   @override
+  String get enum_tankRole_suitInflation => '干衣充气';
+
+  @override
   String get enum_tankRole_twinSet => '双瓶';
 
   @override
@@ -37583,6 +37586,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_valve_type => '阀门';
 
   @override
+  String get attrLabel_cylinder_use => '气瓶用途';
+
+  @override
   String get attrLabel_tank_identifier => '标识';
 
   @override
@@ -37938,6 +37944,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => '两用式';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => '呼吸气体';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => '干衣充气';
 
   @override
   String get attrChoice_connection_din => 'DIN';
