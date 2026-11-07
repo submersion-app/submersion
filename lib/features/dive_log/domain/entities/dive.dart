@@ -541,7 +541,11 @@ class Dive extends Equatable {
   /// a safety stop (issue #828).
   double? rmvFor(GasModel model) {
     final runtime = measuredRuntime;
-    if (isRebreather || tanks.isEmpty || runtime == null || avgDepth == null) {
+    final breathing = breathingTanks;
+    if (isRebreather ||
+        breathing.isEmpty ||
+        runtime == null ||
+        avgDepth == null) {
       return null;
     }
 
@@ -552,12 +556,13 @@ class Dive extends Equatable {
     // gasVolume returns volumes against.
     final avgPressureBar = environment.pressureAtDepth(avgDepth!);
 
-    // Sum gas consumed across all tanks (in liters at 1 bar)
+    // Sum gas consumed across the breathing cylinders (in liters at 1 bar);
+    // a suit inflation bottle is not breathed (issue #4243).
     double totalGasLiters = 0;
     int tanksWithData = 0;
 
-    for (final tank in tanks) {
-      final volume = consumptionVolume(tank, tanks);
+    for (final tank in breathing) {
+      final volume = consumptionVolume(tank, breathing);
       if (tank.startPressure == null ||
           tank.endPressure == null ||
           volume == null) {
@@ -602,8 +607,8 @@ class Dive extends Equatable {
   /// The cylinder whose bar the pressure lane ([sac]) is expressed in, and
   /// the one whose volume converts an unattributed SAC segment to L/min:
   /// on a multi-tank dive the back gas, else the first cylinder; the only
-  /// cylinder on a single-tank dive whatever its role. Null when the dive
-  /// has no cylinders.
+  /// cylinder on a single-tank dive whatever its role. Never a suit inflation
+  /// bottle (issue #4243). Null when the dive has no breathing cylinder.
   DiveTank? get sacReferenceTank => sacReferenceTankOf(tanks);
 
   /// The volume of [sacReferenceTank], its own or its matched partner's
@@ -629,7 +634,11 @@ class Dive extends Equatable {
   /// unless it pairs with the reference (see [isMatchedPair]).
   double? get sac {
     final runtime = measuredRuntime;
-    if (isRebreather || tanks.isEmpty || runtime == null || avgDepth == null) {
+    final reference = sacReferenceTank;
+    if (isRebreather ||
+        reference == null ||
+        runtime == null ||
+        avgDepth == null) {
       return null;
     }
 
@@ -639,7 +648,7 @@ class Dive extends Equatable {
     final avgPressureBar = environment.pressureAtDepth(avgDepth!);
 
     final pressureUsed = referencePressureDrop(
-      reference: sacReferenceTank!,
+      reference: reference,
       tanks: tanks,
     );
     if (pressureUsed == null) return null;

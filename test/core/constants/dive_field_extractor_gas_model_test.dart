@@ -58,4 +58,49 @@ void main() {
       }
     });
   });
+
+  // A suit inflation bottle listed first is not the dive's gas (#4243).
+  group('a suit inflation bottle listed first', () {
+    final withSuit = Dive(
+      id: 'dive-4243',
+      dateTime: DateTime(2026, 8, 4, 10),
+      runtime: const Duration(minutes: 44),
+      avgDepth: 13.2,
+      tanks: [
+        const DiveTank(
+          id: 'suit',
+          volume: 0.85,
+          startPressure: 200.0,
+          endPressure: 150.0,
+          gasMix: GasMix(o2: 21.0),
+          role: TankRole.suitInflation,
+        ),
+        dive.tanks.single.copyWith(gasMix: const GasMix(o2: 32.0)),
+      ],
+    );
+
+    test('is not the primary gas or its pressures', () {
+      expect(DiveField.primaryGas.extractFromDive(withSuit), 'EAN32');
+      expect(DiveField.startPressure.extractFromDive(withSuit), 200.0);
+      expect(DiveField.endPressure.extractFromDive(withSuit), 50.0);
+    });
+
+    test('adds no gas consumed', () {
+      final onlyBreathing = withSuit.copyWith(tanks: [withSuit.tanks.last]);
+      expect(
+        DiveField.gasConsumed.extractFromDive(
+          withSuit,
+          gasModel: GasModel.ideal,
+        ),
+        DiveField.gasConsumed.extractFromDive(
+          onlyBreathing,
+          gasModel: GasModel.ideal,
+        ),
+      );
+    });
+
+    test('still counts as a cylinder carried', () {
+      expect(DiveField.tankCount.extractFromDive(withSuit), 2);
+    });
+  });
 }

@@ -44,16 +44,18 @@ double? consumptionVolume(DiveTank tank, List<DiveTank> tanks) {
   return null;
 }
 
-/// The cylinder a SAC in bar is expressed in: on a multi-tank dive the
-/// backmount gas (back gas or twin set), else the first cylinder; the only
-/// cylinder on a single-tank dive whatever its role. Null when there are no
-/// cylinders.
+/// The cylinder a SAC in bar is expressed in, chosen among the
+/// [breathingTanks]: on a multi-tank dive the backmount gas (back gas or
+/// twin set), else the first breathing cylinder; the only one on a dive with
+/// one, whatever its role. Never a suit inflation bottle (issue #4243). Null
+/// when no cylinder holds breathing gas.
 DiveTank? sacReferenceTankOf(List<DiveTank> tanks) {
-  if (tanks.isEmpty) return null;
-  if (tanks.length == 1) return tanks.first;
-  return tanks.firstWhere(
+  final breathing = breathingTanks(tanks);
+  if (breathing.isEmpty) return null;
+  if (breathing.length == 1) return breathing.first;
+  return breathing.firstWhere(
     (t) => backmountRoles.contains(t.role),
-    orElse: () => tanks.first,
+    orElse: () => breathing.first,
   );
 }
 
@@ -62,7 +64,8 @@ DiveTank? sacReferenceTankOf(List<DiveTank> tanks) {
 /// (`drop * V / Vref`). When either size is unknown, a cylinder of a
 /// matched pair with the reference (see [isMatchedPair]) counts one to one.
 /// A cylinder whose size cannot be related to the reference, or that was
-/// carried but not breathed, adds nothing.
+/// carried but not breathed, adds nothing, and so does a suit inflation
+/// bottle (issue #4243), which is no reference either.
 ///
 /// [reference] is the unit of account, so one that was measured and did not
 /// fall adds zero and the others still count (#3974). Null when [reference]
@@ -78,12 +81,13 @@ double? referencePressureDrop({
   required List<DiveTank> tanks,
   double? Function(DiveTank tank) dropOf = _drop,
 }) {
+  if (!reference.role.isBreathingGas) return null;
   final referenceDrop = dropOf(reference);
   if (referenceDrop == null) return null;
 
   var total = referenceDrop;
   for (final tank in tanks) {
-    if (identical(tank, reference)) continue;
+    if (identical(tank, reference) || !tank.role.isBreathingGas) continue;
     final drop = dropOf(tank);
     if (drop == null) continue;
     final ratio = referenceBarsPerBar(tank, reference, tanks);

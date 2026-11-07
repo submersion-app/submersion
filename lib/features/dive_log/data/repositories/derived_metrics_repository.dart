@@ -91,14 +91,17 @@ class DerivedMetricsRepository {
       DerivedMetricsWorkInput(
         diveId: diveId,
         primaryBlobs: [for (final r in seriesRows) r.samples],
+        // A suit inflation bottle's pressure is not breathing (issue #4243),
+        // so it never becomes the SAC drift reference.
         tankBlobs: [
           for (final t in tankRows)
-            if (_richestSeriesFor(pressureRows, t.id) case final series?)
-              TankPressureBlob(
-                tankId: t.id,
-                volumeLiters: t.volume,
-                samples: series.samples,
-              ),
+            if (TankRole.fromName(t.tankRole).isBreathingGas)
+              if (_richestSeriesFor(pressureRows, t.id) case final series?)
+                TankPressureBlob(
+                  tankId: t.id,
+                  volumeLiters: t.volume,
+                  samples: series.samples,
+                ),
         ],
         diveMode: DiveMode.fromCode(dive.diveMode),
         sourceUpdatedAt: stamp,
