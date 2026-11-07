@@ -6769,8 +6769,8 @@ class DiveRepository {
       final row = await (_db.select(
         _db.dives,
       )..where((t) => t.id.equals(id))).getSingleOrNull();
-      if (row == null) return null;
-      return (await _mapRowsWithPreloadedData([row])).firstOrNull;
+      // Null when the dive went between the lookup and this read.
+      return (await _mapRowsWithPreloadedData([?row])).firstOrNull;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get the latest ended dive for diver: $diverId',

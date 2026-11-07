@@ -208,6 +208,17 @@ void main() {
     expect(await latest(), 'bob-dive');
   });
 
+  test('a failed read is thrown, not taken for no recent dive', () async {
+    await dive('logged', now.subtract(const Duration(hours: 3)));
+    // The lookup's runtime chain reads the series table.
+    await db.customStatement('DROP TABLE dive_profile_series');
+
+    await expectLater(
+      repository.getLatestEndedDive(endedAfter: endedAfter, notAfter: now),
+      throwsA(anything),
+    );
+  });
+
   test('returns the dive read without its samples', () async {
     await dive('named', now.subtract(const Duration(hours: 3)));
     final found = await repository.getLatestEndedDive(
