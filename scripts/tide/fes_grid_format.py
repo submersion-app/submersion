@@ -143,6 +143,8 @@ def _pack_planes(cells):
 def _unpack_planes(data, n, count):
     """Inverse of _pack_planes: uint16 (n, C, 2)."""
     size = 2 * count * n
+    if len(data) != 2 * size:
+        raise ValueError("packed planes do not match the cell count")
     lo = np.frombuffer(data, dtype=np.uint8, count=size).astype(np.int64)
     hi = np.frombuffer(data, dtype=np.uint8, count=size, offset=size)
     zigzag = (lo | (hi.astype(np.int64) << 8)).reshape(2 * count, n)
