@@ -86,7 +86,7 @@ void main() {
 
   test('a dive row follows an edit to its site', () async {
     await seedDive(db, 'd1', diver: 'me', siteId: 's1');
-    final provider = globalSearchDivesProvider(globalSearchDiveKey(['d1']));
+    final provider = globalSearchDivesProvider(globalSearchIdsKey(['d1']));
     final sub = container.listen(provider, (_, _) {});
     addTearDown(sub.close);
     final before = await container.read(provider.future);
@@ -111,7 +111,7 @@ void main() {
     await seedDive(db, 'd2', diver: 'me');
     await seedDive(db, 'd3', diver: 'me');
     final provider = globalSearchDivesProvider(
-      globalSearchDiveKey(['d1', 'd3']),
+      globalSearchIdsKey(['d1', 'd3']),
     );
     final sub = container.listen(provider, (_, _) {});
     addTearDown(sub.close);

@@ -105,6 +105,64 @@ final fooProvider = FutureProvider<int>((ref) async {
     expect(result.violations, isEmpty);
   });
 
+  group('a helper declared in another file', () {
+    ScanResult scanWith(String helpers, String providerSource) {
+      final repository = write('repo.dart', repositorySource);
+      final shared = write('helpers.dart', helpers);
+      final providers = write('providers.dart', providerSource);
+      return scanForTickViolations(
+        repositoryFiles: [repository],
+        providerFiles: [shared, providers],
+        relativize: (path) => _relativizeTempPath(temp, path),
+      );
+    }
+
+    const reader = '''
+final fooProvider = FutureProvider<int>((ref) async {
+  subscribeToFoo(ref);
+  return ref.watch(fooRepositoryProvider).getFoo();
+});
+''';
+
+    test('counts when it is public and subscribes', () {
+      // A list provider and a narrower read of the same rows (issue #4247)
+      // share one helper, so the two cannot drift apart.
+      final result = scanWith('''
+void subscribeToFoo(Ref ref) {
+  ref.invalidateSelfWhen(ref.read(fooRepositoryProvider).watchFooChanges());
+}
+''', reader);
+      expect(result.violations, isEmpty);
+    });
+
+    test('does not count when it is private to its own file', () {
+      final result = scanWith('''
+void _subscribeToFoo(Ref ref) {
+  ref.invalidateSelfWhen(ref.read(fooRepositoryProvider).watchFooChanges());
+}
+''', reader.replaceFirst('subscribeToFoo', '_subscribeToFoo'));
+      expect(result.violations.single.provider, 'fooProvider');
+    });
+
+    test('does not count when another declaration of the name does not '
+        'subscribe', () {
+      final repository = write('repo.dart', repositorySource);
+      final ticking = write('a.dart', '''
+void subscribeToFoo(Ref ref) {
+  ref.invalidateSelfWhen(ref.read(fooRepositoryProvider).watchFooChanges());
+}
+''');
+      final silent = write('b.dart', 'void subscribeToFoo(Ref ref) {}');
+      final providers = write('providers.dart', reader);
+      final result = scanForTickViolations(
+        repositoryFiles: [repository],
+        providerFiles: [ticking, silent, providers],
+        relativize: (path) => _relativizeTempPath(temp, path),
+      );
+      expect(result.violations.single.provider, 'fooProvider');
+    });
+  });
+
   test('ignores a provider that only passes a repository as an argument', () {
     final result = scan('''
 final exportServiceProvider = Provider<ExportService>((ref) {

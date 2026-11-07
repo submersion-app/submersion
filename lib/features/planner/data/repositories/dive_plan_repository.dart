@@ -645,7 +645,23 @@ class DivePlanRepository {
     );
   }
 
-  Future<List<domain.DivePlanSummary>> getAllPlanSummaries() async {
+  /// Every saved plan's summary, newest first, or only those of [ids] and
+  /// the rest of each one's saved series when named (Global Search's few
+  /// rows, issue #4247): a series shows as one row holding all its dives.
+  Future<List<domain.DivePlanSummary>> getAllPlanSummaries({
+    List<String>? ids,
+  }) async {
+    if (ids != null && ids.isEmpty) return const [];
+    final seriesIds = ids == null
+        ? null
+        : await (_db.selectOnly(_db.divePlans, distinct: true)
+                ..addColumns([_db.divePlans.seriesId])
+                ..where(
+                  _db.divePlans.id.isIn(ids) &
+                      _db.divePlans.seriesId.isNotNull(),
+                ))
+              .map((row) => row.read(_db.divePlans.seriesId)!)
+              .get();
     final dives = _db.dives;
     // Whether the linked dive is still in the log. Read as an expression:
     // the joined row's own `id` column would be ambiguous with the plan's.
@@ -666,6 +682,12 @@ class DivePlanRepository {
             dives.diveDateTime,
           ])
           ..orderBy([OrderingTerm.desc(_db.divePlans.updatedAt)]);
+    if (ids != null) {
+      query.where(
+        _db.divePlans.id.isIn(ids) |
+            _db.divePlans.seriesId.isIn(seriesIds ?? const []),
+      );
+    }
     final rows = await query.get();
     return rows.map((row) {
       final r = row.readTable(_db.divePlans);

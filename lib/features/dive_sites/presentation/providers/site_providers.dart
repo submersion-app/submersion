@@ -262,7 +262,15 @@ final sitesWithCountsProvider = FutureProvider<List<SiteWithDiveCount>>((
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
-  ref.invalidateSelfWhen(repository.watchSitesChanges());
+  invalidateOnSiteListChanges(ref);
+  return repository.getSitesWithDiveCounts(diverId: validatedDiverId);
+});
+
+/// Rebuilds [ref]'s provider whenever [sitesWithCountsProvider] would
+/// refresh, for a read of some of the same entries (Global Search's rows,
+/// issue #4247).
+void invalidateOnSiteListChanges(Ref ref) {
+  ref.invalidateSelfWhen(ref.read(siteRepositoryProvider).watchSitesChanges());
   ref.invalidateSelfWhen(
     ref.read(diveRepositoryProvider).watchMeasuredRuntimeChanges(),
   );
@@ -275,8 +283,7 @@ final sitesWithCountsProvider = FutureProvider<List<SiteWithDiveCount>>((
   ref.invalidateSelfWhen(
     ref.read(siteClassificationRepositoryProvider).watchChanges(),
   );
-  return repository.getSitesWithDiveCounts(diverId: validatedDiverId);
-});
+}
 
 /// The site type and site tag junctions (issue #1765).
 final siteClassificationRepositoryProvider =

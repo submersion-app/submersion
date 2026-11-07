@@ -35,7 +35,7 @@ final buddyRepositoryProvider = Provider<BuddyRepository>((ref) {
 /// again but debounced. A buddy link written by a sync pull touches only
 /// `dive_buddies` and never restamps the parent dive (#1769/#1915), so
 /// watching plain `dives` alone missed it (#2084).
-void _invalidateOnBuddyDiveChanges(Ref ref, BuddyRepository repository) {
+void invalidateOnBuddyDiveChanges(Ref ref, BuddyRepository repository) {
   ref.invalidateSelfWhen(repository.watchBuddiesChanges());
   ref.invalidateSelfWhen(
     ref.read(diveRepositoryProvider).watchDivesChangesWithBuddyLinks(),
@@ -83,7 +83,7 @@ final allBuddiesWithDiveCountProvider =
       final validatedDiverId = await ref.watch(
         validatedCurrentDiverIdProvider.future,
       );
-      _invalidateOnBuddyDiveChanges(ref, repository);
+      invalidateOnBuddyDiveChanges(ref, repository);
       return repository.getAllBuddiesWithDiveCount(diverId: validatedDiverId);
     });
 
@@ -98,7 +98,7 @@ final buddySearchWithDiveCountProvider =
       final validatedDiverId = await ref.watch(
         validatedCurrentDiverIdProvider.future,
       );
-      _invalidateOnBuddyDiveChanges(ref, repository);
+      invalidateOnBuddyDiveChanges(ref, repository);
       return repository.getAllBuddiesWithDiveCount(
         diverId: validatedDiverId,
         query: query,
@@ -266,7 +266,7 @@ final buddyStatsProvider = FutureProvider.family<BuddyStats, String>((
   buddyId,
 ) async {
   final repository = ref.watch(buddyRepositoryProvider);
-  _invalidateOnBuddyDiveChanges(ref, repository);
+  invalidateOnBuddyDiveChanges(ref, repository);
   return repository.getBuddyStats(buddyId);
 });
 
@@ -280,7 +280,7 @@ final diveIdsForBuddyProvider = FutureProvider.family<List<String>, String>((
   buddyId,
 ) async {
   final repository = ref.watch(buddyRepositoryProvider);
-  _invalidateOnBuddyDiveChanges(ref, repository);
+  invalidateOnBuddyDiveChanges(ref, repository);
   return repository.getDiveIdsForBuddy(buddyId);
 });
 

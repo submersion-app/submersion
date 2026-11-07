@@ -299,13 +299,20 @@ class MediaSpeciesRepository {
 
   /// The newest tagged photo per species, for cover thumbnails. Derived,
   /// never chosen: a chosen cover would live on the species row, and
-  /// built-in species rows never sync.
+  /// built-in species rows never sync. [speciesIds] narrows it to those
+  /// species.
   Future<Map<String, MediaItem>> getCoverMediaBySpecies({
     String? diverId,
+    List<String>? speciesIds,
   }) async {
+    if (speciesIds != null && speciesIds.isEmpty) return const {};
     final diverClause = diverId != null
         ? 'AND (m.dive_id IS NULL OR d.diver_id = ?)'
         : '';
+    final speciesClause = speciesIds == null
+        ? ''
+        : 'AND ms.species_id IN '
+              '(${List.filled(speciesIds.length, '?').join(', ')})';
     final rows = await _db
         .customSelect(
           '''
@@ -318,10 +325,13 @@ class MediaSpeciesRepository {
         FROM media_species ms
         JOIN media m ON m.id = ms.media_id
         LEFT JOIN dives d ON d.id = m.dive_id
-        WHERE 1=1 $diverClause
+        WHERE 1=1 $diverClause $speciesClause
       ) WHERE rn = 1
     ''',
-          variables: [if (diverId != null) Variable.withString(diverId)],
+          variables: [
+            if (diverId != null) Variable.withString(diverId),
+            ...?speciesIds?.map(Variable.withString),
+          ],
         )
         .get();
     if (rows.isEmpty) return const {};

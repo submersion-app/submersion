@@ -49,15 +49,21 @@ class CertificationRepository {
       _db.tableUpdates(TableUpdateQuery.onTable(_db.certifications));
 
   /// Get all certifications ordered by issue date (newest first)
+  ///
+  /// [ids] narrows the read to those records (Global Search's few rows,
+  /// issue #4247), on the same terms.
   Future<List<domain.Certification>> getAllCertifications({
     String? diverId,
+    List<String>? ids,
   }) async {
+    if (ids != null && ids.isEmpty) return const [];
     try {
       final query = _db.select(_db.certifications)
         ..orderBy([
           (t) => OrderingTerm.desc(t.issueDate),
           (t) => OrderingTerm.asc(t.name),
         ]);
+      if (ids != null) query.where((t) => t.id.isIn(ids));
 
       if (diverId != null) {
         query.where((t) => t.diverId.equals(diverId));

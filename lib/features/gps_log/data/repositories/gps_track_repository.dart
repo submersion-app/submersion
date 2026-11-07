@@ -386,14 +386,20 @@ class GpsTrackRepository {
   /// Completed tracks, newest first. Without [includePoints] the points
   /// blob is left out of the query, so listing every recording (the Tracks
   /// list, the map, and the match sweep every import runs, issue #3704)
-  /// reads no blob from disk.
+  /// reads no blob from disk. [ids] narrows it to those tracks (Global
+  /// Search's few rows, issue #4247).
   Future<List<domain.GpsTrack>> getCompletedTracks({
     bool includePoints = false,
+    List<String>? ids,
   }) async {
+    if (ids != null && ids.isEmpty) return const [];
     if (includePoints) {
       final rows =
           await (_db.select(_db.gpsTracks)
                 ..where((t) => t.endTime.isNotNull())
+                ..where(
+                  (t) => ids == null ? const Constant(true) : t.id.isIn(ids),
+                )
                 ..orderBy([(t) => OrderingTerm.desc(t.startTime)]))
               .get();
       return [for (final r in rows) _toDomain(r, includePoints: true)];
@@ -408,7 +414,9 @@ class GpsTrackRepository {
         .customSelect(
           'SELECT $columns FROM ${table.actualTableName} '
           'WHERE ${quoted(table.endTime)} IS NOT NULL '
+          '${ids == null ? '' : 'AND ${quoted(table.id)} IN (${List.filled(ids.length, '?').join(', ')}) '}'
           'ORDER BY ${quoted(table.startTime)} DESC',
+          variables: [...?ids?.map(Variable.withString)],
           readsFrom: {table},
         )
         .get();

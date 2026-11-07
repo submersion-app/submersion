@@ -41,7 +41,7 @@ Not goals: a new search index, ranking across record types, natural language
 | Debounce and keeping results while typing | `DebouncedSearchResults` |
 | The field | `QueryTextField`, completions and error underlines included |
 | Errors | `describeQueryError` |
-| Each result's row | The tile its own list draws, from the provider that list reads |
+| Each result's row | The tile its own list draws, from that list's query narrowed to the ids shown |
 | Applying a search to a list | The lists' existing query providers |
 
 ## 4. Record types
@@ -121,9 +121,11 @@ statistics, ratings, badges and card settings, and any later change to the row.
 Compact where a list offers the choice, whatever view that list is set to:
 search shows many types at once. Sets, plans and catalog species had rows
 private to their pages, which are now shared widgets. Search reads only ids and
-totals; the records come from the provider the list reads, so a row is as
-current as the list. Those providers hold every record and are normally loaded
-already. Dives are paged, so their rows read by id.
+totals; each section's records come from the repository method its list reads,
+narrowed to the ids shown and refreshed on the list's own ticks, so a row is as
+current as the list and a section costs a handful of records. Reading the list's
+own provider loaded every record and every aggregate (a site's dive statistics,
+a buddy's roles) to draw five (issue #4247).
 
 **See all.** A source with a list applies the same query to that list, clears
 its other filters, and pushes it, so Back returns to the results, unless that
@@ -209,7 +211,8 @@ courses, species (the logbook page and the catalog) and documents.
   `search_everywhere_row.dart`: the shared list search row and its parts;
   `providers/entity_search_providers.dart` holds its open and focus state per
   subject.
-- `presentation/providers/`: results provider, focus tick, dives by id.
+- `presentation/providers/`: results provider, focus tick, and each section's
+  records by id (`global_search_record_providers.dart`).
 - `presentation/pages/global_search_page.dart`, plus `widgets/`, where
   `global_search_rows.dart` draws each type's own row.
 

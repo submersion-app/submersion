@@ -57,7 +57,10 @@ class _ThrowingCertificationRepository extends CertificationRepository {
   Stream<void> watchCertificationRowChanges() => const Stream<void>.empty();
 
   @override
-  Future<List<Certification>> getAllCertifications({String? diverId}) async {
+  Future<List<Certification>> getAllCertifications({
+    String? diverId,
+    List<String>? ids,
+  }) async {
     throw StateError('boom');
   }
 

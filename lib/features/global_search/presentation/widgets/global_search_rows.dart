@@ -6,62 +6,47 @@ import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/compact_buddy_list_tile.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
-import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_list_content.dart';
-import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/courses/presentation/widgets/course_card.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
-import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/compact_dive_center_list_tile.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_item.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
-import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/compact_site_list_tile.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/presentation/document_l10n.dart';
-import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_tile.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_content.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_set_tile.dart';
 import 'package:submersion/features/global_search/domain/global_search_models.dart';
 import 'package:submersion/features/global_search/presentation/providers/global_search_providers.dart';
-import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
+import 'package:submersion/features/global_search/presentation/providers/global_search_record_providers.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/gps_track_list_tile.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
-import 'package:submersion/features/marine_life/presentation/providers/seen_species_providers.dart';
-import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/seen_species_tile.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/species_catalog_tile.dart';
-import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
-import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_list_row.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 import 'package:submersion/features/planner/domain/utils/saved_plan_rows.dart';
-import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/saved_plans_list.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/tags/domain/entities/tag.dart';
-import 'package:submersion/features/tags/presentation/providers/tag_link_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
-import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/compact_trip_list_tile.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A section's records (#3882), each drawn by the row its own list draws and
-/// read from the provider that list reads, so a result looks like the list
-/// it came from and stays as current as it is. Compact where a list offers
-/// the choice: search shows several types at once.
+/// read by its list's own query narrowed to the ids shown (#4247), so a
+/// result looks like the list it came from, refreshes when it does, and
+/// costs a handful of records rather than the whole list. Compact where a
+/// list offers the choice: search shows several types at once.
 class GlobalSearchRows extends ConsumerWidget {
   const GlobalSearchRows({
     super.key,
@@ -79,74 +64,77 @@ class GlobalSearchRows extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final units = ref.watch(unitFormatterProvider);
+    final key = globalSearchIdsKey(ids);
     return switch (kind) {
       GlobalSearchKind.dives => _rows(
-        ref.watch(globalSearchDivesProvider(globalSearchDiveKey(ids))),
+        ref.watch(globalSearchDivesProvider(key)),
         (dive) => dive.id,
         (dives) => _DiveRows(dives: dives, onOpen: onOpen),
       ),
       GlobalSearchKind.sites => _each(
-        ref.watch(sitesWithCountsProvider),
+        ref.watch(globalSearchSitesProvider(key)),
         (entry) => entry.site.id,
         (entry, onTap) => _SiteRow(entry: entry, onTap: onTap),
       ),
       GlobalSearchKind.trips => _each(
-        ref.watch(allTripsWithStatsProvider),
+        ref.watch(globalSearchTripsProvider(key)),
         (entry) => entry.trip.id,
         (entry, onTap) => _TripRow(entry: entry, onTap: onTap),
       ),
       GlobalSearchKind.equipment => _rows(
-        ref.watch(allEquipmentProvider),
+        ref.watch(globalSearchEquipmentProvider(key)),
         (item) => item.id,
         (items) => _EquipmentRows(items: items, onOpen: onOpen),
       ),
       GlobalSearchKind.equipmentSets => _each(
-        ref.watch(equipmentSetsProvider),
+        ref.watch(globalSearchEquipmentSetsProvider(key)),
         (set) => set.id,
         (set, onTap) => EquipmentSetTile(set: set, onTap: onTap),
       ),
       GlobalSearchKind.buddies => _each(
-        ref.watch(allBuddiesWithDiveCountProvider),
+        ref.watch(globalSearchBuddiesProvider(key)),
         (entry) => entry.buddy.id,
         (entry, onTap) => CompactBuddyListTile(entry: entry, onTap: onTap),
       ),
       GlobalSearchKind.diveCenters => _each(
-        ref.watch(allDiveCentersProvider),
+        ref.watch(globalSearchDiveCentersProvider(key)),
         (center) => center.id,
-        (center, onTap) => _DiveCenterRow(center: center, onTap: onTap),
+        (center, onTap) =>
+            _DiveCenterRow(center: center, idsKey: key, onTap: onTap),
       ),
       GlobalSearchKind.certifications => _each(
-        ref.watch(allCertificationsProvider),
+        ref.watch(globalSearchCertificationsProvider(key)),
         (certification) => certification.id,
         (certification, onTap) =>
             CertificationListTile(certification: certification, onTap: onTap),
       ),
       GlobalSearchKind.courses => _each(
-        ref.watch(allCoursesProvider),
+        ref.watch(globalSearchCoursesProvider(key)),
         (course) => course.id,
         (course, onTap) => CourseCard(course: course, onTap: onTap),
       ),
       GlobalSearchKind.species => _each(
-        ref.watch(allSpeciesProvider),
+        ref.watch(globalSearchSpeciesProvider(key)),
         (species) => species.id,
-        (species, onTap) => _SpeciesRow(species: species, onTap: onTap),
+        (species, onTap) =>
+            _SpeciesRow(species: species, idsKey: key, onTap: onTap),
       ),
       GlobalSearchKind.documents => _each(
-        ref.watch(allDocumentsProvider),
+        ref.watch(globalSearchDocumentsProvider(key)),
         (entry) => entry.document.id,
-        (entry, onTap) => _DocumentRow(entry: entry, onTap: onTap),
+        (entry, onTap) => _DocumentRow(entry: entry, idsKey: key, onTap: onTap),
       ),
       GlobalSearchKind.divePlans => _planRows(
-        ref.watch(divePlanSummariesProvider),
+        ref.watch(globalSearchDivePlansProvider(key)),
         units,
       ),
       GlobalSearchKind.gpsTracks => _each(
-        ref.watch(gpsTracksProvider),
+        ref.watch(globalSearchGpsTracksProvider(key)),
         (track) => track.id,
         (track, onTap) => GpsTrackListTile(track: track, onTap: onTap),
       ),
       GlobalSearchKind.underwaterRoutes => _each(
-        ref.watch(allNavTracksProvider),
+        ref.watch(globalSearchUnderwaterRoutesProvider(key)),
         (route) => route.id,
         (route, onTap) =>
             NavTrackListRow(route: route, units: units, onTap: onTap),
@@ -169,7 +157,8 @@ class GlobalSearchRows extends ConsumerWidget {
 
   /// The plans found, each saved series once (issue #3565): its first dive
   /// found stands for it, with every dive of the series in its row, and
-  /// opens the series on that dive.
+  /// opens the series on that dive. [plans] holds the series' other dives
+  /// too, so [ids] picks the ones found.
   Widget _planRows(
     AsyncValue<List<DivePlanSummary>> plans,
     UnitFormatter units,
@@ -221,8 +210,8 @@ Key globalSearchRowKey(GlobalSearchKind kind, String id) =>
     ValueKey('global-search-hit-${kind.name}-$id');
 
 /// Holds the rows' place while their records load, so what is below them
-/// does not jump. Empty: a list's provider is normally already loaded, and a
-/// spinner would only flash.
+/// does not jump. Empty: a handful of records loads at once, and a spinner
+/// would only flash.
 class _RowsLoading extends StatelessWidget {
   const _RowsLoading({required this.count});
 
@@ -385,16 +374,27 @@ class _TripRow extends ConsumerWidget {
 }
 
 class _DiveCenterRow extends ConsumerWidget {
-  const _DiveCenterRow({required this.center, required this.onTap});
+  const _DiveCenterRow({
+    required this.center,
+    required this.idsKey,
+    required this.onTap,
+  });
 
   final DiveCenter center;
+
+  /// The section's ids, whose counts are read together.
+  final String idsKey;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) =>
       CompactDiveCenterListTile(
         center: center,
-        diveCount: ref.watch(diveCenterDiveCountProvider(center.id)).value ?? 0,
+        diveCount:
+            ref
+                .watch(globalSearchDiveCenterCountsProvider(idsKey))
+                .value?[center.id] ??
+            0,
         onTap: onTap,
       );
 }
@@ -402,38 +402,52 @@ class _DiveCenterRow extends ConsumerWidget {
 /// A species the diver has logged reads as the logbook does, with its
 /// sightings; any other as the catalog does, having none to show.
 class _SpeciesRow extends ConsumerWidget {
-  const _SpeciesRow({required this.species, required this.onTap});
+  const _SpeciesRow({
+    required this.species,
+    required this.idsKey,
+    required this.onTap,
+  });
 
   final Species species;
+
+  /// The section's ids, whose sightings and covers are read together.
+  final String idsKey;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final seen = ref
-        .watch(seenSpeciesProvider)
-        .value
-        ?.where((entry) => entry.species.id == species.id)
-        .firstOrNull;
+        .watch(globalSearchSeenSpeciesProvider(idsKey))
+        .value?[species.id];
     if (seen == null) {
       return SpeciesCatalogTile(species: species, onTap: onTap);
     }
     return SeenSpeciesTile(
       entry: seen,
-      cover: ref.watch(speciesCoverMediaProvider).value?[species.id],
+      cover: ref
+          .watch(globalSearchSpeciesCoversProvider(idsKey))
+          .value?[species.id],
       onTap: onTap,
     );
   }
 }
 
 class _DocumentRow extends ConsumerWidget {
-  const _DocumentRow({required this.entry, required this.onTap});
+  const _DocumentRow({
+    required this.entry,
+    required this.idsKey,
+    required this.onTap,
+  });
 
   final DocumentListEntry entry;
+
+  /// The section's ids, whose tags are read together.
+  final String idsKey;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tags = ref.watch(tagsByItemProvider(TagScope.documents)).value;
+    final tags = ref.watch(globalSearchDocumentTagsProvider(idsKey)).value;
     final shown = withCertificationOwnerTitle(
       entry,
       context.l10n,

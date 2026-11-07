@@ -86,12 +86,20 @@ final speciesCoverMediaProvider = FutureProvider<Map<String, MediaItem>>((
 ) async {
   final repository = ref.watch(mediaSpeciesRepositoryProvider);
   final diverId = ref.watch(currentDiverIdProvider);
-  ref.invalidateSelfWhen(repository.watchTagChanges());
+  invalidateOnSpeciesCoverChanges(ref);
+  return repository.getCoverMediaBySpecies(diverId: diverId);
+});
+
+/// The ticks of [speciesCoverMediaProvider], for a read of some of the same
+/// species' covers (Global Search's rows, issue #4247).
+void invalidateOnSpeciesCoverChanges(Ref ref) {
+  ref.invalidateSelfWhen(
+    ref.watch(mediaSpeciesRepositoryProvider).watchTagChanges(),
+  );
   ref.invalidateSelfWhen(
     ref.watch(mediaRepositoryProvider).watchMediaChanges(),
   );
-  return repository.getCoverMediaBySpecies(diverId: diverId);
-});
+}
 
 /// How many photos on one dive carry each species tag, for the sighting
 /// rows' photo chips.

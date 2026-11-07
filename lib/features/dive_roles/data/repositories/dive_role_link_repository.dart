@@ -86,12 +86,18 @@ class DiveRoleLinkRepository {
   }
 
   /// [buddyRoleIdsForDives] over the whole library, for whole-table
-  /// aggregates such as a buddy's usual role.
-  Future<Map<String, Map<String, List<String>>>> allBuddyRoleIds() async {
-    return _resolveBuddyLinks(
-      await _db.select(_db.diveBuddies).get(),
-      await _db.select(_db.diveBuddyRoles).get(),
-    );
+  /// aggregates such as a buddy's usual role; [buddyIds] narrows it to
+  /// those buddies' links.
+  Future<Map<String, Map<String, List<String>>>> allBuddyRoleIds({
+    List<String>? buddyIds,
+  }) async {
+    final links = _db.select(_db.diveBuddies);
+    final roles = _db.select(_db.diveBuddyRoles);
+    if (buddyIds != null) {
+      links.where((t) => t.buddyId.isIn(buddyIds));
+      roles.where((t) => t.buddyId.isIn(buddyIds));
+    }
+    return _resolveBuddyLinks(await links.get(), await roles.get());
   }
 
   Map<String, Map<String, List<String>>> _resolveBuddyLinks(

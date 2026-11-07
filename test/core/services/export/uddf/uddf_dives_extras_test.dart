@@ -101,7 +101,8 @@ class _Classification extends Fake implements SiteClassificationRepository {
   ) async => const {};
 
   @override
-  Future<Map<String, List<Tag>>> getTagsBySite() async => const {};
+  Future<Map<String, List<Tag>>> getTagsBySite({List<String>? siteIds}) async =>
+      const {};
 }
 
 class _SiteTypes extends Fake implements SiteTypeRepository {}
