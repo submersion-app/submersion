@@ -549,8 +549,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
               _buildPressureRow(units),
             ],
 
-            // MOD display
-            _buildModInfo(gasMix, units, units.settings),
+            // MOD display: a suit inflation bottle is not breathed, so it
+            // has no MOD (issue #4243).
+            if (_role.isBreathingGas)
+              _buildModInfo(gasMix, units, units.settings),
           ],
         ),
       ),
