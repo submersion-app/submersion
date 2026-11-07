@@ -132,6 +132,43 @@ void main() {
       expect(stops.single.durationSeconds, 30);
     });
 
+    test('a longer stop minimum at a switch depth makes it a deco stop', () {
+      // The diver's own minimum is what sets the stop's length, so it is not
+      // held for the switch alone.
+      final stops = _dive(30, 10).calculateDecoSchedule(
+        currentDepth: 30,
+        ascentGas: _airEan50(),
+        policy: const SchedulePolicy(
+          gasSwitchStopSeconds: 60,
+          minStopSecondsByDepth: {21: 180},
+        ),
+      );
+      expect(stops.single.durationSeconds, 180);
+      expect(stops.single.isGasSwitchOnly, isFalse);
+    });
+
+    test('a shorter stop minimum leaves the switch stop switch-only', () {
+      final stops = _dive(30, 10).calculateDecoSchedule(
+        currentDepth: 30,
+        ascentGas: _airEan50(),
+        policy: const SchedulePolicy(
+          gasSwitchStopSeconds: 60,
+          minStopSecondsByDepth: {21: 30},
+        ),
+      );
+      expect(stops.single.durationSeconds, 60);
+      expect(stops.single.isGasSwitchOnly, isTrue);
+    });
+
+    test('a minimum alone never adds a stop where nothing is owed', () {
+      final stops = _dive(30, 10).calculateDecoSchedule(
+        currentDepth: 30,
+        ascentGas: _airEan50(),
+        policy: const SchedulePolicy(minStopSecondsByDepth: {21: 180}),
+      );
+      expect(stops, isEmpty);
+    });
+
     test('times the ascent at the working rate through the switch stops', () {
       // A switch-only stop is not a deco stop: travel after it must not drop
       // to the slow between-stops or last-stop rates.

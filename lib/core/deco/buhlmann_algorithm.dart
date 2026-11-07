@@ -523,7 +523,7 @@ class BuhlmannAlgorithm {
       if (switched && p.gasSwitchStopSeconds > 0) {
         stopTime = math.max(stopTime, p.gasSwitchStopSeconds);
       }
-      final gasSwitchOnly = decoSeconds == 0 && stopTime > 0;
+      final heldForSwitch = decoSeconds == 0 && stopTime > 0;
       // A minimum never turns a level the deco walk does not visit into a
       // stop, but it does lengthen a switch stop held there anyway.
       final minStopSeconds = p.minStopSecondsByDepth[currentStopDepth.round()];
@@ -532,6 +532,10 @@ class BuhlmannAlgorithm {
           (onDecoWalk || stopTime > 0)) {
         stopTime = math.max(stopTime, minStopSeconds);
       }
+      // Held for the switch alone only when nothing is owed here and the
+      // switch time, not a longer stop minimum the diver set, is what sets
+      // its length.
+      final gasSwitchOnly = heldForSwitch && stopTime == p.gasSwitchStopSeconds;
       final arrivalSeconds =
           clockSeconds +
           p.ascentSeconds(
