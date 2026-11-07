@@ -52,6 +52,11 @@ class ProxyController {
   bool _passwordLoaded = false;
   int _generation = 0;
   Future<void> _writes = Future.value();
+  final _startup = Completer<void>();
+
+  /// The settings the latest recompute applies, which [_state] holds only
+  /// once it finishes.
+  ProxySettings _requested = ProxySettings.defaults;
   var _state = const ProxyControllerState(
     settings: ProxySettings.defaults,
     system: null,
@@ -67,21 +72,42 @@ class ProxyController {
   String? get manualPassword => _password;
   Stream<ProxyControllerState> get changes => _changes.stream;
 
+  /// Pending from construction until [initialize] settles, then null.
+  ///
+  /// Launch does not wait for [initialize] (a slow PAC lookup would hold the
+  /// first frame, #4246); network requests opened before it settles wait on
+  /// this instead, so the first one already uses the saved route: the OS
+  /// answer in system mode, the keychain password in manual mode. It settles
+  /// when the first settled snapshot is applied, which may come from a
+  /// refresh that superseded the startup lookup, and never fails. It is
+  /// bounded by the startup timeout once [initialize] runs.
+  Future<void>? get pendingStartup =>
+      _startup.isCompleted ? null : _startup.future;
+
   /// Loads the saved choice and, in system mode, asks the OS, waiting at most
-  /// [startupTimeout] so a slow PAC server cannot hold up app launch. A late
-  /// answer is applied when it arrives.
+  /// [startupTimeout] so a slow PAC server cannot hold up the first network
+  /// requests. A late answer is applied when it arrives.
   Future<void> initialize(
     ProxySettingsStore store, {
     Duration startupTimeout = const Duration(seconds: 3),
   }) async {
-    _store = store;
-    final settings = store.load();
-    await _recompute(settings).timeout(
-      startupTimeout,
-      onTimeout: () {
-        _log.info('System proxy detection is slow; starting direct');
-      },
-    );
+    try {
+      _store = store;
+      final settings = store.load();
+      // A refresh started meanwhile (a network change at launch) supersedes
+      // this recompute, which then returns without applying anything; the
+      // wait goes on until that newer one applies its snapshot.
+      await _recompute(settings)
+          .then((_) => _startup.future)
+          .timeout(
+            startupTimeout,
+            onTimeout: () {
+              _log.info('System proxy detection is slow; starting direct');
+            },
+          );
+    } finally {
+      if (!_startup.isCompleted) _startup.complete();
+    }
   }
 
   /// Persists [settings] and applies them. The password changes only when
@@ -123,7 +149,14 @@ class ProxyController {
   }
 
   /// Asks the OS again (system mode) and re-applies the current settings.
-  Future<void> refresh() => _recompute(_state.settings);
+  ///
+  /// The settings are the ones most recently asked for, not the state's:
+  /// while a recompute is still in flight (a Manual proxy reading its
+  /// password, which can outlast the startup timeout) the state still holds
+  /// the previous settings, the defaults at launch, and re-applying those
+  /// would supersede the saved choice for the rest of the session. Launch
+  /// starts the refresh triggers without waiting for [initialize] (#4246).
+  Future<void> refresh() => _recompute(_requested);
 
   Future<String?> _loadPassword(
     ProxySettingsStore store,
@@ -140,6 +173,7 @@ class ProxyController {
 
   Future<void> _recompute(ProxySettings settings) async {
     final generation = ++_generation;
+    _requested = settings;
     // The keychain is read the first time Manual applies, not at startup:
     // System and No proxy never use the password, and the read would sit
     // before the first frame.
@@ -195,6 +229,11 @@ class ProxyController {
       detecting: detecting,
       effective: effective,
     );
+    // The first settled snapshot since initialize releases the requests
+    // waiting on [pendingStartup].
+    if (!detecting && _store != null && !_startup.isCompleted) {
+      _startup.complete();
+    }
     if (!_changes.isClosed) _changes.add(_state);
   }
 

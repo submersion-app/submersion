@@ -129,6 +129,77 @@ void main() {
     expect(g.fN2, closeTo(1 - loopO2, 1e-10));
     expect(o.compiledPlan!.segments.last.gasMix.o2, 50);
   });
+  test('extra last-stop seconds leave a no-deco switch stop alone', () {
+    // A no-deco replan whose only stop is the EAN50 switch (issue #4160):
+    // there is no decompression stop to extend, so the dive stays no-deco.
+    final d = squareDive(depth: 30, bottomMinutes: 10);
+    final o = engine.run(
+      request(d, 300, ScenarioMode.replan, const [
+        AscentPolicyIntervention(
+          gasSwitchStopSeconds: 60,
+          extraLastStopSeconds: 120,
+        ),
+      ]),
+    );
+    final outcome = o.planOutcome!;
+    expect(outcome.stops, isNotEmpty, reason: 'precondition');
+    expect(outcome.stops.every((s) => s.isGasSwitchOnly), isTrue);
+    expect(outcome.stops.map((s) => s.durationSeconds), everyElement(60));
+    expect(outcome.owesDecompression, isFalse);
+  });
+  test('extra last-stop seconds go to the last deco stop, not a trailing '
+      'switch stop', () {
+    // 30 m for 24 minutes with EAN50 and O2: the plan owes a 9 m stop and
+    // ends on the O2 switch at 6 m, held only to switch gas (issue #4160).
+    final d = squareDive(depth: 30, bottomMinutes: 24);
+    ScenarioRequest withO2(List<ScenarioIntervention> interventions) {
+      final r = request(d, 120, ScenarioMode.replan, interventions);
+      return ScenarioRequest(
+        diveId: r.diveId,
+        depths: r.depths,
+        timestamps: r.timestamps,
+        tanks: [
+          ...d.tanks,
+          const DiveTank(
+            id: 'o2',
+            gasMix: GasMix(o2: 100),
+            role: TankRole.deco,
+          ),
+        ],
+        gasSwitches: r.gasSwitches,
+        tankPressures: r.tankPressures,
+        diveMode: r.diveMode,
+        scenario: r.scenario,
+      );
+    }
+
+    final base = engine
+        .run(withO2(const [AscentPolicyIntervention(gasSwitchStopSeconds: 60)]))
+        .planOutcome!;
+    expect(base.stops.last.isGasSwitchOnly, isTrue, reason: 'precondition');
+    final lastDeco = base.stops.lastWhere((s) => !s.isGasSwitchOnly);
+
+    final extended = engine
+        .run(
+          withO2(const [
+            AscentPolicyIntervention(
+              gasSwitchStopSeconds: 60,
+              extraLastStopSeconds: 120,
+            ),
+          ]),
+        )
+        .planOutcome!;
+    final deco = extended.stops.firstWhere(
+      (s) => s.depthMeters == lastDeco.depthMeters,
+    );
+    expect(
+      deco.durationSeconds,
+      greaterThanOrEqualTo(lastDeco.durationSeconds + 120),
+    );
+    expect(extended.stops.last.depthMeters, base.stops.last.depthMeters);
+    expect(extended.stops.last.isGasSwitchOnly, isTrue);
+    expect(extended.stops.last.durationSeconds, 60);
+  });
   test('runtime table includes extra last-stop seconds', () {
     final d = squareDive(depth: 45, bottomMinutes: 30);
     final o = engine.run(

@@ -593,10 +593,14 @@ def test_sample_logbook(page, tmp_path):
     button(page, exact("Explore with sample data")).click()
     button(page, exact("Download")).click()
     # The dashboard's recent dives, newest first: the sample logbook is the
-    # open one. (The demo strip is not in a browser's semantics tree.)
+    # open one.
     page.get_by_role(
         "button", name=re.compile(r"^Dive \d+ at %s\b" % re.escape(site))
     ).first.wait_for(timeout=SAMPLE_TIMEOUT_MS)
+    # The shell's chrome is in the semantics tree beside the page: the demo
+    # strip's way out and the rail's named destinations (#4166).
+    button(page, exact("Exit demo")).wait_for(timeout=STEP_TIMEOUT_MS)
+    button(page, re.compile(r"^Dives\b")).wait_for(timeout=STEP_TIMEOUT_MS)
     wait_for_dives_at(page, site)
 
 

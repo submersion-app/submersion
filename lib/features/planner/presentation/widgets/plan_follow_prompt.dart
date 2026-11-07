@@ -45,9 +45,12 @@ class _PlanFollowPromptState extends ConsumerState<PlanFollowPrompt> {
       planSeriesNotifierProvider.select((s) => s.follow != null),
     );
     final allowed = ref.watch(followAllowedProvider);
+    // The suggestion is watched only while it could show, so a plan that
+    // follows a dive or replans one reads nothing for it (issue #4250).
+    if (follows || !allowed) return const SizedBox.shrink();
     final dive = ref.watch(followSuggestionProvider).valueOrNull;
     final dismissed = ref.watch(dismissedFollowSuggestionsProvider);
-    if (follows || !allowed || dive == null || dismissed.contains(dive.id)) {
+    if (dive == null || dismissed.contains(dive.id)) {
       return const SizedBox.shrink();
     }
 

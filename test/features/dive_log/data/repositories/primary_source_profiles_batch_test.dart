@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/data/repositories/profile_series_re
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
+import '../../../../helpers/drift_statement_log.dart';
 import '../../../../helpers/test_database.dart';
 
 /// The reduce under test: a top-level function, as the batched read requires
@@ -201,7 +202,9 @@ void main() {
           print: (self, parent, zone, line) => logged.add(line),
         ),
       );
-      final sent = logged.where((l) => l.startsWith('Drift: Sent'));
+      final sent = joinDriftLogLines(
+        logged,
+      ).where((l) => l.startsWith('Drift: Sent'));
 
       expect(
         sent.where((s) => s.contains('dive_profile_series')),
