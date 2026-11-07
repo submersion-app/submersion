@@ -58,6 +58,46 @@ void main() {
     });
   });
 
+  // Issue #4255: a recording checkpoint keeps tuples it already encoded and
+  // only encodes the new fixes, so the tuple path must write exactly the blob
+  // the whole-list encoder would.
+  group('pre-encoded tuples', () {
+    final points = [
+      const GpsTrackPoint(
+        timestamp: 1700000000,
+        latitude: 20.123456,
+        longitude: -87.654321,
+        accuracy: 8.5,
+      ),
+      const GpsTrackPoint(
+        timestamp: 1700000060,
+        latitude: 20,
+        longitude: -87,
+        accuracy: null,
+      ),
+    ];
+
+    test('write the same blob as encodeTrackPoints', () {
+      final tuples = [for (final p in points) encodeTrackPointTuple(p)];
+      expect(encodeTrackPointTuples(tuples), encodeTrackPoints(points));
+    });
+
+    test('an empty tuple list writes the empty track', () {
+      expect(decodeTrackPoints(encodeTrackPointTuples(const [])), isEmpty);
+    });
+
+    test('refuse more tuples than the codec can read back', () {
+      final tuples = List.filled(
+        kMaxTrackPointCount + 1,
+        encodeTrackPointTuple(points.first),
+      );
+      expect(
+        () => encodeTrackPointTuples(tuples),
+        throwsA(isA<TrackPointCodecException>()),
+      );
+    });
+  });
+
   group('decode rejects a hostile blob', () {
     test('abandons a compression bomb instead of inflating it', () {
       // Zeros gzip to almost nothing, which is the whole shape of the

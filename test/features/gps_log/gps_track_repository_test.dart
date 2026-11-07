@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/gps_log/data/repositories/gps_track_repository.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
+import 'package:submersion/features/gps_log/domain/track_point_codec.dart';
 
 import '../../helpers/test_database.dart';
 
@@ -81,6 +82,121 @@ void main() {
       expect(track.points.single.latitude, 1);
       // Buffer survives a checkpoint (only finalize clears it).
       expect(await repo.getBufferPoints(id), hasLength(1));
+    });
+
+    // Issue #4255: every checkpoint used to read, encode and rewrite the
+    // whole track so far, so the work grew quadratically with duration.
+    group('incremental checkpoint', () {
+      GpsTrackPoint at(int t, {double lat = 1}) =>
+          GpsTrackPoint(timestamp: t, latitude: lat, longitude: 2);
+
+      late List<({int rowsRead, int tuplesEncoded, bool wroteBlob})> stats;
+
+      setUp(() {
+        stats = [];
+        repo.debugOnCheckpoint = stats.add;
+      });
+
+      Future<String> startWith(List<GpsTrackPoint> points) async {
+        final id = await repo.startTrack(
+          startTimeMs: 1700000000000,
+          tzOffsetMinutes: 0,
+        );
+        for (final p in points) {
+          await repo.appendBufferPoint(id, p);
+        }
+        return id;
+      }
+
+      Future<GpsTrackRow> rowOf(String id) =>
+          (db.select(db.gpsTracks)..where((t) => t.id.equals(id))).getSingle();
+
+      test('later checkpoints read and encode only the new fixes', () async {
+        final first = [at(1700000000), at(1700000010), at(1700000020)];
+        final id = await startWith(first);
+        await repo.checkpoint(id);
+
+        final second = [at(1700000030, lat: 3), at(1700000040, lat: 4)];
+        for (final p in second) {
+          await repo.appendBufferPoint(id, p);
+        }
+        await repo.checkpoint(id);
+
+        expect(stats.map((s) => (s.rowsRead, s.tuplesEncoded)), [
+          (3, 3),
+          (2, 2),
+        ]);
+        final row = await rowOf(id);
+        expect(row.pointCount, 5);
+        // Byte-identical to encoding the whole buffer at once.
+        expect(row.points, encodeTrackPoints([...first, ...second]));
+      });
+
+      test('a checkpoint with no new fixes rewrites nothing', () async {
+        final id = await startWith([at(1700000000)]);
+        await repo.checkpoint(id);
+        // Backdate the row so a rewrite would show.
+        await (db.update(db.gpsTracks)..where((t) => t.id.equals(id))).write(
+          const GpsTracksCompanion(updatedAt: Value(1)),
+        );
+
+        await repo.checkpoint(id);
+
+        expect(stats.last, (rowsRead: 0, tuplesEncoded: 0, wroteBlob: false));
+        expect((await rowOf(id)).updatedAt, 1);
+      });
+
+      test('a fix older than the last checkpointed one rebuilds the blob in '
+          'time order', () async {
+        final id = await startWith([at(1700000100), at(1700000200)]);
+        await repo.checkpoint(id);
+        await repo.appendBufferPoint(id, at(1700000150));
+
+        await repo.checkpoint(id);
+
+        final track = await repo.getTrack(id);
+        expect(track!.points.map((p) => p.timestamp), [
+          1700000100,
+          1700000150,
+          1700000200,
+        ]);
+        expect(stats.last.tuplesEncoded, 3);
+      });
+
+      test('a repository with no cached state checkpoints the whole buffer, '
+          'then continues incrementally', () async {
+        final id = await startWith([at(1700000000), at(1700000010)]);
+        await repo.checkpoint(id);
+        await repo.appendBufferPoint(id, at(1700000020));
+
+        final fresh = GpsTrackRepository();
+        final freshStats =
+            <({int rowsRead, int tuplesEncoded, bool wroteBlob})>[];
+        fresh.debugOnCheckpoint = freshStats.add;
+        await fresh.checkpoint(id);
+        await fresh.appendBufferPoint(id, at(1700000030));
+        await fresh.checkpoint(id);
+
+        expect(freshStats.map((s) => s.rowsRead), [3, 1]);
+        expect((await rowOf(id)).pointCount, 4);
+      });
+
+      test(
+        'finalize after incremental checkpoints writes the full track',
+        () async {
+          final id = await startWith([at(1700000000)]);
+          await repo.checkpoint(id);
+          await repo.appendBufferPoint(id, at(1700000010));
+          await repo.checkpoint(id);
+          await repo.appendBufferPoint(id, at(1700000020));
+
+          await repo.finalizeTrack(id);
+
+          final track = await repo.getTrack(id);
+          expect(track!.points, hasLength(3));
+          expect(track.endTime, 1700000020000);
+        },
+      );
     });
 
     test('finalizeTrack sets endTime, encodes points, clears buffer', () async {

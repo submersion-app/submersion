@@ -67,6 +67,11 @@ class GpsTrackRecorder {
   /// after the finalize clears them).
   Future<void> _lastRecord = Future<void>.value();
 
+  /// The running checkpoint, if any. [stop] awaits it before finalizing:
+  /// a checkpoint that read the buffer before the last fixes landed and
+  /// wrote after finalize would replace the final blob with a shorter one.
+  Future<void>? _checkpointInFlight;
+
   GpsTrackRecorder({
     required GpsTrackRepository repository,
     Stream<Position> Function(LocationSettings)? positionStreamFactory,
@@ -137,8 +142,27 @@ class GpsTrackRecorder {
     });
     _checkpointTimer = Timer.periodic(_checkpointInterval, (_) {
       final id = _state.trackId;
-      if (id != null) unawaited(_repository.checkpoint(id));
+      if (id != null) _runCheckpoint(id);
     });
+  }
+
+  /// Starts a checkpoint unless one is still running, in which case this
+  /// tick is dropped: the running one already covers most of what this one
+  /// would, and the next tick picks up the rest. Errors are logged, never
+  /// thrown, so a failed checkpoint cannot surface as an unhandled async
+  /// error from the timer.
+  void _runCheckpoint(String trackId) {
+    if (_checkpointInFlight != null) return;
+    _checkpointInFlight = _repository
+        .checkpoint(trackId)
+        .catchError((Object e, StackTrace stackTrace) {
+          _log.error(
+            'Failed to checkpoint GPS track $trackId',
+            error: e,
+            stackTrace: stackTrace,
+          );
+        })
+        .whenComplete(() => _checkpointInFlight = null);
   }
 
   Future<void> stop() async {
@@ -154,6 +178,7 @@ class GpsTrackRecorder {
     // Let any in-flight point write land before finalizing so the last fix
     // makes it into the blob and cannot repopulate the buffer afterwards.
     await _lastRecord;
+    await _checkpointInFlight;
     if (trackId != null) {
       // Stamp the session end from the actual stop time, not the last fix.
       // A mostly-stationary device stops emitting fixes once the distance

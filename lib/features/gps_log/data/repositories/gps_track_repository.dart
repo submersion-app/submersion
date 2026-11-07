@@ -256,28 +256,131 @@ class GpsTrackRepository {
   }
 
   Future<List<domain.GpsTrackPoint>> getBufferPoints(String trackId) async {
-    final rows =
-        await (_db.select(_db.gpsTrackPointsLocal)
-              ..where((t) => t.trackId.equals(trackId))
-              ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
-            .get();
-    return [
-      for (final r in rows)
-        domain.GpsTrackPoint(
-          timestamp: r.timestamp,
-          latitude: r.latitude,
-          longitude: r.longitude,
-          accuracy: r.accuracy,
-        ),
-    ];
+    final rows = await _bufferRows(trackId, timeOrder: true);
+    return [for (final r in rows) _pointOf(r)];
   }
+
+  /// Buffer rows for [trackId] with a rowId above [afterRowId]: in time
+  /// order (ties in arrival order) for a full read, or in arrival order for
+  /// an incremental one.
+  Future<List<GpsTrackPointRow>> _bufferRows(
+    String trackId, {
+    int afterRowId = 0,
+    required bool timeOrder,
+  }) {
+    final query = _db.select(_db.gpsTrackPointsLocal)
+      ..where(
+        (t) =>
+            t.trackId.equals(trackId) & t.rowId.isBiggerThanValue(afterRowId),
+      )
+      ..orderBy([
+        if (timeOrder) (t) => OrderingTerm.asc(t.timestamp),
+        (t) => OrderingTerm.asc(t.rowId),
+      ]);
+    return query.get();
+  }
+
+  static domain.GpsTrackPoint _pointOf(GpsTrackPointRow r) =>
+      domain.GpsTrackPoint(
+        timestamp: r.timestamp,
+        latitude: r.latitude,
+        longitude: r.longitude,
+        accuracy: r.accuracy,
+      );
+
+  /// What each recording's last checkpoint wrote, by track id.
+  ///
+  /// A cache, not state anything depends on: a repository without an entry
+  /// (a fresh instance, or after a restart) rebuilds from the buffer.
+  final Map<String, _CheckpointCursor> _checkpoints = {};
+
+  /// Test-only hook reporting what each [checkpoint] call read, encoded and
+  /// wrote, so the work per checkpoint can be asserted (issue #4255).
+  @visibleForTesting
+  void Function(({int rowsRead, int tuplesEncoded, bool wroteBlob}))?
+  debugOnCheckpoint;
 
   /// Encodes the buffer into the synced blob without ending the session, so
   /// the synced copy is never more than one checkpoint interval stale.
+  ///
+  /// Reads and encodes only the fixes buffered since this repository's last
+  /// checkpoint of the track, and writes nothing when there are none. Before
+  /// issue #4255 every checkpoint read and re-encoded the whole track so
+  /// far, so a long recording's total work grew with the square of its
+  /// length. The gzip and the blob write still cover the whole track: the
+  /// column is replaced whole, and both are cheap next to formatting the
+  /// tuples.
   Future<void> checkpoint(String trackId) async {
-    final points = await getBufferPoints(trackId);
-    if (points.isEmpty) return;
-    await _writeBlob(trackId, points, endTimeMs: null);
+    final cursor = _checkpoints[trackId];
+    final rows = await _bufferRows(
+      trackId,
+      afterRowId: cursor?.lastRowId ?? 0,
+      timeOrder: cursor == null,
+    );
+    if (rows.isEmpty) {
+      debugOnCheckpoint?.call((
+        rowsRead: 0,
+        tuplesEncoded: 0,
+        wroteBlob: false,
+      ));
+      return;
+    }
+
+    final List<GpsTrackPointRow> encodedRows;
+    final List<String> tuples;
+    var rowsRead = rows.length;
+    if (cursor != null && _appendsInOrder(cursor.lastTimestamp, rows)) {
+      encodedRows = rows;
+      tuples = [
+        ...cursor.tuples,
+        for (final r in rows) encodeTrackPointTuple(_pointOf(r)),
+      ];
+    } else {
+      // No cursor yet (rows is already the whole buffer in time order), or a
+      // fix stamped before one already written: appending it would leave the
+      // blob out of time order, so rebuild from the whole buffer.
+      encodedRows = cursor == null
+          ? rows
+          : await _bufferRows(trackId, timeOrder: true);
+      if (cursor != null) rowsRead += encodedRows.length;
+      tuples = [
+        for (final r in encodedRows) encodeTrackPointTuple(_pointOf(r)),
+      ];
+    }
+
+    await _writeEncodedBlob(
+      trackId,
+      encodeTrackPointTuples(tuples),
+      pointCount: tuples.length,
+      endTimeMs: null,
+    );
+    // Only once the write landed: a cursor advanced past a failed write
+    // would make the next checkpoint skip those fixes.
+    // From the rows encoded, not the first read: a rebuild's second read can
+    // include a fix appended in between, which must not be appended again.
+    _checkpoints[trackId] = _CheckpointCursor(
+      lastRowId: encodedRows.map((r) => r.rowId).reduce(_max),
+      lastTimestamp: encodedRows.map((r) => r.timestamp).reduce(_max),
+      tuples: tuples,
+    );
+    debugOnCheckpoint?.call((
+      rowsRead: rowsRead,
+      tuplesEncoded: encodedRows.length,
+      wroteBlob: true,
+    ));
+  }
+
+  static int _max(int a, int b) => a > b ? a : b;
+
+  /// Whether [rows], in arrival order, never step back in time from
+  /// [lastTimestamp] or from each other.
+  static bool _appendsInOrder(int lastTimestamp, List<GpsTrackPointRow> rows) {
+    var previous = lastTimestamp;
+    for (final r in rows) {
+      if (r.timestamp < previous) return false;
+      previous = r.timestamp;
+    }
+    return true;
   }
 
   /// Ends the session: encodes the buffer, stamps [endTimeMs] (defaults to
@@ -290,6 +393,7 @@ class GpsTrackRepository {
         await (_db.delete(
           _db.gpsTracks,
         )..where((t) => t.id.equals(trackId))).go();
+        _checkpoints.remove(trackId);
         return;
       }
       final end = endTimeMs ?? points.last.timestamp * 1000;
@@ -297,6 +401,7 @@ class GpsTrackRepository {
       await (_db.delete(
         _db.gpsTrackPointsLocal,
       )..where((t) => t.trackId.equals(trackId))).go();
+      _checkpoints.remove(trackId);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to finalize GPS track $trackId',
@@ -311,12 +416,24 @@ class GpsTrackRepository {
     String trackId,
     List<domain.GpsTrackPoint> points, {
     required int? endTimeMs,
+  }) => _writeEncodedBlob(
+    trackId,
+    encodeTrackPoints(points),
+    pointCount: points.length,
+    endTimeMs: endTimeMs,
+  );
+
+  Future<void> _writeEncodedBlob(
+    String trackId,
+    Uint8List blob, {
+    required int pointCount,
+    required int? endTimeMs,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     await (_db.update(_db.gpsTracks)..where((t) => t.id.equals(trackId))).write(
       GpsTracksCompanion(
-        points: Value(encodeTrackPoints(points)),
-        pointCount: Value(points.length),
+        points: Value(blob),
+        pointCount: Value(pointCount),
         endTime: endTimeMs != null ? Value(endTimeMs) : const Value.absent(),
         updatedAt: Value(now),
       ),
@@ -433,6 +550,7 @@ class GpsTrackRepository {
       await (_db.delete(
         _db.gpsTrackPointsLocal,
       )..where((t) => t.trackId.equals(id))).go();
+      _checkpoints.remove(id);
       await _syncRepository.logDeletion(entityType: entityType, recordId: id);
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
@@ -488,4 +606,19 @@ class GpsTrackRepository {
       trimEndTime: row.trimEndTime,
     );
   }
+}
+
+/// What a recording's last checkpoint wrote: the highest buffer rowId it
+/// read, the latest fix time in the blob, and every tuple already encoded,
+/// so the next checkpoint formats only fixes buffered since (issue #4255).
+class _CheckpointCursor {
+  const _CheckpointCursor({
+    required this.lastRowId,
+    required this.lastTimestamp,
+    required this.tuples,
+  });
+
+  final int lastRowId;
+  final int lastTimestamp;
+  final List<String> tuples;
 }

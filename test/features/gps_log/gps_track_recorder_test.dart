@@ -26,6 +26,30 @@ Position fix({
   speedAccuracy: 0,
 );
 
+/// Records checkpoint and finalize calls in order, and can hold a checkpoint
+/// open or make it fail.
+class _ObservedRepository extends GpsTrackRepository {
+  final events = <String>[];
+  Completer<void>? gate;
+  Object? checkpointError;
+
+  @override
+  Future<void> checkpoint(String trackId) async {
+    events.add('checkpoint:start');
+    final error = checkpointError;
+    if (error != null) throw error;
+    await gate?.future;
+    await super.checkpoint(trackId);
+    events.add('checkpoint:end');
+  }
+
+  @override
+  Future<void> finalizeTrack(String trackId, {int? endTimeMs}) async {
+    events.add('finalize');
+    await super.finalizeTrack(trackId, endTimeMs: endTimeMs);
+  }
+}
+
 void main() {
   late AppDatabase db;
   late GpsTrackRepository repo;
@@ -167,6 +191,59 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 100));
     expect(r.state.pointCount, afterLoss);
     await r.stop();
+  });
+
+  group('checkpoints (#4255)', () {
+    test('stop waits for an in-flight checkpoint before finalizing, and '
+        'ticks do not stack up behind a slow one', () async {
+      final observed = _ObservedRepository()..gate = Completer<void>();
+      final r = GpsTrackRecorder(
+        repository: observed,
+        positionStreamFactory: (_) => controller.stream,
+        checkpointInterval: const Duration(milliseconds: 20),
+      );
+      await r.start(notificationTitle: 't', notificationText: 'x');
+      controller.add(fix(lat: 10, lon: 20));
+      await pumpEventQueue();
+
+      // Several intervals pass while the first checkpoint is held open.
+      await Future<void>.delayed(const Duration(milliseconds: 90));
+      expect(observed.events, ['checkpoint:start']);
+
+      final stopping = r.stop();
+      await pumpEventQueue();
+      expect(observed.events, isNot(contains('finalize')));
+
+      observed.gate!.complete();
+      await stopping;
+      expect(observed.events, [
+        'checkpoint:start',
+        'checkpoint:end',
+        'finalize',
+      ]);
+    });
+
+    test('a failed checkpoint is logged, not thrown', () async {
+      final observed = _ObservedRepository()
+        ..checkpointError = StateError('disk full');
+      final r = GpsTrackRecorder(
+        repository: observed,
+        positionStreamFactory: (_) => controller.stream,
+        checkpointInterval: const Duration(milliseconds: 20),
+      );
+      await r.start(notificationTitle: 't', notificationText: 'x');
+      controller.add(fix(lat: 10, lon: 20));
+      await Future<void>.delayed(const Duration(milliseconds: 70));
+
+      // Each tick still runs after a failure, and recording carries on.
+      expect(
+        observed.events.where((e) => e == 'checkpoint:start').length,
+        greaterThanOrEqualTo(2),
+      );
+      expect(r.isRecording, isTrue);
+      await r.stop();
+      expect(observed.events.last, 'finalize');
+    });
   });
 
   test('a failed point write is logged, not thrown', () async {

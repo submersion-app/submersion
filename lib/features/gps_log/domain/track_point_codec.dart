@@ -80,16 +80,38 @@ const int kMaxTrackBodyCommas = 4 * kMaxTrackPointCount;
 /// Throws [TrackPointCodecException] if [points] is longer than
 /// [kMaxTrackPointCount].
 Uint8List encodeTrackPoints(List<GpsTrackPoint> points) {
-  if (points.length > kMaxTrackPointCount) {
+  _checkEncodeCount(points.length);
+  return encodeTrackPointTuples([
+    for (final p in points) encodeTrackPointTuple(p),
+  ]);
+}
+
+/// One point as the JSON tuple [encodeTrackPoints] writes for it.
+///
+/// Formatting the doubles is most of an encode's cost, so a caller that
+/// re-encodes a growing track (a recording checkpoint, issue #4255) keeps
+/// these strings and formats only the points it has not seen.
+String encodeTrackPointTuple(GpsTrackPoint p) =>
+    jsonEncode([p.timestamp, p.latitude, p.longitude, p.accuracy]);
+
+/// Encodes tuples from [encodeTrackPointTuple] into the same blob
+/// [encodeTrackPoints] writes for those points: compact JSON has no
+/// whitespace, so an array is exactly its elements joined by commas.
+///
+/// Throws [TrackPointCodecException] if there are more than
+/// [kMaxTrackPointCount] tuples.
+Uint8List encodeTrackPointTuples(List<String> tuples) {
+  _checkEncodeCount(tuples.length);
+  return PlatformZlib.gzip(utf8.encode('[${tuples.join(',')}]'));
+}
+
+void _checkEncodeCount(int count) {
+  if (count > kMaxTrackPointCount) {
     throw TrackPointCodecException(
-      'track of ${points.length} point(s) exceeds the '
+      'track of $count point(s) exceeds the '
       '$kMaxTrackPointCount this codec can read back',
     );
   }
-  final json = jsonEncode([
-    for (final p in points) [p.timestamp, p.latitude, p.longitude, p.accuracy],
-  ]);
-  return PlatformZlib.gzip(utf8.encode(json));
 }
 
 /// Decodes a blob written by [encodeTrackPoints].
