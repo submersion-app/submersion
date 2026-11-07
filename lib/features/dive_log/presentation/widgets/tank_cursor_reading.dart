@@ -4,55 +4,54 @@ import 'package:submersion/features/dive_log/data/services/estimated_tank_pressu
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_pressure_lookup.dart';
 
-/// A tank's pressure at the profile cursor, for its figure on the Cylinders
-/// card (issue #4291).
-class TankCursorReading {
-  const TankCursorReading({
-    required this.pressure,
-    required this.peak,
-    required this.estimated,
-  });
+/// A tank's pressure line as the profile chart draws it, read at the
+/// profile cursor for its figure on the Cylinders card (issue #4291).
+///
+/// Built once per load of the lines; only [pressureAt] runs on each hover
+/// frame.
+class TankCursorLine {
+  TankCursorLine._(this._points, {required this.peak, required this.estimated});
 
-  /// The pressure in bar at the cursor; null while the cursor is off the
-  /// chart (or past the end of the profile it indexes).
-  final double? pressure;
+  final List<TankPressurePoint> _points;
 
-  /// The highest pressure on the tank's line, so the figure can keep room
-  /// for the widest label the cursor gives it.
+  /// The highest pressure on the line, so the figure can keep room for the
+  /// widest label the cursor gives it.
   final double peak;
 
   /// The line is the straight-line estimate from the tank's start and end
   /// pressures, not a transmitter's readings.
   final bool estimated;
-}
 
-/// [tank]'s reading at [cursorSeconds] from [chartSeries], the very lines
-/// the profile chart draws: the transmitter's readings, else the linear
-/// estimate (flat, a straight drop while breathed, flat). Null when the
-/// chart draws no line for the tank (no pressures at all, a gauge dive, or
-/// estimates switched off), so the figure shows no cursor either.
-///
-/// A series still keyed by an old tank id is matched as everywhere else
-/// (see [resolveTankPressureSeries]). A negative reading is a sensor error,
-/// never a pressure, so it reads as no pressure at the cursor.
-TankCursorReading? tankCursorReading({
-  required DiveTank tank,
-  required List<DiveTank> tanks,
-  required EstimatedTankPressures? chartSeries,
-  required int? cursorSeconds,
-}) {
-  if (chartSeries == null) return null;
-  final series = resolveTankPressureSeries(
-    tanks,
-    chartSeries.pressures,
-  )[tank.id];
-  if (series == null || series.isEmpty) return null;
-  final at = cursorSeconds == null
-      ? null
-      : pressureAtTime(series, cursorSeconds);
-  return TankCursorReading(
-    pressure: at != null && at >= 0 ? at : null,
-    peak: series.fold(0.0, (peak, p) => math.max(peak, p.pressure)),
-    estimated: chartSeries.estimatedTankIds.contains(tank.id),
-  );
+  /// Each of [tanks]' lines from [chartSeries], the very lines the profile
+  /// chart draws: the transmitter's readings, else the linear estimate
+  /// (flat, a straight drop while breathed, flat). A tank the chart draws
+  /// no line for (no pressures at all, a gauge dive, or estimates switched
+  /// off) has none here, so its figure shows no cursor either. A series
+  /// still keyed by an old tank id is matched as everywhere else (see
+  /// [resolveTankPressureSeries]).
+  static Map<String, TankCursorLine> forTanks(
+    List<DiveTank> tanks,
+    EstimatedTankPressures? chartSeries,
+  ) {
+    if (chartSeries == null) return const {};
+    return {
+      for (final MapEntry(key: tankId, value: points)
+          in resolveTankPressureSeries(tanks, chartSeries.pressures).entries)
+        if (points.isNotEmpty)
+          tankId: TankCursorLine._(
+            points,
+            peak: points.fold(0.0, (peak, p) => math.max(peak, p.pressure)),
+            estimated: chartSeries.estimatedTankIds.contains(tankId),
+          ),
+    };
+  }
+
+  /// The pressure in bar at [seconds] into the dive, interpolated between
+  /// the readings either side. Null with no cursor, and for a negative
+  /// reading, which is a sensor error, never a pressure.
+  double? pressureAt(int? seconds) {
+    if (seconds == null) return null;
+    final at = pressureAtTime(_points, seconds);
+    return at != null && at >= 0 ? at : null;
+  }
 }

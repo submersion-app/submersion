@@ -327,5 +327,19 @@ void main() {
       );
       handle.dispose();
     });
+
+    testWidgets('an undrawn now label is not read out', (tester) async {
+      // No cursor level (nothing to measure it against): nothing is drawn,
+      // so nothing is read.
+      final handle = tester.ensureSemantics();
+      await tester.pumpWidget(_host(_figure(nowLabel: 'Now 130 bar')));
+
+      expect(find.text('Now 130 bar'), findsNothing);
+      expect(
+        tester.getSemantics(find.byType(TankFigure)),
+        matchesSemantics(label: 'Start 200 bar, End 60 bar, Used 140 bar'),
+      );
+      handle.dispose();
+    });
   });
 }

@@ -70,7 +70,13 @@ class TankFigure extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       container: true,
-      label: [startLabel, endLabel, ?usedLabel, ?nowLabel].join(', '),
+      // The cursor's label is read only when it is drawn, at its level.
+      label: [
+        startLabel,
+        endLabel,
+        ?usedLabel,
+        if (levels.now != null) ?nowLabel,
+      ].join(', '),
       excludeSemantics: true,
       child: LayoutBuilder(
         builder: (context, constraints) =>

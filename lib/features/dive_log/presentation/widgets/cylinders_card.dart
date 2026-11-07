@@ -72,6 +72,13 @@ class CylindersCard extends ConsumerWidget {
     final cylinderSacs =
         ref.watch(cylinderSacProvider(dive.id)).value ?? const <CylinderSac>[];
     final sacByTankId = {for (final c in cylinderSacs) c.tankId: c};
+    // The pressure lines the profile chart draws, for the tank figures to
+    // read at its cursor (issue #4291). Always watched, so a figure keeps
+    // room for its cursor label before the cursor arrives.
+    final cursorLines = TankCursorLine.forTanks(
+      dive.tanks,
+      ref.watch(estimatedTankPressuresProvider(dive.id)).value,
+    );
     final dataSources =
         ref.watch(diveDataSourcesProvider(dive.id)).value ??
         const <DiveDataSource>[];
@@ -117,6 +124,7 @@ class CylindersCard extends ConsumerWidget {
           index: entry.key,
           tank: entry.value,
           cylinderSac: sacByTankId[entry.value.id],
+          cursorLine: cursorLines[entry.value.id],
           tankPressures: tankPressures,
           sourceName: showSourceBadges && entry.value.computerId != null
               ? computerNames[entry.value.computerId]
@@ -237,26 +245,14 @@ class CylindersCard extends ConsumerWidget {
     return byComputer.values.any((n) => n >= 2);
   }
 
-  /// [tank]'s pressure at the profile cursor, read from the lines the chart
-  /// draws. The cursor is an index into the chart's own series, so it is
-  /// resolved against that series (#543); that is only watched while the
-  /// cursor is on the chart. The lines are always watched, so the figure
-  /// keeps room for the label before the cursor arrives.
-  TankCursorReading? _cursorReading(WidgetRef ref, DiveTank tank) {
+  /// Where the profile cursor is, in seconds into the dive. The cursor is an
+  /// index into the chart's own series, so it is resolved against that
+  /// series (#543), which is only watched while the cursor is on the chart.
+  int? _cursorSeconds(WidgetRef ref) {
     final index = ref.watch(profileTrackingIndexProvider(dive.id));
-    int? cursorSeconds;
-    if (index != null && index >= 0) {
-      final chartProfile = watchChartProfile(ref, dive);
-      if (index < chartProfile.length) {
-        cursorSeconds = chartProfile[index].timestamp;
-      }
-    }
-    return tankCursorReading(
-      tank: tank,
-      tanks: dive.tanks,
-      chartSeries: ref.watch(estimatedTankPressuresProvider(dive.id)).value,
-      cursorSeconds: cursorSeconds,
-    );
+    if (index == null || index < 0) return null;
+    final chartProfile = watchChartProfile(ref, dive);
+    return index < chartProfile.length ? chartProfile[index].timestamp : null;
   }
 
   Widget _tankRow(
@@ -264,6 +260,7 @@ class CylindersCard extends ConsumerWidget {
     required int index,
     required DiveTank tank,
     required CylinderSac? cylinderSac,
+    required TankCursorLine? cursorLine,
     required Map<String, List<TankPressurePoint>>? tankPressures,
     required String? sourceName,
     required Set<String> knownSerials,
@@ -297,11 +294,11 @@ class CylindersCard extends ConsumerWidget {
     // rebuilds on every hover frame, not the whole card.
     final figure = Consumer(
       builder: (context, ref, _) {
-        final reading = _cursorReading(ref, tank);
+        final now = cursorLine?.pressureAt(_cursorSeconds(ref));
         String? nowLabel(double? pressure) {
           if (pressure == null) return null;
           final shown = units.formatPressure(pressure);
-          return reading!.estimated
+          return cursorLine!.estimated
               ? l10n.diveLog_cylinders_figureNowEstimated(shown)
               : l10n.diveLog_cylinders_figureNow(shown);
         }
@@ -311,7 +308,7 @@ class CylindersCard extends ConsumerWidget {
             start: pressures.$1,
             end: pressures.$2,
             rated: positive(tank.workingPressure) ?? preset?.workingPressureBar,
-            now: reading?.pressure,
+            now: now,
           ),
           gasColor: GasColors.forGasMix(tank.gasMix),
           volumeLiters: positive(tank.volume) ?? preset?.volumeLiters,
@@ -328,8 +325,8 @@ class CylindersCard extends ConsumerWidget {
               : null,
           markStart: pressures.$1 != null,
           markEnd: pressures.$2 != null,
-          nowLabel: nowLabel(reading?.pressure),
-          nowLabelReserve: nowLabel(reading?.peak),
+          nowLabel: nowLabel(now),
+          nowLabelReserve: nowLabel(cursorLine?.peak),
         );
       },
     );
