@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/rules/data/repositories/rule_repository.dart';
+import 'package:submersion/features/rules/data/services/dive_rule_applier.dart';
 import 'package:submersion/features/rules/data/services/rule_engine.dart';
 import 'package:submersion/features/rules/data/services/rule_undo_service.dart';
 import 'package:submersion/features/rules/domain/entities/rule_action.dart';
@@ -148,6 +149,33 @@ void main() {
     final result = await runRule(sets(MembershipMode.add, ['warm']));
 
     expect(result.runId, isNull);
+  });
+
+  test('the membership write and table name sets too', () async {
+    final applier = DiveRuleApplier();
+    expect(
+      DiveRuleApplier.refTable(
+        db,
+        DiveCollection.equipmentSets,
+      ).actualTableName,
+      'equipment_sets',
+    );
+
+    await applier.writeMembership(
+      DiveCollection.equipmentSets,
+      add: true,
+      diveIds: const ['d40'],
+      ids: const ['warm'],
+    );
+    expect(await gear(), ['bcd:warm', 'reg:warm']);
+
+    await applier.writeMembership(
+      DiveCollection.equipmentSets,
+      add: false,
+      diveIds: const ['d40'],
+      ids: const ['warm'],
+    );
+    expect(await gear(), isEmpty);
   });
 
   group('undo', () {

@@ -701,6 +701,140 @@ void main() {
       }
     });
 
+    // Issue #4284: gear "Use Set" switches on carries the set, as on one dive.
+    testWidgets('use-set tags the gear it adds with the set', (tester) async {
+      const wing = EquipmentItem(
+        id: 'e1',
+        name: 'Wing',
+        type: EquipmentType.bcd,
+      );
+      const dsmb = EquipmentItem(
+        id: 'e2',
+        name: 'DSMB',
+        type: EquipmentType.smb,
+      );
+      for (final item in [wing, dsmb]) {
+        await EquipmentRepository().createEquipment(item);
+      }
+      await seedDive('d1');
+      await seedDive('d2');
+      final tripKit = EquipmentSet(
+        id: 's1',
+        name: 'Trip kit',
+        equipmentIds: const ['e1', 'e2'],
+        items: const [wing, dsmb],
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
+
+      await pump(tester, ['d1', 'd2'], sets: [tripKit]);
+      final useSet = find.descendant(
+        of: editorFor('Equipment'),
+        matching: find.widgetWithText(TextButton, 'Use Set'),
+      );
+      await tester.ensureVisible(useSet);
+      await tester.tap(useSet);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Trip kit'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      final rows = await db.select(db.diveEquipment).get();
+      expect(rows, hasLength(4));
+      expect(rows.map((r) => r.viaSetId).toSet(), {'s1'});
+    });
+
+    // Issue #4284: a set staged for removal is named in the confirmation and
+    // takes off only the gear it brought.
+    testWidgets('remove-set stages a set and takes off what it brought', (
+      tester,
+    ) async {
+      const wing = EquipmentItem(
+        id: 'e1',
+        name: 'Wing',
+        type: EquipmentType.bcd,
+      );
+      const dsmb = EquipmentItem(
+        id: 'e2',
+        name: 'DSMB',
+        type: EquipmentType.smb,
+      );
+      const camera = EquipmentItem(
+        id: 'e3',
+        name: 'Camera',
+        type: EquipmentType.camera,
+      );
+      for (final item in [wing, dsmb, camera]) {
+        await EquipmentRepository().createEquipment(item);
+      }
+      await db.customStatement(
+        'INSERT INTO equipment_sets (id, name, created_at, updated_at) '
+        "VALUES ('s1', 'Trip kit', 0, 0)",
+      );
+      await db.customStatement(
+        'INSERT INTO equipment_set_items (set_id, equipment_id) '
+        "VALUES ('s1', 'e1'), ('s1', 'e2')",
+      );
+      await seedDive('d1');
+      await seedDive('d2');
+      await repository.bulkAddEquipmentSets(['d1', 'd2'], ['s1']);
+      await repository.bulkAddEquipment(['d1', 'd2'], ['e3']);
+      final tripKit = EquipmentSet(
+        id: 's1',
+        name: 'Trip kit',
+        equipmentIds: const ['e1', 'e2'],
+        items: const [wing, dsmb],
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
+
+      await pump(tester, ['d1', 'd2'], sets: [tripKit]);
+      Future<void> stage() async {
+        final removeSet = find.byKey(const ValueKey('bulk-remove-set'));
+        await tester.ensureVisible(removeSet);
+        await tester.tap(removeSet);
+        await tester.pumpAndSettle();
+        expect(find.text('Remove Equipment Set'), findsOneWidget);
+        await tester.tap(find.text('Trip kit'));
+        await tester.pumpAndSettle();
+      }
+
+      final chip = find.byKey(const ValueKey('bulk-staged-set-s1'));
+      await stage();
+      expect(chip, findsOneWidget);
+      // Unstaged again, then staged for good.
+      await tester.ensureVisible(chip);
+      await tester.tap(
+        find.descendant(of: chip, matching: find.byIcon(Icons.close)),
+      );
+      await tester.pumpAndSettle();
+      expect(chip, findsNothing);
+      await stage();
+
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      final dialog = find.byType(AlertDialog);
+      Finder inDialog(String text) =>
+          find.descendant(of: dialog, matching: find.text(text));
+      expect(inDialog('Equipment sets'), findsOneWidget);
+      expect(inDialog('Removing from all 2 dives'), findsOneWidget);
+      expect(inDialog('Trip kit'), findsOneWidget);
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      for (final diveId in ['d1', 'd2']) {
+        final rows = await (db.select(
+          db.diveEquipment,
+        )..where((t) => t.diveId.equals(diveId))).get();
+        expect(rows.map((r) => r.equipmentId), ['e3'], reason: diveId);
+      }
+    });
+
     // Issue #1942 moved the editor to lib/shared; the page still supplies
     // the dive wording, so a row and an empty collection read as before.
     testWidgets('the rows and the empty state keep their dive wording', (
