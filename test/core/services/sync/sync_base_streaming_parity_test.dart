@@ -368,18 +368,26 @@ void main() {
             throw StateError('forced failure');
       }
       final seen = <double>[];
+      // What sits beside the copy while the passes run, not just after: an
+      // expansion deleted at the end would leave the same final listing.
+      final besideDuringApply = <String>{};
       final counts = await svc.debugApplyBaseFile(
         gz.path,
         gzipped: true,
-        onProgress: seen.add,
+        onProgress: (fraction) {
+          seen.add(fraction);
+          besideDuringApply.addAll(tmpDir.listSync().map((e) => e.path));
+        },
       );
 
       expect(await _exportCanonical(), dumpInMemory);
       expect(counts.recordsFailed, 0);
       expect(seen.last, 1.0);
-      expect(tmpDir.listSync().map((e) => e.path), [
+      expect(seen.where((f) => f > 0 && f < 1), isNotEmpty);
+      expect(besideDuringApply, {
         gz.path,
-      ], reason: 'nothing is expanded beside the compressed copy');
+      }, reason: 'nothing is expanded beside the compressed copy');
+      expect(tmpDir.listSync().map((e) => e.path), [gz.path]);
     }
 
     test('through the worker', () => expectParity(inline: false));
@@ -412,9 +420,10 @@ void main() {
             throw StateError('forced failure');
       }
 
+      // A FormatException: the document's own end, or the trailer's size.
       await expectLater(
         svc.debugApplyBaseFile(gz.path, gzipped: true),
-        throwsA(anything),
+        throwsFormatException,
       );
       expect(await _exportCanonical(), empty);
     }
@@ -436,6 +445,10 @@ void main() {
           (whole) => whole.sublist(0, whole.length - 4),
           inline: inline,
         );
+      });
+
+      test('a copy too short to hold a trailer is refused ($via)', () {
+        return expectRefused((whole) => whole.sublist(0, 2), inline: inline);
       });
     }
   });

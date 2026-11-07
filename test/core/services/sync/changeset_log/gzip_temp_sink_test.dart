@@ -138,6 +138,20 @@ void main() {
     await sink.close();
   });
 
+  test('a closed sink refuses more bytes', () async {
+    final sink = await create('closed.gz');
+    await sink.add([1, 2, 3]);
+    await sink.endHead();
+    await sink.add([4, 5, 6]);
+    final path = await sink.close();
+
+    await expectLater(sink.add([7]), throwsStateError);
+    await expectLater(sink.writeAt(0, [9]), throwsStateError);
+    await expectLater(sink.endHead(), throwsStateError);
+    expect(sink.length, 6);
+    expect(gzip.decode(await File(path).readAsBytes()), [1, 2, 3, 4, 5, 6]);
+  });
+
   test('a head can only end once', () async {
     final sink = await create('twice.gz');
     await sink.endHead();

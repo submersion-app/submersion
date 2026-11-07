@@ -58,8 +58,10 @@ void baseParseWorkerMain(List<Object> args) {
   });
 
   final total = File(filePath).lengthSync();
-  // A gzipped file is checked against its trailer's size on every pass.
-  final isize = gzipped ? _trailerSize(filePath, total) : 0;
+  // A gzipped file is checked against its trailer's size on every pass. Read
+  // on first use, inside a pass, so a file too short for a trailer fails
+  // that pass through sendError like any other bad base.
+  late final isize = _trailerSize(filePath, total);
   Stream<List<int>> openWithProgress() {
     final read = withByteProgress(
       File(filePath).openRead(),

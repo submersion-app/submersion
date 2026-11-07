@@ -117,19 +117,37 @@ class NearbyTransferFiles {
     await discardOutgoing(peerId);
     final out = _file('nearby-out', [peerId, id], '.gz');
     await _move(gzFile, out);
-    await _sidecar(peerId).writeAsString(
-      jsonEncode({
-        'id': id,
-        'path': out.path,
-        'createdAt': _now().millisecondsSinceEpoch,
-      }),
-    );
-    return NearbyOutgoing(
-      id: id,
-      kind: 'full',
-      file: out,
-      byteLength: await out.length(),
-    );
+    final sidecar = _sidecar(peerId);
+    try {
+      await sidecar.writeAsString(
+        jsonEncode({
+          'id': id,
+          'path': out.path,
+          'createdAt': _now().millisecondsSinceEpoch,
+        }),
+      );
+      return NearbyOutgoing(
+        id: id,
+        kind: 'full',
+        file: out,
+        byteLength: await out.length(),
+      );
+    } on Object {
+      // Moved in but not remembered (a full disk fails the small record
+      // too): nothing would find the copy again before the stale sweep.
+      await _deleteQuietly(out);
+      await _deleteQuietly(sidecar);
+      rethrow;
+    }
+  }
+
+  /// Removes [file] if it is there, keeping the error being handled.
+  static Future<void> _deleteQuietly(File file) async {
+    try {
+      if (await file.exists()) await file.delete();
+    } on FileSystemException {
+      // The stale sweep reaps it.
+    }
   }
 
   /// The export and this directory share a volume (this one sits inside

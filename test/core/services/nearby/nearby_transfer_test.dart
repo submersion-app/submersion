@@ -74,6 +74,23 @@ void main() {
     expect(await files.reusableFull('peer'), isNull);
   });
 
+  test('a full copy moved in but never remembered is not left behind', () async {
+    final exported = File(p.join(dir.path, 'export.json.gz'))
+      ..writeAsBytesSync(gzip.encode(utf8.encode('{"a":1}')));
+    // A directory in the sidecar's place: the move succeeds, the record fails.
+    final blocker = Directory(p.join(dir.path, 'nearby-out-peer.json'))
+      ..createSync();
+
+    await expectLater(
+      files.prepareFull('peer', 'id', exported),
+      throwsA(isA<FileSystemException>()),
+    );
+
+    expect(dir.listSync().map((e) => e.path), [
+      blocker.path,
+    ], reason: 'nothing would ever find the moved copy again');
+  });
+
   test('a large delta is compressed on a worker', () async {
     final hops = IsolateHops();
     final worker = NearbyTransferFiles(

@@ -66,6 +66,7 @@ class GzipTempSink implements SyncTempSink {
 
   @override
   Future<void> add(List<int> bytes) async {
+    _checkOpen();
     final encoder = _encoder;
     if (encoder == null) {
       _head.addAll(bytes);
@@ -80,6 +81,11 @@ class GzipTempSink implements SyncTempSink {
   /// Ends the head: the bytes added so far stay patchable, and every later
   /// one is compressed on its way to disk.
   Future<void> endHead() async {
+    _checkOpen();
+    return _endHead();
+  }
+
+  Future<void> _endHead() async {
     if (_encoder != null) throw StateError('the head has already ended');
     _reserved = _gzipHeader.length + _storedLength(_head.length);
     await _file.add(Uint8List(_reserved));
@@ -91,6 +97,7 @@ class GzipTempSink implements SyncTempSink {
   /// Overwrites [bytes] at [offset], which must lie within the head.
   @override
   Future<void> writeAt(int offset, List<int> bytes) async {
+    _checkOpen();
     RangeError.checkValueInInterval(offset, 0, _head.length, 'offset');
     RangeError.checkValueInInterval(
       offset + bytes.length,
@@ -108,7 +115,7 @@ class GzipTempSink implements SyncTempSink {
     if (_closing) return path;
     _closing = true;
     try {
-      if (_encoder == null) await endHead();
+      if (_encoder == null) await _endHead();
       _encoder!.close();
       await _drain();
       final crc = _crc32Combine(getCrc32(_head), _bodyCrc, _bodyLength);
@@ -120,11 +127,17 @@ class GzipTempSink implements SyncTempSink {
         );
       }
       await _file.writeAt(0, front);
+      // Inside the try: a failed close is tried once more below, since a
+      // later close of this sink returns at once.
+      return await _file.close();
     } catch (_) {
       await _file.close().catchError((Object _) => path);
       rethrow;
     }
-    return _file.close();
+  }
+
+  void _checkOpen() {
+    if (_closing) throw StateError('the sink is closed');
   }
 
   Future<void> _drain() async {
