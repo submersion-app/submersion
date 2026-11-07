@@ -58,10 +58,14 @@ class TrendBucket {
 
 /// Folds [points] according to [mode], always returning buckets ordered by
 /// date. Input order does not matter.
+///
+/// A weekly bucket starts on [firstWeekday] ([DateTime.weekday] numbering),
+/// the diver's first day of the week (issue #4232).
 List<TrendBucket> aggregate(
   List<TrendDataPoint> points,
-  TrendAggregation mode,
-) {
+  TrendAggregation mode, {
+  int firstWeekday = DateTime.monday,
+}) {
   if (points.isEmpty) return const [];
 
   if (mode == TrendAggregation.none) {
@@ -82,7 +86,7 @@ List<TrendBucket> aggregate(
 
   final grouped = <DateTime, List<double>>{};
   for (final point in points) {
-    final key = _bucketStart(point.date, mode);
+    final key = _bucketStart(point.date, mode, firstWeekday);
     grouped.putIfAbsent(key, () => <double>[]).add(point.value);
   }
 
@@ -109,14 +113,15 @@ List<TrendBucket> aggregate(
       .toList(growable: false);
 }
 
-DateTime _bucketStart(DateTime date, TrendAggregation mode) {
+DateTime _bucketStart(DateTime date, TrendAggregation mode, int firstWeekday) {
   switch (mode) {
     case TrendAggregation.monthly:
       return DateTime.utc(date.year, date.month);
     case TrendAggregation.weekly:
-      final midnight = DateTime.utc(date.year, date.month, date.day);
-      // DateTime.weekday is 1 for Monday through 7 for Sunday.
-      return midnight.subtract(Duration(days: midnight.weekday - 1));
+      // Days back to the week's first day, 0 when the dive falls on it.
+      // DateTime.utc carries a day below 1 into the month before.
+      final daysIntoWeek = (date.weekday - firstWeekday + 7) % 7;
+      return DateTime.utc(date.year, date.month, date.day - daysIntoWeek);
     case TrendAggregation.none:
       return date;
   }

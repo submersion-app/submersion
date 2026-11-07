@@ -44,6 +44,9 @@ class _PlanSetupAccordionState extends ConsumerState<PlanSetupAccordion> {
     final missionOn = ref.watch(
       divePlanNotifierProvider.select((s) => s.mission != null),
     );
+    // A locked plan's sections still open, to read; their fields do not
+    // take input (issue #3565).
+    final locked = ref.watch(planLockedProvider);
 
     // Header-chip deep link. Watched (not just listened) so a pending focus
     // is consumed even when this accordion builds lazily AFTER the request
@@ -147,9 +150,14 @@ class _PlanSetupAccordionState extends ConsumerState<PlanSetupAccordion> {
               tilePadding: const EdgeInsets.symmetric(horizontal: 12),
               childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
               children: [
-                if (settingGroupForSection(key) case final group?)
-                  PlanSettingScopeActions(group),
-                child,
+                if (!locked)
+                  if (settingGroupForSection(key) case final group?)
+                    PlanSettingScopeActions(group),
+                IgnorePointer(
+                  key: ValueKey('planSetupBody_$key'),
+                  ignoring: locked,
+                  child: child,
+                ),
               ],
             ),
           ),

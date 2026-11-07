@@ -128,19 +128,6 @@ final planOutcomeProvider = Provider<PlanOutcome>((ref) {
   );
 });
 
-/// Whether the plan can be converted to a dive: it has segments and the
-/// engine reports no critical issue. This reads the same [planOutcomeProvider]
-/// issues the results pane and status chips show, so the gate never disagrees
-/// with what the diver sees (issue #3094). It judges the live plan, never a
-/// previewed contingency ([activePlanOutcomeProvider]): conversion logs the
-/// live plan, so a contingency's issues must not block or allow it.
-final planIsValidProvider = Provider<bool>((ref) {
-  final hasSegments = ref.watch(
-    divePlanNotifierProvider.select((s) => s.segments.isNotEmpty),
-  );
-  return hasSegments && ref.watch(planOutcomeProvider).isDiveable;
-});
-
 /// The key [loggedAverageSacProvider] averages backmount cylinders under.
 const String _backmountSacKey = 'backmount';
 

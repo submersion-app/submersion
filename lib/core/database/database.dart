@@ -1570,10 +1570,14 @@ class AppDatabase extends _$AppDatabase {
     // dive keeps its own (issue #3565, phase 2). Defaulted columns an older
     // peer omits, so the floor does not move.
     342,
+    // v343: diver_settings.first_day_of_week, the day a week starts on
+    // (issue #4232). A defaulted column an older peer omits, so the floor
+    // does not move.
+    343,
     // v346: equipment.last_service_date moves forward to the item's newest
     // service record where logging an older record had moved it back (issue
     // #4201). Data only, a value every reader already holds, so the floor
-    // does not move. Numbered past 343, which three open PRs claim.
+    // does not move. Numbered past 343 so two open PRs can take 344, 345.
     346,
   ];
 

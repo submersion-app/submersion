@@ -127,6 +127,32 @@ void main() {
       );
 
       expect(all.single.state, SyncDeviceFootprintState.retired);
+      expect(
+        all.single.isRemoved,
+        isFalse,
+        reason: 'its manifest is still there to delete',
+      );
+      expect(all.single.isSafeToRemove, isTrue);
+    });
+
+    // Issue #4219: the marker is kept for good, so a removed device is a
+    // footprint of exactly one file. Offering it for removal again only
+    // rewrote that marker.
+    test('a device with only its retirement marker left is removed', () async {
+      cloud.seedFile(
+        ChangesetLogLayout.retiredMarkerName('gone'),
+        const RetirementMarker(deviceId: 'gone', retiredAt: 5).toBytes(),
+      );
+
+      final all = await footprints.list(
+        provider: cloud,
+        selfDeviceId: 'me',
+        currentEpochId: 'e1',
+      );
+
+      expect(all.single.state, SyncDeviceFootprintState.retired);
+      expect(all.single.isRemoved, isTrue);
+      expect(all.single.isSafeToRemove, isFalse);
     });
 
     test(

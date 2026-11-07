@@ -64,6 +64,11 @@ void main() {
     // day-first preference".
     'lib/features/certifications/presentation/widgets/certification_ecard_front.dart':
         'card face imitates the physical card',
+    // Not a caller: it forwards every MaterialLocalizations member, the date
+    // formatters included, to the localizations it wraps and changes only
+    // the first day of the week (issue #4232). It renders nothing itself.
+    'lib/core/presentation/localizations/week_start_material_localizations.dart':
+        'forwards MaterialLocalizations, renders nothing',
   };
 
   /// A named constructor is ambiguous when it carries a day, or a month

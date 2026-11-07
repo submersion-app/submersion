@@ -14,7 +14,8 @@ import 'package:submersion/features/planner/presentation/widgets/logged/logged_d
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// What the logged dive in view passes on to the dive after it (issue
-/// #3565): the next logged dive, else the first planned one. The surface
+/// #3565): the next logged dive, else the first planned one; for a dive of
+/// the series that has been dived, the dive after it. The surface
 /// interval before it, the CNS and OTU it leaves, and each tank's end
 /// pressure.
 class LoggedDiveCarryCard extends ConsumerWidget {
@@ -25,7 +26,18 @@ class LoggedDiveCarryCard extends ConsumerWidget {
     final logged = ref.watch(viewedLoggedDiveProvider);
     final series = ref.watch(planSeriesNotifierProvider);
     final follow = series.follow;
-    if (logged == null || follow == null) return const SizedBox.shrink();
+    if (logged == null) return const SizedBox.shrink();
+    // A followed dive, else the selected dive of the series, dived.
+    final index = follow?.loggedDives.indexOf(logged) ?? -1;
+    final nextPlanned = index < 0
+        ? series.selectedIndex + 1
+        : index == follow!.loggedDives.length - 1
+        ? 0
+        : null;
+    // The last dive of the series passes nothing on.
+    if (nextPlanned != null && nextPlanned >= series.dives.length) {
+      return const SizedBox.shrink();
+    }
 
     final l10n = context.l10n;
     final theme = Theme.of(context);
@@ -36,19 +48,19 @@ class LoggedDiveCarryCard extends ConsumerWidget {
     // reload lands.
     final analysis = ref.watch(profileAnalysisProvider(logged.id)).value;
 
-    final index = follow.loggedDives.indexOf(logged);
     final String nextLabel;
     final Duration interval;
-    if (index == follow.loggedDives.length - 1) {
-      final first = series.dives.first;
-      nextLabel = first.name ?? l10n.plannerSeries_dive(seriesDiveLetter(0));
-      // As the series settles it: a fixed start's interval follows the
-      // followed dive's end, which Dive A's own copy only learns when it is
-      // next selected.
-      final settled = ref.watch(planSeriesResultsProvider).first.state;
+    if (nextPlanned != null) {
+      final next = series.dives[nextPlanned];
+      nextLabel =
+          next.name ?? l10n.plannerSeries_dive(seriesDiveLetter(nextPlanned));
+      // As the series settles it: a fixed start's interval follows the end
+      // of the dive before it, which the dive's own copy only learns when
+      // it is next selected.
+      final settled = ref.watch(planSeriesResultsProvider)[nextPlanned].state;
       interval = settled.surfaceInterval ?? defaultSeriesSurfaceInterval;
     } else {
-      final next = follow.loggedDives[index + 1];
+      final next = follow!.loggedDives[index + 1];
       nextLabel = seriesLoggedDiveLabel(next, units);
       interval = loggedSurfaceInterval(logged, next);
     }

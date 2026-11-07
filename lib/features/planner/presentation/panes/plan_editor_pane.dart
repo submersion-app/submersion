@@ -11,6 +11,7 @@ import 'package:submersion/features/planner/presentation/providers/planner_layou
 import 'package:submersion/features/planner/presentation/widgets/plan_kit.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_dive_details_card.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_logged_dive_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/logged/logged_dive_details_card.dart';
 import 'package:submersion/features/planner/presentation/widgets/logged/logged_dive_tanks_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -59,11 +60,11 @@ class _PlanEditorPaneState extends ConsumerState<PlanEditorPane> {
       divePlanNotifierProvider.select((s) => s.mission != null),
     );
 
-    // A logged dive picked in the series bar: its details and tanks
-    // read-only, and the segments of the plan it was dived from, if any
-    // (issue #3565). It has no plan settings of its own.
+    // A logged dive, followed or a dived dive of the series: its details and
+    // tanks read-only (issue #3565). What happened has no segments; a plan's
+    // are in its Plan view, or Compare. It has no plan settings of its own.
     if (ref.watch(viewingLoggedDiveProvider)) {
-      final plan = ref.watch(viewedLoggedDivePlanStateProvider);
+      final planned = ref.watch(viewedLoggedDivePlanProvider) != null;
       return ListView(
         controller: _scrollController,
         padding: const EdgeInsets.all(12),
@@ -71,9 +72,7 @@ class _PlanEditorPaneState extends ConsumerState<PlanEditorPane> {
           const LoggedDiveDetailsCard(),
           const LoggedDiveTanksCard(),
           const SizedBox(height: 12),
-          if (plan != null)
-            SegmentList(plan: plan)
-          else
+          if (!planned)
             Padding(
               key: const Key('loggedDiveNotPlanned'),
               padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -88,15 +87,24 @@ class _PlanEditorPaneState extends ConsumerState<PlanEditorPane> {
       );
     }
 
+    // A plan whose dive has been dived is locked (issue #3565): it scrolls
+    // and its settings open, but nothing in it takes input.
+    final locked = ref.watch(planLockedProvider);
     return ListView(
       controller: _scrollController,
       padding: const EdgeInsets.all(12),
       children: [
+        // Locks itself, keeping its link to the dive open.
         const PlanDiveDetailsCard(),
-        const PlanTankList(),
+        IgnorePointer(ignoring: locked, child: const PlanTankList()),
         const SizedBox(height: 12),
-        const MissionToggleRow(),
-        if (missionOn) const MissionLegList() else const SegmentList(),
+        if (!locked) const MissionToggleRow(),
+        if (missionOn)
+          IgnorePointer(ignoring: locked, child: const MissionLegList())
+        else if (locked)
+          SegmentList(plan: ref.watch(divePlanNotifierProvider))
+        else
+          const SegmentList(),
         const SizedBox(height: 12),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4),

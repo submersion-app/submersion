@@ -10973,9 +10973,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get divePlanner_action_addTank => 'Add Tank';
 
   @override
-  String get divePlanner_action_convertToDive => 'Convert to Dive';
-
-  @override
   String get divePlanner_action_deletePlan => 'Delete plan';
 
   @override
@@ -20651,9 +20648,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerCanvas_contingency_turnRule => 'Turn pressure rule';
 
   @override
-  String get plannerCanvas_convert_success => 'Dive created from plan';
-
-  @override
   String get plannerCanvas_convert_view => 'View';
 
   @override
@@ -20731,6 +20725,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get plannerSeries_openInLog => 'Open in dive log';
+
+  @override
+  String get plannerSeries_view_actual => 'Actual';
+
+  @override
+  String get plannerSeries_view_plan => 'Plan';
+
+  @override
+  String plannerSeries_saved_divedCount(int dived, int count) {
+    return '$dived of $count dived';
+  }
 
   @override
   String get plannerSeries_stopFollowing => 'Stop following';
@@ -20884,8 +20889,74 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerSeries_fillAll => 'Fill all tanks';
 
   @override
-  String get plannerSeries_convertUnavailable =>
-      'A series of dives can\'t be converted to logged dives yet';
+  String get plannerSeries_createPlannedDive => 'Create planned dive';
+
+  @override
+  String get plannerSeries_createPlannedDives => 'Create planned dives';
+
+  @override
+  String get plannerSeries_updatePlannedDive => 'Update planned dive';
+
+  @override
+  String get plannerSeries_updatePlannedDives => 'Update planned dives';
+
+  @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return '$dive has a critical warning, so the planned dives weren\'t updated';
+  }
+
+  @override
+  String plannerSeries_cannotUpdateEmpty(String dive) {
+    return '$dive has no segments, so the planned dives weren\'t updated';
+  }
+
+  @override
+  String get plannerSeries_cannotUpdateEmptyPlan =>
+      'This plan has no segments, so it wasn\'t written to the log';
+
+  @override
+  String plannerSeries_created(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count planned dives added to the log',
+      one: '$count planned dive added to the log',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerSeries_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count planned dives updated in the log',
+      one: '$count planned dive updated in the log',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_title => 'Delete from the log?';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count planned dives no longer in this series are still in the log.',
+      one: '$count planned dive no longer in this series is still in the log.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'Keep';
+
+  @override
+  String get plannerSeries_allDived =>
+      'Every dive in this plan has been dived, so there\'s nothing to update';
 
   @override
   String get plannerSeries_missionUnavailable =>
@@ -25620,6 +25691,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_timeFormat => 'Time format';
 
   @override
+  String get settings_conflict_field_firstDayOfWeek => 'First day of week';
+
+  @override
   String get settings_conflict_field_timeOffsetSeconds => 'Time offset';
 
   @override
@@ -29085,10 +29159,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_units_dialog_weightUnit => 'Weight Unit';
 
   @override
-  String get settings_units_header_individualUnits => 'Individual Units';
+  String get settings_units_header_gasPlanning => 'Gas & Planning';
 
   @override
-  String get settings_units_header_timeDateFormat => 'Time & Date Format';
+  String get settings_units_header_displayFormats => 'Display & Formats';
+
+  @override
+  String get settings_units_appliesTo => 'Applies to the following units';
+
+  @override
+  String get settings_units_gasConsumption_unitHint =>
+      'Unit follows pressure and volume';
+
+  @override
+  String get settings_units_firstDayOfWeek => 'First day of week';
+
+  @override
+  String get settings_units_dialog_firstDayOfWeek => 'First Day of Week';
+
+  @override
+  String get settings_units_firstDayOfWeek_auto => 'Automatic';
+
+  @override
+  String settings_units_firstDayOfWeek_autoResolved(String day) {
+    return 'Automatic ($day)';
+  }
+
+  @override
+  String get settings_units_firstDayOfWeek_auto_subtitle =>
+      'Follows your device\'s region';
+
+  @override
+  String get settings_units_header_timeDateFormat => 'Time & Date';
 
   @override
   String get settings_units_header_unitSystem => 'Unit System';
@@ -40479,6 +40581,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Awaiting dive computer data. Mark it as logged if you dived without one.';
 
   @override
+  String get diveLog_planned_openInPlanner => 'Open in planner';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'View in planner';
+
+  @override
   String get diveLog_detail_menu_markLogged => 'Mark as logged';
 
   @override
@@ -50016,6 +50124,19 @@ class AppLocalizationsEn extends AppLocalizations {
       other:
           '$count left over from a replaced or retired library, holding $size.',
       one: '1 left over from a replaced or retired library, holding $size.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_syncDevices_summary_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count removed devices are remembered so they cannot bring back deleted data.',
+      one:
+          '$count removed device is remembered so it cannot bring back deleted data.',
     );
     return '$_temp0';
   }

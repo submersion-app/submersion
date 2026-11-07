@@ -11142,9 +11142,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get divePlanner_action_addTank => 'Flasche hinzufügen';
 
   @override
-  String get divePlanner_action_convertToDive => 'In Tauchgang umwandeln';
-
-  @override
   String get divePlanner_action_deletePlan => 'Plan löschen';
 
   @override
@@ -20940,9 +20937,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannerCanvas_contingency_turnRule => 'Umkehrdruck-Regel';
 
   @override
-  String get plannerCanvas_convert_success => 'Tauchgang aus Plan erstellt';
-
-  @override
   String get plannerCanvas_convert_view => 'Anzeigen';
 
   @override
@@ -21020,6 +21014,17 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get plannerSeries_openInLog => 'Im Logbuch öffnen';
+
+  @override
+  String get plannerSeries_view_actual => 'Tatsächlich';
+
+  @override
+  String get plannerSeries_view_plan => 'Plan';
+
+  @override
+  String plannerSeries_saved_divedCount(int dived, int count) {
+    return '$dived von $count getaucht';
+  }
 
   @override
   String get plannerSeries_stopFollowing => 'Nicht mehr folgen';
@@ -21173,8 +21178,78 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannerSeries_fillAll => 'Alle Flaschen füllen';
 
   @override
-  String get plannerSeries_convertUnavailable =>
-      'Eine Tauchgangsserie kann noch nicht in geloggte Tauchgänge umgewandelt werden';
+  String get plannerSeries_createPlannedDive => 'Geplanten Tauchgang erstellen';
+
+  @override
+  String get plannerSeries_createPlannedDives =>
+      'Geplante Tauchgänge erstellen';
+
+  @override
+  String get plannerSeries_updatePlannedDive =>
+      'Geplanten Tauchgang aktualisieren';
+
+  @override
+  String get plannerSeries_updatePlannedDives =>
+      'Geplante Tauchgänge aktualisieren';
+
+  @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return '$dive hat eine kritische Warnung, daher wurden die geplanten Tauchgänge nicht aktualisiert';
+  }
+
+  @override
+  String plannerSeries_cannotUpdateEmpty(String dive) {
+    return '$dive hat keine Segmente, daher wurden die geplanten Tauchgänge nicht aktualisiert';
+  }
+
+  @override
+  String get plannerSeries_cannotUpdateEmptyPlan =>
+      'Dieser Plan hat keine Segmente und wurde daher nicht ins Logbuch geschrieben';
+
+  @override
+  String plannerSeries_created(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count geplante Tauchgänge zum Logbuch hinzugefügt',
+      one: '$count geplanter Tauchgang zum Logbuch hinzugefügt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerSeries_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count geplante Tauchgänge im Logbuch aktualisiert',
+      one: '$count geplanter Tauchgang im Logbuch aktualisiert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_title => 'Aus dem Logbuch löschen?';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count geplante Tauchgänge, die nicht mehr zu dieser Serie gehören, sind noch im Logbuch.',
+      one:
+          '$count geplanter Tauchgang, der nicht mehr zu dieser Serie gehört, ist noch im Logbuch.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'Behalten';
+
+  @override
+  String get plannerSeries_allDived =>
+      'Alle Tauchgänge dieses Plans wurden bereits getaucht, es gibt nichts zu aktualisieren';
 
   @override
   String get plannerSeries_missionUnavailable =>
@@ -26013,6 +26088,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_field_timeFormat => 'Zeitformat';
 
   @override
+  String get settings_conflict_field_firstDayOfWeek => 'Erster Wochentag';
+
+  @override
   String get settings_conflict_field_timeOffsetSeconds => 'Zeitversatz';
 
   @override
@@ -29521,10 +29599,38 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_units_dialog_weightUnit => 'Gewichtseinheit';
 
   @override
-  String get settings_units_header_individualUnits => 'Einzelne Einheiten';
+  String get settings_units_header_gasPlanning => 'Gas & Planung';
 
   @override
-  String get settings_units_header_timeDateFormat => 'Zeit- & Datumsformat';
+  String get settings_units_header_displayFormats => 'Anzeige & Formate';
+
+  @override
+  String get settings_units_appliesTo => 'Gilt für die folgenden Einheiten';
+
+  @override
+  String get settings_units_gasConsumption_unitHint =>
+      'Einheit folgt Druck und Volumen';
+
+  @override
+  String get settings_units_firstDayOfWeek => 'Erster Wochentag';
+
+  @override
+  String get settings_units_dialog_firstDayOfWeek => 'Erster Wochentag';
+
+  @override
+  String get settings_units_firstDayOfWeek_auto => 'Automatisch';
+
+  @override
+  String settings_units_firstDayOfWeek_autoResolved(String day) {
+    return 'Automatisch ($day)';
+  }
+
+  @override
+  String get settings_units_firstDayOfWeek_auto_subtitle =>
+      'Folgt der Region des Geräts';
+
+  @override
+  String get settings_units_header_timeDateFormat => 'Zeit & Datum';
 
   @override
   String get settings_units_header_unitSystem => 'Einheitensystem';
@@ -41081,6 +41187,12 @@ class AppLocalizationsDe extends AppLocalizations {
       'Wartet auf Tauchcomputerdaten. Als protokolliert markieren, wenn du ohne Computer getaucht bist.';
 
   @override
+  String get diveLog_planned_openInPlanner => 'Im Planer öffnen';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'Im Planer ansehen';
+
+  @override
   String get diveLog_detail_menu_markLogged => 'Als protokolliert markieren';
 
   @override
@@ -50673,6 +50785,19 @@ class AppLocalizationsDe extends AppLocalizations {
           '$count Reste ersetzter oder ausgemusterter Bibliotheken, belegen $size.',
       one:
           '1 Rest einer ersetzten oder ausgemusterten Bibliothek, belegt $size.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_syncDevices_summary_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count entfernte Geräte bleiben vermerkt, damit sie keine gelöschten Daten zurückbringen können.',
+      one:
+          '$count entferntes Gerät bleibt vermerkt, damit es keine gelöschten Daten zurückbringen kann.',
     );
     return '$_temp0';
   }

@@ -2,6 +2,7 @@ import 'package:xml/xml.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
+import 'package:submersion/core/services/export/uddf/uddf_partial_pressure.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// A rebreather dive's settings and per-sample oxygen data in UDDF, shared by
@@ -9,8 +10,9 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 ///
 /// UDDF reads a cell reading as a `<measuredpo2 ref>` naming an `<o2sensor>`
 /// the owner's `<rebreather>` declares, so the cells are declared once per
-/// document and every waypoint names them. Values are in bar, as the setpoint
-/// and loop ppO2 always were; the importer tells bar from Pascal by size.
+/// document and every waypoint names them. Every partial pressure is in
+/// Pascal, as UDDF defines it (issue #4198); the importer still reads the bar
+/// older Submersion files hold, telling the two apart by size.
 abstract final class UddfRebreatherWriters {
   /// The id the owner's `<rebreather>` is declared under.
   static const rebreatherId = 'o2cells';
@@ -76,23 +78,25 @@ abstract final class UddfRebreatherWriters {
 
   /// [point]'s oxygen data, inside its `<waypoint>`.
   ///
-  /// `<setpoint>` and a bare `<ppo2>` are the names Submersion has always
-  /// written for the setpoint and the loop's ppO2. Each cell's millivolts go
-  /// in a `<measuredmillivolts ref>`, Submersion's own element: UDDF has none.
+  /// The setpoint goes in `<setpo2>` and the loop's ppO2 in `<calculatedpo2>`,
+  /// the UDDF names, which every Submersion build since v1.7.3 reads. Builds
+  /// before then read only `<setpoint>` and a bare `<ppo2>`, and in bar, so
+  /// no name would let them read a Pascal value. Each cell's millivolts go in
+  /// a `<measuredmillivolts ref>`, Submersion's own element: UDDF has none.
   static void writeSample(XmlBuilder builder, DiveProfilePoint point) {
-    if (point.setpoint case final setpoint?) {
-      builder.element('setpoint', nest: setpoint.toString());
+    if (UddfPartialPressure.pascalText(point.setpoint) case final setpoint?) {
+      builder.element('setpo2', nest: setpoint);
     }
-    if (point.ppO2 case final ppO2?) {
-      builder.element('ppo2', nest: ppO2.toString());
+    if (UddfPartialPressure.pascalText(point.ppO2) case final ppO2?) {
+      builder.element('calculatedpo2', nest: ppO2);
     }
     const max = UddfImportParsers.maxO2Sensors;
     for (var i = 0; i < max; i++) {
-      if (_cell(point, i) case final value?) {
+      if (UddfPartialPressure.pascalText(_cell(point, i)) case final value?) {
         builder.element(
           'measuredpo2',
           attributes: {'ref': cellRef(i)},
-          nest: value.toString(),
+          nest: value,
         );
       }
     }

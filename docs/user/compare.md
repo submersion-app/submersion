@@ -52,10 +52,10 @@ Tap a what-if's column heading to open it on the Compare page.
 A plan links to one dive, and a dive to one plan. There are three ways to make
 the link.
 
-### Convert to Dive, before you go
+### Create planned dives, before you go
 
-In the planner, **Convert to Dive** puts a planned dive in your log, linked to
-the plan. Its Compare section reads **Waiting for the dive** until the real dive
+In the planner, **Create planned dives** puts a planned dive in your log for
+each dive of the plan, each linked to its own dive of the plan. Its Compare section reads **Waiting for the dive** until the real dive
 arrives.
 
 ### Download the dive
@@ -80,8 +80,9 @@ day at the top if the plan has a date.
 
 You are asked to confirm before a link moves off another dive, or before a dive
 gives up the plan it has. The plan that gives up the dive loses its link.
-**Convert to Dive** on a plan that is already linked asks too, because the new
-planned dive takes the link.
+**Create planned dive** on a single plan that is already linked to a dive you
+have dived asks too, because the new planned dive takes the link. A dive of a
+series that you have dived keeps its link.
 
 To remove a link, choose **Unlink plan** on the Compare page or **Unlink dive**
 on the plan. You are asked first. The plan and the dive both stay.

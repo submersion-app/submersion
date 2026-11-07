@@ -34,13 +34,15 @@ Open **Settings > Appearance**. The first group holds the settings that change t
 
 You chose metric or imperial units when you first set up Submersion. To change them, open **Settings > Units**.
 
-![Settings > Units with Quick Select (Metric, Imperial, Custom) and the Individual Units list](images/how-to/customize-display/03-units.png)
+![Settings > Units with Quick Select (Metric, Imperial, Custom) and the seven units it sets in the same card](images/how-to/customize-display/03-units.png)
 
-**Switch everything at once.** Under **Quick Select**, tap **Metric** or **Imperial**. Depth, temperature, pressure, volume, weight, altitude and distance all change together.
+**Switch everything at once.** Under **Quick Select**, tap **Metric** or **Imperial**. The seven units listed below it in the same card (depth, temperature, pressure, volume, weight, altitude and distance) all change together. Nothing else on the page changes with them.
 
-**Mix and match.** Under **Individual Units**, tap a unit to pick it on its own. For example, keep metres for depth but use **PSI** for tank pressure. **Quick Select** then shows **Custom** by itself; tapping **Custom** does nothing on its own.
+**Mix and match.** In the same card, tap a unit to pick it on its own. For example, keep metres for depth but use **PSI** for tank pressure. **Quick Select** then shows **Custom** by itself; tapping **Custom** does nothing on its own.
 
-**Set the time and date format.** Under **Time & Date Format**, tap **Time Format** to choose **12-hour** or **24-hour**, and **Date Format** to choose how dates are written. Each choice shows an example.
+**Set the time and date format.** Under **Time & Date**, tap **Time Format** to choose **12-hour** or **24-hour**, and **Date Format** to choose how dates are written. Each choice shows an example.
+
+**Choose the first day of the week.** Under **Time & Date**, tap **First day of week** and choose **Monday**, **Sunday** or **Saturday**. **Automatic** follows your device's region and shows the day it picked. The choice orders the **Dives by Day of Week** chart, the weekday filter of the dive list and the calendars of the date pickers, and sets where a week starts when a trend chart groups dives by week.
 
 ## 3. The Dashboard
 

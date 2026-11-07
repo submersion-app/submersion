@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/presentation/localizations/week_start_material_localizations.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -121,6 +122,42 @@ void main() {
       expectOpened(
         tester,
         'Dives by Day of Week: ${chart.data[6].label}',
+        condition('weekday', QueryOp.eq, const EnumValue('saturday')),
+      );
+    });
+
+    testWidgets('a Monday-first week still opens the tapped day (#4232)', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        Builder(
+          builder: (context) => Localizations.override(
+            context: context,
+            delegates: const [
+              WeekStartMaterialLocalizationsDelegate(DateTime.monday),
+            ],
+            child: const InsightsTimePatternsPage(embedded: true),
+          ),
+        ),
+        overrides(),
+      );
+
+      final chart = tester.widget<CategoryBarChart>(
+        inCard('Dives by Day of Week', find.byType(CategoryBarChart)),
+      );
+      expect(
+        [for (final bar in chart.data) bar.label],
+        ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      );
+      // Saturday's 142 dives moved from the last bar to the sixth.
+      expect(chart.data[5].count, 142);
+      await chart.onOpenBar!(5);
+      await tester.pumpAndSettle();
+
+      expectOpened(
+        tester,
+        'Dives by Day of Week: Sat',
         condition('weekday', QueryOp.eq, const EnumValue('saturday')),
       );
     });
