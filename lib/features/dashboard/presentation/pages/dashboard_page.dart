@@ -44,11 +44,12 @@ class DashboardPage extends ConsumerWidget {
       settingsProvider.select((s) => s.hiddenHomeCards),
     );
 
-    // A hidden card's provider is not watched at all, so its reads never run
-    // (issue #4251): On This Day reads dives, and hiding the card has to
-    // spare Home that work. Null stands for "hidden, never loaded"; [show]
-    // reads it as no content. The gauge strip stays watched, since a live
-    // alert brings it back when hidden.
+    // A hidden card's provider is not watched here (issue #4251): On This Day
+    // reads dives, and hiding the card has to spare Home that work. Null
+    // stands for "hidden, never loaded"; [show] reads it as no content. The
+    // gauge strip stays watched, since a live alert brings it back when
+    // hidden, and its course chip reads the active courses itself, so hiding
+    // the Active Courses card saves no read.
     AsyncValue<T>? watchUnlessHidden<T>(
       HomeCardType card,
       ProviderListenable<AsyncValue<T>> provider,
