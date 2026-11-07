@@ -13,8 +13,12 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Each row represents a tissue compartment (fast tissues at top, slow at
 /// bottom). Each column represents a time point. Color encodes the tissue
 /// loading relative to ambient pressure using Subsurface's two-phase scale:
-/// - Below ambient (ongassing): cyan -> blue -> purple -> black
-/// - Above ambient (offgassing): green -> yellow -> orange -> red
+/// - Undersaturated (below ambient): cyan -> blue -> purple -> black
+/// - Supersaturated (above ambient): green -> yellow -> orange -> red
+///
+/// The halves say nothing about which way gas moves: a compartment between
+/// the inspired and the ambient pressure is undersaturated yet already
+/// offgassing. Direction is the badges' job (see `DecoStatus.n2Exchange`).
 class TissueHeatMap extends StatelessWidget {
   /// Full time-series of decompression statuses across the dive
   final List<DecoStatus> decoStatuses;
@@ -64,10 +68,6 @@ class TissueHeatMap extends StatelessWidget {
                       colorScheme: colorScheme,
                       textTheme: textTheme,
                       colorFn: colorFn,
-                      leftLabel:
-                          context.l10n.diveLog_deco_heatMapUndersaturated,
-                      rightLabel:
-                          context.l10n.diveLog_deco_heatMapSupersaturated,
                     ),
                   ),
                 ),
@@ -306,10 +306,15 @@ class _TissueHeatMapStripState extends State<TissueHeatMapStrip> {
   }
 }
 
-/// Small legend showing the Subsurface heat map color scale.
+/// Small legend showing the Subsurface heat map color scale: the cool,
+/// undersaturated half (below ambient) at the start, the warm,
+/// supersaturated half (above ambient) at the end.
 ///
-/// Shows the two-phase color gradient: cool colors (ongassing) on the left,
-/// warm colors (offgassing) on the right, with the ambient boundary marked.
+/// The legend names the halves itself, in the standard deco terms (issue
+/// #4228). The scale is measured against AMBIENT pressure, so it must not
+/// borrow "Ongassing"/"Offgassing": those are measured against the inspired
+/// gas, and a compartment between the two pressures is undersaturated yet
+/// already offgassing, which would contradict the compartment badges.
 class TissueHeatMapLegend extends StatelessWidget {
   final ColorScheme colorScheme;
   final TextTheme textTheme;
@@ -317,23 +322,17 @@ class TissueHeatMapLegend extends StatelessWidget {
   /// Color function mapping tissue loading percentage to a color.
   final TissueColorFn colorFn;
 
-  /// Label displayed on the left (low-loading) end of the gradient.
-  final String leftLabel;
-
-  /// Label displayed on the right (high-loading) end of the gradient.
-  final String rightLabel;
-
   const TissueHeatMapLegend({
     super.key,
     required this.colorScheme,
     required this.textTheme,
     required this.colorFn,
-    required this.leftLabel,
-    required this.rightLabel,
   });
 
   @override
   Widget build(BuildContext context) {
+    final leftLabel = context.l10n.diveLog_deco_heatMapUndersaturated;
+    final rightLabel = context.l10n.diveLog_deco_heatMapSupersaturated;
     // Sample the color scale at many points to build a smooth gradient
     final colors = <Color>[];
     for (int i = 0; i <= 20; i++) {

@@ -346,8 +346,6 @@ void main() {
       // the two halves undersaturated / supersaturated instead of borrowing
       // the badges' "Ongassing"/"Offgassing", which are measured against the
       // inspired pressure.
-      expect(find.text('Undersaturated'), findsOneWidget);
-      expect(find.text('Supersaturated'), findsOneWidget);
       expect(
         find.text(l10n.diveLog_deco_heatMapUndersaturated),
         findsOneWidget,

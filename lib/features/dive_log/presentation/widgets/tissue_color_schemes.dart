@@ -106,12 +106,16 @@ Color thermalColor(double percentage) {
 /// `profile-widget/divepercentageitem.cpp`. Uses full-saturation HSV colors.
 ///
 /// Color mapping (for air, inert fraction = air N2 fraction):
-/// - 0 to ~31.6:    Cyan -> Blue -> Purple  (tissue far below ambient)
+/// Below 50 the tissue is undersaturated (below ambient), from 50 up
+/// supersaturated (above ambient). The halves do not say which way gas
+/// moves: that is measured against the inspired gas, not ambient.
+///
+/// - 0 to ~31.6:    Cyan -> Blue -> Purple  (undersaturated, far below ambient)
 /// - ~31.6 to ~39.5: Magenta -> Black        (tissue near inspired gas pressure)
 /// - ~39.5 to 50:    Black -> Green           (tissue between inspired and ambient)
-/// - 50 to 65:       Green -> Yellow-green    (offgassing, 0-30% GF to M-value)
-/// - 65 to 85:       Yellow-green -> Orange   (offgassing, 30-70% GF)
-/// - 85 to 100:      Orange -> Red            (offgassing, 70-100% GF)
+/// - 50 to 65:       Green -> Yellow-green    (supersaturated, 0-30% GF to M-value)
+/// - 65 to 85:       Yellow-green -> Orange   (supersaturated, 30-70% GF)
+/// - 85 to 100:      Orange -> Red            (supersaturated, 70-100% GF)
 /// - 100 to 120:     Red -> White             (M-value exceeded)
 /// - 120+:           White
 Color subsurfaceHeatColor(

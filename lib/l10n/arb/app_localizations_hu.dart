@@ -7564,7 +7564,7 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_heatMapUndersaturated => 'Telítetlen';
+  String get diveLog_deco_heatMapUndersaturated => 'Alultelített';
 
   @override
   String get diveLog_deco_heatMapSupersaturated => 'Túltelített';

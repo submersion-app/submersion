@@ -246,19 +246,11 @@ class _CompactTissueLoadingCardState
         // Trailing end, so it follows the text direction (left in RTL).
         Align(
           alignment: AlignmentDirectional.centerEnd,
-          // The heat map colors each compartment against the AMBIENT
-          // pressure, not the gas breathed: below it a compartment is
-          // undersaturated, above it supersaturated (the halves of the
-          // scale in tissue_color_schemes.dart). The legend uses those deco
-          // terms rather than the badges' "Ongassing"/"Offgassing", which
-          // are measured against the inspired pressure and would contradict
-          // it.
+          // Names its halves itself; see TissueHeatMapLegend for why.
           child: TissueHeatMapLegend(
             colorScheme: colorScheme,
             textTheme: textTheme,
             colorFn: colorFn,
-            leftLabel: l10n.diveLog_deco_heatMapUndersaturated,
-            rightLabel: l10n.diveLog_deco_heatMapSupersaturated,
           ),
         ),
         const SizedBox(height: 4),
