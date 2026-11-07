@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/bulk_edit/bulk_membership_editor.dart';
 
 /// One equipment set staged in a bulk edit (#4284).
 typedef BulkStagedSet = ({String id, String name});
@@ -19,6 +20,20 @@ Map<String, String> withSetItems(
   for (final id in itemIds)
     if (!setOf.containsKey(id)) id: setId,
 };
+
+/// The gear a bulk edit adds: the [delta]'s adds, and every item a set
+/// switched on ([setOf]) that the diver has not switched off again. An item
+/// already on every dive makes no add of its own, but a set removed in the
+/// same edit may take it off first, so the set that was used puts it back
+/// (#4284, the "Remove Set A, Use Set B" swap).
+List<String> equipmentAddIds(
+  MembershipDelta delta,
+  Map<String, String> setOf,
+) => [
+  ...delta.addIds,
+  for (final id in setOf.keys)
+    if (!delta.addIds.contains(id) && !delta.removeIds.contains(id)) id,
+];
 
 /// The gear adds of a bulk edit: an item a set switched on is added through
 /// that set, so it carries the set as it would on the dive edit page; an

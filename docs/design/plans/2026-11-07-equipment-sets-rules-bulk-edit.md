@@ -78,8 +78,12 @@ the real writes and rolls them back, so it gets the same answer.
     removing.
   - The new pieces live in their own widget file; the page is already far
     past the size limit.
-  - Known limit: "Use set" on an item every selected dive already has
-    produces no add for it, so it is not marked. Marking needs a change.
+  - Every item a set switched on, and the diver has not switched off
+    again, is added through that set, even one every selected dive already
+    has: a set removed in the same edit may take it off first, and the
+    swap "Remove Set A, Use Set B" must keep the gear the two share.
+  - The set rows for rules leave out wishlist members, as the set picker
+    does (#2025).
 
 ## Strings and docs
 

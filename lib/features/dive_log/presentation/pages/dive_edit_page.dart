@@ -2103,7 +2103,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         ),
       );
     }
-    ops.addAll(equipmentAddOps(_equipmentDelta.addIds, _equipmentSetOf));
+    ops.addAll(
+      equipmentAddOps(
+        equipmentAddIds(_equipmentDelta, _equipmentSetOf),
+        _equipmentSetOf,
+      ),
+    );
     if (_equipmentDelta.removeIds.isNotEmpty) {
       ops.add(
         EquipmentOp(
@@ -4881,6 +4886,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   Future<void> _bulkRemoveEquipmentSet() async {
     final set = await pickEquipmentSetToRemove(context);
     if (set == null || !mounted) return;
+    // A staged removal is an unsaved change: leaving warns about it.
+    _markDirty();
     setState(
       () => _equipmentSetRemovals = withStagedSet(_equipmentSetRemovals, set),
     );

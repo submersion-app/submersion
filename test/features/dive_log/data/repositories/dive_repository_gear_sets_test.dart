@@ -134,6 +134,37 @@ void main() {
       expect(await updatedAtOf('a'), stamp);
     });
 
+    test('a member on the wishlist stays off the dive (#2025)', () async {
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: 'wish',
+              name: 'wish',
+              type: 'computer',
+              createdAt: 1,
+              updatedAt: 1,
+              diverId: const Value('d1'),
+              status: const Value('wanted'),
+            ),
+          );
+      await db
+          .into(db.equipmentSetItems)
+          .insert(
+            EquipmentSetItemsCompanion.insert(
+              setId: 'warm',
+              equipmentId: 'wish',
+            ),
+          );
+
+      await repo.bulkAddEquipmentSets(['a'], ['warm']);
+
+      expect(
+        (await rowsOf('a')).keys,
+        unorderedEquals(['reg', 'first', 'bcd']),
+      );
+    });
+
     test('an empty set or no set changes nothing', () async {
       expect(await repo.bulkAddEquipmentSets(['a'], ['empty']), isEmpty);
       expect(await repo.bulkAddEquipmentSets(['a'], const []), isEmpty);

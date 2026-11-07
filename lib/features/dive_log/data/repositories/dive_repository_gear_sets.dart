@@ -5,15 +5,24 @@ part of 'dive_repository_impl.dart';
 /// page, so a set can later be taken off by what it brought.
 extension DiveGearSets on DiveRepository {
   /// Each set's equipment ids, in [setIds] order. A set that has gone, or
-  /// has no items, gives none.
+  /// has no items, gives none. A member on the wishlist stays in the set but
+  /// never goes on a dive (#2025), as the set picker leaves it out too.
   Future<List<({String setId, List<String> equipmentIds})>> _setItems(
     List<String> setIds,
   ) async {
     if (setIds.isEmpty) return const [];
+    final items = _db.equipmentSetItems;
+    final gear = _db.equipment;
     final rows =
-        await (_db.select(_db.equipmentSetItems)
-              ..where((t) => t.setId.isIn(setIds))
-              ..orderBy([(t) => OrderingTerm.asc(t.equipmentId)]))
+        await (_db.select(items).join([
+                innerJoin(gear, gear.id.equalsExp(items.equipmentId)),
+              ])
+              ..where(
+                items.setId.isIn(setIds) &
+                    gear.status.isNotValue(EquipmentStatus.wanted.name),
+              )
+              ..orderBy([OrderingTerm.asc(items.equipmentId)]))
+            .map((r) => r.readTable(items))
             .get();
     return [
       for (final setId in setIds.toSet())

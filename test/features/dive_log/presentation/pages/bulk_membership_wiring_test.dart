@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.d
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/shared/bulk_edit/bulk_membership_editor.dart';
+import 'package:submersion/shared/widgets/forms/edit_form_scaffold.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
@@ -804,8 +805,14 @@ void main() {
       }
 
       final chip = find.byKey(const ValueKey('bulk-staged-set-s1'));
+      bool guarded() => tester
+          .widget<EditFormScaffold>(find.byType(EditFormScaffold))
+          .hasUnsavedChanges;
+      expect(guarded(), isFalse);
       await stage();
       expect(chip, findsOneWidget);
+      // A staged removal arms the unsaved-changes guard.
+      expect(guarded(), isTrue);
       // Unstaged again, then staged for good.
       await tester.ensureVisible(chip);
       await tester.tap(
@@ -832,6 +839,91 @@ void main() {
           db.diveEquipment,
         )..where((t) => t.diveId.equals(diveId))).get();
         expect(rows.map((r) => r.equipmentId), ['e3'], reason: diveId);
+      }
+    });
+
+    // Issue #4284: "Remove Set A" plus "Use Set B" in one edit keeps the gear
+    // the two share, now tagged with B, though it was on every dive already.
+    testWidgets('swapping one set for another keeps the gear they share', (
+      tester,
+    ) async {
+      const wing = EquipmentItem(
+        id: 'e1',
+        name: 'Wing',
+        type: EquipmentType.bcd,
+      );
+      const dsmb = EquipmentItem(
+        id: 'e2',
+        name: 'DSMB',
+        type: EquipmentType.smb,
+      );
+      const lamp = EquipmentItem(
+        id: 'e3',
+        name: 'Lamp',
+        type: EquipmentType.light,
+      );
+      for (final item in [wing, dsmb, lamp]) {
+        await EquipmentRepository().createEquipment(item);
+      }
+      await db.customStatement(
+        'INSERT INTO equipment_sets (id, name, created_at, updated_at) '
+        "VALUES ('sa', 'Set A', 0, 0), ('sb', 'Set B', 0, 0)",
+      );
+      await db.customStatement(
+        'INSERT INTO equipment_set_items (set_id, equipment_id) '
+        "VALUES ('sa', 'e1'), ('sa', 'e2'), ('sb', 'e2'), ('sb', 'e3')",
+      );
+      await seedDive('d1');
+      await seedDive('d2');
+      await repository.bulkAddEquipmentSets(['d1', 'd2'], ['sa']);
+      EquipmentSet set(String id, String name, List<EquipmentItem> items) =>
+          EquipmentSet(
+            id: id,
+            name: name,
+            equipmentIds: [for (final i in items) i.id],
+            items: items,
+            createdAt: DateTime(2026, 1, 1),
+            updatedAt: DateTime(2026, 1, 1),
+          );
+
+      await pump(
+        tester,
+        ['d1', 'd2'],
+        sets: [
+          set('sa', 'Set A', const [wing, dsmb]),
+          set('sb', 'Set B', const [dsmb, lamp]),
+        ],
+      );
+      final removeSet = find.byKey(const ValueKey('bulk-remove-set'));
+      await tester.ensureVisible(removeSet);
+      await tester.tap(removeSet);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Set A'));
+      await tester.pumpAndSettle();
+      final useSet = find.descendant(
+        of: editorFor('Equipment'),
+        matching: find.widgetWithText(TextButton, 'Use Set'),
+      );
+      await tester.ensureVisible(useSet);
+      await tester.tap(useSet);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Set B'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      for (final diveId in ['d1', 'd2']) {
+        final rows = await (db.select(
+          db.diveEquipment,
+        )..where((t) => t.diveId.equals(diveId))).get();
+        expect(
+          {for (final r in rows) r.equipmentId: r.viaSetId},
+          {'e2': 'sb', 'e3': 'sb'},
+          reason: diveId,
+        );
       }
     });
 

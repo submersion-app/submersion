@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/bulk_equipment
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/shared/bulk_edit/bulk_membership_editor.dart';
 
 import '../../../../helpers/test_app.dart';
 
@@ -69,6 +70,21 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(picked, (id: 'warm', name: 'Warm water'));
+  });
+
+  group('equipmentAddIds', () {
+    test('a set item already on every dive is added again through its set', () {
+      // 'reg' is on every dive (no add of its own) and in the set used; a set
+      // removed in the same edit may take it off first.
+      const delta = MembershipDelta(['lamp'], ['fins']);
+      final ids = equipmentAddIds(delta, const {
+        'reg': 'warm',
+        'lamp': 'warm',
+        'fins': 'warm',
+      });
+
+      expect(ids, ['lamp', 'reg']);
+    });
   });
 
   group('equipmentAddOps', () {
