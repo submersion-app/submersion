@@ -26,6 +26,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_list_snapshot.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_picker_rows.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
+import 'package:submersion/features/dive_log/data/repositories/latest_ended_dive.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_site_snap.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/data/services/user_event_preservation.dart';
@@ -6744,41 +6745,23 @@ class DiveRepository {
   }
 
   /// The logged dive that ended last after [endedAfter] and at or before
-  /// [notAfter], hydrated, or null when none did: what the planner offers to
-  /// follow (issue #4250). One indexed lookup and one dive read without its
-  /// samples, rather than the whole log ([latestEndedDiveSql]).
-  ///
-  /// [diverId] scopes it to one diver, and null reads every diver, as
-  /// [getAllDives] does. A dive that started more than [longestDive] before
-  /// [endedAfter] is not read, however late it ended.
-  // stats-scope-exempt: the planner's latest dive, not a statistic
+  /// [notAfter], read without its samples, or null when none did: what the
+  /// planner offers to follow (issue #4250). See [latestEndedDiveId].
   Future<domain.Dive?> getLatestEndedDive({
     String? diverId,
     required DateTime endedAfter,
     required DateTime notAfter,
-    Duration longestDive = const Duration(days: 1),
   }) async {
     try {
-      final rows = await _db
-          .customSelect(
-            latestEndedDiveSql(scopedToDiver: diverId != null),
-            variables: [
-              Variable<int>(
-                endedAfter.subtract(longestDive).millisecondsSinceEpoch,
-              ),
-              Variable<int>(endedAfter.millisecondsSinceEpoch),
-              Variable<int>(notAfter.millisecondsSinceEpoch),
-              if (diverId != null) Variable<String>(diverId),
-            ],
-            readsFrom: {_db.dives, _db.diveProfileSeries, _db.diveDataSources},
-          )
-          .get();
-      if (rows.isEmpty) return null;
+      final id = await latestEndedDiveId(
+        _db,
+        diverId: diverId,
+        endedAfter: endedAfter,
+        notAfter: notAfter,
+      );
+      if (id == null) return null;
       // The prompt shows the dive's name and times, never its profile.
-      final dives = await getDivesByIdsWithoutSamples([
-        rows.first.read<String>('id'),
-      ]);
-      return dives.firstOrNull;
+      return (await getDivesByIdsWithoutSamples([id])).firstOrNull;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get the latest ended dive for diver: $diverId',

@@ -74,6 +74,22 @@ void main() {
     expect(await latest(), 'newer');
   });
 
+  test('of two dives ending together, picks the later start', () async {
+    final end = now.subtract(const Duration(hours: 5));
+    await dive(
+      'long',
+      end.subtract(const Duration(minutes: 60)),
+      exitTime: end,
+    );
+    await dive(
+      'short',
+      end.subtract(const Duration(minutes: 30)),
+      exitTime: end,
+    );
+
+    expect(await latest(), 'short');
+  });
+
   test('is null when the newest dive ended 48 hours ago or more', () async {
     await dive(
       'edge',
