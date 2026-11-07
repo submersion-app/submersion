@@ -1,3 +1,5 @@
+import 'package:drift/drift.dart';
+
 import 'package:submersion/core/database/local_cache_database.dart';
 
 /// The most grid bytes `bathymetry_cache` keeps (issue #4258). About 1,500
@@ -29,6 +31,16 @@ Future<int> evictBathymetryCacheOverBudget(
   String? keepKey,
 }) async {
   final t = db.bathymetryCache;
+  // The common case, well under budget, answered by one scalar.
+  final stored = t.gridBytes.sum();
+  final sum =
+      await (db.selectOnly(t)
+            ..addColumns([stored])
+            ..where(t.status.equals('ok')))
+          .map((r) => r.read(stored) ?? 0)
+          .getSingle();
+  if (sum <= budgetBytes) return 0;
+
   final rows =
       await (db.selectOnly(t)
             ..addColumns([t.cacheKey, t.gridBytes, t.lastUsedAt, t.fetchedAt])

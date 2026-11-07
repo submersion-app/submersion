@@ -167,6 +167,16 @@ void main() {
         );
       });
 
+      test('a fetch time outside DateTime range', () {
+        final blob = BathymetryGridCodec.encode(_grid());
+        // The sixth float64 field, after magic, rows and cols.
+        ByteData.sublistView(blob).setFloat64(12 + 5 * 8, 1e300, Endian.little);
+        expect(
+          () => BathymetryGridCodec.decode(blob),
+          throwsA(isA<FormatException>()),
+        );
+      });
+
       test('a truncated body', () {
         final blob = BathymetryGridCodec.encode(_terrain(40));
         expect(

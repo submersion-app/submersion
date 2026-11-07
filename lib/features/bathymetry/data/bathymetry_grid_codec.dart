@@ -37,6 +37,7 @@ abstract final class BathymetryGridCodec {
   static const int _fieldsAt = 12;
   static const int _sourceIdLengthAt = _fieldsAt + 6 * 8;
   static const int _fixedHeaderBytes = _sourceIdLengthAt + 2;
+  static const double _maxMicros = 8.64e18;
 
   /// More cells than any shipped source produces (a superFine patch is
   /// capped at 600 x 600, a swissBATHY3D tile is 1 km at its native ~2 m).
@@ -136,7 +137,9 @@ abstract final class BathymetryGridCodec {
       throw FormatException('bathymetry grid of $rows x $cols is too large');
     }
     final cells = rows * cols;
-    if (bytes.length < bodyStart || !fields[5].isFinite) {
+    // DateTime's own range, so a damaged stamp fails here as a format error
+    // rather than as an ArgumentError from the constructor.
+    if (bytes.length < bodyStart || !(fields[5].abs() <= _maxMicros)) {
       throw const FormatException('bathymetry grid header is damaged');
     }
 
