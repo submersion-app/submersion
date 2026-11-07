@@ -175,10 +175,7 @@ class TwinSetPartnerLine extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pairings =
-        ref.watch(pairingsForCylinderProvider(equipmentId)).value ??
-        const <CylinderPairing>[];
-    final current = currentPairing(pairings, equipmentId);
+    final current = ref.watch(currentPairingProvider(equipmentId)).value;
     if (current == null) return const SizedBox.shrink();
     final partnerId = current.partnerOf(equipmentId);
     final partner = ref.watch(equipmentItemProvider(partnerId)).value;

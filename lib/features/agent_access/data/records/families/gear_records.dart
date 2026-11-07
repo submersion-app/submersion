@@ -183,13 +183,18 @@ List<RecordEntry> gearEntries(RecordRepositories r) => [
     alsoParentColumns: const ['cylinder_b_id'],
     orderBy: 'r0.cylinder_a_id, r0.paired_on DESC',
     idOf: (p) => p.id,
-    byParents: (parents) => eachParent(
-      parents,
-      (id) async => [
-        for (final p in await r.cylinderPairings.getForCylinder(id))
-          if (p.cylinderAId == id) p,
-      ],
-    ),
+    // One read of every pairing, resolved, split by first cylinder: a
+    // read per parent would resolve the whole table each time.
+    byParents: (parents) async {
+      final all = await r.cylinderPairings.getAll();
+      return {
+        for (final id in parents)
+          id: [
+            for (final p in all)
+              if (p.cylinderAId == id) p,
+          ],
+      };
+    },
     document: cylinderPairingDocument,
     summaryKeys: const [
       'cylinder_a_id',

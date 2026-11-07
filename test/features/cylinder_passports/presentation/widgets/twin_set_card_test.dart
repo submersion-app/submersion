@@ -62,7 +62,12 @@ CylinderPairing pairing(
 /// Records what the flow asked of the repository, and throws a clash for
 /// the first create when [clashOnce] is set.
 class FakePairingRepository extends CylinderPairingRepository {
-  FakePairingRepository({this.clashOnce, this.createError, this.endError});
+  FakePairingRepository({
+    this.clashOnce,
+    this.createError,
+    this.endError,
+    this.deleteError,
+  });
 
   final List<CylinderPairing>? clashOnce;
 
@@ -71,6 +76,9 @@ class FakePairingRepository extends CylinderPairingRepository {
 
   /// Thrown by endPairing when set.
   final Object? endError;
+
+  /// Thrown by deletePairing when set.
+  final Object? deleteError;
   final creates = <({String a, String b, DateTime on, bool replace})>[];
   final ends = <({String id, DateTime end})>[];
   final deletes = <String>[];
@@ -101,7 +109,10 @@ class FakePairingRepository extends CylinderPairingRepository {
   }
 
   @override
-  Future<void> deletePairing(String id) async => deletes.add(id);
+  Future<void> deletePairing(String id) async {
+    if (deleteError case final e?) throw e;
+    deletes.add(id);
+  }
 }
 
 void main() {
@@ -359,6 +370,23 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(repository.deletes, ['p']);
+  });
+
+  testWidgets('a failed delete says so', (tester) async {
+    final l10n = await pump(
+      tester,
+      repository: FakePairingRepository(deleteError: StateError('disk')),
+      gear: [cylinder('A'), cylinder('B')],
+      pairings: [pairing('p', 'A', 'B', DateTime.utc(2026, 3, 3))],
+    );
+    await tester.tap(find.byTooltip(l10n.twinSet_deletePairing));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.widgetWithText(FilledButton, l10n.twinSet_deletePairing),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text(l10n.twinSet_saveFailed), findsOneWidget);
   });
 
   testWidgets('replace partner does not offer the current partner', (

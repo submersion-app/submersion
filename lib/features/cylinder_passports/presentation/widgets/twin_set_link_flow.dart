@@ -235,6 +235,7 @@ Future<void> confirmDeletePairing(
   CylinderPairing pairing,
 ) async {
   final l10n = context.l10n;
+  final messenger = ScaffoldMessenger.of(context);
   final ok = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
@@ -252,8 +253,12 @@ Future<void> confirmDeletePairing(
       ],
     ),
   );
-  if (ok == true) {
+  if (ok != true) return;
+  try {
     await ref.read(cylinderPairingRepositoryProvider).deletePairing(pairing.id);
+  } catch (e, stackTrace) {
+    _log.error('Failed to delete a pairing', error: e, stackTrace: stackTrace);
+    messenger.showSnackBar(SnackBar(content: Text(l10n.twinSet_saveFailed)));
   }
 }
 

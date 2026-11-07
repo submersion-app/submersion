@@ -1275,12 +1275,6 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         return;
       }
     }
-    // A single cylinder on a tank a twin set pick made is back gas again.
-    // Only a tank an earlier pairing pick made a twin set (it names a twin
-    // passport); doubles kept as one gear item keep the role the diver set.
-    if (_role == TankRole.twinSet && _twinPassportId != null) {
-      setState(() => _role = TankRole.backGas);
-    }
     final filled = _applyScannedSpec(
       passportId: passportId,
       volumeL: item.volumeL,
@@ -1370,6 +1364,14 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   }) {
     final idChanged =
         passportId != _passportId || twinPassportId != _twinPassportId;
+    // A single cylinder, picked or scanned, on a tank a twin set pick made
+    // is back gas again. Only a tank that named a twin passport: doubles
+    // kept as one gear item keep the role the diver set.
+    if (_twinPassportId != null &&
+        twinPassportId == null &&
+        _role == TankRole.twinSet) {
+      setState(() => _role = TankRole.backGas);
+    }
     _passportId = passportId;
     _twinPassportId = twinPassportId;
     // A computer logged what this tank breathed; the cylinder's last fill
