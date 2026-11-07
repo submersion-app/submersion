@@ -1,3 +1,5 @@
+import 'package:submersion/core/constants/sort_options.dart';
+
 /// How a library page is grouped before the active sort applies.
 ///
 /// The grouped views (By dive, Timeline) group the rows they have loaded, so
@@ -14,5 +16,11 @@ enum MediaLibraryGrouping {
   dive,
 
   /// By the calendar day of the row's date key, matching `groupByTimeline`.
-  day,
+  day;
+
+  /// The grouping a page sorted on [field] needs. A date sort already keeps
+  /// each day in one run, so day grouping adds nothing to it, and a leading
+  /// day key would stop the date sort using its index (`idx_media_library`).
+  MediaLibraryGrouping forSort(MediaSortField field) =>
+      this == day && field == MediaSortField.dateTaken ? none : this;
 }

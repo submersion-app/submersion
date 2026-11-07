@@ -38,10 +38,6 @@ class LibraryGroupKey<T extends Comparable<dynamic>> {
 
 /// The leading keys for [grouping], or none for an ungrouped page.
 ///
-/// Day grouping under a date sort needs none either: date order already
-/// keeps each day in one run, and a leading key would stop the date sort
-/// using its index (`idx_media_library`).
-///
 /// [dateDescending] is the direction groups follow: newest first unless the
 /// diver sorts by date ascending, whatever field the rows inside a group
 /// are sorted by. [dateKey] is the library's own date key, so a day here is
@@ -51,7 +47,6 @@ class LibraryGroupKey<T extends Comparable<dynamic>> {
 List<LibraryGroupKey> libraryGroupKeys(
   MediaLibraryGrouping grouping, {
   required AppDatabase db,
-  required MediaSortField sortField,
   required bool dateDescending,
   required Expression<int> dateKey,
   required $DivesTable dives,
@@ -63,7 +58,6 @@ List<LibraryGroupKey> libraryGroupKeys(
     case MediaLibraryGrouping.none:
       return const [];
     case MediaLibraryGrouping.day:
-      if (sortField == MediaSortField.dateTaken) return const [];
       // Wall-clock-as-UTC millis, so whole days are the calendar days the
       // timeline shows, with no zone involved. SQLite's integer division
       // truncates toward zero, which would put the last day of 1969 and the

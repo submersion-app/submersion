@@ -365,9 +365,8 @@ class MediaLibraryRepository {
       final e = _db.equipment;
 
       final groupKeys = libraryGroupKeys(
-        grouping,
+        grouping.forSort(sort.field),
         db: _db,
-        sortField: sort.field,
         dateDescending: groupsNewestFirst(sort.field, sort.direction),
         dateKey: _dateKey,
         dives: d,

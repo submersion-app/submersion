@@ -289,6 +289,10 @@ void main() {
       test(
         '${mode.name} reloads page one grouped by ${grouping.name}',
         () async {
+          // A name sort, since Timeline under a date sort needs no grouping.
+          await container
+              .read(mediaLibrarySortProvider.notifier)
+              .setSort(MediaSortField.fileName, SortDirection.ascending);
           container.read(mediaLibraryNotifierProvider);
           await tick();
           final callsBefore = fakeRepo.pageCalls;
@@ -304,6 +308,24 @@ void main() {
         },
       );
     }
+
+    test('Timeline under a date sort keeps the grid\'s rows', () async {
+      final before = container.read(mediaLibraryNotifierProvider.notifier);
+      await tick();
+      final callsBefore = fakeRepo.pageCalls;
+
+      await container
+          .read(mediaLibraryViewModeProvider.notifier)
+          .setMode(MediaLibraryViewMode.timeline);
+      await tick();
+
+      expect(
+        container.read(mediaLibraryNotifierProvider.notifier),
+        same(before),
+      );
+      expect(fakeRepo.pageCalls, callsBefore);
+      expect(fakeRepo.lastGrouping, MediaLibraryGrouping.none);
+    });
 
     test('moving from the grid to the map keeps the loaded rows', () async {
       final before = container.read(mediaLibraryNotifierProvider.notifier);

@@ -135,8 +135,10 @@ class MediaLibraryState extends Equatable {
 /// or page grouping changes; re-reads the rows it has loaded whenever a table
 /// behind them changes.
 ///
-/// The grouping is selected from the view mode, so moving between the two
-/// ungrouped modes (Grid and Map) keeps the loaded rows.
+/// The grouping is selected from the view mode and narrowed by the sort, so
+/// moving between modes whose pages are ordered alike keeps the loaded rows:
+/// Grid and Map always, and Timeline too under a date sort.
+/// [MediaLibraryGrouping.forSort] says which.
 final mediaLibraryNotifierProvider =
     StateNotifierProvider<MediaLibraryNotifier, MediaLibraryState>((ref) {
       final repo = ref.watch(mediaLibraryRepositoryProvider);
@@ -144,7 +146,9 @@ final mediaLibraryNotifierProvider =
       final filter = ref.watch(mediaLibraryFilterProvider);
       final sort = ref.watch(mediaLibrarySortProvider);
       final grouping = ref.watch(
-        mediaLibraryViewModeProvider.select((mode) => mode.grouping),
+        mediaLibraryViewModeProvider.select(
+          (mode) => mode.grouping.forSort(sort.field),
+        ),
       );
       return MediaLibraryNotifier(
         repo,
