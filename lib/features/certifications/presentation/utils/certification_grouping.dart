@@ -128,27 +128,30 @@ List<CertificationGroup> _groupByAgency(
     for (final (agency, _) in buckets.keys)
       agency: catalog.agency(agency).localizedName(l10n),
   };
-  final keys = buckets.keys.toList()
+  // Two distinct agency ids with the same display name stay apart, ordered
+  // by id, so each keeps its own professional group right after it.
+  final agencies = agencyNames.keys.toList()
     ..sort((a, b) {
-      final byName = collator.compare(agencyNames[a.$1]!, agencyNames[b.$1]!);
-      if (byName != 0) return byName;
-      // Two distinct agency ids with the same display name stay apart, and
-      // each agency's professional group follows its own group.
-      final byId = a.$1.compareTo(b.$1);
-      if (byId != 0) return byId;
-      return (a.$2 ? 1 : 0) - (b.$2 ? 1 : 0);
+      final byName = collator.compare(agencyNames[a]!, agencyNames[b]!);
+      return byName != 0 ? byName : a.compareTo(b);
     });
   return [
-    for (final key in keys)
-      CertificationGroup(
-        key: key.$2 ? certificationProfessionalGroupKey(key.$1) : key.$1,
-        label: key.$2
-            ? l10n.certifications_list_section_professional(
-                agencyNames[key.$1]!,
-              )
-            : agencyNames[key.$1]!,
-        certifications: buckets[key]!,
-      ),
+    for (final agency in agencies) ...[
+      if (buckets[(agency, false)] case final main?)
+        CertificationGroup(
+          key: agency,
+          label: agencyNames[agency]!,
+          certifications: main,
+        ),
+      if (buckets[(agency, true)] case final professional?)
+        CertificationGroup(
+          key: certificationProfessionalGroupKey(agency),
+          label: l10n.certifications_list_section_professional(
+            agencyNames[agency]!,
+          ),
+          certifications: professional,
+        ),
+    ],
   ];
 }
 

@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/domain/entities/custom_certification_agency.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/utils/certification_grouping.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -159,6 +161,38 @@ void main() {
       ], l10n: l10n);
 
       expect(groups.map((g) => g.label), ['PADI', 'PADI Professional']);
+    });
+
+    test('two agencies sharing a display name each keep their own pro group '
+        'right after them', () {
+      final custom = CustomCertificationAgency(
+        id: 'zz-custom-padi',
+        diverId: 'diver',
+        name: 'PADI',
+        colorArgb: 0xFF000000,
+        createdAt: now,
+        updatedAt: now,
+      );
+      final catalog = CertificationCatalog(agencies: [custom]);
+
+      final groups = groupCertificationsFor(
+        CertificationGroupBy.agency,
+        [
+          cert('custom-dm', agency: custom.id, level: 'diveMaster'),
+          cert('padi-dm', agency: padi, level: 'diveMaster'),
+          cert('custom-ow', agency: custom.id, level: 'openWater'),
+          cert('padi-ow', agency: padi, level: 'openWater'),
+        ],
+        l10n: l10n,
+        catalog: catalog,
+      );
+
+      expect(groups.map((g) => g.key), [
+        padi,
+        certificationProfessionalGroupKey(padi),
+        custom.id,
+        certificationProfessionalGroupKey(custom.id),
+      ]);
     });
 
     test('an agency with only pro ratings shows only its pro group', () {
