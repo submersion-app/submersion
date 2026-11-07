@@ -97,7 +97,9 @@ void main() {
       expect(result.gasShortfallMemberIds, isEmpty);
     });
 
-    test('a bailout cylinder is never held to the reserve', () {
+    test('a stale bailout role does not exempt a breathed cylinder', () {
+      // Open circuit derives every role, so this air cylinder is a stage the
+      // exit's ascent breathes, and 30 bar is already below the reserve.
       final result = _run(
         plan: _plan(
           tanks: const [
@@ -113,7 +115,7 @@ void main() {
         ),
         divers: const [ExitDiver(id: 'a', sacBottom: 15)],
       );
-      expect(result.gasShortfallMemberIds, isEmpty);
+      expect(result.gasShortfallMemberIds, {'a'});
     });
   });
 

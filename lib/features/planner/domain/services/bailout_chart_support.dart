@@ -8,6 +8,7 @@ import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/air_break_runs.dart';
 import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
+import 'package:submersion/features/planner/domain/services/same_mix_share.dart';
 
 /// Chart-only support for [BailoutOutcome]: the worst-case point's own
 /// ceiling trace and its OC ascent stops, unfolded. Split out of
@@ -149,16 +150,8 @@ List<PlanStop> unfoldedOcStops(
   required SchedulePolicy policy,
   required List<DiveTank> bailoutTanks,
 }) {
-  String? tankForGas(double fO2, double fHe) {
-    for (final tank in bailoutTanks) {
-      final tankFO2 = tank.gasMix.o2 / 100.0;
-      final tankFHe = tank.gasMix.he / 100.0;
-      if ((tankFO2 - fO2).abs() < 0.005 && (tankFHe - fHe).abs() < 0.005) {
-        return tank.id;
-      }
-    }
-    return null;
-  }
+  String? tankForGas(double fO2, double fHe) =>
+      sameMixTanks(bailoutTanks, fO2: fO2, fHe: fHe).firstOrNull?.id;
 
   final stops = <PlanStop>[];
   var arrival = point.runtimeSeconds;

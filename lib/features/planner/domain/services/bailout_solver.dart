@@ -17,6 +17,7 @@ import 'package:submersion/features/planner/domain/services/air_break_runs.dart'
 import 'package:submersion/features/planner/domain/services/bailout_chart_support.dart';
 import 'package:submersion/features/planner/domain/services/diluent_switch_time.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
+import 'package:submersion/features/planner/domain/services/same_mix_share.dart';
 import 'package:submersion/features/planner/domain/services/segment_rate_split.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/domain/services/setpoint_switch_split.dart';
@@ -272,17 +273,11 @@ class BailoutSolver {
     );
     final bailoutPlan = config.bailoutAscentGas(bailoutTanks, environment);
 
+    double capacityOf(DiveTank tank) =>
+        fillCapacityLiters(tank, config.gasModel);
     final carriedLiters = bailoutTanks.fold<double>(
       0,
-      (sum, tank) =>
-          sum +
-          gasVolume(
-            tankSizeLiters: tank.volume ?? 11.0,
-            pressureBar: tank.startPressure ?? 0,
-            o2Percent: tank.gasMix.o2,
-            hePercent: tank.gasMix.he,
-            model: config.gasModel,
-          ),
+      (sum, tank) => sum + capacityOf(tank),
     );
 
     final totalSeconds = segments.fold<int>(
@@ -449,6 +444,15 @@ class BailoutSolver {
       stressedAmv: stressedAmv,
       hypercapniaSeconds: hypercapniaSeconds,
     );
+    // The schedule charges a mix to the first cylinder carrying it; every
+    // cylinder of that mix shares it, so a second one never reads full
+    // beside an overdrawn first (#4138).
+    final ocLitersByTank = spreadAcrossSameMix(
+      ocSchedule.litersByTank,
+      tanks: bailoutTanks,
+      capacityOf: capacityOf,
+      alreadyUsed: spentAtWorst,
+    );
     return BailoutOutcome(
       gasGap: bailoutPlan.coversDepth(deepestPoint)
           ? null
@@ -482,7 +486,7 @@ class BailoutSolver {
         for (final tank in bailoutTanks)
           () {
             final used =
-                (ocSchedule.litersByTank[tank.id] ?? 0.0) +
+                (ocLitersByTank[tank.id] ?? 0.0) +
                 (spentAtWorst[tank.id] ?? 0.0);
             final start = tank.startPressure;
             final total = start != null
@@ -648,16 +652,10 @@ class BailoutSolver {
     double? previousFO2;
     double? previousFHe;
 
-    String? tankForGas(double fO2, double fHe) {
-      for (final tank in bailoutTanks) {
-        final tankFO2 = tank.gasMix.o2 / 100.0;
-        final tankFHe = tank.gasMix.he / 100.0;
-        if ((tankFO2 - fO2).abs() < 0.005 && (tankFHe - fHe).abs() < 0.005) {
-          return tank.id;
-        }
-      }
-      return null;
-    }
+    // The first cylinder of the mix; its sameMixShareGroup shares the
+    // liters charged to it afterwards (#4138).
+    String? tankForGas(double fO2, double fHe) =>
+        sameMixTanks(bailoutTanks, fO2: fO2, fHe: fHe).firstOrNull?.id;
 
     // Same per-leg liters formula as _ascentLiters (a travel leg's linear
     // depth range, the stop's own depth across a stop, split at the
