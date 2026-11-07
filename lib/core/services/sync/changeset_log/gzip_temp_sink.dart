@@ -81,7 +81,7 @@ class GzipTempSink implements SyncTempSink {
   /// one is compressed on its way to disk.
   Future<void> endHead() async {
     if (_encoder != null) throw StateError('the head has already ended');
-    _reserved = _gzipHeader.length + _storedBlocks(_head).length;
+    _reserved = _gzipHeader.length + _storedLength(_head.length);
     await _file.add(Uint8List(_reserved));
     _encoder = ZLibEncoder(
       raw: true,
@@ -132,6 +132,13 @@ class GzipTempSink implements SyncTempSink {
       await _file.add(chunk);
     }
     _compressed.clear();
+  }
+
+  /// The size of [_storedBlocks] for [n] bytes: five framing bytes for each
+  /// block of up to [_maxStoredBlock], and at least one block.
+  static int _storedLength(int n) {
+    final blocks = n == 0 ? 1 : (n + _maxStoredBlock - 1) ~/ _maxStoredBlock;
+    return n + 5 * blocks;
   }
 
   /// [bytes] as stored deflate blocks, none of them final: the body's raw

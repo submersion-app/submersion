@@ -146,7 +146,12 @@ class NearbyTransferFiles {
         if (await to.exists()) await to.delete();
         rethrow;
       }
-      await from.delete();
+      try {
+        await from.delete();
+      } on FileSystemException {
+        // The copy is complete and is what goes out; a source held open
+        // (a scanner on Windows) is left to the ssv1_ temp sweep.
+      }
     }
   }
 

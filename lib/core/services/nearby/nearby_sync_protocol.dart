@@ -497,7 +497,15 @@ class NearbySyncProtocol {
         final reused = await _files.reusableFull(_peerId);
         if (reused != null) return reused;
         final base = await _engine.exportFull();
-        return _files.prepareFull(_peerId, const Uuid().v4(), File(base.path));
+        final exported = File(base.path);
+        try {
+          return await _files.prepareFull(_peerId, const Uuid().v4(), exported);
+        } on Object {
+          // Ours to delete: a failed move must not leave the whole library
+          // behind on a device already short of space.
+          if (await exported.exists()) await exported.delete();
+          rethrow;
+        }
       case NearbyExportKind.delta:
         final payload = await NearbyExportPlanner.filterByWriter(
           await _engine.exportDelta(from!),

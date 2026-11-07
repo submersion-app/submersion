@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
@@ -354,7 +355,7 @@ void main() {
       await setUpTestDatabase();
       final tmpDir = await Directory.systemTemp.createTemp('parity_gzipped');
       addTearDown(() => tmpDir.delete(recursive: true));
-      final gz = File('${tmpDir.path}/base.json.gz');
+      final gz = File(p.join(tmpDir.path, 'base.json.gz'));
       await gz.writeAsBytes(
         gzip.encode(utf8.encode(jsonEncode(payload.toJson()))),
       );
@@ -384,6 +385,33 @@ void main() {
     test('through the worker', () => expectParity(inline: false));
 
     test('through the inline fallback', () => expectParity(inline: true));
+
+    test('a truncated copy is refused and applies nothing', () async {
+      // gzip.decoder hands back what it has for a cut-off gzip without an
+      // error, so it is the document's own end that refuses the copy.
+      await _seedRichLibrary();
+      final payload = await SyncDataSerializer().exportData(
+        deviceId: 'peer',
+        deletions: await SyncRepository().getAllDeletions(),
+      );
+      await tearDownTestDatabase();
+      await setUpTestDatabase();
+      final empty = await _exportCanonical();
+      final tmpDir = await Directory.systemTemp.createTemp('parity_truncated');
+      addTearDown(() => tmpDir.delete(recursive: true));
+      final whole = gzip.encode(utf8.encode(jsonEncode(payload.toJson())));
+      final gz = File(p.join(tmpDir.path, 'base.json.gz'));
+      await gz.writeAsBytes(whole.sublist(0, whole.length ~/ 2));
+
+      await expectLater(
+        SyncService(
+          syncRepository: SyncRepository(),
+          serializer: SyncDataSerializer(),
+        ).debugApplyBaseFile(gz.path, gzipped: true),
+        throwsA(anything),
+      );
+      expect(await _exportCanonical(), empty);
+    });
   });
 
   group('base apply progress', () {
