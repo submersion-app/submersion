@@ -232,6 +232,47 @@ void main() {
       expect(await keys(), {'fresh', BathymetryRepository.keyFor(bonaire)});
     });
 
+    test('a failed bookkeeping write still serves the cached grid', () async {
+      final source = _CountingSource();
+      final r = repo(source);
+      final json = jsonEncode(_grid(depth: 7).toJson());
+      await db
+          .into(db.bathymetryCache)
+          .insert(
+            BathymetryCacheCompanion.insert(
+              cacheKey: BathymetryRepository.keyFor(bonaire),
+              centerLat: 12.17,
+              centerLon: -68.29,
+              status: 'ok',
+              gridJson: Value(json),
+              gridBytes: Value(json.length),
+              fetchedAt: 1,
+            ),
+          );
+      await db.customStatement(
+        'CREATE TRIGGER no_update BEFORE UPDATE ON bathymetry_cache '
+        "BEGIN SELECT RAISE(ABORT, 'read-only'); END",
+      );
+
+      final grid = await r.getGrid(bonaire);
+      expect(grid!.depthsMeters, _grid(depth: 7).depthsMeters);
+      expect(source.calls, 0);
+    });
+
+    test('a failed eviction still returns the grid just fetched', () async {
+      await putRow('stale', bytes: 1000, lastUsedAt: 1);
+      await db.customStatement(
+        'CREATE TRIGGER no_delete BEFORE DELETE ON bathymetry_cache '
+        "BEGIN SELECT RAISE(ABORT, 'no deletes'); END",
+      );
+      final grid = await repo(
+        _CountingSource(),
+        byteBudget: 10,
+      ).getGrid(bonaire);
+      expect(grid, isNotNull);
+      expect(await keys(), contains('stale'));
+    });
+
     test('averageCachedGridBytes averages the recorded sizes', () async {
       final r = repo(_CountingSource());
       expect(await r.averageCachedGridBytes(), isNull);

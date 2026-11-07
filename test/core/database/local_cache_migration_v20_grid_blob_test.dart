@@ -15,7 +15,7 @@ final _legacyGrid = BathymetryGrid(
   rows: 2,
   cols: 2,
   depthsMeters: const [10, 20, null, 40],
-  sourceId: 'gmrt',
+  sourceId: 'gmrt-zürich',
   resolutionMeters: 61,
   fetchedAt: DateTime.utc(2026, 7, 28),
 );

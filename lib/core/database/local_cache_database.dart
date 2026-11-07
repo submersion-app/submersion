@@ -691,8 +691,8 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
 
   /// The v20 columns, added wherever a table lacks them. Idempotent, so the
   /// rung and the open backstop share it. A legacy row's size is backfilled
-  /// once, when `grid_bytes` is added: JSON is ASCII, so its character
-  /// count is its byte count.
+  /// once, when `grid_bytes` is added, as UTF-8 bytes: the cast to BLOB
+  /// makes length() count bytes rather than characters.
   Future<void> _addGridBlobColumns() async {
     final added = await _addMissingColumns('bathymetry_cache', const {
       'grid_blob': 'BLOB NULL',
@@ -701,7 +701,8 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
     });
     if (added.contains('grid_bytes')) {
       await customStatement(
-        'UPDATE bathymetry_cache SET grid_bytes = length(grid_json) '
+        'UPDATE bathymetry_cache '
+        'SET grid_bytes = length(CAST(grid_json AS BLOB)) '
         'WHERE grid_json IS NOT NULL',
       );
     }
