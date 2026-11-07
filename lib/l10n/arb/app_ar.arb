@@ -2442,6 +2442,7 @@
   "diveLog_consolidate_alignStarts": "محاذاة البدايات",
   "diveLog_consolidate_sameDiveHint": "تبدو هذه الملفات كأنها الغوصة نفسها سجّلها جهازا كمبيوتر.",
   "diveLog_consolidate_clockNote": "هذه السجلات لا تتداخل زمنيًا، لذا ربما تكون ساعة أحد أجهزة الكمبيوتر خاطئة. تحتفظ الغوصة بوقت الكمبيوتر الأساسي.",
+  "diveLog_consolidate_clockNoteOverlap": "تتطابق ملفات العمق هذه في وقت مختلف عما تشير إليه ساعات أجهزة الكمبيوتر، لذا ربما تكون ساعة أحد أجهزة الكمبيوتر خاطئة. تحتفظ الغوصة بوقت الكمبيوتر الأساسي.",
   "diveLog_consolidate_noProfileFallback": "أحد السجلات لا يحتوي على ملف عمق للمطابقة، لذا تتم محاذاة بدايته مع بداية الأساسي.",
   "diveLog_combine_modeJoinShort": "ربط",
   "diveLog_combine_modeMergeShort": "دمج",

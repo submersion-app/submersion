@@ -2341,6 +2341,7 @@
   "diveLog_consolidate_alignStarts": "Kezdetek igazítása",
   "diveLog_consolidate_sameDiveHint": "Ezek a profilok ugyanannak a merülésnek tűnnek, amelyet két számítógép rögzített.",
   "diveLog_consolidate_clockNote": "Ezek a felvételek időben nem fedik egymást, így valószínűleg az egyik számítógép órája rosszul jár. A merülés az elsődleges számítógép idejét tartja meg.",
+  "diveLog_consolidate_clockNoteOverlap": "Ezek a mélységprofilok más időpontban egyeznek, mint amit a számítógépek órái mutatnak, így valószínűleg az egyik számítógép órája rosszul jár. A merülés az elsődleges számítógép idejét tartja meg.",
   "diveLog_consolidate_noProfileFallback": "Az egyik felvételnek nincs összevethető mélységprofilja, ezért a kezdete az elsődleges számítógépéhez igazodik.",
   "diveLog_combine_modeJoinShort": "Összefűzés",
   "diveLog_combine_modeMergeShort": "Összevonás",

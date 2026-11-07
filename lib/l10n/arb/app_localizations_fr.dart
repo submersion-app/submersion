@@ -7421,6 +7421,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ces enregistrements ne se chevauchent pas dans le temps : l\'horloge d\'un ordinateur est probablement décalée. La plongée garde l\'heure de l\'ordinateur principal.';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      'Ces profils de profondeur concordent à un autre moment que celui indiqué par les horloges des ordinateurs : l\'horloge d\'un ordinateur est probablement décalée. La plongée garde l\'heure de l\'ordinateur principal.';
+
+  @override
   String get diveLog_consolidate_clockNoteShort =>
       'L\'horloge d\'un ordinateur est probablement décalée.';
 

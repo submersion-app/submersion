@@ -2341,6 +2341,7 @@
   "diveLog_consolidate_alignStarts": "יישור התחלות",
   "diveLog_consolidate_sameDiveHint": "הפרופילים האלה נראים כמו אותה צלילה שתועדה על ידי שני מחשבים.",
   "diveLog_consolidate_clockNote": "הרשומות האלה לא חופפות בזמן, כך שכנראה השעון של אחד המחשבים שגוי. הצלילה שומרת על השעה של המחשב הראשי.",
+  "diveLog_consolidate_clockNoteOverlap": "פרופילי העומק האלה תואמים בזמן שונה ממה שהשעונים של המחשבים מראים, כך שכנראה השעון של אחד המחשבים שגוי. הצלילה שומרת על השעה של המחשב הראשי.",
   "diveLog_consolidate_noProfileFallback": "לאחת הרשומות אין פרופיל עומק להתאמה, ולכן ההתחלה שלה מיושרת להתחלה של הראשי.",
   "diveLog_combine_modeJoinShort": "חיבור",
   "diveLog_combine_modeMergeShort": "מיזוג",

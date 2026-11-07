@@ -7384,6 +7384,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ezek a felvételek időben nem fedik egymást, így valószínűleg az egyik számítógép órája rosszul jár. A merülés az elsődleges számítógép idejét tartja meg.';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      'Ezek a mélységprofilok más időpontban egyeznek, mint amit a számítógépek órái mutatnak, így valószínűleg az egyik számítógép órája rosszul jár. A merülés az elsődleges számítógép idejét tartja meg.';
+
+  @override
   String get diveLog_consolidate_clockNoteShort =>
       'Valószínűleg az egyik számítógép órája rosszul jár.';
 

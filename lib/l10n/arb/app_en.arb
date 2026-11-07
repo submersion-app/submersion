@@ -4443,6 +4443,7 @@
   "diveLog_consolidate_alignStartsShort": "Starts",
   "diveLog_consolidate_alignmentLabel": "Line up the records by",
   "diveLog_consolidate_clockNote": "These records don't overlap in time, so one computer's clock is probably off. The dive keeps the primary computer's time.",
+  "diveLog_consolidate_clockNoteOverlap": "These depth profiles match at a different time than the computers' clocks say, so one computer's clock is probably off. The dive keeps the primary computer's time.",
   "diveLog_consolidate_clockNoteShort": "One computer's clock is probably off.",
   "diveLog_consolidate_confirm": "Keep as one dive with both computers",
   "diveLog_consolidate_error_generic": "Couldn't merge the dives. Nothing was changed.",

@@ -7401,6 +7401,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Estes registros não se sobrepõem no tempo, então o relógio de um computador provavelmente está errado. O mergulho mantém a hora do computador principal.';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      'Estes perfis de profundidade coincidem em um momento diferente do que os relógios dos computadores indicam, então o relógio de um computador provavelmente está errado. O mergulho mantém a hora do computador principal.';
+
+  @override
   String get diveLog_consolidate_clockNoteShort =>
       'O relógio de um computador provavelmente está errado.';
 

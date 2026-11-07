@@ -7025,6 +7025,10 @@ class AppLocalizationsZh extends AppLocalizations {
       '这些记录在时间上没有重叠，可能是某台电脑的时钟不准。潜水保留主电脑的时间。';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      '这些深度轮廓吻合的时间与电脑时钟显示的不同，可能是某台电脑的时钟不准。潜水保留主电脑的时间。';
+
+  @override
   String get diveLog_consolidate_clockNoteShort => '可能是某台电脑的时钟不准。';
 
   @override

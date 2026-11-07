@@ -7406,6 +7406,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Diese Aufzeichnungen überschneiden sich zeitlich nicht, daher geht die Uhr eines Computers wahrscheinlich falsch. Der Tauchgang behält die Zeit des primären Computers.';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      'Diese Tiefenprofile passen zu einer anderen Zeit zusammen, als die Uhren der Computer angeben, daher geht die Uhr eines Computers wahrscheinlich falsch. Der Tauchgang behält die Zeit des primären Computers.';
+
+  @override
   String get diveLog_consolidate_clockNoteShort =>
       'Die Uhr eines Computers geht wahrscheinlich falsch.';
 

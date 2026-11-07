@@ -2442,6 +2442,7 @@
   "diveLog_consolidate_alignStarts": "Alinhar inícios",
   "diveLog_consolidate_sameDiveHint": "Estes perfis parecem o mesmo mergulho registrado por dois computadores.",
   "diveLog_consolidate_clockNote": "Estes registros não se sobrepõem no tempo, então o relógio de um computador provavelmente está errado. O mergulho mantém a hora do computador principal.",
+  "diveLog_consolidate_clockNoteOverlap": "Estes perfis de profundidade coincidem em um momento diferente do que os relógios dos computadores indicam, então o relógio de um computador provavelmente está errado. O mergulho mantém a hora do computador principal.",
   "diveLog_consolidate_noProfileFallback": "Um registro não tem perfil de profundidade para comparar, então o início dele é alinhado com o do principal.",
   "diveLog_combine_modeJoinShort": "Juntar",
   "diveLog_combine_modeMergeShort": "Mesclar",

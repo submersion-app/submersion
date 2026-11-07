@@ -7247,6 +7247,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'הרשומות האלה לא חופפות בזמן, כך שכנראה השעון של אחד המחשבים שגוי. הצלילה שומרת על השעה של המחשב הראשי.';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      'פרופילי העומק האלה תואמים בזמן שונה ממה שהשעונים של המחשבים מראים, כך שכנראה השעון של אחד המחשבים שגוי. הצלילה שומרת על השעה של המחשב הראשי.';
+
+  @override
   String get diveLog_consolidate_clockNoteShort =>
       'כנראה השעון של אחד המחשבים שגוי.';
 

@@ -7288,6 +7288,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'These records don\'t overlap in time, so one computer\'s clock is probably off. The dive keeps the primary computer\'s time.';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      'These depth profiles match at a different time than the computers\' clocks say, so one computer\'s clock is probably off. The dive keeps the primary computer\'s time.';
+
+  @override
   String get diveLog_consolidate_clockNoteShort =>
       'One computer\'s clock is probably off.';
 

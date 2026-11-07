@@ -2468,6 +2468,7 @@
   "diveLog_consolidate_alignStarts": "Anfänge ausrichten",
   "diveLog_consolidate_sameDiveHint": "Diese Profile sehen aus wie derselbe Tauchgang, aufgezeichnet von zwei Computern.",
   "diveLog_consolidate_clockNote": "Diese Aufzeichnungen überschneiden sich zeitlich nicht, daher geht die Uhr eines Computers wahrscheinlich falsch. Der Tauchgang behält die Zeit des primären Computers.",
+  "diveLog_consolidate_clockNoteOverlap": "Diese Tiefenprofile passen zu einer anderen Zeit zusammen, als die Uhren der Computer angeben, daher geht die Uhr eines Computers wahrscheinlich falsch. Der Tauchgang behält die Zeit des primären Computers.",
   "diveLog_consolidate_noProfileFallback": "Eine Aufzeichnung hat kein Tiefenprofil zum Abgleichen, daher wird ihr Anfang an dem des primären Computers ausgerichtet.",
   "diveLog_combine_modeJoinShort": "Verbinden",
   "diveLog_combine_modeMergeShort": "Zusammenführen",

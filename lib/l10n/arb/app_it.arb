@@ -2341,6 +2341,7 @@
   "diveLog_consolidate_alignStarts": "Allinea gli inizi",
   "diveLog_consolidate_sameDiveHint": "Questi profili sembrano la stessa immersione registrata da due computer.",
   "diveLog_consolidate_clockNote": "Queste registrazioni non si sovrappongono nel tempo, quindi l'orologio di un computer è probabilmente sbagliato. L'immersione mantiene l'ora del computer principale.",
+  "diveLog_consolidate_clockNoteOverlap": "Questi profili di profondità coincidono in un momento diverso da quello indicato dagli orologi dei computer, quindi l'orologio di un computer è probabilmente sbagliato. L'immersione mantiene l'ora del computer principale.",
   "diveLog_consolidate_noProfileFallback": "Una registrazione non ha un profilo di profondità da confrontare, quindi il suo inizio viene allineato a quello del principale.",
   "diveLog_combine_modeJoinShort": "Concatena",
   "diveLog_combine_modeMergeShort": "Unisci",

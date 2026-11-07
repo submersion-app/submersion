@@ -7404,6 +7404,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Estos registros no se superponen en el tiempo, así que probablemente el reloj de un ordenador está mal. La inmersión conserva la hora del ordenador principal.';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      'Estos perfiles de profundidad coinciden en un momento distinto del que indican los relojes de los ordenadores, así que probablemente el reloj de un ordenador está mal. La inmersión conserva la hora del ordenador principal.';
+
+  @override
   String get diveLog_consolidate_clockNoteShort =>
       'Probablemente el reloj de un ordenador está mal.';
 

@@ -11646,6 +11646,12 @@ abstract class AppLocalizations {
   /// **'These records don\'t overlap in time, so one computer\'s clock is probably off. The dive keeps the primary computer\'s time.'**
   String get diveLog_consolidate_clockNote;
 
+  /// No description provided for @diveLog_consolidate_clockNoteOverlap.
+  ///
+  /// In en, this message translates to:
+  /// **'These depth profiles match at a different time than the computers\' clocks say, so one computer\'s clock is probably off. The dive keeps the primary computer\'s time.'**
+  String get diveLog_consolidate_clockNoteOverlap;
+
   /// No description provided for @diveLog_consolidate_clockNoteShort.
   ///
   /// In en, this message translates to:

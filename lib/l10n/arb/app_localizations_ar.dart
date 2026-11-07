@@ -7513,6 +7513,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'هذه السجلات لا تتداخل زمنيًا، لذا ربما تكون ساعة أحد أجهزة الكمبيوتر خاطئة. تحتفظ الغوصة بوقت الكمبيوتر الأساسي.';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      'تتطابق ملفات العمق هذه في وقت مختلف عما تشير إليه ساعات أجهزة الكمبيوتر، لذا ربما تكون ساعة أحد أجهزة الكمبيوتر خاطئة. تحتفظ الغوصة بوقت الكمبيوتر الأساسي.';
+
+  @override
   String get diveLog_consolidate_clockNoteShort =>
       'ربما تكون ساعة أحد أجهزة الكمبيوتر خاطئة.';
 
