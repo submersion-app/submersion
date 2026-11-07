@@ -61,7 +61,7 @@ The buddy detail page shows a **Dive Statistics** card with the number of dives 
 
 ### Photos and videos of a buddy
 
-Once you [tag a buddy in a photo or video](marine-life-and-photos.md#tagging-people-in-photos-and-videos), their page gains a **Photos and videos** card with the newest ones. Tap a thumbnail to open it, or **View All** to see every one in the Media library. To keep them as an album, see [Smart albums](marine-life-and-photos.md#smart-albums).
+Once you [tag a buddy in a photo or video](marine-life-and-photos.md#tagging-people-in-photos-and-videos), their page gains a **Photos and videos** card with the newest ones. Tap a thumbnail to open it. When there are more than the card shows, **View All** opens every one in the Media library. To keep them as an album, see [Smart albums](marine-life-and-photos.md#smart-albums).
 
 ### Leaving a buddy out of the rankings
 

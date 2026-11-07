@@ -183,7 +183,7 @@ Per-host **credentials** can be saved under **Network sources**: enter a hostnam
 
 ## The Media library
 
-**Media** in the navigation shows every photo and video you have linked, grouped by dive. Filter it (**Filter media**) by **Photos** or **Videos**, **Site**, **Trip**, **Species**, **Tags**, **People**, **Source**, **Dates**, or **Missing files** (media whose file can no longer be found), and sort it (**Sort media**). Within **Tags** or **People**, an item matches when it carries any of the ones you pick; the other filters all apply together. The filters in use show as chips above the library: tap a chip's **x** to remove that filter, or **Clear filters** to remove them all.
+**Media** in the navigation shows every photo and video you have linked, as a **Grid**, grouped **By dive**, on a **Timeline** or on a **Map**. Filter it (**Filter media**) by **Photos** or **Videos**, **Site**, **Trip**, **Species**, **Tags** (once a tag applies to media), **People**, **Source**, **Dates**, or **Missing files** (media whose file can no longer be found), and sort it (**Sort media**). Within **Tags** or **People**, an item matches when it carries any of the ones you pick; the other filters all apply together. The filters in use show as chips above the library: tap a chip's **x** to remove that filter, or **Clear filters** to remove them all.
 
 ### Smart albums
 
@@ -199,7 +199,7 @@ To open an album, open **Filter media**, tap **Load album** at the top (shown on
 
 For example, to make a **Photos of me** album, [tag yourself](#tagging-people-in-photos-and-videos) as **Me** in your photos, then in **Filter media** turn on **Me** under **People**, tap **Apply**, and save the result as an album. Add **Videos** or a **Trip** to narrow it further.
 
-Albums sync to your other devices with the rest of your logbook. When several diver profiles share a device, a **Me** album shows each diver the photos they are tagged in.
+With [Multi-Device Sync](multi-device-sync.md) set up, albums reach your other devices with the rest of your logbook. When several diver profiles share a device, a **Me** album shows each diver the photos they are tagged in.
 
 To work on several items at once, use the grid's selection control, then tap items or drag across them to select a range (**Select All** selects everything shown). **Unlink** removes the selected items from your Submersion library, along with their thumbnails and any [Media Sync](media-sync.md) cloud copies; items a dive site still uses are kept. The original files in your photo library or on disk are not touched.
 
