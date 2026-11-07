@@ -22,7 +22,8 @@ const int _deleteChunk = 500;
 /// the scene is about to draw. 'empty' rows hold no grid, cost a few bytes,
 /// and save a network round trip each, so they are left alone.
 ///
-/// Reads only the key, size and stamps, never a grid. A legacy row whose
+/// Reads only the key, size and stamps, through the covering
+/// `bathymetry_cache_budget_idx`, so never a grid page. A legacy row whose
 /// size predates the `grid_bytes` column counts as zero; the v20 rung
 /// backfills every such row, so none is expected.
 Future<int> evictBathymetryCacheOverBudget(
@@ -55,7 +56,6 @@ Future<int> evictBathymetryCacheOverBudget(
           .get();
 
   var total = rows.fold<int>(0, (sum, r) => sum + r.bytes);
-  if (total <= budgetBytes) return 0;
 
   // Oldest first; the key breaks ties so the order is stable.
   final oldestFirst = [...rows]

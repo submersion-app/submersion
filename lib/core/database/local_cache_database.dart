@@ -699,11 +699,22 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
       'grid_bytes': 'INTEGER NULL',
       'last_used_at': 'INTEGER NULL',
     });
-    if (added.contains('grid_bytes')) {
+    if (added != null) {
+      if (added.contains('grid_bytes')) {
+        await customStatement(
+          'UPDATE bathymetry_cache '
+          'SET grid_bytes = length(CAST(grid_json AS BLOB)) '
+          'WHERE grid_json IS NOT NULL',
+        );
+      }
+      // The byte budget's columns sit after grid_blob in every record, so a
+      // table scan for them walks each grid's overflow pages: the whole
+      // cache, after every write. This covering index answers the budget's
+      // queries without reading a grid.
       await customStatement(
-        'UPDATE bathymetry_cache '
-        'SET grid_bytes = length(CAST(grid_json AS BLOB)) '
-        'WHERE grid_json IS NOT NULL',
+        'CREATE INDEX IF NOT EXISTS bathymetry_cache_budget_idx '
+        'ON bathymetry_cache '
+        '(status, grid_bytes, last_used_at, fetched_at, cache_key)',
       );
     }
     await _addMissingColumns('swiss_bathy_tile_cache', const {
@@ -712,16 +723,16 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
   }
 
   /// Adds each of [columns] (name to SQL type) that [table] lacks and
-  /// returns the names it added. A table that does not exist yet is left
-  /// alone: whatever creates it later builds the current shape.
-  Future<Set<String>> _addMissingColumns(
+  /// returns the names it added, or null when [table] does not exist yet:
+  /// whatever creates it later builds the current shape.
+  Future<Set<String>?> _addMissingColumns(
     String table,
     Map<String, String> columns,
   ) async {
     final existing = (await customSelect(
       "PRAGMA table_info('$table')",
     ).get()).map((c) => c.read<String>('name')).toSet();
-    if (existing.isEmpty) return const {};
+    if (existing.isEmpty) return null;
     final added = <String>{};
     for (final MapEntry(key: name, value: type) in columns.entries) {
       if (existing.contains(name)) continue;

@@ -135,6 +135,26 @@ void main() {
       expect(await keys(), {'dry', 'b'});
     });
 
+    // The size and stamp columns sit after grid_blob in each record, so a
+    // table scan for them pages through every grid's overflow chain.
+    test('reads its columns from an index, never from a grid', () async {
+      for (final sql in [
+        'SELECT SUM(grid_bytes) FROM bathymetry_cache',
+        'SELECT cache_key, grid_bytes, last_used_at, fetched_at '
+            'FROM bathymetry_cache',
+        'SELECT AVG(grid_bytes) FROM bathymetry_cache',
+      ]) {
+        final plan = await db
+            .customSelect("EXPLAIN QUERY PLAN $sql WHERE status = 'ok'")
+            .get();
+        expect(
+          plan.map((r) => r.read<String>('detail')).join('; '),
+          contains('COVERING INDEX bathymetry_cache_budget_idx'),
+          reason: sql,
+        );
+      }
+    });
+
     test('deletes past the 999 variable limit in one pass', () async {
       for (var i = 0; i < 1200; i++) {
         await putRow('k$i', bytes: 1, lastUsedAt: i);

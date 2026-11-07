@@ -53,6 +53,11 @@ void _v19Tables(Database raw, {required int userVersion}) {
     ..execute('PRAGMA user_version = $userVersion');
 }
 
+Future<Set<String>> _indexes(LocalCacheDatabase db, String table) async => {
+  for (final row in await db.customSelect("PRAGMA index_list('$table')").get())
+    row.read<String>('name'),
+};
+
 void main() {
   for (final (label, userVersion) in [
     ('upgrade from a stored v19 schema', 19),
@@ -88,6 +93,11 @@ void main() {
       final tile = await db.select(db.swissBathyTileCache).getSingle();
       expect(tile.gridBlob, isNull);
       expect(tile.gridJson, isNotNull);
+
+      expect(
+        await _indexes(db, 'bathymetry_cache'),
+        contains('bathymetry_cache_budget_idx'),
+      );
     });
   }
 
@@ -105,5 +115,9 @@ void main() {
       containsAll(['grid_blob', 'grid_bytes', 'last_used_at']),
     );
     expect(await columns('swiss_bathy_tile_cache'), contains('grid_blob'));
+    expect(
+      await _indexes(db, 'bathymetry_cache'),
+      contains('bathymetry_cache_budget_idx'),
+    );
   });
 }

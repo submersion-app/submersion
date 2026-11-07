@@ -79,17 +79,17 @@ abstract final class BathymetryGridCodec {
       throw ArgumentError('source id of ${sourceId.length} bytes is too long');
     }
 
-    final values = ByteData(cells * 8);
+    // Scattered straight into the byte planes, mirroring [decode], so
+    // encoding never holds a second body-sized buffer.
+    final planes = Uint8List(cells * 8);
+    final scratch = ByteData(8);
     for (var i = 0; i < cells; i++) {
-      values.setFloat64(
-        i * 8,
-        grid.depthsMeters[i] ?? double.nan,
-        Endian.little,
-      );
+      scratch.setFloat64(0, grid.depthsMeters[i] ?? double.nan, Endian.little);
+      for (var k = 0; k < 8; k++) {
+        planes[k * cells + i] = scratch.getUint8(k);
+      }
     }
-    final body = PlatformZlib.deflate(
-      _shuffle(values.buffer.asUint8List(), cells),
-    );
+    final body = PlatformZlib.deflate(planes);
 
     final headerBytes = _fixedHeaderBytes + sourceId.length;
     final out = Uint8List(headerBytes + body.length);
@@ -209,15 +209,5 @@ abstract final class BathymetryGridCodec {
       // Any failure, a cast as much as a parse, means the row is unusable.
       return null;
     }
-  }
-
-  static Uint8List _shuffle(Uint8List interleaved, int count) {
-    final out = Uint8List(interleaved.length);
-    for (var i = 0; i < count; i++) {
-      for (var k = 0; k < 8; k++) {
-        out[k * count + i] = interleaved[i * 8 + k];
-      }
-    }
-    return out;
   }
 }
