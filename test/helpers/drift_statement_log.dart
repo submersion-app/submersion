@@ -3,34 +3,48 @@ import 'dart:async';
 /// The statements [read] sends, for a database opened with
 /// `logStatements: true`. Drift logs through `print`, so a zone catches them.
 ///
-/// Counts statements rather than log lines: a long argument list reaches the
-/// zone as two lines. Each is its first line only; [wholeStatementsOf] keeps
-/// the rest. Build fixtures outside [read], or their writes count.
-Future<List<String>> statementsOf(Future<void> Function() read) async => [
-  for (final statement in await wholeStatementsOf(read))
-    statement.split('\n').first,
-];
-
-/// [statementsOf] with each statement whole: the lines a multi-line
-/// statement, or a long argument list, reaches the zone as are joined back
-/// onto the line that starts it, so a check can see its WHERE and its args.
-Future<List<String>> wholeStatementsOf(Future<void> Function() read) async {
+/// One entry per statement, each whole: drift prints a long statement in
+/// 300-character pieces, so a piece that does not start a log entry is joined
+/// back onto the one before it. Without that, a clause past the first piece
+/// (a `FROM` after a long column list) is invisible to the caller. Build
+/// fixtures outside [read], or their writes count.
+Future<List<String>> statementsOf(Future<void> Function() read) async {
   final logged = <String>[];
   await runZoned(
     read,
     zoneSpecification: ZoneSpecification(
-      print: (self, parent, zone, line) {
-        if (line.startsWith('Drift: ')) {
-          logged.add(line);
-        } else if (logged.isNotEmpty) {
-          logged[logged.length - 1] = '${logged.last}\n$line';
-        } else {
-          parent.print(zone, line);
-        }
-      },
+      print: (self, parent, zone, line) => logged.add(line),
     ),
   );
-  return logged.where((line) => line.startsWith('Drift: Sent')).toList();
+  return joinDriftLogLines(
+    logged,
+  ).where((line) => line.startsWith('Drift: Sent')).toList();
+}
+
+/// [lines] as drift logged them, with each continuation piece of a long
+/// entry joined back onto the entry it belongs to.
+///
+/// Drift's default `debugPrint` prints every match of `.{1,300}`, so an entry
+/// breaks after 300 characters and at each newline, and the newline itself
+/// is dropped. A piece that follows a full 300-character piece continues it
+/// directly; any shorter piece ended at a newline, which is put back so two
+/// lines of SQL do not run together. A line of SQL exactly 300 characters
+/// long cannot be told from a cut, so its newline is not restored. A print
+/// from outside drift during the read would be joined too, so keep [lines]
+/// to drift's own output.
+List<String> joinDriftLogLines(Iterable<String> lines) {
+  const pieceLength = 300;
+  final entries = <String>[];
+  var lastPieceLength = 0;
+  for (final line in lines) {
+    if (line.startsWith('Drift: ') || entries.isEmpty) {
+      entries.add(line);
+    } else {
+      entries.last += lastPieceLength == pieceLength ? line : '\n$line';
+    }
+    lastPieceLength = line.length;
+  }
+  return entries;
 }
 
 /// Whether [statement] reads a series blob: drift's full row read of either

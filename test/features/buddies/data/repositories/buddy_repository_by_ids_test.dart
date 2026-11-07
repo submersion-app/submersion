@@ -68,7 +68,7 @@ void main() {
   });
 
   test('every statement it sends is narrowed to the ids', () async {
-    final sent = await wholeStatementsOf(
+    final sent = await statementsOf(
       () => repository.getAllBuddiesWithDiveCount(ids: const ['ann']),
     );
 
@@ -84,7 +84,7 @@ void main() {
   });
 
   test('reads nothing for no ids', () async {
-    final sent = await wholeStatementsOf(
+    final sent = await statementsOf(
       () async => expect(
         await repository.getAllBuddiesWithDiveCount(ids: const []),
         isEmpty,

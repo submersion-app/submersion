@@ -51,7 +51,7 @@ void main() {
     Object? seen(T record) => view == null ? record : view(record);
     final whole = await withoutStatementLog(all);
     late Iterable<T> narrowed;
-    final sent = await wholeStatementsOf(() async => narrowed = await scoped());
+    final sent = await statementsOf(() async => narrowed = await scoped());
 
     expect(whole.map(idOf).toSet(), containsAll({'alpha', 'bravo', 'charlie'}));
     expect(narrowed.map(seen).toSet(), {
@@ -172,7 +172,7 @@ void main() {
       // alpha's series brings bravo, for the row to count all its dives.
       extra: const {'bravo'},
     );
-    final sent = await wholeStatementsOf(
+    final sent = await statementsOf(
       () => repository.getAllPlanSummaries(ids: ids),
     );
     expect(sent, hasLength(1), reason: 'the series are asked in the same one');
@@ -219,7 +219,7 @@ void main() {
   });
 
   test('no ids reads nothing', () async {
-    final sent = await wholeStatementsOf(() async {
+    final sent = await statementsOf(() async {
       expect(
         await EquipmentRepository().getAllEquipment(ids: const []),
         isEmpty,

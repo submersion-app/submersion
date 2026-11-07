@@ -83,7 +83,7 @@ void main() {
   });
 
   test('every statement it sends is narrowed to the ids', () async {
-    final sent = await wholeStatementsOf(
+    final sent = await statementsOf(
       () => repository.getSitesWithDiveCounts(ids: const ['site-a']),
     );
 

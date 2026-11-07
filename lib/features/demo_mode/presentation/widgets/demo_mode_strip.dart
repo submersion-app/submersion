@@ -12,8 +12,15 @@ class DemoModeStrip extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (!ref.watch(demoModeActiveProvider)) return const SizedBox.shrink();
-    final l10n = context.l10n;
     final scheme = Theme.of(context).colorScheme;
+    // A semantics node of its own: the label names the strip and holds its
+    // exit button, rather than merging into whatever node sits above the
+    // strip and naming the whole shell after it (issue #4166).
+    return Semantics(container: true, child: _strip(context, ref, scheme));
+  }
+
+  Widget _strip(BuildContext context, WidgetRef ref, ColorScheme scheme) {
+    final l10n = context.l10n;
     return Material(
       color: scheme.tertiaryContainer,
       child: SafeArea(

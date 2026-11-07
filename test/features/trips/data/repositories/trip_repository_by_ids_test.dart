@@ -51,7 +51,7 @@ void main() {
   });
 
   test('narrows its one statement to the ids', () async {
-    final sent = await wholeStatementsOf(
+    final sent = await statementsOf(
       () => trips.getAllTripsWithStats(ids: const ['t2']),
     );
 
@@ -59,7 +59,7 @@ void main() {
   });
 
   test('reads nothing for no ids', () async {
-    final sent = await wholeStatementsOf(
+    final sent = await statementsOf(
       () async =>
           expect(await trips.getAllTripsWithStats(ids: const []), isEmpty),
     );

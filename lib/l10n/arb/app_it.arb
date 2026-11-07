@@ -3390,6 +3390,7 @@
   "divePlanner_label_gfHigh": "GF Alto",
   "divePlanner_label_gfLow": "GF Basso",
   "divePlanner_label_minutesUnit": "min",
+  "divePlanner_label_secondsUnit": "s",
   "divePlanner_label_ndl": "NDL",
   "divePlanner_label_planSettings": "Impostazioni Piano",
   "divePlanner_label_reserve": "Riserva",

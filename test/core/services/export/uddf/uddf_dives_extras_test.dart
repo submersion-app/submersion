@@ -174,7 +174,6 @@ void main() {
       buddies,
       components,
       _Roles(),
-      _TankPressures(),
       'diver-1',
       ['d1'],
       const UddfExportOptions(),
@@ -196,7 +195,6 @@ void main() {
       buddies,
       components,
       _Roles(),
-      _TankPressures(),
       'diver-1',
       ['d1'],
       const UddfExportOptions(includeParticipants: false, includeGear: false),
@@ -215,32 +213,12 @@ void main() {
       _Buddies(),
       _Components(),
       roles,
-      _TankPressures(),
       'diver-1',
       ['d1'],
       const UddfExportOptions(includeParticipants: false, includeGear: false),
     );
     expect(roles.calls, ['diver-1']);
     expect(extras.diveRoles, [_role]);
-  });
-
-  test('fetches the dives\' tank pressures whatever the checkboxes', () async {
-    // Sample pressures are part of the dive's own record, like its profile,
-    // not something a checkbox shares or withholds (issue #1874).
-    final pressures = _TankPressures();
-    final extras = await resolveDivesExtras(
-      _Buddies(),
-      _Components(),
-      _Roles(),
-      pressures,
-      'diver-1',
-      ['d1'],
-      const UddfExportOptions(includeParticipants: false, includeGear: false),
-    );
-    expect(pressures.calls, [
-      ['d1'],
-    ]);
-    expect(extras.diveTankPressures, _pressures);
   });
 
   test('fetches the dives\' gas switches whatever the checkboxes', () async {
@@ -251,7 +229,6 @@ void main() {
       _Buddies(),
       _Components(),
       _Roles(),
-      _TankPressures(),
       'diver-1',
       ['d1'],
       const UddfExportOptions(includeParticipants: false, includeGear: false),
@@ -265,6 +242,7 @@ void main() {
 
   test('the provider reads every repository for the active diver', () async {
     final roles = _Roles();
+    final pressures = _TankPressures();
     final dives = _Dives();
     final classification = _Classification();
     final container = ProviderContainer(
@@ -272,7 +250,7 @@ void main() {
         buddyRepositoryProvider.overrideWithValue(_Buddies()),
         equipmentComponentRepositoryProvider.overrideWithValue(_Components()),
         diveRoleRepositoryProvider.overrideWithValue(roles),
-        tankPressureRepositoryProvider.overrideWithValue(_TankPressures()),
+        tankPressureRepositoryProvider.overrideWithValue(pressures),
         diveRepositoryProvider.overrideWithValue(dives),
         validatedCurrentDiverIdProvider.overrideWith((ref) async => 'diver-1'),
         siteClassificationRepositoryProvider.overrideWithValue(classification),
@@ -287,7 +265,9 @@ void main() {
     expect(extras.components, [_component]);
     expect(roles.calls, ['diver-1']);
     expect(extras.diveRoles, [_role]);
-    expect(extras.diveTankPressures, _pressures);
+    // The tank pressures grow with the recordings, so the export reads them
+    // a run of dives at a time with the samples instead (issue #4249).
+    expect(pressures.calls, isEmpty);
     expect(extras.diveGasSwitches, _switches);
     expect(classification.siteQueries, [
       ['d1'],
@@ -299,6 +279,5 @@ void main() {
     expect(extras.diveBuddies, isEmpty);
     expect(extras.components, isEmpty);
     expect(extras.diveRoles, isEmpty);
-    expect(extras.diveTankPressures, isEmpty);
   });
 }

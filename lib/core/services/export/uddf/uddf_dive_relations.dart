@@ -3,7 +3,6 @@ import 'package:submersion/features/buddies/data/repositories/buddy_repository.d
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
-import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show Dive;
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
@@ -14,7 +13,6 @@ import 'package:submersion/features/equipment/data/repositories/service_record_r
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_export.dart';
 
 /// What a full UDDF export writes about each dive beyond the dive itself.
 ///
@@ -23,13 +21,16 @@ import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_
 /// [loadUddfDiveRelations] fills each map in dive order, which the
 /// document depends on: the builder writes the participant role rows by
 /// iterating [diveBuddies].
+///
+/// The tank pressure series are not here: they grow with the recordings, so
+/// the backup reads them a run of dives at a time with the samples
+/// (issue #4249).
 class UddfDiveRelations {
   final Map<String, List<BuddyWithRole>> diveBuddies;
   final Map<String, List<Tag>> diveTags;
   final Map<String, List<DiveWeight>> diveWeights;
   final Map<String, List<GasSwitchWithTank>> diveGasSwitches;
   final Map<String, List<ProfileEvent>> diveProfileEvents;
-  final Map<String, DiveTankPressureExport> diveTankPressures;
 
   const UddfDiveRelations({
     this.diveBuddies = const {},
@@ -37,7 +38,6 @@ class UddfDiveRelations {
     this.diveWeights = const {},
     this.diveGasSwitches = const {},
     this.diveProfileEvents = const {},
-    this.diveTankPressures = const {},
   });
 }
 
@@ -54,7 +54,6 @@ Future<UddfDiveRelations> loadUddfDiveRelations({
   required TagRepository tagRepository,
   required DiveRepository diveRepository,
   required DiveComputerRepository diveComputerRepository,
-  required TankPressureRepository tankPressureRepository,
   required List<Dive> dives,
 }) async {
   final ids = [for (final dive in dives) dive.id];
@@ -84,9 +83,6 @@ Future<UddfDiveRelations> loadUddfDiveRelations({
       for (final entry in inDiveOrder(eventRows).entries)
         entry.key: entry.value.map(mapDiveProfileEventToProfileEvent).toList(),
     },
-    diveTankPressures: inDiveOrder(
-      await tankPressureRepository.getTankPressuresForDives(ids),
-    ),
   );
 }
 

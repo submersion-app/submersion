@@ -479,7 +479,7 @@ final siteDiveCountProvider = FutureProvider.family<int, String>((
 ///
 /// Takes the dives tick because site merges, bulk edits, and sync pulls all
 /// change which dives belong to a site without touching the site row, the
-/// same reason [mediaFromDivesAtSiteProvider] subscribes to it.
+/// same reason [mediaCountFromDivesAtSiteProvider] subscribes to it.
 final siteEntryExitSuggestionProvider =
     FutureProvider.family<EntryExitSuggestion?, String>((ref, siteId) async {
       final diveRepository = ref.watch(diveRepositoryProvider);

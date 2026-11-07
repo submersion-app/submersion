@@ -11282,6 +11282,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divePlanner_label_minutesUnit => 'perc';
 
   @override
+  String get divePlanner_label_secondsUnit => 'mp';
+
+  @override
   String get divePlanner_label_ndl => 'NDL';
 
   @override
