@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
@@ -129,7 +128,8 @@ class ExitPathEvaluator {
       exitLegs: exitLegs,
       exitSpeedMps: exitSpeedMps,
     );
-    final outcome = engine.compute(plan.copyWith(segments: segments));
+    final exitPlan = plan.copyWith(segments: segments);
+    final outcome = engine.compute(exitPlan);
     final authoredRuntime = outcome.runtimeSeconds - outcome.ttsAtBottom;
     final exitBottomSeconds = math.max(
       0,
@@ -173,8 +173,9 @@ class ExitPathEvaluator {
         .toList();
     final ascentStartDepth =
         authoredExitRows.lastOrNull?.depthMeters ?? failureDepth;
-    // The roles the engine charged the rows by, not the stored ones.
-    final resolvedTanks = const TankRoleResolver().apply(plan).tanks;
+    // The roles the engine charged the rows by: derived from the same
+    // segments it computed, not the stored roles or the plan's own legs.
+    final resolvedTanks = const TankRoleResolver().apply(exitPlan).tanks;
 
     final liters = <String, double>{};
     final shortfall = <String>{};
@@ -265,20 +266,12 @@ class ExitPathEvaluator {
     return sacBottom * math.max(1.0, factor);
   }
 
-  /// What [tank] holds at its fill, in surface liters; 0 when its size or
-  /// fill is unknown, so it takes no share of a mix it carries.
-  double _capacityOf(DiveTank tank) {
-    final start = tank.startPressure;
-    final volume = tank.volume;
-    if (start == null || volume == null) return 0.0;
-    return gasVolume(
-      tankSizeLiters: volume,
-      pressureBar: start,
-      o2Percent: tank.gasMix.o2,
-      hePercent: tank.gasMix.he,
-      model: engine.config.gasModel,
-    );
-  }
+  /// What [tank] holds at its fill, in surface liters; 0 when its size is
+  /// unknown too, as [MemberGasService.remainingBar] cannot check it either,
+  /// so it takes no share of a mix it carries.
+  double _capacityOf(DiveTank tank) => tank.volume == null
+      ? 0.0
+      : fillCapacityLiters(tank, engine.config.gasModel);
 
   /// Per-cylinder totals of [a] and [b] together.
   static Map<String, double> _sum(

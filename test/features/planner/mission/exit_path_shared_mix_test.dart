@@ -101,6 +101,33 @@ void main() {
     expect(_run([_stage('d1'), unlabelled]).gasShortfallMemberIds, isEmpty);
   });
 
+  test('roles come from the legs the exit computes, not stored ones', () {
+    // The stored plan's own deepest leg breathes d2, which would make it the
+    // bottom cylinder. The mission's legs never breathe it, so the engine
+    // charges its rows with d2 as a stage, and it shares the deco with d1.
+    final plan = _plan([_stage('d1'), _stage('d2')]).copyWith(
+      segments: [
+        const PlanSegment(
+          id: 'stored',
+          targetDepth: 45,
+          durationSeconds: 600,
+          tankId: 'd2',
+          gasMix: _ean50,
+        ),
+      ],
+    );
+    final result = const ExitPathEvaluator().evaluate(
+      plan: plan,
+      outboundSegments: _outbound,
+      failureRuntimeSeconds: 1633,
+      exitLegs: const [],
+      exitSpeedMps: 0.2,
+      divers: const [ExitDiver(id: 'a', sacBottom: 15)],
+    );
+
+    expect(result.gasShortfallMemberIds, isEmpty);
+  });
+
   test('sharing moves no gas: the diver breathes the same total', () {
     final single = _run([_stage('d1')]);
     final pair = _run([_stage('d1'), _stage('d2')]);

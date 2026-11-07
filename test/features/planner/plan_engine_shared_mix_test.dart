@@ -87,6 +87,40 @@ void main() {
     );
   });
 
+  test('a stage an authored leg already breathed is drawn last', () {
+    // Ten minutes on d1 at 21 m before the computed ascent: the deco draws
+    // d2 first, so the pair still ends level.
+    final base = _plan([_stage('d1'), _stage('d2')]);
+    final plan = base.copyWith(
+      segments: [
+        ...base.segments,
+        PlanSegment.travel(
+          id: 'up',
+          fromDepth: 50,
+          targetDepth: 21,
+          tankId: 'back',
+          gasMix: _tx,
+          order: 2,
+          ratePerMinute: 9,
+        ),
+        PlanSegment.hold(
+          id: 'on-d1',
+          depth: 21,
+          durationMinutes: 10,
+          tankId: 'd1',
+          gasMix: _ean50,
+          order: 3,
+        ),
+      ],
+    );
+    final outcome = engine.compute(plan);
+    final d1 = _usage(outcome, 'd1');
+    final d2 = _usage(outcome, 'd2');
+
+    expect(d1.litersUsed, closeTo(d2.litersUsed, 1e-6));
+    expect(d1.remainingPressure, closeTo(d2.remainingPressure!, 1e-6));
+  });
+
   test('a stage too small for its share runs out with its twin', () {
     final outcome = engine.compute(
       _plan([
