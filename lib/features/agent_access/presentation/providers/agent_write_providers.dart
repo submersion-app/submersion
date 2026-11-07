@@ -47,7 +47,7 @@ class AppWriteConfirmer implements WriteConfirmer {
   }) : _context = context,
        _entityTables = entityTables,
        _timeout = timeout,
-       _raiseWindow = raiseWindow ?? _raiseAppWindow;
+       _raiseWindow = raiseWindow ?? raiseAppWindow;
 
   static const _log = LoggerService('AgentAccess');
 
@@ -106,8 +106,13 @@ class AppWriteConfirmer implements WriteConfirmer {
   }
 }
 
-Future<void> _raiseAppWindow() async {
+/// Brings the app's window to the front so the diver sees the dialog.
+@visibleForTesting
+Future<void> raiseAppWindow() async {
   if (!hasDesktopWindow()) return;
+  // The macOS plugin finds the window only here; a window call before it
+  // unwraps nil in native code and the app quits (#4298).
+  await windowManager.ensureInitialized();
   await windowManager.show();
   await windowManager.focus();
 }
