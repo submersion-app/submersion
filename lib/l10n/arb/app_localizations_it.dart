@@ -14172,6 +14172,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_tankRole_stage => 'Stage';
 
   @override
+  String get enum_tankRole_suitInflation => 'Gonfiaggio muta';
+
+  @override
   String get enum_tankRole_twinSet => 'Bibombola';
 
   @override

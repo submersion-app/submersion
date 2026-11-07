@@ -4344,6 +4344,7 @@
   "enum_tankRole_sidemountLeft": "Sidemount Links",
   "enum_tankRole_sidemountRight": "Sidemount Rechts",
   "enum_tankRole_stage": "Stageflasche",
+  "enum_tankRole_suitInflation": "Anzugflasche",
   "enum_tankRole_twinSet": "Doppelgerät",
   "enum_tideState_rising": "Auflaufend",
   "enum_tideState_falling": "Ablaufend",

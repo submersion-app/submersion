@@ -4310,6 +4310,7 @@
   "enum_tankRole_sidemountLeft": "تعليق جانبي أيسر",
   "enum_tankRole_sidemountRight": "تعليق جانبي أيمن",
   "enum_tankRole_stage": "أسطوانة مرحلية",
+  "enum_tankRole_suitInflation": "نفخ البدلة",
   "enum_tankRole_twinSet": "طقم مزدوج",
   "enum_tideState_rising": "مد",
   "enum_tideState_falling": "جزر",

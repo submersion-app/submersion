@@ -17,6 +17,18 @@ const Set<TankRole> sidemountRoles = {
 /// or a manifolded twin set logged as one (issue #3374).
 const Set<TankRole> backmountRoles = {TankRole.backGas, TankRole.twinSet};
 
+/// The cylinders of [tanks] that hold breathing gas, in order: every one but
+/// a suit inflation bottle (issue #4243, see [TankRole.isBreathingGas]).
+/// Every breathing gas calculation starts from this list, not from all of a
+/// dive's cylinders.
+List<DiveTank> breathingTanks(List<DiveTank> tanks) {
+  if (tanks.every((t) => t.role.isBreathingGas)) return tanks;
+  return [
+    for (final tank in tanks)
+      if (tank.role.isBreathingGas) tank,
+  ];
+}
+
 /// The volume of [tank] for consumption math, in liters: its own, else the
 /// volume of the first other cylinder of the dive that forms a matched pair
 /// with it (see [isMatchedPair]), since a pair is the same size and

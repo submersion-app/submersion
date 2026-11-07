@@ -14071,6 +14071,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_tankRole_stage => 'Stagefles';
 
   @override
+  String get enum_tankRole_suitInflation => 'Droogpakfles';
+
+  @override
   String get enum_tankRole_twinSet => 'Dubbelset';
 
   @override

@@ -23,6 +23,9 @@ import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/services/bottom_time_calculator.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
+import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart'
+    as multi
+    show breathingTanks;
 
 /// Core dive log entry entity
 class Dive extends Equatable {
@@ -590,6 +593,11 @@ class Dive extends Equatable {
     // SAC in liters/min at surface
     return totalGasLiters / minutes / avgPressureBar;
   }
+
+  /// The cylinders that hold breathing gas, in order: every one but a suit
+  /// inflation bottle (issue #4243). Gas calculations start from these;
+  /// [tanks] is what the dive lists.
+  List<DiveTank> get breathingTanks => multi.breathingTanks(tanks);
 
   /// The cylinder whose bar the pressure lane ([sac]) is expressed in, and
   /// the one whose volume converts an unattributed SAC segment to L/min:

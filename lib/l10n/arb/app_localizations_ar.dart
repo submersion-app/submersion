@@ -14340,6 +14340,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_tankRole_stage => 'أسطوانة مرحلية';
 
   @override
+  String get enum_tankRole_suitInflation => 'نفخ البدلة';
+
+  @override
   String get enum_tankRole_twinSet => 'طقم مزدوج';
 
   @override

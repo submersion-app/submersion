@@ -22912,6 +22912,12 @@ abstract class AppLocalizations {
   /// **'Stage'**
   String get enum_tankRole_stage;
 
+  /// No description provided for @enum_tankRole_suitInflation.
+  ///
+  /// In en, this message translates to:
+  /// **'Suit Inflation'**
+  String get enum_tankRole_suitInflation;
+
   /// No description provided for @enum_tankRole_twinSet.
   ///
   /// In en, this message translates to:

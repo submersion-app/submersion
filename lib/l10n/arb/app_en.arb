@@ -8361,6 +8361,7 @@
   "enum_tankRole_sidemountLeft": "Sidemount Left",
   "enum_tankRole_sidemountRight": "Sidemount Right",
   "enum_tankRole_stage": "Stage",
+  "enum_tankRole_suitInflation": "Suit Inflation",
   "enum_tankRole_twinSet": "Twin Set",
   "enum_tideState_rising": "Rising",
   "enum_tideState_falling": "Falling",

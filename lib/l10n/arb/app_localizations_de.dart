@@ -14163,6 +14163,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_tankRole_stage => 'Stageflasche';
 
   @override
+  String get enum_tankRole_suitInflation => 'Anzugflasche';
+
+  @override
   String get enum_tankRole_twinSet => 'Doppelgerät';
 
   @override

@@ -13,6 +13,13 @@ const String _sidemountRolesSql = "('sidemountLeft', 'sidemountRight')";
 /// The SQL form of `backmountRoles`: back gas or a twin set (issue #3374).
 const String _backmountRolesSql = "('backGas', 'twinSet')";
 
+/// Whether the `dive_tanks` row aliased [alias] holds breathing gas: every
+/// row but a suit inflation bottle (issue #4243). The SQL form of
+/// `TankRole.isBreathingGas`. A row with no role stays in, since
+/// `NULL <> 'x'` is NULL rather than true.
+String breathingTankSql(String alias) =>
+    "($alias.tank_role IS NULL OR $alias.tank_role <> 'suitInflation')";
+
 /// The consumption volume of the `dive_tanks` row aliased [tank], in
 /// liters: its own volume, else the volume of the first other cylinder of
 /// the dive that forms a matched pair with it (both sidemount, both twin
