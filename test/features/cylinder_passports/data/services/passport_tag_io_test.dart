@@ -40,6 +40,30 @@ void main() {
       );
     });
 
+    test('a small Type 5 tag keeps the identity and drops the rest '
+        '(issue #4226)', () async {
+      // An ICODE SLIX has 112 bytes of user memory. Its 4-byte capability
+      // container and the NDEF TLV's header and terminator leave at most
+      // 105 for the message, below the 104 this payload needs whole.
+      const capacity = 100;
+      final tag = FakeTagHandle(
+        maxMessageBytes: capacity,
+        typeLabel: 'com.nxp.ndef.icodesli',
+      );
+      final result = await writePassportTo(tag, payload);
+      expect(result, isA<TagWritten>());
+      final written = result as TagWritten;
+      final plan = written.plan as PassportNdefPlan;
+      expect(plan.message.byteLength, lessThanOrEqualTo(capacity));
+      expect(plan.droppedKeys, isNotEmpty);
+      expect(plan.payload.passportId, id);
+      expect(
+        firstPassportUri(tag.stored!),
+        PassportPayloadCodec.httpsUrl(plan.payload),
+      );
+      expect(friendlyTagType(written.typeLabel), 'NFC Forum Type 5');
+    });
+
     test('a tag that cannot hold NDEF is refused', () async {
       expect(await writePassportTo(null, payload), isA<TagNotNdef>());
     });
@@ -122,6 +146,8 @@ void main() {
   test('friendlyTagType names the NFC Forum types', () {
     expect(friendlyTagType('org.nfcforum.ndef.type2'), 'NFC Forum Type 2');
     expect(friendlyTagType('com.nxp.ndef.mifareclassic'), 'MIFARE Classic');
+    // Android's name for an NDEF tag on an NXP ICODE SLI-family chip.
+    expect(friendlyTagType('com.nxp.ndef.icodesli'), 'NFC Forum Type 5');
     expect(friendlyTagType('something.else'), 'something.else');
     expect(friendlyTagType(null), isNull);
   });

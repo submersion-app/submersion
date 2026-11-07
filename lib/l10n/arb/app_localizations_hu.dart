@@ -11144,9 +11144,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divePlanner_action_addTank => 'Palack hozzáadása';
 
   @override
-  String get divePlanner_action_convertToDive => 'Átalakítás merüléssé';
-
-  @override
   String get divePlanner_action_deletePlan => 'Terv törlése';
 
   @override
@@ -20897,6 +20894,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerCanvas_chart_removeWaypoint => 'Útpont eltávolítása';
 
   @override
+  String get plannerCanvas_chart_worstCase => 'Legrosszabb eset';
+
+  @override
   String get plannerCanvas_contingency_title => 'Vészhelyzeti tervek';
 
   @override
@@ -20904,9 +20904,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get plannerCanvas_contingency_turnRule => 'Fordulónyomás-szabály';
-
-  @override
-  String get plannerCanvas_convert_success => 'Merülés létrehozva a tervből';
 
   @override
   String get plannerCanvas_convert_view => 'Megtekintés';
@@ -20986,6 +20983,17 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get plannerSeries_openInLog => 'Megnyitás a naplóban';
+
+  @override
+  String get plannerSeries_view_actual => 'Tényleges';
+
+  @override
+  String get plannerSeries_view_plan => 'Terv';
+
+  @override
+  String plannerSeries_saved_divedCount(int dived, int count) {
+    return '$dived/$count lemerülve';
+  }
 
   @override
   String get plannerSeries_stopFollowing => 'Követés leállítása';
@@ -21140,8 +21148,77 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerSeries_fillAll => 'Minden palack töltése';
 
   @override
-  String get plannerSeries_convertUnavailable =>
-      'Merülések sorozata még nem alakítható naplózott merülésekké';
+  String get plannerSeries_createPlannedDive => 'Tervezett merülés létrehozása';
+
+  @override
+  String get plannerSeries_createPlannedDives =>
+      'Tervezett merülések létrehozása';
+
+  @override
+  String get plannerSeries_updatePlannedDive => 'Tervezett merülés frissítése';
+
+  @override
+  String get plannerSeries_updatePlannedDives =>
+      'Tervezett merülések frissítése';
+
+  @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return '$dive kritikus figyelmeztetést tartalmaz, ezért a tervezett merülések nem frissültek';
+  }
+
+  @override
+  String plannerSeries_cannotUpdateEmpty(String dive) {
+    return '$dive nem tartalmaz szakaszokat, ezért a tervezett merülések nem frissültek';
+  }
+
+  @override
+  String get plannerSeries_cannotUpdateEmptyPlan =>
+      'Ez a terv nem tartalmaz szakaszokat, ezért nem került a naplóba';
+
+  @override
+  String plannerSeries_created(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tervezett merülés hozzáadva a naplóhoz',
+      one: '$count tervezett merülés hozzáadva a naplóhoz',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerSeries_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tervezett merülés frissítve a naplóban',
+      one: '$count tervezett merülés frissítve a naplóban',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_title => 'Törli a naplóból?';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count tervezett merülés már nincs ebben a sorozatban, de még a naplóban van.',
+      one:
+          '$count tervezett merülés már nincs ebben a sorozatban, de még a naplóban van.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'Megtartás';
+
+  @override
+  String get plannerSeries_allDived =>
+      'A terv minden merülése megtörtént, nincs mit frissíteni';
 
   @override
   String get plannerSeries_missionUnavailable =>
@@ -22634,6 +22711,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get navShortcut_short_backup => 'Mentés';
+
+  @override
+  String get navShortcut_short_diveComputers => 'Komputerek';
 
   @override
   String get navShortcut_short_speciesStats => 'Fajstatisztika';
@@ -40943,6 +41023,12 @@ class AppLocalizationsHu extends AppLocalizations {
       'Búvárkomputer-adatokra vár. Jelöld naplózottnak, ha komputer nélkül merültél.';
 
   @override
+  String get diveLog_planned_openInPlanner => 'Megnyitás a tervezőben';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'Megtekintés a tervezőben';
+
+  @override
   String get diveLog_detail_menu_markLogged => 'Naplózottnak jelölés';
 
   @override
@@ -41886,6 +41972,16 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String dataQuality_dive_tanks(String tanks) {
+    return 'Érintett: $tanks';
+  }
+
+  @override
+  String dataQuality_dive_tankPair(String first, String second) {
+    return '$first és $second';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => 'Adatminőség-ellenőrzés';
 
   @override
@@ -41904,9 +42000,9 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Az átvizsgálás kész - $count elem ellenőrzésre vár',
-      one: 'Az átvizsgálás kész - 1 elem ellenőrzésre vár',
-      zero: 'Az átvizsgálás kész - nincs új észlelés',
+      other: 'Az átvizsgálás kész - $count nyitott elem ellenőrzésre vár',
+      one: 'Az átvizsgálás kész - $count nyitott elem ellenőrzésre vár',
+      zero: 'Az átvizsgálás kész - nincs nyitott észlelés',
     );
     return '$_temp0';
   }
@@ -42037,8 +42133,25 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_clock_offset(int hours) {
-    return 'Az egyik forrás órája $hours órával eltér';
+  String dataQuality_msg_clock_offsetAhead(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'Az egyik forrás órája $hours órát siet',
+      one: 'Az egyik forrás órája $hours órát siet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_clock_offsetBehind(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'Az egyik forrás órája $hours órát késik',
+      one: 'Az egyik forrás órája $hours órát késik',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -42105,8 +42218,18 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_rate(String rate, int seconds) {
-    return '$rate függőleges sebesség $seconds másodpercen át fennmaradt';
+  String dataQuality_msg_rate(String rate, String duration) {
+    return '$rate függőleges sebesség $duration időtartamon át fennmaradt';
+  }
+
+  @override
+  String dataQuality_unit_seconds(int seconds) {
+    return '$seconds mp';
+  }
+
+  @override
+  String dataQuality_unit_minutes(int minutes) {
+    return '$minutes perc';
   }
 
   @override
@@ -42210,12 +42333,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Az állandó arány a sós/édesvíz beállítás eltérésére utal';
 
   @override
-  String get dataQuality_msg_sourceDuration =>
-      'A források nem egyeznek a merülés időtartamában';
+  String dataQuality_msg_sourceDuration(String primary, String source) {
+    return 'A források nem egyeznek a merülés időtartamában: $primary vs. $source';
+  }
 
   @override
-  String get dataQuality_msg_sourceTemp =>
-      'A források nem egyeznek a vízhőmérsékletben';
+  String dataQuality_msg_sourceTemp(String primary, String source) {
+    return 'A források nem egyeznek a vízhőmérsékletben: $primary vs. $source';
+  }
 
   @override
   String dataQuality_repairLabel_shiftTime(String offset) {
@@ -42234,6 +42359,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String dataQuality_repairLabel_fixSourceClock(String offset) {
     return 'A számítógép órájának javítása ennyivel: $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClockNamed(
+    String computer,
+    String offset,
+  ) {
+    return '$computer órájának javítása ennyivel: $offset';
   }
 
   @override
@@ -42412,6 +42545,33 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_split => 'Szétválasztás külön merülésekre';
+
+  @override
+  String dataQuality_repairLabel_setPrimaryNamed(String source) {
+    return '$source beállítása elsődleges forrásként';
+  }
+
+  @override
+  String dataQuality_repairLabel_splitNamed(String source) {
+    return '$source leválasztása külön merülésként';
+  }
+
+  @override
+  String dataQuality_setPrimary_title(String source) {
+    return 'Beállítja elsődleges forrásként ezt: $source?';
+  }
+
+  @override
+  String dataQuality_setPrimary_body(String source) {
+    return 'A merülés mélysége, időtartama és profilja ezután innen származik: $source. Ezt a merülés adatforrásainál később módosíthatja.';
+  }
+
+  @override
+  String get dataQuality_setPrimary_bodyUnnamed =>
+      'A merülés mélysége, időtartama és profilja ezután ebből a forrásból származik. Ezt a merülés adatforrásainál később módosíthatja.';
+
+  @override
+  String get dataQuality_setPrimary_confirm => 'Beállítás elsődlegesként';
 
   @override
   String get dataQuality_repairLabel_compare => 'Profilok összehasonlítása';

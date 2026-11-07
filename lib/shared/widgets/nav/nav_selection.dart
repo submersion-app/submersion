@@ -1,4 +1,3 @@
-import 'package:submersion/core/router/shortcut_locations.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
 import 'package:submersion/shared/widgets/nav/nav_shortcuts.dart';
 
@@ -43,16 +42,17 @@ int navMatchScore(NavDestination destination, Uri location) {
 /// section when that shortcut is not on the surface being shown, and the Gas
 /// calculators hub opened as a shortcut (`?calc=blender`) still selects a
 /// calculator's own shortcut.
+///
+/// A page that lives in a query keeps it: the canonical query is laid over
+/// the alias's, since the alias always shows that one page.
 Uri? _canonicalOf(Uri location) {
-  if (!location.path.startsWith('$kShortcutLocationPrefix/')) return null;
-  final id = location.path.substring(kShortcutLocationPrefix.length + 1);
-  final shortcut = navShortcutById(id);
+  final shortcut = navShortcutForLocation(location);
   if (shortcut == null) return null;
+  final canonical = shortcut.canonicalUri;
+  final query = {...location.queryParameters, ...canonical.queryParameters};
   return Uri(
-    path: shortcut.canonicalPath,
-    queryParameters: location.queryParameters.isEmpty
-        ? null
-        : location.queryParameters,
+    path: canonical.path,
+    queryParameters: query.isEmpty ? null : query,
   );
 }
 

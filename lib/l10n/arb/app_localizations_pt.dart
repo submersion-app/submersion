@@ -11167,9 +11167,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get divePlanner_action_addTank => 'Adicionar Cilindro';
 
   @override
-  String get divePlanner_action_convertToDive => 'Converter em Mergulho';
-
-  @override
   String get divePlanner_action_deletePlan => 'Excluir plano';
 
   @override
@@ -20971,6 +20968,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get plannerCanvas_chart_removeWaypoint => 'Remover ponto';
 
   @override
+  String get plannerCanvas_chart_worstCase => 'Pior caso';
+
+  @override
   String get plannerCanvas_contingency_title => 'Contingências';
 
   @override
@@ -20979,10 +20979,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get plannerCanvas_contingency_turnRule =>
       'Regra de pressão de retorno';
-
-  @override
-  String get plannerCanvas_convert_success =>
-      'Mergulho criado a partir do plano';
 
   @override
   String get plannerCanvas_convert_view => 'Ver';
@@ -21062,6 +21058,17 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get plannerSeries_openInLog => 'Abrir no registo';
+
+  @override
+  String get plannerSeries_view_actual => 'Real';
+
+  @override
+  String get plannerSeries_view_plan => 'Plano';
+
+  @override
+  String plannerSeries_saved_divedCount(int dived, int count) {
+    return '$dived de $count mergulhados';
+  }
 
   @override
   String get plannerSeries_stopFollowing => 'Deixar de seguir';
@@ -21216,8 +21223,76 @@ class AppLocalizationsPt extends AppLocalizations {
   String get plannerSeries_fillAll => 'Encher todas as garrafas';
 
   @override
-  String get plannerSeries_convertUnavailable =>
-      'Ainda não é possível converter uma série de mergulhos em mergulhos registados';
+  String get plannerSeries_createPlannedDive => 'Criar mergulho planeado';
+
+  @override
+  String get plannerSeries_createPlannedDives => 'Criar mergulhos planeados';
+
+  @override
+  String get plannerSeries_updatePlannedDive => 'Atualizar mergulho planeado';
+
+  @override
+  String get plannerSeries_updatePlannedDives =>
+      'Atualizar mergulhos planeados';
+
+  @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return '$dive tem um aviso crítico, por isso os mergulhos planeados não foram atualizados';
+  }
+
+  @override
+  String plannerSeries_cannotUpdateEmpty(String dive) {
+    return '$dive não tem segmentos, por isso os mergulhos planeados não foram atualizados';
+  }
+
+  @override
+  String get plannerSeries_cannotUpdateEmptyPlan =>
+      'Este plano não tem segmentos, por isso não foi escrito no registo';
+
+  @override
+  String plannerSeries_created(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos planeados adicionados ao registo',
+      one: '$count mergulho planeado adicionado ao registo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerSeries_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos planeados atualizados no registo',
+      one: '$count mergulho planeado atualizado no registo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_title => 'Eliminar do registo?';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count mergulhos planeados que já não estão nesta série permanecem no registo.',
+      one:
+          '$count mergulho planeado que já não está nesta série permanece no registo.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'Manter';
+
+  @override
+  String get plannerSeries_allDived =>
+      'Todos os mergulhos deste plano já foram feitos, não há nada para atualizar';
 
   @override
   String get plannerSeries_missionUnavailable =>
@@ -22709,6 +22784,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get navShortcut_short_backup => 'Backup';
+
+  @override
+  String get navShortcut_short_diveComputers => 'Computadores';
 
   @override
   String get navShortcut_short_speciesStats => 'Estat. espécies';
@@ -41156,6 +41234,12 @@ class AppLocalizationsPt extends AppLocalizations {
       'Aguardando os dados do computador. Marque como registrado se mergulhou sem computador.';
 
   @override
+  String get diveLog_planned_openInPlanner => 'Abrir no planeador';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'Ver no planeador';
+
+  @override
   String get diveLog_detail_menu_markLogged => 'Marcar como registrado';
 
   @override
@@ -42104,6 +42188,16 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String dataQuality_dive_tanks(String tanks) {
+    return 'Afeta $tanks';
+  }
+
+  @override
+  String dataQuality_dive_tankPair(String first, String second) {
+    return '$first e $second';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => 'Revisão da qualidade dos dados';
 
   @override
@@ -42122,9 +42216,9 @@ class AppLocalizationsPt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Análise concluída - $count itens para revisar',
-      one: 'Análise concluída - $count item para revisar',
-      zero: 'Análise concluída - nenhuma nova constatação',
+      other: 'Análise concluída - $count itens em aberto para revisar',
+      one: 'Análise concluída - $count item em aberto para revisar',
+      zero: 'Análise concluída - nenhuma constatação em aberto',
     );
     return '$_temp0';
   }
@@ -42255,8 +42349,25 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_clock_offset(int hours) {
-    return 'O relógio de uma fonte difere em $hours horas';
+  String dataQuality_msg_clock_offsetAhead(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'O relógio de uma fonte está $hours horas adiantado',
+      one: 'O relógio de uma fonte está $hours hora adiantado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_clock_offsetBehind(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'O relógio de uma fonte está $hours horas atrasado',
+      one: 'O relógio de uma fonte está $hours hora atrasado',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -42323,8 +42434,18 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_rate(String rate, int seconds) {
-    return 'Velocidade vertical de $rate mantida durante $seconds s';
+  String dataQuality_msg_rate(String rate, String duration) {
+    return 'Velocidade vertical de $rate mantida durante $duration';
+  }
+
+  @override
+  String dataQuality_unit_seconds(int seconds) {
+    return '$seconds s';
+  }
+
+  @override
+  String dataQuality_unit_minutes(int minutes) {
+    return '$minutes min';
   }
 
   @override
@@ -42429,12 +42550,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'A proporção constante sugere uma diferença na definição de água salgada/doce';
 
   @override
-  String get dataQuality_msg_sourceDuration =>
-      'As fontes divergem sobre a duração do mergulho';
+  String dataQuality_msg_sourceDuration(String primary, String source) {
+    return 'As fontes divergem sobre a duração do mergulho: $primary vs. $source';
+  }
 
   @override
-  String get dataQuality_msg_sourceTemp =>
-      'As fontes divergem sobre a temperatura da água';
+  String dataQuality_msg_sourceTemp(String primary, String source) {
+    return 'As fontes divergem sobre a temperatura da água: $primary vs. $source';
+  }
 
   @override
   String dataQuality_repairLabel_shiftTime(String offset) {
@@ -42453,6 +42576,14 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String dataQuality_repairLabel_fixSourceClock(String offset) {
     return 'Corrigir o relógio deste computador em $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClockNamed(
+    String computer,
+    String offset,
+  ) {
+    return 'Corrigir o relógio de $computer em $offset';
   }
 
   @override
@@ -42630,6 +42761,33 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_split => 'Dividir em mergulhos separados';
+
+  @override
+  String dataQuality_repairLabel_setPrimaryNamed(String source) {
+    return 'Tornar $source a fonte principal';
+  }
+
+  @override
+  String dataQuality_repairLabel_splitNamed(String source) {
+    return 'Separar $source num mergulho próprio';
+  }
+
+  @override
+  String dataQuality_setPrimary_title(String source) {
+    return 'Tornar $source a fonte principal?';
+  }
+
+  @override
+  String dataQuality_setPrimary_body(String source) {
+    return 'A profundidade, a duração e o perfil do mergulho passarão a vir de $source. Pode voltar a alterar isto nas fontes de dados do mergulho.';
+  }
+
+  @override
+  String get dataQuality_setPrimary_bodyUnnamed =>
+      'A profundidade, a duração e o perfil do mergulho passarão a vir desta fonte. Pode voltar a alterar isto nas fontes de dados do mergulho.';
+
+  @override
+  String get dataQuality_setPrimary_confirm => 'Tornar principal';
 
   @override
   String get dataQuality_repairLabel_compare => 'Comparar perfis';

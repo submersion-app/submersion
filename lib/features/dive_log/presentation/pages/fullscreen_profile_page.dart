@@ -491,11 +491,16 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                                 Flexible(
                                   child: Padding(
                                     padding: const EdgeInsets.only(right: 4),
+                                    // A planned entry has no number yet.
                                     child: Text(
-                                      context.l10n
-                                          .diveLog_fullscreenProfile_title(
-                                            dive.diveNumber ?? 0,
-                                          ),
+                                      dive.isPlanned
+                                          ? context
+                                                .l10n
+                                                .diveLog_planned_bannerTitle
+                                          : context.l10n
+                                                .diveLog_fullscreenProfile_title(
+                                                  dive.diveNumber ?? 0,
+                                                ),
                                       style: Theme.of(
                                         context,
                                       ).textTheme.titleSmall,

@@ -17803,12 +17803,6 @@ abstract class AppLocalizations {
   /// **'Add Tank'**
   String get divePlanner_action_addTank;
 
-  /// No description provided for @divePlanner_action_convertToDive.
-  ///
-  /// In en, this message translates to:
-  /// **'Convert to Dive'**
-  String get divePlanner_action_convertToDive;
-
   /// No description provided for @divePlanner_action_deletePlan.
   ///
   /// In en, this message translates to:
@@ -33366,6 +33360,12 @@ abstract class AppLocalizations {
   /// **'Remove waypoint'**
   String get plannerCanvas_chart_removeWaypoint;
 
+  /// No description provided for @plannerCanvas_chart_worstCase.
+  ///
+  /// In en, this message translates to:
+  /// **'Worst case'**
+  String get plannerCanvas_chart_worstCase;
+
   /// No description provided for @plannerCanvas_contingency_title.
   ///
   /// In en, this message translates to:
@@ -33383,12 +33383,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Turn pressure rule'**
   String get plannerCanvas_contingency_turnRule;
-
-  /// No description provided for @plannerCanvas_convert_success.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive created from plan'**
-  String get plannerCanvas_convert_success;
 
   /// No description provided for @plannerCanvas_convert_view.
   ///
@@ -33509,6 +33503,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open in dive log'**
   String get plannerSeries_openInLog;
+
+  /// Toggle segment showing what really happened on a dive of a series that has been dived
+  ///
+  /// In en, this message translates to:
+  /// **'Actual'**
+  String get plannerSeries_view_actual;
+
+  /// Toggle segment showing the original plan of a dive of a series that has been dived
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get plannerSeries_view_plan;
+
+  /// How many dives of a saved series have been dived, in the saved plans list
+  ///
+  /// In en, this message translates to:
+  /// **'{dived} of {count} dived'**
+  String plannerSeries_saved_divedCount(int dived, int count);
 
   /// No description provided for @plannerSeries_stopFollowing.
   ///
@@ -33762,11 +33774,83 @@ abstract class AppLocalizations {
   /// **'Fill all tanks'**
   String get plannerSeries_fillAll;
 
-  /// No description provided for @plannerSeries_convertUnavailable.
+  /// No description provided for @plannerSeries_createPlannedDive.
   ///
   /// In en, this message translates to:
-  /// **'A series of dives can\'t be converted to logged dives yet'**
-  String get plannerSeries_convertUnavailable;
+  /// **'Create planned dive'**
+  String get plannerSeries_createPlannedDive;
+
+  /// No description provided for @plannerSeries_createPlannedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Create planned dives'**
+  String get plannerSeries_createPlannedDives;
+
+  /// No description provided for @plannerSeries_updatePlannedDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Update planned dive'**
+  String get plannerSeries_updatePlannedDive;
+
+  /// No description provided for @plannerSeries_updatePlannedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Update planned dives'**
+  String get plannerSeries_updatePlannedDives;
+
+  /// No description provided for @plannerSeries_cannotUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'{dive} has a critical warning, so the planned dives weren\'t updated'**
+  String plannerSeries_cannotUpdate(String dive);
+
+  /// No description provided for @plannerSeries_cannotUpdateEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'{dive} has no segments, so the planned dives weren\'t updated'**
+  String plannerSeries_cannotUpdateEmpty(String dive);
+
+  /// No description provided for @plannerSeries_cannotUpdateEmptyPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'This plan has no segments, so it wasn\'t written to the log'**
+  String get plannerSeries_cannotUpdateEmptyPlan;
+
+  /// No description provided for @plannerSeries_created.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} planned dive added to the log} other{{count} planned dives added to the log}}'**
+  String plannerSeries_created(int count);
+
+  /// No description provided for @plannerSeries_updated.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} planned dive updated in the log} other{{count} planned dives updated in the log}}'**
+  String plannerSeries_updated(int count);
+
+  /// No description provided for @plannerSeries_orphans_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete from the log?'**
+  String get plannerSeries_orphans_title;
+
+  /// No description provided for @plannerSeries_orphans_body.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} planned dive no longer in this series is still in the log.} other{{count} planned dives no longer in this series are still in the log.}}'**
+  String plannerSeries_orphans_body(int count);
+
+  /// No description provided for @plannerSeries_orphans_keep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep'**
+  String get plannerSeries_orphans_keep;
+
+  /// No description provided for @plannerSeries_allDived.
+  ///
+  /// In en, this message translates to:
+  /// **'Every dive in this plan has been dived, so there\'s nothing to update'**
+  String get plannerSeries_allDived;
 
   /// No description provided for @plannerSeries_missionUnavailable.
   ///
@@ -36186,6 +36270,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Backup'**
   String get navShortcut_short_backup;
+
+  /// Short nav bar label for the Transfer > Dive Computers shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Computers'**
+  String get navShortcut_short_diveComputers;
 
   /// Short nav label for the shortcut to Insights > Species (marine life statistics); distinct from the Species section.
   ///
@@ -65106,6 +65196,18 @@ abstract class AppLocalizations {
   /// **'Awaiting dive computer data. Mark it as logged if you dived without one.'**
   String get diveLog_planned_bannerBody;
 
+  /// No description provided for @diveLog_planned_openInPlanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in planner'**
+  String get diveLog_planned_openInPlanner;
+
+  /// No description provided for @diveLog_detail_menu_viewInPlanner.
+  ///
+  /// In en, this message translates to:
+  /// **'View in planner'**
+  String get diveLog_detail_menu_viewInPlanner;
+
   /// No description provided for @diveLog_detail_menu_markLogged.
   ///
   /// In en, this message translates to:
@@ -66430,6 +66532,18 @@ abstract class AppLocalizations {
   /// **'Recorded by {computer}'**
   String dataQuality_dive_recordedBy(String computer);
 
+  /// Names the tank or tanks a finding is about, e.g. 'Affects Tank 2' or 'Affects Tank 1, Tank 2'.
+  ///
+  /// In en, this message translates to:
+  /// **'Affects {tanks}'**
+  String dataQuality_dive_tanks(String tanks);
+
+  /// The two tanks of a twin-tank finding inside dataQuality_dive_tanks, e.g. 'Tank 1 and Tank 2'.
+  ///
+  /// In en, this message translates to:
+  /// **'{first} and {second}'**
+  String dataQuality_dive_tankPair(String first, String second);
+
   /// No description provided for @dataQuality_badge_tooltip.
   ///
   /// In en, this message translates to:
@@ -66457,7 +66571,7 @@ abstract class AppLocalizations {
   /// No description provided for @dataQuality_scan_done.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =0{Scan complete - no new findings} =1{Scan complete - 1 item to review} other{Scan complete - {count} items to review}}'**
+  /// **'{count, plural, =0{Scan complete - nothing open to review} =1{Scan complete - {count} open item to review} other{Scan complete - {count} open items to review}}'**
   String dataQuality_scan_done(int count);
 
   /// No description provided for @dataQuality_scan_errors.
@@ -66682,11 +66796,17 @@ abstract class AppLocalizations {
   /// **'Dive is dated before 1950 ({date})'**
   String dataQuality_msg_clock_ancient(String date);
 
-  /// No description provided for @dataQuality_msg_clock_offset.
+  /// A secondary source's clock reads later than the primary's by whole hours.
   ///
   /// In en, this message translates to:
-  /// **'A source clock differs by {hours} hours'**
-  String dataQuality_msg_clock_offset(int hours);
+  /// **'{hours, plural, =1{A source clock runs {hours} hour ahead} other{A source clock runs {hours} hours ahead}}'**
+  String dataQuality_msg_clock_offsetAhead(int hours);
+
+  /// A secondary source's clock reads earlier than the primary's by whole hours.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours, plural, =1{A source clock runs {hours} hour behind} other{A source clock runs {hours} hours behind}}'**
+  String dataQuality_msg_clock_offsetBehind(int hours);
 
   /// No description provided for @dataQuality_msg_clock_overlap.
   ///
@@ -66751,8 +66871,20 @@ abstract class AppLocalizations {
   /// No description provided for @dataQuality_msg_rate.
   ///
   /// In en, this message translates to:
-  /// **'Vertical rate of {rate} sustained for {seconds} s'**
-  String dataQuality_msg_rate(String rate, int seconds);
+  /// **'Vertical rate of {rate} sustained for {duration}'**
+  String dataQuality_msg_rate(String rate, String duration);
+
+  /// A short duration in a finding message, in seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds} s'**
+  String dataQuality_unit_seconds(int seconds);
+
+  /// A duration in a finding message, in whole minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String dataQuality_unit_minutes(int minutes);
 
   /// No description provided for @dataQuality_msg_tempRange.
   ///
@@ -66875,14 +67007,14 @@ abstract class AppLocalizations {
   /// No description provided for @dataQuality_msg_sourceDuration.
   ///
   /// In en, this message translates to:
-  /// **'Sources disagree on dive duration'**
-  String get dataQuality_msg_sourceDuration;
+  /// **'Sources disagree on dive duration: {primary} vs. {source}'**
+  String dataQuality_msg_sourceDuration(String primary, String source);
 
   /// No description provided for @dataQuality_msg_sourceTemp.
   ///
   /// In en, this message translates to:
-  /// **'Sources disagree on water temperature'**
-  String get dataQuality_msg_sourceTemp;
+  /// **'Sources disagree on water temperature: {primary} vs. {source}'**
+  String dataQuality_msg_sourceTemp(String primary, String source);
 
   /// No description provided for @dataQuality_repairLabel_shiftTime.
   ///
@@ -66907,6 +67039,15 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Fix this computer\'s clock by {offset}'**
   String dataQuality_repairLabel_fixSourceClock(String offset);
+
+  /// Repair button naming the computer whose clock is corrected.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix {computer}\'s clock by {offset}'**
+  String dataQuality_repairLabel_fixSourceClockNamed(
+    String computer,
+    String offset,
+  );
 
   /// No description provided for @dataQuality_repairLabel_fixSourceClockAll.
   ///
@@ -67117,6 +67258,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Split into separate dives'**
   String get dataQuality_repairLabel_split;
+
+  /// Repair button naming the data source that becomes the dive's primary source.
+  ///
+  /// In en, this message translates to:
+  /// **'Make {source} the primary source'**
+  String dataQuality_repairLabel_setPrimaryNamed(String source);
+
+  /// Repair button naming the data source that is split off into a dive of its own.
+  ///
+  /// In en, this message translates to:
+  /// **'Split {source} into its own dive'**
+  String dataQuality_repairLabel_splitNamed(String source);
+
+  /// No description provided for @dataQuality_setPrimary_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Make {source} the primary source?'**
+  String dataQuality_setPrimary_title(String source);
+
+  /// No description provided for @dataQuality_setPrimary_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The dive\'s depth, duration and profile will come from {source}. You can change this again under the dive\'s data sources.'**
+  String dataQuality_setPrimary_body(String source);
+
+  /// No description provided for @dataQuality_setPrimary_bodyUnnamed.
+  ///
+  /// In en, this message translates to:
+  /// **'The dive\'s depth, duration and profile will come from this source. You can change this again under the dive\'s data sources.'**
+  String get dataQuality_setPrimary_bodyUnnamed;
+
+  /// No description provided for @dataQuality_setPrimary_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Make primary'**
+  String get dataQuality_setPrimary_confirm;
 
   /// No description provided for @dataQuality_repairLabel_compare.
   ///

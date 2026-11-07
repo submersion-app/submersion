@@ -2,7 +2,6 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
-import 'package:submersion/features/dive_planner/data/services/plan_calculator_service.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
 
@@ -32,8 +31,7 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  DivePlanNotifier notifier() =>
-      DivePlanNotifier(PlanCalculatorService(), repository: repository);
+  DivePlanNotifier notifier() => DivePlanNotifier(repository: repository);
 
   /// A plan with a source dive, as a replan seeded from the dive before the
   /// replanned one has.

@@ -10,7 +10,7 @@ void main() {
   test('catalog ids are unique and never collide with built-ins', () {
     final ids = kNavShortcuts.map((s) => s.id).toList();
     expect(ids.toSet().length, ids.length);
-    expect(kNavShortcuts.length, 39);
+    expect(kNavShortcuts.length, 40);
     for (final id in kNavShortcutOrderIds) {
       expect(movableNavIds, isNot(contains(id)));
     }
@@ -50,6 +50,65 @@ void main() {
     expect(d.selection?.queryKey, 'calc');
     expect(d.selection?.queryValue, 'blender');
     expect(d.accentId, 'planning');
+  });
+
+  group('a shortcut whose page lives in a query (#4210)', () {
+    final computers = navShortcutById('transfer-computers')!;
+
+    test('opens the Transfer dive computers section', () {
+      expect(computers.canonicalUri.path, '/transfer');
+      expect(computers.canonicalUri.queryParameters, {'selected': 'computers'});
+      expect(
+        computers.parentLabel(lookupAppLocalizations(const Locale('en'))),
+        'Transfer',
+      );
+      expect(computers.accent, 'transfer');
+      expect(computers.isPlanning, isFalse);
+    });
+
+    test('is matched by its selection, not by a Transfer path prefix', () {
+      final d = navShortcutDestination(computers);
+      expect(d.route, shortcutLocation('transfer-computers'));
+      expect(d.extraMatchPaths, isEmpty);
+      expect(d.selection?.path, '/transfer');
+      expect(d.selection?.queryKey, 'selected');
+      expect(d.selection?.queryValue, 'computers');
+    });
+
+    test('a shortcut with a plain path keeps it as a match path', () {
+      final d = navShortcutDestination(navShortcutById('records')!);
+      expect(d.extraMatchPaths, ['/records']);
+    });
+  });
+
+  group('navShortcutForLocation', () {
+    test('finds the shortcut an alias location opens', () {
+      expect(
+        navShortcutForLocation(Uri.parse('/shortcut/cloud-sync'))?.id,
+        'cloud-sync',
+      );
+      expect(
+        navShortcutForLocation(Uri.parse('/shortcut/cloud-sync/?x=1'))?.id,
+        'cloud-sync',
+      );
+      expect(
+        navShortcutForLocation(
+          Uri.parse('/shortcut/transfer-computers?selected=import'),
+        )?.id,
+        'transfer-computers',
+      );
+    });
+
+    test('is null for an unknown id and for any other location', () {
+      expect(navShortcutForLocation(Uri.parse('/shortcut/retired')), isNull);
+      expect(navShortcutForLocation(Uri.parse('/shortcut')), isNull);
+      expect(navShortcutForLocation(Uri.parse('/shortcut/')), isNull);
+      expect(navShortcutForLocation(Uri.parse('/records')), isNull);
+      expect(
+        navShortcutForLocation(Uri.parse('/settings/shortcut/records')),
+        isNull,
+      );
+    });
   });
 
   test('resolveNavDestination finds built-ins and shortcuts', () {
@@ -108,6 +167,7 @@ void main() {
         'certification-wallet',
         'emergency-card',
         'backup',
+        'transfer-computers',
       };
       for (final id in long) {
         final s = navShortcutById(id)!;

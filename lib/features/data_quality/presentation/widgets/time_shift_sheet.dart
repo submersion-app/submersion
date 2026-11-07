@@ -8,10 +8,13 @@ import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 /// value). [widenLabel], when given, adds a checkbox that applies the same
 /// shift beyond the one finding: the whole import for a logbook shift, every
 /// dive of the computer for a source clock fix (#3655). `widen` reports it.
+/// [subject], when given, heads the sheet with what the shift applies to,
+/// such as the computer whose clock is corrected (issue #4209).
 Future<({Duration offset, bool widen})?> showTimeShiftSheet(
   BuildContext context, {
   required Duration suggestedOffset,
   String? widenLabel,
+  String? subject,
 }) {
   final controller = TextEditingController(
     text: suggestedOffset == Duration.zero
@@ -38,6 +41,14 @@ Future<({Duration offset, bool widen})?> showTimeShiftSheet(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (subject != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    subject,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ),
               Form(
                 key: formKey,
                 child: TextFormField(

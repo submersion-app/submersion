@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/enums.dart'
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/equipment_item_rules.dart';
+import 'package:submersion/features/agent_access/data/writes/families/equipment_passport_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/equipment_replace_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/service_ledger_rules.dart';
 import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
@@ -62,6 +63,7 @@ class EquipmentWrites extends WritableEntry {
     ),
     'attributes': attributeListCodec,
     replacesKey: const FieldCodec.reference('equipment'),
+    passportKey: const FieldCodec.text(maxLength: 36, trim: true),
   };
 
   /// A new item names [newItemKeys] unless it replaces a part, which
@@ -119,6 +121,7 @@ class EquipmentWrites extends WritableEntry {
     return {
       ...document,
       'attributes': item == null ? const [] : attributeDocuments(item),
+      passportKey: item == null ? null : passportOf(item),
     };
   }
 
@@ -132,6 +135,7 @@ class EquipmentWrites extends WritableEntry {
     if (replacement != null || check.values.containsKey(replacesKey)) {
       return replacement;
     }
+    if (await passportProblem(check, _r) case final block?) return block;
     final links =
         await _tagBlock(check) ?? _shareBlock(check) ?? reminderProblem(check);
     if (links != null) return links;
@@ -214,6 +218,16 @@ class EquipmentWrites extends WritableEntry {
         _ => null,
       };
 
+  /// A replacement's claim, and a passport id's: one tag on one item of a
+  /// profile, as the store holds it, so a second item given the same id in
+  /// the set is refused here rather than at apply.
+  @override
+  List<UniqueClaim> uniqueKeys(WriteCheck check) => [
+    ?uniqueKey(check),
+    if (check.values[passportKey] case final String passport)
+      UniqueClaim('passport/$passport'),
+  ];
+
   /// The currency the edit page starts a new item in, listed in the plan.
   @override
   Future<Map<String, Object?>> createDefaults(
@@ -248,13 +262,19 @@ class EquipmentWrites extends WritableEntry {
           shares.add.difference(now).length +
           shares.remove.intersection(now).length;
     }
-    final logged = {if (events > 0) 'equipment_ownership_events': events};
-    // Only a field change saves the item, so a change of tags or shares
-    // alone derives nothing and renames no device.
-    if (update.values.isEmpty) return SideEffects(touched: logged);
-    final next = await _next(current, update.values, soFar: update.soFar);
+    final passport = update.values[passportKey] as String?;
+    final logged = {
+      if (events > 0) 'equipment_ownership_events': events,
+      if (passport != null)
+        ...await passportTouched(id, passport, passportOf(current), ownerId),
+    };
+    // Only a field change saves the item, so a change of tags, shares or
+    // the passport alone derives nothing and renames no device.
+    final values = _itemValues(update.values);
+    if (values.isEmpty) return SideEffects(touched: logged);
+    final next = await _next(current, values, soFar: update.soFar);
     return SideEffects(
-      fields: derivedFields(current, next, update.values),
+      fields: derivedFields(current, next, values),
       touched: {...await touchedBy(current, next), ...logged},
     );
   }
@@ -281,12 +301,23 @@ class EquipmentWrites extends WritableEntry {
           values['purchase_currency'] as String? ??
           await defaultCurrencyOf(diverId),
     );
-    return (await _r.equipment.createEquipment(await _next(blank, values))).id;
+    final id = (await _r.equipment.createEquipment(
+      await _next(blank, _itemValues(values)),
+    )).id;
+    if (values[passportKey] case final String passport) {
+      await _r.cylinderPassports.assignPassportId(
+        equipmentId: id,
+        passportId: passport,
+        diverId: diverId,
+      );
+    }
+    return id;
   }
 
   @override
   Future<void> update(String id, String? ownerId, RecordUpdate update) async {
-    if (update.values.isNotEmpty) {
+    final values = _itemValues(update.values);
+    if (values.isNotEmpty) {
       final current =
           await _r.equipment.getEquipmentById(id) ??
           (throw AgentToolException(
@@ -294,7 +325,14 @@ class EquipmentWrites extends WritableEntry {
             'Equipment $id no longer exists.',
             details: {'id': id},
           ));
-      await _r.equipment.updateEquipment(await _next(current, update.values));
+      await _r.equipment.updateEquipment(await _next(current, values));
+    }
+    if (update.values[passportKey] case final String passport) {
+      await _r.cylinderPassports.assignPassportId(
+        equipmentId: id,
+        passportId: passport,
+        diverId: ownerId,
+      );
     }
     // Tags and shares as the edit page and the share checklist save them,
     // the whole new list at once.
@@ -459,4 +497,11 @@ class EquipmentWrites extends WritableEntry {
       },
     );
   }
+
+  /// [values] without the passport id, which the tag dialog writes on its
+  /// own, outside the item save.
+  static Map<String, Object?> _itemValues(Map<String, Object?> values) => {
+    for (final MapEntry(:key, :value) in values.entries)
+      if (key != passportKey) key: value,
+  };
 }

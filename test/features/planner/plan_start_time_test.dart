@@ -1,9 +1,7 @@
-import 'package:clock/clock.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -23,7 +21,7 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
 }
 
 /// A plan's start time is clock digits stamped UTC, like the dive log's
-/// times (issue #3565), all the way to the dive it is converted to.
+/// times (issue #3565), all the way to the plan as saved.
 void main() {
   late ProviderContainer container;
 
@@ -51,36 +49,6 @@ void main() {
     final state = container.read(divePlanNotifierProvider);
     editor().loadPlan(state.copyWith(startDateTime: start));
   }
-
-  test('a converted plan dives at its start', () {
-    planStartingAt(nine);
-    expect(editor().toDive().dateTime, nine);
-  });
-
-  test('a converted plan with no start dives at the clock time now', () {
-    planStartingAt(null);
-    final dive = withClock(
-      Clock.fixed(DateTime(2026, 10, 27, 14, 30)),
-      () => editor().toDive(),
-    );
-    expect(dive.dateTime, DateTime.utc(2026, 10, 27, 14, 30));
-  });
-
-  test(
-    'the converted dive reads back at the start shown in the plan',
-    () async {
-      planStartingAt(nine);
-      final created = await container
-          .read(diveRepositoryProvider)
-          .createDive(editor().toDive());
-
-      final fetched = await container
-          .read(diveRepositoryProvider)
-          .getDiveById(created.id);
-
-      expect(fetched!.dateTime, nine);
-    },
-  );
 
   test('a saved plan keeps its start', () async {
     planStartingAt(nine);

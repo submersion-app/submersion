@@ -71,6 +71,7 @@ import 'package:submersion/features/media/presentation/providers/resolved_asset_
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/presentation/planner_navigation.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_log_links.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_store.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_first_save_name.dart';
@@ -449,7 +450,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
             // spacing of its own is needed.
             if (!widget.embedded) ...[
               if (dive.isPlanned)
-                PlannedDiveBanner(onMarkLogged: () => _markAsLogged(dive)),
+                PlannedDiveBanner(
+                  diveId: dive.id,
+                  onMarkLogged: () => _markAsLogged(dive),
+                ),
               SiteSuggestionCard(diveId: dive.id, currentSite: dive.site),
             ],
             // Fixed: Header
@@ -576,6 +580,9 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
         _unlinkPreDiveChecklist(linkedPreDive!);
       case 'whatIf':
         openWhatIf(context, dive);
+      case 'viewInPlanner':
+        final planId = ref.read(planForLoggedDiveProvider(dive.id)).value;
+        if (planId != null) openSavedPlanInPlanner(context, planId);
       case 'planRepetitive':
         logFailure(
           _planRepetitiveDive(dive),

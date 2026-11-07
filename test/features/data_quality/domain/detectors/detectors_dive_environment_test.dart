@@ -20,7 +20,7 @@ void main() {
       dive.copyWith(altitude: 3000, waterType: WaterType.fresh);
 
   test('the gas detector versions moved with their rules', () {
-    expect(const GasModDetector().version, 3);
+    expect(const GasModDetector().version, 4);
     expect(const PressureAnomalyDetector().version, 5);
   });
 

@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/query/data/query_id_set_runner.dart';
@@ -122,6 +123,18 @@ List<RecordEntry> diveEntries(RecordRepositories r) => [
     },
     document: diveWeightDocument,
     summaryKeys: const ['dive_id', 'type', 'amount_kg', 'label'],
+  ),
+  _diveChild<SafetyFinding>(
+    r,
+    name: 'safety_findings',
+    table: 'dive_safety_findings',
+    idOf: (f) => f.id,
+    byDive: (ids) => eachParent(
+      ids,
+      (id) async => (await r.safetyFindings.getReview(id))?.findings ?? [],
+    ),
+    document: safetyFindingDocument,
+    summaryKeys: const ['dive_id', 'rule_id', 'severity', 'dismissed_at'],
   ),
   _diveChild<Sighting>(
     r,

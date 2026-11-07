@@ -18,6 +18,7 @@ import 'package:submersion/features/planner/presentation/mission/mission_results
 import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_gas_row.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_issue_text.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_result_status.dart';
@@ -93,7 +94,12 @@ class PlanResultsSheet extends ConsumerWidget {
         children: [
           _grip(theme),
           PlanSectionHeader(context.l10n.divePlanner_label_decoSchedule),
-          PlanRuntimeTable(outcome: outcome, units: units),
+          PlanRuntimeTable(
+            outcome: outcome,
+            units: units,
+            // A dived dive's plan is the record of what was planned.
+            editable: !ref.watch(planLockedProvider),
+          ),
           const SizedBox(height: 20),
           PlanSectionHeader(context.l10n.divePlanner_label_gasConsumption),
           for (final usage in loopTankUsages)

@@ -10924,9 +10924,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_action_addTank => 'הוסף מיכל';
 
   @override
-  String get divePlanner_action_convertToDive => 'המר לצלילה';
-
-  @override
   String get divePlanner_action_deletePlan => 'מחק תוכנית';
 
   @override
@@ -20509,6 +20506,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerCanvas_chart_removeWaypoint => 'הסרת נקודת הציון';
 
   @override
+  String get plannerCanvas_chart_worstCase => 'המקרה הגרוע';
+
+  @override
   String get plannerCanvas_contingency_title => 'תוכניות חירום';
 
   @override
@@ -20516,9 +20516,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get plannerCanvas_contingency_turnRule => 'כלל לחץ פנייה';
-
-  @override
-  String get plannerCanvas_convert_success => 'נוצרה צלילה מהתוכנית';
 
   @override
   String get plannerCanvas_convert_view => 'הצג';
@@ -20598,6 +20595,17 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get plannerSeries_openInLog => 'פתיחה ביומן';
+
+  @override
+  String get plannerSeries_view_actual => 'בפועל';
+
+  @override
+  String get plannerSeries_view_plan => 'תוכנית';
+
+  @override
+  String plannerSeries_saved_divedCount(int dived, int count) {
+    return '$dived מתוך $count נצללו';
+  }
 
   @override
   String get plannerSeries_stopFollowing => 'הפסקת מעקב';
@@ -20750,8 +20758,73 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerSeries_fillAll => 'מילוי כל המכלים';
 
   @override
-  String get plannerSeries_convertUnavailable =>
-      'עדיין לא ניתן להמיר סדרת צלילות לצלילות מתועדות';
+  String get plannerSeries_createPlannedDive => 'יצירת צלילה מתוכננת';
+
+  @override
+  String get plannerSeries_createPlannedDives => 'יצירת צלילות מתוכננות';
+
+  @override
+  String get plannerSeries_updatePlannedDive => 'עדכון צלילה מתוכננת';
+
+  @override
+  String get plannerSeries_updatePlannedDives => 'עדכון צלילות מתוכננות';
+
+  @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return 'ל-$dive יש אזהרה קריטית, ולכן הצלילות המתוכננות לא עודכנו';
+  }
+
+  @override
+  String plannerSeries_cannotUpdateEmpty(String dive) {
+    return 'ל-$dive אין מקטעים, ולכן הצלילות המתוכננות לא עודכנו';
+  }
+
+  @override
+  String get plannerSeries_cannotUpdateEmptyPlan =>
+      'לתוכנית זו אין מקטעים, ולכן היא לא נכתבה ביומן';
+
+  @override
+  String plannerSeries_created(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות מתוכננות נוספו ליומן',
+      one: '$count צלילה מתוכננת נוספה ליומן',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerSeries_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות מתוכננות עודכנו ביומן',
+      one: '$count צלילה מתוכננת עודכנה ביומן',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_title => 'למחוק מהיומן?';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות מתוכננות שכבר אינן בסדרה זו עדיין ביומן.',
+      one: '$count צלילה מתוכננת שכבר אינה בסדרה זו עדיין ביומן.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'שמירה';
+
+  @override
+  String get plannerSeries_allDived =>
+      'כל הצלילות בתוכנית זו כבר בוצעו, אין מה לעדכן';
 
   @override
   String get plannerSeries_missionUnavailable =>
@@ -22213,6 +22286,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get navShortcut_short_backup => 'גיבוי';
+
+  @override
+  String get navShortcut_short_diveComputers => 'מחשבים';
 
   @override
   String get navShortcut_short_speciesStats => 'סטטיסטיקת מינים';
@@ -40172,6 +40248,12 @@ class AppLocalizationsHe extends AppLocalizations {
       'ממתין לנתוני מחשב הצלילה. סמנו כנרשמה אם צללתם בלי מחשב.';
 
   @override
+  String get diveLog_planned_openInPlanner => 'פתיחה במתכנן';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'הצגה במתכנן';
+
+  @override
   String get diveLog_detail_menu_markLogged => 'סימון כנרשמה';
 
   @override
@@ -41098,6 +41180,16 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String dataQuality_dive_tanks(String tanks) {
+    return 'נוגע ל-$tanks';
+  }
+
+  @override
+  String dataQuality_dive_tankPair(String first, String second) {
+    return '$first ו$second';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => 'בדיקת איכות הנתונים';
 
   @override
@@ -41116,9 +41208,9 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'הסריקה הושלמה - $count פריטים לבדיקה',
-      one: 'הסריקה הושלמה - פריט אחד לבדיקה',
-      zero: 'הסריקה הושלמה - אין ממצאים חדשים',
+      other: 'הסריקה הושלמה - $count פריטים פתוחים לבדיקה',
+      one: 'הסריקה הושלמה - פריט פתוח אחד לבדיקה',
+      zero: 'הסריקה הושלמה - אין ממצאים פתוחים',
     );
     return '$_temp0';
   }
@@ -41246,8 +41338,27 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_clock_offset(int hours) {
-    return 'שעון של מקור אחד שונה ב-$hours שעות';
+  String dataQuality_msg_clock_offsetAhead(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'שעון של מקור אחד מקדים ב-$hours שעות',
+      two: 'שעון של מקור אחד מקדים בשעתיים',
+      one: 'שעון של מקור אחד מקדים בשעה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_clock_offsetBehind(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'שעון של מקור אחד מאחר ב-$hours שעות',
+      two: 'שעון של מקור אחד מאחר בשעתיים',
+      one: 'שעון של מקור אחד מאחר בשעה אחת',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -41314,8 +41425,18 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_rate(String rate, int seconds) {
-    return 'קצב אנכי של $rate נשמר במשך $seconds שנ׳';
+  String dataQuality_msg_rate(String rate, String duration) {
+    return 'קצב אנכי של $rate נשמר במשך $duration';
+  }
+
+  @override
+  String dataQuality_unit_seconds(int seconds) {
+    return '$seconds שנ׳';
+  }
+
+  @override
+  String dataQuality_unit_minutes(int minutes) {
+    return '$minutes דק׳';
   }
 
   @override
@@ -41417,10 +41538,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'היחס הקבוע מרמז על הבדל בהגדרת מים מלוחים/מתוקים';
 
   @override
-  String get dataQuality_msg_sourceDuration => 'המקורות חלוקים לגבי משך הצלילה';
+  String dataQuality_msg_sourceDuration(String primary, String source) {
+    return 'המקורות חלוקים לגבי משך הצלילה: $primary מול $source';
+  }
 
   @override
-  String get dataQuality_msg_sourceTemp => 'המקורות חלוקים לגבי טמפרטורת המים';
+  String dataQuality_msg_sourceTemp(String primary, String source) {
+    return 'המקורות חלוקים לגבי טמפרטורת המים: $primary מול $source';
+  }
 
   @override
   String dataQuality_repairLabel_shiftTime(String offset) {
@@ -41438,6 +41563,14 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String dataQuality_repairLabel_fixSourceClock(String offset) {
     return 'תיקון שעון המחשב הזה ב-$offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClockNamed(
+    String computer,
+    String offset,
+  ) {
+    return 'תיקון השעון של $computer ב-$offset';
   }
 
   @override
@@ -41609,6 +41742,33 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_split => 'פיצול לצלילות נפרדות';
+
+  @override
+  String dataQuality_repairLabel_setPrimaryNamed(String source) {
+    return 'הגדרת $source כמקור הראשי';
+  }
+
+  @override
+  String dataQuality_repairLabel_splitNamed(String source) {
+    return 'פיצול $source לצלילה נפרדת';
+  }
+
+  @override
+  String dataQuality_setPrimary_title(String source) {
+    return 'להגדיר את $source כמקור הראשי?';
+  }
+
+  @override
+  String dataQuality_setPrimary_body(String source) {
+    return 'העומק, המשך והפרופיל של הצלילה יגיעו מ-$source. אפשר לשנות זאת שוב במקורות הנתונים של הצלילה.';
+  }
+
+  @override
+  String get dataQuality_setPrimary_bodyUnnamed =>
+      'העומק, המשך והפרופיל של הצלילה יגיעו מהמקור הזה. אפשר לשנות זאת שוב במקורות הנתונים של הצלילה.';
+
+  @override
+  String get dataQuality_setPrimary_confirm => 'הגדרה כראשי';
 
   @override
   String get dataQuality_repairLabel_compare => 'השוואת פרופילים';

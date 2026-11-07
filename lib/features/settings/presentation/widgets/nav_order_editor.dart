@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/router/web_unavailable_routes.dart';
 import 'package:submersion/features/settings/presentation/widgets/nav_shortcut_picker.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
@@ -354,9 +356,11 @@ class _NavOrderEditorState extends ConsumerState<NavOrderEditor> {
     final alreadyAdded = {
       for (final id in _local!) ?navShortcutForOrderId(id)?.id,
     };
+    final caps = ref.read(deviceCapabilitiesProvider);
     final picked = await showNavShortcutPicker(
       context,
       alreadyAdded: alreadyAdded,
+      isAvailable: (shortcut) => navShortcutServable(caps, shortcut),
     );
     if (picked == null || !mounted) return;
     final commit = _commitOrder([navShortcutOrderId(picked), ..._local!]);

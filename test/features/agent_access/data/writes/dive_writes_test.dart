@@ -120,7 +120,8 @@ void main() {
     };
     expect(
       samples.keys.toSet(),
-      writes.fields.keys.toSet().difference({'date_time'}),
+      // The clock moves as a shift, and buddy_roles writes the buddy links.
+      writes.fields.keys.toSet().difference({'date_time', 'buddy_roles'}),
     );
 
     await writes.update('d1', kDiverA, const RecordUpdate(values: samples));

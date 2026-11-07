@@ -6798,7 +6798,6 @@
     }
   },
   "divePlanner_action_addTank": "Add Tank",
-  "divePlanner_action_convertToDive": "Convert to Dive",
   "divePlanner_action_deletePlan": "Delete plan",
   "divePlanner_action_editTank": "Edit Tank",
   "divePlanner_action_fillBestMix": "Best mix for {depth}: {mix}",
@@ -13062,10 +13061,10 @@
     }
   },
   "plannerCanvas_chart_removeWaypoint": "Remove waypoint",
+  "plannerCanvas_chart_worstCase": "Worst case",
   "plannerCanvas_contingency_title": "Contingencies",
   "plannerCanvas_contingency_turnFraction": "Turn fraction",
   "plannerCanvas_contingency_turnRule": "Turn pressure rule",
-  "plannerCanvas_convert_success": "Dive created from plan",
   "plannerCanvas_convert_view": "View",
   "plannerCanvas_export_failed": "Export failed: {error}",
   "@plannerCanvas_export_failed": {
@@ -13144,6 +13143,26 @@
     }
   },
   "plannerSeries_openInLog": "Open in dive log",
+  "plannerSeries_view_actual": "Actual",
+  "@plannerSeries_view_actual": {
+    "description": "Toggle segment showing what really happened on a dive of a series that has been dived"
+  },
+  "plannerSeries_view_plan": "Plan",
+  "@plannerSeries_view_plan": {
+    "description": "Toggle segment showing the original plan of a dive of a series that has been dived"
+  },
+  "plannerSeries_saved_divedCount": "{dived} of {count} dived",
+  "@plannerSeries_saved_divedCount": {
+    "description": "How many dives of a saved series have been dived, in the saved plans list",
+    "placeholders": {
+      "dived": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "plannerSeries_stopFollowing": "Stop following",
   "plannerSeries_compareWithPlan": "Compare with its plan",
   "plannerSeries_asPlanned": "As planned",
@@ -13263,7 +13282,54 @@
     }
   },
   "plannerSeries_fillAll": "Fill all tanks",
-  "plannerSeries_convertUnavailable": "A series of dives can't be converted to logged dives yet",
+  "plannerSeries_createPlannedDive": "Create planned dive",
+  "plannerSeries_createPlannedDives": "Create planned dives",
+  "plannerSeries_updatePlannedDive": "Update planned dive",
+  "plannerSeries_updatePlannedDives": "Update planned dives",
+  "plannerSeries_cannotUpdate": "{dive} has a critical warning, so the planned dives weren't updated",
+  "@plannerSeries_cannotUpdate": {
+    "placeholders": {
+      "dive": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerSeries_cannotUpdateEmpty": "{dive} has no segments, so the planned dives weren't updated",
+  "@plannerSeries_cannotUpdateEmpty": {
+    "placeholders": {
+      "dive": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerSeries_cannotUpdateEmptyPlan": "This plan has no segments, so it wasn't written to the log",
+  "plannerSeries_created": "{count, plural, one{{count} planned dive added to the log} other{{count} planned dives added to the log}}",
+  "@plannerSeries_created": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "plannerSeries_updated": "{count, plural, one{{count} planned dive updated in the log} other{{count} planned dives updated in the log}}",
+  "@plannerSeries_updated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "plannerSeries_orphans_title": "Delete from the log?",
+  "plannerSeries_orphans_body": "{count, plural, one{{count} planned dive no longer in this series is still in the log.} other{{count} planned dives no longer in this series are still in the log.}}",
+  "@plannerSeries_orphans_body": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "plannerSeries_orphans_keep": "Keep",
+  "plannerSeries_allDived": "Every dive in this plan has been dived, so there's nothing to update",
   "plannerSeries_missionUnavailable": "A series of dives can't be planned as a DPV mission",
   "plannerSeries_followUnavailableInReplan": "A replan can't follow another dive",
   "plannerCanvas_follow_title": "Follow a dive",
@@ -14184,6 +14250,10 @@
   "navShortcut_short_backup": "Backup",
   "@navShortcut_short_backup": {
     "description": "Short nav bar label for the Backup & Restore shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_diveComputers": "Computers",
+  "@navShortcut_short_diveComputers": {
+    "description": "Short nav bar label for the Transfer > Dive Computers shortcut; must fit one bottom-bar slot."
   },
   "navShortcut_short_speciesStats": "Species stats",
   "@navShortcut_short_speciesStats": {
@@ -24835,6 +24905,8 @@
   "diveLog_planned_chip": "Planned",
   "diveLog_planned_bannerTitle": "Planned dive",
   "diveLog_planned_bannerBody": "Awaiting dive computer data. Mark it as logged if you dived without one.",
+  "diveLog_planned_openInPlanner": "Open in planner",
+  "diveLog_detail_menu_viewInPlanner": "View in planner",
   "diveLog_detail_menu_markLogged": "Mark as logged",
   "diveLog_planned_markedLogged": "Marked as logged",
   "diveLog_planned_markLoggedFailed": "Couldn't mark the dive as logged.",
@@ -25457,6 +25529,27 @@
       }
     }
   },
+  "dataQuality_dive_tanks": "Affects {tanks}",
+  "@dataQuality_dive_tanks": {
+    "description": "Names the tank or tanks a finding is about, e.g. 'Affects Tank 2' or 'Affects Tank 1, Tank 2'.",
+    "placeholders": {
+      "tanks": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_dive_tankPair": "{first} and {second}",
+  "@dataQuality_dive_tankPair": {
+    "description": "The two tanks of a twin-tank finding inside dataQuality_dive_tanks, e.g. 'Tank 1 and Tank 2'.",
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
+  },
   "dataQuality_badge_tooltip": "Data quality review",
   "dataQuality_scan_start": "Scan library",
   "dataQuality_scan_progress": "Checked {done} of {total} dives",
@@ -25471,7 +25564,7 @@
     }
   },
   "dataQuality_scan_cancel": "Cancel",
-  "dataQuality_scan_done": "{count, plural, =0{Scan complete - no new findings} =1{Scan complete - 1 item to review} other{Scan complete - {count} items to review}}",
+  "dataQuality_scan_done": "{count, plural, =0{Scan complete - nothing open to review} =1{Scan complete - {count} open item to review} other{Scan complete - {count} open items to review}}",
   "@dataQuality_scan_done": {
     "placeholders": {
       "count": {
@@ -25544,8 +25637,18 @@
       }
     }
   },
-  "dataQuality_msg_clock_offset": "A source clock differs by {hours} hours",
-  "@dataQuality_msg_clock_offset": {
+  "dataQuality_msg_clock_offsetAhead": "{hours, plural, =1{A source clock runs {hours} hour ahead} other{A source clock runs {hours} hours ahead}}",
+  "@dataQuality_msg_clock_offsetAhead": {
+    "description": "A secondary source's clock reads later than the primary's by whole hours.",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_msg_clock_offsetBehind": "{hours, plural, =1{A source clock runs {hours} hour behind} other{A source clock runs {hours} hours behind}}",
+  "@dataQuality_msg_clock_offsetBehind": {
+    "description": "A secondary source's clock reads earlier than the primary's by whole hours.",
     "placeholders": {
       "hours": {
         "type": "int"
@@ -25656,13 +25759,31 @@
       }
     }
   },
-  "dataQuality_msg_rate": "Vertical rate of {rate} sustained for {seconds} s",
+  "dataQuality_msg_rate": "Vertical rate of {rate} sustained for {duration}",
   "@dataQuality_msg_rate": {
     "placeholders": {
       "rate": {
         "type": "String"
       },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_unit_seconds": "{seconds} s",
+  "@dataQuality_unit_seconds": {
+    "description": "A short duration in a finding message, in seconds.",
+    "placeholders": {
       "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_unit_minutes": "{minutes} min",
+  "@dataQuality_unit_minutes": {
+    "description": "A duration in a finding message, in whole minutes.",
+    "placeholders": {
+      "minutes": {
         "type": "int"
       }
     }
@@ -25811,8 +25932,28 @@
     }
   },
   "dataQuality_msg_salinityHint": "The consistent ratio suggests a salt/fresh water setting difference",
-  "dataQuality_msg_sourceDuration": "Sources disagree on dive duration",
-  "dataQuality_msg_sourceTemp": "Sources disagree on water temperature",
+  "dataQuality_msg_sourceDuration": "Sources disagree on dive duration: {primary} vs. {source}",
+  "@dataQuality_msg_sourceDuration": {
+    "placeholders": {
+      "primary": {
+        "type": "String"
+      },
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_sourceTemp": "Sources disagree on water temperature: {primary} vs. {source}",
+  "@dataQuality_msg_sourceTemp": {
+    "placeholders": {
+      "primary": {
+        "type": "String"
+      },
+      "source": {
+        "type": "String"
+      }
+    }
+  },
   "dataQuality_repairLabel_shiftTime": "Shift time by {offset}",
   "@dataQuality_repairLabel_shiftTime": {
     "placeholders": {
@@ -25833,6 +25974,18 @@
   "dataQuality_repairLabel_fixSourceClock": "Fix this computer's clock by {offset}",
   "@dataQuality_repairLabel_fixSourceClock": {
     "placeholders": {
+      "offset": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_repairLabel_fixSourceClockNamed": "Fix {computer}'s clock by {offset}",
+  "@dataQuality_repairLabel_fixSourceClockNamed": {
+    "description": "Repair button naming the computer whose clock is corrected.",
+    "placeholders": {
+      "computer": {
+        "type": "String"
+      },
       "offset": {
         "type": "String"
       }
@@ -25980,6 +26133,42 @@
   "dataQuality_repairLabel_reassignSeries": "Move series to another tank",
   "dataQuality_repairLabel_setPrimary": "Make this source primary",
   "dataQuality_repairLabel_split": "Split into separate dives",
+  "dataQuality_repairLabel_setPrimaryNamed": "Make {source} the primary source",
+  "@dataQuality_repairLabel_setPrimaryNamed": {
+    "description": "Repair button naming the data source that becomes the dive's primary source.",
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_repairLabel_splitNamed": "Split {source} into its own dive",
+  "@dataQuality_repairLabel_splitNamed": {
+    "description": "Repair button naming the data source that is split off into a dive of its own.",
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_setPrimary_title": "Make {source} the primary source?",
+  "@dataQuality_setPrimary_title": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_setPrimary_body": "The dive's depth, duration and profile will come from {source}. You can change this again under the dive's data sources.",
+  "@dataQuality_setPrimary_body": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_setPrimary_bodyUnnamed": "The dive's depth, duration and profile will come from this source. You can change this again under the dive's data sources.",
+  "dataQuality_setPrimary_confirm": "Make primary",
   "dataQuality_repairLabel_compare": "Compare profiles",
   "dataQuality_settings_title": "Data quality",
   "dataQuality_settings_subtitle": "Choose which checks run when scanning",

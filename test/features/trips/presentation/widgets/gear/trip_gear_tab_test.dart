@@ -8,18 +8,21 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/database/database.dart' show DiversCompanion;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
@@ -252,6 +255,7 @@ Future<_Harness> _pumpTab(
   Object? gearError,
   List<String>? forecastReads,
   String? scanned,
+  ComponentsIndex components = ComponentsIndex.empty,
 }) async {
   final packs = _FakePacks();
   final slots = _FakeSlots();
@@ -312,6 +316,9 @@ Future<_Harness> _pumpTab(
         ),
         validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
         equipmentRepositoryProvider.overrideWithValue(_FakeEquipment()),
+        equipmentComponentsIndexProvider.overrideWith(
+          (ref) async => components,
+        ),
         if (scanned != null)
           passportScanLauncherProvider.overrideWithValue(
             (context) async => scanned,
@@ -331,6 +338,23 @@ Future<_Harness> _pumpTab(
 
 Future<void> _openAdd(WidgetTester tester) async {
   await tester.tap(find.byKey(const Key('trip-gear-add')));
+  await tester.pumpAndSettle();
+}
+
+/// Opens Add, then From my equipment: the multi-select picker (#4205).
+Future<void> _openPicker(WidgetTester tester) async {
+  await _openAdd(tester);
+  await tester.tap(find.text('From my equipment'));
+  await tester.pumpAndSettle();
+}
+
+/// Ticks each named row in turn, then presses Add N.
+Future<void> _tickAndAdd(WidgetTester tester, List<String> names) async {
+  for (final name in names) {
+    await tester.tap(find.text(name).last);
+    await tester.pumpAndSettle();
+  }
+  await tester.tap(find.text('Add ${names.length}'));
   await tester.pumpAndSettle();
 }
 
@@ -628,11 +652,8 @@ void main() {
 
   testWidgets('From my equipment packs a picked item', (tester) async {
     final h = await _pumpTab(tester, active: const [bcd]);
-    await _openAdd(tester);
-    await tester.tap(find.text('From my equipment'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Hollis wing').last);
-    await tester.pumpAndSettle();
+    await _openPicker(tester);
+    await _tickAndAdd(tester, ['Hollis wing']);
     expect(h.packs.packed.single.$2, ['bcd']);
     expect(h.slots.created, isEmpty);
   });
@@ -641,15 +662,122 @@ void main() {
     tester,
   ) async {
     final h = await _pumpTab(tester, active: const [tank]);
-    await _openAdd(tester);
-    await tester.tap(find.text('From my equipment'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Faber 12').last);
-    await tester.pumpAndSettle();
+    await _openPicker(tester);
+    await _tickAndAdd(tester, ['Faber 12']);
     expect(h.packs.packed, isEmpty);
     expect(h.slots.created.single.single.equipmentId, 'tk');
     // Appended, so the repository places it and skips a tank already on.
     expect(h.slots.appendedTo, ['t1']);
+  });
+
+  group('From my equipment picks several (#4205)', () {
+    testWidgets('ticked gear is packed in one pass and a tank slotted', (
+      tester,
+    ) async {
+      final h = await _pumpTab(tester, active: const [bcd, fins, tank]);
+      await _openPicker(tester);
+      await _tickAndAdd(tester, ['Hollis wing', 'Fins', 'Faber 12']);
+      final (tripId, ids) = h.packs.packed.single;
+      expect(tripId, 't1');
+      expect(ids, ['bcd', 'fins']);
+      expect(h.slots.created.single.single.equipmentId, 'tk');
+      expect(h.slots.appendedTo, ['t1']);
+      // Add closed the picker.
+      expect(find.byType(EquipmentPickerSheet), findsNothing);
+    });
+
+    testWidgets('Cancel after ticking writes nothing', (tester) async {
+      final h = await _pumpTab(tester, active: const [bcd, tank]);
+      await _openPicker(tester);
+      await tester.tap(find.text('Hollis wing').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Faber 12').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(find.byType(EquipmentPickerSheet), findsNothing);
+      expect(h.packs.packed, isEmpty);
+      expect(h.slots.created, isEmpty);
+    });
+
+    testWidgets('Add is disabled until something is ticked', (tester) async {
+      await _pumpTab(tester, active: const [bcd]);
+      await _openPicker(tester);
+      FilledButton add(String label) => tester.widget<FilledButton>(
+        find.descendant(
+          of: find.byType(EquipmentPickerSheet),
+          matching: find.widgetWithText(FilledButton, label),
+        ),
+      );
+      expect(add('Add').onPressed, isNull);
+      await tester.tap(find.text('Hollis wing').last);
+      await tester.pumpAndSettle();
+      expect(add('Add 1').onPressed, isNotNull);
+    });
+
+    testWidgets('an assembly\'s installed part waits behind the switch', (
+      tester,
+    ) async {
+      const first = EquipmentItem(
+        id: 'first',
+        name: 'DIN First Stage',
+        type: EquipmentType.firstStage,
+      );
+      final at = DateTime(2026, 1, 1);
+      final h = await _pumpTab(
+        tester,
+        active: const [reg, first],
+        components: ComponentsIndex.fromRows([
+          EquipmentComponent(
+            id: 'reg>first',
+            parentEquipmentId: 'reg',
+            componentEquipmentId: 'first',
+            createdAt: at,
+            updatedAt: at,
+          ),
+        ]),
+      );
+      await _openPicker(tester);
+      final picker = find.byType(EquipmentPickerSheet);
+      expect(
+        find.descendant(of: picker, matching: find.text('DIN First Stage')),
+        findsNothing,
+      );
+      expect(find.text('Show components of assemblies'), findsOneWidget);
+      await _tickAndAdd(tester, ['Regulator']);
+      expect(h.packs.packed.single.$2, ['reg']);
+    });
+
+    testWidgets('gear already packed or on the board is not offered', (
+      tester,
+    ) async {
+      await _pumpTab(
+        tester,
+        gear: const [bcd],
+        states: [slot('c1', equipmentId: 'tk')],
+        active: const [bcd, fins, tank],
+      );
+      await _openPicker(tester);
+      final picker = find.byType(EquipmentPickerSheet);
+      expect(
+        find.descendant(of: picker, matching: find.text('Hollis wing')),
+        findsNothing,
+      );
+      expect(
+        find.descendant(of: picker, matching: find.text('Faber 12')),
+        findsNothing,
+      );
+      // A row per offered item; Fins alone is left to pick.
+      final rows = find.descendant(
+        of: picker,
+        matching: find.byType(CheckboxListTile),
+      );
+      expect(rows, findsOneWidget);
+      expect(
+        find.descendant(of: rows, matching: find.text('Fins')),
+        findsOneWidget,
+      );
+    });
   });
 
   testWidgets('An equipment set packs the members and slots its cylinders', (
@@ -854,11 +982,8 @@ void main() {
   testWidgets('a failed Add says so without the exception', (tester) async {
     final h = await _pumpTab(tester, active: const [bcd]);
     h.packs.failing = true;
-    await _openAdd(tester);
-    await tester.tap(find.text('From my equipment'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Hollis wing').last);
-    await tester.pumpAndSettle();
+    await _openPicker(tester);
+    await _tickAndAdd(tester, ['Hollis wing']);
     expect(find.text('Could not change the gear. Try again.'), findsOneWidget);
     expect(find.textContaining('database is locked'), findsNothing);
   });

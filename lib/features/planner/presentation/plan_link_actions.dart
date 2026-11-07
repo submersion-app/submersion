@@ -112,7 +112,7 @@ String? planLinkBadge(
   DivePlanSummary summary,
   UnitFormatter units,
 ) {
-  if (summary.linkedDiveId == null) return null;
+  if (summary.linkedDiveId == null || !summary.linkedDiveExists) return null;
   if (summary.linkedDiveIsPlanned) return l10n.diveLab_compare_waiting;
   final number = summary.linkedDiveNumber;
   if (number != null) return l10n.plannerCanvas_link_badge(number);

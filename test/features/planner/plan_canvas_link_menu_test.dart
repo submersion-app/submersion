@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/link_dive_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -97,7 +98,7 @@ void main() {
     expect(find.byType(LinkDiveSheet), findsOneWidget);
   });
 
-  testWidgets('converting a linked plan asks before moving the link', (
+  testWidgets('a plan linked to a dived dive is locked: no new planned dive', (
     tester,
   ) async {
     final container = await pumpCanvas(tester);
@@ -108,19 +109,12 @@ void main() {
     );
     container.read(divePlanNotifierProvider.notifier).setLinkedDive(dive!.id);
     await save(tester, container);
+    await pumpUntilRealAsync(tester, () => container.read(planLockedProvider));
     await openMenu(tester);
 
-    await tester.tap(find.text('Convert to Dive').last);
-    await pumpUntilRealAsync(
-      tester,
-      () => find.byType(AlertDialog).evaluate().isNotEmpty,
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text("Move this plan's link?"), findsOneWidget);
-    await tester.tap(find.text('Cancel'));
-    await tester.pumpAndSettle();
-
+    // Its plan is the record of the dive (issue #3565); Duplicate in Saved
+    // plans gives an editable copy.
+    expect(find.text('Create planned dive'), findsNothing);
     expect(container.read(divePlanNotifierProvider).linkedDiveId, dive.id);
   });
 
@@ -174,4 +168,26 @@ void main() {
     expect(find.text('Dived as #7'), findsOneWidget);
     expect(find.text('Link to a logged dive'), findsNothing);
   });
+
+  testWidgets(
+    'a linked plan opens its dive in the log; an unlinked one cannot',
+    (tester) async {
+      final container = await pumpCanvas(tester);
+      await openMenu(tester);
+      expect(find.text('Open in dive log'), findsNothing);
+      await tester.tapAt(Offset.zero);
+      await tester.pumpAndSettle();
+
+      final dive = await tester.runAsync(
+        () => DiveRepository().createDive(
+          Dive(id: '', dateTime: DateTime.utc(2026, 1, 1), isPlanned: true),
+        ),
+      );
+      container.read(divePlanNotifierProvider.notifier).setLinkedDive(dive!.id);
+      await save(tester, container);
+      await openMenu(tester);
+
+      expect(find.text('Open in dive log'), findsOneWidget);
+    },
+  );
 }

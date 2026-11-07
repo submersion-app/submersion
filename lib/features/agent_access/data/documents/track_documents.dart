@@ -36,6 +36,7 @@ Map<String, Object?> navTrackDocument(NavTrack t) => {
   'end_longitude': t.endLongitude,
   'trust_fraction': t.trustFraction,
   'heading_offset_deg': t.headingOffsetDeg,
+  'scale_factor': t.scaleFactor,
 };
 
 /// One window over a track's points, shaped like a dive's profile block.

@@ -2,6 +2,7 @@ import 'package:clock/clock.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
@@ -58,7 +59,7 @@ final seriesFollowProvider = FutureProvider.family<SeriesFollow?, String>((
         start: dive.effectiveEntryTime,
         end: end,
         endInstant: diveEndInstant(dive),
-        otu: analysis?.o2Exposure.otu ?? 0,
+        otu: analysis?.o2Exposure.otu,
         maxDepth: dive.maxDepth,
       ),
     );
@@ -71,7 +72,7 @@ final seriesFollowProvider = FutureProvider.family<SeriesFollow?, String>((
         ? null
         : statuses.last.compartments,
     endEnvironment: followed.environment,
-    endCns: analysis?.o2Exposure.cnsEnd ?? 0,
+    endCns: analysis?.o2Exposure.cnsEnd,
     endTanks: followed.tanks,
   );
 });
@@ -119,6 +120,62 @@ final followSuggestionProvider = FutureProvider.autoDispose<Dive?>((ref) async {
   return now.difference(diveEnd(latest)) < followLookback ? latest : null;
 });
 
+/// What the log says about the dives of the series that have been dived, by
+/// plan id (issue #3565). A planned entry becomes a dive by Mark as logged,
+/// the edit page's switch or a download, and an undone download reverses
+/// that, so this watches the log. Nothing is read while no dive has an entry.
+final seriesActualsProvider = FutureProvider<Map<String, SeriesFollow>>((
+  ref,
+) async {
+  // Joined into a string so the selection compares by value: only a link
+  // made, moved or dropped reads the log again, not every edit.
+  final joined = ref.watch(
+    planSeriesNotifierProvider.select(
+      (s) => [
+        for (final dive in s.dives)
+          if (dive.state.linkedDiveId case final id?) '${dive.state.id}|$id',
+      ].join(','),
+    ),
+  );
+  if (joined.isEmpty) return const {};
+  final links = [
+    for (final link in joined.split(','))
+      if (link.split('|') case [final planId, final diveId]) (planId, diveId),
+  ];
+  final repository = ref.watch(diveRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchDivesChanges());
+  return readSeriesActuals(
+    links,
+    repository,
+    (diveId) => ref.watch(seriesFollowProvider(diveId).future),
+  );
+});
+
+/// What the log says about [links], (plan id, dive id) pairs, by plan id:
+/// for each entry no longer planned, the dive as a followed dive reads.
+/// Shared by [seriesActualsProvider] and opening a saved plan, which reads
+/// it before the plan shows so a dived dive never shows as a plan first.
+Future<Map<String, SeriesFollow>> readSeriesActuals(
+  Iterable<(String, String)> links,
+  DiveRepository repository,
+  Future<SeriesFollow?> Function(String diveId) followOf,
+) async {
+  // Each link is read on its own, so all of them at once.
+  final read = await Future.wait([
+    for (final (planId, diveId) in links)
+      () async {
+        final dive = await repository.getDiveById(diveId);
+        if (dive == null || dive.isPlanned) return null;
+        final follow = await followOf(diveId);
+        return follow == null ? null : (planId, follow);
+      }(),
+  ]);
+  return {
+    for (final entry in read)
+      if (entry case (final planId, final follow)) planId: follow,
+  };
+}
+
 /// Logged dives whose Follow prompt the diver dismissed this session.
 final dismissedFollowSuggestionsProvider = StateProvider<Set<String>>(
   (ref) => const {},
@@ -134,10 +191,17 @@ final viewedLoggedDiveIdProvider = StateProvider<String?>((ref) {
 });
 
 /// The logged dive to show in place of the planner: the picked one, while
-/// the series still follows it.
+/// the series still follows it, else the selected dive of the series once it
+/// has been dived (issue #3565).
 final viewedLoggedDiveProvider = Provider<SeriesLoggedDive?>((ref) {
   final id = ref.watch(viewedLoggedDiveIdProvider);
-  if (id == null) return null;
+  if (id == null) {
+    // A dive of the series that has been dived shows what happened, unless
+    // the diver asked for its plan.
+    final actual = ref.watch(selectedDiveActualProvider);
+    if (actual == null || ref.watch(showPlanOfDivedProvider)) return null;
+    return actual.followed;
+  }
   final follow = ref.watch(planSeriesNotifierProvider.select((s) => s.follow));
   for (final dive in follow?.loggedDives ?? const <SeriesLoggedDive>[]) {
     if (dive.id == id) return dive;

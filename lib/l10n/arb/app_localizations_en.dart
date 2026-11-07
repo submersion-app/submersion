@@ -10993,9 +10993,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get divePlanner_action_addTank => 'Add Tank';
 
   @override
-  String get divePlanner_action_convertToDive => 'Convert to Dive';
-
-  @override
   String get divePlanner_action_deletePlan => 'Delete plan';
 
   @override
@@ -20659,6 +20656,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerCanvas_chart_removeWaypoint => 'Remove waypoint';
 
   @override
+  String get plannerCanvas_chart_worstCase => 'Worst case';
+
+  @override
   String get plannerCanvas_contingency_title => 'Contingencies';
 
   @override
@@ -20666,9 +20666,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get plannerCanvas_contingency_turnRule => 'Turn pressure rule';
-
-  @override
-  String get plannerCanvas_convert_success => 'Dive created from plan';
 
   @override
   String get plannerCanvas_convert_view => 'View';
@@ -20748,6 +20745,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get plannerSeries_openInLog => 'Open in dive log';
+
+  @override
+  String get plannerSeries_view_actual => 'Actual';
+
+  @override
+  String get plannerSeries_view_plan => 'Plan';
+
+  @override
+  String plannerSeries_saved_divedCount(int dived, int count) {
+    return '$dived of $count dived';
+  }
 
   @override
   String get plannerSeries_stopFollowing => 'Stop following';
@@ -20901,8 +20909,74 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerSeries_fillAll => 'Fill all tanks';
 
   @override
-  String get plannerSeries_convertUnavailable =>
-      'A series of dives can\'t be converted to logged dives yet';
+  String get plannerSeries_createPlannedDive => 'Create planned dive';
+
+  @override
+  String get plannerSeries_createPlannedDives => 'Create planned dives';
+
+  @override
+  String get plannerSeries_updatePlannedDive => 'Update planned dive';
+
+  @override
+  String get plannerSeries_updatePlannedDives => 'Update planned dives';
+
+  @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return '$dive has a critical warning, so the planned dives weren\'t updated';
+  }
+
+  @override
+  String plannerSeries_cannotUpdateEmpty(String dive) {
+    return '$dive has no segments, so the planned dives weren\'t updated';
+  }
+
+  @override
+  String get plannerSeries_cannotUpdateEmptyPlan =>
+      'This plan has no segments, so it wasn\'t written to the log';
+
+  @override
+  String plannerSeries_created(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count planned dives added to the log',
+      one: '$count planned dive added to the log',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerSeries_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count planned dives updated in the log',
+      one: '$count planned dive updated in the log',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_title => 'Delete from the log?';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count planned dives no longer in this series are still in the log.',
+      one: '$count planned dive no longer in this series is still in the log.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'Keep';
+
+  @override
+  String get plannerSeries_allDived =>
+      'Every dive in this plan has been dived, so there\'s nothing to update';
 
   @override
   String get plannerSeries_missionUnavailable =>
@@ -22378,6 +22452,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navShortcut_short_backup => 'Backup';
+
+  @override
+  String get navShortcut_short_diveComputers => 'Computers';
 
   @override
   String get navShortcut_short_speciesStats => 'Species stats';
@@ -40493,6 +40570,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Awaiting dive computer data. Mark it as logged if you dived without one.';
 
   @override
+  String get diveLog_planned_openInPlanner => 'Open in planner';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'View in planner';
+
+  @override
   String get diveLog_detail_menu_markLogged => 'Mark as logged';
 
   @override
@@ -41425,6 +41508,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String dataQuality_dive_tanks(String tanks) {
+    return 'Affects $tanks';
+  }
+
+  @override
+  String dataQuality_dive_tankPair(String first, String second) {
+    return '$first and $second';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => 'Data quality review';
 
   @override
@@ -41443,9 +41536,9 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Scan complete - $count items to review',
-      one: 'Scan complete - 1 item to review',
-      zero: 'Scan complete - no new findings',
+      other: 'Scan complete - $count open items to review',
+      one: 'Scan complete - $count open item to review',
+      zero: 'Scan complete - nothing open to review',
     );
     return '$_temp0';
   }
@@ -41574,8 +41667,25 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_clock_offset(int hours) {
-    return 'A source clock differs by $hours hours';
+  String dataQuality_msg_clock_offsetAhead(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'A source clock runs $hours hours ahead',
+      one: 'A source clock runs $hours hour ahead',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_clock_offsetBehind(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'A source clock runs $hours hours behind',
+      one: 'A source clock runs $hours hour behind',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -41642,8 +41752,18 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_rate(String rate, int seconds) {
-    return 'Vertical rate of $rate sustained for $seconds s';
+  String dataQuality_msg_rate(String rate, String duration) {
+    return 'Vertical rate of $rate sustained for $duration';
+  }
+
+  @override
+  String dataQuality_unit_seconds(int seconds) {
+    return '$seconds s';
+  }
+
+  @override
+  String dataQuality_unit_minutes(int minutes) {
+    return '$minutes min';
   }
 
   @override
@@ -41747,12 +41867,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'The consistent ratio suggests a salt/fresh water setting difference';
 
   @override
-  String get dataQuality_msg_sourceDuration =>
-      'Sources disagree on dive duration';
+  String dataQuality_msg_sourceDuration(String primary, String source) {
+    return 'Sources disagree on dive duration: $primary vs. $source';
+  }
 
   @override
-  String get dataQuality_msg_sourceTemp =>
-      'Sources disagree on water temperature';
+  String dataQuality_msg_sourceTemp(String primary, String source) {
+    return 'Sources disagree on water temperature: $primary vs. $source';
+  }
 
   @override
   String dataQuality_repairLabel_shiftTime(String offset) {
@@ -41771,6 +41893,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String dataQuality_repairLabel_fixSourceClock(String offset) {
     return 'Fix this computer\'s clock by $offset';
+  }
+
+  @override
+  String dataQuality_repairLabel_fixSourceClockNamed(
+    String computer,
+    String offset,
+  ) {
+    return 'Fix $computer\'s clock by $offset';
   }
 
   @override
@@ -41943,6 +42073,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_split => 'Split into separate dives';
+
+  @override
+  String dataQuality_repairLabel_setPrimaryNamed(String source) {
+    return 'Make $source the primary source';
+  }
+
+  @override
+  String dataQuality_repairLabel_splitNamed(String source) {
+    return 'Split $source into its own dive';
+  }
+
+  @override
+  String dataQuality_setPrimary_title(String source) {
+    return 'Make $source the primary source?';
+  }
+
+  @override
+  String dataQuality_setPrimary_body(String source) {
+    return 'The dive\'s depth, duration and profile will come from $source. You can change this again under the dive\'s data sources.';
+  }
+
+  @override
+  String get dataQuality_setPrimary_bodyUnnamed =>
+      'The dive\'s depth, duration and profile will come from this source. You can change this again under the dive\'s data sources.';
+
+  @override
+  String get dataQuality_setPrimary_confirm => 'Make primary';
 
   @override
   String get dataQuality_repairLabel_compare => 'Compare profiles';

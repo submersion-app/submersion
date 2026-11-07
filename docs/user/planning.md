@@ -75,8 +75,8 @@ is measured from the end of the dive before. Whichever you set last holds
 when an earlier dive gets longer or shorter. A later dive's start can be set
 once the first dive has one, or follows a logged dive.
 
-The planner doesn't use the site; a dive you convert from the plan takes it,
-with the start time (or now, if there is none).
+The planner doesn't use the site; the planned dive you create from the plan
+takes it, with the start time (or now, if there is none).
 
 With a keyboard, Alt+Left and Alt+Right move to the previous and next dive of
 a series, except while you are typing in a field.
@@ -185,8 +185,9 @@ seconds.
 
 A plan of several dives saves as one series: saving keeps every dive, and
 opening any of them opens the whole series on that dive. In **Saved plans** a
-series is one row, with its number of dives, deepest depth and total runtime,
-and a line for each dive that opens the series there and shows what that dive
+series is one row, with its number of dives (and how many you have dived,
+once you have dived any), deepest depth and total runtime, and a line for each
+dive that opens the series there and shows what that dive
 was dived as. Rename, duplicate, share and delete act on the whole series; link
 and unlink act on one dive, from its line. A series can't be compared.
 
@@ -214,27 +215,58 @@ From the menu you can also:
   interval set to the time since it ended, so the plan starts now. A dive that
   ended less than an hour ago gets an hour. The dive needs a recorded profile.
   A plan following a dive saves with it, and reopens from that dive's tissue
-  loading, CNS and OTU. It can't be converted to a dive yet; **Stop
-  following** gives that back.
+  loading, CNS and OTU. **Stop following** takes the logged dive away again.
 - **Logged dives in the series bar.** The dives a plan follows lead the bar.
   Tap one to see it in the planner's own layout, read-only: its profile where
   the plan's chart was, its details and tanks, and in the results what it
   carries into the next dive, its runtime and the warnings its safety review
-  found. If the dive was dived from a plan, that plan's segments show under
-  **Plan**, its schedule, gas and range table show **As planned**, and the
-  chart shows the plan beside the dive; **Compare with its plan** opens the
-  dive's Compare page. Setup isn't available for a logged dive. Tap a planned
-  dive to go back.
+  found. If the dive was dived from a plan, its schedule, gas and range table
+  show **As planned**, and the chart shows the plan beside the dive;
+  **Compare with its plan** opens the dive's Compare page. A logged dive has
+  no segments or Setup of its own. Tap a planned dive to go back.
 - **Rebuild in planner** opens a logged dive in the planner. In the dive's menu
   choose **Compare…**, then **Rebuild in planner...** in the Compare page's
   menu; a dive Compare can't branch, such as a gauge dive, goes straight there.
   The results then compare the plan with what you actually did, and can show the
   original on the chart. A replan is discarded when you leave unless you save
   it.
-- **Convert to Dive** turns the plan into a planned dive in your log, with its
-  full computed profile, linked back to the plan. It is not offered for a plan
-  with no segments or with critical warnings. A download from your dive computer
-  on that day or the next fills the planned dive in place.
+- **Create planned dives** puts every dive of the plan in your log as a
+  planned dive, each at its own start time and site, with its full computed
+  profile and gas switches, linked back to the plan. A series with no start
+  time asks for the first dive's. Once they are there the menu says **Update
+  planned dives**, which rewrites the planned dives in place after you change
+  the plan; a dive you have already dived is left alone. It is greyed out
+  while your log already matches the plan, and comes back as soon as you
+  change a dive, add one, remove one, or edit a planned dive in the log.
+  Saving the plan never
+  changes your log. A dive you remove from the series is offered for deletion
+  from the log the next time you update, if it is still only planned. Nothing
+  is written while any dive has critical warnings; the message names it. A
+  download from your dive computer on that day or the next fills the planned
+  dive in place.
+- **Dived dives.** Once a planned dive is dived, by **Mark as logged**, the
+  edit page's switch or a download, the planner treats it as what happened.
+  Its chip in the series bar becomes the solid diver with the logged dive's
+  name or number, and it can no longer be removed from the series. It opens
+  as a logged dive, with its details, its plan drawn beside it on the chart,
+  and no segments; switch **Actual** to **Plan** to see the plan itself. The
+  plan is locked once its dive is dived: you can scroll it and open its
+  settings to read them, but not change it, on the chart or anywhere else.
+  The open icon in either view's **Dive details** opens the dive in your
+  log. A single plan linked to a
+  dived dive no longer offers **Create planned dive**; use **Duplicate** in
+  **Saved plans** for a copy you can change. The dives after it
+  start from what it really left: its tissue loading, CNS, OTU and the gas
+  left in each tank, from when it really ended, so their times and results
+  update. Undo a download and the dive goes back to its plan.
+- **Open in dive log** in the plan's menu opens the dive's entry in your log,
+  planned or dived. **Open in planner** on a planned dive's banner, and **View
+  in planner** in a dived dive's menu, take you back to the plan it came
+  from, on that dive. In the saved plans list, tap a dive's **Waiting for the
+  dive** or **Dived as #N** to open it in your log.
+- **As planned** for a later dive of a series, in the planner, on the dive
+  log's chart and in Compare, starts from what the dives before it were
+  planned to leave, not from a fresh diver.
 - **Link to a logged dive** joins a saved plan to a dive you have already
   logged, from the saved plans list or the plan's menu. The dive's
   [Compare](compare.md) section then shows the plan beside what you did, and the

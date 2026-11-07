@@ -1,9 +1,13 @@
 import 'package:drift/drift.dart' show QueryRow, Variable;
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/data/visibility/shared_item_policy.dart'
+    show SharedItemKind;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/writes/families/item_share_rules.dart';
+import 'package:submersion/features/agent_access/data/writes/families/merge_reach.dart';
 import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
@@ -49,6 +53,7 @@ class SiteWrites extends WritableEntry {
     'access_notes': const FieldCodec.text(nullable: true),
     'mooring_number': const FieldCodec.text(maxLength: 200, nullable: true),
     'parking_info': const FieldCodec.text(nullable: true),
+    'is_shared': const FieldCodec.flag(),
   };
 
   @override
@@ -58,16 +63,25 @@ class SiteWrites extends WritableEntry {
   final Map<String, RelationSpec> relations = const {
     'tags': RelationSpec(refEntity: 'tags'),
     'expected_species': RelationSpec(refEntity: 'species'),
+    'types': RelationSpec(refEntity: 'site_types'),
+    ...shareRelations,
   };
+
+  @override
+  String get note => shareNote;
 
   /// The link table and column of each relation.
   static const _links = {
     'tags': ('site_tags', 'tag_id'),
     'expected_species': ('site_species', 'species_id'),
+    'types': ('site_site_types', 'site_type_id'),
   };
 
   @override
   Future<Set<String>> currentRelation(String id, String relation) async {
+    if (shareRelations.containsKey(relation)) {
+      return shareRelation(_r, SharedItemKind.site, id, relation);
+    }
     final (table, column) = _links[relation]!;
     final rows = await DatabaseService.instance.database
         .customSelect(
@@ -131,6 +145,25 @@ class SiteWrites extends WritableEntry {
     if (point != null) return point;
     if (check.kind == ChangeKind.create) return null;
     final library = check.document?['shared_library_id'] != null;
+    if (check.kind == ChangeKind.update) {
+      // A library site is shared by its library, not one by one.
+      if (library && check.values.containsKey('is_shared')) {
+        return const PlanBlock(
+          BlockReason.notPermitted,
+          'is_shared: a shared site library site follows its library.',
+        );
+      }
+      final share = await shareProblem(
+        _r,
+        SharedItemKind.site,
+        check,
+        // The op's own flag first, as a trip's share rule reads it.
+        everyone:
+            (check.values['is_shared'] ?? check.document?['is_shared']) == true,
+        library: library,
+      );
+      if (share != null) return share;
+    }
     if (!library) return null;
     // A local delete would drop the row for every profile here and leave the
     // library holding it. The app removes these through the library itself.
@@ -243,6 +276,22 @@ class SiteWrites extends WritableEntry {
         ...tags.add,
       ], actingDiverId: ownerId);
     }
+    if (update.relations['types'] case final types? when !types.isEmpty) {
+      final now = await currentRelation(id, 'types');
+      await _r.siteClassification.replaceTypes(id, [
+        ...now.difference(types.remove),
+        ...types.add,
+      ], actingDiverId: ownerId);
+    }
+    final site = await _r.sites.getSiteById(id);
+    await applyShares(
+      _r,
+      SharedItemKind.site,
+      id,
+      ownerId,
+      update,
+      everyone: site?.isShared ?? false,
+    );
     if (update.relations['expected_species'] case final species?) {
       for (final speciesId in species.add) {
         await _r.species.addExpectedSpecies(
@@ -258,6 +307,59 @@ class SiteWrites extends WritableEntry {
           actingDiverId: ownerId,
         );
       }
+    }
+  }
+
+  @override
+  bool get mergeable => true;
+
+  /// A site merges into a site shared with its owner, which keeps its own
+  /// owner and sharing, as the site merge keeps them.
+  @override
+  bool get mergesAcrossProfiles => true;
+
+  @override
+  Future<PlanBlock?> refuseMerge(
+    String id,
+    String intoId,
+    String? ownerId,
+  ) async {
+    if (ownerId == null ||
+        await _r.itemShares.isVisibleTo(SharedItemKind.site, intoId, ownerId)) {
+      return null;
+    }
+    return PlanBlock(
+      BlockReason.otherProfileReference,
+      'merge_into: $intoId belongs to another profile and is not shared with '
+      'this one.',
+    );
+  }
+
+  /// The merged site's dives, photos, features, links and documents move to
+  /// the survivor, which keeps its own details.
+  @override
+  Future<DeleteReach> mergeReach(
+    String id,
+    String intoId, {
+    Set<String> mergedBefore = const {},
+  }) => linksMoved('dive_sites', id, intoId);
+
+  @override
+  Future<void> merge(String id, String intoId, String? ownerId) async {
+    final survivor = await _r.sites.getSiteById(intoId);
+    final snapshot = survivor == null
+        ? null
+        : await _r.sites.mergeSites(
+            mergedSite: survivor,
+            siteIds: [intoId, id],
+            actingDiverId: ownerId,
+          );
+    if (snapshot == null) {
+      throw AgentToolException(
+        AgentToolErrorCode.writeRefused,
+        'Site $id could not be merged into $intoId.',
+        details: {'id': id, 'merge_into': intoId},
+      );
     }
   }
 
@@ -290,6 +392,7 @@ class SiteWrites extends WritableEntry {
     final longitude = value<double>('longitude') ?? site.location?.longitude;
     return site.copyWith(
       name: value<String>('name'),
+      isShared: value<bool>('is_shared'),
       description: value<String>('description'),
       location: latitude != null && longitude != null
           ? GeoPoint(latitude, longitude)

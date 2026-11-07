@@ -15,13 +15,14 @@ import '../../helpers/quality_test_helpers.dart';
 domain.DiveTank tank({
   String id = 't1',
   double o2 = 21.0,
+  double he = 0,
   int order = 0,
   double? volume = 12,
   String? transmitterSerial,
 }) => domain.DiveTank(
   id: id,
   volume: volume,
-  gasMix: domain.GasMix(o2: o2, he: 0),
+  gasMix: domain.GasMix(o2: o2, he: he),
   order: order,
   transmitterSerial: transmitterSerial,
 );
@@ -184,6 +185,26 @@ void main() {
       final out = det.detect(ctx);
       expect(out, hasLength(1));
       expect(out.single.params['o2Percent'], closeTo(10.0, 1e-9));
+    });
+
+    // The message names the mix, and a trimix stripped of its helium would
+    // read as a different gas (issue #4209).
+    test('hypoxic and ppO2 findings record the helium of the mix', () {
+      final hypoxic = det.detect(
+        makeContext(
+          dive: makeTestDive(tanks: [tank(o2: 10, he: 70)]),
+          samples: flatProfile(depth: 2),
+        ),
+      );
+      expect(hypoxic.single.params['hePercent'], closeTo(70.0, 1e-9));
+
+      final ppo2 = det.detect(
+        makeContext(
+          dive: makeTestDive(tanks: [tank(o2: 50, he: 20)]),
+          samples: flatProfile(depth: 35),
+        ),
+      );
+      expect(ppo2.single.params['hePercent'], closeTo(20.0, 1e-9));
     });
 
     test('switch-MOD guards skip null depth, unknown tank and zero-O2', () {

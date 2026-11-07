@@ -24,6 +24,13 @@ void main() {
                     GoRoute(
                       path: 'dive-planner',
                       builder: (_, _) => const Text('PLANNER'),
+                      routes: [
+                        GoRoute(
+                          path: ':planId',
+                          builder: (_, state) =>
+                              Text('PLAN ${state.pathParameters['planId']}'),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -35,9 +42,17 @@ void main() {
               routes: [
                 GoRoute(
                   path: ':id',
-                  builder: (context, _) => TextButton(
-                    onPressed: () => openDivePlanner(context),
-                    child: const Text('PLAN'),
+                  builder: (context, _) => Column(
+                    children: [
+                      TextButton(
+                        onPressed: () => openDivePlanner(context),
+                        child: const Text('PLAN'),
+                      ),
+                      TextButton(
+                        onPressed: () => openSavedPlanInPlanner(context, 'p1'),
+                        child: const Text('OPEN SAVED'),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -84,5 +99,38 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.text('PLANNER'), findsOneWidget);
+  });
+
+  testWidgets('a saved plan opened from a dive is pushed, so Back returns', (
+    tester,
+  ) async {
+    final router = await pump(tester);
+    router.push('/dives/d1');
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('OPEN SAVED'));
+    await tester.pumpAndSettle();
+    expect(find.text('PLAN p1'), findsOneWidget);
+
+    router.pop();
+    await tester.pumpAndSettle();
+    expect(find.text('OPEN SAVED'), findsOneWidget);
+  });
+
+  testWidgets('a saved plan opened from a dive under the planner does not '
+      'stack a second planner', (tester) async {
+    final router = await pump(tester);
+    router.push('/dives/d1');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('PLAN'));
+    await tester.pumpAndSettle();
+    router.push('/dives/d1');
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('OPEN SAVED'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('PLAN p1'), findsOneWidget);
   });
 }
