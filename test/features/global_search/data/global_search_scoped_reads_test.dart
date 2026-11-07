@@ -393,6 +393,13 @@ void main() {
       idOf: (track) => track.id,
       view: (track) => (track.id, track.startTime, track.endTime),
     );
+    await expectNarrowed(
+      all: () => repository.getCompletedTracks(includePoints: true),
+      scoped: () =>
+          repository.getCompletedTracks(ids: ids, includePoints: true),
+      idOf: (track) => track.id,
+      view: (track) => (track.id, track.startTime, track.endTime),
+    );
   });
 
   test('underwater routes', () async {
@@ -400,6 +407,12 @@ void main() {
     await expectNarrowed(
       all: () => repository.getAll(diverId: me),
       scoped: () => repository.getAll(diverId: me, ids: ids),
+      idOf: (route) => route.id,
+    );
+    await expectNarrowed(
+      all: () => repository.getAll(diverId: me, includePoints: true),
+      scoped: () =>
+          repository.getAll(diverId: me, ids: ids, includePoints: true),
       idOf: (route) => route.id,
     );
   });
