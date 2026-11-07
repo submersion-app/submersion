@@ -438,6 +438,16 @@ void main() {
       expect(c.current.password, 'pw');
     });
 
+    test('clears even when loading the saved choice fails', () async {
+      final c = ProxyController(resolver: _Resolver());
+      addTearDown(c.dispose);
+      await expectLater(
+        c.initialize(_ThrowingLoadStore(await SharedPreferences.getInstance())),
+        throwsStateError,
+      );
+      expect(c.pendingStartup, isNull);
+    });
+
     test('a refresh during startup waits and keeps the saved manual '
         'choice', () async {
       // Launch no longer awaits initialize, so a network change can call
@@ -485,6 +495,14 @@ void main() {
       ),
     );
   });
+}
+
+/// A store whose saved choice cannot be read.
+class _ThrowingLoadStore extends ProxySettingsStore {
+  _ThrowingLoadStore(super.prefs);
+
+  @override
+  ProxySettings load() => throw StateError('corrupt pref');
 }
 
 /// Answers at once that the OS has no proxy.
