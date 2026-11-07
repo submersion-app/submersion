@@ -244,7 +244,10 @@ List<TextSearchExpansion> diveWordExpansions({
   ),
   const TextSearchExpansion(
     sql:
+        // A suit inflation bottle is not the dive's gas (issue #4243): an
+        // air argon bottle must not make a trimix dive an air dive.
         'EXISTS (SELECT 1 FROM dive_tanks tgm WHERE tgm.dive_id = {r}.id '
+        "AND (tgm.tank_role IS NULL OR tgm.tank_role <> 'suitInflation') "
         "AND CASE WHEN tgm.he_percent > 0 THEN 'trimix' "
         "WHEN tgm.o2_percent > 22 THEN 'nitrox' "
         "WHEN tgm.o2_percent >= 20 THEN 'air' END IN ({values}))",
@@ -253,6 +256,7 @@ List<TextSearchExpansion> diveWordExpansions({
   const TextSearchExpansion(
     sql:
         'EXISTS (SELECT 1 FROM dive_tanks tge WHERE tge.dive_id = {r}.id '
+        "AND (tge.tank_role IS NULL OR tge.tank_role <> 'suitInflation') "
         "AND tge.he_percent = 0 AND printf('%d', ROUND(tge.o2_percent)) "
         'IN ({values}))',
     values: diveEanTerms,

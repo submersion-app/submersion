@@ -82,7 +82,7 @@ extension InsightsRepositoryFocusSeries on InsightsRepository {
                t.o2_percent,
                t.he_percent
         FROM dives d
-        JOIN dive_tanks t ON t.dive_id = d.id
+        JOIN dive_tanks t ON t.dive_id = d.id AND ${breathingTankSql('t')}
         WHERE t.start_pressure > t.end_pressure
           $diverFilter ${df.clause}
         ORDER BY d.dive_date_time

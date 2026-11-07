@@ -64,7 +64,8 @@ String diveAmbientBarSql(String dive, String depth) =>
 /// every other breathed cylinder's drop converted to the reference by
 /// volume, or one to one when a size is missing and the two are a matched
 /// pair (both sidemount, both twin set, or both back gas on the same gas). A reference that did not fall adds
-/// zero, since only breathed cylinders are summed (#3974). NULL on a
+/// zero, since only breathed cylinders are summed (#3974). A suit inflation
+/// bottle is neither summed nor the reference (issue #4243). NULL on a
 /// rebreather dive, whose cylinders do not drain with the diver's breathing
 /// (issue #3673), when the reference has no pressures logged, since it must
 /// join, and when nothing adds up to a drop; the caller guards the runtime
@@ -80,7 +81,8 @@ String diveSacPressureSql(String dive) {
       "sac_t.tank_role = 'twinSet' AS twin_set, "
       "sac_t.tank_role = 'backGas' AS back_gas, "
       'sac_t.o2_percent AS o2, sac_t.he_percent AS he '
-      'FROM dive_tanks sac_t WHERE sac_t.dive_id = $dive.id AND $where)';
+      'FROM dive_tanks sac_t WHERE sac_t.dive_id = $dive.id '
+      'AND ${breathingTankSql('sac_t')} AND $where)';
   final breathed = cylinders('sac_t.start_pressure > sac_t.end_pressure');
   final measured = cylinders(
     'sac_t.start_pressure IS NOT NULL AND sac_t.end_pressure IS NOT NULL',
@@ -101,7 +103,7 @@ String diveSacPressureSql(String dive) {
       'FROM $breathed sac_c JOIN $measured sac_r '
       'ON sac_r.id = ('
       'SELECT t2.id FROM dive_tanks t2 '
-      'WHERE t2.dive_id = $dive.id '
+      'WHERE t2.dive_id = $dive.id AND ${breathingTankSql('t2')} '
       'AND (t2.tank_role IN $_backmountRolesSql OR NOT EXISTS ('
       'SELECT 1 FROM dive_tanks t3 WHERE t3.dive_id = $dive.id '
       'AND t3.tank_role IN $_backmountRolesSql)) '

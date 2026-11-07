@@ -3,6 +3,7 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
+import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/domain/services/safety_review_service.dart';
 
@@ -36,8 +37,21 @@ final tankQueryEntity = QueryEntity(
   subject: QuerySubject.tanks,
   table: 'dive_tanks',
   fields: [
-    _num('tanks', 'o2', '{r}.o2_percent', dimension: FieldDimension.percent),
-    _num('tanks', 'he', '{r}.he_percent', dimension: FieldDimension.percent),
+    // A suit inflation bottle holds no breathing gas (issue #4243), so its
+    // mix reads as unrecorded: an O2 or He condition, the dive filter's O2
+    // range among them, never matches the dive on it.
+    _num(
+      'tanks',
+      'o2',
+      "CASE WHEN ${breathingTankSql('{r}')} THEN {r}.o2_percent END",
+      dimension: FieldDimension.percent,
+    ),
+    _num(
+      'tanks',
+      'he',
+      "CASE WHEN ${breathingTankSql('{r}')} THEN {r}.he_percent END",
+      dimension: FieldDimension.percent,
+    ),
     _num(
       'tanks',
       'startPressure',
