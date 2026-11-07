@@ -176,6 +176,26 @@ void main() {
       expect(stops.single.isGasSwitchOnly, isTrue);
     });
 
+    test('a minimum equal to the switch stop at a level with no switch '
+        'is not switch-only', () {
+      // The diver's minimums set every stop to the switch stop's length, but
+      // only a level where the gas changes is held for the switch. This dive
+      // has a ceiling that clears on arrival at 6 m and 3 m, so the minimums
+      // hold stops there that owe nothing yet switch nothing either.
+      final minimums = <int, int>{for (var m = 3; m <= 30; m += 3) m: 60};
+      final stops = _dive(30, 10).calculateDecoSchedule(
+        currentDepth: 30,
+        ascentGas: _airEan50(),
+        policy: SchedulePolicy(
+          gasSwitchStopSeconds: 60,
+          minStopSecondsByDepth: minimums,
+        ),
+      );
+      expect(stops.map((s) => s.depthMeters), [21.0, 6.0, 3.0]);
+      expect(stops.map((s) => s.durationSeconds), everyElement(60));
+      expect(stops.map((s) => s.isGasSwitchOnly), [true, false, false]);
+    });
+
     test('a minimum alone never adds a stop where nothing is owed', () {
       final stops = _dive(30, 10).calculateDecoSchedule(
         currentDepth: 30,
