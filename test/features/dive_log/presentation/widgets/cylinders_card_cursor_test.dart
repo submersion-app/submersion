@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -120,6 +121,27 @@ void main() {
     // The whole-dive labels stay.
     expect(find.text('End 50 bar'), findsOneWidget);
     expect(find.text('End 140 bar'), findsOneWidget);
+  });
+
+  testWidgets('follows the cursor as it moves and leaves', (tester) async {
+    await tester.pumpWidget(_card(dive: _dive([_air]), cursor: 150));
+    await tester.pumpAndSettle();
+    expect(find.text('Now 125 bar'), findsOneWidget);
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(CylindersCard)),
+    );
+    final cursor = container.read(
+      profileTrackingIndexProvider('dive-1').notifier,
+    );
+    // 10:00
+    cursor.state = 60;
+    await tester.pump();
+    expect(find.text('Now 170 bar'), findsOneWidget);
+
+    cursor.state = null;
+    await tester.pump();
+    expect(find.textContaining('Now'), findsNothing);
   });
 
   testWidgets('no cursor, no now label', (tester) async {
