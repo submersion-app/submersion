@@ -735,6 +735,35 @@ void main() {
       expect(containerOf(tester).exists(divesProvider), isFalse);
     });
 
+    testWidgets('offers a dive logged while the planner is open', (
+      tester,
+    ) async {
+      await pumpLogged(tester, dayDives);
+      expect(find.textContaining('ended'), findsNothing);
+
+      await tester.runAsync(
+        () => DiveRepository().createDive(
+          loggedDive(
+            'd43',
+            NoFlyService.wallClockNowUtc().subtract(const Duration(hours: 3)),
+            number: 43,
+          ),
+        ),
+      );
+      // The reread needs the real event loop, which runAsync turns, and the
+      // dives change tick is debounced on the test's fake clock, which the
+      // pump advances.
+      final prompt = find.textContaining('Dive #43 ended');
+      for (var i = 0; i < 50 && prompt.evaluate().isEmpty; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 10)),
+        );
+        await tester.pump(DiveRepository.changeTickDebounce);
+      }
+
+      expect(prompt, findsOneWidget);
+    });
+
     testWidgets('reads nothing once the plan follows a dive', (tester) async {
       await pumpLogged(tester, recent());
       await follow(tester, 'd42');

@@ -6745,8 +6745,8 @@ class DiveRepository {
 
   /// The logged dive that ended last after [endedAfter] and at or before
   /// [notAfter], hydrated, or null when none did: what the planner offers to
-  /// follow (issue #4250). One indexed lookup and one dive read, rather than
-  /// the whole log ([latestEndedDiveSql]).
+  /// follow (issue #4250). One indexed lookup and one dive read without its
+  /// samples, rather than the whole log ([latestEndedDiveSql]).
   ///
   /// [diverId] scopes it to one diver, and null reads every diver, as
   /// [getAllDives] does. A dive that started more than [longestDive] before
@@ -6774,7 +6774,11 @@ class DiveRepository {
           )
           .get();
       if (rows.isEmpty) return null;
-      return await getDiveById(rows.first.read<String>('id'));
+      // The prompt shows the dive's name and times, never its profile.
+      final dives = await getDivesByIdsWithoutSamples([
+        rows.first.read<String>('id'),
+      ]);
+      return dives.firstOrNull;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get the latest ended dive for diver: $diverId',

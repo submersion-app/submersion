@@ -159,6 +159,20 @@ void main() {
     expect(await latest(), 'long');
   });
 
+  test(
+    'a dive that started more than a day before the window is not read',
+    () async {
+      // Ends inside the window, but its start is before the bounded range.
+      await dive(
+        'marathon',
+        now.subtract(const Duration(hours: 73)),
+        runtime: const Duration(hours: 30),
+      );
+
+      expect(await latest(), isNull);
+    },
+  );
+
   test('reads only the diver asked for, and every diver for none', () async {
     await diver('alice');
     await diver('bob');
