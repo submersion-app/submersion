@@ -8,6 +8,7 @@ import 'package:submersion/features/planner/presentation/providers/plan_follow_p
 import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 
 /// What the planner shows for a logged dive picked in the series bar (issue
 /// #3565): the plan it was dived from, if any, and what its safety review
@@ -31,22 +32,22 @@ final viewedLoggedDivePlanProvider = Provider<LinkedPlanComparison?>((ref) {
 /// The range table of the plan [diveId] was dived from, computed in the
 /// background like the editor's; null when it has no plan or nothing to
 /// vary. It starts from a fresh diver, even for a later dive of a series.
-final linkedPlanRangeTableProvider = FutureProvider.family<RangeTable?, String>(
-  (ref, diveId) async {
-    final comparison = await ref.watch(
-      linkedPlanComparisonProvider(diveId).future,
-    );
-    if (comparison == null || comparison.plan.segments.isEmpty) return null;
-    return ref
-        .watch(planResultRunnerProvider)
-        .run(
-          computeRangeTable,
-          comparison.plan,
-          null,
-          ref.watch(planEngineConfigProvider),
-        );
-  },
-);
+final linkedPlanRangeTableProvider = FutureProvider.autoDispose
+    .family<RangeTable?, String>((ref, diveId) async {
+      retainDiveData(ref);
+      final comparison = await ref.watch(
+        linkedPlanComparisonProvider(diveId).future,
+      );
+      if (comparison == null || comparison.plan.segments.isEmpty) return null;
+      return ref
+          .watch(planResultRunnerProvider)
+          .run(
+            computeRangeTable,
+            comparison.plan,
+            null,
+            ref.watch(planEngineConfigProvider),
+          );
+    });
 
 /// The safety review findings of the logged dive in view that the dive log
 /// would show: none with the review off, and none from a rule the diver

@@ -14,6 +14,7 @@ import 'package:submersion/features/planner/domain/services/dive_to_plan_convert
 import 'package:submersion/features/planner/domain/services/logged_dive_chain.dart';
 import 'package:submersion/features/planner/presentation/planner_navigation.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 
 /// Present the "What if..." sheet as a modal bottom sheet.
 ///
@@ -220,32 +221,31 @@ class _WhatIfSheetState extends ConsumerState<WhatIfSheet> {
 /// Preceding dive within 24h of [diveId]'s entry time, for the tissue-seeding
 /// switch. Mirrors the lookback `FollowDiveSheet` performs, over the same
 /// dive list.
-final _precedingDiveWithin24hProvider = FutureProvider.family<Dive?, String>((
-  ref,
-  diveId,
-) async {
-  final dive = await ref.watch(diveProvider(diveId).future);
-  if (dive == null) return null;
-  final dives = await ref.watch(divesProvider.future);
-  final entry = dive.entryTime ?? dive.dateTime;
+final _precedingDiveWithin24hProvider = FutureProvider.autoDispose
+    .family<Dive?, String>((ref, diveId) async {
+      retainDiveData(ref);
+      final dive = await ref.watch(diveProvider(diveId).future);
+      if (dive == null) return null;
+      final dives = await ref.watch(divesProvider.future);
+      final entry = dive.entryTime ?? dive.dateTime;
 
-  Dive? best;
-  for (final other in dives) {
-    if (other.id == diveId) continue;
-    final otherEnd = diveEnd(other);
-    if (otherEnd.isAfter(entry)) continue;
-    if (entry.difference(otherEnd) > const Duration(hours: 24)) continue;
-    if (best == null) {
-      best = other;
-    } else {
-      final bestEnd = (best.entryTime ?? best.dateTime).add(
-        best.effectiveRuntime ?? Duration.zero,
-      );
-      if (otherEnd.isAfter(bestEnd)) best = other;
-    }
-  }
-  return best;
-});
+      Dive? best;
+      for (final other in dives) {
+        if (other.id == diveId) continue;
+        final otherEnd = diveEnd(other);
+        if (otherEnd.isAfter(entry)) continue;
+        if (entry.difference(otherEnd) > const Duration(hours: 24)) continue;
+        if (best == null) {
+          best = other;
+        } else {
+          final bestEnd = (best.entryTime ?? best.dateTime).add(
+            best.effectiveRuntime ?? Duration.zero,
+          );
+          if (otherEnd.isAfter(bestEnd)) best = other;
+        }
+      }
+      return best;
+    });
 
 /// Draws the real profile with the simplified level profile overlaid.
 class _WhatIfPreview extends StatelessWidget {

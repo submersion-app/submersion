@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/presentation/providers/analysis_set
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 
 final safetyFindingsRepositoryProvider = Provider<SafetyFindingsRepository>((
   ref,
@@ -37,10 +38,11 @@ final safetyFindingsRepositoryProvider = Provider<SafetyFindingsRepository>((
 /// which on a dive the chart draws one source at a time replays the primary
 /// source's own samples rather than every computer's interleaved
 /// ([diveAnalysisSeriesProvider]).
-final safetyReviewProvider = FutureProvider.family<SafetyReview?, String>((
+final safetyReviewProvider = FutureProvider.autoDispose.family<SafetyReview?, String>((
   ref,
   diveId,
 ) async {
+  retainDiveData(ref);
   // getReview is a one-shot SELECT, not a Drift stream, so this provider only
   // re-runs when invalidated. A sync imports safety review/finding rows (and a
   // batch "Analyze all dives" writes them) directly to the DB, bypassing every

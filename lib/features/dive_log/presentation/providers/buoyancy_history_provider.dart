@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembl
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 
 /// Runs the twin and analyzer for one history dive and returns only the
 /// derived ideal-lead figure the strip needs. Top-level so it is a valid
@@ -37,11 +38,9 @@ class BuoyancyHistoryEntry {
 ///
 /// Cross-dive lookbacks use `ref.read` (not watch) so loading many dives does
 /// not wire this provider to every one of their change streams.
-final buoyancyHistoryProvider =
-    FutureProvider.family<List<BuoyancyHistoryEntry>, String>((
-      ref,
-      currentDiveId,
-    ) async {
+final buoyancyHistoryProvider = FutureProvider.autoDispose
+    .family<List<BuoyancyHistoryEntry>, String>((ref, currentDiveId) async {
+      retainDiveData(ref);
       final currentDive = await ref.watch(diveProvider(currentDiveId).future);
       final model = await ref.watch(weightCalibrationProvider.future);
       final observations = await ref.watch(weightObservationsProvider.future);

@@ -9,32 +9,36 @@ import 'package:submersion/features/dive_lab/presentation/providers/dive_scenari
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 
 /// Whether a dive has a linked plan, for deciding if Compare shows at all.
-final hasLinkedPlanProvider = Provider.family<bool, String>(
-  (ref, diveId) => ref.watch(
-    linkedPlanComparisonProvider(diveId).select((a) => a.value != null),
-  ),
-);
-
-/// The linked plan's column; null with no plan, or a plan with no schedule.
-final plannedColumnProvider = Provider.family<CompareColumn?, String>((
+final hasLinkedPlanProvider = Provider.autoDispose.family<bool, String>((
   ref,
   diveId,
 ) {
-  final comparison = ref.watch(linkedPlanComparisonProvider(diveId)).value;
-  if (comparison == null) return null;
-  final plan = comparison.plan;
-  return plannedColumn(
-    outcome: comparison.outcome,
-    // As the engine reads it: an altitude of zero or less is unset.
-    surfacePressureBar: DiveEnvironment.forConditions(
-      altitudeMeters: (plan.altitude ?? 0) > 0 ? plan.altitude : null,
-      waterType: plan.waterType ?? WaterType.salt,
-      salinityPpt: plan.salinityPpt,
-    ).surfacePressureBar,
+  retainDiveData(ref);
+  return ref.watch(
+    linkedPlanComparisonProvider(diveId).select((a) => a.value != null),
   );
 });
+
+/// The linked plan's column; null with no plan, or a plan with no schedule.
+final plannedColumnProvider = Provider.autoDispose
+    .family<CompareColumn?, String>((ref, diveId) {
+      retainDiveData(ref);
+      final comparison = ref.watch(linkedPlanComparisonProvider(diveId)).value;
+      if (comparison == null) return null;
+      final plan = comparison.plan;
+      return plannedColumn(
+        outcome: comparison.outcome,
+        // As the engine reads it: an altitude of zero or less is unset.
+        surfacePressureBar: DiveEnvironment.forConditions(
+          altitudeMeters: (plan.altitude ?? 0) > 0 ? plan.altitude : null,
+          waterType: plan.waterType ?? WaterType.salt,
+          salinityPpt: plan.salinityPpt,
+        ).surfacePressureBar,
+      );
+    });
 
 /// The dive's own column. Null when the dive is gone.
 final divedColumnProvider = FutureProvider.autoDispose

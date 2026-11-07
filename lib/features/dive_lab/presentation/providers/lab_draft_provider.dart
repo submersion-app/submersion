@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_lab/domain/services/remaining_bottom_co
 import 'package:submersion/features/dive_lab/presentation/providers/lab_request_inputs_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 
 /// The scenario being explored on the lab page; ephemeral until saved.
 class LabDraft extends Equatable {
@@ -175,29 +176,29 @@ final labDraftProvider =
 /// The branch the lab opens at: the detail chart's tracking cursor if the
 /// diver had one, else the start of the final ascent, else the deepest
 /// sample.
-final labDefaultBranchProvider = FutureProvider.family<int, String>((
-  ref,
-  diveId,
-) async {
-  final inputs = await ref.watch(labRequestInputsProvider(diveId).future);
-  if (inputs == null || inputs.timestamps.isEmpty) return 0;
-  final tracking = ref.read(profileTrackingIndexProvider(diveId));
-  if (tracking != null &&
-      tracking >= 0 &&
-      tracking < inputs.timestamps.length) {
-    return inputs.timestamps[tracking];
-  }
-  final analysis = await ref.watch(profileAnalysisProvider(diveId).future);
-  final end = finalAscentStartIndex(
-    depths: inputs.depths,
-    timestamps: inputs.timestamps,
-    ndlCurve: analysis?.ndlCurve ?? const [],
-    decoStopCurve: analysis?.decoStopCurve ?? const [],
-  );
-  if (end != null) return inputs.timestamps[end];
-  var deepest = 0;
-  for (var i = 1; i < inputs.depths.length; i++) {
-    if (inputs.depths[i] > inputs.depths[deepest]) deepest = i;
-  }
-  return inputs.timestamps[deepest];
-});
+final labDefaultBranchProvider = FutureProvider.autoDispose.family<int, String>(
+  (ref, diveId) async {
+    retainDiveData(ref);
+    final inputs = await ref.watch(labRequestInputsProvider(diveId).future);
+    if (inputs == null || inputs.timestamps.isEmpty) return 0;
+    final tracking = ref.read(profileTrackingIndexProvider(diveId));
+    if (tracking != null &&
+        tracking >= 0 &&
+        tracking < inputs.timestamps.length) {
+      return inputs.timestamps[tracking];
+    }
+    final analysis = await ref.watch(profileAnalysisProvider(diveId).future);
+    final end = finalAscentStartIndex(
+      depths: inputs.depths,
+      timestamps: inputs.timestamps,
+      ndlCurve: analysis?.ndlCurve ?? const [],
+      decoStopCurve: analysis?.decoStopCurve ?? const [],
+    );
+    if (end != null) return inputs.timestamps[end];
+    var deepest = 0;
+    for (var i = 1; i < inputs.depths.length; i++) {
+      if (inputs.depths[i] > inputs.depths[deepest]) deepest = i;
+    }
+    return inputs.timestamps[deepest];
+  },
+);

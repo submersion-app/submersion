@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 
 /// Provider for the GasAnalysisService singleton.
 ///
@@ -105,8 +106,9 @@ Future<_SegmentInputs?> _segmentInputs(Ref ref, DiveSourceKey key) async {
 /// Provider for gas-switch based SAC segments
 ///
 /// Returns null if no gas switches are recorded for the dive.
-final gasSwitchSegmentsProvider =
-    FutureProvider.family<List<SacSegment>?, DiveSourceKey>((ref, key) async {
+final gasSwitchSegmentsProvider = FutureProvider.autoDispose
+    .family<List<SacSegment>?, DiveSourceKey>((ref, key) async {
+      retainDiveData(ref);
       final inputs = await _segmentInputs(ref, key);
       if (inputs == null ||
           inputs.profile.isEmpty ||
@@ -132,8 +134,9 @@ final gasSwitchSegmentsProvider =
 /// Automatically detects dive phases: descent, bottom, ascent, safety stop.
 /// The profile analysis says which holds were deco stops, so this breakdown
 /// and the chart's events agree on them.
-final phaseSegmentsProvider =
-    FutureProvider.family<List<SacSegment>?, DiveSourceKey>((ref, key) async {
+final phaseSegmentsProvider = FutureProvider.autoDispose
+    .family<List<SacSegment>?, DiveSourceKey>((ref, key) async {
+      retainDiveData(ref);
       final inputs = await _segmentInputs(ref, key);
       if (inputs == null || inputs.profile.isEmpty) return null;
 
@@ -166,33 +169,34 @@ final phaseSegmentsProvider =
 /// Provider for per-cylinder SAC calculations
 ///
 /// Returns SAC metrics for each tank used in the dive.
-final cylinderSacProvider = FutureProvider.family<List<CylinderSac>, String>((
-  ref,
-  diveId,
-) async {
-  final dive = await ref.watch(diveProvider(diveId).future);
-  if (dive == null) return [];
+final cylinderSacProvider = FutureProvider.autoDispose
+    .family<List<CylinderSac>, String>((ref, diveId) async {
+      retainDiveData(ref);
+      final dive = await ref.watch(diveProvider(diveId).future);
+      if (dive == null) return [];
 
-  final gasSwitches = await ref.watch(gasSwitchesProvider(diveId).future);
-  final tankPressures = await ref.watch(tankPressuresProvider(diveId).future);
+      final gasSwitches = await ref.watch(gasSwitchesProvider(diveId).future);
+      final tankPressures = await ref.watch(
+        tankPressuresProvider(diveId).future,
+      );
 
-  final service = ref.watch(gasAnalysisServiceProvider);
-  return service.calculateCylinderSac(
-    dive: dive,
-    profile: dive.profile,
-    gasSwitches: gasSwitches.isEmpty ? null : gasSwitches,
-    tankPressures: tankPressures.isEmpty ? null : tankPressures,
-  );
-});
+      final service = ref.watch(gasAnalysisServiceProvider);
+      return service.calculateCylinderSac(
+        dive: dive,
+        profile: dive.profile,
+        gasSwitches: gasSwitches.isEmpty ? null : gasSwitches,
+        tankPressures: tankPressures.isEmpty ? null : tankPressures,
+      );
+    });
 
 /// Provider to check if the dive has multiple tanks
-final isMultiTankDiveProvider = FutureProvider.family<bool, String>((
-  ref,
-  diveId,
-) async {
-  final dive = await ref.watch(diveProvider(diveId).future);
-  return dive != null && dive.tanks.length > 1;
-});
+final isMultiTankDiveProvider = FutureProvider.autoDispose.family<bool, String>(
+  (ref, diveId) async {
+    retainDiveData(ref);
+    final dive = await ref.watch(diveProvider(diveId).future);
+    return dive != null && dive.tanks.length > 1;
+  },
+);
 
 /// Expanded state for the Gas Analysis section in dive details
 final gasAnalysisSectionExpandedProvider = StateProvider<bool>((ref) => false);

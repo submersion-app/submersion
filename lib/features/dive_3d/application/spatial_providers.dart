@@ -25,6 +25,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_path_adapter.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 
 /// Whether the dive's 3D seascape should draw the linked measured route
 /// (the default) rather than the dead-reckoned estimate, when both are
@@ -41,8 +42,9 @@ final showMeasuredRouteProvider = StateProvider.family<bool, String>(
 /// one exists, has enough points, and [showMeasuredRouteProvider] has not
 /// been switched off, else dead reckoning, else null when the dive has no
 /// usable profile either.
-final spatialReckonedPathProvider =
-    FutureProvider.family<ReckonedPath?, String>((ref, diveId) async {
+final spatialReckonedPathProvider = FutureProvider.autoDispose
+    .family<ReckonedPath?, String>((ref, diveId) async {
+      retainDiveData(ref);
       final route = await ref.watch(
         primaryNavTrackForDiveProvider(diveId).future,
       );
@@ -154,8 +156,9 @@ typedef SpatialBuildInput = ({
   TerrainImageryFrame? imageryFrame,
 });
 
-final spatialGeometryProvider =
-    FutureProvider.family<SpatialSceneResult?, String>((ref, diveId) async {
+final spatialGeometryProvider = FutureProvider.autoDispose
+    .family<SpatialSceneResult?, String>((ref, diveId) async {
+      retainDiveData(ref);
       final path = await ref.watch(spatialReckonedPathProvider(diveId).future);
       if (path == null || path.points.length < 2) return null;
       final dive = await ref.watch(diveProvider(diveId).future);

@@ -12,6 +12,7 @@ import 'package:submersion/features/planner/presentation/providers/plan_canvas_p
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_store.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 
 /// Seconds between points on a plan's chart line. The chart curves between
 /// points, so a flat bottom held by two far-apart points would bow past the
@@ -39,8 +40,9 @@ class LinkedPlanComparison {
 /// Recomputes the plan through the same PlanEngine the canvas uses so the
 /// result always reflects the plan's full computed schedule (segments + deco
 /// ascent), not just the stored bottom segments.
-final linkedPlanComparisonProvider =
-    FutureProvider.family<LinkedPlanComparison?, String>((ref, diveId) async {
+final linkedPlanComparisonProvider = FutureProvider.autoDispose
+    .family<LinkedPlanComparison?, String>((ref, diveId) async {
+      retainDiveData(ref);
       final repository = ref.watch(divePlanRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchPlanChanges());
 
@@ -94,8 +96,9 @@ Future<PlanOutcome?> _seriesOutcome(
 /// The planned profile for a dive with a linked plan, rendered as a chart
 /// overlay next to the actual logged profile ("plan vs actual"). Null when
 /// the dive has no linked plan.
-final plannedProfileOverlayProvider =
-    FutureProvider.family<ChartSourceOverlay?, String>((ref, diveId) async {
+final plannedProfileOverlayProvider = FutureProvider.autoDispose
+    .family<ChartSourceOverlay?, String>((ref, diveId) async {
+      retainDiveData(ref);
       final comparison = await ref.watch(
         linkedPlanComparisonProvider(diveId).future,
       );

@@ -13,6 +13,7 @@ import 'package:submersion/features/gps_log/domain/gps_track_matcher.dart';
 import 'package:submersion/features/gps_log/domain/track_colorization.dart';
 import 'package:submersion/features/gps_log/domain/track_geometry.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 
 /// Argument bundle for the isolate. compute() takes exactly one argument.
 class _SimplifyRequest {
@@ -123,22 +124,21 @@ final divesOnTrackProvider = FutureProvider.family<List<Dive>, String>((
 });
 
 /// The track, if any, whose window covers [diveId].
-final trackForDiveProvider = FutureProvider.family<GpsTrack?, String>((
-  ref,
-  diveId,
-) async {
-  final dive = await ref.watch(diveProvider(diveId).future);
-  if (dive == null) return null;
+final trackForDiveProvider = FutureProvider.autoDispose
+    .family<GpsTrack?, String>((ref, diveId) async {
+      retainDiveData(ref);
+      final dive = await ref.watch(diveProvider(diveId).future);
+      if (dive == null) return null;
 
-  final repository = ref.watch(gpsTrackRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchTracksChanges());
+      final repository = ref.watch(gpsTrackRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchTracksChanges());
 
-  // Lean read first - never decode every blob just to find the match.
-  final tracks = await repository.getCompletedTracks(includePoints: false);
-  final match = GpsTrackMatcher.trackCovering(tracks, _entryMillis(dive));
-  if (match == null) return null;
-  return ref.watch(gpsTrackDetailProvider(match.id).future);
-});
+      // Lean read first - never decode every blob just to find the match.
+      final tracks = await repository.getCompletedTracks(includePoints: false);
+      final match = GpsTrackMatcher.trackCovering(tracks, _entryMillis(dive));
+      if (match == null) return null;
+      return ref.watch(gpsTrackDetailProvider(match.id).future);
+    });
 
 /// Optional date bound on the Tracks list, map and summary.
 ///
