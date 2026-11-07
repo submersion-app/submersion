@@ -148,6 +148,29 @@ void main() {
       expect(row(next, 'clip').viaEquipmentId, 'hose');
     });
 
+    test('a row hung under it by hand or another set stays', () {
+      const rows = [
+        GearProvenance(equipmentId: 'reg', viaSetId: 'winter'),
+        GearProvenance(
+          equipmentId: 'hose',
+          viaEquipmentId: 'reg',
+          viaSetId: 'winter',
+        ),
+        GearProvenance(equipmentId: 'clip', viaEquipmentId: 'reg'),
+        GearProvenance(
+          equipmentId: 'octo',
+          viaEquipmentId: 'reg',
+          viaSetId: 'summer',
+        ),
+      ];
+      final next = apply(const SetItemRemoved('reg'), rows);
+      expect(ids(next), ['clip', 'octo']);
+      expect(row(next, 'clip').isTopLevel, isTrue);
+      expect(row(next, 'clip').viaSetId, isNull);
+      expect(row(next, 'octo').isTopLevel, isTrue);
+      expect(row(next, 'octo').viaSetId, 'summer');
+    });
+
     test('keeps a row added by hand', () {
       expect(apply(const SetItemRemoved('mask'), onDive), onDive);
     });

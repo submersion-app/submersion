@@ -8098,10 +8098,14 @@ class DiveRepository {
   /// so adding several parts at once costs one pass over the dives rather
   /// than one pass per part. The result is the same either way: the rules
   /// compose, and the diff writer compares against the rows on disk.
+  ///
+  /// With [notify] false the caller tells sync and queues the rescan once
+  /// its own transaction commits, as an agent apply does in `afterApply`.
   Future<int> rewriteAssemblyOnDives(
     String assemblyId,
     List<GearHistoryRewrite> rewrites, {
     required bool alsoLogged,
+    bool notify = true,
   }) async {
     if (rewrites.isEmpty) return 0;
     final diveIds = await _diveIdsCarrying(
@@ -8109,7 +8113,7 @@ class DiveRepository {
       assemblyId,
       alsoLogged: alsoLogged,
     );
-    return _rewriteGearOn(diveIds, (rows, _) {
+    return _rewriteGearOn(diveIds, notify: notify, (rows, _) {
       var next = rows;
       for (final rewrite in rewrites) {
         next = rewrite.applyTo(next, assemblyId);
@@ -8117,6 +8121,15 @@ class DiveRepository {
       return next;
     });
   }
+
+  /// The planned dives that carry [assemblyId]: the ones every template
+  /// change reaches, for a caller that rescans them after its commit.
+  Future<List<String>> plannedDiveIdsWithAssembly(String assemblyId) =>
+      _diveIdsCarrying(_gearColumn, assemblyId, alsoLogged: false);
+
+  /// The planned dives that carry set [setId].
+  Future<List<String>> plannedDiveIdsWithSet(String setId) =>
+      _diveIdsCarrying(_setColumn, setId, alsoLogged: false);
 
   /// Replays changes to the members of set [setId] on the dives that carry
   /// the set (issue #4283), planned ones always and logged ones only with
@@ -8127,6 +8140,7 @@ class DiveRepository {
     String setId,
     List<SetHistoryRewrite> rewrites, {
     required bool alsoLogged,
+    bool notify = true,
   }) async {
     if (rewrites.isEmpty) return 0;
     final diveIds = await _diveIdsCarrying(
@@ -8169,7 +8183,7 @@ class DiveRepository {
         )).toSet();
       }
     }
-    return _rewriteGearOn(diveIds, (rows, diveId) {
+    return _rewriteGearOn(diveIds, notify: notify, (rows, diveId) {
       // Neither the dive nor the set has a diver: unfiltered, as before.
       final usable = usableBy[diverOf[diveId]];
       var next = rows;
@@ -8267,11 +8281,13 @@ class DiveRepository {
 
   /// Writes [change] of each of [diveIds]' gear rows in one transaction,
   /// skipping the dives it leaves as they were. Returns how many changed.
+  /// With [notify] false, sync and the rescan are the caller's.
   Future<int> _rewriteGearOn(
     List<String> diveIds,
     List<GearProvenance> Function(List<GearProvenance> rows, String diveId)
-    change,
-  ) async {
+    change, {
+    bool notify = true,
+  }) async {
     if (diveIds.isEmpty) return 0;
     final now = DateTime.now().millisecondsSinceEpoch;
     final touched = <String>[];
@@ -8285,7 +8301,7 @@ class DiveRepository {
       }
       if (touched.isNotEmpty) await _bumpDives(touched, now);
     });
-    if (touched.isNotEmpty) {
+    if (notify && touched.isNotEmpty) {
       SyncEventBus.notifyLocalChange();
       // The gear changed without a save, so queue the rescan a save would
       // (issue #2853): a shared gear overlap can appear or go with it.

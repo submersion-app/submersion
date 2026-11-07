@@ -80,10 +80,10 @@ class SetItemAdded extends SetHistoryRewrite {
   List<Object?> get props => [itemId];
 }
 
-/// An item left the set. It goes with the parts hanging under it, except a
-/// part that is still a member of the set in its own right: that one stays,
-/// with its own parts, and moves to the top level, as applying the set
-/// fresh would put it.
+/// An item left the set. It goes with the parts the set hung under it. A
+/// row under it that the set did not put there (added by hand, or by
+/// another set), or a part still a member of the set in its own right,
+/// stays with its own parts and moves to the top level.
 class SetItemRemoved extends SetHistoryRewrite {
   final String itemId;
   const SetItemRemoved(this.itemId);
@@ -102,9 +102,14 @@ class SetItemRemoved extends SetHistoryRewrite {
       return rows;
     }
     final subtree = GearExpander.subtreeIds(rows, itemId);
+    // What the set did not put there stays: a row added by hand under the
+    // assembly, or one another set brought, as does a part still a member.
     final kept = <String>{
-      for (final id in subtree)
-        if (id != itemId && isMember(id)) ...GearExpander.subtreeIds(rows, id),
+      for (final r in rows)
+        if (r.equipmentId != itemId &&
+            subtree.contains(r.equipmentId) &&
+            (r.viaSetId != setId || isMember(r.equipmentId)))
+          ...GearExpander.subtreeIds(rows, r.equipmentId),
     };
     return [
       for (final r in rows)

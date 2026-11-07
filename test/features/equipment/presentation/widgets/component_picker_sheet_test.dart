@@ -95,6 +95,7 @@ class _FakeDiveRepository extends Fake implements DiveRepository {
     String assemblyId,
     List<GearHistoryRewrite> rewrites_, {
     required bool alsoLogged,
+    bool notify = true,
   }) async {
     rewrites.add((assemblyId, rewrites_, alsoLogged));
     return 1;

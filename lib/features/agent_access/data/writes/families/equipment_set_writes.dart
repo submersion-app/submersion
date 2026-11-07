@@ -10,6 +10,7 @@ import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/object_list_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
+import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set_geofence.dart';
 import 'package:submersion/features/equipment/domain/entities/set_history_rewrite.dart';
@@ -164,6 +165,21 @@ class EquipmentSetWrites extends WritableEntry {
     return others;
   }
 
+  /// The planned dives a member change rewrote are rescanned, as a save
+  /// would (issue #2853), once the apply has committed. Sync hears of the
+  /// apply from the applier itself.
+  @override
+  Future<void> afterApply(List<AppliedChange> changes, ApplyRun run) async {
+    for (final change in changes) {
+      if (change.kind != ChangeKind.update ||
+          !run.once(('planned-dives-of-set', change.id))) {
+        continue;
+      }
+      final dives = await _r.dives.plannedDiveIdsWithSet(change.id);
+      if (dives.isNotEmpty) scheduleQualityScan(dives);
+    }
+  }
+
   @override
   Future<DeleteReach> deleteReach(
     String id, {
@@ -236,11 +252,18 @@ class EquipmentSetWrites extends WritableEntry {
         ),
       );
       // Planned dives follow the set, as the editor's "from now on" does;
-      // an agent never rewrites logged dives (issue #4283).
-      await _r.dives.rewriteSetOnDives(id, [
-        for (final e in diff.added) SetItemAdded(e),
-        for (final e in diff.removed) SetItemRemoved(e),
-      ], alsoLogged: false);
+      // an agent never rewrites logged dives (issue #4283). Inside the
+      // apply's transaction, so a revert takes it back with the set; the
+      // rescan waits for afterApply.
+      await _r.dives.rewriteSetOnDives(
+        id,
+        [
+          for (final e in diff.added) SetItemAdded(e),
+          for (final e in diff.removed) SetItemRemoved(e),
+        ],
+        alsoLogged: false,
+        notify: false,
+      );
     }
     if (v['show_figure'] case final bool show) {
       await sets.setShowFigure(id, show);

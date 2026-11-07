@@ -1,6 +1,7 @@
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
+import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_history_rewrite.dart';
 
@@ -178,11 +179,32 @@ class EquipmentComponentWrites extends WritableEntry {
     return null;
   }
 
+  /// Inside the apply's transaction, so a revert takes it back with the
+  /// part; the rescan waits for [afterApply], once the rows are committed.
   Future<void> _followOnPlannedDives(
     String assemblyId,
     GearHistoryRewrite rewrite,
-  ) =>
-      _r.dives.rewriteAssemblyOnDives(assemblyId, [rewrite], alsoLogged: false);
+  ) => _r.dives.rewriteAssemblyOnDives(
+    assemblyId,
+    [rewrite],
+    alsoLogged: false,
+    notify: false,
+  );
+
+  /// The planned dives a part change rewrote are rescanned, as a save would
+  /// (issue #2853), once the apply has committed. Sync hears of the apply
+  /// from the applier itself.
+  @override
+  Future<void> afterApply(List<AppliedChange> changes, ApplyRun run) async {
+    for (final change in changes) {
+      final assemblyId = change.parentId;
+      if (assemblyId == null || !run.once(('planned-dives', assemblyId))) {
+        continue;
+      }
+      final dives = await _r.dives.plannedDiveIdsWithAssembly(assemblyId);
+      if (dives.isNotEmpty) scheduleQualityScan(dives);
+    }
+  }
 
   @override
   Future<String> create(String diverId, Map<String, Object?> values) async {
