@@ -23,8 +23,8 @@ import 'package:submersion/features/checklists/presentation/widgets/trip_checkli
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
-import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_header.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_hero.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_header.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_stat_strip.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_view.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_vessel_section.dart';
@@ -133,9 +133,8 @@ Future<void> pumpView(
 }
 
 void main() {
-  testWidgets('past trip renders day chapters, hero, and stat strip', (
-    tester,
-  ) async {
+  testWidgets('past trip renders day chapters and the hero card with its '
+      'stat strip', (tester) async {
     final trip = _trip(
       start: DateTime(2026, 3, 27),
       end: DateTime(2026, 3, 28),
@@ -151,8 +150,17 @@ void main() {
     await pumpView(tester, story);
 
     expect(find.byType(TripStoryDayCard), findsNWidgets(2));
+    // The header is the title block on the page surface with the stat
+    // strip under it: no card and no map behind the trip's name.
     expect(find.byType(TripStoryHero), findsOneWidget);
     expect(find.byType(TripStatStrip), findsOneWidget);
+    expect(
+      find.ancestor(
+        of: find.byType(TripStoryHero),
+        matching: find.byType(Card),
+      ),
+      findsNothing,
+    );
     expect(find.text('Today'), findsNothing);
   });
 
@@ -505,8 +513,16 @@ void main() {
     await pumpView(tester, story, viewSize: const Size(390, 2600));
     expect(find.byType(SliverPersistentHeader), findsNothing);
     expect(find.byType(TripStoryHero), findsOneWidget);
-    // One map, inside the day with a located dive.
+    // One map: the day's, behind the header of the day with a located dive
+    // (#4106). The trip header has none.
     expect(find.byType(FlutterMap), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(TripStoryDayCard),
+        matching: find.byType(FlutterMap),
+      ),
+      findsOneWidget,
+    );
     expect(find.byType(TripChecklistsPanel), findsNothing);
   });
 

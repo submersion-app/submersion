@@ -6,15 +6,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/backdrop_color.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_item.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/header_map_backdrop.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/day_rhythm_bar.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_day_map.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_header.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_plan.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../../helpers/mock_providers.dart';
@@ -140,7 +145,7 @@ void main() {
     expect(find.byType(DiveListItem), findsOneWidget);
   });
 
-  testWidgets('stats and rhythm bar share one tinted summary band', (
+  testWidgets('stats and rhythm bar sit untinted under the header', (
     tester,
   ) async {
     final dive = createTestDiveWithBottomTime(
@@ -157,35 +162,34 @@ void main() {
     );
     await pumpCard(tester, day);
 
-    // The day-at-a-glance cluster: stat strip and rhythm bar live inside one
-    // tinted container so they group as a unit, distinct from the dive rows.
-    final band = find.byKey(const Key('day-summary-band'));
-    expect(band, findsOneWidget);
+    // The day-at-a-glance cluster: stat strip and rhythm bar group under the
+    // header by spacing alone (#4106); a tinted box inside the card was the
+    // third surface the hero folds away.
+    final summary = find.byKey(const Key('day-summary'));
+    expect(summary, findsOneWidget);
     expect(
-      find.descendant(of: band, matching: find.byType(DayRhythmBar)),
+      find.descendant(of: summary, matching: find.byType(DayRhythmBar)),
       findsOneWidget,
     );
     expect(
-      find.descendant(of: band, matching: find.textContaining('Dives')),
+      find.descendant(of: summary, matching: find.textContaining('Dives')),
       findsOneWidget,
     );
-    final context = tester.element(band);
-    final container = tester.widget<Container>(
-      find
-          .ancestor(
-            of: find.byType(DayRhythmBar),
-            matching: find.byType(Container),
-          )
-          .first,
-    );
-    final decoration = container.decoration as BoxDecoration?;
     expect(
-      decoration?.color,
-      Theme.of(context).colorScheme.surfaceContainerLow,
+      find.ancestor(
+        of: summary,
+        matching: find.byWidgetPredicate(
+          (w) => w is Container && (w.color != null || w.decoration != null),
+        ),
+      ),
+      findsNothing,
     );
-    // The dive rows stay outside the band: they are the primary content.
+    // The header leads the card, above the summary.
+    final header = tester.getRect(find.byType(TripStoryDayHeader));
+    expect(header.bottom, lessThanOrEqualTo(tester.getRect(summary).top));
+    // The dive rows stay outside the summary: they are the primary content.
     expect(
-      find.descendant(of: band, matching: find.byType(DiveListItem)),
+      find.descendant(of: summary, matching: find.byType(DiveListItem)),
       findsNothing,
     );
   });
@@ -231,38 +235,44 @@ void main() {
     expect(find.text('Species seen'), findsNothing);
   });
 
-  testWidgets('surface day renders no card body', (tester) async {
-    // The whole day is now its sticky header - title, date, and the "Surface
-    // day" label all live there, leaving the card with nothing to draw.
+  testWidgets('surface day is a card of nothing but its header', (
+    tester,
+  ) async {
+    // The whole day is its header: title, date and the "Surface day" label
+    // open the card (#4106) and nothing follows them.
     final day = TripStoryDay(
       date: DateTime(2026, 3, 9),
       dayNumber: 3,
       kind: TripStoryDayKind.past,
     );
     await pumpCard(tester, day);
-    expect(find.textContaining('Surface day'), findsNothing);
-    expect(find.textContaining('Day 3'), findsNothing);
-    expect(find.byType(Card), findsNothing);
+    expect(find.byType(Card), findsOneWidget);
+    expect(find.byType(TripStoryDayHeader), findsOneWidget);
+    expect(find.textContaining('Surface day'), findsOneWidget);
     expect(find.byType(DayRhythmBar), findsNothing);
+    expect(find.byKey(const Key('day-summary')), findsNothing);
   });
 
-  testWidgets('planned day without content renders no card', (tester) async {
+  testWidgets('planned day without content renders only its header', (
+    tester,
+  ) async {
     final day = TripStoryDay(
       date: DateTime(2027, 1, 10),
       dayNumber: 1,
       kind: TripStoryDayKind.future,
     );
     await pumpCard(tester, day);
-    // Title and chip live in the sticky header; with no notes, port, dives,
-    // media, or sightings there is nothing left for the card to show.
-    expect(find.byType(Card), findsNothing);
-    expect(find.text('Planned'), findsNothing);
+    // Title and chip open the card; with no notes, port, dives, media, or
+    // sightings there is nothing under them.
+    expect(find.byType(Card), findsOneWidget);
+    expect(find.text('Planned'), findsOneWidget);
+    expect(find.byType(TripStoryDayPlan), findsNothing);
   });
 
-  testWidgets('planned day with only a blank port renders no card', (
+  testWidgets('planned day with only a blank port renders only its header', (
     tester,
   ) async {
-    // A blank port is not content: it must not defeat the empty-card guard.
+    // A blank port is not content: it must not defeat the empty-body guard.
     final day = TripStoryDay(
       date: DateTime(2027, 1, 10),
       dayNumber: 1,
@@ -271,7 +281,8 @@ void main() {
     );
     await pumpCard(tester, day);
 
-    expect(find.byType(Card), findsNothing);
+    expect(find.byType(TripStoryDayHeader), findsOneWidget);
+    expect(find.byType(TripStoryDayPlan), findsNothing);
   });
 
   testWidgets('past day renders photo strip with a more-indicator', (
@@ -290,8 +301,15 @@ void main() {
 
     // 8 photos, max 6 shown, so a "+2" more indicator appears.
     expect(find.text('+2'), findsOneWidget);
-    // The port subtitle moved to the sticky header.
-    expect(find.textContaining('Kralendijk'), findsNothing);
+    // The port subtitle reads once, in the header that opens the card.
+    expect(
+      find.descendant(
+        of: find.byType(TripStoryDayHeader),
+        matching: find.textContaining('Kralendijk'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Kralendijk'), findsOneWidget);
     // Every tappable thumbnail (6 photos + the "+2" tile) is a labeled button
     // for screen readers, not an unlabeled image / bare "+2".
     final galleryButtons = find.byWidgetPredicate(
@@ -367,17 +385,184 @@ void main() {
     expect(find.textContaining('6 past dives here'), findsOneWidget);
   });
 
-  testWidgets('a day with map points opens with its map', (tester) async {
+  testWidgets('a day with map points opens with its header in the map fade', (
+    tester,
+  ) async {
     await pumpCard(
       tester,
       _pastDay(['d1', 'd2']),
       mapPoints: [_pin('d1', 1), _pin('d2', 2)],
     );
     expect(find.byType(FlutterMap), findsOneWidget);
-    final map = tester.getRect(find.byType(FlutterMap));
-    final band = tester.getRect(find.byKey(const Key('day-summary-band')));
-    expect(map.height, 180);
-    expect(map.bottom, lessThanOrEqualTo(band.top));
+    final backdrop = tester.getRect(find.byType(HeaderMapBackdrop));
+    final header = tester.getRect(find.byType(TripStoryDayHeader));
+    final summary = tester.getRect(find.byKey(const Key('day-summary')));
+    // The map shows mapPeekHeight above the header row, and the row sits
+    // inside the backdrop, where the fade has turned the card colour.
+    expect(header.top - backdrop.top, TripStoryDayCard.mapPeekHeight);
+    expect(backdrop.bottom, header.bottom);
+    expect(summary.top, greaterThanOrEqualTo(backdrop.bottom));
+    final backdropWidget = tester.widget<HeaderMapBackdrop>(
+      find.byType(HeaderMapBackdrop),
+    );
+    expect(
+      backdropWidget.fadeColor,
+      backdropColorOf(tester.element(find.byType(HeaderMapBackdrop))),
+    );
+    // Enough map to read as a map, clear at the top rather than washed
+    // from the first pixel, with the fade reaching the header row.
+    expect(TripStoryDayCard.mapPeekHeight, greaterThanOrEqualTo(200));
+    expect(backdropWidget.fadeStart, TripStoryDayCard.mapFadeStart);
+    expect(backdropWidget.fadeEnd, TripStoryDayCard.mapFadeEnd);
+    expect(TripStoryDayCard.mapFadeStart, greaterThan(0));
+    expect(
+      TripStoryDayCard.mapFadeEnd,
+      greaterThan(TripStoryDayCard.mapPeekHeight),
+    );
+    // Pins and the attribution stay above the fade's heavy end.
+    expect(
+      tester.widget<TripDayMap>(find.byType(TripDayMap)).bottomInset,
+      backdrop.height - TripStoryDayCard.mapClearHeight,
+    );
+  });
+
+  testWidgets('larger text leaves the pins and attribution above the fade', (
+    tester,
+  ) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 3;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await pumpCard(tester, _pastDay(['d1']), mapPoints: [_pin('d1', 1)]);
+
+    final height = tester.getSize(find.byType(HeaderMapBackdrop)).height;
+    final inset = tester.widget<TripDayMap>(find.byType(TripDayMap));
+    expect(height, greaterThan(280));
+    expect(height - inset.bottomInset, TripStoryDayCard.mapClearHeight);
+  });
+
+  testWidgets('a planned day dims its map and body, not its header', (
+    tester,
+  ) async {
+    final planned = TripStoryDay(
+      date: DateTime(2026, 3, 8),
+      dayNumber: 2,
+      kind: TripStoryDayKind.future,
+      itineraryDay: _itin(port: 'Manta Sandy', notes: 'Bring a reef hook'),
+    );
+    await pumpCard(tester, planned, mapPoints: [_pin('d1', 1)]);
+
+    Iterable<double> opacitiesOver(Type widget) => tester
+        .widgetList<Opacity>(
+          find.ancestor(
+            of: find.byType(widget),
+            matching: find.byType(Opacity),
+          ),
+        )
+        .map((o) => o.opacity);
+
+    expect(opacitiesOver(TripStoryDayHeader), everyElement(1.0));
+    expect(opacitiesOver(TripDayMap), contains(0.85));
+    expect(opacitiesOver(TripStoryDayPlan), contains(0.85));
+  });
+
+  testWidgets('a planned rest day fades its map into the shaded card', (
+    tester,
+  ) async {
+    final rest = TripStoryDay(
+      date: DateTime(2026, 3, 8),
+      dayNumber: 2,
+      kind: TripStoryDayKind.past,
+      itineraryDay: _itin(port: 'Kralendijk').copyWith(plannedDives: 0),
+    );
+    await pumpCard(tester, rest, mapPoints: [_pin('d1', 1)]);
+
+    final scheme = Theme.of(tester.element(find.byType(Card))).colorScheme;
+    expect(
+      tester
+          .widget<HeaderMapBackdrop>(find.byType(HeaderMapBackdrop))
+          .fadeColor,
+      scheme.surfaceContainerHighest,
+    );
+  });
+
+  testWidgets('a surface day card is shaded, a dive day card is not', (
+    tester,
+  ) async {
+    final surface = TripStoryDay(
+      date: DateTime(2026, 3, 9),
+      dayNumber: 3,
+      kind: TripStoryDayKind.past,
+    );
+    await pumpCard(tester, surface);
+    final scheme = Theme.of(tester.element(find.byType(Card))).colorScheme;
+    expect(
+      tester.widget<Card>(find.byType(Card)).color,
+      scheme.surfaceContainerHighest,
+    );
+
+    await pumpCard(tester, _pastDay(['d1']));
+    expect(tester.widget<Card>(find.byType(Card).first).color, isNull);
+
+    // A planned rest day (a dive-day row at 0 dives, none logged) is
+    // labelled a surface day by the header, so it is shaded like one.
+    final rest = TripStoryDay(
+      date: DateTime(2026, 3, 8),
+      dayNumber: 2,
+      kind: TripStoryDayKind.past,
+      itineraryDay: _itin().copyWith(plannedDives: 0),
+    );
+    await pumpCard(tester, rest);
+    expect(find.text('Surface day'), findsOneWidget);
+    expect(
+      tester.widget<Card>(find.byType(Card)).color,
+      scheme.surfaceContainerHighest,
+    );
+  });
+
+  testWidgets('a day without map points leads with its header on the card', (
+    tester,
+  ) async {
+    await pumpCard(tester, _pastDay(['d1']));
+    expect(find.byType(HeaderMapBackdrop), findsNothing);
+    // The card's surface, inside its own 4px margin.
+    final surface = tester.getRect(
+      find
+          .descendant(
+            of: find.byType(Card).first,
+            matching: find.byType(Material),
+          )
+          .first,
+    );
+    final header = tester.getRect(find.byType(TripStoryDayHeader));
+    expect(header.top, surface.top + 16);
+  });
+
+  testWidgets('stored weather reaches the header', (tester) async {
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: overrides.cast(),
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: TripStoryDayCard(
+                day: _pastDay(['d1']),
+                tripId: 'trip-1',
+                storedWeather: const TripStoryDayWeather(
+                  airTemp: 29,
+                  cloudCover: CloudCover.clear,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.wb_sunny_outlined), findsOneWidget);
+    expect(find.textContaining('29'), findsOneWidget);
   });
 
   testWidgets('a day with no map points shows no map', (tester) async {
@@ -559,7 +744,7 @@ void main() {
       expect(find.byKey(const Key('day-conditions-line')), findsOneWidget);
     });
 
-    testWidgets('a planned port with no history renders no card', (
+    testWidgets('a planned port with no history renders only its header', (
       tester,
     ) async {
       final day = TripStoryDay(
@@ -578,7 +763,8 @@ void main() {
           ),
         ],
       );
-      expect(find.byType(Card), findsNothing);
+      expect(find.byType(TripStoryDayHeader), findsOneWidget);
+      expect(find.byType(TripStoryDayPlan), findsNothing);
     });
 
     testWidgets('a planned port with history still shows its pills', (

@@ -1,14 +1,19 @@
+import 'dart:math' as math;
+
 import 'package:flutter/widgets.dart';
 
 /// Height of the band along the bottom of the header card that the map never
 /// reaches.
 const double kHeaderMapBottomInset = 16;
 
-/// A decorative map that fades into [fadeColor] toward the bottom of the dive
-/// detail header card, so the header text stays readable over it.
+/// A map that fades into [fadeColor] toward the bottom of a header card, so
+/// the header text stays readable over it: the dive detail header and the
+/// trip story's day cards.
 ///
 /// [child] is the map. It is clipped [kHeaderMapBottomInset] short of the
-/// bottom edge, and the fade is fully opaque over that band.
+/// bottom edge, and the fade is fully opaque over that band. Above
+/// [fadeStart] the map shows through untouched; from there the fade runs in
+/// three steps down to [fadeEnd], or to the opaque band without one.
 ///
 /// The map must never reach the card's bottom edge. An opaque overlay whose
 /// edge merely coincides with the map's edge does not hide it once the card
@@ -22,13 +27,35 @@ class HeaderMapBackdrop extends StatelessWidget {
     super.key,
     required this.fadeColor,
     required this.child,
-  });
+    this.passesPointerThrough = false,
+    this.fadeStart = 0,
+    this.fadeEnd,
+  }) : assert(fadeStart >= 0),
+       assert(fadeEnd == null || fadeEnd > fadeStart);
 
   /// The color the map fades into; the header card's background.
   final Color fadeColor;
 
   /// The map drawn behind the fade.
   final Widget child;
+
+  /// Whether taps go through the fade to [child]. Off by default: the fade
+  /// then counts as hit everywhere, which is what lets the dive detail
+  /// header's InkWell take a tap on the map's corner instead of the locked
+  /// map swallowing it as a dead zone. The trip story's day card turns it
+  /// on so the pins on its day map stay tappable under the fade (#4106).
+  final bool passesPointerThrough;
+
+  /// How far down from the top the map shows with nothing over it. Zero (the
+  /// dive detail header) washes the map lightly from the top edge instead;
+  /// the trip story's day card leaves the top of its taller map clear so the
+  /// day's pins read against real map (#4106).
+  final double fadeStart;
+
+  /// How far down from the top the fade turns opaque, when that should not
+  /// move with the height: text under it stays on solid colour however much
+  /// a larger text size grows the card. Null fades to the bottom band.
+  final double? fadeEnd;
 
   @override
   Widget build(BuildContext context) {
@@ -38,9 +65,22 @@ class HeaderMapBackdrop extends StatelessWidget {
         // Where the fade turns fully opaque, as a fraction of the height: the
         // top of the band the map is clipped out of. The fade keeps its shape
         // over the map above that point.
-        final opaqueFrom = height > kHeaderMapBottomInset
+        final bandFrom = height > kHeaderMapBottomInset
             ? (height - kHeaderMapBottomInset) / height
             : 0.0;
+        final end = fadeEnd;
+        final opaqueFrom = end != null && end < height
+            ? math.min(bandFrom, end / height)
+            : bandFrom;
+        // The fade's three steps run from its start to the opaque point;
+        // a start past the opaque point collapses them onto it.
+        final start = height > 0
+            ? math.min(fadeStart / height, opaqueFrom)
+            : 0.0;
+        double step(double t) => start + t * (opaqueFrom - start);
+        // From a clear start the steps trace a smoothstep curve: any sudden
+        // change of slope shows as a line across the map.
+        final alphas = fadeStart > 0 ? (0.0, 0.22, 0.78) : (0.3, 0.6, 0.85);
         return Stack(
           fit: StackFit.expand,
           children: [
@@ -48,25 +88,24 @@ class HeaderMapBackdrop extends StatelessWidget {
               clipper: const _BottomInsetClipper(kHeaderMapBottomInset),
               child: child,
             ),
-            DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  stops: [
-                    0.0,
-                    0.3 * opaqueFrom,
-                    0.7 * opaqueFrom,
-                    opaqueFrom,
-                    1.0,
-                  ],
-                  colors: [
-                    fadeColor.withValues(alpha: 0.3),
-                    fadeColor.withValues(alpha: 0.6),
-                    fadeColor.withValues(alpha: 0.85),
-                    fadeColor,
-                    fadeColor,
-                  ],
+            // A DecoratedBox counts as hit for every pointer inside it; see
+            // [passesPointerThrough] for which callers want that.
+            IgnorePointer(
+              ignoring: passesPointerThrough,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    stops: [start, step(0.3), step(0.7), opaqueFrom, 1.0],
+                    colors: [
+                      fadeColor.withValues(alpha: alphas.$1),
+                      fadeColor.withValues(alpha: alphas.$2),
+                      fadeColor.withValues(alpha: alphas.$3),
+                      fadeColor,
+                      fadeColor,
+                    ],
+                  ),
                 ),
               ),
             ),

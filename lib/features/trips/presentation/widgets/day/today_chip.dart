@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// "Today" marker for the current trip day, filled in the primary colour so it
-/// reads on a plain card and on today's tinted header alike.
+/// reads on a plain card and over the fade of the day's map alike.
 class TodayChip extends StatelessWidget {
   const TodayChip({super.key});
 

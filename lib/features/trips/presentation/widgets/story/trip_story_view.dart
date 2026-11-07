@@ -9,10 +9,9 @@ import 'package:submersion/features/trips/presentation/providers/trip_day_weathe
 import 'package:submersion/features/trips/presentation/widgets/trip_cylinders_summary_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/day/today_anchored_scroll_view.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_flight_countdown_card.dart';
-import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
-import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_header.dart';
-import 'package:submersion/features/trips/presentation/widgets/story/trip_story_hero.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_stat_strip.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_hero.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_vessel_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
@@ -72,10 +71,10 @@ class TripStoryView extends ConsumerWidget {
     return ids.length;
   }
 
-  /// One day chapter: its header, then its card (the day's own map, dives,
-  /// photos, sightings). Every day gets the same header, surface days
-  /// included; theirs simply has no body under it. Today's header carries its
-  /// own Today chip.
+  /// One day chapter: its card, opening with the day's header over its own
+  /// map, then dives, photos and sightings. Every day gets the same header,
+  /// surface days included; theirs simply has no body under it. Today's
+  /// header carries its own Today chip.
   Widget _dayChapter(
     BuildContext context,
     int index,
@@ -87,28 +86,22 @@ class TripStoryView extends ConsumerWidget {
     // how the two came apart: it silently found nothing and every badge
     // disappeared.
     final stored = storedWeather[tripDayMillis(day.date)];
-    return Column(
+    // Ordinary scrolling content: nothing on the story is pinned (#2845). The
+    // card opens with the day's own header (#4106); its 8px bottom inset is
+    // the gap between consecutive chapters. The card gets the day's own map
+    // points.
+    return Padding(
       key: ValueKey(day.date),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Ordinary scrolling content: nothing on the story is pinned (#2845).
-        TripStoryDayHeader(day: day, storedWeather: stored?.toStoryWeather()),
-        // Its 8px bottom inset is the gap between consecutive chapters; the
-        // headings carry a surfaceContainer tint, so the page-surface gap
-        // reads as air between one chapter's card and the next chapter's
-        // tinted band. The card gets the day's own map points.
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-          child: TripStoryDayCard(
-            key: ValueKey(day.date),
-            day: day,
-            tripId: story.trip.id,
-            mapPoints: story.mapGeometry.pointsForDay(index),
-            onExpandMap: (day, points) =>
-                showTripDayMapPage(context, day: day, points: points),
-          ),
-        ),
-      ],
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: TripStoryDayCard(
+        key: ValueKey(day.date),
+        day: day,
+        tripId: story.trip.id,
+        storedWeather: stored?.toStoryWeather(),
+        mapPoints: story.mapGeometry.pointsForDay(index),
+        onExpandMap: (day, points) =>
+            showTripDayMapPage(context, day: day, points: points),
+      ),
     );
   }
 
@@ -137,6 +130,9 @@ class TripStoryView extends ConsumerWidget {
     final trip = story.trip;
     final todayIndex = _opensAtToday ? story.todayIndex : null;
     final header = <Widget>[
+      // The title block on the page surface with the trip's stats under
+      // it, neither in a card nor over a map (#4106): the strip paints no
+      // band, so the two read as one header rather than two shaded blocks.
       SliverPadding(
         padding: const EdgeInsets.all(16),
         sliver: SliverToBoxAdapter(

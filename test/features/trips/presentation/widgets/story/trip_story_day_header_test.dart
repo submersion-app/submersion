@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
+import 'package:submersion/features/trips/presentation/widgets/day/day_weather_badge.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_header.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -77,6 +78,52 @@ Future<void> pumpHeader(
 }
 
 void main() {
+  for (final scale in [1.0, 1.5, 2.0, 3.0]) {
+    testWidgets('today with weather fits a small phone at ${scale}x text', (
+      tester,
+    ) async {
+      // A 320 point phone less the story's gutter, the card's margin and the
+      // card's own padding.
+      tester.view.physicalSize = const Size(248, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      await pumpHeader(
+        tester,
+        TripStoryDay(
+          date: DateTime(2026, 3, 8),
+          dayNumber: 12,
+          kind: TripStoryDayKind.today,
+          itineraryDay: _itin(port: 'Kralendijk'),
+        ),
+        storedWeather: const TripStoryDayWeather(
+          airTemp: 29,
+          cloudCover: CloudCover.partlyCloudy,
+        ),
+        textScale: scale,
+      );
+
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('the Planned chip keeps its distance from the weather', (
+    tester,
+  ) async {
+    await pumpHeader(
+      tester,
+      TripStoryDay(
+        date: DateTime(2026, 3, 8),
+        dayNumber: 2,
+        kind: TripStoryDayKind.future,
+      ),
+      storedWeather: const TripStoryDayWeather(airTemp: 29),
+    );
+
+    final weather = tester.getTopRight(find.byType(DayWeatherBadge)).dx;
+    expect(tester.getTopLeft(find.byType(Chip)).dx - weather, 8);
+  });
+
   testWidgets('shows the day number badge and date', (tester) async {
     final day = TripStoryDay(
       date: DateTime(2026, 3, 8),
@@ -113,7 +160,9 @@ void main() {
     expect(find.bySemanticsLabel('Day 2'), findsOneWidget);
   });
 
-  testWidgets('header band is tinted to anchor its chapter', (tester) async {
+  testWidgets('the header paints no band of its own', (tester) async {
+    // It opens the day card (#4106), in the fade of the day's map when the
+    // day has one; a tint here would print a grey bar across that fade.
     final day = TripStoryDay(
       date: DateTime(2026, 3, 8),
       dayNumber: 2,
@@ -121,16 +170,16 @@ void main() {
     );
     await pumpHeader(tester, day);
 
-    final material = tester.widget<Material>(
-      find
-          .descendant(
-            of: find.byType(TripStoryDayHeader),
-            matching: find.byType(Material),
-          )
-          .first,
+    expect(
+      find.descendant(
+        of: find.byType(TripStoryDayHeader),
+        matching: find.byWidgetPredicate(
+          (w) =>
+              w is Material && w.color != null && w.color != Colors.transparent,
+        ),
+      ),
+      findsNothing,
     );
-    final context = tester.element(find.byType(TripStoryDayHeader));
-    expect(material.color, Theme.of(context).colorScheme.surfaceContainer);
   });
 
   testWidgets('subtitle joins day type, port, and site names', (tester) async {
@@ -437,10 +486,10 @@ void main() {
     expect(find.text('Planned'), findsOneWidget);
   });
 
-  testWidgets('short day still fills the minimum band height', (tester) async {
-    // Title line only: shorter than the band, so the floor applies and every
-    // day header reads as the same height at default text scale. A siteless
-    // dive keeps the subtitle empty without taking the surface-day path.
+  testWidgets('a short day is as tall as its badge', (tester) async {
+    // Title line only: nothing pads the row out to a band height any more,
+    // so the badge (28 at default scale) sets the floor. A siteless dive
+    // keeps the subtitle empty without taking the surface-day path.
     final day = TripStoryDay(
       date: DateTime(2026, 3, 8),
       dayNumber: 2,
@@ -451,7 +500,7 @@ void main() {
 
     expect(
       tester.getSize(find.byType(TripStoryDayHeader)).height,
-      TripStoryDayHeader.minHeight,
+      greaterThanOrEqualTo(28),
     );
   });
 
@@ -571,9 +620,11 @@ void main() {
     // An overflowing RenderFlex reports a FlutterError the test framework
     // surfaces here; nothing thrown means nothing was clipped.
     expect(tester.takeException(), isNull);
+    final scaled = tester.getSize(find.byType(TripStoryDayHeader)).height;
+    await pumpHeader(tester, day);
     expect(
-      tester.getSize(find.byType(TripStoryDayHeader)).height,
-      greaterThan(TripStoryDayHeader.minHeight),
+      scaled,
+      greaterThan(tester.getSize(find.byType(TripStoryDayHeader)).height),
     );
   });
 
@@ -584,55 +635,46 @@ void main() {
       kind: TripStoryDayKind.today,
     );
 
-    Material band(WidgetTester tester) => tester.widget<Material>(
-      find
-          .descendant(
-            of: find.byType(TripStoryDayHeader),
-            matching: find.byType(Material),
-          )
-          .first,
-    );
+    Color? badgeColor(WidgetTester tester) =>
+        (tester
+                    .widget<Container>(
+                      find.byKey(const Key('day-number-badge')),
+                    )
+                    .decoration!
+                as BoxDecoration)
+            .color;
 
-    testWidgets('band is primaryContainer with a Today chip', (tester) async {
+    testWidgets('carries a Today chip', (tester) async {
       await pumpHeader(tester, today);
-      final context = tester.element(find.byType(TripStoryDayHeader));
-      expect(
-        band(tester).color,
-        Theme.of(context).colorScheme.primaryContainer,
-      );
       expect(find.byKey(const Key('today-chip')), findsOneWidget);
     });
 
-    testWidgets('date reads onPrimaryContainer in a dark theme', (
+    testWidgets('date keeps the card foreground in a dark theme', (
       tester,
     ) async {
+      // The row sits on the card itself now, with no tinted band of its own
+      // to read against (#4106).
       await pumpHeader(
         tester,
         today,
         theme: ThemeData(brightness: Brightness.dark),
       );
       final context = tester.element(find.byType(TripStoryDayHeader));
-      final scheme = Theme.of(context).colorScheme;
-      expect(scheme.brightness, Brightness.dark);
+      final theme = Theme.of(context);
+      expect(theme.colorScheme.brightness, Brightness.dark);
       final date = tester.widget<Text>(find.textContaining('Mar 8'));
-      expect(date.style?.color, scheme.onPrimaryContainer);
+      expect(date.style?.color, theme.textTheme.titleMedium?.color);
     });
 
-    testWidgets('the day badge flips to primary on the tinted band', (
-      tester,
-    ) async {
+    testWidgets('the day badge takes the primary pair', (tester) async {
       await pumpHeader(tester, today);
       final context = tester.element(find.byType(TripStoryDayHeader));
-      final badge = tester.widget<Container>(
-        find.byKey(const Key('day-number-badge')),
-      );
-      expect(
-        (badge.decoration! as BoxDecoration).color,
-        Theme.of(context).colorScheme.primary,
-      );
+      expect(badgeColor(tester), Theme.of(context).colorScheme.primary);
     });
 
-    testWidgets('other days keep the grey band and no chip', (tester) async {
+    testWidgets('other days keep the primaryContainer badge and no chip', (
+      tester,
+    ) async {
       await pumpHeader(
         tester,
         TripStoryDay(
@@ -643,8 +685,8 @@ void main() {
       );
       final context = tester.element(find.byType(TripStoryDayHeader));
       expect(
-        band(tester).color,
-        Theme.of(context).colorScheme.surfaceContainer,
+        badgeColor(tester),
+        Theme.of(context).colorScheme.primaryContainer,
       );
       expect(find.byKey(const Key('today-chip')), findsNothing);
     });

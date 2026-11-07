@@ -7,9 +7,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Horizontal trip-level stat strip.
 ///
-/// Ordinary story content, not chrome: it sits under the band at the top of
-/// the story and scrolls away with the hero, so the trip's totals cost screen
-/// space only while the diver is at the top of the page.
+/// Ordinary story content, not chrome: it sits under the title block at the
+/// top of the story and scrolls away with it, so the trip's totals cost
+/// screen space only while the diver is at the top of the page. It paints no
+/// band of its own (#4106): a tint cut the header into two shaded blocks.
 class TripStatStrip extends ConsumerWidget {
   final TripWithStats stats;
 
@@ -32,10 +33,7 @@ class TripStatStrip extends ConsumerWidget {
       if (siteCount > 0) (l10n.trips_detail_stat_sitesVisited, '$siteCount'),
     ];
 
-    return Container(
-      // One tonal step above the page surface: welds the strip to the band
-      // above it so the two read as a single trip-summary region.
-      color: theme.colorScheme.surfaceContainerLow,
+    return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [

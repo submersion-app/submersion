@@ -94,4 +94,122 @@ void main() {
     expect(_mapClip(tester).height, 0);
     expect(_fadeGradient(tester).stops, [0.0, 0.0, 0.0, 0.0, 1.0]);
   });
+
+  testWidgets('a fade start leaves the top of the map clear', (tester) async {
+    await tester.pumpWidget(
+      const Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(
+          child: SizedBox(
+            width: 200,
+            height: 200,
+            child: HeaderMapBackdrop(
+              fadeColor: _fade,
+              fadeStart: 80,
+              child: SizedBox.expand(key: _mapKey),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final gradient = _fadeGradient(tester);
+    const opaqueFrom = (200 - kHeaderMapBottomInset) / 200;
+    // Nothing over the map above the fade start, then the fade's steps
+    // compressed into what is left above the opaque band.
+    expect(gradient.stops, [
+      0.4,
+      0.4 + 0.3 * (opaqueFrom - 0.4),
+      0.4 + 0.7 * (opaqueFrom - 0.4),
+      opaqueFrom,
+      1.0,
+    ]);
+    expect(gradient.colors.first, _fade.withValues(alpha: 0));
+    expect(gradient.colors[1], _fade.withValues(alpha: 0.22));
+    expect(gradient.colors[2], _fade.withValues(alpha: 0.78));
+    expect(gradient.colors.sublist(3), [_fade, _fade]);
+  });
+
+  testWidgets('a fade end holds its place when the backdrop grows', (
+    tester,
+  ) async {
+    Future<void> pumpAt(double height) => tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(
+          child: SizedBox(
+            width: 200,
+            height: height,
+            child: const HeaderMapBackdrop(
+              fadeColor: _fade,
+              fadeStart: 50,
+              fadeEnd: 150,
+              child: SizedBox.expand(key: _mapKey),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Larger text grows the card: the fade still ends 150 from the top.
+    await pumpAt(200);
+    expect(_fadeGradient(tester).stops![3], 150 / 200);
+    await pumpAt(300);
+    expect(_fadeGradient(tester).stops![3], 150 / 300);
+    expect(_fadeGradient(tester).stops!.first, 50 / 300);
+
+    // Too short to reach it: the fade ends at the bottom band.
+    await pumpAt(100);
+    expect(
+      _fadeGradient(tester).stops![3],
+      (100 - kHeaderMapBottomInset) / 100,
+    );
+  });
+
+  Future<int> tapsThroughFade(
+    WidgetTester tester, {
+    required bool passesPointerThrough,
+  }) async {
+    var taps = 0;
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(
+          child: SizedBox(
+            width: 200,
+            height: 200,
+            child: HeaderMapBackdrop(
+              fadeColor: _fade,
+              passesPointerThrough: passesPointerThrough,
+              child: GestureDetector(
+                key: _mapKey,
+                behavior: HitTestBehavior.opaque,
+                onTap: () => taps++,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    // Near the top, where the fade is lightest; the day hero's pins live
+    // there, above the header row.
+    await tester.tapAt(
+      tester.getTopLeft(find.byKey(_mapKey)) + const Offset(20, 20),
+    );
+    return taps;
+  }
+
+  testWidgets('by default the fade takes the tap, as the dive header needs', (
+    tester,
+  ) async {
+    // The dive detail header's InkWell wraps the whole stack; the fade
+    // counting as hit is what keeps the map's corner from being a dead zone.
+    expect(await tapsThroughFade(tester, passesPointerThrough: false), 0);
+  });
+
+  testWidgets('passesPointerThrough lets a tap reach the map under the fade', (
+    tester,
+  ) async {
+    expect(await tapsThroughFade(tester, passesPointerThrough: true), 1);
+  });
 }
