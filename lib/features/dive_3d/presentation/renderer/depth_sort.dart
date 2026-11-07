@@ -8,8 +8,11 @@ class DepthSortScratch {
   Uint32List _orderOut = Uint32List(0);
   final Int32List _counts = Int32List(256);
 
+  /// Sizes the buffers for [n] keys: grows them when short, and shrinks
+  /// them when the soup got much smaller (a coarser terrain stage), so a
+  /// one-off dense mesh does not pin its working memory for good.
   void _ensure(int n) {
-    if (_keys.length >= n) return;
+    if (_keys.length >= n && _keys.length <= n * 2) return;
     _keys = Uint32List(n);
     _keysOut = Uint32List(n);
     _orderOut = Uint32List(n);

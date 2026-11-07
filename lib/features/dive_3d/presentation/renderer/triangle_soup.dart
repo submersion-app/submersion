@@ -25,40 +25,59 @@ class TriangleSoup {
   int get vertexCount => _vertexCount;
   int get triangleCount => _triangleCount;
 
+  /// Every mesh's triangles, indices offset into the concatenated vertices.
+  Uint32List get triIndices => _triIndices;
+  Int32List get triAlpha => _triAlpha;
+  Uint8List get triUnshaded => _triUnshaded;
+  Float32List get vertexColors => _vertexColors;
+  bool get hasTextureCoordinates => _hasTextureCoordinates;
+  Float32List get vx => _vx;
+  Float32List get vy => _vy;
+  Float32List get vz => _vz;
+  Float32List get vzSort => _vzSort;
+  Float32List get sx => _sx;
+  Float32List get sy => _sy;
+  Float32List get depths => _depths;
+  Uint32List get order => _order;
+  Float32List get screen => _screen;
+  Int32List get colors => _colors;
+  Float32List? get textureOut => _textureOut;
+  Float32List? get vertexTexture => _vertexTexture;
+
   // Mesh-derived: rebuilt only when [bind] sees different meshes.
   // Every mesh's triangles, with indices offset into the concatenated
   // vertices.
-  Uint32List triIndices = Uint32List(0);
+  Uint32List _triIndices = Uint32List(0);
   // Each triangle's source-mesh opacity, as the alpha byte in place.
-  Int32List triAlpha = Int32List(0);
+  Int32List _triAlpha = Int32List(0);
   // 1 for triangles of a stroke mesh: drawn in their vertex colors as
   // given, since a line has no face to light.
-  Uint8List triUnshaded = Uint8List(0);
-  Float32List vertexColors = Float32List(0);
-  bool hasTextureCoordinates = false;
+  Uint8List _triUnshaded = Uint8List(0);
+  Float32List _vertexColors = Float32List(0);
+  bool _hasTextureCoordinates = false;
 
   // Per-vertex frame buffers, refilled on every paint.
-  Float32List vx = Float32List(0);
-  Float32List vy = Float32List(0);
-  Float32List vz = Float32List(0);
-  Float32List vzSort = Float32List(0);
-  Float32List sx = Float32List(0);
-  Float32List sy = Float32List(0);
+  Float32List _vx = Float32List(0);
+  Float32List _vy = Float32List(0);
+  Float32List _vz = Float32List(0);
+  Float32List _vzSort = Float32List(0);
+  Float32List _sx = Float32List(0);
+  Float32List _sy = Float32List(0);
 
   // Per-triangle sort state, refilled when the camera rotates.
-  Float32List depths = Float32List(0);
-  Uint32List order = Uint32List(0);
+  Float32List _depths = Float32List(0);
+  Uint32List _order = Uint32List(0);
   final DepthSortScratch sortScratch = DepthSortScratch();
 
   // drawVertices input. ui.Vertices copies these, so they can be refilled
   // in place on the next frame.
-  Float32List screen = Float32List(0);
-  Int32List colors = Int32List(0);
-  Float32List? textureOut;
+  Float32List _screen = Float32List(0);
+  Int32List _colors = Int32List(0);
+  Float32List? _textureOut;
 
   /// Image-pixel texture coordinates per vertex, and the image size and
   /// white texel they were scaled for. Null when the soup is untextured.
-  Float32List? vertexTexture;
+  Float32List? _vertexTexture;
   Object? _textureKey;
 
   /// The camera rotation and texture key that [order], [colors] and
@@ -80,7 +99,7 @@ class TriangleSoup {
     _meshes = List.unmodifiable(meshes);
     buildCount++;
     _textureKey = null;
-    vertexTexture = null;
+    _vertexTexture = null;
     _emittedKey = null;
 
     var vn = 0;
@@ -91,16 +110,16 @@ class TriangleSoup {
     }
     _vertexCount = vn;
     _triangleCount = tn;
-    hasTextureCoordinates = meshes.any((m) => m.textureCoordinates != null);
+    _hasTextureCoordinates = meshes.any((m) => m.textureCoordinates != null);
 
-    triIndices = Uint32List(tn * 3);
-    triAlpha = Int32List(tn);
-    triUnshaded = Uint8List(tn);
-    vertexColors = Float32List(vn * 3);
+    _triIndices = Uint32List(tn * 3);
+    _triAlpha = Int32List(tn);
+    _triUnshaded = Uint8List(tn);
+    _vertexColors = Float32List(vn * 3);
     var vOff = 0;
     var tOff = 0;
     for (final mesh in meshes) {
-      vertexColors.setRange(
+      _vertexColors.setRange(
         vOff * 3,
         (vOff + mesh.vertexCount) * 3,
         mesh.colors,
@@ -109,27 +128,27 @@ class TriangleSoup {
       final unshaded = mesh.strokeHalfWidthPx == null ? 0 : 1;
       for (var t = 0; t < mesh.triangleCount; t++) {
         final gt = tOff + t;
-        triIndices[gt * 3] = mesh.indices[t * 3] + vOff;
-        triIndices[gt * 3 + 1] = mesh.indices[t * 3 + 1] + vOff;
-        triIndices[gt * 3 + 2] = mesh.indices[t * 3 + 2] + vOff;
-        triAlpha[gt] = alpha;
-        triUnshaded[gt] = unshaded;
+        _triIndices[gt * 3] = mesh.indices[t * 3] + vOff;
+        _triIndices[gt * 3 + 1] = mesh.indices[t * 3 + 1] + vOff;
+        _triIndices[gt * 3 + 2] = mesh.indices[t * 3 + 2] + vOff;
+        _triAlpha[gt] = alpha;
+        _triUnshaded[gt] = unshaded;
       }
       vOff += mesh.vertexCount;
       tOff += mesh.triangleCount;
     }
 
-    vx = Float32List(vn);
-    vy = Float32List(vn);
-    vz = Float32List(vn);
-    vzSort = Float32List(vn);
-    sx = Float32List(vn);
-    sy = Float32List(vn);
-    depths = Float32List(tn);
-    order = Uint32List(tn);
-    screen = Float32List(tn * 3 * 2);
-    colors = Int32List(tn * 3);
-    textureOut = null;
+    _vx = Float32List(vn);
+    _vy = Float32List(vn);
+    _vz = Float32List(vn);
+    _vzSort = Float32List(vn);
+    _sx = Float32List(vn);
+    _sy = Float32List(vn);
+    _depths = Float32List(tn);
+    _order = Uint32List(tn);
+    _screen = Float32List(tn * 3 * 2);
+    _colors = Int32List(tn * 3);
+    _textureOut = null;
   }
 
   bool _sameMeshes(List<MeshData> meshes) {
@@ -148,11 +167,11 @@ class TriangleSoup {
     _textureKey = key;
     _emittedKey = null;
     if (key == null) {
-      vertexTexture = null;
-      textureOut = null;
+      _vertexTexture = null;
+      _textureOut = null;
     } else {
-      vertexTexture = build();
-      textureOut = Float32List(_triangleCount * 3 * 2);
+      _vertexTexture = build();
+      _textureOut = Float32List(_triangleCount * 3 * 2);
     }
   }
 
