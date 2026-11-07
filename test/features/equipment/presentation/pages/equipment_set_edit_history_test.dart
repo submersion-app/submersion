@@ -138,7 +138,12 @@ void main() {
     await tester.tap(find.widgetWithText(CheckboxListTile, 'fins'));
     await tester.pump();
     await tester.tap(appBarSave());
-    await tester.pumpAndSettle();
+    // The save button spins while the question is open, so the frame never
+    // settles: pump until the question is on screen instead.
+    final question = find.text('Update past dives?');
+    for (var i = 0; i < 100 && question.evaluate().isEmpty; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
   }
 
   testWidgets('also update rewrites the logged and the planned dive', (
