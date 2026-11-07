@@ -2436,8 +2436,8 @@
       }
     }
   },
-  "diveLog_deco_heatMapBelowAmbient": "Sous la pression ambiante",
-  "diveLog_deco_heatMapAboveAmbient": "Au-dessus de la pression ambiante",
+  "diveLog_deco_heatMapUndersaturated": "Sous-saturé",
+  "diveLog_deco_heatMapSupersaturated": "Sursaturé",
   "diveLog_deco_percentValue": "{value} %",
   "@diveLog_deco_percentValue": {
     "placeholders": {

@@ -342,11 +342,20 @@ void main() {
       expect(find.text(l10n.diveLog_deco_tissueFast), findsOneWidget);
       expect(find.text(l10n.diveLog_deco_tissueSlow), findsOneWidget);
       expect(find.text(l10n.diveLog_deco_heatMapRows), findsOneWidget);
-      // The heat map colors against AMBIENT pressure, so its legend says so
-      // instead of borrowing the badges' "Ongassing"/"Offgassing", which are
-      // measured against the inspired pressure.
-      expect(find.text(l10n.diveLog_deco_heatMapBelowAmbient), findsOneWidget);
-      expect(find.text(l10n.diveLog_deco_heatMapAboveAmbient), findsOneWidget);
+      // The heat map colors against AMBIENT pressure, so its legend names
+      // the two halves undersaturated / supersaturated instead of borrowing
+      // the badges' "Ongassing"/"Offgassing", which are measured against the
+      // inspired pressure.
+      expect(find.text('Undersaturated'), findsOneWidget);
+      expect(find.text('Supersaturated'), findsOneWidget);
+      expect(
+        find.text(l10n.diveLog_deco_heatMapUndersaturated),
+        findsOneWidget,
+      );
+      expect(
+        find.text(l10n.diveLog_deco_heatMapSupersaturated),
+        findsOneWidget,
+      );
       expect(find.text(l10n.diveLog_deco_gasOngassing), findsNothing);
       expect(find.text(l10n.diveLog_deco_gasOffgassing), findsNothing);
     });

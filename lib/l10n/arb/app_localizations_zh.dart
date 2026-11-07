@@ -7196,10 +7196,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_heatMapBelowAmbient => '低于环境压力';
+  String get diveLog_deco_heatMapUndersaturated => '欠饱和';
 
   @override
-  String get diveLog_deco_heatMapAboveAmbient => '高于环境压力';
+  String get diveLog_deco_heatMapSupersaturated => '过饱和';
 
   @override
   String diveLog_deco_percentValue(String value) {

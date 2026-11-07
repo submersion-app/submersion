@@ -2628,8 +2628,8 @@
       }
     }
   },
-  "diveLog_deco_heatMapBelowAmbient": "低于环境压力",
-  "diveLog_deco_heatMapAboveAmbient": "高于环境压力",
+  "diveLog_deco_heatMapUndersaturated": "欠饱和",
+  "diveLog_deco_heatMapSupersaturated": "过饱和",
   "diveLog_deco_percentValue": "{value}%",
   "@diveLog_deco_percentValue": {
     "placeholders": {

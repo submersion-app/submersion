@@ -7601,11 +7601,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_heatMapBelowAmbient => 'Sous la pression ambiante';
+  String get diveLog_deco_heatMapUndersaturated => 'Sous-saturé';
 
   @override
-  String get diveLog_deco_heatMapAboveAmbient =>
-      'Au-dessus de la pression ambiante';
+  String get diveLog_deco_heatMapSupersaturated => 'Sursaturé';
 
   @override
   String diveLog_deco_percentValue(String value) {

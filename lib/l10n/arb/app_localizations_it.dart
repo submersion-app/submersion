@@ -7582,10 +7582,10 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_heatMapBelowAmbient => 'Sotto la pressione ambiente';
+  String get diveLog_deco_heatMapUndersaturated => 'Sottosaturo';
 
   @override
-  String get diveLog_deco_heatMapAboveAmbient => 'Sopra la pressione ambiente';
+  String get diveLog_deco_heatMapSupersaturated => 'Sovrasaturo';
 
   @override
   String diveLog_deco_percentValue(String value) {

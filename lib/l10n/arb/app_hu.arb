@@ -2436,8 +2436,8 @@
       }
     }
   },
-  "diveLog_deco_heatMapBelowAmbient": "Környezeti nyomás alatt",
-  "diveLog_deco_heatMapAboveAmbient": "Környezeti nyomás felett",
+  "diveLog_deco_heatMapUndersaturated": "Telítetlen",
+  "diveLog_deco_heatMapSupersaturated": "Túltelített",
   "diveLog_deco_percentValue": "{value}%",
   "@diveLog_deco_percentValue": {
     "placeholders": {

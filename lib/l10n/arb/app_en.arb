@@ -4550,8 +4550,8 @@
       }
     }
   },
-  "diveLog_deco_heatMapBelowAmbient": "Below ambient",
-  "diveLog_deco_heatMapAboveAmbient": "Above ambient",
+  "diveLog_deco_heatMapUndersaturated": "Undersaturated",
+  "diveLog_deco_heatMapSupersaturated": "Supersaturated",
   "diveLog_deco_percentValue": "{value}%",
   "@diveLog_deco_percentValue": {
     "placeholders": {

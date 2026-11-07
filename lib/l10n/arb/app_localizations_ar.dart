@@ -7691,10 +7691,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_heatMapBelowAmbient => 'دون الضغط المحيط';
+  String get diveLog_deco_heatMapUndersaturated => 'دون الإشباع';
 
   @override
-  String get diveLog_deco_heatMapAboveAmbient => 'فوق الضغط المحيط';
+  String get diveLog_deco_heatMapSupersaturated => 'فوق الإشباع';
 
   @override
   String diveLog_deco_percentValue(String value) {

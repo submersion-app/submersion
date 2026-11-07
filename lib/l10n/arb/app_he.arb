@@ -2436,8 +2436,8 @@
       }
     }
   },
-  "diveLog_deco_heatMapBelowAmbient": "מתחת ללחץ הסביבה",
-  "diveLog_deco_heatMapAboveAmbient": "מעל לחץ הסביבה",
+  "diveLog_deco_heatMapUndersaturated": "תת-רווי",
+  "diveLog_deco_heatMapSupersaturated": "על-רווי",
   "diveLog_deco_percentValue": "{value}%",
   "@diveLog_deco_percentValue": {
     "placeholders": {

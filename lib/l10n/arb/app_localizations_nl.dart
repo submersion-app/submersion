@@ -7534,10 +7534,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_heatMapBelowAmbient => 'Onder omgevingsdruk';
+  String get diveLog_deco_heatMapUndersaturated => 'Onderverzadigd';
 
   @override
-  String get diveLog_deco_heatMapAboveAmbient => 'Boven omgevingsdruk';
+  String get diveLog_deco_heatMapSupersaturated => 'Oververzadigd';
 
   @override
   String diveLog_deco_percentValue(String value) {

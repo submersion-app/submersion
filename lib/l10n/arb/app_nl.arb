@@ -2537,8 +2537,8 @@
       }
     }
   },
-  "diveLog_deco_heatMapBelowAmbient": "Onder omgevingsdruk",
-  "diveLog_deco_heatMapAboveAmbient": "Boven omgevingsdruk",
+  "diveLog_deco_heatMapUndersaturated": "Onderverzadigd",
+  "diveLog_deco_heatMapSupersaturated": "Oververzadigd",
   "diveLog_deco_percentValue": "{value}%",
   "@diveLog_deco_percentValue": {
     "placeholders": {

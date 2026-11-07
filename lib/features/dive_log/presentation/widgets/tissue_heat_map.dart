@@ -64,8 +64,10 @@ class TissueHeatMap extends StatelessWidget {
                       colorScheme: colorScheme,
                       textTheme: textTheme,
                       colorFn: colorFn,
-                      leftLabel: context.l10n.diveLog_deco_heatMapBelowAmbient,
-                      rightLabel: context.l10n.diveLog_deco_heatMapAboveAmbient,
+                      leftLabel:
+                          context.l10n.diveLog_deco_heatMapUndersaturated,
+                      rightLabel:
+                          context.l10n.diveLog_deco_heatMapSupersaturated,
                     ),
                   ),
                 ),

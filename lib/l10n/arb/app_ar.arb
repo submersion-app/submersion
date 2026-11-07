@@ -2537,8 +2537,8 @@
       }
     }
   },
-  "diveLog_deco_heatMapBelowAmbient": "دون الضغط المحيط",
-  "diveLog_deco_heatMapAboveAmbient": "فوق الضغط المحيط",
+  "diveLog_deco_heatMapUndersaturated": "دون الإشباع",
+  "diveLog_deco_heatMapSupersaturated": "فوق الإشباع",
   "diveLog_deco_percentValue": "{value}%",
   "@diveLog_deco_percentValue": {
     "placeholders": {

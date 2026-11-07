@@ -7564,10 +7564,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_heatMapBelowAmbient => 'Környezeti nyomás alatt';
+  String get diveLog_deco_heatMapUndersaturated => 'Telítetlen';
 
   @override
-  String get diveLog_deco_heatMapAboveAmbient => 'Környezeti nyomás felett';
+  String get diveLog_deco_heatMapSupersaturated => 'Túltelített';
 
   @override
   String diveLog_deco_percentValue(String value) {

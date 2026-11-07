@@ -7465,10 +7465,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_heatMapBelowAmbient => 'Below ambient';
+  String get diveLog_deco_heatMapUndersaturated => 'Undersaturated';
 
   @override
-  String get diveLog_deco_heatMapAboveAmbient => 'Above ambient';
+  String get diveLog_deco_heatMapSupersaturated => 'Supersaturated';
 
   @override
   String diveLog_deco_percentValue(String value) {
