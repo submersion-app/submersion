@@ -29,9 +29,6 @@ img.ExifData? readLocalExif(File file, String mime) {
   }
 }
 
-/// `Exif\0\0`, the identifier that opens an APP1 segment holding EXIF.
-const _jpegExifSignature = [0x45, 0x78, 0x69, 0x66, 0x00, 0x00];
-
 /// Reads EXIF from a JPEG by seeking through its header segments to the first
 /// APP1 segment that carries the `Exif\0\0` identifier, then reading that
 /// one segment. The TIFF block after the identifier goes to `package:image`'s
@@ -49,15 +46,11 @@ img.ExifData? _readJpegExif(File file) {
     final end = raf.lengthSync();
     for (final segment in jpegHeaderSegments(raf, end)) {
       if (segment.marker != 0xe1) continue;
-      if (segment.length <= _jpegExifSignature.length) continue;
-      final id = readBytesAt(raf, segment.start, _jpegExifSignature.length);
-      if (!_startsWith(id, _jpegExifSignature)) continue;
-      final tiffStart = segment.start + _jpegExifSignature.length;
-      final tiff = readBytesAt(
-        raf,
-        tiffStart,
-        segment.length - _jpegExifSignature.length,
-      );
+      // `Exif\0\0` opens an APP1 segment holding EXIF.
+      if (segment.length <= 6) continue;
+      final id = readBytesAt(raf, segment.start, 6);
+      if (fourCC(id, 0) != 'Exif' || id[4] != 0 || id[5] != 0) continue;
+      final tiff = readBytesAt(raf, segment.start + 6, segment.length - 6);
       return img.ExifData.fromInputBuffer(
         img.InputBuffer(tiff, bigEndian: true),
       );
@@ -68,14 +61,6 @@ img.ExifData? _readJpegExif(File file) {
   } finally {
     raf?.closeSync();
   }
-}
-
-bool _startsWith(Uint8List b, List<int> prefix) {
-  if (b.length < prefix.length) return false;
-  for (var i = 0; i < prefix.length; i++) {
-    if (b[i] != prefix[i]) return false;
-  }
-  return true;
 }
 
 // Upper bounds on HEIC reads. Real `meta` boxes and `Exif` items are tens of

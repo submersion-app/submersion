@@ -305,5 +305,24 @@ void main() {
       expect(readLocalExif(f, 'image/jpeg'), isNull);
       expect(f.bytesRead, lessThan(128 * 1024));
     });
+
+    test('budgets stray bytes across the whole walk, not per gap', () {
+      // Junk with a stuffed 0xFF00 every KB: each gap is short, but the
+      // walk as a whole must still give up.
+      final junk = [
+        for (var k = 0; k < 128; k++) ...[...List.filled(1022, 0x11), 0xFF, 0],
+      ];
+      final f = _CountingFile(
+        write(
+          'spread.jpg',
+          jpegBytes(
+            before: [...junk, ...exifSegment(setDateAndGps)],
+            scan: bigScan,
+          ),
+        ),
+      );
+      expect(readLocalExif(f, 'image/jpeg'), isNull);
+      expect(f.bytesRead, lessThan(128 * 1024));
+    });
   });
 }

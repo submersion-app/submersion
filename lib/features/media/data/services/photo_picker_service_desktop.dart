@@ -69,7 +69,8 @@ class PhotoPickerServiceDesktop implements PhotoPickerService {
     // small synchronous reads per file that would jank the UI thread over a
     // large pick (the old stat()-only implementation was cheap enough to
     // inline). Do the batch on a background isolate, then register the paths
-    // here -- the isolate only ever mutates its own copy of [_filePathCache].
+    // here, since the isolate only ever mutates its own copy of
+    // [_filePathCache].
     final assets = await compute(
       _extractAssets,
       files.map((f) => f.path).toList(),

@@ -16,10 +16,11 @@ import 'package:submersion/features/media/data/services/isobmff_boxes.dart';
 /// payload, which starts just past the 2-byte length field.
 typedef JpegSegment = ({int marker, int start, int length});
 
-/// How far past a segment the walker looks for the next marker when stray
-/// bytes sit where one should begin. Real junk between segments is a byte or
-/// two from a sloppy writer; the cap keeps a file that only starts like a JPEG
-/// from turning the walk into a scan of the whole file.
+/// How many stray bytes one walk will step over, across every gap, looking
+/// for the next marker. Real junk between segments is a byte or two from a
+/// sloppy writer; the budget keeps a file that only starts like a JPEG from
+/// turning the walk into a scan of the whole file, however its junk is
+/// spread.
 const _maxResyncBytes = 64 * 1024;
 
 /// Lazily yields the segments ahead of the scan, in file order.
@@ -30,8 +31,8 @@ const _maxResyncBytes = 64 * 1024;
 /// photo with junk between segments keeps its EXIF and frame header.
 ///
 /// Stops without error at the SOS (start of scan) or EOI marker, and at
-/// corruption it cannot step past: a missing SOI, no marker within
-/// [_maxResyncBytes] of stray bytes, or a length that is shorter than its own
+/// corruption it cannot step past: a missing SOI, more than [_maxResyncBytes]
+/// of stray bytes in all, or a length that is shorter than its own
 /// field or runs past EOF. Callers therefore read "the walk ended" as "not
 /// found".
 Iterable<JpegSegment> jpegHeaderSegments(RandomAccessFile raf, int end) sync* {
@@ -40,14 +41,17 @@ Iterable<JpegSegment> jpegHeaderSegments(RandomAccessFile raf, int end) sync* {
   if (soi.length < 2 || soi[0] != 0xff || soi[1] != 0xd8) return;
 
   var pos = 2;
+  var resyncBudget = _maxResyncBytes;
   while (pos + 2 <= end) {
     final head = readBytesAt(raf, pos, 2);
     if (head.length < 2) return;
     // 0xFF00 is a stuffed data byte, which cannot appear between segments:
     // like any other non-marker byte, it is junk to step over.
     if (head[0] != 0xff || head[1] == 0x00) {
-      final next = _nextMarkerByte(raf, pos + 1, end);
+      final from = pos + 1;
+      final next = _nextMarkerByte(raf, from, min(end, from + resyncBudget));
       if (next == null) return;
+      resyncBudget -= next - from;
       pos = next;
       continue;
     }
@@ -80,11 +84,10 @@ Iterable<JpegSegment> jpegHeaderSegments(RandomAccessFile raf, int end) sync* {
   }
 }
 
-/// The position of the first `0xFF` at or after [from], looking no further
-/// than [_maxResyncBytes] ahead, or null when there is none.
-int? _nextMarkerByte(RandomAccessFile raf, int from, int end) {
+/// The position of the first `0xFF` in [from, limit), or null when there is
+/// none.
+int? _nextMarkerByte(RandomAccessFile raf, int from, int limit) {
   const chunk = 512;
-  final limit = min(end, from + _maxResyncBytes);
   for (var pos = from; pos < limit; pos += chunk) {
     final bytes = readBytesAt(raf, pos, min(chunk, limit - pos));
     if (bytes.isEmpty) return null;
