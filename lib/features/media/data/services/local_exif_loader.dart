@@ -4,10 +4,12 @@ import 'dart:typed_data';
 import 'package:image/image.dart' as img;
 
 import 'package:submersion/features/media/data/services/isobmff_boxes.dart';
+import 'package:submersion/features/media/data/services/jpeg_segments.dart';
 
 /// Loads the EXIF block of a JPEG or HEIC/HEIF file with pure Dart, for the
 /// platforms where `native_exif` has no implementation. One parse serves
-/// every consumer (capture time, GPS); callers never decode pixels.
+/// every consumer (capture time, GPS); callers never decode pixels, and only
+/// the metadata segments of the file are read, never its image data.
 ///
 /// Returns null for unsupported mimes, unreadable or corrupt files, and files
 /// that simply carry no EXIF.
@@ -15,7 +17,7 @@ img.ExifData? readLocalExif(File file, String mime) {
   try {
     switch (mime) {
       case 'image/jpeg':
-        return img.decodeJpgExif(file.readAsBytesSync());
+        return _readJpegExif(file);
       case 'image/heic':
       case 'image/heif':
         return _readHeicExif(file);
@@ -25,6 +27,55 @@ img.ExifData? readLocalExif(File file, String mime) {
   } on Object {
     return null;
   }
+}
+
+/// `Exif\0\0`, the identifier that opens an APP1 segment holding EXIF.
+const _jpegExifSignature = [0x45, 0x78, 0x69, 0x66, 0x00, 0x00];
+
+/// Reads EXIF from a JPEG by seeking through its header segments to the first
+/// APP1 segment that carries the `Exif\0\0` identifier, then reading that
+/// one segment. The TIFF block after the identifier goes to `package:image`'s
+/// EXIF parser, as `decodeJpgExif` would hand it.
+///
+/// `decodeJpgExif` itself needs the whole file in memory: a folder import of
+/// 28 MB camera JPEGs read every byte of every file to reach an EXIF block of
+/// a few KB. APPn segments always precede the scan, so the walk ends at the
+/// SOS, and an APP1 length is a uint16, so one read is at most 64 KB. Other
+/// APP1 payloads (an XMP packet, say) are skipped after a 6-byte peek.
+img.ExifData? _readJpegExif(File file) {
+  RandomAccessFile? raf;
+  try {
+    raf = file.openSync();
+    final end = raf.lengthSync();
+    for (final segment in jpegHeaderSegments(raf, end)) {
+      if (segment.marker != 0xe1) continue;
+      if (segment.length <= _jpegExifSignature.length) continue;
+      final id = readBytesAt(raf, segment.start, _jpegExifSignature.length);
+      if (!_startsWith(id, _jpegExifSignature)) continue;
+      final tiffStart = segment.start + _jpegExifSignature.length;
+      final tiff = readBytesAt(
+        raf,
+        tiffStart,
+        segment.length - _jpegExifSignature.length,
+      );
+      return img.ExifData.fromInputBuffer(
+        img.InputBuffer(tiff, bigEndian: true),
+      );
+    }
+    return null;
+  } on Object {
+    return null;
+  } finally {
+    raf?.closeSync();
+  }
+}
+
+bool _startsWith(Uint8List b, List<int> prefix) {
+  if (b.length < prefix.length) return false;
+  for (var i = 0; i < prefix.length; i++) {
+    if (b[i] != prefix[i]) return false;
+  }
+  return true;
 }
 
 // Upper bounds on HEIC reads. Real `meta` boxes and `Exif` items are tens of
