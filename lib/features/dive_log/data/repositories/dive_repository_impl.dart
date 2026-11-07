@@ -26,6 +26,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_list_snapshot.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_picker_rows.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
+import 'package:submersion/features/dive_log/data/repositories/latest_ended_dive.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_site_snap.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/data/services/user_event_preservation.dart';
@@ -6739,6 +6740,43 @@ class DiveRepository {
       // overloaded to also mean "no executed dive on record". Swallowing a
       // real DB failure into that same null would render as "all clear"
       // instead of the page's explicit error state.
+      rethrow;
+    }
+  }
+
+  /// The logged dive that ended last after [endedAfter] and at or before
+  /// [notAfter], or null when none did: what the planner offers to follow
+  /// (issue #4250). See [latestEndedDiveId].
+  ///
+  /// Read as [_mapRowsWithPreloadedData] reads a dive, so no sample is
+  /// decoded, even for a downloaded dive that only its profile measures.
+  /// `profile` is empty, and a water temperature or tank pressure taken from
+  /// the samples is missing, but `profileSpan` keeps its end where the SQL
+  /// put it. The prompt shows only the dive's name, number and times.
+  Future<domain.Dive?> getLatestEndedDive({
+    String? diverId,
+    required DateTime endedAfter,
+    required DateTime notAfter,
+  }) async {
+    try {
+      final id = await latestEndedDiveId(
+        _db,
+        diverId: diverId,
+        endedAfter: endedAfter,
+        notAfter: notAfter,
+      );
+      if (id == null) return null;
+      final row = await (_db.select(
+        _db.dives,
+      )..where((t) => t.id.equals(id))).getSingleOrNull();
+      // Null when the dive went between the lookup and this read.
+      return (await _mapRowsWithPreloadedData([?row])).firstOrNull;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get the latest ended dive for diver: $diverId',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
