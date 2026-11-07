@@ -17,14 +17,19 @@ sealed class SetHistoryRewrite extends Equatable {
 
   /// [isActive] skips retired, sold, lost and wanted gear, as expanding an
   /// assembly does. [isUsable] is the filter applying a set already uses
-  /// for the dive's diver: no other profile's unshared gear.
+  /// for the dive's diver: no other profile's unshared gear, for an added
+  /// item and the parts it brings. [isMember] names the set's members after
+  /// the change, which a removal leaves on the dive.
   List<GearProvenance> applyTo(
     List<GearProvenance> rows,
     String setId, {
     required ComponentsIndex index,
     required bool Function(String equipmentId) isActive,
     required bool Function(String equipmentId) isUsable,
+    bool Function(String equipmentId) isMember = _noMember,
   });
+
+  static bool _noMember(String equipmentId) => false;
 
   static bool _carries(List<GearProvenance> rows, String setId) =>
       rows.any((r) => r.viaSetId == setId);
@@ -49,6 +54,7 @@ class SetItemAdded extends SetHistoryRewrite {
     required ComponentsIndex index,
     required bool Function(String equipmentId) isActive,
     required bool Function(String equipmentId) isUsable,
+    bool Function(String equipmentId) isMember = SetHistoryRewrite._noMember,
   }) {
     if (!SetHistoryRewrite._carries(rows, setId)) return rows;
     if (!isActive(itemId) || !isUsable(itemId)) return rows;
@@ -65,7 +71,8 @@ class SetItemAdded extends SetHistoryRewrite {
       additions: [(equipmentId: itemId, viaSetId: setId)],
       index: index,
       existing: rows,
-      isActive: isActive,
+      // The parts it brings pass the same filter, as applying the set does.
+      isActive: (id) => isActive(id) && isUsable(id),
     );
   }
 
@@ -73,7 +80,10 @@ class SetItemAdded extends SetHistoryRewrite {
   List<Object?> get props => [itemId];
 }
 
-/// An item left the set.
+/// An item left the set. It goes with the parts hanging under it, except a
+/// part that is still a member of the set in its own right: that one stays,
+/// with its own parts, and moves to the top level, as applying the set
+/// fresh would put it.
 class SetItemRemoved extends SetHistoryRewrite {
   final String itemId;
   const SetItemRemoved(this.itemId);
@@ -85,12 +95,27 @@ class SetItemRemoved extends SetHistoryRewrite {
     required ComponentsIndex index,
     required bool Function(String equipmentId) isActive,
     required bool Function(String equipmentId) isUsable,
+    bool Function(String equipmentId) isMember = SetHistoryRewrite._noMember,
   }) {
     final current = SetHistoryRewrite._rowFor(rows, itemId);
     if (current == null || !current.isTopLevel || current.viaSetId != setId) {
       return rows;
     }
-    return GearExpander.removeSubtree(rows, itemId);
+    final subtree = GearExpander.subtreeIds(rows, itemId);
+    final kept = <String>{
+      for (final id in subtree)
+        if (id != itemId && isMember(id)) ...GearExpander.subtreeIds(rows, id),
+    };
+    return [
+      for (final r in rows)
+        if (!subtree.contains(r.equipmentId))
+          r
+        else if (kept.contains(r.equipmentId))
+          // A kept member whose parent goes becomes a top-level row.
+          kept.contains(r.viaEquipmentId)
+              ? r
+              : r.copyWith(clearViaEquipmentId: true),
+    ];
   }
 
   @override

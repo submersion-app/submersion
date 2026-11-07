@@ -8135,24 +8135,42 @@ class DiveRepository {
       alsoLogged: alsoLogged,
     );
     if (diveIds.isEmpty) return 0;
+    final members = await _setMemberIds(setId);
     final added = [
       for (final r in rewrites)
         if (r is SetItemAdded) r.itemId,
     ];
-    final index = await _loadComponentsIndex();
-    final active = await _activeIdsAmong({
-      for (final id in added) ...[id, ...index.descendantsOf(id)],
-    });
-    final diverOf = await _diverIdsOf(diveIds);
-    final visibility = EquipmentVisibilityQueries(_db);
-    final usableBy = <String, Set<String>>{
-      for (final diverId in {...diverOf.values.nonNulls})
-        diverId: added.isEmpty
-            ? const <String>{}
-            : (await visibility.usableSetMemberIds(added, diverId)).toSet(),
-    };
+    // A removal needs only the dive's rows and the members; what an
+    // addition puts on a dive is worked out only when there is one.
+    var index = ComponentsIndex.fromRows(const []);
+    var active = const <String>{};
+    var diverOf = const <String, String?>{};
+    final usableBy = <String, Set<String>>{};
+    if (added.isNotEmpty) {
+      index = await _loadComponentsIndex();
+      final candidates = {
+        for (final id in added) ...[id, ...index.descendantsOf(id)],
+      }.toList();
+      active = await _activeIdsAmong(candidates.toSet());
+      // A dive with no diver is filtered for the set's owner, as the edit
+      // page falls back to the diver it is open for.
+      final owner = await _setOwnerOf(setId);
+      diverOf = {
+        for (final MapEntry(:key, :value) in (await _diverIdsOf(
+          diveIds,
+        )).entries)
+          key: value ?? owner,
+      };
+      final visibility = EquipmentVisibilityQueries(_db);
+      for (final diverId in {...diverOf.values.nonNulls}) {
+        usableBy[diverId] = (await visibility.usableSetMemberIds(
+          candidates,
+          diverId,
+        )).toSet();
+      }
+    }
     return _rewriteGearOn(diveIds, (rows, diveId) {
-      // A dive with no diver applies a set unfiltered, as the edit page does.
+      // Neither the dive nor the set has a diver: unfiltered, as before.
       final usable = usableBy[diverOf[diveId]];
       var next = rows;
       for (final rewrite in rewrites) {
@@ -8162,10 +8180,31 @@ class DiveRepository {
           index: index,
           isActive: active.contains,
           isUsable: (id) => usable == null || usable.contains(id),
+          isMember: members.contains,
         );
       }
       return next;
     });
+  }
+
+  /// The members set [setId] holds now.
+  Future<Set<String>> _setMemberIds(String setId) async {
+    final rows =
+        await (_db.selectOnly(_db.equipmentSetItems)
+              ..addColumns([_db.equipmentSetItems.equipmentId])
+              ..where(_db.equipmentSetItems.setId.equals(setId)))
+            .get();
+    return {for (final r in rows) r.read(_db.equipmentSetItems.equipmentId)!};
+  }
+
+  /// The diver set [setId] belongs to, null for an ownerless set.
+  Future<String?> _setOwnerOf(String setId) async {
+    final row =
+        await (_db.selectOnly(_db.equipmentSets)
+              ..addColumns([_db.equipmentSets.diverId])
+              ..where(_db.equipmentSets.id.equals(setId)))
+            .getSingleOrNull();
+    return row?.read(_db.equipmentSets.diverId);
   }
 
   /// The gear column that makes a dive carry an assembly, and the one that

@@ -221,9 +221,7 @@ class EquipmentComponentWrites extends WritableEntry {
     if (v['sort_order'] case final int slot) {
       // The assembly's parts trade places, so this one lands at [slot] and
       // the parts between shift by one, as a drag on the card does.
-      final row = (await components.getAllComponents()).firstWhere(
-        (c) => c.id == id,
-      );
+      final row = (await _row(id))!;
       final ordered = [
         for (final c in await components.getComponents(row.parentEquipmentId))
           if (c.id != id) c.id,

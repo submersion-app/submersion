@@ -17,10 +17,10 @@ import 'package:submersion/features/equipment/presentation/widgets/assembly_hist
 /// carries the set.
 Future<bool> saveSetWithHistory(
   BuildContext context,
-  WidgetRef ref, {
-  required EquipmentSet set,
-  required EquipmentSet loaded,
-}) async {
+  WidgetRef ref,
+  EquipmentSet set,
+  EquipmentSet loaded,
+) async {
   var choice = AssemblyHistoryChoice.futureOnly;
   if (!setEquals(set.equipmentIds.toSet(), loaded.equipmentIds.toSet())) {
     final asked = await askSetHistory(context, ref, setId: set.id);

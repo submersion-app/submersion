@@ -732,19 +732,11 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
       );
 
       final notifier = ref.read(equipmentSetListNotifierProvider.notifier);
-
       final String savedId;
       if (widget.isEditing) {
-        // Asks whether the dives that carry the set follow (issue #4283);
-        // a cancel saves nothing and keeps the editor open.
+        // A cancel in the dives question (issue #4283) saves nothing.
         if (!mounted) return;
-        final saved = await saveSetWithHistory(
-          context,
-          ref,
-          set: set,
-          loaded: existingSet!,
-        );
-        if (!saved) return;
+        if (!await saveSetWithHistory(context, ref, set, existingSet!)) return;
         savedId = set.id;
       } else {
         final created = await notifier.addSet(set);

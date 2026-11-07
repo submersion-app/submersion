@@ -89,6 +89,17 @@ void main() {
       expect(apply(const SetItemAdded('foreign'), onDive), onDive);
     });
 
+    test('a part the dive diver may not use stays off', () {
+      final next = const SetItemAdded('reg').applyTo(
+        onDive,
+        'winter',
+        index: index,
+        isActive: active,
+        isUsable: (id) => id != 'hose',
+      );
+      expect(ids(next), ['bcd', 'mask', 'reg']);
+    });
+
     test('a dive without the set is unchanged', () {
       const rows = [GearProvenance(equipmentId: 'mask')];
       expect(apply(const SetItemAdded('reg'), rows), rows);
@@ -107,6 +118,34 @@ void main() {
         GearProvenance(equipmentId: 'mask'),
       ];
       expect(ids(apply(const SetItemRemoved('reg'), rows)), ['mask']);
+    });
+
+    test('a part still in the set stays, moved to the top level', () {
+      const rows = [
+        GearProvenance(equipmentId: 'reg', viaSetId: 'winter'),
+        GearProvenance(
+          equipmentId: 'hose',
+          viaEquipmentId: 'reg',
+          viaSetId: 'winter',
+        ),
+        GearProvenance(
+          equipmentId: 'clip',
+          viaEquipmentId: 'hose',
+          viaSetId: 'winter',
+        ),
+      ];
+      final next = const SetItemRemoved('reg').applyTo(
+        rows,
+        'winter',
+        index: index,
+        isActive: active,
+        isUsable: usable,
+        isMember: (id) => id == 'hose',
+      );
+      expect(ids(next), ['hose', 'clip']);
+      expect(row(next, 'hose').isTopLevel, isTrue);
+      expect(row(next, 'hose').viaSetId, 'winter');
+      expect(row(next, 'clip').viaEquipmentId, 'hose');
     });
 
     test('keeps a row added by hand', () {

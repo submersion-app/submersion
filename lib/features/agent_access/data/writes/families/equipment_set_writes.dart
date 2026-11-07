@@ -127,9 +127,15 @@ class EquipmentSetWrites extends WritableEntry {
     Map<String, Object?> document,
   ) async {
     final members = update.relations['equipment_ids'];
-    final planned = members == null || members.isEmpty
-        ? 0
-        : await _r.dives.countPlannedDivesWithSet(id);
+    var planned = 0;
+    if (members != null && !members.isEmpty) {
+      // Only a delta that changes the members reaches a dive.
+      final current = (await _r.equipmentSets.getEquipmentIdsInSet(id)).toSet();
+      final changes =
+          members.add.any((e) => !current.contains(e)) ||
+          members.remove.any(current.contains);
+      if (changes) planned = await _r.dives.countPlannedDivesWithSet(id);
+    }
     final others = update.values['is_default'] != true
         ? 0
         : await _otherDefaults(id, ownerId);
