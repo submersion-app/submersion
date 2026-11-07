@@ -236,17 +236,21 @@ class ServiceRecordRepository {
   }
 
   /// Sets the item's lastServiceDate to its newest record's date, or clears
-  /// it when the item has no record left.
+  /// it when the item has no record left. An item already holding that date
+  /// is left unwritten, so a record back-filled from paper does not send it
+  /// to every peer with nothing changed.
   Future<void> _refreshEquipmentLastServiceDate(String equipmentId) async {
     final mostRecent = await getMostRecentRecord(equipmentId);
+    final newest = mostRecent?.serviceDate.millisecondsSinceEpoch;
+    final item = await (_db.select(
+      _db.equipment,
+    )..where((t) => t.id.equals(equipmentId))).getSingleOrNull();
+    if (item == null || item.lastServiceDate == newest) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     await (_db.update(
       _db.equipment,
     )..where((t) => t.id.equals(equipmentId))).write(
-      EquipmentCompanion(
-        lastServiceDate: Value(mostRecent?.serviceDate.millisecondsSinceEpoch),
-        updatedAt: Value(now),
-      ),
+      EquipmentCompanion(lastServiceDate: Value(newest), updatedAt: Value(now)),
     );
     await _syncRepository.markRecordPending(
       entityType: 'equipment',
