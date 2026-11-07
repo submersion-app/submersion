@@ -960,23 +960,28 @@ class ProfileSeriesRepository {
   Future<List<String>> deleteByIds(List<String> ids) =>
       ids.isEmpty ? Future.value(const []) : _delete((t) => t.id.isIn(ids));
 
-  /// Deletes a single series [seriesId] and its history entry [dive_profile_series_history].
-  /// Also deletes any associated profile events and gas switches for this series.
-  /// Throws if [seriesId] does not exist.
+  /// Deletes the series row [seriesId] with its sync tombstone, and its local
+  /// node in `dive_profile_series_history`, as one write.
+  ///
+  /// It deletes nothing else: profile events and gas switches belong to the
+  /// dive, not to a series. A missing [seriesId] deletes nothing and logs no
+  /// tombstone. It checks nothing else: a caller that needs the series to
+  /// exist, or another revision to remain, checks that inside its own
+  /// transaction (see `DiveRepository.deleteProfileSeriesWithHistoryForDive`).
   Future<void> deleteSeriesWithHistory(String seriesId) async {
     await _db.transaction(() async {
-      // Log the deletion for sync tombstone
-      await _syncRepository.logDeletion(
-        entityType: entityType,
-        recordId: seriesId,
-      );
-
-      // Delete the series row
-      await (_db.delete(
+      final deleted = await (_db.delete(
         _db.diveProfileSeries,
       )..where((t) => t.id.equals(seriesId))).go();
+      // A tombstone for a row that was never here would still delete it on
+      // every peer.
+      if (deleted > 0) {
+        await _syncRepository.logDeletion(
+          entityType: entityType,
+          recordId: seriesId,
+        );
+      }
 
-      // Delete the history entry
       await _db.customStatement(
         'DELETE FROM $_historyTable WHERE series_id = ?',
         [seriesId],

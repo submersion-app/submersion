@@ -768,6 +768,33 @@ void main() {
     },
   );
 
+  test('two concurrent deletes of a two-revision dive leave one revision '
+      'standing', () async {
+    await dives.createDive(
+      dive('dive-1', const [domain.DiveProfilePoint(timestamp: 0, depth: 1.0)]),
+    );
+    final first = (await series.getSeriesForDive('dive-1')).single.id;
+    final second = await series.insertSeries(
+      diveId: 'dive-1',
+      samples: const [ProfileSample(timestamp: 10, depth: 2.0)],
+      isPrimary: false,
+      now: 1000,
+    );
+
+    final outcomes = await Future.wait([
+      for (final id in [first, second])
+        dives
+            .deleteProfileSeriesWithHistoryForDive('dive-1', id)
+            .then<Object?>((_) => null, onError: (Object e) => e),
+    ]);
+
+    expect(outcomes.whereType<ArgumentError>(), hasLength(1));
+    final rows = await series.getSeriesForDive('dive-1');
+    expect(rows, hasLength(1));
+    expect(rows.single.isPrimary, isTrue);
+    expect(await dives.getProfileHistory('dive-1'), hasLength(1));
+  });
+
   test(
     'deleteProfileSeriesWithHistoryForDive rejects deleting an unknown series',
     () async {

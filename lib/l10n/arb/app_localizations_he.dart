@@ -51544,6 +51544,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'מחיקה סופית עכשיו';
 
   @override
+  String get diveLog_profileEditor_deleteProfile_failed =>
+      'לא ניתן למחוק את גרסת הפרופיל.';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'נשמר לפני היסטוריית הגרסאות; לא מקושר למחשב צלילה';
 

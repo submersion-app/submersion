@@ -49391,6 +49391,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_profileEditor_deleteProfile_confirmNow => '立即永久删除';
 
   @override
+  String get diveLog_profileEditor_deleteProfile_failed => '无法删除剖面版本。';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint => '保存于版本历史之前；未关联潜水电脑';
 
   @override

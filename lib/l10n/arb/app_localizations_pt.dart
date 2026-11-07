@@ -52634,6 +52634,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Excluir permanentemente agora';
 
   @override
+  String get diveLog_profileEditor_deleteProfile_failed =>
+      'Não foi possível excluir a revisão do perfil.';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'Guardado antes do histórico de revisões; sem ligação a um computador';
 

@@ -214,7 +214,8 @@ void main() {
       );
 
       expect(await repo.deleteByIds(const []), isEmpty);
-      expect(await repo.deleteByIds([a, c]), [a, c]);
+      // Ids are random, so the order they come back in is not fixed.
+      expect((await repo.deleteByIds([a, c])).toSet(), {a, c});
       expect((await repo.getSeriesForDive('dive-1')).map((s) => s.id), [b]);
 
       final tombstones = await db.select(db.deletionLog).get();
@@ -224,6 +225,30 @@ void main() {
       });
     },
   );
+
+  test('deleteSeriesWithHistory deletes the series row and its history node '
+      'with one tombstone, and logs none for a missing series', () async {
+    final a = await repo.insertSeries(
+      diveId: 'dive-1',
+      samples: const [ProfileSample(timestamp: 0, depth: 1.0)],
+      now: 1000,
+    );
+    final b = await repo.insertSeries(
+      diveId: 'dive-1',
+      samples: const [ProfileSample(timestamp: 0, depth: 2.0)],
+      now: 1000,
+    );
+
+    await repo.deleteSeriesWithHistory(a);
+    await repo.deleteSeriesWithHistory('missing-series');
+
+    expect((await repo.getSeriesForDive('dive-1')).map((s) => s.id), [b]);
+    expect((await repo.getRevisionsForDive('dive-1')).map((r) => r.seriesId), [
+      b,
+    ]);
+    final tombstones = await db.select(db.deletionLog).get();
+    expect(tombstones.map((t) => t.recordId), [a]);
+  });
 
   test('getRowsForDives returns raw rows for the given dives only', () async {
     final a = await repo.insertSeries(

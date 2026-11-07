@@ -56,6 +56,45 @@ void main() {
     expect(notifier.trimEndZerosCallCount, 1);
   });
 
+  testWidgets('cleanup controls wrap on a phone instead of overflowing', (
+    tester,
+  ) async {
+    var deleteTaps = 0;
+    tester.view.physicalSize = const Size(375, 812);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('en'),
+        home: Scaffold(
+          body: EditorContextPanel(
+            mode: EditorMode.outlier,
+            notifier: _TrackingProfileEditorNotifier(),
+            canDeleteProfile: true,
+            onDeleteProfile: () => deleteTaps += 1,
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    final detect = tester.getTopLeft(
+      find.widgetWithText(FilledButton, 'Detect Outliers'),
+    );
+    final delete = tester.getTopLeft(
+      find.widgetWithText(FilledButton, 'Delete Entire Profile'),
+    );
+    expect(delete.dy, greaterThan(detect.dy));
+
+    await tester.tap(
+      find.widgetWithText(FilledButton, 'Delete Entire Profile'),
+    );
+    expect(deleteTaps, 1);
+  });
+
   group('range operations the profile cannot take (issue #3909)', () {
     late ProfileEditorNotifier notifier;
 

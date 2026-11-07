@@ -52347,6 +52347,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Végleges törlés most';
 
   @override
+  String get diveLog_profileEditor_deleteProfile_failed =>
+      'Nem sikerült törölni a profilverziót.';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'A verzióelőzmények előtt mentve; nincs számítógéphez kapcsolva';
 

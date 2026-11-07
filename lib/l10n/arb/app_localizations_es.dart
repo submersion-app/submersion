@@ -52683,6 +52683,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Eliminar permanentemente ahora';
 
   @override
+  String get diveLog_profileEditor_deleteProfile_failed =>
+      'No se pudo eliminar la revisión del perfil.';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'Guardado antes del historial de revisiones; sin vincular a un ordenador';
 

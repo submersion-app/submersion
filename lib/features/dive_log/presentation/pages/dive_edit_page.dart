@@ -3642,9 +3642,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     if (hasProfile) {
       int? availableRevisions;
       if (diveId != null) {
-        final revisions = ref
-            .watch(profileSeriesHistoryProvider(diveId))
-            .valueOrNull;
+        // `value` keeps the last history while it reloads, so the row does
+        // not drop back to the points-only label on every refresh.
+        final revisions = ref.watch(profileSeriesHistoryProvider(diveId)).value;
         if (revisions != null) {
           // Keep the row stable if history metadata is temporarily sparse.
           availableRevisions = revisions.isNotEmpty ? revisions.length : 1;

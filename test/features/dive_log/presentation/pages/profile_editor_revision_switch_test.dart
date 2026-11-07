@@ -131,6 +131,7 @@ void main() {
     tester.view.physicalSize = const Size(2000, 1400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
 
     final dive = diveWithProfile();
     final base = await getBaseOverrides();
@@ -212,6 +213,7 @@ void main() {
     tester.view.physicalSize = const Size(2000, 1400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
 
     final dive = diveWithProfile();
     final base = await getBaseOverrides();
@@ -270,12 +272,87 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Delete Entire Profile'));
     await tester.pumpAndSettle();
+    // A manual edit has no computer behind it.
+    expect(find.textContaining('imported from a dive computer'), findsNothing);
     await tester.tap(find.text('Delete Permanently Now'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Could not switch profile revision.'), findsOneWidget);
+    expect(find.text('Could not delete the profile revision.'), findsOneWidget);
+    expect(find.text('Could not switch profile revision.'), findsNothing);
     verify(
       mockRepo.deleteProfileSeriesWithHistoryForDive(dive.id, 'series-newest'),
     ).called(1);
+  });
+
+  testWidgets('warns about a computer reading whose revision kind is create', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(2000, 1400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final dive = diveWithProfile();
+    final base = await getBaseOverrides();
+    final mockRepo = MockDiveRepository();
+
+    // A reading added beside another computer's is stored as 'create' and
+    // still carries the computer that recorded it.
+    final revisions = [
+      ProfileSeriesRevision(
+        seriesId: 'series-newest',
+        diveId: dive.id,
+        parentSeriesId: null,
+        rootSeriesId: 'series-newest',
+        contentHash: 'hash-newest',
+        revisionKind: 'create',
+        createdAt: 2000,
+        isActive: true,
+        computerId: 'comp-2',
+      ),
+      ProfileSeriesRevision(
+        seriesId: 'series-older',
+        diveId: dive.id,
+        parentSeriesId: null,
+        rootSeriesId: 'series-older',
+        contentHash: 'hash-older',
+        revisionKind: 'computer_import',
+        createdAt: 1000,
+        isActive: false,
+        computerId: 'comp-1',
+      ),
+    ];
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...base,
+          diveRepositoryProvider.overrideWithValue(mockRepo),
+          diveProvider(dive.id).overrideWith((ref) async => dive),
+          profileSeriesHistoryProvider(
+            dive.id,
+          ).overrideWith((ref) async => revisions),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: ProfileEditorPage(diveId: dive.id),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    await tester.tap(find.text('Cleanup'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete Entire Profile'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.textContaining('imported from a dive computer'),
+      findsOneWidget,
+    );
   });
 }

@@ -51827,6 +51827,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Delete Permanently Now';
 
   @override
+  String get diveLog_profileEditor_deleteProfile_failed =>
+      'Could not delete the profile revision.';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'Saved before revision history; not linked to a computer';
 

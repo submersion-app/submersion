@@ -83142,6 +83142,12 @@ abstract class AppLocalizations {
   /// **'Delete Permanently Now'**
   String get diveLog_profileEditor_deleteProfile_confirmNow;
 
+  /// No description provided for @diveLog_profileEditor_deleteProfile_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete the profile revision.'**
+  String get diveLog_profileEditor_deleteProfile_failed;
+
   /// No description provided for @diveLog_profileEditor_revisionLegacyHint.
   ///
   /// In en, this message translates to:

@@ -53355,6 +53355,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_profileEditor_deleteProfile_confirmNow => 'حذف نهائي الآن';
 
   @override
+  String get diveLog_profileEditor_deleteProfile_failed =>
+      'تعذر حذف مراجعة الملف الشخصي.';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'حُفظ قبل سجل المراجعات؛ غير مرتبط بأي حاسوب غوص';
 

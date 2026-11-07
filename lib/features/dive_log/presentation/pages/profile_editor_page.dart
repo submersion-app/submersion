@@ -247,7 +247,7 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            context.l10n.diveLog_profileEditor_revisionSwitchFailed,
+            context.l10n.diveLog_profileEditor_deleteProfile_failed,
           ),
         ),
       );
@@ -435,7 +435,12 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
                   ? () => _handleDeleteProfileSeries(
                       diveId: widget.diveId,
                       seriesId: activeRevision.seriesId,
+                      // A series a computer recorded keeps its computer id
+                      // whatever its revision kind says: a reading added
+                      // beside another computer's is stored as 'create'.
+                      // An edit never has one.
                       isComputerImport:
+                          activeRevision.computerId != null ||
                           activeRevision.revisionKind == 'computer_import',
                     )
                   : null,

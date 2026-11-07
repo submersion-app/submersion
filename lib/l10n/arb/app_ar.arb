@@ -15602,6 +15602,7 @@
   "diveLog_profileEditor_deleteProfile_permanentWarning": "حذف مراجعة ملف الغوص هذه نهائي، ولا يمكن التراجع عنه، ويسري مفعوله فورًا.",
   "diveLog_profileEditor_deleteProfile_computerImportWarning": "تم استيراد هذا الملف من حاسوب غوص ومن المحتمل أن يحتوي على بيانات المصدر الأصلية.",
   "diveLog_profileEditor_deleteProfile_confirmNow": "حذف نهائي الآن",
+  "diveLog_profileEditor_deleteProfile_failed": "تعذر حذف مراجعة الملف الشخصي.",
   "diveLog_profileEditor_revisionLegacyHint": "حُفظ قبل سجل المراجعات؛ غير مرتبط بأي حاسوب غوص",
   "diveLog_sources_sectionTitle": "{count, plural, zero{مصدر البيانات} one{مصدر البيانات} two{مصدرا البيانات} few{مصادر البيانات} many{مصادر البيانات} other{مصادر البيانات}}",
   "diveLog_sources_badge_manual": "يدوي",

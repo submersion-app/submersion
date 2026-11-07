@@ -52302,6 +52302,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Nu permanent verwijderen';
 
   @override
+  String get diveLog_profileEditor_deleteProfile_failed =>
+      'Kan de profielrevisie niet verwijderen.';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'Opgeslagen vóór de revisiegeschiedenis; niet gekoppeld aan een computer';
 

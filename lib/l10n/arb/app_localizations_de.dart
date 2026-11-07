@@ -52518,6 +52518,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Jetzt dauerhaft löschen';
 
   @override
+  String get diveLog_profileEditor_deleteProfile_failed =>
+      'Profilrevision konnte nicht gelöscht werden.';
+
+  @override
   String get diveLog_profileEditor_revisionLegacyHint =>
       'Vor der Revisionshistorie gespeichert; mit keinem Tauchcomputer verknüpft';
 

@@ -227,14 +227,16 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
           ],
         ),
         const SizedBox(height: 12),
-        Row(
+        // Four buttons do not fit one line on a phone, so they wrap.
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
           children: [
             FilledButton.tonalIcon(
               onPressed: () => widget.notifier.detectOutliers(),
               icon: const Icon(Icons.search, size: 18),
               label: Text(context.l10n.diveLog_profileEditor_detectOutliers),
             ),
-            const SizedBox(width: 8),
             FilledButton.icon(
               onPressed: count > 0
                   ? () => widget.notifier.removeAllOutliers()
@@ -242,13 +244,11 @@ class _EditorContextPanelState extends State<EditorContextPanel> {
               icon: const Icon(Icons.cleaning_services, size: 18),
               label: Text(context.l10n.diveLog_profileEditor_removeOutliers),
             ),
-            const SizedBox(width: 8),
             FilledButton.tonalIcon(
               onPressed: () => widget.notifier.trimEndZeros(),
               icon: const Icon(Icons.content_cut, size: 18),
               label: Text(context.l10n.diveLog_profileEditor_trimEnd),
             ),
-            const SizedBox(width: 8),
             FilledButton.icon(
               onPressed: widget.canDeleteProfile
                   ? widget.onDeleteProfile
