@@ -3519,6 +3519,7 @@
   "divePlanner_label_gfHigh": "GF Hoch",
   "divePlanner_label_gfLow": "GF Niedrig",
   "divePlanner_label_minutesUnit": "Min.",
+  "divePlanner_label_secondsUnit": "Sek.",
   "divePlanner_label_ndl": "Nullzeit",
   "divePlanner_label_planSettings": "Planeinstellungen",
   "divePlanner_label_reserve": "Reserve",

@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/models/uddf_export_options.dart';
-import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dive_chunk.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:xml/xml.dart';
@@ -141,13 +141,15 @@ void main() {
     ]);
   });
 
-  test('writes the pressures the export extras carry', () async {
-    // The three dives-only export actions hand over their per-dive data as
-    // extras, which is where the fetch now loads the pressures.
+  test('writes the pressures each run of dives is read with', () async {
+    // The three dives-only export actions read each run's pressures with
+    // its samples, as the file is written (issue #4249).
     final written = onlyDive(
-      await UddfExportService().generateDivesUddfContent([
-        dive,
-      ], extras: UddfDivesExtras(diveTankPressures: pressures)),
+      await UddfExportService().generateDivesUddfContent(
+        [dive],
+        loadDiveChunk: (dives) async =>
+            UddfDiveChunk(dives: dives, tankPressures: pressures),
+      ),
     );
 
     expect(pressuresIn(written), hasLength(4));

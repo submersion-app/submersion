@@ -36,6 +36,16 @@ enum AscentPhase {
       walked == AscentPhase.toFirstStop
       ? AscentPhase.toFirstStop
       : AscentPhase.fromLastStop;
+
+  /// The phase of the leg that leaves a stop reached during this phase.
+  ///
+  /// A decompression stop starts the walk over the stops. A stop held only to
+  /// switch gas, with nothing owed there ([gasSwitchOnly], issue #4160),
+  /// leaves the phase as it was: a diver who pauses at 21 m to switch to
+  /// EAN50 on the way to a 12 m first stop is still on the working ascent,
+  /// and on a dive that owes nothing they never leave it.
+  AscentPhase afterStop({bool gasSwitchOnly = false}) =>
+      gasSwitchOnly ? this : AscentPhase.betweenStops;
 }
 
 /// One stretch of ascent travel.
@@ -104,8 +114,16 @@ class SchedulePolicy {
   /// Descent rate in meters per minute.
   final double descentRate;
 
-  /// Minimum time in seconds to hold at a stop where the breathed gas
-  /// changes (0 = no minimum).
+  /// Minimum time in seconds to hold at every gas switch on the ascent
+  /// (0 = no minimum, the switch is made on the fly).
+  ///
+  /// The stop is held at the stop level where the new gas is first
+  /// breathed: the deepest level on the stop grid at or above the switch
+  /// depth. That level is held even when nothing is owed there, before the
+  /// first deco stop or on a dive with no decompression at all, and such a
+  /// stop is marked `DecoStop.isGasSwitchOnly`. A switch at a level that is
+  /// already a deco stop makes that stop at least this long. No other stop
+  /// is lengthened (issue #4160).
   final int gasSwitchStopSeconds;
 
   /// Extend each stop so it ends on a whole minute of the ascent clock.
@@ -173,10 +191,13 @@ class SchedulePolicy {
   ///
   /// Assigns the phases the way a schedule runs: down to the first stop, then
   /// between stops, then off the last stop. With no stops at all the whole
-  /// ascent is one [AscentPhase.toFirstStop] leg.
+  /// ascent is one [AscentPhase.toFirstStop] leg. A stop whose depth is in
+  /// [gasSwitchOnlyDepths] is held only to switch gas and does not move the
+  /// phase on ([AscentPhase.afterStop]).
   List<AscentLeg> ascentLegs({
     required double fromDepth,
     required Iterable<double> stopDepths,
+    Set<double> gasSwitchOnlyDepths = const {},
   }) {
     final legs = <AscentLeg>[];
     var depth = fromDepth;
@@ -188,7 +209,9 @@ class SchedulePolicy {
         seconds: ascentSeconds(fromDepth: depth, toDepth: stop, phase: phase),
       ));
       depth = stop;
-      phase = AscentPhase.betweenStops;
+      phase = phase.afterStop(
+        gasSwitchOnly: gasSwitchOnlyDepths.contains(stop),
+      );
     }
     if (depth > 0) {
       legs.add((
@@ -211,8 +234,10 @@ class SchedulePolicy {
   int ascentTravelSeconds({
     required double fromDepth,
     required Iterable<double> stopDepths,
+    Set<double> gasSwitchOnlyDepths = const {},
   }) => ascentLegs(
     fromDepth: fromDepth,
     stopDepths: stopDepths,
+    gasSwitchOnlyDepths: gasSwitchOnlyDepths,
   ).fold(0, (seconds, leg) => seconds + leg.seconds);
 }

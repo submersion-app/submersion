@@ -25,7 +25,10 @@ void main() {
         .setMockMethodCallHandler(
           const MethodChannel('plugins.flutter.io/path_provider'),
           (MethodCall methodCall) async {
-            if (methodCall.method == 'getApplicationDocumentsDirectory') {
+            // The documents directory exports land in, and the temp space
+            // the full backup is built in (issue #4249).
+            if (methodCall.method == 'getApplicationDocumentsDirectory' ||
+                methodCall.method == 'getTemporaryDirectory') {
               return testDir.path;
             }
             return null;

@@ -74,16 +74,19 @@ List<AscentLeg> straightAscentSpans(
 
 /// Every stretch of travel in a computed ascent from [fromDepth], up through
 /// [stopDepths] (deepest first) to the surface, split wherever [ascentPlan]
-/// changes gas.
+/// changes gas. [gasSwitchOnlyDepths] are the stops held only to switch gas,
+/// as [SchedulePolicy.ascentLegs] takes them.
 List<AscentLeg> ascentTravelSpans(
   SchedulePolicy policy,
   AscentGasPlan ascentPlan, {
   required double fromDepth,
   required List<double> stopDepths,
+  Set<double> gasSwitchOnlyDepths = const {},
 }) => [
   for (final leg in policy.ascentLegs(
     fromDepth: fromDepth,
     stopDepths: stopDepths,
+    gasSwitchOnlyDepths: gasSwitchOnlyDepths,
   ))
     if (leg.fromDepth > leg.toDepth)
       ...splitAscentLeg(

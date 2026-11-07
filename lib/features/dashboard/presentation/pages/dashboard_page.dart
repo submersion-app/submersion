@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 
@@ -33,22 +34,51 @@ class DashboardPage extends ConsumerWidget {
     // because these cards render SizedBox.shrink() when they have nothing
     // to show and a zero-height block would still consume a grid row gap
     // (phantom spacing). Always-on blocks contain their own error state.
-    bool show<T>(AsyncValue<T> value, bool Function(T data) hasContent) =>
-        value.maybeWhen(data: hasContent, orElse: () => false);
-
-    final gauges = ref.watch(dashboardGaugesProvider);
-    final milestones = ref.watch(milestonesProvider);
-    final media = ref.watch(recentMediaProvider);
-    final onThisDay = ref.watch(onThisDayProvider);
-    final yearInReview = ref.watch(yearInReviewProvider);
-    final courses = ref.watch(activeCoursesProgressProvider);
-    final sites = ref.watch(recentSitesProvider);
+    bool show<T>(AsyncValue<T>? value, bool Function(T data) hasContent) =>
+        value?.maybeWhen(data: hasContent, orElse: () => false) ?? false;
 
     final homeCardOrder = ref.watch(
       settingsProvider.select((s) => s.homeCardOrder),
     );
     final hiddenHomeCards = ref.watch(
       settingsProvider.select((s) => s.hiddenHomeCards),
+    );
+
+    // A hidden card's provider is not watched here (issue #4251): On This Day
+    // reads dives, and hiding the card has to spare Home that work. Null
+    // stands for "hidden, never loaded"; [show] reads it as no content. The
+    // gauge strip stays watched, since a live alert brings it back when
+    // hidden, and its course chip reads the active courses itself, so hiding
+    // the Active Courses card saves no read.
+    AsyncValue<T>? watchUnlessHidden<T>(
+      HomeCardType card,
+      ProviderListenable<AsyncValue<T>> provider,
+    ) => hiddenHomeCards.contains(card.name) ? null : ref.watch(provider);
+
+    final gauges = ref.watch(dashboardGaugesProvider);
+    final milestones = watchUnlessHidden(
+      HomeCardType.milestones,
+      milestonesProvider,
+    );
+    final media = watchUnlessHidden(
+      HomeCardType.photoRibbon,
+      recentMediaProvider,
+    );
+    final onThisDay = watchUnlessHidden(
+      HomeCardType.onThisDay,
+      onThisDayProvider,
+    );
+    final yearInReview = watchUnlessHidden(
+      HomeCardType.yearInReview,
+      yearInReviewProvider,
+    );
+    final courses = watchUnlessHidden(
+      HomeCardType.activeCourses,
+      activeCoursesProgressProvider,
+    );
+    final sites = watchUnlessHidden(
+      HomeCardType.recentSitesMap,
+      recentSitesProvider,
     );
 
     bool hasContent(HomeCardType card) => switch (card) {
@@ -59,9 +89,10 @@ class DashboardPage extends ConsumerWidget {
       HomeCardType.activeCourses => show(courses, (c) => c.isNotEmpty),
       // Holds for the first photo result: photos arriving later would pull
       // the map into a shared row, and moving it under that Row remounts it,
-      // paying for the map twice on the way to the same layout.
+      // paying for the map twice on the way to the same layout. A hidden
+      // photo ribbon never joins the row, so there is nothing to wait for.
       HomeCardType.recentSitesMap =>
-        (media.hasValue || !media.isLoading) &&
+        (media == null || media.hasValue || !media.isLoading) &&
             show(sites, (s) => s.isNotEmpty),
       _ => true,
     };
