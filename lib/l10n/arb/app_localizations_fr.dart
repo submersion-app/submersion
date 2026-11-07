@@ -60597,4 +60597,17 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get passport_history_edit => 'Modifier le gonflage';
+
+  @override
+  String get twinSet_choiceTitle => 'Utiliser le bi-bouteille ?';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'Bi-bouteille ($a + $b, $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return 'Seulement $a';
+  }
 }

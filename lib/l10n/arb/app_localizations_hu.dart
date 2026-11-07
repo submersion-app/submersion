@@ -60120,4 +60120,17 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get passport_history_edit => 'Töltés szerkesztése';
+
+  @override
+  String get twinSet_choiceTitle => 'Az ikerpalackot használja?';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'Ikerpalack ($a + $b, $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return 'Csak $a';
+  }
 }

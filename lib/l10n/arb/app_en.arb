@@ -35237,5 +35237,10 @@
   "@passport_history_filledWith": {"placeholders": {"partner": {"type": "String"}}},
   "passport_history_deleteTiedBody": "Delete this fill from both cylinders, or only this one?",
   "passport_history_deleteBoth": "Both cylinders",
-  "passport_history_edit": "Edit fill"
+  "passport_history_edit": "Edit fill",
+  "twinSet_choiceTitle": "Use the twin set?",
+  "twinSet_choicePair": "Twin set ({a} + {b}, {volume})",
+  "@twinSet_choicePair": {"placeholders": {"a": {"type": "String"}, "b": {"type": "String"}, "volume": {"type": "String"}}},
+  "twinSet_choiceSingle": "Just {a}",
+  "@twinSet_choiceSingle": {"placeholders": {"a": {"type": "String"}}}
 }

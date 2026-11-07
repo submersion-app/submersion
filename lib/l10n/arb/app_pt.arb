@@ -17843,5 +17843,8 @@
   "passport_history_filledWith": "Carregado junto com {partner}",
   "passport_history_deleteTiedBody": "Excluir esta carga dos dois cilindros ou só deste?",
   "passport_history_deleteBoth": "Os dois cilindros",
-  "passport_history_edit": "Editar carga"
+  "passport_history_edit": "Editar carga",
+  "twinSet_choiceTitle": "Usar o bi-cilindro?",
+  "twinSet_choicePair": "Bi-cilindro ({a} + {b}, {volume})",
+  "twinSet_choiceSingle": "Só {a}"
 }

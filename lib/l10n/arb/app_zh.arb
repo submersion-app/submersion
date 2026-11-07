@@ -17843,5 +17843,8 @@
   "passport_history_filledWith": "与 {partner} 一起充气",
   "passport_history_deleteTiedBody": "从两个气瓶中删除此充气记录，还是只删除这一条？",
   "passport_history_deleteBoth": "两个气瓶",
-  "passport_history_edit": "编辑充气记录"
+  "passport_history_edit": "编辑充气记录",
+  "twinSet_choiceTitle": "使用双瓶组？",
+  "twinSet_choicePair": "双瓶组（{a} + {b}，{volume}）",
+  "twinSet_choiceSingle": "仅 {a}"
 }

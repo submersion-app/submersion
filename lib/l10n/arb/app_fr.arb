@@ -17843,5 +17843,8 @@
   "passport_history_filledWith": "Gonflée avec {partner}",
   "passport_history_deleteTiedBody": "Supprimer ce gonflage des deux bouteilles, ou seulement de celle-ci ?",
   "passport_history_deleteBoth": "Les deux bouteilles",
-  "passport_history_edit": "Modifier le gonflage"
+  "passport_history_edit": "Modifier le gonflage",
+  "twinSet_choiceTitle": "Utiliser le bi-bouteille ?",
+  "twinSet_choicePair": "Bi-bouteille ({a} + {b}, {volume})",
+  "twinSet_choiceSingle": "Seulement {a}"
 }

@@ -17843,5 +17843,8 @@
   "passport_history_filledWith": "מולא יחד עם {partner}",
   "passport_history_deleteTiedBody": "למחוק את המילוי הזה משני הבלונים, או רק מזה?",
   "passport_history_deleteBoth": "שני הבלונים",
-  "passport_history_edit": "עריכת מילוי"
+  "passport_history_edit": "עריכת מילוי",
+  "twinSet_choiceTitle": "להשתמש בצמד?",
+  "twinSet_choicePair": "צמד ({a} + {b}, {volume})",
+  "twinSet_choiceSingle": "רק {a}"
 }

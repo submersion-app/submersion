@@ -60337,4 +60337,17 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get passport_history_edit => 'Füllung bearbeiten';
+
+  @override
+  String get twinSet_choiceTitle => 'Das Doppelgerät verwenden?';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'Doppelgerät ($a + $b, $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return 'Nur $a';
+  }
 }

@@ -59204,4 +59204,17 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get passport_history_edit => 'עריכת מילוי';
+
+  @override
+  String get twinSet_choiceTitle => 'להשתמש בצמד?';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'צמד ($a + $b, $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return 'רק $a';
+  }
 }

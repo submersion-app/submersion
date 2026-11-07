@@ -95322,6 +95322,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edit fill'**
   String get passport_history_edit;
+
+  /// No description provided for @twinSet_choiceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the twin set?'**
+  String get twinSet_choiceTitle;
+
+  /// No description provided for @twinSet_choicePair.
+  ///
+  /// In en, this message translates to:
+  /// **'Twin set ({a} + {b}, {volume})'**
+  String twinSet_choicePair(String a, String b, String volume);
+
+  /// No description provided for @twinSet_choiceSingle.
+  ///
+  /// In en, this message translates to:
+  /// **'Just {a}'**
+  String twinSet_choiceSingle(String a);
 }
 
 class _AppLocalizationsDelegate

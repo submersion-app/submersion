@@ -60086,4 +60086,17 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get passport_history_edit => 'Vulling bewerken';
+
+  @override
+  String get twinSet_choiceTitle => 'De dubbelset gebruiken?';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'Dubbelset ($a + $b, $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return 'Alleen $a';
+  }
 }

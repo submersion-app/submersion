@@ -56768,4 +56768,17 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get passport_history_edit => '编辑充气记录';
+
+  @override
+  String get twinSet_choiceTitle => '使用双瓶组？';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return '双瓶组（$a + $b，$volume）';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return '仅 $a';
+  }
 }

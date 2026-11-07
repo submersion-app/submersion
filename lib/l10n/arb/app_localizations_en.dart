@@ -59514,4 +59514,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get passport_history_edit => 'Edit fill';
+
+  @override
+  String get twinSet_choiceTitle => 'Use the twin set?';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'Twin set ($a + $b, $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return 'Just $a';
+  }
 }

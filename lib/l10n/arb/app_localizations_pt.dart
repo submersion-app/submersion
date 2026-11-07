@@ -60449,4 +60449,17 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get passport_history_edit => 'Editar carga';
+
+  @override
+  String get twinSet_choiceTitle => 'Usar o bi-cilindro?';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'Bi-cilindro ($a + $b, $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return 'Só $a';
+  }
 }

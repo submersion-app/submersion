@@ -17843,5 +17843,8 @@
   "passport_history_filledWith": "Ricaricata insieme a {partner}",
   "passport_history_deleteTiedBody": "Eliminare questa ricarica da entrambe le bombole o solo da questa?",
   "passport_history_deleteBoth": "Entrambe le bombole",
-  "passport_history_edit": "Modifica ricarica"
+  "passport_history_edit": "Modifica ricarica",
+  "twinSet_choiceTitle": "Usare la bibombola?",
+  "twinSet_choicePair": "Bibombola ({a} + {b}, {volume})",
+  "twinSet_choiceSingle": "Solo {a}"
 }

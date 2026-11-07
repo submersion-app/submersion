@@ -61292,4 +61292,17 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get passport_history_edit => 'تعديل التعبئة';
+
+  @override
+  String get twinSet_choiceTitle => 'استخدام الطقم المزدوج؟';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'طقم مزدوج ($a + $b، $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return '$a فقط';
+  }
 }

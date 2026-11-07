@@ -17,6 +17,9 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_pairing.dart';
+import 'package:submersion/features/cylinder_passports/domain/services/pairing_rules.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_pairing_providers.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_resolver.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
@@ -34,10 +37,12 @@ import 'package:submersion/features/dive_log/presentation/widgets/tank_mnd_field
 import 'package:submersion/features/dive_log/presentation/widgets/tank_preset_dropdown.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_regulator_pickers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_role_option.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/twin_set_choice_dialog.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/import_tag_fill.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_tank_link.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
@@ -74,6 +79,10 @@ class TankEditor extends ConsumerStatefulWidget {
   /// (the dive edit page) waits for it, so Save cannot outrun it.
   final void Function(Future<void> scan)? onScanPending;
 
+  /// The day of the dive, for the twin set pairing a picked cylinder was in
+  /// then (issue #4242). Null means today.
+  final DateTime? diveDate;
+
   /// The dive's trip cylinders as they stood when the dive started (the
   /// page watches them): when there are any, a picker links this tank to
   /// one of them. Null (no trip) hides the picker.
@@ -107,6 +116,7 @@ class TankEditor extends ConsumerStatefulWidget {
     this.canRemove = true,
     this.showPressures = true,
     this.onOwnCylinderUsed,
+    this.diveDate,
     this.onScanPending,
     this.tripCylinderStates,
     this.takenTripCylinderIds = const {},
@@ -145,6 +155,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   /// or a cylinder pick, cleared by a preset or a trip slot, kept by hand
   /// edits.
   String? _passportId;
+
+  /// The partner's passport id when this tank is a twin set (issue #4242).
+  String? _twinPassportId;
 
   /// The last O2/He value each field actually parsed to, tracked separately
   /// from [widget.tank]: `_notifyChange` fires on every keystroke, so a
@@ -239,6 +252,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     _material = widget.tank.material;
     _regulatorIds = widget.tank.regulatorIds;
     _passportId = widget.tank.passportId;
+    _twinPassportId = widget.tank.twinPassportId;
     // Initialize selected preset from tank's presetName
     // Check built-in presets first, async lookup for custom presets happens in build
     // Reset on every read, not only set: a re-read after a fill from a
@@ -466,6 +480,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       tripCylinderId: widget.tank.tripCylinderId,
       // Only a cylinder choice changes it; a hand edit is the same metal.
       passportId: _passportId,
+      twinPassportId: _twinPassportId,
       // Import-owned (issue #1496): carried so the edited tank still
       // reports what the source log recorded.
       usageDuration: widget.tank.usageDuration,
@@ -638,6 +653,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                 setState(() {
                   _selectedPreset = null;
                   _passportId = null;
+                  _twinPassportId = null;
                 });
                 _notifyChange();
               }
@@ -649,6 +665,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         // Role dropdown
         Expanded(
           child: DropdownButtonFormField<TankRole>(
+            // Keyed by the role, so a role set by a twin set pick (issue
+            // #4242) shows; initialValue is read once per field.
+            key: ValueKey('tank-role-${_role.name}'),
             initialValue: _role,
             isExpanded: true,
             decoration: InputDecoration(
@@ -1241,6 +1260,16 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     ScaffoldMessengerState messenger,
     AppLocalizations l10n,
   ) async {
+    final partner = await _twinPartnerOf(item);
+    if (!mounted) return;
+    if (partner != null) {
+      final choice = await _askTwinSet(item, partner);
+      if (choice == null || !mounted) return;
+      if (choice == TwinSetChoice.twinSet) {
+        await _useTwinSet(item, partner, fills, passportId, messenger, l10n);
+        return;
+      }
+    }
     final filled = _applyScannedSpec(
       passportId: passportId,
       volumeL: item.volumeL,
@@ -1257,6 +1286,98 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     }
   }
 
+  /// The cylinder [item] was paired with on the dive's day (issue #4242), or
+  /// null when it was not paired then.
+  Future<EquipmentItem?> _twinPartnerOf(EquipmentItem item) async {
+    final pairing = await ref.read(
+      pairingOnProvider((
+        equipmentId: item.id,
+        day: calendarDay(widget.diveDate ?? DateTime.now()),
+      )).future,
+    );
+    if (pairing == null) return null;
+    return ref.read(equipmentItemProvider(pairing.partnerOf(item.id)).future);
+  }
+
+  /// The pair's volume in liters, or null when either cylinder has none.
+  static double? _pairVolume(EquipmentItem a, EquipmentItem b) {
+    final va = a.volumeL;
+    final vb = b.volumeL;
+    return va == null || vb == null ? null : va + vb;
+  }
+
+  /// The lower of two working pressures: the pair fills to one pressure, and
+  /// cannot hold more than its weaker cylinder. Either alone when the other
+  /// is unknown.
+  static double? _pairWorkingPressure(EquipmentItem a, EquipmentItem b) {
+    final pa = a.workingPressureBar;
+    final pb = b.workingPressureBar;
+    if (pa == null) return pb;
+    if (pb == null) return pa;
+    return pa < pb ? pa : pb;
+  }
+
+  Future<TwinSetChoice?> _askTwinSet(
+    EquipmentItem item,
+    EquipmentItem partner,
+  ) {
+    final l10n = context.l10n;
+    final units = UnitFormatter(ref.read(settingsProvider));
+    final status = partner.effectiveStatus;
+    return showTwinSetChoiceDialog(
+      context,
+      pickedName: item.name,
+      partnerName: partner.name,
+      combinedVolume: units.formatTankVolume(
+        _pairVolume(item, partner),
+        _pairWorkingPressure(item, partner),
+      ),
+      partnerStatus: isPartnerOutOfUse(status)
+          ? status.localizedName(l10n)
+          : null,
+    );
+  }
+
+  /// Fills the tank as the twin set of [item] and [partner] (issue #4242):
+  /// the Twin Set role, the pair's volume and lower working pressure, the
+  /// picked cylinder's material and newest fill, both passports named, and
+  /// both cylinders handed to the host for the dive's gear.
+  Future<void> _useTwinSet(
+    EquipmentItem item,
+    EquipmentItem partner,
+    List<CylinderFill> fills,
+    String? passportId,
+    ScaffoldMessengerState messenger,
+    AppLocalizations l10n,
+  ) async {
+    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    final partnerPassportId = await ref
+        .read(cylinderPassportRepositoryProvider)
+        .ensurePassportId(partner.id, diverId: diverId);
+    if (!mounted) return;
+    setState(() => _role = TankRole.twinSet);
+    _applyScannedSpec(
+      passportId: passportId,
+      twinPassportId: partnerPassportId,
+      volumeL: _pairVolume(item, partner),
+      workingPressureBar: _pairWorkingPressure(item, partner),
+      material: item.tankMaterial,
+      mix: fills.isEmpty ? null : fills.first.gasMix,
+    );
+    _notifyChange();
+    await widget.onOwnCylinderUsed?.call(item);
+    await widget.onOwnCylinderUsed?.call(partner);
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          l10n.passport_scan_filledFrom(
+            l10n.twinSet_pairNames(item.name, partner.name),
+          ),
+        ),
+      ),
+    );
+  }
+
   /// Fills the spec fields (and the mix, when given) the way choosing a
   /// preset does, in the diver's units, and records [passportId], the
   /// cylinder they came from (issue #2650), then reports the tank. Returns
@@ -1264,13 +1385,16 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   /// tag that carries only its identity must not clear the tank's preset.
   bool _applyScannedSpec({
     required String? passportId,
+    String? twinPassportId,
     double? volumeL,
     double? workingPressureBar,
     TankMaterial? material,
     GasMix? mix,
   }) {
-    final idChanged = passportId != _passportId;
+    final idChanged =
+        passportId != _passportId || twinPassportId != _twinPassportId;
     _passportId = passportId;
+    _twinPassportId = twinPassportId;
     // A computer logged what this tank breathed; the cylinder's last fill
     // does not replace it (issue #3021).
     final fillMix = isComputerRecordedTank(widget.tank) ? null : mix;

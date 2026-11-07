@@ -31,6 +31,7 @@ class TankRow extends StatefulWidget {
     this.suggested = false,
     this.diveId,
     this.diveMode = DiveMode.oc,
+    this.diveDate,
   });
 
   final DiveTank tank;
@@ -62,6 +63,10 @@ class TankRow extends StatefulWidget {
 
   /// Forwarded to [TankEditor.diveMode].
   final DiveMode diveMode;
+
+  /// The day of the dive, for a picked cylinder's twin set pairing then
+  /// (issue #4242). Null means today.
+  final DateTime? diveDate;
 
   @override
   State<TankRow> createState() => _TankRowState();
@@ -143,6 +148,7 @@ class _TankRowState extends State<TankRow> {
               suggested: widget.suggested,
               diveId: widget.diveId,
               diveMode: widget.diveMode,
+              diveDate: widget.diveDate,
             ),
             Align(
               alignment: Alignment.centerRight,

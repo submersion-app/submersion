@@ -17968,5 +17968,8 @@
   "passport_history_filledWith": "Zusammen mit {partner} gefüllt",
   "passport_history_deleteTiedBody": "Diese Füllung bei beiden Flaschen löschen oder nur bei dieser?",
   "passport_history_deleteBoth": "Beide Flaschen",
-  "passport_history_edit": "Füllung bearbeiten"
+  "passport_history_edit": "Füllung bearbeiten",
+  "twinSet_choiceTitle": "Das Doppelgerät verwenden?",
+  "twinSet_choicePair": "Doppelgerät ({a} + {b}, {volume})",
+  "twinSet_choiceSingle": "Nur {a}"
 }
