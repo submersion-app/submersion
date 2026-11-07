@@ -9744,14 +9744,20 @@ class DiveRepository {
       await _db.transaction(() async {
         // Load the reading that is being promoted, without its raw download
         // (issue #4253): the switch reads only its scalars.
-        final newPrimary = (await _sourceRowsInShownOrder(
-          diveId,
-        )).where((row) => row.id == computerReadingId).firstOrNull;
+        final sources = await _sourceRowsInShownOrder(diveId);
+        final newPrimary = sources
+            .where((row) => row.id == computerReadingId)
+            .firstOrNull;
 
         if (newPrimary == null) return;
 
         final now = DateTime.now().millisecondsSinceEpoch;
-        await _makeDataSourcePrimary(diveId, newPrimary, now: now);
+        await _makeDataSourcePrimary(
+          diveId,
+          newPrimary,
+          now: now,
+          sources: sources,
+        );
 
         // Swap isPrimary on the profile series.
         //
@@ -9801,12 +9807,16 @@ class DiveRepository {
   /// the stored safety review, which graded the previous primary's samples.
   /// Leaves the profile series to the caller, which knows which of them go
   /// live. Run inside a transaction.
+  ///
+  /// [sources] is every source row of [diveId] in shown order, for a caller
+  /// that has just read them; it is read here otherwise.
   Future<void> _makeDataSourcePrimary(
     String diveId,
     DiveDataSourcesData newPrimary, {
     required int now,
+    List<DiveDataSourcesData>? sources,
   }) async {
-    final sources = await _sourceRowsInShownOrder(diveId);
+    sources ??= await _sourceRowsInShownOrder(diveId);
     final timing = dataSourceStrandTiming(sources, newPrimary);
 
     // Demote all readings for this dive to non-primary. Both writes
