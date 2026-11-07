@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
@@ -103,10 +104,7 @@ class ZipExpansionService {
         filePaths.add(path);
         continue;
       }
-      final expansion = await expandZipBytes(
-        await file.readAsBytes(),
-        p.basename(path),
-      );
+      final expansion = await expandZipFile(path, header: header);
       filePaths.addAll(expansion.filePaths);
       expansion.photoPathsByBaseName.forEach(
         (key, value) => (photos[key] ??= []).addAll(value),
@@ -125,8 +123,31 @@ class ZipExpansionService {
     );
   }
 
-  /// Extracts [bytes] (a ZIP archive) to a temp directory and classifies
+  /// Extracts the ZIP archive at [path] to a temp directory and classifies
   /// members into dive files and photos.
+  ///
+  /// Reads the archive straight from the file: only the central directory is
+  /// parsed up front, and each member is inflated directly into its output
+  /// file, so neither the compressed archive nor the inflated members are
+  /// held in memory (issue #4248). [header] is the file's first bytes when
+  /// the caller already read them.
+  ///
+  /// Throws [FormatException] when the archive cannot be read (corrupt or
+  /// password-protected) or exceeds [maxUncompressedBytes].
+  Future<ArchiveExpansion> expandZipFile(
+    String path, {
+    Uint8List? header,
+  }) async {
+    final signature = header ?? await _readHeader(path);
+    return withArchiveFile(
+      path,
+      (archive) => _expandArchive(archive, p.basename(path), signature),
+    );
+  }
+
+  /// Extracts [bytes] (a ZIP archive) to a temp directory and classifies
+  /// members into dive files and photos. Used when the archive only exists
+  /// in memory (drag-and-drop and share intents hand over bytes).
   ///
   /// Throws [FormatException] when the archive cannot be read (corrupt or
   /// password-protected) or exceeds [maxUncompressedBytes].
@@ -134,23 +155,89 @@ class ZipExpansionService {
     Uint8List bytes,
     String archiveName,
   ) async {
-    final Archive archive;
+    final archive = _decode(
+      () => ZipDecoder().decodeBytes(bytes, verify: false),
+      archiveName,
+    );
+    return _expandArchive(archive, archiveName, bytes);
+  }
+
+  /// Opens the ZIP at [path] as a file-backed [Archive], runs [use] on it,
+  /// and closes the file afterwards, also when [use] throws.
+  ///
+  /// The archive's members reference byte ranges of the open file rather
+  /// than copies, so the compressed archive is never loaded whole.
+  @visibleForTesting
+  static Future<T> withArchiveFile<T>(
+    String path,
+    Future<T> Function(Archive archive) use,
+  ) async {
+    final input = InputFileStream(path);
     try {
-      archive = ZipDecoder().decodeBytes(bytes, verify: false);
+      final archive = _decode(
+        () => ZipDecoder().decodeStream(input, verify: false),
+        p.basename(path),
+      );
+      return await use(archive);
+    } finally {
+      await input.close();
+    }
+  }
+
+  /// Inflates [entry] into the file at [outPath].
+  ///
+  /// [ArchiveFile.readBytes] would cache the inflated member on the entry for
+  /// as long as the archive lives, so every extracted member would stay in
+  /// memory until extraction ends. [ArchiveFile.writeContent] decompresses
+  /// into the output instead and caches nothing, so at most the member being
+  /// written is in memory at a time.
+  @visibleForTesting
+  static Future<void> writeEntryToFile(
+    ArchiveFile entry,
+    String outPath,
+  ) async {
+    final output = OutputFileStream(outPath);
+    try {
+      entry.writeContent(output);
+    } finally {
+      await output.close();
+    }
+  }
+
+  static Future<Uint8List> _readHeader(String path) async {
+    final raf = await File(path).open();
+    try {
+      return await raf.read(4);
+    } finally {
+      await raf.close();
+    }
+  }
+
+  static Archive _decode(Archive Function() decode, String archiveName) {
+    try {
+      return decode();
     } catch (e) {
       throw FormatException(
         'Could not read archive "$archiveName" '
         '(corrupt or password-protected): $e',
       );
     }
+  }
 
+  /// Validates [archive] and extracts it. [signature] holds at least the
+  /// archive's first bytes, used to tell corruption from an empty archive.
+  Future<ArchiveExpansion> _expandArchive(
+    Archive archive,
+    String archiveName,
+    Uint8List signature,
+  ) async {
     // archive 4.x stopped throwing on a truncated or corrupt ZIP: ZipDirectory
     // tolerates the damage and returns zero entries. A local-file-header
     // signature (PK\x03\x04) means the archive claimed to carry members, so an
     // empty decode is corruption rather than an empty archive. A legitimately
     // empty ZIP (PK\x05\x06) still falls through to the "no importable files"
     // path below.
-    if (archive.isEmpty && _hasLocalFileHeader(bytes)) {
+    if (archive.isEmpty && _hasLocalFileHeader(signature)) {
       throw FormatException(
         'Could not read archive "$archiveName" '
         '(corrupt or password-protected)',
@@ -220,7 +307,7 @@ class ZipExpansionService {
             '${p.basenameWithoutExtension(name)}_${counter++}${p.extension(name)}';
         outPath = p.join(tempDir.path, outName);
       }
-      await File(outPath).writeAsBytes(entry.readBytes() ?? const <int>[]);
+      await writeEntryToFile(entry, outPath);
 
       if (isDiveFile) {
         diveFiles[p.basenameWithoutExtension(outName)] = outPath;

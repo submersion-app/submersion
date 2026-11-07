@@ -223,6 +223,93 @@ void main() {
     });
   });
 
+  // Issue #4248: extraction used to read the whole ZIP into one buffer and
+  // inflate every member with readBytes(), which caches the inflated bytes on
+  // its ArchiveFile for as long as the Archive lives.
+  group('memory retention (#4248)', () {
+    // Highly compressible, so the encoder deflates it.
+    final photo = List<int>.filled(256 * 1024, 0x41);
+
+    test(
+      'archive members read from the file, not a whole-file buffer',
+      () async {
+        final zipPath = await writeZip('backed.zip', {
+          'dive.zxu': _zxu(),
+          'dive_photo.jpg': photo,
+        });
+
+        final rawStreams = await ZipExpansionService.withArchiveFile(
+          zipPath,
+          (archive) async => [
+            for (final entry in archive)
+              if (entry.isFile)
+                (entry.rawContent! as ZipFile).getStream(decompress: false),
+          ],
+        );
+
+        expect(rawStreams, hasLength(2));
+        expect(rawStreams, everyElement(isA<InputFileStream>()));
+      },
+    );
+
+    test('writing a member leaves no inflated copy on the entry', () async {
+      final zipPath = await writeZip('inflate.zip', {'dive_photo.jpg': photo});
+      final outPath = p.join(tmp.path, 'out.jpg');
+
+      await ZipExpansionService.withArchiveFile(zipPath, (archive) async {
+        final entry = archive.single;
+        expect(entry.isCompressed, isTrue, reason: 'precondition: deflated');
+
+        await ZipExpansionService.writeEntryToFile(entry, outPath);
+
+        expect(
+          entry.isCompressed,
+          isTrue,
+          reason: 'inflated bytes must stream to disk, not stay cached',
+        );
+      });
+
+      expect(File(outPath).readAsBytesSync(), photo);
+    });
+
+    test('a stored (uncompressed) member is written intact', () async {
+      final archive = Archive()
+        ..addFile(
+          ArchiveFile('dive.zxu', _zxu().length, _zxu())
+            ..compression = CompressionType.none,
+        );
+      final zipPath = p.join(tmp.path, 'stored.zip');
+      await File(zipPath).writeAsBytes(ZipEncoder().encode(archive));
+
+      final expansion = await service.expandAll([zipPath]);
+
+      expect(File(expansion.filePaths.single).readAsBytesSync(), _zxu());
+    });
+
+    test('expandAll extracts large deflated photos byte for byte', () async {
+      final zipPath = await writeZip('photos.zip', {
+        'dive.zxu': _zxu(),
+        for (var i = 0; i < 4; i++) 'dive_$i.jpg': photo,
+      });
+
+      final expansion = await service.expandAll([zipPath]);
+
+      final photos = expansion.photoPathsByBaseName['dive']!;
+      expect(photos, hasLength(4));
+      for (final path in photos) {
+        expect(File(path).readAsBytesSync(), photo);
+      }
+    });
+
+    test('expandAll releases the archive so it can be deleted', () async {
+      final zipPath = await writeZip('release.zip', {'dive.zxu': _zxu()});
+      await service.expandAll([zipPath]);
+      // Windows refuses to delete a file with an open handle.
+      await File(zipPath).delete();
+      expect(File(zipPath).existsSync(), isFalse);
+    });
+  });
+
   group('expandZipBytes', () {
     test('expands raw zip bytes (share-intent path)', () async {
       final bytes = _buildZip({
