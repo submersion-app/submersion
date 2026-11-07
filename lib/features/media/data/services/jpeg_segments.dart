@@ -32,7 +32,7 @@ const _maxResyncBytes = 64 * 1024;
 ///
 /// Stops without error at the SOS (start of scan) or EOI marker, and at
 /// corruption it cannot step past: a missing SOI, more than [_maxResyncBytes]
-/// of stray bytes in all, or a length that is shorter than its own
+/// of stray and fill bytes in all, or a length that is shorter than its own
 /// field or runs past EOF. Callers therefore read "the walk ended" as "not
 /// found".
 Iterable<JpegSegment> jpegHeaderSegments(RandomAccessFile raf, int end) sync* {
@@ -58,8 +58,11 @@ Iterable<JpegSegment> jpegHeaderSegments(RandomAccessFile raf, int end) sync* {
     final marker = head[1];
     pos += 2;
 
-    // A marker may be preceded by any number of 0xFF fill bytes.
+    // A marker may be preceded by any number of 0xFF fill bytes. They draw on
+    // the same budget as junk, or a file padded with 0xFF would be walked to
+    // EOF a byte at a time.
     if (marker == 0xff) {
+      if (--resyncBudget < 0) return;
       pos -= 1;
       continue;
     }

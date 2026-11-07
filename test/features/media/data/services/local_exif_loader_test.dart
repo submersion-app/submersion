@@ -324,5 +324,21 @@ void main() {
       expect(readLocalExif(f, 'image/jpeg'), isNull);
       expect(f.bytesRead, lessThan(128 * 1024));
     });
+
+    test('budgets 0xFF fill bytes too', () {
+      final f = _CountingFile(
+        write(
+          'padded.jpg',
+          jpegBytes(
+            before: [
+              ...List.filled(1024 * 1024, 0xFF),
+              ...exifSegment(setDateAndGps),
+            ],
+          ),
+        ),
+      );
+      expect(readLocalExif(f, 'image/jpeg'), isNull);
+      expect(f.bytesRead, lessThan(256 * 1024));
+    });
   });
 }
