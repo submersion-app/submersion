@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:submersion/core/text/markdown/notes_plain_text.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/form_style.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_editing.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
@@ -376,6 +377,30 @@ class _FormRowState extends State<FormRow> {
     );
   }
 
+  /// Opens a resting row and moves focus into its field.
+  ///
+  /// The field's autofocus is not enough: it applies only while nothing else
+  /// in the focus scope has focus. In a browser the control a screen reader
+  /// last activated keeps focus (the web engine reports DOM focus on a
+  /// semantics node as framework focus), so the field opened unfocused and
+  /// typing went nowhere (issue #4166). A node that is not mounted yet takes
+  /// the request when its field mounts.
+  void _open() {
+    setState(() => _editing = true);
+    _focusNode.requestFocus();
+  }
+
+  /// The row's label beside an open field, kept out of the semantics tree
+  /// because [_namedField] gives the field the same words.
+  Widget _visibleLabel(BuildContext context) => ExcludeSemantics(
+    child: Text(widget.label, style: _labelTextStyle(context)),
+  );
+
+  /// Names an open field after its row, so a screen reader announces "Dive #,
+  /// 700" rather than an unnamed text box (issue #4166).
+  Widget _namedField(Widget field) =>
+      Semantics(container: true, label: widget.label, child: field);
+
   Widget _shell(
     BuildContext context, {
     required Widget trailing,
@@ -437,7 +462,7 @@ class _FormRowState extends State<FormRow> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(widget.label, style: _labelTextStyle(context)),
+            _visibleLabel(context),
             const SizedBox(height: 4),
             MarkdownNotesField(
               controller: widget.controller!,
@@ -451,6 +476,7 @@ class _FormRowState extends State<FormRow> {
               decoration: widget.decoration ?? _bareDecoration(context),
               onPreviewChanged: (on) => _previewing = on,
               onAnnotate: widget.onAnnotate == null ? null : _annotate,
+              semanticsLabel: widget.label,
             ),
           ],
         ),
@@ -474,30 +500,32 @@ class _FormRowState extends State<FormRow> {
                   ? CrossAxisAlignment.start
                   : CrossAxisAlignment.center,
               children: [
-                Text(widget.label, style: _labelTextStyle(context)),
+                _visibleLabel(context),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: TextFormField(
-                    controller: widget.controller,
-                    focusNode: _alwaysMounted ? null : _focusNode,
-                    autofocus: _editing && !_alwaysMounted,
-                    maxLines: widget.maxLines,
-                    keyboardType: widget.keyboardType,
-                    textCapitalization: widget.textCapitalization,
-                    inputFormatters: widget.inputFormatters,
-                    validator: widget.validator ?? widget.inputValidator,
-                    autovalidateMode: widget.inputValidator != null
-                        ? AutovalidateMode.onUserInteraction
-                        : null,
-                    onChanged: widget.onChanged,
-                    textAlign: widget.maxLines > 1
-                        ? TextAlign.start
-                        : TextAlign.end,
-                    style: theme.textTheme.bodyMedium,
-                    decoration: widget.decoration ?? _bareDecoration(context),
-                    onFieldSubmitted: _alwaysMounted
-                        ? null
-                        : (_) => setState(() => _editing = false),
+                  child: _namedField(
+                    TextFormField(
+                      controller: widget.controller,
+                      focusNode: _alwaysMounted ? null : _focusNode,
+                      autofocus: _editing && !_alwaysMounted,
+                      maxLines: widget.maxLines,
+                      keyboardType: widget.keyboardType,
+                      textCapitalization: widget.textCapitalization,
+                      inputFormatters: widget.inputFormatters,
+                      validator: widget.validator ?? widget.inputValidator,
+                      autovalidateMode: widget.inputValidator != null
+                          ? AutovalidateMode.onUserInteraction
+                          : null,
+                      onChanged: widget.onChanged,
+                      textAlign: widget.maxLines > 1
+                          ? TextAlign.start
+                          : TextAlign.end,
+                      style: theme.textTheme.bodyMedium,
+                      decoration: widget.decoration ?? _bareDecoration(context),
+                      onFieldSubmitted: _alwaysMounted
+                          ? null
+                          : (_) => setState(() => _editing = false),
+                    ),
                   ),
                 ),
               ],
@@ -527,7 +555,7 @@ class _FormRowState extends State<FormRow> {
             final showCalc = suggestion != null && suggestion.value != text;
             return _shell(
               context,
-              onTap: () => setState(() => _editing = true),
+              onTap: _open,
               trailing: showCalc
                   ? Row(
                       mainAxisSize: MainAxisSize.min,
@@ -622,18 +650,23 @@ class _FormRowState extends State<FormRow> {
               ...List.generate(5, (i) {
                 final stars = i + 1;
                 final filled = i < rating;
-                return InkWell(
-                  onTap: () =>
-                      stars == rating ? clear() : widget.onIntChanged!(stars),
-                  borderRadius: BorderRadius.circular(12),
-                  child: Padding(
-                    padding: const EdgeInsets.all(2),
-                    child: Icon(
-                      filled ? Icons.star : Icons.star_border,
-                      size: 22,
-                      color: filled
-                          ? Colors.amber
-                          : theme.colorScheme.onSurfaceVariant,
+                // Named for a screen reader, which otherwise meets five
+                // unnamed buttons (issue #4166).
+                return Semantics(
+                  label: context.l10n.diveSites_edit_rating_starTooltip(stars),
+                  child: InkWell(
+                    onTap: () =>
+                        stars == rating ? clear() : widget.onIntChanged!(stars),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.all(2),
+                      child: Icon(
+                        filled ? Icons.star : Icons.star_border,
+                        size: 22,
+                        color: filled
+                            ? Colors.amber
+                            : theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
                 );

@@ -85,6 +85,17 @@ class _SuggestionFormRowState extends State<SuggestionFormRow> {
     return [...substring, ...fuzzy.map((pair) => pair.$1)];
   }
 
+  /// The row's label, kept out of the semantics tree because the field
+  /// carries the same words as its name.
+  Widget _visibleLabel(ThemeData theme) => ExcludeSemantics(
+    child: Text(widget.label, style: theme.textTheme.bodyMedium),
+  );
+
+  /// Names the field after its row, so a screen reader announces the label
+  /// with the text rather than an unnamed text box (issue #4166).
+  Widget _namedField(Widget field) =>
+      Semantics(container: true, label: widget.label, child: field);
+
   Widget _caption(ThemeData theme) => Padding(
     padding: const EdgeInsets.only(top: 2),
     child: Text(
@@ -103,9 +114,7 @@ class _SuggestionFormRowState extends State<SuggestionFormRow> {
         children: [
           Row(
             children: [
-              Expanded(
-                child: Text(widget.label, style: theme.textTheme.bodyMedium),
-              ),
+              Expanded(child: _visibleLabel(theme)),
               ?widget.trailing,
             ],
           ),
@@ -113,6 +122,7 @@ class _SuggestionFormRowState extends State<SuggestionFormRow> {
           MarkdownNotesField(
             controller: widget.controller,
             focusNode: _focusNode,
+            semanticsLabel: widget.label,
             validator: widget.validator,
             maxLines: widget.maxLines,
             textCapitalization: widget.textCapitalization,
@@ -149,7 +159,7 @@ class _SuggestionFormRowState extends State<SuggestionFormRow> {
                 ? CrossAxisAlignment.start
                 : CrossAxisAlignment.center,
             children: [
-              Text(widget.label, style: theme.textTheme.bodyMedium),
+              _visibleLabel(theme),
               const SizedBox(width: 12),
               Expanded(
                 child: RawAutocomplete<String>(
@@ -158,28 +168,30 @@ class _SuggestionFormRowState extends State<SuggestionFormRow> {
                   optionsBuilder: (value) => _optionsFor(value.text),
                   fieldViewBuilder:
                       (context, controller, focusNode, onFieldSubmitted) {
-                        return TextFormField(
-                          controller: controller,
-                          focusNode: focusNode,
-                          validator: widget.validator,
-                          textCapitalization: widget.textCapitalization,
-                          maxLines: widget.maxLines,
-                          textAlign: widget.maxLines > 1
-                              ? TextAlign.start
-                              : TextAlign.end,
-                          style: theme.textTheme.bodyMedium,
-                          decoration: InputDecoration(
-                            isDense: true,
-                            filled: false,
-                            border: InputBorder.none,
-                            enabledBorder: InputBorder.none,
-                            focusedBorder: InputBorder.none,
-                            errorBorder: InputBorder.none,
-                            focusedErrorBorder: InputBorder.none,
-                            contentPadding: EdgeInsets.zero,
-                            hintText: widget.placeholder,
+                        return _namedField(
+                          TextFormField(
+                            controller: controller,
+                            focusNode: focusNode,
+                            validator: widget.validator,
+                            textCapitalization: widget.textCapitalization,
+                            maxLines: widget.maxLines,
+                            textAlign: widget.maxLines > 1
+                                ? TextAlign.start
+                                : TextAlign.end,
+                            style: theme.textTheme.bodyMedium,
+                            decoration: InputDecoration(
+                              isDense: true,
+                              filled: false,
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              errorBorder: InputBorder.none,
+                              focusedErrorBorder: InputBorder.none,
+                              contentPadding: EdgeInsets.zero,
+                              hintText: widget.placeholder,
+                            ),
+                            onFieldSubmitted: (_) => onFieldSubmitted(),
                           ),
-                          onFieldSubmitted: (_) => onFieldSubmitted(),
                         );
                       },
                   optionsViewBuilder: (context, onSelected, options) =>

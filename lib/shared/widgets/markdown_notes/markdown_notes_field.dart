@@ -30,6 +30,7 @@ class MarkdownNotesField extends StatefulWidget {
     this.style,
     this.onPreviewChanged,
     this.onAnnotate,
+    this.semanticsLabel,
   });
 
   final TextEditingController controller;
@@ -55,6 +56,11 @@ class MarkdownNotesField extends StatefulWidget {
   /// the pin only when this is set.
   final Future<AnnotationRequestResult?> Function(String selectedWords)?
   onAnnotate;
+
+  /// The field's name for a screen reader, for a host that shows its label
+  /// outside the field's decoration (a form row, #4166). The formatting bar
+  /// keeps buttons of its own; only the text field takes the name.
+  final String? semanticsLabel;
 
   @override
   State<MarkdownNotesField> createState() => _MarkdownNotesFieldState();
@@ -144,7 +150,7 @@ class _MarkdownNotesFieldState extends State<MarkdownNotesField> {
 
   @override
   Widget build(BuildContext context) {
-    final field = CallbackShortcuts(
+    final textField = CallbackShortcuts(
       bindings: {
         SingleActivator(
           LogicalKeyboardKey.keyB,
@@ -174,6 +180,10 @@ class _MarkdownNotesFieldState extends State<MarkdownNotesField> {
         decoration: widget.decoration ?? const InputDecoration(),
       ),
     );
+    final label = widget.semanticsLabel;
+    final field = label == null
+        ? textField
+        : Semantics(container: true, label: label, child: textField);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
