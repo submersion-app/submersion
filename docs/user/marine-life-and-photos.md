@@ -143,7 +143,7 @@ Mark who is in a photo or video, yourself included. People tags are what make a 
 
 To fix a tag, tap its box while tagging: drag the corners to fit, drag the middle to move it, or use **Change person** or **Remove tag**. Where a spot cannot be marked (a video that will not play on this device, for example), **Tag without a spot** records who is in it without a box.
 
-Tagged people appear as chips beside the species chips in the viewer; a video tag shows the moment, such as "Alex · 0:42", and marks it on the scrub bar. Tapping a buddy's chip opens that buddy, and tapping **Me** opens the library showing every photo you are tagged in. A buddy you tag gains a **Photos and videos** card on their page (see [Buddies](buddies-and-dive-centers.md#photos-and-videos-of-a-buddy)).
+Tagged people appear as chips beside the species chips in the viewer; a video tag shows the moment, such as "Alex · 0:42", and marks it on the scrub bar. Tapping a buddy's chip opens that buddy, and tapping **Me** opens the library showing every photo and video you are tagged in. A buddy you tag gains a **Photos and videos** card on their page (see [Buddies](buddies-and-dive-centers.md#photos-and-videos-of-a-buddy)).
 
 If you tag a buddy who is not logged on the photo's dive, Submersion offers to add them to that dive's buddies. Ignoring the offer leaves the dive as it was.
 
@@ -183,7 +183,7 @@ Per-host **credentials** can be saved under **Network sources**: enter a hostnam
 
 ## The Media library
 
-**Media** in the navigation shows every photo and video you have linked, as a **Grid**, grouped **By dive**, on a **Timeline** or on a **Map**. Filter it (**Filter media**) by **Photos** or **Videos**, **Site**, **Trip**, **Species**, **Tags** (once a tag applies to media), **People**, **Source**, **Dates**, or **Missing files** (media whose file can no longer be found), and sort it (**Sort media**). Within **Tags** or **People**, an item matches when it carries any of the ones you pick; the other filters all apply together. The filters in use show as chips above the library: tap a chip's **x** to remove that filter, or **Clear filters** to remove them all.
+**Media** in the navigation shows every photo and video you have linked, as a **Grid**, grouped **By dive**, on a **Timeline** or on a **Map**. Filter it (**Filter media**) by **Photos** or **Videos**, **Site**, **Trip**, **Species**, **Tags** (once a tag applies to media), **People**, **Source**, **Dates**, or **Missing files** (media whose file can no longer be found), and in **Grid** view sort it (**Sort media**). Within **Tags** or **People**, an item matches when it carries any of the ones you pick; the other filters all apply together. The filters in use show as chips above the library: tap a chip's **x** to remove that filter, or **Clear filters** to remove them all.
 
 ### Smart albums
 
