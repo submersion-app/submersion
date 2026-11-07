@@ -318,10 +318,13 @@ void main() {
       final tmpDir = await Directory.systemTemp.createTemp('parity_fallback');
       final tmp = File('${tmpDir.path}/base.json');
       await tmp.writeAsBytes(utf8.encode(jsonEncode(payload.toJson())));
-      final svc = SyncService(
-        syncRepository: SyncRepository(),
-        serializer: SyncDataSerializer(),
-      )..baseParseClientSpawn = (_) async => throw StateError('forced failure');
+      final svc =
+          SyncService(
+              syncRepository: SyncRepository(),
+              serializer: SyncDataSerializer(),
+            )
+            ..baseParseClientSpawn = (_, {gzipped = false}) async =>
+                throw StateError('forced failure');
       final counts = await svc.debugApplyBaseFile(tmp.path);
       final dumpFallback = await _exportCanonical();
       await tmpDir.delete(recursive: true);
@@ -330,6 +333,58 @@ void main() {
       expect(counts.recordsFailed, 0);
     },
   );
+
+  group('a gzipped base applies without expanding on disk (#4256)', () {
+    Future<void> expectParity({required bool inline}) async {
+      await _seedRichLibrary();
+      final payload = await SyncDataSerializer().exportData(
+        deviceId: 'peer',
+        deletions: await SyncRepository().getAllDeletions(),
+      );
+
+      await tearDownTestDatabase();
+      await setUpTestDatabase();
+      await SyncService(
+        syncRepository: SyncRepository(),
+        serializer: SyncDataSerializer(),
+      ).debugApplyPayload(payload);
+      final dumpInMemory = await _exportCanonical();
+
+      await tearDownTestDatabase();
+      await setUpTestDatabase();
+      final tmpDir = await Directory.systemTemp.createTemp('parity_gzipped');
+      addTearDown(() => tmpDir.delete(recursive: true));
+      final gz = File('${tmpDir.path}/base.json.gz');
+      await gz.writeAsBytes(
+        gzip.encode(utf8.encode(jsonEncode(payload.toJson()))),
+      );
+      final svc = SyncService(
+        syncRepository: SyncRepository(),
+        serializer: SyncDataSerializer(),
+      );
+      if (inline) {
+        svc.baseParseClientSpawn = (_, {gzipped = false}) async =>
+            throw StateError('forced failure');
+      }
+      final seen = <double>[];
+      final counts = await svc.debugApplyBaseFile(
+        gz.path,
+        gzipped: true,
+        onProgress: seen.add,
+      );
+
+      expect(await _exportCanonical(), dumpInMemory);
+      expect(counts.recordsFailed, 0);
+      expect(seen.last, 1.0);
+      expect(tmpDir.listSync().map((e) => e.path), [
+        gz.path,
+      ], reason: 'nothing is expanded beside the compressed copy');
+    }
+
+    test('through the worker', () => expectParity(inline: false));
+
+    test('through the inline fallback', () => expectParity(inline: true));
+  });
 
   group('base apply progress', () {
     Future<List<double>> applyWithProgress(SyncService svc) async {
@@ -383,7 +438,7 @@ void main() {
               syncRepository: SyncRepository(),
               serializer: SyncDataSerializer(),
             )
-            ..baseParseClientSpawn = (_) async =>
+            ..baseParseClientSpawn = (_, {gzipped = false}) async =>
                 throw StateError('forced failure'),
         );
         expectMonotonicToOne(seen);

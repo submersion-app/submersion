@@ -244,20 +244,26 @@ class NearbySyncProtocol {
       );
     }
     final gz = await _receiveParts(offer);
-    final File json;
-    try {
-      json = await _files.gunzip(gz);
-    } on Object catch (e) {
-      _log.warning('Nearby copy from $_peerId did not unpack: $e');
-      await _dropIncoming(gz);
-      throw const _DirectionFailed(
-        NearbyPeerError.applyFailed,
-        tellPeer: NearbyErrorCode.protocol,
-      );
+    // A full copy applies straight from the gzip, read through the decoder
+    // on each pass, so it is never expanded on disk beside the compressed
+    // one (issue #4256). A corrupt one fails in the first pass, which reads
+    // to the end before anything is written. A delta is small: it unpacks.
+    File? json;
+    if (kind == 'delta') {
+      try {
+        json = await _files.gunzip(gz);
+      } on Object catch (e) {
+        _log.warning('Nearby copy from $_peerId did not unpack: $e');
+        await _dropIncoming(gz);
+        throw const _DirectionFailed(
+          NearbyPeerError.applyFailed,
+          tellPeer: NearbyErrorCode.protocol,
+        );
+      }
     }
     try {
       final NearbyApplyResult result;
-      if (kind == 'delta') {
+      if (json != null) {
         final decoded = await const ChangesetCodec().decodeVerifiedChangeset(
           await json.readAsBytes(),
         );
@@ -269,7 +275,7 @@ class NearbySyncProtocol {
           peerDeviceId: _peerId,
         );
       } else {
-        result = await _engine.applyBaseFile(json.path, peerDeviceId: _peerId);
+        result = await _engine.applyBaseFile(gz.path, peerDeviceId: _peerId);
       }
       _applied += result.recordsApplied;
       // Rows the merge could not take: not a clean session, as on the cloud
@@ -287,7 +293,7 @@ class NearbySyncProtocol {
         tellPeer: NearbyErrorCode.protocol,
       );
     } finally {
-      if (await json.exists()) await json.delete();
+      if (json != null && await json.exists()) await json.delete();
     }
     await _dropIncoming(gz);
     final after = await _engine.watermarks();

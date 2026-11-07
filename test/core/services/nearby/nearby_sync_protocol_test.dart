@@ -241,6 +241,11 @@ void main() {
     expect(laptop.engine.exportFullCalls, 1);
     expect(phone.engine.appliedFiles.single, content);
     expect(lOut.sent, greaterThan(2 * 262144), reason: 'several parts');
+    // Applied from the received gzip, never expanded beside it (#4256).
+    expect(
+      phone.engine.stagedAtApply.single.where((n) => !n.endsWith('.gz')),
+      isEmpty,
+    );
   });
 
   test('a part slower than the message timeout still arrives, so a full '
