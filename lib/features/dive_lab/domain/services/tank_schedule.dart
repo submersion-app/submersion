@@ -35,8 +35,8 @@ class TankSchedule extends Equatable {
   /// The dive's schedule: back gas (else the first breathing tank) from
   /// [originTimestamp], then each recorded switch in time order. Switches to
   /// the tank already in force are dropped; two switches at one timestamp
-  /// keep the later-sorted one. A suit inflation bottle never starts it
-  /// (issue #4243).
+  /// keep the later-sorted one. A suit inflation bottle never starts it and
+  /// is not one of its tanks (issue #4243).
   factory TankSchedule.fromDive({
     required List<DiveTank> tanks,
     required List<ScenarioGasSwitch> switches,
@@ -80,7 +80,10 @@ class TankSchedule extends Equatable {
         TankInterval(startTimestamp: s.timestamp, tankId: s.tankId),
       );
     }
-    return TankSchedule(intervals: collapseIntervals(intervals), tanks: tanks);
+    return TankSchedule(
+      intervals: collapseIntervals(intervals),
+      tanks: breathing,
+    );
   }
 
   /// Drops intervals that repeat the tank already in force.

@@ -174,6 +174,15 @@ void main() {
       expect(s.intervals.map((i) => i.tankId), isNot(contains('suit')));
     });
 
+    test('is not one of the schedule\'s tanks', () {
+      final s = TankSchedule.fromDive(
+        tanks: const [back, suit, deco50],
+        switches: const [],
+      );
+
+      expect(s.tanks.map((t) => t.id), ['back', 'deco50']);
+    });
+
     test('is never the best tank for a depth', () {
       expect(bestTankForDepth(const [suit, back], 5, maxPpO2: 1.6)?.id, 'back');
       expect(bestTankForDepth(const [suit], 5, maxPpO2: 1.6), isNull);

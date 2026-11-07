@@ -2,7 +2,6 @@ import 'package:clock/clock.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/schedule_policy.dart' show AirBreakPolicy;
 import 'package:submersion/core/providers/provider.dart';
@@ -194,24 +193,11 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       id: _uuid.v4(),
       name: 'New Dive Plan',
       segments: [],
-      tanks: [_createDefaultTank()],
+      tanks: [defaultPlanTank(id: _uuid.v4())],
       waterType: water.waterType,
       salinityPpt: water.salinityPpt,
       createdAt: now,
       updatedAt: now,
-    );
-  }
-
-  static DiveTank _createDefaultTank() {
-    return DiveTank(
-      id: _uuid.v4(),
-      name: 'Primary',
-      volume: 11.1, // AL80
-      workingPressure: 207.0,
-      startPressure: TankPresets.planFillPressureBar,
-      gasMix: const GasMix(o2: 21, he: 0),
-      role: TankRole.backGas,
-      order: 0,
     );
   }
 

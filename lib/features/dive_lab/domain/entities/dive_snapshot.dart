@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_request.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/services/breathing_gas_switches.dart';
 
 /// What a `.sublab` file carries about the dive so a recipient without it
 /// can run the scenario: inputs only (profile, tanks, switches, pressures,
@@ -55,7 +56,47 @@ class DiveSnapshot extends Equatable {
   final String? computerName;
 
   /// From a logged dive and its primary profile.
+  ///
+  /// Breathing gas only: a suit inflation bottle is never played (issue
+  /// #4243), so the file names none. A switch to one moves to the breathing
+  /// cylinder on its mix or goes, as every breathing gas reading takes it,
+  /// and its pressure series is left out, where it would otherwise come back
+  /// on import as a series with no cylinder and count toward SAC.
   factory DiveSnapshot.fromDive({
+    required Dive dive,
+    required List<DiveProfilePoint> profile,
+    required List<ScenarioGasSwitch> gasSwitches,
+    required Map<String, List<TankPressureSample>> tankPressures,
+    String? siteName,
+    String? computerName,
+  }) {
+    final target = breathingSwitchTarget(dive.tanks);
+    final bottles = {
+      for (final t in dive.tanks)
+        if (!t.role.isBreathingGas) t.id,
+    };
+    return DiveSnapshot._fromDive(
+      dive: dive,
+      profile: profile,
+      gasSwitches: [
+        for (final s in gasSwitches)
+          if (target(s.tankId) case final tankId?)
+            tankId == s.tankId
+                ? s
+                : ScenarioGasSwitch(timestamp: s.timestamp, tankId: tankId),
+      ],
+      tankPressures: bottles.isEmpty
+          ? tankPressures
+          : {
+              for (final e in tankPressures.entries)
+                if (!bottles.contains(e.key)) e.key: e.value,
+            },
+      siteName: siteName,
+      computerName: computerName,
+    );
+  }
+
+  factory DiveSnapshot._fromDive({
     required Dive dive,
     required List<DiveProfilePoint> profile,
     required List<ScenarioGasSwitch> gasSwitches,
@@ -77,7 +118,6 @@ class DiveSnapshot extends Equatable {
     scrInjectionRate: dive.scrInjectionRate,
     assumedVo2: dive.assumedVo2,
     diluentGas: dive.diluentGas,
-    // Breathing gas only: a suit inflation bottle is never played (#4243).
     tanks: dive.breathingTanks,
     gasSwitches: gasSwitches,
     profile: [

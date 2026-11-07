@@ -55,13 +55,23 @@ void main() {
     expect(result.segments.first.gasMix, back.gasMix);
   });
 
-  test('a plan with only a bottle keeps it as back gas', () {
+  test('a plan with only a bottle gets a new plan\'s cylinder instead', () {
+    const smallSuit = DiveTank(
+      id: 'suit',
+      volume: 0.85,
+      startPressure: 200,
+      gasMix: GasMix(o2: 0),
+      role: TankRole.suitInflation,
+    );
     final result = withoutSuitInflationCylinders(
-      plan(const [suit], [segment('s1', 'suit')]),
+      plan(const [smallSuit], [segment('s1', 'suit')]),
     );
 
-    expect(result.tanks.single.id, 'suit');
-    expect(result.tanks.single.role, TankRole.backGas);
-    expect(result.segments.single.tankId, 'suit');
+    // None of the bottle's own numbers are planned on.
+    final tank = result.tanks.single;
+    expect(tank, defaultPlanTank(id: tank.id));
+    expect(tank.id, isNot('suit'));
+    expect(result.segments.single.tankId, tank.id);
+    expect(result.segments.single.gasMix, tank.gasMix);
   });
 }
