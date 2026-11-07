@@ -37,20 +37,23 @@ final tankQueryEntity = QueryEntity(
   subject: QuerySubject.tanks,
   table: 'dive_tanks',
   fields: [
-    // A suit inflation bottle holds no breathing gas (issue #4243), so its
-    // mix reads as unrecorded: an O2 or He condition, the dive filter's O2
-    // range among them, never matches the dive on it.
+    // A suit inflation bottle holds no breathing gas (issue #4243), so an O2
+    // or He condition, the dive filter's O2 range among them, never matches
+    // the dive on it. Its mix is still recorded, so `:none` reads the raw
+    // column and does not match a dive for carrying one.
     _num(
       'tanks',
       'o2',
       "CASE WHEN ${breathingTankSql('{r}')} THEN {r}.o2_percent END",
       dimension: FieldDimension.percent,
+      emptySql: '{r}.o2_percent IS NULL',
     ),
     _num(
       'tanks',
       'he',
       "CASE WHEN ${breathingTankSql('{r}')} THEN {r}.he_percent END",
       dimension: FieldDimension.percent,
+      emptySql: '{r}.he_percent IS NULL',
     ),
     _num(
       'tanks',

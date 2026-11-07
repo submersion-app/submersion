@@ -64,15 +64,24 @@ class _Targets {
   final List<DiveTank> _breathing;
   final bool hasSuit;
 
+  /// Where each suit inflation bottle's switches land, worked out once per
+  /// bottle rather than once per switch.
+  final Map<String, String?> _resolved = {};
+  late final DiveTank? _reference = sacReferenceTankOf(_breathing);
+
   /// The cylinder a switch to [tankId] counts against, or null to drop it.
   String? resolve(String tankId) {
     final tank = _byId[tankId];
     if (tank == null || tank.role.isBreathingGas) return tankId;
-    final matches = _breathing.where((t) => _sameGas(t, tank)).toList();
-    if (matches.isEmpty) return null;
-    final reference = sacReferenceTankOf(_breathing);
-    if (reference != null && matches.contains(reference)) return reference.id;
-    return matches.first.id;
+    return _resolved.putIfAbsent(tankId, () {
+      final matches = _breathing.where((t) => _sameGas(t, tank)).toList();
+      if (matches.isEmpty) return null;
+      final reference = _reference;
+      if (reference != null && matches.contains(reference)) {
+        return reference.id;
+      }
+      return matches.first.id;
+    });
   }
 
   static bool _sameGas(DiveTank a, DiveTank b) =>

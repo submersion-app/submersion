@@ -101,6 +101,10 @@ void main() {
     expect(await ids('tanks.o2 <= 21'), {'air'});
   });
 
+  test('carrying the bottle is not an unrecorded mix', () async {
+    expect(await ids('tanks.o2:none'), isEmpty);
+  });
+
   test("the dive filter's O2 range ignores the bottle", () async {
     final node = const DiveFilterState(maxO2Percent: 22).toQuery();
     final q = compileQuery(node!, dives, appQueryRegistry, rootAlias: 'd');

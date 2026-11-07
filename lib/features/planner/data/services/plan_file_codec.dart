@@ -336,7 +336,10 @@ domain.DivePlan _planFromMap(Map<String, dynamic> plan, DateTime timestamp) {
           o2: (tank['o2'] as num).toDouble(),
           he: (tank['he'] as num?)?.toDouble() ?? 0.0,
         ),
-        role: TankRole.values.asNameMap()[tank['role']] ?? TankRole.backGas,
+        role: TankRole.fromName(switch (tank['role']) {
+          final String name => name,
+          _ => null,
+        }),
         isTravelGas: tank['isTravelGas'] as bool? ?? false,
         order: (tank['order'] as num?)?.toInt() ?? index,
       ),

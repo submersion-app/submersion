@@ -1324,7 +1324,14 @@ class _TankEditorState extends ConsumerState<TankEditor> {
               (pressureBar != null && pressureBar > 0
                   ? liters * pressureBar / 28.3168
                   : liters);
-          _volumeController.text = formatRoundedForInput(value, 1);
+          // Without a pressure the field holds liters, so a small bottle
+          // keeps its two decimals there too (issue #4243).
+          final inLiters =
+              match == null && !(pressureBar != null && pressureBar > 0);
+          _volumeController.text = formatRoundedForInput(
+            value,
+            inLiters ? UnitFormatter.tankVolumeLiterDecimals(liters) : 1,
+          );
         } else {
           _volumeController.text = formatRoundedForInput(
             liters,
