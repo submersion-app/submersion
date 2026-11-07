@@ -57,7 +57,9 @@ class PlanSourceDiveCompareStrip extends ConsumerWidget {
             ? '--'
             : '${(actualDecoSeconds / 60).round()}′',
       ),
-      for (final tank in dive.tanks)
+      // Breathing gas only: a plan never holds a suit inflation bottle
+      // (issue #4243), so there is nothing to compare it with.
+      for (final tank in dive.breathingTanks)
         if (tank.pressureUsed != null && tank.volume != null)
           _CompareRow(
             label: context.l10n.plannerCanvas_compare_gas(

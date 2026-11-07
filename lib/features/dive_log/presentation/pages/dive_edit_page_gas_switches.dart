@@ -182,9 +182,13 @@ extension _GasSwitchEditing on _DiveEditPageState {
     final max = _gasSwitchMaxTimestamp;
     if (max != null && timestamp > max) timestamp = max;
     final activeId = _gasSwitchActiveTankIdAt(timestamp);
-    final tank = _tanks.firstWhere(
+    // A new switch goes to a breathing cylinder, never a suit inflation
+    // bottle (issue #4243).
+    final breathing = breathingTanks(_tanks);
+    final candidates = breathing.isEmpty ? _tanks : breathing;
+    final tank = candidates.firstWhere(
       (t) => t.id != activeId,
-      orElse: () => _tanks.first,
+      orElse: () => candidates.first,
     );
     final added = GasSwitch(
       id: _uuid.v4(),

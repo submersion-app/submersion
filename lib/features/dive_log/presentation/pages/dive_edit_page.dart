@@ -190,6 +190,7 @@ import 'package:submersion/features/dive_log/presentation/providers/shared_gear_
 import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
+import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 
 part 'dive_edit_page_annotations.dart';
 part 'dive_edit_page_gas_switches.dart';
@@ -3817,7 +3818,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   String _gasGearSummary() {
     final l10n = context.l10n;
-    final mix = _tanks.isNotEmpty ? _tanks.first.gasMix.name : null;
+    // The dive's gas, never a suit inflation bottle's (issue #4243).
+    final mix = breathingTanks(_tanks).firstOrNull?.gasMix.name;
     return [
       l10n.diveLog_edit_summary_tanks(_tanks.length),
       ?mix,

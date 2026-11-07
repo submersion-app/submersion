@@ -286,7 +286,8 @@ class ExcelExportService {
 
     for (var row = 0; row < dives.length; row++) {
       final dive = dives[row];
-      final tank = dive.tanks.isNotEmpty ? dive.tanks.first : null;
+      // The first breathing cylinder, never a suit inflation bottle (#4243).
+      final tank = dive.breathingTanks.firstOrNull;
       final gas = gasMixCells(tank?.gasMix);
       final rowData = <dynamic>[
         dive.diveNumber ?? '',
@@ -683,8 +684,9 @@ class ExcelExportService {
           ccrCount++;
         } else if (dive.diveMode == DiveMode.scr) {
           scrCount++;
-        } else if (dive.tanks.isNotEmpty) {
-          final primaryTank = dive.tanks.first;
+        } else if (dive.breathingTanks.isNotEmpty) {
+          // A suit inflation bottle is not the dive's gas (issue #4243).
+          final primaryTank = dive.breathingTanks.first;
           if (primaryTank.gasMix.he > 0) {
             trimixCount++;
           } else if (primaryTank.gasMix.o2 > 22) {
