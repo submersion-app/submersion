@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/text/fuzzy_match.dart';
 import 'package:submersion/shared/widgets/forms/autocomplete_options_list.dart';
+import 'package:submersion/shared/widgets/forms/form_field_semantics.dart';
 import 'package:submersion/shared/widgets/forms/form_style.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
@@ -85,6 +86,10 @@ class _SuggestionFormRowState extends State<SuggestionFormRow> {
     return [...substring, ...fuzzy.map((pair) => pair.$1)];
   }
 
+  /// The row's label beside its field, which carries the same words.
+  Widget _visibleLabel(ThemeData theme) =>
+      visibleFormLabel(widget.label, style: theme.textTheme.bodyMedium);
+
   Widget _caption(ThemeData theme) => Padding(
     padding: const EdgeInsets.only(top: 2),
     child: Text(
@@ -103,9 +108,7 @@ class _SuggestionFormRowState extends State<SuggestionFormRow> {
         children: [
           Row(
             children: [
-              Expanded(
-                child: Text(widget.label, style: theme.textTheme.bodyMedium),
-              ),
+              Expanded(child: _visibleLabel(theme)),
               ?widget.trailing,
             ],
           ),
@@ -113,6 +116,7 @@ class _SuggestionFormRowState extends State<SuggestionFormRow> {
           MarkdownNotesField(
             controller: widget.controller,
             focusNode: _focusNode,
+            semanticsLabel: widget.label,
             validator: widget.validator,
             maxLines: widget.maxLines,
             textCapitalization: widget.textCapitalization,
@@ -149,7 +153,7 @@ class _SuggestionFormRowState extends State<SuggestionFormRow> {
                 ? CrossAxisAlignment.start
                 : CrossAxisAlignment.center,
             children: [
-              Text(widget.label, style: theme.textTheme.bodyMedium),
+              _visibleLabel(theme),
               const SizedBox(width: 12),
               Expanded(
                 child: RawAutocomplete<String>(
@@ -158,28 +162,31 @@ class _SuggestionFormRowState extends State<SuggestionFormRow> {
                   optionsBuilder: (value) => _optionsFor(value.text),
                   fieldViewBuilder:
                       (context, controller, focusNode, onFieldSubmitted) {
-                        return TextFormField(
-                          controller: controller,
-                          focusNode: focusNode,
-                          validator: widget.validator,
-                          textCapitalization: widget.textCapitalization,
-                          maxLines: widget.maxLines,
-                          textAlign: widget.maxLines > 1
-                              ? TextAlign.start
-                              : TextAlign.end,
-                          style: theme.textTheme.bodyMedium,
-                          decoration: InputDecoration(
-                            isDense: true,
-                            filled: false,
-                            border: InputBorder.none,
-                            enabledBorder: InputBorder.none,
-                            focusedBorder: InputBorder.none,
-                            errorBorder: InputBorder.none,
-                            focusedErrorBorder: InputBorder.none,
-                            contentPadding: EdgeInsets.zero,
-                            hintText: widget.placeholder,
+                        return namedFormField(
+                          widget.label,
+                          TextFormField(
+                            controller: controller,
+                            focusNode: focusNode,
+                            validator: widget.validator,
+                            textCapitalization: widget.textCapitalization,
+                            maxLines: widget.maxLines,
+                            textAlign: widget.maxLines > 1
+                                ? TextAlign.start
+                                : TextAlign.end,
+                            style: theme.textTheme.bodyMedium,
+                            decoration: InputDecoration(
+                              isDense: true,
+                              filled: false,
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              errorBorder: InputBorder.none,
+                              focusedErrorBorder: InputBorder.none,
+                              contentPadding: EdgeInsets.zero,
+                              hintText: widget.placeholder,
+                            ),
+                            onFieldSubmitted: (_) => onFieldSubmitted(),
                           ),
-                          onFieldSubmitted: (_) => onFieldSubmitted(),
                         );
                       },
                   optionsViewBuilder: (context, onSelected, options) =>
