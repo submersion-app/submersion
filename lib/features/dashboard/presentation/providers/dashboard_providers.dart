@@ -4,7 +4,7 @@ import 'package:submersion/core/utils/local_day_changes.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 
-import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -18,8 +18,12 @@ import 'package:submersion/features/insights/presentation/providers/insights_pro
 /// iCloud sync applying remote changes directly to the DB -- so the home tab
 /// reflects new dives without an app restart (issue #217).
 ///
-/// Discovery is SQL-bounded (`getDiveSummaries(limit: 3)`); only the three
-/// winners hydrate as full [Dive]s. The dashboard no longer forces
+/// Discovery is SQL-bounded (`getDiveSummaries(limit: 3)`); the three
+/// winners then load in one batched read that decodes no samples (issue
+/// #4251), the way the trip lists read theirs. The cards draw their mini
+/// charts from the shared downsampled cache below, and the wide layout's
+/// interactive preview reads the newest dive in full on its own, so nothing
+/// here needs a dive's profile. The dashboard no longer forces
 /// `getAllDives()` on the first home frame (WS4, large-DB performance).
 final recentDivesProvider = FutureProvider<List<Dive>>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
@@ -32,11 +36,9 @@ final recentDivesProvider = FutureProvider<List<Dive>>((ref) async {
     diverId: currentDiverId,
     limit: 3,
   );
-  final recent = <Dive>[];
-  for (final summary in summaries) {
-    final dive = await repository.getDiveById(summary.id);
-    if (dive != null) recent.add(dive);
-  }
+  final recent = await _diveRowsInOrder(repository, [
+    for (final summary in summaries) summary.id,
+  ]);
 
   // Pre-load downsampled profiles so DiveListTile mini charts render
   // immediately (the batch cache is shared with the paginated dive list).
@@ -55,10 +57,30 @@ final recentDivesProvider = FutureProvider<List<Dive>>((ref) async {
     }
   }
 
-  // getDiveById does not load the dive_buddies junction, which the Dives tab
-  // gets from getAllDives; attach it so the cards' Buddy field matches (#3039).
-  return ref.read(buddyRepositoryProvider).withBuddies(recent);
+  return recent;
 });
+
+/// The dives [ids] name, in [ids]' order, for a card that lists them rather
+/// than drawing them (issue #4251).
+///
+/// One batched read with no series decoded, buddies included (#3039), where
+/// a `getDiveById` per dive decoded each one's merged profile and tank
+/// pressures. Values the row leaves to its samples still come from them:
+/// [DiveRepository.getDivesByIdsWithoutSamples] reads those dives in full.
+/// Its own order is newest first, which can break a tie differently from
+/// the query that picked [ids], so this keeps theirs. A dive deleted since
+/// [ids] was read is left out.
+Future<List<Dive>> _diveRowsInOrder(
+  DiveRepository repository,
+  List<String> ids,
+) async {
+  if (ids.isEmpty) return const [];
+  final byId = {
+    for (final dive in await repository.getDivesByIdsWithoutSamples(ids))
+      dive.id: dive,
+  };
+  return [for (final id in ids) ?byId[id]];
+}
 
 /// Current diver provider (re-exported for convenience)
 final dashboardDiverProvider = FutureProvider<Diver?>((ref) async {
@@ -162,12 +184,8 @@ final onThisDayProvider = FutureProvider<List<Dive>>((ref) async {
     excludeYear: now.year,
     diverId: currentDiverId,
   );
-  final dives = <Dive>[];
-  for (final id in ids) {
-    final dive = await repository.getDiveById(id);
-    if (dive != null) dives.add(dive);
-  }
-  return dives;
+  // The card shows year, site or name, depth and runtime: row values.
+  return _diveRowsInOrder(repository, ids);
 });
 
 /// Quick stats data class for dashboard.
