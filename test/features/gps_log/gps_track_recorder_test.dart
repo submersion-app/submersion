@@ -208,12 +208,19 @@ void main() {
   group('checkpoints (#4255)', () {
     test('stop waits for an in-flight checkpoint before finalizing, and '
         'ticks do not stack up behind a slow one', () async {
-      final observed = _ObservedRepository()..gate = Completer<void>();
+      final gate = Completer<void>();
+      final observed = _ObservedRepository()..gate = gate;
       final r = GpsTrackRecorder(
         repository: observed,
         positionStreamFactory: (_) => controller.stream,
         checkpointInterval: const Duration(milliseconds: 20),
       );
+      // A failed expectation must not leave the timer running into later
+      // files in the same isolate, or stop() waiting on the gate forever.
+      addTearDown(() {
+        if (!gate.isCompleted) gate.complete();
+        return r.stop();
+      });
       await r.start(notificationTitle: 't', notificationText: 'x');
       controller.add(fix(lat: 10, lon: 20));
       await pumpEventQueue();
@@ -227,7 +234,7 @@ void main() {
       await pumpEventQueue();
       expect(observed.events, isNot(contains('finalize')));
 
-      observed.gate!.complete();
+      gate.complete();
       await stopping;
       expect(observed.events, [
         'checkpoint:start',
@@ -244,6 +251,7 @@ void main() {
         positionStreamFactory: (_) => controller.stream,
         checkpointInterval: const Duration(milliseconds: 20),
       );
+      addTearDown(r.stop);
       await r.start(notificationTitle: 't', notificationText: 'x');
       controller.add(fix(lat: 10, lon: 20));
       // Each tick still runs after a failure, and recording carries on.

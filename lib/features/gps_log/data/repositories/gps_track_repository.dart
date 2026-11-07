@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:uuid/uuid.dart';
@@ -299,11 +300,6 @@ class GpsTrackRepository {
   /// mistaken for a dead one on another device.
   static final checkpointHeartbeat = staleOrphanThreshold ~/ 2;
 
-  /// The clock [checkpoint] measures [checkpointHeartbeat] against, in epoch
-  /// milliseconds; replaceable so a test can pass the heartbeat.
-  @visibleForTesting
-  int Function() debugNowMs = () => DateTime.now().millisecondsSinceEpoch;
-
   /// Test-only hook reporting what each [checkpoint] call read, encoded and
   /// wrote, so the work per checkpoint can be asserted (issue #4255).
   @visibleForTesting
@@ -325,7 +321,7 @@ class GpsTrackRepository {
     final rows = await _bufferRows(
       trackId,
       afterRowId: cursor?.lastRowId ?? 0,
-      timeOrder: cursor == null,
+      timeOrder: false,
     );
     if (rows.isEmpty) {
       // Nothing new, but other devices tell a live remote session from a
@@ -334,16 +330,16 @@ class GpsTrackRepository {
       // rewrites the blob well inside [staleOrphanThreshold].
       final heartbeatDue =
           cursor != null &&
-          debugNowMs() - cursor.writtenAtMs >=
+          clock.now().millisecondsSinceEpoch - cursor.writtenAtMs >=
               checkpointHeartbeat.inMilliseconds;
       if (heartbeatDue) {
-        await _writeEncodedBlob(
+        final writtenAtMs = await _writeEncodedBlob(
           trackId,
           encodeTrackPointTuples(cursor.tuples),
           pointCount: cursor.tuples.length,
           endTimeMs: null,
         );
-        _checkpoints[trackId] = cursor.withWrittenAt(debugNowMs());
+        _checkpoints[trackId] = cursor.withWrittenAt(writtenAtMs);
       }
       debugOnCheckpoint?.call((
         rowsRead: 0,
@@ -353,65 +349,24 @@ class GpsTrackRepository {
       return;
     }
 
-    final List<GpsTrackPointRow> encodedRows;
-    final List<String> tuples;
-    var rowsRead = rows.length;
-    if (cursor != null && _appendsInOrder(cursor.lastTimestamp, rows)) {
-      encodedRows = rows;
-      // Before formatting anything, so the cap bounds allocation here too.
-      checkTrackPointCount(cursor.tuples.length + rows.length);
-      tuples = [
-        ...cursor.tuples,
-        for (final r in rows) encodeTrackPointTuple(_pointOf(r)),
-      ];
-    } else {
-      // No cursor yet (rows is already the whole buffer in time order), or a
-      // fix stamped before one already written: appending it would leave the
-      // blob out of time order, so rebuild from the whole buffer.
-      encodedRows = cursor == null
-          ? rows
-          : await _bufferRows(trackId, timeOrder: true);
-      if (cursor != null) rowsRead += encodedRows.length;
-      checkTrackPointCount(encodedRows.length);
-      tuples = [
-        for (final r in encodedRows) encodeTrackPointTuple(_pointOf(r)),
-      ];
-    }
-
-    await _writeEncodedBlob(
+    final held = cursor ?? _CheckpointCursor.empty;
+    // Before formatting anything, so the cap bounds allocation here too.
+    checkTrackPointCount(held.tuples.length + rows.length);
+    final merged = held.merge(rows);
+    final writtenAtMs = await _writeEncodedBlob(
       trackId,
-      encodeTrackPointTuples(tuples),
-      pointCount: tuples.length,
+      encodeTrackPointTuples(merged.tuples),
+      pointCount: merged.tuples.length,
       endTimeMs: null,
     );
     // Only once the write landed: a cursor advanced past a failed write
     // would make the next checkpoint skip those fixes.
-    // From the rows encoded, not the first read: a rebuild's second read can
-    // include a fix appended in between, which must not be appended again.
-    _checkpoints[trackId] = _CheckpointCursor(
-      lastRowId: encodedRows.map((r) => r.rowId).reduce(_max),
-      lastTimestamp: encodedRows.map((r) => r.timestamp).reduce(_max),
-      tuples: tuples,
-      writtenAtMs: debugNowMs(),
-    );
+    _checkpoints[trackId] = merged.withWrittenAt(writtenAtMs);
     debugOnCheckpoint?.call((
-      rowsRead: rowsRead,
-      tuplesEncoded: encodedRows.length,
+      rowsRead: rows.length,
+      tuplesEncoded: rows.length,
       wroteBlob: true,
     ));
-  }
-
-  static int _max(int a, int b) => a > b ? a : b;
-
-  /// Whether [rows], in arrival order, never step back in time from
-  /// [lastTimestamp] or from each other.
-  static bool _appendsInOrder(int lastTimestamp, List<GpsTrackPointRow> rows) {
-    var previous = lastTimestamp;
-    for (final r in rows) {
-      if (r.timestamp < previous) return false;
-      previous = r.timestamp;
-    }
-    return true;
   }
 
   /// Ends the session: encodes the buffer, stamps [endTimeMs] (defaults to
@@ -454,13 +409,15 @@ class GpsTrackRepository {
     endTimeMs: endTimeMs,
   );
 
-  Future<void> _writeEncodedBlob(
+  /// Writes [blob] as [trackId]'s points and returns the updatedAt it was
+  /// stamped with, which is what other devices judge staleness by.
+  Future<int> _writeEncodedBlob(
     String trackId,
     Uint8List blob, {
     required int pointCount,
     required int? endTimeMs,
   }) async {
-    final now = DateTime.now().millisecondsSinceEpoch;
+    final now = clock.now().millisecondsSinceEpoch;
     await (_db.update(_db.gpsTracks)..where((t) => t.id.equals(trackId))).write(
       GpsTracksCompanion(
         points: Value(blob),
@@ -475,6 +432,7 @@ class GpsTrackRepository {
       localUpdatedAt: now,
     );
     SyncEventBus.notifyLocalChange();
+    return now;
   }
 
   /// How stale a buffer-less open track must be before recovery closes it.
@@ -639,29 +597,96 @@ class GpsTrackRepository {
   }
 }
 
-/// What a recording's last checkpoint wrote: the highest buffer rowId it
-/// read, the latest fix time in the blob, every tuple already encoded and
-/// when it was written,
-/// so the next checkpoint formats only fixes buffered since (issue #4255).
+/// What a recording's last checkpoint wrote (issue #4255): the highest
+/// buffer rowId it read, every tuple in the blob with its fix time, and the
+/// updatedAt the blob was written with. The next checkpoint formats only the
+/// fixes buffered since.
 class _CheckpointCursor {
   const _CheckpointCursor({
     required this.lastRowId,
-    required this.lastTimestamp,
+    required this.timestamps,
     required this.tuples,
     required this.writtenAtMs,
   });
 
+  /// A track no checkpoint has written yet.
+  static const empty = _CheckpointCursor(
+    lastRowId: 0,
+    timestamps: [],
+    tuples: [],
+    writtenAtMs: 0,
+  );
+
   final int lastRowId;
-  final int lastTimestamp;
+
+  /// The fix time of each of [tuples], in the same order. Ascending, ties in
+  /// arrival order: the order a full read of the buffer returns.
+  final List<int> timestamps;
   final List<String> tuples;
 
-  /// When this cursor's blob was written, for [GpsTrackRepository.checkpointHeartbeat].
+  /// For [GpsTrackRepository.checkpointHeartbeat].
   final int writtenAtMs;
 
   _CheckpointCursor withWrittenAt(int ms) => _CheckpointCursor(
     lastRowId: lastRowId,
-    lastTimestamp: lastTimestamp,
+    timestamps: timestamps,
     tuples: tuples,
     writtenAtMs: ms,
   );
+
+  /// This cursor with [rows] merged in where a full read of the buffer puts
+  /// them, formatting only [rows]. [writtenAtMs] carries over unchanged.
+  ///
+  /// Merged rather than appended because a fix can be stamped before one
+  /// already written: a keepalive point carries the clock at its tick while
+  /// a real fix carries the provider's fix time, which can be earlier, and
+  /// fix times are wall clock, so they step back an hour when DST ends.
+  /// Rebuilding the whole track for each of those brought the quadratic cost
+  /// straight back for a moving recording.
+  ///
+  /// [rows] must be the buffer rows after [lastRowId] in arrival order.
+  /// rowId autoincrements, so every one of them arrived after every tuple
+  /// held here, and on a tied fix time it goes after them.
+  _CheckpointCursor merge(List<GpsTrackPointRow> rows) {
+    final fresh = [...rows]
+      ..sort((a, b) {
+        final byTime = a.timestamp.compareTo(b.timestamp);
+        return byTime != 0 ? byTime : a.rowId.compareTo(b.rowId);
+      });
+    final mergedTimes = <int>[];
+    final mergedTuples = <String>[];
+    var kept = 0;
+    for (final r in fresh) {
+      final upTo = _firstAfter(r.timestamp, from: kept);
+      mergedTimes.addAll(timestamps.getRange(kept, upTo));
+      mergedTuples.addAll(tuples.getRange(kept, upTo));
+      kept = upTo;
+      mergedTimes.add(r.timestamp);
+      mergedTuples.add(encodeTrackPointTuple(GpsTrackRepository._pointOf(r)));
+    }
+    mergedTimes.addAll(timestamps.getRange(kept, timestamps.length));
+    mergedTuples.addAll(tuples.getRange(kept, tuples.length));
+    return _CheckpointCursor(
+      lastRowId: rows.last.rowId,
+      timestamps: mergedTimes,
+      tuples: mergedTuples,
+      writtenAtMs: writtenAtMs,
+    );
+  }
+
+  /// The index of the first held tuple, at or after [from], whose fix time
+  /// is later than [timestamp].
+  int _firstAfter(int timestamp, {required int from}) {
+    var low = from;
+    var high = timestamps.length;
+    while (low < high) {
+      final mid = (low + high) >> 1;
+      if (timestamps[mid] <= timestamp) {
+        low = mid + 1;
+      } else {
+        high = mid;
+      }
+    }
+    return low;
+  }
 }

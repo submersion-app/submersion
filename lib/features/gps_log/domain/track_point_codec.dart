@@ -102,7 +102,12 @@ String encodeTrackPointTuple(GpsTrackPoint p) =>
 /// [kMaxTrackPointCount] tuples.
 Uint8List encodeTrackPointTuples(List<String> tuples) {
   checkTrackPointCount(tuples.length);
-  return PlatformZlib.gzip(utf8.encode('[${tuples.join(',')}]'));
+  // One buffer, not a join wrapped in brackets, which copies the whole body
+  // a second time: up to about 17 MB at the point cap.
+  final body = StringBuffer('[')
+    ..writeAll(tuples, ',')
+    ..write(']');
+  return PlatformZlib.gzip(utf8.encode(body.toString()));
 }
 
 /// Throws [TrackPointCodecException] if a track of [count] points is more
