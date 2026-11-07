@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:window_manager/window_manager.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/router/app_router.dart';
@@ -47,7 +46,7 @@ class AppWriteConfirmer implements WriteConfirmer {
   }) : _context = context,
        _entityTables = entityTables,
        _timeout = timeout,
-       _raiseWindow = raiseWindow ?? _raiseAppWindow;
+       _raiseWindow = raiseWindow ?? raiseAppWindow;
 
   static const _log = LoggerService('AgentAccess');
 
@@ -106,8 +105,6 @@ class AppWriteConfirmer implements WriteConfirmer {
   }
 }
 
-Future<void> _raiseAppWindow() async {
-  if (!hasDesktopWindow()) return;
-  await windowManager.show();
-  await windowManager.focus();
-}
+/// Brings the app's window to the front so the diver sees the dialog.
+@visibleForTesting
+Future<void> raiseAppWindow() => revealDesktopWindow(focus: true);
