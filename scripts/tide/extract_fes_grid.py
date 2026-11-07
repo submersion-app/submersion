@@ -2,8 +2,10 @@
 """Extract Submersion's bundled FES2022 tide grid from FES2022b NetCDF files.
 
 Writes assets/data/tide/fes/ (manifest, 1-degree global layer, 0.1-degree
-coastal tiles) and the accuracy fixture
-test/features/tides/data/fixtures/fes_native_vectors.json in one pass.
+coastal tiles, packed as fes_grid_format.py describes), the accuracy fixture
+test/features/tides/data/fixtures/fes_native_vectors.json and the decoded
+digests in test/features/tides/data/fixtures/fes_grid_decoded_sha256.json in
+one pass.
 
 Needs about 3 GB of RAM and a venv with numpy and netCDF4:
     python3.14 -m venv ~/.venvs/submersion-tide
@@ -18,6 +20,7 @@ Usage (from the repo root):
 
 import argparse
 import datetime
+import hashlib
 import json
 import math
 import random
@@ -33,6 +36,7 @@ import fes_grid_format as fmt  # noqa: E402
 
 OUT = Path("assets/data/tide/fes")
 VECTORS_OUT = Path("test/features/tides/data/fixtures/fes_native_vectors.json")
+DIGESTS_OUT = Path("test/features/tides/data/fixtures/fes_grid_decoded_sha256.json")
 NATIVE = 30  # native cells per degree
 LAT_MIN, LAT_MAX = -80, 80
 COASTAL_STEP = 3  # native cells per coastal cell: 0.1 degree
@@ -167,6 +171,14 @@ def write(amp_c, ph_c, present_c, amp_g, ph_g, vectors):
     (OUT / "coastal").mkdir(parents=True)
     rows_c, cols_c = present_c.shape
     tiles = []
+    digests = {}
+
+    def write_packed(relative, decoded, pack):
+        # The digest is of the decoded bytes, so the Dart test can prove its
+        # unpacker restores every value exactly.
+        digests[relative] = hashlib.sha256(decoded).hexdigest()
+        (OUT / relative).write_bytes(pack(decoded))
+
     for tile_row in range((rows_c + TILE - 1) // TILE):
         for tile_col in range(cols_c // TILE):
             rs = slice(tile_row * TILE, min((tile_row + 1) * TILE, rows_c))
@@ -177,11 +189,13 @@ def write(amp_c, ph_c, present_c, amp_g, ph_g, vectors):
             amp_mm, ph_cd = fmt.quantize(amp_c[rs, cs], ph_c[rs, cs])
             data = fmt.encode_tile(tile_row, tile_col, present_c[rs, cs],
                                    amp_mm, ph_cd)
-            (OUT / "coastal" / f"tile_{tile_row}_{tile_col}.bin").write_bytes(data)
+            write_packed(f"coastal/tile_{tile_row}_{tile_col}.bin", data,
+                         fmt.pack_tile)
             tiles.append([tile_row, tile_col])
 
     g_amp_mm, g_ph_cd = fmt.quantize(amp_g, ph_g)
-    (OUT / "global.bin").write_bytes(fmt.encode_global(g_amp_mm, g_ph_cd))
+    write_packed("global.bin", fmt.encode_global(g_amp_mm, g_ph_cd),
+                 fmt.pack_global)
     fmt.write_manifest(
         OUT, model="FES2022b",
         extraction_date=datetime.date.today().isoformat(), band_km=30,
@@ -196,6 +210,7 @@ def write(amp_c, ph_c, present_c, amp_g, ph_g, vectors):
         "sites": [{"name": name, "lat": lat, "lon": lon, "constituents": vectors[name]}
                   for name, lat, lon in VECTOR_SITES],
     }, indent=1) + "\n")
+    DIGESTS_OUT.write_text(json.dumps(digests, indent=1, sort_keys=True) + "\n")
     size = sum(f.stat().st_size for f in OUT.rglob("*.bin"))
     print(f"Wrote {len(tiles)} tiles, {int(present_c.sum())} coastal cells, "
           f"{size / 1e6:.1f} MB")
@@ -209,7 +224,7 @@ def verify(fes_dir):
     picks = []
     for tile_row, tile_col in rng.sample(manifest["coastal"]["tiles"], 40):
         data = (OUT / "coastal" / f"tile_{tile_row}_{tile_col}.bin").read_bytes()
-        _, _, present, amp_mm, ph_cd = fmt.decode_tile(data)
+        _, _, present, amp_mm, ph_cd = fmt.decode_tile(fmt.unpack_tile(data))
         rows, cols = np.nonzero(present)
         for i in rng.sample(range(len(rows)), min(50, len(rows))):
             r, c = int(rows[i]), int(cols[i])

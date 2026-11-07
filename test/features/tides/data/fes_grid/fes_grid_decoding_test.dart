@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 
 import 'package:submersion/features/tides/data/services/fes_grid/fes_grid_layers.dart';
 import 'package:submersion/features/tides/data/services/fes_grid/fes_grid_manifest.dart';
+import 'package:submersion/features/tides/data/services/fes_grid/fes_grid_packing.dart';
 
 final _root = p.join(
   'test',
@@ -16,18 +17,31 @@ final _root = p.join(
   'fes_grid',
 );
 
-ByteData _bytes(String relative) {
-  final list = File(p.join(_root, relative)).readAsBytesSync();
-  return ByteData.sublistView(list);
-}
+/// Each fixture file's decoded bytes, the layout the parsers read, unpacked
+/// once in setUpAll.
+final _decoded = <String, ByteData>{};
+
+ByteData _bytes(String relative) => _decoded[relative]!;
 
 void main() {
   late FesGridManifest manifest;
 
-  setUpAll(() {
+  setUpAll(() async {
     manifest = FesGridManifest.parse(
       File(p.join(_root, FesGridManifest.manifestPath)).readAsStringSync(),
     );
+    for (final relative in [
+      FesGridManifest.globalPath,
+      for (final (row, col) in manifest.coastalTiles)
+        FesGridManifest.tilePath(row, col),
+    ]) {
+      final packed = ByteData.sublistView(
+        File(p.join(_root, relative)).readAsBytesSync(),
+      );
+      _decoded[relative] = relative == FesGridManifest.globalPath
+          ? await unpackFesGlobalLayer(packed)
+          : await unpackFesTile(packed);
+    }
   });
 
   test('manifest describes both layers and the written tiles', () {
@@ -95,8 +109,12 @@ void main() {
     test('a corrupt per-row count is rejected', () {
       // Tile (0,0): 16-byte header, 2-byte bitmap, then one uint32 per row.
       // Row 1 truly starts after 3 populated cells; claim 99.
+      final decoded = _bytes(FesGridManifest.tilePath(0, 0));
       final bytes = Uint8List.fromList(
-        File(p.join(_root, FesGridManifest.tilePath(0, 0))).readAsBytesSync(),
+        decoded.buffer.asUint8List(
+          decoded.offsetInBytes,
+          decoded.lengthInBytes,
+        ),
       );
       ByteData.sublistView(bytes).setUint32(22, 99, Endian.little);
       expect(

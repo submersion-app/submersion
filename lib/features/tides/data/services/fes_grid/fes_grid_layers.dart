@@ -7,6 +7,10 @@ const int fesBytesPerConstituent = 4;
 /// Amplitude marker for a constituent with no data in a cell.
 const int fesNoData = -1;
 
+/// Version of the decoded layout below, which the bundled packed files
+/// unpack to (see `fes_grid_packing.dart`).
+const int fesDecodedVersion = 1;
+
 /// A read-only view of one cell's constituent values.
 class FesCell {
   final ByteData _data;
@@ -42,7 +46,7 @@ bool _hasMagic(ByteData data, String magic) {
 
 /// One coastal tile: an occupancy bitmap, per-row counts and packed cells.
 class FesTile {
-  static const _magic = 'SFT1';
+  static const magic = 'SFT1';
   static const _headerBytes = 16;
 
   final int tileRow;
@@ -68,11 +72,11 @@ class FesTile {
   /// Parses a tile. Throws [FormatException] for a wrong magic, version,
   /// constituent count or length.
   static FesTile parse(ByteData data, {required int expectedConstituents}) {
-    if (data.lengthInBytes < _headerBytes || !_hasMagic(data, _magic)) {
+    if (data.lengthInBytes < _headerBytes || !_hasMagic(data, magic)) {
       throw const FormatException('Not an FES grid tile');
     }
     final version = data.getUint16(4, Endian.little);
-    if (version != 1) {
+    if (version != fesDecodedVersion) {
       throw FormatException('Unsupported FES tile version $version');
     }
     final count = data.getUint16(14, Endian.little);
@@ -140,7 +144,7 @@ class FesTile {
 
 /// The dense 1-degree global layer.
 class FesGlobalLayer {
-  static const _magic = 'SFG1';
+  static const magic = 'SFG1';
   static const _headerBytes = 12;
 
   final int rows;
@@ -155,14 +159,14 @@ class FesGlobalLayer {
     ByteData data, {
     required int expectedConstituents,
   }) {
-    if (data.lengthInBytes < _headerBytes || !_hasMagic(data, _magic)) {
+    if (data.lengthInBytes < _headerBytes || !_hasMagic(data, magic)) {
       throw const FormatException('Not an FES global layer');
     }
     final version = data.getUint16(4, Endian.little);
     final rows = data.getUint16(6, Endian.little);
     final cols = data.getUint16(8, Endian.little);
     final count = data.getUint16(10, Endian.little);
-    if (version != 1 || count != expectedConstituents) {
+    if (version != fesDecodedVersion || count != expectedConstituents) {
       throw const FormatException('Unsupported FES global layer');
     }
     if (data.lengthInBytes !=
