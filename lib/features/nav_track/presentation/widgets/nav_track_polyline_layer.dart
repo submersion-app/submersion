@@ -31,7 +31,19 @@ typedef NavTrackDrawnSample = ({
 /// [navTrackDrawnPoints]), so the extent a camera fits to can never drift
 /// from what is drawn. Empty without an anchor or with fewer than two
 /// points.
-List<NavTrackDrawnSample> navTrackDrawnSamples(NavTrack route) {
+///
+/// Remembered per [route] object: a route is immutable, and the polyline,
+/// its marker layer and the camera all read the same one, so the
+/// segmentation and correction over every sample run once per route rather
+/// than once per reader.
+List<NavTrackDrawnSample> navTrackDrawnSamples(NavTrack route) =>
+    _drawnSamples[route] ??= _walkDrawnSamples(route);
+
+final _drawnSamples = Expando<List<NavTrackDrawnSample>>(
+  'navTrackDrawnSamples',
+);
+
+List<NavTrackDrawnSample> _walkDrawnSamples(NavTrack route) {
   final anchor = route.anchor;
   final points = route.points;
   if (anchor == null || points.length < 2) return const [];
@@ -57,7 +69,7 @@ List<NavTrackDrawnSample> navTrackDrawnSamples(NavTrack route) {
       latLng: LatLng(geo.latitude, geo.longitude),
     ));
   }
-  return samples;
+  return List.unmodifiable(samples);
 }
 
 /// The map positions of [navTrackDrawnSamples], so a map embedding the layer

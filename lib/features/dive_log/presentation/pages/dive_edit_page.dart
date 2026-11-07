@@ -3607,21 +3607,31 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       chosen = startable.single;
     }
     final sourceId = chosen?.id;
-    final promotes = chosen != null && !chosen.isPrimary;
+    final primaryBefore = sources.where((s) => s.isPrimary).firstOrNull?.id;
 
     final saved = await context.pushNamed<bool>(
       'editProfile',
       pathParameters: {'diveId': diveId},
       queryParameters: {'mode': ?initialMode, 'sourceId': ?sourceId},
     );
-    if (saved == true && mounted) {
-      await _refreshAfterProfileSave(diveId, promoted: promotes);
-    }
+    if (saved != true || !mounted) return;
+    // Saving an edit of another source promotes it, and so can switching or
+    // deleting a revision in the editor, so ask which source is primary now
+    // rather than inferring it from the source chosen here.
+    final sourcesAfter = await ref
+        .read(diveRepositoryProvider)
+        .getDataSources(diveId);
+    final primaryAfter = sourcesAfter.where((s) => s.isPrimary).firstOrNull?.id;
+    if (!mounted) return;
+    await _refreshAfterProfileSave(
+      diveId,
+      promoted: primaryAfter != primaryBefore,
+    );
   }
 
-  /// A saved profile edit recomputed the dive's depths, and promoting another
-  /// source also replaced the fields taken from the primary source. Reload
-  /// them so saving this form does not write the old values back.
+  /// A saved profile edit recomputed the dive's depths, and a change of
+  /// primary source also replaced the fields taken from it. Reload them so
+  /// saving this form does not write the old values back.
   Future<void> _refreshAfterProfileSave(
     String diveId, {
     required bool promoted,
@@ -3640,13 +3650,30 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final l10n = context.l10n;
     final hasProfile = _existingDive?.profile.isNotEmpty == true;
     final profileLength = _existingDive?.profile.length ?? 0;
+    final diveId = _existingDive?.id;
     if (hasProfile) {
+      int? availableRevisions;
+      if (diveId != null) {
+        // `value` keeps the last history while it reloads, so the row does
+        // not drop back to the points-only label on every refresh.
+        final revisions = ref.watch(profileSeriesHistoryProvider(diveId)).value;
+        if (revisions != null) {
+          // Keep the row stable if history metadata is temporarily sparse.
+          availableRevisions = revisions.isNotEmpty ? revisions.length : 1;
+        }
+      }
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           FormRow.picker(
             label: l10n.diveLog_edit_row_diveProfile,
-            value: l10n.diveLog_edit_profile_points(profileLength),
+            value: availableRevisions == null || availableRevisions <= 1
+                ? l10n.diveLog_edit_profile_points(profileLength)
+                : l10n.diveLog_edit_profile_pointsAndProfiles(
+                    profileLength,
+                    availableRevisions,
+                  ),
             onTap: () => _openProfileEditor(_existingDive!.id),
           ),
           Consumer(
@@ -6594,7 +6621,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           );
           if (skipped.isNotEmpty) {
             _log.warning(
-              'Routes already linked elsewhere, left as is: $skipped',
+              'Routes not linked (linked elsewhere or deleted meanwhile): $skipped',
             );
           }
         } catch (e, stackTrace) {

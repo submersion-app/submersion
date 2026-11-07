@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v343: twin set pairings (issue #4242). A new synced
+/// Schema v345: twin set pairings (issue #4242). A new synced
 /// `cylinder_pairings` table, `cylinder_fills.filled_together_id` tying the
 /// two fills of a twin fill, and `dive_tanks.twin_passport_id` naming the
 /// second cylinder of a twin set tank. No backfill.
@@ -42,18 +42,18 @@ void main() {
           .map((c) => c.read<String>('name'))
           .toList();
 
-  test('v343 is in the ladder and keeps the floor', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(343));
-    expect(AppDatabase.migrationVersions, contains(343));
+  test('v345 is in the ladder and keeps the floor', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(345));
+    expect(AppDatabase.migrationVersions, contains(345));
     expect(
-      AppDatabase.migrationStepCount(342),
-      AppDatabase.migrationStepCount(343) + 1,
+      AppDatabase.migrationStepCount(344),
+      AppDatabase.migrationStepCount(345) + 1,
     );
-    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(343));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(345));
   });
 
-  test('upgrading from v342 creates cylinder_pairings', () async {
-    final db = AppDatabase(dbAt(342));
+  test('upgrading from v344 creates cylinder_pairings', () async {
+    final db = AppDatabase(dbAt(344));
     addTearDown(db.close);
     expect(
       await columnsOf(db, 'cylinder_pairings'),
@@ -72,7 +72,7 @@ void main() {
   });
 
   test('existing fills and tanks gain empty twin columns', () async {
-    final db = AppDatabase(dbAt(342));
+    final db = AppDatabase(dbAt(344));
     addTearDown(db.close);
     final fill = await db
         .customSelect('SELECT filled_together_id FROM cylinder_fills')
@@ -86,7 +86,7 @@ void main() {
   });
 
   test('both cylinders of a pairing cascade from equipment', () async {
-    final db = AppDatabase(dbAt(342));
+    final db = AppDatabase(dbAt(344));
     addTearDown(db.close);
     final keys = await db
         .customSelect("PRAGMA foreign_key_list('cylinder_pairings')")
@@ -99,7 +99,7 @@ void main() {
   });
 
   test('the twin set indexes exist after open', () async {
-    final db = AppDatabase(dbAt(342));
+    final db = AppDatabase(dbAt(344));
     addTearDown(db.close);
     final names =
         (await db
@@ -121,7 +121,7 @@ void main() {
   });
 
   test('asserting the schema twice is harmless', () async {
-    final db = AppDatabase(dbAt(342));
+    final db = AppDatabase(dbAt(344));
     addTearDown(db.close);
     await db.assertTwinSetSchemaForTest();
     await db.assertTwinSetSchemaForTest();

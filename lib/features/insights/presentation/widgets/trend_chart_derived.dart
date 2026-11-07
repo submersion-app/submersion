@@ -35,7 +35,7 @@ class TrendChartDerived {
 
   /// [points] and each of [secondary] are raw per-dive series, in any order;
   /// at least one must hold a point. [referenceValue] is a marker the y axis
-  /// has to reach.
+  /// has to reach. Weekly buckets start on [firstWeekday].
   factory TrendChartDerived.compute({
     required List<TrendDataPoint> points,
     List<List<TrendDataPoint>> secondary = const [],
@@ -44,11 +44,13 @@ class TrendChartDerived {
     bool showRollingMean = false,
     bool showLinearFit = false,
     double? referenceValue,
+    int firstWeekday = DateTime.monday,
   }) {
     final raw = aggregation == TrendAggregation.none;
-    final buckets = aggregate(points, aggregation);
+    final buckets = aggregate(points, aggregation, firstWeekday: firstWeekday);
     final secondaryBuckets = [
-      for (final s in secondary) aggregate(s, aggregation),
+      for (final s in secondary)
+        aggregate(s, aggregation, firstWeekday: firstWeekday),
     ];
     // The x range spans every drawn bucket; the primary may be empty when
     // the secondaries carry the data.

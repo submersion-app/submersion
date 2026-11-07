@@ -7,8 +7,8 @@ const Set<String> kMeasuredDiveFields = {
   'isPlanned', 'diveNumber', 'computerId',
   // when the computer says the dive ran
   'entryTime', 'exitTime', 'bottomTime', 'runtime', 'surfaceInterval',
-  // depths and temperature
-  'maxDepth', 'avgDepth', 'waterTemp',
+  // depths, temperature and the surface pressure
+  'maxDepth', 'avgDepth', 'waterTemp', 'surfacePressure',
   // the record itself
   'profile', 'profileSpan', 'tanks',
   // deco and exposure the computer reports
@@ -63,7 +63,6 @@ const Set<String> kHumanDiveFields = {
   'exitMethod',
   'waterType',
   'altitude',
-  'surfacePressure',
   'diveTypeIds',
   'diveType',
   'tags',

@@ -1,4 +1,3 @@
-import 'package:clock/clock.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -7,7 +6,6 @@ import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/schedule_policy.dart' show AirBreakPolicy;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
-import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -28,7 +26,6 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/services/ccr_loop_slots.dart';
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
-import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 
@@ -75,14 +72,6 @@ final planCalculatorServiceProvider = Provider<PlanCalculatorService>((ref) {
 
 /// StateNotifier for managing dive plan editing state.
 class DivePlanNotifier extends StateNotifier<DivePlanState> {
-  /// Snapshot taken at construction, deliberately not kept in sync with the
-  /// diver's settings -- see [divePlanNotifierProvider] for why this notifier
-  /// cannot subscribe to them. Only safe for calls that read no setting, which
-  /// today means [PlanCalculatorService.generateProfilePoints] (pure geometry).
-  /// Deco math belongs in [planOutcomeProvider], which recomputes on every
-  /// settings change.
-  final PlanCalculatorService _calculator;
-
   /// The diver's current planner config, for the few edits that author
   /// segments themselves (the quick plan's descent, a mission's round
   /// trip) and so need an unset rate resolved against Settings now rather
@@ -130,8 +119,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   /// [newPlan] are provably built from the same one. Dart forbids reading a
   /// field in an initializer list, so without this hop the private constructor
   /// would have to repeat each `??` in its `super` call.
-  factory DivePlanNotifier(
-    PlanCalculatorService calculator, {
+  factory DivePlanNotifier({
     PlanEngineConfig Function()? getEngineConfig,
     PlannerWaterType Function()? getDefaultPlannerWaterType,
     CcrSetpoints Function()? getDefaultCcrSetpoints,
@@ -139,7 +127,6 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     Future<List<EquipmentItem>> Function()? loadEquipment,
   }) {
     return DivePlanNotifier._(
-      calculator,
       getEngineConfig: getEngineConfig ?? (() => const PlanEngineConfig()),
       getDefaultPlannerWaterType:
           getDefaultPlannerWaterType ?? (() => PlannerWaterType.salt),
@@ -149,8 +136,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     );
   }
 
-  DivePlanNotifier._(
-    this._calculator, {
+  DivePlanNotifier._({
     required PlanEngineConfig Function() getEngineConfig,
     required PlannerWaterType Function() getDefaultPlannerWaterType,
     required CcrSetpoints Function() getDefaultCcrSetpoints,
@@ -1220,61 +1206,19 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   void markSaved() {
     state = state.copyWith(isDirty: false);
   }
-
-  /// Convert the plan to a Dive entity for saving.
-  ///
-  /// The dive gets a fresh id (converting twice yields two dives) and its
-  /// tanks shed their plan-side ids so the repository generates new rows.
-  Dive toDive() {
-    // Generate profile points from segments
-    final profilePoints = _calculator.generateProfilePoints(state.segments);
-
-    // Calculate max/avg depth
-    double maxDepth = 0;
-    double totalDepthTime = 0;
-    int totalTime = 0;
-
-    for (final leg in const SegmentChain().resolve(state.segments)) {
-      if (leg.endDepth > maxDepth) maxDepth = leg.endDepth;
-      totalDepthTime += leg.avgDepth * leg.durationSeconds;
-      totalTime += leg.durationSeconds;
-    }
-
-    final avgDepth = totalTime > 0 ? totalDepthTime / totalTime : 0.0;
-
-    return Dive(
-      id: _uuid.v4(),
-      name: state.name,
-      // Dive times are clock digits stamped UTC; so is the plan's start.
-      dateTime: state.startDateTime ?? asWallClockUtc(clock.now()),
-      runtime: Duration(seconds: totalTime),
-      maxDepth: maxDepth,
-      avgDepth: avgDepth,
-      tanks: [for (final tank in state.tanks) tank.copyWith(id: '')],
-      profile: profilePoints,
-      notes: state.notes,
-      altitude: state.altitude,
-      waterType: state.waterType,
-      gradientFactorLow: state.gfLow,
-      gradientFactorHigh: state.gfHigh,
-      isPlanned: true,
-    );
-  }
 }
 
 /// Provider for the dive plan notifier.
 ///
 /// This provider must never rebuild: rebuilding a StateNotifierProvider
 /// constructs a new notifier, which throws away the plan the diver is editing.
-/// Everything it needs is therefore resolved with `read` rather than `watch` --
-/// settings through closures evaluated when a new plan is created, and
-/// [planCalculatorServiceProvider] once at construction. Watching the latter
-/// rebound the notifier on every deco settings change, silently discarding an
-/// in-progress plan.
+/// Everything it needs is therefore resolved with `read` rather than `watch`:
+/// settings through closures evaluated when a new plan is created or a call
+/// needs them. Watching a settings provider here rebound the notifier on every
+/// deco settings change, silently discarding an in-progress plan.
 final divePlanNotifierProvider =
     StateNotifierProvider<DivePlanNotifier, DivePlanState>((ref) {
       final read = ref.read;
-      final calculator = read(planCalculatorServiceProvider);
       // A plan entering CCR mode starts on the diver's own CCR ppO2 limits.
       CcrSetpoints defaultCcrSetpoints() => (
         low: read(ccrSetpointLowProvider),
@@ -1282,7 +1226,6 @@ final divePlanNotifierProvider =
       );
 
       final notifier = DivePlanNotifier(
-        calculator,
         getEngineConfig: () => read(planEngineConfigProvider),
         getDefaultPlannerWaterType: () =>
             read(settingsProvider).defaultPlannerWaterType,

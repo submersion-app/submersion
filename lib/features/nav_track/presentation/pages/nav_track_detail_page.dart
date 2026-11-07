@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/router/track_locations.dart';
+import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -24,11 +25,13 @@ import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_matcher.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
 import 'package:submersion/features/nav_track/presentation/nav_track_dive_label.dart';
+import 'package:submersion/features/nav_track/presentation/nav_track_file_actions.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_3d_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_correction_card.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_dive_choice_sheet.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_equipment_picker_sheet.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_marker_layer.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_recorder_card.dart';
 import 'package:submersion/features/tracks/domain/track_list_item.dart';
@@ -265,7 +268,7 @@ class NavTrackDetailPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final routeAsync = ref.watch(navTrackByIdProvider(trackId));
+    final routeAsync = ref.watch(navTrackWithMarkersProvider(trackId));
     final units = ref.watch(unitFormatterProvider);
     final l10n = context.l10n;
 
@@ -313,37 +316,68 @@ class NavTrackDetailPage extends ConsumerWidget {
                 onPressed: () =>
                     context.push(underwaterTrackSeascapeLocation(route.id)),
               ),
-              PopupMenuButton<String>(
-                onSelected: (value) async {
-                  switch (value) {
-                    case 'rename':
-                      await _rename(context, ref, route);
-                    case 'unlink':
-                      await _unlink(ref, route);
-                    case 'delete':
-                      await _delete(context, ref, route);
-                  }
-                },
-                itemBuilder: (context) => [
-                  changeLogHistoryMenuItem(
-                    context,
-                    rootTable: 'nav_tracks',
-                    rootId: trackId,
-                  ),
-                  PopupMenuItem(
-                    value: 'rename',
-                    child: Text(l10n.navTrack_detail_menuRename),
-                  ),
-                  if (route.diveId != null)
-                    PopupMenuItem(
-                      value: 'unlink',
-                      child: Text(l10n.navTrack_common_unlink),
+              // A Builder so the export can anchor the iPad share popover to
+              // this button rather than to the whole page.
+              Builder(
+                builder: (menuContext) => PopupMenuButton<String>(
+                  onSelected: (value) async {
+                    switch (value) {
+                      case 'rename':
+                        await _rename(context, ref, route);
+                      case 'unlink':
+                        await _unlink(ref, route);
+                      case 'updateFromFile':
+                        await const NavTrackFileActions().updateFromFile(
+                          context,
+                          ref,
+                          route,
+                        );
+                      case 'exportCsv':
+                        await const NavTrackFileActions().exportCsv(
+                          context,
+                          ref,
+                          route,
+                          shareOrigin: shareAnchorFrom(menuContext),
+                        );
+                      case 'delete':
+                        await _delete(context, ref, route);
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    changeLogHistoryMenuItem(
+                      context,
+                      rootTable: 'nav_tracks',
+                      rootId: trackId,
                     ),
-                  PopupMenuItem(
-                    value: 'delete',
-                    child: Text(l10n.navTrack_common_delete),
-                  ),
-                ],
+                    PopupMenuItem(
+                      value: 'rename',
+                      child: Text(l10n.navTrack_detail_menuRename),
+                    ),
+                    if (route.diveId != null)
+                      PopupMenuItem(
+                        value: 'unlink',
+                        child: Text(l10n.navTrack_common_unlink),
+                      ),
+                    // Only an ENC route is read from a file this app can
+                    // read again and keeps that file (issue #4231).
+                    if (route.source == NavTrackSource.seacraftEnc) ...[
+                      PopupMenuItem(
+                        key: const ValueKey('nav-track-update-from-file'),
+                        value: 'updateFromFile',
+                        child: Text(l10n.navTrack_detail_menuUpdateFromFile),
+                      ),
+                      PopupMenuItem(
+                        key: const ValueKey('nav-track-export-csv'),
+                        value: 'exportCsv',
+                        child: Text(l10n.navTrack_detail_menuExportCsv),
+                      ),
+                    ],
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Text(l10n.navTrack_common_delete),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -472,6 +506,7 @@ class _RouteMapState extends ConsumerState<_RouteMap> {
         children: [
           submersionTileLayer(ref),
           NavTrackPolylineLayer(route: widget.route),
+          NavTrackMarkerLayer(route: widget.route),
           const MapAttribution(),
           Positioned(
             top: 8,

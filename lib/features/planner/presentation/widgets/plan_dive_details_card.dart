@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
@@ -73,6 +74,10 @@ class _PlanDiveDetailsCardState extends ConsumerState<PlanDiveDetailsCard> {
       ),
     );
     final hasInterval = index > 0 || followsDive || carriesInterval;
+    // A plan whose dive has been dived is locked (issue #3565): its details
+    // read, with a way to the dive itself.
+    final locked = ref.watch(planLockedProvider);
+    final divedId = ref.watch(selectedDiveActualProvider)?.followed.id;
 
     final l10n = context.l10n;
     final theme = Theme.of(context);
@@ -100,12 +105,22 @@ class _PlanDiveDetailsCardState extends ConsumerState<PlanDiveDetailsCard> {
                     ),
                   ),
                 ),
+                if (divedId != null)
+                  IconButton(
+                    key: const Key('planDetailsOpenInLog'),
+                    visualDensity: VisualDensity.compact,
+                    icon: const Icon(Icons.open_in_new),
+                    tooltip: l10n.plannerSeries_openInLog,
+                    // push, not go: the planner stays underneath.
+                    onPressed: () => context.push('/dives/$divedId'),
+                  ),
               ],
             ),
             const SizedBox(height: 12),
             TextField(
               key: const Key('diveNameField'),
               controller: _nameController,
+              readOnly: locked,
               textCapitalization: TextCapitalization.sentences,
               inputFormatters: [
                 LengthLimitingTextInputFormatter(
@@ -124,12 +139,19 @@ class _PlanDiveDetailsCardState extends ConsumerState<PlanDiveDetailsCard> {
                   .read(planSeriesNotifierProvider.notifier)
                   .renameSelected,
             ),
-            const SizedBox(height: 16),
-            const PlanDiveStartField(),
-            const SizedBox(height: 16),
-            PlanSurfaceIntervalField(enabled: hasInterval),
-            const SizedBox(height: 16),
-            const PlanDiveSiteField(),
+            IgnorePointer(
+              ignoring: locked,
+              child: Column(
+                children: [
+                  const SizedBox(height: 16),
+                  const PlanDiveStartField(),
+                  const SizedBox(height: 16),
+                  PlanSurfaceIntervalField(enabled: hasInterval),
+                  const SizedBox(height: 16),
+                  const PlanDiveSiteField(),
+                ],
+              ),
+            ),
           ],
         ),
       ),

@@ -185,7 +185,7 @@ class CylinderFills extends Table {
   TextColumn get source => text().withDefault(const Constant('manual'))();
   TextColumn get notes => text().withDefault(const Constant(''))();
 
-  /// v343: the id the two fills of one twin set fill share (issue #4242), so
+  /// v345: the id the two fills of one twin set fill share (issue #4242), so
   /// an edit or delete of one can offer to follow on the other. Null for a
   /// fill recorded on one cylinder.
   TextColumn get filledTogetherId => text().nullable()();
@@ -199,7 +199,7 @@ class CylinderFills extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// v343: two cylinders manifolded as a twin set over a range of whole days
+/// v345: two cylinders manifolded as a twin set over a range of whole days
 /// (issue #4242). [pairedOn] and [unpairedOn] are calendar days stored as
 /// epoch milliseconds of UTC midnight of that date; the range covers
 /// [pairedOn] up to the day before [unpairedOn] and is open while it is

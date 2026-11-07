@@ -8243,6 +8243,26 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_profile_pointsAndProfiles(
+    num pointCount,
+    num profileCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      pointCount,
+      locale: localeName,
+      other: '$pointCount punten',
+      one: '1 punt',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      profileCount,
+      locale: localeName,
+      other: '$profileCount revisies',
+      one: '1 revisie',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
   String get diveLog_edit_row_addSite => 'Duikstek toevoegen';
 
   @override
@@ -11074,9 +11094,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get divePlanner_action_addTank => 'Fles toevoegen';
-
-  @override
-  String get divePlanner_action_convertToDive => 'Omzetten naar duik';
 
   @override
   String get divePlanner_action_deletePlan => 'Plan verwijderen';
@@ -20827,9 +20844,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerCanvas_contingency_turnRule => 'Keerdruk-regel';
 
   @override
-  String get plannerCanvas_convert_success => 'Duik aangemaakt vanuit plan';
-
-  @override
   String get plannerCanvas_convert_view => 'Bekijk';
 
   @override
@@ -20907,6 +20921,17 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get plannerSeries_openInLog => 'Openen in logboek';
+
+  @override
+  String get plannerSeries_view_actual => 'Werkelijk';
+
+  @override
+  String get plannerSeries_view_plan => 'Plan';
+
+  @override
+  String plannerSeries_saved_divedCount(int dived, int count) {
+    return '$dived van $count gedoken';
+  }
 
   @override
   String get plannerSeries_stopFollowing => 'Niet meer volgen';
@@ -21061,8 +21086,75 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerSeries_fillAll => 'Alle flessen vullen';
 
   @override
-  String get plannerSeries_convertUnavailable =>
-      'Een reeks duiken kan nog niet worden omgezet in gelogde duiken';
+  String get plannerSeries_createPlannedDive => 'Geplande duik aanmaken';
+
+  @override
+  String get plannerSeries_createPlannedDives => 'Geplande duiken aanmaken';
+
+  @override
+  String get plannerSeries_updatePlannedDive => 'Geplande duik bijwerken';
+
+  @override
+  String get plannerSeries_updatePlannedDives => 'Geplande duiken bijwerken';
+
+  @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return '$dive heeft een kritieke waarschuwing, dus de geplande duiken zijn niet bijgewerkt';
+  }
+
+  @override
+  String plannerSeries_cannotUpdateEmpty(String dive) {
+    return '$dive heeft geen segmenten, dus de geplande duiken zijn niet bijgewerkt';
+  }
+
+  @override
+  String get plannerSeries_cannotUpdateEmptyPlan =>
+      'Dit plan heeft geen segmenten, dus het is niet in het logboek gezet';
+
+  @override
+  String plannerSeries_created(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count geplande duiken toegevoegd aan het logboek',
+      one: '$count geplande duik toegevoegd aan het logboek',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerSeries_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count geplande duiken bijgewerkt in het logboek',
+      one: '$count geplande duik bijgewerkt in het logboek',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_title => 'Uit het logboek verwijderen?';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count geplande duiken die niet meer in deze reeks zitten, staan nog in het logboek.',
+      one:
+          '$count geplande duik die niet meer in deze reeks zit, staat nog in het logboek.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'Behouden';
+
+  @override
+  String get plannerSeries_allDived =>
+      'Alle duiken van dit plan zijn al gedoken, er is niets bij te werken';
 
   @override
   String get plannerSeries_missionUnavailable =>
@@ -25893,6 +25985,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_timeFormat => 'Tijdnotatie';
 
   @override
+  String get settings_conflict_field_firstDayOfWeek => 'Eerste dag van de week';
+
+  @override
   String get settings_conflict_field_timeOffsetSeconds => 'Tijdsverschil';
 
   @override
@@ -29383,10 +29478,38 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_units_dialog_weightUnit => 'Gewichtseenheid';
 
   @override
-  String get settings_units_header_individualUnits => 'Individuele eenheden';
+  String get settings_units_header_gasPlanning => 'Gas en planning';
 
   @override
-  String get settings_units_header_timeDateFormat => 'Tijd- & datumnotatie';
+  String get settings_units_header_displayFormats => 'Weergave & notaties';
+
+  @override
+  String get settings_units_appliesTo => 'Geldt voor de volgende eenheden';
+
+  @override
+  String get settings_units_gasConsumption_unitHint =>
+      'Eenheid volgt uit druk en volume';
+
+  @override
+  String get settings_units_firstDayOfWeek => 'Eerste dag van de week';
+
+  @override
+  String get settings_units_dialog_firstDayOfWeek => 'Eerste dag van de week';
+
+  @override
+  String get settings_units_firstDayOfWeek_auto => 'Automatisch';
+
+  @override
+  String settings_units_firstDayOfWeek_autoResolved(String day) {
+    return 'Automatisch ($day)';
+  }
+
+  @override
+  String get settings_units_firstDayOfWeek_auto_subtitle =>
+      'Volgt de regio van het apparaat';
+
+  @override
+  String get settings_units_header_timeDateFormat => 'Tijd & datum';
 
   @override
   String get settings_units_header_unitSystem => 'Eenhedensysteem';
@@ -39722,7 +39845,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrLabel_tow_speed_factor => 'Snelheidsfactor bij slepen';
 
   @override
-  String get attrLabel_sku => 'SKU';
+  String get attrLabel_sku => 'Artikelnummer (SKU)';
+
+  @override
+  String get attrHelper_sku => 'Van de bon of het etiket, niet het serienummer';
 
   @override
   String get attrLabel_retailer => 'Verkoper';
@@ -40887,6 +41013,12 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_planned_bannerBody =>
       'Wacht op duikcomputergegevens. Markeer als gelogd als je zonder computer hebt gedoken.';
+
+  @override
+  String get diveLog_planned_openInPlanner => 'Openen in planner';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'Bekijken in planner';
 
   @override
   String get diveLog_detail_menu_markLogged => 'Markeren als gelogd';
@@ -50467,6 +50599,19 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String settings_syncDevices_summary_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count verwijderde apparaten worden onthouden zodat ze geen gewiste gegevens kunnen terugbrengen.',
+      one:
+          '$count verwijderd apparaat wordt onthouden zodat het geen gewiste gegevens kan terugbrengen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String settings_syncDevices_tile_filesSize(int count, String size) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -52083,13 +52228,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_profileEditor_applyToSelection => 'Op selectie toepassen';
 
   @override
-  String get diveLog_profileEditor_outlierDetection => 'Uitschieterdetectie';
+  String get diveLog_profileEditor_cleanup => 'Opschoning';
 
   @override
-  String get diveLog_profileEditor_detect => 'Detecteren';
+  String get diveLog_profileEditor_detectOutliers => 'Uitschieters detecteren';
 
   @override
-  String get diveLog_profileEditor_removeAll => 'Alles verwijderen';
+  String get diveLog_profileEditor_removeOutliers => 'Uitschieters verwijderen';
 
   @override
   String diveLog_profileEditor_outliersDetected(int count) {
@@ -52117,10 +52262,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_trimMode => 'Bijsnijmodus';
-
-  @override
-  String get diveLog_profileEditor_trimHint =>
-      'Uiteinden van het profiel bijsnijden';
 
   @override
   String get diveLog_profileEditor_trimEnd => 'Einde bijsnijden';
@@ -52175,7 +52316,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_profileEditor_mode_select => 'Selecteren';
 
   @override
-  String get diveLog_profileEditor_mode_outlier => 'Uitschieter';
+  String get diveLog_profileEditor_mode_cleanup => 'Opschonen';
 
   @override
   String get diveLog_profileEditor_mode_draw => 'Tekenen';
@@ -52190,6 +52331,26 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_profileEditor_revisionSwitchFailed =>
       'Kan niet wisselen van profielrevisie.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_title =>
+      'Hele profiel verwijderen';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_permanentWarning =>
+      'Het verwijderen van deze profielrevisie is permanent, kan niet ongedaan worden gemaakt en gaat direct in.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_computerImportWarning =>
+      'Dit profiel is geïmporteerd vanaf een duikcomputer en bevat waarschijnlijk de oorspronkelijke brongegevens.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_confirmNow =>
+      'Nu permanent verwijderen';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_failed =>
+      'Kan de profielrevisie niet verwijderen.';
 
   @override
   String get diveLog_profileEditor_revisionLegacyHint =>
@@ -55689,9 +55850,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Dit lijkt op een track die al uit hetzelfde bestand is geïmporteerd.';
 
   @override
-  String get navTrack_review_replaceLabel => 'Vervangen';
-
-  @override
   String get navTrack_review_linkToDive => 'Koppelen aan duik';
 
   @override
@@ -55892,6 +56050,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get navTrack_editSheet_removeTrackTooltip => 'Track verwijderen';
+
+  @override
+  String get navTrack_editSheet_trackOnAnotherDive =>
+      'Deze track hoort bij een andere duik. Werk hem bij vanuit die duik, of importeer het bestand als nieuwe track.';
 
   @override
   String navTrack_editRow_tracksSaveFailed(String error) {
@@ -59915,6 +60077,74 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get search_openTooltip => 'Zoeken';
+
+  @override
+  String get settings_conflict_field_sourceFile =>
+      'Oorspronkelijk trackbestand';
+
+  @override
+  String get navTrack_review_duplicateUpdate => 'Opgeslagen track bijwerken';
+
+  @override
+  String get navTrack_review_duplicateUpdateHint =>
+      'Leest de gegevens uit dit bestand opnieuw in. Naam, duik, duikstek, apparaat en uitlijning blijven behouden.';
+
+  @override
+  String get navTrack_review_duplicateNew => 'Importeren als nieuwe track';
+
+  @override
+  String get navTrack_review_updateAction => 'Bijwerken';
+
+  @override
+  String get navTrack_review_trackUpdatedConfirmation =>
+      'Track bijgewerkt vanuit het bestand. Controleer de uitlijning: de track kan verschoven zijn.';
+
+  @override
+  String get navTrack_detail_menuUpdateFromFile => 'Bijwerken vanuit bestand';
+
+  @override
+  String get navTrack_detail_menuExportCsv => 'Exporteren als CSV';
+
+  @override
+  String get navTrack_detail_exportUnavailable =>
+      'Voor deze track is nog geen oorspronkelijk bestand opgeslagen. Werk hem eerst bij vanuit zijn bestand.';
+
+  @override
+  String navTrack_detail_exportFailed(String error) {
+    return 'Exporteren mislukt: $error';
+  }
+
+  @override
+  String get navTrack_detail_updateNameMismatchTitle => 'Andere bestandsnaam';
+
+  @override
+  String navTrack_detail_updateNameMismatchMessage(
+    String expected,
+    String actual,
+  ) {
+    return 'Deze track is geïmporteerd uit \"$expected\", het gekozen bestand heet \"$actual\". De track toch hieruit bijwerken?';
+  }
+
+  @override
+  String get navTrack_detail_updateOtherRecordingTitle => 'Andere opname';
+
+  @override
+  String navTrack_detail_updateOtherRecordingMessage(
+    String fileDate,
+    String trackDate,
+  ) {
+    return 'Dit bestand is opgenomen op $fileDate, de track op $trackDate, dus het kan een andere duik zijn. De track toch hieruit bijwerken?';
+  }
+
+  @override
+  String navTrack_marker_details(
+    int number,
+    String time,
+    String depth,
+    String distance,
+  ) {
+    return 'Markering $number: $time, $depth, $distance';
+  }
 
   @override
   String get twinSet_title => 'Dubbelset';

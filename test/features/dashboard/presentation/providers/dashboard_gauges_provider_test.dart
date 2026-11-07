@@ -1,8 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/backup/domain/entities/backup_record.dart';
+import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_currency_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
@@ -27,6 +31,7 @@ import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_pro
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/safety/presentation/providers/flight_window_providers.dart';
 import 'package:submersion/features/safety/presentation/providers/no_fly_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -99,6 +104,9 @@ ActiveCourseProgress _course(String name, int total) => (
   ),
 );
 
+/// The backup history the backup chip reads (issue #4204). Fresh per test.
+late SharedPreferences _prefs;
+
 ProviderContainer makeContainer({
   List<EquipmentClocks> clocks = const [],
   Diver? diver,
@@ -140,6 +148,7 @@ ProviderContainer makeContainer({
         (ref) => Stream.value(MediaTransferSummary(queued: uploads)),
       ),
       lastBackupTimeProvider.overrideWithValue(lastBackup),
+      sharedPreferencesProvider.overrideWithValue(_prefs),
       isSyncEnabledProvider.overrideWithValue(syncEnabled),
       pendingChangesCountProvider.overrideWithValue(syncPending),
       openQualityFindingsCountProvider.overrideWith(
@@ -158,6 +167,35 @@ ProviderContainer makeContainer({
 }
 
 void main() {
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    _prefs = await SharedPreferences.getInstance();
+  });
+
+  // Issue #4204: the copy taken before an upgrade is a backup the diver can
+  // see in history, so the chip must not call the backup older than it.
+  test('the backup chip counts the copy taken before an upgrade', () async {
+    // On the hour: the stored history keeps milliseconds, not microseconds.
+    final now = DateTime.now();
+    final onTheHour = DateTime(now.year, now.month, now.day, now.hour);
+    final regular = onTheHour.subtract(const Duration(days: 8));
+    final upgrade = onTheHour.subtract(const Duration(hours: 2));
+    await BackupPreferences(_prefs).addRecord(
+      BackupRecord(
+        id: 'pre-migration',
+        filename: 'pre-migration.db',
+        timestamp: upgrade,
+        sizeBytes: 1,
+        location: BackupLocation.local,
+        isAutomatic: true,
+        type: BackupType.preMigration,
+      ),
+    );
+    final container = makeContainer(lastBackup: regular);
+    final gauges = await container.read(dashboardGaugesProvider.future);
+    expect(gauges.lastBackupTime, upgrade);
+  });
+
   test('a currency failure leaves the strip standing', () async {
     final container = makeContainer(daysSinceLastDive: 12, currencyFails: true);
     final gauges = await container.read(dashboardGaugesProvider.future);

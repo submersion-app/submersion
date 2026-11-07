@@ -7,8 +7,11 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
+import 'package:submersion/features/planner/domain/services/plan_series_calculator.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_store.dart';
 
 /// Seconds between points on a plan's chart line. The chart curves between
 /// points, so a flat bottom held by two far-apart points would bow past the
@@ -29,8 +32,9 @@ class LinkedPlanComparison {
   final ChartSourceOverlay overlay;
 }
 
-/// The plan linked to a dive, as it is saved now, computed. Null when the dive
-/// has no linked plan.
+/// The plan linked to a dive, as it is saved now, computed: a dive of a
+/// series after the first starts from what the dives before it were planned
+/// to leave. Null when the dive has no linked plan.
 ///
 /// Recomputes the plan through the same PlanEngine the canvas uses so the
 /// result always reflects the plan's full computed schedule (segments + deco
@@ -44,13 +48,48 @@ final linkedPlanComparisonProvider =
       if (plan == null) return null;
 
       final config = ref.watch(planEngineConfigProvider);
-      final outcome = PlanEngine(config: config).compute(plan);
+      final outcome =
+          await _seriesOutcome(ref, plan, config) ??
+          PlanEngine(config: config).compute(plan);
       return LinkedPlanComparison(
         plan: plan,
         outcome: outcome,
         overlay: buildPlannedOverlay(plan, config: config, outcome: outcome),
       );
     });
+
+/// [plan]'s outcome as its series planned it (issue #3565): a later dive, or
+/// one following a logged dive, starts from what the dives before it were
+/// planned to leave, not a fresh diver. Planned, whatever was then dived,
+/// since this is the plan. Null for a plan in no series, which starts fresh.
+Future<PlanOutcome?> _seriesOutcome(
+  Ref ref,
+  domain.DivePlan plan,
+  PlanEngineConfig config,
+) async {
+  final seriesRepository = ref.watch(divePlanSeriesRepositoryProvider);
+  final seriesId = await seriesRepository.seriesIdForPlan(plan.id);
+  if (seriesId == null) return null;
+  final stored = await seriesRepository.getSeries(seriesId);
+  final index =
+      stored?.dives.indexWhere((dive) => dive.plan.id == plan.id) ?? -1;
+  if (stored == null || index < 0) return null;
+  final followedId = stored.followedDiveId;
+  if (index == 0 && followedId == null) return null;
+  final follow = followedId == null
+      ? null
+      : await ref.watch(seriesFollowProvider(followedId).future);
+  final dives = seriesFromStored(
+    stored,
+    follow: follow,
+    selectedIndex: index,
+  ).dives;
+  return computeSeries(
+    dives.sublist(0, index + 1),
+    config: config,
+    follow: follow,
+  )[index].outcome;
+}
 
 /// The planned profile for a dive with a linked plan, rendered as a chart
 /// overlay next to the actual logged profile ("plan vs actual"). Null when

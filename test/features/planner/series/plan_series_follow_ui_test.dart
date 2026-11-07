@@ -577,7 +577,7 @@ void main() {
     });
   });
 
-  testWidgets('a followed plan offers Save but not Convert to Dive', (
+  testWidgets('a followed plan offers Save and Create planned dives', (
     tester,
   ) async {
     await pumpPlan(tester, dayDives);
@@ -593,13 +593,14 @@ void main() {
 
     await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();
-    final convert = tester.widget<PopupMenuItem<String>>(
+    // A followed plan saves as a series, so it is worded for one.
+    final create = tester.widget<PopupMenuItem<String>>(
       find.ancestor(
-        of: find.text('Convert to Dive'),
+        of: find.text('Create planned dive'),
         matching: find.byType(PopupMenuItem<String>),
       ),
     );
-    expect(convert.enabled, isFalse);
+    expect(create.enabled, isTrue);
   });
 
   testWidgets('Stop following drops the logged dives', (tester) async {

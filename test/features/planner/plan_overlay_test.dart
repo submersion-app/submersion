@@ -8,6 +8,7 @@ import 'package:submersion/features/planner/domain/services/dive_plan_state_mapp
 import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 import '../../helpers/test_database.dart';
 
@@ -49,7 +50,13 @@ void main() {
 
       final created = await container
           .read(diveRepositoryProvider)
-          .createDive(notifier.toDive());
+          .createDive(
+            Dive(
+              id: 'planned',
+              dateTime: DateTime.utc(2026, 10, 27, 9),
+              isPlanned: true,
+            ),
+          );
       notifier.setLinkedDive(created.id);
       await notifier.save();
 

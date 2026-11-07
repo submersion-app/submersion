@@ -138,7 +138,7 @@ extension TableBackstopsFromV217 on AppDatabase {
     // v341 backstop: the dive_plan_series table (issue #3565; idempotent).
     await _assertDivePlanSeriesTable();
 
-    // v343 backstop: twin set pairings and their two columns (issue #4242;
+    // v345 backstop: twin set pairings and their two columns (issue #4242;
     // idempotent).
     await _assertTwinSetSchema();
   }

@@ -333,6 +333,12 @@ libdc_clock_sync_status_t libdc_sync_device_clock(struct dc_device_t *device,
 
 #define LIBDC_MAX_EVENTS 256
 
+// Plausible surface pressure: a 6000 m altitude lake to a record sea-level high.
+// The Dart importers apply the same window (lib/core/constants/
+// surface_pressure_limits.dart in the app); keep the two in step.
+#define LIBDC_MIN_SURFACE_PRESSURE_BAR 0.4
+#define LIBDC_MAX_SURFACE_PRESSURE_BAR 1.2
+
 typedef struct {
     unsigned int time_ms;      // milliseconds since dive start
     unsigned int type;         // parser_sample_event_t enum value
@@ -350,6 +356,7 @@ typedef struct {
     unsigned int duration;     // seconds
     double min_temp;           // celsius (NAN if unavailable)
     double max_temp;           // celsius (NAN if unavailable)
+    double surface_pressure;   // bar, measured at the surface (NAN if unavailable)
     // GPS entry/exit fixes (Shearwater Swift). Decimal degrees, NAN if unavailable.
     double entry_latitude;
     double entry_longitude;

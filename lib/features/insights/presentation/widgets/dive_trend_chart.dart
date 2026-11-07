@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/presentation/localizations/week_start_material_localizations.dart';
 import 'package:submersion/core/presentation/widgets/chart_zoom_controls.dart';
 import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
@@ -339,6 +340,9 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
   /// Recomputed only when what it reads changes: pan and zoom rebuild the
   /// chart on every pointer move, and the data does not move with them.
   TrendChartDerived _currentDerived() {
+    // Weekly buckets start on the diver's first day of the week (issue
+    // #4232), which the app root hands every Material widget.
+    final firstWeekday = firstWeekdayOf(context);
     final key = (
       widget.points,
       widget.secondarySeries,
@@ -347,6 +351,7 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
       widget.showRollingMean,
       widget.showLinearFit,
       widget.referenceLine?.value,
+      firstWeekday,
     );
     final cached = _derived;
     if (cached != null && key == _derivedKey) return cached;
@@ -358,6 +363,7 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
       showRollingMean: widget.showRollingMean,
       showLinearFit: widget.showLinearFit,
       referenceValue: widget.referenceLine?.value,
+      firstWeekday: firstWeekday,
     );
     _derivedKey = key;
     _derived = next;

@@ -8293,6 +8293,26 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_profile_pointsAndProfiles(
+    num pointCount,
+    num profileCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      pointCount,
+      locale: localeName,
+      other: '$pointCount puntos',
+      one: '1 punto',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      profileCount,
+      locale: localeName,
+      other: '$profileCount revisiones',
+      one: '1 revisión',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
   String get diveLog_edit_row_addSite => 'Añadir punto';
 
   @override
@@ -11147,9 +11167,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get divePlanner_action_addTank => 'Agregar Botella';
-
-  @override
-  String get divePlanner_action_convertToDive => 'Convertir a Inmersión';
 
   @override
   String get divePlanner_action_deletePlan => 'Eliminar plan';
@@ -20954,10 +20971,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Regla de presión de retorno';
 
   @override
-  String get plannerCanvas_convert_success =>
-      'Inmersión creada a partir del plan';
-
-  @override
   String get plannerCanvas_convert_view => 'Ver';
 
   @override
@@ -21035,6 +21048,17 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get plannerSeries_openInLog => 'Abrir en el registro';
+
+  @override
+  String get plannerSeries_view_actual => 'Real';
+
+  @override
+  String get plannerSeries_view_plan => 'Plan';
+
+  @override
+  String plannerSeries_saved_divedCount(int dived, int count) {
+    return '$dived de $count buceadas';
+  }
 
   @override
   String get plannerSeries_stopFollowing => 'Dejar de seguir';
@@ -21189,8 +21213,78 @@ class AppLocalizationsEs extends AppLocalizations {
   String get plannerSeries_fillAll => 'Llenar todas las botellas';
 
   @override
-  String get plannerSeries_convertUnavailable =>
-      'Todavía no se puede convertir una serie de inmersiones en inmersiones registradas';
+  String get plannerSeries_createPlannedDive => 'Crear inmersión planificada';
+
+  @override
+  String get plannerSeries_createPlannedDives =>
+      'Crear inmersiones planificadas';
+
+  @override
+  String get plannerSeries_updatePlannedDive =>
+      'Actualizar inmersión planificada';
+
+  @override
+  String get plannerSeries_updatePlannedDives =>
+      'Actualizar inmersiones planificadas';
+
+  @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return '$dive tiene una advertencia crítica, por lo que las inmersiones planificadas no se actualizaron';
+  }
+
+  @override
+  String plannerSeries_cannotUpdateEmpty(String dive) {
+    return '$dive no tiene segmentos, por lo que las inmersiones planificadas no se actualizaron';
+  }
+
+  @override
+  String get plannerSeries_cannotUpdateEmptyPlan =>
+      'Este plan no tiene segmentos, por lo que no se escribió en el registro';
+
+  @override
+  String plannerSeries_created(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones planificadas añadidas al registro',
+      one: '$count inmersión planificada añadida al registro',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerSeries_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones planificadas actualizadas en el registro',
+      one: '$count inmersión planificada actualizada en el registro',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_title => '¿Eliminar del registro?';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count inmersiones planificadas que ya no están en esta serie siguen en el registro.',
+      one:
+          '$count inmersión planificada que ya no está en esta serie sigue en el registro.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'Conservar';
+
+  @override
+  String get plannerSeries_allDived =>
+      'Todas las inmersiones de este plan ya se han realizado, no hay nada que actualizar';
 
   @override
   String get plannerSeries_missionUnavailable =>
@@ -26076,6 +26170,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_field_timeFormat => 'Formato de hora';
 
   @override
+  String get settings_conflict_field_firstDayOfWeek =>
+      'Primer día de la semana';
+
+  @override
   String get settings_conflict_field_timeOffsetSeconds => 'Desfase horario';
 
   @override
@@ -29597,10 +29695,38 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_units_dialog_weightUnit => 'Unidad de peso';
 
   @override
-  String get settings_units_header_individualUnits => 'Unidades individuales';
+  String get settings_units_header_gasPlanning => 'Gas y planificación';
 
   @override
-  String get settings_units_header_timeDateFormat => 'Formato de hora y fecha';
+  String get settings_units_header_displayFormats => 'Visualización y formatos';
+
+  @override
+  String get settings_units_appliesTo => 'Se aplica a las siguientes unidades';
+
+  @override
+  String get settings_units_gasConsumption_unitHint =>
+      'La unidad depende de la presión y el volumen';
+
+  @override
+  String get settings_units_firstDayOfWeek => 'Primer día de la semana';
+
+  @override
+  String get settings_units_dialog_firstDayOfWeek => 'Primer día de la semana';
+
+  @override
+  String get settings_units_firstDayOfWeek_auto => 'Automático';
+
+  @override
+  String settings_units_firstDayOfWeek_autoResolved(String day) {
+    return 'Automático ($day)';
+  }
+
+  @override
+  String get settings_units_firstDayOfWeek_auto_subtitle =>
+      'Sigue la región del dispositivo';
+
+  @override
+  String get settings_units_header_timeDateFormat => 'Hora y fecha';
 
   @override
   String get settings_units_header_unitSystem => 'Sistema de unidades';
@@ -40019,7 +40145,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get attrLabel_tow_speed_factor => 'Factor de velocidad al remolcar';
 
   @override
-  String get attrLabel_sku => 'SKU';
+  String get attrLabel_sku => 'Referencia (SKU)';
+
+  @override
+  String get attrHelper_sku =>
+      'Del recibo o la etiqueta, no el número de serie';
 
   @override
   String get attrLabel_retailer => 'Vendedor';
@@ -41188,6 +41318,12 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diveLog_planned_bannerBody =>
       'A la espera de los datos del ordenador. Márcala como registrada si buceaste sin ordenador.';
+
+  @override
+  String get diveLog_planned_openInPlanner => 'Abrir en el planificador';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'Ver en el planificador';
 
   @override
   String get diveLog_detail_menu_markLogged => 'Marcar como registrada';
@@ -50830,6 +50966,19 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String settings_syncDevices_summary_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count dispositivos eliminados se recuerdan para que no puedan recuperar datos borrados.',
+      one:
+          '$count dispositivo eliminado se recuerda para que no pueda recuperar datos borrados.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String settings_syncDevices_tile_filesSize(int count, String size) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -52460,14 +52609,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_profileEditor_applyToSelection => 'Aplicar a la selección';
 
   @override
-  String get diveLog_profileEditor_outlierDetection =>
-      'Detección de valores atípicos';
+  String get diveLog_profileEditor_cleanup => 'Limpieza';
 
   @override
-  String get diveLog_profileEditor_detect => 'Detectar';
+  String get diveLog_profileEditor_detectOutliers =>
+      'Detectar valores atípicos';
 
   @override
-  String get diveLog_profileEditor_removeAll => 'Eliminar todo';
+  String get diveLog_profileEditor_removeOutliers =>
+      'Eliminar valores atípicos';
 
   @override
   String diveLog_profileEditor_outliersDetected(int count) {
@@ -52495,10 +52645,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_trimMode => 'Modo recorte';
-
-  @override
-  String get diveLog_profileEditor_trimHint =>
-      'Recortar los extremos del perfil';
 
   @override
   String get diveLog_profileEditor_trimEnd => 'Recortar el final';
@@ -52553,7 +52699,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_profileEditor_mode_select => 'Seleccionar';
 
   @override
-  String get diveLog_profileEditor_mode_outlier => 'Atípico';
+  String get diveLog_profileEditor_mode_cleanup => 'Limpiar';
 
   @override
   String get diveLog_profileEditor_mode_draw => 'Dibujar';
@@ -52568,6 +52714,26 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diveLog_profileEditor_revisionSwitchFailed =>
       'No se pudo cambiar la revisión del perfil.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_title =>
+      'Eliminar perfil completo';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_permanentWarning =>
+      'La eliminación de esta revisión del perfil es permanente, no se puede deshacer y surte efecto de inmediato.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_computerImportWarning =>
+      'Este perfil se importó desde un ordenador de buceo y probablemente contiene los datos originales de origen.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_confirmNow =>
+      'Eliminar permanentemente ahora';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_failed =>
+      'No se pudo eliminar la revisión del perfil.';
 
   @override
   String get diveLog_profileEditor_revisionLegacyHint =>
@@ -56096,9 +56262,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Esto parece un track ya importado del mismo archivo.';
 
   @override
-  String get navTrack_review_replaceLabel => 'Reemplazar';
-
-  @override
   String get navTrack_review_linkToDive => 'Vincular a una inmersión';
 
   @override
@@ -56301,6 +56464,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get navTrack_editSheet_removeTrackTooltip => 'Quitar track';
+
+  @override
+  String get navTrack_editSheet_trackOnAnotherDive =>
+      'Este track pertenece a otra inmersión. Actualízalo desde esa inmersión o importa el archivo como track nuevo.';
 
   @override
   String navTrack_editRow_tracksSaveFailed(String error) {
@@ -60332,6 +60499,74 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get search_openTooltip => 'Buscar';
+
+  @override
+  String get settings_conflict_field_sourceFile => 'Archivo original del track';
+
+  @override
+  String get navTrack_review_duplicateUpdate => 'Actualizar el track guardado';
+
+  @override
+  String get navTrack_review_duplicateUpdateHint =>
+      'Vuelve a leer los datos de este archivo. El nombre, la inmersión, el sitio, el dispositivo y la alineación se mantienen.';
+
+  @override
+  String get navTrack_review_duplicateNew => 'Importar como track nuevo';
+
+  @override
+  String get navTrack_review_updateAction => 'Actualizar';
+
+  @override
+  String get navTrack_review_trackUpdatedConfirmation =>
+      'Track actualizado desde el archivo. Revisa su alineación: el track puede haberse desplazado.';
+
+  @override
+  String get navTrack_detail_menuUpdateFromFile => 'Actualizar desde archivo';
+
+  @override
+  String get navTrack_detail_menuExportCsv => 'Exportar como CSV';
+
+  @override
+  String get navTrack_detail_exportUnavailable =>
+      'Este track aún no tiene un archivo original guardado. Actualízalo primero desde su archivo.';
+
+  @override
+  String navTrack_detail_exportFailed(String error) {
+    return 'Error al exportar: $error';
+  }
+
+  @override
+  String get navTrack_detail_updateNameMismatchTitle =>
+      'Nombre de archivo distinto';
+
+  @override
+  String navTrack_detail_updateNameMismatchMessage(
+    String expected,
+    String actual,
+  ) {
+    return 'Este track se importó desde \"$expected\" y el archivo elegido es \"$actual\". ¿Actualizar el track desde él de todos modos?';
+  }
+
+  @override
+  String get navTrack_detail_updateOtherRecordingTitle => 'Grabación distinta';
+
+  @override
+  String navTrack_detail_updateOtherRecordingMessage(
+    String fileDate,
+    String trackDate,
+  ) {
+    return 'Este archivo se grabó el $fileDate y el track el $trackDate, así que puede ser otra inmersión. ¿Actualizar el track desde él de todos modos?';
+  }
+
+  @override
+  String navTrack_marker_details(
+    int number,
+    String time,
+    String depth,
+    String distance,
+  ) {
+    return 'Marcador $number: $time, $depth, $distance';
+  }
 
   @override
   String get twinSet_title => 'Bibotella';

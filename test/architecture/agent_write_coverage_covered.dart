@@ -662,14 +662,15 @@ final covered = <String, String>{
     'setSite',
     'setEquipment',
     'updateCorrection',
-    'setPrimary',
-    'link',
-    'unlink',
-    'relink',
     'delete',
   ])
     'lib/features/nav_track/data/repositories/nav_track_repository.dart:'
             '$method':
+        'nav_tracks',
+  // The dive links live in a part file of the same repository.
+  for (final method in const ['setPrimary', 'link', 'unlink', 'relink'])
+    'lib/features/nav_track/data/repositories/'
+            'nav_track_repository_links.dart:$method':
         'nav_tracks',
   for (final method in const [
     'save',

@@ -751,6 +751,7 @@ class DiveComputerHostApiImpl(
         val entryLon = LibdcWrapper.nativeGetDiveEntryLongitude(divePtr)
         val exitLat = LibdcWrapper.nativeGetDiveExitLatitude(divePtr)
         val exitLon = LibdcWrapper.nativeGetDiveExitLongitude(divePtr)
+        val surfacePressure = LibdcWrapper.nativeGetDiveSurfacePressure(divePtr)
 
         // Convert events.
         val eventCount = LibdcWrapper.nativeGetDiveEventCount(divePtr)
@@ -801,6 +802,7 @@ class DiveComputerHostApiImpl(
             entryLongitude = if (entryLon.isNaN()) null else entryLon,
             exitLatitude = if (exitLat.isNaN()) null else exitLat,
             exitLongitude = if (exitLon.isNaN()) null else exitLon,
+            surfacePressureBar = if (surfacePressure.isNaN()) null else surfacePressure,
             samples = samples,
             tanks = tanks,
             gasMixes = gasMixes,

@@ -8410,6 +8410,32 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_profile_pointsAndProfiles(
+    num pointCount,
+    num profileCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      pointCount,
+      locale: localeName,
+      other: '$pointCount نقطة',
+      many: '$pointCount نقطة',
+      few: '$pointCount نقاط',
+      two: 'نقطتان',
+      one: 'نقطة واحدة',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      profileCount,
+      locale: localeName,
+      other: '$profileCount مراجعة',
+      many: '$profileCount مراجعة',
+      few: '$profileCount مراجعات',
+      two: 'مراجعتان',
+      one: 'مراجعة واحدة',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
   String get diveLog_edit_row_addSite => 'إضافة موقع';
 
   @override
@@ -11282,9 +11308,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get divePlanner_action_addTank => 'إضافة أسطوانة';
-
-  @override
-  String get divePlanner_action_convertToDive => 'تحويل إلى غطسة';
 
   @override
   String get divePlanner_action_deletePlan => 'حذف الخطة';
@@ -21259,9 +21282,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerCanvas_contingency_turnRule => 'قاعدة ضغط العودة';
 
   @override
-  String get plannerCanvas_convert_success => 'تم إنشاء غطسة من الخطة';
-
-  @override
   String get plannerCanvas_convert_view => 'عرض';
 
   @override
@@ -21339,6 +21359,17 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get plannerSeries_openInLog => 'فتح في سجل الغطس';
+
+  @override
+  String get plannerSeries_view_actual => 'الفعلي';
+
+  @override
+  String get plannerSeries_view_plan => 'الخطة';
+
+  @override
+  String plannerSeries_saved_divedCount(int dived, int count) {
+    return '$dived من $count نُفّذت';
+  }
 
   @override
   String get plannerSeries_stopFollowing => 'إيقاف المتابعة';
@@ -21501,8 +21532,82 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerSeries_fillAll => 'ملء كل الأسطوانات';
 
   @override
-  String get plannerSeries_convertUnavailable =>
-      'لا يمكن تحويل سلسلة غطسات إلى غطسات مسجلة بعد';
+  String get plannerSeries_createPlannedDive => 'إنشاء الغطسة المخططة';
+
+  @override
+  String get plannerSeries_createPlannedDives => 'إنشاء الغطسات المخططة';
+
+  @override
+  String get plannerSeries_updatePlannedDive => 'تحديث الغطسة المخططة';
+
+  @override
+  String get plannerSeries_updatePlannedDives => 'تحديث الغطسات المخططة';
+
+  @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return 'يوجد تحذير حرج في $dive، لذا لم يتم تحديث الغطسات المخططة';
+  }
+
+  @override
+  String plannerSeries_cannotUpdateEmpty(String dive) {
+    return 'لا يحتوي $dive على مقاطع، لذا لم يتم تحديث الغطسات المخططة';
+  }
+
+  @override
+  String get plannerSeries_cannotUpdateEmptyPlan =>
+      'لا تحتوي هذه الخطة على مقاطع، لذا لم تُكتب في السجل';
+
+  @override
+  String plannerSeries_created(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تمت إضافة $count غطسة مخططة إلى السجل',
+      many: 'تمت إضافة $count غطسة مخططة إلى السجل',
+      few: 'تمت إضافة $count غطسات مخططة إلى السجل',
+      two: 'تمت إضافة غطستين مخططتين إلى السجل',
+      one: 'تمت إضافة $count غطسة مخططة إلى السجل',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerSeries_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تحديث $count غطسة مخططة في السجل',
+      many: 'تم تحديث $count غطسة مخططة في السجل',
+      few: 'تم تحديث $count غطسات مخططة في السجل',
+      two: 'تم تحديث غطستين مخططتين في السجل',
+      one: 'تم تحديث $count غطسة مخططة في السجل',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_title => 'هل تريد الحذف من السجل؟';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'لا تزال $count غطسة مخططة لم تعد في هذه السلسلة في السجل.',
+      many: 'لا تزال $count غطسة مخططة لم تعد في هذه السلسلة في السجل.',
+      few: 'لا تزال $count غطسات مخططة لم تعد في هذه السلسلة في السجل.',
+      two: 'لا تزال غطستان مخططتان لم تعودا في هذه السلسلة في السجل.',
+      one: 'لا تزال $count غطسة مخططة لم تعد في هذه السلسلة في السجل.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'إبقاء';
+
+  @override
+  String get plannerSeries_allDived =>
+      'تم تنفيذ جميع غطسات هذه الخطة، لذا لا يوجد ما يمكن تحديثه';
 
   @override
   String get plannerSeries_missionUnavailable =>
@@ -26291,6 +26396,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_timeFormat => 'تنسيق الوقت';
 
   @override
+  String get settings_conflict_field_firstDayOfWeek => 'أول يوم في الأسبوع';
+
+  @override
   String get settings_conflict_field_timeOffsetSeconds => 'فارق الوقت';
 
   @override
@@ -29822,10 +29930,37 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_units_dialog_weightUnit => 'وحدة الوزن';
 
   @override
-  String get settings_units_header_individualUnits => 'الوحدات الفردية';
+  String get settings_units_header_gasPlanning => 'الغاز والتخطيط';
 
   @override
-  String get settings_units_header_timeDateFormat => 'تنسيق الوقت والتاريخ';
+  String get settings_units_header_displayFormats => 'العرض والتنسيقات';
+
+  @override
+  String get settings_units_appliesTo => 'ينطبق على الوحدات التالية';
+
+  @override
+  String get settings_units_gasConsumption_unitHint =>
+      'تتبع الوحدة الضغط والحجم';
+
+  @override
+  String get settings_units_firstDayOfWeek => 'أول يوم في الأسبوع';
+
+  @override
+  String get settings_units_dialog_firstDayOfWeek => 'أول يوم في الأسبوع';
+
+  @override
+  String get settings_units_firstDayOfWeek_auto => 'تلقائي';
+
+  @override
+  String settings_units_firstDayOfWeek_autoResolved(String day) {
+    return 'تلقائي ($day)';
+  }
+
+  @override
+  String get settings_units_firstDayOfWeek_auto_subtitle => 'يتبع منطقة جهازك';
+
+  @override
+  String get settings_units_header_timeDateFormat => 'الوقت والتاريخ';
 
   @override
   String get settings_units_header_unitSystem => 'نظام الوحدات';
@@ -40490,6 +40625,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_sku => 'رمز المنتج (SKU)';
 
   @override
+  String get attrHelper_sku => 'من الإيصال أو الملصق، وليس الرقم التسلسلي';
+
+  @override
   String get attrLabel_retailer => 'المتجر';
 
   @override
@@ -41650,6 +41788,12 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_planned_bannerBody =>
       'في انتظار بيانات كمبيوتر الغوص. ضع علامة مسجلة إذا غصت بدون كمبيوتر.';
+
+  @override
+  String get diveLog_planned_openInPlanner => 'فتح في المخطط';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'عرض في المخطط';
 
   @override
   String get diveLog_detail_menu_markLogged => 'وضع علامة مسجلة';
@@ -51450,6 +51594,21 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String settings_syncDevices_summary_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count جهاز محذوف محفوظ حتى لا تعيد بيانات حُذفت.',
+      many: '$count جهازًا محذوفًا محفوظًا حتى لا تعيد بيانات حُذفت.',
+      few: '$count أجهزة محذوفة محفوظة حتى لا تعيد بيانات حُذفت.',
+      two: 'جهازان محذوفان محفوظان حتى لا يعيدا بيانات حُذفت.',
+      one: 'جهاز واحد محذوف محفوظ حتى لا يعيد بيانات حُذفت.',
+      zero: 'لا توجد أجهزة محذوفة محفوظة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String settings_syncDevices_tile_filesSize(int count, String size) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -53121,13 +53280,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_profileEditor_applyToSelection => 'تطبيق على التحديد';
 
   @override
-  String get diveLog_profileEditor_outlierDetection => 'كشف القيم الشاذة';
+  String get diveLog_profileEditor_cleanup => 'تنظيف';
 
   @override
-  String get diveLog_profileEditor_detect => 'كشف';
+  String get diveLog_profileEditor_detectOutliers => 'كشف القيم المتطرفة';
 
   @override
-  String get diveLog_profileEditor_removeAll => 'إزالة الكل';
+  String get diveLog_profileEditor_removeOutliers => 'إزالة القيم المتطرفة';
 
   @override
   String diveLog_profileEditor_outliersDetected(int count) {
@@ -53159,9 +53318,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_trimMode => 'وضع القص';
-
-  @override
-  String get diveLog_profileEditor_trimHint => 'قص أطراف ملف الغوصة';
 
   @override
   String get diveLog_profileEditor_trimEnd => 'قص النهاية';
@@ -53216,7 +53372,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_profileEditor_mode_select => 'تحديد';
 
   @override
-  String get diveLog_profileEditor_mode_outlier => 'قيمة شاذة';
+  String get diveLog_profileEditor_mode_cleanup => 'نظف';
 
   @override
   String get diveLog_profileEditor_mode_draw => 'رسم';
@@ -53231,6 +53387,24 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_profileEditor_revisionSwitchFailed =>
       'تعذر تبديل مراجعة الملف الشخصي.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_title => 'حذف الملف الكامل';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_permanentWarning =>
+      'حذف مراجعة ملف الغوص هذه نهائي، ولا يمكن التراجع عنه، ويسري مفعوله فورًا.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_computerImportWarning =>
+      'تم استيراد هذا الملف من حاسوب غوص ومن المحتمل أن يحتوي على بيانات المصدر الأصلية.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_confirmNow => 'حذف نهائي الآن';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_failed =>
+      'تعذر حذف مراجعة الملف الشخصي.';
 
   @override
   String get diveLog_profileEditor_revisionLegacyHint =>
@@ -56750,9 +56924,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'يبدو هذا مسارًا تم استيراده مسبقًا من الملف نفسه.';
 
   @override
-  String get navTrack_review_replaceLabel => 'استبدال';
-
-  @override
   String get navTrack_review_linkToDive => 'الربط بغطسة';
 
   @override
@@ -56964,6 +57135,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get navTrack_editSheet_removeTrackTooltip => 'إزالة المسار';
+
+  @override
+  String get navTrack_editSheet_trackOnAnotherDive =>
+      'ينتمي هذا المسار إلى غطسة أخرى. حدّثه من تلك الغطسة، أو استورد الملف كمسار جديد.';
 
   @override
   String navTrack_editRow_tracksSaveFailed(String error) {
@@ -61122,6 +61297,73 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get search_openTooltip => 'بحث';
+
+  @override
+  String get settings_conflict_field_sourceFile => 'ملف المسار الأصلي';
+
+  @override
+  String get navTrack_review_duplicateUpdate => 'تحديث المسار المحفوظ';
+
+  @override
+  String get navTrack_review_duplicateUpdateHint =>
+      'يعيد قراءة البيانات من هذا الملف. يبقى الاسم والغطسة والموقع والجهاز والمحاذاة كما هي.';
+
+  @override
+  String get navTrack_review_duplicateNew => 'استيراد كمسار جديد';
+
+  @override
+  String get navTrack_review_updateAction => 'تحديث';
+
+  @override
+  String get navTrack_review_trackUpdatedConfirmation =>
+      'تم تحديث المسار من الملف. تحقق من محاذاته: ربما تحرك المسار.';
+
+  @override
+  String get navTrack_detail_menuUpdateFromFile => 'تحديث من ملف';
+
+  @override
+  String get navTrack_detail_menuExportCsv => 'تصدير بصيغة CSV';
+
+  @override
+  String get navTrack_detail_exportUnavailable =>
+      'لا يوجد لهذا المسار ملف أصلي محفوظ بعد. حدّثه أولًا من ملفه.';
+
+  @override
+  String navTrack_detail_exportFailed(String error) {
+    return 'فشل التصدير: $error';
+  }
+
+  @override
+  String get navTrack_detail_updateNameMismatchTitle => 'اسم ملف مختلف';
+
+  @override
+  String navTrack_detail_updateNameMismatchMessage(
+    String expected,
+    String actual,
+  ) {
+    return 'تم استيراد هذا المسار من \"$expected\"، والملف المختار هو \"$actual\". هل تريد تحديث المسار منه على أي حال؟';
+  }
+
+  @override
+  String get navTrack_detail_updateOtherRecordingTitle => 'تسجيل مختلف';
+
+  @override
+  String navTrack_detail_updateOtherRecordingMessage(
+    String fileDate,
+    String trackDate,
+  ) {
+    return 'تم تسجيل هذا الملف في $fileDate، والمسار في $trackDate، لذا قد تكون غطسة مختلفة. هل تريد تحديث المسار منه على أي حال؟';
+  }
+
+  @override
+  String navTrack_marker_details(
+    int number,
+    String time,
+    String depth,
+    String distance,
+  ) {
+    return 'علامة $number: $time، $depth، $distance';
+  }
 
   @override
   String get twinSet_title => 'طقم مزدوج';

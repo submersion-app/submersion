@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -7,13 +9,21 @@ import 'package:submersion/features/nav_track/application/dive_route_link_applie
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/nav_track/domain/dive_route_link_draft.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 
 import '../../../helpers/nav_track_fixtures.dart';
 import '../../../helpers/test_database.dart';
 
 /// Records the order of calls instead of touching a database.
 class _RecordingRepository extends NavTrackRepository {
-  _RecordingRepository({this.alreadyLinked = const {}, this.diveOf = const {}});
+  _RecordingRepository({
+    this.alreadyLinked = const {},
+    this.diveOf = const {},
+    this.gone = const {},
+  });
+
+  /// Ids whose staged update finds no row any more.
+  final Set<String> gone;
 
   /// Ids whose `link` reports "already linked elsewhere" (returns false).
   final Set<String> alreadyLinked;
@@ -41,8 +51,15 @@ class _RecordingRepository extends NavTrackRepository {
       calls.add('unlink $routeId from $onlyFromDiveId');
 
   @override
-  Future<void> replace(String routeId, {required String withRouteId}) async =>
-      calls.add('replace $routeId $withRouteId');
+  Future<bool> updateImportedData(
+    String routeId, {
+    required List<NavTrackPoint> points,
+    required Uint8List sourceFile,
+    String? sourceRef,
+  }) async {
+    calls.add('update $routeId');
+    return !gone.contains(routeId);
+  }
 }
 
 void main() {
@@ -105,33 +122,33 @@ void main() {
     expect(repository.calls, ['unlink a from d1']);
   });
 
-  test(
-    'skips the replacement when the re-import was linked elsewhere first',
-    () async {
-      final repository = _RecordingRepository(alreadyLinked: {'c'});
+  StagedRouteFileUpdate stagedUpdate() =>
+      (points: kTestNavTrackPoints, sourceFile: Uint8List.fromList([1, 2]));
 
-      final skipped = await applyDiveRouteLinkDraft(
-        repository,
-        diveId: 'd1',
-        draft: DiveRouteLinkDraft.initial([a]).replaced('a', c),
-      );
+  test('writes a staged update before linking the route', () async {
+    final repository = _RecordingRepository();
 
-      // The dive keeps its original route rather than losing it to a delete.
-      expect(repository.calls, ['link c d1 manual']);
-      expect(skipped, ['c']);
-    },
-  );
-
-  test('links a re-import before replacing the route it supersedes', () async {
-    final repository = _RecordingRepository(diveOf: {'a': 'd1'});
-
-    await applyDiveRouteLinkDraft(
+    final skipped = await applyDiveRouteLinkDraft(
       repository,
       diveId: 'd1',
-      draft: DiveRouteLinkDraft.initial([a]).replaced('a', c),
+      draft: DiveRouteLinkDraft.initial(const []).updated(c, stagedUpdate()),
     );
 
-    expect(repository.calls, ['link c d1 manual', 'replace a c']);
+    expect(repository.calls, ['update c', 'link c d1 manual']);
+    expect(skipped, isEmpty);
+  });
+
+  test('does not link a route whose staged update found it gone', () async {
+    final repository = _RecordingRepository(gone: {'c'});
+
+    final skipped = await applyDiveRouteLinkDraft(
+      repository,
+      diveId: 'd1',
+      draft: DiveRouteLinkDraft.initial(const []).updated(c, stagedUpdate()),
+    );
+
+    expect(repository.calls, ['update c']);
+    expect(skipped, ['c']);
   });
 
   group('against a real database', () {
@@ -169,40 +186,35 @@ void main() {
       expect(linked!.siteId, site.id);
     });
 
-    test('a re-import of the primary route takes over as primary', () async {
+    test('a staged update rewrites the route on Save and keeps its link '
+        'and primary role', () async {
       final dive = await DiveRepository().createDive(
-        Dive(id: 'd-primary', dateTime: DateTime.utc(2025, 8, 22, 10)),
+        Dive(id: 'd-update', dateTime: DateTime.utc(2025, 8, 22, 10)),
       );
       final routes = NavTrackRepository();
-      Future<String> insert(String name, {String? diveId}) =>
-          routes.insertImportedRoute(
-            points: kTestNavTrackPoints,
-            source: NavTrackSource.seacraftEnc,
-            sourceRef: '$name.csv',
-            name: name,
-            diveId: diveId,
-          );
-      final primaryId = await insert('first', diveId: dive.id);
-      final siblingId = await insert('second', diveId: dive.id);
-      final reImportId = await insert('first again');
+      final routeId = await routes.insertImportedRoute(
+        points: kTestNavTrackPoints.take(2).toList(),
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: 'first.csv',
+        diveId: dive.id,
+      );
       final linked = await routes.getForDive(dive.id);
-      expect(linked.firstWhere((r) => r.id == primaryId).isPrimary, isTrue);
+      final file = Uint8List.fromList([7, 8, 9]);
 
-      final reImport = (await routes.getById(
-        reImportId,
-        includePoints: false,
-      ))!;
       await applyDiveRouteLinkDraft(
         routes,
         diveId: dive.id,
-        draft: DiveRouteLinkDraft.initial(linked).replaced(primaryId, reImport),
+        draft: DiveRouteLinkDraft.initial(linked).updated(linked.single, (
+          points: kTestNavTrackPoints,
+          sourceFile: file,
+        )),
       );
 
-      final after = await routes.getForDive(dive.id);
-      expect(after.map((r) => r.id).toSet(), {reImportId, siblingId});
-      expect(after.firstWhere((r) => r.id == reImportId).isPrimary, isTrue);
-      expect(after.firstWhere((r) => r.id == siblingId).isPrimary, isFalse);
-      expect(await routes.getById(primaryId, includePoints: false), isNull);
+      final after = (await routes.getById(routeId))!;
+      expect(after.points, kTestNavTrackPoints);
+      expect(after.diveId, dive.id);
+      expect(after.isPrimary, isTrue);
+      expect(await routes.getSourceFile(routeId), file);
     });
   });
 }

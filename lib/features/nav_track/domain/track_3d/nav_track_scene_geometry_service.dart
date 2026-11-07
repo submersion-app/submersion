@@ -1,4 +1,5 @@
 import 'package:submersion/features/dive_log/presentation/widgets/profile_decimator.dart';
+import 'package:submersion/features/dive_3d/domain/geometry/marker_layout.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/path_builder.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/ribbon_builder.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
@@ -17,12 +18,53 @@ import 'package:submersion/features/nav_track/domain/track_3d/track_z_axis_input
 ///
 /// Modeled on `SceneGeometryService.build`, with the dive-only pieces
 /// dropped: no strata (temperature-binned tissue bands), no shadows or
-/// ceiling (both deco-model concepts), no markers (see the design spec's
-/// Out of scope).
+/// ceiling (both deco-model concepts). Its only markers are the ones the
+/// recording console set (issue #4231), labelled with the number the 2D
+/// map gives them.
 class NavTrackSceneGeometryService {
   static const int targetPoints = 2000;
 
   const NavTrackSceneGeometryService();
+
+  /// Lifts a marker label this far above the path, like the dive scene's
+  /// own markers (`MarkerLayout`).
+  static const double _markerFloat = 0.4;
+
+  /// [data]'s console markers, placed on the path at their own sample. Z is
+  /// read from the decimated path's nearest sample, so a marker sits on the
+  /// drawn line rather than beside it.
+  static List<SceneMarker> _markers(
+    NavTrack3dSceneData data,
+    SceneBounds bounds,
+    List<int> indices,
+    List<double> zs,
+  ) {
+    if (data.markers.isEmpty || indices.isEmpty) return const [];
+    double zAt(int sampleIndex) {
+      var best = 0;
+      for (var i = 1; i < indices.length; i++) {
+        if ((indices[i] - sampleIndex).abs() <
+            (indices[best] - sampleIndex).abs()) {
+          best = i;
+        }
+      }
+      return zs[best];
+    }
+
+    return [
+      for (final marker in data.markers)
+        if (marker.sampleIndex < data.times.length)
+          SceneMarker(
+            kind: SceneMarkerKind.bookmark,
+            refId: null,
+            label: '${marker.number}',
+            x: bounds.xOf(data.times[marker.sampleIndex]),
+            y: bounds.yOf(data.depths[marker.sampleIndex]) + _markerFloat,
+            z: zAt(marker.sampleIndex),
+            timestampSeconds: data.times[marker.sampleIndex].round(),
+          ),
+    ];
+  }
 
   Scene3d build(
     NavTrack3dSceneData data,
@@ -80,7 +122,7 @@ class NavTrackSceneGeometryService {
     final duration = data.durationSeconds <= 0 ? 1.0 : data.durationSeconds;
     return Scene3d(
       layers: layers,
-      markers: const [],
+      markers: _markers(data, bounds, indices, zs),
       bounds: bounds,
       scrubPath: ScrubPath(
         normalizedTimes: [for (final t in times) t / duration],

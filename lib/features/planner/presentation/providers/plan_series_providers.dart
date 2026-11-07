@@ -35,10 +35,12 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
     required DivePlanState Function() readEditor,
     required PlanEngineConfig Function() getConfig,
     String Function()? newId,
+    void Function(Set<String> ids)? onRemovedLinkedDiveIds,
   }) : _editor = editor,
        _readEditor = readEditor,
        _getConfig = getConfig,
        _newId = newId ?? _uuid.v4,
+       _onRemovedLinkedDiveIds = onRemovedLinkedDiveIds,
        _seenLoads = editor.loadCount,
        super(PlanSeries.single(readEditor()));
 
@@ -46,6 +48,7 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
   final DivePlanState Function() _readEditor;
   final PlanEngineConfig Function() _getConfig;
   final String Function() _newId;
+  final void Function(Set<String> ids)? _onRemovedLinkedDiveIds;
 
   /// True while this notifier is the one changing the editor, so the change
   /// is not mistaken for a diver's edit.
@@ -57,6 +60,20 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
 
   /// The editor's [DivePlanNotifier.loadCount] when this last saw a change.
   int _seenLoads;
+
+  /// Log entries of dives removed from this series, until "Update planned
+  /// dives" has offered to delete the ones still only planned. Held in
+  /// memory, outside [state]: the series edits rebuild it. Each change is
+  /// reported to [removedLinkedDiveIdsProvider], so what reads it updates.
+  Set<String> _removedLinkedDiveIds = const {};
+
+  Set<String> get removedLinkedDiveIds => _removedLinkedDiveIds;
+
+  set _removed(Set<String> ids) {
+    if (ids.isEmpty && _removedLinkedDiveIds.isEmpty) return;
+    _removedLinkedDiveIds = ids;
+    _onRemovedLinkedDiveIds?.call(ids);
+  }
 
   /// Called on every change of the editor's plan.
   void editorChanged(DivePlanState? previous, DivePlanState next) {
@@ -70,7 +87,8 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
         : state.dives.indexWhere((d) => d.state.id == next.id);
     if (index < 0) {
       _earlier = const [];
-      state = PlanSeries.single(next);
+      _removed = const {};
+      state = _withActuals(PlanSeries.single(next));
       return;
     }
     final before = state.dives[index].state;
@@ -158,6 +176,9 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
     final before = state;
     state = edits.removeDive(state, index);
     if (identical(before, state)) return;
+    if (before.dives[index].state.linkedDiveId case final id?) {
+      _removed = {..._removedLinkedDiveIds, id};
+    }
     // The dive after a removed first dive is the first now, so the values
     // it kept its own are the series', and the dives sharing them take them.
     if (index == 0) {
@@ -181,9 +202,72 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
 
   /// Replaces the series with [series], as saved or opened, and loads its
   /// selected dive. Not an outside load: it is the series doing the loading.
-  void loadSeries(PlanSeries series) {
+  ///
+  /// With [actuals], what the log says about its dives that have been dived
+  /// is taken in the same step, so a dived dive never shows as a plan first.
+  ///
+  /// [justSaved] is this series as just saved, which still owes the offer
+  /// for its removed dives' entries; any series opened does not.
+  void loadSeries(
+    PlanSeries series, {
+    Map<String, SeriesFollow>? actuals,
+    bool justSaved = false,
+  }) {
+    if (actuals != null) _actuals = actuals;
     _earlier = const [];
-    state = series;
+    if (!justSaved) _removed = const {};
+    state = _withActuals(series);
+    _loadSelected();
+  }
+
+  /// What the log last said about the dives that have been dived, by plan id.
+  Map<String, SeriesFollow> _actuals = const {};
+
+  /// Takes what the log says about the dives that have been dived (issue
+  /// #3565), and recalculates from them. A download undone takes its dive
+  /// back to its plan.
+  void setActuals(Map<String, SeriesFollow> actuals) {
+    _actuals = actuals;
+    final next = _withActuals(state);
+    if (next == state) return;
+    state = next;
+    _loadSelected();
+  }
+
+  PlanSeries _withActuals(PlanSeries series) => series.copyWith(
+    dives: [
+      for (final dive in series.dives)
+        if (_actuals[dive.state.id] case final actual?)
+          dive.copyWith(actual: actual)
+        else
+          dive.copyWith(clearActual: true),
+    ],
+  );
+
+  /// Takes on links the repository already holds, by plan id, written from
+  /// outside the series (issue #3565): not an edit, so nothing is marked
+  /// unsaved. The editor adopts its own dive's link itself.
+  void adoptLinks(Map<String, String> links) {
+    if (links.isEmpty) return;
+    state = state.copyWith(
+      dives: [
+        for (final dive in state.dives)
+          if (links[dive.state.id] case final id?)
+            dive.copyWith(state: dive.state.copyWith(linkedDiveId: id))
+          else
+            dive,
+      ],
+    );
+  }
+
+  /// Forgets the log entries of removed dives, once they have been offered.
+  void clearRemovedLinkedDives() {
+    _removed = const {};
+  }
+
+  /// Sets when the first dive starts, whichever dive is selected.
+  void setFirstStart(DateTime start) {
+    state = edits.setDiveStart(state, 0, start);
     _loadSelected();
   }
 
@@ -283,18 +367,20 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
 
   void _loadSelected() {
     final index = state.selectedIndex;
+    // A dive that has been dived is locked to its plan, which the editor
+    // holds and the series keeps: carried from what the dives before it were
+    // planned to leave, as "As planned" computes it, never from what
+    // happened, so the actual start never becomes the planned one.
+    final dives = state.dives[index].actual == null
+        ? state.dives
+        : [for (final dive in state.dives) dive.copyWith(clearActual: true)];
     _earlier = calculator.computeSeries(
-      state.dives.sublist(0, index),
+      dives.sublist(0, index),
       config: _getConfig(),
       follow: state.follow,
     );
     _push(
-      calculator.carriedState(
-        state.dives,
-        index,
-        _earlier,
-        follow: state.follow,
-      ),
+      calculator.carriedState(dives, index, _earlier, follow: state.follow),
     );
   }
 
@@ -328,6 +414,8 @@ final planSeriesNotifierProvider =
         editor: ref.read(divePlanNotifierProvider.notifier),
         readEditor: () => ref.read(divePlanNotifierProvider),
         getConfig: () => ref.read(planEngineConfigProvider),
+        onRemovedLinkedDiveIds: (ids) =>
+            ref.read(removedLinkedDiveIdsProvider.notifier).state = ids,
       );
       ref.listen<DivePlanState>(
         divePlanNotifierProvider,
@@ -344,6 +432,12 @@ final planSeriesNotifierProvider =
       );
       return notifier;
     });
+
+/// The log entries of dives removed from the series, still to be offered for
+/// deletion (see [PlanSeriesNotifier.removedLinkedDiveIds]).
+final removedLinkedDiveIdsProvider = StateProvider<Set<String>>(
+  (ref) => const {},
+);
 
 /// Every dive of the series computed in order, for the navigator and the
 /// series checks. The selected dive's result matches [planOutcomeProvider].
@@ -370,6 +464,7 @@ final planSeriesResultsProvider = Provider<List<calculator.SeriesDiveResult>>((
         state: state,
         outcome: outcome.withIssues(issues),
         seriesIssues: issues,
+        actual: dives.single.actual,
       ),
     ];
   }
@@ -439,12 +534,25 @@ final missionAllowedProvider = Provider<bool>(
   (ref) => edits.canPlanMission(ref.watch(planSeriesNotifierProvider)),
 );
 
-/// Whether the plan can be converted to a dive in the log. A series, or a plan
-/// following a logged dive, cannot be yet (issue #3565).
-final planConvertAllowedProvider = Provider<bool>(
+/// The selected dive as it was actually dived; null while it is only a plan.
+final selectedDiveActualProvider = Provider<SeriesFollow?>(
   (ref) =>
-      !ref.watch(planSeriesNotifierProvider.select((s) => s.savesAsSeries)),
+      ref.watch(planSeriesNotifierProvider.select((s) => s.selected.actual)),
 );
+
+/// Whether the plan in the editor is locked: its dive has been dived, so its
+/// plan is the record of what was planned (issue #3565). Every editing
+/// surface reads this; viewing, scrolling and scrubbing stay open.
+final planLockedProvider = Provider<bool>(
+  (ref) => ref.watch(selectedDiveActualProvider) != null,
+);
+
+/// Whether a dive that has been dived shows its original plan rather than
+/// what happened. Starts over on each dive.
+final showPlanOfDivedProvider = StateProvider<bool>((ref) {
+  ref.watch(planSeriesNotifierProvider.select((s) => s.selected.state.id));
+  return false;
+});
 
 /// Whether the plan saves as a series rather than an ordinary plan.
 final planSeriesSavesAsSeriesProvider = Provider<bool>(

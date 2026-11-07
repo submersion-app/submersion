@@ -2,12 +2,12 @@ part of '../app_database_migrations.dart';
 
 /// Twin set pairings of two cylinders (issue #4242).
 extension CylinderPairingMigrations on AppDatabase {
-  /// Idempotent creation of the v343 `cylinder_pairings` table, its two
+  /// Idempotent creation of the v345 `cylinder_pairings` table, its two
   /// lookup indexes, and the two nullable columns that tie a twin fill's rows
   /// (`cylinder_fills.filled_together_id`) and name a twin set tank's second
   /// cylinder (`dive_tanks.twin_passport_id`). No backfill. The table is
   /// skipped on a partial migration-test fixture without `equipment`, and a
-  /// column on one without its table. Safe from both the v343 rung and the
+  /// column on one without its table. Safe from both the v345 rung and the
   /// beforeOpen backstop. The indexes are in the canonical performance set
   /// too; they are made here so the rung leaves a complete schema.
   Future<void> _assertTwinSetSchema() async {
@@ -38,7 +38,7 @@ extension CylinderPairingMigrations on AppDatabase {
     }
   }
 
-  /// Test hook: re-assert the v343 schema on demand so tests can prove the
+  /// Test hook: re-assert the v345 schema on demand so tests can prove the
   /// backstop is idempotent.
   Future<void> assertTwinSetSchemaForTest() => _assertTwinSetSchema();
 }

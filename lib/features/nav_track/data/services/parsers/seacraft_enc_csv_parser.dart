@@ -1,7 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_track.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track_marker.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_origin.dart';
 import 'package:submersion/features/universal_import/data/csv/models/parsed_csv.dart';
 import 'package:submersion/features/universal_import/data/csv/pipeline/csv_parser.dart';
 
@@ -29,13 +31,22 @@ int _headerIndex(List<String> headers, String name) {
 
 /// Parses a Seacraft ENC / ENC3 / ENC3-PRO navigation console CSV export.
 ///
-/// The recording carries no coordinates of its own: [NavTrackPoint.north]
-/// and [NavTrackPoint.east] are metres relative to the log's own start
-/// (a north-east-down frame, verified against the `Course` column -- see
-/// the design spec `2026-09-10-underwater-nav-track-design.md`). Segmenting
-/// a surface GPS re-calibration jump out of the route is
+/// The recording carries no coordinates of its own: every row is metres
+/// north and east of the console's origin (a north-east-down frame, verified
+/// against the `Course` column -- see the design spec
+/// `2026-09-10-underwater-nav-track-design.md`). That origin is where the
+/// console was switched on, or the first point of a dive plan stored on it,
+/// which can belong to another site entirely (issue #4231). The points come
+/// back rebased so the dive's first sample sits at 0 / 0
+/// ([rebaseOnActiveStart]), which is what the route's anchor stands for.
+/// Segmenting a surface GPS re-calibration jump out of the route is
 /// `NavTrackSegmenter`'s job, not this parser's: every row the file
 /// contains comes back as a point, in file order.
+///
+/// A negative `BattV` on any row but the first is a marker the console set
+/// (a hold, a return point) and comes back in [ParsedNavTrack.markers]. The
+/// first row is never one: the console's own format keeps the magnetic
+/// declination there, which can be negative.
 ///
 /// Times are the console's own wall clock with no zone, combined with
 /// `DateTime.utc` so the value is that wall clock reinterpreted as UTC on
@@ -74,6 +85,7 @@ ParsedNavTrack parseSeacraftEncCsv(Uint8List bytes) {
   final battIdx = _headerIndex(headers, 'battv');
 
   final points = <NavTrackPoint>[];
+  final markers = <NavTrackMarker>[];
   int? lastTimestamp;
 
   for (var i = 0; i < parsed.rows.length; i++) {
@@ -157,6 +169,11 @@ ParsedNavTrack parseSeacraftEncCsv(Uint8List bytes) {
 
     var batteryVolts = optionalDouble(battIdx);
     if (batteryVolts != null && batteryVolts < 0) {
+      if (i > 0) {
+        markers.add(
+          NavTrackMarker(index: points.length, rawValue: batteryVolts.round()),
+        );
+      }
       batteryVolts = null;
     }
 
@@ -186,7 +203,10 @@ ParsedNavTrack parseSeacraftEncCsv(Uint8List bytes) {
   }
   validateNavTrackPointCount(points.length);
 
-  return ParsedNavTrack(points: points);
+  return ParsedNavTrack(
+    points: rebaseOnActiveStart(points),
+    markers: List.unmodifiable(markers),
+  );
 }
 
 /// Combines the console's `d.M.yyyy` date and `H:mm:ss` time into a

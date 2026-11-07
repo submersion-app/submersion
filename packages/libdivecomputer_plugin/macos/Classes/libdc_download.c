@@ -562,6 +562,11 @@ static int extract_dive_fields(dc_parser_t *parser, libdc_parsed_dive_t *dive) {
     if (dc_parser_get_field(parser, DC_FIELD_DIVEMODE, 0, &uval) == DC_STATUS_SUCCESS) {
         dive->dive_mode = uval;
     }
+    // A zero or out-of-range value is a header with no reading, not a pressure.
+    if (dc_parser_get_field(parser, DC_FIELD_ATMOSPHERIC, 0, &dval) == DC_STATUS_SUCCESS &&
+        dval >= LIBDC_MIN_SURFACE_PRESSURE_BAR && dval <= LIBDC_MAX_SURFACE_PRESSURE_BAR) {
+        dive->surface_pressure = dval;
+    }
 
     // Extract decompression model.
     dc_decomodel_t decomodel = {0};
@@ -651,6 +656,7 @@ static int parse_dive(download_state_t *state,
     memset(dive, 0, sizeof(*dive));
     dive->min_temp = NAN;
     dive->max_temp = NAN;
+    dive->surface_pressure = NAN;
     dive->entry_latitude = NAN;
     dive->entry_longitude = NAN;
     dive->exit_latitude = NAN;
@@ -1108,6 +1114,7 @@ int libdc_parse_raw_dive(
     memset(result, 0, sizeof(*result));
     result->min_temp = NAN;
     result->max_temp = NAN;
+    result->surface_pressure = NAN;
     result->entry_latitude = NAN;
     result->entry_longitude = NAN;
     result->exit_latitude = NAN;

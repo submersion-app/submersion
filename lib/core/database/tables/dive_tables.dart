@@ -350,7 +350,7 @@ class DiveTanks extends Table {
   /// equipment row. User-authored; downloads and re-parses never write it.
   TextColumn get passportId => text().nullable()();
 
-  /// v343: the passport id of the second cylinder of a twin set tank (issue
+  /// v345: the passport id of the second cylinder of a twin set tank (issue
   /// #4242), set when the diver picked a linked cylinder as its twin set.
   /// [passportId] is the cylinder picked; this one is its partner, so both
   /// passports count the dive. An identity, not a link, like [passportId].

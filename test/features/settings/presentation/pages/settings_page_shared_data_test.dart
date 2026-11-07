@@ -10,6 +10,7 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     show TurnPressureRule;
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/first_day_of_week.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -425,6 +426,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setDateFormat(DateFormatPreference format) async =>
       state = state.copyWith(dateFormat: format);
+  @override
+  Future<void> setFirstDayOfWeek(FirstDayOfWeek day) async =>
+      state = state.copyWith(firstDayOfWeek: day);
   @override
   Future<void> setThemeMode(ThemeMode mode) async =>
       state = state.copyWith(themeMode: mode);

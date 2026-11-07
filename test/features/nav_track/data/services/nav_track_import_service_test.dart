@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_import_service.dart';
 import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_track.dart';
+import 'package:submersion/features/nav_track/data/services/parsers/seacraft_enc_csv_parser.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 
@@ -435,65 +436,252 @@ void main() {
     });
   });
 
-  group('commit replacing a duplicate', () {
-    test('deletes the replaced route after the new one is stored', () async {
+  group('original file (issue #4231)', () {
+    test('commit stores the file with the route', () async {
+      final bytes = _fixture('seacraft_enc3_gps_fix.csv');
+      final preview = await service.prepare(bytes, fileName: '011.DAT.csv');
+
+      final id = await service.commit(
+        parsed: preview.parsed,
+        sourceRef: preview.sourceRef,
+        diverId: preview.diverId,
+        sourceFile: bytes,
+      );
+
+      expect(await routeRepo.getSourceFile(id), bytes);
+      final route = (await routeRepo.getById(id))!;
+      expect(await routeRepo.getMarkers(route), hasLength(2));
+    });
+  });
+
+  group('duplicate window (issue #4231)', () {
+    /// The short fixture's recording, shifted by [offset].
+    Future<String> storeShifted(Duration offset) {
+      final points = [
+        for (final p in parseSeacraftEncCsv(
+          _fixture('seacraft_enc3_short.csv'),
+        ).points)
+          p.copyWith(timestamp: p.timestamp + offset.inSeconds),
+      ];
+      return routeRepo.insertImportedRoute(
+        points: points,
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: '005.DAT.csv',
+      );
+    }
+
+    test('flags a file of the same name recorded days apart', () async {
+      final storedId = await storeShifted(const Duration(days: 6));
+
       final preview = await service.prepare(
         _fixture('seacraft_enc3_short.csv'),
         fileName: '005.DAT.csv',
       );
-      final oldId = await service.commit(
-        parsed: preview.parsed,
-        sourceRef: preview.sourceRef,
-        diverId: preview.diverId,
-      );
 
-      final newId = await service.commit(
-        parsed: preview.parsed,
-        sourceRef: preview.sourceRef,
-        diverId: preview.diverId,
-        replacingRouteId: oldId,
-      );
-
-      expect(await routeRepo.getById(oldId), isNull);
-      expect(await routeRepo.getById(newId), isNotNull);
+      expect(preview.duplicateOfRouteId, storedId);
+      // Not the same recording, so the review does not propose updating it.
+      expect(preview.duplicateIsSameRecording, isFalse);
     });
 
-    test('hands the replaced route\'s primary role to its replacement, not '
-        'to an earlier-recorded sibling', () async {
-      await seedDive('d1', 1000000, exitTimeMs: 1100000);
-      final dive = await diveRepo.getDiveById('d1');
+    test('the same recording read again is flagged as such', () async {
+      final storedId = await storeShifted(Duration.zero);
+
       final preview = await service.prepare(
         _fixture('seacraft_enc3_short.csv'),
         fileName: '005.DAT.csv',
       );
-      final oldId = await service.commit(
-        parsed: preview.parsed,
-        sourceRef: preview.sourceRef,
-        diverId: preview.diverId,
-        dive: dive,
+
+      expect(preview.duplicateOfRouteId, storedId);
+      expect(preview.duplicateIsSameRecording, isTrue);
+    });
+
+    test('never offers a route of another source for an update', () async {
+      await routeRepo.insertImportedRoute(
+        points: parseSeacraftEncCsv(_fixture('seacraft_enc3_short.csv')).points,
+        source: NavTrackSource.suuntoRoute,
+        sourceRef: '005.DAT.csv',
       );
-      // A second route on the same dive, recorded before the fixture, so
-      // "promote the earliest-recorded sibling" would pick it.
-      final earlierId = await routeRepo.insertImportedRoute(
-        points: const [
-          NavTrackPoint(timestamp: 1000, north: 0, east: 0, depth: 5),
-          NavTrackPoint(timestamp: 1010, north: 5, east: 0, depth: 5),
+
+      final preview = await service.prepare(
+        _fixture('seacraft_enc3_short.csv'),
+        fileName: '005.DAT.csv',
+      );
+
+      expect(preview.duplicateOfRouteId, isNull);
+    });
+
+    test(
+      'prefers the same recording over a nearby one of the same name',
+      () async {
+        await storeShifted(const Duration(days: 2));
+        final sameId = await storeShifted(Duration.zero);
+
+        final preview = await service.prepare(
+          _fixture('seacraft_enc3_short.csv'),
+          fileName: '005.DAT.csv',
+        );
+
+        expect(preview.duplicateOfRouteId, sameId);
+        expect(preview.duplicateIsSameRecording, isTrue);
+      },
+    );
+
+    test(
+      'a file of the same name recorded weeks apart is a new route',
+      () async {
+        await storeShifted(const Duration(days: 30));
+
+        final preview = await service.prepare(
+          _fixture('seacraft_enc3_short.csv'),
+          fileName: '005.DAT.csv',
+        );
+
+        expect(preview.duplicateOfRouteId, isNull);
+      },
+    );
+
+    test('a long stored recording whose end comes near but whose start lies '
+        'outside the window is a new route', () async {
+      // Started nine days before this recording and ran for six days, so
+      // its end is three days away: the window is about start times.
+      final start = parseSeacraftEncCsv(
+        _fixture('seacraft_enc3_short.csv'),
+      ).points.first.timestamp;
+      await routeRepo.insertImportedRoute(
+        points: [
+          NavTrackPoint(
+            timestamp: start - const Duration(days: 9).inSeconds,
+            north: 0,
+            east: 0,
+            depth: 2,
+          ),
+          NavTrackPoint(
+            timestamp: start - const Duration(days: 3).inSeconds,
+            north: 5,
+            east: 0,
+            depth: 2,
+          ),
         ],
         source: NavTrackSource.seacraftEnc,
-        sourceRef: 'earlier.csv',
-        diveId: 'd1',
+        sourceRef: '005.DAT.csv',
       );
 
-      final newId = await service.commit(
-        parsed: preview.parsed,
-        sourceRef: preview.sourceRef,
-        diverId: preview.diverId,
+      final preview = await service.prepare(
+        _fixture('seacraft_enc3_short.csv'),
+        fileName: '005.DAT.csv',
+      );
+
+      expect(preview.duplicateOfRouteId, isNull);
+    });
+
+    test('a file of another name in the same window is a new route', () async {
+      await routeRepo.insertImportedRoute(
+        points: parseSeacraftEncCsv(_fixture('seacraft_enc3_short.csv')).points,
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: '006.DAT.csv',
+      );
+
+      final preview = await service.prepare(
+        _fixture('seacraft_enc3_short.csv'),
+        fileName: '005.DAT.csv',
+      );
+
+      expect(preview.duplicateOfRouteId, isNull);
+    });
+  });
+
+  group('updateFromFile (issue #4231)', () {
+    test('replaces the data and keeps the dive link, site and name', () async {
+      await seedDive('d1', 1000000, exitTimeMs: 1100000);
+      final dive = await diveRepo.getDiveById('d1');
+      final first = await service.prepare(
+        _fixture('seacraft_enc3_real.csv'),
+        fileName: '011.DAT.csv',
+      );
+      final id = await service.commit(
+        parsed: first.parsed,
+        sourceRef: first.sourceRef,
+        diverId: first.diverId,
         dive: dive,
-        replacingRouteId: oldId,
+        name: 'Kept name',
+      );
+      final bytes = _fixture('seacraft_enc3_gps_fix.csv');
+      final again = await service.prepare(bytes, fileName: '011.DAT.csv');
+
+      final updated = await service.updateFromFile(
+        routeId: id,
+        parsed: again.parsed,
+        sourceFile: bytes,
       );
 
-      expect((await routeRepo.getById(newId))!.isPrimary, isTrue);
-      expect((await routeRepo.getById(earlierId))!.isPrimary, isFalse);
+      expect(updated, isTrue);
+      final route = (await routeRepo.getById(id))!;
+      expect(route.diveId, 'd1');
+      expect(route.name, 'Kept name');
+      expect(route.pointCount, again.parsed.points.length);
+      expect(await routeRepo.getSourceFile(id), bytes);
+      // Updating never creates a second route.
+      expect(await routeRepo.getAll(), hasLength(1));
+    });
+
+    test('records the new file name and its markers', () async {
+      final first = await service.prepare(
+        _fixture('seacraft_enc3_real.csv'),
+        fileName: '008.DAT.csv',
+      );
+      final id = await service.commit(
+        parsed: first.parsed,
+        sourceRef: first.sourceRef,
+        diverId: first.diverId,
+      );
+      final bytes = _fixture('seacraft_enc3_gps_fix.csv');
+
+      final updated = await service.updateFromFile(
+        routeId: id,
+        parsed: service.parseFile(bytes),
+        sourceFile: bytes,
+        sourceRef: '011.DAT.csv',
+      );
+
+      expect(updated, isTrue);
+      final route = (await routeRepo.getById(id))!;
+      expect(route.sourceRef, '011.DAT.csv');
+      expect((await routeRepo.getMarkers(route)).map((m) => m.rawValue), [
+        -1,
+        -101,
+      ]);
+    });
+
+    test('parseFile rejects a file it cannot read', () {
+      expect(
+        () => service.parseFile(
+          Uint8List.fromList('not,a,route\n1,2,3'.codeUnits),
+        ),
+        throwsA(isA<NavTrackParseException>()),
+      );
+    });
+
+    test('isSameRecording tells the route\'s own recording from another '
+        'one of the same name', () async {
+      final bytes = _fixture('seacraft_enc3_short.csv');
+      final parsed = service.parseFile(bytes);
+      final id = await routeRepo.insertImportedRoute(
+        points: parsed.points,
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: '005.DAT.csv',
+      );
+      final route = (await routeRepo.getById(id, includePoints: false))!;
+      final weekLater = ParsedNavTrack(
+        points: [
+          for (final p in parsed.points)
+            p.copyWith(
+              timestamp: p.timestamp + const Duration(days: 7).inSeconds,
+            ),
+        ],
+      );
+
+      expect(NavTrackImportService.isSameRecording(route, parsed), isTrue);
+      expect(NavTrackImportService.isSameRecording(route, weekLater), isFalse);
     });
   });
 }

@@ -667,6 +667,10 @@ class DivePlanSummary extends Equatable {
   final bool linkedDiveIsPlanned;
   final DateTime? linkedDiveDate;
 
+  /// False when [linkedDiveId] names a dive no longer in the log, deleted on
+  /// another device since: a link to nothing, neither planned nor dived.
+  final bool linkedDiveExists;
+
   /// The saved series this dive is in (issue #3565), its place there and its
   /// own name; null for an ordinary plan.
   final String? seriesId;
@@ -685,6 +689,7 @@ class DivePlanSummary extends Equatable {
     this.linkedDiveNumber,
     this.linkedDiveIsPlanned = false,
     this.linkedDiveDate,
+    this.linkedDiveExists = true,
     this.seriesId,
     this.seriesIndex,
     this.diveName,
@@ -703,6 +708,7 @@ class DivePlanSummary extends Equatable {
     linkedDiveNumber,
     linkedDiveIsPlanned,
     linkedDiveDate,
+    linkedDiveExists,
     seriesId,
     seriesIndex,
     diveName,

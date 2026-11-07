@@ -10,6 +10,7 @@ import 'package:submersion/features/planner/presentation/chart/plan_chart_edit_c
 import 'package:submersion/features/planner/presentation/chart/plan_chart_geometry.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_series_painter.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_profile_chart.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -32,10 +33,11 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
 /// that rescaled under it, so a small move ran the dive time away. The axes
 /// now hold still for the whole drag and refit on release.
 void main() {
-  Widget harness() => testApp(
+  Widget harness({bool locked = false}) => testApp(
     overrides: [
       ...plannerResultsInline(),
       settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+      if (locked) planLockedProvider.overrideWithValue(true),
     ],
     child: const SizedBox(width: 500, height: 400, child: PlanProfileChart()),
   );
@@ -57,8 +59,8 @@ void main() {
       Offset handle,
     })
   >
-  setUpPlan(WidgetTester tester) async {
-    await tester.pumpWidget(harness());
+  setUpPlan(WidgetTester tester, {bool locked = false}) async {
+    await tester.pumpWidget(harness(locked: locked));
     final container = ProviderScope.containerOf(
       tester.element(find.byType(PlanProfileChart)),
     );
@@ -294,5 +296,22 @@ void main() {
       paintedGeometry(tester).maxTimeSeconds,
       s.container.read(planCanvasSeriesProvider).maxTimeSeconds,
     );
+  });
+
+  testWidgets('a locked plan does not move under a drag (issue #3565)', (
+    tester,
+  ) async {
+    final s = await setUpPlan(tester, locked: true);
+    final before = s.container.read(divePlanNotifierProvider).segments;
+
+    final gesture = await tester.startGesture(s.rect.topLeft + s.handle);
+    for (var i = 0; i < 20; i++) {
+      await gesture.moveBy(const Offset(6, 6));
+      await tester.pump();
+    }
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    expect(s.container.read(divePlanNotifierProvider).segments, before);
   });
 }

@@ -547,7 +547,7 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_cylinder_fills_equipment '
         'ON cylinder_fills(equipment_id)',
   ),
-  // Twin set pairings (v343, issue #4242): the pairings of one cylinder from
+  // Twin set pairings (v345, issue #4242): the pairings of one cylinder from
   // either side, the other fill of a twin fill, and the dives that used a
   // cylinder as the second of a twin set.
   (

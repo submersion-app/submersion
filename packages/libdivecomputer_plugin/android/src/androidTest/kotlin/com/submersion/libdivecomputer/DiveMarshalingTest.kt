@@ -32,6 +32,7 @@ class DiveMarshalingTest {
         diveMode = "oc", decoAlgorithm = null, gfLow = null, gfHigh = null,
         decoConservatism = null, rawData = byteArrayOf(9, 8, 7), rawFingerprint = null,
         entryLatitude = null, entryLongitude = null, exitLatitude = null, exitLongitude = null,
+        surfacePressureBar = 0.961,
     )
 
     @Test
@@ -53,5 +54,6 @@ class DiveMarshalingTest {
         assertEquals(12.0, volumeLiters!!, 0.0)
         assertEquals("gaschange", restored.events[0].type)
         assertArrayEquals(byteArrayOf(9, 8, 7), restored.rawData)
+        assertEquals(0.961, restored.surfacePressureBar!!, 0.0)
     }
 }

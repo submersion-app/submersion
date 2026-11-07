@@ -155,6 +155,10 @@ class DiverSettings extends Table {
   TextColumn get timeFormat =>
       text().withDefault(const Constant('twelveHour'))();
   TextColumn get dateFormat => text().withDefault(const Constant('mmmDYYYY'))();
+
+  /// v343: the day a week starts on, a FirstDayOfWeek name (issue #4232).
+  /// 'auto' follows the device's region.
+  TextColumn get firstDayOfWeek => text().withDefault(const Constant('auto'))();
   // Theme
   TextColumn get themeMode => text().withDefault(const Constant('system'))();
   TextColumn get themePreset =>

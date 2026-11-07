@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_3d/domain/geometry/dive_axes.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/presentation/dive_chrome.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/hover_picker.dart';
+import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_player.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/scene_player_bar.dart';
@@ -22,8 +23,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// left edge, elapsed time along the floor, and the path color follows
 /// whichever metric the diver picks. Any of those metrics (depth included,
 /// although depth already drives the vertical axis) can be put on the
-/// optional Z axis, the same way [Dive3dPage] offers one. No markers and no
-/// tissue chrome: a track has neither.
+/// optional Z axis, the same way [Dive3dPage] offers one. No tissue chrome,
+/// which a track has none of. The only markers are the ones the recording
+/// console set (issue #4231).
 class NavTrack3dPage extends ConsumerStatefulWidget {
   final String trackId;
 
@@ -191,7 +193,9 @@ class _NavTrack3dPageState extends ConsumerState<NavTrack3dPage>
                 child: Dive3dInteractiveViewport(
                   scene: scene,
                   scrubPosition: _position,
-                  visibleOverlays: const {},
+                  visibleOverlays: scene.markers.isEmpty
+                      ? const {}
+                      : const {SceneOverlay.markers},
                   onMarkerTap: null,
                   axisFrame: axes.frame,
                   axisLabels: axes.labels,

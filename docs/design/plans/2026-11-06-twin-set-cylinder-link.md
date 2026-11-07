@@ -25,7 +25,7 @@ and change log, flutter_test.
 
 ## Global Constraints
 
-- Schema version goes 342 to **343**; one rung. New table and nullable
+- Schema version goes 344 to **345** (renumbered from 343, which main claimed for issue #4232); one rung. New table and nullable
   columns only, so the compatibility floor does not move.
 - Pairing days are calendar days stored as epoch milliseconds of **UTC
   midnight of that calendar date**, built only through `calendarDay()` (Task
@@ -78,7 +78,7 @@ Create:
 - `lib/features/dive_log/presentation/widgets/twin_set_choice_dialog.dart`
 - `lib/features/agent_access/data/writes/families/cylinder_pairing_writes.dart`
 - `lib/core/database/migrations/helpers/cylinder_pairing_migrations.dart`
-- Tests beside each, plus `test/core/database/migration_v343_twin_set_test.dart`
+- Tests beside each, plus `test/core/database/migration_v345_twin_set_test.dart`
   and `test/core/services/sync/cylinder_pairings_sync_round_trip_test.dart`.
 
 Modify (main ones): `cylinder_tables.dart`, `dive_tables.dart`,
@@ -176,20 +176,20 @@ Expected: FAIL, the files do not exist.
 
 ---
 
-### Task 2: Schema v343
+### Task 2: Schema v345
 
 **Files:**
 - Modify: `lib/core/database/tables/cylinder_tables.dart` (new
   `CylinderPairings` table; `CylinderFills.filledTogetherId`)
 - Modify: `lib/core/database/tables/dive_tables.dart`
   (`DiveTanks.twinPassportId` next to `passportId` at :351)
-- Modify: `lib/core/database/database.dart` (tables list, version 343,
+- Modify: `lib/core/database/database.dart` (tables list, version 345,
   `migrationVersions` entry with a floor comment)
 - Create: `lib/core/database/migrations/helpers/cylinder_pairing_migrations.dart`
 - Modify: `lib/core/database/migrations/ladder/rungs_v340_onward.dart`,
   `lib/core/database/migrations/before_open_table_backstops.dart`,
   `lib/core/database/migrations/app_database_migrations.dart` (part list)
-- Test: `test/core/database/migration_v343_twin_set_test.dart`
+- Test: `test/core/database/migration_v345_twin_set_test.dart`
 
 **Interfaces (produces):**
 - Drift table `CylinderPairings` (`@DataClassName('CylinderPairingRow')`,
@@ -213,14 +213,14 @@ Expected: FAIL, the files do not exist.
   the table, three indexes and two columns exist; assert running
   `_assertTwinSetSchema` twice is harmless; assert deleting an equipment
   row deletes its pairing rows.
-- [ ] **Step 2: Run** `flutter test test/core/database/migration_v343_twin_set_test.dart`, expect FAIL.
+- [ ] **Step 2: Run** `flutter test test/core/database/migration_v345_twin_set_test.dart`, expect FAIL.
 - [ ] **Step 3: Implement** the table, columns, helper, rung
-  (`if (from < 343) await _assertTwinSetSchema(); if (from < 343) await reportProgress();`)
-  with a `// v343:` comment naming issue #4242, the backstop call, and the
+  (`if (from < 345) await _assertTwinSetSchema(); if (from < 345) await reportProgress();`)
+  with a `// v345:` comment naming issue #4242, the backstop call, and the
   version bump. Run `dart run build_runner build --delete-conflicting-outputs`
   in the background and wait for `database.g.dart` to change.
 - [ ] **Step 4: Run** the migration test and `flutter test test/core/database`, expect PASS.
-- [ ] **Step 5: Commit** `feat(cylinder-passports): schema for twin set pairings (v343)`
+- [ ] **Step 5: Commit** `feat(cylinder-passports): schema for twin set pairings (v343, renumbered v345)`
 
 ---
 

@@ -7,7 +7,7 @@ import 'package:submersion/features/dive_log/domain/entities/outlier_result.dart
 import 'package:submersion/features/dive_log/domain/entities/profile_waypoint.dart';
 
 /// Editor modes for the profile editor.
-enum EditorMode { select, smooth, outlier, draw, trim }
+enum EditorMode { select, smooth, outlier, draw }
 
 /// Stable tokens persisted in profile revision history for editor operations.
 abstract final class ProfileEditorEditKinds {
