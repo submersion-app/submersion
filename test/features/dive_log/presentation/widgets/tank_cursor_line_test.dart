@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/data/services/estimated_tank_pressure_synthesizer.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/tank_cursor_reading.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_cursor_line.dart';
 
 const _tank = DiveTank(id: 't1', gasMix: GasMix(o2: 21));
 

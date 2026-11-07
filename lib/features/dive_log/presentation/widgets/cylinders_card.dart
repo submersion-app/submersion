@@ -23,7 +23,7 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_trac
 import 'package:submersion/features/dive_log/presentation/widgets/cylinder_block.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/tank_cursor_reading.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_cursor_line.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_figure.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_fill_levels.dart';
