@@ -734,7 +734,9 @@ void main() {
       final primary = (await series.getSeriesForDive('dive-1')).single.id;
       final replacement = await series.insertSeries(
         diveId: 'dive-1',
-        samples: const [ProfileSample(timestamp: 10, depth: 2.0)],
+        // Overlaps the first, as an edit of a profile does: disjoint
+        // series of one reading would be segments of a single revision.
+        samples: const [ProfileSample(timestamp: 0, depth: 2.0)],
         isPrimary: false,
         now: 1000,
       );
@@ -776,7 +778,9 @@ void main() {
     final first = (await series.getSeriesForDive('dive-1')).single.id;
     final second = await series.insertSeries(
       diveId: 'dive-1',
-      samples: const [ProfileSample(timestamp: 10, depth: 2.0)],
+      // Overlaps the first, as an edit of a profile does: disjoint
+      // series of one reading would be segments of a single revision.
+      samples: const [ProfileSample(timestamp: 0, depth: 2.0)],
       isPrimary: false,
       now: 1000,
     );
@@ -793,6 +797,67 @@ void main() {
     expect(rows, hasLength(1));
     expect(rows.single.isPrimary, isTrue);
     expect(await dives.getProfileHistory('dive-1'), hasLength(1));
+  });
+
+  group('a revision split into segments', () {
+    late String first;
+    late String second;
+
+    setUp(() async {
+      await computer('comp-1');
+      await dives.createDive(dive('dive-1', const []));
+      await source('src-1', 'dive-1', 'comp-1', primary: true);
+      // One live profile in two disjoint segments of the same reading.
+      first = await series.insertSeries(
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        sourceId: 'src-1',
+        samples: const [
+          ProfileSample(timestamp: 0, depth: 0.0),
+          ProfileSample(timestamp: 60, depth: 10.0),
+        ],
+        now: 1000,
+      );
+      second = await series.insertSeries(
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        sourceId: 'src-1',
+        samples: const [
+          ProfileSample(timestamp: 600, depth: 12.0),
+          ProfileSample(timestamp: 660, depth: 0.0),
+        ],
+        now: 1000,
+      );
+    });
+
+    test('deleting one segment deletes the whole revision and promotes '
+        'the next one', () async {
+      final edit = await series.insertSeries(
+        diveId: 'dive-1',
+        isPrimary: false,
+        samples: const [
+          ProfileSample(timestamp: 0, depth: 0.0),
+          ProfileSample(timestamp: 660, depth: 8.0),
+        ],
+        now: 2000,
+      );
+
+      await dives.deleteProfileSeriesWithHistoryForDive('dive-1', second);
+
+      final rows = await series.getSeriesForDive('dive-1');
+      expect(rows.map((s) => s.id), [edit]);
+      expect(rows.single.isPrimary, isTrue);
+      final tombstones = await db.select(db.deletionLog).get();
+      expect(tombstones.map((t) => t.recordId).toSet(), {first, second});
+    });
+
+    test('its segments do not count as other revisions', () async {
+      await expectLater(
+        dives.deleteProfileSeriesWithHistoryForDive('dive-1', first),
+        throwsA(isA<ArgumentError>()),
+      );
+      expect((await series.getSeriesForDive('dive-1')), hasLength(2));
+    });
   });
 
   test(

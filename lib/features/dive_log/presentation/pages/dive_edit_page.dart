@@ -3605,21 +3605,31 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       chosen = startable.single;
     }
     final sourceId = chosen?.id;
-    final promotes = chosen != null && !chosen.isPrimary;
+    final primaryBefore = sources.where((s) => s.isPrimary).firstOrNull?.id;
 
     final saved = await context.pushNamed<bool>(
       'editProfile',
       pathParameters: {'diveId': diveId},
       queryParameters: {'mode': ?initialMode, 'sourceId': ?sourceId},
     );
-    if (saved == true && mounted) {
-      await _refreshAfterProfileSave(diveId, promoted: promotes);
-    }
+    if (saved != true || !mounted) return;
+    // Saving an edit of another source promotes it, and so can switching or
+    // deleting a revision in the editor, so ask which source is primary now
+    // rather than inferring it from the source chosen here.
+    final sourcesAfter = await ref
+        .read(diveRepositoryProvider)
+        .getDataSources(diveId);
+    final primaryAfter = sourcesAfter.where((s) => s.isPrimary).firstOrNull?.id;
+    if (!mounted) return;
+    await _refreshAfterProfileSave(
+      diveId,
+      promoted: primaryAfter != primaryBefore,
+    );
   }
 
-  /// A saved profile edit recomputed the dive's depths, and promoting another
-  /// source also replaced the fields taken from the primary source. Reload
-  /// them so saving this form does not write the old values back.
+  /// A saved profile edit recomputed the dive's depths, and a change of
+  /// primary source also replaced the fields taken from it. Reload them so
+  /// saving this form does not write the old values back.
   Future<void> _refreshAfterProfileSave(
     String diveId, {
     required bool promoted,

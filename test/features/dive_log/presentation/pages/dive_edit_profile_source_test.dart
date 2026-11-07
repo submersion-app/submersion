@@ -40,14 +40,15 @@ void main() {
             id: Value(diveId),
             diveDateTime: Value(now),
             maxDepth: Value(20.0),
+            waterTemp: Value(24.0),
             createdAt: Value(now),
             updatedAt: Value(now),
           ),
         );
     // File imports: neither source is linked to a registered computer.
-    for (final (id, model, isPrimary, maxDepth) in [
-      ('src-a', 'Perdix', true, 20.0),
-      ('src-b', 'Teric', false, 30.0),
+    for (final (id, model, isPrimary, maxDepth, waterTemp) in [
+      ('src-a', 'Perdix', true, 20.0, 24.0),
+      ('src-b', 'Teric', false, 30.0, 18.0),
     ]) {
       await db
           .into(db.diveDataSources)
@@ -58,6 +59,7 @@ void main() {
               computerModel: Value(model),
               isPrimary: Value(isPrimary),
               maxDepth: Value(maxDepth),
+              waterTemp: Value(waterTemp),
               importedAt: Value(DateTime(2026, 1, 1)),
               createdAt: Value(DateTime(2026, 1, 1)),
             ),
@@ -203,6 +205,55 @@ void main() {
     // will not write the pre-edit value back.
     expect(find.text('28.0 m'), findsOneWidget);
     expect(find.text('20.0 m'), findsNothing);
+  });
+
+  testWidgets('the source fields refresh when the editor changed the primary '
+      'source, though the source chosen was already primary', (tester) async {
+    await pumpEditPage(
+      tester,
+      editor: (context, state) {
+        // Stands in for the editor: delete the primary source's revision,
+        // which makes the other source primary, then report the change.
+        return Scaffold(
+          body: TextButton(
+            onPressed: () async {
+              final live = (await repository.getProfileHistory(
+                diveId,
+              )).firstWhere((r) => r.isActive);
+              await repository.deleteProfileSeriesWithHistoryForDive(
+                diveId,
+                live.seriesId,
+              );
+              if (context.mounted) context.pop(true);
+            },
+            child: const Text('delete revision'),
+          ),
+        );
+      },
+    );
+    // The collapsed Conditions section summarises the water temperature.
+    expect(find.textContaining('24 °C'), findsOneWidget);
+
+    await tester.tap(find.text('Dive profile'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Perdix'));
+    await tester.pumpAndSettle();
+
+    await tester.runAsync(() async {
+      await tester.tap(find.text('delete revision'));
+      await tester.pump();
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+    });
+    await tester.pumpAndSettle();
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 300)),
+    );
+    await tester.pumpAndSettle();
+
+    // The water temperature now comes from the Teric, so saving the form
+    // will not write the deleted source's value back.
+    expect(find.textContaining('18 °C'), findsOneWidget);
+    expect(find.textContaining('24 °C'), findsNothing);
   });
 
   testWidgets('choosing the primary source names it without promoting', (
