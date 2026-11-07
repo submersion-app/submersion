@@ -11,6 +11,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gas_switch_format.dart';
+import 'package:submersion/features/dive_log/presentation/utils/profile_time_domain.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gtr_format.dart';
 import 'package:submersion/core/deco/ascent_rate_calculator.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
@@ -2906,8 +2907,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       bottom: insets.bottom,
     );
     if (widget.profile.isEmpty) return 0;
-    final domain = _timeDomain();
-    return _secondsAtFraction(focal.fx).round().clamp(domain.min, domain.max);
+    // Clamped to the active profile, not to the axis an overlay widens: the
+    // second is placed on this dive (an annotation, a gas switch).
+    final own = profileTimeDomain(widget.profile);
+    return _secondsAtFraction(focal.fx).round().clamp(own.min, own.max);
   }
 
   /// The second on the time axis at fraction [fx] (0 to 1) of the plot's
@@ -2923,15 +2926,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   List<DiveProfilePoint>? _timeDomainProfile;
   List<ChartSourceOverlay>? _timeDomainOverlays;
 
-  /// The time axis's full extent, in seconds on the primary's timeline: from
-  /// the earliest sample of the profile or of any overlay (0 when none is
-  /// negative) to the latest. A source placed before the primary started, by
-  /// a computer switched on first or by a wrong clock, has negative
-  /// timestamps, and an axis pinned at 0 clipped them off the left edge
-  /// without a sign (#4296).
-  ///
-  /// Scans every sample, so it is kept until the profile or the overlays
-  /// change: hover and pan frames read it without a rescan.
+  /// The time axis's full extent over the profile and every overlay (see
+  /// [profileTimeDomain]). Scans every sample, so it is kept until the
+  /// profile or the overlays change: hover and pan frames read it without a
+  /// rescan.
   ({int min, int max}) _timeDomain() {
     final memo = _timeDomainMemo;
     if (memo != null &&
@@ -2939,22 +2937,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         identical(_timeDomainOverlays, widget.overlays)) {
       return memo;
     }
-    var lo = 0;
-    var hi = widget.profile.isEmpty ? 0 : widget.profile.first.timestamp;
-    void scan(List<DiveProfilePoint> points) {
-      for (final p in points) {
-        if (p.timestamp < lo) lo = p.timestamp;
-        if (p.timestamp > hi) hi = p.timestamp;
-      }
-    }
-
-    scan(widget.profile);
-    for (final overlay in widget.overlays ?? const <ChartSourceOverlay>[]) {
-      scan(overlay.points);
-    }
     _timeDomainProfile = widget.profile;
     _timeDomainOverlays = widget.overlays;
-    return _timeDomainMemo = (min: lo, max: hi);
+    return _timeDomainMemo = profileTimeDomain(widget.profile, [
+      for (final overlay in widget.overlays ?? const <ChartSourceOverlay>[])
+        overlay.points,
+    ]);
   }
 
   /// Hands [report] the second and profile depth (metres, null without a
@@ -7854,12 +7842,7 @@ class DiveProfileMiniChart extends StatelessWidget {
 
     final chartColor = color ?? Theme.of(context).colorScheme.primary;
     final maxDepth = profile.map((p) => p.depth).reduce(math.max) * 1.1;
-    final maxTime = profile.map((p) => p.timestamp).reduce(math.max).toDouble();
-    // A source placed before the primary started has negative timestamps,
-    // which an axis pinned at 0 would clip (#4296).
-    final minTime = math
-        .min(0, profile.map((p) => p.timestamp).reduce(math.min))
-        .toDouble();
+    final timeDomain = profileTimeDomain(profile);
 
     return SizedBox(
       height: height,
@@ -7868,8 +7851,8 @@ class DiveProfileMiniChart extends StatelessWidget {
       child: RepaintBoundary(
         child: LineChart(
           LineChartData(
-            minX: minTime,
-            maxX: maxTime,
+            minX: timeDomain.min.toDouble(),
+            maxX: timeDomain.max.toDouble(),
             minY: -maxDepth, // Inverted: negative depth at bottom
             maxY: 0, // Surface (0m) at top
             gridData: const FlGridData(show: false),

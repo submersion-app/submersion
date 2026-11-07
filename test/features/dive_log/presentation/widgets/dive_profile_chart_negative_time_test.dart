@@ -31,6 +31,8 @@ List<DiveProfilePoint> _profile({int start = -600}) => [
 Widget _buildChart(
   List<DiveProfilePoint> profile, {
   List<ChartSourceOverlay>? overlays,
+  void Function(List<TooltipRow>? rows)? onTooltipData,
+  void Function(int seconds)? onSecondaryTapAt,
 }) => ProviderScope(
   overrides: [settingsProvider.overrideWith((ref) => _TestSettingsNotifier())],
   child: MaterialApp(
@@ -41,7 +43,17 @@ Widget _buildChart(
       body: SizedBox(
         width: 800,
         height: 500,
-        child: DiveProfileChart(profile: profile, overlays: overlays),
+        child: DiveProfileChart(
+          profile: profile,
+          overlays: overlays,
+          tooltipPresentation: onTooltipData != null
+              ? TooltipPresentation.external
+              : TooltipPresentation.inChart,
+          onTooltipData: onTooltipData,
+          onSecondaryTapAt: onSecondaryTapAt == null
+              ? null
+              : (seconds, _, _) => onSecondaryTapAt(seconds),
+        ),
       ),
     ),
   ),
@@ -137,6 +149,91 @@ void main() {
     await tester.pump();
 
     expect(_chartData(tester).minX, closeTo(-600, 1));
+  });
+
+  /// Right-clicks the plot at [fraction] of the chart's width.
+  Future<void> rightClickAt(WidgetTester tester, double fraction) async {
+    final rect = tester.getRect(find.byType(LineChart).first);
+    final at = Offset(rect.left + rect.width * fraction, rect.center.dy);
+    final mouse = await tester.createGesture(
+      kind: PointerDeviceKind.mouse,
+      buttons: kSecondaryMouseButton,
+    );
+    await mouse.addPointer(location: at);
+    addTearDown(mouse.removePointer);
+    await mouse.down(at);
+    await tester.pump();
+    await mouse.up();
+    await tester.pump();
+  }
+
+  testWidgets('a plot position left of the start maps to a negative second', (
+    tester,
+  ) async {
+    _ignoreOverflowErrors();
+    final seconds = <int>[];
+    await tester.pumpWidget(
+      _buildChart(_profile(), onSecondaryTapAt: seconds.add),
+    );
+    await tester.pumpAndSettle();
+
+    // A seventh of the way across a -600..2400 axis; a 0-based mapping of
+    // the same position reads a positive second.
+    await rightClickAt(tester, 0.15);
+
+    expect(seconds, hasLength(1));
+    expect(seconds.single, inInclusiveRange(-600, -1));
+  });
+
+  testWidgets('a plot position is clamped to the active profile, not to a '
+      'longer overlay', (tester) async {
+    _ignoreOverflowErrors();
+    final seconds = <int>[];
+    await tester.pumpWidget(
+      _buildChart(
+        _profile(start: 0),
+        overlays: [
+          ChartSourceOverlay(
+            sourceId: 'other',
+            name: 'Other computer',
+            computerId: null,
+            points: _profile(start: 1200),
+            color: Colors.orange,
+          ),
+        ],
+        onSecondaryTapAt: seconds.add,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Past the active profile's last sample (3000 s) on a 0..4200 axis.
+    await rightClickAt(tester, 0.97);
+
+    expect(seconds, [3000]);
+  });
+
+  testWidgets('hovering left of the start reads a signed time', (tester) async {
+    _ignoreOverflowErrors();
+    List<TooltipRow>? rows;
+    await tester.pumpWidget(
+      _buildChart(_profile(), onTooltipData: (r) => rows = r),
+    );
+    await tester.pumpAndSettle();
+
+    // A tenth of the way across the plot: about -300 s on a -600..2400 axis,
+    // where a 0-based mapping would read about +300 s.
+    final rect = tester.getRect(find.byType(LineChart).first);
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    final at = Offset(rect.left + rect.width * 0.15, rect.center.dy);
+    await mouse.addPointer(location: at - const Offset(4, 0));
+    addTearDown(mouse.removePointer);
+    await tester.pump();
+    await mouse.moveTo(at);
+    await tester.pump();
+
+    expect(rows, isNotNull);
+    final time = rows!.first.value;
+    expect(time, matches(RegExp(r'^-\d+:[0-5]\d$')));
   });
 
   testWidgets('the mini chart starts at the earliest negative sample', (

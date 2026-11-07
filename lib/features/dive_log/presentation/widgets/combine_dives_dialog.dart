@@ -81,6 +81,12 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
   ({String? primaryId, ConsolidationAlignment alignment})? _planKey;
   DiveConsolidationPlan? _plan;
 
+  /// The consolidation panel's classification and its inputs: it runs the
+  /// profile aligner on every overlapping record (#4296), so it is not redone
+  /// on every frame either.
+  ({String? primaryId, ConsolidationAlignment alignment})? _consolidationKey;
+  DiveConsolidationClassification? _consolidation;
+
   @override
   void initState() {
     super.initState();
@@ -131,6 +137,20 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
     final alignments = _planFor().alignments;
     return alignments.isNotEmpty &&
         alignments.values.every((a) => a.isStrongMatch);
+  }
+
+  /// Always with a mode, so a selection that does not overlap (or only partly
+  /// does) is offered for alignment instead of rejected (#552).
+  DiveConsolidationClassification _consolidationClassification() {
+    final key = (primaryId: _selectedPrimaryId, alignment: _alignment);
+    final cached = _consolidation;
+    if (cached != null && _consolidationKey == key) return cached;
+    _consolidationKey = key;
+    return _consolidation = const DiveConsolidationBuilder().classify(
+      _dives!,
+      primaryDiveId: _selectedPrimaryId,
+      alignment: _alignment,
+    );
   }
 
   DiveConsolidationPlan _planFor() {
@@ -491,13 +511,7 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
   /// dive) and renders either the mapped error text or the consolidation
   /// preview/selector/confirm panel.
   Widget _buildConsolidationPanel(BuildContext context) {
-    // Always with a mode, so a selection that does not overlap (or only
-    // partly does) is offered for alignment instead of rejected (#552).
-    final classification = const DiveConsolidationBuilder().classify(
-      _dives!,
-      primaryDiveId: _selectedPrimaryId,
-      alignment: _alignment,
-    );
+    final classification = _consolidationClassification();
 
     return switch (classification) {
       final ConsolidationInvalid invalid => _buildErrorPanel(

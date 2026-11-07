@@ -30,6 +30,7 @@ class ConsolidationReady extends DiveConsolidationClassification {
     required this.secondaries,
     this.realignedIds = const {},
     this.clockMismatchIds = const {},
+    this.overlapFits = const {},
   });
   final Dive primary;
 
@@ -48,6 +49,11 @@ class ConsolidationReady extends DiveConsolidationClassification {
   /// times give. A clock wrong by less than the dive lasted still overlaps,
   /// so overlap alone does not show the clocks agree (#4296).
   final Set<String> clockMismatchIds;
+
+  /// Overlapping secondary id -> where [ProfileAligner] placed its trace,
+  /// the fit [clockMismatchIds] was judged by. Kept so `build` does not
+  /// repeat the search.
+  final Map<String, ProfileAlignmentResult> overlapFits;
 }
 
 /// Everything the consolidation service needs to persist the merge.
@@ -131,14 +137,15 @@ class DiveConsolidationBuilder {
   }
 
   /// Whether [secondary], which overlaps [primary] in time, is the same dive
-  /// on a computer whose clock is wrong: its depth trace fits the primary's
-  /// strongly, at an offset more than [clockTolerance] away from the one the
-  /// entry times give. A weak fit, or none, leaves the clocks trusted.
-  bool _clockDisagrees(Dive primary, Dive secondary) {
-    final fit = const ProfileAligner().align(
-      primary.profile,
-      secondary.profile,
-    );
+  /// on a computer whose clock is wrong: its depth trace [fit] matches the
+  /// primary's strongly, at an offset more than [clockTolerance] away from
+  /// the one the entry times give. A weak fit, or none, leaves the clocks
+  /// trusted.
+  bool _clockDisagrees(
+    Dive primary,
+    Dive secondary,
+    ProfileAlignmentResult fit,
+  ) {
     if (!fit.isStrongMatch) return false;
     final byClock = secondary.effectiveEntryTime
         .difference(primary.effectiveEntryTime)
@@ -197,9 +204,14 @@ class DiveConsolidationBuilder {
     ];
     final realigned = <String>{};
     final clockMismatch = <String>{};
+    final overlapFits = <String, ProfileAlignmentResult>{};
     for (final s in secondaries) {
       if (_overlaps(primary, s)) {
-        if (_clockDisagrees(primary, s)) {
+        final fit = overlapFits[s.id] = const ProfileAligner().align(
+          primary.profile,
+          s.profile,
+        );
+        if (_clockDisagrees(primary, s, fit)) {
           realigned.add(s.id);
           clockMismatch.add(s.id);
         }
@@ -217,6 +229,7 @@ class DiveConsolidationBuilder {
       secondaries: secondaries,
       realignedIds: realigned,
       clockMismatchIds: clockMismatch,
+      overlapFits: overlapFits,
     );
   }
 
@@ -303,6 +316,7 @@ class DiveConsolidationBuilder {
             primary,
             s,
             alignment ?? ConsolidationAlignment.bestFit,
+            fit: classification.overlapFits[s.id],
           ),
     };
     final offsets = <String, int>{
@@ -374,15 +388,14 @@ class DiveConsolidationBuilder {
   ProfileAlignmentResult _aligned(
     Dive primary,
     Dive secondary,
-    ConsolidationAlignment alignment,
-  ) {
-    final fit = const ProfileAligner().align(
-      primary.profile,
-      secondary.profile,
-    );
+    ConsolidationAlignment alignment, {
+    ProfileAlignmentResult? fit,
+  }) {
+    final placed =
+        fit ?? const ProfileAligner().align(primary.profile, secondary.profile);
     return switch (alignment) {
-      ConsolidationAlignment.bestFit => fit,
-      ConsolidationAlignment.starts => fit.copyWith(offsetSeconds: 0),
+      ConsolidationAlignment.bestFit => placed,
+      ConsolidationAlignment.starts => placed.copyWith(offsetSeconds: 0),
     };
   }
 }

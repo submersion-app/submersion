@@ -1080,6 +1080,9 @@ void main() {
       final ready = result as ConsolidationReady;
       expect(ready.realignedIds, {'b'});
       expect(ready.clockMismatchIds, {'b'});
+      // The fit the mismatch was judged by, kept for build to reuse.
+      expect(ready.overlapFits['b']!.offsetSeconds, -40);
+      expect(ready.overlapFits['b']!.isStrongMatch, isTrue);
     });
 
     test('is placed by its profile, not its clock, without a mode', () {
@@ -1125,6 +1128,8 @@ void main() {
       );
       expect(plan.offsetsSeconds['b'], -240);
       expect(plan.alignments, isEmpty);
+      // Judged, and found to agree with the clock.
+      expect(result.overlapFits.keys, ['b']);
     });
 
     test('a weak fit keeps the entry-time offset', () {
