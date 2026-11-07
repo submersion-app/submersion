@@ -372,6 +372,149 @@ void main() {
     expect(reopened.load().mode, ProxyMode.none);
   });
 
+  group('pendingStartup', () {
+    // Network requests opened during launch wait on this instead of the
+    // first frame waiting on initialize (#4246).
+    test('holds from construction until the first OS answer', () async {
+      final r = _Resolver();
+      final c = ProxyController(resolver: r);
+      addTearDown(c.dispose);
+      expect(c.pendingStartup, isNotNull);
+      final init = c.initialize(store);
+      await pumpEventQueue();
+      final pending = c.pendingStartup;
+      expect(pending, isNotNull);
+      var settled = false;
+      unawaited(pending!.then((_) => settled = true));
+      await pumpEventQueue();
+      expect(settled, isFalse);
+      r.answers.single.complete(_fixed);
+      await init;
+      await pumpEventQueue();
+      expect(settled, isTrue);
+      expect(c.pendingStartup, isNull);
+      expect(c.current.endpoint, 'corp:8080');
+    });
+
+    test(
+      'clears at the startup timeout when the OS has not answered',
+      () async {
+        final r = _Resolver();
+        final c = ProxyController(resolver: r);
+        addTearDown(c.dispose);
+        await c.initialize(
+          store,
+          startupTimeout: const Duration(milliseconds: 10),
+        );
+        expect(c.pendingStartup, isNull);
+        expect(c.state.detecting, isTrue);
+      },
+    );
+
+    test('holds until the manual password is read', () async {
+      await store.save(
+        const ProxySettings(
+          mode: ProxyMode.manual,
+          type: ProxyType.http,
+          host: 'm',
+          port: 3128,
+          username: 'ann',
+        ),
+      );
+      final keychain = _SlowKeychain();
+      final slowStore = ProxySettingsStore(
+        await SharedPreferences.getInstance(),
+        storage: keychain,
+      );
+      await slowStore.savePassword('pw');
+      final c = ProxyController(resolver: _Resolver());
+      addTearDown(c.dispose);
+      final init = c.initialize(slowStore);
+      await pumpEventQueue();
+      expect(c.pendingStartup, isNotNull);
+      keychain.release.complete();
+      await init;
+      expect(c.pendingStartup, isNull);
+      expect(c.current.password, 'pw');
+    });
+
+    test('clears even when loading the saved choice fails', () async {
+      final c = ProxyController(resolver: _Resolver());
+      addTearDown(c.dispose);
+      await expectLater(
+        c.initialize(_ThrowingLoadStore(await SharedPreferences.getInstance())),
+        throwsStateError,
+      );
+      expect(c.pendingStartup, isNull);
+    });
+
+    test('a refresh after the startup timeout keeps a manual choice still '
+        'reading its password', () async {
+      await store.save(
+        const ProxySettings(
+          mode: ProxyMode.manual,
+          type: ProxyType.http,
+          host: 'm',
+          port: 3128,
+          username: 'ann',
+        ),
+      );
+      final keychain = _SlowKeychain();
+      final slowStore = ProxySettingsStore(
+        await SharedPreferences.getInstance(),
+        storage: keychain,
+      );
+      await slowStore.savePassword('pw');
+      final c = ProxyController(resolver: _Answering());
+      addTearDown(c.dispose);
+      await c.initialize(
+        slowStore,
+        startupTimeout: const Duration(milliseconds: 10),
+      );
+      expect(c.pendingStartup, isNull);
+      final refreshed = c.refresh();
+      await pumpEventQueue();
+      keychain.release.complete();
+      await refreshed;
+      await pumpEventQueue();
+      expect(c.state.settings.mode, ProxyMode.manual);
+      expect(c.current.endpoint, 'm:3128');
+      expect(c.current.password, 'pw');
+    });
+
+    test('a refresh during startup waits and keeps the saved manual '
+        'choice', () async {
+      // Launch no longer awaits initialize, so a network change can call
+      // refresh while the keychain read is still in flight.
+      await store.save(
+        const ProxySettings(
+          mode: ProxyMode.manual,
+          type: ProxyType.http,
+          host: 'm',
+          port: 3128,
+          username: 'ann',
+        ),
+      );
+      final keychain = _SlowKeychain();
+      final slowStore = ProxySettingsStore(
+        await SharedPreferences.getInstance(),
+        storage: keychain,
+      );
+      await slowStore.savePassword('pw');
+      final c = ProxyController(resolver: _Answering());
+      addTearDown(c.dispose);
+      final init = c.initialize(slowStore);
+      await pumpEventQueue();
+      final refreshed = c.refresh();
+      await pumpEventQueue();
+      keychain.release.complete();
+      await Future.wait([init, refreshed]);
+      expect(c.state.settings.mode, ProxyMode.manual);
+      expect(c.current.endpoint, 'm:3128');
+      expect(c.current.password, 'pw');
+    });
+  });
+
   test('a resolver that throws leaves the app direct', () async {
     final c = ProxyController(resolver: _Throwing());
     addTearDown(c.dispose);
@@ -386,6 +529,20 @@ void main() {
       ),
     );
   });
+}
+
+/// A store whose saved choice cannot be read.
+class _ThrowingLoadStore extends ProxySettingsStore {
+  _ThrowingLoadStore(super.prefs);
+
+  @override
+  ProxySettings load() => throw StateError('corrupt pref');
+}
+
+/// Answers at once that the OS has no proxy.
+class _Answering implements SystemProxyResolver {
+  @override
+  Future<SystemProxyResult> resolve(Uri probe) async => const SystemProxyNone();
 }
 
 class _Throwing implements SystemProxyResolver {
