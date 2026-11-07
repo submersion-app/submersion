@@ -131,4 +131,32 @@ void main() {
       expect(r.tankIdAt(2100), 'o2'); // 6 m: O2 eligible
     });
   });
+
+  // A suit inflation bottle is not breathing gas (issue #4243).
+  group('a suit inflation bottle', () {
+    const suit = DiveTank(
+      id: 'suit',
+      volume: 0.85,
+      gasMix: GasMix(o2: 40),
+      role: TankRole.suitInflation,
+    );
+    const left = DiveTank(
+      id: 'left',
+      gasMix: GasMix(o2: 32),
+      role: TankRole.sidemountLeft,
+    );
+
+    test('never starts the schedule, listed first', () {
+      final s = TankSchedule.fromDive(
+        tanks: const [suit, left],
+        switches: const [],
+      );
+      expect(s.tankIdAt(0), 'left');
+    });
+
+    test('is never the best tank for a depth', () {
+      expect(bestTankForDepth(const [suit, back], 5, maxPpO2: 1.6)?.id, 'back');
+      expect(bestTankForDepth(const [suit], 5, maxPpO2: 1.6), isNull);
+    });
+  });
 }

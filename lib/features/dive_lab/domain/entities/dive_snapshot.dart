@@ -77,7 +77,8 @@ class DiveSnapshot extends Equatable {
     scrInjectionRate: dive.scrInjectionRate,
     assumedVo2: dive.assumedVo2,
     diluentGas: dive.diluentGas,
-    tanks: dive.tanks,
+    // Breathing gas only: a suit inflation bottle is never played (#4243).
+    tanks: dive.breathingTanks,
     gasSwitches: gasSwitches,
     profile: [
       for (final p in profile)

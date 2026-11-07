@@ -31,20 +31,22 @@ class TankSchedule extends Equatable {
   final List<TankInterval> intervals;
   final List<DiveTank> tanks;
 
-  /// The dive's schedule: back gas (else the first tank) from
+  /// The dive's schedule: back gas (else the first breathing tank) from
   /// [originTimestamp], then each recorded switch in time order. Switches to
   /// the tank already in force are dropped; two switches at one timestamp
-  /// keep the later-sorted one.
+  /// keep the later-sorted one. A suit inflation bottle never starts it
+  /// (issue #4243).
   factory TankSchedule.fromDive({
     required List<DiveTank> tanks,
     required List<ScenarioGasSwitch> switches,
     int originTimestamp = 0,
   }) {
-    final primary = tanks.isEmpty
+    final breathing = breathingTanks(tanks);
+    final primary = breathing.isEmpty
         ? null
-        : tanks.firstWhere(
+        : breathing.firstWhere(
             (t) => backmountRoles.contains(t.role),
-            orElse: () => tanks.first,
+            orElse: () => breathing.first,
           );
     final intervals = <TankInterval>[
       TankInterval(startTimestamp: originTimestamp, tankId: primary?.id),
@@ -160,6 +162,8 @@ DiveTank? bestTankForDepth(
   double depthMeters, {
   required double maxPpO2,
 }) {
+  // A suit inflation bottle is never a substitute gas (issue #4243).
+  tanks = breathingTanks(tanks);
   if (tanks.isEmpty) return null;
   DiveTank? best;
   for (final t in tanks) {
