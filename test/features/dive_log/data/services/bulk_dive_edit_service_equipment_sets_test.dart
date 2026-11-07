@@ -32,6 +32,13 @@ void main() {
         domain.Dive(id: id, dateTime: DateTime(2026, 1, 1), notes: ''),
       );
     }
+    // A set's items name real gear: the set rows are read through it, to
+    // leave wishlist members out.
+    await db.customStatement(
+      'INSERT INTO equipment (id, name, type, created_at, updated_at) '
+      "VALUES ('bcd', 'BCD', 'bcd', 0, 0), ('reg', 'Reg', 'regulator', 0, 0), "
+      "('lamp', 'Lamp', 'light', 0, 0)",
+    );
     await db.customStatement(
       'INSERT INTO equipment_set_items (set_id, equipment_id) '
       "VALUES ('warm', 'bcd'), ('warm', 'reg')",
