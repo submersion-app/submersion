@@ -250,6 +250,7 @@ class _FakeDiveRepository implements DiveRepository {
   Future<List<Dive>> getDivesByIdsWithoutSamples(
     List<String> ids, {
     int chunkSize = 50,
+    bool offUiIsolate = false,
   }) async {
     withoutSamplesReads++;
     return dives.where((d) => ids.contains(d.id)).toList();
