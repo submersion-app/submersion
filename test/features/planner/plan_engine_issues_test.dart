@@ -520,6 +520,43 @@ void main() {
       final strictPlan = _airPlan(depth: 32.0).copyWith(bestMixEndMeters: 45.0);
       expect(endIssue(engine.compute(strictPlan)), isNotNull);
     });
+
+    // Issue #4299: END reads the narcotic pressure in the plan's own water,
+    // as its ppO2 already does. Tx 21/35 at 60 m is 35.5 m END in the flat
+    // model and about 36.5 m in a 3000 m fresh-water lake.
+    test('END follows the plan altitude and water', () {
+      const tx2135 = GasMix(o2: 21, he: 35);
+      const limited = PlanEngine(
+        config: PlanEngineConfig(endLimitMeters: 36.0),
+      );
+      final seaLevel = _airPlan(
+        depth: 60.0,
+        minutes: 10,
+        tanks: const [
+          DiveTank(
+            id: 'tank-1',
+            volume: 24.0,
+            startPressure: 232,
+            gasMix: tx2135,
+          ),
+        ],
+      );
+      final trimix = seaLevel.copyWith(
+        segments: [
+          for (final s in seaLevel.segments) s.copyWith(gasMix: tx2135),
+        ],
+      );
+      expect(endIssue(limited.compute(trimix)), isNull);
+
+      final lake = trimix.copyWith(altitude: 3000, waterType: WaterType.fresh);
+      final issue = endIssue(limited.compute(lake));
+      expect(issue, isNotNull);
+      final env = PlanEngine.environmentFor(lake);
+      expect(
+        issue!.value,
+        closeTo(env.depthAtPressure(env.pressureAtDepth(60.0) * 0.65), 1e-9),
+      );
+    });
   });
 }
 

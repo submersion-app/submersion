@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/app_enums.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/features/dive_log/domain/entities/tank_extra_regulators.dart';
 
@@ -317,7 +318,29 @@ class GasMix extends Equatable {
   ///
   /// When [o2Narcotic] is true, all gases except He are narcotic.
   /// When false, only N2 is narcotic (compared against the air N2 baseline).
-  double end(double depth, {bool o2Narcotic = true}) {
+  ///
+  /// Without an [environment] this is the flat model, 1 bar surface and
+  /// exactly 10 m per bar. With one, the narcotic pressure follows its
+  /// surface pressure and water density, and the END is the depth in that
+  /// same water where air reaches it, as the gas calculators' Tec mode reads
+  /// it. Neither form is floored: a helium-rich mix at shallow depth goes
+  /// negative, and a caller that shows the value floors it.
+  double end(
+    double depth, {
+    bool o2Narcotic = true,
+    DiveEnvironment? environment,
+  }) {
+    if (environment != null) {
+      final narcoticFraction = o2Narcotic
+          ? (100.0 - he) / 100.0
+          : n2 / 100.0 / airN2Fraction;
+      // depthAtPressure(pressureAtDepth(depth) * f), solved so that air
+      // (f == 1) gives back exactly its own depth.
+      return depth * narcoticFraction -
+          environment.surfacePressureBar *
+              (1 - narcoticFraction) /
+              environment.barPerMeter;
+    }
     final ambientPressure = (depth / 10) + 1;
     if (o2Narcotic) {
       final narcoticFraction = (100.0 - he) / 100.0;

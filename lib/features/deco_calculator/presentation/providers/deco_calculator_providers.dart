@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
+import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -58,26 +59,37 @@ final calcHeFractionProvider = Provider<double>((ref) {
   return ref.watch(calcHeProvider) / 100.0;
 });
 
-/// ppO2 at current depth
+/// ppO2 at current depth, in the same environment as [calcDecoStatusProvider]
+/// so the Gas Safety card and the decompression result agree (issue #4299).
 final calcPpO2Provider = Provider<double>((ref) {
   final depth = ref.watch(calcDepthProvider);
   final o2 = ref.watch(calcO2Provider);
-  final ambientPressure = (depth / 10) + 1; // bar absolute
-  return ambientPressure * (o2 / 100);
+  final environment = ref.watch(calcEnvironmentProvider);
+  return environment.pressureAtDepth(depth) * (o2 / 100);
 });
 
-/// Maximum Operating Depth for current gas at ppO2 1.4
+/// Maximum Operating Depth for current gas at ppO2 1.4, in the calculator's
+/// environment.
 final calcMODProvider = Provider<double>((ref) {
-  final gasMix = ref.watch(calcGasMixProvider);
-  return gasMix.mod(ppO2: 1.4);
+  final o2 = ref.watch(calcO2Provider);
+  return maxOperatingDepthMeters(
+    o2 / 100,
+    maxPpO2: 1.4,
+    environment: ref.watch(calcEnvironmentProvider),
+  );
 });
 
-/// Equivalent Narcotic Depth at current depth
+/// Equivalent Narcotic Depth at current depth, in the calculator's
+/// environment.
 final calcENDProvider = Provider<double>((ref) {
   final depth = ref.watch(calcDepthProvider);
   final gasMix = ref.watch(calcGasMixProvider);
   final o2Narcotic = ref.watch(settingsProvider.select((s) => s.o2Narcotic));
-  return gasMix.end(depth, o2Narcotic: o2Narcotic);
+  return gasMix.end(
+    depth,
+    o2Narcotic: o2Narcotic,
+    environment: ref.watch(calcEnvironmentProvider),
+  );
 });
 
 /// Computed decompression status based on current inputs.
