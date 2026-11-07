@@ -56754,4 +56754,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get passport_history_anotherCylinder => '另一个气瓶';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return '与 $partner 一起充气';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody => '从两个气瓶中删除此充气记录，还是只删除这一条？';
+
+  @override
+  String get passport_history_deleteBoth => '两个气瓶';
+
+  @override
+  String get passport_history_edit => '编辑充气记录';
 }

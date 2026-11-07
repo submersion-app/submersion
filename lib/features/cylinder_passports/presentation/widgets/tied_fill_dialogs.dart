@@ -62,3 +62,32 @@ Future<bool> confirmOverPressure(
   );
   return go ?? false;
 }
+
+/// Asks whether deleting one fill of a twin set fill (issue #4242) deletes
+/// the other too. True for both cylinders, false for only this one, null
+/// when the diver backs out. Both is the default.
+Future<bool?> askDeleteTiedFill(BuildContext context) {
+  final l10n = context.l10n;
+  return showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(l10n.passport_history_delete),
+      content: Text(l10n.passport_history_deleteTiedBody),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext),
+          child: Text(l10n.forms_cancel),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, false),
+          child: Text(l10n.passport_logFill_onlyThisOne),
+        ),
+        FilledButton(
+          autofocus: true,
+          onPressed: () => Navigator.pop(dialogContext, true),
+          child: Text(l10n.passport_history_deleteBoth),
+        ),
+      ],
+    ),
+  );
+}

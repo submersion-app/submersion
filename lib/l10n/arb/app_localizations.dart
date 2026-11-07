@@ -95298,6 +95298,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'another cylinder'**
   String get passport_history_anotherCylinder;
+
+  /// No description provided for @passport_history_filledWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled with {partner}'**
+  String passport_history_filledWith(String partner);
+
+  /// No description provided for @passport_history_deleteTiedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this fill from both cylinders, or only this one?'**
+  String get passport_history_deleteTiedBody;
+
+  /// No description provided for @passport_history_deleteBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Both cylinders'**
+  String get passport_history_deleteBoth;
+
+  /// No description provided for @passport_history_edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit fill'**
+  String get passport_history_edit;
 }
 
 class _AppLocalizationsDelegate

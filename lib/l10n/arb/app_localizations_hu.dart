@@ -60105,4 +60105,19 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get passport_history_anotherCylinder => 'egy másik palack';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return '$partner palackkal együtt töltve';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'Mindkét palackról törli ezt a töltést, vagy csak erről?';
+
+  @override
+  String get passport_history_deleteBoth => 'Mindkét palack';
+
+  @override
+  String get passport_history_edit => 'Töltés szerkesztése';
 }

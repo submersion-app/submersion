@@ -60434,4 +60434,19 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get passport_history_anotherCylinder => 'outro cilindro';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return 'Carregado junto com $partner';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'Excluir esta carga dos dois cilindros ou só deste?';
+
+  @override
+  String get passport_history_deleteBoth => 'Os dois cilindros';
+
+  @override
+  String get passport_history_edit => 'Editar carga';
 }

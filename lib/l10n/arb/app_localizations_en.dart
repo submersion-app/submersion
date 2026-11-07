@@ -59499,4 +59499,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get passport_history_anotherCylinder => 'another cylinder';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return 'Filled with $partner';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'Delete this fill from both cylinders, or only this one?';
+
+  @override
+  String get passport_history_deleteBoth => 'Both cylinders';
+
+  @override
+  String get passport_history_edit => 'Edit fill';
 }

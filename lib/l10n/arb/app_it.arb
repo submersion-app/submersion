@@ -17839,5 +17839,9 @@
   "passport_logFill_applyToTied": "Applicare anche alla ricarica di {partner}?",
   "passport_logFill_applyBoth": "Sì",
   "passport_logFill_onlyThisOne": "Solo questa",
-  "passport_history_anotherCylinder": "un'altra bombola"
+  "passport_history_anotherCylinder": "un'altra bombola",
+  "passport_history_filledWith": "Ricaricata insieme a {partner}",
+  "passport_history_deleteTiedBody": "Eliminare questa ricarica da entrambe le bombole o solo da questa?",
+  "passport_history_deleteBoth": "Entrambe le bombole",
+  "passport_history_edit": "Modifica ricarica"
 }

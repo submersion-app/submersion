@@ -17964,5 +17964,9 @@
   "passport_logFill_applyToTied": "Auch auf die Füllung von {partner} anwenden?",
   "passport_logFill_applyBoth": "Ja",
   "passport_logFill_onlyThisOne": "Nur diese",
-  "passport_history_anotherCylinder": "eine andere Flasche"
+  "passport_history_anotherCylinder": "eine andere Flasche",
+  "passport_history_filledWith": "Zusammen mit {partner} gefüllt",
+  "passport_history_deleteTiedBody": "Diese Füllung bei beiden Flaschen löschen oder nur bei dieser?",
+  "passport_history_deleteBoth": "Beide Flaschen",
+  "passport_history_edit": "Füllung bearbeiten"
 }

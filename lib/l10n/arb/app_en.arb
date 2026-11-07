@@ -35232,5 +35232,10 @@
   "@passport_logFill_applyToTied": {"placeholders": {"partner": {"type": "String"}}},
   "passport_logFill_applyBoth": "Yes",
   "passport_logFill_onlyThisOne": "Only this one",
-  "passport_history_anotherCylinder": "another cylinder"
+  "passport_history_anotherCylinder": "another cylinder",
+  "passport_history_filledWith": "Filled with {partner}",
+  "@passport_history_filledWith": {"placeholders": {"partner": {"type": "String"}}},
+  "passport_history_deleteTiedBody": "Delete this fill from both cylinders, or only this one?",
+  "passport_history_deleteBoth": "Both cylinders",
+  "passport_history_edit": "Edit fill"
 }

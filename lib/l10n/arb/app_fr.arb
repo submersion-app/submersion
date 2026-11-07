@@ -17839,5 +17839,9 @@
   "passport_logFill_applyToTied": "Appliquer aussi au gonflage de {partner} ?",
   "passport_logFill_applyBoth": "Oui",
   "passport_logFill_onlyThisOne": "Seulement celui-ci",
-  "passport_history_anotherCylinder": "une autre bouteille"
+  "passport_history_anotherCylinder": "une autre bouteille",
+  "passport_history_filledWith": "Gonflée avec {partner}",
+  "passport_history_deleteTiedBody": "Supprimer ce gonflage des deux bouteilles, ou seulement de celle-ci ?",
+  "passport_history_deleteBoth": "Les deux bouteilles",
+  "passport_history_edit": "Modifier le gonflage"
 }

@@ -59189,4 +59189,19 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get passport_history_anotherCylinder => 'בלון אחר';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return 'מולא יחד עם $partner';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'למחוק את המילוי הזה משני הבלונים, או רק מזה?';
+
+  @override
+  String get passport_history_deleteBoth => 'שני הבלונים';
+
+  @override
+  String get passport_history_edit => 'עריכת מילוי';
 }

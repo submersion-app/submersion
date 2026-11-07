@@ -60582,4 +60582,19 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get passport_history_anotherCylinder => 'une autre bouteille';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return 'Gonflée avec $partner';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'Supprimer ce gonflage des deux bouteilles, ou seulement de celle-ci ?';
+
+  @override
+  String get passport_history_deleteBoth => 'Les deux bouteilles';
+
+  @override
+  String get passport_history_edit => 'Modifier le gonflage';
 }

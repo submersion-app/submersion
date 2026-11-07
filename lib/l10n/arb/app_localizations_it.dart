@@ -60451,4 +60451,19 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get passport_history_anotherCylinder => 'un\'altra bombola';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return 'Ricaricata insieme a $partner';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'Eliminare questa ricarica da entrambe le bombole o solo da questa?';
+
+  @override
+  String get passport_history_deleteBoth => 'Entrambe le bombole';
+
+  @override
+  String get passport_history_edit => 'Modifica ricarica';
 }

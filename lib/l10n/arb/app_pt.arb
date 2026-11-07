@@ -17839,5 +17839,9 @@
   "passport_logFill_applyToTied": "Aplicar também à carga de {partner}?",
   "passport_logFill_applyBoth": "Sim",
   "passport_logFill_onlyThisOne": "Só esta",
-  "passport_history_anotherCylinder": "outro cilindro"
+  "passport_history_anotherCylinder": "outro cilindro",
+  "passport_history_filledWith": "Carregado junto com {partner}",
+  "passport_history_deleteTiedBody": "Excluir esta carga dos dois cilindros ou só deste?",
+  "passport_history_deleteBoth": "Os dois cilindros",
+  "passport_history_edit": "Editar carga"
 }

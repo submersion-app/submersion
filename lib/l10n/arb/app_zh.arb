@@ -17839,5 +17839,9 @@
   "passport_logFill_applyToTied": "同时应用到 {partner} 的充气记录？",
   "passport_logFill_applyBoth": "是",
   "passport_logFill_onlyThisOne": "仅此一条",
-  "passport_history_anotherCylinder": "另一个气瓶"
+  "passport_history_anotherCylinder": "另一个气瓶",
+  "passport_history_filledWith": "与 {partner} 一起充气",
+  "passport_history_deleteTiedBody": "从两个气瓶中删除此充气记录，还是只删除这一条？",
+  "passport_history_deleteBoth": "两个气瓶",
+  "passport_history_edit": "编辑充气记录"
 }

@@ -17839,5 +17839,9 @@
   "passport_logFill_applyToTied": "¿Aplicar también a la carga de {partner}?",
   "passport_logFill_applyBoth": "Sí",
   "passport_logFill_onlyThisOne": "Solo esta",
-  "passport_history_anotherCylinder": "otra botella"
+  "passport_history_anotherCylinder": "otra botella",
+  "passport_history_filledWith": "Cargada junto con {partner}",
+  "passport_history_deleteTiedBody": "¿Eliminar esta carga de las dos botellas o solo de esta?",
+  "passport_history_deleteBoth": "Las dos botellas",
+  "passport_history_edit": "Editar carga"
 }

@@ -17839,5 +17839,9 @@
   "passport_logFill_applyToTied": "{partner} töltésére is alkalmazza?",
   "passport_logFill_applyBoth": "Igen",
   "passport_logFill_onlyThisOne": "Csak ezt",
-  "passport_history_anotherCylinder": "egy másik palack"
+  "passport_history_anotherCylinder": "egy másik palack",
+  "passport_history_filledWith": "{partner} palackkal együtt töltve",
+  "passport_history_deleteTiedBody": "Mindkét palackról törli ezt a töltést, vagy csak erről?",
+  "passport_history_deleteBoth": "Mindkét palack",
+  "passport_history_edit": "Töltés szerkesztése"
 }

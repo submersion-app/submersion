@@ -60071,4 +60071,19 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get passport_history_anotherCylinder => 'een andere fles';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return 'Gevuld samen met $partner';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'Deze vulling bij beide flessen verwijderen, of alleen bij deze?';
+
+  @override
+  String get passport_history_deleteBoth => 'Beide flessen';
+
+  @override
+  String get passport_history_edit => 'Vulling bewerken';
 }

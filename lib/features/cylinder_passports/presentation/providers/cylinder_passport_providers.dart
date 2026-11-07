@@ -37,6 +37,18 @@ final twinFillServiceProvider = Provider<TwinFillService>(
   ),
 );
 
+/// The other fill of the twin set fill a fill belongs to (issue #4242), or
+/// null for a fill of one cylinder or when the other row is gone.
+final tiedFillProvider = FutureProvider.family<CylinderFill?, CylinderFill>((
+  ref,
+  fill,
+) async {
+  if (fill.filledTogetherId == null) return null;
+  final repository = ref.watch(cylinderFillRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchFillsChanges());
+  return repository.tiedFillOf(fill);
+});
+
 /// The ids of the passport copies of trip fills on a cylinder, which the
 /// fill history does not offer to edit (issue #4242).
 final tripCopyFillIdsProvider = FutureProvider.family<Set<String>, String>((

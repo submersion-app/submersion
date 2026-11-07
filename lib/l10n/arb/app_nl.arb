@@ -17839,5 +17839,9 @@
   "passport_logFill_applyToTied": "Ook toepassen op de vulling van {partner}?",
   "passport_logFill_applyBoth": "Ja",
   "passport_logFill_onlyThisOne": "Alleen deze",
-  "passport_history_anotherCylinder": "een andere fles"
+  "passport_history_anotherCylinder": "een andere fles",
+  "passport_history_filledWith": "Gevuld samen met {partner}",
+  "passport_history_deleteTiedBody": "Deze vulling bij beide flessen verwijderen, of alleen bij deze?",
+  "passport_history_deleteBoth": "Beide flessen",
+  "passport_history_edit": "Vulling bewerken"
 }

@@ -17839,5 +17839,9 @@
   "passport_logFill_applyToTied": "להחיל גם על המילוי של {partner}?",
   "passport_logFill_applyBoth": "כן",
   "passport_logFill_onlyThisOne": "רק זה",
-  "passport_history_anotherCylinder": "בלון אחר"
+  "passport_history_anotherCylinder": "בלון אחר",
+  "passport_history_filledWith": "מולא יחד עם {partner}",
+  "passport_history_deleteTiedBody": "למחוק את המילוי הזה משני הבלונים, או רק מזה?",
+  "passport_history_deleteBoth": "שני הבלונים",
+  "passport_history_edit": "עריכת מילוי"
 }

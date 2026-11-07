@@ -60322,4 +60322,19 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get passport_history_anotherCylinder => 'eine andere Flasche';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return 'Zusammen mit $partner gefüllt';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'Diese Füllung bei beiden Flaschen löschen oder nur bei dieser?';
+
+  @override
+  String get passport_history_deleteBoth => 'Beide Flaschen';
+
+  @override
+  String get passport_history_edit => 'Füllung bearbeiten';
 }

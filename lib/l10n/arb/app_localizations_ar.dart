@@ -61277,4 +61277,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get passport_history_anotherCylinder => 'أسطوانة أخرى';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return 'عُبئت مع $partner';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'حذف هذه التعبئة من كلتا الأسطوانتين، أم من هذه فقط؟';
+
+  @override
+  String get passport_history_deleteBoth => 'كلتا الأسطوانتين';
+
+  @override
+  String get passport_history_edit => 'تعديل التعبئة';
 }

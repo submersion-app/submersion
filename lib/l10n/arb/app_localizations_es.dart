@@ -60489,4 +60489,19 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get passport_history_anotherCylinder => 'otra botella';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return 'Cargada junto con $partner';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      '¿Eliminar esta carga de las dos botellas o solo de esta?';
+
+  @override
+  String get passport_history_deleteBoth => 'Las dos botellas';
+
+  @override
+  String get passport_history_edit => 'Editar carga';
 }

@@ -17839,5 +17839,9 @@
   "passport_logFill_applyToTied": "تطبيق التغيير على تعبئة {partner} أيضا؟",
   "passport_logFill_applyBoth": "نعم",
   "passport_logFill_onlyThisOne": "هذه فقط",
-  "passport_history_anotherCylinder": "أسطوانة أخرى"
+  "passport_history_anotherCylinder": "أسطوانة أخرى",
+  "passport_history_filledWith": "عُبئت مع {partner}",
+  "passport_history_deleteTiedBody": "حذف هذه التعبئة من كلتا الأسطوانتين، أم من هذه فقط؟",
+  "passport_history_deleteBoth": "كلتا الأسطوانتين",
+  "passport_history_edit": "تعديل التعبئة"
 }
