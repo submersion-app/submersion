@@ -280,6 +280,13 @@ void main() {
         );
       final zipPath = p.join(tmp.path, 'stored.zip');
       await File(zipPath).writeAsBytes(ZipEncoder().encode(archive));
+      await ZipExpansionService.withArchiveFile(zipPath, (decoded) async {
+        expect(
+          decoded.single.isCompressed,
+          isFalse,
+          reason: 'precondition: the member is stored, not deflated',
+        );
+      });
 
       final expansion = await service.expandAll([zipPath]);
 

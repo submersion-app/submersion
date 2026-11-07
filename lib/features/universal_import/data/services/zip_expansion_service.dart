@@ -120,10 +120,11 @@ class ZipExpansionService {
   /// members into dive files and photos.
   ///
   /// Reads the archive straight from the file: only the central directory is
-  /// parsed up front, and each member is inflated directly into its output
-  /// file, so neither the compressed archive nor the inflated members are
-  /// held in memory (issue #4248). [header] is the file's first bytes when
-  /// the caller already read them.
+  /// parsed up front, and each member is inflated into its output file and
+  /// released before the next, so memory holds at most the member being
+  /// written rather than the whole archive plus every extracted member
+  /// (issue #4248). [header] is the file's first bytes when the caller
+  /// already read them.
   ///
   /// Throws [FormatException] when the archive cannot be read (corrupt or
   /// password-protected) or exceeds [maxUncompressedBytes].
