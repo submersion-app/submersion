@@ -8,6 +8,7 @@ import 'package:submersion/features/agent_access/data/records/record_repositorie
 import 'package:submersion/features/agent_access/data/records/record_scope.dart';
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_pairing.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
@@ -156,6 +157,30 @@ List<RecordEntry> gearEntries(RecordRepositories r) => [
       'parent_equipment_id',
       'component_equipment_id',
       'role',
+    ],
+  ),
+  // Twin set pairings (issue #4242), listed under their first cylinder.
+  childEntity<CylinderPairing>(
+    r,
+    name: 'cylinder_pairings',
+    table: 'cylinder_pairings',
+    scope: viaParent('equipment', 'cylinder_a_id', _equipmentScope),
+    parentColumn: 'cylinder_a_id',
+    orderBy: 'r0.cylinder_a_id, r0.paired_on DESC',
+    idOf: (p) => p.id,
+    byParents: (parents) => eachParent(
+      parents,
+      (id) async => [
+        for (final p in await r.cylinderPairings.getForCylinder(id))
+          if (p.cylinderAId == id) p,
+      ],
+    ),
+    document: cylinderPairingDocument,
+    summaryKeys: const [
+      'cylinder_a_id',
+      'cylinder_b_id',
+      'paired_on',
+      'unpaired_on',
     ],
   ),
   childEntity<EquipmentShare>(

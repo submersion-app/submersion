@@ -393,6 +393,8 @@ final covered = <String, String>{
         'equipment_observations',
   for (final method in const ['create', 'update', 'delete'])
     '$passports/cylinder_fill_repository.dart:$method': 'cylinder_fills',
+  for (final method in const ['createPairing', 'deletePairing'])
+    '$passports/cylinder_pairing_repository.dart:$method': 'cylinder_pairings',
   '$passports/cylinder_passport_repository.dart:assignPassportId': 'equipment',
   for (final method in const [
     'create',

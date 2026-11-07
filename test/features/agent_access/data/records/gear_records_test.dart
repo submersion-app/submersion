@@ -130,6 +130,18 @@ void main() {
             updatedAt: t,
           ),
         );
+    await db
+        .into(db.cylinderPairings)
+        .insert(
+          CylinderPairingsCompanion.insert(
+            id: 'pair',
+            cylinderAId: 'mine',
+            cylinderBId: 'hose',
+            pairedOn: DateTime.utc(2026, 3, 3).millisecondsSinceEpoch,
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
     for (final (id, owner) in [('set-a', kDiverA), ('set-b', kDiverB)]) {
       await db
           .into(db.equipmentSets)
@@ -434,6 +446,14 @@ void main() {
     test('components list by parent', () async {
       expect(await h.list('equipment_components', parentId: 'mine'), ['comp']);
       expect((await h.one('equipment_components', 'comp'))!['role'], '');
+    });
+
+    test('twin set pairings list under their first cylinder', () async {
+      expect(await h.list('cylinder_pairings', parentId: 'mine'), ['pair']);
+      final doc = (await h.one('cylinder_pairings', 'pair'))!;
+      expect(doc['cylinder_b_id'], 'hose');
+      expect(doc['paired_on'], '2026-03-03');
+      expect(doc['unpaired_on'], isNull);
     });
 
     test('shares read for the item', () async {

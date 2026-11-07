@@ -75,6 +75,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'tank_role': 'TankRole.name',
   },
   'cylinder_fills': {
+    'filled_together_id': 'the id the two fills of one twin set fill share, so an edit or delete of one can offer to follow on the other',
     'signed_record': 'The JWS token verbatim (PR 3)',
     'source': 'FillSource.name: manual, qr, nfc, file, link, issued',
     'station_key': 'base64url Ed25519 public key from a signed record (PR 3)',
@@ -268,6 +269,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'tank_role': 'backGas, stage, deco, bailout, etc.',
     'transmitter_serial': 'Serial of the air-integration transmitter that reported this tank, as the computer logged it',
     'trip_cylinder_id': 'the trip cylinder slot this tank was breathed from',
+    'twin_passport_id': 'the passport id of the second cylinder of a twin set tank, set when the diver picked a linked cylinder as its twin set',
     'usage_duration': 'how long this cylinder was breathed, in seconds, as the source log recorded it',
     'volume': 'liters',
     'working_pressure': 'bar - rated pressure',
