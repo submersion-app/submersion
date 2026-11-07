@@ -217,8 +217,8 @@ class _SettingsPaneNavigatorState extends State<SettingsPaneNavigator> {
               for (final (location, page) in pages)
                 MaterialPage<void>(key: ValueKey(location), child: page),
             ],
-            // Back or Navigator.pop closed a page: drop it, and every page above
-            // it, from the URL so the next build does not reopen it.
+            // Back or Navigator.pop closed a page: drop it, and every page
+            // above it, from the URL so the next build does not reopen it.
             onDidRemovePage: (page) {
               final index = _stack.indexWhere((l) => ValueKey(l) == page.key);
               if (index >= 0) _go(_stack.sublist(0, index));
