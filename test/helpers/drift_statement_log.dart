@@ -23,14 +23,24 @@ Future<List<String>> statementsOf(Future<void> Function() read) async {
 
 /// [lines] as drift logged them, with each continuation piece of a long
 /// entry joined back onto the entry it belongs to.
+///
+/// Drift's default `debugPrint` prints every match of `.{1,300}`, so an entry
+/// breaks after 300 characters and at each newline, and the newline itself
+/// is dropped. A piece that follows a full 300-character piece continues it
+/// directly; any shorter piece ended at a newline, which is put back so two
+/// lines of SQL do not run together. A print from outside drift during the
+/// read would be joined too, so keep [lines] to drift's own output.
 List<String> joinDriftLogLines(Iterable<String> lines) {
+  const pieceLength = 300;
   final entries = <String>[];
+  var lastPieceLength = 0;
   for (final line in lines) {
     if (line.startsWith('Drift: ') || entries.isEmpty) {
       entries.add(line);
     } else {
-      entries.last += line;
+      entries.last += lastPieceLength == pieceLength ? line : '\n$line';
     }
+    lastPieceLength = line.length;
   }
   return entries;
 }
