@@ -556,6 +556,11 @@ void main() {
         issue!.value,
         closeTo(env.depthAtPressure(env.pressureAtDepth(60.0) * 0.65), 1e-9),
       );
+      // The marker sits where END first passes 36 m in the lake's water, on
+      // the 18 m/min descent; the flat model never passes it at all.
+      final crossingDepth =
+          (36.0 + env.surfacePressureBar * 0.35 / env.barPerMeter) / 0.65;
+      expect(issue.atRuntime, closeTo(crossingDepth / 18.0 * 60, 2));
     });
   });
 }
