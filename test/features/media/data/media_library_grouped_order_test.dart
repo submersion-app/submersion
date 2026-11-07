@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/models/sort_state.dart';
@@ -11,6 +14,7 @@ import 'package:submersion/features/media/domain/entities/media_library_filter.d
 import 'package:submersion/features/media/domain/entities/media_library_grouping.dart';
 import 'package:submersion/features/media/domain/entities/media_library_sort.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/presentation/widgets/media_library_groupers.dart';
 
 import '../../../helpers/test_database.dart';
 
@@ -318,6 +322,58 @@ void main() {
         ),
         ['j01', 'n31', 'n31b'],
       );
+    });
+
+    test('an undated row shows under the day it sorts by', () async {
+      // taken_at NULL: the date key falls back to created_at, so the row
+      // must hydrate and group on that day too, or Timeline files it under
+      // some other header than its page neighbours'.
+      Future<void> undated(String id, DateTime createdWallClock) =>
+          db.customStatement(
+            'INSERT INTO media (id, file_path, file_type, created_at, '
+            'updated_at) VALUES (?, ?, ?, ?, ?)',
+            [
+              id,
+              p.join(Directory.systemTemp.path, id),
+              'photo',
+              createdWallClock.millisecondsSinceEpoch,
+              epoch,
+            ],
+          );
+      await undated('u1', DateTime.utc(2026, 6, 2, 12));
+      await undated('u2', DateTime.utc(2026, 5, 20, 12));
+
+      final entries = <MediaLibraryEntry>[];
+      MediaLibraryCursor? cursor;
+      do {
+        final page = await repo.getPage(
+          diverId: 'd1',
+          grouping: MediaLibraryGrouping.day,
+          after: cursor,
+          limit: 1,
+        );
+        entries.addAll(page.entries);
+        cursor = page.nextCursor;
+      } while (cursor != null);
+
+      expect(entries.map((e) => e.item.id), [
+        'u1',
+        't1',
+        't3',
+        't2',
+        't4',
+        'u2',
+      ]);
+      expect(entries.first.item.takenAt, DateTime.utc(2026, 6, 2, 12));
+      final groups = groupByTimeline(entries);
+      expect(groups.map((g) => (g.header as DateGroupHeader).dayStart), [
+        DateTime(2026, 6, 2),
+        DateTime(2026, 6, 1),
+        DateTime(2026, 5, 20),
+      ]);
+      expect([
+        for (final g in groups) ...g.entries.map((e) => e.item.id),
+      ], entries.map((e) => e.item.id));
     });
 
     test('a photo just before midnight stays on its own day', () async {
