@@ -266,7 +266,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     DiveCenterGearNotes,
     // Cylinder fill history (v228, issue #2334)
     CylinderFills,
-    // Twin set pairings (v343, issue #4242)
+    // Twin set pairings (v345, issue #4242)
     CylinderPairings,
     // Trip cylinder slots and their ledger (v232, issue #2325)
     TripCylinders,
