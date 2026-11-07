@@ -175,8 +175,9 @@ class DiveWrites extends WritableEntry {
     return {for (final row in rows) row.read<String>(column)};
   }
 
-  /// A role normalize would drop, as it drops Solo beside any other role,
-  /// would be planned as added and never written.
+  /// The dive number, times and visibility follow the editor's rules (see
+  /// dive_entry_rules.dart). A role normalize would drop, as it drops Solo
+  /// beside any other role, would be planned as added and never written.
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {
     final entered =

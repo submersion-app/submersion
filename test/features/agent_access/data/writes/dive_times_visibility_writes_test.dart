@@ -232,6 +232,20 @@ void main() {
       expect(plan.items.single.block?.reason, BlockReason.invalidValue);
     });
 
+    test('clearing the exit leaves the runtime as it is', () async {
+      await dive('d1', exit: entry + 45 * minute, runtime: 2700);
+
+      final plan = await preview([
+        update({'exit_time': null}),
+      ]);
+      expect(plan.items.single.fields.keys, ['exit_time']);
+      await apply(plan);
+
+      final saved = await row('d1');
+      expect(saved.exitTime, isNull);
+      expect(saved.runtime, 2700);
+    });
+
     test('a runtime goes in once the same change clears the exit', () async {
       await dive('d1', exit: entry + 45 * minute, runtime: 2700);
 
