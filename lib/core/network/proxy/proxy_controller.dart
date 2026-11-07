@@ -53,6 +53,10 @@ class ProxyController {
   int _generation = 0;
   Future<void> _writes = Future.value();
   final _startup = Completer<void>();
+
+  /// The settings the latest recompute applies, which [_state] holds only
+  /// once it finishes.
+  ProxySettings _requested = ProxySettings.defaults;
   var _state = const ProxyControllerState(
     settings: ProxySettings.defaults,
     system: null,
@@ -139,16 +143,13 @@ class ProxyController {
 
   /// Asks the OS again (system mode) and re-applies the current settings.
   ///
-  /// Once [initialize] has begun it waits for it to settle first: until then
-  /// the state holds the defaults, and recomputing from them would supersede
-  /// the saved choice (a Manual proxy still reading its password, say).
-  /// Launch starts the refresh triggers without waiting for [initialize]
-  /// (#4246).
-  Future<void> refresh() async {
-    final startup = pendingStartup;
-    if (_store != null && startup != null) await startup;
-    await _recompute(_state.settings);
-  }
+  /// The settings are the ones most recently asked for, not the state's:
+  /// while a recompute is still in flight (a Manual proxy reading its
+  /// password, which can outlast the startup timeout) the state still holds
+  /// the previous settings, the defaults at launch, and re-applying those
+  /// would supersede the saved choice for the rest of the session. Launch
+  /// starts the refresh triggers without waiting for [initialize] (#4246).
+  Future<void> refresh() => _recompute(_requested);
 
   Future<String?> _loadPassword(
     ProxySettingsStore store,
@@ -165,6 +166,7 @@ class ProxyController {
 
   Future<void> _recompute(ProxySettings settings) async {
     final generation = ++_generation;
+    _requested = settings;
     // The keychain is read the first time Manual applies, not at startup:
     // System and No proxy never use the password, and the read would sit
     // before the first frame.

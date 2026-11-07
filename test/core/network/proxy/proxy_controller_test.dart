@@ -448,6 +448,40 @@ void main() {
       expect(c.pendingStartup, isNull);
     });
 
+    test('a refresh after the startup timeout keeps a manual choice still '
+        'reading its password', () async {
+      await store.save(
+        const ProxySettings(
+          mode: ProxyMode.manual,
+          type: ProxyType.http,
+          host: 'm',
+          port: 3128,
+          username: 'ann',
+        ),
+      );
+      final keychain = _SlowKeychain();
+      final slowStore = ProxySettingsStore(
+        await SharedPreferences.getInstance(),
+        storage: keychain,
+      );
+      await slowStore.savePassword('pw');
+      final c = ProxyController(resolver: _Answering());
+      addTearDown(c.dispose);
+      await c.initialize(
+        slowStore,
+        startupTimeout: const Duration(milliseconds: 10),
+      );
+      expect(c.pendingStartup, isNull);
+      final refreshed = c.refresh();
+      await pumpEventQueue();
+      keychain.release.complete();
+      await refreshed;
+      await pumpEventQueue();
+      expect(c.state.settings.mode, ProxyMode.manual);
+      expect(c.current.endpoint, 'm:3128');
+      expect(c.current.password, 'pw');
+    });
+
     test('a refresh during startup waits and keeps the saved manual '
         'choice', () async {
       // Launch no longer awaits initialize, so a network change can call
