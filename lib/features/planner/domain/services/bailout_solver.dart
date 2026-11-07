@@ -859,7 +859,7 @@ class BailoutSolver {
         runStart += run.seconds;
       }
       depth = stop.depthMeters;
-      phase = AscentPhase.betweenStops;
+      phase = phase.afterStop(gasSwitchOnly: stop.isGasSwitchOnly);
     }
     if (depth > 0) {
       final travelSeconds = policy.ascentSeconds(
@@ -925,7 +925,7 @@ class BailoutSolver {
       );
       elapsed += stop.durationSeconds;
       depth = stop.depthMeters;
-      phase = AscentPhase.betweenStops;
+      phase = phase.afterStop(gasSwitchOnly: stop.isGasSwitchOnly);
     }
     if (depth > 0) {
       final legSeconds = policy.ascentSeconds(

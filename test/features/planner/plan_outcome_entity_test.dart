@@ -71,7 +71,8 @@ void main() {
         tankId: 't-o2',
         arrivalRuntimeSeconds: 1800,
       );
-      expect(stop.props, hasLength(8));
+      expect(stop.props, hasLength(9));
+      expect(stop.isGasSwitchOnly, isFalse);
       expect(
         stop,
         equals(
@@ -99,6 +100,23 @@ void main() {
               tankId: 't-o2',
               airBreakTankId: 't-back',
               arrivalRuntimeSeconds: 1800,
+            ),
+          ),
+        ),
+      );
+      expect(
+        stop,
+        isNot(
+          equals(
+            const PlanStop(
+              depthMeters: 6,
+              durationSeconds: 600,
+              airBreakSeconds: 120,
+              gasFO2: 1.0,
+              gasFHe: 0.0,
+              tankId: 't-o2',
+              arrivalRuntimeSeconds: 1800,
+              isGasSwitchOnly: true,
             ),
           ),
         ),

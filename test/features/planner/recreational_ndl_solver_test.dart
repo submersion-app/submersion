@@ -183,4 +183,38 @@ void main() {
       throwsArgumentError,
     );
   });
+
+  test('a gas switch stop does not count as decompression (issue #4160)', () {
+    // A switch stop is held even on a dive that owes nothing, so an empty
+    // schedule can no longer be the only sign of a no-deco dive.
+    final gases = OptimalOcAscentGas(
+      maxPpO2: 1.6,
+      gases: const [
+        AvailableGas(fN2: 0.79, fHe: 0.0, maxPpO2Mod: 66.0),
+        AvailableGas(fN2: 0.5, fHe: 0.0, maxPpO2Mod: 21.86),
+      ],
+    );
+    int ndlWith(SchedulePolicy schedulePolicy) =>
+        RecreationalNdlSolver(
+          model: BuhlmannGf(gfLow: 1.0, gfHigh: 1.0, policy: schedulePolicy),
+          descentRate: descentRate,
+        ).maxNoDecoBottomTimeSeconds(
+          depthMeters: 30,
+          breathing: air,
+          ascentGases: gases,
+        );
+
+    final baseline = ndlWith(policy);
+    expect(baseline, greaterThan(0));
+    expect(
+      ndlWith(
+        const SchedulePolicy(
+          ascentRate: 10,
+          stopIncrement: 3,
+          gasSwitchStopSeconds: 60,
+        ),
+      ),
+      closeTo(baseline, 120),
+    );
+  });
 }

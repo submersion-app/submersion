@@ -122,7 +122,7 @@ List<(int, double)> worstCaseCeilingTrace({
       sampleLeg(stop.depthMeters, stop.depthMeters, stop.durationSeconds);
     }
     depth = stop.depthMeters;
-    phase = AscentPhase.betweenStops;
+    phase = phase.afterStop(gasSwitchOnly: stop.isGasSwitchOnly);
   }
   if (depth > 0) {
     final legSeconds = policy.ascentSeconds(
@@ -181,11 +181,12 @@ List<PlanStop> unfoldedOcStops(
           tankForGas: tankForGas,
         ),
         arrivalRuntimeSeconds: arrival,
+        isGasSwitchOnly: stop.isGasSwitchOnly,
       ),
     );
     arrival += stop.durationSeconds;
     depth = stop.depthMeters;
-    phase = AscentPhase.betweenStops;
+    phase = phase.afterStop(gasSwitchOnly: stop.isGasSwitchOnly);
   }
   return stops;
 }

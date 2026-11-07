@@ -1316,7 +1316,7 @@ class PlanEngine {
         );
       }
       depth = stop.depthMeters;
-      phase = AscentPhase.betweenStops;
+      phase = phase.afterStop(gasSwitchOnly: stop.isGasSwitchOnly);
     }
     if (depth > 0) {
       final legSeconds = policy.ascentSeconds(
@@ -1816,7 +1816,7 @@ class PlanEngine {
         );
       }
       depth = stop.depthMeters;
-      phase = AscentPhase.betweenStops;
+      phase = phase.afterStop(gasSwitchOnly: stop.isGasSwitchOnly);
     }
     if (depth > 0) {
       final legSeconds = policy.ascentSeconds(
@@ -2550,6 +2550,10 @@ class PlanEngine {
       ascentPlan,
       fromDepth: fromDepth,
       stopDepths: [for (final stop in stops) stop.depthMeters],
+      gasSwitchOnlyDepths: {
+        for (final stop in stops)
+          if (stop.isGasSwitchOnly) stop.depthMeters,
+      },
     )) {
       while (nextStop < stops.length &&
           stops[nextStop].depthMeters >= span.fromDepth) {
@@ -2882,11 +2886,12 @@ class PlanEngine {
                 _tankForGas(plan.tanks, breakFO2, breakFHe, isCcr: isCcr),
           ),
           arrivalRuntimeSeconds: arrival,
+          isGasSwitchOnly: stop.isGasSwitchOnly,
         ),
       );
       arrival += stop.durationSeconds;
       depth = stop.depthMeters;
-      phase = AscentPhase.betweenStops;
+      phase = phase.afterStop(gasSwitchOnly: stop.isGasSwitchOnly);
     }
     return stops;
   }
@@ -3148,7 +3153,7 @@ class PlanEngine {
             : const [],
       );
       depth = stop.depthMeters;
-      phase = AscentPhase.betweenStops;
+      phase = phase.afterStop(gasSwitchOnly: stop.isGasSwitchOnly);
     }
     if (depth > 0) {
       final travel = _policyFor(plan).ascentSeconds(

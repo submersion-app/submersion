@@ -3390,6 +3390,7 @@
   "divePlanner_label_gfHigh": "GF magas",
   "divePlanner_label_gfLow": "GF alacsony",
   "divePlanner_label_minutesUnit": "perc",
+  "divePlanner_label_secondsUnit": "mp",
   "divePlanner_label_ndl": "NDL",
   "divePlanner_label_planSettings": "Terv beállításai",
   "divePlanner_label_reserve": "Tartalék",

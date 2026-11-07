@@ -120,15 +120,14 @@ class PlanGasOptionsSection extends ConsumerWidget {
         ),
         PlanNumberField(
           label: context.l10n.divePlanner_gasOptions_gasSwitchStopSeconds,
-          value: state.gasSwitchStopSeconds != null
-              ? (state.gasSwitchStopSeconds! / 60).roundToDouble()
-              : null,
-          hintValue: (ref.watch(plannerGasSwitchStopSecondsProvider) / 60)
-              .roundToDouble(),
-          suffixText: context.l10n.divePlanner_label_minutesUnit,
+          // Entered in seconds (issue #4160): a switch is often well under a
+          // minute, and whole minutes could not say so.
+          value: state.gasSwitchStopSeconds?.toDouble(),
+          hintValue: ref.watch(plannerGasSwitchStopSecondsProvider).toDouble(),
+          suffixText: context.l10n.divePlanner_label_secondsUnit,
           isInteger: true,
           onChanged: (value) => notifier.updateGasOptions(
-            gasSwitchStopSeconds: value != null ? (value * 60).round() : null,
+            gasSwitchStopSeconds: value?.round(),
             clearGasSwitchStopSeconds: value == null,
           ),
         ),
