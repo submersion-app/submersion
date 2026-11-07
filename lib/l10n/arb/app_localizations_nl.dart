@@ -25965,6 +25965,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_timeFormat => 'Tijdnotatie';
 
   @override
+  String get settings_conflict_field_firstDayOfWeek => 'Eerste dag van de week';
+
+  @override
   String get settings_conflict_field_timeOffsetSeconds => 'Tijdsverschil';
 
   @override
@@ -29455,10 +29458,38 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_units_dialog_weightUnit => 'Gewichtseenheid';
 
   @override
-  String get settings_units_header_individualUnits => 'Individuele eenheden';
+  String get settings_units_header_gasPlanning => 'Gas en planning';
 
   @override
-  String get settings_units_header_timeDateFormat => 'Tijd- & datumnotatie';
+  String get settings_units_header_displayFormats => 'Weergave & notaties';
+
+  @override
+  String get settings_units_appliesTo => 'Geldt voor de volgende eenheden';
+
+  @override
+  String get settings_units_gasConsumption_unitHint =>
+      'Eenheid volgt uit druk en volume';
+
+  @override
+  String get settings_units_firstDayOfWeek => 'Eerste dag van de week';
+
+  @override
+  String get settings_units_dialog_firstDayOfWeek => 'Eerste dag van de week';
+
+  @override
+  String get settings_units_firstDayOfWeek_auto => 'Automatisch';
+
+  @override
+  String settings_units_firstDayOfWeek_autoResolved(String day) {
+    return 'Automatisch ($day)';
+  }
+
+  @override
+  String get settings_units_firstDayOfWeek_auto_subtitle =>
+      'Volgt de regio van het apparaat';
+
+  @override
+  String get settings_units_header_timeDateFormat => 'Tijd & datum';
 
   @override
   String get settings_units_header_unitSystem => 'Eenhedensysteem';

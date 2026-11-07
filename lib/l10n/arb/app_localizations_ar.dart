@@ -26370,6 +26370,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_timeFormat => 'تنسيق الوقت';
 
   @override
+  String get settings_conflict_field_firstDayOfWeek => 'أول يوم في الأسبوع';
+
+  @override
   String get settings_conflict_field_timeOffsetSeconds => 'فارق الوقت';
 
   @override
@@ -29901,10 +29904,37 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_units_dialog_weightUnit => 'وحدة الوزن';
 
   @override
-  String get settings_units_header_individualUnits => 'الوحدات الفردية';
+  String get settings_units_header_gasPlanning => 'الغاز والتخطيط';
 
   @override
-  String get settings_units_header_timeDateFormat => 'تنسيق الوقت والتاريخ';
+  String get settings_units_header_displayFormats => 'العرض والتنسيقات';
+
+  @override
+  String get settings_units_appliesTo => 'ينطبق على الوحدات التالية';
+
+  @override
+  String get settings_units_gasConsumption_unitHint =>
+      'تتبع الوحدة الضغط والحجم';
+
+  @override
+  String get settings_units_firstDayOfWeek => 'أول يوم في الأسبوع';
+
+  @override
+  String get settings_units_dialog_firstDayOfWeek => 'أول يوم في الأسبوع';
+
+  @override
+  String get settings_units_firstDayOfWeek_auto => 'تلقائي';
+
+  @override
+  String settings_units_firstDayOfWeek_autoResolved(String day) {
+    return 'تلقائي ($day)';
+  }
+
+  @override
+  String get settings_units_firstDayOfWeek_auto_subtitle => 'يتبع منطقة جهازك';
+
+  @override
+  String get settings_units_header_timeDateFormat => 'الوقت والتاريخ';
 
   @override
   String get settings_units_header_unitSystem => 'نظام الوحدات';

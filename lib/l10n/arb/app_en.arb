@@ -15356,6 +15356,7 @@
   "settings_conflict_field_thumbnailGeneratedAt": "Thumbnail made",
   "settings_conflict_field_tideState": "Tide",
   "settings_conflict_field_timeFormat": "Time format",
+  "settings_conflict_field_firstDayOfWeek": "First day of week",
   "settings_conflict_field_timeOffsetSeconds": "Time offset",
   "settings_conflict_field_timestamp": "Time into dive",
   "settings_conflict_field_timestampOffsetSeconds": "Time offset",
@@ -16812,8 +16813,23 @@
   "settings_units_dialog_timeFormat": "Time Format",
   "settings_units_dialog_volumeUnit": "Volume Unit",
   "settings_units_dialog_weightUnit": "Weight Unit",
-  "settings_units_header_individualUnits": "Individual Units",
-  "settings_units_header_timeDateFormat": "Time & Date Format",
+  "settings_units_header_gasPlanning": "Gas & Planning",
+  "settings_units_header_displayFormats": "Display & Formats",
+  "settings_units_appliesTo": "Applies to the following units",
+  "settings_units_gasConsumption_unitHint": "Unit follows pressure and volume",
+  "settings_units_firstDayOfWeek": "First day of week",
+  "settings_units_dialog_firstDayOfWeek": "First Day of Week",
+  "settings_units_firstDayOfWeek_auto": "Automatic",
+  "settings_units_firstDayOfWeek_autoResolved": "Automatic ({day})",
+  "settings_units_firstDayOfWeek_auto_subtitle": "Follows your device's region",
+  "@settings_units_firstDayOfWeek_autoResolved": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_units_header_timeDateFormat": "Time & Date",
   "settings_units_header_unitSystem": "Unit System",
   "settings_units_imperial": "Imperial",
   "settings_units_metric": "Metric",

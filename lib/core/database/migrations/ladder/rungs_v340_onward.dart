@@ -38,5 +38,11 @@ extension RungsFromV340 on AppDatabase {
     // in beforeOpen.
     if (from < 342) await _assertDivePlanPhase2Columns();
     if (from < 342) await reportProgress();
+
+    // v343: diver_settings.first_day_of_week, the day a week starts on
+    // (issue #4232). Defaulted to 'auto', no backfill. Re-asserted in
+    // beforeOpen.
+    if (from < 343) await _assertFirstDayOfWeekColumn();
+    if (from < 343) await reportProgress();
   }
 }
