@@ -38,5 +38,12 @@ extension RungsFromV340 on AppDatabase {
     // in beforeOpen.
     if (from < 342) await _assertDivePlanPhase2Columns();
     if (from < 342) await reportProgress();
+
+    // v343: cylinder_pairings, two cylinders linked as a twin set over a
+    // range of days, cylinder_fills.filled_together_id and
+    // dive_tanks.twin_passport_id (issue #4242). Table and nullable columns
+    // only, no backfill. Re-asserted in beforeOpen.
+    if (from < 343) await _assertTwinSetSchema();
+    if (from < 343) await reportProgress();
   }
 }

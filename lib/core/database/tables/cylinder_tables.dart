@@ -184,6 +184,36 @@ class CylinderFills extends Table {
   // FillSource.name: manual, qr, nfc, file, link, issued.
   TextColumn get source => text().withDefault(const Constant('manual'))();
   TextColumn get notes => text().withDefault(const Constant(''))();
+
+  /// v343: the id the two fills of one twin set fill share (issue #4242), so
+  /// an edit or delete of one can offer to follow on the other. Null for a
+  /// fill recorded on one cylinder.
+  TextColumn get filledTogetherId => text().nullable()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// v343: two cylinders manifolded as a twin set over a range of whole days
+/// (issue #4242). [pairedOn] and [unpairedOn] are calendar days stored as
+/// epoch milliseconds of UTC midnight of that date; the range covers
+/// [pairedOn] up to the day before [unpairedOn] and is open while it is
+/// null. A pairing belongs to its two cylinders, not to a diver profile, and
+/// goes when either cylinder is deleted.
+@DataClassName('CylinderPairingRow')
+class CylinderPairings extends Table {
+  TextColumn get id => text()();
+  TextColumn get cylinderAId =>
+      text().references(Equipment, #id, onDelete: KeyAction.cascade)();
+  TextColumn get cylinderBId =>
+      text().references(Equipment, #id, onDelete: KeyAction.cascade)();
+  IntColumn get pairedOn => integer()();
+  IntColumn get unpairedOn => integer().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 

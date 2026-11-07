@@ -266,6 +266,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     DiveCenterGearNotes,
     // Cylinder fill history (v228, issue #2334)
     CylinderFills,
+    // Twin set pairings (v343, issue #4242)
+    CylinderPairings,
     // Trip cylinder slots and their ledger (v232, issue #2325)
     TripCylinders,
     TripCylinderEvents,
@@ -313,7 +315,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 342;
+  static const int currentSchemaVersion = 343;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1570,6 +1572,11 @@ class AppDatabase extends _$AppDatabase {
     // dive keeps its own (issue #3565, phase 2). Defaulted columns an older
     // peer omits, so the floor does not move.
     342,
+    // v343: cylinder_pairings, twin set pairings of two cylinders, plus
+    // cylinder_fills.filled_together_id and dive_tanks.twin_passport_id
+    // (issue #4242). A new synced table and nullable columns an older peer
+    // omits, with no backfill, so the floor does not move.
+    343,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
