@@ -12,6 +12,7 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/plan_setting_group.dart';
 import 'package:submersion/features/planner/domain/entities/stored_series.dart';
+import 'package:submersion/features/planner/domain/services/plan_breathing_tanks.dart';
 
 /// The `.subplan` file format: versioned JSON around the plan aggregate.
 /// Every version carries the engine-relevant inputs; schedules are never
@@ -382,6 +383,9 @@ domain.DivePlan _planFromMap(Map<String, dynamic> plan, DateTime timestamp) {
   }
 
   final airBreaks = plan['airBreaks'];
+  // A plan holds breathing gas only: a suit inflation bottle in the file is
+  // left out (issue #4243).
+  final breathing = breathingPlanParts(tanks, segments);
 
   return domain.DivePlan(
     id: _uuid.v4(),
@@ -441,8 +445,8 @@ domain.DivePlan _planFromMap(Map<String, dynamic> plan, DateTime timestamp) {
     turnPressureRule: domain.TurnPressureRule.values
         .asNameMap()[plan['turnPressureRule']],
     turnPressureFraction: (plan['turnPressureFraction'] as num?)?.toDouble(),
-    tanks: tanks,
-    segments: segments,
+    tanks: breathing.tanks,
+    segments: breathing.segments,
     // Only an absent or null block means no mission. A present block of the
     // wrong type fails the cast, which the caller turns into a
     // FormatException rather than importing the plan without it.

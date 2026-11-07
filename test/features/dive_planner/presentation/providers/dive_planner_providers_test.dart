@@ -1131,4 +1131,50 @@ void main() {
       expect(GearTree.rolledUpIds(full), {'bcd'});
     });
   });
+
+  // A plan holds breathing gas only (issue #4243).
+  group('a suit inflation bottle', () {
+    const suit = DiveTank(
+      id: 'suit',
+      volume: 0.85,
+      gasMix: GasMix(o2: 21),
+      role: TankRole.suitInflation,
+    );
+
+    ProviderContainer container() {
+      final c = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+        ],
+      );
+      addTearDown(c.dispose);
+      return c;
+    }
+
+    test('is refused by addTank', () {
+      final c = container();
+      final notifier = c.read(divePlanNotifierProvider.notifier);
+      final before = c.read(divePlanNotifierProvider).tanks;
+
+      expect(notifier.addTank(suit), isFalse);
+      expect(c.read(divePlanNotifierProvider).tanks, before);
+      expect(
+        notifier.addTank(const DiveTank(id: 'stage', gasMix: GasMix(o2: 50))),
+        isTrue,
+      );
+    });
+
+    test('is stripped from a plan opened for editing', () {
+      final c = container();
+      final notifier = c.read(divePlanNotifierProvider.notifier);
+      final plan = c.read(divePlanNotifierProvider);
+
+      notifier.loadPlan(plan.copyWith(tanks: [suit, ...plan.tanks]));
+
+      expect(
+        c.read(divePlanNotifierProvider).tanks.map((t) => t.role),
+        isNot(contains(TankRole.suitInflation)),
+      );
+    });
+  });
 }

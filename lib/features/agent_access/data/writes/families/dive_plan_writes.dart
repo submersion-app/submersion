@@ -86,7 +86,11 @@ class DivePlanWrites extends WritableEntry {
         ),
         'o2_fraction': const FieldCodec.number(min: 0.05, max: 1),
         'he_fraction': const FieldCodec.number(min: 0, max: 0.95),
-        'role': FieldCodec.enumName(TankRole.values),
+        // A plan holds breathing gas only: a suit inflation bottle is
+        // refused (issue #4243).
+        'role': FieldCodec.enumName(
+          TankRole.values.where((r) => r.isBreathingGas),
+        ),
         'deco_switch_depth_m': const FieldCodec.number(
           min: 0,
           max: 350,
