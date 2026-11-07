@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:equatable/equatable.dart';
 
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
@@ -280,15 +279,16 @@ class ExitPathEvaluator {
   /// True when any tank the diver breathes, with a known size and fill,
   /// would end below the plan reserve after [outbound] plus [exit] litres.
   /// A cylinder never breathed is not held to the reserve, the plan engine's
-  /// own rule, and neither is a bailout cylinder: a mission runs open circuit
-  /// only (validatePlanForMission), so no exit here breathes one.
+  /// own rule. Its stored role does not exempt it: a mission runs open
+  /// circuit only (validatePlanForMission), where the engine derives every
+  /// role from the legs, so a bailout role left from a rebreather plan names
+  /// a cylinder the exit breathes as a stage.
   bool _gasShort(
     domain.DivePlan plan,
     Map<String, double> outbound,
     Map<String, double> exit,
   ) {
     for (final tank in plan.tanks) {
-      if (tank.role == TankRole.bailout) continue;
       final used = (outbound[tank.id] ?? 0.0) + (exit[tank.id] ?? 0.0);
       if (used <= 0) continue;
       final remaining = gas.remainingBar(

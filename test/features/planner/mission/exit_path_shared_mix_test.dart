@@ -100,6 +100,26 @@ void main() {
     expect(_run([_stage('d1'), unlabelled]).gasShortfallMemberIds, isEmpty);
   });
 
+  test('a stage left with a stale bailout role is held to the reserve', () {
+    // A plan switched from CCR to open circuit can keep a stored bailout
+    // role. The engine breathes that cylinder as a stage, and it takes its
+    // share of the deco, so it is checked against the reserve like the rest.
+    const stale = DiveTank(
+      id: 'd2',
+      volume: 2,
+      startPressure: 160,
+      gasMix: _ean50,
+      role: TankRole.bailout,
+    );
+    final asDeco = _run([
+      _stage('d1'),
+      stale.copyWith(role: TankRole.deco),
+    ]).gasShortfallMemberIds;
+
+    expect(asDeco, {'a'});
+    expect(_run([_stage('d1'), stale]).gasShortfallMemberIds, asDeco);
+  });
+
   test('the plan\'s stored legs do not change who shares', () {
     // The stored plan's own deepest leg breathes d2, which would make it the
     // bottom cylinder there. The exit computes its own legs, and d2 shares
