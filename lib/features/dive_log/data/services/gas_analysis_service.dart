@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_log/domain/services/deco_stop_windows.d
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_pressure_lookup.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_usage_range.dart';
+import 'package:submersion/features/dive_log/domain/services/breathing_gas_switches.dart';
 
 part 'gas_analysis_service_ccr.dart';
 part 'gas_analysis_service_phases.dart';
@@ -62,9 +63,11 @@ class GasAnalysisService {
     final segments = <SacSegment>[];
     final diveEndTimestamp = profile.last.timestamp;
 
-    // Sort gas switches by timestamp
-    final sortedSwitches = List<GasSwitchWithTank>.from(gasSwitches)
-      ..sort((a, b) => a.gasSwitch.timestamp.compareTo(b.gasSwitch.timestamp));
+    // Sort gas switches by timestamp. A switch to a suit inflation bottle
+    // counts against the breathing cylinder on its mix (issue #4243).
+    final sortedSwitches = List<GasSwitchWithTank>.from(
+      breathingGasSwitches(gasSwitches, tanks),
+    )..sort((a, b) => a.gasSwitch.timestamp.compareTo(b.gasSwitch.timestamp));
 
     void addStretch({
       required int startTime,
@@ -150,7 +153,7 @@ class GasAnalysisService {
       // Find the tank for this segment
       final tank = tanks.firstWhere(
         (t) => t.id == currentSwitch.gasSwitch.tankId,
-        orElse: () => tanks.first,
+        orElse: () => breathingTanks(tanks).firstOrNull ?? tanks.first,
       );
 
       addStretch(
@@ -341,6 +344,11 @@ class GasAnalysisService {
   }) {
     final results = <CylinderSac>[];
     final environment = dive.environment;
+    // A switch to a suit inflation bottle counts against the breathing
+    // cylinder on its mix (issue #4243).
+    if (gasSwitches != null) {
+      gasSwitches = breathingGasSwitches(gasSwitches, dive.tanks);
+    }
 
     // Resolve each tank's time-series pressure, tolerating series that were
     // re-keyed under a stale tank id (see [resolveTankPressureSeries]).
@@ -371,6 +379,8 @@ class GasAnalysisService {
     ).isNotEmpty;
 
     for (final tank in dive.tanks) {
+      // A suit inflation bottle is not breathed, so it has no SAC (#4243).
+      if (!tank.role.isBreathingGas) continue;
       // Its own size, else its matched partner's (issue #3109).
       final volume = consumptionVolume(tank, dive.tanks);
       // How long the source log says this tank was breathed (issue #1496).

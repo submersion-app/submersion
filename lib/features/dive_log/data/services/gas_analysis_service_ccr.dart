@@ -24,6 +24,8 @@ extension _CcrCylinderSac on GasAnalysisService {
     final results = <CylinderSac>[];
     for (var i = 0; i < dive.tanks.length; i++) {
       final tank = dive.tanks[i];
+      // A suit inflation bottle is not breathed, so it has no row (#4243).
+      if (!tank.role.isBreathingGas) continue;
       final cylinder = use.cylinders[i];
       final series = resolvedPressures[tank.id];
       final (start, end) = resolvedTankPressures(tank, series);

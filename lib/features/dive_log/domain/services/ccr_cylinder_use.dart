@@ -19,6 +19,7 @@ import 'package:submersion/features/dive_log/domain/services/ccr_gas_schedule.da
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_pressure_lookup.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_usage_range.dart';
+import 'package:submersion/features/dive_log/domain/services/breathing_gas_switches.dart';
 
 /// One cylinder of a CCR dive.
 class CcrCylinderUse {
@@ -104,9 +105,18 @@ CcrDiveUse ccrDiveUse({
   bool Function(DiveTank tank)? countedInRates,
 }) {
   // Dropped before classifying: a switch at the first sample names the
-  // starting gas, and a dive does not begin bailed out.
+  // starting gas, and a dive does not begin bailed out. A switch to a suit
+  // inflation bottle counts against the breathing cylinder on its mix
+  // (issue #4243).
+  final breathingSwitches = gasSwitches == null
+      ? null
+      : breathingGasSwitches(gasSwitches, tanks);
   final switches = [
-    for (final sw in knownGasSwitches(tanks, gasSwitches, before: diveEnd))
+    for (final sw in knownGasSwitches(
+      tanks,
+      breathingSwitches,
+      before: diveEnd,
+    ))
       if (sw.gasSwitch.timestamp > startingSwitchGraceSeconds) sw,
   ];
   final bailouts = _bailoutPeriods(switches, tanks, diveEnd);
@@ -133,7 +143,10 @@ CcrDiveUse ccrDiveUse({
     var liters = 0.0;
     for (var i = 0; i < tanks.length; i++) {
       final tank = tanks[i];
-      if (included(tank) && (countedInRates?.call(tank) ?? true)) {
+      // A suit inflation bottle's drop is not loop gas (issue #4243).
+      if (tank.role.isBreathingGas &&
+          included(tank) &&
+          (countedInRates?.call(tank) ?? true)) {
         liters += cylinders[i].loopLiters;
       }
     }
