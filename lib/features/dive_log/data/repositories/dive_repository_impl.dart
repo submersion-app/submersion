@@ -6745,8 +6745,14 @@ class DiveRepository {
   }
 
   /// The logged dive that ended last after [endedAfter] and at or before
-  /// [notAfter], read without its samples, or null when none did: what the
-  /// planner offers to follow (issue #4250). See [latestEndedDiveId].
+  /// [notAfter], or null when none did: what the planner offers to follow
+  /// (issue #4250). See [latestEndedDiveId].
+  ///
+  /// Read as [_mapRowsWithPreloadedData] reads a dive, so no sample is
+  /// decoded, even for a downloaded dive that only its profile measures.
+  /// `profile` is empty, and a water temperature or tank pressure taken from
+  /// the samples is missing, but `profileSpan` keeps its end where the SQL
+  /// put it. The prompt shows only the dive's name, number and times.
   Future<domain.Dive?> getLatestEndedDive({
     String? diverId,
     required DateTime endedAfter,
@@ -6760,8 +6766,11 @@ class DiveRepository {
         notAfter: notAfter,
       );
       if (id == null) return null;
-      // The prompt shows the dive's name and times, never its profile.
-      return (await getDivesByIdsWithoutSamples([id])).firstOrNull;
+      final row = await (_db.select(
+        _db.dives,
+      )..where((t) => t.id.equals(id))).getSingleOrNull();
+      if (row == null) return null;
+      return (await _mapRowsWithPreloadedData([row])).firstOrNull;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get the latest ended dive for diver: $diverId',

@@ -113,7 +113,9 @@ Future<SeriesFollow?> followLoggedDive(WidgetRef ref, String diveId) async {
 final followSuggestionProvider = FutureProvider.autoDispose<Dive?>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
   final diverId = ref.watch(currentDiverIdProvider);
-  ref.invalidateSelfWhen(repository.watchDivesChanges());
+  // A dive with no runtime ends where its profile does, and a profile write
+  // can leave the dive row alone, so this ticks on both.
+  ref.invalidateSelfWhen(repository.watchMeasuredRuntimeChanges());
   // Dive times are wall clock stored as UTC; compare in the same frame.
   final now = NoFlyService.wallClockNowUtc();
   return repository.getLatestEndedDive(

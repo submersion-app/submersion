@@ -208,7 +208,7 @@ void main() {
     expect(await latest(), 'bob-dive');
   });
 
-  test('returns the dive hydrated', () async {
+  test('returns the dive read without its samples', () async {
     await dive('named', now.subtract(const Duration(hours: 3)));
     final found = await repository.getLatestEndedDive(
       endedAfter: endedAfter,
@@ -217,5 +217,35 @@ void main() {
 
     expect(found?.runtime, const Duration(minutes: 45));
     expect(found?.entryTime, now.subtract(const Duration(hours: 3)));
+  });
+
+  // A downloaded dive often has no runtime and no water temperature, which
+  // sends a full read through its samples.
+  test('a dive only its profile measures ends with it, and decodes no '
+      'sample', () async {
+    final start = now.subtract(const Duration(hours: 10));
+    await repository.createDive(
+      domain.Dive(
+        id: 'profiled',
+        dateTime: start,
+        entryTime: start,
+        profile: const [
+          domain.DiveProfilePoint(timestamp: 0, depth: 0),
+          domain.DiveProfilePoint(timestamp: 1800, depth: 20),
+          domain.DiveProfilePoint(timestamp: 3600, depth: 0),
+        ],
+      ),
+    );
+    // Ends half an hour after 'profiled' starts, so before it by its span.
+    await dive('earlier', start.subtract(const Duration(minutes: 15)));
+
+    final found = await repository.getLatestEndedDive(
+      endedAfter: endedAfter,
+      notAfter: now,
+    );
+
+    expect(found?.id, 'profiled');
+    expect(found?.profile, isEmpty);
+    expect(found?.measuredRuntime, const Duration(hours: 1));
   });
 }
