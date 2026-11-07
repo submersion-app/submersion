@@ -8221,6 +8221,8 @@ class DiveRepository {
 
   /// Dives with a gear row whose [column] is [id]: planned ones, and logged
   /// ones too with [alsoLogged]. Every diver's, as a template is shared.
+  // stats-scope-exempt: picks the dives a gear template change rewrites;
+  // a dive left out of statistics still carries the gear
   Future<List<String>> _diveIdsCarrying(
     String column,
     String id, {
@@ -8239,6 +8241,8 @@ class DiveRepository {
     return [for (final r in rows) r.read<String>('id')];
   }
 
+  // stats-scope-exempt: counts the dives a gear template change would
+  // rewrite, for the question before it; not a statistic
   Future<int> _countDivesCarrying(
     String column,
     String id, {
