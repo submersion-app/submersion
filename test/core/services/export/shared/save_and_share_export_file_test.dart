@@ -110,8 +110,9 @@ void main() {
       final target = p.join(chosen.path, 'backup.uddf');
       picker.saveFileResult = Uri.file(target);
 
+      final file = built('<name>Mañana Reef ü</name>');
       final path = await saveAndShareExportFile(
-        built('<name>Mañana Reef ü</name>'),
+        file,
         'backup.uddf',
         'application/xml',
       );
@@ -121,6 +122,7 @@ void main() {
       expect(picker.lastSavedFileName, 'backup.uddf');
       expect(sharePlatform.calls, isEmpty);
       expect(documents.listSync(), isEmpty);
+      expect(file.existsSync(), isFalse);
     });
 
     test('cancelling keeps the export in the documents dir', () async {

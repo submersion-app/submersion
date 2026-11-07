@@ -167,7 +167,11 @@ Future<String> saveAndShareExportFile(
       bytes: await built.readAsBytes(),
       mimeType: mimeType,
     );
-    if (saved != null) return savedFileLocation(saved);
+    if (saved != null) {
+      // The dialog wrote its own copy; this one is not kept anywhere.
+      await built.delete();
+      return savedFileLocation(saved);
+    }
   }
   final path = await _moveToDocuments(built, fileName);
   if (canShareFiles) {
