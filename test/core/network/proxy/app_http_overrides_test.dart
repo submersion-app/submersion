@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/network/proxy/app_http_overrides.dart';
 import 'package:submersion/core/network/proxy/effective_proxy.dart';
+import 'package:submersion/core/network/proxy/proxy_routing.dart';
 
 import '../../../helpers/fake_http_proxy.dart';
 import '../../../helpers/fake_socks5_server.dart';
@@ -35,14 +37,14 @@ EffectiveProxy socks(int port, {String? user, String? pass}) => EffectiveProxy(
 HttpClient clientFor(
   EffectiveProxy Function() current, {
   bool everything = true,
+  Future<void>? Function()? pendingStartup,
 }) {
-  final overrides = everything
-      ? AppHttpOverrides(
-          currentProxy: current,
-          shouldProxy: proxyEverything,
-          fallbackContext: () => null,
-        )
-      : AppHttpOverrides(currentProxy: current, fallbackContext: () => null);
+  final overrides = AppHttpOverrides(
+    currentProxy: current,
+    shouldProxy: everything ? proxyEverything : defaultShouldProxy,
+    fallbackContext: () => null,
+    pendingStartup: pendingStartup ?? () => null,
+  );
   final client = overrides.createHttpClient(null)
     ..connectionTimeout = const Duration(seconds: 5);
   addTearDown(() => client.close(force: true));
@@ -291,6 +293,136 @@ void main() {
       final client = clientFor(() => const EffectiveProxy.direct());
       AppHttpOverrides.setBadCertificateCallback(client, (_, _, _) => false);
       await expectLater(get(client), throwsA(isA<HandshakeException>()));
+    });
+
+    test('a client made while the proxy is settling still consults '
+        'it', () async {
+      final gate = Completer<void>();
+      final client = clientFor(
+        () => const EffectiveProxy.direct(),
+        pendingStartup: () => gate.isCompleted ? null : gate.future,
+      );
+      final seen = <String>[];
+      AppHttpOverrides.setBadCertificateCallback(client, (cert, host, port) {
+        seen.add('$host:$port');
+        return true;
+      });
+      final body = get(client);
+      await pumpEventQueue();
+      gate.complete();
+      expect(await body, 'ok');
+      expect(seen, ['127.0.0.1:${secure.port}']);
+    });
+  });
+
+  group('while the startup proxy lookup is pending (#4246)', () {
+    test('a request waits, then takes the route the lookup settled '
+        'on', () async {
+      final proxy = await FakeHttpProxy.start();
+      addTearDown(proxy.close);
+      final gate = Completer<void>();
+      var current = const EffectiveProxy.direct();
+      final c = clientFor(
+        () => current,
+        pendingStartup: () => gate.isCompleted ? null : gate.future,
+      );
+      var done = false;
+      final body = get(
+        c,
+        'http://example.test:${target.port}/e',
+      ).whenComplete(() => done = true);
+      await pumpEventQueue();
+      expect(done, isFalse);
+      expect(proxy.requestLines, isEmpty);
+      current = http(proxy.port);
+      gate.complete();
+      expect(await body, 'ok /e');
+      expect(
+        proxy.requestLines.single,
+        startsWith('GET http://example.test:${target.port}/e'),
+      );
+    });
+
+    test('every way to open a request waits', () async {
+      final gate = Completer<void>();
+      final c = clientFor(
+        () => const EffectiveProxy.direct(),
+        pendingStartup: () => gate.isCompleted ? null : gate.future,
+      );
+      const host = '127.0.0.1';
+      final port = target.port;
+      Uri at(String path) => Uri.parse('http://$host:$port$path');
+      final opens = <Future<HttpClientRequest>>[
+        c.open('GET', host, port, '/open'),
+        c.openUrl('GET', at('/openUrl')),
+        c.get(host, port, '/get'),
+        c.getUrl(at('/getUrl')),
+        c.post(host, port, '/post'),
+        c.postUrl(at('/postUrl')),
+        c.put(host, port, '/put'),
+        c.putUrl(at('/putUrl')),
+        c.delete(host, port, '/delete'),
+        c.deleteUrl(at('/deleteUrl')),
+        c.patch(host, port, '/patch'),
+        c.patchUrl(at('/patchUrl')),
+        c.head(host, port, '/head'),
+        c.headUrl(at('/headUrl')),
+      ];
+      var opened = 0;
+      for (final f in opens) {
+        unawaited(f.then((_) => opened++));
+      }
+      await pumpEventQueue();
+      expect(opened, 0);
+      gate.complete();
+      final requests = await Future.wait(opens);
+      expect(requests.map((r) => '${r.method} ${r.uri.path}'), [
+        'GET /open',
+        'GET /openUrl',
+        'GET /get',
+        'GET /getUrl',
+        'POST /post',
+        'POST /postUrl',
+        'PUT /put',
+        'PUT /putUrl',
+        'DELETE /delete',
+        'DELETE /deleteUrl',
+        'PATCH /patch',
+        'PATCH /patchUrl',
+        'HEAD /head',
+        'HEAD /headUrl',
+      ]);
+      for (final r in requests) {
+        unawaited(r.close().then((res) => res.drain<void>(), onError: (_) {}));
+      }
+    });
+
+    test('client settings set during the wait reach the real client', () {
+      final gate = Completer<void>();
+      final c = clientFor(
+        () => const EffectiveProxy.direct(),
+        pendingStartup: () => gate.isCompleted ? null : gate.future,
+      );
+      c
+        ..idleTimeout = const Duration(seconds: 3)
+        ..connectionTimeout = const Duration(seconds: 4)
+        ..maxConnectionsPerHost = 2
+        ..autoUncompress = false
+        ..userAgent = 'probe';
+      expect(c.idleTimeout, const Duration(seconds: 3));
+      expect(c.connectionTimeout, const Duration(seconds: 4));
+      expect(c.maxConnectionsPerHost, 2);
+      expect(c.autoUncompress, isFalse);
+      expect(c.userAgent, 'probe');
+      gate.complete();
+    });
+
+    test('a request opened after the lookup settles goes at once', () async {
+      final c = clientFor(
+        () => const EffectiveProxy.direct(),
+        pendingStartup: () => null,
+      );
+      expect(await get(c, 'http://127.0.0.1:${target.port}/f'), 'ok /f');
     });
   });
 }

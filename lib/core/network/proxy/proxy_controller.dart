@@ -52,6 +52,7 @@ class ProxyController {
   bool _passwordLoaded = false;
   int _generation = 0;
   Future<void> _writes = Future.value();
+  final _startup = Completer<void>();
   var _state = const ProxyControllerState(
     settings: ProxySettings.defaults,
     system: null,
@@ -67,21 +68,35 @@ class ProxyController {
   String? get manualPassword => _password;
   Stream<ProxyControllerState> get changes => _changes.stream;
 
+  /// Pending from construction until [initialize] settles, then null.
+  ///
+  /// Launch does not wait for [initialize] (a slow PAC lookup would hold the
+  /// first frame, #4246); network requests opened before it settles wait on
+  /// this instead, so the first one already uses the saved route: the OS
+  /// answer in system mode, the keychain password in manual mode. It never
+  /// fails, and it is bounded by the startup timeout once [initialize] runs.
+  Future<void>? get pendingStartup =>
+      _startup.isCompleted ? null : _startup.future;
+
   /// Loads the saved choice and, in system mode, asks the OS, waiting at most
-  /// [startupTimeout] so a slow PAC server cannot hold up app launch. A late
-  /// answer is applied when it arrives.
+  /// [startupTimeout] so a slow PAC server cannot hold up the first network
+  /// requests. A late answer is applied when it arrives.
   Future<void> initialize(
     ProxySettingsStore store, {
     Duration startupTimeout = const Duration(seconds: 3),
   }) async {
-    _store = store;
-    final settings = store.load();
-    await _recompute(settings).timeout(
-      startupTimeout,
-      onTimeout: () {
-        _log.info('System proxy detection is slow; starting direct');
-      },
-    );
+    try {
+      _store = store;
+      final settings = store.load();
+      await _recompute(settings).timeout(
+        startupTimeout,
+        onTimeout: () {
+          _log.info('System proxy detection is slow; starting direct');
+        },
+      );
+    } finally {
+      if (!_startup.isCompleted) _startup.complete();
+    }
   }
 
   /// Persists [settings] and applies them. The password changes only when
@@ -123,7 +138,17 @@ class ProxyController {
   }
 
   /// Asks the OS again (system mode) and re-applies the current settings.
-  Future<void> refresh() => _recompute(_state.settings);
+  ///
+  /// Once [initialize] has begun it waits for it to settle first: until then
+  /// the state holds the defaults, and recomputing from them would supersede
+  /// the saved choice (a Manual proxy still reading its password, say).
+  /// Launch starts the refresh triggers without waiting for [initialize]
+  /// (#4246).
+  Future<void> refresh() async {
+    final startup = pendingStartup;
+    if (_store != null && startup != null) await startup;
+    await _recompute(_state.settings);
+  }
 
   Future<String?> _loadPassword(
     ProxySettingsStore store,
