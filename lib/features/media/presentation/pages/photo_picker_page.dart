@@ -91,8 +91,8 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage>
   /// The albums [_assets] came from, for the Gallery tab's album filter.
   List<GalleryAlbumOption> _albumOptions = const [];
 
-  /// The album the grid is narrowed to, or null for every album (#189).
-  String? _albumId;
+  /// The album name the grid is narrowed to, or null for every album (#189).
+  String? _albumName;
 
   late final TabController _tabController;
   late final ValueNotifier<int> _openSessions;
@@ -219,8 +219,8 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage>
     }
   }
 
-  /// The assets the grid shows: [_assets] narrowed to [_albumId].
-  List<AssetInfo> get _visibleAssets => assetsInAlbum(_assets!, _albumId);
+  /// The assets the grid shows: [_assets] narrowed to [_albumName].
+  List<AssetInfo> get _visibleAssets => assetsInAlbum(_assets!, _albumName);
 
   void _handleDone() {
     final state = ref.read(photoPickerNotifierProvider);
@@ -369,8 +369,8 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage>
         GalleryAlbumFilterBar(
           options: _albumOptions,
           totalCount: _assets!.length,
-          selectedAlbumId: _albumId,
-          onSelected: (albumId) => setState(() => _albumId = albumId),
+          selectedAlbum: _albumName,
+          onSelected: (name) => setState(() => _albumName = name),
         ),
         // Selection toolbar. Always present, even with nothing selected, so
         // the first tap does not push the grid down a row under the user's
@@ -396,7 +396,7 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage>
           child: DragSelectGridView<AssetInfo>(
             // A fresh grid per album: its scroll offset and index-based
             // selection belong to the list it was built with.
-            key: ValueKey(_albumId),
+            key: ValueKey(_albumName),
             items: visible,
             startInSelectionMode: state.selectionCount > 0,
             initialSelection: _indicesOf(visible, state.selectedIds),

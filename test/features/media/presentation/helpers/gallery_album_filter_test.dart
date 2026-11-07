@@ -27,7 +27,7 @@ void main() {
         _asset('5', [_camera]),
       ]);
 
-      expect(options.map((o) => (o.album.name, o.count)), [
+      expect(options.map((o) => (o.name, o.count)), [
         ('GoPro', 3),
         ('Camera', 2),
         ('WhatsApp Images', 1),
@@ -42,7 +42,27 @@ void main() {
         _asset('2', [alpha]),
       ]);
 
-      expect(options.map((o) => o.album.name), ['Alpha', 'zeta']);
+      expect(options.map((o) => o.name), ['Alpha', 'zeta']);
+    });
+
+    test('folds albums that share a name into one option', () {
+      const dcim = GalleryAlbum(id: 'dcim/shots', name: 'Screenshots');
+      const pictures = GalleryAlbum(id: 'pictures/shots', name: 'Screenshots');
+      final options = galleryAlbumOptions([
+        _asset('1', [dcim]),
+        _asset('2', [pictures]),
+        _asset('3', [dcim, pictures]),
+      ]);
+
+      expect(options.map((o) => (o.name, o.count)), [('Screenshots', 3)]);
+      expect(
+        assetsInAlbum([
+          _asset('1', [dcim]),
+          _asset('2', [pictures]),
+          _asset('4', [_goPro]),
+        ], 'Screenshots').map((a) => a.id),
+        ['1', '2'],
+      );
     });
 
     test('lists nothing for assets that carry no albums', () {
@@ -62,7 +82,7 @@ void main() {
     });
 
     test('an album keeps only its own assets', () {
-      expect(assetsInAlbum(assets, 'gopro').map((a) => a.id), ['1']);
+      expect(assetsInAlbum(assets, 'GoPro').map((a) => a.id), ['1']);
     });
   });
 

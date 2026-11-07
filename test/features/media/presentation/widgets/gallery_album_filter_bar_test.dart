@@ -1,23 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/presentation/helpers/gallery_album_filter.dart';
 import 'package:submersion/features/media/presentation/widgets/gallery_album_filter_bar.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-const _goPro = GalleryAlbumOption(
-  album: GalleryAlbum(id: 'gopro', name: 'GoPro'),
-  count: 3,
-);
-const _whatsApp = GalleryAlbumOption(
-  album: GalleryAlbum(id: 'wa', name: 'WhatsApp Images'),
-  count: 2,
-);
+const _goPro = GalleryAlbumOption(name: 'GoPro', count: 3);
+const _whatsApp = GalleryAlbumOption(name: 'WhatsApp Images', count: 2);
 
 Widget _host({
   required List<GalleryAlbumOption> options,
   required int totalCount,
-  String? selectedAlbumId,
+  String? selectedAlbum,
   ValueChanged<String?>? onSelected,
 }) {
   return MaterialApp(
@@ -28,7 +21,7 @@ Widget _host({
       body: GalleryAlbumFilterBar(
         options: options,
         totalCount: totalCount,
-        selectedAlbumId: selectedAlbumId,
+        selectedAlbum: selectedAlbum,
         onSelected: onSelected ?? (_) {},
       ),
     ),
@@ -57,7 +50,11 @@ void main() {
 
   testWidgets('marks the chosen album', (tester) async {
     await tester.pumpWidget(
-      _host(options: [_goPro, _whatsApp], totalCount: 5, selectedAlbumId: 'wa'),
+      _host(
+        options: [_goPro, _whatsApp],
+        totalCount: 5,
+        selectedAlbum: 'WhatsApp Images',
+      ),
     );
 
     expect(_chip(tester, 'All albums (5)').selected, isFalse);
@@ -72,7 +69,7 @@ void main() {
       _host(
         options: [_goPro, _whatsApp],
         totalCount: 5,
-        selectedAlbumId: 'gopro',
+        selectedAlbum: 'GoPro',
         onSelected: picked.add,
       ),
     );
@@ -80,7 +77,7 @@ void main() {
     await tester.tap(find.text('WhatsApp Images (2)'));
     await tester.tap(find.text('All albums (5)'));
 
-    expect(picked, ['wa', null]);
+    expect(picked, ['WhatsApp Images', null]);
   });
 
   testWidgets('is absent when no album would narrow the photos', (
@@ -88,12 +85,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       _host(
-        options: const [
-          GalleryAlbumOption(
-            album: GalleryAlbum(id: 'cam', name: 'Camera'),
-            count: 4,
-          ),
-        ],
+        options: const [GalleryAlbumOption(name: 'Camera', count: 4)],
         totalCount: 4,
       ),
     );

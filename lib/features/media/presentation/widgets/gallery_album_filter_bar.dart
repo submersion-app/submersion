@@ -17,17 +17,17 @@ class GalleryAlbumFilterBar extends StatelessWidget {
   /// How many assets the time window holds across all albums.
   final int totalCount;
 
-  /// The album shown, or null for all of them.
-  final String? selectedAlbumId;
+  /// The name of the album shown, or null for all of them.
+  final String? selectedAlbum;
 
-  /// Called with the album the user picked, or null for "All albums".
+  /// Called with the album name the user picked, or null for "All albums".
   final ValueChanged<String?> onSelected;
 
   const GalleryAlbumFilterBar({
     super.key,
     required this.options,
     required this.totalCount,
-    required this.selectedAlbumId,
+    required this.selectedAlbum,
     required this.onSelected,
   });
 
@@ -39,13 +39,13 @@ class GalleryAlbumFilterBar extends StatelessWidget {
     final l10n = context.l10n;
     final colorScheme = Theme.of(context).colorScheme;
 
-    Widget chip(String label, String? albumId) => Padding(
+    Widget chip(String label, String? albumName) => Padding(
       padding: const EdgeInsetsDirectional.only(end: 8),
       child: ChoiceChip(
         label: Text(label),
-        selected: selectedAlbumId == albumId,
+        selected: selectedAlbum == albumName,
         showCheckmark: false,
-        onSelected: (_) => onSelected(albumId),
+        onSelected: (_) => onSelected(albumName),
       ),
     );
 
@@ -73,10 +73,10 @@ class GalleryAlbumFilterBar extends StatelessWidget {
             for (final option in options)
               chip(
                 l10n.media_photoPicker_albumFilter_chip(
-                  option.album.name,
+                  option.name,
                   option.count,
                 ),
-                option.album.id,
+                option.name,
               ),
           ],
         ),
