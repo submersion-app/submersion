@@ -43,49 +43,52 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 //
 // autoDispose: the rows' ids change with every keystroke, and a family
 // entry left behind for each would hold its records and its subscriptions.
+// For the same reason each one reads its repository and subscribes before
+// its first await: an entry can be disposed while it waits, and a disposed
+// ref cannot be used.
 
 List<String> _ids(String key) => key.split(',');
 
 final globalSearchSitesProvider = FutureProvider.autoDispose
     .family<List<SiteWithDiveCount>, String>((ref, key) async {
-      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      final repository = ref.watch(siteRepositoryProvider);
       invalidateOnSiteListChanges(ref);
-      return ref
-          .watch(siteRepositoryProvider)
-          .getSitesWithDiveCounts(diverId: diverId, ids: _ids(key));
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      return repository.getSitesWithDiveCounts(
+        diverId: diverId,
+        ids: _ids(key),
+      );
     });
 
 final globalSearchTripsProvider = FutureProvider.autoDispose
     .family<List<TripWithStats>, String>((ref, key) async {
-      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      final repository = ref.watch(tripRepositoryProvider);
       invalidateOnTripListChanges(ref);
-      return ref
-          .watch(tripRepositoryProvider)
-          .getAllTripsWithStats(diverId: diverId, ids: _ids(key));
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      return repository.getAllTripsWithStats(diverId: diverId, ids: _ids(key));
     });
 
 final globalSearchEquipmentProvider = FutureProvider.autoDispose
     .family<List<EquipmentItem>, String>((ref, key) async {
-      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      final repository = ref.watch(equipmentRepositoryProvider);
       invalidateOnEquipmentListChanges(ref);
-      return ref
-          .watch(equipmentRepositoryProvider)
-          .getAllEquipment(diverId: diverId, ids: _ids(key));
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      return repository.getAllEquipment(diverId: diverId, ids: _ids(key));
     });
 
 final globalSearchEquipmentSetsProvider = FutureProvider.autoDispose
     .family<List<EquipmentSet>, String>((ref, key) async {
       final repository = ref.watch(equipmentSetRepositoryProvider);
-      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
       ref.invalidateSelfWhen(repository.watchSetChanges());
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
       return repository.getAllSets(diverId: diverId, ids: _ids(key));
     });
 
 final globalSearchBuddiesProvider = FutureProvider.autoDispose
     .family<List<BuddyWithDiveCount>, String>((ref, key) async {
       final repository = ref.watch(buddyRepositoryProvider);
-      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
       invalidateOnBuddyDiveChanges(ref, repository);
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
       return repository.getAllBuddiesWithDiveCount(
         diverId: diverId,
         ids: _ids(key),
@@ -95,8 +98,8 @@ final globalSearchBuddiesProvider = FutureProvider.autoDispose
 final globalSearchDiveCentersProvider = FutureProvider.autoDispose
     .family<List<DiveCenter>, String>((ref, key) async {
       final repository = ref.watch(diveCenterRepositoryProvider);
-      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
       ref.invalidateSelfWhen(repository.watchDiveCentersChanges());
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
       return repository.getAllDiveCenters(diverId: diverId, ids: _ids(key));
     });
 
@@ -115,16 +118,16 @@ final globalSearchDiveCenterCountsProvider = FutureProvider.autoDispose
 final globalSearchCertificationsProvider = FutureProvider.autoDispose
     .family<List<Certification>, String>((ref, key) async {
       final repository = ref.watch(certificationRepositoryProvider);
-      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
       ref.invalidateSelfWhen(repository.watchCertificationsChanges());
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
       return repository.getAllCertifications(diverId: diverId, ids: _ids(key));
     });
 
 final globalSearchCoursesProvider = FutureProvider.autoDispose
     .family<List<Course>, String>((ref, key) async {
       final repository = ref.watch(courseRepositoryProvider);
-      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
       ref.invalidateSelfWhen(repository.watchCoursesChanges());
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
       return repository.getAllCourses(diverId: diverId, ids: _ids(key));
     });
 
@@ -159,12 +162,11 @@ final globalSearchSpeciesCoversProvider = FutureProvider.autoDispose
 
 final globalSearchDocumentsProvider = FutureProvider.autoDispose
     .family<List<DocumentListEntry>, String>((ref, key) async {
+      final repository = ref.watch(documentRepositoryProvider);
       invalidateOnDocumentListChanges(ref);
       final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
       if (diverId == null) return const [];
-      return ref
-          .watch(documentRepositoryProvider)
-          .getAllForDiver(diverId, ids: _ids(key));
+      return repository.getAllForDiver(diverId, ids: _ids(key));
     });
 
 /// The shown documents' tags, as [tagsByItemProvider] reads them.
