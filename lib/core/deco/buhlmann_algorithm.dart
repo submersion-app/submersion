@@ -443,7 +443,7 @@ class BuhlmannAlgorithm {
     final isLoop = plan is LoopAscentGas;
 
     final double ceiling = calculateCeiling();
-    // The deco walk starts at the grid level at or below the ceiling - but
+    // The deco walk starts at the grid level at or below the ceiling, but
     // never shallower than the last stop, which is where a diver who owes
     // anything at all has chosen to hold. 0 when nothing is owed.
     final double decoStart = ceiling > 0
