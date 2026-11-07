@@ -195,7 +195,7 @@ def click_until_taken(page, name, settle_ms=5000):
     in between), and the bare pointer pair did not tap the button either.
     The click made again five seconds later arrived whole and took. So a
     click the page never received is made once more, and the log says so.
-    One the page did receive is never repeated, since a starved page may
+    A click the page did receive is never repeated, since a starved page may
     simply not have drawn its effect yet; an app that ignored it fails on
     the next step."""
     page.evaluate(COUNT_CLICKS)
