@@ -74,6 +74,9 @@ final equipmentQueryEntity = QueryEntity(
       emptySql: '{r}.type IS NULL',
       labelKey: 'query_equipment_type',
       enumValues: [for (final v in EquipmentType.values) v.name],
+      // Declaration order is when each type was added; the Add Equipment
+      // page lists them by label, and so does the search (#4244).
+      enumOrder: EnumOrder.byLabel,
     ),
     QueryField(
       key: 'status',
