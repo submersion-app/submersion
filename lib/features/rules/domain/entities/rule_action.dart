@@ -6,16 +6,17 @@ import 'package:submersion/features/rules/domain/site_rule_field.dart';
 /// Whether a membership action adds its items or removes them.
 enum MembershipMode { add, remove }
 
-/// The dive collections a rule can add to or remove from. [equipmentSets]
-/// adds or removes the gear a set brings (#4284); its changes are recorded
-/// as [equipment] changes, since the dive's gear is what they change.
+/// The dive collections a rule can add to or remove from, in the order the
+/// action picker lists them. [equipmentSets] adds or removes the gear a set
+/// brings (#4284); its changes are recorded as [equipment] changes, since
+/// the dive's gear is what they change. Stored by name, never by index.
 enum DiveCollection {
   diveTypes,
   tags,
   equipment,
+  equipmentSets,
   buddies,
   courses,
-  equipmentSets,
 }
 
 /// The site collections a rule can add to or remove from.

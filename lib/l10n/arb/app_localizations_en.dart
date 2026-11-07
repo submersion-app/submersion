@@ -8507,6 +8507,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_bulkEdit_setsToRemove => 'Sets to remove';
 
   @override
+  String get diveLog_bulkEdit_removeSetTitle => 'Remove Equipment Set';
+
+  @override
   String get diveLog_bulkEdit_equipmentSets => 'Equipment sets';
 
   @override

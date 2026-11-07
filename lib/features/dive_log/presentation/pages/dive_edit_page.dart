@@ -4890,6 +4890,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         expand: false,
         builder: (context, scrollController) => EquipmentSetPickerSheet(
           scrollController: scrollController,
+          title: context.l10n.diveLog_bulkEdit_removeSetTitle,
           onSetSelected: (set, _) {
             setState(() {
               if (_equipmentSetRemovals.every((s) => s.id != set.id)) {

@@ -2803,6 +2803,7 @@
   "diveLog_edit_useSet": "Usar Conjunto",
   "diveLog_edit_removeSet": "Remover Conjunto",
   "diveLog_bulkEdit_setsToRemove": "Conjuntos a remover",
+  "diveLog_bulkEdit_removeSetTitle": "Remover Conjunto de Equipamento",
   "diveLog_bulkEdit_equipmentSets": "Conjuntos de equipamento",
   "diveLog_edit_weightPreset_use": "Usar predefinição",
   "diveLog_edit_weightPreset_save": "Guardar como predefinição",

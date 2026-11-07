@@ -13603,6 +13603,12 @@ abstract class AppLocalizations {
   /// **'Sets to remove'**
   String get diveLog_bulkEdit_setsToRemove;
 
+  /// Bulk edit: title of the sheet that picks an equipment set to remove from every selected dive
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Equipment Set'**
+  String get diveLog_bulkEdit_removeSetTitle;
+
   /// Bulk edit confirmation: section title for equipment sets
   ///
   /// In en, this message translates to:

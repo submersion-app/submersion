@@ -2829,6 +2829,7 @@
   "diveLog_edit_useSet": "Set verwenden",
   "diveLog_edit_removeSet": "Set entfernen",
   "diveLog_bulkEdit_setsToRemove": "Zu entfernende Sets",
+  "diveLog_bulkEdit_removeSetTitle": "Ausrüstungsset entfernen",
   "diveLog_bulkEdit_equipmentSets": "Ausrüstungssets",
   "diveLog_edit_weightPreset_use": "Vorlage verwenden",
   "diveLog_edit_weightPreset_save": "Als Vorlage speichern",

@@ -8198,6 +8198,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_bulkEdit_setsToRemove => '要移除的套装';
 
   @override
+  String get diveLog_bulkEdit_removeSetTitle => '移除装备套装';
+
+  @override
   String get diveLog_bulkEdit_equipmentSets => '装备套装';
 
   @override

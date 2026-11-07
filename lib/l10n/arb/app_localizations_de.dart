@@ -8637,6 +8637,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_bulkEdit_setsToRemove => 'Zu entfernende Sets';
 
   @override
+  String get diveLog_bulkEdit_removeSetTitle => 'Ausrüstungsset entfernen';
+
+  @override
   String get diveLog_bulkEdit_equipmentSets => 'Ausrüstungssets';
 
   @override

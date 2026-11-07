@@ -2915,6 +2915,7 @@
   "diveLog_edit_useSet": "使用套装",
   "diveLog_edit_removeSet": "移除套装",
   "diveLog_bulkEdit_setsToRemove": "要移除的套装",
+  "diveLog_bulkEdit_removeSetTitle": "移除装备套装",
   "diveLog_bulkEdit_equipmentSets": "装备套装",
   "diveLog_edit_weightPreset_use": "使用预设",
   "diveLog_edit_weightPreset_save": "存为预设",

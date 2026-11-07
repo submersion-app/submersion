@@ -37,6 +37,7 @@ Future<void> _pump(
   WidgetTester tester, {
   required List<EquipmentSet> sets,
   void Function(EquipmentSet, List<EquipmentItem>)? onSetSelected,
+  String? title,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -54,6 +55,7 @@ Future<void> _pump(
           body: EquipmentSetPickerSheet(
             scrollController: ScrollController(),
             onSetSelected: onSetSelected ?? (_, _) {},
+            title: title,
           ),
         ),
       ),
@@ -75,6 +77,18 @@ void main() {
     expect(find.text('Tropical'), findsOneWidget);
     expect(find.text('2 items: Apeks XTX50, Low Volume Mask'), findsOneWidget);
     expect(find.text('1 item: Apeks XTX50'), findsOneWidget);
+  });
+
+  testWidgets('a caller can retitle the sheet (#4284)', (tester) async {
+    await _pump(
+      tester,
+      sets: [
+        _set('s1', 'Tropical', [_regulator]),
+      ],
+      title: 'Remove Equipment Set',
+    );
+    expect(find.text('Remove Equipment Set'), findsOneWidget);
+    expect(find.text('Use Equipment Set'), findsNothing);
   });
 
   testWidgets('tapping a set returns its items', (tester) async {

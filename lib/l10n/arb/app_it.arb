@@ -2702,6 +2702,7 @@
   "diveLog_edit_useSet": "Usa set",
   "diveLog_edit_removeSet": "Rimuovi set",
   "diveLog_bulkEdit_setsToRemove": "Set da rimuovere",
+  "diveLog_bulkEdit_removeSetTitle": "Rimuovi set di attrezzatura",
   "diveLog_bulkEdit_equipmentSets": "Set di attrezzatura",
   "diveLog_edit_weightPreset_use": "Usa preset",
   "diveLog_edit_weightPreset_save": "Salva come preset",

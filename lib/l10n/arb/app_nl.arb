@@ -2803,6 +2803,7 @@
   "diveLog_edit_useSet": "Set gebruiken",
   "diveLog_edit_removeSet": "Set verwijderen",
   "diveLog_bulkEdit_setsToRemove": "Te verwijderen sets",
+  "diveLog_bulkEdit_removeSetTitle": "Uitrustingsset verwijderen",
   "diveLog_bulkEdit_equipmentSets": "Uitrustingssets",
   "diveLog_edit_weightPreset_use": "Voorinstelling gebruiken",
   "diveLog_edit_weightPreset_save": "Opslaan als voorinstelling",

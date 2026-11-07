@@ -5096,6 +5096,8 @@
   "@diveLog_edit_removeSet": {"description": "Bulk edit: button that stages an equipment set to remove from every selected dive"},
   "diveLog_bulkEdit_setsToRemove": "Sets to remove",
   "@diveLog_bulkEdit_setsToRemove": {"description": "Bulk edit: heading over the equipment sets staged for removal"},
+  "diveLog_bulkEdit_removeSetTitle": "Remove Equipment Set",
+  "@diveLog_bulkEdit_removeSetTitle": {"description": "Bulk edit: title of the sheet that picks an equipment set to remove from every selected dive"},
   "diveLog_bulkEdit_equipmentSets": "Equipment sets",
   "@diveLog_bulkEdit_equipmentSets": {"description": "Bulk edit confirmation: section title for equipment sets"},
   "diveLog_edit_weightPreset_use": "Use preset",

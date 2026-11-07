@@ -8768,6 +8768,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_bulkEdit_setsToRemove => 'أطقم للإزالة';
 
   @override
+  String get diveLog_bulkEdit_removeSetTitle => 'إزالة طقم معدات';
+
+  @override
   String get diveLog_bulkEdit_equipmentSets => 'أطقم المعدات';
 
   @override

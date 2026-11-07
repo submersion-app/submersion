@@ -2803,6 +2803,7 @@
   "diveLog_edit_useSet": "استخدام طقم",
   "diveLog_edit_removeSet": "إزالة طقم",
   "diveLog_bulkEdit_setsToRemove": "أطقم للإزالة",
+  "diveLog_bulkEdit_removeSetTitle": "إزالة طقم معدات",
   "diveLog_bulkEdit_equipmentSets": "أطقم المعدات",
   "diveLog_edit_weightPreset_use": "استخدام إعداد مسبق",
   "diveLog_edit_weightPreset_save": "حفظ كإعداد مسبق",

@@ -8638,6 +8638,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_bulkEdit_setsToRemove => 'Conjuntos a quitar';
 
   @override
+  String get diveLog_bulkEdit_removeSetTitle => 'Quitar conjunto de equipo';
+
+  @override
   String get diveLog_bulkEdit_equipmentSets => 'Conjuntos de equipo';
 
   @override

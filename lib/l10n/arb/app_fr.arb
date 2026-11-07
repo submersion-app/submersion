@@ -2702,6 +2702,7 @@
   "diveLog_edit_useSet": "Utiliser un ensemble",
   "diveLog_edit_removeSet": "Retirer un ensemble",
   "diveLog_bulkEdit_setsToRemove": "Ensembles à retirer",
+  "diveLog_bulkEdit_removeSetTitle": "Retirer un ensemble d'équipement",
   "diveLog_bulkEdit_equipmentSets": "Ensembles d'équipement",
   "diveLog_edit_weightPreset_use": "Utiliser un preset",
   "diveLog_edit_weightPreset_save": "Enregistrer comme preset",

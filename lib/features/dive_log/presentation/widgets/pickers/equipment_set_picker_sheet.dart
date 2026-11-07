@@ -13,10 +13,15 @@ class EquipmentSetPickerSheet extends ConsumerWidget {
   final void Function(EquipmentSet set, List<EquipmentItem> items)
   onSetSelected;
 
+  /// The sheet's heading; "Use Equipment Set" when null. Picking a set to
+  /// take off dives says so instead (#4284).
+  final String? title;
+
   const EquipmentSetPickerSheet({
     super.key,
     required this.scrollController,
     required this.onSetSelected,
+    this.title,
   });
 
   @override
@@ -31,7 +36,7 @@ class EquipmentSetPickerSheet extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                context.l10n.diveLog_equipmentSetPicker_title,
+                title ?? context.l10n.diveLog_equipmentSetPicker_title,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               IconButton(

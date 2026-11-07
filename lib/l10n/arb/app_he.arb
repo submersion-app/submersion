@@ -2702,6 +2702,7 @@
   "diveLog_edit_useSet": "שימוש בסט",
   "diveLog_edit_removeSet": "הסרת סט",
   "diveLog_bulkEdit_setsToRemove": "סטים להסרה",
+  "diveLog_bulkEdit_removeSetTitle": "הסרת סט ציוד",
   "diveLog_bulkEdit_equipmentSets": "סטים של ציוד",
   "diveLog_edit_weightPreset_use": "שימוש בקבוע מראש",
   "diveLog_edit_weightPreset_save": "שמירה כקבוע מראש",

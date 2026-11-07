@@ -2702,6 +2702,7 @@
   "diveLog_edit_useSet": "Készlet használata",
   "diveLog_edit_removeSet": "Készlet eltávolítása",
   "diveLog_bulkEdit_setsToRemove": "Eltávolítandó készletek",
+  "diveLog_bulkEdit_removeSetTitle": "Felszerelés-készlet eltávolítása",
   "diveLog_bulkEdit_equipmentSets": "Felszerelés-készletek",
   "diveLog_edit_weightPreset_use": "Séma használata",
   "diveLog_edit_weightPreset_save": "Mentés sémaként",

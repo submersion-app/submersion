@@ -8614,6 +8614,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_bulkEdit_setsToRemove => 'Eltávolítandó készletek';
 
   @override
+  String get diveLog_bulkEdit_removeSetTitle =>
+      'Felszerelés-készlet eltávolítása';
+
+  @override
   String get diveLog_bulkEdit_equipmentSets => 'Felszerelés-készletek';
 
   @override

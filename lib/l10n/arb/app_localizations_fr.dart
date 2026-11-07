@@ -8658,6 +8658,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_bulkEdit_setsToRemove => 'Ensembles à retirer';
 
   @override
+  String get diveLog_bulkEdit_removeSetTitle =>
+      'Retirer un ensemble d\'équipement';
+
+  @override
   String get diveLog_bulkEdit_equipmentSets => 'Ensembles d\'équipement';
 
   @override
