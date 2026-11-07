@@ -157,8 +157,10 @@ void main() {
 
       test('a body that is not a deflate stream', () {
         final blob = BathymetryGridCodec.encode(_grid());
+        // The whole header kept, so the decoder reaches the inflate.
+        const headerBytes = 62 + 'swissbathy3d'.length;
         final broken = Uint8List.fromList([
-          ...blob.sublist(0, 4),
+          ...blob.sublist(0, headerBytes),
           ...List.filled(32, 0xFF),
         ]);
         expect(
@@ -171,6 +173,27 @@ void main() {
         final blob = BathymetryGridCodec.encode(_grid());
         // The sixth float64 field, after magic, rows and cols.
         ByteData.sublistView(blob).setFloat64(12 + 5 * 8, 1e300, Endian.little);
+        expect(
+          () => BathymetryGridCodec.decode(blob),
+          throwsA(isA<FormatException>()),
+        );
+      });
+
+      test('a body that inflates past its header shape', () {
+        final blob = BathymetryGridCodec.encode(_grid(rows: 4, cols: 4));
+        // Header now claims one row; the stream still holds four.
+        ByteData.sublistView(blob).setUint32(4, 1, Endian.little);
+        expect(
+          () => BathymetryGridCodec.decode(blob),
+          throwsA(isA<FormatException>()),
+        );
+      });
+
+      test('a header claiming more cells than the cap', () {
+        final blob = BathymetryGridCodec.encode(_grid());
+        ByteData.sublistView(blob)
+          ..setUint32(4, 4096, Endian.little)
+          ..setUint32(8, 4096, Endian.little);
         expect(
           () => BathymetryGridCodec.decode(blob),
           throwsA(isA<FormatException>()),
@@ -201,6 +224,13 @@ void main() {
       );
       expect(
         () => BathymetryGridCodec.encode(grid),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test('refuses a source id too long for its length field', () {
+      expect(
+        () => BathymetryGridCodec.encode(_grid(sourceId: 'x' * 0x10000)),
         throwsA(isA<ArgumentError>()),
       );
     });

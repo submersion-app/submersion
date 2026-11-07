@@ -492,6 +492,28 @@ void main() {
       expect(row.referenceLevelMeters, 405.92);
     });
 
+    test('a failed conversion still serves the legacy tile', () async {
+      await db
+          .into(db.swissBathyTileCache)
+          .insert(
+            SwissBathyTileCacheCompanion.insert(
+              tileKey: '2726_1221',
+              status: 'ok',
+              gridJson: Value(jsonEncode(grid.toJson())),
+              fetchedAt: 1,
+            ),
+          );
+      await db.customStatement(
+        'CREATE TRIGGER no_update BEFORE UPDATE ON swiss_bathy_tile_cache '
+        "BEGIN SELECT RAISE(ABORT, 'read-only'); END",
+      );
+
+      final entry = await repo.read('2726_1221');
+      expect(entry!.grid.depthsMeters, grid.depthsMeters);
+      final row = await db.select(db.swissBathyTileCache).getSingle();
+      expect(row.gridJson, isNotNull); // left as it was, retried next read
+    });
+
     test('a corrupt compact tile is deleted, not served', () async {
       await db
           .into(db.swissBathyTileCache)
