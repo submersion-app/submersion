@@ -273,3 +273,41 @@ String diveSurfaceIntervalSecondsSql(
   return 'COALESCE($alias.surface_interval_seconds, $withEntry, '
       '$withoutEntry)';
 }
+
+/// When the dive at [alias] ended, in epoch milliseconds, as `diveEnd` in
+/// the planner reads it: the stored `exit_time` whenever there is one, else
+/// the start plus [effectiveRuntimeSecondsSql], else the start. Unlike
+/// [diveExitMillisSql] it is never NULL and trusts an exit time at or before
+/// the start, so the planner's SQL and Dart agree on which dive ended last.
+String plannerDiveEndMillisSql(String alias) =>
+    'COALESCE($alias.exit_time, ${diveStartMillisSql(alias)} '
+    '+ COALESCE(${effectiveRuntimeSecondsSql(alias)}, 0) '
+    '* $_millisecondsPerSecond)';
+
+/// The logged dive that ended last inside a window, for the planner's Follow
+/// prompt (issue #4250): its id, or no row when no logged dive ended in it.
+///
+/// Binds the earliest start to read, then the window's first millisecond
+/// (exclusive) and last (inclusive), then the diver when [scopedToDiver].
+/// The window is on [plannerDiveEndMillisSql]; a planned dive never counts,
+/// and a dive still under way or stamped in the future ends after the window.
+///
+/// The end has no index, so the start bounds the read: a range on it seeks
+/// idx_dives_start or idx_dives_diver_start, and reads the few dives of the
+/// last days rather than the whole log. The earliest start is the window's
+/// first millisecond less the longest dive the lookup allows for, and a dive
+/// that started after the window's last millisecond cannot have ended in it.
+String latestEndedDiveSql({required bool scopedToDiver}) {
+  final start = diveStartMillisSql('dives');
+  final end = plannerDiveEndMillisSql('dives');
+  return '''
+SELECT id, $end AS end_ms
+FROM dives
+WHERE $start BETWEEN ?1 AND ?3
+  AND is_planned = 0
+  ${scopedToDiver ? 'AND diver_id = ?4' : ''}
+  AND $end > ?2 AND $end <= ?3
+ORDER BY end_ms DESC, $start DESC, dive_number DESC
+LIMIT 1
+''';
+}
