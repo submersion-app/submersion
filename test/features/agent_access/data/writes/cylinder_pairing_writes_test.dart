@@ -148,4 +148,28 @@ void main() {
     ]);
     expect(plan.items.single.block!.reason, BlockReason.invalidValue);
   });
+
+  test('a pairing created with an end date is stored ended', () async {
+    await h.run([
+      createOp('cylinder_pairings', {
+        'cylinder_a_id': 'A',
+        'cylinder_b_id': 'B',
+        'paired_on': '2025-01-01',
+        'unpaired_on': '2025-06-01',
+      }),
+    ]);
+    expect(
+      (await pairings()).single.unpairedOn,
+      DateTime.utc(2025, 6, 1).millisecondsSinceEpoch,
+    );
+    final backwards = await h.preview([
+      createOp('cylinder_pairings', {
+        'cylinder_a_id': 'A',
+        'cylinder_b_id': 'C',
+        'paired_on': '2026-01-01',
+        'unpaired_on': '2025-12-01',
+      }),
+    ]);
+    expect(backwards.items.single.block!.reason, BlockReason.invalidValue);
+  });
 }

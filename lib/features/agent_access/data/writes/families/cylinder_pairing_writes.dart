@@ -73,11 +73,20 @@ class CylinderPairingWrites extends WritableEntry {
           );
         }
       }
+      final start = _day(check.values['paired_on'])!;
+      final end = _day(check.values['unpaired_on']);
+      if (end != null && !end.isAfter(start)) {
+        return const PlanBlock(
+          BlockReason.invalidValue,
+          'unpaired_on: a pairing ends after the day it starts.',
+        );
+      }
       final clashes = clashesWith(
         await pairings.getAll(),
         cylinderAId: a,
         cylinderBId: b,
-        pairedOn: _day(check.values['paired_on'])!,
+        pairedOn: start,
+        unpairedOn: end,
       );
       return clashes.isEmpty ? null : await _clashBlock(clashes);
     }
@@ -129,6 +138,8 @@ class CylinderPairingWrites extends WritableEntry {
         cylinderAId: values['cylinder_a_id']! as String,
         cylinderBId: values['cylinder_b_id']! as String,
         pairedOn: _day(values['paired_on'])!,
+        // A past pair entered with its end is stored ended, in one write.
+        unpairedOn: _day(values['unpaired_on']),
       )).id;
 
   @override

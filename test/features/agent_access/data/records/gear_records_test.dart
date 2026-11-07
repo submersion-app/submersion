@@ -450,6 +450,8 @@ void main() {
 
     test('twin set pairings list under their first cylinder', () async {
       expect(await h.list('cylinder_pairings', parentId: 'mine'), ['pair']);
+      // Listed under the second cylinder too.
+      expect(await h.list('cylinder_pairings', parentId: 'hose'), ['pair']);
       final doc = (await h.one('cylinder_pairings', 'pair'))!;
       expect(doc['cylinder_b_id'], 'hose');
       expect(doc['paired_on'], '2026-03-03');

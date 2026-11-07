@@ -180,6 +180,7 @@ List<RecordEntry> gearEntries(RecordRepositories r) => [
       );
     },
     parentColumn: 'cylinder_a_id',
+    alsoParentColumns: const ['cylinder_b_id'],
     orderBy: 'r0.cylinder_a_id, r0.paired_on DESC',
     idOf: (p) => p.id,
     byParents: (parents) => eachParent(

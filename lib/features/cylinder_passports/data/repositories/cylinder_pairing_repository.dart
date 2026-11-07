@@ -55,11 +55,14 @@ class CylinderPairingRepository {
   /// [pairedOn]. A pairing of either cylinder that overlaps throws
   /// [PairingClash]; with [replace], an open one that started before
   /// [pairedOn] is ended on that day instead, and any other overlap still
-  /// throws.
+  /// throws. With [unpairedOn] the pairing is stored already ended (a past
+  /// pair entered after the fact); the whole range is checked, and an end on
+  /// or before the start throws [ArgumentError].
   Future<CylinderPairing> createPairing({
     required String cylinderAId,
     required String cylinderBId,
     required DateTime pairedOn,
+    DateTime? unpairedOn,
     bool replace = false,
   }) async {
     if (cylinderAId == cylinderBId) {
@@ -75,6 +78,10 @@ class CylinderPairingRepository {
       throw ArgumentError('Only two cylinders can be paired as a twin set');
     }
     final start = calendarDay(pairedOn);
+    final end = unpairedOn == null ? null : calendarDay(unpairedOn);
+    if (end != null && !end.isAfter(start)) {
+      throw ArgumentError.value(unpairedOn, 'unpairedOn', 'not after start');
+    }
     final now = DateTime.now().millisecondsSinceEpoch;
     final pairing = await _db.transaction(() async {
       final clashes = rules.clashesWith(
@@ -82,6 +89,7 @@ class CylinderPairingRepository {
         cylinderAId: cylinderAId,
         cylinderBId: cylinderBId,
         pairedOn: start,
+        unpairedOn: end,
       );
       final replaceable = [
         for (final c in clashes)
@@ -105,6 +113,7 @@ class CylinderPairingRepository {
         cylinderAId: cylinderAId,
         cylinderBId: cylinderBId,
         pairedOn: start,
+        unpairedOn: end,
         createdAt: DateTime.fromMillisecondsSinceEpoch(now),
         updatedAt: DateTime.fromMillisecondsSinceEpoch(now),
       );
@@ -116,6 +125,7 @@ class CylinderPairingRepository {
               cylinderAId: cylinderAId,
               cylinderBId: cylinderBId,
               pairedOn: start.millisecondsSinceEpoch,
+              unpairedOn: Value(end?.millisecondsSinceEpoch),
               createdAt: now,
               updatedAt: now,
             ),

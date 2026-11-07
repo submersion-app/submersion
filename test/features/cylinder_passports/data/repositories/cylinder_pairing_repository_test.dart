@@ -240,4 +240,39 @@ void main() {
       throwsArgumentError,
     );
   });
+
+  test('a pairing can be created already ended, checked as a whole', () async {
+    final past = await repo.createPairing(
+      cylinderAId: 'A',
+      cylinderBId: 'B',
+      pairedOn: d(2025, 1, 1),
+      unpairedOn: d(2025, 6, 1),
+    );
+    expect(past.unpairedOn, d(2025, 6, 1));
+    expect((await repo.getForCylinder('A')).single.unpairedOn, d(2025, 6, 1));
+    // Open from later: no overlap with the ended one.
+    await repo.createPairing(
+      cylinderAId: 'A',
+      cylinderBId: 'C',
+      pairedOn: d(2025, 6, 1),
+    );
+    expect(
+      () => repo.createPairing(
+        cylinderAId: 'B',
+        cylinderBId: 'D',
+        pairedOn: d(2024, 1, 1),
+        unpairedOn: d(2024, 1, 1),
+      ),
+      throwsArgumentError,
+    );
+    await expectLater(
+      repo.createPairing(
+        cylinderAId: 'B',
+        cylinderBId: 'D',
+        pairedOn: d(2025, 3, 1),
+        unpairedOn: d(2025, 4, 1),
+      ),
+      throwsA(isA<PairingClash>()),
+    );
+  });
 }
