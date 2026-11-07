@@ -651,9 +651,11 @@ class _FormRowState extends State<FormRow> {
                 final stars = i + 1;
                 final filled = i < rating;
                 // Named for a screen reader, which otherwise meets five
-                // unnamed buttons (issue #4166).
+                // unnamed buttons, and selected as the fill shows, so the
+                // rating is heard as well as seen (issue #4166).
                 return Semantics(
                   label: context.l10n.diveSites_edit_rating_starTooltip(stars),
+                  selected: filled,
                   child: InkWell(
                     onTap: () =>
                         stars == rating ? clear() : widget.onIntChanged!(stars),

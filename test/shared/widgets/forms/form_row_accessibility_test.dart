@@ -140,6 +140,16 @@ void main() {
 
       expect(find.bySemanticsLabel('1 star'), findsOneWidget);
       expect(find.bySemanticsLabel('5 stars'), findsOneWidget);
+      // The filled stars read as selected, so the rating is heard, not
+      // only seen.
+      expect(
+        tester.getSemantics(find.bySemanticsLabel('2 stars')),
+        isSemantics(label: '2 stars', isSelected: true, hasTapAction: true),
+      );
+      expect(
+        tester.getSemantics(find.bySemanticsLabel('3 stars')),
+        isSemantics(label: '3 stars', isSelected: false, hasTapAction: true),
+      );
       await tester.tap(find.bySemanticsLabel('4 stars'));
       expect(rating, 4);
       semantics.dispose();

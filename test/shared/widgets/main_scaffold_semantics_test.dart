@@ -71,41 +71,39 @@ Future<void> _pumpShell(WidgetTester tester, {required Size size}) async {
   await tester.pumpAndSettle();
 }
 
-/// Every label in the live semantics tree: what a screen reader can reach.
-List<String> _labels(WidgetTester tester) {
-  final labels = <String>[];
-  bool visit(SemanticsNode node) {
-    if (node.label.isNotEmpty) labels.add(node.label);
-    node.visitChildren(visit);
+SemanticsNode _root(WidgetTester tester) =>
+    tester.binding.renderViews.single.owner!.semanticsOwner!.rootSemanticsNode!;
+
+/// Every node below [node], depth first.
+List<SemanticsNode> _descendants(SemanticsNode node) {
+  final nodes = <SemanticsNode>[];
+  bool visit(SemanticsNode child) {
+    nodes.add(child);
+    child.visitChildren(visit);
     return true;
   }
 
-  final view = tester.binding.renderViews.single;
-  visit(view.owner!.semanticsOwner!.rootSemanticsNode!);
-  return labels;
+  node.visitChildren(visit);
+  return nodes;
 }
+
+List<String> _labelsOf(Iterable<SemanticsNode> nodes) => [
+  for (final node in nodes)
+    if (node.label.isNotEmpty) node.label,
+];
+
+/// Every label in the live semantics tree: what a screen reader can reach.
+List<String> _labels(WidgetTester tester) =>
+    _labelsOf(_descendants(_root(tester)));
 
 /// The labels under the node [label] names, which must be one node.
 List<String> _labelsUnder(WidgetTester tester, String label) {
-  final found = <SemanticsNode>[];
-  bool find(SemanticsNode node) {
-    if (node.label == label) found.add(node);
-    node.visitChildren(find);
-    return true;
-  }
-
-  final view = tester.binding.renderViews.single;
-  find(view.owner!.semanticsOwner!.rootSemanticsNode!);
+  final found = [
+    for (final node in _descendants(_root(tester)))
+      if (node.label == label) node,
+  ];
   expect(found, hasLength(1), reason: 'one node named "$label"');
-  final labels = <String>[];
-  bool collect(SemanticsNode node) {
-    if (node.label.isNotEmpty) labels.add(node.label);
-    node.visitChildren(collect);
-    return true;
-  }
-
-  found.single.visitChildren(collect);
-  return labels;
+  return _labelsOf(_descendants(found.single));
 }
 
 Matcher _hasLabelStartingWith(String text) =>
