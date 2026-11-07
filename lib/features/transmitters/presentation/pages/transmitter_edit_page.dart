@@ -220,6 +220,15 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
           _workingPressureController.text.isEmpty;
     });
     if (_roleTouched) return;
+    // A cylinder marked as a suit inflation bottle says what the transmitter
+    // reads, ahead of any role its history suggests (issue #4243).
+    if (item.isSuitInflationCylinder) {
+      setState(() {
+        _role = TankRole.suitInflation;
+        _roleFieldGeneration++;
+      });
+      return;
+    }
     final TankRole role;
     try {
       final diverId = await ref.read(validatedCurrentDiverIdProvider.future);

@@ -39961,6 +39961,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get attrLabel_valve_type => 'Robinet';
 
   @override
+  String get attrLabel_cylinder_use => 'Usage de la bouteille';
+
+  @override
   String get attrLabel_tank_identifier => 'Identifiant';
 
   @override
@@ -40315,6 +40318,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => 'Convertible';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => 'Gaz respirable';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => 'Gonflage combinaison';
 
   @override
   String get attrChoice_connection_din => 'DIN';

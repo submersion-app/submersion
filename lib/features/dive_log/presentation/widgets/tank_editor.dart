@@ -1243,6 +1243,13 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     ScaffoldMessengerState messenger,
     AppLocalizations l10n,
   ) async {
+    // A cylinder marked as a suit inflation bottle sets the tank's role to
+    // match (issue #4243). The mark is a default for the pick, so a tank
+    // already in that role is left alone and nothing else is unset.
+    if (item.isSuitInflationCylinder && _role != TankRole.suitInflation) {
+      setState(() => _role = TankRole.suitInflation);
+      _notifyChange();
+    }
     final filled = _applyScannedSpec(
       passportId: passportId,
       volumeL: item.volumeL,

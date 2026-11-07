@@ -38859,6 +38859,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_valve_type => 'שסתום';
 
   @override
+  String get attrLabel_cylinder_use => 'שימוש בבלון';
+
+  @override
   String get attrLabel_tank_identifier => 'מזהה';
 
   @override
@@ -39211,6 +39214,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => 'הפיך';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => 'גז נשימה';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => 'ניפוח חליפה';
 
   @override
   String get attrChoice_connection_din => 'DIN';

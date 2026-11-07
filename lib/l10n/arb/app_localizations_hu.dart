@@ -39616,6 +39616,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_valve_type => 'Szelep';
 
   @override
+  String get attrLabel_cylinder_use => 'Palack felhasználása';
+
+  @override
   String get attrLabel_tank_identifier => 'Azonosító';
 
   @override
@@ -39968,6 +39971,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => 'Átalakítható';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => 'Légzőgáz';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => 'Ruhatöltő palack';
 
   @override
   String get attrChoice_connection_din => 'DIN';
