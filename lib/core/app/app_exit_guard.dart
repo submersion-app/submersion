@@ -51,7 +51,7 @@ class AppExitGuard {
     Future<void> Function(bool prevent)? preventWindowClose,
     Future<void> Function()? revealWindow,
   }) : _retryExit = retryExit ?? _exitThroughThePlatform,
-       _revealWindow = revealWindow ?? _revealThroughThePlugin {
+       _revealWindow = revealWindow ?? revealDesktopWindow {
     _preventWindowClose = preventWindowClose ?? _platformPreventWindowClose();
   }
 
@@ -63,8 +63,6 @@ class AppExitGuard {
 
   static Future<void> _exitThroughThePlatform() =>
       ServicesBinding.instance.exitApplication(AppExitType.cancelable);
-
-  static Future<void> _revealThroughThePlugin() => revealDesktopWindow();
 
   Future<void> Function(bool prevent) _platformPreventWindowClose() {
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.macOS) {

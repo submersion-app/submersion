@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/window_fullscreen.dart';
 import 'package:submersion/features/agent_access/presentation/providers/agent_write_providers.dart';
 
 void main() {
@@ -36,6 +37,21 @@ void main() {
     expect(calls.first, 'ensureInitialized');
     expect(calls, containsAllInOrder(['ensureInitialized', 'show', 'focus']));
   });
+
+  test(
+    'a reveal without focus shows the window and leaves focus alone',
+    () async {
+      // The exit guard's path: it shows the window behind its own dialog.
+      debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+
+      await revealDesktopWindow();
+
+      expect(calls.first, 'ensureInitialized');
+      expect(calls, contains('show'));
+      expect(calls, isNot(contains('focus')));
+    },
+  );
 
   test('leaves the plugin alone where there is no desktop window', () async {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
