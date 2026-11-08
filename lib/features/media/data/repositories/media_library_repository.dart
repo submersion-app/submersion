@@ -6,11 +6,13 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
+import 'package:submersion/features/media/data/repositories/media_library_group_order.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_row_mapper.dart';
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
+import 'package:submersion/features/media/domain/entities/media_library_grouping.dart';
 import 'package:submersion/features/media/domain/entities/media_library_sort.dart';
 import 'package:submersion/features/media/domain/entities/media_map_point.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -291,6 +293,35 @@ class MediaLibraryRepository {
     return beyond | (key.equals(value) & tie);
   }
 
+  /// The keyset predicate across a grouped page's leading [keys] and then
+  /// [sortAfter], the sort key's own predicate: a row is past the cursor
+  /// when it is in a later group, or in the cursor's group and past it by
+  /// [sortAfter]. With no keys this is [sortAfter] itself.
+  ///
+  /// A cursor from a walk under a different grouping cannot be continued
+  /// here (it holds the wrong keys), so it is refused rather than read as
+  /// some other group.
+  Expression<bool> _afterGroups(
+    List<LibraryGroupKey> keys,
+    MediaLibraryCursor after,
+    Expression<bool> sortAfter,
+  ) {
+    if (after.groupKeys.length != keys.length) {
+      throw ArgumentError.value(
+        after,
+        'after',
+        'cursor carries ${after.groupKeys.length} group keys, '
+            'the page orders by ${keys.length}',
+      );
+    }
+    Expression<bool> result = sortAfter;
+    for (var i = keys.length - 1; i >= 0; i--) {
+      final value = after.groupKeys[i];
+      result = keys[i].after(value) | (keys[i].equalTo(value) & result);
+    }
+    return result;
+  }
+
   /// The cursor value for [row] under [field]. Mirrors the COALESCE in the
   /// matching key expression: if these two ever disagree, pagination skips or
   /// repeats rows at the boundary.
@@ -311,10 +342,16 @@ class MediaLibraryRepository {
   /// One page of library entries for [diverId] (null = all divers), ordered
   /// by [sort] (newest first by default). Pass the previous page's
   /// [MediaLibraryPageResult.nextCursor] as [after] to continue.
+  ///
+  /// A [grouping] orders by the group first and by [sort] within each group,
+  /// so a grouped view gets every group in one run (issue #4268). Pass the
+  /// same grouping for every page of one walk: the cursor is only meaningful
+  /// under the order that produced it.
   Future<MediaLibraryPageResult> getPage({
     required String? diverId,
     MediaLibraryFilter filter = MediaLibraryFilter.none,
     SortState<MediaSortField> sort = kDefaultMediaSort,
+    MediaLibraryGrouping grouping = MediaLibraryGrouping.none,
     MediaLibraryCursor? after,
     int limit = pageSize,
   }) async {
@@ -327,30 +364,39 @@ class MediaLibraryRepository {
       final attached = _db.alias(_db.diveSites, 'attached_site');
       final e = _db.equipment;
 
+      final groupKeys = libraryGroupKeys(
+        grouping.forSort(sort.field),
+        db: _db,
+        dateDescending: groupsNewestFirst(sort.field, sort.direction),
+        dateKey: _dateKey,
+        dives: d,
+        attachedSites: attached,
+        equipment: e,
+      );
+
       Expression<bool> where = _baseWhere(diverId, filter);
       if (after != null) {
-        where =
-            where &
-            switch (sort.field) {
-              MediaSortField.dateTaken => _afterCursor(
-                _dateKey,
-                after.sortKey as int,
-                after.id,
-                sort.direction,
-              ),
-              MediaSortField.fileName => _afterCursor(
-                _nameKey,
-                after.sortKey as String,
-                after.id,
-                sort.direction,
-              ),
-              MediaSortField.fileSize => _afterCursor(
-                _sizeKey,
-                after.sortKey as int,
-                after.id,
-                sort.direction,
-              ),
-            };
+        final sortAfter = switch (sort.field) {
+          MediaSortField.dateTaken => _afterCursor(
+            _dateKey,
+            after.sortKey as int,
+            after.id,
+            sort.direction,
+          ),
+          MediaSortField.fileName => _afterCursor(
+            _nameKey,
+            after.sortKey as String,
+            after.id,
+            sort.direction,
+          ),
+          MediaSortField.fileSize => _afterCursor(
+            _sizeKey,
+            after.sortKey as int,
+            after.id,
+            sort.direction,
+          ),
+        };
+        where = where & _afterGroups(groupKeys, after, sortAfter);
       }
 
       final mode = sort.direction == SortDirection.descending
@@ -364,8 +410,10 @@ class MediaLibraryRepository {
               leftOuterJoin(attached, attached.id.equalsExp(m.siteId)),
               leftOuterJoin(e, e.id.equalsExp(m.equipmentId)),
             ])
+            ..addColumns([for (final key in groupKeys) key.expression])
             ..where(where)
             ..orderBy([
+              for (final key in groupKeys) key.ordering,
               OrderingTerm(expression: _sortExpression(sort.field), mode: mode),
               OrderingTerm(expression: m.id, mode: mode),
             ])
@@ -399,10 +447,12 @@ class MediaLibraryRepository {
 
       MediaLibraryCursor? next;
       if (hasMore && entries.isNotEmpty) {
-        final last = visible.last.readTable(m);
+        final lastRow = visible.last;
+        final last = lastRow.readTable(m);
         next = MediaLibraryCursor(
           sortKey: _cursorValue(last, sort.field),
           id: last.id,
+          groupKeys: [for (final key in groupKeys) key.readFrom(lastRow)],
         );
       }
       return MediaLibraryPageResult(entries: entries, nextCursor: next);
