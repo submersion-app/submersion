@@ -329,24 +329,31 @@ class _BulkMembershipEditorState extends State<BulkMembershipEditor> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(widget.title, style: theme.textTheme.titleMedium),
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ?widget.secondaryAction,
-                  TextButton.icon(
-                    onPressed: widget.onAdd,
-                    icon: const Icon(Icons.add, size: 18),
-                    label: Text(widget.labels.add),
-                  ),
-                ],
-              ),
-            ],
+          // Title and actions share a line when they fit. On a narrow phone
+          // in a language with long labels they do not (the equipment
+          // editor's Use Set, Sort and Add run wider than the screen in
+          // French, #2274), so the actions drop under the title, and wrap
+          // among themselves, rather than overflow.
+          SizedBox(
+            width: double.infinity,
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(widget.title, style: theme.textTheme.titleMedium),
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    ?widget.secondaryAction,
+                    TextButton.icon(
+                      onPressed: widget.onAdd,
+                      icon: const Icon(Icons.add, size: 18),
+                      label: Text(widget.labels.add),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
           if (widget.items.isEmpty)
             Padding(
