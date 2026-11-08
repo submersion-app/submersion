@@ -1343,6 +1343,10 @@ class BackupService {
       }
     }
 
+    // Extra copies go with the record whoever removes it: pruning batches
+    // only the main copy's deletes (issue #3782).
+    await _deleteExtraCopies(record);
+
     // Remove from history
     await _preferences.removeRecord(record.id);
     _log.info('Backup deleted: ${record.filename}');

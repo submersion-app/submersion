@@ -18,6 +18,7 @@ import 'package:submersion/core/services/sync/crypto/keyslots.dart';
 import 'package:submersion/core/services/sync/crypto/sync_envelope.dart';
 import 'package:submersion/core/services/sync/sync_preferences.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/backup/data/services/backup_copy_guard.dart';
 import 'package:submersion/features/backup/data/services/backup_encryption_key_store.dart';
 import 'package:submersion/features/backup/data/services/backup_encryption_service.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
@@ -314,6 +315,159 @@ void main() {
       expect(copy.name, endsWith('.sbe'));
       expect(SyncEnvelope.hasMagic(copy.bytes), isTrue);
       expect(record.extraCloudCopies.first.fileId, '$_folder/${copy.name}');
+    });
+  });
+
+  group('removing a backup', () {
+    /// Puts a backup named [name] in [account]'s backup folder, returning
+    /// the file id it was given.
+    Future<String> stored(_Account account, String name) async =>
+        (await account.uploadFile(
+          Uint8List.fromList([1, 2, 3]),
+          name,
+          folderId: _folder,
+        )).fileId;
+
+    Future<BackupRecord> seed(
+      String name,
+      DateTime at, {
+      List<String> extraAccounts = const ['git-row', 'db-row'],
+    }) async {
+      final local = File('${folder.path}/$name');
+      await local.writeAsString('old backup');
+      final record = BackupRecord(
+        id: name,
+        filename: name,
+        timestamp: at,
+        sizeBytes: 10,
+        location: BackupLocation.local,
+        localPath: local.path,
+        extraCloudCopies: [
+          for (final id in extraAccounts)
+            ExtraCloudCopy(
+              accountId: id,
+              fileId: await stored(id == 'git-row' ? git : dropbox, name),
+            ),
+        ],
+      );
+      await preferences.addRecord(record);
+      return record;
+    }
+
+    test('deleteBackup removes extra copies', () async {
+      final record = await seed('submersion_backup_a.db', DateTime(2026, 1));
+
+      await service().deleteBackup(record);
+
+      expect(git.names, isEmpty);
+      expect(dropbox.names, isEmpty);
+      expect(preferences.getHistory(), isEmpty);
+    });
+
+    test('pruning removes extra copies of pruned records', () async {
+      await seed('submersion_backup_old.db', DateTime(2026, 1));
+      await seed('submersion_backup_new.db', DateTime(2026, 2));
+
+      await service().pruneOldBackups(1);
+
+      expect(git.names, ['submersion_backup_new.db']);
+      expect(dropbox.names, ['submersion_backup_new.db']);
+      expect(preferences.getHistory().map((r) => r.filename), [
+        'submersion_backup_new.db',
+      ]);
+    });
+
+    test('unreachable extra copy is forgotten', () async {
+      final record = await seed('submersion_backup_a.db', DateTime(2026, 1));
+
+      // The Git account is no longer an extra destination here.
+      await service(
+        extras: [ExtraCopyDestination('db-row', dropbox)],
+      ).deleteBackup(record);
+
+      expect(git.names, ['submersion_backup_a.db']);
+      expect(dropbox.names, isEmpty);
+      expect(preferences.getHistory(), isEmpty);
+    });
+
+    test('an account refusing the delete does not keep the record', () async {
+      final record = await seed('submersion_backup_a.db', DateTime(2026, 1));
+      git.failDeletes = true;
+
+      await service().deleteBackup(record);
+
+      expect(dropbox.names, isEmpty);
+      expect(preferences.getHistory(), isEmpty);
+    });
+
+    test('flushes deferred deletes for extras', () async {
+      final record = await seed('submersion_backup_a.db', DateTime(2026, 1));
+
+      await service().deleteBackup(record);
+
+      expect(git.flushes, 1);
+      expect(dropbox.flushes, 1);
+    });
+  });
+
+  group('restore, Save and Share', () {
+    Future<BackupRecord> cloudOnly({required bool withMainCopy}) async {
+      const name = 'submersion_backup_c.db';
+      final copies = <ExtraCloudCopy>[];
+      for (final (id, account) in [('git-row', git), ('db-row', dropbox)]) {
+        final result = await account.uploadFile(
+          Uint8List.fromList('copy in $id'.codeUnits),
+          name,
+          folderId: _folder,
+        );
+        copies.add(ExtraCloudCopy(accountId: id, fileId: result.fileId));
+      }
+      return BackupRecord(
+        id: 'c',
+        filename: name,
+        timestamp: DateTime(2026, 3),
+        sizeBytes: 10,
+        location: withMainCopy ? BackupLocation.cloud : BackupLocation.local,
+        cloudFileId: withMainCopy ? '$_folder/$name' : null,
+        cloudAccountId: withMainCopy ? 'gd-row' : null,
+        extraCloudCopies: copies,
+      );
+    }
+
+    test('restore falls back to an extra copy', () async {
+      final record = await cloudOnly(withMainCopy: true);
+
+      final copy = await service(
+        noMain: true,
+      ).prepareBackupCopy(record, purpose: BackupCopyPurpose.save);
+      addTearDown(copy.discard);
+
+      expect(await File(copy.path).readAsString(), 'copy in git-row');
+    });
+
+    test('restore tries the next extra when one fails', () async {
+      final record = await cloudOnly(withMainCopy: false);
+      git.failDownloads = true;
+
+      final copy = await service().prepareBackupCopy(
+        record,
+        purpose: BackupCopyPurpose.save,
+      );
+      addTearDown(copy.discard);
+
+      expect(await File(copy.path).readAsString(), 'copy in db-row');
+    });
+
+    test('no reachable copy still says where the copy is', () async {
+      final record = await cloudOnly(withMainCopy: true);
+
+      await expectLater(
+        service(
+          noMain: true,
+          extras: const [],
+        ).prepareBackupCopy(record, purpose: BackupCopyPurpose.save),
+        throwsA(isA<BackupCopyInOtherAccountException>()),
+      );
     });
   });
 }

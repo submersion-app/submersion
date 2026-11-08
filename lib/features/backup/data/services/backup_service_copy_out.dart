@@ -70,7 +70,7 @@ extension _CopyOut on BackupService {
         // cleaned up. With no cloud copy to fall back to, this error, not
         // "not found", is the true cause.
         cloudHere = await _cloudCopyHere(record);
-        if (!cloudHere) rethrow;
+        if (!cloudHere && !_extraCopyReachable(record)) rethrow;
         _log.warning(
           'Reading the backup document failed, trying the cloud copy',
           error: e,
@@ -88,11 +88,20 @@ extension _CopyOut on BackupService {
         throw const BackupException('No cloud provider available for download');
       }
       _log.info('Downloading backup from cloud');
-      return _fetchToTemp(
-        record,
-        (dest) => provider.downloadToFile(record.cloudFileId!, dest),
-      );
+      try {
+        return await _fetchToTemp(
+          record,
+          (dest) => provider.downloadToFile(record.cloudFileId!, dest),
+        );
+      } catch (_) {
+        // The same backup may still be in another account (issue #3782).
+        final extra = await _fetchFromExtra(record);
+        if (extra != null) return extra;
+        rethrow;
+      }
     }
+    final extra = await _fetchFromExtra(record);
+    if (extra != null) return extra;
     if (record.cloudFileId != null && record.cloudAccountId != null) {
       throw BackupCopyInOtherAccountException(record.cloudAccountId!);
     }
