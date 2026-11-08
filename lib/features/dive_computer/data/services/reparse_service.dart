@@ -4,8 +4,6 @@ import 'package:drift/drift.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:uuid/uuid.dart';
 
-import 'package:submersion/core/services/change_log/change_log_scope.dart';
-import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/surface_pressure_limits.dart';
@@ -20,6 +18,7 @@ import 'package:submersion/features/dive_computer/data/services/bailout_gas_clai
 import 'package:submersion/features/dive_computer/data/services/libdc_dive_mode.dart';
 import 'package:submersion/features/dive_computer/data/services/parsed_dive_start_time.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_empty_parse.dart';
+import 'package:submersion/features/dive_computer/data/services/reparse_batch_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
@@ -563,7 +562,9 @@ class ReparseService {
   /// bytes. Accepting it as a parameter makes this method testable without
   /// requiring a live native bridge.
   ///
-  /// Returns a record with the count of succeeded and failed re-parses.
+  /// Returns a record with the count of succeeded and failed dives. Only
+  /// this computer's sources are re-parsed, even on a dive combined with
+  /// another computer's. The loop itself is [ReparseBatchService.run].
   Future<({int succeeded, int failed})> reparseAllForComputer(
     String computerId, {
     required Future<pigeon.ParsedDive> Function(
@@ -573,57 +574,14 @@ class ReparseService {
       Uint8List rawData,
     )
     parseFn,
-  }) => ChangeLogScope.bulk(
-    DatabaseService.instance.databaseOrNull,
-    label: ChangeLogLabels.reparse,
-    body: () => _reparseAllForComputerInner(computerId, parseFn: parseFn),
-  );
-
-  Future<({int succeeded, int failed})> _reparseAllForComputerInner(
-    String computerId, {
-    required Future<pigeon.ParsedDive> Function(
-      String vendor,
-      String product,
-      int model,
-      Uint8List rawData,
-    )
-    parseFn,
   }) async {
-    final sources = await getSourcesForComputerReparse(computerId);
-
-    int succeeded = 0;
-    int failed = 0;
-
-    for (final source in sources) {
-      if (source.descriptorVendor == null ||
-          source.descriptorProduct == null ||
-          source.descriptorModel == null) {
-        failed++;
-        continue;
-      }
-      try {
-        final parsed = await parseFn(
-          source.descriptorVendor!,
-          source.descriptorProduct!,
-          source.descriptorModel!,
-          source.rawData!,
-        );
-        await applyParsedUpdate(
-          diveId: source.diveId,
-          sourceRowId: source.id,
-          parsed: parsed,
-          descriptorVendor: source.descriptorVendor,
-          descriptorProduct: source.descriptorProduct,
-          descriptorModel: source.descriptorModel,
-          libdivecomputerVersion: source.libdivecomputerVersion,
-        );
-        succeeded++;
-      } catch (e) {
-        failed++;
-      }
-    }
-
-    return (succeeded: succeeded, failed: failed);
+    final batch = ReparseBatchService(this);
+    final result = await batch.run(
+      await batch.diveIdsForComputer(computerId),
+      parseFn: parseFn,
+      computerId: computerId,
+    );
+    return (succeeded: result.succeeded, failed: result.failed);
   }
 
   /// Re-parse all sources with raw data for a single dive.
