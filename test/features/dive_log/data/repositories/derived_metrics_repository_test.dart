@@ -110,7 +110,7 @@ void main() {
   test('the gas-use window round-trips (issue #2930)', () async {
     await insertDive('d1');
     final r = repo(
-      result: DiveDerivedMetrics(
+      result: const DiveDerivedMetrics(
         diveId: 'd1',
         engineVersion: DerivedMetricsService.version,
         sourceUpdatedAt: 0,

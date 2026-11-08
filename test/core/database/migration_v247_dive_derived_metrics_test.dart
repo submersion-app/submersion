@@ -30,6 +30,9 @@ const _expectedColumns = {
   'sac_trend',
   'sac_change_pct',
   'runtime_s',
+  // v347: the gas-use window (issue #2930).
+  'gas_use_s',
+  'gas_use_avg_depth_m',
   'unsupported_reason',
 };
 

@@ -293,6 +293,8 @@ class DiveRepository {
     'buddies',
     // The profile span of a dive only its samples can measure.
     ...measuredRuntimeTickTables,
+    // The stored gas-use window SAC and RMV divide by (#2930).
+    ...gasUseTables,
   };
 
   /// Fires on a write to any of [diveHydrationTables], so a holder of hydrated
