@@ -57,6 +57,30 @@ void main() {
     });
   });
 
+  group('source placed away from where its profile fits (#4296)', () {
+    test('first offers to line the source up by the stored shift', () {
+      final actions = repairOptionsFor(
+        f(
+          detectorId: 'clock_offset',
+          params: {'sourceId': 's2', 'profileOffsetSeconds': 1160},
+        ),
+      );
+      final fix = actions.first as SourceProfileShiftRepair;
+      expect(fix.diveId, 'd1');
+      expect(fix.sourceId, 's2');
+      expect(fix.seconds, 1160);
+      expect(actions.last, isA<GoToDiveRepair>());
+      expect(actions.whereType<TimeShiftRepair>(), isEmpty);
+    });
+
+    test('a finding without its source id only navigates', () {
+      final actions = repairOptionsFor(
+        f(detectorId: 'clock_offset', params: {'profileOffsetSeconds': -600}),
+      );
+      expect(actions.single, isA<GoToDiveRepair>());
+    });
+  });
+
   test('duplicate maps to consolidate with the pair', () {
     final actions = repairOptionsFor(
       f(detectorId: 'duplicate', relatedDiveId: 'd2'),

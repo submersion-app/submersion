@@ -25,6 +25,8 @@ import 'package:submersion/features/data_quality/presentation/providers/data_qua
 import 'package:submersion/features/data_quality/presentation/providers/quality_inbox_providers.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_card.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
@@ -2074,6 +2076,67 @@ void main() {
           .isAtSameMomentAs(entry),
       isTrue,
     );
+    await tester.pumpAndSettle(const Duration(seconds: 6));
+  });
+
+  testWidgets('lining a source up by its profile is one tap with Undo '
+      '(#4296)', (tester) async {
+    final entry = DateTime.utc(2026, 7, 1, 10);
+    await DiveRepository().createDive(
+      domain.Dive(id: 'd1', dateTime: entry, entryTime: entry),
+    );
+    final db = DatabaseService.instance.database;
+    for (final (id, primary) in [('main', true), ('dc', false)]) {
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion(
+              id: Value(id),
+              diveId: const Value('d1'),
+              isPrimary: Value(primary),
+              importedAt: Value(entry),
+              createdAt: Value(entry),
+            ),
+          );
+    }
+    final series = ProfileSeriesRepository();
+    await series.insertSeries(
+      diveId: 'd1',
+      sourceId: 'dc',
+      isPrimary: false,
+      samples: const [
+        ProfileSample(timestamp: -1200, depth: 0),
+        ProfileSample(timestamp: -1140, depth: 10),
+      ],
+    );
+    Future<int> firstSample() async => (await series.getSeriesForDive(
+      'd1',
+    )).firstWhere((s) => s.sourceId == 'dc').samples.first.timestamp;
+
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        findings: [
+          _f(
+            id: 'r-src-fit',
+            detectorId: 'clock_offset',
+            category: QualityCategory.time,
+            params: const {'sourceId': 'dc', 'profileOffsetSeconds': 1160},
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(FilledButton).first);
+    await tester.pumpAndSettle();
+    expect(find.text('Repair applied'), findsOneWidget);
+    expect(await tester.runAsync(firstSample), -40);
+
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+    expect(await tester.runAsync(firstSample), -1200);
     await tester.pumpAndSettle(const Duration(seconds: 6));
   });
 

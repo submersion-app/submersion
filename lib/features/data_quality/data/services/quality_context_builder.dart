@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_log/domain/entities/profile_series.dart
 import 'package:submersion/features/dive_log/domain/services/ccr_bailout_timeline.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_series_merge.dart';
 import 'package:submersion/features/data_quality/data/services/diver_data_sql.dart';
+import 'package:submersion/features/data_quality/data/services/quality_source_samples.dart';
 import 'package:submersion/features/data_quality/domain/entities/dive_quality_context.dart';
 import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
@@ -184,6 +185,14 @@ class QualityContextBuilder {
     ];
 
     final sources = await _diveRepo.getDataSources(dive.id);
+    // Every series, so each source's placement can be checked against the
+    // primary's trace; one source has nothing to be checked against.
+    final sourceSamples = sources.length < 2
+        ? const <String, List<QualitySample>>{}
+        : qualitySourceSamples(
+            sources,
+            await _profileSeries.getSeriesForDive(dive.id),
+          );
     final pressures = <String, List<QualityPressureSample>>{};
     // The detectors read what the rest of the app reads: one source per
     // stretch of a tank, never two recordings interleaved (#2440).
@@ -261,6 +270,7 @@ class QualityContextBuilder {
       now: now,
       sources: sources,
       primarySamples: samples,
+      sourceSamples: sourceSamples,
       primarySampleCount: primarySampleCount,
       carriesDiverData: carriesDiverData,
       tanks: dive.tanks,

@@ -4,6 +4,8 @@ import 'package:submersion/features/data_quality/domain/entities/dive_quality_co
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
 import 'package:submersion/features/data_quality/domain/detectors/quality_detector.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_alignment.dart';
 
 class ClockOffsetDetector extends QualityDetector {
   const ClockOffsetDetector();
@@ -11,7 +13,7 @@ class ClockOffsetDetector extends QualityDetector {
   @override
   String get id => 'clock_offset';
   @override
-  int get version => 1;
+  int get version => 2;
   @override
   QualityCategory get category => QualityCategory.time;
 
@@ -70,6 +72,8 @@ class ClockOffsetDetector extends QualityDetector {
       }
     }
 
+    if (primary != null) out.addAll(_misplacedSources(ctx, primary.id));
+
     // Same-diver dives overlapping in time cannot both be right.
     final runtime = ctx.dive.effectiveRuntime;
     if (runtime != null) {
@@ -93,6 +97,50 @@ class ClockOffsetDetector extends QualityDetector {
           );
         }
       }
+    }
+    return out;
+  }
+
+  /// Sources placed on the primary's timeline away from where their depth
+  /// trace fits the primary's. A consolidation before #4296 trusted any clock
+  /// that overlapped the primary, so a clock wrong by less than the dive
+  /// lasted left that source's samples shifted by its error.
+  List<QualityFinding> _misplacedSources(
+    DiveQualityContext ctx,
+    String primaryId,
+  ) {
+    if (ctx.primarySamples.isEmpty) return const [];
+    final primaryTrace = [
+      for (final q in ctx.primarySamples)
+        DiveProfilePoint(timestamp: q.t, depth: q.depth),
+    ];
+    final out = <QualityFinding>[];
+    for (final s in ctx.sources) {
+      if (s.id == primaryId) continue;
+      final samples = ctx.sourceSamples[s.id];
+      if (samples == null || samples.isEmpty) continue;
+      // The aligner searches around lined-up starts, so the source is moved
+      // to its own start first and its placement is measured against that.
+      final placedAt = samples.first.t;
+      final fit = const ProfileAligner().align(primaryTrace, [
+        for (final q in samples)
+          DiveProfilePoint(timestamp: q.t - placedAt, depth: q.depth),
+      ]);
+      if (!fit.isStrongMatch) continue;
+      final shift = fit.offsetSeconds - placedAt;
+      if (shift.abs() <=
+          QualityThresholds.sourceProfileFitTolerance.inSeconds) {
+        continue;
+      }
+      out.add(
+        make(
+          ctx,
+          discriminator: 'fit:${s.id}',
+          computerId: s.computerId,
+          severity: QualitySeverity.warning,
+          params: {'sourceId': s.id, 'profileOffsetSeconds': shift},
+        ),
+      );
     }
     return out;
   }

@@ -90,6 +90,16 @@ void main() {
       );
     });
 
+    test('a misplaced source reads how far it sits from its fit (#4296)', () {
+      expect(
+        detailFor('clock_offset', {
+          'sourceId': 's2',
+          'profileOffsetSeconds': -4020,
+        }),
+        "A source sits 67 min from where its profile matches the primary's",
+      );
+    });
+
     test('a negative offset is a clock running behind', () {
       expect(
         detailFor('clock_offset', {'offsetHours': -2}),

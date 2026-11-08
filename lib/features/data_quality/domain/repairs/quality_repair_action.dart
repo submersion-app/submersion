@@ -30,6 +30,21 @@ class SourceClockShiftRepair extends QualityRepairAction {
   final Duration suggestedOffset;
 }
 
+/// Line one source of a consolidated dive up with the primary by its depth
+/// trace (issue #4296): a consolidation that trusted a clock wrong by less
+/// than the dive lasted left the source's samples [seconds] away from where
+/// they fit. Its samples, events and own clock move; the logbook stays.
+class SourceProfileShiftRepair extends QualityRepairAction {
+  const SourceProfileShiftRepair({
+    required this.diveId,
+    required this.sourceId,
+    required this.seconds,
+  });
+  final String diveId;
+  final String sourceId;
+  final int seconds;
+}
+
 /// Merge a likely duplicate pair as one dive recorded by two computers.
 ///
 /// Carries the pair only. Which recording survives (and so supplies the notes,
@@ -249,6 +264,18 @@ List<QualityRepairAction> repairOptionsFor(QualityFinding f) {
       ];
 
     case 'clock_offset':
+      if (p.containsKey('profileOffsetSeconds')) {
+        final sourceId = p['sourceId'] as String?;
+        return [
+          if (sourceId != null)
+            SourceProfileShiftRepair(
+              diveId: diveId,
+              sourceId: sourceId,
+              seconds: (p['profileOffsetSeconds'] as num).toInt(),
+            ),
+          GoToDiveRepair(diveId),
+        ];
+      }
       if (p.containsKey('offsetHours')) {
         // The secondary source reads `offsetHours` later than the primary.
         // Either side can be the wrong one (#3655): the secondary's clock,

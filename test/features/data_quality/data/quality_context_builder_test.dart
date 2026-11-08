@@ -58,6 +58,67 @@ void main() {
     return id;
   }
 
+  group("each source's own samples (#4296)", () {
+    Future<void> seedSource(String id, {required bool isPrimary}) => db
+        .into(db.diveDataSources)
+        .insert(
+          DiveDataSourcesCompanion.insert(
+            id: id,
+            diveId: 'd5',
+            importedAt: DateTime.utc(2026, 7, 1),
+            createdAt: DateTime.utc(2026, 7, 1),
+          ).copyWith(isPrimary: Value(isPrimary)),
+        );
+
+    test("carries a non-primary source's samples where the dive places "
+        'them', () async {
+      await seedDive(id: 'd5', entry: DateTime.utc(2026, 7, 1, 10));
+      await seedSource('src-p', isPrimary: true);
+      await seedSource('src-s', isPrimary: false);
+      await profileSeries.insertSeries(
+        diveId: 'd5',
+        sourceId: 'src-p',
+        samples: const [
+          ProfileSample(timestamp: 0, depth: 0),
+          ProfileSample(timestamp: 10, depth: 5),
+        ],
+      );
+      await profileSeries.insertSeries(
+        diveId: 'd5',
+        sourceId: 'src-s',
+        isPrimary: false,
+        samples: const [
+          ProfileSample(timestamp: -1200, depth: 0),
+          ProfileSample(timestamp: -1190, depth: double.nan),
+          ProfileSample(timestamp: -1180, depth: 4),
+        ],
+      );
+      // Names no source and no computer: nobody's to check.
+      await profileSeries.insertSeries(
+        diveId: 'd5',
+        isPrimary: false,
+        samples: const [ProfileSample(timestamp: 0, depth: 3)],
+      );
+
+      final ctx = (await builder.buildAll(['d5'])).single;
+      expect(ctx.sourceSamples.keys, ['src-s']);
+      expect(ctx.sourceSamples['src-s']!.map((q) => q.t), [-1200, -1180]);
+    });
+
+    test('a dive with one source carries none', () async {
+      await seedDive(id: 'd5', entry: DateTime.utc(2026, 7, 1, 10));
+      await seedSource('src-p', isPrimary: true);
+      await profileSeries.insertSeries(
+        diveId: 'd5',
+        sourceId: 'src-p',
+        samples: const [ProfileSample(timestamp: 0, depth: 0)],
+      );
+
+      final ctx = (await builder.buildAll(['d5'])).single;
+      expect(ctx.sourceSamples, isEmpty);
+    });
+  });
+
   test('builds context with sanitized sorted samples', () async {
     final entry = DateTime.utc(2026, 7, 1, 10);
     await seedDive(
