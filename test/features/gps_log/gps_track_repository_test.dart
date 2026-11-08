@@ -239,6 +239,34 @@ void main() {
         );
       });
 
+      test('several new fixes falling between the same two checkpointed '
+          'fixes all land in time order', () async {
+        final id = await startWith([at(1700000050), at(1700000200)]);
+        await repo.checkpoint(id);
+        for (final p in [
+          at(1700000150, lat: 3),
+          at(1700000100, lat: 2),
+          at(1700000120, lat: 4),
+        ]) {
+          await repo.appendBufferPoint(id, p);
+        }
+
+        await repo.checkpoint(id);
+
+        final track = await repo.getTrack(id);
+        expect(track!.points.map((p) => p.timestamp), [
+          1700000050,
+          1700000100,
+          1700000120,
+          1700000150,
+          1700000200,
+        ]);
+        expect(
+          (await rowOf(id)).points,
+          encodeTrackPoints(await repo.getBufferPoints(id)),
+        );
+      });
+
       test('a batch of fixes stepping back in time, as when DST ends, merges '
           'to the same blob a full read writes', () async {
         final id = await startWith([
