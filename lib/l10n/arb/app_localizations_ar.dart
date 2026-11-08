@@ -7638,6 +7638,86 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_deco_semantics_required => 'يلزم تخفيف الضغط';
 
   @override
+  String diveLog_deco_compartmentLeading(int number) {
+    return 'الرائدة: #$number';
+  }
+
+  @override
+  String diveLog_deco_compartmentOther(int number) {
+    return 'الحجرة: #$number';
+  }
+
+  @override
+  String get diveLog_deco_metricLoad => 'الحمل';
+
+  @override
+  String get diveLog_deco_gasOngassing => 'امتصاص';
+
+  @override
+  String get diveLog_deco_gasOffgassing => 'إطلاق';
+
+  @override
+  String get diveLog_deco_gasEquilibrium => 'توازن';
+
+  @override
+  String get diveLog_deco_heatMapRows =>
+      'الصفوف: من السريعة (أعلى) إلى البطيئة (أسفل)';
+
+  @override
+  String get diveLog_deco_surfaceLevel => 'مستوى السطح';
+
+  @override
+  String get diveLog_deco_mValue => 'قيمة M';
+
+  @override
+  String diveLog_deco_tooltipCompartment(int number) {
+    return 'الحجرة $number';
+  }
+
+  @override
+  String diveLog_deco_tooltipLoaded(String percent) {
+    return 'حمل $percent%';
+  }
+
+  @override
+  String diveLog_deco_tooltipHalfTime(String minutes) {
+    return 'نصف العمر: $minutes دقيقة';
+  }
+
+  @override
+  String diveLog_deco_tooltipSurfaceLevel(String percent) {
+    return 'مستوى السطح: $percent%';
+  }
+
+  @override
+  String get diveLog_deco_info_title => 'ماذا تعني هذه القيم؟';
+
+  @override
+  String get diveLog_deco_info_body =>
+      'الحمل: ضغط الغاز الخامل في الحجرة كنسبة مئوية من الحد الأقصى الذي يمكنها حمله على السطح (قيمة M الخاصة بها، الخط الأحمر عند 100%).\n\nمستوى السطح: تُظهر العلامة على كل عمود المستوى الذي تستقر عنده الحجرة بعد إزالة التشبع بالكامل أثناء تنفسك الهواء على السطح. لا تكون أبداً عند 0%، لأن جسمك يحتوي دائماً على نيتروجين الهواء الذي تتنفسه. العمود الواقف عند علامته لا يحمل أي حمل متبقٍ من الغوص.\n\nالامتصاص والإطلاق: يتحرك الغاز دائماً نحو ضغط الغاز الذي تتنفسه. بعد تخفيف الضغط بالأكسجين أو بخليط غني بالهيليوم، قد تحتوي الحجرات السريعة على نيتروجين أقل من هواء السطح. وعند العودة إلى تنفس الهواء، تمتص النيتروجين مجدداً حتى تصل إلى علامتها. هذا أمر طبيعي وليس حملاً متبقياً من الغوصة.\n\nالهيليوم: لا يحتوي الهواء على هيليوم. بعد غوصة بالترايمكس، تطلق الحجرة الهيليوم بينما قد تمتص النيتروجين في الوقت نفسه. تُظهر الأسهم بجانب N₂ وHe كل غاز على حدة، وتُظهر الإشارة بجانب رقم الحجرة الاتجاه الإجمالي للغازين.';
+
+  @override
+  String diveLog_deco_barChartSemantics(int count, int number, String percent) {
+    return 'مخطط تشبّع الأنسجة. $count حجرة، الحمل نسبةً إلى قيمة M؛ الحجرة الرائدة $number عند $percent%.';
+  }
+
+  @override
+  String get diveLog_deco_heatMapUndersaturated => 'دون الإشباع';
+
+  @override
+  String get diveLog_deco_heatMapSupersaturated => 'فوق الإشباع';
+
+  @override
+  String diveLog_deco_percentValue(String value) {
+    return '$value%';
+  }
+
+  @override
+  String diveLog_deco_minutesValue(String value) {
+    return '$value دقيقة';
+  }
+
+  @override
   String get diveLog_deco_tissueFast => 'سريعة';
 
   @override
@@ -41471,11 +41551,27 @@ class AppLocalizationsAr extends AppLocalizations {
       'تنخفض نسبة CNS% (ساعة الأكسجين) بعد الغطسة بعمر نصف 90 دقيقة — تعود عمليًا إلى 0 بعد نحو يوم واحد.\n\nيُعاد ضبط OTU اليومي كل ليلة عند منتصف الليل. أما OTU الأسبوعي فهو مجموع متجدد لآخر 7 أيام: تسقط الغطسات الأقدم تلقائيًا من الحساب بمجرد خروجها من هذا النطاق.';
 
   @override
+  String get safetyHub_tissueLoading_clear_title =>
+      'لا يوجد حمل متبقٍ في الأنسجة';
+
+  @override
+  String get safetyHub_tissueLoading_clear_body =>
+      'عادت جميع الحجرات إلى التوازن مع هواء السطح. تبقى عند مستواها الطبيعي (العلامة على كل عمود)، وليس عند 0%.';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_title =>
+      'تشبّع الأنسجة غير متاح';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_body =>
+      'لا تتوفر للغوصة الأخيرة بيانات لحساب تشبّع الأنسجة، مثل غوصة بلا ملف عمق، أو في وضع مقياس العمق، أو بجهاز إعادة التنفس دون نقطة ضبط.';
+
+  @override
   String get safetyHub_tissueLoading_about_title => 'حول تشبّع الأنسجة';
 
   @override
   String get safetyHub_tissueLoading_about_body =>
-      'يحتوي جسمك على 16 حجرة نسيجية تمتص وتطلق النيتروجين (وكذلك الهيليوم في غطسات التريميكس أو أجهزة إعادة التنفس) بسرعات مختلفة. الأنسجة السريعة تتشبّع وتتخلّص من التشبّع بسرعة؛ أما الأنسجة البطيئة فتحتاج وقتًا أطول بكثير لكليهما.\n\nبعد غطسة بالهيليوم، يمكن أن يتحرك النيتروجين والهيليوم في نفس الحجرة لفترة وجيزة باتجاهين متعاكسين: بينما لا يزال الهيليوم يتحرر، يمكن لنفس الحجرة أن تمتص القليل من النيتروجين في الوقت نفسه، حتى يصل الغازان إلى التوازن مع الهواء الذي تتنفسه. لهذا قد تُظهر الحجرة مؤقتًا \"Ongassing\" حتى وإن استمر حملها الإجمالي بالانخفاض.';
+      'يحتوي جسمك على 16 حجرة نسيجية تمتص النيتروجين وتطلقه (والهيليوم أيضاً في غوصات الترايمكس أو أجهزة إعادة التنفس) بسرعات مختلفة. تتشبع الأنسجة السريعة وتتخلص من التشبع بسرعة، بينما تحتاج الأنسجة البطيئة وقتاً أطول بكثير في الحالتين.\n\nالحمل المتبقي هو فقط ما يزيد على المستوى الطبيعي على السطح. حتى بعد إزالة التشبع بالكامل، لا تنخفض الأعمدة إلى 0%: تستقر كل حجرة عند العلامة المطابقة لنيتروجين الهواء الذي تتنفسه. لهذا قد تُظهر حجرة سريعة هنا قيمة أعلى مما كانت عليه في نهاية غوصة مع تخفيف ضغط بالأكسجين، دون أن يكون الحمل قد ازداد.\n\nبعد غوصة بالهيليوم، تطلق الحجرة الهيليوم بينما تمتص النيتروجين في الوقت نفسه، حتى يصل الغازان إلى التوازن مع الهواء الذي تتنفسه.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {

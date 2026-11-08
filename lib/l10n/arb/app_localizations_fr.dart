@@ -7549,6 +7549,85 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_deco_semantics_required => 'Décompression requise';
 
   @override
+  String diveLog_deco_compartmentLeading(int number) {
+    return 'Directeur : #$number';
+  }
+
+  @override
+  String diveLog_deco_compartmentOther(int number) {
+    return 'Compartiment : #$number';
+  }
+
+  @override
+  String get diveLog_deco_metricLoad => 'Charge';
+
+  @override
+  String get diveLog_deco_gasOngassing => 'Absorption';
+
+  @override
+  String get diveLog_deco_gasOffgassing => 'Élimination';
+
+  @override
+  String get diveLog_deco_gasEquilibrium => 'Équilibre';
+
+  @override
+  String get diveLog_deco_heatMapRows => 'Lignes : rapide (haut) à lent (bas)';
+
+  @override
+  String get diveLog_deco_surfaceLevel => 'Niveau de surface';
+
+  @override
+  String get diveLog_deco_mValue => 'Valeur M';
+
+  @override
+  String diveLog_deco_tooltipCompartment(int number) {
+    return 'Compartiment $number';
+  }
+
+  @override
+  String diveLog_deco_tooltipLoaded(String percent) {
+    return '$percent % de charge';
+  }
+
+  @override
+  String diveLog_deco_tooltipHalfTime(String minutes) {
+    return 'Demi-période : $minutes min';
+  }
+
+  @override
+  String diveLog_deco_tooltipSurfaceLevel(String percent) {
+    return 'Niveau de surface : $percent %';
+  }
+
+  @override
+  String get diveLog_deco_info_title => 'Que signifient ces valeurs ?';
+
+  @override
+  String get diveLog_deco_info_body =>
+      'Charge : la pression de gaz inerte d\'un compartiment en pourcentage du maximum qu\'il peut contenir en surface (sa valeur M, la ligne rouge à 100 %).\n\nNiveau de surface : le repère sur chaque barre indique où se stabilise un compartiment entièrement désaturé pendant que vous respirez de l\'air en surface. Il n\'est jamais à 0 %, car votre corps contient toujours l\'azote de l\'air que vous respirez. Une barre à son repère ne porte plus aucune charge résiduelle de la plongée.\n\nAbsorption et élimination : le gaz se déplace toujours vers la pression du gaz que vous respirez. Après une décompression à l\'oxygène ou avec un mélange riche en hélium, les compartiments rapides peuvent contenir moins d\'azote que l\'air en surface. De retour à l\'air, ils absorbent à nouveau de l\'azote jusqu\'à atteindre leur repère. C\'est normal et ce n\'est pas une charge résiduelle de la plongée.\n\nHélium : l\'air ne contient pas d\'hélium. Après une plongée au trimix, un compartiment élimine l\'hélium tout en pouvant absorber de l\'azote en même temps. Les flèches à côté de N₂ et He montrent chaque gaz séparément ; l\'indication à côté du numéro du compartiment montre la direction globale des deux.';
+
+  @override
+  String diveLog_deco_barChartSemantics(int count, int number, String percent) {
+    return 'Graphique de saturation des tissus. $count compartiments, charge par rapport à la valeur M ; compartiment directeur $number à $percent %.';
+  }
+
+  @override
+  String get diveLog_deco_heatMapUndersaturated => 'Sous-saturé';
+
+  @override
+  String get diveLog_deco_heatMapSupersaturated => 'Sursaturé';
+
+  @override
+  String diveLog_deco_percentValue(String value) {
+    return '$value %';
+  }
+
+  @override
+  String diveLog_deco_minutesValue(String value) {
+    return '$value min';
+  }
+
+  @override
   String get diveLog_deco_tissueFast => 'Rapide';
 
   @override
@@ -41091,12 +41170,28 @@ class AppLocalizationsFr extends AppLocalizations {
       'Votre CNS% (horloge à oxygène) décroît après la plongée avec une demi-vie de 90 minutes -- il est pratiquement revenu à 0 au bout d\'un jour environ.\n\nL\'OTU quotidien est remis à zéro chaque nuit à minuit. L\'OTU hebdomadaire est un total glissant sur les 7 derniers jours : les plongées plus anciennes sortent automatiquement du calcul dès qu\'elles quittent cette fenêtre.';
 
   @override
+  String get safetyHub_tissueLoading_clear_title =>
+      'Aucune charge tissulaire résiduelle';
+
+  @override
+  String get safetyHub_tissueLoading_clear_body =>
+      'Tous les compartiments sont revenus à l\'équilibre avec l\'air en surface. Ils restent à leur niveau normal (le repère sur chaque barre), pas à 0 %.';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_title =>
+      'Saturation des tissus indisponible';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_body =>
+      'La dernière plongée n\'a pas de données permettant de calculer la saturation des tissus, par exemple une plongée sans profil de profondeur, en mode profondimètre ou au recycleur sans consigne.';
+
+  @override
   String get safetyHub_tissueLoading_about_title =>
       'À propos de la saturation des tissus';
 
   @override
   String get safetyHub_tissueLoading_about_body =>
-      'Votre corps compte 16 compartiments tissulaires qui absorbent et relâchent l\'azote (et, lors de plongées en trimix ou en recycleur, aussi l\'hélium) à des vitesses différentes. Les tissus rapides se saturent et se désaturent vite ; les tissus lents mettent beaucoup plus longtemps pour les deux.\n\nAprès une plongée à l\'hélium, l\'azote et l\'hélium d\'un même compartiment peuvent brièvement évoluer en sens opposés : pendant que l\'hélium continue de se relâcher, ce même compartiment peut simultanément absorber un peu d\'azote, jusqu\'à ce que les deux gaz atteignent l\'équilibre avec l\'air que vous respirez. C\'est pourquoi un compartiment peut brièvement afficher \"Ongassing\" alors même que sa charge globale continue de baisser.';
+      'Votre corps compte 16 compartiments tissulaires qui absorbent et éliminent l\'azote (et, en plongée au trimix ou au recycleur, l\'hélium aussi) à des vitesses différentes. Les tissus rapides se saturent et se désaturent vite ; les tissus lents mettent beaucoup plus de temps dans les deux cas.\n\nLa charge résiduelle correspond seulement à ce qui dépasse le niveau normal en surface. Même entièrement désaturées, les barres ne descendent pas à 0 % : chaque compartiment se stabilise au repère correspondant à l\'azote de l\'air que vous respirez. C\'est pourquoi un compartiment rapide peut afficher ici une valeur plus élevée qu\'à la fin d\'une plongée avec décompression à l\'oxygène, sans que la charge ait augmenté.\n\nAprès une plongée à l\'hélium, un compartiment élimine l\'hélium tout en absorbant de l\'azote, jusqu\'à ce que les deux gaz soient en équilibre avec l\'air que vous respirez.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {

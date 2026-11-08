@@ -7481,6 +7481,86 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_deco_semantics_required => 'Decompressie vereist';
 
   @override
+  String diveLog_deco_compartmentLeading(int number) {
+    return 'Leidend: #$number';
+  }
+
+  @override
+  String diveLog_deco_compartmentOther(int number) {
+    return 'Compartiment: #$number';
+  }
+
+  @override
+  String get diveLog_deco_metricLoad => 'Belading';
+
+  @override
+  String get diveLog_deco_gasOngassing => 'Gasopname';
+
+  @override
+  String get diveLog_deco_gasOffgassing => 'Gasafgifte';
+
+  @override
+  String get diveLog_deco_gasEquilibrium => 'Evenwicht';
+
+  @override
+  String get diveLog_deco_heatMapRows =>
+      'Rijen: snel (boven) tot langzaam (onder)';
+
+  @override
+  String get diveLog_deco_surfaceLevel => 'Oppervlakteniveau';
+
+  @override
+  String get diveLog_deco_mValue => 'M-waarde';
+
+  @override
+  String diveLog_deco_tooltipCompartment(int number) {
+    return 'Compartiment $number';
+  }
+
+  @override
+  String diveLog_deco_tooltipLoaded(String percent) {
+    return '$percent% belading';
+  }
+
+  @override
+  String diveLog_deco_tooltipHalfTime(String minutes) {
+    return 'Halfwaardetijd: $minutes min';
+  }
+
+  @override
+  String diveLog_deco_tooltipSurfaceLevel(String percent) {
+    return 'Oppervlakteniveau: $percent%';
+  }
+
+  @override
+  String get diveLog_deco_info_title => 'Wat betekenen deze waarden?';
+
+  @override
+  String get diveLog_deco_info_body =>
+      'Belading: de inertgasdruk van een compartiment als percentage van het maximum dat het aan de oppervlakte mag bevatten (de M-waarde, de rode lijn bij 100%).\n\nOppervlakteniveau: de markering op elke balk toont waar een volledig ontzadigd compartiment uitkomt terwijl je aan de oppervlakte lucht ademt. Die ligt nooit op 0%, omdat je lichaam altijd de stikstof uit de ingeademde lucht bevat. Een balk op zijn markering draagt geen restbelading van het duiken meer.\n\nGasopname en gasafgifte: gas beweegt altijd naar de druk van het gas dat je ademt. Na decompressie op zuurstof of op een heliumrijk mengsel kunnen de snelle compartimenten minder stikstof bevatten dan de lucht aan de oppervlakte. Terug op lucht nemen ze weer stikstof op tot ze hun markering bereiken. Dat is normaal en geen restbelading van de duik.\n\nHelium: lucht bevat geen helium. Na een trimixduik geeft een compartiment helium af terwijl het tegelijk stikstof kan opnemen. De pijlen naast N₂ en He tonen elk gas afzonderlijk; de aanduiding naast het compartimentnummer toont de netto richting van beide.';
+
+  @override
+  String diveLog_deco_barChartSemantics(int count, int number, String percent) {
+    return 'Grafiek van de weefselbelading. $count compartimenten, belading ten opzichte van de M-waarde; leidend compartiment $number op $percent%.';
+  }
+
+  @override
+  String get diveLog_deco_heatMapUndersaturated => 'Onderverzadigd';
+
+  @override
+  String get diveLog_deco_heatMapSupersaturated => 'Oververzadigd';
+
+  @override
+  String diveLog_deco_percentValue(String value) {
+    return '$value%';
+  }
+
+  @override
+  String diveLog_deco_minutesValue(String value) {
+    return '$value min';
+  }
+
+  @override
   String get diveLog_deco_tissueFast => 'Snel';
 
   @override
@@ -40698,11 +40778,27 @@ class AppLocalizationsNl extends AppLocalizations {
       'Je CNS% (zuurstofklok) neemt na de duik af met een halveringstijd van 90 minuten -- na ongeveer een dag is deze vrijwel terug op 0.\n\nDe dagelijkse OTU wordt elke nacht om middernacht gereset. De wekelijkse OTU is een voortschrijdend totaal van de afgelopen 7 dagen: oudere duiken vallen automatisch uit de berekening zodra ze buiten dat venster vallen.';
 
   @override
+  String get safetyHub_tissueLoading_clear_title =>
+      'Geen resterende weefselbelading';
+
+  @override
+  String get safetyHub_tissueLoading_clear_body =>
+      'Alle compartimenten zijn weer in evenwicht met de lucht aan de oppervlakte. Ze blijven op hun normale niveau (de markering op elke balk), niet op 0%.';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_title =>
+      'Weefselbelading niet beschikbaar';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_body =>
+      'De laatste duik heeft geen gegevens om de weefselbelading uit te berekenen, bijvoorbeeld een duik zonder diepteprofiel, in dieptemetermodus of met een rebreather zonder setpoint.';
+
+  @override
   String get safetyHub_tissueLoading_about_title => 'Over weefselverzadiging';
 
   @override
   String get safetyHub_tissueLoading_about_body =>
-      'Je lichaam heeft 16 weefselcompartimenten die stikstof opnemen en afgeven (en bij trimix- of rebreatherduiken ook helium), elk met een eigen snelheid. Snelle weefsels verzadigen en ontzadigen snel; langzame weefsels hebben voor beide veel meer tijd nodig.\n\nNa een duik met helium kunnen stikstof en helium in één compartiment kortstondig in tegengestelde richtingen bewegen: terwijl het helium nog afgeeft, kan datzelfde compartiment tegelijk wat stikstof opnemen, totdat beide gassen in evenwicht zijn met de lucht die je inademt. Daarom kan een compartiment even \"Ongassing\" tonen, terwijl de totale belasting toch blijft dalen.';
+      'Je lichaam heeft 16 weefselcompartimenten die stikstof (en bij trimix- of rebreatherduiken ook helium) met verschillende snelheden opnemen en afgeven. Snelle weefsels verzadigen en ontzadigen snel; langzame weefsels hebben er voor beide veel langer voor nodig.\n\nRestbelading is alleen wat boven het normale oppervlakteniveau ligt. Zelfs volledig ontzadigd zakken de balken niet naar 0%: elk compartiment komt uit op de markering die past bij de stikstof in de lucht die je ademt. Daarom kan een snel compartiment hier hoger staan dan aan het einde van een duik met zuurstofdecompressie, zonder dat de belading is gestegen.\n\nNa een duik met helium geeft een compartiment helium af terwijl het tegelijk stikstof opneemt, tot beide gassen in evenwicht zijn met de lucht die je ademt.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
