@@ -4,12 +4,22 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_service.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/reparse_batch_provider.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/reparse_dives_page.dart';
 
 import '../../../../core/database/change_log/change_log_support.dart';
 import '../../../../helpers/test_database.dart';
+
+/// A batch run that is under way until [finish] is called.
+class _RunningBatch extends ReparseBatchNotifier {
+  _RunningBatch(super.ref) {
+    state = const ReparseBatchRunning(done: 0, total: 3);
+  }
+
+  void finish() => state = const ReparseBatchIdle();
+}
 
 void main() {
   late AppDatabase db;
@@ -111,5 +121,31 @@ void main() {
       )).withoutRawData,
       2,
     );
+  });
+
+  test('holds still while a batch runs, then recounts once it ends', () async {
+    late _RunningBatch running;
+    final c = ProviderContainer(
+      overrides: [
+        reparseServiceProvider.overrideWithValue(ReparseService(db: db)),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'me'),
+        reparseBatchProvider.overrideWith(
+          (ref) => running = _RunningBatch(ref),
+        ),
+      ],
+    );
+    addTearDown(c.dispose);
+    final sub = c.listen(reparseDivesOverviewProvider, (_, _) {});
+    addTearDown(sub.close);
+    expect((await c.read(reparseDivesOverviewProvider.future)).total, 2);
+
+    // The run's own writes: no recount while it is going.
+    await addSource('s4', 'manual', 'c2');
+    await pumpEventQueue();
+    expect(c.read(reparseDivesOverviewProvider).value?.total, 2);
+
+    running.finish();
+    await pumpEventQueue();
+    expect((await c.read(reparseDivesOverviewProvider.future)).total, 3);
   });
 }

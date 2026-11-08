@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_batch_service.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/reparse_batch_provider.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/reparse_batch_dialog.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -33,10 +34,18 @@ final reparseDivesOverviewProvider =
     FutureProvider.autoDispose<ReparseDivesOverview>((ref) async {
       final batch = ref.watch(reparseBatchServiceProvider);
       final db = ref.watch(reparseServiceProvider).db;
+      // A batch rewrites both tables once per dive while this page sits
+      // under its dialog; recounting each time would compete with the run
+      // for the database. Watching the flag recounts once when it ends.
+      final batchRunning = ref.watch(
+        reparseBatchProvider.select((s) => s is ReparseBatchRunning),
+      );
       ref.invalidateSelfWhen(
-        db.tableUpdates(
-          TableUpdateQuery.onAllTables([db.diveDataSources, db.dives]),
-        ),
+        db
+            .tableUpdates(
+              TableUpdateQuery.onAllTables([db.diveDataSources, db.dives]),
+            )
+            .where((_) => !batchRunning),
       );
       final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
       final (ids, byComputer, withoutRawData) = await (
