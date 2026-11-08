@@ -249,13 +249,18 @@ class _FakeDiveRepository implements DiveRepository {
   @override
   Future<List<Dive>> getDivesByIdsWithoutSamples(
     List<String> ids, {
+    bool offUiIsolate = false,
     int chunkSize = 50,
   }) async {
     withoutSamplesReads++;
+    offUiIsolateFlags.add(offUiIsolate);
     return dives.where((d) => ids.contains(d.id)).toList();
   }
 
   int withoutSamplesReads = 0;
+
+  /// The offUiIsolate flag of each sample-free read, in call order.
+  final List<bool> offUiIsolateFlags = [];
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -613,6 +618,10 @@ void main() {
       await chooseFormatAndDestination(tester, 'UDDF', destination);
 
       expect(repository().withoutSamplesReads, 1);
+      // A bulk read keeps decoding on the UI isolate: off-isolate decoding
+      // starts one isolate per dive at once (see offUiIsolate on
+      // DiveRepository.getDivesByIdsWithoutSamples).
+      expect(repository().offUiIsolateFlags, [false]);
       expect(exportService.uddfDives?.map((d) => d.id), ['d1', 'd2']);
       expect(
         exportService.uddfDives?.map((d) => d.profile),
