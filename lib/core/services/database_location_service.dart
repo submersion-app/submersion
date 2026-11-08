@@ -218,9 +218,6 @@ class DatabaseLocationService {
   /// system and no folder can be chosen.
   bool get isCustomFolderSupported => !HostPlatform.isWeb;
 
-  /// Check if we're running on a desktop platform
-  bool get isDesktopPlatform => HostPlatform.isDesktop;
-
   /// Pick a custom folder for database storage
   ///
   /// On iOS, uses native picker to properly handle security-scoped URLs.
