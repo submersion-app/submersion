@@ -626,6 +626,10 @@ class BackupService {
           }
         }
 
+        // The extra copies (issue #3782) are replaced the same way: the new
+        // .sbe goes up before the record is committed.
+        final extras = await _reuploadExtras(record, newPath, newName);
+
         // Commit the record to the on-disk .sbe (which now exists) BEFORE
         // deleting the old plaintext/cloud artifacts. A failed delete below is
         // then a best-effort leak, never a dangling history pointer or data
@@ -636,6 +640,7 @@ class BackupService {
             localPath: newPath,
             sizeBytes: await File(newPath).length(),
             cloudFileId: newCloudFileId,
+            extraCloudCopies: extras.copies,
           ),
         );
 
@@ -643,7 +648,8 @@ class BackupService {
         // copy cannot be removed it is a residual exposure, so count the record
         // as a failure (disclosed to the user) rather than a clean success --
         // without rolling back the committed encrypted record.
-        var residualExposure = false;
+        var residualExposure =
+            extras.residual || await _dropReplacedExtras(extras.replaced);
         if (newPath != localPath) {
           try {
             await file.delete();
@@ -1918,9 +1924,18 @@ class BackupService {
   /// cloud backup folder. Offered at encryption-enable time; encrypted .sbe
   /// artifacts are left alone. Returns the number deleted.
   Future<int> deletePlaintextCloudBackups() async {
-    final provider = _cloudProvider;
-    if (provider == null) return 0;
-    final folderId = await _getOrCreateCloudBackupFolder();
+    var deleted = 0;
+    // The main copy's folder, then each extra account's (issue #3782).
+    for (final provider in [?_cloudProvider, ..._reachableExtraProviders]) {
+      deleted += await _deletePlaintextIn(provider);
+    }
+    _log.info('Deleted $deleted unencrypted cloud backups');
+    return deleted;
+  }
+
+  /// [deletePlaintextCloudBackups] for one account's backup folder.
+  Future<int> _deletePlaintextIn(CloudStorageProvider provider) async {
+    final folderId = await _getOrCreateCloudBackupFolder(via: provider);
     if (folderId == null) return 0;
     final files = await provider.listFiles(
       folderId: folderId,
@@ -1936,7 +1951,6 @@ class BackupService {
     // On a backend that keeps history (Git) the plaintext copies would
     // otherwise stay readable in it.
     if (deleted > 0) await resetHistoryNowIfSupported(provider);
-    _log.info('Deleted $deleted unencrypted cloud backups');
     return deleted;
   }
 

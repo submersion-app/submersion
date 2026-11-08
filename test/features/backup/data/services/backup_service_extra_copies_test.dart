@@ -470,4 +470,81 @@ void main() {
       );
     });
   });
+
+  group('turning on encryption', () {
+    Future<void> enableBackupEncryption() async {
+      await BackupEncryptionService(
+        keyStore: backupKeys,
+      ).enable(passphrase: 'backuppass1', kdf: _fastKdf);
+      await preferences.setBackupEncryptionEnabled(true);
+    }
+
+    test('re-encrypt re-uploads extra copies', () async {
+      final plain = await service().performBackup();
+      await enableBackupEncryption();
+
+      final result = await service().reencryptExistingBackups();
+
+      expect(result.reencrypted, 1);
+      expect(result.failed, 0);
+      final record = preferences.getHistory().single;
+      expect(record.filename, endsWith('.sbe'));
+      for (final account in [git, dropbox]) {
+        final copy = account.allStoredFiles().single;
+        expect(copy.name, record.filename);
+        expect(SyncEnvelope.hasMagic(copy.bytes), isTrue);
+        expect(account.deleted, ['$_folder/${plain.filename}']);
+        expect(account.resets, 1);
+      }
+      expect(record.extraCloudCopies, [
+        ExtraCloudCopy(
+          accountId: 'git-row',
+          fileId: '$_folder/${record.filename}',
+        ),
+        ExtraCloudCopy(
+          accountId: 'db-row',
+          fileId: '$_folder/${record.filename}',
+        ),
+      ]);
+    });
+
+    test('re-encrypt counts an unreachable extra as failed', () async {
+      final plain = await service().performBackup();
+      await enableBackupEncryption();
+
+      final result = await service(
+        extras: [ExtraCopyDestination('db-row', dropbox)],
+      ).reencryptExistingBackups();
+
+      expect(result.reencrypted, 0);
+      expect(result.failed, 1);
+      final record = preferences.getHistory().single;
+      expect(record.filename, endsWith('.sbe'));
+      // The plaintext copy stays in the account this device cannot reach,
+      // and the record still points at it.
+      expect(git.names, [plain.filename]);
+      expect(record.extraCloudCopies, [
+        ExtraCloudCopy(
+          accountId: 'git-row',
+          fileId: '$_folder/${plain.filename}',
+        ),
+        ExtraCloudCopy(
+          accountId: 'db-row',
+          fileId: '$_folder/${record.filename}',
+        ),
+      ]);
+    });
+
+    test('deletePlaintextCloudBackups clears extra folders', () async {
+      await service().performBackup();
+
+      final deleted = await service().deletePlaintextCloudBackups();
+
+      expect(deleted, 3);
+      expect(main.names, isEmpty);
+      expect(git.names, isEmpty);
+      expect(dropbox.names, isEmpty);
+      expect(git.resets, 1);
+    });
+  });
 }

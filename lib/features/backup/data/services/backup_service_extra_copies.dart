@@ -128,4 +128,91 @@ extension _ExtraCopies on BackupService {
     }
     return null;
   }
+
+  /// Re-encryption's first half for the extra copies: uploads [newPath] as
+  /// [newName] to each account of [record]'s extra copies, before the record
+  /// is committed, so a failure here leaves it intact and resumable.
+  ///
+  /// [copies] is the record's new list: a copy that could not be replaced
+  /// (its account unreachable, or the upload failed) keeps its old id and
+  /// sets [residual], since a plaintext copy then stays in that account.
+  /// [replaced] holds the old copies to delete once the record is committed.
+  Future<
+    ({
+      List<ExtraCloudCopy> copies,
+      List<ExtraCloudCopy> replaced,
+      bool residual,
+    })
+  >
+  _reuploadExtras(BackupRecord record, String newPath, String newName) async {
+    final copies = <ExtraCloudCopy>[];
+    final replaced = <ExtraCloudCopy>[];
+    var residual = false;
+    for (final copy in record.extraCloudCopies) {
+      final provider = _extraProviderFor(copy.accountId);
+      String? fileId;
+      if (provider != null) {
+        try {
+          fileId = await _uploadToCloud(newPath, newName, via: provider);
+        } catch (e, stack) {
+          _log.error(
+            'Re-encrypt: extra copy could not be replaced: ${record.filename}',
+            error: e,
+            stackTrace: stack,
+          );
+        }
+      }
+      if (fileId == null) {
+        residual = true;
+        copies.add(copy);
+        continue;
+      }
+      copies.add(ExtraCloudCopy(accountId: copy.accountId, fileId: fileId));
+      // Path-based providers reuse the id for the same name: deleting it
+      // would remove the copy just uploaded.
+      if (fileId != copy.fileId) replaced.add(copy);
+    }
+    return (copies: copies, replaced: replaced, residual: residual);
+  }
+
+  /// Re-encryption's second half: deletes the [replaced] plaintext copies,
+  /// then drops them from the history of each account that keeps one. True
+  /// when one of them may still be readable there.
+  Future<bool> _dropReplacedExtras(List<ExtraCloudCopy> replaced) async {
+    var residual = false;
+    final touched = Set<CloudStorageProvider>.identity();
+    for (final copy in replaced) {
+      final provider = _extraProviderFor(copy.accountId)!;
+      touched.add(provider);
+      try {
+        await provider.deleteFile(copy.fileId);
+      } catch (e, stack) {
+        residual = true;
+        _log.error(
+          'Re-encrypt: old extra copy could not be deleted, still present',
+          error: e,
+          stackTrace: stack,
+        );
+      }
+    }
+    for (final provider in touched) {
+      try {
+        await flushDeferredWrites(provider);
+        await resetHistoryNowIfSupported(provider);
+      } catch (e, stack) {
+        residual = true;
+        _log.error(
+          'Re-encrypt: old extra copies stay in an account or its history',
+          error: e,
+          stackTrace: stack,
+        );
+      }
+    }
+    return residual;
+  }
+
+  /// The providers of the extra accounts this device can reach.
+  Iterable<CloudStorageProvider> get _reachableExtraProviders => [
+    for (final destination in _extraCopies) ?destination.provider,
+  ];
 }
