@@ -63,9 +63,9 @@ const _switchTimedGroups = {
 /// depth corrected at the mean depth of that time. With one cylinder it is
 /// that cylinder's own rate. A cylinder whose size cannot be measured in a
 /// lane leaves that lane with its time. When a stage, deco, pony or bailout
-/// cylinder lost gas without a switch saying when, the whole dive is
-/// [DiveRoleConsumption.leftOut]: the primary gas window would then span its
-/// minutes too. On a CCR dive only bailout gas counts, in the bailout group.
+/// cylinder lost more gas than carrying it explains without a switch saying
+/// when, the whole dive is [DiveRoleConsumption.leftOut]: the primary gas
+/// window would then span its minutes too. On a CCR dive only bailout gas counts, in the bailout group.
 ///
 /// [counted] picks the cylinders that count, for a dive holding two
 /// recordings' copies of one cylinder; all count when it is null.
@@ -113,9 +113,20 @@ DiveRoleConsumption roleConsumptionForDive({
   return DiveRoleConsumption(rmv: rmv, sac: sac);
 }
 
+/// The most a cylinder with no switch onto it may lose and still count as
+/// carried: the larger of [_carriedDropFloorBar] and [_carriedDropFraction]
+/// of its start. A fill cooling to the water loses a share of its pressure
+/// (30 to 10 C is about 7%), and a hand-read gauge is off by a fixed amount.
+const double _carriedDropFloorBar = 15;
+const double _carriedDropFraction = 0.07;
+
+bool _carried(double start, double end) =>
+    start - end <= math.max(_carriedDropFloorBar, start * _carriedDropFraction);
+
 /// Whether a counted stage, deco, pony or bailout cylinder lost gas with no
-/// switch saying when: no row at all, or one timed by a recorded duration,
-/// which says how long but not at what depth.
+/// switch saying when: no row at all, past what carrying it explains, or a
+/// row timed by a recorded duration, which says how long but not at what
+/// depth.
 bool _hasUntimedCylinder(
   Dive dive,
   Iterable<DiveTank> tanks,
@@ -131,7 +142,8 @@ bool _hasUntimedCylinder(
     final lostGas = start != null && end != null && start > end;
     if (!lostGas) continue;
     final row = rowsById[tank.id];
-    if (row == null || row.usageFromRecordedDuration) return true;
+    if (row == null && !_carried(start, end)) return true;
+    if (row != null && row.usageFromRecordedDuration) return true;
   }
   return false;
 }

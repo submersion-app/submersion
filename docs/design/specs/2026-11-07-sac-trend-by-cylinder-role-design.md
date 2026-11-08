@@ -134,7 +134,11 @@ breathing time is known, and its gas can be measured in the lane's unit:
   reference (which then counts one to one, as `referencePressureDrop` does).
 - **Lost gas:** a pressure series drop over its windows, else logged start
   above logged end. A cylinder that lost nothing was carried, not breathed,
-  and is simply ignored.
+  and is simply ignored. So is a stage, deco, pony or bailout cylinder with no
+  switch onto it and no recorded duration whose drop is at most the larger of
+  15 bar and 7% of its start: a fill cooling to the water (30 to 10 C is about
+  7%) and a hand-read gauge move a carried cylinder that much. A recorded
+  duration says the gas was breathed, so it keeps the strict rule.
 
 A cylinder that lost gas but does not count is **unresolved**. Its gas and its
 time both stay out of its group (my call): joining only its time would put a

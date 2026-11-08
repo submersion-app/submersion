@@ -212,6 +212,67 @@ void main() {
       expect(run.result.rmv, isEmpty);
     });
 
+    group('a carried cylinder with no switch', () {
+      test('dropping 12 bar from 200 was cooling, not breathing', () {
+        final deco = _deco.copyWith(endPressure: 188);
+        final run = _run(_dive([_back, deco]));
+        final back = _row(run.rows, 'back');
+
+        expect(run.result.leftOut, isFalse);
+        expect(run.result.rmv.keys, [ConsumptionRoleGroup.bottomGas]);
+        expect(
+          run.result.rmv[ConsumptionRoleGroup.bottomGas],
+          closeTo(back.rmv!, 1e-9),
+        );
+      });
+
+      test('dropping exactly 15 bar is still carried', () {
+        final pony = _deco.copyWith(role: TankRole.pony, endPressure: 185);
+        final run = _run(_dive([_back, pony]));
+
+        expect(run.result.leftOut, isFalse);
+      });
+
+      test('dropping 20 bar from a 300 bar fill is still carried', () {
+        final stage = _deco.copyWith(
+          role: TankRole.stage,
+          startPressure: 300,
+          endPressure: 280,
+        );
+        final run = _run(_dive([_back, stage]));
+
+        expect(run.result.leftOut, isFalse);
+      });
+
+      test('dropping 16 bar from 200 was breathed and leaves the dive out', () {
+        final deco = _deco.copyWith(endPressure: 184);
+        final run = _run(_dive([_back, deco]));
+
+        expect(run.result.leftOut, isTrue);
+      });
+
+      test('dropping 22 bar from 300 leaves the dive out', () {
+        final stage = _deco.copyWith(
+          role: TankRole.stage,
+          startPressure: 300,
+          endPressure: 278,
+        );
+        final run = _run(_dive([_back, stage]));
+
+        expect(run.result.leftOut, isTrue);
+      });
+
+      test('a recorded duration says it was breathed, however small', () {
+        final deco = _deco.copyWith(
+          endPressure: 195,
+          usageDuration: const Duration(minutes: 10),
+        );
+        final run = _run(_dive([_back, deco]));
+
+        expect(run.result.leftOut, isTrue);
+      });
+    });
+
     test('a deco switch naming a stale tank id leaves the dive out', () {
       final run = _run(
         _dive(const [_back, _deco]),
