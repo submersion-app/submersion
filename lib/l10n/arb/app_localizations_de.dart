@@ -27412,7 +27412,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'Tauchzeiten korrigieren, Buddys verknüpfen, Ausrüstung umtypen, Datenqualität, Tabelleneditor';
+      'Tauchzeiten korrigieren, Buddys verknüpfen, Ausrüstung umtypen, Datenqualität, Tabelleneditor, Tauchgänge neu auswerten';
 
   @override
   String get settings_agentAccess_title => 'Agentenzugriff';
@@ -38090,6 +38090,117 @@ class AppLocalizationsDe extends AppLocalizations {
   ) {
     return '$count Tauchgänge mit Rohdaten ($without ohne)';
   }
+
+  @override
+  String get reparseBatch_progressTitle => 'Tauchgänge werden neu ausgewertet';
+
+  @override
+  String reparseBatch_progressCount(int done, int total) {
+    return '$done von $total Tauchgängen werden neu ausgewertet';
+  }
+
+  @override
+  String get reparseBatch_cancelling => 'Wird abgebrochen...';
+
+  @override
+  String get reparseBatch_resultTitle => 'Neu-Auswertung abgeschlossen';
+
+  @override
+  String get reparseBatch_resultCancelledTitle => 'Neu-Auswertung abgebrochen';
+
+  @override
+  String reparseBatch_resultSummary(int succeeded, int total) {
+    return '$succeeded von $total Tauchgängen neu ausgewertet.';
+  }
+
+  @override
+  String reparseBatch_resultFailed(int count) {
+    return 'Fehlgeschlagen: $count';
+  }
+
+  @override
+  String reparseBatch_resultNotProcessed(int count) {
+    return 'Nicht verarbeitet (abgebrochen): $count';
+  }
+
+  @override
+  String reparseBatch_resultSkipped(int count) {
+    return 'Übersprungen, keine Rohdaten: $count';
+  }
+
+  @override
+  String reparseBatch_resultProfilesPreserved(int count) {
+    return 'Zusammengeführte Tauchgänge mit unverändertem Profil: $count';
+  }
+
+  @override
+  String get reparseBatch_failedListHeader => 'Fehlgeschlagene Tauchgänge';
+
+  @override
+  String reparseBatch_failedDiveTitle(int number) {
+    return 'Tauchgang #$number';
+  }
+
+  @override
+  String get reparseBatch_failedDiveUnnumbered => 'Tauchgang ohne Nummer';
+
+  @override
+  String get reparseBatch_missingDescriptors => 'Tauchcomputer-Angaben fehlen';
+
+  @override
+  String get reparseBatch_confirmTitle => 'Tauchgänge neu auswerten';
+
+  @override
+  String reparseBatch_confirmMessage(int count) {
+    return 'Den Tauchgang-Parser für $count Tauchgänge mit gespeicherten Rohdaten erneut ausführen. Dies aktualisiert Profil- und Sensordaten, behält aber Notizen, Tauchplätze, Tauchpartner und andere Bearbeitungen bei.';
+  }
+
+  @override
+  String reparseBatch_confirmSkipped(int count) {
+    return 'Ausgewählte Tauchgänge ohne Rohdaten (übersprungen): $count';
+  }
+
+  @override
+  String get reparseBatch_noneWithRawData =>
+      'Keiner der ausgewählten Tauchgänge hat gespeicherte Rohdaten zum Neu-Auswerten.';
+
+  @override
+  String get diveLog_selection_tooltip_reparse => 'Neu auswerten';
+
+  @override
+  String get settings_reparseDives_title => 'Tauchgänge neu auswerten';
+
+  @override
+  String get settings_reparseDives_subtitle =>
+      'Den Tauchgang-Parser für jeden Tauchgang mit gespeicherten Rohdaten erneut ausführen';
+
+  @override
+  String get settings_reparseDives_intro =>
+      'Nutze dies, wenn ein App-Update das Einlesen von Tauchcomputerdaten verbessert. Notizen, Tauchplätze, Tauchpartner und andere Bearbeitungen bleiben erhalten.';
+
+  @override
+  String settings_reparseDives_withRawData(int count) {
+    return 'Tauchgänge mit Rohdaten: $count';
+  }
+
+  @override
+  String settings_reparseDives_withoutRawData(int count) {
+    return 'Tauchgänge ohne Rohdaten (nicht neu ausgewertet): $count';
+  }
+
+  @override
+  String get settings_reparseDives_byComputer => 'Nach Tauchcomputer';
+
+  @override
+  String get settings_reparseDives_unknownComputer =>
+      'Unbekannter Tauchcomputer';
+
+  @override
+  String get settings_reparseDives_none =>
+      'Keine Tauchgänge haben gespeicherte Rohdaten zum Neu-Auswerten.';
+
+  @override
+  String get settings_reparseDives_button => 'Alle neu auswerten';
 
   @override
   String get diveComputer_rawData_discardAction => 'Verwerfen';

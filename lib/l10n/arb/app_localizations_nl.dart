@@ -27285,7 +27285,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'Duiktijden corrigeren, buddy\'s koppelen, uitrusting hertyperen, datakwaliteit, tabelbewerker';
+      'Duiktijden corrigeren, buddy\'s koppelen, uitrusting hertyperen, datakwaliteit, tabelbewerker, duiken opnieuw verwerken';
 
   @override
   String get settings_agentAccess_title => 'Agenttoegang';
@@ -37903,6 +37903,118 @@ class AppLocalizationsNl extends AppLocalizations {
   ) {
     return '$count duiken met ruwe data ($without zonder)';
   }
+
+  @override
+  String get reparseBatch_progressTitle => 'Duiken opnieuw verwerken';
+
+  @override
+  String reparseBatch_progressCount(int done, int total) {
+    return '$done van $total duiken opnieuw verwerken';
+  }
+
+  @override
+  String get reparseBatch_cancelling => 'Annuleren...';
+
+  @override
+  String get reparseBatch_resultTitle => 'Opnieuw verwerken voltooid';
+
+  @override
+  String get reparseBatch_resultCancelledTitle =>
+      'Opnieuw verwerken geannuleerd';
+
+  @override
+  String reparseBatch_resultSummary(int succeeded, int total) {
+    return '$succeeded van $total duiken opnieuw verwerkt.';
+  }
+
+  @override
+  String reparseBatch_resultFailed(int count) {
+    return 'Mislukt: $count';
+  }
+
+  @override
+  String reparseBatch_resultNotProcessed(int count) {
+    return 'Niet verwerkt (geannuleerd): $count';
+  }
+
+  @override
+  String reparseBatch_resultSkipped(int count) {
+    return 'Overgeslagen, geen ruwe data: $count';
+  }
+
+  @override
+  String reparseBatch_resultProfilesPreserved(int count) {
+    return 'Gecombineerde duiken die hun profiel behielden: $count';
+  }
+
+  @override
+  String get reparseBatch_failedListHeader => 'Mislukte duiken';
+
+  @override
+  String reparseBatch_failedDiveTitle(int number) {
+    return 'Duik #$number';
+  }
+
+  @override
+  String get reparseBatch_failedDiveUnnumbered => 'Duik zonder nummer';
+
+  @override
+  String get reparseBatch_missingDescriptors =>
+      'Gegevens van de duikcomputer ontbreken';
+
+  @override
+  String get reparseBatch_confirmTitle => 'Duiken opnieuw verwerken';
+
+  @override
+  String reparseBatch_confirmMessage(int count) {
+    return 'Voer de duikparser opnieuw uit voor $count duiken met opgeslagen ruwe data. Dit werkt profiel- en sensordata bij, maar behoudt je notities, locaties, buddy\'s en andere wijzigingen.';
+  }
+
+  @override
+  String reparseBatch_confirmSkipped(int count) {
+    return 'Geselecteerde duiken zonder ruwe data (overgeslagen): $count';
+  }
+
+  @override
+  String get reparseBatch_noneWithRawData =>
+      'Geen van de geselecteerde duiken heeft opgeslagen ruwe data om opnieuw te verwerken.';
+
+  @override
+  String get diveLog_selection_tooltip_reparse => 'Opnieuw verwerken';
+
+  @override
+  String get settings_reparseDives_title => 'Duiken opnieuw verwerken';
+
+  @override
+  String get settings_reparseDives_subtitle =>
+      'Voer de duikparser opnieuw uit voor elke duik met opgeslagen ruwe data';
+
+  @override
+  String get settings_reparseDives_intro =>
+      'Gebruik dit nadat een app-update het inlezen van duikcomputerdata verbetert. Je notities, locaties, buddy\'s en andere wijzigingen blijven behouden.';
+
+  @override
+  String settings_reparseDives_withRawData(int count) {
+    return 'Duiken met ruwe data: $count';
+  }
+
+  @override
+  String settings_reparseDives_withoutRawData(int count) {
+    return 'Duiken zonder ruwe data (niet opnieuw verwerkt): $count';
+  }
+
+  @override
+  String get settings_reparseDives_byComputer => 'Per duikcomputer';
+
+  @override
+  String get settings_reparseDives_unknownComputer => 'Onbekende computer';
+
+  @override
+  String get settings_reparseDives_none =>
+      'Geen enkele duik heeft opgeslagen ruwe data om opnieuw te verwerken.';
+
+  @override
+  String get settings_reparseDives_button => 'Alles opnieuw verwerken';
 
   @override
   String get diveComputer_rawData_discardAction => 'Verwijderen';

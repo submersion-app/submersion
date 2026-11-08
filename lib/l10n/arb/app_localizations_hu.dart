@@ -27336,7 +27336,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'Merülési idők javítása, társak összekapcsolása, felszerelés átsorolása, adatminőség, táblázatszerkesztő';
+      'Merülési idők javítása, társak összekapcsolása, felszerelés átsorolása, adatminőség, táblázatszerkesztő, merülések újraelemzése';
 
   @override
   String get settings_agentAccess_title => 'Ügynökhozzáférés';
@@ -37964,6 +37964,117 @@ class AppLocalizationsHu extends AppLocalizations {
   ) {
     return '$count merülés nyers adattal ($without anélkül)';
   }
+
+  @override
+  String get reparseBatch_progressTitle => 'Merülések újraelemzése';
+
+  @override
+  String reparseBatch_progressCount(int done, int total) {
+    return '$done / $total merülés újraelemzése';
+  }
+
+  @override
+  String get reparseBatch_cancelling => 'Megszakítás...';
+
+  @override
+  String get reparseBatch_resultTitle => 'Az újraelemzés befejeződött';
+
+  @override
+  String get reparseBatch_resultCancelledTitle => 'Az újraelemzés megszakadt';
+
+  @override
+  String reparseBatch_resultSummary(int succeeded, int total) {
+    return '$succeeded / $total merülés újraelemezve.';
+  }
+
+  @override
+  String reparseBatch_resultFailed(int count) {
+    return 'Sikertelen: $count';
+  }
+
+  @override
+  String reparseBatch_resultNotProcessed(int count) {
+    return 'Nem feldolgozott (megszakítva): $count';
+  }
+
+  @override
+  String reparseBatch_resultSkipped(int count) {
+    return 'Kihagyva, nincs nyers adat: $count';
+  }
+
+  @override
+  String reparseBatch_resultProfilesPreserved(int count) {
+    return 'Összevont merülések, amelyek megtartották a profiljukat: $count';
+  }
+
+  @override
+  String get reparseBatch_failedListHeader => 'Sikertelen merülések';
+
+  @override
+  String reparseBatch_failedDiveTitle(int number) {
+    return '$number. merülés';
+  }
+
+  @override
+  String get reparseBatch_failedDiveUnnumbered => 'Sorszám nélküli merülés';
+
+  @override
+  String get reparseBatch_missingDescriptors =>
+      'Hiányoznak a búvárkomputer adatai';
+
+  @override
+  String get reparseBatch_confirmTitle => 'Merülések újraelemzése';
+
+  @override
+  String reparseBatch_confirmMessage(int count) {
+    return 'A merüléselemző újrafuttatása $count merülésre, amelyekhez nyers adat tartozik. Ez frissíti a profil- és érzékelőadatokat, de megőrzi a jegyzeteket, helyszíneket, búvártársakat és egyéb szerkesztéseket.';
+  }
+
+  @override
+  String reparseBatch_confirmSkipped(int count) {
+    return 'Kijelölt merülések nyers adat nélkül (kihagyva): $count';
+  }
+
+  @override
+  String get reparseBatch_noneWithRawData =>
+      'A kijelölt merülések egyikéhez sincs újraelemezhető nyers adat.';
+
+  @override
+  String get diveLog_selection_tooltip_reparse => 'Újraelemzés';
+
+  @override
+  String get settings_reparseDives_title => 'Merülések újraelemzése';
+
+  @override
+  String get settings_reparseDives_subtitle =>
+      'A merüléselemző újrafuttatása minden merülésre, amelyhez nyers adat tartozik';
+
+  @override
+  String get settings_reparseDives_intro =>
+      'Akkor használd, ha egy alkalmazásfrissítés javítja a búvárkomputer-adatok beolvasását. A jegyzetek, helyszínek, búvártársak és egyéb szerkesztések megmaradnak.';
+
+  @override
+  String settings_reparseDives_withRawData(int count) {
+    return 'Merülések nyers adattal: $count';
+  }
+
+  @override
+  String settings_reparseDives_withoutRawData(int count) {
+    return 'Merülések nyers adat nélkül (nem elemezzük újra): $count';
+  }
+
+  @override
+  String get settings_reparseDives_byComputer => 'Búvárkomputerenként';
+
+  @override
+  String get settings_reparseDives_unknownComputer => 'Ismeretlen komputer';
+
+  @override
+  String get settings_reparseDives_none =>
+      'Egyik merüléshez sincs újraelemezhető nyers adat.';
+
+  @override
+  String get settings_reparseDives_button => 'Összes újraelemzése';
 
   @override
   String get diveComputer_rawData_discardAction => 'Elvetés';

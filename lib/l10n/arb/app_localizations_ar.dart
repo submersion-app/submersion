@@ -27718,7 +27718,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'تصحيح أوقات الغطس، ربط الرفاق، إعادة تصنيف المعدات، جودة البيانات، محرر الجدول';
+      'تصحيح أوقات الغطس، ربط الرفاق، إعادة تصنيف المعدات، جودة البيانات، محرر الجدول، إعادة تحليل الغطسات';
 
   @override
   String get settings_agentAccess_title => 'وصول الوكلاء';
@@ -38639,6 +38639,116 @@ class AppLocalizationsAr extends AppLocalizations {
   ) {
     return '$count غطسة بها بيانات أولية ($without بدون)';
   }
+
+  @override
+  String get reparseBatch_progressTitle => 'إعادة تحليل الغطسات';
+
+  @override
+  String reparseBatch_progressCount(int done, int total) {
+    return 'إعادة تحليل $done من أصل $total غطسة';
+  }
+
+  @override
+  String get reparseBatch_cancelling => 'جارٍ الإلغاء...';
+
+  @override
+  String get reparseBatch_resultTitle => 'اكتملت إعادة التحليل';
+
+  @override
+  String get reparseBatch_resultCancelledTitle => 'أُلغيت إعادة التحليل';
+
+  @override
+  String reparseBatch_resultSummary(int succeeded, int total) {
+    return 'تمت إعادة تحليل $succeeded من أصل $total غطسة.';
+  }
+
+  @override
+  String reparseBatch_resultFailed(int count) {
+    return 'فشلت: $count';
+  }
+
+  @override
+  String reparseBatch_resultNotProcessed(int count) {
+    return 'لم تُعالَج (أُلغي): $count';
+  }
+
+  @override
+  String reparseBatch_resultSkipped(int count) {
+    return 'تم تخطيها، بلا بيانات أولية: $count';
+  }
+
+  @override
+  String reparseBatch_resultProfilesPreserved(int count) {
+    return 'غطسات مدمجة احتفظت بملفها الشخصي: $count';
+  }
+
+  @override
+  String get reparseBatch_failedListHeader => 'الغطسات التي فشلت';
+
+  @override
+  String reparseBatch_failedDiveTitle(int number) {
+    return 'الغطسة رقم $number';
+  }
+
+  @override
+  String get reparseBatch_failedDiveUnnumbered => 'غطسة بلا رقم';
+
+  @override
+  String get reparseBatch_missingDescriptors => 'تفاصيل كمبيوتر الغوص مفقودة';
+
+  @override
+  String get reparseBatch_confirmTitle => 'إعادة تحليل الغطسات';
+
+  @override
+  String reparseBatch_confirmMessage(int count) {
+    return 'إعادة تشغيل محلل الغطسات على $count غطسة لها بيانات أولية مخزنة. يُحدِّث ذلك بيانات الملف الشخصي والمستشعرات لكنه يحافظ على الملاحظات والمواقع والشركاء والتعديلات الأخرى.';
+  }
+
+  @override
+  String reparseBatch_confirmSkipped(int count) {
+    return 'غطسات محددة بلا بيانات أولية (سيتم تخطيها): $count';
+  }
+
+  @override
+  String get reparseBatch_noneWithRawData =>
+      'لا توجد بيانات أولية مخزنة لإعادة التحليل في أي من الغطسات المحددة.';
+
+  @override
+  String get diveLog_selection_tooltip_reparse => 'إعادة التحليل';
+
+  @override
+  String get settings_reparseDives_title => 'إعادة تحليل الغطسات';
+
+  @override
+  String get settings_reparseDives_subtitle =>
+      'إعادة تشغيل محلل الغطسات على كل غطسة لها بيانات أولية مخزنة';
+
+  @override
+  String get settings_reparseDives_intro =>
+      'استخدم هذا بعد أن يُحسّن تحديث للتطبيق قراءة بيانات كمبيوتر الغوص. تبقى الملاحظات والمواقع والشركاء والتعديلات الأخرى محفوظة.';
+
+  @override
+  String settings_reparseDives_withRawData(int count) {
+    return 'غطسات بها بيانات أولية: $count';
+  }
+
+  @override
+  String settings_reparseDives_withoutRawData(int count) {
+    return 'غطسات بلا بيانات أولية (لن يُعاد تحليلها): $count';
+  }
+
+  @override
+  String get settings_reparseDives_byComputer => 'حسب كمبيوتر الغوص';
+
+  @override
+  String get settings_reparseDives_unknownComputer => 'كمبيوتر غير معروف';
+
+  @override
+  String get settings_reparseDives_none =>
+      'لا توجد غطسات لها بيانات أولية مخزنة لإعادة التحليل.';
+
+  @override
+  String get settings_reparseDives_button => 'إعادة تحليل الكل';
 
   @override
   String get diveComputer_rawData_discardAction => 'حذف';

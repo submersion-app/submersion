@@ -25929,7 +25929,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      '修正潜水时间、关联潜伴、重新分类装备、数据质量、表格编辑器';
+      '修正潜水时间、关联潜伴、重新分类装备、数据质量、表格编辑器、重新解析潜水';
 
   @override
   String get settings_agentAccess_title => '代理访问';
@@ -35918,6 +35918,113 @@ class AppLocalizationsZh extends AppLocalizations {
   ) {
     return '$count 次潜水有原始数据（$without 次没有）';
   }
+
+  @override
+  String get reparseBatch_progressTitle => '正在重新解析潜水';
+
+  @override
+  String reparseBatch_progressCount(int done, int total) {
+    return '正在重新解析第 $done 次,共 $total 次潜水';
+  }
+
+  @override
+  String get reparseBatch_cancelling => '正在取消...';
+
+  @override
+  String get reparseBatch_resultTitle => '重新解析完成';
+
+  @override
+  String get reparseBatch_resultCancelledTitle => '重新解析已取消';
+
+  @override
+  String reparseBatch_resultSummary(int succeeded, int total) {
+    return '已重新解析 $total 次潜水中的 $succeeded 次。';
+  }
+
+  @override
+  String reparseBatch_resultFailed(int count) {
+    return '失败:$count';
+  }
+
+  @override
+  String reparseBatch_resultNotProcessed(int count) {
+    return '未处理(已取消):$count';
+  }
+
+  @override
+  String reparseBatch_resultSkipped(int count) {
+    return '已跳过,无原始数据:$count';
+  }
+
+  @override
+  String reparseBatch_resultProfilesPreserved(int count) {
+    return '保留了合并剖面的合并潜水:$count';
+  }
+
+  @override
+  String get reparseBatch_failedListHeader => '失败的潜水';
+
+  @override
+  String reparseBatch_failedDiveTitle(int number) {
+    return '第 $number 次潜水';
+  }
+
+  @override
+  String get reparseBatch_failedDiveUnnumbered => '未编号的潜水';
+
+  @override
+  String get reparseBatch_missingDescriptors => '缺少潜水电脑信息';
+
+  @override
+  String get reparseBatch_confirmTitle => '重新解析潜水';
+
+  @override
+  String reparseBatch_confirmMessage(int count) {
+    return '对 $count 次已存储原始数据的潜水重新运行潜水解析器。这将更新剖面图和传感器数据,但会保留您的笔记、地点、潜伴和其他编辑内容。';
+  }
+
+  @override
+  String reparseBatch_confirmSkipped(int count) {
+    return '所选潜水中没有原始数据的(将跳过):$count';
+  }
+
+  @override
+  String get reparseBatch_noneWithRawData => '所选潜水均没有可重新解析的原始数据。';
+
+  @override
+  String get diveLog_selection_tooltip_reparse => '重新解析';
+
+  @override
+  String get settings_reparseDives_title => '重新解析潜水';
+
+  @override
+  String get settings_reparseDives_subtitle => '对每次已存储原始数据的潜水重新运行潜水解析器';
+
+  @override
+  String get settings_reparseDives_intro =>
+      '在应用更新改进了潜水电脑数据的读取方式后使用。您的笔记、地点、潜伴和其他编辑内容将被保留。';
+
+  @override
+  String settings_reparseDives_withRawData(int count) {
+    return '有原始数据的潜水:$count';
+  }
+
+  @override
+  String settings_reparseDives_withoutRawData(int count) {
+    return '没有原始数据的潜水(不会重新解析):$count';
+  }
+
+  @override
+  String get settings_reparseDives_byComputer => '按潜水电脑';
+
+  @override
+  String get settings_reparseDives_unknownComputer => '未知潜水电脑';
+
+  @override
+  String get settings_reparseDives_none => '没有潜水存储了可重新解析的原始数据。';
+
+  @override
+  String get settings_reparseDives_button => '全部重新解析';
 
   @override
   String get diveComputer_rawData_discardAction => '丢弃';
