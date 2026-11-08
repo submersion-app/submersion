@@ -3,7 +3,6 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dart';
 import 'package:submersion/features/dive_log/domain/services/derived_metrics_service.dart';
-import 'package:submersion/features/dive_log/domain/services/gas_use_window.dart';
 
 void main() {
   /// A square profile: descend, hold [bottomDepth] to [bottomEnd], ascend to
@@ -404,57 +403,5 @@ void main() {
       expect(m.sacTrend, isNull, reason: '$mode');
       expect(m.finalStopState, FinalStopState.stable, reason: '$mode');
     }
-  });
-
-  group('gas-use window (issue #2930)', () {
-    /// [squareProfile] surfacing at [surfaceAt], then logging at 0.3 m
-    /// until [end].
-    List<ProfileSample> withSurfaceTail({
-      int surfaceAt = 2100,
-      int end = 2700,
-    }) => [
-      ...squareProfile(end: surfaceAt - 10),
-      for (var t = surfaceAt; t <= end; t += 10)
-        ProfileSample(timestamp: t, depth: 0.3),
-    ];
-
-    test('a surface tail is stored as the time and depth to divide by', () {
-      final samples = withSurfaceTail();
-      final m = run(samples: samples, tanks: [steadyTank()]);
-      final window = gasUseWindowOf(
-        samples,
-        time: (s) => s.timestamp,
-        depth: (s) => s.depth,
-      )!;
-      expect(window.endSeconds, 2100);
-      expect(m.gasUseSeconds, window.seconds);
-      expect(m.gasUseAvgDepthMeters, window.avgDepth);
-    });
-
-    test('a dive with no surface time stores no window', () {
-      final m = run(tanks: [steadyTank()]);
-      expect(m.gasUseSeconds, isNull);
-      expect(m.gasUseAvgDepthMeters, isNull);
-    });
-
-    test('a dive with no pressure series still stores its window', () {
-      final m = run(samples: withSurfaceTail());
-      expect(m.unsupportedReason, UnsupportedReason.noPressureSeries);
-      expect(m.gasUseSeconds, isNotNull);
-    });
-
-    test('a rebreather dive still stores its window', () {
-      final m = run(samples: withSurfaceTail(), mode: DiveMode.ccr);
-      expect(m.gasUseSeconds, isNotNull);
-    });
-
-    test('a gauge dive stores none', () {
-      final m = run(samples: withSurfaceTail(), mode: DiveMode.gauge);
-      expect(m.gasUseSeconds, isNull);
-    });
-
-    test('the engine version moved past the rows built before the window', () {
-      expect(DerivedMetricsService.version, greaterThanOrEqualTo(4));
-    });
   });
 }

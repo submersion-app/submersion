@@ -7,6 +7,9 @@ import 'package:submersion/features/dive_log/data/repositories/derived_metrics_r
 import 'package:submersion/features/dive_log/data/services/derived_metrics_worker.dart';
 import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dart';
 import 'package:submersion/features/dive_log/domain/services/derived_metrics_service.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    show DiveProfilePoint;
+import 'package:submersion/features/dive_log/domain/services/gas_use_window.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -107,22 +110,67 @@ void main() {
     },
   );
 
-  test('the gas-use window round-trips (issue #2930)', () async {
-    await insertDive('d1');
-    final r = repo(
-      result: const DiveDerivedMetrics(
-        diveId: 'd1',
-        engineVersion: DerivedMetricsService.version,
-        sourceUpdatedAt: 0,
-        computedAt: 0,
-        gasUseSeconds: 2040,
-        gasUseAvgDepthMeters: 14.25,
-      ),
-    );
-    await r.ensureCurrent('d1');
-    final stored = await r.getMetrics('d1');
-    expect(stored!.gasUseSeconds, 2040);
-    expect(stored.gasUseAvgDepthMeters, 14.25);
+  group('gas-use window (issue #2930)', () {
+    // 30 minutes at 18 m, then 10 logged at the surface.
+    final tail = [
+      for (var t = 0; t <= 40 * 60; t += 10)
+        DiveProfilePoint(
+          timestamp: t,
+          depth: t == 0
+              ? 0
+              : t < 30 * 60
+              ? 18
+              : 0.3,
+        ),
+    ];
+
+    DerivedMetricsRepository withMerged(List<DiveProfilePoint> merged) =>
+        DerivedMetricsRepository(
+          runner: (input) async => DiveDerivedMetrics(
+            diveId: input.diveId,
+            engineVersion: DerivedMetricsService.version,
+            sourceUpdatedAt: input.sourceUpdatedAt,
+            computedAt: input.computedAtMs,
+            unsupportedReason: UnsupportedReason.gaugeMode,
+          ),
+          mergedProfile: (_) async => merged,
+        );
+
+    test('comes from the merged profile, whatever the engine saw', () async {
+      await insertDive('d1');
+      final r = withMerged(tail);
+      final metrics = await r.ensureCurrent('d1');
+      final window = gasUseWindowOf(
+        tail,
+        time: (p) => p.timestamp,
+        depth: (p) => p.depth,
+      )!;
+      expect(metrics!.gasUseSeconds, window.seconds);
+      final stored = await r.getMetrics('d1');
+      expect(stored!.gasUseSeconds, window.seconds);
+      expect(stored.gasUseAvgDepthMeters, window.avgDepth);
+      // The engine's own fields are kept.
+      expect(stored.unsupportedReason, UnsupportedReason.gaugeMode);
+    });
+
+    test('is cleared when the rebuilt dive has no surface tail', () async {
+      await insertDive('d1');
+      await withMerged(tail).ensureCurrent('d1');
+      final noTail = [
+        for (final p in tail)
+          if (p.timestamp <= 30 * 60) p,
+      ];
+      await withMerged(noTail).ensureCurrent('d1', force: true);
+      final stored = await repo().getMetrics('d1');
+      expect(stored!.gasUseSeconds, isNull);
+      expect(stored.gasUseAvgDepthMeters, isNull);
+    });
+
+    test('is none for a dive with no profile', () async {
+      await insertDive('d1');
+      final metrics = await withMerged(const []).ensureCurrent('d1');
+      expect(metrics!.gasUseSeconds, isNull);
+    });
   });
 
   test('a second call reads the stored row without recomputing', () async {

@@ -82,10 +82,12 @@ common.
 - **SQL** (statistics, insights, query fields): `gasUseSecondsSql` and
   `gasUseAvgDepthSql` read the same cache row.
 - **Cache:** `dive_derived_metrics` gains `gas_use_s` and `gas_use_avg_depth_m`
-  (nullable, device-local, schema rung). `DerivedMetricsService` computes them
-  with the same pure function, for every dive with samples, including gauge,
-  rebreather and pressure-less dives. Its version is bumped so the sweep fills
-  every existing row once.
+  (nullable, device-local, schema rung). `DerivedMetricsRepository` computes
+  them with the same pure function from the merged profile the dive page
+  reads (every recording, not only the primary series the engine decodes), so
+  a dive logged by two computers reports one number. Every mode is covered,
+  gauge, rebreather and pressure-less dives included. The engine version is
+  bumped so the sweep fills every existing row once.
 
 A stale cache row (built before the dive's latest edit) is used until the
 scheduler rebuilds it, which every write already schedules.

@@ -372,8 +372,10 @@ class GasAnalysisService {
       depth: (p) => p.depth,
     );
     final ocStart = window?.startSeconds ?? 0;
-    final ocEnd = window == null || diveEnd <= 0
+    final ocEnd = window == null
         ? diveEnd
+        : diveEnd <= 0
+        ? window.endSeconds
         : math.min(window.endSeconds, diveEnd);
 
     // Only a switch that says when a cylinder was breathed overrides a

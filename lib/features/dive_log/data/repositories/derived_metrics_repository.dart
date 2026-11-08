@@ -6,14 +6,24 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_source_stamp.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_worker.dart';
 import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
 import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/services/gas_use_window.dart';
 import 'package:submersion/features/dive_log/domain/services/derived_metrics_service.dart';
 
 typedef DerivedMetricsRunner =
     Future<DiveDerivedMetrics> Function(DerivedMetricsWorkInput input);
+
+/// A dive's merged profile, every recording the dive page shows.
+typedef MergedProfileReader =
+    Future<List<DiveProfilePoint>> Function(String diveId);
+
+Future<List<DiveProfilePoint>> _readMergedProfile(String diveId) =>
+    DiveRepository().getMergedProfile(diveId);
 
 Future<DiveDerivedMetrics> _computeOnIsolate(DerivedMetricsWorkInput input) =>
     compute(computeDerivedMetricsFromBlobs, input);
@@ -29,11 +39,14 @@ class DerivedMetricsRepository {
   DerivedMetricsRepository({
     AppDatabase? database,
     DerivedMetricsRunner? runner,
+    MergedProfileReader? mergedProfile,
   }) : _dbOverride = database,
-       _runner = runner ?? _computeOnIsolate;
+       _runner = runner ?? _computeOnIsolate,
+       _mergedProfile = mergedProfile ?? _readMergedProfile;
 
   final AppDatabase? _dbOverride;
   final DerivedMetricsRunner _runner;
+  final MergedProfileReader _mergedProfile;
 
   AppDatabase get _db => _dbOverride ?? DatabaseService.instance.database;
 
@@ -111,8 +124,17 @@ class DerivedMetricsRepository {
       ),
     );
 
-    await saveMetrics(metrics);
-    return metrics;
+    // The gas-use window comes from the merged profile, the samples the dive
+    // page computes its own SAC from, so a dive logged by two computers
+    // reports one number everywhere (issue #2930). Every mode gets one: a
+    // gauge dive with logged pressures still shows a SAC.
+    final merged = await _mergedProfile(diveId);
+    final withGasUse = metrics.withGasUse(
+      gasUseWindowOf(merged, time: (p) => p.timestamp, depth: (p) => p.depth),
+    );
+
+    await saveMetrics(withGasUse);
+    return withGasUse;
   }
 
   /// A tank can carry one series per computer that logged it. Pick the

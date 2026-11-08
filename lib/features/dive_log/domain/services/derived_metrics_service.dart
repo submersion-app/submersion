@@ -4,7 +4,6 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dart';
-import 'package:submersion/features/dive_log/domain/services/gas_use_window.dart';
 
 /// One tank's pressure over time, already decoded, with the volume needed to
 /// turn a pressure drop into gas.
@@ -27,7 +26,8 @@ class TankPressureSeries {
 /// worker isolate run it and the tests pin it with synthetic profiles.
 abstract final class DerivedMetricsService {
   /// Bump whenever a rule below changes; every stored row with a lower
-  /// version is rebuilt by the sweep. 4 added the gas-use window (#2930).
+  /// version is rebuilt by the sweep. 4 added the gas-use window (#2930),
+  /// which `DerivedMetricsRepository` works out from the merged profile.
   static const int version = 4;
 
   /// Depth under which a level run counts as a final stop.
@@ -87,13 +87,6 @@ abstract final class DerivedMetricsService {
     // their pressure drop is not a SAC; the depth track is still read.
     final rebreather = diveMode == DiveMode.ccr || diveMode == DiveMode.scr;
     final sac = rebreather ? null : _sac(ordered, tanks, environment);
-    // Depth only, so every mode with a profile stores it; a rebreather's is
-    // unused today but costs nothing to keep current.
-    final gasUse = gasUseWindowOf(
-      ordered,
-      time: (s) => s.timestamp,
-      depth: (s) => s.depth,
-    );
 
     return DiveDerivedMetrics(
       diveId: diveId,
@@ -109,8 +102,6 @@ abstract final class DerivedMetricsService {
       sacSlopeBarPerMinPerMin: sac?.slope,
       sacChangePercent: sac?.change,
       runtimeSeconds: ordered.last.timestamp,
-      gasUseSeconds: gasUse?.seconds,
-      gasUseAvgDepthMeters: gasUse?.avgDepth,
       unsupportedReason: rebreather
           ? UnsupportedReason.rebreather
           : sac == null

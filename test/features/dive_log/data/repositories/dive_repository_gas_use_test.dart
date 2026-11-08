@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/data/repositories/derived_metrics_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_worker.dart';
@@ -32,23 +33,25 @@ void main() {
       ),
   ];
 
-  Future<void> createDive() => repository.createDive(
-    domain.Dive(
-      id: 'd',
-      dateTime: DateTime.utc(2026, 5, 1, 10),
-      runtime: const Duration(minutes: 40),
-      avgDepth: 13.5,
-      tanks: const [
-        domain.DiveTank(
-          id: 't',
-          volume: 12,
-          startPressure: 200,
-          endPressure: 110,
+  Future<void> createDive({DiveMode diveMode = DiveMode.oc}) =>
+      repository.createDive(
+        domain.Dive(
+          id: 'd',
+          diveMode: diveMode,
+          dateTime: DateTime.utc(2026, 5, 1, 10),
+          runtime: const Duration(minutes: 40),
+          avgDepth: 13.5,
+          tanks: const [
+            domain.DiveTank(
+              id: 't',
+              volume: 12,
+              startPressure: 200,
+              endPressure: 110,
+            ),
+          ],
+          profile: profile,
         ),
-      ],
-      profile: profile,
-    ),
-  );
+      );
 
   Future<void> sweep() => DerivedMetricsRepository(
     runner: (input) async => computeDerivedMetricsFromBlobs(input),
@@ -63,6 +66,16 @@ void main() {
 
     expect(listed.profile, isEmpty);
     expect(listed.storedGasUse, detail.gasUse);
+    expect(listed.sac, closeTo(detail.sac!, 1e-9));
+  });
+
+  test('a gauge dive with pressures agrees too', () async {
+    await createDive(diveMode: DiveMode.gauge);
+    await sweep();
+
+    final detail = (await repository.getDiveById('d'))!;
+    final listed = (await repository.getAllDives()).single;
+    expect(listed.storedGasUse, isNotNull);
     expect(listed.sac, closeTo(detail.sac!, 1e-9));
   });
 

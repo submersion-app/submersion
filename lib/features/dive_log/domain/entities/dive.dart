@@ -599,15 +599,25 @@ class Dive extends Equatable {
   /// leave out, and then the rates use [measuredRuntime] and [avgDepth] as
   /// they are. `gasUseSecondsSql` and `gasUseAvgDepthSql` are the SQL forms.
   GasUse? get gasUse {
-    if (profile.length >= 2) {
-      return gasUseWindowOf(
-        profile,
-        time: (p) => p.timestamp,
-        depth: (p) => p.depth,
-      )?.use;
-    }
-    return storedGasUse;
+    if (profile.length < 2) return storedGasUse;
+    // Worked out once per profile list: the detail page asks on every build,
+    // and copies of this dive share the list.
+    final cached = _gasUseByProfile[profile];
+    if (cached != null) return cached.use;
+    final use = gasUseWindowOf(
+      profile,
+      time: (p) => p.timestamp,
+      depth: (p) => p.depth,
+    )?.use;
+    _gasUseByProfile[profile] = (use: use);
+    return use;
   }
+
+  /// [gasUse] by profile list identity. An entity never mutates its profile,
+  /// so a list's window cannot change once worked out.
+  static final Expando<({GasUse? use})> _gasUseByProfile = Expando(
+    'gasUseByProfile',
+  );
 
   /// The minutes and ambient pressure a whole-dive rate divides by: the
   /// [measuredRuntime], cut to [gasUse] when that is shorter (a runtime
