@@ -112,6 +112,7 @@ class BulkMembershipEditor extends StatefulWidget {
     this.secondaryAction,
     this.trailingBuilder,
     this.detailBuilder,
+    this.headerBuilder,
     this.ensureOn,
     this.absentStartsChecked = true,
   });
@@ -143,6 +144,14 @@ class BulkMembershipEditor extends StatefulWidget {
   /// label a sliver that wrapped one character per line (#2276). Returning
   /// null shows nothing for that row.
   final Widget? Function(BulkMembershipItem item)? detailBuilder;
+
+  /// Optional heading shown above a row, for a caller that groups its rows
+  /// into sections. The caller orders [items] so each section's rows are
+  /// adjacent and returns the heading for the first row of each section,
+  /// null for the rest. Equipment uses it for the type headings of the
+  /// diver's gear arrangement (#2274). Each row's choice is kept by id, so a
+  /// caller may reorder [items] between builds.
+  final Widget? Function(BulkMembershipItem item)? headerBuilder;
 
   /// A one-shot instruction to put [ids] on every selected entity, whatever
   /// their rows currently say. An update carrying the same [serial] changes
@@ -350,7 +359,8 @@ class _BulkMembershipEditorState extends State<BulkMembershipEditor> {
               ),
             )
           else
-            for (final item in widget.items)
+            for (final item in widget.items) ...[
+              ?widget.headerBuilder?.call(item),
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: Checkbox(
@@ -374,6 +384,7 @@ class _BulkMembershipEditorState extends State<BulkMembershipEditor> {
                 trailing: widget.trailingBuilder?.call(item),
                 onTap: () => _cycle(item.id),
               ),
+            ],
         ],
       ),
     );

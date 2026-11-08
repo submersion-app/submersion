@@ -106,7 +106,7 @@ void main() {
     ) async {
       const reg = EquipmentItem(
         id: 'e1',
-        name: 'Regulator',
+        name: 'Apeks XTX50',
         type: EquipmentType.regulator,
       );
       await EquipmentRepository().createEquipment(reg);
@@ -125,7 +125,7 @@ void main() {
       await pumpBulk(tester);
 
       // e1 is on 1 of the 2 selected dives.
-      expect(find.text('Regulator'), findsOneWidget);
+      expect(find.text('Apeks XTX50'), findsOneWidget);
       expect(find.text('on 1 of 2'), findsOneWidget);
 
       // Toggling a "some" item to on flips its subtitle to "adding to all 2".
