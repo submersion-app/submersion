@@ -38,6 +38,7 @@ import 'package:submersion/features/dive_log/domain/services/gas_switch_editing.
 import 'package:submersion/features/dive_log/domain/services/profile_depth_at.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_usage_range.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
+import 'package:submersion/features/dive_log/presentation/helpers/linked_dive_times.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/seeded_dive_times.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
@@ -327,8 +328,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   TimeOfDay? _exitTime;
 
   /// What the time inputs were filled with and the exact values they round;
-  /// null for a new dive. The save reads it so an unrelated edit does not
-  /// write whole minutes over stored seconds (issue #3901).
+  /// null for a new dive until an entry or runtime edit moves its exit. The
+  /// save reads it so an unrelated edit does not write whole minutes over
+  /// stored seconds (issue #3901), and a linked edit re-seeds it so the exit
+  /// it moves keeps its seconds (issue #241).
   SeededDiveTimes? _seededTimes;
   final _diveNumberController = TextEditingController();
   final _durationController = TextEditingController();
@@ -2781,6 +2784,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       avgDepthController: _avgDepthController,
       bottomTimeController: _durationController,
       runtimeController: _runtimeController,
+      onRuntimeChanged: _followRuntime,
       diveNumberController: _diveNumberController,
       showDiveNumber: !_isPlanned,
       entryText: _formatEntryText(units),
@@ -2893,15 +2897,77 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   }
 
   Future<void> _editEntry() async {
+    var before = _timeInputs();
     await _selectEntryDate();
     if (!mounted) return;
+    _followEntry(before);
+    before = _timeInputs();
     await _selectEntryTime();
+    if (!mounted) return;
+    _followEntry(before);
   }
 
   Future<void> _editExit() async {
+    final before = _exitInput();
+    final seededBefore = _seededTimes;
     await _selectExitDate();
     if (!mounted) return;
     await _selectExitTime();
+    if (!mounted) return;
+    // A recorded exit picked again at its own minute changes nothing; an
+    // estimate confirmed at its minute becomes an exit the runtime follows.
+    if (_exitInput() == before && identical(_seededTimes, seededBefore)) {
+      return;
+    }
+    _showRuntimeOfExit();
+  }
+
+  /// Moves the exit with the entry, so the dive keeps its length (issue
+  /// #241). [before] is the form's time inputs before the entry moved.
+  void _followEntry(DiveTimeInputs before) {
+    final entry = _entryInput();
+    if (entry == before.entry) return;
+    _showLinkedTimes(moveDiveEntry(before, entry, seeded: _seededTimes));
+  }
+
+  /// Moves the exit to entry plus the runtime the diver typed (issue #241).
+  /// Blank, unreadable or zero text leaves the exit where it is.
+  void _followRuntime(String text) {
+    final minutes = switch (readNumber(text, integer: true)) {
+      NumberValue(:final value) => value.toInt(),
+      NumberBlank() || NumberInvalid() => null,
+    };
+    if (minutes == null || minutes <= 0) return;
+    _showLinkedTimes(
+      setDiveRuntime(_timeInputs(), minutes, seeded: _seededTimes),
+    );
+  }
+
+  /// Shows the exit a linked edit moved; the times re-seed the form, so the
+  /// save writes them exactly.
+  void _showLinkedTimes(SeededDiveTimes linked) {
+    final exit = linked.shown.exit;
+    setState(() {
+      _seededTimes = linked;
+      if (exit != null) {
+        _exitDate = exit;
+        _exitTime = TimeOfDay.fromDateTime(exit);
+      }
+    });
+  }
+
+  /// Shows exit minus entry as the runtime once the diver moves the exit
+  /// (issue #241), blank for an exit before the entry, as the save reads it.
+  void _showRuntimeOfExit() {
+    final runtime = resolveDiveTimes(
+      _timeInputs(),
+      seeded: _seededTimes,
+    ).runtime;
+    setState(() {
+      _runtimeController.text = runtime == null
+          ? ''
+          : _seedInt(runtime.inMinutes);
+    });
   }
 
   Widget? _surfaceIntervalRow() {
@@ -4128,6 +4194,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     setState(() {
       _runtimeController.text = _seedInt(calculatedRuntime.inMinutes);
     });
+    _followRuntime(_runtimeController.text);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
