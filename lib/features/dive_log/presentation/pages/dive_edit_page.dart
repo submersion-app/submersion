@@ -336,7 +336,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   SeededDiveTimes? _seededTimes;
 
   /// The times as they last settled (seeded, or after an entry or exit
-  /// edit), with the runtime text shown then. Each runtime keystroke links
+  /// edit), with the runtime shown then. Each runtime keystroke links
   /// from here, so a digit passed on the way to a value, or left by
   /// backspacing, never moves the exit for good, and a blank, zero or
   /// unchanged runtime puts the exact times back (issues #241, #3901).
@@ -345,7 +345,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     DateTime? exitDate,
     TimeOfDay? exitTime,
     SeededDiveTimes? seeded,
-    String? runtimeText,
+    bool settled,
+    int? runtimeMinutes,
   })?
   _runtimeEditBase;
 

@@ -37,7 +37,8 @@ extension _LinkedTimeEditing on _DiveEditPageState {
     exitDate: _exitDate,
     exitTime: _exitTime,
     seeded: _seededTimes,
-    runtimeText: _runtimeController.text,
+    settled: true,
+    runtimeMinutes: _savedNumber(_runtimeController, integer: true)?.toInt(),
   );
 
   /// Moves the exit with the entry, so the dive keeps its length (issue
@@ -52,24 +53,18 @@ extension _LinkedTimeEditing on _DiveEditPageState {
   /// linking from the times as they last settled. Blank, unreadable or zero
   /// text, or the runtime shown when they settled, puts the exact times back.
   void _followRuntime() {
-    // A new dive settles nothing before its first keystroke; its text then
-    // is unknown, and it has no stored seconds to keep.
+    // A new dive settles nothing before its first keystroke; its runtime
+    // then is unknown, and it has no stored seconds to keep.
     final base = _runtimeEditBase ??= (
       exit: _exitInput(),
       exitDate: _exitDate,
       exitTime: _exitTime,
       seeded: _seededTimes,
-      runtimeText: null,
+      settled: false,
+      runtimeMinutes: null,
     );
     final minutes = _savedNumber(_runtimeController, integer: true)?.toInt();
-    final settledText = base.runtimeText;
-    final unchanged =
-        settledText != null &&
-        minutes ==
-            switch (readNumber(settledText, integer: true)) {
-              NumberValue(:final value) => value.toInt(),
-              NumberBlank() || NumberInvalid() => null,
-            };
+    final unchanged = base.settled && minutes == base.runtimeMinutes;
     if (minutes == null || minutes <= 0 || unchanged) {
       _updateTimes(() {
         _seededTimes = base.seeded;
