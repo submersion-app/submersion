@@ -335,16 +335,17 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// it moves keeps its seconds (issue #241).
   SeededDiveTimes? _seededTimes;
 
-  /// The exit and times as they were before the diver started typing a
-  /// runtime. Each keystroke links from here, so a digit passed on the way to
-  /// a value, or left by backspacing, never moves the exit for good, and a
-  /// blank or zero runtime puts it back (issue #241). Any other edit of the
-  /// times starts afresh.
+  /// The times as they last settled (seeded, or after an entry or exit
+  /// edit), with the runtime text shown then. Each runtime keystroke links
+  /// from here, so a digit passed on the way to a value, or left by
+  /// backspacing, never moves the exit for good, and a blank, zero or
+  /// unchanged runtime puts the exact times back (issues #241, #3901).
   ({
     DateTime? exit,
     DateTime? exitDate,
     TimeOfDay? exitTime,
     SeededDiveTimes? seeded,
+    String? runtimeText,
   })?
   _runtimeEditBase;
 
@@ -1008,7 +1009,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final seeded = SeededDiveTimes.of(dive);
     final shown = seeded.shown;
     _seededTimes = seeded;
-    _runtimeEditBase = null;
     _entryDate = shown.entry;
     _entryTime = TimeOfDay.fromDateTime(shown.entry);
     _exitDate = shown.exit;
@@ -1022,6 +1022,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     _waterTempController.text = dive.waterTemp != null
         ? _seedDecimal(units.convertTemperature(dive.waterTemp!), 0)
         : '';
+    _settleTimes();
   }
 
   /// Seeds the depth fields, which a saved profile edit recomputes. Call

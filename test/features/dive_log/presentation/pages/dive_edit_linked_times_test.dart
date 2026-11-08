@@ -218,6 +218,38 @@ void main() {
     expect(saved.runtime, runtime);
   });
 
+  testWidgets('retyping the runtime shown keeps the stored times exact', (
+    tester,
+  ) async {
+    // The form shows 49 for 49:20; typing 49 back must not round the exit
+    // or the runtime to whole minutes (issue #3901).
+    await repository.createDive(
+      Dive(
+        id: 'dive-241-retype',
+        dateTime: entry,
+        entryTime: entry,
+        exitTime: exit,
+        bottomTime: bottomTime,
+        runtime: runtime,
+      ),
+    );
+
+    await pumpEditor(tester, 'dive-241-retype');
+    await tapRow(tester, 'Runtime');
+    final field = find.descendant(
+      of: row('Runtime'),
+      matching: find.byType(TextField),
+    );
+    await tester.enterText(field, '4');
+    await tester.pumpAndSettle();
+    await tester.enterText(field, '49');
+    await tester.pumpAndSettle();
+
+    final saved = await saveAndReload(tester, 'dive-241-retype');
+    expect(saved.exitTime, exit);
+    expect(saved.runtime, runtime);
+  });
+
   testWidgets('a runtime typed on a dive with no exit saves no exit', (
     tester,
   ) async {
