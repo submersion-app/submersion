@@ -39,6 +39,17 @@ void main() {
     expect(rows.single.usageDuration, Duration(seconds: d.gasUse!.seconds));
   });
 
+  test('a zero runtime ends the cylinder at the end of the window', () {
+    // A runtime stored as zero says nothing about when the dive ended, so
+    // the window's own end stands in rather than cutting the cylinder to
+    // nothing.
+    final d = dive(profile).copyWith(runtime: Duration.zero);
+    final rows = service.calculateCylinderSac(dive: d, profile: profile);
+    expect(d.gasUse, isNotNull);
+    expect(rows.single.usageDuration, Duration(seconds: d.gasUse!.seconds));
+    expect(rows.single.sacRate, isNotNull);
+  });
+
   test('a dive with no surface tail is unchanged', () {
     final noTail = [
       for (final p in profile)
