@@ -119,7 +119,7 @@ import 'package:submersion/features/buddies/data/repositories/buddy_repository.d
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
-import 'package:submersion/features/equipment/data/repositories/equipment_visibility_queries.dart';
+import 'package:submersion/features/dive_log/data/repositories/gear_template_dive_queries.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
@@ -8057,68 +8057,82 @@ class DiveRepository {
     await _bumpDives([diveId], now);
   }
 
-  /// Ids of the dives that carry [equipmentId] as a gear row.
-  Future<List<String>> diveIdsWithEquipment(String equipmentId) async {
-    final rows =
-        await (_db.selectOnly(_db.diveEquipment, distinct: true)
-              ..addColumns([_db.diveEquipment.diveId])
-              ..where(_db.diveEquipment.equipmentId.equals(equipmentId)))
-            .get();
-    return [for (final r in rows) r.read(_db.diveEquipment.diveId)!];
-  }
-
   /// How many logged dives carry [assemblyId] as a gear row: the dives
   /// [rewriteAssemblyOnDives] visits with `alsoLogged`, so the "also update
   /// N dives" question names the dives the answer changes (issue #4283).
   Future<int> countLoggedDivesWithAssembly(String assemblyId) =>
-      _countDivesCarrying(_gearColumn, assemblyId, planned: false);
+      _gearTemplates.countWithAssembly(assemblyId, planned: false);
 
   /// How many planned dives carry [assemblyId]: the ones every template
   /// change reaches.
   Future<int> countPlannedDivesWithAssembly(String assemblyId) =>
-      _countDivesCarrying(_gearColumn, assemblyId, planned: true);
+      _gearTemplates.countWithAssembly(assemblyId, planned: true);
 
   /// How many logged dives carry set [setId], through a gear row it put
   /// there.
   Future<int> countLoggedDivesWithSet(String setId) =>
-      _countDivesCarrying(_setColumn, setId, planned: false);
+      _gearTemplates.countWithSet(setId, planned: false);
 
   /// How many planned dives carry set [setId].
   Future<int> countPlannedDivesWithSet(String setId) =>
-      _countDivesCarrying(_setColumn, setId, planned: true);
+      _gearTemplates.countWithSet(setId, planned: true);
+
+  GearTemplateDiveQueries get _gearTemplates => GearTemplateDiveQueries(_db);
 
   /// Replays changes to an assembly's template on the dives that carry the
   /// assembly (issue #1487, "also update N past dives"): the planned ones
   /// always, the logged ones only with [alsoLogged] (issue #4283). One
   /// transaction; each dive whose rows changed goes through the diff
   /// writer, so unchanged rows are neither tombstoned nor re-marked, and
-  /// is re-stamped so sync carries it. Returns how many dives changed.
+  /// is re-stamped so sync carries it. Returns the dives that changed.
   ///
-  /// [rewrites] are applied in order to each dive's rows and written once,
+  /// [rewrites] is the whole batch, replayed in order against each dive,
   /// so adding several parts at once costs one pass over the dives rather
   /// than one pass per part. The result is the same either way: the rules
   /// compose, and the diff writer compares against the rows on disk.
   ///
-  /// With [deferTo], the dives it changed are added there instead, and the
-  /// caller both tells sync and queues their rescan once its own
-  /// transaction commits. An agent apply does: the entity rescans in
-  /// `afterApply`, and `WriteApplier` tells sync.
-  Future<int> rewriteAssemblyOnDives(
+  /// A new part goes on a dive only as expanding the assembly fresh would
+  /// put it there: active, and usable by the dive's diver (an unowned dive:
+  /// the assembly owner's).
+  ///
+  /// With [notify] false the caller tells sync and queues the rescan of the
+  /// returned dives once its own transaction commits, as an agent apply
+  /// does: the entity rescans in `afterApply`, and `WriteApplier` tells
+  /// sync.
+  Future<List<String>> rewriteAssemblyOnDives(
     String assemblyId,
     List<GearHistoryRewrite> rewrites, {
     required bool alsoLogged,
-    Set<String>? deferTo,
+    bool notify = true,
   }) async {
-    if (rewrites.isEmpty) return 0;
-    final diveIds = await _diveIdsCarrying(
-      _gearColumn,
+    if (rewrites.isEmpty) return const [];
+    final templates = _gearTemplates;
+    final diveIds = await templates.diveIdsWithAssembly(
       assemblyId,
       alsoLogged: alsoLogged,
     );
-    return _rewriteGearOn(diveIds, deferTo: deferTo, (rows, _) {
+    if (diveIds.isEmpty) return const [];
+    final incoming = {
+      for (final rewrite in rewrites)
+        ?switch (rewrite) {
+          GearPartAdded(:final partId) => partId,
+          GearPartReplaced(:final newPartId) => newPartId,
+          GearPartRemoved() => null,
+        },
+    };
+    final active = await _activeIdsAmong(incoming);
+    final usable = await templates.usableOnDives(
+      diveIds,
+      incoming,
+      fallbackDiverId: incoming.isEmpty
+          ? null
+          : await templates.ownerOfEquipment(assemblyId),
+    );
+    return _rewriteGearOn(diveIds, notify: notify, (rows, diveId) {
+      bool canAdd(String id) => active.contains(id) && usable(diveId, id);
       var next = rows;
       for (final rewrite in rewrites) {
-        next = rewrite.applyTo(next, assemblyId);
+        next = rewrite.applyTo(next, assemblyId, canAdd: canAdd);
       }
       return next;
     });
@@ -8126,59 +8140,45 @@ class DiveRepository {
 
   /// Replays changes to the members of set [setId] on the dives that carry
   /// the set (issue #4283), planned ones always and logged ones only with
-  /// [alsoLogged], as [rewriteAssemblyOnDives] does. An added member goes on
-  /// a dive only when it is active and its diver may use it, the filter
-  /// applying the set already uses.
-  Future<int> rewriteSetOnDives(
+  /// [alsoLogged], as [rewriteAssemblyOnDives] does, [notify] included. An
+  /// added member goes on a dive only when it is active and its diver may
+  /// use it, the filter applying the set already uses.
+  Future<List<String>> rewriteSetOnDives(
     String setId,
     List<SetHistoryRewrite> rewrites, {
     required bool alsoLogged,
-    Set<String>? deferTo,
+    bool notify = true,
   }) async {
-    if (rewrites.isEmpty) return 0;
-    final diveIds = await _diveIdsCarrying(
-      _setColumn,
+    if (rewrites.isEmpty) return const [];
+    final templates = _gearTemplates;
+    final diveIds = await templates.diveIdsWithSet(
       setId,
       alsoLogged: alsoLogged,
     );
-    if (diveIds.isEmpty) return 0;
-    final members = await _setMemberIds(setId);
+    if (diveIds.isEmpty) return const [];
+    final members = await templates.membersOfSet(setId);
     final added = [
       for (final r in rewrites)
         if (r is SetItemAdded) r.itemId,
     ];
     // A removal needs only the dive's rows and the members; what an
     // addition puts on a dive is worked out only when there is one.
-    var index = ComponentsIndex.fromRows(const []);
+    var index = ComponentsIndex.empty;
     var active = const <String>{};
-    var diverOf = const <String, String?>{};
-    final usableBy = <String, Set<String>>{};
+    bool Function(String diveId, String id) usable = (_, _) => true;
     if (added.isNotEmpty) {
       index = await _loadComponentsIndex();
       final candidates = {
         for (final id in added) ...[id, ...index.descendantsOf(id)],
-      }.toList();
-      active = await _activeIdsAmong(candidates.toSet());
-      // A dive with no diver is filtered for the set's owner, as the edit
-      // page falls back to the diver it is open for.
-      final owner = await _setOwnerOf(setId);
-      diverOf = {
-        for (final MapEntry(:key, :value) in (await _diverIdsOf(
-          diveIds,
-        )).entries)
-          key: value ?? owner,
       };
-      final visibility = EquipmentVisibilityQueries(_db);
-      for (final diverId in {...diverOf.values.nonNulls}) {
-        usableBy[diverId] = (await visibility.usableSetMemberIds(
-          candidates,
-          diverId,
-        )).toSet();
-      }
+      active = await _activeIdsAmong(candidates);
+      usable = await templates.usableOnDives(
+        diveIds,
+        candidates,
+        fallbackDiverId: await templates.ownerOfSet(setId),
+      );
     }
-    return _rewriteGearOn(diveIds, deferTo: deferTo, (rows, diveId) {
-      // Neither the dive nor the set has a diver: unfiltered, as before.
-      final usable = usableBy[diverOf[diveId]];
+    return _rewriteGearOn(diveIds, notify: notify, (rows, diveId) {
       var next = rows;
       for (final rewrite in rewrites) {
         next = rewrite.applyTo(
@@ -8186,7 +8186,7 @@ class DiveRepository {
           setId,
           index: index,
           isActive: active.contains,
-          isUsable: (id) => usable == null || usable.contains(id),
+          isUsable: (id) => usable(diveId, id),
           isMember: members.contains,
         );
       }
@@ -8194,99 +8194,16 @@ class DiveRepository {
     });
   }
 
-  /// The members set [setId] holds now.
-  Future<Set<String>> _setMemberIds(String setId) async {
-    final rows =
-        await (_db.selectOnly(_db.equipmentSetItems)
-              ..addColumns([_db.equipmentSetItems.equipmentId])
-              ..where(_db.equipmentSetItems.setId.equals(setId)))
-            .get();
-    return {for (final r in rows) r.read(_db.equipmentSetItems.equipmentId)!};
-  }
-
-  /// The diver set [setId] belongs to, null for an ownerless set.
-  Future<String?> _setOwnerOf(String setId) async {
-    final row =
-        await (_db.selectOnly(_db.equipmentSets)
-              ..addColumns([_db.equipmentSets.diverId])
-              ..where(_db.equipmentSets.id.equals(setId)))
-            .getSingleOrNull();
-    return row?.read(_db.equipmentSets.diverId);
-  }
-
-  /// The gear column that makes a dive carry an assembly, and the one that
-  /// makes it carry a set. Fixed names, never user input.
-  static const _gearColumn = 'equipment_id';
-  static const _setColumn = 'via_set_id';
-
-  /// Dives with a gear row whose [column] is [id]: planned ones, and logged
-  /// ones too with [alsoLogged]. Every diver's, as a template is shared.
-  // stats-scope-exempt: picks the dives a gear template change rewrites;
-  // a dive left out of statistics still carries the gear
-  Future<List<String>> _diveIdsCarrying(
-    String column,
-    String id, {
-    required bool alsoLogged,
-  }) async {
-    final rows = await _db
-        .customSelect(
-          'SELECT DISTINCT de.dive_id AS id FROM dive_equipment de '
-          'JOIN dives d ON d.id = de.dive_id '
-          'WHERE de.$column = ?1'
-          '${alsoLogged ? '' : ' AND d.is_planned = 1'}',
-          variables: [Variable.withString(id)],
-          readsFrom: {_db.diveEquipment, _db.dives},
-        )
-        .get();
-    return [for (final r in rows) r.read<String>('id')];
-  }
-
-  // stats-scope-exempt: counts the dives a gear template change would
-  // rewrite, for the question before it; not a statistic
-  Future<int> _countDivesCarrying(
-    String column,
-    String id, {
-    required bool planned,
-  }) async {
-    final row = await _db
-        .customSelect(
-          'SELECT COUNT(DISTINCT de.dive_id) AS n FROM dive_equipment de '
-          'JOIN dives d ON d.id = de.dive_id '
-          'WHERE de.$column = ?1 AND d.is_planned = ?2',
-          variables: [Variable.withString(id), Variable.withBool(planned)],
-          readsFrom: {_db.diveEquipment, _db.dives},
-        )
-        .getSingle();
-    return row.read<int>('n');
-  }
-
-  /// Each of [diveIds]' diver, null for an unowned dive.
-  Future<Map<String, String?>> _diverIdsOf(List<String> diveIds) async {
-    final out = <String, String?>{};
-    for (final chunk in seriesIdChunks(diveIds)) {
-      final rows =
-          await (_db.selectOnly(_db.dives)
-                ..addColumns([_db.dives.id, _db.dives.diverId])
-                ..where(_db.dives.id.isIn(chunk)))
-              .get();
-      for (final r in rows) {
-        out[r.read(_db.dives.id)!] = r.read(_db.dives.diverId);
-      }
-    }
-    return out;
-  }
-
   /// Writes [change] of each of [diveIds]' gear rows in one transaction,
-  /// skipping the dives it leaves as they were. Returns how many changed.
-  /// With [deferTo], the changed dives go there and sync and the rescan
-  /// are the caller's.
-  Future<int> _rewriteGearOn(
+  /// skipping the dives it leaves as they were. Returns the dives that
+  /// changed. With [notify] false, sync and the rescan are the caller's.
+  Future<List<String>> _rewriteGearOn(
     List<String> diveIds,
     List<GearProvenance> Function(List<GearProvenance> rows, String diveId)
     change, {
-    Set<String>? deferTo,
+    required bool notify,
   }) async {
-    if (diveIds.isEmpty) return 0;
+    if (diveIds.isEmpty) return const [];
     final now = DateTime.now().millisecondsSinceEpoch;
     final touched = <String>[];
     await _db.transaction(() async {
@@ -8299,15 +8216,13 @@ class DiveRepository {
       }
       if (touched.isNotEmpty) await _bumpDives(touched, now);
     });
-    if (deferTo != null) {
-      deferTo.addAll(touched);
-    } else if (touched.isNotEmpty) {
+    if (notify && touched.isNotEmpty) {
       SyncEventBus.notifyLocalChange();
       // The gear changed without a save, so queue the rescan a save would
       // (issue #2853): a shared gear overlap can appear or go with it.
       scheduleQualityScan(touched);
     }
-    return touched.length;
+    return List.unmodifiable(touched);
   }
 
   static bool _sameRows(List<GearProvenance> a, List<GearProvenance> b) {

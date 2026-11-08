@@ -8,16 +8,33 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
+import 'package:submersion/features/equipment/domain/entities/set_history_rewrite.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_page.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
+
+/// Counts one logged dive with the set and fails the replay, as a locked
+/// database would.
+class _FailingReplay extends Fake implements DiveRepository {
+  @override
+  Future<int> countLoggedDivesWithSet(String setId) async => 1;
+
+  @override
+  Future<List<String>> rewriteSetOnDives(
+    String setId,
+    List<SetHistoryRewrite> rewrites, {
+    required bool alsoLogged,
+    bool notify = true,
+  }) async => throw StateError('replay failed');
+}
 
 /// Saving a set whose members changed offers to replay the change on the
 /// dives that carry the set (issue #4283): the logged ones on request, the
@@ -83,11 +100,14 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
-  Future<Widget> buildPage() async {
+  Future<Widget> buildPage({DiveRepository? diveRepository}) async {
     final overrides = await getBaseOverrides();
     overrides.add(
       validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
     );
+    if (diveRepository != null) {
+      overrides.add(diveRepositoryProvider.overrideWithValue(diveRepository));
+    }
     final router = GoRouter(
       initialLocation: '/home/edit',
       routes: [
@@ -127,15 +147,22 @@ void main() {
   };
 
   /// Opens the editor, unticks fins and saves.
-  Future<void> untickFinsAndSave(WidgetTester tester) async {
+  Future<void> untickFinsAndSave(
+    WidgetTester tester, {
+    DiveRepository? diveRepository,
+    bool makeDefault = false,
+  }) async {
     // Tall enough that the whole lazy form is built.
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(800, 4000);
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(await buildPage());
+    await tester.pumpWidget(await buildPage(diveRepository: diveRepository));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(CheckboxListTile, 'fins'));
+    if (makeDefault) {
+      await tester.tap(find.widgetWithText(SwitchListTile, 'Default set'));
+    }
     await tester.pump();
     await tester.tap(appBarSave());
     // The save button spins while the question is open, so the frame never
@@ -188,6 +215,26 @@ void main() {
       unorderedEquals(['wing', 'fins']),
     );
     expect(await gearOn('planned'), {'wing', 'fins'});
+  });
+
+  testWidgets('a failed replay still saves the rest of the edit', (
+    tester,
+  ) async {
+    await untickFinsAndSave(
+      tester,
+      diveRepository: _FailingReplay(),
+      makeDefault: true,
+    );
+    await tester.tap(find.text('Also update 1 dive'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    // The members and the default flag are saved; the error is shown and
+    // the editor stays open.
+    expect(find.textContaining('replay failed'), findsOneWidget);
+    expect(find.byType(EquipmentSetEditPage), findsOneWidget);
+    expect(await EquipmentSetRepository().getEquipmentIdsInSet('s1'), ['wing']);
+    expect((await EquipmentSetRepository().getSetById('s1'))!.isDefault, true);
   });
 
   testWidgets('a save that leaves the members alone asks nothing', (

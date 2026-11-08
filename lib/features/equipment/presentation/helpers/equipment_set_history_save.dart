@@ -8,14 +8,17 @@ import 'package:submersion/features/equipment/domain/entities/set_history_rewrit
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/assembly_history_dialog.dart';
 
-/// Saves an edited [set] and replays its member changes on the dives that
-/// carry it (issue #4283): planned dives always, logged ones when the diver
-/// asks for that. [loaded] is the set as the editor opened it.
+/// Saves an edited [set] and returns the step that replays its member
+/// changes on the dives that carry it (issue #4283): planned dives always,
+/// logged ones when the diver asks for that. [loaded] is the set as the
+/// editor opened it.
 ///
-/// Asks before anything is written, so a cancel saves nothing; returns false
+/// Asks before anything is written, so a cancel saves nothing; returns null
 /// then. Asks only when the members differ from [loaded] and a logged dive
-/// carries the set.
-Future<bool> saveSetWithHistory(
+/// carries the set. The caller runs the returned step once the rest of its
+/// save is written, so a replay that fails cannot cost the diver those
+/// edits.
+Future<Future<void> Function()?> saveSetWithHistory(
   BuildContext context,
   WidgetRef ref,
   EquipmentSet set,
@@ -24,9 +27,12 @@ Future<bool> saveSetWithHistory(
   var choice = AssemblyHistoryChoice.futureOnly;
   if (!setEquals(set.equipmentIds.toSet(), loaded.equipmentIds.toSet())) {
     final asked = await askSetHistory(context, ref, setId: set.id);
-    if (asked == null) return false;
+    // The page may have gone while the question was open; nothing is
+    // written yet, so stopping here leaves everything as it was.
+    if (asked == null || !context.mounted) return null;
     choice = asked;
   }
+  final dives = ref.read(diveRepositoryProvider);
   final diff = await ref
       .read(equipmentSetListNotifierProvider.notifier)
       .updateSet(set);
@@ -36,14 +42,12 @@ Future<bool> saveSetWithHistory(
     for (final id in diff.added) SetItemAdded(id),
     for (final id in diff.removed) SetItemRemoved(id),
   ];
-  if (rewrites.isNotEmpty) {
-    await ref
-        .read(diveRepositoryProvider)
-        .rewriteSetOnDives(
-          set.id,
-          rewrites,
-          alsoLogged: choice == AssemblyHistoryChoice.alsoPast,
-        );
-  }
-  return true;
+  return () async {
+    if (rewrites.isEmpty) return;
+    await dives.rewriteSetOnDives(
+      set.id,
+      rewrites,
+      alsoLogged: choice == AssemblyHistoryChoice.alsoPast,
+    );
+  };
 }

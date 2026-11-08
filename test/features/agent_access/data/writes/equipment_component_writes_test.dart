@@ -4,6 +4,7 @@ import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/agent_access/data/writes/families/equipment_component_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
+import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 
 import '../../../../helpers/test_database.dart';
 import '../records/record_harness.dart';
@@ -143,6 +144,26 @@ void main() {
     expect(entry.pendingRescan, {'p1'});
     await entry.afterApply(const [], ApplyRun());
     expect(entry.pendingRescan, isEmpty);
+  });
+
+  test('an update of a part that is gone is refused', () async {
+    final entry =
+        h.writes.named('equipment_components')! as EquipmentComponentWrites;
+    for (final values in const <Map<String, Object?>>[
+      {'sort_order': 0},
+      {'component_equipment_id': 'octo'},
+    ]) {
+      await expectLater(
+        entry.update('gone', kDiverA, RecordUpdate(values: values)),
+        throwsA(
+          isA<AgentToolException>().having(
+            (e) => e.code,
+            'code',
+            AgentToolErrorCode.writeRefused,
+          ),
+        ),
+      );
+    }
   });
 
   test('a part that would close a loop is blocked', () async {

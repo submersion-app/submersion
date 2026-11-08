@@ -81,6 +81,18 @@ void main() {
       expect(apply(const SetItemAdded('mask'), rows), rows);
     });
 
+    test('a part another set put there stays with that set', () {
+      // Removing reg from winter later must not take summer's hose along.
+      const rows = [
+        GearProvenance(equipmentId: 'bcd', viaSetId: 'winter'),
+        GearProvenance(equipmentId: 'hose', viaSetId: 'summer'),
+      ];
+      final next = apply(const SetItemAdded('reg'), rows);
+      expect(ids(next), ['bcd', 'hose', 'reg']);
+      expect(row(next, 'hose'), rows[1]);
+      expect(row(next, 'reg').viaSetId, 'winter');
+    });
+
     test('an inactive item is not put on the dive', () {
       expect(apply(const SetItemAdded('retired'), onDive), onDive);
     });

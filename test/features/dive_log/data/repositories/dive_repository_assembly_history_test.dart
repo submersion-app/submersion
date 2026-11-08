@@ -90,11 +90,6 @@ void main() {
     db.dives,
   )..where((t) => t.id.equals(diveId))).getSingle()).updatedAt;
 
-  test('diveIdsWithEquipment lists the dives that carry the item', () async {
-    expect(await repo.diveIdsWithEquipment('reg'), unorderedEquals(['a', 'b']));
-    expect(await repo.diveIdsWithEquipment('newhose'), isEmpty);
-  });
-
   test(
     'an added part lands on every dive with the assembly, tagged with its set',
     () async {
@@ -102,7 +97,7 @@ void main() {
       final touched = await repo.rewriteAssemblyOnDives('reg', const [
         GearPartAdded('first'),
       ], alsoLogged: true);
-      expect(touched, 2);
+      expect(touched, hasLength(2));
       final a = await rowsOf('a');
       expect(a['first']!.viaEquipmentId, 'reg');
       expect(a['first']!.viaSetId, 'winter');
@@ -146,7 +141,7 @@ void main() {
     final touched = await repo.rewriteAssemblyOnDives('reg', const [
       GearPartRemoved('first'),
     ], alsoLogged: true);
-    expect(touched, 0);
+    expect(touched, hasLength(0));
     expect(await updatedAtOf('a'), before);
   });
 
@@ -156,7 +151,7 @@ void main() {
       GearPartAdded('newhose'),
       GearPartRemoved('hose'),
     ], alsoLogged: true);
-    expect(touched, 2);
+    expect(touched, hasLength(2));
     final a = await rowsOf('a');
     expect(a.keys, unorderedEquals(['reg', 'first', 'newhose']));
     expect(a['first']!.viaEquipmentId, 'reg');
@@ -177,7 +172,7 @@ void main() {
     final before = await updatedAtOf('a');
     expect(
       await repo.rewriteAssemblyOnDives('reg', const [], alsoLogged: true),
-      0,
+      isEmpty,
     );
     expect(await updatedAtOf('a'), before);
   });

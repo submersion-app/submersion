@@ -26,12 +26,22 @@ tests' `Fake implements DiveRepository` can override them):
 
 - `countLoggedDivesWithAssembly(assemblyId)` and
   `countLoggedDivesWithSet(setId)`.
-- `rewriteAssemblyOnDives(assemblyId, rewrites, {required bool alsoLogged})`
-  replaces `rewriteAssemblyOnPastDives`.
-- `rewriteSetOnDives(setId, rewrites, {required bool alsoLogged})`.
-- Both go through one private loop: pick the dive ids, read each dive's
-  provenance, apply, skip unchanged, `_writeGearDiff`, `_bumpDives`, then
-  notify and schedule the quality scan.
+- `rewriteAssemblyOnDives(assemblyId, rewrites, {required bool alsoLogged,
+  bool notify = true})` replaces `rewriteAssemblyOnPastDives`.
+- `rewriteSetOnDives(setId, rewrites, {required bool alsoLogged,
+  bool notify = true})`.
+- Both return the dives they changed and go through one private loop: pick
+  the dive ids, read each dive's provenance, apply, skip unchanged,
+  `_writeGearDiff`, `_bumpDives`, then notify and schedule the quality scan.
+  With `notify: false` the caller does both once its own transaction
+  commits, as an agent apply does.
+- The queries behind them (which dives carry an assembly or a set, how many,
+  and which gear each dive's diver may be given) live in
+  `GearTemplateDiveQueries`, next to the repository.
+- A part an assembly change adds goes on a dive only as a fresh expansion
+  would put it there: active, and usable by the dive's diver (an unowned
+  dive: the assembly owner's). A swap onto a part the dive may not take
+  only takes the old part off.
 
 `EquipmentSetRepository.updateSet` returns the members it actually added and
 removed (after `_liveEquipmentIds`), as a record. The notifier passes it on.
@@ -43,17 +53,24 @@ removed (after `_liveEquipmentIds`), as a record. The notifier passes it on.
 - `SetItemAdded(itemId)`: the dive must carry the set. A missing item is
   expanded through `GearExpander.expand` with its active parts, tagged with
   the set. A loose hand-added row is adopted (tagged). A row under another
-  assembly is left alone, before the expander could tag it.
-- `SetItemRemoved(itemId)`: removes the item's subtree only when its row is
-  top level and tagged with this set.
+  assembly, or one another set put there, is left alone, before the
+  expander could tag it; so is a part of the item that another set put on
+  the dive, with everything under it.
+- `SetItemRemoved(itemId)`: only when its row is top level and tagged with
+  this set, removes the rows the set hung under it. A row under it that the
+  set did not put there (by hand, or by another set), or a part still a
+  member in its own right, stays with its own parts and moves to the top
+  level.
 
-`applyTo(rows, setId, {index, isActive, isUsable})`: the repository loads the
-components index and the active ids once per batch. `isUsable` is the filter
-applying a set already uses (`EquipmentVisibilityQueries.usableSetMemberIds`
-for the dive's diver: no other profile's unshared gear, nothing on the
-wishlist), resolved per diver; a dive with no diver skips it, as the dive
-edit page does. An added item that is inactive or not usable is not put on
-the dive.
+`applyTo(rows, setId, {index, isActive, isUsable, isMember})`: the
+repository loads the components index and the active ids once per batch.
+`isUsable` is the filter applying a set already uses
+(`EquipmentVisibilityQueries.usableSetMemberIds` for the dive's diver: no
+other profile's unshared gear, nothing on the wishlist), resolved per diver;
+a dive with no diver is filtered for the set's owner, as the dive edit page
+falls back to the diver it is open for. An added item that is inactive or
+not usable is not put on the dive. `isMember` names the set's members after
+the change.
 
 ## Callers
 
@@ -66,10 +83,14 @@ the dive.
 | UDDF import, clone service, sync | as today | none: they copy or restore data, the diver did not edit a template |
 
 The agent's component update and delete read the row first, for the parent
-and the old part the rewrite needs, and refuse a row that is gone.
+and the old part the rewrite needs. An update refuses a row that is gone; a
+delete of one (say with its assembly earlier in the same set) has nothing to
+replay.
 
 A rewrite that fails after the template was saved leaves the template saved
-and reports the error, as the component flow does.
+and reports the error, as the component flow does. The set edit page runs it
+last, after the default flag and the geofences, so a failure cannot cost
+those edits.
 
 The set edit page asks before writing anything, so Cancel saves nothing. It
 asks only when editing, when the ticked members differ from the loaded set,
@@ -82,7 +103,7 @@ the page is at 798 lines.
 sentence pair. `askAssemblyHistory` counts through
 `countLoggedDivesWithAssembly`; a new `askSetHistory` counts through
 `countLoggedDivesWithSet`. New strings in all 11 locales:
-`equipment_setHistory_onDives` (plural) and `equipment_setHistory_ask`.
+`equipment_setEdit_historyOnDives` (plural) and `equipment_setEdit_historyAsk`.
 
 ## Tests (TDD)
 

@@ -1,9 +1,8 @@
-import 'package:meta/meta.dart';
-
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/writes/families/planned_dive_rescan.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
-import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
+import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_history_rewrite.dart';
 
@@ -12,7 +11,7 @@ import 'package:submersion/features/equipment/domain/entities/gear_history_rewri
 /// in its place, moved to a position the assembly holds and removed. A part
 /// that would make an item part of itself is refused, as the card refuses
 /// it.
-class EquipmentComponentWrites extends WritableEntry {
+class EquipmentComponentWrites extends WritableEntry with PlannedDiveRescan {
   EquipmentComponentWrites(this._r);
 
   final RecordRepositories _r;
@@ -164,7 +163,9 @@ class EquipmentComponentWrites extends WritableEntry {
     String id, {
     Map<String, Set<String>> alongside = const {},
   }) async => DeleteReach(
-    touched: await _plannedTouched((await _row(id))?.parentEquipmentId),
+    touched: await _plannedTouched(
+      (await _r.equipmentComponents.getComponentById(id))?.parentEquipmentId,
+    ),
   );
 
   Future<Map<String, int>> _plannedTouched(String? assemblyId) async {
@@ -173,44 +174,29 @@ class EquipmentComponentWrites extends WritableEntry {
     return {if (n > 0) 'dives': n};
   }
 
-  /// The stored part [id], or null when it is gone.
-  Future<EquipmentComponent?> _row(String id) async {
-    for (final c in await _r.equipmentComponents.getAllComponents()) {
-      if (c.id == id) return c;
-    }
-    return null;
-  }
-
-  /// The planned dives this entity's writes rewrote, held for [afterApply].
-  /// An apply that rolls back never reaches it, and the next apply's rescan
-  /// then takes these along too: a rescan of an unchanged dive is harmless.
-  final _rewrittenDives = <String>{};
+  /// The stored part [id]. An update refuses one that is gone, as a set's
+  /// does: a swap needs the part it replaces, a move the assembly it is in.
+  Future<EquipmentComponent> _existing(String id) async =>
+      await _r.equipmentComponents.getComponentById(id) ??
+      (throw AgentToolException(
+        AgentToolErrorCode.writeRefused,
+        'Equipment component $id no longer exists.',
+        details: {'id': id},
+      ));
 
   /// Inside the apply's transaction, so a revert takes it back with the
   /// part; the rescan waits for [afterApply], once the rows are committed.
   Future<void> _followOnPlannedDives(
     String assemblyId,
     GearHistoryRewrite rewrite,
-  ) => _r.dives.rewriteAssemblyOnDives(
-    assemblyId,
-    [rewrite],
-    alsoLogged: false,
-    deferTo: _rewrittenDives,
+  ) async => holdForRescan(
+    await _r.dives.rewriteAssemblyOnDives(
+      assemblyId,
+      [rewrite],
+      alsoLogged: false,
+      notify: false,
+    ),
   );
-
-  /// The planned dives a part change rewrote are rescanned, as a save would
-  /// (issue #2853), once the apply has committed. Sync hears of the apply
-  /// from the applier itself.
-  @override
-  Future<void> afterApply(List<AppliedChange> changes, ApplyRun run) async {
-    if (_rewrittenDives.isEmpty) return;
-    final dives = Set.of(_rewrittenDives);
-    _rewrittenDives.clear();
-    scheduleQualityScan(dives);
-  }
-
-  @visibleForTesting
-  Set<String> get pendingRescan => Set.unmodifiable(_rewrittenDives);
 
   @override
   Future<String> create(String diverId, Map<String, Object?> values) async {
@@ -231,17 +217,15 @@ class EquipmentComponentWrites extends WritableEntry {
     final v = update.values;
     if (v['component_equipment_id'] case final String componentId) {
       // Read before the swap: the rewrite needs the part it replaces.
-      final before = await _row(id);
+      final before = await _existing(id);
       await components.replaceComponent(id, componentId);
-      if (before != null) {
-        await _followOnPlannedDives(
-          before.parentEquipmentId,
-          GearPartReplaced(
-            oldPartId: before.componentEquipmentId,
-            newPartId: componentId,
-          ),
-        );
-      }
+      await _followOnPlannedDives(
+        before.parentEquipmentId,
+        GearPartReplaced(
+          oldPartId: before.componentEquipmentId,
+          newPartId: componentId,
+        ),
+      );
     }
     if (v['role'] case final String role) {
       await components.updateRole(id, role);
@@ -249,7 +233,7 @@ class EquipmentComponentWrites extends WritableEntry {
     if (v['sort_order'] case final int slot) {
       // The assembly's parts trade places, so this one lands at [slot] and
       // the parts between shift by one, as a drag on the card does.
-      final row = (await _row(id))!;
+      final row = await _existing(id);
       final ordered = [
         for (final c in await components.getComponents(row.parentEquipmentId))
           if (c.id != id) c.id,
@@ -258,9 +242,11 @@ class EquipmentComponentWrites extends WritableEntry {
     }
   }
 
+  /// A part already gone, say with its assembly earlier in the same set,
+  /// has nothing left to replay on the dives.
   @override
   Future<void> delete(String id, String? ownerId) async {
-    final before = await _row(id);
+    final before = await _r.equipmentComponents.getComponentById(id);
     await _r.equipmentComponents.removeComponent(id);
     if (before != null) {
       await _followOnPlannedDives(

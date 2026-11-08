@@ -1,17 +1,16 @@
 import 'package:drift/drift.dart' show Variable;
-import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/agent_access/data/writes/families/equipment_item_rules.dart';
 
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/writes/families/planned_dive_rescan.dart';
 import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/object_list_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
-import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set_geofence.dart';
 import 'package:submersion/features/equipment/domain/entities/set_history_rewrite.dart';
@@ -19,7 +18,7 @@ import 'package:submersion/features/equipment/domain/entities/set_history_rewrit
 /// Equipment sets, through the repository the sets page uses: members the
 /// owner can use, one default per diver, the figure, and the places a set
 /// applies near, replaced whole and matched by position.
-class EquipmentSetWrites extends WritableEntry {
+class EquipmentSetWrites extends WritableEntry with PlannedDiveRescan {
   EquipmentSetWrites(this._r);
 
   final RecordRepositories _r;
@@ -166,25 +165,6 @@ class EquipmentSetWrites extends WritableEntry {
     return others;
   }
 
-  /// The planned dives this entity's writes rewrote, held for [afterApply].
-  /// An apply that rolls back never reaches it, and the next apply's rescan
-  /// then takes these along too: a rescan of an unchanged dive is harmless.
-  final _rewrittenDives = <String>{};
-
-  /// The planned dives a member change rewrote are rescanned, as a save
-  /// would (issue #2853), once the apply has committed. Sync hears of the
-  /// apply from the applier itself.
-  @override
-  Future<void> afterApply(List<AppliedChange> changes, ApplyRun run) async {
-    if (_rewrittenDives.isEmpty) return;
-    final dives = Set.of(_rewrittenDives);
-    _rewrittenDives.clear();
-    scheduleQualityScan(dives);
-  }
-
-  @visibleForTesting
-  Set<String> get pendingRescan => Set.unmodifiable(_rewrittenDives);
-
   @override
   Future<DeleteReach> deleteReach(
     String id, {
@@ -260,14 +240,16 @@ class EquipmentSetWrites extends WritableEntry {
       // an agent never rewrites logged dives (issue #4283). Inside the
       // apply's transaction, so a revert takes it back with the set; the
       // rescan waits for afterApply.
-      await _r.dives.rewriteSetOnDives(
-        id,
-        [
-          for (final e in diff.added) SetItemAdded(e),
-          for (final e in diff.removed) SetItemRemoved(e),
-        ],
-        alsoLogged: false,
-        deferTo: _rewrittenDives,
+      holdForRescan(
+        await _r.dives.rewriteSetOnDives(
+          id,
+          [
+            for (final e in diff.added) SetItemAdded(e),
+            for (final e in diff.removed) SetItemRemoved(e),
+          ],
+          alsoLogged: false,
+          notify: false,
+        ),
       );
     }
     if (v['show_figure'] case final bool show) {

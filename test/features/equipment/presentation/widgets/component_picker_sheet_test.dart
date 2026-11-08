@@ -91,14 +91,14 @@ class _FakeDiveRepository extends Fake implements DiveRepository {
   }
 
   @override
-  Future<int> rewriteAssemblyOnDives(
+  Future<List<String>> rewriteAssemblyOnDives(
     String assemblyId,
     List<GearHistoryRewrite> rewrites_, {
     required bool alsoLogged,
-    Set<String>? deferTo,
+    bool notify = true,
   }) async {
     rewrites.add((assemblyId, rewrites_, alsoLogged));
-    return 1;
+    return const ['dive'];
   }
 }
 

@@ -108,7 +108,7 @@ void main() {
       final touched = await repo.rewriteSetOnDives('winter', const [
         SetItemAdded('fins'),
       ], alsoLogged: false);
-      expect(touched, 1);
+      expect(touched, hasLength(1));
       expect((await rowsOf('p'))['fins']!.viaSetId, 'winter');
       expect((await rowsOf('a')).containsKey('fins'), isFalse);
     });
@@ -118,7 +118,7 @@ void main() {
       final touched = await repo.rewriteSetOnDives('winter', const [
         SetItemAdded('fins'),
       ], alsoLogged: true);
-      expect(touched, 2);
+      expect(touched, hasLength(2));
       expect((await rowsOf('a'))['fins']!.viaSetId, 'winter');
       expect((await rowsOf('p'))['fins']!.viaSetId, 'winter');
       expect((await rowsOf('c')).containsKey('fins'), isFalse);
@@ -136,8 +136,25 @@ void main() {
       final touched = await repo.rewriteSetOnDives('winter', const [
         SetItemAdded('theirs'),
       ], alsoLogged: true);
-      expect(touched, 0);
+      expect(touched, hasLength(0));
       expect((await rowsOf('a')).containsKey('theirs'), isFalse);
+    });
+
+    test('a dive with no diver is filtered for the set owner', () async {
+      await (db.update(db.equipmentSets)..where((s) => s.id.equals('winter')))
+          .write(const EquipmentSetsCompanion(diverId: Value('d1')));
+      await repo.createDive(
+        domain.Dive(id: 'u', dateTime: DateTime(2026, 1, 1), isPlanned: true),
+      );
+      await repo.replaceGearRows('u', const [
+        GearProvenance(equipmentId: 'bcd', viaSetId: 'winter'),
+      ]);
+      final touched = await repo.rewriteSetOnDives('winter', const [
+        SetItemAdded('theirs'),
+        SetItemAdded('fins'),
+      ], alsoLogged: false);
+      expect(touched, unorderedEquals(['u', 'p']));
+      expect((await rowsOf('u')).keys, unorderedEquals(['bcd', 'fins']));
     });
 
     test('a removed member leaves the set dives, hand rows stay', () async {
@@ -159,7 +176,7 @@ void main() {
       final before = await updatedAtOf('p');
       expect(
         await repo.rewriteSetOnDives('winter', const [], alsoLogged: true),
-        0,
+        isEmpty,
       );
       expect(await updatedAtOf('p'), before);
     });
@@ -176,7 +193,7 @@ void main() {
       final touched = await repo.rewriteAssemblyOnDives('reg', const [
         GearPartAdded('hose'),
       ], alsoLogged: false);
-      expect(touched, 1);
+      expect(touched, hasLength(1));
       expect((await rowsOf('p'))['hose']!.viaEquipmentId, 'reg');
       expect((await rowsOf('a')).containsKey('hose'), isFalse);
       expect((await rowsOf('c')).containsKey('hose'), isFalse);
@@ -186,7 +203,24 @@ void main() {
       final touched = await repo.rewriteAssemblyOnDives('reg', const [
         GearPartAdded('hose'),
       ], alsoLogged: true);
-      expect(touched, 3);
+      expect(touched, hasLength(3));
+    });
+
+    test('a part a fresh expansion would skip stays off the dives', () async {
+      // theirs is d2's and not shared with d1; old is retired.
+      await seedItem('old');
+      await (db.update(db.equipment)..where((e) => e.id.equals('old'))).write(
+        const EquipmentCompanion(status: Value('retired')),
+      );
+      final touched = await repo.rewriteAssemblyOnDives('reg', const [
+        GearPartAdded('theirs'),
+        GearPartAdded('old'),
+      ], alsoLogged: true);
+      expect(touched, isEmpty);
+      for (final dive in ['a', 'c', 'p']) {
+        expect((await rowsOf(dive)).keys, isNot(contains('theirs')));
+        expect((await rowsOf(dive)).keys, isNot(contains('old')));
+      }
     });
   });
 }

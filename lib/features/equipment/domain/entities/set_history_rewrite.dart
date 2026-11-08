@@ -67,12 +67,19 @@ class SetItemAdded extends SetHistoryRewrite {
             (current.viaSetId != null && current.viaSetId != setId))) {
       return rows;
     }
+    // A part another set put on the dive is that set's, as the item itself
+    // is above: the walk neither re-tags it nor goes below it, so removing
+    // this member later cannot take it off the dive.
+    final foreign = {
+      for (final r in rows)
+        if (r.viaSetId != null && r.viaSetId != setId) r.equipmentId,
+    };
     return GearExpander.expand(
       additions: [(equipmentId: itemId, viaSetId: setId)],
       index: index,
       existing: rows,
       // The parts it brings pass the same filter, as applying the set does.
-      isActive: (id) => isActive(id) && isUsable(id),
+      isActive: (id) => isActive(id) && isUsable(id) && !foreign.contains(id),
     );
   }
 

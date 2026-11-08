@@ -87,7 +87,7 @@ void main() {
     final touched = await DiveRepository().rewriteAssemblyOnDives('reg', [
       const GearPartAdded('octo'),
     ], alsoLogged: true);
-    expect(touched, 1);
+    expect(touched, hasLength(1));
     await QualityScanScheduler.instance.idle;
 
     final findings = await QualityFindingsRepository().getFindings(
@@ -99,37 +99,32 @@ void main() {
     );
   });
 
-  test(
-    'a deferred rewrite hands its dives to the caller (issue #4283)',
-    () async {
-      // An agent apply rewrites inside its own transaction and rescans in
-      // afterApply, once the rows are committed.
-      await seed();
-      final deferred = <String>{};
-      final touched = await DiveRepository().rewriteAssemblyOnDives(
-        'reg',
-        [const GearPartAdded('octo')],
-        alsoLogged: true,
-        deferTo: deferred,
-      );
-      expect(touched, 1);
-      expect(deferred, {'b1'});
-      await QualityScanScheduler.instance.idle;
-      expect(
-        await QualityFindingsRepository().getFindings(diveId: 'b1'),
-        isEmpty,
-      );
+  test('a quiet rewrite hands its dives to the caller (issue #4283)', () async {
+    // An agent apply rewrites inside its own transaction and rescans in
+    // afterApply, once the rows are committed.
+    await seed();
+    final deferred = await DiveRepository().rewriteAssemblyOnDives(
+      'reg',
+      [const GearPartAdded('octo')],
+      alsoLogged: true,
+      notify: false,
+    );
+    expect(deferred, ['b1']);
+    await QualityScanScheduler.instance.idle;
+    expect(
+      await QualityFindingsRepository().getFindings(diveId: 'b1'),
+      isEmpty,
+    );
 
-      // The caller's rescan of those dives finds what the rewrite caused.
-      scheduleQualityScan(deferred);
-      await QualityScanScheduler.instance.idle;
-      final findings = await QualityFindingsRepository().getFindings(
-        diveId: 'b1',
-      );
-      expect(
-        findings.map((f) => (f.detectorId, f.params['equipmentId'])),
-        contains(('shared_gear_overlap', 'octo')),
-      );
-    },
-  );
+    // The caller's rescan of those dives finds what the rewrite caused.
+    scheduleQualityScan(deferred);
+    await QualityScanScheduler.instance.idle;
+    final findings = await QualityFindingsRepository().getFindings(
+      diveId: 'b1',
+    );
+    expect(
+      findings.map((f) => (f.detectorId, f.params['equipmentId'])),
+      contains(('shared_gear_overlap', 'octo')),
+    );
+  });
 }

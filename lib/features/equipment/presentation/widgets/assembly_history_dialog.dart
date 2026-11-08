@@ -69,33 +69,34 @@ Future<AssemblyHistoryChoice?> askAssemblyHistory(
   WidgetRef ref, {
   required String assemblyId,
   required AssemblyHistoryChange change,
-}) async {
-  final count = await ref
-      .read(diveRepositoryProvider)
-      .countLoggedDivesWithAssembly(assemblyId);
-  if (count == 0) return AssemblyHistoryChoice.futureOnly;
-  if (!context.mounted) return null;
-  return showAssemblyHistoryDialog(
-    context,
-    pastDiveCount: count,
-    change: change,
-  );
-}
+}) => _askWithCount(
+  context,
+  ref.read(diveRepositoryProvider).countLoggedDivesWithAssembly(assemblyId),
+  change,
+);
 
 /// The same question for a change to the members of set [setId].
 Future<AssemblyHistoryChoice?> askSetHistory(
   BuildContext context,
   WidgetRef ref, {
   required String setId,
-}) async {
-  final count = await ref
-      .read(diveRepositoryProvider)
-      .countLoggedDivesWithSet(setId);
+}) => _askWithCount(
+  context,
+  ref.read(diveRepositoryProvider).countLoggedDivesWithSet(setId),
+  AssemblyHistoryChange.setMembers,
+);
+
+Future<AssemblyHistoryChoice?> _askWithCount(
+  BuildContext context,
+  Future<int> loggedDives,
+  AssemblyHistoryChange change,
+) async {
+  final count = await loggedDives;
   if (count == 0) return AssemblyHistoryChoice.futureOnly;
   if (!context.mounted) return null;
   return showAssemblyHistoryDialog(
     context,
     pastDiveCount: count,
-    change: AssemblyHistoryChange.setMembers,
+    change: change,
   );
 }
