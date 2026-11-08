@@ -420,7 +420,8 @@ void main() {
             throw StateError('forced failure');
       }
 
-      // A FormatException: the document's own end, or the trailer's size.
+      // A FormatException: the document's own end, or the trailer's CRC
+      // and size.
       await expectLater(
         svc.debugApplyBaseFile(gz.path, gzipped: true),
         throwsFormatException,

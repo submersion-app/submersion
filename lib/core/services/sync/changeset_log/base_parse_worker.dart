@@ -58,10 +58,10 @@ void baseParseWorkerMain(List<Object> args) {
   });
 
   final total = File(filePath).lengthSync();
-  // A gzipped file is checked against its trailer's size on every pass. Read
-  // on first use, inside a pass, so a file too short for a trailer fails
-  // that pass through sendError like any other bad base.
-  late final isize = _trailerSize(filePath, total);
+  // A gzipped file is checked against its trailer on every pass. Read on
+  // first use, inside a pass, so a file too short for a trailer fails that
+  // pass through sendError like any other bad base.
+  late final trailer = _trailer(filePath, total);
   Stream<List<int>> openWithProgress() {
     final read = withByteProgress(
       File(filePath).openRead(),
@@ -72,7 +72,7 @@ void baseParseWorkerMain(List<Object> args) {
       }),
     );
     return gzipped
-        ? checkedGzipLength(read.transform(gzip.decoder), isize)
+        ? checkedGzipTrailer(read.transform(gzip.decoder), trailer)
         : read;
   }
 
@@ -166,13 +166,12 @@ void baseParseWorkerMain(List<Object> args) {
   });
 }
 
-/// The expanded size the gzip at [filePath], [length] bytes long, records
-/// in its trailer.
-int _trailerSize(String filePath, int length) {
+/// The trailer of the gzip at [filePath], [length] bytes long.
+GzipTrailer _trailer(String filePath, int length) {
   final file = File(filePath).openSync();
   try {
-    file.setPositionSync(length < 4 ? 0 : length - 4);
-    return gzipTrailerSize(file.readSync(4));
+    file.setPositionSync(length < 8 ? 0 : length - 8);
+    return gzipTrailer(file.readSync(8));
   } finally {
     file.closeSync();
   }

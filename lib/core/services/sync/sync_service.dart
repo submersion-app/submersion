@@ -2563,12 +2563,12 @@ class SyncService {
     bool gzipped = false,
   }) async {
     final lastSyncMs = localLastSync?.millisecondsSinceEpoch;
-    // A gzipped file is checked against its trailer's size on every pass.
-    var isize = 0;
+    // A gzipped file is checked against its trailer on every pass.
+    GzipTrailer? trailer;
     if (gzipped) {
       final length = await SyncTempFiles.length(filePath);
-      isize = gzipTrailerSize(
-        await SyncTempFiles.read(filePath, length < 4 ? 0 : length - 4, 4),
+      trailer = gzipTrailer(
+        await SyncTempFiles.read(filePath, length < 8 ? 0 : length - 8, 8),
       );
     }
     // The inline parse blocks the UI isolate, so its heartbeats are what
@@ -2578,8 +2578,8 @@ class SyncService {
         SyncTempFiles.openRead(filePath),
         onProgress: progress.consumed,
       );
-      return gzipped
-          ? checkedGzipLength(SyncTempFiles.gunzip(read), isize)
+      return trailer != null
+          ? checkedGzipTrailer(SyncTempFiles.gunzip(read), trailer)
           : read;
     }
 

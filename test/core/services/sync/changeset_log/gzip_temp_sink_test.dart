@@ -155,7 +155,7 @@ void main() {
   test('a head can only end once', () async {
     final sink = await create('twice.gz');
     await sink.endHead();
-    expect(sink.endHead, throwsStateError);
+    await expectLater(sink.endHead(), throwsStateError);
     await sink.close();
   });
 }
