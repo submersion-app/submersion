@@ -25,3 +25,12 @@ String formatMinutesSeconds(int seconds) {
   final elapsed = seconds.abs();
   return '$sign${elapsed ~/ 60}:${(elapsed % 60).toString().padLeft(2, '0')}';
 }
+
+/// `mm:ss` with the minutes padded to two digits, the shape playback and
+/// range selection read out in: 65 is "01:05", -65 is "-01:05".
+String formatPaddedMinutesSeconds(int seconds) {
+  final sign = seconds < 0 ? '-' : '';
+  final elapsed = seconds.abs();
+  final minutes = (elapsed ~/ 60).toString().padLeft(2, '0');
+  return '$sign$minutes:${(elapsed % 60).toString().padLeft(2, '0')}';
+}

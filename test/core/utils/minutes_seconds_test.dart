@@ -49,4 +49,13 @@ void main() {
       expect(gasSwitch.timestampFormatted, formatMinutesSeconds(67));
     });
   });
+
+  group('formatPaddedMinutesSeconds', () {
+    test('pads the minutes and signs a time before the start (#4296)', () {
+      expect(formatPaddedMinutesSeconds(65), '01:05');
+      expect(formatPaddedMinutesSeconds(0), '00:00');
+      expect(formatPaddedMinutesSeconds(-65), '-01:05');
+      expect(formatPaddedMinutesSeconds(7230), '120:30');
+    });
+  });
 }

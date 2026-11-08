@@ -5273,6 +5273,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               startSeconds: widget.rangeSelection!.startSeconds,
               endSeconds: widget.rangeSelection!.endSeconds,
               maxSeconds: widget.rangeSelection!.maxSeconds,
+              // The profile is in time order, so its first sample is its
+              // earliest: below 0 for a series placed before the primary.
+              minSeconds: widget.profile.isEmpty
+                  ? 0
+                  : math.min(0, widget.profile.first.timestamp),
               visibleMinSeconds: visibleMinX,
               visibleMaxSeconds: visibleMaxX,
               insets: plotInsets,
