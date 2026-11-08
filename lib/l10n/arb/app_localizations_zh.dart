@@ -18813,6 +18813,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_photoPicker_selectAllButton => '全选';
 
   @override
+  String get media_photoPicker_albumFilter_all => '所有相册';
+
+  @override
+  String media_photoPicker_albumFilter_chip(String album, int count) {
+    return '$album ($count)';
+  }
+
+  @override
+  String get media_photoPicker_albumFilter_label => '按相册筛选';
+
+  @override
   String media_photoPicker_selectedCount(int count) {
     return '$count 已选择';
   }

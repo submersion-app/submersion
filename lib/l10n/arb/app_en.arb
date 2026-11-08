@@ -11768,6 +11768,9 @@
   "media_photoPicker_permissionRequestMessage": "Submersion needs access to your photo library to add dive photos.",
   "media_photoPicker_permissionTitle": "Dive Photos",
   "media_photoPicker_selectAllButton": "Select All",
+  "media_photoPicker_albumFilter_all": "All albums",
+  "media_photoPicker_albumFilter_chip": "{album} ({count})",
+  "media_photoPicker_albumFilter_label": "Filter by album",
   "media_photoPicker_selectedCount": "{count} selected",
   "media_photoPicker_showingPhotosFromRange": "Showing photos from {rangeText}",
   "media_photoPicker_thumbnailToggleLabel": "Toggle selection for photo",
@@ -12219,6 +12222,16 @@
   },
   "@media_photoPicker_selectedCount": {
     "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@media_photoPicker_albumFilter_chip": {
+    "placeholders": {
+      "album": {
+        "type": "String"
+      },
       "count": {
         "type": "int"
       }

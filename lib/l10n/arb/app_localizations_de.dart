@@ -19760,6 +19760,17 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_photoPicker_selectAllButton => 'Alle auswählen';
 
   @override
+  String get media_photoPicker_albumFilter_all => 'Alle Alben';
+
+  @override
+  String media_photoPicker_albumFilter_chip(String album, int count) {
+    return '$album ($count)';
+  }
+
+  @override
+  String get media_photoPicker_albumFilter_label => 'Nach Album filtern';
+
+  @override
   String media_photoPicker_selectedCount(int count) {
     return '$count ausgewählt';
   }

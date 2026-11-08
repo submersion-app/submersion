@@ -20058,6 +20058,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_photoPicker_selectAllButton => 'تحديد الكل';
 
   @override
+  String get media_photoPicker_albumFilter_all => 'كل الألبومات';
+
+  @override
+  String media_photoPicker_albumFilter_chip(String album, int count) {
+    return '$album ($count)';
+  }
+
+  @override
+  String get media_photoPicker_albumFilter_label => 'التصفية حسب الألبوم';
+
+  @override
   String media_photoPicker_selectedCount(int count) {
     return '$count محدد';
   }

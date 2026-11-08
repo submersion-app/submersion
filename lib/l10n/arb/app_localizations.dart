@@ -31540,6 +31540,24 @@ abstract class AppLocalizations {
   /// **'Select All'**
   String get media_photoPicker_selectAllButton;
 
+  /// No description provided for @media_photoPicker_albumFilter_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All albums'**
+  String get media_photoPicker_albumFilter_all;
+
+  /// No description provided for @media_photoPicker_albumFilter_chip.
+  ///
+  /// In en, this message translates to:
+  /// **'{album} ({count})'**
+  String media_photoPicker_albumFilter_chip(String album, int count);
+
+  /// No description provided for @media_photoPicker_albumFilter_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by album'**
+  String get media_photoPicker_albumFilter_label;
+
   /// No description provided for @media_photoPicker_selectedCount.
   ///
   /// In en, this message translates to:
