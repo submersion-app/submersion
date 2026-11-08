@@ -52,6 +52,15 @@ class DiveDerivedMetricsRows extends Table {
   RealColumn get sacChangePct => real().nullable()();
   IntColumn get runtimeS => integer().nullable()();
 
+  /// Seconds underwater, surface runs at the ends of the recording left out,
+  /// that whole-dive SAC and RMV divide by. Null when there is nothing to
+  /// leave out (issue #2930).
+  IntColumn get gasUseS => integer().nullable()();
+
+  /// Mean depth in metres over `gas_use_s`, where whole-dive SAC and RMV take
+  /// their ambient pressure. Null with `gas_use_s` (issue #2930).
+  RealColumn get gasUseAvgDepthM => real().nullable()();
+
   /// `UnsupportedReason.name` when a metric could not be derived.
   TextColumn get unsupportedReason => text().nullable()();
 

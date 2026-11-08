@@ -65,5 +65,13 @@ extension RungsFromV340 on AppDatabase {
     // an open PR that also claimed 343 can take 345.
     if (from < 346) await _repairLastServiceDates();
     if (from < 346) await reportProgress();
+
+    // v347: dive_derived_metrics.gas_use_s and gas_use_avg_depth_m, the
+    // underwater time and depth whole-dive SAC and RMV divide by (issue
+    // #2930). Nullable columns on a device-local cache, no backfill: the
+    // engine version bump makes the sweep rebuild every row. Re-asserted in
+    // beforeOpen.
+    if (from < 347) await _assertDerivedMetricsGasUseColumns();
+    if (from < 347) await reportProgress();
   }
 }

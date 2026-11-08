@@ -107,6 +107,24 @@ void main() {
     },
   );
 
+  test('the gas-use window round-trips (issue #2930)', () async {
+    await insertDive('d1');
+    final r = repo(
+      result: DiveDerivedMetrics(
+        diveId: 'd1',
+        engineVersion: DerivedMetricsService.version,
+        sourceUpdatedAt: 0,
+        computedAt: 0,
+        gasUseSeconds: 2040,
+        gasUseAvgDepthMeters: 14.25,
+      ),
+    );
+    await r.ensureCurrent('d1');
+    final stored = await r.getMetrics('d1');
+    expect(stored!.gasUseSeconds, 2040);
+    expect(stored.gasUseAvgDepthMeters, 14.25);
+  });
+
   test('a second call reads the stored row without recomputing', () async {
     await insertDive('d1');
     final r = repo();

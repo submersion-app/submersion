@@ -8,4 +8,17 @@ extension DerivedMetricsMigrations on AppDatabase {
     if (!await _tableExists('dives')) return;
     await Migrator(this).createTable(diveDerivedMetricsRows);
   }
+
+  /// v347: the gas-use window columns (issue #2930). Idempotent; called from
+  /// the v347 rung and the beforeOpen backstop. A table [createTable] just
+  /// made already has them.
+  Future<void> _assertDerivedMetricsGasUseColumns() async {
+    if (!await _tableExists('dive_derived_metrics')) return;
+    await _addColumnIfMissing('dive_derived_metrics', 'gas_use_s', 'INTEGER');
+    await _addColumnIfMissing(
+      'dive_derived_metrics',
+      'gas_use_avg_depth_m',
+      'REAL',
+    );
+  }
 }

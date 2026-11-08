@@ -187,6 +187,8 @@ class DerivedMetricsRepository {
       sacSlopeBarPerMinPerMin: row.sacSlopeBarMinPerMin,
       sacChangePercent: row.sacChangePct,
       runtimeSeconds: row.runtimeS,
+      gasUseSeconds: row.gasUseS,
+      gasUseAvgDepthMeters: row.gasUseAvgDepthM,
       unsupportedReason: row.unsupportedReason == null
           ? null
           : UnsupportedReason.values.firstWhere(
@@ -218,6 +220,8 @@ class DerivedMetricsRepository {
             sacTrend: Value(m.sacTrend?.name),
             sacChangePct: Value(m.sacChangePercent),
             runtimeS: Value(m.runtimeSeconds),
+            gasUseS: Value(m.gasUseSeconds),
+            gasUseAvgDepthM: Value(m.gasUseAvgDepthMeters),
             unsupportedReason: Value(m.unsupportedReason?.name),
           ),
         );

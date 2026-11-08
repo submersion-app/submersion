@@ -315,7 +315,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 346;
+  static const int currentSchemaVersion = 347;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1590,6 +1590,10 @@ class AppDatabase extends _$AppDatabase {
     // #4201). Data only, a value every reader already holds, so the floor
     // does not move. Numbered 346 so an open PR can take 345.
     346,
+    // v347: dive_derived_metrics.gas_use_s and gas_use_avg_depth_m, a dive's
+    // underwater time and depth for SAC and RMV (issue #2930). A device-local
+    // cache the sweep refills, so the floor does not move.
+    347,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

@@ -91,6 +91,13 @@ class DiveDerivedMetrics {
   final double? sacChangePercent;
 
   final int? runtimeSeconds;
+
+  /// The recording's gas-use window (see `gasUseWindowOf`): how long the diver
+  /// was underwater, with surface runs at the ends left out, and the mean
+  /// depth over it. Null when there is nothing to leave out (issue #2930).
+  final int? gasUseSeconds;
+  final double? gasUseAvgDepthMeters;
+
   final UnsupportedReason? unsupportedReason;
 
   /// The engine's buckets. Empty when read back from storage.
@@ -110,6 +117,8 @@ class DiveDerivedMetrics {
     this.sacSlopeBarPerMinPerMin,
     this.sacChangePercent,
     this.runtimeSeconds,
+    this.gasUseSeconds,
+    this.gasUseAvgDepthMeters,
     this.unsupportedReason,
     this.sacBuckets = const [],
   });
@@ -128,6 +137,8 @@ class DiveDerivedMetrics {
     double? sacSlopeBarPerMinPerMin,
     double? sacChangePercent,
     int? runtimeSeconds,
+    int? gasUseSeconds,
+    double? gasUseAvgDepthMeters,
     UnsupportedReason? unsupportedReason,
     List<SacBucket>? sacBuckets,
   }) => DiveDerivedMetrics(
@@ -148,6 +159,8 @@ class DiveDerivedMetrics {
         sacSlopeBarPerMinPerMin ?? this.sacSlopeBarPerMinPerMin,
     sacChangePercent: sacChangePercent ?? this.sacChangePercent,
     runtimeSeconds: runtimeSeconds ?? this.runtimeSeconds,
+    gasUseSeconds: gasUseSeconds ?? this.gasUseSeconds,
+    gasUseAvgDepthMeters: gasUseAvgDepthMeters ?? this.gasUseAvgDepthMeters,
     unsupportedReason: unsupportedReason ?? this.unsupportedReason,
     sacBuckets: sacBuckets ?? this.sacBuckets,
   );

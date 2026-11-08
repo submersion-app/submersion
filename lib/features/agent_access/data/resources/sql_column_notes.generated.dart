@@ -120,6 +120,8 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   'dive_derived_metrics': {
     'final_stop_kind': '`FinalStopKind.name`, defaulting to none so a row always classifies',
     'final_stop_state': '`FinalStopState.name`',
+    'gas_use_avg_depth_m': 'Mean depth in metres over `gas_use_s`, where whole-dive SAC and RMV take their ambient pressure',
+    'gas_use_s': 'Seconds underwater, surface runs at the ends of the recording left out, that whole-dive SAC and RMV divide by',
     'sac_change_pct': 'Percent change of mean SAC from the dive\'s first half to its second',
     'sac_mean_bar_min': 'Bar per minute at surface pressure',
     'sac_trend': '`SacTrend.name`',
