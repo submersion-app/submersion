@@ -27036,7 +27036,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'Fix dive times, link buddies, retype gear, data quality, table editor';
+      'Fix dive times, link buddies, retype gear, data quality, table editor, re-parse dives';
 
   @override
   String get settings_agentAccess_title => 'Agent access';
@@ -37529,25 +37529,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllProgress(int count) {
-    return 'Re-parsing $count dives...';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllSuccess(int count) {
-    return 'Re-parsed $count dives successfully';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
-    return 'Re-parsed $succeeded of $total dives. $failed failed.';
-  }
-
-  @override
   String diveComputer_detail_reparseRawDataCount(int count) {
     return '$count dives with raw data';
   }
@@ -37559,6 +37540,124 @@ class AppLocalizationsEn extends AppLocalizations {
   ) {
     return '$count dives with raw data ($without without)';
   }
+
+  @override
+  String get reparseBatch_progressTitle => 'Re-parsing dives';
+
+  @override
+  String reparseBatch_progressCount(int done, int total) {
+    return 'Re-parsing $done of $total dives';
+  }
+
+  @override
+  String get reparseBatch_cancelling => 'Cancelling...';
+
+  @override
+  String get reparseBatch_resultTitle => 'Re-parse finished';
+
+  @override
+  String get reparseBatch_resultCancelledTitle => 'Re-parse cancelled';
+
+  @override
+  String get reparseBatch_resultErrorTitle => 'Re-parse stopped by an error';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return 'Not processed: $count';
+  }
+
+  @override
+  String reparseBatch_resultSummary(int succeeded, int total) {
+    return 'Re-parsed $succeeded of $total dives.';
+  }
+
+  @override
+  String reparseBatch_resultFailed(int count) {
+    return 'Failed: $count';
+  }
+
+  @override
+  String reparseBatch_resultNotProcessed(int count) {
+    return 'Not processed (cancelled): $count';
+  }
+
+  @override
+  String reparseBatch_resultSkipped(int count) {
+    return 'Skipped, no raw data: $count';
+  }
+
+  @override
+  String reparseBatch_resultProfilesPreserved(int count) {
+    return 'Combined dives that kept their profile: $count';
+  }
+
+  @override
+  String get reparseBatch_failedListHeader => 'Failed dives';
+
+  @override
+  String reparseBatch_failedDiveTitle(int number) {
+    return 'Dive #$number';
+  }
+
+  @override
+  String get reparseBatch_failedDiveUnnumbered => 'Unnumbered dive';
+
+  @override
+  String get reparseBatch_missingDescriptors => 'Missing dive computer details';
+
+  @override
+  String get reparseBatch_confirmTitle => 'Re-parse dives';
+
+  @override
+  String reparseBatch_confirmMessage(int count) {
+    return 'Re-run the dive parser on $count dives with stored raw data. This updates profile and sensor data but preserves your notes, sites, buddies, and other edits.';
+  }
+
+  @override
+  String reparseBatch_confirmSkipped(int count) {
+    return 'Selected dives without raw data (skipped): $count';
+  }
+
+  @override
+  String get reparseBatch_noneWithRawData =>
+      'None of the selected dives have stored raw data to re-parse.';
+
+  @override
+  String get diveLog_selection_tooltip_reparse => 'Re-parse';
+
+  @override
+  String get settings_reparseDives_title => 'Re-parse dives';
+
+  @override
+  String get settings_reparseDives_subtitle =>
+      'Re-run the dive parser on every dive with stored raw data';
+
+  @override
+  String get settings_reparseDives_intro =>
+      'Use this after an app update improves how dive computer data is read. Your notes, sites, buddies, and other edits are preserved.';
+
+  @override
+  String settings_reparseDives_withRawData(int count) {
+    return 'Dives with raw data: $count';
+  }
+
+  @override
+  String settings_reparseDives_withoutRawData(int count) {
+    return 'Dives without raw data (not re-parsed): $count';
+  }
+
+  @override
+  String get settings_reparseDives_byComputer => 'By dive computer';
+
+  @override
+  String get settings_reparseDives_unknownComputer => 'Unknown computer';
+
+  @override
+  String get settings_reparseDives_none =>
+      'No dives have stored raw data to re-parse.';
+
+  @override
+  String get settings_reparseDives_button => 'Re-parse all';
 
   @override
   String get diveComputer_rawData_discardAction => 'Discard';

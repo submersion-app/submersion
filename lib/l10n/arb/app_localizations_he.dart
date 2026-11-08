@@ -26813,7 +26813,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'תיקון זמני צלילה, קישור שותפים, סיווג ציוד מחדש, איכות נתונים, עורך הטבלה';
+      'תיקון זמני צלילה, קישור שותפים, סיווג ציוד מחדש, איכות נתונים, עורך הטבלה, ניתוח צלילות מחדש';
 
   @override
   String get settings_agentAccess_title => 'גישת סוכנים';
@@ -37239,25 +37239,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllProgress(int count) {
-    return 'מנתח מחדש $count צלילות...';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllSuccess(int count) {
-    return 'נותחו מחדש $count צלילות בהצלחה';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
-    return 'נותחו מחדש $succeeded מתוך $total צלילות. $failed נכשלו.';
-  }
-
-  @override
   String diveComputer_detail_reparseRawDataCount(int count) {
     return '$count צלילות עם נתונים גולמיים';
   }
@@ -37269,6 +37250,124 @@ class AppLocalizationsHe extends AppLocalizations {
   ) {
     return '$count צלילות עם נתונים גולמיים ($without ללא)';
   }
+
+  @override
+  String get reparseBatch_progressTitle => 'מנתח צלילות מחדש';
+
+  @override
+  String reparseBatch_progressCount(int done, int total) {
+    return 'מנתח מחדש $done מתוך $total צלילות';
+  }
+
+  @override
+  String get reparseBatch_cancelling => 'מבטל...';
+
+  @override
+  String get reparseBatch_resultTitle => 'הניתוח מחדש הסתיים';
+
+  @override
+  String get reparseBatch_resultCancelledTitle => 'הניתוח מחדש בוטל';
+
+  @override
+  String get reparseBatch_resultErrorTitle => 'הניתוח מחדש נעצר בגלל שגיאה';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return 'לא עובדו: $count';
+  }
+
+  @override
+  String reparseBatch_resultSummary(int succeeded, int total) {
+    return 'נותחו מחדש $succeeded מתוך $total צלילות.';
+  }
+
+  @override
+  String reparseBatch_resultFailed(int count) {
+    return 'נכשלו: $count';
+  }
+
+  @override
+  String reparseBatch_resultNotProcessed(int count) {
+    return 'לא עובדו (בוטל): $count';
+  }
+
+  @override
+  String reparseBatch_resultSkipped(int count) {
+    return 'דולגו, אין נתונים גולמיים: $count';
+  }
+
+  @override
+  String reparseBatch_resultProfilesPreserved(int count) {
+    return 'צלילות משולבות ששמרו על הפרופיל שלהן: $count';
+  }
+
+  @override
+  String get reparseBatch_failedListHeader => 'צלילות שנכשלו';
+
+  @override
+  String reparseBatch_failedDiveTitle(int number) {
+    return 'צלילה מס\' $number';
+  }
+
+  @override
+  String get reparseBatch_failedDiveUnnumbered => 'צלילה ללא מספר';
+
+  @override
+  String get reparseBatch_missingDescriptors => 'חסרים פרטי מחשב הצלילה';
+
+  @override
+  String get reparseBatch_confirmTitle => 'נתח צלילות מחדש';
+
+  @override
+  String reparseBatch_confirmMessage(int count) {
+    return 'הפעל את מנתח הצלילות מחדש על $count צלילות שיש להן נתונים גולמיים שמורים. פעולה זו מעדכנת את נתוני הפרופיל והחיישנים אך שומרת על ההערות, האתרים, השותפים ושאר העריכות.';
+  }
+
+  @override
+  String reparseBatch_confirmSkipped(int count) {
+    return 'צלילות נבחרות ללא נתונים גולמיים (ידולגו): $count';
+  }
+
+  @override
+  String get reparseBatch_noneWithRawData =>
+      'לאף אחת מהצלילות שנבחרו אין נתונים גולמיים שמורים לניתוח מחדש.';
+
+  @override
+  String get diveLog_selection_tooltip_reparse => 'נתח מחדש';
+
+  @override
+  String get settings_reparseDives_title => 'נתח צלילות מחדש';
+
+  @override
+  String get settings_reparseDives_subtitle =>
+      'הפעל את מנתח הצלילות מחדש על כל צלילה שיש לה נתונים גולמיים שמורים';
+
+  @override
+  String get settings_reparseDives_intro =>
+      'השתמש בזה אחרי שעדכון של האפליקציה משפר את קריאת נתוני מחשב הצלילה. ההערות, האתרים, השותפים ושאר העריכות נשמרים.';
+
+  @override
+  String settings_reparseDives_withRawData(int count) {
+    return 'צלילות עם נתונים גולמיים: $count';
+  }
+
+  @override
+  String settings_reparseDives_withoutRawData(int count) {
+    return 'צלילות ללא נתונים גולמיים (לא ינותחו מחדש): $count';
+  }
+
+  @override
+  String get settings_reparseDives_byComputer => 'לפי מחשב צלילה';
+
+  @override
+  String get settings_reparseDives_unknownComputer => 'מחשב לא ידוע';
+
+  @override
+  String get settings_reparseDives_none =>
+      'לאף צלילה אין נתונים גולמיים שמורים לניתוח מחדש.';
+
+  @override
+  String get settings_reparseDives_button => 'נתח הכול מחדש';
 
   @override
   String get diveComputer_rawData_discardAction => 'מחק';

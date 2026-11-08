@@ -44043,7 +44043,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_data_dataTools_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Fix dive times, link buddies, retype gear, data quality, table editor'**
+  /// **'Fix dive times, link buddies, retype gear, data quality, table editor, re-parse dives'**
   String get settings_data_dataTools_subtitle;
 
   /// No description provided for @settings_agentAccess_title.
@@ -60138,28 +60138,6 @@ abstract class AppLocalizations {
   /// **'Re-run the dive parser on {count} dives that have stored raw data. This updates profile and sensor data but preserves your notes, sites, buddies, and other edits.'**
   String diveComputer_detail_reparseAllMessage(int count);
 
-  /// No description provided for @diveComputer_detail_reparseAllProgress.
-  ///
-  /// In en, this message translates to:
-  /// **'Re-parsing {count} dives...'**
-  String diveComputer_detail_reparseAllProgress(int count);
-
-  /// No description provided for @diveComputer_detail_reparseAllSuccess.
-  ///
-  /// In en, this message translates to:
-  /// **'Re-parsed {count} dives successfully'**
-  String diveComputer_detail_reparseAllSuccess(int count);
-
-  /// No description provided for @diveComputer_detail_reparseAllPartial.
-  ///
-  /// In en, this message translates to:
-  /// **'Re-parsed {succeeded} of {total} dives. {failed} failed.'**
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  );
-
   /// No description provided for @diveComputer_detail_reparseRawDataCount.
   ///
   /// In en, this message translates to:
@@ -60171,6 +60149,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} dives with raw data ({without} without)'**
   String diveComputer_detail_reparseRawDataCountWithout(int count, int without);
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parsing dives'**
+  String get reparseBatch_progressTitle;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parsing {done} of {total} dives'**
+  String reparseBatch_progressCount(int done, int total);
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelling...'**
+  String get reparseBatch_cancelling;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parse finished'**
+  String get reparseBatch_resultTitle;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parse cancelled'**
+  String get reparseBatch_resultCancelledTitle;
+
+  /// Bulk re-parse (issue #224): the run stopped on an error
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parse stopped by an error'**
+  String get reparseBatch_resultErrorTitle;
+
+  /// Bulk re-parse (issue #224): dives a run error left unprocessed
+  ///
+  /// In en, this message translates to:
+  /// **'Not processed: {count}'**
+  String reparseBatch_resultNotReached(int count);
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parsed {succeeded} of {total} dives.'**
+  String reparseBatch_resultSummary(int succeeded, int total);
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Failed: {count}'**
+  String reparseBatch_resultFailed(int count);
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Not processed (cancelled): {count}'**
+  String reparseBatch_resultNotProcessed(int count);
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped, no raw data: {count}'**
+  String reparseBatch_resultSkipped(int count);
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Combined dives that kept their profile: {count}'**
+  String reparseBatch_resultProfilesPreserved(int count);
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Failed dives'**
+  String get reparseBatch_failedListHeader;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Dive #{number}'**
+  String reparseBatch_failedDiveTitle(int number);
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Unnumbered dive'**
+  String get reparseBatch_failedDiveUnnumbered;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Missing dive computer details'**
+  String get reparseBatch_missingDescriptors;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parse dives'**
+  String get reparseBatch_confirmTitle;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Re-run the dive parser on {count} dives with stored raw data. This updates profile and sensor data but preserves your notes, sites, buddies, and other edits.'**
+  String reparseBatch_confirmMessage(int count);
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Selected dives without raw data (skipped): {count}'**
+  String reparseBatch_confirmSkipped(int count);
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'None of the selected dives have stored raw data to re-parse.'**
+  String get reparseBatch_noneWithRawData;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parse'**
+  String get diveLog_selection_tooltip_reparse;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parse dives'**
+  String get settings_reparseDives_title;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Re-run the dive parser on every dive with stored raw data'**
+  String get settings_reparseDives_subtitle;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Use this after an app update improves how dive computer data is read. Your notes, sites, buddies, and other edits are preserved.'**
+  String get settings_reparseDives_intro;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Dives with raw data: {count}'**
+  String settings_reparseDives_withRawData(int count);
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Dives without raw data (not re-parsed): {count}'**
+  String settings_reparseDives_withoutRawData(int count);
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'By dive computer'**
+  String get settings_reparseDives_byComputer;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown computer'**
+  String get settings_reparseDives_unknownComputer;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'No dives have stored raw data to re-parse.'**
+  String get settings_reparseDives_none;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parse all'**
+  String get settings_reparseDives_button;
 
   /// No description provided for @diveComputer_rawData_discardAction.
   ///
