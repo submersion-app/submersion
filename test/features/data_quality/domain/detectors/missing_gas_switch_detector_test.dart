@@ -244,4 +244,24 @@ void main() {
     final switches = finding!.params['missingSwitches'] as List;
     expect([for (final s in switches) (s as Map)['tankId']], ['stage-a']);
   });
+
+  test('a start between profile samples gets the interpolated depth', () {
+    // One sample a minute: 22 m at 30:00, 16 m at 31:00. The bottle starts
+    // a few seconds after 30:00, so its depth lies between the two.
+    final finding = missingSwitchFinding(
+      det.detect(
+        decoDive(
+          samples: [
+            for (var t = 0; t <= 3000; t += 60)
+              QualitySample(t: t, depth: t <= 1800 ? 22 : 16),
+          ],
+        ),
+      ),
+    );
+    final first = (finding!.params['missingSwitches'] as List).single as Map;
+    final t = first['t'] as int;
+    expect(t, greaterThan(1800));
+    expect(t, lessThan(1860));
+    expect(first['depth'] as double, closeTo(22 - 6 * (t - 1800) / 60, 1e-9));
+  });
 }

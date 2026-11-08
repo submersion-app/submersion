@@ -421,6 +421,24 @@ void main() {
       );
     });
 
+    test('every too-deep start is named', () {
+      final detail = detailFor('missing_gas_switch', {
+        'missingSwitches': const [],
+        'deepStarts': [
+          start(position: 2, t: 600, depth: 40, mod: 22),
+          start(position: 3, t: 900, depth: 30, o2: 100, mod: 6),
+        ],
+      });
+      expect(detail, contains('Cylinder 2 (EAN50) lost pressure at D40.0'));
+      expect(
+        detail,
+        endsWith(
+          ' Cylinder 3 (Oxygen) also lost pressure at D30.0, deeper than its '
+          'MOD of L6.0, so no switch to it is suggested.',
+        ),
+      );
+    });
+
     test('switches and a too-deep start read as two sentences', () {
       final detail = detailFor('missing_gas_switch', {
         'missingSwitches': [start(position: 3, t: 2730, depth: 6, o2: 100)],

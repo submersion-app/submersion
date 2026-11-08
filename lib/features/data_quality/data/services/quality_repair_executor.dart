@@ -23,6 +23,7 @@ import 'package:submersion/features/dive_log/domain/services/transmitter_serial.
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
+import 'package:submersion/features/dive_log/data/services/diver_gas_switch_writer.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
@@ -66,10 +67,12 @@ class QualityRepairExecutor {
     TankRoleRepairRepository? tankRoleRepository,
     TransmitterRepository? transmitterRepository,
     SourceClockRepository? sourceClockRepository,
+    DiverGasSwitchWriter? gasSwitchWriter,
     Future<void> Function(List<DocumentSnapshotEntry> snapshot)?
     restoreDocuments,
   }) : _diveRepo = diveRepository ?? DiveRepository(),
        _sourceClocks = sourceClockRepository ?? SourceClockRepository(),
+       _switchWriter = gasSwitchWriter ?? DiverGasSwitchWriter(),
        _tankRoles = tankRoleRepository ?? TankRoleRepairRepository(),
        _transmitters = transmitterRepository ?? TransmitterRepository(),
        _tankRepo = tankPressureRepository ?? TankPressureRepository(),
@@ -82,6 +85,7 @@ class QualityRepairExecutor {
   _restoreDocuments;
   final DiveRepository _diveRepo;
   final SourceClockRepository _sourceClocks;
+  final DiverGasSwitchWriter _switchWriter;
   final TankRoleRepairRepository _tankRoles;
   final TransmitterRepository _transmitters;
   final TankPressureRepository _tankRepo;
@@ -565,31 +569,22 @@ class QualityRepairExecutor {
 
   /// Write the gas switches a missing-switch finding offers (issue #165).
   ///
-  /// They are untagged, like a switch typed in the dive editor, so they
-  /// apply to every computer on the dive. A dive that has gained a switch
-  /// since the scan is left alone: the finding was written for a dive with
-  /// none, and adding to the diver's own would mix two timelines. So is one
-  /// that has lost a cylinder a switch names, which the switch's foreign key
-  /// would refuse. Undo deletes exactly the switches written here.
+  /// The write goes through [DiverGasSwitchWriter], the dive editor's own
+  /// path: the switches are untagged so they apply to every computer on the
+  /// dive, the dive's switch list becomes the diver's (a re-parse or file
+  /// resync leaves it alone), and its stored safety review is dropped so it
+  /// is rebuilt from them. A dive that has gained a switch since the scan is
+  /// left alone, since the finding was written for a dive with none and
+  /// adding to the diver's own would mix two timelines; so is one that has
+  /// lost a cylinder a switch names. Both are checked in the transaction
+  /// that writes. Undo deletes exactly the switches written here and gives
+  /// the dive back the switch-list ownership it had.
   Future<RepairResult> addGasSwitches({
     required String diveId,
     required List<SwitchToAdd> switches,
     required String findingId,
   }) async {
     if (switches.isEmpty) return const RepairResult.noChange();
-    if ((await _diveRepo.getGasSwitchesForDive(diveId)).isNotEmpty) {
-      return const RepairResult.noChange();
-    }
-    final tankIds = {
-      for (final row in await (_db.select(
-        _db.diveTanks,
-      )..where((t) => t.diveId.equals(diveId))).get())
-        row.id,
-    };
-    if (!switches.every((s) => tankIds.contains(s.tankId))) {
-      return const RepairResult.noChange();
-    }
-    final now = DateTime.now().toUtc();
     final rows = [
       for (final s in switches)
         GasSwitch(
@@ -598,15 +593,44 @@ class QualityRepairExecutor {
           timestamp: s.t,
           tankId: s.tankId,
           depth: s.depth,
-          createdAt: now,
+          createdAt: DateTime.now().toUtc(),
         ),
     ];
-    await _db.transaction(() => _diveRepo.insertGasSwitches(rows));
+    final wasEdited = await _db.transaction<bool?>(() async {
+      final existing = await (_db.select(
+        _db.gasSwitches,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      if (existing.isNotEmpty) return null;
+      final tankIds = {
+        for (final row in await (_db.select(
+          _db.diveTanks,
+        )..where((t) => t.diveId.equals(diveId))).get())
+          row.id,
+      };
+      if (!switches.every((s) => tankIds.contains(s.tankId))) return null;
+      final dive = await (_db.select(
+        _db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingleOrNull();
+      if (dive == null) return null;
+      await _switchWriter.save(
+        diveId: diveId,
+        switches: rows,
+        loadedIds: const {},
+      );
+      return dive.gasSwitchesEdited;
+    });
+    if (wasEdited == null) return const RepairResult.noChange();
     await _finish(findingId, [diveId]);
     return RepairResult.applied(() async {
       await _db.transaction(() async {
-        for (final row in rows) {
-          await _diveRepo.deleteGasSwitch(row.id);
+        await _switchWriter.save(
+          diveId: diveId,
+          switches: const [],
+          loadedIds: {for (final r in rows) r.id},
+        );
+        if (!wasEdited) {
+          await (_db.update(_db.dives)..where((t) => t.id.equals(diveId)))
+              .write(const DivesCompanion(gasSwitchesEdited: Value(false)));
         }
       });
       _rescan([diveId]);

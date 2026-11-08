@@ -107,12 +107,15 @@ MissedSwitches missedGasSwitches(DiveQualityContext ctx) {
   return (addable: addable, deep: deep);
 }
 
-/// The depth of the last sample at or before [t], or the first sample's
-/// when [t] comes before them all. [samples] is in time order.
+/// The depth at [t], interpolated linearly between the bracketing samples
+/// as the switch editor's profile lookup does (`profileDepthAt`), and the
+/// nearest end sample's depth outside them. [samples] is in time order.
 double _depthAt(List<QualitySample> samples, int t) {
+  if (t <= samples.first.t) return samples.first.depth;
+  if (t >= samples.last.t) return samples.last.depth;
+  // The last sample at or before t; the one after it is strictly later.
   var lo = 0;
   var hi = samples.length - 1;
-  if (samples.first.t >= t) return samples.first.depth;
   while (lo < hi) {
     final mid = (lo + hi + 1) >> 1;
     if (samples[mid].t <= t) {
@@ -121,7 +124,11 @@ double _depthAt(List<QualitySample> samples, int t) {
       hi = mid - 1;
     }
   }
-  return samples[lo].depth;
+  final a = samples[lo];
+  final b = samples[lo + 1];
+  final span = b.t - a.t;
+  if (span <= 0) return b.depth;
+  return a.depth + (b.depth - a.depth) * (t - a.t) / span;
 }
 
 /// [missed] as a JSON-safe map for a finding's params.

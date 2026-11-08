@@ -1,4 +1,7 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/data_quality/data/repositories/quality_findings_repository.dart';
 import 'package:submersion/features/data_quality/data/services/quality_repair_executor.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
@@ -61,6 +64,14 @@ void main() {
     return finding;
   }
 
+  Future<bool> switchesEdited() async {
+    final db = DatabaseService.instance.database;
+    final dive = await (db.select(
+      db.dives,
+    )..where((t) => t.id.equals('d1'))).getSingle();
+    return dive.gasSwitchesEdited;
+  }
+
   Future<QualityStatus> statusOf(String findingId) async =>
       (await findingsRepo.getFindings(
         diveId: 'd1',
@@ -91,9 +102,30 @@ void main() {
     // Like a switch typed in the editor, it applies to every computer.
     expect([for (final s in added) s.gasSwitch.computerId], [null, null]);
     expect(await statusOf(finding.id), QualityStatus.resolved);
+    // Written as the editor writes: the list is now the diver's, so a
+    // re-parse or file resync leaves it alone.
+    expect(await switchesEdited(), isTrue);
 
     await result.undo!();
     expect(await diveRepo.getGasSwitchesForDive('d1'), isEmpty);
+    expect(await switchesEdited(), isFalse);
+  });
+
+  test('undo keeps a list the diver already owned as theirs', () async {
+    final finding = await seedDiveAndFinding();
+    final db = DatabaseService.instance.database;
+    await (db.update(db.dives)..where((t) => t.id.equals('d1'))).write(
+      const DivesCompanion(gasSwitchesEdited: Value(true)),
+    );
+
+    final result = await executor.addGasSwitches(
+      diveId: 'd1',
+      switches: const [(tankId: 'deco', t: 1800, depth: 21.0)],
+      findingId: finding.id,
+    );
+    await result.undo!();
+
+    expect(await switchesEdited(), isTrue);
   });
 
   test('changes nothing once the dive has a switch of its own', () async {

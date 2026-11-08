@@ -273,7 +273,7 @@ String qualityDurationLabel(AppLocalizations l10n, int seconds) => seconds < 120
     : l10n.dataQuality_unit_minutes((seconds / 60).round());
 
 /// The missing-switch finding's text (issue #165): every switch it offers,
-/// then the first start it held back for being deeper than its gas's MOD.
+/// then every start it held back for being deeper than its gas's MOD.
 String _missingSwitchDetail(
   AppLocalizations l10n,
   Map<String, Object?> p,
@@ -294,39 +294,39 @@ String _missingSwitchDetail(
   );
 
   final switches = entries('missingSwitches');
-  final deep = entries('deepStarts').firstOrNull;
-  final listed = switches.isEmpty
-      ? null
-      : l10n.dataQuality_msg_missingSwitches(
-          switches
-              .map(
-                (e) => l10n.dataQuality_msg_missingSwitchItem(
-                  position(e),
-                  gas(e),
-                  formatMinutesSeconds((e['t'] as num?)?.toInt() ?? 0),
-                  fmt.depth(d(e, 'depth')),
-                ),
-              )
-              .join(l10n.dataQuality_msg_missingSwitchSeparator),
-        );
-  if (deep == null) return listed ?? '';
-  final depth = fmt.depth(d(deep, 'depth'));
-  final mod = fmt.limitDepth(d(deep, 'modMeters'));
-  if (listed == null) {
-    return l10n.dataQuality_msg_missingSwitchDeep(
-      position(deep),
-      gas(deep),
-      depth,
-      mod,
-    );
-  }
-  final also = l10n.dataQuality_msg_missingSwitchDeepAlso(
-    position(deep),
-    gas(deep),
-    depth,
-    mod,
-  );
-  return '$listed $also';
+  final deep = entries('deepStarts');
+  final sentences = <String>[
+    if (switches.isNotEmpty)
+      l10n.dataQuality_msg_missingSwitches(
+        switches
+            .map(
+              (e) => l10n.dataQuality_msg_missingSwitchItem(
+                position(e),
+                gas(e),
+                formatMinutesSeconds((e['t'] as num?)?.toInt() ?? 0),
+                fmt.depth(d(e, 'depth')),
+              ),
+            )
+            .join(l10n.dataQuality_msg_missingSwitchSeparator),
+      ),
+    // Every too-deep start, the first opening the message when no switch
+    // can be offered.
+    for (final (i, e) in deep.indexed)
+      i == 0 && switches.isEmpty
+          ? l10n.dataQuality_msg_missingSwitchDeep(
+              position(e),
+              gas(e),
+              fmt.depth(d(e, 'depth')),
+              fmt.limitDepth(d(e, 'modMeters')),
+            )
+          : l10n.dataQuality_msg_missingSwitchDeepAlso(
+              position(e),
+              gas(e),
+              fmt.depth(d(e, 'depth')),
+              fmt.limitDepth(d(e, 'modMeters')),
+            ),
+  ];
+  return sentences.join(' ');
 }
 
 /// The mix a gas finding names. Air and oxygen are words and translate;
