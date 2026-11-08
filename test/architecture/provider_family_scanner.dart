@@ -35,7 +35,8 @@ class ProviderFamilyDeclaration {
 
 const _retainCalls = {'retainDiveData', 'retainUntilIdle'};
 const _subscribeCalls = {'watch', 'listen'};
-final _leadingName = RegExp(r'^(\w+)\s*\(');
+// An import prefix (`lab.plannedColumnProvider(id)`) is dropped.
+final _leadingName = RegExp(r'^(?:\w+\s*\.\s*)?(\w+)\s*\(');
 
 /// The provider families declared in [content], the source of [file].
 ///

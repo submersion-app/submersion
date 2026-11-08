@@ -66,6 +66,17 @@ final dProvider = FutureProvider.family<int?, String>((ref, id) async {
     expect(families['dProvider']!.watched, {'routesProvider', 'countProvider'});
   });
 
+  test('names a provider watched through an import prefix', () {
+    final families = scan('''
+final fProvider = FutureProvider.family<int, String>((ref, id) async {
+  await ref.watch(analysis.profileAnalysisProvider(id).future);
+  return 0;
+});
+''');
+
+    expect(families['fProvider']!.watched, {'profileAnalysisProvider'});
+  });
+
   test('ignores non-family providers and other variables', () {
     final families = scan('''
 final plainProvider = Provider<int>((ref) => ref.watch(diveProvider('a')));
