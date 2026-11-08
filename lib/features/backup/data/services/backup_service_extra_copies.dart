@@ -70,8 +70,14 @@ extension _ExtraCopies on BackupService {
   /// Never throws. A copy that cannot be reached, or whose account refuses
   /// the delete, is left where it is and forgotten with its record: keeping
   /// the record would keep a local file the diver asked to remove.
-  Future<void> _deleteExtraCopies(BackupRecord record) async {
-    final touched = Set<CloudStorageProvider>.identity();
+  ///
+  /// With [deferFlushTo], the accounts deleted from are added to it and left
+  /// for the caller to push with [_flushExtraDeletes], once for many records.
+  Future<void> _deleteExtraCopies(
+    BackupRecord record, {
+    Set<CloudStorageProvider>? deferFlushTo,
+  }) async {
+    final touched = deferFlushTo ?? Set<CloudStorageProvider>.identity();
     for (final copy in record.extraCloudCopies) {
       final provider = _extraProviderFor(copy.accountId);
       if (provider == null) {
@@ -92,7 +98,13 @@ extension _ExtraCopies on BackupService {
         );
       }
     }
-    for (final provider in touched) {
+    if (deferFlushTo == null) await _flushExtraDeletes(touched);
+  }
+
+  /// Pushes the extra copies' deletes in each of [accounts], on a backend
+  /// that defers them. Never throws: the copies are forgotten either way.
+  Future<void> _flushExtraDeletes(Set<CloudStorageProvider> accounts) async {
+    for (final provider in accounts) {
       try {
         await flushDeferredWrites(provider);
       } catch (e, stack) {

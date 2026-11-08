@@ -1344,9 +1344,12 @@ class BackupService {
 
   /// [deleteBackup]. Without [deleteCloud] the cloud copy is left to the
   /// caller, which has already deleted it (pruning batches those deletes).
+  /// With [extraFlushes], the extra copies' deletes are left for the caller
+  /// to push, as [_deleteExtraCopies] says.
   Future<void> _deleteBackup(
     BackupRecord record, {
     required bool deleteCloud,
+    Set<CloudStorageProvider>? extraFlushes,
   }) async {
     _log.info('Deleting backup: ${record.filename}');
 
@@ -1372,7 +1375,7 @@ class BackupService {
 
     // Extra copies go with the record whoever removes it: pruning batches
     // only the main copy's deletes (issue #3782).
-    await _deleteExtraCopies(record);
+    await _deleteExtraCopies(record, deferFlushTo: extraFlushes);
 
     // Remove from history
     await _preferences.removeRecord(record.id);

@@ -377,6 +377,18 @@ void main() {
       ]);
     });
 
+    test('pruning several records pushes each account once', () async {
+      await seed('submersion_backup_1.db', DateTime(2026, 1));
+      await seed('submersion_backup_2.db', DateTime(2026, 2));
+      await seed('submersion_backup_3.db', DateTime(2026, 3));
+
+      await service().pruneOldBackups(1);
+
+      expect(git.names, ['submersion_backup_3.db']);
+      expect(git.flushes, 1);
+      expect(dropbox.flushes, 1);
+    });
+
     test('unreachable extra copy is forgotten', () async {
       final record = await seed('submersion_backup_a.db', DateTime(2026, 1));
 

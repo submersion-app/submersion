@@ -161,10 +161,16 @@ extension BackupServicePruning on BackupService {
       }
     }
 
+    // Extra copies' deletes (issue #3782) are pushed once per account below.
+    final extraFlushes = Set<CloudStorageProvider>.identity();
     for (final record in toDelete) {
       if (!cloudPushed && record.cloudFileId != null) continue;
       try {
-        await _deleteBackup(record, deleteCloud: false);
+        await _deleteBackup(
+          record,
+          deleteCloud: false,
+          extraFlushes: extraFlushes,
+        );
       } catch (e, st) {
         // Best-effort: pruning is a side effect of the operation that
         // triggered it (a fresh backup, or the safety snapshot restoreFromFile
@@ -181,6 +187,7 @@ extension BackupServicePruning on BackupService {
         );
       }
     }
+    await _flushExtraDeletes(extraFlushes);
     return deleted;
   }
 }
