@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 
 import 'package:submersion/core/database/database.dart';
@@ -6,6 +7,7 @@ import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_empty_parse.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 
@@ -125,19 +127,22 @@ class ReparseBatchService {
     return [for (final r in rows) r.read<String>('id')];
   }
 
-  /// The dives of [diveIds] that have raw data, in the order given.
+  /// The dives of [diveIds] that have raw data, in the order given. Read in
+  /// chunks, so selecting a whole large log stays under SQLite's bound
+  /// variable limit.
   Future<List<String>> withRawData(List<String> diveIds) async {
-    if (diveIds.isEmpty) return const [];
-    final query = _db.selectOnly(_db.diveDataSources, distinct: true)
-      ..addColumns([_db.diveDataSources.diveId])
-      ..where(
-        _db.diveDataSources.diveId.isIn(diveIds) &
-            _db.diveDataSources.rawData.isNotNull(),
-      );
-    final found = {
-      for (final row in await query.get())
-        row.read(_db.diveDataSources.diveId)!,
-    };
+    final found = <String>{};
+    for (final chunk in seriesIdChunks(diveIds)) {
+      final query = _db.selectOnly(_db.diveDataSources, distinct: true)
+        ..addColumns([_db.diveDataSources.diveId])
+        ..where(
+          _db.diveDataSources.diveId.isIn(chunk) &
+              _db.diveDataSources.rawData.isNotNull(),
+        );
+      for (final row in await query.get()) {
+        found.add(row.read(_db.diveDataSources.diveId)!);
+      }
+    }
     return [
       for (final id in diveIds)
         if (found.contains(id)) id,
@@ -292,7 +297,7 @@ class ReparseBatchService {
         }
         parsed.add((source, dive));
       } catch (e) {
-        return _Failed(e.toString());
+        return _Failed(reparseErrorText(e));
       }
     }
 
@@ -316,7 +321,7 @@ class ReparseBatchService {
           error: e,
           stackTrace: stackTrace,
         );
-        return _Failed(e.toString());
+        return _Failed(reparseErrorText(e));
       }
     }
     return _Succeeded(profilePreserved: profilePreserved);
@@ -340,3 +345,12 @@ class _Succeeded extends _DiveOutcome {
   const _Succeeded({required this.profilePreserved});
   final bool profilePreserved;
 }
+
+/// What a results list shows for [error]. The native parser reports its
+/// failures as a [PlatformException], whose own text wraps the message in
+/// the code and two nulls.
+String reparseErrorText(Object error) => switch (error) {
+  PlatformException(:final message?) when message.isNotEmpty => message,
+  PlatformException(:final code) => code,
+  _ => error.toString(),
+};

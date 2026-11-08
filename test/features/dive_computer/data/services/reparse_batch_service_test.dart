@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 
@@ -154,6 +155,24 @@ void main() {
         expect(await lastParsedAt('src-b'), isNull);
       },
     );
+
+    test('records the native parser\'s message, not its wrapper', () async {
+      await addDive('d1');
+      await addSource(id: 's1', diveId: 'd1');
+
+      final result = await batch.run(
+        ['d1'],
+        parseFn: (vendor, product, model, raw) async => throw PlatformException(
+          code: 'PARSE_ERROR',
+          message: 'Failed to parse raw dive data: unsupported model',
+        ),
+      );
+
+      expect(
+        result.failures.single.error,
+        'Failed to parse raw dive data: unsupported model',
+      );
+    });
 
     test('counts missing descriptors as a failure', () async {
       await addDive('d1');
@@ -315,6 +334,14 @@ void main() {
       await addSource(id: 's3', diveId: 'd3');
 
       expect(await batch.withRawData(['d3', 'd2', 'd1']), ['d3', 'd1']);
+    });
+
+    test('withRawData reads past one chunk of ids', () async {
+      await addDive('d1');
+      await addSource(id: 's1', diveId: 'd1');
+      final ids = [for (var i = 0; i < 2000; i++) 'none-$i', 'd1'];
+
+      expect(await batch.withRawData(ids), ['d1']);
     });
 
     test('rawDataCountsByComputer groups by computer', () async {

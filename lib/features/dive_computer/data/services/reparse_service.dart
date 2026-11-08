@@ -18,7 +18,6 @@ import 'package:submersion/features/dive_computer/data/services/bailout_gas_clai
 import 'package:submersion/features/dive_computer/data/services/libdc_dive_mode.dart';
 import 'package:submersion/features/dive_computer/data/services/parsed_dive_start_time.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_empty_parse.dart';
-import 'package:submersion/features/dive_computer/data/services/reparse_batch_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
@@ -434,7 +433,7 @@ class ReparseService {
       //    the profile strand and, under it, the events, tanks and gas
       //    switches (ownsStrand). A re-parse that rewrote none of them leaves
       //    a valid review alone, rather than tombstoning it on every peer.
-      //    Both reparseDive and reparseAllForComputer land here.
+      //    Both reparseDive and ReparseBatchService.run land here.
       // ------------------------------------------------------------------
       if (sourceRow.isPrimary || ownsStrand || filledSurfacePressure != null) {
         await SafetyFindingsRepository.clearReviewForDive(db, _sync, diveId);
@@ -537,16 +536,6 @@ class ReparseService {
     return (result.data['cnt'] as int) > 0;
   }
 
-  /// Get all DiveDataSources rows with raw data for a given computer.
-  Future<List<DiveDataSourcesData>> getSourcesForComputerReparse(
-    String computerId,
-  ) async {
-    return (db.select(db.diveDataSources)..where(
-          (t) => t.computerId.equals(computerId) & t.rawData.isNotNull(),
-        ))
-        .get();
-  }
-
   /// Get all DiveDataSources rows with raw data for a given dive.
   Future<List<DiveDataSourcesData>> getSourcesForDiveReparse(
     String diveId,
@@ -554,34 +543,6 @@ class ReparseService {
     return (db.select(
       db.diveDataSources,
     )..where((t) => t.diveId.equals(diveId) & t.rawData.isNotNull())).get();
-  }
-
-  /// Re-parse all sources with raw data for a given computer.
-  ///
-  /// [parseFn] is the function that calls the native Pigeon API to parse raw
-  /// bytes. Accepting it as a parameter makes this method testable without
-  /// requiring a live native bridge.
-  ///
-  /// Returns a record with the count of succeeded and failed dives. Only
-  /// this computer's sources are re-parsed, even on a dive combined with
-  /// another computer's. The loop itself is [ReparseBatchService.run].
-  Future<({int succeeded, int failed})> reparseAllForComputer(
-    String computerId, {
-    required Future<pigeon.ParsedDive> Function(
-      String vendor,
-      String product,
-      int model,
-      Uint8List rawData,
-    )
-    parseFn,
-  }) async {
-    final batch = ReparseBatchService(this);
-    final result = await batch.run(
-      await batch.diveIdsForComputer(computerId),
-      parseFn: parseFn,
-      computerId: computerId,
-    );
-    return (succeeded: result.succeeded, failed: result.failed);
   }
 
   /// Re-parse all sources with raw data for a single dive.

@@ -91,4 +91,25 @@ void main() {
       3,
     );
   });
+
+  test('refreshes when a dive without raw data is added', () async {
+    final sub = container.listen(reparseDivesOverviewProvider, (_, _) {});
+    addTearDown(sub.close);
+    expect(
+      (await container.read(
+        reparseDivesOverviewProvider.future,
+      )).withoutRawData,
+      1,
+    );
+
+    await insertDive(db, 'manual-2', diverId: 'me');
+    await pumpEventQueue();
+
+    expect(
+      (await container.read(
+        reparseDivesOverviewProvider.future,
+      )).withoutRawData,
+      2,
+    );
+  });
 }

@@ -26,22 +26,29 @@ class ReparseDivesOverview {
   final int withoutRawData;
 }
 
-/// Refreshed whenever a data source row changes, so a download, a discard
-/// or a synced change does not leave a stale count behind.
+/// Refreshed whenever a data source or dive row changes, so a download, a
+/// discard, a new manual dive or a synced change does not leave a stale
+/// count behind.
 final reparseDivesOverviewProvider = FutureProvider<ReparseDivesOverview>((
   ref,
 ) async {
   final batch = ref.watch(reparseBatchServiceProvider);
   final db = ref.watch(reparseServiceProvider).db;
   ref.invalidateSelfWhen(
-    db.tableUpdates(TableUpdateQuery.onTable(db.diveDataSources)),
+    db.tableUpdates(
+      TableUpdateQuery.onAllTables([db.diveDataSources, db.dives]),
+    ),
   );
   final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
-  final ids = await batch.diveIdsWithRawData(diverId: diverId);
+  final (ids, byComputer, withoutRawData) = await (
+    batch.diveIdsWithRawData(diverId: diverId),
+    batch.rawDataCountsByComputer(diverId: diverId),
+    batch.diveCountWithoutRawData(diverId: diverId),
+  ).wait;
   return ReparseDivesOverview(
     total: ids.length,
-    byComputer: await batch.rawDataCountsByComputer(diverId: diverId),
-    withoutRawData: await batch.diveCountWithoutRawData(diverId: diverId),
+    byComputer: byComputer,
+    withoutRawData: withoutRawData,
   );
 });
 
@@ -59,12 +66,19 @@ class ReparseDivesPage extends ConsumerWidget {
       body: overview.when(
         data: (o) => _Overview(overview: o),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(l10n.common_error_tryAgain),
-          ),
-        ),
+        error: (e, stackTrace) {
+          _log.error(
+            'Could not count the dives to re-parse',
+            error: e,
+            stackTrace: stackTrace,
+          );
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(l10n.common_error_tryAgain),
+            ),
+          );
+        },
       ),
     );
   }
