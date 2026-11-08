@@ -85,6 +85,12 @@ Future<void> main(List<String> args) async {
     stdout.writeln('${p.basename(file.path)}: ${alignY.toStringAsFixed(2)}');
   }
 
+  if (rows.isEmpty) {
+    stderr.writeln('No decodable JPEG or PNG files in ${folder.path}');
+    exitCode = 65;
+    return;
+  }
+
   final width = rows.map((r) => r.width).reduce((a, b) => a > b ? a : b);
   final height = rows.fold<int>(0, (sum, r) => sum + r.height + _gap) + _gap;
   final sheet = img.Image(width: width + 2 * _gap, height: height)
