@@ -37,8 +37,9 @@ typedef NavTrack3dZAxisKey = ({String trackId, TrackSceneMetric? zMetric});
 /// for None, for an unavailable metric, or while scene data is still
 /// loading. Watches settings so a unit change re-fits the axis, mirroring
 /// `dive3dZAxisProvider`.
-final navTrack3dZAxisProvider =
-    Provider.family<TrackZAxisInput?, NavTrack3dZAxisKey>((ref, key) {
+final navTrack3dZAxisProvider = Provider.autoDispose
+    .family<TrackZAxisInput?, NavTrack3dZAxisKey>((ref, key) {
+      retainDiveData(ref);
       final zMetric = key.zMetric;
       final data = ref.watch(navTrack3dSceneDataProvider(key.trackId)).value;
       if (zMetric == null || data == null) return null;
@@ -65,8 +66,13 @@ Scene3d _buildGeometry(
 /// Scene per (track, color metric, Z metric). Family caching makes
 /// switching back instant; `compute()` keeps large builds off the UI
 /// thread, same threshold and reasoning as `dive3dGeometryProvider`.
-final navTrack3dGeometryProvider =
-    FutureProvider.family<Scene3d?, NavTrack3dGeometryKey>((ref, key) async {
+///
+/// Like the Z axis above, held for `diveDataRetention` once unused: a
+/// keep-forever entry here would keep the scene data, and the route's
+/// decoded points behind it, for the whole session (#4254).
+final navTrack3dGeometryProvider = FutureProvider.autoDispose
+    .family<Scene3d?, NavTrack3dGeometryKey>((ref, key) async {
+      retainDiveData(ref);
       final data = await ref.watch(
         navTrack3dSceneDataProvider(key.trackId).future,
       );

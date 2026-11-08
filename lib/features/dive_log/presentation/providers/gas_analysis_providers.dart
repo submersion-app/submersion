@@ -189,14 +189,5 @@ final cylinderSacProvider = FutureProvider.autoDispose
       );
     });
 
-/// Provider to check if the dive has multiple tanks
-final isMultiTankDiveProvider = FutureProvider.autoDispose.family<bool, String>(
-  (ref, diveId) async {
-    retainDiveData(ref);
-    final dive = await ref.watch(diveProvider(diveId).future);
-    return dive != null && dive.tanks.length > 1;
-  },
-);
-
 /// Expanded state for the Gas Analysis section in dive details
 final gasAnalysisSectionExpandedProvider = StateProvider<bool>((ref) => false);

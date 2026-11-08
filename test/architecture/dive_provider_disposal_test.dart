@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_3d/application/compare_providers.dart'
     as dive_3d;
@@ -25,6 +28,8 @@ import 'package:submersion/features/planner/presentation/providers/plan_follow_p
 import 'package:submersion/features/planner/presentation/providers/plan_logged_dive_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
 
+import 'provider_family_scanner.dart';
+
 /// Per-dive families holding decoded samples or analyses must auto-dispose
 /// (#4254).
 ///
@@ -35,10 +40,12 @@ import 'package:submersion/features/planner/presentation/providers/plan_overlay_
 /// memory. Each now auto-disposes and calls `retainDiveData`, which keeps it
 /// warm for a window after its last listener leaves.
 ///
-/// The list covers the heavy families and every per-dive family that watches
-/// one. A keep-forever watcher holds its dependency alive as surely as the
-/// dependency keeping itself, so adding a per-dive family that watches any of
-/// these means adding it here too.
+/// The list covers the heavy families and the per-dive families that watch
+/// them. A keep-forever watcher holds its dependency alive as surely as the
+/// dependency keeping itself, so the lib/ checks below do not rely on the
+/// list for that: they fail on any keep-forever family that watches a
+/// retained one, listed or not, and on a retained family that does not
+/// auto-dispose.
 ///
 /// Asserted through `dynamic` for the reason given in
 /// `media_provider_disposal_test.dart`: the declaring type of
@@ -58,7 +65,6 @@ void main() {
     'residualCnsProvider': residualCnsProvider,
     'residualTissueStateProvider': residualTissueStateProvider,
     'diveProfileAnalysisProvider': diveProfileAnalysisProvider,
-    'profileQuickStatsProvider': profileQuickStatsProvider,
     // Dive detail sections that watch them.
     'outlierSuggestionProvider': outlierSuggestionProvider,
     'estimatedTankPressuresProvider': estimatedTankPressuresProvider,
@@ -67,7 +73,6 @@ void main() {
     'gasSwitchSegmentsProvider': gasSwitchSegmentsProvider,
     'phaseSegmentsProvider': phaseSegmentsProvider,
     'cylinderSacProvider': cylinderSacProvider,
-    'isMultiTankDiveProvider': isMultiTankDiveProvider,
     'safetyReviewProvider': safetyReviewProvider,
     'trackForDiveProvider': trackForDiveProvider,
     // 3D views.
@@ -118,4 +123,72 @@ void main() {
       );
     });
   }
+
+  group('lib/', () {
+    final families = [
+      for (final file in Directory('lib').listSync(recursive: true))
+        if (file is File &&
+            file.path.endsWith('.dart') &&
+            !file.path.endsWith('.g.dart') &&
+            !file.path.endsWith('.freezed.dart'))
+          ...scanProviderFamilies(
+            p.relative(file.path),
+            file.readAsStringSync(),
+          ),
+    ];
+
+    // A private name is only visible in its own file, so it is matched there.
+    String key(String file, String name) =>
+        name.startsWith('_') ? '$file::$name' : name;
+    final retained = {
+      ...mustAutoDispose.keys,
+      for (final family in families)
+        if (family.retains) key(family.file, family.name),
+    };
+
+    test('every listed family is found and retains its entry', () {
+      for (final name in mustAutoDispose.keys) {
+        final found = families.where((family) => family.name == name);
+        expect(found, isNotEmpty, reason: 'the scan did not find $name');
+        expect(
+          found.every((family) => family.retains),
+          isTrue,
+          reason:
+              '$name auto-disposes but does not call retainDiveData, so '
+              'stepping between dives replays its whole build each time.',
+        );
+      }
+    });
+
+    test('a family that retains its entry auto-disposes', () {
+      expect(
+        [
+          for (final family in families)
+            if (family.retains && !family.isAutoDispose) '$family',
+        ],
+        isEmpty,
+        reason:
+            'retainDiveData only times out the keepAlive it takes; on a '
+            'keep-forever family the entry stays for the session anyway.',
+      );
+    });
+
+    test('no keep-forever family watches a retained one', () {
+      expect(
+        [
+          for (final family in families)
+            if (!family.isAutoDispose)
+              for (final name in family.watched)
+                if (retained.contains(key(family.file, name)))
+                  '$family watches $name',
+        ],
+        isEmpty,
+        reason:
+            'A keep-forever family entry keeps every provider it watches '
+            'alive for the session, so a retained dependency is never '
+            'released. Declare the watcher autoDispose (with retainDiveData '
+            'when it is costly to rebuild).',
+      );
+    });
+  });
 }
