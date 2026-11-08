@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show setEquals;
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/set_history_rewrite.dart';
@@ -15,9 +16,8 @@ import 'package:submersion/features/equipment/presentation/widgets/assembly_hist
 ///
 /// Asks before anything is written, so a cancel saves nothing; returns null
 /// then. Asks only when the members differ from [loaded] and a logged dive
-/// carries the set. The caller runs the returned step once the rest of its
-/// save is written, so a replay that fails cannot cost the diver those
-/// edits.
+/// carries the set. The caller hands the returned step to [saveThenReplay]
+/// with the rest of its save.
 Future<Future<void> Function()?> saveSetWithHistory(
   BuildContext context,
   WidgetRef ref,
@@ -50,4 +50,30 @@ Future<Future<void> Function()?> saveSetWithHistory(
       alsoLogged: choice == AssemblyHistoryChoice.alsoPast,
     );
   };
+}
+
+/// Runs [save], the writes that follow the set's own (its default flag and
+/// geofences), then [replay] whatever [save] did: the members are already
+/// written, so the planned dives must follow them. [save] goes first so a
+/// replay that fails cannot cost the diver those edits.
+///
+/// [save]'s error is the one thrown, as it came first; a replay that fails
+/// too is logged rather than hiding it.
+Future<void> saveThenReplay(
+  Future<void> Function() save,
+  Future<void> Function()? replay,
+) async {
+  try {
+    await save();
+  } catch (_) {
+    try {
+      await replay?.call();
+    } catch (e, st) {
+      LoggerService.forClass(
+        EquipmentSet,
+      ).error('Set replay on its dives failed', error: e, stackTrace: st);
+    }
+    rethrow;
+  }
+  await replay?.call();
 }

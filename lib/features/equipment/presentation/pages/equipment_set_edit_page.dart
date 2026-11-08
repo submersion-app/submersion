@@ -712,7 +712,6 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
     try {
-      // Get the current diver ID - preserve existing for edits, get fresh for new sets
       final diverId =
           existingSet?.diverId ??
           await ref.read(validatedCurrentDiverIdProvider.future);
@@ -743,32 +742,33 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
         savedId = created.id;
       }
 
-      // Default flag (per-diver mutual exclusion in the repository). Off
-      // clears it, so nothing auto-applies until one is set again.
-      if (_isDefault) {
-        await notifier.setAsDefault(savedId);
-      } else if (existingSet?.isDefault ?? false) {
-        await notifier.clearDefault(savedId);
-      }
+      await saveThenReplay(() async {
+        // Default flag (per-diver mutual exclusion in the repository). Off
+        // clears it, so nothing auto-applies until one is set again.
+        if (_isDefault) {
+          await notifier.setAsDefault(savedId);
+        } else if (existingSet?.isDefault ?? false) {
+          await notifier.clearDefault(savedId);
+        }
 
-      // Reconcile geofences: remove dropped, add/update the rest.
-      final repo = ref.read(equipmentSetRepositoryProvider);
-      final existingGeofences = await repo.getGeofencesForSet(savedId);
-      final keptIds = _geofences.map((g) => g.id).toSet();
-      for (final old in existingGeofences) {
-        if (!keptIds.contains(old.id)) {
-          await notifier.removeGeofence(savedId, old.id);
+        // Reconcile geofences: remove dropped, add/update the rest.
+        final repo = ref.read(equipmentSetRepositoryProvider);
+        final existingGeofences = await repo.getGeofencesForSet(savedId);
+        final keptIds = _geofences.map((g) => g.id).toSet();
+        for (final old in existingGeofences) {
+          if (!keptIds.contains(old.id)) {
+            await notifier.removeGeofence(savedId, old.id);
+          }
         }
-      }
-      for (final g in _geofences) {
-        final fence = g.copyWith(setId: savedId);
-        if (existingGeofences.any((e) => e.id == g.id)) {
-          await notifier.updateGeofence(fence);
-        } else {
-          await notifier.addGeofence(fence);
+        for (final g in _geofences) {
+          final fence = g.copyWith(setId: savedId);
+          if (existingGeofences.any((e) => e.id == g.id)) {
+            await notifier.updateGeofence(fence);
+          } else {
+            await notifier.addGeofence(fence);
+          }
         }
-      }
-      await replay?.call(); // Last: a failed replay keeps the edits above.
+      }, replay);
 
       if (mounted) {
         context.pop();

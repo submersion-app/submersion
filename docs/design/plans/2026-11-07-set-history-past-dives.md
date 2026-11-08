@@ -90,7 +90,13 @@ replay.
 A rewrite that fails after the template was saved leaves the template saved
 and reports the error, as the component flow does. The set edit page runs it
 last, after the default flag and the geofences, so a failure cannot cost
-those edits.
+those edits, and runs it even when one of those writes fails, so the planned
+dives still follow the members already saved (`saveThenReplay`). The first
+error is the one reported.
+
+Adding a member never reaches below a part another assembly holds on the
+dive: `GearExpander` leaves such a row and everything under it alone, so a
+part the diver took off under that assembly is not put back for the set.
 
 The set edit page asks before writing anything, so Cancel saves nothing. It
 asks only when editing, when the ticked members differ from the loaded set,

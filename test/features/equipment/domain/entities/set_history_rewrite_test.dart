@@ -73,6 +73,29 @@ void main() {
       expect(apply(const SetItemAdded('reg'), rows), rows);
     });
 
+    test('hangs nothing under a part another assembly holds', () {
+      // hose is kit's on this dive and its clip is off it; adding reg must
+      // not put the clip back under kit's hose for the set.
+      final nested = ComponentsIndex.fromRows([
+        edge('reg', 'hose', 0),
+        edge('hose', 'clip', 0),
+      ]);
+      const rows = [
+        GearProvenance(equipmentId: 'bcd', viaSetId: 'winter'),
+        GearProvenance(equipmentId: 'kit'),
+        GearProvenance(equipmentId: 'hose', viaEquipmentId: 'kit'),
+      ];
+      final next = const SetItemAdded('reg').applyTo(
+        rows,
+        'winter',
+        index: nested,
+        isActive: active,
+        isUsable: usable,
+      );
+      expect(ids(next), ['bcd', 'kit', 'hose', 'reg']);
+      expect(row(next, 'hose').viaEquipmentId, 'kit');
+    });
+
     test('a row another set put there is left alone', () {
       const rows = [
         GearProvenance(equipmentId: 'bcd', viaSetId: 'winter'),

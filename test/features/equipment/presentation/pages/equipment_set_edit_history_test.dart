@@ -15,6 +15,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set.dart
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/equipment/domain/entities/set_history_rewrite.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_page.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 
@@ -34,6 +35,14 @@ class _FailingReplay extends Fake implements DiveRepository {
     required bool alsoLogged,
     bool notify = true,
   }) async => throw StateError('replay failed');
+}
+
+/// Saves members as usual but fails to make the set the default, a write
+/// that runs after the members are saved.
+class _FailingDefault extends EquipmentSetRepository {
+  @override
+  Future<void> setAsDefault(String id, {String? diverId}) async =>
+      throw StateError('default failed');
 }
 
 /// Saving a set whose members changed offers to replay the change on the
@@ -100,13 +109,21 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
-  Future<Widget> buildPage({DiveRepository? diveRepository}) async {
+  Future<Widget> buildPage({
+    DiveRepository? diveRepository,
+    EquipmentSetRepository? setRepository,
+  }) async {
     final overrides = await getBaseOverrides();
     overrides.add(
       validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
     );
     if (diveRepository != null) {
       overrides.add(diveRepositoryProvider.overrideWithValue(diveRepository));
+    }
+    if (setRepository != null) {
+      overrides.add(
+        equipmentSetRepositoryProvider.overrideWithValue(setRepository),
+      );
     }
     final router = GoRouter(
       initialLocation: '/home/edit',
@@ -150,6 +167,7 @@ void main() {
   Future<void> untickFinsAndSave(
     WidgetTester tester, {
     DiveRepository? diveRepository,
+    EquipmentSetRepository? setRepository,
     bool makeDefault = false,
   }) async {
     // Tall enough that the whole lazy form is built.
@@ -157,7 +175,12 @@ void main() {
     tester.view.physicalSize = const Size(800, 4000);
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(await buildPage(diveRepository: diveRepository));
+    await tester.pumpWidget(
+      await buildPage(
+        diveRepository: diveRepository,
+        setRepository: setRepository,
+      ),
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(CheckboxListTile, 'fins'));
     if (makeDefault) {
@@ -235,6 +258,26 @@ void main() {
     expect(find.byType(EquipmentSetEditPage), findsOneWidget);
     expect(await EquipmentSetRepository().getEquipmentIdsInSet('s1'), ['wing']);
     expect((await EquipmentSetRepository().getSetById('s1'))!.isDefault, true);
+  });
+
+  testWidgets('a failed default save still replays the saved members', (
+    tester,
+  ) async {
+    await untickFinsAndSave(
+      tester,
+      setRepository: _FailingDefault(),
+      makeDefault: true,
+    );
+    await tester.tap(find.text('From now on'));
+    await tester.pumpAndSettle();
+
+    // The default write's error is the one shown, and the planned dive
+    // follows the members that were saved before it failed.
+    expect(find.textContaining('default failed'), findsOneWidget);
+    expect(find.byType(EquipmentSetEditPage), findsOneWidget);
+    expect(await EquipmentSetRepository().getEquipmentIdsInSet('s1'), ['wing']);
+    expect(await gearOn('planned'), {'wing'});
+    expect(await gearOn('logged'), {'wing', 'fins'});
   });
 
   testWidgets('a save that leaves the members alone asks nothing', (
