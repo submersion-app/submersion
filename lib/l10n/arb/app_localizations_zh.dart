@@ -28817,16 +28817,29 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_gas_gasMix_title => '混合气分布';
 
   @override
-  String get insights_gas_sacByRole_empty => '无可用多气瓶数据';
+  String get insights_gas_roleUse_title => '按气瓶用途的耗气量';
 
   @override
-  String get insights_gas_sacByRole_error => '加载按用途分类的消耗失败';
+  String get insights_gas_roleUse_subtitle => '按各用途实际呼吸的时间计算';
 
   @override
-  String get insights_gas_sacByRole_subtitle => '按气瓶类型的平均耗气量';
+  String get insights_gas_roleUse_empty => '暂无按气瓶用途的数据';
 
   @override
-  String get insights_gas_sacByRole_title => '按气瓶用途的气体消耗';
+  String get insights_gas_roleUse_error => '无法加载按气瓶用途的耗气量';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => '底部气体';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水的阶段瓶或减压瓶没有换气记录，因此未计入',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => '循环呼吸器气体用量';

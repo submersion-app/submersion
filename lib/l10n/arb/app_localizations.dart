@@ -48969,29 +48969,41 @@ abstract class AppLocalizations {
   /// **'Gas Mix Distribution'**
   String get insights_gas_gasMix_title;
 
-  /// No description provided for @insights_gas_sacByRole_empty.
+  /// No description provided for @insights_gas_roleUse_title.
   ///
   /// In en, this message translates to:
-  /// **'No multi-tank data available'**
-  String get insights_gas_sacByRole_empty;
+  /// **'Consumption by cylinder role'**
+  String get insights_gas_roleUse_title;
 
-  /// No description provided for @insights_gas_sacByRole_error.
+  /// No description provided for @insights_gas_roleUse_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Failed to load consumption by role'**
-  String get insights_gas_sacByRole_error;
+  /// **'Each role over the time it was breathed'**
+  String get insights_gas_roleUse_subtitle;
 
-  /// No description provided for @insights_gas_sacByRole_subtitle.
+  /// No description provided for @insights_gas_roleUse_empty.
   ///
   /// In en, this message translates to:
-  /// **'Average consumption by tank type'**
-  String get insights_gas_sacByRole_subtitle;
+  /// **'No cylinder role rates yet'**
+  String get insights_gas_roleUse_empty;
 
-  /// No description provided for @insights_gas_sacByRole_title.
+  /// No description provided for @insights_gas_roleUse_error.
   ///
   /// In en, this message translates to:
-  /// **'Gas consumption by tank role'**
-  String get insights_gas_sacByRole_title;
+  /// **'Failed to load consumption by cylinder role'**
+  String get insights_gas_roleUse_error;
+
+  /// No description provided for @insights_gas_roleGroup_bottomGas.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom gas'**
+  String get insights_gas_roleGroup_bottomGas;
+
+  /// No description provided for @insights_gas_roleUse_leftOut.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive with a stage or deco cylinder has no gas switches, so it is left out} other{{count} dives with a stage or deco cylinder have no gas switches, so they are left out}}'**
+  String insights_gas_roleUse_leftOut(int count);
 
   /// No description provided for @insights_gas_ccrUse_title.
   ///

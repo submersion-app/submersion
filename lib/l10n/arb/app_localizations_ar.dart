@@ -30831,18 +30831,40 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_gas_gasMix_title => 'توزيع خليط الغاز';
 
   @override
-  String get insights_gas_sacByRole_empty =>
-      'لا توجد بيانات أسطوانات متعددة متاحة';
+  String get insights_gas_roleUse_title => 'الاستهلاك حسب دور الأسطوانة';
 
   @override
-  String get insights_gas_sacByRole_error => 'فشل تحميل الاستهلاك حسب الدور';
+  String get insights_gas_roleUse_subtitle =>
+      'كل دور خلال الوقت الذي تم التنفس منه';
 
   @override
-  String get insights_gas_sacByRole_subtitle =>
-      'متوسط الاستهلاك حسب نوع الأسطوانة';
+  String get insights_gas_roleUse_empty => 'لا توجد قيم حسب دور الأسطوانة بعد';
 
   @override
-  String get insights_gas_sacByRole_title => 'استهلاك الغاز حسب دور الأسطوانة';
+  String get insights_gas_roleUse_error =>
+      'تعذر تحميل الاستهلاك حسب دور الأسطوانة';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => 'غاز القاع';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count غطسة بأسطوانة مرحلية أو تخفيف ضغط بلا تبديل غاز، لذا تم استبعادها',
+      many:
+          '$count غطسة بأسطوانة مرحلية أو تخفيف ضغط بلا تبديل غاز، لذا تم استبعادها',
+      few:
+          '$count غطسات بأسطوانة مرحلية أو تخفيف ضغط بلا تبديل غاز، لذا تم استبعادها',
+      two:
+          'غطستان بأسطوانة مرحلية أو تخفيف ضغط بلا تبديل غاز، لذا تم استبعادهما',
+      one:
+          'غطسة واحدة بأسطوانة مرحلية أو تخفيف ضغط بلا تبديل غاز، لذا تم استبعادها',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => 'استهلاك الغاز لجهاز إعادة التنفس';

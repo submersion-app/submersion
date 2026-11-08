@@ -29799,16 +29799,30 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_gas_gasMix_title => 'התפלגות תערובות גזים';
 
   @override
-  String get insights_gas_sacByRole_empty => 'אין נתוני ריבוי בלונים זמינים';
+  String get insights_gas_roleUse_title => 'צריכה לפי תפקיד המיכל';
 
   @override
-  String get insights_gas_sacByRole_error => 'שגיאה בטעינת צריכה לפי תפקיד';
+  String get insights_gas_roleUse_subtitle => 'כל תפקיד לאורך הזמן שנשמו ממנו';
 
   @override
-  String get insights_gas_sacByRole_subtitle => 'צריכה ממוצעת לפי סוג בלון';
+  String get insights_gas_roleUse_empty => 'אין עדיין ערכים לפי תפקיד מיכל';
 
   @override
-  String get insights_gas_sacByRole_title => 'צריכת גז לפי תפקיד בלון';
+  String get insights_gas_roleUse_error => 'טעינת הצריכה לפי תפקיד מיכל נכשלה';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => 'גז תחתית';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות עם מיכל סטייג׳ או דקו בלי החלפות גז, לכן לא נכללו',
+      one: 'צלילה אחת עם מיכל סטייג׳ או דקו בלי החלפות גז, לכן לא נכללה',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => 'צריכת גז במעגל סגור';

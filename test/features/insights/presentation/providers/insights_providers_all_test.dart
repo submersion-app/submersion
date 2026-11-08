@@ -129,7 +129,8 @@ void main() {
     expect(await container.read(sacTrendProvider.future), isEmpty);
     final records = await container.read(sacRecordsProvider.future);
     expect(records.best, isNull);
-    expect(await container.read(sacByTankRoleProvider.future), isEmpty);
+    final byRole = await container.read(roleConsumptionTrendProvider.future);
+    expect(byRole.isEmptyFor(GasConsumptionLane.sac), isTrue);
   });
 
   test('the consumption providers read the RMV lane when selected', () async {
@@ -137,7 +138,8 @@ void main() {
     expect(await container.read(sacTrendProvider.future), isEmpty);
     final records = await container.read(sacRecordsProvider.future);
     expect(records.best, isNull);
-    expect(await container.read(sacByTankRoleProvider.future), isEmpty);
+    final byRole = await container.read(roleConsumptionTrendProvider.future);
+    expect(byRole.isEmptyFor(GasConsumptionLane.rmv), isTrue);
   });
 
   test('the rebreather gas use provider is empty with no dives', () async {

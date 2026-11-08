@@ -30060,18 +30060,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insights_gas_gasMix_title => 'Gas Mix Distribution';
 
   @override
-  String get insights_gas_sacByRole_empty => 'No multi-tank data available';
+  String get insights_gas_roleUse_title => 'Consumption by cylinder role';
 
   @override
-  String get insights_gas_sacByRole_error =>
-      'Failed to load consumption by role';
+  String get insights_gas_roleUse_subtitle =>
+      'Each role over the time it was breathed';
 
   @override
-  String get insights_gas_sacByRole_subtitle =>
-      'Average consumption by tank type';
+  String get insights_gas_roleUse_empty => 'No cylinder role rates yet';
 
   @override
-  String get insights_gas_sacByRole_title => 'Gas consumption by tank role';
+  String get insights_gas_roleUse_error =>
+      'Failed to load consumption by cylinder role';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => 'Bottom gas';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count dives with a stage or deco cylinder have no gas switches, so they are left out',
+      one:
+          '1 dive with a stage or deco cylinder has no gas switches, so it is left out',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => 'Rebreather gas use';

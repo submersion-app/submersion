@@ -30596,20 +30596,35 @@ class AppLocalizationsEs extends AppLocalizations {
   String get insights_gas_gasMix_title => 'Distribución de mezcla de gas';
 
   @override
-  String get insights_gas_sacByRole_empty =>
-      'No hay datos de multitanque disponibles';
+  String get insights_gas_roleUse_title => 'Consumo por función de botella';
 
   @override
-  String get insights_gas_sacByRole_error =>
-      'Error al cargar el consumo por función';
+  String get insights_gas_roleUse_subtitle =>
+      'Cada función durante el tiempo en que se respiró';
 
   @override
-  String get insights_gas_sacByRole_subtitle =>
-      'Consumo promedio por tipo de tanque';
+  String get insights_gas_roleUse_empty =>
+      'Aún no hay valores por función de botella';
 
   @override
-  String get insights_gas_sacByRole_title =>
-      'Consumo de gas por función del tanque';
+  String get insights_gas_roleUse_error =>
+      'No se pudo cargar el consumo por función de botella';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => 'Gas de fondo';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count inmersiones con botella de etapa o descompresión no tienen cambios de gas, así que se omiten',
+      one:
+          '1 inmersión con botella de etapa o descompresión no tiene cambios de gas, así que se omite',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => 'Uso de gas del rebreather';

@@ -30563,20 +30563,35 @@ class AppLocalizationsPt extends AppLocalizations {
   String get insights_gas_gasMix_title => 'Distribuição de Mistura de Gás';
 
   @override
-  String get insights_gas_sacByRole_empty =>
-      'Nenhum dado de multi-cilindro disponível';
+  String get insights_gas_roleUse_title => 'Consumo por função do cilindro';
 
   @override
-  String get insights_gas_sacByRole_error =>
-      'Falha ao carregar consumo por função';
+  String get insights_gas_roleUse_subtitle =>
+      'Cada função no tempo em que foi respirada';
 
   @override
-  String get insights_gas_sacByRole_subtitle =>
-      'Consumo médio por tipo de cilindro';
+  String get insights_gas_roleUse_empty =>
+      'Ainda não há valores por função do cilindro';
 
   @override
-  String get insights_gas_sacByRole_title =>
-      'Consumo de gás por função do cilindro';
+  String get insights_gas_roleUse_error =>
+      'Não foi possível carregar o consumo por função do cilindro';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => 'Gás de fundo';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count mergulhos com cilindro de stage ou descompressão não têm trocas de gás, por isso ficaram de fora',
+      one:
+          '$count mergulho com cilindro de stage ou descompressão não tem trocas de gás, por isso ficou de fora',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => 'Uso de gás do rebreather';

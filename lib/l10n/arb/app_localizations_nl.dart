@@ -30369,18 +30369,34 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_gas_gasMix_title => 'Gasmengselverdeling';
 
   @override
-  String get insights_gas_sacByRole_empty =>
-      'Geen multi-flesgegevens beschikbaar';
+  String get insights_gas_roleUse_title => 'Verbruik per flesrol';
 
   @override
-  String get insights_gas_sacByRole_error => 'Kan verbruik per rol niet laden';
+  String get insights_gas_roleUse_subtitle =>
+      'Elke rol over de tijd dat eruit geademd werd';
 
   @override
-  String get insights_gas_sacByRole_subtitle =>
-      'Gemiddeld verbruik per flestype';
+  String get insights_gas_roleUse_empty => 'Nog geen waarden per flesrol';
 
   @override
-  String get insights_gas_sacByRole_title => 'Gasverbruik per flesrol';
+  String get insights_gas_roleUse_error =>
+      'Verbruik per flesrol kon niet worden geladen';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => 'Bodemgas';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count duiken met een stage- of decofles hebben geen gaswissels en zijn weggelaten',
+      one:
+          '1 duik met een stage- of decofles heeft geen gaswissels en is weggelaten',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => 'Gasverbruik rebreather';

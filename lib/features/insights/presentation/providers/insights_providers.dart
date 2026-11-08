@@ -263,27 +263,6 @@ final roleConsumptionTrendProvider = FutureProvider<RoleConsumptionTrend>((
   );
 });
 
-/// Average consumption by tank role for the lane the gas page shows.
-final sacByTankRoleProvider = FutureProvider<Map<String, double>>((ref) async {
-  _keepAliveWithExpiry(ref);
-  final repository = ref.watch(insightsRepositoryProvider);
-  final currentDiverId = ref.watch(currentDiverIdProvider);
-  final lane = ref.watch(insightsGasLaneProvider);
-  final filter = ref.watch(insightsFilterProvider);
-
-  if (lane == GasConsumptionLane.rmv) {
-    return repository.getSacVolumeByTankRole(
-      diverId: currentDiverId,
-      filter: filter,
-    );
-  } else {
-    return repository.getSacPressureByTankRole(
-      diverId: currentDiverId,
-      filter: filter,
-    );
-  }
-});
-
 // ============================================================================
 // Dive Type Distribution Provider
 // ============================================================================
