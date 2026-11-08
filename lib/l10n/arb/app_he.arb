@@ -12846,7 +12846,7 @@
   "dataQuality_msg_hypoxic": "תערובת היפוקסית ({gas}) מוצגת כבשימוש בפני השטח",
   "dataQuality_msg_switchMod": "החלפת הגז בעומק {depth} חורגת מה-MOD של אותו גז שהוא {mod}",
   "dataQuality_msg_tankInactive": "בלון זה איבד {drop} בעוד ציר הזמן של הגז מציין שהוא לא היה בשימוש",
-  "dataQuality_msg_missingSwitches": "לא נרשמה החלפת גז, אך לחצי הבלונים מראים את ההחלפות האלה: {switches}.",
+  "dataQuality_msg_missingSwitches": "{count, plural, one{לא נרשמה החלפת גז, אך לחצי הבלונים מראים את ההחלפה הזאת: {switches}.} other{לא נרשמה החלפת גז, אך לחצי הבלונים מראים את ההחלפות האלה: {switches}.}}",
   "dataQuality_msg_missingSwitchItem": "בלון {tankNumber} ({gas}) ב-{time}, {depth}",
   "dataQuality_msg_missingSwitchSeparator": "; ",
   "dataQuality_msg_missingSwitchDeep": "לא נרשמה החלפת גז. בלון {tankNumber} ({gas}) איבד לחץ ב-{depth}, עמוק מה-MOD שלו של {mod}, ולכן לא מוצעת החלפה אליו.",

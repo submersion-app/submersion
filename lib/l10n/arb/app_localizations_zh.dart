@@ -40102,8 +40102,13 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_missingSwitches(String switches) {
-    return '没有记录换气，但气瓶压力显示了以下换气：$switches。';
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '没有记录换气，但气瓶压力显示了以下换气：$switches。',
+    );
+    return '$_temp0';
   }
 
   @override

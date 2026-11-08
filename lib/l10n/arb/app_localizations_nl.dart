@@ -42302,8 +42302,16 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_missingSwitches(String switches) {
-    return 'Er is geen gaswissel vastgelegd, maar de flesdrukken tonen deze wissels: $switches.';
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Er is geen gaswissel vastgelegd, maar de flesdrukken tonen deze wissels: $switches.',
+      one:
+          'Er is geen gaswissel vastgelegd, maar de flesdrukken tonen deze wissel: $switches.',
+    );
+    return '$_temp0';
   }
 
   @override

@@ -377,14 +377,15 @@ void main() {
 
   group('missing_gas_switch (#165)', () {
     Map<String, Object?> start({
-      required int position,
+      required int number,
       required int t,
       required double depth,
       double o2 = 50,
       double? mod,
     }) => {
-      'tankId': 't$position',
-      'tankPosition': position,
+      'tankId': 't$number',
+      // Stored 0-based; the text names cylinder [number].
+      'tankPosition': number - 1,
       't': t,
       'depth': depth,
       'o2Percent': o2,
@@ -395,8 +396,8 @@ void main() {
     test('names the cylinder, gas, time and depth of each switch', () {
       final detail = detailFor('missing_gas_switch', {
         'missingSwitches': [
-          start(position: 2, t: 1800, depth: 21),
-          start(position: 3, t: 2730, depth: 6, o2: 100),
+          start(number: 2, t: 1800, depth: 21),
+          start(number: 3, t: 2730, depth: 6, o2: 100),
         ],
         'deepStarts': const [],
       });
@@ -408,10 +409,22 @@ void main() {
       );
     });
 
+    test('a single switch reads in the singular', () {
+      final detail = detailFor('missing_gas_switch', {
+        'missingSwitches': [start(number: 2, t: 1800, depth: 21)],
+        'deepStarts': const [],
+      });
+      expect(
+        detail,
+        'No gas switch was recorded, but the cylinder pressures show this '
+        'switch: cylinder 2 (EAN50) at 30:00, D21.0.',
+      );
+    });
+
     test('a start deeper than its MOD is named, never as a switch', () {
       final detail = detailFor('missing_gas_switch', {
         'missingSwitches': const [],
-        'deepStarts': [start(position: 2, t: 600, depth: 40, mod: 22)],
+        'deepStarts': [start(number: 2, t: 600, depth: 40, mod: 22)],
       });
       expect(
         detail,
@@ -425,8 +438,8 @@ void main() {
       final detail = detailFor('missing_gas_switch', {
         'missingSwitches': const [],
         'deepStarts': [
-          start(position: 2, t: 600, depth: 40, mod: 22),
-          start(position: 3, t: 900, depth: 30, o2: 100, mod: 6),
+          start(number: 2, t: 600, depth: 40, mod: 22),
+          start(number: 3, t: 900, depth: 30, o2: 100, mod: 6),
         ],
       });
       expect(detail, contains('Cylinder 2 (EAN50) lost pressure at D40.0'));
@@ -441,8 +454,8 @@ void main() {
 
     test('switches and a too-deep start read as two sentences', () {
       final detail = detailFor('missing_gas_switch', {
-        'missingSwitches': [start(position: 3, t: 2730, depth: 6, o2: 100)],
-        'deepStarts': [start(position: 2, t: 600, depth: 40, mod: 22)],
+        'missingSwitches': [start(number: 3, t: 2730, depth: 6, o2: 100)],
+        'deepStarts': [start(number: 2, t: 600, depth: 40, mod: 22)],
       });
       expect(detail, startsWith('No gas switch was recorded, but'));
       expect(detail, contains('cylinder 3 (Oxygen) at 45:30, D6.0.'));

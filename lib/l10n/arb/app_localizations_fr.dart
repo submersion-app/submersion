@@ -42708,8 +42708,16 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_missingSwitches(String switches) {
-    return 'Aucun changement de gaz n\'a été enregistré, mais les pressions des blocs montrent ces changements : $switches.';
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Aucun changement de gaz n\'a été enregistré, mais les pressions des blocs montrent ces changements : $switches.',
+      one:
+          'Aucun changement de gaz n\'a été enregistré, mais les pressions des blocs montrent ce changement : $switches.',
+    );
+    return '$_temp0';
   }
 
   @override

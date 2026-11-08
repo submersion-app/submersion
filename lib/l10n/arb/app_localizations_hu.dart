@@ -42351,8 +42351,16 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_missingSwitches(String switches) {
-    return 'Nem rögzült gázváltás, de a palacknyomások ezeket a váltásokat mutatják: $switches.';
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Nem rögzült gázváltás, de a palacknyomások ezeket a váltásokat mutatják: $switches.',
+      one:
+          'Nem rögzült gázváltás, de a palacknyomások ezt a váltást mutatják: $switches.',
+    );
+    return '$_temp0';
   }
 
   @override

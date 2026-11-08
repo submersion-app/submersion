@@ -12846,7 +12846,7 @@
   "dataQuality_msg_hypoxic": "Mistura hipóxica ({gas}) indicada em uso à superfície",
   "dataQuality_msg_switchMod": "A troca de gás a {depth} ultrapassa a MOD desse gás de {mod}",
   "dataQuality_msg_tankInactive": "Este cilindro perdeu {drop} enquanto a linha temporal de gás indica que não estava em uso",
-  "dataQuality_msg_missingSwitches": "Nenhuma troca de gás foi registrada, mas as pressões dos cilindros mostram estas trocas: {switches}.",
+  "dataQuality_msg_missingSwitches": "{count, plural, one{Nenhuma troca de gás foi registrada, mas as pressões dos cilindros mostram esta troca: {switches}.} other{Nenhuma troca de gás foi registrada, mas as pressões dos cilindros mostram estas trocas: {switches}.}}",
   "dataQuality_msg_missingSwitchItem": "cilindro {tankNumber} ({gas}) aos {time}, {depth}",
   "dataQuality_msg_missingSwitchSeparator": "; ",
   "dataQuality_msg_missingSwitchDeep": "Nenhuma troca de gás foi registrada. O cilindro {tankNumber} ({gas}) perdeu pressão a {depth}, mais fundo que a sua MOD de {mod}, por isso não é sugerida uma troca para ele.",

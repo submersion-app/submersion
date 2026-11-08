@@ -12846,7 +12846,7 @@
   "dataQuality_msg_hypoxic": "Mélange hypoxique ({gas}) indiqué comme utilisé en surface",
   "dataQuality_msg_switchMod": "Le changement de gaz à {depth} dépasse la MOD de {mod} de ce gaz",
   "dataQuality_msg_tankInactive": "Ce bloc a perdu {drop} alors que la chronologie des gaz indique qu'il n'était pas utilisé",
-  "dataQuality_msg_missingSwitches": "Aucun changement de gaz n'a été enregistré, mais les pressions des blocs montrent ces changements : {switches}.",
+  "dataQuality_msg_missingSwitches": "{count, plural, one{Aucun changement de gaz n'a été enregistré, mais les pressions des blocs montrent ce changement : {switches}.} other{Aucun changement de gaz n'a été enregistré, mais les pressions des blocs montrent ces changements : {switches}.}}",
   "dataQuality_msg_missingSwitchItem": "bloc {tankNumber} ({gas}) à {time}, {depth}",
   "dataQuality_msg_missingSwitchSeparator": " ; ",
   "dataQuality_msg_missingSwitchDeep": "Aucun changement de gaz n'a été enregistré. Le bloc {tankNumber} ({gas}) a perdu de la pression à {depth}, plus profond que sa MOD de {mod} ; aucun changement vers ce bloc n'est donc proposé.",

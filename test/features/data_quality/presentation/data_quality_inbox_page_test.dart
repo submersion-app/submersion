@@ -2202,7 +2202,7 @@ void main() {
               'missingSwitches': [
                 {
                   'tankId': 'deco',
-                  'tankPosition': 2,
+                  'tankPosition': 1,
                   't': 1800,
                   'depth': 21.0,
                   'o2Percent': 50.0,

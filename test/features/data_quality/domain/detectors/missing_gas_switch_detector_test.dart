@@ -99,7 +99,7 @@ void main() {
     expect(switches, hasLength(1));
     final first = switches.single as Map;
     expect(first['tankId'], 'deco');
-    expect(first['tankPosition'], 2);
+    expect(first['tankPosition'], 1);
     expect(first['t'] as int, closeTo(1800, 30));
     expect(first['depth'], 21);
     expect(first['o2Percent'], 50);
@@ -123,7 +123,7 @@ void main() {
     expect(finding!.params['missingSwitches'], isEmpty);
     final deep = (finding.params['deepStarts'] as List).single as Map;
     expect(deep['tankId'], 'deco');
-    expect(deep['tankPosition'], 2);
+    expect(deep['tankPosition'], 1);
     expect(deep['depth'], 40);
     expect(deep['modMeters'] as double, closeTo(22, 1));
   });

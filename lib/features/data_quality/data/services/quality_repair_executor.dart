@@ -1,4 +1,5 @@
-import 'package:drift/drift.dart' show Value, Variable;
+import 'package:drift/drift.dart'
+    show BooleanExpressionOperators, Value, Variable;
 
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -72,7 +73,7 @@ class QualityRepairExecutor {
     restoreDocuments,
   }) : _diveRepo = diveRepository ?? DiveRepository(),
        _sourceClocks = sourceClockRepository ?? SourceClockRepository(),
-       _switchWriter = gasSwitchWriter ?? DiverGasSwitchWriter(),
+       _injectedSwitchWriter = gasSwitchWriter,
        _tankRoles = tankRoleRepository ?? TankRoleRepairRepository(),
        _transmitters = transmitterRepository ?? TransmitterRepository(),
        _tankRepo = tankPressureRepository ?? TankPressureRepository(),
@@ -85,7 +86,13 @@ class QualityRepairExecutor {
   _restoreDocuments;
   final DiveRepository _diveRepo;
   final SourceClockRepository _sourceClocks;
-  final DiverGasSwitchWriter _switchWriter;
+  final DiverGasSwitchWriter? _injectedSwitchWriter;
+
+  /// Built on use, like [_db]: the writer reads the database when it is
+  /// made, and an executor must be buildable while it is migrating or not
+  /// yet open.
+  DiverGasSwitchWriter get _switchWriter =>
+      _injectedSwitchWriter ?? DiverGasSwitchWriter();
   final TankRoleRepairRepository _tankRoles;
   final TransmitterRepository _transmitters;
   final TankPressureRepository _tankRepo;
@@ -578,7 +585,9 @@ class QualityRepairExecutor {
   /// adding to the diver's own would mix two timelines; so is one that has
   /// lost a cylinder a switch names. Both are checked in the transaction
   /// that writes. Undo deletes exactly the switches written here and gives
-  /// the dive back the switch-list ownership it had.
+  /// the dive back the switch-list ownership it had, unless a switch added
+  /// since (in the editor, or by a peer) is still there: that list is the
+  /// diver's, and a re-parse must leave it alone.
   Future<RepairResult> addGasSwitches({
     required String diveId,
     required List<SwitchToAdd> switches,
@@ -622,16 +631,17 @@ class QualityRepairExecutor {
     if (wasEdited == null) return const RepairResult.noChange();
     await _finish(findingId, [diveId]);
     return RepairResult.applied(() async {
+      final added = {for (final r in rows) r.id};
       await _db.transaction(() async {
+        final later = await (_db.select(
+          _db.gasSwitches,
+        )..where((t) => t.diveId.equals(diveId) & t.id.isNotIn(added))).get();
         await _switchWriter.save(
           diveId: diveId,
           switches: const [],
-          loadedIds: {for (final r in rows) r.id},
+          loadedIds: added,
+          edited: wasEdited || later.isNotEmpty,
         );
-        if (!wasEdited) {
-          await (_db.update(_db.dives)..where((t) => t.id.equals(diveId)))
-              .write(const DivesCompanion(gasSwitchesEdited: Value(false)));
-        }
       });
       _rescan([diveId]);
     });

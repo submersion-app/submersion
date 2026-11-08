@@ -9,8 +9,9 @@ import 'package:submersion/features/dive_log/domain/services/gas_switch_time_sug
 /// A moment the cylinder pressures say the diver started breathing a
 /// cylinder, as stored in a missing-switch finding's params (issue #165).
 ///
-/// [tankPosition] is the cylinder's 1-based number in dive order, the
-/// number the switch editor and the cylinders card show.
+/// [tankPosition] is the cylinder's 0-based index in dive order, as the
+/// transmitter role finding stores it; its text adds one for the number the
+/// switch editor and the cylinders card show.
 typedef MissedSwitch = ({
   String tankId,
   int tankPosition,
@@ -55,7 +56,7 @@ MissedSwitches missedGasSwitches(DiveQualityContext ctx) {
   if (breathed.length < 2) return _none;
 
   final positionById = {
-    for (var i = 0; i < ordered.length; i++) ordered[i].id: i + 1,
+    for (var i = 0; i < ordered.length; i++) ordered[i].id: i,
   };
   final lastSampleT = ctx.primarySamples.last.t;
   // Ties go to dive order, so two cylinders starting on one second give the

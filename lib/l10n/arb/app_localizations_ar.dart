@@ -43138,8 +43138,22 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_missingSwitches(String switches) {
-    return 'لم يُسجَّل أي تبديل للغاز، لكن ضغوط الأسطوانات تُظهر هذه التبديلات: $switches.';
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'لم يُسجَّل أي تبديل للغاز، لكن ضغوط الأسطوانات تُظهر هذه التبديلات: $switches.',
+      many:
+          'لم يُسجَّل أي تبديل للغاز، لكن ضغوط الأسطوانات تُظهر هذه التبديلات: $switches.',
+      few:
+          'لم يُسجَّل أي تبديل للغاز، لكن ضغوط الأسطوانات تُظهر هذه التبديلات: $switches.',
+      two:
+          'لم يُسجَّل أي تبديل للغاز، لكن ضغوط الأسطوانات تُظهر هذين التبديلين: $switches.',
+      one:
+          'لم يُسجَّل أي تبديل للغاز، لكن ضغوط الأسطوانات تُظهر هذا التبديل: $switches.',
+    );
+    return '$_temp0';
   }
 
   @override

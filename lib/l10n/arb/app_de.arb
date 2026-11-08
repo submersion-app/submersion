@@ -13000,7 +13000,7 @@
   "dataQuality_msg_hypoxic": "Hypoxisches Gemisch ({gas}) an der Oberfläche in Verwendung angezeigt",
   "dataQuality_msg_switchMod": "Gaswechsel auf {depth} liegt über der MOD dieses Gases von {mod}",
   "dataQuality_msg_tankInactive": "Diese Flasche verlor {drop}, obwohl die Gas-Zeitleiste sie als nicht in Verwendung ausweist",
-  "dataQuality_msg_missingSwitches": "Es wurde kein Gaswechsel aufgezeichnet, aber die Flaschendrücke zeigen diese Wechsel: {switches}.",
+  "dataQuality_msg_missingSwitches": "{count, plural, one{Es wurde kein Gaswechsel aufgezeichnet, aber die Flaschendrücke zeigen diesen Wechsel: {switches}.} other{Es wurde kein Gaswechsel aufgezeichnet, aber die Flaschendrücke zeigen diese Wechsel: {switches}.}}",
   "dataQuality_msg_missingSwitchItem": "Flasche {tankNumber} ({gas}) bei {time}, {depth}",
   "dataQuality_msg_missingSwitchSeparator": "; ",
   "dataQuality_msg_missingSwitchDeep": "Es wurde kein Gaswechsel aufgezeichnet. Flasche {tankNumber} ({gas}) verlor bei {depth} Druck, tiefer als ihre MOD von {mod}, daher wird kein Wechsel darauf vorgeschlagen.",

@@ -550,8 +550,8 @@ void main() {
           detectorId: 'missing_gas_switch',
           params: {
             'missingSwitches': [
-              {'tankId': 'deco', 'tankPosition': 2, 't': 1800, 'depth': 21},
-              {'tankId': 'o2', 'tankPosition': 3, 't': 2400, 'depth': 6.0},
+              {'tankId': 'deco', 'tankPosition': 1, 't': 1800, 'depth': 21},
+              {'tankId': 'o2', 'tankPosition': 2, 't': 2400, 'depth': 6.0},
             ],
             'deepStarts': const [],
           },
@@ -566,6 +566,41 @@ void main() {
       expect(actions.whereType<GoToDiveRepair>(), hasLength(1));
     });
 
+    test('an entry missing a field is skipped, not guessed (#165)', () {
+      final actions = repairOptionsFor(
+        f(
+          detectorId: 'missing_gas_switch',
+          params: {
+            'missingSwitches': [
+              {'tankId': 'deco', 't': 1800},
+              {'t': 2400, 'depth': 6.0},
+              {'tankId': 'o2', 't': '2400', 'depth': 6.0},
+              'not a map',
+              {'tankId': 'o2', 't': 2400, 'depth': 6},
+            ],
+            'deepStarts': const [],
+          },
+        ),
+      );
+      final add = actions.first as AddGasSwitchesRepair;
+      expect(add.switches, [(tankId: 'o2', t: 2400, depth: 6.0)]);
+    });
+
+    test('only malformed entries leave navigation only (#165)', () {
+      final actions = repairOptionsFor(
+        f(
+          detectorId: 'missing_gas_switch',
+          params: {
+            'missingSwitches': [
+              {'tankId': 'deco', 't': 1800},
+            ],
+            'deepStarts': const [],
+          },
+        ),
+      );
+      expect(actions.single, isA<GoToDiveRepair>());
+    });
+
     test('only too-deep starts get navigation only (#165)', () {
       final actions = repairOptionsFor(
         f(
@@ -573,7 +608,7 @@ void main() {
           params: {
             'missingSwitches': const [],
             'deepStarts': [
-              {'tankId': 'deco', 'tankPosition': 2, 't': 1800, 'depth': 40},
+              {'tankId': 'deco', 'tankPosition': 1, 't': 1800, 'depth': 40},
             ],
           },
         ),

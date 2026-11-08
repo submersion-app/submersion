@@ -67042,11 +67042,11 @@ abstract class AppLocalizations {
   /// **'This tank lost {drop} while the gas timeline says it was not in use'**
   String dataQuality_msg_tankInactive(String drop);
 
-  /// Missing gas switch finding: {switches} is a list of dataQuality_msg_missingSwitchItem entries.
+  /// Missing gas switch finding: {switches} is a list of {count} dataQuality_msg_missingSwitchItem entries.
   ///
   /// In en, this message translates to:
-  /// **'No gas switch was recorded, but the cylinder pressures show these switches: {switches}.'**
-  String dataQuality_msg_missingSwitches(String switches);
+  /// **'{count, plural, one{No gas switch was recorded, but the cylinder pressures show this switch: {switches}.} other{No gas switch was recorded, but the cylinder pressures show these switches: {switches}.}}'**
+  String dataQuality_msg_missingSwitches(int count, String switches);
 
   /// One switch in dataQuality_msg_missingSwitches; {time} is minutes:seconds from the start of the dive.
   ///
@@ -67065,7 +67065,7 @@ abstract class AppLocalizations {
   /// **'; '**
   String get dataQuality_msg_missingSwitchSeparator;
 
-  /// No description provided for @dataQuality_msg_missingSwitchDeep.
+  /// Missing gas switch finding when no switch can be offered: cylinder {tankNumber} started losing pressure at {depth}, deeper than {mod}, the maximum operating depth (MOD) of its gas {gas}.
   ///
   /// In en, this message translates to:
   /// **'No gas switch was recorded. Cylinder {tankNumber} ({gas}) lost pressure at {depth}, deeper than its MOD of {mod}, so no switch to it is suggested.'**
@@ -67076,7 +67076,7 @@ abstract class AppLocalizations {
     String mod,
   );
 
-  /// No description provided for @dataQuality_msg_missingSwitchDeepAlso.
+  /// A further sentence of the missing gas switch finding, after its switches or an earlier start: cylinder {tankNumber} started losing pressure at {depth}, deeper than {mod}, the maximum operating depth (MOD) of its gas {gas}.
   ///
   /// In en, this message translates to:
   /// **'Cylinder {tankNumber} ({gas}) also lost pressure at {depth}, deeper than its MOD of {mod}, so no switch to it is suggested.'**

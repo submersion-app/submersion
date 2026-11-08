@@ -285,8 +285,9 @@ String _missingSwitchDetail(
         if (e is Map) e.cast<String, Object?>(),
   ];
   double d(Map<String, Object?> e, String k) => (e[k] as num?)?.toDouble() ?? 0;
-  int position(Map<String, Object?> e) =>
-      (e['tankPosition'] as num?)?.toInt() ?? 0;
+  // Stored 0-based, as the transmitter role finding's is.
+  int number(Map<String, Object?> e) =>
+      ((e['tankPosition'] as num?)?.toInt() ?? 0) + 1;
   String gas(Map<String, Object?> e) => qualityGasLabel(
     l10n,
     d(e, 'o2Percent'),
@@ -298,10 +299,11 @@ String _missingSwitchDetail(
   final sentences = <String>[
     if (switches.isNotEmpty)
       l10n.dataQuality_msg_missingSwitches(
+        switches.length,
         switches
             .map(
               (e) => l10n.dataQuality_msg_missingSwitchItem(
-                position(e),
+                number(e),
                 gas(e),
                 formatMinutesSeconds((e['t'] as num?)?.toInt() ?? 0),
                 fmt.depth(d(e, 'depth')),
@@ -312,19 +314,14 @@ String _missingSwitchDetail(
     // Every too-deep start, the first opening the message when no switch
     // can be offered.
     for (final (i, e) in deep.indexed)
-      i == 0 && switches.isEmpty
-          ? l10n.dataQuality_msg_missingSwitchDeep(
-              position(e),
-              gas(e),
-              fmt.depth(d(e, 'depth')),
-              fmt.limitDepth(d(e, 'modMeters')),
-            )
-          : l10n.dataQuality_msg_missingSwitchDeepAlso(
-              position(e),
-              gas(e),
-              fmt.depth(d(e, 'depth')),
-              fmt.limitDepth(d(e, 'modMeters')),
-            ),
+      (i == 0 && switches.isEmpty
+          ? l10n.dataQuality_msg_missingSwitchDeep
+          : l10n.dataQuality_msg_missingSwitchDeepAlso)(
+        number(e),
+        gas(e),
+        fmt.depth(d(e, 'depth')),
+        fmt.limitDepth(d(e, 'modMeters')),
+      ),
   ];
   return sentences.join(' ');
 }

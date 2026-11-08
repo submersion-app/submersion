@@ -222,7 +222,7 @@ void main() {
   group('missing gas switch (#165)', () {
     Map<String, Object?> start(String tankId, int t) => {
       'tankId': tankId,
-      'tankPosition': 2,
+      'tankPosition': 1,
       't': t,
       'depth': 21.0,
       'o2Percent': 50.0,

@@ -41883,8 +41883,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_missingSwitches(String switches) {
-    return 'No gas switch was recorded, but the cylinder pressures show these switches: $switches.';
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'No gas switch was recorded, but the cylinder pressures show these switches: $switches.',
+      one:
+          'No gas switch was recorded, but the cylinder pressures show this switch: $switches.',
+    );
+    return '$_temp0';
   }
 
   @override

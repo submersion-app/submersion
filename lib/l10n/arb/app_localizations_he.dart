@@ -41554,8 +41554,16 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_missingSwitches(String switches) {
-    return 'לא נרשמה החלפת גז, אך לחצי הבלונים מראים את ההחלפות האלה: $switches.';
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'לא נרשמה החלפת גז, אך לחצי הבלונים מראים את ההחלפות האלה: $switches.',
+      one:
+          'לא נרשמה החלפת גז, אך לחצי הבלונים מראים את ההחלפה הזאת: $switches.',
+    );
+    return '$_temp0';
   }
 
   @override

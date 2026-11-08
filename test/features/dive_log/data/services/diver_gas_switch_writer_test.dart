@@ -250,6 +250,26 @@ void main() {
     );
   });
 
+  test('a save told the list is not edited leaves the dive unowned', () async {
+    await writer.save(
+      diveId: 'dive-1',
+      switches: [stored1.copyWith(timestamp: 30)],
+      loadedIds: {'gs-1'},
+      now: now,
+    );
+
+    await writer.save(
+      diveId: 'dive-1',
+      switches: const [],
+      loadedIds: {'gs-1'},
+      edited: false,
+      now: now,
+    );
+
+    expect((await dive()).gasSwitchesEdited, isFalse);
+    expect(await pending('dives', 'dive-1'), isTrue);
+  });
+
   test(
     'a loaded switch whose row is already gone is still tombstoned',
     () async {

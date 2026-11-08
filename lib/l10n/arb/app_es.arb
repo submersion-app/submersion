@@ -12846,7 +12846,7 @@
   "dataQuality_msg_hypoxic": "Mezcla hipóxica ({gas}) mostrada en uso en la superficie",
   "dataQuality_msg_switchMod": "El cambio de gas a {depth} supera la MOD de ese gas de {mod}",
   "dataQuality_msg_tankInactive": "Este tanque perdió {drop} mientras la cronología de gas indica que no estaba en uso",
-  "dataQuality_msg_missingSwitches": "No se registró ningún cambio de gas, pero las presiones de los tanques muestran estos cambios: {switches}.",
+  "dataQuality_msg_missingSwitches": "{count, plural, one{No se registró ningún cambio de gas, pero las presiones de los tanques muestran este cambio: {switches}.} other{No se registró ningún cambio de gas, pero las presiones de los tanques muestran estos cambios: {switches}.}}",
   "dataQuality_msg_missingSwitchItem": "tanque {tankNumber} ({gas}) a los {time}, {depth}",
   "dataQuality_msg_missingSwitchSeparator": "; ",
   "dataQuality_msg_missingSwitchDeep": "No se registró ningún cambio de gas. El tanque {tankNumber} ({gas}) perdió presión a {depth}, más profundo que su MOD de {mod}, por lo que no se sugiere un cambio a él.",

@@ -12846,7 +12846,7 @@
   "dataQuality_msg_hypoxic": "Hipoxikus keverék ({gas}) használatban a felszínen",
   "dataQuality_msg_switchMod": "A gázcsere {depth} mélységben meghaladja az adott gáz {mod} MOD-értékét",
   "dataQuality_msg_tankInactive": "Ez a palack {drop} nyomást veszített, miközben a gáz-idővonal szerint nem volt használatban",
-  "dataQuality_msg_missingSwitches": "Nem rögzült gázváltás, de a palacknyomások ezeket a váltásokat mutatják: {switches}.",
+  "dataQuality_msg_missingSwitches": "{count, plural, one{Nem rögzült gázváltás, de a palacknyomások ezt a váltást mutatják: {switches}.} other{Nem rögzült gázváltás, de a palacknyomások ezeket a váltásokat mutatják: {switches}.}}",
   "dataQuality_msg_missingSwitchItem": "{tankNumber}. palack ({gas}), {time}, {depth}",
   "dataQuality_msg_missingSwitchSeparator": "; ",
   "dataQuality_msg_missingSwitchDeep": "Nem rögzült gázváltás. A(z) {tankNumber}. palack ({gas}) {depth} mélységben vesztett nyomást, mélyebben a {mod} MOD-jánál, ezért nem javaslunk rá váltást.",

@@ -42566,8 +42566,16 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_missingSwitches(String switches) {
-    return 'Nenhuma troca de gás foi registrada, mas as pressões dos cilindros mostram estas trocas: $switches.';
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Nenhuma troca de gás foi registrada, mas as pressões dos cilindros mostram estas trocas: $switches.',
+      one:
+          'Nenhuma troca de gás foi registrada, mas as pressões dos cilindros mostram esta troca: $switches.',
+    );
+    return '$_temp0';
   }
 
   @override
