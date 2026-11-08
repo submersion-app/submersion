@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -40,6 +42,7 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_lis
 import 'package:submersion/features/equipment/presentation/widgets/equipment_set_tile.dart';
 import 'package:submersion/features/global_search/domain/global_search_models.dart';
 import 'package:submersion/features/global_search/presentation/providers/global_search_providers.dart';
+import 'package:submersion/features/global_search/presentation/providers/global_search_record_providers.dart';
 import 'package:submersion/features/global_search/presentation/widgets/global_search_rows.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
@@ -74,6 +77,9 @@ class _StubSettings extends StateNotifier<AppSettings>
 }
 
 late SharedPreferences _prefs;
+
+class _WholeListRead implements Exception {}
+
 final _now = DateTime(2026, 10, 30);
 
 const _site = DiveSite(id: 'x', name: 'Salt Pier');
@@ -113,6 +119,7 @@ Widget _host(
   List<EquipmentItem> equipment = const [
     EquipmentItem(id: 'x', name: 'Primary', type: EquipmentType.regulator),
   ],
+  Future<void>? extras,
 }) => ProviderScope(
   overrides: [
     sharedPreferencesProvider.overrideWithValue(_prefs),
@@ -125,6 +132,26 @@ Widget _host(
       (ref, kind) async =>
           kind == SharedItemKind.site ? sharedSites : const <String>{},
     ),
+    // A section reads its own few records (#4247), never its whole list.
+    ...[
+      sitesWithCountsProvider,
+      allTripsWithStatsProvider,
+      allEquipmentProvider,
+      equipmentSetsProvider,
+      allBuddiesWithDiveCountProvider,
+      allDiveCentersProvider,
+      diveCenterDiveCountsProvider,
+      allCertificationsProvider,
+      allCoursesProvider,
+      allSpeciesProvider,
+      seenSpeciesProvider,
+      speciesCoverMediaProvider,
+      allDocumentsProvider,
+      divePlanSummariesProvider,
+      gpsTracksProvider,
+      allNavTracksProvider,
+    ].map((list) => list.overrideWith((ref) => throw _WholeListRead())),
+    tagsByItemProvider.overrideWith((ref, scope) => throw _WholeListRead()),
     globalSearchDivesProvider.overrideWith(
       (ref, key) async => [
         DiveSummary(
@@ -136,20 +163,20 @@ Widget _host(
         ),
       ],
     ),
-    sitesWithCountsProvider.overrideWith(
-      (ref) async => [const SiteWithDiveCount(site: _site, diveCount: 4)],
+    globalSearchSitesProvider.overrideWith(
+      (ref, key) async => [const SiteWithDiveCount(site: _site, diveCount: 4)],
     ),
-    allTripsWithStatsProvider.overrideWith(
-      (ref) async => [TripWithStats(trip: _trip, diveCount: 3)],
+    globalSearchTripsProvider.overrideWith(
+      (ref, key) async => [TripWithStats(trip: _trip, diveCount: 3)],
     ),
-    allEquipmentProvider.overrideWith((ref) async => equipment),
-    equipmentSetsProvider.overrideWith(
-      (ref) async => [
+    globalSearchEquipmentProvider.overrideWith((ref, key) async => equipment),
+    globalSearchEquipmentSetsProvider.overrideWith(
+      (ref, key) async => [
         EquipmentSet(id: 'x', name: 'Cold', createdAt: _now, updatedAt: _now),
       ],
     ),
-    allBuddiesWithDiveCountProvider.overrideWith(
-      (ref) =>
+    globalSearchBuddiesProvider.overrideWith(
+      (ref, key) =>
           buddies?.call() ??
           [
             BuddyWithDiveCount(
@@ -163,14 +190,17 @@ Widget _host(
             ),
           ],
     ),
-    allDiveCentersProvider.overrideWith(
-      (ref) async => [
+    globalSearchDiveCentersProvider.overrideWith(
+      (ref, key) async => [
         DiveCenter(id: 'x', name: 'Reef', createdAt: _now, updatedAt: _now),
       ],
     ),
-    diveCenterDiveCountProvider.overrideWith((ref, id) async => 5),
-    allCertificationsProvider.overrideWith(
-      (ref) async => [
+    globalSearchDiveCenterCountsProvider.overrideWith((ref, key) async {
+      await extras;
+      return {for (final id in key.split(',')) id: 5};
+    }),
+    globalSearchCertificationsProvider.overrideWith(
+      (ref, key) async => [
         Certification(
           id: 'x',
           name: 'Rescue',
@@ -180,8 +210,8 @@ Widget _host(
         ),
       ],
     ),
-    allCoursesProvider.overrideWith(
-      (ref) async => [
+    globalSearchCoursesProvider.overrideWith(
+      (ref, key) async => [
         Course(
           id: 'x',
           diverId: 'me',
@@ -193,17 +223,24 @@ Widget _host(
         ),
       ],
     ),
-    allSpeciesProvider.overrideWith((ref) async => [_species]),
-    seenSpeciesProvider.overrideWith((ref) async => seen),
-    speciesCoverMediaProvider.overrideWith((ref) async => const {}),
-    allDocumentsProvider.overrideWith(
-      (ref) async => documents ?? [DocumentListEntry(_document, null, 0)],
+    globalSearchSpeciesProvider.overrideWith((ref, key) async => [_species]),
+    globalSearchSeenSpeciesProvider.overrideWith((ref, key) async {
+      await extras;
+      return {for (final entry in seen) entry.species.id: entry};
+    }),
+    globalSearchSpeciesCoversProvider.overrideWith((ref, key) async {
+      await extras;
+      return const {};
+    }),
+    globalSearchDocumentsProvider.overrideWith(
+      (ref, key) async => documents ?? [DocumentListEntry(_document, null, 0)],
     ),
-    tagsByItemProvider.overrideWith(
-      (ref, scope) async => const <String, List<Tag>>{},
-    ),
-    divePlanSummariesProvider.overrideWith(
-      (ref) async =>
+    globalSearchDocumentTagsProvider.overrideWith((ref, key) async {
+      await extras;
+      return const <String, List<Tag>>{};
+    }),
+    globalSearchDivePlansProvider.overrideWith(
+      (ref, key) async =>
           plans ??
           [
             DivePlanSummary(
@@ -214,11 +251,13 @@ Widget _host(
             ),
           ],
     ),
-    gpsTracksProvider.overrideWith(
-      (ref) async => const [GpsTrack(id: 'x', startTime: 1000, endTime: 2000)],
+    globalSearchGpsTracksProvider.overrideWith(
+      (ref, key) async => const [
+        GpsTrack(id: 'x', startTime: 1000, endTime: 2000),
+      ],
     ),
-    allNavTracksProvider.overrideWith(
-      (ref) async => [
+    globalSearchUnderwaterRoutesProvider.overrideWith(
+      (ref, key) async => [
         NavTrack(
           id: 'x',
           source: NavTrackSource.seacraftEnc,
@@ -331,6 +370,46 @@ void main() {
     expect(find.byType(SeenSpeciesTile), findsOneWidget);
     expect(find.byType(SpeciesCatalogTile), findsNothing);
   });
+
+  // What a row shows beside its record (a center's dive count, a species'
+  // sightings and cover, a document's tags) is read with the records, and a
+  // row waits for it, so it is drawn once rather than redrawn as it arrives.
+  for (final MapEntry(key: kind, value: tile) in {
+    GlobalSearchKind.diveCenters: CompactDiveCenterListTile,
+    GlobalSearchKind.species: SeenSpeciesTile,
+    GlobalSearchKind.documents: DocumentTile,
+  }.entries) {
+    testWidgets('$kind draws its rows once, with their extras', (tester) async {
+      final extras = Completer<void>();
+      await tester.pumpWidget(
+        _host(
+          kind,
+          extras: extras.future,
+          seen: [
+            SeenSpecies(
+              species: _species,
+              totalSightings: 3,
+              diveCount: 2,
+              siteCount: 1,
+              firstSeen: _now,
+              lastSeen: _now,
+            ),
+          ],
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.byType(tile), findsNothing);
+      expect(find.byType(SpeciesCatalogTile), findsNothing);
+
+      extras.complete();
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.byType(tile), findsOneWidget);
+    });
+  }
 
   testWidgets('a document names the certification it is filed under', (
     tester,

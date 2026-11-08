@@ -64,6 +64,7 @@ class _ThrowingCertificationRepository extends CertificationRepository {
   @override
   Future<List<Certification>> getCertificationMetadata({
     String? diverId,
+    List<String>? ids,
   }) async {
     throw StateError('boom');
   }

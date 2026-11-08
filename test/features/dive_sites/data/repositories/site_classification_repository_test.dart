@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
 
+import '../../../../helpers/drift_statement_log.dart';
 import '../../../../helpers/test_database.dart';
 
 /// The site type and site tag junctions (issue #1765).
@@ -141,6 +142,20 @@ void main() {
       't1',
       't2',
     });
+  });
+
+  test('batch reads over no sites read nothing', () async {
+    await tearDownTestDatabase();
+    await setUpStatementLoggingTestDatabase();
+    late Map<String, Object?> types;
+    late Map<String, Object?> tags;
+    final sent = await statementsOf(() async {
+      types = await repository.getTypesBySite(siteIds: const []);
+      tags = await repository.getTagsBySite(siteIds: const []);
+    });
+    expect(types, isEmpty);
+    expect(tags, isEmpty);
+    expect(sent, isEmpty);
   });
 
   test('a link to a custom type that has not synced yet is skipped', () async {

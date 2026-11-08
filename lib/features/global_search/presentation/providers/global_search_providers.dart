@@ -42,19 +42,25 @@ class GlobalSearchRefused implements Exception {
   final QueryError error;
 }
 
-/// The dives behind a section's rows, named by [globalSearchDiveKey]. The
-/// other types read their list's provider, which holds every record; dives
-/// are paged, so a result may not be among those the list has loaded.
+/// The dives behind a section's rows, named by [globalSearchIdsKey]. Read
+/// by id like every other section's (issue #4247): dives are paged, so a
+/// result may not be among those the list has loaded anyway.
 final globalSearchDivesProvider = FutureProvider.autoDispose
     .family<List<DiveSummary>, String>((ref, key) async {
       final repository = ref.watch(diveRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchDiveListChanges());
-      return repository.getSummariesByIds(key.split(','));
+      return repository.getSummariesByIds(globalSearchIdsOf(key));
     });
 
-/// The key of [ids] in [globalSearchDivesProvider]: a family compares its
-/// argument by value, and a list has none.
-String globalSearchDiveKey(List<String> ids) => ids.join(',');
+/// The key of [ids] in [globalSearchDivesProvider] and the other sections'
+/// record families: a family compares its argument by value, and a list has
+/// none.
+String globalSearchIdsKey(List<String> ids) => ids.join(',');
+
+/// The ids [globalSearchIdsKey] made [key] from. An empty key is no ids
+/// (`''.split(',')` would be one empty id), so a read of none sends nothing.
+List<String> globalSearchIdsOf(String key) =>
+    key.isEmpty ? const [] : key.split(',');
 
 /// Every record type's matches for the typed text (#3882), leaving out the
 /// types with none. A write to any table the search read refreshes it in
