@@ -38,6 +38,7 @@ import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_ex
 import 'package:submersion/features/backup/data/services/backup_attribution.dart';
 import 'package:submersion/features/backup/data/services/backup_pin_markers.dart';
 import 'package:submersion/features/backup/data/services/cross_device_retention.dart';
+import 'package:submersion/features/backup/data/services/extra_copy_destination.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/marine_life/data/services/builtin_species_seed_version_store.dart';
 import 'package:submersion/features/backup/data/services/backup_database_adapter.dart';
@@ -46,6 +47,7 @@ import 'package:submersion/features/backup/data/services/backup_target.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
+import 'package:submersion/features/backup/domain/entities/extra_cloud_copy.dart';
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
@@ -58,6 +60,7 @@ export 'package:submersion/features/backup/data/services/backup_database_adapter
 
 part 'backup_service_cloud_copy.dart';
 part 'backup_service_copy_out.dart';
+part 'backup_service_extra_copies.dart';
 part 'backup_service_image_restore.dart';
 part 'backup_service_pruning.dart';
 part 'backup_service_retention.dart';
@@ -160,6 +163,10 @@ class BackupService {
   /// while the copy follows sync (or is off).
   final String? _pinnedCopyAccountId;
 
+  /// The accounts each backup is also copied to (issue #3782), fixed with
+  /// [_cloudProvider] when this service is built.
+  final List<ExtraCopyDestination> _extraCopies;
+
   /// SAF write/read/delete seam for Android custom (`content://`) backup
   /// locations. Defaults to the real platform channel; injectable for tests.
   final BackupSafPort _safPort;
@@ -195,6 +202,7 @@ class BackupService {
     BackupEncryptionKeyStore? backupEncryptionKeyStore,
     BuiltInSpeciesSeedVersionStore? seedVersionStore,
     String? copyAccountId,
+    List<ExtraCopyDestination> extraCopies = const [],
     Future<String> Function(
       Uint8List image, {
       void Function(int currentStep, int totalSteps)? onMigrationProgress,
@@ -214,6 +222,7 @@ class BackupService {
        _backupEncryptionKeyStore = backupEncryptionKeyStore,
        _seedVersionStore = seedVersionStore,
        _pinnedCopyAccountId = copyAccountId,
+       _extraCopies = List.unmodifiable(extraCopies),
        _restoreImage = restoreImage ?? DatabaseService.instance.restoreImage,
        _retireLibrary =
            retireLibrary ?? DatabaseService.instance.retireWebLibrary;
@@ -272,11 +281,23 @@ class BackupService {
     // uploads from a filesystem file holding the stored bytes, never from
     // the folder's ref, which on Android is a content:// URI.
     final wantsCopy = settings.cloudBackupEnabled && _cloudProvider != null;
+    // Extra copies (issue #3782) ride on the main copy's switch, and run
+    // even when the main copy's own account cannot be reached.
+    final wantsExtras = settings.cloudBackupEnabled && _extraCopies.isNotEmpty;
     ({String? fileId, String? accountId, bool needsSignIn}) copy = (
       fileId: null,
       accountId: null,
       needsSignIn: false,
     );
+    ({List<ExtraCloudCopy> copies, List<String> missed}) extras = (
+      copies: const [],
+      missed: const [],
+    );
+    // Every copy uploads the same stored bytes from [path] as [name].
+    Future<void> copyOut(String path, String name) async {
+      if (wantsCopy) copy = await _copyToCloud(path, name);
+      if (wantsExtras) extras = await _copyToExtras(path, name);
+    }
 
     final String ref;
     final int sizeBytes;
@@ -291,8 +312,8 @@ class BackupService {
         _dbAdapter,
         filename,
         note: note,
-        whileWritten: wantsCopy
-            ? (path) async => copy = await _copyToCloud(path, storedName)
+        whileWritten: wantsCopy || wantsExtras
+            ? (path) => copyOut(path, filename)
             : null,
       );
       ref = written.ref;
@@ -321,7 +342,7 @@ class BackupService {
         );
         ref = await target.writeSource(tempSbe, storedName);
         sizeBytes = await File(tempSbe).length();
-        if (wantsCopy) copy = await _copyToCloud(tempSbe, storedName);
+        await copyOut(tempSbe, storedName);
       } finally {
         for (final t in [tempPlain, tempSbe]) {
           final f = File(t);
@@ -357,6 +378,7 @@ class BackupService {
       localPath: ref,
       isAutomatic: isAutomatic,
       note: note,
+      extraCloudCopies: extras.copies,
     );
 
     // Persist record and update last backup time
@@ -368,6 +390,7 @@ class BackupService {
       settings.cloudBackupEnabled && location == BackupLocation.local,
     );
     await _preferences.setLastCloudCopyNeedsSignIn(copy.needsSignIn);
+    await _preferences.setLastExtraCopyMissingIds(extras.missed);
     await _preferences.setLastBackupDestination(
       location == BackupLocation.both
           ? LastBackupDestination.cloud
@@ -1754,8 +1777,14 @@ class BackupService {
     return (mlk: key.mlk, libraryKeyId: key.libraryKeyId, keyslotBytes: mirror);
   }
 
-  Future<String?> _uploadToCloud(String localPath, String filename) async {
-    if (_cloudProvider == null) return null;
+  /// Uploads to [via], the main copy's provider when null.
+  Future<String?> _uploadToCloud(
+    String localPath,
+    String filename, {
+    CloudStorageProvider? via,
+  }) async {
+    final provider = via ?? _cloudProvider;
+    if (provider == null) return null;
 
     // When backup encryption (issue #580) already produced a framed .sbe, the
     // local artifact IS the encrypted upload -- send it verbatim. Otherwise, if
@@ -1778,7 +1807,10 @@ class BackupService {
       return null;
     }
 
-    final folderId = await _getOrCreateCloudBackupFolder(rethrowRefused: true);
+    final folderId = await _getOrCreateCloudBackupFolder(
+      rethrowRefused: true,
+      via: provider,
+    );
     if (folderId == null) return null;
 
     var uploadPath = localPath;
@@ -1803,7 +1835,7 @@ class BackupService {
     try {
       // Path-based upload: providers stream from disk, so a multi-hundred-MB
       // backup is never resident in memory.
-      final result = await _cloudProvider.uploadFileFromPath(
+      final result = await provider.uploadFileFromPath(
         uploadPath,
         uploadName,
         folderId: folderId,
@@ -1905,14 +1937,17 @@ class BackupService {
   }
 
   /// [rethrowRefused] lets a refusal out for a caller that keeps the reason;
-  /// anything else is a null, as it is for every other caller.
+  /// anything else is a null, as it is for every other caller. [via] is the
+  /// account's provider, the main copy's when null.
   Future<String?> _getOrCreateCloudBackupFolder({
     bool rethrowRefused = false,
+    CloudStorageProvider? via,
   }) async {
-    if (_cloudProvider == null) return null;
+    final provider = via ?? _cloudProvider;
+    if (provider == null) return null;
 
     try {
-      return await _cloudProvider.createFolder(_cloudBackupFolder);
+      return await provider.createFolder(_cloudBackupFolder);
     } catch (e, stack) {
       if (rethrowRefused && isAccessRefused(e)) rethrow;
       _log.error(
