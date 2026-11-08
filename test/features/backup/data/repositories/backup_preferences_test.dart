@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/backup/domain/entities/backup_copy_account.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 
@@ -349,6 +350,51 @@ void main() {
 
       await backupPreferences.setBackupLocationLabel(null);
       expect(backupPreferences.backupLocationLabel, isNull);
+    });
+  });
+
+  group('BackupPreferences extra copy accounts (#3782)', () {
+    test('default to none', () {
+      final settings = backupPreferences.getSettings();
+      expect(settings.extraCopyAccounts, isEmpty);
+      expect(settings.lastExtraCopyMissingIds, isEmpty);
+    });
+
+    test('extra copy accounts round-trip in order', () async {
+      const accounts = [
+        BackupCopyAccount(accountId: 'git-row', kind: AccountKind.git),
+        BackupCopyAccount(accountId: 'db-row', kind: AccountKind.dropbox),
+      ];
+      await backupPreferences.setExtraCopyAccounts(accounts);
+      expect(backupPreferences.getSettings().extraCopyAccounts, accounts);
+    });
+
+    test('an entry with an unknown kind is dropped', () async {
+      SharedPreferences.setMockInitialValues({
+        'backup_extra_copy_accounts':
+            '[{"id":"a","kind":"carrierPigeon"},{"id":"b","kind":"git"}]',
+      });
+      final prefs = BackupPreferences(await SharedPreferences.getInstance());
+      expect(prefs.getSettings().extraCopyAccounts, const [
+        BackupCopyAccount(accountId: 'b', kind: AccountKind.git),
+      ]);
+    });
+
+    test('malformed JSON reads as none', () async {
+      SharedPreferences.setMockInitialValues({
+        'backup_extra_copy_accounts': '{not json',
+      });
+      final prefs = BackupPreferences(await SharedPreferences.getInstance());
+      expect(prefs.getSettings().extraCopyAccounts, isEmpty);
+    });
+
+    test('last extra copy missing ids round-trip', () async {
+      await backupPreferences.setLastExtraCopyMissingIds(['git-row']);
+      expect(backupPreferences.getSettings().lastExtraCopyMissingIds, [
+        'git-row',
+      ]);
+      await backupPreferences.setLastExtraCopyMissingIds(const []);
+      expect(backupPreferences.getSettings().lastExtraCopyMissingIds, isEmpty);
     });
   });
 }

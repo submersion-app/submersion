@@ -1,6 +1,7 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/backup/domain/entities/backup_copy_account.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 
 /// Notifier for backup settings (enabled, frequency, retention, cloud)
@@ -44,9 +45,15 @@ class BackupSettingsNotifier extends StateNotifier<BackupSettings> {
     state = _prefs.getSettings();
   }
 
-  /// The copy goes to [row], an account's sync-role row, and is on.
+  /// The copy goes to [row], an account's sync-role row, and is on. An
+  /// account that was an extra copy stops being one: it would get the same
+  /// backup twice.
   Future<void> setCopyTo(ConnectedAccount row) async {
     await _prefs.setCopyDestination(accountId: row.id, kind: row.kind);
+    await _prefs.setExtraCopyAccounts([
+      for (final a in _prefs.getSettings().extraCopyAccounts)
+        if (a.accountId != row.id) a,
+    ]);
     await _prefs.setCloudBackupEnabled(true);
     await _prefs.setLastCloudCopyNeedsSignIn(false);
     state = _prefs.getSettings();
@@ -76,6 +83,30 @@ class BackupSettingsNotifier extends StateNotifier<BackupSettings> {
   /// stops (spec section 8.1).
   Future<void> pinCopyTo(ConnectedAccount row) async {
     await _prefs.setCopyDestination(accountId: row.id, kind: row.kind);
+    state = _prefs.getSettings();
+  }
+
+  /// Each backup is also copied to [row] (issue #3782). Already listed, it
+  /// stays where it is in the list.
+  Future<void> addExtraCopyAccount(ConnectedAccount row) async {
+    final current = _prefs.getSettings().extraCopyAccounts;
+    if (current.any((a) => a.accountId == row.id)) return;
+    await _prefs.setExtraCopyAccounts([
+      ...current,
+      BackupCopyAccount(accountId: row.id, kind: row.kind),
+    ]);
+    state = _prefs.getSettings();
+  }
+
+  /// Backups stop being copied to [accountId]. Copies already there stay.
+  Future<void> removeExtraCopyAccount(String accountId) async {
+    final current = _prefs.getSettings().extraCopyAccounts;
+    if (!current.any((a) => a.accountId == accountId)) return;
+    await _prefs.setExtraCopyAccounts([
+      for (final a in current)
+        if (a.accountId != accountId) a,
+    ]);
+    if (!mounted) return;
     state = _prefs.getSettings();
   }
 
