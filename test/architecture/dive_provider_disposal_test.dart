@@ -18,6 +18,9 @@ import 'package:submersion/features/dive_log/presentation/providers/outlier_sugg
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_track_map_providers.dart';
+import 'package:submersion/features/nav_track/application/nav_track_scene_providers.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_3d_providers.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_logged_dive_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
@@ -91,6 +94,15 @@ void main() {
     'seriesFollowProvider': seriesFollowProvider,
     // Per buddy, but holds hydrated dives.
     'divesForBuddyProvider': divesForBuddyProvider,
+    // Per route or GPS track, but reached from a dive (its 3D seascape, its
+    // matched track) and holding decoded points, so they count the same.
+    'gpsTrackDetailProvider': gpsTrackDetailProvider,
+    'divesOnTrackProvider': divesOnTrackProvider,
+    'primaryNavTrackForDiveProvider': primaryNavTrackForDiveProvider,
+    'navTrackByIdProvider': navTrackByIdProvider,
+    'navTrackWithMarkersProvider': navTrackWithMarkersProvider,
+    'navTrackSceneProvider': navTrackSceneProvider,
+    'navTrack3dSceneDataProvider': navTrack3dSceneDataProvider,
   };
 
   for (final entry in mustAutoDispose.entries) {

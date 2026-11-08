@@ -49,14 +49,17 @@ final trackSimplifierProvider = Provider<TrackSimplifier>(
 
 /// A single hydrated track, points blob decoded. This is the expensive step,
 /// so read it for the track's own page rather than for every preview.
-final gpsTrackDetailProvider = FutureProvider.family<GpsTrack?, String>((
-  ref,
-  trackId,
-) async {
-  final repository = ref.watch(gpsTrackRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchTracksChanges());
-  return repository.getTrack(trackId, includePoints: true);
-});
+///
+/// A dive's matched track reads it too ([trackForDiveProvider]), so it is
+/// held for `diveDataRetention` once unused rather than the whole session
+/// (#4254).
+final gpsTrackDetailProvider = FutureProvider.autoDispose
+    .family<GpsTrack?, String>((ref, trackId) async {
+      retainDiveData(ref);
+      final repository = ref.watch(gpsTrackRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchTracksChanges());
+      return repository.getTrack(trackId, includePoints: true);
+    });
 
 /// Simplified geometry at a given level of detail, cached across launches.
 final gpsTrackGeometryProvider =
@@ -107,21 +110,21 @@ int _entryMillis(Dive dive) => dive.effectiveEntryTime.millisecondsSinceEpoch;
 /// Uses [GpsTrackMatcher.trackCovering] rather than a bare range test so the
 /// markers show exactly the dives this track could have stamped - same
 /// 30-minute tolerance the match sweep applies.
-final divesOnTrackProvider = FutureProvider.family<List<Dive>, String>((
-  ref,
-  trackId,
-) async {
-  final track = await ref.watch(gpsTrackDetailProvider(trackId).future);
-  // An in-progress track has no closed window to test dives against.
-  if (track == null || track.endTime == null) return const [];
+final divesOnTrackProvider = FutureProvider.autoDispose
+    .family<List<Dive>, String>((ref, trackId) async {
+      retainDiveData(ref);
+      final track = await ref.watch(gpsTrackDetailProvider(trackId).future);
+      // An in-progress track has no closed window to test dives against.
+      if (track == null || track.endTime == null) return const [];
 
-  final dives = await ref.watch(divesProvider.future);
-  return [
-    for (final dive in dives)
-      if (GpsTrackMatcher.trackCovering([track], _entryMillis(dive)) != null)
-        dive,
-  ];
-});
+      final dives = await ref.watch(divesProvider.future);
+      return [
+        for (final dive in dives)
+          if (GpsTrackMatcher.trackCovering([track], _entryMillis(dive)) !=
+              null)
+            dive,
+      ];
+    });
 
 /// The track, if any, whose window covers [diveId].
 final trackForDiveProvider = FutureProvider.autoDispose

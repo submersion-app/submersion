@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/nav_track/domain/track_3d/nav_track_3d_scene_data.dart';
 import 'package:submersion/features/nav_track/domain/track_3d/nav_track_scene_geometry_service.dart';
 import 'package:submersion/features/nav_track/domain/track_3d/track_scene_metric.dart';
@@ -14,8 +15,9 @@ import 'package:submersion/features/nav_track/presentation/providers/nav_track_p
 /// page shows as its no-profile message rather than a spinner. Reactivity
 /// comes from `navTrackByIdProvider`, already invalidated on
 /// `NavTrackRepository.watchRouteChanges`.
-final navTrack3dSceneDataProvider =
-    FutureProvider.family<NavTrack3dSceneData?, String>((ref, trackId) async {
+final navTrack3dSceneDataProvider = FutureProvider.autoDispose
+    .family<NavTrack3dSceneData?, String>((ref, trackId) async {
+      retainDiveData(ref);
       final route = await ref.watch(
         navTrackWithMarkersProvider(trackId).future,
       );
