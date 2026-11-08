@@ -93030,6 +93030,24 @@ abstract class AppLocalizations {
   /// **'The copy\'s account was removed'**
   String get settings_backups_copyAccountGone;
 
+  /// Backups page: an extra account each backup is also copied to, beside the main copy
+  ///
+  /// In en, this message translates to:
+  /// **'Also copy to {account}'**
+  String settings_backups_alsoCopyTo(String account);
+
+  /// Backups page: adds an extra account each backup is also copied to
+  ///
+  /// In en, this message translates to:
+  /// **'Copy to another account too'**
+  String get settings_backups_addCopyAccount;
+
+  /// Subtitle of an Also copy to row when the most recent backup's copy to that account failed
+  ///
+  /// In en, this message translates to:
+  /// **'The last backup did not reach this account'**
+  String get settings_backups_extraCopyMissed;
+
   /// Switch: run backups on a schedule
   ///
   /// In en, this message translates to:

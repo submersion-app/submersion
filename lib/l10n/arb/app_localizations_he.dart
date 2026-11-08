@@ -26742,7 +26742,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dataHealth_backup_extraCopyMissing =>
-      'Last backup did not reach every account';
+      'הגיבוי האחרון לא הגיע לכל החשבונות';
 
   @override
   String get dataHealth_backup_noOffDeviceCopy => 'אין עותק מחוץ למכשיר הזה';
@@ -57581,6 +57581,18 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_backups_copyAccountGone => 'החשבון של העותק הוסר';
+
+  @override
+  String settings_backups_alsoCopyTo(String account) {
+    return 'גם עותק ב-$account';
+  }
+
+  @override
+  String get settings_backups_addCopyAccount => 'העתקה גם לחשבון נוסף';
+
+  @override
+  String get settings_backups_extraCopyMissed =>
+      'הגיבוי האחרון לא הגיע לחשבון הזה';
 
   @override
   String get settings_backups_auto => 'גיבוי אוטומטי';

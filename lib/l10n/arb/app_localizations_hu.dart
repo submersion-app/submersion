@@ -27296,7 +27296,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get dataHealth_backup_extraCopyMissing =>
-      'Last backup did not reach every account';
+      'Az utolsó mentés nem került fel minden fiókba';
 
   @override
   String get dataHealth_backup_noOffDeviceCopy =>
@@ -58497,6 +58497,18 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_backups_copyAccountGone =>
       'A másolat fiókját eltávolították';
+
+  @override
+  String settings_backups_alsoCopyTo(String account) {
+    return 'Másolat ide is: $account';
+  }
+
+  @override
+  String get settings_backups_addCopyAccount => 'Másolás egy másik fiókba is';
+
+  @override
+  String get settings_backups_extraCopyMissed =>
+      'Az utolsó mentés nem került fel ebbe a fiókba';
 
   @override
   String get settings_backups_auto => 'Automatikus mentés';

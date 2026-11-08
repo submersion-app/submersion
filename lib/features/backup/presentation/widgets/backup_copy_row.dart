@@ -152,7 +152,7 @@ Future<bool> applyBackupCopyChoice(
     case ChoseAccount(:final group):
       final ConnectedAccount row;
       try {
-        row = await _syncRowOf(ref, group);
+        row = await backupCopyRowOf(ref, group);
       } on Object {
         return false;
       }
@@ -161,10 +161,14 @@ Future<bool> applyBackupCopyChoice(
   return true;
 }
 
-/// The row the copy goes through: an own server's sync-folder row, created
-/// with the account's keys when it has none yet (spec section 12), else the
-/// account's own row.
-Future<ConnectedAccount> _syncRowOf(WidgetRef ref, AccountGroup group) async {
+/// The row a backup copy goes through: an own server's sync-folder row,
+/// created with the account's keys when it has none yet (spec section 12),
+/// else the account's own row. Shared by the main copy and the extra copies
+/// (issue #3782).
+Future<ConnectedAccount> backupCopyRowOf(
+  WidgetRef ref,
+  AccountGroup group,
+) async {
   if (group.kind == AccountKind.s3 || group.kind == AccountKind.webdav) {
     return ref
         .read(accountGroupServiceProvider)

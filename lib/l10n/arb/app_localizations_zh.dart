@@ -25895,8 +25895,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dataHealth_backup_cloudCopyMissing => '上次备份未上传到云端';
 
   @override
-  String get dataHealth_backup_extraCopyMissing =>
-      'Last backup did not reach every account';
+  String get dataHealth_backup_extraCopyMissing => '上次备份未上传到所有账户';
 
   @override
   String get dataHealth_backup_noOffDeviceCopy => '没有此设备之外的副本';
@@ -55215,6 +55214,17 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_backups_copyAccountGone => '副本所在的账户已被移除';
+
+  @override
+  String settings_backups_alsoCopyTo(String account) {
+    return '另存副本于$account';
+  }
+
+  @override
+  String get settings_backups_addCopyAccount => '同时复制到另一个账户';
+
+  @override
+  String get settings_backups_extraCopyMissed => '上次备份未上传到此账户';
 
   @override
   String get settings_backups_auto => '自动备份';
