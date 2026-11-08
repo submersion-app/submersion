@@ -712,7 +712,7 @@ class PlanEngine {
   /// The water and surface conditions [plan] is computed in. Shared with
   /// every caller that must charge gas at the same ambient pressure the
   /// deco schedule used (the DPV mission's per-diver gas, issue #2086).
-  ///
+  /// Conditions are read as [environmentForConditions] describes.
   static DiveEnvironment environmentFor(domain.DivePlan plan) =>
       environmentForConditions(
         altitude: plan.altitude,
