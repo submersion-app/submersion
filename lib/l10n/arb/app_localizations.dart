@@ -91720,6 +91720,12 @@ abstract class AppLocalizations {
   /// **'(empty)'**
   String get rules_value_empty;
 
+  /// A gear item in a rule change list with the equipment set it came through, shown when only its set changed
+  ///
+  /// In en, this message translates to:
+  /// **'{item} ({set})'**
+  String rules_value_gearViaSet(String item, String set);
+
   /// Lower-case collection name in an action summary
   ///
   /// In en, this message translates to:

@@ -406,8 +406,14 @@ class RuleUndoService {
 
   Future<_Outcome> _undoDiveMembership(
     RuleChange c,
-    DiveCollection collection,
+    DiveCollection recorded,
   ) async {
+    // A set action changes gear and is recorded as gear (#4284). A change
+    // stored under the set collection all the same is gear too: its ids are
+    // equipment, checked against the equipment table, never against sets.
+    final collection = recorded == DiveCollection.equipmentSets
+        ? DiveCollection.equipment
+        : recorded;
     final before = _items(c.before);
     final after = _items(c.after);
     final current = _items(
@@ -452,8 +458,8 @@ class RuleUndoService {
           types.insert(order.indexOf(t).clamp(0, types.length), t);
         }
         await _dives.replaceDiveTypes(diveId, types);
-      // A set action is recorded as a gear change, so only gear lands here.
-      // The gear write itself drops a set deleted since the run.
+      // A set change was turned into a gear change above, so only gear
+      // lands here. The gear write itself drops a set deleted since the run.
       case DiveCollection.equipment || DiveCollection.equipmentSets:
         await _dives.replaceGear(
           diveId,

@@ -4851,53 +4851,82 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     );
   }
 
-  void _bulkUseEquipmentSet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, scrollController) => EquipmentSetPickerSheet(
-          scrollController: scrollController,
-          onSetSelected: (set, items) {
-            setState(() {
-              final existing = _equipmentMembers.map((e) => e.id).toSet();
-              _equipmentMembers = [
-                ..._equipmentMembers,
-                for (final item in items)
-                  if (!existing.contains(item.id))
-                    BulkMembershipItem(
-                      id: item.id,
-                      label: item.name,
-                      icon: equipmentTypeIcon(item.type),
-                    ),
-              ];
-              // Rows already listed keep whatever the user set them to, so
-              // appending alone would let an unchecked row remove a set item
-              // from every dive (#1754). Switch the whole set on.
-              _equipmentEnsureOn = (
-                serial: (_equipmentEnsureOn?.serial ?? 0) + 1,
-                ids: {for (final item in items) item.id},
-              );
-              // An item the diver switched off since an earlier set put it
-              // on is this set's now, not the earlier one's.
-              final on = equipmentSwitchedOn(
-                _equipmentDelta,
-                onEveryDive: _equipmentOnEveryDive,
-              );
-              _equipmentSetOf = withSetItems(_equipmentSetOf, set.id, [
-                for (final item in items) item.id,
-              ], isOn: on.contains);
-            });
-            Navigator.of(context).pop();
-          },
-        ),
-      ),
-    );
+  Future<void> _bulkUseEquipmentSet() async {
+    // The sheet closes on the tap, as before; the members are filtered once
+    // it has, so a second tap cannot land while the filter is running.
+    final picked =
+        await showModalBottomSheet<
+          ({EquipmentSet set, List<EquipmentItem> items})
+        >(
+          context: context,
+          isScrollControlled: true,
+          useSafeArea: true,
+          builder: (context) => DraggableScrollableSheet(
+            initialChildSize: 0.7,
+            minChildSize: 0.5,
+            maxChildSize: 0.95,
+            expand: false,
+            builder: (context, scrollController) => EquipmentSetPickerSheet(
+              scrollController: scrollController,
+              onSetSelected: (set, items) =>
+                  Navigator.of(context).pop((set: set, items: items)),
+            ),
+          ),
+        );
+    if (picked == null || !mounted) return;
+    final set = picked.set;
+    final items = await _bulkUsableSetItems(picked.items);
+    if (!mounted) return;
+    setState(() {
+      final existing = _equipmentMembers.map((e) => e.id).toSet();
+      _equipmentMembers = [
+        ..._equipmentMembers,
+        for (final item in items)
+          if (!existing.contains(item.id))
+            BulkMembershipItem(
+              id: item.id,
+              label: item.name,
+              icon: equipmentTypeIcon(item.type),
+            ),
+      ];
+      // Rows already listed keep whatever the user set them to, so
+      // appending alone would let an unchecked row remove a set item
+      // from every dive (#1754). Switch the whole set on.
+      _equipmentEnsureOn = (
+        serial: (_equipmentEnsureOn?.serial ?? 0) + 1,
+        ids: {for (final item in items) item.id},
+      );
+      // An item the diver switched off since an earlier set put it
+      // on is this set's now, not the earlier one's.
+      final on = equipmentSwitchedOn(
+        _equipmentDelta,
+        onEveryDive: _equipmentOnEveryDive,
+      );
+      _equipmentSetOf = withSetItems(_equipmentSetOf, set.id, [
+        for (final item in items) item.id,
+      ], isOn: on.contains);
+    });
+  }
+
+  /// The members of a set bulk "Use Set" applies: one another profile owns
+  /// and has not shared with the diver stays in the set but is not applied
+  /// (#2046), as when the set is used on one dive. An unreadable diver
+  /// applies every member, as before sharing.
+  Future<List<EquipmentItem>> _bulkUsableSetItems(
+    List<EquipmentItem> items,
+  ) async {
+    if (items.isEmpty) return items;
+    String? diverId;
+    try {
+      diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    } catch (_) {
+      diverId = null;
+    }
+    if (diverId == null) return items;
+    final usable = await EquipmentRepository().usableSetMemberIds([
+      for (final i in items) i.id,
+    ], diverId);
+    return usableSetItems(items, usable.toSet());
   }
 
   /// Stages a set to come off every selected dive with the gear it brought

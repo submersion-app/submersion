@@ -295,9 +295,9 @@ too.
 
 ### Sets on many dives at once
 
-- **Bulk edit:** select dives, choose **Edit**, and under **Equipment** tap
-  **Use Set** to put a set's items on every selected dive, or **Remove Set**
-  to take a set off them.
+- **Bulk edit:** select dives, choose **Edit Selected**, and under
+  **Equipment** tap **Use Set** to put a set's items on every selected dive,
+  or **Remove Set** to take a set off them.
 - **Rules:** in **Settings > Manage > Rules**, a dive rule can **Add
   equipment sets** or **Remove equipment sets**. The rule uses the set as it
   is when the rule runs, so items you add to the set later come along. A

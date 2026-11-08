@@ -42,35 +42,57 @@ extension DiveGearSets on DiveRepository {
   /// one expansion per dive, so on overlap the first set wins; a top-level
   /// row already from another set keeps it; a row with no set (added by
   /// hand) takes this one; and a row an added assembly adopts as its part
-  /// takes the assembly's set. Writes and bumps only the dives whose rows
-  /// change, and returns their ids. No notify/txn.
+  /// takes the assembly's set. A member or part another profile owns and
+  /// has not shared with the dive's diver stays off that dive, as when the
+  /// set is used on one dive (#2046). Writes and bumps only the dives whose
+  /// rows change, and returns their ids. No notify/txn.
   Future<List<String>> bulkAddEquipmentSets(
     List<String> diveIds,
     List<String> setIds,
   ) async {
     if (diveIds.isEmpty) return const [];
     final sets = await _setItems(setIds);
-    final additions = [
-      for (final s in sets)
-        for (final id in s.equipmentIds) (equipmentId: id, viaSetId: s.setId),
-    ];
-    if (additions.isEmpty) return const [];
+    if (sets.every((s) => s.equipmentIds.isEmpty)) return const [];
     final index = await _loadComponentsIndex();
-    final active = await _activeIdsAmong({
-      for (final a in additions) ...[
-        a.equipmentId,
-        ...index.descendantsOf(a.equipmentId),
-      ],
-    });
-    return _rewriteGear(
-      diveIds,
-      (rows) => GearExpander.expand(
-        additions: additions,
-        index: index,
-        existing: rows,
-        isActive: active.contains,
-      ),
-    );
+    final candidates = {
+      for (final s in sets)
+        for (final id in s.equipmentIds) ...[id, ...index.descendantsOf(id)],
+    };
+    final active = await _activeIdsAmong(candidates);
+    final visibility = EquipmentVisibilityQueries(_db);
+    final diverOf = await visibility.diversOfDives(diveIds);
+    final byDiver = <String?, List<String>>{};
+    for (final id in diveIds) {
+      // A dive that has gone has no gear to change.
+      if (diverOf.containsKey(id)) (byDiver[diverOf[id]] ??= []).add(id);
+    }
+    final changed = <String>[];
+    for (final MapEntry(key: diverId, value: dives) in byDiver.entries) {
+      final usable = diverId == null
+          ? candidates
+          : (await visibility.usableSetMemberIds(
+              candidates.toList(),
+              diverId,
+            )).toSet();
+      final additions = [
+        for (final s in sets)
+          for (final id in s.equipmentIds)
+            if (usable.contains(id)) (equipmentId: id, viaSetId: s.setId),
+      ];
+      if (additions.isEmpty) continue;
+      changed.addAll(
+        await _rewriteGear(
+          dives,
+          (rows) => GearExpander.expand(
+            additions: additions,
+            index: index,
+            existing: rows,
+            isActive: (id) => active.contains(id) && usable.contains(id),
+          ),
+        ),
+      );
+    }
+    return changed;
   }
 
   /// Removes from each dive every row tagged with one of [setIds], with what
@@ -96,16 +118,21 @@ extension DiveGearSets on DiveRepository {
   }
 
   /// Applies [rewrite] to each dive's rows and writes the dives it changes.
+  /// The rows are read for every dive up front, a query per chunk rather
+  /// than per dive, since most dives of a rule re-run change nothing. The
+  /// expander and the removals keep row order, so an unchanged dive
+  /// compares equal row by row.
   Future<List<String>> _rewriteGear(
     List<String> diveIds,
     List<GearProvenance> Function(List<GearProvenance> rows) rewrite,
   ) async {
     final now = DateTime.now().millisecondsSinceEpoch;
+    final rowsByDive = await _provenanceOfDives(diveIds);
     final changed = <String>[];
     for (final diveId in diveIds) {
-      final rows = await _provenanceOf(diveId);
+      final rows = rowsByDive[diveId] ?? const <GearProvenance>[];
       final next = rewrite(rows);
-      if (_sameGear(rows, next)) continue;
+      if (DiveRepository._sameRows(rows, next)) continue;
       await _writeGearDiff(diveId, next, now);
       changed.add(diveId);
     }
@@ -113,8 +140,26 @@ extension DiveGearSets on DiveRepository {
     return changed;
   }
 
-  /// Whether [a] and [b] hold the same rows with the same provenance, in
-  /// any order: the diff writer ignores order, so this does too.
-  static bool _sameGear(List<GearProvenance> a, List<GearProvenance> b) =>
-      a.length == b.length && a.toSet().containsAll(b);
+  /// Each of [diveIds]' gear rows, as [_provenanceOf] reads one dive's, in
+  /// one query per chunk. A dive with no rows is absent.
+  Future<Map<String, List<GearProvenance>>> _provenanceOfDives(
+    List<String> diveIds,
+  ) async {
+    final out = <String, List<GearProvenance>>{};
+    for (final chunk in seriesIdChunks(diveIds.toSet().toList())) {
+      final rows = await (_db.select(
+        _db.diveEquipment,
+      )..where((t) => t.diveId.isIn(chunk))).get();
+      for (final r in rows) {
+        (out[r.diveId] ??= []).add(
+          GearProvenance(
+            equipmentId: r.equipmentId,
+            viaEquipmentId: r.viaEquipmentId,
+            viaSetId: r.viaSetId,
+          ),
+        );
+      }
+    }
+    return out;
+  }
 }

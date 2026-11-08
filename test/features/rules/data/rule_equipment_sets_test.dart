@@ -236,5 +236,22 @@ void main() {
 
       expect(await gear(), ['bcd:warm', 'reg:warm']);
     });
+
+    test('a change stored under the set collection undoes as gear', () async {
+      await db.customStatement(
+        'INSERT INTO dive_equipment (dive_id, equipment_id, via_set_id) '
+        "VALUES ('d40', 'bcd', 'warm'), ('d40', 'reg', 'warm')",
+      );
+      final result = await runRule(sets(MembershipMode.remove, ['warm']));
+      await db.customStatement(
+        "UPDATE rule_run_changes SET field = 'equipmentSets' "
+        "WHERE run_id = '${result.runId}'",
+      );
+
+      final undone = await undo.undo(result.runId!);
+
+      expect(undone.restoredTargets, 1);
+      expect(await gear(), ['bcd:warm', 'reg:warm']);
+    });
   });
 }

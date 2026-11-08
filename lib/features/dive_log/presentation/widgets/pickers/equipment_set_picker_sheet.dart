@@ -186,6 +186,8 @@ class _EquipmentSetTile extends ConsumerWidget {
         ),
         title: Text(set.name),
         subtitle: Text(context.l10n.diveLog_equipmentSetPicker_loading),
+        // Taking a set off needs none of its items (see the error tile).
+        onTap: pickEmpty ? () => onTap(const []) : null,
       ),
       error: (_, _) => ListTile(
         leading: CircleAvatar(
@@ -197,6 +199,9 @@ class _EquipmentSetTile extends ConsumerWidget {
         ),
         title: Text(set.name),
         subtitle: Text(context.l10n.diveLog_equipmentSetPicker_errorItems),
+        // Taking a set off dives goes by the gear it tagged there, so a set
+        // whose items failed to load can still be picked for that (#4284).
+        onTap: pickEmpty ? () => onTap(const []) : null,
       ),
     );
   }

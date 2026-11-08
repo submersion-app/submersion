@@ -17251,6 +17251,7 @@
   "rules_value_yes": "Igen",
   "rules_value_no": "Nem",
   "rules_value_empty": "(üres)",
+  "rules_value_gearViaSet": "{item} ({set})",
   "rules_collection_diveTypes": "merüléstípusok",
   "rules_collection_tags": "címkék",
   "rules_collection_equipment": "felszerelés",

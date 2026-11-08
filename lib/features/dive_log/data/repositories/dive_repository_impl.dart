@@ -119,6 +119,7 @@ import 'package:submersion/features/buddies/data/repositories/buddy_repository.d
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_visibility_queries.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
@@ -8173,14 +8174,15 @@ class DiveRepository {
 
   /// Add each equipment id to each dive, expanding assemblies into their
   /// active parts and tagging every written row with [viaSetId] when the
-  /// addition came from a set. No notify/txn.
+  /// addition came from a set. Writes and bumps only the dives whose rows
+  /// change: a bulk "Use Set" re-adds items every dive already has (#4284),
+  /// and those dives must not be re-stamped for sync. No notify/txn.
   Future<void> bulkAddEquipment(
     List<String> diveIds,
     List<String> equipmentIds, {
     String? viaSetId,
   }) async {
     if (diveIds.isEmpty || equipmentIds.isEmpty) return;
-    final now = DateTime.now().millisecondsSinceEpoch;
     final index = await _loadComponentsIndex();
     final candidates = {
       for (final id in equipmentIds) ...[id, ...index.descendantsOf(id)],
@@ -8189,16 +8191,15 @@ class DiveRepository {
     final additions = [
       for (final id in equipmentIds) (equipmentId: id, viaSetId: viaSetId),
     ];
-    for (final diveId in diveIds) {
-      final expanded = GearExpander.expand(
+    await _rewriteGear(
+      diveIds,
+      (rows) => GearExpander.expand(
         additions: additions,
         index: index,
-        existing: await _provenanceOf(diveId),
+        existing: rows,
         isActive: active.contains,
-      );
-      await _writeGearDiff(diveId, expanded, now);
-    }
-    await _bumpDives(diveIds, now);
+      ),
+    );
   }
 
   /// Remove each equipment id, and everything attached through it, from

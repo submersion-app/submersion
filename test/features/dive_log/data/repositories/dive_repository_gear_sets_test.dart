@@ -171,6 +171,74 @@ void main() {
       expect(await repo.bulkAddEquipmentSets(const [], ['warm']), isEmpty);
       expect(await rowsOf('a'), isEmpty);
     });
+
+    group('gear another profile owns (#2046)', () {
+      setUp(() async {
+        await db.customStatement(
+          'INSERT INTO divers (id, name, created_at, updated_at) '
+          "VALUES ('d2', 'd2', 1, 1)",
+        );
+        await db.customStatement(
+          'INSERT INTO equipment (id, name, type, diver_id, created_at, '
+          "updated_at) VALUES ('cam', 'cam', 'camera', 'd2', 1, 1), "
+          "('torch', 'torch', 'light', 'd2', 1, 1), "
+          "('gauge', 'gauge', 'gauge', 'd2', 1, 1)",
+        );
+        await db.customStatement(
+          'INSERT INTO equipment_shares (id, equipment_id, diver_id, '
+          "created_at) VALUES ('s1', 'torch', 'd1', 1)",
+        );
+        await db.customStatement(
+          'INSERT INTO equipment_components (id, parent_equipment_id, '
+          "component_equipment_id, created_at, updated_at) "
+          "VALUES ('c1', 'bcd', 'gauge', 1, 1)",
+        );
+        await seedSet('mixed', ['bcd', 'cam', 'torch']);
+        await repo.createDive(
+          domain.Dive(
+            id: 'mine',
+            diverId: 'd1',
+            dateTime: DateTime(2026, 1, 1),
+          ),
+        );
+      });
+
+      test('a member not shared with the dive\'s diver stays off', () async {
+        await repo.bulkAddEquipmentSets(['mine'], ['mixed']);
+
+        expect((await rowsOf('mine')).keys, unorderedEquals(['bcd', 'torch']));
+      });
+
+      test('an unshared part of an added assembly is not attached', () async {
+        await repo.bulkAddEquipmentSets(['mine'], ['mixed']);
+
+        expect((await rowsOf('mine')).containsKey('gauge'), isFalse);
+      });
+
+      test(
+        'a dive with no diver takes every member, as before sharing',
+        () async {
+          await repo.bulkAddEquipmentSets(['a'], ['mixed']);
+
+          expect(
+            (await rowsOf('a')).keys,
+            unorderedEquals(['bcd', 'gauge', 'cam', 'torch']),
+          );
+        },
+      );
+    });
+  });
+
+  group('bulkAddEquipment', () {
+    test('leaves a dive whose gear does not change unstamped', () async {
+      await repo.bulkAddEquipment(['a'], ['bcd'], viaSetId: 'warm');
+      final stamp = await updatedAtOf('a');
+
+      await repo.bulkAddEquipment(['a', 'b'], ['bcd'], viaSetId: 'warm');
+
+      expect(await updatedAtOf('a'), stamp);
+      expect((await rowsOf('b')).keys, ['bcd']);
+    });
   });
 
   group('bulkRemoveEquipmentSets', () {

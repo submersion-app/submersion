@@ -57951,6 +57951,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get rules_value_empty => '(vacío)';
 
   @override
+  String rules_value_gearViaSet(String item, String set) {
+    return '$item ($set)';
+  }
+
+  @override
   String get rules_collection_diveTypes => 'tipos de inmersión';
 
   @override

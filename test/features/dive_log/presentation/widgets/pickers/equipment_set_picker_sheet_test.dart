@@ -221,6 +221,46 @@ void main() {
     expect(find.text('Error loading items'), findsOneWidget);
   });
 
+  // #4284: removal goes by the gear a set tagged, so it needs none of the
+  // set's items, and a set whose items fail to load can still come off.
+  testWidgets('a set whose items fail to load can be picked to remove', (
+    tester,
+  ) async {
+    final set = _set('s1', 'Broken', [_regulator]);
+    EquipmentSet? picked;
+    List<EquipmentItem>? items;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          equipmentSetsProvider.overrideWith((ref) async => [set]),
+          equipmentSetWithItemsProvider.overrideWith(
+            (ref, id) => Future<EquipmentSet?>.error(Exception('boom')),
+          ),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: EquipmentSetPickerSheet(
+              scrollController: ScrollController(),
+              pickEmptySets: true,
+              onSetSelected: (s, i) {
+                picked = s;
+                items = i;
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Broken'));
+
+    expect(picked?.id, 's1');
+    expect(items, isEmpty);
+  });
+
   testWidgets('tile shows the loading state while items resolve', (
     tester,
   ) async {

@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/shared/bulk_edit/bulk_membership_editor.dart';
 import 'package:submersion/shared/widgets/forms/edit_form_scaffold.dart';
@@ -747,6 +748,70 @@ void main() {
       final rows = await db.select(db.diveEquipment).get();
       expect(rows, hasLength(4));
       expect(rows.map((r) => r.viaSetId).toSet(), {'s1'});
+    });
+
+    // Issue #2046: a set member another profile owns and has not shared
+    // stays in the set but is not applied, as when the set is used on one
+    // dive.
+    testWidgets('use-set leaves off a member not shared with the diver', (
+      tester,
+    ) async {
+      const wing = EquipmentItem(
+        id: 'e1',
+        name: 'Wing',
+        type: EquipmentType.bcd,
+        diverId: 'me',
+      );
+      const camera = EquipmentItem(
+        id: 'e2',
+        name: 'Borrowed camera',
+        type: EquipmentType.camera,
+        diverId: 'other',
+      );
+      for (final item in [wing, camera]) {
+        await EquipmentRepository().createEquipment(item);
+      }
+      await seedDive('d1');
+      await seedDive('d2');
+      final tripKit = EquipmentSet(
+        id: 's1',
+        name: 'Trip kit',
+        equipmentIds: const ['e1', 'e2'],
+        items: const [wing, camera],
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
+
+      await pump(
+        tester,
+        ['d1', 'd2'],
+        sets: [tripKit],
+        extraOverrides: [
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'me'),
+        ],
+      );
+      final useSet = find.descendant(
+        of: editorFor('Equipment'),
+        matching: find.widgetWithText(TextButton, 'Use Set'),
+      );
+      await tester.ensureVisible(useSet);
+      await tester.tap(useSet);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Trip kit'));
+      await tester.pumpAndSettle();
+      expect(find.text('Borrowed camera'), findsNothing);
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      for (final diveId in ['d1', 'd2']) {
+        final rows = await (db.select(
+          db.diveEquipment,
+        )..where((t) => t.diveId.equals(diveId))).get();
+        expect(rows.map((r) => r.equipmentId), ['e1'], reason: diveId);
+      }
     });
 
     // Issue #4284: a set item the diver unchecks after "Use Set" stays off,
