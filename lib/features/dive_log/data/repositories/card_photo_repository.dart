@@ -1,3 +1,5 @@
+import 'package:drift/drift.dart';
+
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -12,10 +14,22 @@ class CardPhotoRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   final _log = LoggerService.forClass(CardPhotoRepository);
 
+  /// The tags a diver owns, as MediaPeopleRepository scopes them: its own
+  /// Me tags and the tags of its own buddies.
+  static const _ownedByDiver =
+      ' AND (p.diver_id = ? OR p.buddy_id IN '
+      '(SELECT id FROM buddies WHERE diver_id = ?))';
+
   /// Every dive-linked photo whose file is not known to be missing, grouped
   /// by dive id, each with the boxes of the people tagged on it. Videos,
   /// documents and signatures are left out: only a photo is drawn.
-  Future<Map<String, List<CardPhoto>>> getCardPhotosByDive() async {
+  ///
+  /// Only tags [diverId] owns place the crop, as only those are shown to
+  /// it: its own Me tags and its own buddies' tags, never a row that names
+  /// nobody. A null [diverId] (no profile chosen) takes every named tag.
+  Future<Map<String, List<CardPhoto>>> getCardPhotosByDive({
+    required String? diverId,
+  }) async {
     try {
       final photoRows = await _db
           .customSelect(
@@ -33,8 +47,16 @@ class CardPhotoRepository {
             'FROM media_people p JOIN media m ON m.id = p.media_id '
             "WHERE m.dive_id IS NOT NULL AND m.file_type = 'photo' "
             'AND p.bbox_x IS NOT NULL AND p.bbox_y IS NOT NULL '
-            'AND p.bbox_width IS NOT NULL AND p.bbox_height IS NOT NULL',
-            readsFrom: {_db.media, _db.mediaPeople},
+            'AND p.bbox_width IS NOT NULL AND p.bbox_height IS NOT NULL '
+            'AND (p.buddy_id IS NOT NULL OR p.diver_id IS NOT NULL)'
+            '${diverId == null ? '' : _ownedByDiver}',
+            variables: [
+              if (diverId != null) ...[
+                Variable.withString(diverId),
+                Variable.withString(diverId),
+              ],
+            ],
+            readsFrom: {_db.media, _db.mediaPeople, _db.buddies},
           )
           .get();
       final boxes = <String, List<FocusBox>>{};

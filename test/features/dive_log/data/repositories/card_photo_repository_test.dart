@@ -32,7 +32,7 @@ void main() {
     await insertTestMedia(id: 'p2', diveId: 'd1');
     await insertTestMedia(id: 'p3', diveId: 'd2');
 
-    final byDive = await repository.getCardPhotosByDive();
+    final byDive = await repository.getCardPhotosByDive(diverId: 'A');
 
     expect(byDive.keys, unorderedEquals(['d1', 'd2']));
     expect(byDive['d1']!.map((p) => p.mediaId), unorderedEquals(['p1', 'p2']));
@@ -49,7 +49,7 @@ void main() {
     );
     await insertTestMedia(id: 'loose');
 
-    expect(await repository.getCardPhotosByDive(), isEmpty);
+    expect(await repository.getCardPhotosByDive(diverId: 'A'), isEmpty);
   });
 
   test('leaves out photos whose file is missing', () async {
@@ -58,7 +58,7 @@ void main() {
       const MediaCompanion(isOrphaned: Value(true)),
     );
 
-    expect(await repository.getCardPhotosByDive(), isEmpty);
+    expect(await repository.getCardPhotosByDive(diverId: 'A'), isEmpty);
   });
 
   test('carries the boxes of people tagged on the photo', () async {
@@ -74,7 +74,9 @@ void main() {
     await people.addTag(mediaId: 'p2', buddyId: 'alex');
 
     final photos = {
-      for (final p in (await repository.getCardPhotosByDive())['d1']!)
+      for (final p in (await repository.getCardPhotosByDive(
+        diverId: 'A',
+      ))['d1']!)
         p.mediaId: p,
     };
 
@@ -86,5 +88,75 @@ void main() {
       ),
     );
     expect(photos['p2']!.focusBoxes, isEmpty);
+  });
+
+  group("only the diver's own tags place the crop", () {
+    const box = FaceBox(x: 0.2, y: 0.3, width: 0.1, height: 0.2);
+    const focus = FocusBox(x: 0.2, y: 0.3, width: 0.1, height: 0.2);
+
+    setUp(() async {
+      await insertTestMedia(id: 'p1', diveId: 'd1');
+      await insertTestDiver('B');
+      await insertTestBuddy(id: 'bo', name: 'Bo', diverId: 'B');
+    });
+
+    Future<List<FocusBox>> boxes({String? diverId = 'A'}) async =>
+        (await repository.getCardPhotosByDive(
+          diverId: diverId,
+        ))['d1']!.single.focusBoxes;
+
+    test("the diver's own Me tag counts", () async {
+      await MediaPeopleRepository().addTag(
+        mediaId: 'p1',
+        diverId: 'A',
+        box: box,
+      );
+
+      expect(await boxes(), [focus]);
+    });
+
+    test("another profile's buddy tag on a shared photo does not", () async {
+      await MediaPeopleRepository().addTag(
+        mediaId: 'p1',
+        buddyId: 'bo',
+        box: box,
+      );
+
+      expect(await boxes(), isEmpty);
+      // Seen as B, the same tag is B's own.
+      expect(await boxes(diverId: 'B'), [focus]);
+    });
+
+    test("another profile's Me tag does not", () async {
+      await MediaPeopleRepository().addTag(
+        mediaId: 'p1',
+        diverId: 'B',
+        box: box,
+      );
+
+      expect(await boxes(), isEmpty);
+    });
+
+    test('a tag that names nobody does not, whoever is looking', () async {
+      final ms = DateTime(2024).millisecondsSinceEpoch;
+      await db().customStatement(
+        'INSERT INTO media_people (id, media_id, bbox_x, bbox_y, bbox_width, '
+        'bbox_height, created_at, updated_at) '
+        "VALUES ('t-none', 'p1', 0.2, 0.3, 0.1, 0.2, $ms, $ms)",
+      );
+
+      expect(await boxes(), isEmpty);
+      expect(await boxes(diverId: null), isEmpty);
+    });
+
+    test('with no profile chosen, every named tag counts', () async {
+      await MediaPeopleRepository().addTag(
+        mediaId: 'p1',
+        buddyId: 'bo',
+        box: box,
+      );
+
+      expect(await boxes(diverId: null), [focus]);
+    });
   });
 }

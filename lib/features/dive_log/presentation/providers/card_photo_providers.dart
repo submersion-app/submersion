@@ -3,21 +3,33 @@ import 'package:submersion/features/dive_log/data/repositories/card_photo_reposi
 import 'package:submersion/features/dive_log/data/services/card_focus_analyzer.dart';
 import 'package:submersion/features/dive_log/domain/card_photo/card_photo.dart';
 import 'package:submersion/features/dive_log/domain/card_photo/card_photo_picker.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/media/presentation/providers/media_people_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 
 final cardPhotoRepositoryProvider = Provider<CardPhotoRepository>(
   (ref) => CardPhotoRepository(),
 );
 
-/// Every dive's candidate card photos, read once for the whole log and
-/// refreshed when media changes.
+/// Every dive's candidate card photos, read once for the whole log, for the
+/// active diver.
+///
+/// Refreshed when media changes, when a people tag is added, moved or
+/// removed (the tags place the crop), and when the diver changes (only its
+/// own tags count).
 final cardPhotosByDiveProvider = FutureProvider<Map<String, List<CardPhoto>>>((
   ref,
 ) async {
+  final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
   ref.invalidateSelfWhen(
     ref.watch(mediaRepositoryProvider).watchMediaChanges(),
   );
-  return ref.watch(cardPhotoRepositoryProvider).getCardPhotosByDive();
+  ref.invalidateSelfWhen(
+    ref.watch(mediaPeopleRepositoryProvider).watchTagChanges(),
+  );
+  return ref
+      .watch(cardPhotoRepositoryProvider)
+      .getCardPhotosByDive(diverId: diverId);
 });
 
 /// The photo behind [diveId]'s card, or null when it has none (or the

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/data/repositories/card_photo_repository.dart';
 import 'package:submersion/features/dive_log/data/services/card_focus_analyzer.dart';
@@ -8,7 +8,10 @@ import 'package:submersion/features/dive_log/domain/card_photo/card_photo.dart';
 import 'package:submersion/features/dive_log/domain/card_photo/card_photo_picker.dart';
 import 'package:submersion/features/dive_log/domain/card_photo/focus_box.dart';
 import 'package:submersion/features/dive_log/presentation/providers/card_photo_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/media/data/repositories/media_people_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/presentation/providers/media_people_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 
 class _FakeCardPhotoRepository extends CardPhotoRepository {
@@ -16,13 +19,27 @@ class _FakeCardPhotoRepository extends CardPhotoRepository {
 
   Map<String, List<CardPhoto>> photos;
   int reads = 0;
+  final diverIds = <String?>[];
 
   @override
-  Future<Map<String, List<CardPhoto>>> getCardPhotosByDive() async {
+  Future<Map<String, List<CardPhoto>>> getCardPhotosByDive({
+    required String? diverId,
+  }) async {
     reads++;
+    diverIds.add(diverId);
     return photos;
   }
 }
+
+class _FakePeopleRepository extends MediaPeopleRepository {
+  final changes = StreamController<void>.broadcast();
+
+  @override
+  Stream<void> watchTagChanges() => changes.stream;
+}
+
+/// The diver the list is shown for, as a test can change it.
+final _diver = StateProvider<String?>((ref) => 'me');
 
 class _FakeMediaRepository extends MediaRepository {
   final changes = StreamController<void>.broadcast();
@@ -41,6 +58,7 @@ const _c = CardPhoto(mediaId: 'c');
 void main() {
   late _FakeCardPhotoRepository photos;
   late _FakeMediaRepository media;
+  late _FakePeopleRepository people;
   late ProviderContainer container;
 
   setUp(() {
@@ -49,10 +67,15 @@ void main() {
       'd2': const [_b, _c],
     });
     media = _FakeMediaRepository();
+    people = _FakePeopleRepository();
     container = ProviderContainer(
       overrides: [
         cardPhotoRepositoryProvider.overrideWithValue(photos),
         mediaRepositoryProvider.overrideWithValue(media),
+        mediaPeopleRepositoryProvider.overrideWithValue(people),
+        validatedCurrentDiverIdProvider.overrideWith(
+          (ref) async => ref.watch(_diver),
+        ),
       ],
     );
   });
@@ -60,6 +83,7 @@ void main() {
   tearDown(() async {
     container.dispose();
     await media.changes.close();
+    await people.changes.close();
   });
 
   /// Waits until [cardPhotosByDiveProvider] has read [reads] times and
@@ -111,6 +135,39 @@ void main() {
 
     final map = await loaded(reads: 2);
     expect(map.keys, ['d3']);
+  });
+
+  test('the photos are read for the active diver', () async {
+    final sub = container.listen(cardPhotosByDiveProvider, (_, _) {});
+    addTearDown(sub.close);
+    await loaded();
+
+    expect(photos.diverIds, ['me']);
+  });
+
+  test('a people tag change reads the photos again', () async {
+    final sub = container.listen(cardPhotosByDiveProvider, (_, _) {});
+    addTearDown(sub.close);
+    await loaded();
+
+    photos.photos = {
+      'd1': const [_b],
+    };
+    people.changes.add(null);
+
+    final map = await loaded(reads: 2);
+    expect(map['d1'], [_b]);
+  });
+
+  test('switching diver reads the photos again for the new one', () async {
+    final sub = container.listen(cardPhotosByDiveProvider, (_, _) {});
+    addTearDown(sub.close);
+    await loaded();
+
+    container.read(_diver.notifier).state = 'other';
+
+    await loaded(reads: 2);
+    expect(photos.diverIds, ['me', 'other']);
   });
 
   test('a dive with one photo shows it', () async {
