@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -139,6 +140,21 @@ Future<DiveSite?> pickOrCreateSite(
       return null;
   }
 }
+
+/// Whether the search field takes focus when the sheet opens (#4307).
+///
+/// Only on desktop, where a hardware keyboard is the norm and typing a site
+/// name is the quickest way in. On phones and tablets focus would raise the
+/// on-screen keyboard over the list, hiding the Nearby section that matters
+/// most for a dive with GPS, so there the diver taps the field to search.
+bool get _autofocusSearch => switch (defaultTargetPlatform) {
+  TargetPlatform.macOS ||
+  TargetPlatform.windows ||
+  TargetPlatform.linux => true,
+  TargetPlatform.android ||
+  TargetPlatform.iOS ||
+  TargetPlatform.fuchsia => false,
+};
 
 /// The site picker: a search field over every location field, a Nearby
 /// section when a location is known, and the sites grouped by country and
@@ -326,6 +342,7 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
           child: TextField(
             controller: _searchController,
+            autofocus: _autofocusSearch,
             decoration: InputDecoration(
               hintText: context.l10n.diveSites_list_search_placeholder,
               prefixIcon: const Icon(Icons.search),
