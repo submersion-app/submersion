@@ -27,6 +27,7 @@ import 'package:submersion/shared/services/incoming_file_handler.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_job_provider.dart';
 import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/core/platform/desktop_target_platform.dart';
 
 /// Wraps content with a desktop drag-and-drop target that navigates to the
 /// import wizard when a supported file is dropped.
@@ -65,10 +66,7 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
 
   static bool get _isDesktop {
     if (HostPlatform.isWeb) return false;
-    final platform = defaultTargetPlatform;
-    return platform == TargetPlatform.windows ||
-        platform == TargetPlatform.macOS ||
-        platform == TargetPlatform.linux;
+    return isDesktopTargetPlatform(defaultTargetPlatform);
   }
 
   @override

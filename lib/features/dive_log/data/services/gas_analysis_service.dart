@@ -9,8 +9,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/services/ccr_cylinder_use.dart';
+import 'package:submersion/features/dive_log/domain/services/cylinder_usage.dart';
 import 'package:submersion/features/dive_log/domain/services/deco_stop_windows.dart';
-import 'package:submersion/features/dive_log/domain/services/gas_use_window.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_pressure_lookup.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_usage_range.dart';
@@ -363,64 +363,22 @@ class GasAnalysisService {
       );
     }
 
-    // Surface runs at the ends of the recording are not breathing time
-    // (issue #2930): the cylinders are breathed inside the gas-use window,
-    // as the dive's own SAC is. Never past the measured end.
-    final window = gasUseWindowOf(
-      profile,
-      time: (p) => p.timestamp,
-      depth: (p) => p.depth,
-    );
-    final ocStart = window?.startSeconds ?? 0;
-    final ocEnd = window == null
-        ? diveEnd
-        : diveEnd <= 0
-        ? window.endSeconds
-        : math.min(window.endSeconds, diveEnd);
-
-    // Only a switch that says when a cylinder was breathed overrides a
-    // recorded duration: not a stale id (#110), nor one after the dive.
-    final hasGasSwitches = knownGasSwitches(
-      dive.tanks,
-      gasSwitches,
-      before: diveEnd,
-    ).isNotEmpty;
-
     for (final tank in dive.tanks) {
       // Its own size, else its matched partner's (issue #3109).
       final volume = consumptionVolume(tank, dive.tanks);
-      // How long the source log says this tank was breathed (issue #1496).
-      // Gas switches say when, which is more, so they win; without them
-      // this is the only thing that tells two same-role tanks apart.
-      final recordedSeconds = hasGasSwitches
-          ? null
-          : tank.usageDuration?.inSeconds;
-      final hasRecordedUsage = recordedSeconds != null && recordedSeconds > 0;
-
-      // Determine when this tank was in use. A recorded duration says how
-      // long but not when, so its depth window is the whole dive.
-      final usageWindows = hasRecordedUsage
-          ? [(start: ocStart, end: ocEnd > 0 ? ocEnd : recordedSeconds)]
-          : tankUsageWindows(
-              tank: tank,
-              gasSwitches: gasSwitches,
-              diveStart: ocStart,
-              diveEnd: ocEnd,
-              tanks: dive.tanks,
-            );
-
-      if (usageWindows.isEmpty) continue;
-      final usageSeconds = hasRecordedUsage
-          ? recordedSeconds
-          : usageWindows.breathedSeconds;
-
-      // Calculate average depth during usage
-      final avgDepthDuringUse = timeWeightedMeanAcross(
-        profile,
-        windows: usageWindows,
-        time: (p) => p.timestamp,
-        value: (p) => p.depth,
+      // When, how long and how deep this tank was breathed: shared with the
+      // Insights role rates so the two agree (issue #4315).
+      final usage = cylinderUsage(
+        tank: tank,
+        tanks: dive.tanks,
+        profile: profile,
+        gasSwitches: gasSwitches,
+        diveEnd: diveEnd,
       );
+      if (usage == null) continue;
+      final usageWindows = usage.windows;
+      final usageSeconds = usage.seconds;
+      final avgDepthDuringUse = usage.avgDepth;
 
       // Check if we have time-series pressure data for this tank (matched by
       // id, or adopted from a re-keyed/orphaned series).

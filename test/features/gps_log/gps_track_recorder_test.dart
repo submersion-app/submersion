@@ -1,10 +1,12 @@
 import 'dart:async';
 
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/gps_log/data/repositories/gps_track_repository.dart';
 import 'package:submersion/features/gps_log/data/services/gps_track_recorder.dart';
+import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 
 import '../../helpers/test_database.dart';
 
@@ -26,6 +28,81 @@ Position fix({
   speedAccuracy: 0,
 );
 
+/// Records checkpoint and finalize calls in order, and can hold a checkpoint
+/// open or make it fail.
+class _ObservedRepository extends GpsTrackRepository {
+  final events = <String>[];
+  Completer<void>? gate;
+  Object? checkpointError;
+
+  @override
+  Future<void> checkpoint(String trackId) async {
+    events.add('checkpoint:start');
+    final error = checkpointError;
+    if (error != null) throw error;
+    await gate?.future;
+    await super.checkpoint(trackId);
+    events.add('checkpoint:end');
+  }
+
+  @override
+  Future<void> finalizeTrack(String trackId, {int? endTimeMs}) async {
+    events.add('finalize');
+    await super.finalizeTrack(trackId, endTimeMs: endTimeMs);
+  }
+}
+
+/// Touches no database, so the recorder's timers can run under fakeAsync.
+/// Each checkpoint waits on the next gate in [gates], if one is queued.
+class _InMemoryRepository extends GpsTrackRepository {
+  final checkpointStarts = <Duration>[];
+  final gates = <Completer<void>>[];
+  final Duration Function() _elapsed;
+
+  _InMemoryRepository(this._elapsed);
+
+  @override
+  Future<String> startTrack({
+    required int startTimeMs,
+    required int tzOffsetMinutes,
+    String? deviceName,
+  }) async => 'track';
+
+  @override
+  Future<void> appendBufferPoint(String trackId, GpsTrackPoint point) async {}
+
+  @override
+  Future<void> checkpoint(String trackId) async {
+    checkpointStarts.add(_elapsed());
+    if (gates.isNotEmpty) await gates.removeAt(0).future;
+  }
+
+  @override
+  Future<void> finalizeTrack(String trackId, {int? endTimeMs}) async {}
+
+  @override
+  Future<void> deleteTrack(String id) async {}
+}
+
+/// A position stream for fakeAsync tests. Its cancel() future belongs to
+/// the fake zone; the shared completed future that `Stream.empty()` returns
+/// resumes `stop()` on the real microtask queue, where fakeAsync never
+/// reaches it.
+Stream<Position> _fakeZoneStream() =>
+    StreamController<Position>(onCancel: () async {}).stream;
+
+/// Waits for [condition] instead of a fixed sleep, so a loaded runner that
+/// delays timers slows the test down rather than failing it.
+Future<void> _waitUntil(bool Function() condition) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 10));
+  while (!condition()) {
+    if (DateTime.now().isAfter(deadline)) {
+      fail('condition not met within 10 seconds');
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 5));
+  }
+}
+
 void main() {
   late AppDatabase db;
   late GpsTrackRepository repo;
@@ -44,7 +121,9 @@ void main() {
 
   tearDown(() async {
     await recorder.stop();
-    await controller.close();
+    // Not awaited: close() completes only once a listener sees the done
+    // event, and the fakeAsync tests never listen to this controller.
+    unawaited(controller.close());
     await tearDownTestDatabase();
   });
 
@@ -167,6 +246,127 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 100));
     expect(r.state.pointCount, afterLoss);
     await r.stop();
+  });
+
+  group('checkpoints (#4255)', () {
+    test('stop waits for an in-flight checkpoint before finalizing, and '
+        'ticks do not stack up behind a slow one', () async {
+      final gate = Completer<void>();
+      final observed = _ObservedRepository()..gate = gate;
+      final r = GpsTrackRecorder(
+        repository: observed,
+        positionStreamFactory: (_) => controller.stream,
+        checkpointInterval: const Duration(milliseconds: 20),
+      );
+      // A failed expectation must not leave the timer running into later
+      // files in the same isolate, or stop() waiting on the gate forever.
+      addTearDown(() {
+        if (!gate.isCompleted) gate.complete();
+        return r.stop();
+      });
+      await r.start(notificationTitle: 't', notificationText: 'x');
+      controller.add(fix(lat: 10, lon: 20));
+      await pumpEventQueue();
+
+      // Several intervals pass while the first checkpoint is held open.
+      await _waitUntil(() => observed.events.isNotEmpty);
+      await Future<void>.delayed(const Duration(milliseconds: 70));
+      expect(observed.events, ['checkpoint:start']);
+
+      final stopping = r.stop();
+      await pumpEventQueue();
+      expect(observed.events, isNot(contains('finalize')));
+
+      gate.complete();
+      await stopping;
+      expect(observed.events, [
+        'checkpoint:start',
+        'checkpoint:end',
+        'finalize',
+      ]);
+    });
+
+    test('a tick missed behind a slow checkpoint is caught up as soon as it '
+        'finishes, not a whole interval later', () {
+      fakeAsync((async) {
+        final repo = _InMemoryRepository(() => async.elapsed);
+        final slow = Completer<void>();
+        repo.gates.add(slow);
+        final r = GpsTrackRecorder(
+          repository: repo,
+          positionStreamFactory: (_) => _fakeZoneStream(),
+          keepaliveInterval: const Duration(hours: 1),
+        );
+        r.start(notificationTitle: 't', notificationText: 'x');
+        async.flushMicrotasks();
+
+        // The 10 min checkpoint is still running when the 20 min tick fires.
+        async.elapse(const Duration(minutes: 25));
+        expect(repo.checkpointStarts, [const Duration(minutes: 10)]);
+
+        slow.complete();
+        async.flushMicrotasks();
+        expect(repo.checkpointStarts, [
+          const Duration(minutes: 10),
+          const Duration(minutes: 25),
+        ]);
+
+        // Back on the regular cadence afterwards, with no extra catch-up.
+        async.elapse(const Duration(minutes: 5));
+        expect(repo.checkpointStarts, hasLength(3));
+        expect(repo.checkpointStarts.last, const Duration(minutes: 30));
+
+        var stopped = false;
+        r.stop().then((_) => stopped = true);
+        async.flushMicrotasks();
+        expect(stopped, isTrue);
+        expect(repo.checkpointStarts, hasLength(3));
+      });
+    });
+
+    test('stop does not start a catch-up for a tick it missed', () {
+      fakeAsync((async) {
+        final repo = _InMemoryRepository(() => async.elapsed);
+        final slow = Completer<void>();
+        repo.gates.add(slow);
+        final r = GpsTrackRecorder(
+          repository: repo,
+          positionStreamFactory: (_) => _fakeZoneStream(),
+          keepaliveInterval: const Duration(hours: 1),
+        );
+        r.start(notificationTitle: 't', notificationText: 'x');
+        async.flushMicrotasks();
+        async.elapse(const Duration(minutes: 25));
+
+        var stopped = false;
+        r.stop().then((_) => stopped = true);
+        async.flushMicrotasks();
+        slow.complete();
+        async.flushMicrotasks();
+        expect(stopped, isTrue);
+        expect(repo.checkpointStarts, hasLength(1));
+      });
+    });
+
+    test('a failed checkpoint is logged, not thrown', () async {
+      final observed = _ObservedRepository()
+        ..checkpointError = StateError('disk full');
+      final r = GpsTrackRecorder(
+        repository: observed,
+        positionStreamFactory: (_) => controller.stream,
+        checkpointInterval: const Duration(milliseconds: 20),
+      );
+      addTearDown(r.stop);
+      await r.start(notificationTitle: 't', notificationText: 'x');
+      controller.add(fix(lat: 10, lon: 20));
+      // Each tick still runs after a failure, and recording carries on.
+      await _waitUntil(
+        () => observed.events.where((e) => e == 'checkpoint:start').length >= 2,
+      );
+      expect(r.isRecording, isTrue);
+      await r.stop();
+      expect(observed.events.last, 'finalize');
+    });
   });
 
   test('a failed point write is logged, not thrown', () async {

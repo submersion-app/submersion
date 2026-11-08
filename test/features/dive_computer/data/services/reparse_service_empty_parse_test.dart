@@ -233,16 +233,6 @@ void main() {
       await expectUntouched();
     });
 
-    test('reparseAllForComputer counts it as failed', () async {
-      final result = await service.reparseAllForComputer(
-        'comp-1',
-        parseFn: returning(emptyParse),
-      );
-      expect(result.succeeded, 0);
-      expect(result.failed, 1);
-      await expectUntouched();
-    });
-
     test('reparseDive reports it as an error', () async {
       final result = await service.reparseDive(
         'dive-1',

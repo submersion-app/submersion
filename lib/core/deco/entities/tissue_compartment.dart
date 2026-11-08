@@ -69,6 +69,13 @@ class TissueCompartment extends Equatable {
   /// Current tissue loading as percentage of surface M-value
   double get percentLoading => (totalInertGas / surfaceMValue) * 100;
 
+  /// The [percentLoading] this compartment shows once fully equilibrated
+  /// with [inspiredN2Bar] of nitrogen and no helium, e.g. after breathing air
+  /// at the surface long enough. The marker the tissue bar chart draws: a
+  /// desaturated compartment settles here, not at 0%.
+  double equilibriumLoadingPercent(double inspiredN2Bar) =>
+      inspiredN2Bar / (mValueAN2 + 1.0 / mValueBN2) * 100;
+
   /// M-value (maximum tolerated tissue tension) at a given ambient pressure.
   ///
   /// M_ambient = a + P_ambient / b

@@ -98,12 +98,17 @@ class SiteRepository {
     );
   }
 
-  /// Get all sites ordered by name
-  Future<List<domain.DiveSite>> getAllSites({String? diverId}) async {
+  /// Get all sites ordered by name, or only those of [ids] when named.
+  Future<List<domain.DiveSite>> getAllSites({
+    String? diverId,
+    List<String>? ids,
+  }) async {
+    if (ids != null && ids.isEmpty) return const [];
     try {
       return await PerfTimer.measure('getAllSites', () async {
         final query = _db.select(_db.diveSites)
           ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
+        if (ids != null) query.where((t) => t.id.isIn(ids));
 
         VisibilityFilter.applyToDiveSites(_db, query, diverId);
 
@@ -1451,7 +1456,9 @@ class SiteRepository {
   /// their own, as a shared trip's stats do.
   Future<Map<String, SiteDiveAggregate>> _diveAggregatesBySite({
     String? diverId,
+    List<String>? siteIds,
   }) async {
+    if (siteIds != null && siteIds.isEmpty) return const {};
     try {
       final result = await _db
           .customSelect(
@@ -1467,9 +1474,13 @@ class SiteRepository {
         FROM dives
         WHERE site_id IS NOT NULL${DiveStatsScope.and(alias: 'dives')}
           ${diverId == null ? '' : 'AND diver_id = ?'}
+          ${siteIds == null ? '' : 'AND site_id IN (${_placeholders(siteIds)})'}
         GROUP BY site_id
       ''',
-            variables: [if (diverId != null) Variable.withString(diverId)],
+            variables: [
+              if (diverId != null) Variable.withString(diverId),
+              ...?siteIds?.map(Variable.withString),
+            ],
           )
           .get();
 
@@ -1506,15 +1517,25 @@ class SiteRepository {
 
   /// Distinct `site_features.type` names per site, ordered by the first
   /// feature of each type. One query for the whole list, so a card can show
-  /// feature chips without a per-row lookup.
-  Future<Map<String, List<String>>> getFeatureTypesBySite() async {
+  /// feature chips without a per-row lookup; [siteIds] narrows it to those
+  /// sites, and an empty [siteIds] reads nothing.
+  Future<Map<String, List<String>>> getFeatureTypesBySite({
+    List<String>? siteIds,
+  }) async {
+    if (siteIds != null && siteIds.isEmpty) return const {};
     try {
-      final result = await _db.customSelect('''
+      final result = await _db
+          .customSelect(
+            '''
         SELECT site_id, type, MIN(created_at) AS first_seen
         FROM site_features
+        ${siteIds == null ? '' : 'WHERE site_id IN (${_placeholders(siteIds)})'}
         GROUP BY site_id, type
         ORDER BY site_id, first_seen
-      ''').get();
+      ''',
+            variables: [...?siteIds?.map(Variable.withString)],
+          )
+          .get();
 
       final types = <String, List<String>>{};
       for (final row in result) {
@@ -1533,19 +1554,26 @@ class SiteRepository {
     }
   }
 
-  /// Get sites with dive counts
+  /// Get sites with dive counts: every site [diverId] sees, or only those
+  /// of [ids] (Global Search's few rows, issue #4247), each read narrowed to
+  /// them so a handful costs no more than a handful.
   Future<List<SiteWithDiveCount>> getSitesWithDiveCounts({
     String? diverId,
+    List<String>? ids,
   }) async {
+    if (ids != null && ids.isEmpty) return const [];
     try {
       return await PerfTimer.measure('getSitesWithDiveCounts', () async {
-        final sites = await getAllSites(diverId: diverId);
-        final aggregates = await _diveAggregatesBySite(diverId: diverId);
-        final featureTypes = await getFeatureTypesBySite();
+        final sites = await getAllSites(diverId: diverId, ids: ids);
+        final aggregates = await _diveAggregatesBySite(
+          diverId: diverId,
+          siteIds: ids,
+        );
+        final featureTypes = await getFeatureTypesBySite(siteIds: ids);
         // Two grouped reads for every site at once (issue #1765), so the
         // list's statement count does not grow with the number of sites.
-        final typesBySite = await _classification.getTypesBySite();
-        final tagsBySite = await _classification.getTagsBySite();
+        final typesBySite = await _classification.getTypesBySite(siteIds: ids);
+        final tagsBySite = await _classification.getTagsBySite(siteIds: ids);
 
         return sites.map((site) {
           final a = aggregates[site.id];
@@ -1575,6 +1603,9 @@ class SiteRepository {
   }
 
   domain.DiveSite _mapRowToSite(DiveSite row) => mapDiveSiteRow(row);
+
+  static String _placeholders(List<String> ids) =>
+      List.filled(ids.length, '?').join(', ');
 
   Future<void> _updateSiteRow(domain.DiveSite site, int now) async {
     await (_db.update(_db.diveSites)..where((t) => t.id.equals(site.id))).write(

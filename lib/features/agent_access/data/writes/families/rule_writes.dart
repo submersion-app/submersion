@@ -175,6 +175,7 @@ class RuleWrites extends WritableEntry {
             DiveCollection.equipment => 'equipment',
             DiveCollection.buddies => 'buddies',
             DiveCollection.courses => 'courses',
+            DiveCollection.equipmentSets => 'equipment_sets',
           }, ids);
           add('dive_roles', [action.buddyRoleId]);
         case SiteMembershipAction(:final collection, :final ids):

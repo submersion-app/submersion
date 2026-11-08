@@ -13,6 +13,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/core/platform/desktop_target_platform.dart';
 
 /// Creates or edits one configuration. Cylinders are a reorderable list;
 /// their sortOrder is derived from list position on save.
@@ -131,14 +132,7 @@ class _CylinderConfigEditPageState
     final units = ref.watch(unitFormatterProvider);
     // ReorderableListView draws a drag handle over each card's end edge on
     // desktop; on mobile a long press drags and there is no handle.
-    final dragHandleShown = switch (Theme.of(context).platform) {
-      TargetPlatform.linux ||
-      TargetPlatform.macOS ||
-      TargetPlatform.windows => true,
-      TargetPlatform.android ||
-      TargetPlatform.iOS ||
-      TargetPlatform.fuchsia => false,
-    };
+    final dragHandleShown = isDesktopTargetPlatform(Theme.of(context).platform);
     final equipment = ref.watch(allEquipmentProvider).valueOrNull ?? const [];
     // Wishlist rebreathers (#2025) are not units a configuration can belong
     // to, except the one this configuration already names.

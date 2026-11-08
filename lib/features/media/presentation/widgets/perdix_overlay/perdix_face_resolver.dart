@@ -3,6 +3,7 @@ import 'package:submersion/features/dive_log/data/services/profile_analysis_serv
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_position.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/instrument_sample.dart';
 
 /// Snapshot of dive computer readings at one moment of the dive, shaped for
@@ -49,32 +50,101 @@ class PerdixFaceData {
 /// per dive data load (prefix-max depths and gas segments are precomputed);
 /// [resolve] is cheap enough to call per video frame.
 class PerdixFaceResolver {
+  /// A face whose gas and active cylinder come from every cylinder in [tanks]
+  /// and every switch in [gasSwitches], as one series breathed from the start.
+  /// The media viewer builds its face with [PerdixFaceResolver.forSource],
+  /// which scopes those to one computer the way the profile chart does.
   PerdixFaceResolver({
     required List<DiveProfilePoint> profile,
     ProfileAnalysis? analysis,
     List<DiveTank> tanks = const [],
     List<GasSwitchWithTank> gasSwitches = const [],
     Map<String, List<TankPressurePoint>>? tankPressures,
+  }) : this._(
+         profile: profile,
+         analysis: analysis,
+         tankPressures: tankPressures,
+         gasSegments: profile.isEmpty
+             ? const []
+             : buildGasUsageSegments(
+                 tanks: tanks,
+                 gasSwitches: gasSwitches,
+                 diveDurationSeconds: profile.last.timestamp,
+                 firstSampleSeconds: profile.first.timestamp,
+               ),
+         activeTankIntervals: profile.isEmpty
+             ? const {}
+             : buildActiveTankIntervals(
+                 tanks: tanks,
+                 gasSwitches: gasSwitches,
+                 diveDurationSeconds: profile.last.timestamp,
+                 firstSampleSeconds: profile.first.timestamp,
+               ),
+       );
+
+  /// The face of [computerId]'s series of [dive], [profile] being the points
+  /// drawn for it. Its gas reads the profile chart's own gas strip
+  /// ([activeGasUsageSegments]), and its active cylinder the same cylinders
+  /// and switches ([computerGasInputs]), so the GAS and TANK cells always
+  /// agree with the chart and with the source's own ppO2 beside them. Another
+  /// computer's record of a switch never moves this one's gas (#4300).
+  ///
+  /// Null [computerId] is every source drawn as one series (a single-source
+  /// dive, or the consecutive halves of a Combine), so every switch counts.
+  factory PerdixFaceResolver.forSource(
+    Dive dive, {
+    required List<DiveProfilePoint> profile,
+    ProfileAnalysis? analysis,
+    List<GasSwitchWithTank> gasSwitches = const [],
+    Map<String, List<TankPressurePoint>>? tankPressures,
+    String? computerId,
+  }) {
+    if (profile.isEmpty) {
+      return PerdixFaceResolver._(
+        profile: profile,
+        analysis: analysis,
+        tankPressures: tankPressures,
+        gasSegments: const [],
+        activeTankIntervals: const {},
+      );
+    }
+    final inputs = computerGasInputs(
+      dive,
+      gasSwitches: gasSwitches,
+      computerId: computerId,
+    );
+    return PerdixFaceResolver._(
+      profile: profile,
+      analysis: analysis,
+      tankPressures: tankPressures,
+      gasSegments: activeGasUsageSegments(
+        dive,
+        gasSwitches: gasSwitches,
+        profile: profile,
+        computerId: computerId,
+      ),
+      activeTankIntervals: buildActiveTankIntervals(
+        tanks: inputs.tanks,
+        gasSwitches: inputs.gasSwitches,
+        diveDurationSeconds: profile.last.timestamp,
+        firstSampleSeconds: profile.first.timestamp,
+        onLoop: dive.isRebreather,
+      ),
+    );
+  }
+
+  PerdixFaceResolver._({
+    required List<DiveProfilePoint> profile,
+    required ProfileAnalysis? analysis,
+    required Map<String, List<TankPressurePoint>>? tankPressures,
+    required List<GasUsageSegment> gasSegments,
+    required Map<String, List<({int start, int end})>> activeTankIntervals,
   }) : _profile = profile,
        _analysis = analysis,
        _tankPressures = tankPressures,
        _prefixMaxDepths = _computePrefixMax(profile),
-       _gasSegments = profile.isEmpty
-           ? const []
-           : buildGasUsageSegments(
-               tanks: tanks,
-               gasSwitches: gasSwitches,
-               diveDurationSeconds: profile.last.timestamp,
-               firstSampleSeconds: profile.first.timestamp,
-             ),
-       _activeTankIntervals = profile.isEmpty
-           ? const {}
-           : buildActiveTankIntervals(
-               tanks: tanks,
-               gasSwitches: gasSwitches,
-               diveDurationSeconds: profile.last.timestamp,
-               firstSampleSeconds: profile.first.timestamp,
-             );
+       _gasSegments = gasSegments,
+       _activeTankIntervals = activeTankIntervals;
 
   final List<DiveProfilePoint> _profile;
   final ProfileAnalysis? _analysis;

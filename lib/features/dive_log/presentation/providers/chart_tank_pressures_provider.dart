@@ -3,8 +3,10 @@ import 'package:submersion/features/dive_log/data/services/estimated_tank_pressu
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show TankPressurePoint;
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// The tank pressure curves the profile chart surfaces draw.
@@ -49,8 +51,9 @@ final activeSourceTankPressuresProvider = FutureProvider.autoDispose
 /// that have start/end pressures but no transmitter data. Chart-only; the
 /// estimates are never persisted, so SAC analysis and exports (which read the
 /// repository directly) still see real measured data only.
-final estimatedTankPressuresProvider =
-    FutureProvider.family<EstimatedTankPressures, String>((ref, diveId) async {
+final estimatedTankPressuresProvider = FutureProvider.autoDispose
+    .family<EstimatedTankPressures, String>((ref, diveId) async {
+      retainDiveData(ref);
       // Start the independent fetches concurrently to avoid a request waterfall
       // on the chart load path.
       final realFuture = ref.watch(
@@ -58,6 +61,12 @@ final estimatedTankPressuresProvider =
       );
       final diveFuture = ref.watch(diveProvider(diveId).future);
       final switchesFuture = ref.watch(gasSwitchesProvider(diveId).future);
+      // The series the chart draws, and so the one its gas strip reads: its
+      // computer's switches and its own time bounds. Another computer's
+      // record of a switch must not start this one's estimated drop, nor its
+      // recording's length stretch it (#4300). Null is one series of every
+      // source, drawn from dive.profile.
+      final active = ref.watch(activeSourceProfileProvider(diveId));
       // Read synchronously, before the first await, so the dependency is
       // registered while the provider is certainly still alive.
       final showEstimates = ref.watch(
@@ -80,17 +89,19 @@ final estimatedTankPressuresProvider =
       if (!showEstimates) {
         return EstimatedTankPressures(real, const <String>{});
       }
-      final switches = await switchesFuture;
+      final inputs = computerGasInputs(
+        dive,
+        gasSwitches: await switchesFuture,
+        computerId: active?.computerId,
+      );
+      final drawn = active?.points ?? dive.profile;
       return synthesizeEstimatedTankPressures(
         existing: real,
-        tanks: dive.tanks,
-        gasSwitches: switches,
-        diveDurationSeconds: dive.profile.isEmpty
-            ? 0
-            : dive.profile.last.timestamp,
-        firstSampleSeconds: dive.profile.isEmpty
-            ? 0
-            : dive.profile.first.timestamp,
+        tanks: inputs.tanks,
+        gasSwitches: inputs.gasSwitches,
+        onLoop: dive.isRebreather,
+        diveDurationSeconds: drawn.isEmpty ? 0 : drawn.last.timestamp,
+        firstSampleSeconds: drawn.isEmpty ? 0 : drawn.first.timestamp,
       );
     });
 
