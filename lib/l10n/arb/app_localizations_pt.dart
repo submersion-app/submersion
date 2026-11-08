@@ -53750,6 +53750,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Um pequeno ícone que mostra de onde cada item vem. Os selos de problema sempre aparecem.';
 
   @override
+  String get settings_media_tagBadges =>
+      'Mostrar selos de marcação nas miniaturas';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      'Pequenos ícones para fotos com pessoas marcadas, espécies marcadas ou um momento no mergulho.';
+
+  @override
   String get settings_media_autoColorCorrection => 'Correção automática de cor';
 
   @override
@@ -53798,6 +53806,15 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => 'Sem backup';
+
+  @override
+  String get media_tileMarker_people => 'Pessoas marcadas';
+
+  @override
+  String get media_tileMarker_species => 'Espécies marcadas';
+
+  @override
+  String get media_tileMarker_timeInDive => 'Posicionada no perfil do mergulho';
 
   @override
   String get media_tile_infoMenuItem => 'Informações da mídia';

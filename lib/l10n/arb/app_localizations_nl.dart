@@ -53410,6 +53410,13 @@ class AppLocalizationsNl extends AppLocalizations {
       'Een klein pictogram dat laat zien waar elk item vandaan komt. Probleembadges blijven altijd zichtbaar.';
 
   @override
+  String get settings_media_tagBadges => 'Labelbadges op miniaturen tonen';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      'Kleine pictogrammen voor foto\'s met getagde personen, getagde soorten of een tijdstip in de duik.';
+
+  @override
   String get settings_media_autoColorCorrection =>
       'Automatische kleurcorrectie';
 
@@ -53459,6 +53466,15 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => 'Geen back-up';
+
+  @override
+  String get media_tileMarker_people => 'Personen getagd';
+
+  @override
+  String get media_tileMarker_species => 'Soorten getagd';
+
+  @override
+  String get media_tileMarker_timeInDive => 'Op het duikprofiel geplaatst';
 
   @override
   String get media_tile_infoMenuItem => 'Media-info';

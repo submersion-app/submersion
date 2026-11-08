@@ -54459,6 +54459,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'رمز صغير يوضح مصدر كل عنصر. تظهر شارات المشكلات دائما.';
 
   @override
+  String get settings_media_tagBadges => 'إظهار شارات الوسوم على الصور المصغرة';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      'رموز صغيرة للصور التي تحتوي على أشخاص موسومين أو أنواع موسومة أو وقت ضمن الغوصة.';
+
+  @override
   String get settings_media_autoColorCorrection => 'تصحيح الألوان التلقائي';
 
   @override
@@ -54508,6 +54515,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => 'لا يوجد نسخ احتياطي';
+
+  @override
+  String get media_tileMarker_people => 'أشخاص موسومون';
+
+  @override
+  String get media_tileMarker_species => 'أنواع موسومة';
+
+  @override
+  String get media_tileMarker_timeInDive => 'موضوعة على ملف الغوصة';
 
   @override
   String get media_tile_infoMenuItem => 'معلومات الوسائط';

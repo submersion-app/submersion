@@ -53881,6 +53881,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Une petite icône indiquant d\'où provient chaque élément. Les badges de problème restent toujours visibles.';
 
   @override
+  String get settings_media_tagBadges =>
+      'Afficher les badges d\'étiquettes sur les miniatures';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      'Petites icônes pour les photos avec des personnes identifiées, des espèces identifiées ou un moment dans la plongée.';
+
+  @override
   String get settings_media_autoColorCorrection =>
       'Correction automatique des couleurs';
 
@@ -53929,6 +53937,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => 'Non sauvegardé';
+
+  @override
+  String get media_tileMarker_people => 'Personnes identifiées';
+
+  @override
+  String get media_tileMarker_species => 'Espèces identifiées';
+
+  @override
+  String get media_tileMarker_timeInDive => 'Placée sur le profil de plongée';
 
   @override
   String get media_tile_infoMenuItem => 'Infos du média';
