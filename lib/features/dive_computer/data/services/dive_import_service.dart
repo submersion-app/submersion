@@ -271,9 +271,9 @@ typedef ImportTransmitterMatcherLoader =
 typedef OmitUnusedOcGasesLoader = Future<bool> Function(String? diverId);
 
 /// The id of the trip whose dates cover a dive starting at [diveStart], among
-/// the trips the diver it is imported for (null for the active diver) can
-/// see, or null when none does (issue #3022). Read per dive at import time,
-/// so a trip planned a moment ago takes the next download.
+/// the trips the diver it is imported for (null or empty for the active
+/// diver) can see, or null when none does (issue #3022). Read per dive at
+/// import time, so a trip planned a moment ago takes the next download.
 typedef ImportTripResolver =
     Future<String?> Function(DateTime diveStart, String? diverId);
 
@@ -896,8 +896,13 @@ class DiveImportService {
       cnsEnd: dive.cnsEnd,
       otu: dive.otu,
       // The trip whose dates cover the dive (issue #3022). Only a new dive
-      // row takes it; a dive this download matches keeps its own trip.
-      tripId: await _resolveTrip(dive.startTime, diverId),
+      // row takes it; a dive this download matches keeps its own trip. A
+      // dive the source gave no time is filed at the moment of the download,
+      // which says nothing about its trip, so it joins none (as for an
+      // undated file dive, #2618).
+      tripId: dive.startTimeReported
+          ? await _resolveTrip(dive.startTime, diverId)
+          : null,
     );
 
     return diveId;

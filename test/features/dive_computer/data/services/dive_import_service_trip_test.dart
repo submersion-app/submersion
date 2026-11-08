@@ -119,6 +119,34 @@ void main() {
     expect(asked, [(dive.startTime, 'eric')]);
   });
 
+  // A dive the computer gave no time is filed at the moment of the download,
+  // so the trip covering that moment says nothing about it (as for an undated
+  // file dive, #2618).
+  test('a dive with no reported start time is never placed', () async {
+    var asked = false;
+    final service = serviceWith((_, _) async {
+      asked = true;
+      return 'maldives';
+    });
+
+    await service.importDives(
+      dives: [
+        DownloadedDive(
+          startTime: DateTime.utc(2026, 11, 8, 9, 30),
+          startTimeReported: false,
+          durationSeconds: 3000,
+          maxDepth: 24.0,
+          profile: const [],
+        ),
+      ],
+      computer: computer,
+      diverId: 'eric',
+    );
+
+    expect(asked, isFalse);
+    expect(capturedTripId(), isNull);
+  });
+
   test('a dive no trip covers joins none', () async {
     final service = serviceWith((_, _) async => null);
 

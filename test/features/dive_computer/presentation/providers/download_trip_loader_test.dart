@@ -6,6 +6,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart' as domain;
 
+import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/shared_items_fixture.dart';
 import '../../../../helpers/test_database.dart';
 
@@ -41,8 +42,11 @@ void main() {
     String? diverId,
     String? activeDiverId = 'eric',
   }) async {
+    final active = MockCurrentDiverIdNotifier();
+    if (activeDiverId != null) await active.setCurrentDiver(activeDiverId);
     final container = ProviderContainer(
       overrides: [
+        currentDiverIdProvider.overrideWith((ref) => active),
         validatedCurrentDiverIdProvider.overrideWith(
           (ref) async => activeDiverId,
         ),
@@ -67,6 +71,28 @@ void main() {
   test('a dive outside the dates joins no trip', () async {
     expect(await load(DateTime.utc(2026, 11, 22, 9)), isNull);
     expect(await load(DateTime.utc(2026, 11, 6, 9)), isNull);
+  });
+
+  // The wizard adapters pass an empty id when no diver was chosen.
+  test('an empty diver id looks among the active diver\'s trips', () async {
+    expect(await load(DateTime.utc(2026, 11, 8, 9), diverId: ''), 'maldives');
+    expect(
+      await load(
+        DateTime.utc(2026, 11, 8, 9),
+        diverId: '',
+        activeDiverId: 'sam',
+      ),
+      isNull,
+    );
+  });
+
+  // The stored dive shows the UTC components of its instant, so the day is
+  // read from those even when a start arrives local-flagged. The first-day
+  // case fails west of UTC and the last-day case east of it, so one of the
+  // two catches a lookup that read the local day instead.
+  test('a local-flagged start is read on the day the dive shows', () async {
+    expect(await load(DateTime.utc(2026, 11, 7, 1).toLocal()), 'maldives');
+    expect(await load(DateTime.utc(2026, 11, 21, 23).toLocal()), 'maldives');
   });
 
   test('a download filed under the trip\'s owner finds it', () async {

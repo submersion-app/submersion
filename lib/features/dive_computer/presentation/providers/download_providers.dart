@@ -60,21 +60,28 @@ final diveImportServiceProvider = Provider<DiveImportService>((ref) {
 /// (#2743), or null when none does.
 ///
 /// Looked up among the trips the diver the download is filed under can see:
-/// [diverId], or the active diver for null or empty. The day is compared, not
-/// the instant, by `TripRepository.findTripForDate`, and when trips overlap
-/// the one that started last wins, the trip the dive editor would suggest.
+/// [diverId], or the active diver for null, empty or the active diver's own
+/// id, read the same way as [loadDefaultTankPresetForDownloads]. The day is
+/// compared, not the instant, by `TripRepository.findTripForDate`, and when
+/// trips overlap the one that started last wins, the trip the dive editor
+/// would suggest.
+///
+/// The day is read from the UTC components of [diveStart], as
+/// `tripForDiveDate` does for a file import: the dive row stores the
+/// instant and shows those components, so a start that arrives local-flagged
+/// still joins the trip of the day the logbook shows it on.
 @visibleForTesting
 Future<String?> loadTripIdForDownload(
   Ref ref,
   DateTime diveStart, {
   String? diverId,
 }) async {
-  final owner = diverId != null && diverId.isNotEmpty
+  final owner = _isOtherDiver(ref, diverId)
       ? diverId
       : await ref.read(validatedCurrentDiverIdProvider.future);
   final trip = await ref
       .read(tripRepositoryProvider)
-      .findTripForDate(diveStart, diverId: owner);
+      .findTripForDate(diveStart.toUtc(), diverId: owner);
   return trip?.id;
 }
 
