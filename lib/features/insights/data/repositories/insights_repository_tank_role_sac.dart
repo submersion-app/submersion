@@ -63,17 +63,20 @@ extension _InsightsRepositoryTankRoleSac on InsightsRepository {
           t.o2_percent,
           t.he_percent,
           ${diveAmbientBarSql('d', 'd.avg_depth')} AS ambient_bar,
-          CASE WHEN NOT $knownSwitch AND t.usage_duration > 0
-            THEN t.usage_duration ELSE $runtime END AS duration_sec,
-          ($knownSwitch AND (SELECT COUNT(*) FROM dive_tanks c
-            WHERE c.dive_id = d.id) >= 2) AS windowed
+          t.usage_duration,
+          $runtime AS runtime_sec,
+          $knownSwitch AS known_switch,
+          (SELECT COUNT(*) FROM dive_tanks c
+            WHERE c.dive_id = d.id) AS tank_count
         FROM dives d
         INNER JOIN dive_tanks t ON t.dive_id = d.id
         WHERE t.start_pressure IS NOT NULL
           AND t.end_pressure IS NOT NULL
           AND t.start_pressure > t.end_pressure
           AND $runtime > 0
-          AND d.avg_depth > 0
+          -- A switched dive's depth comes from its profile within each
+          -- window, falling back to the average when there is none.
+          AND (d.avg_depth > 0 OR $knownSwitch)
           AND d.dive_mode <> 'ccr'
           $diverFilter ${df.clause}
         ''',
@@ -101,18 +104,24 @@ extension _InsightsRepositoryTankRoleSac on InsightsRepository {
     final cylinders = <_RoleCylinder>[];
     final windowedByDive = <String, List<QueryRow>>{};
     for (final row in rows) {
-      if (row.read<bool>('windowed')) {
+      final knownSwitch = row.read<bool>('known_switch');
+      final ambientBar = row.read<double?>('ambient_bar');
+      if (knownSwitch && row.read<int>('tank_count') >= 2) {
         windowedByDive
             .putIfAbsent(row.read<String>('dive_id'), () => [])
             .add(row);
         continue;
       }
+      // A single cylinder is rated at the dive's average depth, so a dive
+      // without one has nothing to divide by.
+      if (ambientBar == null) continue;
+      // Without switches a breathing time the log recorded wins.
+      final recorded = knownSwitch ? null : row.read<int?>('usage_duration');
+      final seconds = recorded != null && recorded > 0
+          ? recorded
+          : row.read<int>('runtime_sec');
       cylinders.add(
-        cylinderOf(
-          row,
-          minutes: row.read<int>('duration_sec') / 60.0,
-          ambientBar: row.read<double>('ambient_bar'),
-        ),
+        cylinderOf(row, minutes: seconds / 60.0, ambientBar: ambientBar),
       );
     }
 

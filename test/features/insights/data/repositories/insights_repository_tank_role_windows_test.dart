@@ -232,6 +232,27 @@ void main() {
       expect(volume['stage'], closeTo(20, 1e-9));
     });
 
+    test('a dive with no stored average depth reads its profile', () async {
+      await insertSwitchedDive('no-avg');
+      await db.customStatement(
+        "UPDATE dives SET avg_depth = NULL WHERE id = 'no-avg'",
+      );
+      // A single-cylinder switched dive with no average has no depth.
+      await insertDive('single-no-avg', day: 2);
+      await insertTank('single-no-avg', 'sna-back', 'backGas', end: 40);
+      await insertSwitch('single-no-avg', 'sna-back', 0);
+      await db.customStatement(
+        "UPDATE dives SET avg_depth = NULL WHERE id = 'single-no-avg'",
+      );
+
+      final volume = await InsightsRepository(
+        gasModel: GasModel.ideal,
+      ).getSacVolumeByTankRole();
+
+      expect(volume['backGas'], closeTo(20, 1e-9));
+      expect(volume['stage'], closeTo(20, 1e-9));
+    });
+
     test('dives across a chunk boundary are all counted', () async {
       addTearDown(
         () => InsightsRepository.seriesDiveChunkSize =
