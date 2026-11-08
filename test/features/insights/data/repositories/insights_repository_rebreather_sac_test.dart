@@ -106,38 +106,7 @@ void main() {
     });
   });
 
-  // Issue #4082: a depth-corrected sum over the whole dive means nothing for a
-  // loop, so a CCR dive reads through getCcrGasUsePerDive instead. An SCR dive
-  // keeps its rows.
-  group('the breakdown by cylinder role leaves CCR dives out', () {
-    Future<void> deleteDive(String id) =>
-        (db.delete(db.dives)..where((d) => d.id.equals(id))).go();
-
-    for (final (name, read)
-        in <(String, Future<Map<String, double>> Function())>[
-          (
-            'getSacPressureByTankRole',
-            () => repository.getSacPressureByTankRole(),
-          ),
-          ('getSacVolumeByTankRole', () => repository.getSacVolumeByTankRole()),
-        ]) {
-      test('$name has no rows from a CCR dive alone', () async {
-        await deleteDive('oc');
-        await deleteDive('scr');
-        expect(await read(), isEmpty);
-      });
-
-      test('$name keeps an SCR dive', () async {
-        await deleteDive('oc');
-        await deleteDive('ccr');
-        expect((await read()).keys, containsAll(['diluent', 'oxygenSupply']));
-      });
-
-      test('$name keeps an open-circuit dive', () async {
-        await deleteDive('ccr');
-        await deleteDive('scr');
-        expect((await read()).keys, contains('backGas'));
-      });
-    }
-  });
+  // Issue #771: consumption by cylinder role takes no open-circuit rate from
+  // a CCR or SCR dive; insights_repository_role_consumption_test.dart covers
+  // it beside the bailout line.
 }

@@ -1,7 +1,6 @@
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
@@ -21,6 +20,9 @@ import 'package:submersion/features/planner/domain/services/segment_rate_split.d
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
+import 'package:submersion/core/constants/gas_consumption_display.dart';
+import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/domain/role_consumption.dart';
 
 /// PlanEngine thresholds sourced from the diver's deco settings.
 final planEngineConfigProvider = Provider<PlanEngineConfig>((ref) {
@@ -128,26 +130,20 @@ final planOutcomeProvider = Provider<PlanOutcome>((ref) {
   );
 });
 
-/// The key [loggedAverageSacProvider] averages backmount cylinders under.
-const String _backmountSacKey = 'backmount';
-
-/// The current diver's logged average backmount SAC in L/min ("from your
-/// log"): back gas and twin set cylinders as one group (issue #3374), so
-/// marking a logbook's twin sets does not move its history out of the
-/// planner's default. Null when no logged backmount cylinder carries enough
-/// tank data to compute one; a stage or deco rate is not a bottom-gas rate.
+/// The current diver's logged average bottom gas RMV in L/min ("from your
+/// log"): the bottom gas line of the consumption by cylinder role card, each
+/// dive's rate over the time that gas was breathed (issue #771), averaged
+/// over dives. Back gas, twin set and sidemount count as one (issue #3374).
+/// Null when no logged dive has a bottom gas rate; a stage or deco rate is
+/// not a bottom-gas rate.
 final loggedAverageSacProvider = FutureProvider<double?>((ref) async {
   final repository = ref.watch(insightsRepositoryProvider);
   final diverId = ref.watch(currentDiverIdProvider);
   // Not autoDispose, so without this the logged SAC was computed once and
   // cached for the whole process lifetime (issue #974).
   ref.invalidateSelfWhen(repository.watchInsightsChanges());
-  final sacByRole = await repository.getSacVolumeByTankRole(
-    diverId: diverId,
-    roleKey: (role) =>
-        backmountRoles.any((r) => r.name == role) ? _backmountSacKey : role,
-  );
-  return sacByRole[_backmountSacKey];
+  final trend = await repository.getRoleConsumptionPerDive(diverId: diverId);
+  return trend.average(GasConsumptionLane.rmv, ConsumptionRoleGroup.bottomGas);
 });
 
 /// Scrub cursor position along the plan, in seconds (null = not scrubbing).
