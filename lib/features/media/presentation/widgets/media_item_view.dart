@@ -87,6 +87,13 @@ class MediaItemView extends ConsumerStatefulWidget {
   /// placeholder or an image that failed to decode.
   final void Function(ImageProvider provider, Size size)? onImageReady;
 
+  /// Called once per item when it cannot be drawn here: it resolved to a
+  /// placeholder (missing, access denied, unavailable) or its bytes failed
+  /// to decode, after the frame. A photo still downloading is not a
+  /// failure. For a caller that would rather show something else than the
+  /// placeholder (a dive card falls back to another photo, then the map).
+  final VoidCallback? onImageFailed;
+
   /// Where the image sits in its box when [fit] crops it.
   final Alignment alignment;
 
@@ -99,6 +106,7 @@ class MediaItemView extends ConsumerStatefulWidget {
     this.showAccessActions = false,
     this.onImageSize,
     this.onImageReady,
+    this.onImageFailed,
     this.alignment = Alignment.center,
   });
 
@@ -158,6 +166,9 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
   ImageStreamListener? _sizeListener;
   String? _sizeReportedFor;
 
+  /// The item [MediaItemView.onImageFailed] has been called for.
+  String? _failureReportedFor;
+
   @override
   void initState() {
     super.initState();
@@ -177,33 +188,57 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
     _sizeListener = null;
   }
 
+  /// Tells [MediaItemView.onImageFailed] that [itemId] cannot be drawn,
+  /// once, after the frame, and only while the view still shows it.
+  void _reportFailed(String itemId) {
+    final report = widget.onImageFailed;
+    if (report == null || _failureReportedFor == itemId) return;
+    _failureReportedFor = itemId;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && widget.item.id == itemId) report();
+    });
+  }
+
   /// Reports [provider]'s decoded size to [MediaItemView.onImageSize] and
-  /// [MediaItemView.onImageReady], once per item.
+  /// [MediaItemView.onImageReady], once per item, or its failure to decode
+  /// to [MediaItemView.onImageFailed].
   void _watchSize(ImageProvider provider) {
     final reportSize = widget.onImageSize;
     final reportReady = widget.onImageReady;
-    if (reportSize == null && reportReady == null) return;
+    if (reportSize == null &&
+        reportReady == null &&
+        widget.onImageFailed == null) {
+      return;
+    }
     if (_sizeReportedFor == widget.item.id) return;
     final stream = provider.resolve(ImageConfiguration.empty);
     if (stream.key == _sizeStream?.key) return;
     _stopSizeWatch();
     final itemId = widget.item.id;
-    final listener = ImageStreamListener((info, _) {
-      if (!mounted || _sizeReportedFor == itemId) return;
-      _sizeReportedFor = itemId;
-      final size = Size(
-        info.image.width.toDouble(),
-        info.image.height.toDouble(),
-      );
-      // A cached image answers synchronously, inside this build; the caller
-      // may setState with the size, so it hears after the frame.
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        reportSize?.call(size);
-        reportReady?.call(provider, size);
-      });
-      _stopSizeWatch();
-    }, onError: (_, _) => _stopSizeWatch());
+    final listener = ImageStreamListener(
+      (info, _) {
+        if (!mounted || _sizeReportedFor == itemId) return;
+        _sizeReportedFor = itemId;
+        final size = Size(
+          info.image.width.toDouble(),
+          info.image.height.toDouble(),
+        );
+        // A cached image answers synchronously, inside this build; the caller
+        // may setState with the size, so it hears after the frame.
+        // By then the view may have been rebuilt for another item: what was
+        // decoded is the old item's, so neither report goes out.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted || widget.item.id != itemId) return;
+          reportSize?.call(size);
+          reportReady?.call(provider, size);
+        });
+        _stopSizeWatch();
+      },
+      onError: (_, _) {
+        _stopSizeWatch();
+        _reportFailed(itemId);
+      },
+    );
     _sizeStream = stream;
     _sizeListener = listener;
     stream.addListener(listener);
@@ -264,6 +299,9 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
     // no one is watching this resolution.
     if (!mounted) return resolution;
     final data = resolution.data;
+    if (data is UnavailableData && data.kind != UnavailableKind.stillFetching) {
+      _reportFailed(forId);
+    }
     ref
         .read(mediaServingRecorderProvider)
         .record(
@@ -459,8 +497,10 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
   /// then, and only once the frame has decoded: a tile flung past before it
   /// draws asks for nothing.
   Widget _correctedImage(ImageProvider provider, {required bool resolved}) {
-    _watchSize(provider);
     final ownPixels = !resolved || _resolvedFor == widget.item.id;
+    // Rebuilt for another item, the old answer is still drawn until the new
+    // one lands: its size, readiness or failure are not this item's.
+    if (ownPixels) _watchSize(provider);
     return Image(
       image: provider,
       fit: widget.fit,
@@ -603,9 +643,12 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
               resolved: true,
             ),
             placeholder: (_, _) => _loading(),
-            errorWidget: (_, _, _) => const UnavailableMediaPlaceholder(
-              data: UnavailableData(kind: UnavailableKind.networkError),
-            ),
+            errorWidget: (_, _, _) {
+              _reportFailed(widget.item.id);
+              return const UnavailableMediaPlaceholder(
+                data: UnavailableData(kind: UnavailableKind.networkError),
+              );
+            },
           ),
           BytesData(bytes: final b) => _correctedImage(
             ResizeImage.resizeIfNeeded(cacheWidth, null, MemoryImage(b)),
