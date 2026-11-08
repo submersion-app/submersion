@@ -129,7 +129,11 @@ class _Overview extends ConsumerWidget {
                     ? l10n.settings_reparseDives_unknownComputer
                     : computer.computerName,
               ),
-              trailing: Text('${computer.dives}'),
+              // Under the name rather than trailing: on a wide window a
+              // trailing count sits a screen's width away from its computer.
+              subtitle: Text(
+                l10n.diveComputer_detail_reparseRawDataCount(computer.dives),
+              ),
             ),
         ],
         if (overview.withoutRawData > 0) ...[

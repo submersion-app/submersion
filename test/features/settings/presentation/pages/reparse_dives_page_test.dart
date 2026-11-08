@@ -100,7 +100,8 @@ void main() {
     expect(find.text('By dive computer'), findsOneWidget);
     expect(find.text('Perdix'), findsOneWidget);
     expect(find.text('Unknown computer'), findsOneWidget);
-    expect(find.text('2'), findsOneWidget);
+    expect(find.text('2 dives with raw data'), findsOneWidget);
+    expect(find.text('1 dives with raw data'), findsOneWidget);
     expect(
       find.text('Dives without raw data (not re-parsed): 4'),
       findsOneWidget,
