@@ -94,7 +94,7 @@ void main() {
     // The base apply has a second, inline path for when its parse worker
     // cannot start; both build the same-payload contradictions.
     if (inlineBase) {
-      service.baseParseClientSpawn = (_) async =>
+      service.baseParseClientSpawn = (_, {gzipped = false}) async =>
           throw StateError('forced inline base apply');
     }
     final result = await service.performSync();
