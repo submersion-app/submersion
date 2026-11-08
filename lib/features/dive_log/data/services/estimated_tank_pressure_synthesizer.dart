@@ -22,12 +22,16 @@ class EstimatedTankPressures extends Equatable {
 /// is first breathed, drops linearly while breathed (windowed by gas switches),
 /// holds flat during gaps, and ends flat at endPressure. The total drop is
 /// distributed across active windows in proportion to their duration.
+///
+/// [onLoop] is as in [buildActiveTankIntervals]: false on a dive known to be
+/// off the loop, where a diluent tag does not take the start.
 EstimatedTankPressures synthesizeEstimatedTankPressures({
   required Map<String, List<TankPressurePoint>> existing,
   required List<DiveTank> tanks,
   required List<GasSwitchWithTank> gasSwitches,
   required int diveDurationSeconds,
   int firstSampleSeconds = 0,
+  bool onLoop = true,
 }) {
   final pressures = <String, List<TankPressurePoint>>{...existing};
   final estimated = <String>{};
@@ -40,6 +44,7 @@ EstimatedTankPressures synthesizeEstimatedTankPressures({
     gasSwitches: gasSwitches,
     diveDurationSeconds: diveDurationSeconds,
     firstSampleSeconds: firstSampleSeconds,
+    onLoop: onLoop,
   );
 
   // A tank's measured series may still be keyed by an old tank id (#276);

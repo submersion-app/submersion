@@ -337,28 +337,49 @@ GasMix? rebreatherLoopGas(Dive dive, [String? computerId]) => dive.isRebreather
       )
     : null;
 
+/// The cylinders [computerId] breathed on [dive] and the switches it made onto
+/// them, the inputs its gas timeline and active cylinder are read from. Another
+/// computer's switch never counts, so its recording of the same change at a
+/// different moment cannot move this one's gas (#4300). Null [computerId] is
+/// every source drawn as one series, so every cylinder and switch counts.
+({List<DiveTank> tanks, List<GasSwitchWithTank> gasSwitches}) computerGasInputs(
+  Dive dive, {
+  required List<GasSwitchWithTank>? gasSwitches,
+  String? computerId,
+}) {
+  final all = gasSwitches ?? const <GasSwitchWithTank>[];
+  if (computerId == null) return (tanks: dive.tanks, gasSwitches: all);
+  final tanks = dive.tanks.where((t) => t.isUsedBy(computerId)).toList();
+  final tankIds = {for (final t in tanks) t.id};
+  return (
+    tanks: tanks,
+    gasSwitches: [
+      for (final s in all)
+        if (tankIds.contains(s.gasSwitch.tankId) &&
+            s.gasSwitch.appliesTo(computerId))
+          s,
+    ],
+  );
+}
+
 /// The gas timeline of the series drawn for [computerId], from that computer's
-/// own cylinders and switches by the rule the deco model reads them. Null
-/// [computerId] draws every source as one series, so every one of them counts.
+/// own cylinders and switches ([computerGasInputs]) by the rule the deco model
+/// reads them. Null [computerId] draws every source as one series, so every one
+/// of them counts.
 List<GasUsageSegment> activeGasUsageSegments(
   Dive dive, {
   required List<GasSwitchWithTank>? gasSwitches,
   required List<DiveProfilePoint> profile,
   String? computerId,
 }) {
-  final tanks = computerId == null
-      ? dive.tanks
-      : dive.tanks.where((t) => t.isUsedBy(computerId)).toList();
-  final tankIds = {for (final t in tanks) t.id};
+  final inputs = computerGasInputs(
+    dive,
+    gasSwitches: gasSwitches,
+    computerId: computerId,
+  );
   return buildGasUsageSegments(
-    tanks: tanks,
-    gasSwitches: [
-      for (final s in gasSwitches ?? const <GasSwitchWithTank>[])
-        if (computerId == null ||
-            (tankIds.contains(s.gasSwitch.tankId) &&
-                s.gasSwitch.appliesTo(computerId)))
-          s,
-    ],
+    tanks: inputs.tanks,
+    gasSwitches: inputs.gasSwitches,
     diveDurationSeconds: profile.last.timestamp,
     firstSampleSeconds: profile.first.timestamp,
     loopGas: rebreatherLoopGas(dive, computerId),
