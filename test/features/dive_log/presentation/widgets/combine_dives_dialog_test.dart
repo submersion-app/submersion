@@ -832,6 +832,45 @@ void main() {
       expect(service.capturedAlignment, ConsolidationAlignment.bestFit);
     });
 
+    testWidgets('a mixed selection with an overlapping clock mismatch does '
+        "not claim the records don't overlap (#4296)", (tester) async {
+      await pumpCombineDialog(
+        tester,
+        dives: [
+          diveAt(
+            'a',
+            DateTime.utc(2026, 7, 1, 9),
+            runtimeMin: 48,
+            diveComputerSerial: 'serial-a',
+            profile: _reef(),
+          ),
+          // Overlaps 'a', its clock 20 minutes fast.
+          diveAt(
+            'b',
+            DateTime.utc(2026, 7, 1, 9, 20),
+            runtimeMin: 48,
+            diveComputerSerial: 'serial-b',
+            profile: _reef(lead: 40),
+          ),
+          // Does not overlap 'a' at all.
+          diveAt(
+            'c',
+            DateTime.utc(2026, 7, 1, 10, 30),
+            runtimeMin: 48,
+            diveComputerSerial: 'serial-c',
+            profile: _reef(lead: 40),
+          ),
+        ],
+      );
+
+      expect(find.text('Best fit'), findsOneWidget);
+      expect(find.textContaining("don't overlap in time"), findsNothing);
+      expect(
+        find.textContaining('match at a different time than the computers'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('consolidateOnly: a non-overlapping pair opens the Merge '
         'panel with the toggle and no Join choice', (tester) async {
       await pumpCombineDialog(

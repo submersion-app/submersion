@@ -571,10 +571,9 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
                           _alignment == ConsolidationAlignment.bestFit &&
                           plan.alignments.values.any((a) => a.usedFallback),
                       // A clock wrong by less than the dive lasted still
-                      // overlaps, so "they don't overlap" would be false.
-                      recordsOverlap:
-                          ready.clockMismatchIds.length ==
-                          ready.realignedIds.length,
+                      // overlaps, so "they don't overlap" would be false for
+                      // that record; the profile note holds for every kind.
+                      recordsOverlap: ready.clockMismatchIds.isNotEmpty,
                     ),
                   ],
                   if (hasProfileData) ...[

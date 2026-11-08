@@ -99,8 +99,9 @@ class ConsolidationAlignmentControls extends StatelessWidget {
   /// Whether best fit had no profile to match for some record.
   final bool showFallbackNote;
 
-  /// Whether every realigned record overlaps the primary in time, so the
-  /// clock note explains the mismatch by the profiles instead of by the gap.
+  /// Whether some realigned record overlaps the primary in time, so the clock
+  /// note explains the mismatch by the profiles, which holds for a record
+  /// that does not overlap too, instead of claiming none of them overlap.
   final bool recordsOverlap;
 
   @override

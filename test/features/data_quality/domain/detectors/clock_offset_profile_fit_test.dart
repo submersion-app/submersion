@@ -112,6 +112,14 @@ void main() {
       );
     });
 
+    test('a later segment of a joined dive, placed after the primary, is '
+        'not pulled onto it', () {
+      // Two sequential records joined into one dive: the second starts
+      // after the first ends, and looks just like it.
+      expect(fitFindings(_reef(start: 3000)), isEmpty);
+      expect(fitFindings(_reef(start: -3200)), isEmpty);
+    });
+
     test('a source with no samples is not flagged', () {
       expect(fitFindings(const []), isEmpty);
     });

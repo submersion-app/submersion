@@ -114,11 +114,19 @@ class ClockOffsetDetector extends QualityDetector {
       for (final q in ctx.primarySamples)
         DiveProfilePoint(timestamp: q.t, depth: q.depth),
     ];
+    final primaryStart = ctx.primarySamples.first.t;
+    final primaryEnd = ctx.primarySamples.last.t;
     final out = <QualityFinding>[];
     for (final s in ctx.sources) {
       if (s.id == primaryId) continue;
       final samples = ctx.sourceSamples[s.id];
       if (samples == null || samples.isEmpty) continue;
+      // Only a source placed over the primary's recording, the case a
+      // trusted overlapping clock produced. A later segment of a joined dive
+      // sits after it on purpose and may look just like it.
+      if (samples.last.t <= primaryStart || samples.first.t >= primaryEnd) {
+        continue;
+      }
       // The aligner searches around lined-up starts, so the source is moved
       // to its own start first and its placement is measured against that.
       final placedAt = samples.first.t;
