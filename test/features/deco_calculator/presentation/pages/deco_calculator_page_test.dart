@@ -63,11 +63,17 @@ void main() {
   }
 
   Future<void> tapAddToPlanner(WidgetTester tester) async {
-    await tester.tap(find.text('Add to Planner'));
+    // The action's icon, not its localized label, so a copy change does not
+    // break the test.
+    await tester.tap(find.byIcon(Icons.edit_calendar));
     await tester.pumpAndSettle();
     expect(find.text('Planner destination'), findsOneWidget);
-    // Let the confirmation SnackBar time out before the tree is torn down.
-    await tester.pump(const Duration(seconds: 3));
+    // Dismiss the confirmation SnackBar so its timer is not left pending at
+    // teardown, whatever duration the page gives it.
+    tester
+        .state<ScaffoldMessengerState>(find.byType(ScaffoldMessenger))
+        .removeCurrentSnackBar();
+    await tester.pumpAndSettle();
   }
 
   group('Add to Planner carries the calculator environment (#4314)', () {
