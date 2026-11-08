@@ -1208,6 +1208,7 @@
   "certifications_list_groupBy_status": "סטטוס",
   "certifications_list_section_expired": "פג תוקף",
   "certifications_list_section_expiringSoon": "תוקף פג בקרוב",
+  "certifications_list_section_professional": "{agency} מקצועי",
   "certifications_list_section_valid": "בתוקף",
   "certifications_list_sort_title": "מיון הסמכות",
   "certifications_list_tile_expired": "פג תוקף",

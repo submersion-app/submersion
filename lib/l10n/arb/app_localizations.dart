@@ -7160,6 +7160,12 @@ abstract class AppLocalizations {
   /// **'Expiring Soon'**
   String get certifications_list_section_expiringSoon;
 
+  /// Header of the certification list section holding one agency's professional ratings (divemaster, instructor and up) when grouped by agency.
+  ///
+  /// In en, this message translates to:
+  /// **'{agency} Professional'**
+  String certifications_list_section_professional(String agency);
+
   /// No description provided for @certifications_list_section_valid.
   ///
   /// In en, this message translates to:

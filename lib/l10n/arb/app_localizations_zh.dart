@@ -4381,6 +4381,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_list_section_expiringSoon => '即将到期';
 
   @override
+  String certifications_list_section_professional(String agency) {
+    return '$agency 专业级';
+  }
+
+  @override
   String get certifications_list_section_valid => '有效';
 
   @override

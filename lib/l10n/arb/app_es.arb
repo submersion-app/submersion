@@ -1208,6 +1208,7 @@
   "certifications_list_groupBy_status": "Estado",
   "certifications_list_section_expired": "Vencidas",
   "certifications_list_section_expiringSoon": "Por vencer",
+  "certifications_list_section_professional": "{agency} Profesional",
   "certifications_list_section_valid": "Vigentes",
   "certifications_list_sort_title": "Ordenar certificaciones",
   "certifications_list_tile_expired": "Vencida",

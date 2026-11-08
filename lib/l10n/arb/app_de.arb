@@ -1234,6 +1234,7 @@
   "certifications_list_groupBy_status": "Status",
   "certifications_list_section_expired": "Abgelaufen",
   "certifications_list_section_expiringSoon": "Läuft bald ab",
+  "certifications_list_section_professional": "{agency} Profi",
   "certifications_list_section_valid": "Gültig",
   "certifications_list_sort_title": "Zertifizierungen sortieren",
   "certifications_list_tile_expired": "Abgelaufen",

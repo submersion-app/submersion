@@ -4731,6 +4731,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_list_section_expiringSoon => 'تنتهي قريبًا';
 
   @override
+  String certifications_list_section_professional(String agency) {
+    return 'شهادات $agency الاحترافية';
+  }
+
+  @override
   String get certifications_list_section_valid => 'سارية';
 
   @override

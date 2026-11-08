@@ -1295,6 +1295,7 @@
   "certifications_list_groupBy_status": "状态",
   "certifications_list_section_expired": "已过期",
   "certifications_list_section_expiringSoon": "即将到期",
+  "certifications_list_section_professional": "{agency} 专业级",
   "certifications_list_section_valid": "有效",
   "certifications_list_sort_title": "证书排序",
   "certifications_list_tile_expired": "已过期",

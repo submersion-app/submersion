@@ -1208,6 +1208,7 @@
   "certifications_list_groupBy_status": "Statut",
   "certifications_list_section_expired": "Expirée",
   "certifications_list_section_expiringSoon": "Expire bientôt",
+  "certifications_list_section_professional": "{agency} Professionnel",
   "certifications_list_section_valid": "Valide",
   "certifications_list_sort_title": "Trier les certifications",
   "certifications_list_tile_expired": "Expirée",

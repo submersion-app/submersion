@@ -1208,6 +1208,7 @@
   "certifications_list_groupBy_status": "Állapot",
   "certifications_list_section_expired": "Lejárt",
   "certifications_list_section_expiringSoon": "Hamarosan lejár",
+  "certifications_list_section_professional": "{agency} Profi",
   "certifications_list_section_valid": "Érvényes",
   "certifications_list_sort_title": "Tanúsítványok rendezése",
   "certifications_list_tile_expired": "Lejárt",

@@ -4627,6 +4627,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_list_section_expiringSoon => 'Hamarosan lejár';
 
   @override
+  String certifications_list_section_professional(String agency) {
+    return '$agency Profi';
+  }
+
+  @override
   String get certifications_list_section_valid => 'Érvényes';
 
   @override
