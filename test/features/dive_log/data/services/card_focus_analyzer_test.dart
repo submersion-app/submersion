@@ -119,5 +119,55 @@ void main() {
       await Future.wait(all);
       expect(peak, 2);
     });
+
+    test('a timed-out decode answers null but keeps its slot until it '
+        'settles', () async {
+      final gates = <String, Completer<SmallImage?>>{};
+      final analyzer = CardFocusAnalyzer(
+        decodeTimeout: const Duration(milliseconds: 20),
+        decode: (source) {
+          final key = (source as MemoryImage).bytes.first.toString();
+          return (gates[key] = Completer<SmallImage?>()).future;
+        },
+      );
+      MemoryImage image(int id) => MemoryImage(Uint8List.fromList([id]));
+
+      final slow = [
+        analyzer.rowScoresFor('a', image(1)),
+        analyzer.rowScoresFor('b', image(2)),
+      ];
+      final third = analyzer.rowScoresFor('c', image(3));
+
+      // Both callers hear null once the timeout passes...
+      expect(await Future.wait(slow), [null, null]);
+      // ...but their decodes are still running, so the third has not
+      // started: two at once, still.
+      await Future<void>.delayed(const Duration(milliseconds: 40));
+      expect(gates.keys, unorderedEquals(['1', '2']));
+
+      // One settles, late: its slot goes to the third.
+      gates['1']!.complete(_small());
+      await Future<void>.delayed(Duration.zero);
+      expect(gates.keys, contains('3'));
+      gates['3']!.complete(_small());
+      expect(await third, hasLength(4));
+      // A late answer is not remembered: it may come in time next time.
+      expect(analyzer.hasAnswer('a'), isFalse);
+    });
+
+    test('a decode that throws frees its slot', () async {
+      var calls = 0;
+      final analyzer = CardFocusAnalyzer(
+        decode: (_) {
+          calls++;
+          if (calls <= 2) throw StateError('broken');
+          return Future.value(_small());
+        },
+      );
+
+      expect(await analyzer.rowScoresFor('a', _source), isNull);
+      expect(await analyzer.rowScoresFor('b', _source), isNull);
+      expect(await analyzer.rowScoresFor('c', _source), hasLength(4));
+    });
   });
 }

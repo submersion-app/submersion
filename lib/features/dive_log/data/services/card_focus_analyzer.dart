@@ -26,8 +26,11 @@ class CardFocusAnalyzer {
     this.decodeTimeout = const Duration(seconds: 15),
   }) : _decode =
            decode ??
-           ((source) =>
-               decodeSmallImage(source, box: CardPhotoTuning.analysisSize));
+           ((source) => decodeSmallImage(
+             source,
+             box: CardPhotoTuning.analysisSize,
+             timeout: decodeTimeout,
+           ));
 
   final SmallImageDecoder _decode;
   final int capacity;
@@ -72,9 +75,25 @@ class CardFocusAnalyzer {
     ImageProvider source,
     Completer<List<double>?> done,
   ) async {
+    // The slot is held until the decode itself settles, not until its
+    // caller stops waiting: a timeout ends the wait, but the decode runs on,
+    // and counting it as finished would let more than two run at once.
+    Future<SmallImage?> decoding;
+    try {
+      decoding = _decode(source);
+    } catch (e, stackTrace) {
+      decoding = Future.error(e, stackTrace);
+    }
+    unawaited(
+      decoding.then<void>((_) {}, onError: (_) {}).whenComplete(() {
+        _running--;
+        _drain();
+      }),
+    );
+
     List<double>? rows;
     try {
-      final image = await _decode(source).timeout(decodeTimeout);
+      final image = await decoding.timeout(decodeTimeout);
       // A decode that failed or timed out is not remembered: it may work
       // next time. Only an image that decoded is.
       if (image != null) {
@@ -85,9 +104,7 @@ class CardFocusAnalyzer {
       rows = null;
     }
     _pending.remove(key);
-    _running--;
     done.complete(rows);
-    _drain();
   }
 
   void _remember(String key, List<double>? rows) {

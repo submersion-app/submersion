@@ -14,9 +14,13 @@ typedef SmallImage = ({Uint8List rgba, int width, int height});
 /// wrapped in another (an assert in debug builds), so its inner provider is
 /// resized instead. The small decode is evicted from the shared image cache
 /// once read, so analysis never pushes out the thumbnails a grid draws.
+///
+/// Past [timeout] the decode is given up: its listener is removed, so the
+/// image stream no longer holds this request, and the answer is null.
 Future<SmallImage?> decodeSmallImage(
   ImageProvider source, {
   int box = 64,
+  Duration? timeout,
 }) async {
   final base = source is ResizeImage ? source.imageProvider : source;
   final provider = ResizeImage(
@@ -45,7 +49,20 @@ Future<SmallImage?> decodeSmallImage(
     },
   );
   stream.addListener(listener);
-  final image = await completer.future;
+  final ui.Image image;
+  try {
+    image = timeout == null
+        ? await completer.future
+        : await completer.future.timeout(timeout);
+  } on TimeoutException {
+    // Without its listener the stream hands this request no frame to
+    // dispose, and evicting the pending entry keeps a late decode out of
+    // the shared cache.
+    stream.removeListener(listener);
+    final key = await provider.obtainKey(ImageConfiguration.empty);
+    PaintingBinding.instance.imageCache.evict(key);
+    return null;
+  }
   try {
     final data = await image.toByteData(
       format: ui.ImageByteFormat.rawStraightRgba,
