@@ -534,55 +534,52 @@ void main() {
       },
     );
 
-    test(
-      'reparseDive reports a source missing descriptor info',
-      () async {
-        // A source row with rawData but no descriptor vendor/product/model
-        // (e.g. older import). This used to be the silent-skip trap: no
-        // errors and no re-parse. Since #224 it fails with a clear error.
-        await insertDive('dive-1');
-        await insertComputer('comp-1');
-        final now = DateTime.fromMillisecondsSinceEpoch(nowMs);
-        await db
-            .into(db.diveDataSources)
-            .insert(
-              DiveDataSourcesCompanion(
-                id: const Value('src-1'),
-                diveId: const Value('dive-1'),
-                computerId: const Value('comp-1'),
-                isPrimary: const Value(true),
-                sourceFormat: const Value('dive_computer'),
-                rawData: Value(Uint8List.fromList(List.filled(64, 0xAB))),
-                // descriptor* deliberately left absent
-                entryLatitude: const Value(21.0),
-                entryLongitude: const Value(-157.0),
-                exitLatitude: const Value(21.0),
-                exitLongitude: const Value(-157.0),
-                importedAt: Value(now),
-                createdAt: Value(now),
-              ),
-            );
+    test('reparseDive reports a source missing descriptor info', () async {
+      // A source row with rawData but no descriptor vendor/product/model
+      // (e.g. older import). This used to be the silent-skip trap: no
+      // errors and no re-parse. Since #224 it fails with a clear error.
+      await insertDive('dive-1');
+      await insertComputer('comp-1');
+      final now = DateTime.fromMillisecondsSinceEpoch(nowMs);
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion(
+              id: const Value('src-1'),
+              diveId: const Value('dive-1'),
+              computerId: const Value('comp-1'),
+              isPrimary: const Value(true),
+              sourceFormat: const Value('dive_computer'),
+              rawData: Value(Uint8List.fromList(List.filled(64, 0xAB))),
+              // descriptor* deliberately left absent
+              entryLatitude: const Value(21.0),
+              entryLongitude: const Value(-157.0),
+              exitLatitude: const Value(21.0),
+              exitLongitude: const Value(-157.0),
+              importedAt: Value(now),
+              createdAt: Value(now),
+            ),
+          );
 
-        var parserCalls = 0;
-        Future<pigeon.ParsedDive> fakeParse(
-          String vendor,
-          String product,
-          int model,
-          Uint8List raw,
-        ) async {
-          parserCalls++;
-          return makeParsedDive();
-        }
+      var parserCalls = 0;
+      Future<pigeon.ParsedDive> fakeParse(
+        String vendor,
+        String product,
+        int model,
+        Uint8List raw,
+      ) async {
+        parserCalls++;
+        return makeParsedDive();
+      }
 
-        final errors = (await service.reparseDive(
-          'dive-1',
-          parseFn: fakeParse,
-        )).errors;
+      final errors = (await service.reparseDive(
+        'dive-1',
+        parseFn: fakeParse,
+      )).errors;
 
-        expect(errors, ['Missing dive computer details']);
-        expect(parserCalls, 0);
-      },
-    );
+      expect(errors, ['Missing dive computer details']);
+      expect(parserCalls, 0);
+    });
 
     test('preserves user-authored fields on primary source', () async {
       // Arrange: create dive with user-authored fields set
