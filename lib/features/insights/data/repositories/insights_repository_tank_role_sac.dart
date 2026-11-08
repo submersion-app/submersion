@@ -144,10 +144,9 @@ extension _InsightsRepositoryTankRoleSac on InsightsRepository {
         final dive = dives[id];
         if (dive == null) continue;
         final profile = profiles[id] ?? const <DiveProfilePoint>[];
-        final diveEnd =
-            dive.measuredRuntime?.inSeconds ??
-            profile.lastOrNull?.timestamp ??
-            0;
+        // A known switch falls before the measured runtime, so every dive
+        // here has one.
+        final diveEnd = dive.measuredRuntime?.inSeconds ?? 0;
         for (final row in windowedByDive[id]!) {
           final tankId = row.read<String>('tank_id');
           final tank = dive.tanks.where((t) => t.id == tankId).firstOrNull;
