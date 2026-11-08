@@ -1,14 +1,12 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_controls.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/raw_dive_data_providers.dart';
-import 'package:submersion/features/dive_computer/data/services/reparse_service.dart';
+import 'package:submersion/features/dive_computer/data/services/reparse_batch_service.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/reparse_batch_provider.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
@@ -17,7 +15,6 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/fake_raw_dive_data_service.dart';
 import '../../../../helpers/mock_providers.dart';
-import '../../../../helpers/test_database.dart';
 
 class _MockDiveComputerNotifier
     extends StateNotifier<AsyncValue<List<DiveComputer>>>
@@ -28,32 +25,47 @@ class _MockDiveComputerNotifier
   dynamic noSuchMethod(Invocation invocation) => null;
 }
 
-/// Records the re-parse the button asks for, returning a fixed outcome.
-class _FakeReparseService extends ReparseService {
-  _FakeReparseService(this.outcome) : super(db: createTestDatabase());
+/// Records the re-parse the button asks for, returning [failing] dives as
+/// failed and the rest as re-parsed.
+class _RecordingBatch implements ReparseBatchService {
+  _RecordingBatch({this.failing = const {}});
 
-  final ({int succeeded, int failed}) outcome;
-  final reparsed = <String>[];
-
-  @override
-  Future<({int withRawData, int withoutRawData})> getRawDataCounts(
-    String computerId,
-  ) async => (withRawData: 3, withoutRawData: 0);
+  final Set<String> failing;
+  final reparsed = <(List<String>, String?)>[];
 
   @override
-  Future<({int succeeded, int failed})> reparseAllForComputer(
-    String computerId, {
-    required Future<pigeon.ParsedDive> Function(
-      String vendor,
-      String product,
-      int model,
-      Uint8List rawData,
-    )
-    parseFn,
+  Future<List<String>> diveIdsForComputer(String computerId) async => [
+    '$computerId-d1',
+    '$computerId-d2',
+    '$computerId-d3',
+  ];
+
+  @override
+  Future<ReparseBatchResult> run(
+    List<String> diveIds, {
+    required RawDiveParseFn parseFn,
+    String? computerId,
+    void Function(int done, int total)? onProgress,
+    bool Function()? isCancelled,
   }) async {
-    reparsed.add(computerId);
-    return outcome;
+    reparsed.add((diveIds, computerId));
+    final failures = [
+      for (final id in diveIds)
+        if (failing.contains(id))
+          ReparseDiveFailure(diveId: id, error: 'Exception: bad bytes'),
+    ];
+    return ReparseBatchResult(
+      total: diveIds.length,
+      succeeded: diveIds.length - failures.length,
+      skipped: 0,
+      notProcessed: 0,
+      profilesPreserved: 0,
+      failures: failures,
+    );
   }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// "Re-parse all dives" on a computer's Equipment page (issue #3676 moved
@@ -69,7 +81,7 @@ void main() {
   Future<void> pump(
     WidgetTester tester, {
     required ({int withRawData, int withoutRawData}) counts,
-    required _FakeReparseService service,
+    required _RecordingBatch batch,
   }) async {
     tester.view.physicalSize = const Size(1200, 2400);
     tester.view.devicePixelRatio = 1.0;
@@ -77,7 +89,6 @@ void main() {
       tester.view.resetPhysicalSize();
       tester.view.resetDevicePixelRatio();
     });
-    addTearDown(service.db.close);
     final router = GoRouter(
       initialLocation: '/dive-computers/comp-1',
       routes: [
@@ -107,7 +118,11 @@ void main() {
           rawDiveDataServiceProvider.overrideWithValue(
             FakeRawDiveDataService(),
           ),
-          reparseServiceProvider.overrideWithValue(service),
+          reparseBatchServiceProvider.overrideWithValue(batch),
+          reparseParseFnProvider.overrideWithValue(
+            (vendor, product, model, raw) => throw UnimplementedError(),
+          ),
+          reparseDiveLookupProvider.overrideWithValue((ids) async => []),
         ],
         child: MaterialApp.router(
           routerConfig: router,
@@ -126,21 +141,21 @@ void main() {
     await pump(
       tester,
       counts: (withRawData: 3, withoutRawData: 2),
-      service: _FakeReparseService((succeeded: 3, failed: 0)),
+      batch: _RecordingBatch(),
     );
 
     expect(find.text('Re-parse all dives'), findsOneWidget);
     expect(find.text('3 dives with raw data (2 without)'), findsOneWidget);
   });
 
-  testWidgets('confirming re-parses this computer and reports success', (
+  testWidgets('confirming re-parses only this computer and shows the results', (
     tester,
   ) async {
-    final service = _FakeReparseService((succeeded: 3, failed: 0));
+    final batch = _RecordingBatch();
     await pump(
       tester,
       counts: (withRawData: 3, withoutRawData: 0),
-      service: service,
+      batch: batch,
     );
 
     await tester.tap(find.text('Re-parse all dives'));
@@ -148,16 +163,18 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Re-parse'));
     await tester.pumpAndSettle();
 
-    expect(service.reparsed, ['comp-1']);
-    expect(find.text('Re-parsed 3 dives successfully'), findsOneWidget);
+    expect(batch.reparsed.single.$1, ['comp-1-d1', 'comp-1-d2', 'comp-1-d3']);
+    expect(batch.reparsed.single.$2, 'comp-1');
+    expect(find.text('Re-parse finished'), findsOneWidget);
+    expect(find.text('Re-parsed 3 of 3 dives.'), findsOneWidget);
   });
 
-  testWidgets('a partial re-parse says how many failed', (tester) async {
-    final service = _FakeReparseService((succeeded: 2, failed: 1));
+  testWidgets('a partial re-parse lists the failed dives', (tester) async {
+    final batch = _RecordingBatch(failing: {'comp-1-d2'});
     await pump(
       tester,
       counts: (withRawData: 3, withoutRawData: 0),
-      service: service,
+      batch: batch,
     );
 
     await tester.tap(find.text('Re-parse all dives'));
@@ -165,15 +182,17 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Re-parse'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Re-parsed 2 of 3 dives. 1 failed.'), findsOneWidget);
+    expect(find.text('Re-parsed 2 of 3 dives.'), findsOneWidget);
+    expect(find.text('Failed: 1'), findsOneWidget);
+    expect(find.textContaining('bad bytes'), findsOneWidget);
   });
 
   testWidgets('cancelling re-parses nothing', (tester) async {
-    final service = _FakeReparseService((succeeded: 3, failed: 0));
+    final batch = _RecordingBatch();
     await pump(
       tester,
       counts: (withRawData: 3, withoutRawData: 0),
-      service: service,
+      batch: batch,
     );
 
     await tester.tap(find.text('Re-parse all dives'));
@@ -181,6 +200,6 @@ void main() {
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
 
-    expect(service.reparsed, isEmpty);
+    expect(batch.reparsed, isEmpty);
   });
 }
