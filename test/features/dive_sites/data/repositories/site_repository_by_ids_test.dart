@@ -97,6 +97,10 @@ void main() {
     final sent = await statementsOf(() async {
       expect(await repository.getSitesWithDiveCounts(ids: const []), isEmpty);
       expect(await repository.getAllSites(ids: const []), isEmpty);
+      expect(
+        await repository.getFeatureTypesBySite(siteIds: const []),
+        isEmpty,
+      );
     });
 
     expect(sent, isEmpty);

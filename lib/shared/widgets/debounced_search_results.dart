@@ -59,6 +59,11 @@ class _DebouncedSearchResultsState<T>
   String _debouncedQuery = '';
   List<T>? _lastResults;
 
+  /// The results, moved into and out of the loading column rather than
+  /// rebuilt: a remount would start every row over (its scroll position,
+  /// and whatever a row has loaded) each time a search lands.
+  final _resultsKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
@@ -110,7 +115,10 @@ class _DebouncedSearchResultsState<T>
         if (items.isEmpty) {
           return widget.emptyBuilder(context, _debouncedQuery);
         }
-        return widget.dataBuilder(context, items);
+        return KeyedSubtree(
+          key: _resultsKey,
+          child: widget.dataBuilder(context, items),
+        );
       },
       loading: () {
         // Show cached results with a progress indicator instead of a spinner
@@ -118,7 +126,12 @@ class _DebouncedSearchResultsState<T>
           return Column(
             children: [
               const LinearProgressIndicator(),
-              Expanded(child: widget.dataBuilder(context, _lastResults!)),
+              Expanded(
+                child: KeyedSubtree(
+                  key: _resultsKey,
+                  child: widget.dataBuilder(context, _lastResults!),
+                ),
+              ),
             ],
           );
         }

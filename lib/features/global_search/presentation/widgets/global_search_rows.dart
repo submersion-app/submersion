@@ -64,84 +64,85 @@ class GlobalSearchRows extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final units = ref.watch(unitFormatterProvider);
-    final key = globalSearchIdsKey(ids);
+    final idsKey = globalSearchIdsKey(ids);
     return switch (kind) {
       GlobalSearchKind.dives => _rows(
-        ref.watch(globalSearchDivesProvider(key)),
+        ref.watch(globalSearchDivesProvider(idsKey)),
         (dive) => dive.id,
         (dives) => _DiveRows(dives: dives, onOpen: onOpen),
       ),
       GlobalSearchKind.sites => _each(
-        ref.watch(globalSearchSitesProvider(key)),
+        ref.watch(globalSearchSitesProvider(idsKey)),
         (entry) => entry.site.id,
         (entry, onTap) => _SiteRow(entry: entry, onTap: onTap),
       ),
       GlobalSearchKind.trips => _each(
-        ref.watch(globalSearchTripsProvider(key)),
+        ref.watch(globalSearchTripsProvider(idsKey)),
         (entry) => entry.trip.id,
         (entry, onTap) => _TripRow(entry: entry, onTap: onTap),
       ),
       GlobalSearchKind.equipment => _rows(
-        ref.watch(globalSearchEquipmentProvider(key)),
+        ref.watch(globalSearchEquipmentProvider(idsKey)),
         (item) => item.id,
         (items) => _EquipmentRows(items: items, onOpen: onOpen),
       ),
       GlobalSearchKind.equipmentSets => _each(
-        ref.watch(globalSearchEquipmentSetsProvider(key)),
+        ref.watch(globalSearchEquipmentSetsProvider(idsKey)),
         (set) => set.id,
         (set, onTap) => EquipmentSetTile(set: set, onTap: onTap),
       ),
       GlobalSearchKind.buddies => _each(
-        ref.watch(globalSearchBuddiesProvider(key)),
+        ref.watch(globalSearchBuddiesProvider(idsKey)),
         (entry) => entry.buddy.id,
         (entry, onTap) => CompactBuddyListTile(entry: entry, onTap: onTap),
       ),
       GlobalSearchKind.diveCenters => _each(
-        _alongside(ref.watch(globalSearchDiveCentersProvider(key)), [
-          ref.watch(globalSearchDiveCenterCountsProvider(key)),
+        _alongside(ref.watch(globalSearchDiveCentersProvider(idsKey)), [
+          ref.watch(globalSearchDiveCenterCountsProvider(idsKey)),
         ]),
         (center) => center.id,
         (center, onTap) =>
-            _DiveCenterRow(center: center, idsKey: key, onTap: onTap),
+            _DiveCenterRow(center: center, idsKey: idsKey, onTap: onTap),
       ),
       GlobalSearchKind.certifications => _each(
-        ref.watch(globalSearchCertificationsProvider(key)),
+        ref.watch(globalSearchCertificationsProvider(idsKey)),
         (certification) => certification.id,
         (certification, onTap) =>
             CertificationListTile(certification: certification, onTap: onTap),
       ),
       GlobalSearchKind.courses => _each(
-        ref.watch(globalSearchCoursesProvider(key)),
+        ref.watch(globalSearchCoursesProvider(idsKey)),
         (course) => course.id,
         (course, onTap) => CourseCard(course: course, onTap: onTap),
       ),
       GlobalSearchKind.species => _each(
-        _alongside(ref.watch(globalSearchSpeciesProvider(key)), [
-          ref.watch(globalSearchSeenSpeciesProvider(key)),
-          ref.watch(globalSearchSpeciesCoversProvider(key)),
+        _alongside(ref.watch(globalSearchSpeciesProvider(idsKey)), [
+          ref.watch(globalSearchSeenSpeciesProvider(idsKey)),
+          ref.watch(globalSearchSpeciesCoversProvider(idsKey)),
         ]),
         (species) => species.id,
         (species, onTap) =>
-            _SpeciesRow(species: species, idsKey: key, onTap: onTap),
+            _SpeciesRow(species: species, idsKey: idsKey, onTap: onTap),
       ),
       GlobalSearchKind.documents => _each(
-        _alongside(ref.watch(globalSearchDocumentsProvider(key)), [
-          ref.watch(globalSearchDocumentTagsProvider(key)),
+        _alongside(ref.watch(globalSearchDocumentsProvider(idsKey)), [
+          ref.watch(globalSearchDocumentTagsProvider(idsKey)),
         ]),
         (entry) => entry.document.id,
-        (entry, onTap) => _DocumentRow(entry: entry, idsKey: key, onTap: onTap),
+        (entry, onTap) =>
+            _DocumentRow(entry: entry, idsKey: idsKey, onTap: onTap),
       ),
       GlobalSearchKind.divePlans => _planRows(
-        ref.watch(globalSearchDivePlansProvider(key)),
+        ref.watch(globalSearchDivePlansProvider(idsKey)),
         units,
       ),
       GlobalSearchKind.gpsTracks => _each(
-        ref.watch(globalSearchGpsTracksProvider(key)),
+        ref.watch(globalSearchGpsTracksProvider(idsKey)),
         (track) => track.id,
         (track, onTap) => GpsTrackListTile(track: track, onTap: onTap),
       ),
       GlobalSearchKind.underwaterRoutes => _each(
-        ref.watch(globalSearchUnderwaterRoutesProvider(key)),
+        ref.watch(globalSearchUnderwaterRoutesProvider(idsKey)),
         (route) => route.id,
         (route, onTap) =>
             NavTrackListRow(route: route, units: units, onTap: onTap),
@@ -167,10 +168,16 @@ class GlobalSearchRows extends ConsumerWidget {
     String Function(T record) idOf,
     Widget Function(List<T> shown) build,
   ) {
-    if (records.hasError) return const _RowsFailed();
-    if (!records.hasValue) return _RowsLoading(count: ids.length);
-    final byId = {for (final r in records.requireValue) idOf(r): r};
-    return build([for (final id in ids) ?byId[id]]);
+    final Widget? rows;
+    if (records.hasError) {
+      rows = const _RowsFailed();
+    } else if (records.hasValue) {
+      final byId = {for (final r in records.requireValue) idOf(r): r};
+      rows = build([for (final id in ids) ?byId[id]]);
+    } else {
+      rows = null;
+    }
+    return _HeldRows(rows: rows, count: ids.length);
   }
 
   /// The plans found, each saved series once (issue #3565): its first dive
@@ -227,9 +234,37 @@ class GlobalSearchRows extends ConsumerWidget {
 Key globalSearchRowKey(GlobalSearchKind kind, String id) =>
     ValueKey('global-search-hit-${kind.name}-$id');
 
-/// Holds the rows' place while their records load, so what is below them
-/// does not jump. Empty: a handful of records loads at once, and a spinner
-/// would only flash.
+/// [rows] once drawn, and the last rows drawn while the next ones load
+/// (null): a new search's records arrive a moment after its ids, and a blank
+/// section in between would flicker with every keystroke. With nothing
+/// drawn yet, it holds the rows' place.
+class _HeldRows extends StatefulWidget {
+  const _HeldRows({required this.rows, required this.count});
+
+  final Widget? rows;
+  final int count;
+
+  @override
+  State<_HeldRows> createState() => _HeldRowsState();
+}
+
+class _HeldRowsState extends State<_HeldRows> {
+  late Widget? _shown = widget.rows;
+
+  @override
+  void didUpdateWidget(_HeldRows oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _shown = widget.rows ?? _shown;
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      _shown ?? _RowsLoading(count: widget.count);
+}
+
+/// Holds the rows' place while their first records load, so what is below
+/// them does not jump. Empty: a handful of records loads at once, and a
+/// spinner would only flash.
 class _RowsLoading extends StatelessWidget {
   const _RowsLoading({required this.count});
 

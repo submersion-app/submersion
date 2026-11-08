@@ -37,14 +37,12 @@ void main() {
 
   /// [scoped] holds exactly what [all] holds for [ids], compared through
   /// [view] where a type has no value equality, and every statement it sends
-  /// names one of them (drift prints a statement's args), unless [derived]
-  /// says it is narrowed by ids the first read found for them.
+  /// names one of them (drift prints a statement's args).
   Future<void> expectNarrowed<T>({
     required Future<Iterable<T>> Function() all,
     required Future<Iterable<T>> Function() scoped,
     required String Function(T record) idOf,
     Object? Function(T record)? view,
-    bool Function(String statement)? derived,
     Set<String> wanted = const {'alpha', 'charlie'},
     Set<String> extra = const {},
   }) async {
@@ -59,7 +57,7 @@ void main() {
         if (wanted.contains(idOf(r)) || extra.contains(idOf(r))) seen(r),
     });
     expect(sent, isNotEmpty);
-    for (final statement in sent.where((s) => !(derived?.call(s) ?? false))) {
+    for (final statement in sent) {
       expect(statement, matches(RegExp('alpha|charlie')), reason: statement);
     }
   }

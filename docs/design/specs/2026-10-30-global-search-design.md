@@ -128,7 +128,8 @@ own provider loaded every record and every aggregate (a site's dive statistics,
 a buddy's roles) to draw five (issue #4247). What a row shows beside its record
 (a dive center's dive count, a species' sightings and cover, a document's tags)
 is read by id alongside the records, and the rows wait for it, so each is drawn
-once. Certifications are read without their card images, as their list reads
+once. While the next search's records load, a section keeps the rows it showed,
+so the results do not flicker as the diver types. Certifications are read without their card images, as their list reads
 them (issue #3848).
 
 **See all.** A source with a list applies the same query to that list, clears

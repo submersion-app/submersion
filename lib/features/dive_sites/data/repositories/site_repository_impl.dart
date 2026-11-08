@@ -1458,6 +1458,7 @@ class SiteRepository {
     String? diverId,
     List<String>? siteIds,
   }) async {
+    if (siteIds != null && siteIds.isEmpty) return const {};
     try {
       final result = await _db
           .customSelect(
@@ -1517,10 +1518,11 @@ class SiteRepository {
   /// Distinct `site_features.type` names per site, ordered by the first
   /// feature of each type. One query for the whole list, so a card can show
   /// feature chips without a per-row lookup; [siteIds] narrows it to those
-  /// sites.
+  /// sites, and an empty [siteIds] reads nothing.
   Future<Map<String, List<String>>> getFeatureTypesBySite({
     List<String>? siteIds,
   }) async {
+    if (siteIds != null && siteIds.isEmpty) return const {};
     try {
       final result = await _db
           .customSelect(

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -20,6 +22,7 @@ import 'package:submersion/features/dive_centers/presentation/providers/dive_cen
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/global_search/domain/global_search_models.dart';
 import 'package:submersion/features/global_search/presentation/global_search_navigation.dart';
@@ -121,13 +124,13 @@ Widget _app(
       globalSearchBuddiesProvider.overrideWith(
         (ref, key) async => [
           for (final entry in _buddies)
-            if (key.split(',').contains(entry.buddy.id)) entry,
+            if (globalSearchIdsOf(key).contains(entry.buddy.id)) entry,
         ],
       ),
       globalSearchEquipmentSetsProvider.overrideWith(
         (ref, key) async => [
           for (final set in _sets)
-            if (key.split(',').contains(set.id)) set,
+            if (globalSearchIdsOf(key).contains(set.id)) set,
         ],
       ),
       // The other sections stay empty: See all reads the section, not its
@@ -352,6 +355,44 @@ void main() {
 
     await _search(tester, 'two');
     expect(find.text('See all 7'), findsOneWidget);
+  });
+
+  testWidgets('a new search keeps the last rows up until its own load', (
+    tester,
+  ) async {
+    GpsTrack track(String id) =>
+        GpsTrack(id: id, startTime: 0, endTime: 60000, name: 'Track $id');
+    final held = Completer<List<GpsTrack>>();
+    await tester.pumpWidget(
+      _app(
+        (text) async => [
+          GlobalSearchSection(
+            kind: GlobalSearchKind.gpsTracks,
+            total: 1,
+            hasList: false,
+            query: TextNode([text]),
+            ids: [text],
+          ),
+        ],
+        overrides: [
+          globalSearchGpsTracksProvider.overrideWith(
+            (ref, key) =>
+                key == 'one' ? Future.value([track('one')]) : held.future,
+          ),
+        ],
+      ),
+    );
+    await _search(tester, 'one');
+    expect(find.text('Track one'), findsOneWidget);
+
+    // A blank section until the read lands would flicker on each keystroke.
+    await _search(tester, 'two');
+    expect(find.text('Track one'), findsOneWidget);
+
+    held.complete([track('two')]);
+    await tester.pumpAndSettle();
+    expect(find.text('Track two'), findsOneWidget);
+    expect(find.text('Track one'), findsNothing);
   });
 
   group('a request from a list\'s Search everything row', () {
