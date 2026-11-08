@@ -38,6 +38,7 @@ Future<void> _pump(
   required List<EquipmentSet> sets,
   void Function(EquipmentSet, List<EquipmentItem>)? onSetSelected,
   String? title,
+  bool pickEmptySets = false,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -56,6 +57,7 @@ Future<void> _pump(
             scrollController: ScrollController(),
             onSetSelected: onSetSelected ?? (_, _) {},
             title: title,
+            pickEmptySets: pickEmptySets,
           ),
         ),
       ),
@@ -169,6 +171,20 @@ void main() {
     expect(find.text('Empty set'), findsOneWidget);
     await tester.tap(find.text('Empty'));
     expect(called, isFalse);
+  });
+
+  // #4284: taking a set off dives goes by the gear it tagged, which a set
+  // emptied since still names, so the remove picker offers it.
+  testWidgets('a caller can let an empty set be picked', (tester) async {
+    EquipmentSet? picked;
+    await _pump(
+      tester,
+      sets: [_set('s1', 'Empty', const [])],
+      onSetSelected: (set, _) => picked = set,
+      pickEmptySets: true,
+    );
+    await tester.tap(find.text('Empty'));
+    expect(picked?.id, 's1');
   });
 
   testWidgets('shows empty state when no sets exist', (tester) async {

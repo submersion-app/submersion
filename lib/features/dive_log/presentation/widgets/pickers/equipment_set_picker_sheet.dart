@@ -17,11 +17,17 @@ class EquipmentSetPickerSheet extends ConsumerWidget {
   /// take off dives says so instead (#4284).
   final String? title;
 
+  /// Whether a set with nothing to apply (no members, or only wishlist
+  /// ones) can be picked. Off when applying a set; taking one off dives
+  /// turns it on, since the gear the set tagged there remains (#4284).
+  final bool pickEmptySets;
+
   const EquipmentSetPickerSheet({
     super.key,
     required this.scrollController,
     required this.onSetSelected,
     this.title,
+    this.pickEmptySets = false,
   });
 
   @override
@@ -85,6 +91,7 @@ class EquipmentSetPickerSheet extends ConsumerWidget {
                   final set = sets[index];
                   return _EquipmentSetTile(
                     set: set,
+                    pickEmpty: pickEmptySets,
                     onTap: (items) => onSetSelected(set, items),
                   );
                 },
@@ -108,9 +115,14 @@ class EquipmentSetPickerSheet extends ConsumerWidget {
 /// Individual equipment set tile that loads its items
 class _EquipmentSetTile extends ConsumerWidget {
   final EquipmentSet set;
+  final bool pickEmpty;
   final void Function(List<EquipmentItem> items) onTap;
 
-  const _EquipmentSetTile({required this.set, required this.onTap});
+  const _EquipmentSetTile({
+    required this.set,
+    required this.pickEmpty,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -158,7 +170,7 @@ class _EquipmentSetTile extends ConsumerWidget {
               const Icon(Icons.chevron_right),
             ],
           ),
-          onTap: items.isEmpty ? null : () => onTap(items),
+          onTap: items.isEmpty && !pickEmpty ? null : () => onTap(items),
         );
       },
       loading: () => ListTile(

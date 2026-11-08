@@ -9,31 +9,52 @@ import 'package:submersion/shared/bulk_edit/bulk_membership_editor.dart';
 typedef BulkStagedSet = ({String id, String name});
 
 /// Which set switched each gear row on, after [setId] switched on
-/// [itemIds]: an item a set already switched on keeps that set, so the first
-/// set wins, as it does on a dive (`GearExpander`).
+/// [itemIds]: an item a set already switched on keeps that set while it is
+/// still on ([isOn]), so the first set wins, as it does on a dive
+/// (`GearExpander`). An item the diver switched off since is the new set's.
 Map<String, String> withSetItems(
   Map<String, String> setOf,
   String setId,
-  Iterable<String> itemIds,
-) => {
+  Iterable<String> itemIds, {
+  bool Function(String id)? isOn,
+}) => {
   ...setOf,
   for (final id in itemIds)
-    if (!setOf.containsKey(id)) id: setId,
+    if (!setOf.containsKey(id) || !(isOn?.call(id) ?? true)) id: setId,
+};
+
+/// The gear rows switched on in a bulk edit: the [delta]'s adds, and every
+/// row already on each selected dive ([onEveryDive]) that is not being
+/// removed. A row on some dives or none is on only when the [delta] adds
+/// it: unchecking one on no dive, or leaving one on some as is, makes no
+/// change the delta names.
+Set<String> equipmentSwitchedOn(
+  MembershipDelta delta, {
+  required Set<String> onEveryDive,
+}) => {
+  ...delta.addIds,
+  for (final id in onEveryDive)
+    if (!delta.removeIds.contains(id)) id,
 };
 
 /// The gear a bulk edit adds: the [delta]'s adds, and every item a set
-/// switched on ([setOf]) that the diver has not switched off again. An item
-/// already on every dive makes no add of its own, but a set removed in the
-/// same edit may take it off first, so the set that was used puts it back
-/// (#4284, the "Remove Set A, Use Set B" swap).
+/// switched on ([setOf]) that is still switched on
+/// ([equipmentSwitchedOn]). An item already on every dive makes no add of
+/// its own, but a set removed in the same edit may take it off first, so
+/// the set that was used puts it back (#4284, the "Remove Set A, Use Set B"
+/// swap).
 List<String> equipmentAddIds(
   MembershipDelta delta,
-  Map<String, String> setOf,
-) => [
-  ...delta.addIds,
-  for (final id in setOf.keys)
-    if (!delta.addIds.contains(id) && !delta.removeIds.contains(id)) id,
-];
+  Map<String, String> setOf, {
+  required Set<String> onEveryDive,
+}) {
+  final on = equipmentSwitchedOn(delta, onEveryDive: onEveryDive);
+  return [
+    ...delta.addIds,
+    for (final id in setOf.keys)
+      if (on.contains(id) && !delta.addIds.contains(id)) id,
+  ];
+}
 
 /// The gear adds of a bulk edit: an item a set switched on is added through
 /// that set, so it carries the set as it would on the dive edit page; an
@@ -77,6 +98,9 @@ Future<BulkStagedSet?> pickEquipmentSetToRemove(BuildContext context) =>
         builder: (context, scrollController) => EquipmentSetPickerSheet(
           scrollController: scrollController,
           title: context.l10n.diveLog_bulkEdit_removeSetTitle,
+          // Removal goes by the gear a set tagged on the dives, which a set
+          // emptied (or moved to the wishlist) since still names.
+          pickEmptySets: true,
           onSetSelected: (set, _) =>
               Navigator.of(context).pop((id: set.id, name: set.name)),
         ),

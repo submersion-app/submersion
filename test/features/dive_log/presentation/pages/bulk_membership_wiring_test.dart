@@ -749,6 +749,63 @@ void main() {
       expect(rows.map((r) => r.viaSetId).toSet(), {'s1'});
     });
 
+    // Issue #4284: a set item the diver unchecks after "Use Set" stays off,
+    // though on no dive unchecking it makes no remove of its own.
+    testWidgets('use-set leaves off a set item the diver unchecked', (
+      tester,
+    ) async {
+      const wing = EquipmentItem(
+        id: 'e1',
+        name: 'Wing',
+        type: EquipmentType.bcd,
+      );
+      const dsmb = EquipmentItem(
+        id: 'e2',
+        name: 'DSMB',
+        type: EquipmentType.smb,
+      );
+      for (final item in [wing, dsmb]) {
+        await EquipmentRepository().createEquipment(item);
+      }
+      await seedDive('d1');
+      await seedDive('d2');
+      final tripKit = EquipmentSet(
+        id: 's1',
+        name: 'Trip kit',
+        equipmentIds: const ['e1', 'e2'],
+        items: const [wing, dsmb],
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
+
+      await pump(tester, ['d1', 'd2'], sets: [tripKit]);
+      final useSet = find.descendant(
+        of: editorFor('Equipment'),
+        matching: find.widgetWithText(TextButton, 'Use Set'),
+      );
+      await tester.ensureVisible(useSet);
+      await tester.tap(useSet);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Trip kit'));
+      await tester.pumpAndSettle();
+      final dsmbToggle = find.byKey(const ValueKey('membership-toggle-e2'));
+      await tester.ensureVisible(dsmbToggle);
+      await tester.tap(dsmbToggle);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      for (final diveId in ['d1', 'd2']) {
+        final rows = await (db.select(
+          db.diveEquipment,
+        )..where((t) => t.diveId.equals(diveId))).get();
+        expect(rows.map((r) => r.equipmentId), ['e1'], reason: diveId);
+      }
+    });
+
     // Issue #4284: a set staged for removal is named in the confirmation and
     // takes off only the gear it brought.
     testWidgets('remove-set stages a set and takes off what it brought', (

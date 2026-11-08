@@ -12,7 +12,9 @@ it does on the dive edit page.
 1. A rule stores the set id; each run resolves the set's current items.
 2. Added gear carries `via_set_id` of the set it came through.
 3. Removing a set removes the rows with that `via_set_id` and what hangs off
-   them (`GearExpander.removeSet`). Gear added by hand stays.
+   them (`GearExpander.removeSubtree` on each tagged row, not
+   `GearExpander.removeSet`, which would leave an untagged part pointing at
+   a removed assembly). Gear added by hand stays.
 4. A deleted set is skipped and reported through
    `rules_preview_skippedActions`, like deleted gear. An empty set adds
    nothing, silently.
@@ -27,7 +29,7 @@ it does on the dive edit page.
 
 An extension on `DiveRepository`, beside `DiveGearPreview`:
 
-- `equipmentIdsInSets(setIds)`: each set's item ids, read from
+- `_setItems(setIds)`: each set's item ids, read from
   `equipment_set_items` directly (the repository stays free of sibling
   repositories, as `_loadComponentsIndex` does).
 - `bulkAddEquipmentSets(diveIds, setIds)`: one `GearExpander.expand` per

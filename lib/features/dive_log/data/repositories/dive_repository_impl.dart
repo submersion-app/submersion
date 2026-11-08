@@ -15,6 +15,7 @@ import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_source_stamp.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
+import 'package:submersion/core/database/existing_row_ids.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/courses/data/dive_course_links.dart';
@@ -8049,10 +8050,20 @@ class DiveRepository {
   }
 
   /// Writes [rows] as the dive's exact gear list, with provenance (the
-  /// bulk-edit undo path). No notify/txn.
+  /// bulk-edit, rule and repair undo paths). A set deleted since the rows
+  /// were captured cannot be named again: such a row comes back untagged,
+  /// as the delete left every other row of that set (#4284). No notify/txn.
   Future<void> replaceGearRows(String diveId, List<GearProvenance> rows) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await _writeGearDiff(diveId, rows, now);
+    final liveSets = await existingRowIds(_db, _db.equipmentSets, [
+      for (final r in rows) ?r.viaSetId,
+    ]);
+    await _writeGearDiff(diveId, [
+      for (final r in rows)
+        r.viaSetId == null || liveSets.contains(r.viaSetId)
+            ? r
+            : r.copyWith(clearViaSetId: true),
+    ], now);
     await _bumpDives([diveId], now);
   }
 

@@ -1448,6 +1448,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// Sets staged to come off every selected dive with what they brought.
   List<BulkStagedSet> _equipmentSetRemovals = const [];
 
+  /// The gear rows already on every selected dive.
+  Set<String> get _equipmentOnEveryDive {
+    final total = widget.bulkDiveIds?.length ?? 0;
+    return {
+      for (final e in _equipmentCounts.entries)
+        if (total > 0 && e.value >= total) e.key,
+    };
+  }
+
   Map<String, int> _tagCounts = {};
   List<BulkMembershipItem> _tagMembers = [];
   MembershipDelta _tagDelta = MembershipDelta.empty;
@@ -2105,7 +2114,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     }
     ops.addAll(
       equipmentAddOps(
-        equipmentAddIds(_equipmentDelta, _equipmentSetOf),
+        equipmentAddIds(
+          _equipmentDelta,
+          _equipmentSetOf,
+          onEveryDive: _equipmentOnEveryDive,
+        ),
         _equipmentSetOf,
       ),
     );
@@ -4870,9 +4883,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 serial: (_equipmentEnsureOn?.serial ?? 0) + 1,
                 ids: {for (final item in items) item.id},
               );
+              // An item the diver switched off since an earlier set put it
+              // on is this set's now, not the earlier one's.
+              final on = equipmentSwitchedOn(
+                _equipmentDelta,
+                onEveryDive: _equipmentOnEveryDive,
+              );
               _equipmentSetOf = withSetItems(_equipmentSetOf, set.id, [
                 for (final item in items) item.id,
-              ]);
+              ], isOn: on.contains);
             });
             Navigator.of(context).pop();
           },

@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_equipment_sets.dart';
-import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/shared/bulk_edit/bulk_membership_editor.dart';
@@ -18,6 +16,17 @@ void main() {
       final both = withSetItems(first, 'photo', ['bcd', 'fins']);
 
       expect(both, {'bcd': 'warm', 'reg': 'warm', 'fins': 'photo'});
+    });
+
+    test('a set an item was switched off from no longer holds it', () {
+      final first = withSetItems(const {}, 'warm', ['bcd', 'reg']);
+      // The diver switched 'bcd' off again before using the second set.
+      final both = withSetItems(first, 'photo', [
+        'bcd',
+        'fins',
+      ], isOn: (id) => id != 'bcd');
+
+      expect(both, {'bcd': 'photo', 'reg': 'warm', 'fins': 'photo'});
     });
   });
 
@@ -34,14 +43,14 @@ void main() {
   testWidgets('the remove picker is titled for removing and returns the set', (
     tester,
   ) async {
-    // A set with no items cannot be tapped in the picker.
-    const bcd = EquipmentItem(id: 'bcd', name: 'BCD', type: EquipmentType.bcd);
+    // Emptied since it was used: dives may still carry gear tagged with it,
+    // so the remove picker offers it although the use picker does not.
     final set = EquipmentSet(
       id: 'warm',
       name: 'Warm water',
       description: '',
-      equipmentIds: const ['bcd'],
-      items: const [bcd],
+      equipmentIds: const [],
+      items: const [],
       createdAt: DateTime(2026, 6, 1),
       updatedAt: DateTime(2026, 6, 1),
     );
@@ -77,13 +86,36 @@ void main() {
       // 'reg' is on every dive (no add of its own) and in the set used; a set
       // removed in the same edit may take it off first.
       const delta = MembershipDelta(['lamp'], ['fins']);
-      final ids = equipmentAddIds(delta, const {
-        'reg': 'warm',
-        'lamp': 'warm',
-        'fins': 'warm',
-      });
+      final ids = equipmentAddIds(
+        delta,
+        const {'reg': 'warm', 'lamp': 'warm', 'fins': 'warm'},
+        onEveryDive: const {'reg', 'fins'},
+      );
 
       expect(ids, ['lamp', 'reg']);
+    });
+
+    test('a set item switched off again, or left as is, is not added', () {
+      // 'dsmb' is on no dive: switching it off makes no remove, so the
+      // delta does not name it. 'wing' is on some dives, left as is.
+      final ids = equipmentAddIds(MembershipDelta.empty, const {
+        'dsmb': 'warm',
+        'wing': 'warm',
+      }, onEveryDive: const {});
+
+      expect(ids, isEmpty);
+    });
+  });
+
+  group('equipmentSwitchedOn', () {
+    test('the adds, and rows on every dive not being removed', () {
+      expect(
+        equipmentSwitchedOn(
+          const MembershipDelta(['lamp'], ['fins']),
+          onEveryDive: const {'reg', 'fins'},
+        ),
+        {'lamp', 'reg'},
+      );
     });
   });
 

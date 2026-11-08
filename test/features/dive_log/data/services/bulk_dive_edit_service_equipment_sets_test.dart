@@ -40,6 +40,10 @@ void main() {
       "('lamp', 'Lamp', 'light', 0, 0)",
     );
     await db.customStatement(
+      'INSERT INTO equipment_sets (id, name, created_at, updated_at) '
+      "VALUES ('warm', 'Warm', 0, 0)",
+    );
+    await db.customStatement(
       'INSERT INTO equipment_set_items (set_id, equipment_id) '
       "VALUES ('warm', 'bcd'), ('warm', 'reg')",
     );
@@ -98,6 +102,24 @@ void main() {
       expect(await gearOf('d1'), ['bcd:warm', 'lamp:-', 'reg:warm']);
     },
   );
+
+  test('undo puts gear back untagged when its set was deleted since', () async {
+    await db.customStatement('PRAGMA foreign_keys = ON');
+    await diveRepo.bulkAddEquipmentSets(['d1'], ['warm']);
+    final snap = await service.apply(
+      const BulkEditRequest(
+        diveIds: ['d1'],
+        ops: [
+          EquipmentSetsOp(mode: BulkCollectionMode.remove, setIds: ['warm']),
+        ],
+      ),
+    );
+    await db.customStatement("DELETE FROM equipment_sets WHERE id = 'warm'");
+
+    await service.undo(snap);
+
+    expect(await gearOf('d1'), ['bcd:-', 'reg:-']);
+  });
 
   test('adding a set by id tags its items', () async {
     await service.apply(

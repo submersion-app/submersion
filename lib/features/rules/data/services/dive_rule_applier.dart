@@ -184,8 +184,18 @@ class DiveRuleApplier {
     }
     const gear = DiveCollection.equipment;
     final before = await members(gear, ids);
+    // Only a dive carrying gear one of the sets tagged has anything for a
+    // removal to take off, so the rest are not read again.
+    final wanted = setIds.toSet();
+    final targets = a.mode == MembershipMode.add
+        ? ids
+        : [
+            for (final id in ids)
+              if (before[id]!.any((m) => m is Map && wanted.contains(m['set'])))
+                id,
+          ];
     final changed = <String>[];
-    for (final chunk in ruleIdChunks(ids)) {
+    for (final chunk in ruleIdChunks(targets)) {
       changed.addAll(
         a.mode == MembershipMode.add
             ? await _dives.bulkAddEquipmentSets(chunk, setIds)
