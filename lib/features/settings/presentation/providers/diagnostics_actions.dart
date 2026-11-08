@@ -23,8 +23,7 @@ typedef FolderLauncher = Future<bool> Function(Uri uri);
 /// True where a folder can be handed to a file manager. Mobile file managers
 /// have no addressable folder to open (same rule as the startup backups
 /// folder in `startup_page.dart`).
-bool get canOpenLogFolder =>
-    HostPlatform.isMacOS || HostPlatform.isWindows || HostPlatform.isLinux;
+bool get canOpenLogFolder => HostPlatform.isDesktop;
 
 /// Build the text "Copy diagnostics" puts on the clipboard: the build and
 /// device header, whether verbose logging is on, then as many of the newest
