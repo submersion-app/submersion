@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:collection/collection.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/time_weighted_mean.dart';
@@ -167,15 +169,17 @@ double? _rmv(
   return _perCorrectedMinute(liters, dive, counting, tanks, profile);
 }
 
-/// In bar of the group's first cylinder: another cylinder converts by
-/// volume, or counts one to one as the reference's matched partner.
+/// In bar of the group's first sized cylinder, else its first: another
+/// cylinder converts by volume, or counts one to one as the reference's
+/// matched partner.
 double? _sac(
   Dive dive,
   List<CylinderSac> rows,
   Map<String, DiveTank> tanks,
   List<DiveProfilePoint> profile,
 ) {
-  final reference = rows.first;
+  final reference =
+      rows.firstWhereOrNull((r) => r.tankVolume != null) ?? rows.first;
   final referenceVolume = reference.tankVolume;
   var bar = 0.0;
   final counting = <CylinderSac>[];
@@ -200,9 +204,14 @@ double? _sac(
 bool _matched(DiveTank? a, DiveTank? b) =>
     a != null && b != null && isMatchedPair(a, b);
 
+/// The shortest breathing time a figure stands on. A switch logged a second
+/// before the end would otherwise turn a real logged drop into thousands of
+/// litres a minute and wreck the chart's scale.
+const int _minimumSeconds = 60;
+
 /// [gas] over the depth-corrected minutes [rows] were breathed: the union of
 /// their windows, or their recorded durations with a matched pair taking the
-/// longer of the two. Null when that time is zero.
+/// longer of the two, never more than the dive. Null under a minute.
 double? _perCorrectedMinute(
   double gas,
   Dive dive,
@@ -213,7 +222,13 @@ double? _perCorrectedMinute(
   final int seconds;
   final double? ambient;
   if (rows.any((r) => r.usageFromRecordedDuration)) {
-    seconds = _recordedSeconds(rows, tanks);
+    // An unrecorded cylinder alongside carries the whole dive, and one diver
+    // cannot breathe for longer than the dive lasted.
+    final diveSeconds = rows
+        .expand((r) => r.usageWindows)
+        .map((w) => w.end)
+        .max;
+    seconds = math.min(_recordedSeconds(rows, tanks), diveSeconds);
     ambient = rows.first.rateAmbientBar;
   } else {
     final union = unionOfWindows(rows.expand((r) => r.usageWindows));
@@ -228,7 +243,9 @@ double? _perCorrectedMinute(
         ? dive.environment.pressureAtDepth(depth)
         : rows.first.rateAmbientBar;
   }
-  if (seconds <= 0 || ambient == null || ambient <= 0) return null;
+  if (seconds < _minimumSeconds || ambient == null || ambient <= 0) {
+    return null;
+  }
   return gas / (seconds / 60) / ambient;
 }
 

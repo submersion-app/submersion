@@ -466,6 +466,72 @@ void main() {
       expect(result.sac.values.every((v) => v.isFinite), isTrue);
     });
 
+    test('a window under a minute gives no figure', () {
+      // A switch logged a second before the end: a real logged drop over one
+      // second would plot thousands of litres a minute.
+      final run = _run(
+        _dive(const [_back, _deco]),
+        switches: [_switchTo('deco', 3599)],
+      );
+
+      expect(_row(run.rows, 'deco').usageWindows, [(start: 3599, end: 3600)]);
+      expect(run.result.rmv.containsKey(ConsumptionRoleGroup.deco), isFalse);
+      expect(run.result.sac.containsKey(ConsumptionRoleGroup.deco), isFalse);
+      expect(
+        run.result.rmv.containsKey(ConsumptionRoleGroup.bottomGas),
+        isTrue,
+      );
+    });
+
+    test(
+      'recorded and unrecorded cylinders of a group stay within the dive',
+      () {
+        // Two back gas cylinders on different gases, so not a matched pair: one
+        // recorded at 45 minutes, the other spanning the whole dive.
+        final a = _back.copyWith(usageDuration: const Duration(minutes: 45));
+        final b = _back.copyWith(
+          id: 'b',
+          volume: 7,
+          endPressure: 150,
+          gasMix: const GasMix(o2: 32),
+          order: 1,
+        );
+        final run = _run(_dive([a, b]));
+        final rowA = _row(run.rows, 'back');
+        final rowB = _row(run.rows, 'b');
+
+        expect(rowA.usageFromRecordedDuration, isTrue);
+        expect(rowB.usageDuration, const Duration(minutes: 60));
+        expect(
+          run.result.rmv[ConsumptionRoleGroup.bottomGas],
+          closeTo(
+            (_liters(rowA) + _liters(rowB)) / 60 / rowA.rateAmbientBar!,
+            1e-9,
+          ),
+        );
+      },
+    );
+
+    test('the SAC lane is in bar of the first sized cylinder', () {
+      // An unsized back gas cylinder first, on a different gas from the
+      // sized one, so it cannot borrow a size.
+      const unsized = DiveTank(
+        id: 'unsized',
+        startPressure: 200,
+        endPressure: 150,
+        gasMix: GasMix(o2: 32),
+        role: TankRole.backGas,
+        order: 0,
+      );
+      final sized = _back.copyWith(order: 1);
+      final run = _run(_dive([unsized, sized]));
+
+      expect(
+        run.result.sac[ConsumptionRoleGroup.bottomGas],
+        closeTo(_row(run.rows, 'back').sacRate!, 1e-9),
+      );
+    });
+
     test('diluent and oxygen roles on an open-circuit dive join no group', () {
       final diluent = _deco.copyWith(id: 'dil', role: TankRole.diluent);
       final run = _run(_dive([_back, diluent]));
