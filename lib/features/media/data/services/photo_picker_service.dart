@@ -21,6 +21,28 @@ enum PhotoPermissionStatus {
   restricted,
 }
 
+/// An album (Android: a device folder such as `DCIM/Camera`) that holds a
+/// gallery asset. Lets the picker narrow a time window's matches to one
+/// source, so a dive's camera photos are not buried among chat images and
+/// screenshots from the same hour (issue #189).
+class GalleryAlbum {
+  /// The platform's identifier for the album.
+  final String id;
+
+  /// The album's name as the platform shows it.
+  final String name;
+
+  const GalleryAlbum({required this.id, required this.name});
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GalleryAlbum && id == other.id && name == other.name;
+
+  @override
+  int get hashCode => Object.hash(id, name);
+}
+
 /// Information about a gallery asset (photo or video).
 class AssetInfo {
   /// Platform-specific unique identifier for the asset.
@@ -69,6 +91,11 @@ class AssetInfo {
   /// at all, so the review page can say that rather than a bare "no match".
   final TakenAtSource? takenAtSource;
 
+  /// The albums this asset is in, excluding the library-wide "all photos"
+  /// album. Empty when the source has no albums (a file dialog) or the
+  /// caller did not ask for them.
+  final List<GalleryAlbum> albums;
+
   const AssetInfo({
     required this.id,
     required this.type,
@@ -81,6 +108,7 @@ class AssetInfo {
     this.filename,
     this.filePath,
     this.takenAtSource,
+    this.albums = const [],
   });
 
   /// Whether this asset is a video.
@@ -99,6 +127,7 @@ class AssetInfo {
     String? filename,
     String? filePath,
     TakenAtSource? takenAtSource,
+    List<GalleryAlbum>? albums,
   }) => AssetInfo(
     id: id ?? this.id,
     type: type ?? this.type,
@@ -111,6 +140,7 @@ class AssetInfo {
     filename: filename ?? this.filename,
     filePath: filePath ?? this.filePath,
     takenAtSource: takenAtSource ?? this.takenAtSource,
+    albums: albums ?? this.albums,
   );
 }
 

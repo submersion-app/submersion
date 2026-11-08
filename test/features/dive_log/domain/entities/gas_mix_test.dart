@@ -1,4 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/app_enums.dart';
+import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 void main() {
@@ -117,6 +120,48 @@ void main() {
     test('backward compatible - defaults to o2Narcotic true', () {
       const air = GasMix(o2: 21.0, he: 0.0);
       expect(air.end(30.0), closeTo(30.0, 0.1));
+    });
+  });
+
+  // Issue #4299: the narcotic pressure follows the dive's water and surface,
+  // and END is the depth in that same water where air reaches it.
+  group('GasMix.end in a dive environment', () {
+    final altitude = DiveEnvironment.forConditions(
+      altitudeMeters: 3000,
+      waterType: WaterType.fresh,
+    );
+    const tx2135 = GasMix(o2: 21.0, he: 35.0);
+
+    test('reads the narcotic pressure in the given water', () {
+      final narcotic = altitude.pressureAtDepth(60.0) * 0.65;
+      expect(
+        tx2135.end(60.0, environment: altitude),
+        closeTo(altitude.depthAtPressure(narcotic), 1e-9),
+      );
+      // The flat model reads 35.5 m; the 3000 m lake reads about 36.5 m.
+      expect(tx2135.end(60.0), closeTo(35.5, 1e-9));
+      expect(tx2135.end(60.0, environment: altitude), closeTo(36.5, 0.05));
+    });
+
+    test('with O2 not narcotic compares N2 against air in the same water', () {
+      final n2Pressure = altitude.pressureAtDepth(60.0) * 0.44;
+      expect(
+        tx2135.end(60.0, o2Narcotic: false, environment: altitude),
+        closeTo(altitude.depthAtPressure(n2Pressure / airN2Fraction), 1e-9),
+      );
+    });
+
+    test('air is as narcotic as itself: its END is its depth, exactly', () {
+      const air = GasMix(o2: 21.0, he: 0.0);
+      expect(air.end(30.0, environment: altitude), 30.0);
+      expect(air.end(30.0, environment: DiveEnvironment.forConditions()), 30.0);
+    });
+
+    test('the standard environment matches the flat model', () {
+      expect(
+        tx2135.end(60.0, environment: DiveEnvironment.standard),
+        closeTo(tx2135.end(60.0), 1e-9),
+      );
     });
   });
 

@@ -1,5 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/text/fuzzy_match.dart';
+import 'package:submersion/core/text/text_sort.dart';
 
 /// How a gear list orders equipment types.
 ///
@@ -265,16 +265,7 @@ int equipmentTypeRank(EquipmentType type, List<EquipmentType> table) {
 /// stable. Each key is computed once per comparator, not once per comparison.
 Comparator<EquipmentType> equipmentTypeLabelComparator(
   String Function(EquipmentType) label,
-) {
-  final sortKeys = <EquipmentType, String>{};
-  String sortKey(EquipmentType type) =>
-      sortKeys[type] ??= normalize(label(type));
-  return (a, b) {
-    if (a == b) return 0;
-    final byLabel = sortKey(a).compareTo(sortKey(b));
-    return byLabel != 0 ? byLabel : a.name.compareTo(b.name);
-  };
-}
+) => foldedTextComparator(label, tieBreak: (type) => type.name);
 
 /// [types] as a new list in [equipmentTypeLabelComparator] order.
 ///
