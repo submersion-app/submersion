@@ -10816,6 +10816,8 @@
   "reparseBatch_cancelling": "正在取消...",
   "reparseBatch_resultTitle": "重新解析完成",
   "reparseBatch_resultCancelledTitle": "重新解析已取消",
+  "reparseBatch_resultErrorTitle": "重新解析因错误而停止",
+  "reparseBatch_resultNotReached": "未处理:{count}",
   "reparseBatch_resultSummary": "已重新解析 {total} 次潜水中的 {succeeded} 次。",
   "reparseBatch_resultFailed": "失败:{count}",
   "reparseBatch_resultNotProcessed": "未处理(已取消):{count}",

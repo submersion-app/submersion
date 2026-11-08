@@ -35918,6 +35918,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get reparseBatch_resultCancelledTitle => '重新解析已取消';
 
   @override
+  String get reparseBatch_resultErrorTitle => '重新解析因错误而停止';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return '未处理:$count';
+  }
+
+  @override
   String reparseBatch_resultSummary(int succeeded, int total) {
     return '已重新解析 $total 次潜水中的 $succeeded 次。';
   }

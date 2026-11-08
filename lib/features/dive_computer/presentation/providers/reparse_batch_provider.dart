@@ -123,9 +123,11 @@ class ReparseBatchNotifier extends StateNotifier<ReparseBatchState> {
         _ => 0,
       };
       state = ReparseBatchFinished(
+        // How many of the [done] dives succeeded is lost with the run, so
+        // none is claimed; the dialog shows the error and the rest.
         result: ReparseBatchResult(
           total: diveIds.length,
-          succeeded: done,
+          succeeded: 0,
           skipped: 0,
           notProcessed: diveIds.length - done,
           profilesPreserved: 0,

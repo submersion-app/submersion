@@ -38090,6 +38090,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get reparseBatch_resultCancelledTitle => 'Neu-Auswertung abgebrochen';
 
   @override
+  String get reparseBatch_resultErrorTitle =>
+      'Neu-Auswertung durch einen Fehler abgebrochen';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return 'Nicht verarbeitet: $count';
+  }
+
+  @override
   String reparseBatch_resultSummary(int succeeded, int total) {
     return '$succeeded von $total Tauchgängen neu ausgewertet.';
   }

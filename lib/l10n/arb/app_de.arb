@@ -10950,6 +10950,8 @@
   "reparseBatch_cancelling": "Wird abgebrochen...",
   "reparseBatch_resultTitle": "Neu-Auswertung abgeschlossen",
   "reparseBatch_resultCancelledTitle": "Neu-Auswertung abgebrochen",
+  "reparseBatch_resultErrorTitle": "Neu-Auswertung durch einen Fehler abgebrochen",
+  "reparseBatch_resultNotReached": "Nicht verarbeitet: {count}",
   "reparseBatch_resultSummary": "{succeeded} von {total} Tauchgängen neu ausgewertet.",
   "reparseBatch_resultFailed": "Fehlgeschlagen: {count}",
   "reparseBatch_resultNotProcessed": "Nicht verarbeitet (abgebrochen): {count}",

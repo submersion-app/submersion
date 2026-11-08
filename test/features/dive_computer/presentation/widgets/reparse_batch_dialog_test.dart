@@ -267,9 +267,13 @@ void main() {
     await pumpHost(tester, ['d1', 'd2']);
     await tester.pumpAndSettle();
 
-    expect(find.text('Re-parse cancelled'), findsOneWidget);
+    // Not a cancellation: the diver never pressed Cancel.
+    expect(find.text('Re-parse stopped by an error'), findsOneWidget);
+    expect(find.text('Re-parse cancelled'), findsNothing);
     expect(find.textContaining('database is closed'), findsOneWidget);
-    expect(find.text('Not processed (cancelled): 2'), findsOneWidget);
+    expect(find.text('Not processed: 2'), findsOneWidget);
+    expect(find.textContaining('(cancelled)'), findsNothing);
+    expect(find.textContaining('Re-parsed'), findsNothing);
 
     await tester.tap(find.widgetWithText(FilledButton, 'Done'));
     await tester.pumpAndSettle();

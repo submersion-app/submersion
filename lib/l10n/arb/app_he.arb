@@ -10816,6 +10816,8 @@
   "reparseBatch_cancelling": "מבטל...",
   "reparseBatch_resultTitle": "הניתוח מחדש הסתיים",
   "reparseBatch_resultCancelledTitle": "הניתוח מחדש בוטל",
+  "reparseBatch_resultErrorTitle": "הניתוח מחדש נעצר בגלל שגיאה",
+  "reparseBatch_resultNotReached": "לא עובדו: {count}",
   "reparseBatch_resultSummary": "נותחו מחדש {succeeded} מתוך {total} צלילות.",
   "reparseBatch_resultFailed": "נכשלו: {count}",
   "reparseBatch_resultNotProcessed": "לא עובדו (בוטל): {count}",

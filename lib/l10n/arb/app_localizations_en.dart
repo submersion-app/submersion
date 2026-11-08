@@ -37525,6 +37525,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reparseBatch_resultCancelledTitle => 'Re-parse cancelled';
 
   @override
+  String get reparseBatch_resultErrorTitle => 'Re-parse stopped by an error';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return 'Not processed: $count';
+  }
+
+  @override
   String reparseBatch_resultSummary(int succeeded, int total) {
     return 'Re-parsed $succeeded of $total dives.';
   }

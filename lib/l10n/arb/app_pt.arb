@@ -10816,6 +10816,8 @@
   "reparseBatch_cancelling": "Cancelando...",
   "reparseBatch_resultTitle": "Reanálise concluída",
   "reparseBatch_resultCancelledTitle": "Reanálise cancelada",
+  "reparseBatch_resultErrorTitle": "Reanálise interrompida por um erro",
+  "reparseBatch_resultNotReached": "Não processados: {count}",
   "reparseBatch_resultSummary": "Reanalisados {succeeded} de {total} mergulhos.",
   "reparseBatch_resultFailed": "Com falha: {count}",
   "reparseBatch_resultNotProcessed": "Não processados (cancelado): {count}",

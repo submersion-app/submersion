@@ -24,6 +24,40 @@ class _UnreadableDive extends ReparseService {
   }
 }
 
+/// Throws from the write of source [failingSource], after any earlier
+/// source of the same dive has been written.
+class _WriteFault extends ReparseService {
+  _WriteFault({required super.db, required this.failingSource});
+
+  final String failingSource;
+
+  @override
+  Future<({bool profilePreserved})> applyParsedUpdate({
+    required String diveId,
+    required String sourceRowId,
+    required pigeon.ParsedDive parsed,
+    required String? descriptorVendor,
+    required String? descriptorProduct,
+    required int? descriptorModel,
+    required String? libdivecomputerVersion,
+    Uint8List? rawData,
+    Uint8List? rawFingerprint,
+  }) {
+    if (sourceRowId == failingSource) throw StateError('disk full');
+    return super.applyParsedUpdate(
+      diveId: diveId,
+      sourceRowId: sourceRowId,
+      parsed: parsed,
+      descriptorVendor: descriptorVendor,
+      descriptorProduct: descriptorProduct,
+      descriptorModel: descriptorModel,
+      libdivecomputerVersion: libdivecomputerVersion,
+      rawData: rawData,
+      rawFingerprint: rawFingerprint,
+    );
+  }
+}
+
 void main() {
   late AppDatabase db;
   late ReparseBatchService batch;
@@ -200,6 +234,35 @@ void main() {
       expect(result.failures.single.error, contains('corrupt raw data'));
       expect(result.succeeded, 1);
       expect(await lastParsedAt('s2'), isNotNull);
+    });
+
+    test('refreshes succeeded dives and dives a write fault left partly '
+        'rewritten', () async {
+      final refreshed = <String>[];
+      batch = ReparseBatchService(
+        _WriteFault(db: db, failingSource: 's-b2'),
+        scheduleRefresh: refreshed.addAll,
+      );
+      await addDive('ok');
+      await addSource(id: 's-ok', diveId: 'ok');
+      // Source a1 is written before b2's write fails.
+      await addDive('partial');
+      await addSource(id: 's-a1', diveId: 'partial');
+      await addSource(id: 's-b2', diveId: 'partial');
+      // Fails to parse, so nothing of it is written.
+      await addDive('untouched');
+      await addSource(id: 's-x', diveId: 'untouched', vendor: null);
+
+      final result = await batch.run([
+        'ok',
+        'partial',
+        'untouched',
+      ], parseFn: okParse);
+
+      expect(result.succeeded, 1);
+      expect(result.failed, 2);
+      expect(await lastParsedAt('s-a1'), isNotNull);
+      expect(refreshed, ['ok', 'partial']);
     });
 
     test('counts missing descriptors as a failure', () async {

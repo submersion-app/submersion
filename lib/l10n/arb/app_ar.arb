@@ -10816,6 +10816,8 @@
   "reparseBatch_cancelling": "جارٍ الإلغاء...",
   "reparseBatch_resultTitle": "اكتملت إعادة التحليل",
   "reparseBatch_resultCancelledTitle": "أُلغيت إعادة التحليل",
+  "reparseBatch_resultErrorTitle": "توقفت إعادة التحليل بسبب خطأ",
+  "reparseBatch_resultNotReached": "لم تُعالَج: {count}",
   "reparseBatch_resultSummary": "تمت إعادة تحليل {succeeded} من أصل {total} غطسة.",
   "reparseBatch_resultFailed": "فشلت: {count}",
   "reparseBatch_resultNotProcessed": "لم تُعالَج (أُلغي): {count}",

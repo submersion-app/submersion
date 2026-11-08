@@ -60132,6 +60132,18 @@ abstract class AppLocalizations {
   /// **'Re-parse cancelled'**
   String get reparseBatch_resultCancelledTitle;
 
+  /// Bulk re-parse (issue #224): the run stopped on an error
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parse stopped by an error'**
+  String get reparseBatch_resultErrorTitle;
+
+  /// Bulk re-parse (issue #224): dives a run error left unprocessed
+  ///
+  /// In en, this message translates to:
+  /// **'Not processed: {count}'**
+  String reparseBatch_resultNotReached(int count);
+
   /// Bulk re-parse (issue #224)
   ///
   /// In en, this message translates to:

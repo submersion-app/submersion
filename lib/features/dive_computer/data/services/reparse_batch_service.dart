@@ -86,11 +86,23 @@ class ComputerRawDataCount {
 /// whole dive untouched. The writes themselves stay
 /// [ReparseService.applyParsedUpdate], one transaction per source.
 class ReparseBatchService {
-  ReparseBatchService(this._reparse);
+  ReparseBatchService(
+    this._reparse, {
+    void Function(List<String> diveIds)? scheduleRefresh,
+  }) : _scheduleRefresh = scheduleRefresh ?? _scheduleDerivedRefresh;
 
   static final _log = LoggerService.forClass(ReparseBatchService);
 
   final ReparseService _reparse;
+
+  /// Queues the data computed from a dive's profile strands for the dives a
+  /// run rewrote. Injected in tests.
+  final void Function(List<String> diveIds) _scheduleRefresh;
+
+  static void _scheduleDerivedRefresh(List<String> diveIds) {
+    scheduleSensorSummaryRefresh(diveIds);
+    scheduleDerivedMetricsRefresh(diveIds);
+  }
 
   AppDatabase get _db => _reparse.db;
 
@@ -229,6 +241,9 @@ class ReparseBatchService {
     final total = diveIds.length;
     final failures = <ReparseDiveFailure>[];
     final changed = <String>[];
+    // Succeeded dives plus failed ones that a write fault left partly
+    // rewritten: both need their derived data recomputed.
+    final rewritten = <String>[];
     var skipped = 0;
     var notProcessed = 0;
     var profilesPreserved = 0;
@@ -243,10 +258,12 @@ class ReparseBatchService {
       switch (outcome) {
         case _Skipped():
           skipped++;
-        case _Failed(:final error):
+        case _Failed(:final error, :final partlyApplied):
           failures.add(ReparseDiveFailure(diveId: diveId, error: error));
+          if (partlyApplied) rewritten.add(diveId);
         case _Succeeded(:final profilePreserved):
           changed.add(diveId);
+          rewritten.add(diveId);
           if (profilePreserved) profilesPreserved++;
       }
       onProgress?.call(i + 1, total);
@@ -254,10 +271,7 @@ class ReparseBatchService {
 
     // The re-parse rewrote the profile strands; the sensor summary and the
     // derived metrics are computed from them.
-    if (changed.isNotEmpty) {
-      scheduleSensorSummaryRefresh(changed);
-      scheduleDerivedMetricsRefresh(changed);
-    }
+    if (rewritten.isNotEmpty) _scheduleRefresh(rewritten);
 
     return ReparseBatchResult(
       total: total,
@@ -314,6 +328,7 @@ class ReparseBatchService {
     }
 
     var profilePreserved = false;
+    var appliedAny = false;
     for (final (source, dive) in parsed) {
       try {
         final outcome = await _reparse.applyParsedUpdate(
@@ -326,6 +341,7 @@ class ReparseBatchService {
           libdivecomputerVersion: source.libdivecomputerVersion,
         );
         profilePreserved = profilePreserved || outcome.profilePreserved;
+        appliedAny = true;
       } catch (e, stackTrace) {
         // A database fault: sources already applied stay applied.
         _log.error(
@@ -333,7 +349,7 @@ class ReparseBatchService {
           error: e,
           stackTrace: stackTrace,
         );
-        return _Failed(reparseErrorText(e));
+        return _Failed(reparseErrorText(e), partlyApplied: appliedAny);
       }
     }
     return _Succeeded(profilePreserved: profilePreserved);
@@ -349,8 +365,11 @@ class _Skipped extends _DiveOutcome {
 }
 
 class _Failed extends _DiveOutcome {
-  const _Failed(this.error);
+  const _Failed(this.error, {this.partlyApplied = false});
   final String error;
+
+  /// An earlier source of the dive was written before this one failed.
+  final bool partlyApplied;
 }
 
 class _Succeeded extends _DiveOutcome {

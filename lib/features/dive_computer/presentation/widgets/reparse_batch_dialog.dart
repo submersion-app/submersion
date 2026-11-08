@@ -145,24 +145,31 @@ class _ResultsDialog extends ConsumerWidget {
     final theme = Theme.of(context);
     final units = ref.watch(unitFormatterProvider);
 
+    // A run that stopped on an error was neither finished nor cancelled. It
+    // cannot say how many of the dives before the error succeeded, so it
+    // reports only the error and what it never reached.
+    final runError = state.runError;
     final lines = [
-      l10n.reparseBatch_resultSummary(result.succeeded, result.total),
-      if (state.runError != null)
-        l10n.diveLog_detail_reparseFailed(state.runError!),
+      if (runError == null)
+        l10n.reparseBatch_resultSummary(result.succeeded, result.total)
+      else
+        l10n.diveLog_detail_reparseFailed(runError),
       if (result.failed > 0) l10n.reparseBatch_resultFailed(result.failed),
       if (result.notProcessed > 0)
-        l10n.reparseBatch_resultNotProcessed(result.notProcessed),
+        runError == null
+            ? l10n.reparseBatch_resultNotProcessed(result.notProcessed)
+            : l10n.reparseBatch_resultNotReached(result.notProcessed),
       if (result.skipped > 0) l10n.reparseBatch_resultSkipped(result.skipped),
       if (result.profilesPreserved > 0)
         l10n.reparseBatch_resultProfilesPreserved(result.profilesPreserved),
     ];
 
     return AlertDialog(
-      title: Text(
-        result.cancelled
-            ? l10n.reparseBatch_resultCancelledTitle
-            : l10n.reparseBatch_resultTitle,
-      ),
+      title: Text(switch ((runError, result.cancelled)) {
+        (String(), _) => l10n.reparseBatch_resultErrorTitle,
+        (null, true) => l10n.reparseBatch_resultCancelledTitle,
+        (null, false) => l10n.reparseBatch_resultTitle,
+      }),
       // A fixed width lets the failed list scroll; AlertDialog sizes its
       // content intrinsically, which a ListView cannot report.
       content: SizedBox(

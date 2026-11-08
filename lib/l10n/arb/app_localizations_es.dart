@@ -38194,6 +38194,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get reparseBatch_resultCancelledTitle => 'Reanálisis cancelado';
 
   @override
+  String get reparseBatch_resultErrorTitle =>
+      'El reanálisis se detuvo por un error';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return 'Sin procesar: $count';
+  }
+
+  @override
   String reparseBatch_resultSummary(int succeeded, int total) {
     return 'Se reanalizaron $succeeded de $total inmersiones.';
   }

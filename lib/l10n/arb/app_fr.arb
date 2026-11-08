@@ -10816,6 +10816,8 @@
   "reparseBatch_cancelling": "Annulation...",
   "reparseBatch_resultTitle": "Réanalyse terminée",
   "reparseBatch_resultCancelledTitle": "Réanalyse annulée",
+  "reparseBatch_resultErrorTitle": "Réanalyse interrompue par une erreur",
+  "reparseBatch_resultNotReached": "Non traitées : {count}",
   "reparseBatch_resultSummary": "{succeeded} plongées sur {total} réanalysées.",
   "reparseBatch_resultFailed": "Échecs : {count}",
   "reparseBatch_resultNotProcessed": "Non traitées (annulé) : {count}",

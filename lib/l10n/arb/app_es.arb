@@ -10816,6 +10816,8 @@
   "reparseBatch_cancelling": "Cancelando...",
   "reparseBatch_resultTitle": "Reanálisis terminado",
   "reparseBatch_resultCancelledTitle": "Reanálisis cancelado",
+  "reparseBatch_resultErrorTitle": "El reanálisis se detuvo por un error",
+  "reparseBatch_resultNotReached": "Sin procesar: {count}",
   "reparseBatch_resultSummary": "Se reanalizaron {succeeded} de {total} inmersiones.",
   "reparseBatch_resultFailed": "Fallidas: {count}",
   "reparseBatch_resultNotProcessed": "Sin procesar (cancelado): {count}",

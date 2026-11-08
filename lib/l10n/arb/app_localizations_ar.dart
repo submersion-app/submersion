@@ -38639,6 +38639,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reparseBatch_resultCancelledTitle => 'أُلغيت إعادة التحليل';
 
   @override
+  String get reparseBatch_resultErrorTitle => 'توقفت إعادة التحليل بسبب خطأ';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return 'لم تُعالَج: $count';
+  }
+
+  @override
   String reparseBatch_resultSummary(int succeeded, int total) {
     return 'تمت إعادة تحليل $succeeded من أصل $total غطسة.';
   }

@@ -10816,6 +10816,8 @@
   "reparseBatch_cancelling": "Megszakítás...",
   "reparseBatch_resultTitle": "Az újraelemzés befejeződött",
   "reparseBatch_resultCancelledTitle": "Az újraelemzés megszakadt",
+  "reparseBatch_resultErrorTitle": "Az újraelemzés hiba miatt leállt",
+  "reparseBatch_resultNotReached": "Nem feldolgozott: {count}",
   "reparseBatch_resultSummary": "{succeeded} / {total} merülés újraelemezve.",
   "reparseBatch_resultFailed": "Sikertelen: {count}",
   "reparseBatch_resultNotProcessed": "Nem feldolgozott (megszakítva): {count}",

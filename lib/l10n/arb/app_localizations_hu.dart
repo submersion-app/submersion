@@ -37964,6 +37964,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get reparseBatch_resultCancelledTitle => 'Az újraelemzés megszakadt';
 
   @override
+  String get reparseBatch_resultErrorTitle =>
+      'Az újraelemzés hiba miatt leállt';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return 'Nem feldolgozott: $count';
+  }
+
+  @override
   String reparseBatch_resultSummary(int succeeded, int total) {
     return '$succeeded / $total merülés újraelemezve.';
   }

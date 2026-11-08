@@ -37235,6 +37235,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get reparseBatch_resultCancelledTitle => 'הניתוח מחדש בוטל';
 
   @override
+  String get reparseBatch_resultErrorTitle => 'הניתוח מחדש נעצר בגלל שגיאה';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return 'לא עובדו: $count';
+  }
+
+  @override
   String reparseBatch_resultSummary(int succeeded, int total) {
     return 'נותחו מחדש $succeeded מתוך $total צלילות.';
   }

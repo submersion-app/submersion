@@ -37904,6 +37904,15 @@ class AppLocalizationsNl extends AppLocalizations {
       'Opnieuw verwerken geannuleerd';
 
   @override
+  String get reparseBatch_resultErrorTitle =>
+      'Opnieuw verwerken gestopt door een fout';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return 'Niet verwerkt: $count';
+  }
+
+  @override
   String reparseBatch_resultSummary(int succeeded, int total) {
     return '$succeeded van $total duiken opnieuw verwerkt.';
   }

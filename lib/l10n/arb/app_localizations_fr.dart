@@ -38277,6 +38277,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reparseBatch_resultCancelledTitle => 'Réanalyse annulée';
 
   @override
+  String get reparseBatch_resultErrorTitle =>
+      'Réanalyse interrompue par une erreur';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return 'Non traitées : $count';
+  }
+
+  @override
   String reparseBatch_resultSummary(int succeeded, int total) {
     return '$succeeded plongées sur $total réanalysées.';
   }

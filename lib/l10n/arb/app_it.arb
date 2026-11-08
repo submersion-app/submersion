@@ -10816,6 +10816,8 @@
   "reparseBatch_cancelling": "Annullamento...",
   "reparseBatch_resultTitle": "Rianalisi completata",
   "reparseBatch_resultCancelledTitle": "Rianalisi annullata",
+  "reparseBatch_resultErrorTitle": "Rianalisi interrotta da un errore",
+  "reparseBatch_resultNotReached": "Non elaborate: {count}",
   "reparseBatch_resultSummary": "Rianalizzate {succeeded} immersioni su {total}.",
   "reparseBatch_resultFailed": "Non riuscite: {count}",
   "reparseBatch_resultNotProcessed": "Non elaborate (annullato): {count}",

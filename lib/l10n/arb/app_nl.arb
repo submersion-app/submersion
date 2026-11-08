@@ -10816,6 +10816,8 @@
   "reparseBatch_cancelling": "Annuleren...",
   "reparseBatch_resultTitle": "Opnieuw verwerken voltooid",
   "reparseBatch_resultCancelledTitle": "Opnieuw verwerken geannuleerd",
+  "reparseBatch_resultErrorTitle": "Opnieuw verwerken gestopt door een fout",
+  "reparseBatch_resultNotReached": "Niet verwerkt: {count}",
   "reparseBatch_resultSummary": "{succeeded} van {total} duiken opnieuw verwerkt.",
   "reparseBatch_resultFailed": "Mislukt: {count}",
   "reparseBatch_resultNotProcessed": "Niet verwerkt (geannuleerd): {count}",
