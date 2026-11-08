@@ -36,6 +36,44 @@ Future<void> runReparseBatch(
   if (openDiveId != null) router?.push('/dives/$openDiveId');
 }
 
+/// Asks before a batch re-parse of [count] dives. [skipped] counts chosen
+/// dives that have no raw data and will be left out. True when confirmed.
+Future<bool> confirmBatchReparse(
+  BuildContext context, {
+  required int count,
+  int skipped = 0,
+}) async {
+  final l10n = context.l10n;
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(l10n.reparseBatch_confirmTitle),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.reparseBatch_confirmMessage(count)),
+          if (skipped > 0) ...[
+            const SizedBox(height: 12),
+            Text(l10n.reparseBatch_confirmSkipped(skipped)),
+          ],
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(false),
+          child: Text(l10n.common_action_cancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+          child: Text(l10n.common_action_reparse),
+        ),
+      ],
+    ),
+  );
+  return confirmed ?? false;
+}
+
 /// Progress while [reparseBatchProvider] runs, then the results. Cannot be
 /// dismissed until the run has finished.
 class ReparseBatchDialog extends ConsumerWidget {
