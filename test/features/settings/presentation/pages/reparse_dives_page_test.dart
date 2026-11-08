@@ -13,15 +13,17 @@ import '../../../../helpers/test_app.dart';
 
 /// Hands back [ids] for the whole log and records each run.
 class _FakeBatch implements ReparseBatchService {
-  _FakeBatch(this.ids);
+  _FakeBatch(this.ids, {this.listingFails = false});
 
   final List<String> ids;
+  final bool listingFails;
   final askedForDiver = <String?>[];
   final runs = <List<String>>[];
 
   @override
   Future<List<String>> diveIdsWithRawData({required String? diverId}) async {
     askedForDiver.add(diverId);
+    if (listingFails) throw StateError('database is closed');
     return ids;
   }
 
@@ -53,15 +55,20 @@ void main() {
 
   Future<void> pumpPage(
     WidgetTester tester,
-    ReparseDivesOverview overview,
-  ) async {
-    batch = _FakeBatch(['d1', 'd2', 'd3']);
+    ReparseDivesOverview overview, {
+    bool listingFails = false,
+    Object? overviewError,
+  }) async {
+    batch = _FakeBatch(['d1', 'd2', 'd3'], listingFails: listingFails);
     await tester.pumpWidget(
       testApp(
         locale: const Locale('en'),
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-          reparseDivesOverviewProvider.overrideWith((ref) async => overview),
+          reparseDivesOverviewProvider.overrideWith((ref) async {
+            if (overviewError != null) throw overviewError;
+            return overview;
+          }),
           reparseBatchServiceProvider.overrideWithValue(batch),
           reparseParseFnProvider.overrideWithValue(
             (vendor, product, model, raw) => throw UnimplementedError(),
@@ -149,5 +156,35 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(batch.runs, isEmpty);
+  });
+
+  testWidgets('a count that cannot be read says so instead of a number', (
+    tester,
+  ) async {
+    await pumpPage(tester, overview, overviewError: StateError('no db'));
+
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(find.text('Re-parse all'), findsNothing);
+  });
+
+  testWidgets('a failed listing at run time shows an error and runs nothing', (
+    tester,
+  ) async {
+    await pumpPage(tester, overview, listingFails: true);
+
+    await tester.tap(find.text('Re-parse all'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Re-parse'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(batch.runs, isEmpty);
+    expect(find.text('Re-parsing dives'), findsNothing);
   });
 }

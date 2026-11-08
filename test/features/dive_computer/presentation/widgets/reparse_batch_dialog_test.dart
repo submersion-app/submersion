@@ -87,6 +87,7 @@ class _BrokenBatch extends _GatedBatch {
 void main() {
   late _GatedBatch batch;
   late List<Dive> knownDives;
+  var lookupFails = false;
 
   Future<void> pumpHost(WidgetTester tester, List<String> diveIds) async {
     final router = GoRouter(
@@ -119,10 +120,12 @@ void main() {
             (vendor, product, model, raw) => throw UnimplementedError(),
           ),
           reparseDiveLookupProvider.overrideWithValue(
-            (ids) async => [
-              for (final d in knownDives)
-                if (ids.contains(d.id)) d,
-            ],
+            (ids) async => lookupFails
+                ? throw StateError('database is closed')
+                : [
+                    for (final d in knownDives)
+                      if (ids.contains(d.id)) d,
+                  ],
           ),
         ],
       ),
@@ -131,7 +134,10 @@ void main() {
     await tester.pump();
   }
 
-  setUp(() => knownDives = const []);
+  setUp(() {
+    knownDives = const [];
+    lookupFails = false;
+  });
 
   testWidgets('shows progress and count while running', (tester) async {
     batch = _GatedBatch(3);
@@ -278,5 +284,18 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Done'));
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsNothing);
+  });
+
+  testWidgets('failed dives still list with their error when they cannot '
+      'be read back', (tester) async {
+    batch = _GatedBatch(1, failing: {'d1'});
+    lookupFails = true;
+    await pumpHost(tester, ['d1']);
+    batch.release(0);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Failed: 1'), findsOneWidget);
+    expect(find.text('Unnumbered dive'), findsOneWidget);
+    expect(find.textContaining('bad bytes'), findsOneWidget);
   });
 }

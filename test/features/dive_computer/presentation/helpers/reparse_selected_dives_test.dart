@@ -14,16 +14,20 @@ import '../../../../helpers/test_app.dart';
 
 /// Treats [withData] as the dives holding raw data and records each run.
 class _FakeBatch implements ReparseBatchService {
-  _FakeBatch(this.withData);
+  _FakeBatch(this.withData, {this.checkFails = false});
 
   final Set<String> withData;
+  final bool checkFails;
   final runs = <List<String>>[];
 
   @override
-  Future<List<String>> withRawData(List<String> diveIds) async => [
-    for (final id in diveIds)
-      if (withData.contains(id)) id,
-  ];
+  Future<List<String>> withRawData(List<String> diveIds) async {
+    if (checkFails) throw StateError('database is closed');
+    return [
+      for (final id in diveIds)
+        if (withData.contains(id)) id,
+    ];
+  }
 
   @override
   Future<ReparseBatchResult> run(
@@ -136,5 +140,19 @@ void main() {
 
     expect(batch.runs, isEmpty);
     expect(outcome, BulkActionOutcome.cancelled);
+  });
+
+  testWidgets('a failed raw-data check reports an error and keeps the '
+      'selection', (tester) async {
+    batch = _FakeBatch({'d1'}, checkFails: true);
+    await pumpAndInvoke(tester, ['d1']);
+
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(batch.runs, isEmpty);
+    expect(outcome, BulkActionOutcome.failed);
   });
 }
