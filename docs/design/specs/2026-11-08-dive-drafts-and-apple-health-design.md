@@ -201,10 +201,14 @@ entry and exit times and positions, plus anything the diver adds.
 - Shown on the profile chart as the heart rate line, with average and maximum
   on the detail page.
 - Stored apart from the dive computer's own readings, so a re-parse of the
-  computer's data never wipes it: a second profile series attributed to the
-  "Apple Watch" computer (goal 3), holding heart rate only. It syncs and is
-  backed up like the watch heart rate that imported watch dives already
-  carry in their profiles (my call, following that precedent).
+  computer's data never wipes it: one synced health record per dive, built
+  like the per-dive tide record (my call). A heart-rate-only profile series
+  was considered and rejected: the chart draws only the active source and
+  its overlays drop heart rate, and depth-0 samples would leak into the
+  merged profile. The chart merges the record's heart rate into the profile
+  it draws when that profile has none. It syncs and is backed up like the
+  watch heart rate that imported watch dives already carry in their
+  profiles.
 - Never replaces heart rate the dive computer measured itself (for example
   from a strap).
 - Added automatically to new dives when the Health features are on (at
@@ -218,7 +222,7 @@ entry and exit times and positions, plus anything the diver adds.
   dive.
 - Shown in a "Recovery" section on the dive's detail page as plain numbers
   with a one-line explanation. No verdicts such as "good" or "poor".
-- Stored on the dive and synced, like goal 8 (my call). Values that are not
+- Stored in the dive's health record and synced, like goal 8 (my call). Values that are not
   in Health yet (the overnight HRV in particular) are read again on later
   app opens until they arrive or a few days have passed.
 
