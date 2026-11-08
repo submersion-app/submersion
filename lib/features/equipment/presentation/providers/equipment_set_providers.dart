@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
@@ -215,11 +216,22 @@ class EquipmentSetListNotifier
   }
 
   /// Saves [set] and returns the members the save added and removed.
+  ///
+  /// A reload that fails after the save is logged, not thrown: the set is
+  /// already written, so the caller still needs the diff to replay it on the
+  /// dives that carry the set (issue #4283), and a retry would find nothing
+  /// left to change.
   Future<({List<String> added, List<String> removed})> updateSet(
     EquipmentSet set,
   ) async {
     final diff = await _repository.updateSet(set);
-    await refresh();
+    try {
+      await refresh();
+    } catch (e, st) {
+      LoggerService.forClass(
+        EquipmentSetListNotifier,
+      ).error('Reload after a set save failed', error: e, stackTrace: st);
+    }
     _ref.invalidate(equipmentSetsProvider);
     _ref.invalidate(equipmentSetProvider(set.id));
     return diff;
