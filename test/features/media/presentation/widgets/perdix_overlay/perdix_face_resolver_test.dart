@@ -453,6 +453,19 @@ void main() {
       expect(face.tankPressureBar, 200);
     });
 
+    test('an empty series (metadata-only source) has no face', () {
+      final r = PerdixFaceResolver.forSource(
+        dive,
+        profile: const [],
+        gasSwitches: switches,
+        tankPressures: pressures,
+        computerId: 'computer-a',
+      );
+      expect(r.isAvailable, isFalse);
+      expect(r.resolve(750).gasLabel, isNull);
+      expect(r.resolve(750).tankPressureBar, isNull);
+    });
+
     test('a whole-dive series (no computer) counts every switch', () {
       // Sequential halves of a Combine draw as one series, as on the chart.
       final face = resolverFor(null).resolve(750);
