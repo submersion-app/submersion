@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/providers/media_badge_settings_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -100,5 +101,42 @@ void main() {
     expect(prefs.started, [false, true]);
     prefs.gates.last.complete(true);
     await second;
+  });
+
+  test('setting the value it already has writes nothing', () async {
+    final prefs = _GatedPrefs();
+    final notifier = MediaTagBadgesNotifier(prefs);
+
+    await notifier.setEnabled(true);
+
+    expect(notifier.state, isTrue);
+    expect(prefs.started, isEmpty);
+  });
+
+  test(
+    'the source badge switch keeps its own key on the shared base',
+    () async {
+      SharedPreferences.setMockInitialValues({
+        SettingsKeys.mediaProvenanceBadges: false,
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final notifier = MediaProvenanceBadgesNotifier(prefs);
+      expect(notifier.state, isFalse);
+
+      await notifier.setEnabled(true);
+
+      expect(prefs.getBool(SettingsKeys.mediaProvenanceBadges), isTrue);
+      expect(prefs.getBool(SettingsKeys.mediaTagBadges), isNull);
+    },
+  );
+
+  test('with no root override the provider is on and stores nothing', () async {
+    // A grid tile watches it, so it must not need SharedPreferences.
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    expect(container.read(mediaTagBadgesProvider), isTrue);
+    await container.read(mediaTagBadgesProvider.notifier).setEnabled(false);
+    expect(container.read(mediaTagBadgesProvider), isFalse);
   });
 }
