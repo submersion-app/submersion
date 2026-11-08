@@ -33,6 +33,8 @@ const webUnavailableRoutePrefixes = <String, WebUnavailableFeature>{
   '/buddies/swap': WebUnavailableFeature.nearby,
   '/settings/offline-maps': WebUnavailableFeature.offlineMaps,
   '/settings/agent-access': WebUnavailableFeature.agentAccess,
+  // Runs the native dive parser over stored raw data (issue #224).
+  '/settings/reparse-dives': WebUnavailableFeature.diveComputers,
 };
 
 /// Sections a browser cannot serve on a page it can, by the page's route and
