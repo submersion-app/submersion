@@ -535,11 +535,11 @@ void main() {
     );
 
     test(
-      'reparseDive silently skips sources missing descriptor info',
+      'reparseDive reports a source missing descriptor info',
       () async {
         // A source row with rawData but no descriptor vendor/product/model
-        // (e.g. older import). reparseDive returns no errors, but no actual
-        // re-parse happens. This is the silent-skip trap.
+        // (e.g. older import). This used to be the silent-skip trap: no
+        // errors and no re-parse. Since #224 it fails with a clear error.
         await insertDive('dive-1');
         await insertComputer('comp-1');
         final now = DateTime.fromMillisecondsSinceEpoch(nowMs);
@@ -579,8 +579,7 @@ void main() {
           parseFn: fakeParse,
         )).errors;
 
-        // Documents current behavior: no errors reported, parser not invoked.
-        expect(errors, isEmpty);
+        expect(errors, ['Missing dive computer details']);
         expect(parserCalls, 0);
       },
     );
@@ -4217,25 +4216,66 @@ void main() {
       expect(errors, isEmpty);
     });
 
-    test('sources without descriptor fields are silently skipped', () async {
-      await insertDive('dive-1');
-      await insertComputer('comp-1');
-      await insertSourceWithRawData(
-        id: 'src-1',
-        diveId: 'dive-1',
-        computerId: 'comp-1',
-        descriptorVendor: null,
-        descriptorProduct: null,
-        descriptorModel: null,
-      );
+    test(
+      'a source without descriptor fields fails with a clear error',
+      () async {
+        await insertDive('dive-1');
+        await insertComputer('comp-1');
+        await insertSourceWithRawData(
+          id: 'src-1',
+          diveId: 'dive-1',
+          computerId: 'comp-1',
+          descriptorVendor: null,
+          descriptorProduct: null,
+          descriptorModel: null,
+        );
 
-      final errors = (await service.reparseDive(
-        'dive-1',
-        parseFn: fakeParseFn,
-      )).errors;
+        final errors = (await service.reparseDive(
+          'dive-1',
+          parseFn: fakeParseFn,
+        )).errors;
 
-      expect(errors, isEmpty);
-    });
+        // The same step a batch re-parse runs (#224): no longer reported as a
+        // success that changed nothing.
+        expect(errors, ['Missing dive computer details']);
+        expect((await getSource('src-1')).lastParsedAt, isNull);
+      },
+    );
+
+    test(
+      'a parse failure on one source leaves the whole dive untouched',
+      () async {
+        await insertDive('dive-1');
+        await insertComputer('comp-1');
+        await insertComputer('comp-2');
+        await insertSourceWithRawData(
+          id: 'src-1',
+          diveId: 'dive-1',
+          computerId: 'comp-1',
+        );
+        await insertSourceWithRawData(
+          id: 'src-2',
+          diveId: 'dive-1',
+          computerId: 'comp-2',
+          isPrimary: false,
+          descriptorVendor: 'Suunto',
+        );
+
+        final errors = (await service.reparseDive(
+          'dive-1',
+          parseFn: (vendor, product, model, rawData) async {
+            if (vendor == 'Suunto') throw Exception('bad bytes');
+            return makeParsedDive();
+          },
+        )).errors;
+
+        expect(errors.single, contains('bad bytes'));
+        // Every source is parsed before any is written (#224), so the first
+        // computer's data is not rewritten on its own.
+        expect((await getSource('src-1')).lastParsedAt, isNull);
+        expect((await getSource('src-2')).lastParsedAt, isNull);
+      },
+    );
 
     test('parseFn throwing adds error message to returned list', () async {
       await insertDive('dive-1');

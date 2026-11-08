@@ -17,13 +17,13 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_computer/data/services/bailout_gas_claim.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_dive_mode.dart';
 import 'package:submersion/features/dive_computer/data/services/parsed_dive_start_time.dart';
+import 'package:submersion/features/dive_computer/data/services/reparse_batch_service.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_empty_parse.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
 import 'package:submersion/features/dive_log/data/repositories/stored_tank_matching.dart';
-import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/domain/codecs/deco_type.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart'
     as codec;
@@ -38,7 +38,6 @@ import 'package:submersion/features/dive_computer/data/services/transmitter_regi
 import 'package:submersion/features/dive_computer/data/services/unused_oc_gas_cleanup.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_pressure_series.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_sample_units.dart';
-import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 
 /// Service responsible for applying re-parsed dive computer data back to the
@@ -549,6 +548,11 @@ class ReparseService {
   ///
   /// [parseFn] is the function that calls the native Pigeon API.
   ///
+  /// Runs the same per-dive step as a batch re-parse (issue #224): every
+  /// source is parsed before any is written, so a parse failure leaves the
+  /// dive untouched, and a source missing its descriptors is an error rather
+  /// than a silent no-op.
+  ///
   /// Returns the error messages (empty on full success) alongside the number
   /// of sources whose profile strand was deliberately left alone -- see
   /// [sourceOwnsProfileStrand]. Callers surface that count so a re-parse on
@@ -562,45 +566,7 @@ class ReparseService {
       Uint8List rawData,
     )
     parseFn,
-  }) async {
-    final sources = await getSourcesForDiveReparse(diveId);
-    final errors = <String>[];
-    var profilesPreserved = 0;
-
-    for (final source in sources) {
-      if (source.descriptorVendor == null ||
-          source.descriptorProduct == null ||
-          source.descriptorModel == null) {
-        continue;
-      }
-      try {
-        final parsed = await parseFn(
-          source.descriptorVendor!,
-          source.descriptorProduct!,
-          source.descriptorModel!,
-          source.rawData!,
-        );
-        final outcome = await applyParsedUpdate(
-          diveId: diveId,
-          sourceRowId: source.id,
-          parsed: parsed,
-          descriptorVendor: source.descriptorVendor,
-          descriptorProduct: source.descriptorProduct,
-          descriptorModel: source.descriptorModel,
-          libdivecomputerVersion: source.libdivecomputerVersion,
-        );
-        if (outcome.profilePreserved) profilesPreserved++;
-      } catch (e) {
-        errors.add(e.toString());
-      }
-    }
-
-    // The re-parse rewrote the profile strands; the sensor summary is
-    // derived from them (condition phase 2).
-    if (sources.isNotEmpty) scheduleSensorSummaryRefresh([diveId]);
-    if (sources.isNotEmpty) scheduleDerivedMetricsRefresh([diveId]);
-    return (errors: errors, profilesPreserved: profilesPreserved);
-  }
+  }) => ReparseBatchService(this).reparseSingleDive(diveId, parseFn: parseFn);
 
   // ==========================================================================
   // Private helpers

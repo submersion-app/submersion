@@ -261,10 +261,10 @@ class ReparseBatchService {
         case _Failed(:final error, :final partlyApplied):
           failures.add(ReparseDiveFailure(diveId: diveId, error: error));
           if (partlyApplied) rewritten.add(diveId);
-        case _Succeeded(:final profilePreserved):
+        case _Succeeded(:final sourcesPreserved):
           changed.add(diveId);
           rewritten.add(diveId);
-          if (profilePreserved) profilesPreserved++;
+          if (sourcesPreserved > 0) profilesPreserved++;
       }
       onProgress?.call(i + 1, total);
     }
@@ -281,6 +281,27 @@ class ReparseBatchService {
       profilesPreserved: profilesPreserved,
       failures: List.unmodifiable(failures),
     );
+  }
+
+  /// One dive's re-parse, as the dive page's "Re-parse raw data" runs it:
+  /// the same step [run] takes for each dive, without a batch's change-log
+  /// scope. Returns the error (none on success, or when the dive has no raw
+  /// data) and how many sources kept a combined dive's profile.
+  Future<({List<String> errors, int profilesPreserved})> reparseSingleDive(
+    String diveId, {
+    required RawDiveParseFn parseFn,
+  }) async {
+    final outcome = await _reparseOne(diveId, parseFn, null);
+    switch (outcome) {
+      case _Skipped():
+        return (errors: const <String>[], profilesPreserved: 0);
+      case _Failed(:final error, :final partlyApplied):
+        if (partlyApplied) _scheduleRefresh([diveId]);
+        return (errors: [error], profilesPreserved: 0);
+      case _Succeeded(:final sourcesPreserved):
+        _scheduleRefresh([diveId]);
+        return (errors: const <String>[], profilesPreserved: sourcesPreserved);
+    }
   }
 
   /// Parses every source of [diveId] first, then applies them all, so a
@@ -327,7 +348,7 @@ class ReparseBatchService {
       }
     }
 
-    var profilePreserved = false;
+    var sourcesPreserved = 0;
     var appliedAny = false;
     for (final (source, dive) in parsed) {
       try {
@@ -340,7 +361,7 @@ class ReparseBatchService {
           descriptorModel: source.descriptorModel,
           libdivecomputerVersion: source.libdivecomputerVersion,
         );
-        profilePreserved = profilePreserved || outcome.profilePreserved;
+        if (outcome.profilePreserved) sourcesPreserved++;
         appliedAny = true;
       } catch (e, stackTrace) {
         // A database fault: sources already applied stay applied.
@@ -352,7 +373,7 @@ class ReparseBatchService {
         return _Failed(reparseErrorText(e), partlyApplied: appliedAny);
       }
     }
-    return _Succeeded(profilePreserved: profilePreserved);
+    return _Succeeded(sourcesPreserved: sourcesPreserved);
   }
 }
 
@@ -373,8 +394,11 @@ class _Failed extends _DiveOutcome {
 }
 
 class _Succeeded extends _DiveOutcome {
-  const _Succeeded({required this.profilePreserved});
-  final bool profilePreserved;
+  const _Succeeded({required this.sourcesPreserved});
+
+  /// Sources whose profile strand was left alone because the dive is
+  /// combined (see `sourceOwnsProfileStrand`).
+  final int sourcesPreserved;
 }
 
 /// What a results list shows for [error]. The native parser reports its

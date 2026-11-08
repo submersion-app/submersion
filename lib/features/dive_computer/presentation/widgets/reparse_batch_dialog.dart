@@ -36,6 +36,13 @@ Future<void> runReparseBatch(
   if (openDiveId != null) router?.push('/dives/$openDiveId');
 }
 
+/// [error] from a re-parse as the diver reads it: the engine's own English
+/// errors translated, a parser's message as it came.
+String reparseErrorLabel(AppLocalizations l10n, String error) =>
+    error == missingDescriptorsError
+    ? l10n.reparseBatch_missingDescriptors
+    : error;
+
 /// Asks before a batch re-parse of [count] dives. [skipped] counts chosen
 /// dives that have no raw data and will be left out. True when confirmed.
 Future<bool> confirmBatchReparse(
@@ -231,9 +238,7 @@ class _FailedDiveTile extends StatelessWidget {
     final number = dive.diveNumber;
     final when = units.formatDateTime(dive.date, l10n: l10n);
     final site = dive.siteName;
-    final error = dive.error == missingDescriptorsError
-        ? l10n.reparseBatch_missingDescriptors
-        : dive.error;
+    final error = reparseErrorLabel(l10n, dive.error);
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: Icon(Icons.error_outline, color: colorScheme.error),
