@@ -22,19 +22,24 @@ import 'package:submersion/l10n/l10n_extension.dart';
 class RoleConsumptionSection extends ConsumerWidget {
   const RoleConsumptionSection({super.key});
 
-  /// Apart from each other, from the rolling mean's amber, and from the
-  /// Rebreather gas use card's blue and green. Lighter on a dark surface,
-  /// where the full shades fall under 3:1 contrast.
+  /// At least 20 apart (CIEDE2000) from each other and from the rolling
+  /// mean's amber in both themes: indigo beside purple, or pink beside red,
+  /// read as one line at chart dot size. Lighter on a dark surface, where the
+  /// full shades fall under 3:1 contrast.
   static Map<ConsumptionRoleGroup, Color> _colorsFor(Brightness brightness) {
     final dark = brightness == Brightness.dark;
     return {
       ConsumptionRoleGroup.bottomGas: dark
           ? Colors.indigo.shade300
           : Colors.indigo,
-      ConsumptionRoleGroup.stage: dark ? Colors.purple.shade300 : Colors.purple,
-      ConsumptionRoleGroup.deco: dark ? Colors.pink.shade300 : Colors.pink,
+      ConsumptionRoleGroup.stage: dark
+          ? Colors.teal.shade300
+          : Colors.teal.shade700,
+      ConsumptionRoleGroup.deco: dark
+          ? Colors.lightGreen.shade300
+          : Colors.lightGreen.shade700,
       ConsumptionRoleGroup.pony: dark ? Colors.brown.shade300 : Colors.brown,
-      ConsumptionRoleGroup.bailout: dark ? Colors.red.shade300 : Colors.red,
+      ConsumptionRoleGroup.bailout: dark ? Colors.pink.shade300 : Colors.pink,
     };
   }
 

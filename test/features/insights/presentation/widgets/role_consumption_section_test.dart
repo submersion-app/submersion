@@ -15,6 +15,7 @@ import 'package:submersion/features/insights/presentation/widgets/role_consumpti
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/color_difference.dart';
 import '../../../../helpers/contrast_ratio.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -285,6 +286,54 @@ void main() {
       );
     }
   });
+
+  for (final brightness in Brightness.values) {
+    testWidgets('in ${brightness.name} mode the lines and the rolling mean '
+        'are told apart at a glance', (tester) async {
+      final overrides = await getBaseOverrides(
+        settingsNotifier: MockSettingsNotifier(const AppSettings()),
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            roleConsumptionTrendProvider.overrideWith((ref) async => _all()),
+            insightsGasLaneOverrideProvider.overrideWith(
+              (ref) => GasConsumptionLane.rmv,
+            ),
+          ].cast(),
+          child: MaterialApp(
+            theme: ThemeData(brightness: brightness),
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const Scaffold(
+              body: SingleChildScrollView(child: RoleConsumptionSection()),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      final chart = tester.widget<DiveTrendChart>(find.byType(DiveTrendChart));
+      final lines = {
+        chart.pointLabel!: chart.pointColor!,
+        for (final s in chart.secondarySeries) s.label: s.color,
+      };
+      final named = {...lines, 'rolling mean': chart.rollingColor!};
+      final names = named.keys.toList();
+      for (var i = 0; i < names.length; i++) {
+        for (var j = i + 1; j < names.length; j++) {
+          expect(
+            colorDifference(named[names[i]]!, named[names[j]]!),
+            greaterThanOrEqualTo(20),
+            reason: '${names[i]} against ${names[j]}',
+          );
+        }
+      }
+    });
+  }
 
   testWidgets('five tiles fit a 360 px wide screen', (tester) async {
     tester.view.physicalSize = const Size(360, 1600);
