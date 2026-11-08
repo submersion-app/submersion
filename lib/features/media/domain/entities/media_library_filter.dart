@@ -262,6 +262,9 @@ class MediaLibraryEntry extends Equatable {
     this.siteName,
     this.attachedSiteName,
     this.attachedEquipmentName,
+    this.hasPeople = false,
+    this.hasSpecies = false,
+    this.hasTimeInDive = false,
   });
 
   final MediaItem item;
@@ -280,6 +283,18 @@ class MediaLibraryEntry extends Equatable {
   /// (`media.equipment_id`).
   final String? attachedEquipmentName;
 
+  /// Whether anyone (a buddy or a diver's Me tag) is tagged on the item
+  /// (issue #4218).
+  final bool hasPeople;
+
+  /// Whether any species is tagged on the item (issue #4218).
+  final bool hasSpecies;
+
+  /// Whether the item has a time in its dive that the profile chart would
+  /// draw it at (issue #4218). See `LibraryTileMarkers.hasTimeInDive` for the
+  /// rule.
+  final bool hasTimeInDive;
+
   @override
   List<Object?> get props => [
     item,
@@ -288,6 +303,9 @@ class MediaLibraryEntry extends Equatable {
     siteName,
     attachedSiteName,
     attachedEquipmentName,
+    hasPeople,
+    hasSpecies,
+    hasTimeInDive,
   ];
 }
 

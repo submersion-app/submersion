@@ -52914,6 +52914,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'A small glyph showing where each item is served from. Problem badges always show.';
 
   @override
+  String get settings_media_tagBadges => 'Show tag badges on thumbnails';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      'Small icons for photos with people tagged, species tagged, or a time in the dive.';
+
+  @override
   String get settings_media_autoColorCorrection => 'Automatic color correction';
 
   @override
@@ -52961,6 +52968,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => 'Not backed up';
+
+  @override
+  String get media_tileMarker_people => 'People tagged';
+
+  @override
+  String get media_tileMarker_species => 'Species tagged';
+
+  @override
+  String get media_tileMarker_timeInDive => 'Placed on the dive profile';
 
   @override
   String get media_tile_infoMenuItem => 'Media info';

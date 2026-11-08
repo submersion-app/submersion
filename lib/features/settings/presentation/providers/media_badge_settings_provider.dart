@@ -56,3 +56,37 @@ final mediaProvenanceBadgesProvider =
     StateNotifierProvider<MediaProvenanceBadgesNotifier, bool>(
       (ref) => MediaProvenanceBadgesNotifier.unstored(true),
     );
+
+/// Whether library thumbnails show the tag markers (issue #4218): a person
+/// when someone is tagged, a fish when a species is, a timer when the item
+/// has a time in its dive.
+///
+/// A separate switch from [MediaProvenanceBadgesNotifier], since the two
+/// answer different questions: where the bytes came from, and what the diver
+/// has recorded about the picture. Device-local and seeded synchronously for
+/// the same reasons that notifier gives.
+class MediaTagBadgesNotifier extends StateNotifier<bool> {
+  MediaTagBadgesNotifier(SharedPreferences prefs)
+    : _prefs = prefs,
+      super(prefs.getBool(SettingsKeys.mediaTagBadges) ?? true);
+
+  /// Fixed state with nothing behind it; see
+  /// [MediaProvenanceBadgesNotifier.unstored].
+  MediaTagBadgesNotifier.unstored(super.enabled) : _prefs = null;
+
+  final SharedPreferences? _prefs;
+
+  Future<void> setEnabled(bool value) async {
+    if (state == value) return;
+    state = value;
+    await _prefs?.setBool(SettingsKeys.mediaTagBadges, value);
+  }
+}
+
+/// Defaults to enabled with no storage behind it, and gains persistence from
+/// `rootProviderOverrides`, exactly as [mediaProvenanceBadgesProvider] does
+/// and for the same reason: it is watched from inside a grid tile.
+final mediaTagBadgesProvider =
+    StateNotifierProvider<MediaTagBadgesNotifier, bool>(
+      (ref) => MediaTagBadgesNotifier.unstored(true),
+    );

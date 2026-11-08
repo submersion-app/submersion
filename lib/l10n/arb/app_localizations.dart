@@ -84843,6 +84843,18 @@ abstract class AppLocalizations {
   /// **'A small glyph showing where each item is served from. Problem badges always show.'**
   String get settings_media_provenanceBadgesSubtitle;
 
+  /// No description provided for @settings_media_tagBadges.
+  ///
+  /// In en, this message translates to:
+  /// **'Show tag badges on thumbnails'**
+  String get settings_media_tagBadges;
+
+  /// No description provided for @settings_media_tagBadgesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Small icons for photos with people tagged, species tagged, or a time in the dive.'**
+  String get settings_media_tagBadgesSubtitle;
+
   /// No description provided for @settings_media_autoColorCorrection.
   ///
   /// In en, this message translates to:
@@ -84932,6 +84944,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not backed up'**
   String get media_status_notBackedUp;
+
+  /// No description provided for @media_tileMarker_people.
+  ///
+  /// In en, this message translates to:
+  /// **'People tagged'**
+  String get media_tileMarker_people;
+
+  /// No description provided for @media_tileMarker_species.
+  ///
+  /// In en, this message translates to:
+  /// **'Species tagged'**
+  String get media_tileMarker_species;
+
+  /// No description provided for @media_tileMarker_timeInDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Placed on the dive profile'**
+  String get media_tileMarker_timeInDive;
 
   /// No description provided for @media_tile_infoMenuItem.
   ///
