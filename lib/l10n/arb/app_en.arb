@@ -15937,7 +15937,7 @@
   "settings_data_importOptions": "Import options",
   "settings_data_importOptions_subtitle": "Site matching, surfacing pressure, auto tags",
   "settings_data_dataTools": "Data tools",
-  "settings_data_dataTools_subtitle": "Fix dive times, link buddies, retype gear, data quality, table editor",
+  "settings_data_dataTools_subtitle": "Fix dive times, link buddies, retype gear, data quality, table editor, re-parse dives",
   "settings_agentAccess_title": "Agent access",
   "settings_agentAccess_confirm_linkedDives": "Dives that lose this link ({diver}): {count}",
   "@settings_agentAccess_confirm_linkedDives": {"placeholders": {"diver": {"type": "String"}, "count": {"type": "int"}}},
@@ -22791,41 +22791,6 @@
       }
     }
   },
-  "diveComputer_detail_reparseAllProgress": "Re-parsing {count} dives...",
-  "@diveComputer_detail_reparseAllProgress": {
-    "placeholders": {
-      "count": {
-        "type": "int",
-        "example": "12"
-      }
-    }
-  },
-  "diveComputer_detail_reparseAllSuccess": "Re-parsed {count} dives successfully",
-  "@diveComputer_detail_reparseAllSuccess": {
-    "placeholders": {
-      "count": {
-        "type": "int",
-        "example": "12"
-      }
-    }
-  },
-  "diveComputer_detail_reparseAllPartial": "Re-parsed {succeeded} of {total} dives. {failed} failed.",
-  "@diveComputer_detail_reparseAllPartial": {
-    "placeholders": {
-      "succeeded": {
-        "type": "int",
-        "example": "10"
-      },
-      "total": {
-        "type": "int",
-        "example": "12"
-      },
-      "failed": {
-        "type": "int",
-        "example": "2"
-      }
-    }
-  },
   "diveComputer_detail_reparseRawDataCount": "{count} dives with raw data",
   "@diveComputer_detail_reparseRawDataCount": {
     "placeholders": {
@@ -22848,6 +22813,66 @@
       }
     }
   },
+  "reparseBatch_progressTitle": "Re-parsing dives",
+  "@reparseBatch_progressTitle": {"description": "Bulk re-parse (issue #224)"},
+  "reparseBatch_progressCount": "Re-parsing {done} of {total} dives",
+  "@reparseBatch_progressCount": {"description": "Bulk re-parse (issue #224)", "placeholders": {"done": {"type": "int"}, "total": {"type": "int"}}},
+  "reparseBatch_cancelling": "Cancelling...",
+  "@reparseBatch_cancelling": {"description": "Bulk re-parse (issue #224)"},
+  "reparseBatch_resultTitle": "Re-parse finished",
+  "@reparseBatch_resultTitle": {"description": "Bulk re-parse (issue #224)"},
+  "reparseBatch_resultCancelledTitle": "Re-parse cancelled",
+  "@reparseBatch_resultCancelledTitle": {"description": "Bulk re-parse (issue #224)"},
+  "reparseBatch_resultErrorTitle": "Re-parse stopped by an error",
+  "@reparseBatch_resultErrorTitle": {"description": "Bulk re-parse (issue #224): the run stopped on an error"},
+  "reparseBatch_resultNotReached": "Not processed: {count}",
+  "@reparseBatch_resultNotReached": {"description": "Bulk re-parse (issue #224): dives a run error left unprocessed", "placeholders": {"count": {"type": "int"}}},
+  "reparseBatch_resultSummary": "Re-parsed {succeeded} of {total} dives.",
+  "@reparseBatch_resultSummary": {"description": "Bulk re-parse (issue #224)", "placeholders": {"succeeded": {"type": "int"}, "total": {"type": "int"}}},
+  "reparseBatch_resultFailed": "Failed: {count}",
+  "@reparseBatch_resultFailed": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
+  "reparseBatch_resultNotProcessed": "Not processed (cancelled): {count}",
+  "@reparseBatch_resultNotProcessed": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
+  "reparseBatch_resultSkipped": "Skipped, no raw data: {count}",
+  "@reparseBatch_resultSkipped": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
+  "reparseBatch_resultProfilesPreserved": "Combined dives that kept their profile: {count}",
+  "@reparseBatch_resultProfilesPreserved": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
+  "reparseBatch_failedListHeader": "Failed dives",
+  "@reparseBatch_failedListHeader": {"description": "Bulk re-parse (issue #224)"},
+  "reparseBatch_failedDiveTitle": "Dive #{number}",
+  "@reparseBatch_failedDiveTitle": {"description": "Bulk re-parse (issue #224)", "placeholders": {"number": {"type": "int"}}},
+  "reparseBatch_failedDiveUnnumbered": "Unnumbered dive",
+  "@reparseBatch_failedDiveUnnumbered": {"description": "Bulk re-parse (issue #224)"},
+  "reparseBatch_missingDescriptors": "Missing dive computer details",
+  "@reparseBatch_missingDescriptors": {"description": "Bulk re-parse (issue #224)"},
+  "reparseBatch_confirmTitle": "Re-parse dives",
+  "@reparseBatch_confirmTitle": {"description": "Bulk re-parse (issue #224)"},
+  "reparseBatch_confirmMessage": "Re-run the dive parser on {count} dives with stored raw data. This updates profile and sensor data but preserves your notes, sites, buddies, and other edits.",
+  "@reparseBatch_confirmMessage": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
+  "reparseBatch_confirmSkipped": "Selected dives without raw data (skipped): {count}",
+  "@reparseBatch_confirmSkipped": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
+  "reparseBatch_noneWithRawData": "None of the selected dives have stored raw data to re-parse.",
+  "@reparseBatch_noneWithRawData": {"description": "Bulk re-parse (issue #224)"},
+  "diveLog_selection_tooltip_reparse": "Re-parse",
+  "@diveLog_selection_tooltip_reparse": {"description": "Bulk re-parse (issue #224)"},
+  "settings_reparseDives_title": "Re-parse dives",
+  "@settings_reparseDives_title": {"description": "Bulk re-parse (issue #224)"},
+  "settings_reparseDives_subtitle": "Re-run the dive parser on every dive with stored raw data",
+  "@settings_reparseDives_subtitle": {"description": "Bulk re-parse (issue #224)"},
+  "settings_reparseDives_intro": "Use this after an app update improves how dive computer data is read. Your notes, sites, buddies, and other edits are preserved.",
+  "@settings_reparseDives_intro": {"description": "Bulk re-parse (issue #224)"},
+  "settings_reparseDives_withRawData": "Dives with raw data: {count}",
+  "@settings_reparseDives_withRawData": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
+  "settings_reparseDives_withoutRawData": "Dives without raw data (not re-parsed): {count}",
+  "@settings_reparseDives_withoutRawData": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
+  "settings_reparseDives_byComputer": "By dive computer",
+  "@settings_reparseDives_byComputer": {"description": "Bulk re-parse (issue #224)"},
+  "settings_reparseDives_unknownComputer": "Unknown computer",
+  "@settings_reparseDives_unknownComputer": {"description": "Bulk re-parse (issue #224)"},
+  "settings_reparseDives_none": "No dives have stored raw data to re-parse.",
+  "@settings_reparseDives_none": {"description": "Bulk re-parse (issue #224)"},
+  "settings_reparseDives_button": "Re-parse all",
+  "@settings_reparseDives_button": {"description": "Bulk re-parse (issue #224)"},
   "diveComputer_rawData_discardAction": "Discard",
   "diveComputer_rawData_discardAllMessage": "Remove the raw download data kept for {count} dives from every dive computer ({size})? Those dives can no longer be re-parsed when the dive parser improves. The dives and your edits stay as they are, and your other synced devices drop the data too.",
   "@diveComputer_rawData_discardAllMessage": {

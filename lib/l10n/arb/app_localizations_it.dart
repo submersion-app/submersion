@@ -27514,7 +27514,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'Correggi orari, collega compagni, ritipizza attrezzatura, qualità dati, editor tabellare';
+      'Correggi orari, collega compagni, ritipizza attrezzatura, qualità dati, editor tabellare, rianalizza immersioni';
 
   @override
   String get settings_agentAccess_title => 'Accesso agenti';
@@ -38179,25 +38179,6 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllProgress(int count) {
-    return 'Rianalisi di $count immersioni in corso...';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllSuccess(int count) {
-    return '$count immersioni rianalizzate con successo';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
-    return 'Rianalizzate $succeeded su $total immersioni. $failed non riuscite.';
-  }
-
-  @override
   String diveComputer_detail_reparseRawDataCount(int count) {
     return '$count immersioni con dati grezzi';
   }
@@ -38209,6 +38190,126 @@ class AppLocalizationsIt extends AppLocalizations {
   ) {
     return '$count immersioni con dati grezzi ($without senza)';
   }
+
+  @override
+  String get reparseBatch_progressTitle => 'Rianalisi delle immersioni';
+
+  @override
+  String reparseBatch_progressCount(int done, int total) {
+    return 'Rianalisi di $done immersioni su $total';
+  }
+
+  @override
+  String get reparseBatch_cancelling => 'Annullamento...';
+
+  @override
+  String get reparseBatch_resultTitle => 'Rianalisi completata';
+
+  @override
+  String get reparseBatch_resultCancelledTitle => 'Rianalisi annullata';
+
+  @override
+  String get reparseBatch_resultErrorTitle =>
+      'Rianalisi interrotta da un errore';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return 'Non elaborate: $count';
+  }
+
+  @override
+  String reparseBatch_resultSummary(int succeeded, int total) {
+    return 'Rianalizzate $succeeded immersioni su $total.';
+  }
+
+  @override
+  String reparseBatch_resultFailed(int count) {
+    return 'Non riuscite: $count';
+  }
+
+  @override
+  String reparseBatch_resultNotProcessed(int count) {
+    return 'Non elaborate (annullato): $count';
+  }
+
+  @override
+  String reparseBatch_resultSkipped(int count) {
+    return 'Saltate, senza dati grezzi: $count';
+  }
+
+  @override
+  String reparseBatch_resultProfilesPreserved(int count) {
+    return 'Immersioni combinate che hanno mantenuto il profilo: $count';
+  }
+
+  @override
+  String get reparseBatch_failedListHeader => 'Immersioni non riuscite';
+
+  @override
+  String reparseBatch_failedDiveTitle(int number) {
+    return 'Immersione n. $number';
+  }
+
+  @override
+  String get reparseBatch_failedDiveUnnumbered => 'Immersione senza numero';
+
+  @override
+  String get reparseBatch_missingDescriptors =>
+      'Dati del computer subacqueo mancanti';
+
+  @override
+  String get reparseBatch_confirmTitle => 'Rianalizza immersioni';
+
+  @override
+  String reparseBatch_confirmMessage(int count) {
+    return 'Riesegui il parser delle immersioni su $count immersioni con dati grezzi salvati. Questa azione aggiorna i dati di profilo e dei sensori, ma conserva note, siti, compagni e altre modifiche.';
+  }
+
+  @override
+  String reparseBatch_confirmSkipped(int count) {
+    return 'Immersioni selezionate senza dati grezzi (saltate): $count';
+  }
+
+  @override
+  String get reparseBatch_noneWithRawData =>
+      'Nessuna delle immersioni selezionate ha dati grezzi salvati da rianalizzare.';
+
+  @override
+  String get diveLog_selection_tooltip_reparse => 'Rianalizza';
+
+  @override
+  String get settings_reparseDives_title => 'Rianalizza immersioni';
+
+  @override
+  String get settings_reparseDives_subtitle =>
+      'Riesegui il parser su ogni immersione con dati grezzi salvati';
+
+  @override
+  String get settings_reparseDives_intro =>
+      'Usalo quando un aggiornamento dell\'app migliora la lettura dei dati del computer subacqueo. Note, siti, compagni e altre modifiche vengono conservati.';
+
+  @override
+  String settings_reparseDives_withRawData(int count) {
+    return 'Immersioni con dati grezzi: $count';
+  }
+
+  @override
+  String settings_reparseDives_withoutRawData(int count) {
+    return 'Immersioni senza dati grezzi (non rianalizzate): $count';
+  }
+
+  @override
+  String get settings_reparseDives_byComputer => 'Per computer subacqueo';
+
+  @override
+  String get settings_reparseDives_unknownComputer => 'Computer sconosciuto';
+
+  @override
+  String get settings_reparseDives_none =>
+      'Nessuna immersione ha dati grezzi salvati da rianalizzare.';
+
+  @override
+  String get settings_reparseDives_button => 'Rianalizza tutto';
 
   @override
   String get diveComputer_rawData_discardAction => 'Elimina';

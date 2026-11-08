@@ -27512,7 +27512,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'Corregir horas, enlazar compañeros, retipar equipo, calidad de datos, editor de tabla';
+      'Corregir horas, enlazar compañeros, retipar equipo, calidad de datos, editor de tabla, reanalizar inmersiones';
 
   @override
   String get settings_agentAccess_title => 'Acceso de agentes';
@@ -38194,25 +38194,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllProgress(int count) {
-    return 'Reanalizando $count inmersiones...';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllSuccess(int count) {
-    return 'Se reanalizaron $count inmersiones correctamente';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
-    return 'Se reanalizaron $succeeded de $total inmersiones. $failed fallaron.';
-  }
-
-  @override
   String diveComputer_detail_reparseRawDataCount(int count) {
     return '$count inmersiones con datos sin procesar';
   }
@@ -38224,6 +38205,126 @@ class AppLocalizationsEs extends AppLocalizations {
   ) {
     return '$count inmersiones con datos sin procesar ($without sin)';
   }
+
+  @override
+  String get reparseBatch_progressTitle => 'Reanalizando inmersiones';
+
+  @override
+  String reparseBatch_progressCount(int done, int total) {
+    return 'Reanalizando $done de $total inmersiones';
+  }
+
+  @override
+  String get reparseBatch_cancelling => 'Cancelando...';
+
+  @override
+  String get reparseBatch_resultTitle => 'Reanálisis terminado';
+
+  @override
+  String get reparseBatch_resultCancelledTitle => 'Reanálisis cancelado';
+
+  @override
+  String get reparseBatch_resultErrorTitle =>
+      'El reanálisis se detuvo por un error';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return 'Sin procesar: $count';
+  }
+
+  @override
+  String reparseBatch_resultSummary(int succeeded, int total) {
+    return 'Se reanalizaron $succeeded de $total inmersiones.';
+  }
+
+  @override
+  String reparseBatch_resultFailed(int count) {
+    return 'Fallidas: $count';
+  }
+
+  @override
+  String reparseBatch_resultNotProcessed(int count) {
+    return 'Sin procesar (cancelado): $count';
+  }
+
+  @override
+  String reparseBatch_resultSkipped(int count) {
+    return 'Omitidas, sin datos sin procesar: $count';
+  }
+
+  @override
+  String reparseBatch_resultProfilesPreserved(int count) {
+    return 'Inmersiones combinadas que conservaron su perfil: $count';
+  }
+
+  @override
+  String get reparseBatch_failedListHeader => 'Inmersiones fallidas';
+
+  @override
+  String reparseBatch_failedDiveTitle(int number) {
+    return 'Inmersión n.º $number';
+  }
+
+  @override
+  String get reparseBatch_failedDiveUnnumbered => 'Inmersión sin número';
+
+  @override
+  String get reparseBatch_missingDescriptors =>
+      'Faltan los datos del ordenador de buceo';
+
+  @override
+  String get reparseBatch_confirmTitle => 'Reanalizar inmersiones';
+
+  @override
+  String reparseBatch_confirmMessage(int count) {
+    return 'Volver a ejecutar el analizador de inmersiones para $count inmersiones con datos sin procesar almacenados. Esto actualiza los datos de perfil y sensores, pero conserva tus notas, sitios, compañeros y otras ediciones.';
+  }
+
+  @override
+  String reparseBatch_confirmSkipped(int count) {
+    return 'Inmersiones seleccionadas sin datos sin procesar (se omiten): $count';
+  }
+
+  @override
+  String get reparseBatch_noneWithRawData =>
+      'Ninguna de las inmersiones seleccionadas tiene datos sin procesar almacenados para reanalizar.';
+
+  @override
+  String get diveLog_selection_tooltip_reparse => 'Reanalizar';
+
+  @override
+  String get settings_reparseDives_title => 'Reanalizar inmersiones';
+
+  @override
+  String get settings_reparseDives_subtitle =>
+      'Volver a ejecutar el analizador en cada inmersión con datos sin procesar almacenados';
+
+  @override
+  String get settings_reparseDives_intro =>
+      'Úsalo cuando una actualización de la app mejore la lectura de los datos del ordenador de buceo. Se conservan tus notas, sitios, compañeros y otras ediciones.';
+
+  @override
+  String settings_reparseDives_withRawData(int count) {
+    return 'Inmersiones con datos sin procesar: $count';
+  }
+
+  @override
+  String settings_reparseDives_withoutRawData(int count) {
+    return 'Inmersiones sin datos sin procesar (no se reanalizan): $count';
+  }
+
+  @override
+  String get settings_reparseDives_byComputer => 'Por ordenador de buceo';
+
+  @override
+  String get settings_reparseDives_unknownComputer => 'Ordenador desconocido';
+
+  @override
+  String get settings_reparseDives_none =>
+      'Ninguna inmersión tiene datos sin procesar almacenados para reanalizar.';
+
+  @override
+  String get settings_reparseDives_button => 'Reanalizar todo';
 
   @override
   String get diveComputer_rawData_discardAction => 'Descartar';

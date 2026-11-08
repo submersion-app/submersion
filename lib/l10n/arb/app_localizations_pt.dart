@@ -27484,7 +27484,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'Corrigir horas, ligar parceiros, retipar equipamento, qualidade dos dados, editor de tabela';
+      'Corrigir horas, ligar parceiros, retipar equipamento, qualidade dos dados, editor de tabela, reanalisar mergulhos';
 
   @override
   String get settings_agentAccess_title => 'Acesso de agentes';
@@ -38148,25 +38148,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllProgress(int count) {
-    return 'Reanalisando $count mergulhos...';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllSuccess(int count) {
-    return '$count mergulhos reanalisados com sucesso';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
-    return 'Reanalisados $succeeded de $total mergulhos. $failed falharam.';
-  }
-
-  @override
   String diveComputer_detail_reparseRawDataCount(int count) {
     return '$count mergulhos com dados brutos';
   }
@@ -38178,6 +38159,126 @@ class AppLocalizationsPt extends AppLocalizations {
   ) {
     return '$count mergulhos com dados brutos ($without sem)';
   }
+
+  @override
+  String get reparseBatch_progressTitle => 'Reanalisando mergulhos';
+
+  @override
+  String reparseBatch_progressCount(int done, int total) {
+    return 'Reanalisando $done de $total mergulhos';
+  }
+
+  @override
+  String get reparseBatch_cancelling => 'Cancelando...';
+
+  @override
+  String get reparseBatch_resultTitle => 'Reanálise concluída';
+
+  @override
+  String get reparseBatch_resultCancelledTitle => 'Reanálise cancelada';
+
+  @override
+  String get reparseBatch_resultErrorTitle =>
+      'Reanálise interrompida por um erro';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return 'Não processados: $count';
+  }
+
+  @override
+  String reparseBatch_resultSummary(int succeeded, int total) {
+    return 'Reanalisados $succeeded de $total mergulhos.';
+  }
+
+  @override
+  String reparseBatch_resultFailed(int count) {
+    return 'Com falha: $count';
+  }
+
+  @override
+  String reparseBatch_resultNotProcessed(int count) {
+    return 'Não processados (cancelado): $count';
+  }
+
+  @override
+  String reparseBatch_resultSkipped(int count) {
+    return 'Ignorados, sem dados brutos: $count';
+  }
+
+  @override
+  String reparseBatch_resultProfilesPreserved(int count) {
+    return 'Mergulhos combinados que mantiveram o perfil: $count';
+  }
+
+  @override
+  String get reparseBatch_failedListHeader => 'Mergulhos com falha';
+
+  @override
+  String reparseBatch_failedDiveTitle(int number) {
+    return 'Mergulho n.º $number';
+  }
+
+  @override
+  String get reparseBatch_failedDiveUnnumbered => 'Mergulho sem número';
+
+  @override
+  String get reparseBatch_missingDescriptors =>
+      'Faltam os dados do computador de mergulho';
+
+  @override
+  String get reparseBatch_confirmTitle => 'Reanalisar mergulhos';
+
+  @override
+  String reparseBatch_confirmMessage(int count) {
+    return 'Reexecute o analisador de mergulhos em $count mergulhos com dados brutos armazenados. Isso atualiza os dados de perfil e de sensores, mas preserva suas notas, locais, parceiros e outras edições.';
+  }
+
+  @override
+  String reparseBatch_confirmSkipped(int count) {
+    return 'Mergulhos selecionados sem dados brutos (ignorados): $count';
+  }
+
+  @override
+  String get reparseBatch_noneWithRawData =>
+      'Nenhum dos mergulhos selecionados tem dados brutos armazenados para reanalisar.';
+
+  @override
+  String get diveLog_selection_tooltip_reparse => 'Reanalisar';
+
+  @override
+  String get settings_reparseDives_title => 'Reanalisar mergulhos';
+
+  @override
+  String get settings_reparseDives_subtitle =>
+      'Reexecutar o analisador em cada mergulho com dados brutos armazenados';
+
+  @override
+  String get settings_reparseDives_intro =>
+      'Use isto depois que uma atualização do app melhorar a leitura dos dados do computador de mergulho. Suas notas, locais, parceiros e outras edições são preservados.';
+
+  @override
+  String settings_reparseDives_withRawData(int count) {
+    return 'Mergulhos com dados brutos: $count';
+  }
+
+  @override
+  String settings_reparseDives_withoutRawData(int count) {
+    return 'Mergulhos sem dados brutos (não reanalisados): $count';
+  }
+
+  @override
+  String get settings_reparseDives_byComputer => 'Por computador de mergulho';
+
+  @override
+  String get settings_reparseDives_unknownComputer => 'Computador desconhecido';
+
+  @override
+  String get settings_reparseDives_none =>
+      'Nenhum mergulho tem dados brutos armazenados para reanalisar.';
+
+  @override
+  String get settings_reparseDives_button => 'Reanalisar tudo';
 
   @override
   String get diveComputer_rawData_discardAction => 'Descartar';
