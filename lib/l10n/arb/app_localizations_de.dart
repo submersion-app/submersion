@@ -7417,6 +7417,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Diese Aufzeichnungen überschneiden sich zeitlich nicht, daher geht die Uhr eines Computers wahrscheinlich falsch. Der Tauchgang behält die Zeit des primären Computers.';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      'Diese Tiefenprofile passen zu einer anderen Zeit zusammen, als die Uhren der Computer angeben, daher geht die Uhr eines Computers wahrscheinlich falsch. Der Tauchgang behält die Zeit des primären Computers.';
+
+  @override
   String get diveLog_consolidate_clockNoteShort =>
       'Die Uhr eines Computers geht wahrscheinlich falsch.';
 
@@ -42605,6 +42609,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_clock_profileFit(int minutes) {
+    return 'Eine Quelle liegt $minutes Min. neben der Stelle, an der ihr Profil zum primären passt';
+  }
+
+  @override
   String dataQuality_msg_shared_gear_overlap(
     String item,
     String diverA,
@@ -42818,6 +42827,15 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_fixSourceClockAll =>
       'Diesen Computer auch bei anderen Tauchgängen mit derselben Abweichung korrigieren';
+
+  @override
+  String get dataQuality_repairLabel_alignSourceProfile =>
+      'Diesen Computer anhand seines Profils ausrichten';
+
+  @override
+  String dataQuality_repairLabel_alignSourceProfileNamed(String computer) {
+    return '$computer anhand des Profils ausrichten';
+  }
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Konsolidieren';

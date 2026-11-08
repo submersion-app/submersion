@@ -7432,6 +7432,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ces enregistrements ne se chevauchent pas dans le temps : l\'horloge d\'un ordinateur est probablement décalée. La plongée garde l\'heure de l\'ordinateur principal.';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      'Ces profils de profondeur concordent à un autre moment que celui indiqué par les horloges des ordinateurs : l\'horloge d\'un ordinateur est probablement décalée. La plongée garde l\'heure de l\'ordinateur principal.';
+
+  @override
   String get diveLog_consolidate_clockNoteShort =>
       'L\'horloge d\'un ordinateur est probablement décalée.';
 
@@ -42805,6 +42809,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_clock_profileFit(int minutes) {
+    return 'Une source est placée à $minutes min de l\'endroit où son profil correspond au principal';
+  }
+
+  @override
   String dataQuality_msg_shared_gear_overlap(
     String item,
     String diverA,
@@ -43018,6 +43027,15 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_fixSourceClockAll =>
       'Corriger aussi cet ordinateur sur les autres plongées ayant le même décalage';
+
+  @override
+  String get dataQuality_repairLabel_alignSourceProfile =>
+      'Aligner cet ordinateur sur son profil';
+
+  @override
+  String dataQuality_repairLabel_alignSourceProfileNamed(String computer) {
+    return 'Aligner $computer sur son profil';
+  }
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Consolider';

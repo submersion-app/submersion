@@ -146,4 +146,41 @@ void main() {
     expect(moved.rmsDepthError, r.rmsDepthError);
     expect(moved.isStrongMatch, r.isStrongMatch);
   });
+
+  group('scoreAt (#4296)', () {
+    // Two look-alike halves, as a combined dive holds them.
+    final twoHalves = [
+      ...reef,
+      for (final q in reef)
+        DiveProfilePoint(timestamp: q.timestamp + 3000, depth: q.depth),
+    ];
+
+    test('scores the given offset, beyond the search window', () {
+      final r = aligner.scoreAt(twoHalves, reef, 3000);
+      expect(r.offsetSeconds, 3000);
+      expect(r.rmsDepthError, closeTo(0, 1e-9));
+      expect(r.isStrongMatch, isTrue);
+      // align itself only searches around lined-up starts.
+      expect(aligner.align(twoHalves, reef).offsetSeconds, 0);
+    });
+
+    test('a placement off by minutes is weak', () {
+      expect(aligner.scoreAt(reef, reef, 600).isStrongMatch, isFalse);
+    });
+
+    test('agrees with align at the shift align picks', () {
+      final secondary = trace(_reefKnots, lead: 40);
+      final best = aligner.align(reef, secondary);
+      final scored = aligner.scoreAt(reef, secondary, best.offsetSeconds);
+      expect(scored.rmsDepthError, best.rmsDepthError);
+      expect(scored.overlapFraction, best.overlapFraction);
+      expect(scored.isStrongMatch, best.isStrongMatch);
+    });
+
+    test('traces that do not overlap at the offset are a fallback', () {
+      final r = aligner.scoreAt(reef, reef, 100000);
+      expect(r.usedFallback, isTrue);
+      expect(r.isStrongMatch, isFalse);
+    });
+  });
 }

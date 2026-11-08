@@ -7524,6 +7524,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'هذه السجلات لا تتداخل زمنيًا، لذا ربما تكون ساعة أحد أجهزة الكمبيوتر خاطئة. تحتفظ الغوصة بوقت الكمبيوتر الأساسي.';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      'تتطابق ملفات العمق هذه في وقت مختلف عما تشير إليه ساعات أجهزة الكمبيوتر، لذا ربما تكون ساعة أحد أجهزة الكمبيوتر خاطئة. تحتفظ الغوصة بوقت الكمبيوتر الأساسي.';
+
+  @override
   String get diveLog_consolidate_clockNoteShort =>
       'ربما تكون ساعة أحد أجهزة الكمبيوتر خاطئة.';
 
@@ -43228,6 +43232,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_clock_profileFit(int minutes) {
+    return 'يقع أحد المصادر على بُعد $minutes دقيقة من الموضع الذي يتطابق فيه ملفه مع الأساسي';
+  }
+
+  @override
   String dataQuality_msg_shared_gear_overlap(
     String item,
     String diverA,
@@ -43447,6 +43456,15 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_fixSourceClockAll =>
       'تصحيح هذا الكمبيوتر أيضًا في الغوصات الأخرى ذات الفارق نفسه';
+
+  @override
+  String get dataQuality_repairLabel_alignSourceProfile =>
+      'محاذاة هذا الكمبيوتر حسب ملفه';
+
+  @override
+  String dataQuality_repairLabel_alignSourceProfileNamed(String computer) {
+    return 'محاذاة $computer حسب ملفه';
+  }
 
   @override
   String get dataQuality_repairLabel_consolidate => 'توحيد';

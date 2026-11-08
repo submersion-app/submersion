@@ -4456,6 +4456,7 @@
   "diveLog_consolidate_alignStartsShort": "Starts",
   "diveLog_consolidate_alignmentLabel": "Line up the records by",
   "diveLog_consolidate_clockNote": "These records don't overlap in time, so one computer's clock is probably off. The dive keeps the primary computer's time.",
+  "diveLog_consolidate_clockNoteOverlap": "These depth profiles match at a different time than the computers' clocks say, so one computer's clock is probably off. The dive keeps the primary computer's time.",
   "diveLog_consolidate_clockNoteShort": "One computer's clock is probably off.",
   "diveLog_consolidate_confirm": "Keep as one dive with both computers",
   "diveLog_consolidate_error_generic": "Couldn't merge the dives. Nothing was changed.",
@@ -25857,6 +25858,15 @@
       }
     }
   },
+  "dataQuality_msg_clock_profileFit": "A source sits {minutes} min from where its profile matches the primary's",
+  "@dataQuality_msg_clock_profileFit": {
+    "description": "A consolidated source's samples sit this far along the timeline from where its depth trace fits the primary's.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
   "dataQuality_msg_shared_gear_overlap": "{item} is on {diverA}'s dive at {timeA} and {diverB}'s dive at {timeB}.",
   "@dataQuality_msg_shared_gear_overlap": {
     "description": "Data quality finding: the same item is on two different profiles' dives at the same time (issue #2853).",
@@ -26186,6 +26196,16 @@
     }
   },
   "dataQuality_repairLabel_fixSourceClockAll": "Also fix this computer on other dives with the same offset",
+  "dataQuality_repairLabel_alignSourceProfile": "Line up this computer by its profile",
+  "dataQuality_repairLabel_alignSourceProfileNamed": "Line up {computer} by its profile",
+  "@dataQuality_repairLabel_alignSourceProfileNamed": {
+    "description": "Repair button naming the computer whose samples are lined up with the primary by profile.",
+    "placeholders": {
+      "computer": {
+        "type": "String"
+      }
+    }
+  },
   "dataQuality_repairLabel_consolidate": "Consolidate",
   "dataQuality_repairLabel_deleteDuplicate": "Delete duplicate",
   "@dataQuality_repairLabel_deleteDuplicate": {

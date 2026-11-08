@@ -11664,6 +11664,12 @@ abstract class AppLocalizations {
   /// **'These records don\'t overlap in time, so one computer\'s clock is probably off. The dive keeps the primary computer\'s time.'**
   String get diveLog_consolidate_clockNote;
 
+  /// No description provided for @diveLog_consolidate_clockNoteOverlap.
+  ///
+  /// In en, this message translates to:
+  /// **'These depth profiles match at a different time than the computers\' clocks say, so one computer\'s clock is probably off. The dive keeps the primary computer\'s time.'**
+  String get diveLog_consolidate_clockNoteOverlap;
+
   /// No description provided for @diveLog_consolidate_clockNoteShort.
   ///
   /// In en, this message translates to:
@@ -67266,6 +67272,12 @@ abstract class AppLocalizations {
   /// **'Overlaps another dive by {minutes} min'**
   String dataQuality_msg_clock_overlap(int minutes);
 
+  /// A consolidated source's samples sit this far along the timeline from where its depth trace fits the primary's.
+  ///
+  /// In en, this message translates to:
+  /// **'A source sits {minutes} min from where its profile matches the primary\'s'**
+  String dataQuality_msg_clock_profileFit(int minutes);
+
   /// Data quality finding: the same item is on two different profiles' dives at the same time (issue #2853).
   ///
   /// In en, this message translates to:
@@ -67506,6 +67518,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Also fix this computer on other dives with the same offset'**
   String get dataQuality_repairLabel_fixSourceClockAll;
+
+  /// No description provided for @dataQuality_repairLabel_alignSourceProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Line up this computer by its profile'**
+  String get dataQuality_repairLabel_alignSourceProfile;
+
+  /// Repair button naming the computer whose samples are lined up with the primary by profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Line up {computer} by its profile'**
+  String dataQuality_repairLabel_alignSourceProfileNamed(String computer);
 
   /// No description provided for @dataQuality_repairLabel_consolidate.
   ///
