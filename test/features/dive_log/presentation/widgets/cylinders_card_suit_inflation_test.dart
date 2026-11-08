@@ -38,9 +38,12 @@ const _back = DiveTank(
   role: TankRole.backGas,
 );
 
-Widget _card(List<DiveTank> tanks) => testApp(
+Widget _card(
+  List<DiveTank> tanks, {
+  List<CylinderSac> rows = const <CylinderSac>[],
+}) => testApp(
   overrides: [
-    cylinderSacProvider.overrideWith((ref, id) async => const <CylinderSac>[]),
+    cylinderSacProvider.overrideWith((ref, id) async => rows),
     tankPressuresProvider.overrideWith(
       (ref, id) async => const <String, List<TankPressurePoint>>{},
     ),
@@ -98,4 +101,35 @@ void main() {
     expect(find.text('Argon'), findsOneWidget);
     expect(find.textContaining('MOD'), findsNothing);
   });
+
+  testWidgets(
+    'a stale consumption row for the bottle shows no loop use or SAC',
+    (tester) async {
+      // The card reads the provider's retained value while it reloads, so a
+      // tank just changed to Suit Inflation can still have a row from when it
+      // was breathed.
+      await tester.pumpWidget(
+        _card(
+          const [_suit],
+          rows: const [
+            CylinderSac(
+              tankId: 'suit',
+              gasMix: GasMix(o2: 21),
+              role: TankRole.backGas,
+              tankVolume: 0.85,
+              loopRate: 1.8,
+              sacRate: 1.2,
+              startPressure: 200,
+              endPressure: 170,
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('tank-loop-use-suit')), findsNothing);
+      expect(find.textContaining('SAC'), findsNothing);
+      expect(find.textContaining('L/min'), findsNothing);
+    },
+  );
 }

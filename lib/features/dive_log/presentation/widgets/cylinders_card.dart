@@ -372,7 +372,9 @@ class CylindersCard extends ConsumerWidget {
     // volume opens the detail line (after the source badge, when shown).
     final gasUsedLiters = cylinderSac?.gasUsedLiters;
     // A suit inflation bottle is listed with its pressures, but it is not
-    // breathed: no gas used, MOD or MND (issue #4243).
+    // breathed: no gas used, loop use, SAC, MOD or MND (issue #4243). The
+    // rows can be the provider's retained value from before the tank became
+    // a suit bottle, so the role gates every figure, not just the fresh ones.
     final breathing = tank.role.isBreathingGas;
 
     return CylinderBlock(
@@ -401,12 +403,13 @@ class CylindersCard extends ConsumerWidget {
                   '${units.volumeSymbol}',
                 ),
               ),
-            if (cylinderSac?.loopRate case final loopRate?)
-              Text(
-                key: Key('tank-loop-use-${tank.id}'),
-                l10n.diveLog_cylinders_loopUse(units.formatRmv(loopRate)),
-              ),
-            if (cylinderSac != null && cylinderSac.hasValidSac)
+            if (breathing)
+              if (cylinderSac?.loopRate case final loopRate?)
+                Text(
+                  key: Key('tank-loop-use-${tank.id}'),
+                  l10n.diveLog_cylinders_loopUse(units.formatRmv(loopRate)),
+                ),
+            if (breathing && cylinderSac != null && cylinderSac.hasValidSac)
               for (final line in _consumptionLines(l10n, cylinderSac))
                 Text(line),
             if (breathing) ...[
