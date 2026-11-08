@@ -8,6 +8,7 @@ import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/storage/local_cache_sweep.dart';
+import 'package:submersion/features/bathymetry/data/bathymetry_cache_budget.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_repository.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
@@ -197,6 +198,66 @@ void main() {
 
       expect(report.bathymetryRows, superseded.length);
       expect(await gridKeys(), unorderedEquals(current));
+    });
+
+    test('evicts current grids past the byte budget, oldest read first '
+        '(#4258)', () async {
+      const half = kBathymetryCacheByteBudget ~/ 2;
+      for (final (lat, usedAt) in [(10.0, 1), (20.0, 3), (30.0, 2)]) {
+        await local
+            .into(local.bathymetryCache)
+            .insert(
+              BathymetryCacheCompanion.insert(
+                cacheKey: BathymetryRepository.keyFor(GeoPoint(lat, 10)),
+                centerLat: lat,
+                centerLon: 10,
+                status: 'ok',
+                gridBytes: const Value(half),
+                fetchedAt: 0,
+                lastUsedAt: Value(usedAt),
+              ),
+            );
+      }
+
+      final report = await sweep().run(now: now);
+
+      expect(report.bathymetryRows, 1);
+      expect(
+        await gridKeys(),
+        unorderedEquals([
+          BathymetryRepository.keyFor(const GeoPoint(20, 10)),
+          BathymetryRepository.keyFor(const GeoPoint(30, 10)),
+        ]),
+      );
+    });
+
+    test('never evicts a grid used within the last hour, which a load may '
+        'have just written', () async {
+      final recent = now
+          .subtract(const Duration(minutes: 5))
+          .millisecondsSinceEpoch;
+      for (final (lat, usedAt) in [(10.0, 1), (20.0, recent)]) {
+        await local
+            .into(local.bathymetryCache)
+            .insert(
+              BathymetryCacheCompanion.insert(
+                cacheKey: BathymetryRepository.keyFor(GeoPoint(lat, 10)),
+                centerLat: lat,
+                centerLon: 10,
+                status: 'ok',
+                gridBytes: const Value(kBathymetryCacheByteBudget + 1),
+                fetchedAt: 0,
+                lastUsedAt: Value(usedAt),
+              ),
+            );
+      }
+
+      final report = await sweep().run(now: now);
+
+      expect(report.bathymetryRows, 1);
+      expect(await gridKeys(), [
+        BathymetryRepository.keyFor(const GeoPoint(20, 10)),
+      ]);
     });
 
     test('deletes cache rows whose dive, media or track is gone', () async {

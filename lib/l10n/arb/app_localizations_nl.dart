@@ -11248,6 +11248,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get divePlanner_label_minutesUnit => 'min';
 
   @override
+  String get divePlanner_label_secondsUnit => 's';
+
+  @override
   String get divePlanner_label_ndl => 'NDL';
 
   @override
@@ -14397,6 +14400,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get passport_history_deleteConfirm => 'Deze vulling verwijderen?';
+
+  @override
+  String get passport_history_deleteFailed =>
+      'De vulling kon niet worden verwijderd. Probeer het opnieuw.';
 
   @override
   String get passport_tag_title => 'Tag';
@@ -19655,6 +19662,17 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get media_photoPicker_selectAllButton => 'Alles selecteren';
+
+  @override
+  String get media_photoPicker_albumFilter_all => 'Alle albums';
+
+  @override
+  String media_photoPicker_albumFilter_chip(String album, int count) {
+    return '$album ($count)';
+  }
+
+  @override
+  String get media_photoPicker_albumFilter_label => 'Filteren op album';
 
   @override
   String media_photoPicker_selectedCount(int count) {
@@ -60160,4 +60178,202 @@ class AppLocalizationsNl extends AppLocalizations {
   ) {
     return 'Markering $number: $time, $depth, $distance';
   }
+
+  @override
+  String get twinSet_title => 'Dubbelset';
+
+  @override
+  String get twinSet_none => 'Geen deel van een dubbelset';
+
+  @override
+  String get twinSet_link => 'Koppelen aan een partnerfles';
+
+  @override
+  String twinSet_since(String date) {
+    return 'Sinds $date';
+  }
+
+  @override
+  String get twinSet_replace => 'Partner vervangen';
+
+  @override
+  String get twinSet_unlink => 'Ontkoppelen';
+
+  @override
+  String get twinSet_history => 'Geschiedenis';
+
+  @override
+  String twinSet_historyRange(String partner, String from, String to) {
+    return '$partner, $from tot $to';
+  }
+
+  @override
+  String get twinSet_deletePairing => 'Koppeling verwijderen';
+
+  @override
+  String get twinSet_deletePairingConfirm =>
+      'Deze koppeling uit de geschiedenis verwijderen? Vullingen en duiken veranderen niet.';
+
+  @override
+  String get twinSet_pickerTitle => 'Partnerfles';
+
+  @override
+  String get twinSet_pickerEmpty => 'Geen andere flessen om te koppelen.';
+
+  @override
+  String get twinSet_pairedOnHelp => 'Gekoppeld sinds';
+
+  @override
+  String get twinSet_unpairedOnHelp => 'Ontkoppeld op';
+
+  @override
+  String get twinSet_pressureMismatchTitle => 'Verschillende werkdrukken';
+
+  @override
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  ) {
+    return '$a heeft een werkdruk van $aPressure en $b van $bPressure. Een gekoppeld paar wordt tot één druk gevuld.';
+  }
+
+  @override
+  String get twinSet_continue => 'Doorgaan';
+
+  @override
+  String get twinSet_replaceTitle => 'Partner vervangen?';
+
+  @override
+  String twinSet_replaceClash(String cylinder, String partner) {
+    return '$cylinder is gekoppeld aan $partner.';
+  }
+
+  @override
+  String twinSet_replaceQuestion(String a, String b) {
+    return 'In plaats daarvan $a aan $b koppelen?';
+  }
+
+  @override
+  String twinSet_leftAlone(String name) {
+    return '$name blijft dan alleen over.';
+  }
+
+  @override
+  String get twinSet_replaceConfirm => 'Vervangen';
+
+  @override
+  String get twinSet_clashTitle => 'Overlappende koppeling';
+
+  @override
+  String twinSet_clashBody(String pairs) {
+    return 'Dit overlapt met de koppeling van $pairs. Een fles kan op een dag maar in één dubbelset zitten.';
+  }
+
+  @override
+  String twinSet_pairNames(String a, String b) {
+    return '$a en $b';
+  }
+
+  @override
+  String twinSet_endBeforeStart(String date) {
+    return 'De einddatum moet na $date liggen.';
+  }
+
+  @override
+  String get twinSet_saveFailed =>
+      'De wijziging van de dubbelset kon niet worden opgeslagen.';
+
+  @override
+  String twinSet_with(String partner) {
+    return 'Dubbelset met $partner';
+  }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return 'Beide flessen van de dubbelset ($partner)';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner, $status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => 'Vulling bewerken';
+
+  @override
+  String get passport_logFill_overPressureTitle => 'Boven de werkdruk';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure ligt boven de werkdruk van $name, $workingPressure.';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => 'Toch opslaan';
+
+  @override
+  String get passport_logFill_back => 'Terug';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return 'Ook toepassen op de vulling van $partner?';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => 'Ja';
+
+  @override
+  String get passport_logFill_onlyThisOne => 'Alleen deze';
+
+  @override
+  String get passport_history_anotherCylinder => 'een andere fles';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return 'Gevuld samen met $partner';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'Deze vulling bij beide flessen verwijderen, of alleen bij deze?';
+
+  @override
+  String get passport_history_deleteBoth => 'Beide flessen';
+
+  @override
+  String get passport_history_edit => 'Vulling bewerken';
+
+  @override
+  String get twinSet_choiceTitle => 'De dubbelset gebruiken?';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'Dubbelset ($a + $b, $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return 'Alleen $a';
+  }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'Gekoppeld sinds';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'Ontkoppeld op';
+
+  @override
+  String get settings_conflict_field_filledTogetherId =>
+      'Vulling van de dubbelset';
+
+  @override
+  String get settings_conflict_field_twinPassportId =>
+      'Paspoort van de partnerfles';
 }

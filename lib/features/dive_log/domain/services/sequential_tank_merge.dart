@@ -179,6 +179,10 @@ DiveTank _fold(DiveTank earlier, DiveTank later) => earlier
       sourceTankIndex: earlier.sourceTankIndex ?? later.sourceTankIndex,
       tripCylinderId: earlier.tripCylinderId ?? later.tripCylinderId,
       passportId: earlier.passportId ?? later.passportId,
+      // The twin cylinder goes with the cylinder it was picked with.
+      twinPassportId: earlier.passportId != null
+          ? earlier.twinPassportId
+          : later.twinPassportId,
       equipmentId: earlier.equipmentId ?? later.equipmentId,
       decoSwitchDepth: earlier.decoSwitchDepth ?? later.decoSwitchDepth,
       // The folded pressure drop spans both halves, so the time breathed is

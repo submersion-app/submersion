@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/services/export/models/export_service_record.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dive_chunk.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_relations.dart';
+import 'package:submersion/core/services/export/uddf/uddf_export_profiles.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_export_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -58,7 +60,6 @@ void main() {
         tagRepository: TagRepository(),
         diveRepository: DiveRepository(),
         diveComputerRepository: DiveComputerRepository(),
-        tankPressureRepository: TankPressureRepository(),
         dives: dives,
       );
 
@@ -97,10 +98,13 @@ void main() {
       List<Dive> dives,
       List<EquipmentItem> items,
       UddfDiveRelations relations,
-      List<ServiceRecord> serviceRecords,
-    ) async {
+      List<ServiceRecord> serviceRecords, {
+      Map<String, DiveTankPressureExport>? diveTankPressures,
+      UddfDiveChunkLoader? loadDiveChunk,
+    }) async {
       final xml = await UddfFullExportService().generateAllDataXmlForTest(
         dives: dives,
+        loadDiveChunk: loadDiveChunk,
         buddies: await BuddyRepository().getAllBuddies(),
         tags: await TagRepository().getAllTags(),
         equipment: items,
@@ -110,7 +114,7 @@ void main() {
         diveWeights: relations.diveWeights,
         diveGasSwitches: relations.diveGasSwitches,
         diveProfileEvents: relations.diveProfileEvents,
-        diveTankPressures: relations.diveTankPressures,
+        diveTankPressures: diveTankPressures,
       );
       // The generator stamps the wall clock; nothing else differs by time.
       return xml.replaceFirst(RegExp('<datetime>[^<]*</datetime>'), '');
@@ -129,17 +133,27 @@ void main() {
           ),
       ];
 
+      final (perDive, pressures) = await _loadRelationsPerDive(dives);
       final expected = await render(
         dives,
         items,
-        await _loadRelationsPerDive(dives),
+        perDive,
         await _loadServiceRecordsPerItem(items),
+        diveTankPressures: pressures,
       );
+      // The export's own reads: the relations in batches, and each run's
+      // profiles and tank pressures as the run is written (issue #4249).
+      final listed = await repository.getAllDives();
       final actual = await render(
-        dives,
+        listed,
         items,
-        await loadRelations(dives),
+        await loadRelations(listed),
         await loadUddfServiceRecords(ServiceRecordRepository(), items),
+        loadDiveChunk: databaseUddfDiveChunks(
+          diveRepository: repository,
+          tankPressureRepository: TankPressureRepository(),
+          fetchSources: (_) async => const [],
+        ),
       );
 
       // Every relation has to reach the document, or two empty documents
@@ -160,8 +174,10 @@ void main() {
 }
 
 /// The per-dive reads both full UDDF exports made before issue #1867,
-/// kept as the oracle the batched loader has to reproduce.
-Future<UddfDiveRelations> _loadRelationsPerDive(List<Dive> dives) async {
+/// kept as the oracle the batched loader has to reproduce, with each dive's
+/// tank pressures, which the export now reads a run of dives at a time.
+Future<(UddfDiveRelations, Map<String, DiveTankPressureExport>)>
+_loadRelationsPerDive(List<Dive> dives) async {
   final buddies = BuddyRepository();
   final tags = TagRepository();
   final diveRepository = DiveRepository();
@@ -195,13 +211,15 @@ Future<UddfDiveRelations> _loadRelationsPerDive(List<Dive> dives) async {
       );
     }
   }
-  return UddfDiveRelations(
-    diveBuddies: diveBuddies,
-    diveTags: diveTags,
-    diveWeights: diveWeights,
-    diveGasSwitches: diveGasSwitches,
-    diveProfileEvents: diveProfileEvents,
-    diveTankPressures: diveTankPressures,
+  return (
+    UddfDiveRelations(
+      diveBuddies: diveBuddies,
+      diveTags: diveTags,
+      diveWeights: diveWeights,
+      diveGasSwitches: diveGasSwitches,
+      diveProfileEvents: diveProfileEvents,
+    ),
+    diveTankPressures,
   );
 }
 

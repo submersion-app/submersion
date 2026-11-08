@@ -11320,6 +11320,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get divePlanner_label_minutesUnit => 'min';
 
   @override
+  String get divePlanner_label_secondsUnit => 's';
+
+  @override
   String get divePlanner_label_ndl => 'NDL';
 
   @override
@@ -14496,6 +14499,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get passport_history_deleteConfirm =>
       'Excluir este registro de carga?';
+
+  @override
+  String get passport_history_deleteFailed =>
+      'Não foi possível excluir a carga. Tente novamente.';
 
   @override
   String get passport_tag_title => 'Etiqueta';
@@ -19784,6 +19791,17 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get media_photoPicker_selectAllButton => 'Selecionar tudo';
+
+  @override
+  String get media_photoPicker_albumFilter_all => 'Todos os álbuns';
+
+  @override
+  String media_photoPicker_albumFilter_chip(String album, int count) {
+    return '$album ($count)';
+  }
+
+  @override
+  String get media_photoPicker_albumFilter_label => 'Filtrar por álbum';
 
   @override
   String media_photoPicker_selectedCount(int count) {
@@ -60527,4 +60545,202 @@ class AppLocalizationsPt extends AppLocalizations {
   ) {
     return 'Marcador $number: $time, $depth, $distance';
   }
+
+  @override
+  String get twinSet_title => 'Bi-cilindro';
+
+  @override
+  String get twinSet_none => 'Não faz parte de um bi-cilindro';
+
+  @override
+  String get twinSet_link => 'Vincular a um cilindro parceiro';
+
+  @override
+  String twinSet_since(String date) {
+    return 'Desde $date';
+  }
+
+  @override
+  String get twinSet_replace => 'Trocar parceiro';
+
+  @override
+  String get twinSet_unlink => 'Desvincular';
+
+  @override
+  String get twinSet_history => 'Histórico';
+
+  @override
+  String twinSet_historyRange(String partner, String from, String to) {
+    return '$partner, de $from a $to';
+  }
+
+  @override
+  String get twinSet_deletePairing => 'Excluir pareamento';
+
+  @override
+  String get twinSet_deletePairingConfirm =>
+      'Excluir este pareamento do histórico? Cargas e mergulhos não mudam.';
+
+  @override
+  String get twinSet_pickerTitle => 'Cilindro parceiro';
+
+  @override
+  String get twinSet_pickerEmpty => 'Nenhum outro cilindro para parear.';
+
+  @override
+  String get twinSet_pairedOnHelp => 'Pareados desde';
+
+  @override
+  String get twinSet_unpairedOnHelp => 'Desvinculados em';
+
+  @override
+  String get twinSet_pressureMismatchTitle => 'Pressões de trabalho diferentes';
+
+  @override
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  ) {
+    return '$a tem pressão de trabalho de $aPressure e $b de $bPressure. Um par com manifold é carregado a uma só pressão.';
+  }
+
+  @override
+  String get twinSet_continue => 'Continuar';
+
+  @override
+  String get twinSet_replaceTitle => 'Trocar de parceiro?';
+
+  @override
+  String twinSet_replaceClash(String cylinder, String partner) {
+    return '$cylinder está pareado com $partner.';
+  }
+
+  @override
+  String twinSet_replaceQuestion(String a, String b) {
+    return 'Parear $a com $b em vez disso?';
+  }
+
+  @override
+  String twinSet_leftAlone(String name) {
+    return '$name ficará sozinho.';
+  }
+
+  @override
+  String get twinSet_replaceConfirm => 'Trocar';
+
+  @override
+  String get twinSet_clashTitle => 'Pareamento sobreposto';
+
+  @override
+  String twinSet_clashBody(String pairs) {
+    return 'Isto se sobrepõe ao pareamento de $pairs. Um cilindro só pode estar em um bi-cilindro por dia.';
+  }
+
+  @override
+  String twinSet_pairNames(String a, String b) {
+    return '$a e $b';
+  }
+
+  @override
+  String twinSet_endBeforeStart(String date) {
+    return 'A data de término deve ser posterior a $date.';
+  }
+
+  @override
+  String get twinSet_saveFailed =>
+      'Não foi possível salvar a alteração do bi-cilindro.';
+
+  @override
+  String twinSet_with(String partner) {
+    return 'Bi-cilindro com $partner';
+  }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return 'Os dois cilindros do bi-cilindro ($partner)';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner, $status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => 'Editar carga';
+
+  @override
+  String get passport_logFill_overPressureTitle =>
+      'Acima da pressão de trabalho';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure está acima da pressão de trabalho de $name, $workingPressure.';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => 'Salvar mesmo assim';
+
+  @override
+  String get passport_logFill_back => 'Voltar';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return 'Aplicar também à carga de $partner?';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => 'Sim';
+
+  @override
+  String get passport_logFill_onlyThisOne => 'Só esta';
+
+  @override
+  String get passport_history_anotherCylinder => 'outro cilindro';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return 'Carregado junto com $partner';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'Excluir esta carga dos dois cilindros ou só deste?';
+
+  @override
+  String get passport_history_deleteBoth => 'Os dois cilindros';
+
+  @override
+  String get passport_history_edit => 'Editar carga';
+
+  @override
+  String get twinSet_choiceTitle => 'Usar o bi-cilindro?';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'Bi-cilindro ($a + $b, $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return 'Só $a';
+  }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'Pareados desde';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'Desvinculados em';
+
+  @override
+  String get settings_conflict_field_filledTogetherId => 'Carga do bi-cilindro';
+
+  @override
+  String get settings_conflict_field_twinPassportId =>
+      'Passaporte do cilindro parceiro';
 }

@@ -185,6 +185,19 @@ bool hasDesktopWindow() =>
       _ => false,
     };
 
+/// Shows the desktop window, restoring it if minimized, and with [focus]
+/// brings it to the front. Does nothing where there is no desktop window.
+///
+/// The macOS plugin finds the app's window only in `ensureInitialized`; a
+/// window call before it unwraps nil in native code and the app quits
+/// (#4298), so every reveal goes through here.
+Future<void> revealDesktopWindow({bool focus = false}) async {
+  if (!hasDesktopWindow()) return;
+  await windowManager.ensureInitialized();
+  await windowManager.show();
+  if (focus) await windowManager.focus();
+}
+
 /// The window this app runs in. Read through [defaultTargetPlatform] so a
 /// widget test, which reports Android, never reaches the real plugin.
 final windowFullscreenPlatformProvider = Provider<WindowFullscreenPlatform>((

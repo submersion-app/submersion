@@ -213,6 +213,22 @@ void main() {
         contains(_sameDiverSeek),
       );
     });
+
+    // The planner's Follow prompt once read the whole log to find one recent
+    // dive (issue #4250).
+    test('the latest ended dive of every diver seeks a time range', () async {
+      expect(
+        await plan(db, latestEndedDiveSql(scopedToDiver: false), params: 3),
+        contains(_timeSeek),
+      );
+    });
+
+    test('the latest ended dive of one diver seeks a time range', () async {
+      expect(
+        await plan(db, latestEndedDiveSql(scopedToDiver: true), params: 4),
+        contains(_sameDiverSeek),
+      );
+    });
   }
 
   group('dive start lookups on an empty database', pinDiveStartSeeks);

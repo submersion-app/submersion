@@ -6,7 +6,6 @@ import 'package:drift/drift.dart' show OrderingTerm, Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/export/models/uddf_export_options.dart';
-import 'package:submersion/core/services/export/uddf/uddf_export_profiles.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
@@ -24,6 +23,23 @@ import 'package:submersion/features/divers/domain/entities/diver.dart'
 
 import '../../../../helpers/test_database.dart';
 import '../../../../helpers/uddf_restore.dart';
+
+/// [dives] with each one's recorded profile, as the backup reads them.
+Future<List<domain.Dive>> withMergedProfiles(
+  DiveRepository repository,
+  List<domain.Dive> dives,
+) async {
+  final profiles = await repository.getMergedProfilesForDives([
+    for (final dive in dives) dive.id,
+  ]);
+  return [
+    for (final dive in dives)
+      if (profiles[dive.id] case final profile?)
+        dive.copyWith(profile: profile)
+      else
+        dive,
+  ];
+}
 
 void main() {
   const diverId = 'diver-restore-source-profiles';
@@ -101,7 +117,7 @@ void main() {
 
   /// A full backup of the logbook, read the way the app reads it.
   Future<String> backup() async {
-    final dives = await attachMergedProfiles(
+    final dives = await withMergedProfiles(
       repository,
       await repository.getAllDives(diverId: diverId),
     );
@@ -160,7 +176,7 @@ void main() {
       reading: reading('src-b', primary: false, order: 1),
       profile: points([(10, 0), (40, 20), (70, 0)]),
     );
-    final dives = await attachMergedProfiles(
+    final dives = await withMergedProfiles(
       repository,
       await repository.getAllDives(diverId: diverId),
     );
@@ -197,7 +213,7 @@ void main() {
       );
     }
 
-    Future<List<domain.Dive>> exportedDives() async => attachMergedProfiles(
+    Future<List<domain.Dive>> exportedDives() async => withMergedProfiles(
       repository,
       await repository.getAllDives(diverId: diverId),
     );
@@ -258,7 +274,7 @@ void main() {
       reading: reading('src-b', primary: false, serial: '222', order: 1),
       profile: points([(10, 0), (40, 20), (70, 0)]),
     );
-    final dives = await attachMergedProfiles(
+    final dives = await withMergedProfiles(
       repository,
       await repository.getAllDives(diverId: diverId),
     );

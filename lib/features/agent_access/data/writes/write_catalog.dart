@@ -22,6 +22,7 @@ import 'package:submersion/features/agent_access/data/writes/families/dive_type_
 import 'package:submersion/features/agent_access/data/writes/families/dive_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/diver_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/document_writes.dart';
+import 'package:submersion/features/agent_access/data/writes/families/cylinder_pairing_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/equipment_component_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/equipment_location_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/families/equipment_observation_writes.dart';
@@ -124,6 +125,7 @@ class WriteCatalog {
       EquipmentLocationWrites(repositories),
       EquipmentLocationMoveWrites(repositories),
       EquipmentComponentWrites(repositories),
+      CylinderPairingWrites(repositories),
       ServiceKindWrites(repositories),
       ServiceScheduleWrites(repositories, refreshReminders: refreshReminders),
       ServiceRecordWrites(repositories, refreshReminders: refreshReminders),

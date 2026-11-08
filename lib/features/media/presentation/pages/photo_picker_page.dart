@@ -8,10 +8,13 @@ import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart'
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
 import 'package:submersion/features/media/presentation/helpers/files_tab_staging.dart';
+import 'package:submersion/features/media/presentation/helpers/gallery_album_filter.dart';
 import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/files_tab.dart';
+import 'package:submersion/features/media/presentation/widgets/gallery_album_filter_bar.dart';
+import 'package:submersion/features/media/presentation/widgets/gallery_selection_toolbar.dart';
 import 'package:submersion/features/media/presentation/widgets/url_tab.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_tab_metrics.dart';
@@ -84,6 +87,13 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage>
   static const _filesTabIndex = 1;
 
   List<AssetInfo>? _assets;
+
+  /// The albums [_assets] came from, for the Gallery tab's album filter.
+  List<GalleryAlbumOption> _albumOptions = const [];
+
+  /// The album name the grid is narrowed to, or null for every album (#189).
+  String? _albumName;
+
   late final TabController _tabController;
   late final ValueNotifier<int> _openSessions;
   bool _galleryLoadStarted = false;
@@ -202,9 +212,15 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage>
         ? await loadAssets(() => mounted)
         : await service.getAssetsInDateRange(widget.startTime, widget.endTime);
     if (mounted) {
-      setState(() => _assets = assets);
+      setState(() {
+        _assets = assets;
+        _albumOptions = galleryAlbumOptions(assets);
+      });
     }
   }
+
+  /// The assets the grid shows: [_assets] narrowed to [_albumName].
+  List<AssetInfo> get _visibleAssets => assetsInAlbum(_assets!, _albumName);
 
   void _handleDone() {
     final state = ref.read(photoPickerNotifierProvider);
@@ -292,37 +308,23 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage>
     return _buildBody(context, state, colorScheme);
   }
 
-  Set<int> _computeSelectedIndices(Set<String> selectedIds) {
-    if (_assets == null) return {};
-    final indices = <int>{};
-    for (var i = 0; i < _assets!.length; i++) {
-      if (selectedIds.contains(_assets![i].id)) {
-        indices.add(i);
-      }
-    }
-    return indices;
-  }
+  Set<int> _indicesOf(List<AssetInfo> visible, Set<String> ids) => {
+    for (var i = 0; i < visible.length; i++)
+      if (ids.contains(visible[i].id)) i,
+  };
 
-  Set<int> _computeDisabledIndices(Set<String> alreadyLinkedIds) {
-    if (_assets == null) return {};
-    final indices = <int>{};
-    for (var i = 0; i < _assets!.length; i++) {
-      if (alreadyLinkedIds.contains(_assets![i].id)) {
-        indices.add(i);
-      }
-    }
-    return indices;
-  }
-
-  void _syncSelectionToNotifier(Set<int> indices) {
-    if (_assets == null) return;
+  /// Takes the grid's report of its whole selection, which covers only the
+  /// [visible] assets, without dropping picks the album filter hides.
+  void _syncSelectionToNotifier(List<AssetInfo> visible, Set<int> indices) {
     final state = ref.read(photoPickerNotifierProvider);
-    final ids = indices
-        .where((i) => i < _assets!.length)
-        .map((i) => _assets![i].id)
-        .where((id) => !state.alreadyLinkedIds.contains(id))
-        .toList();
-    ref.read(photoPickerNotifierProvider.notifier).selectAll(ids);
+    final merged = mergeVisibleSelection(
+      current: state.selectedIds,
+      visibleIds: visible.map((a) => a.id),
+      selectedVisibleIds: indices
+          .where((i) => i < visible.length)
+          .map((i) => visible[i].id),
+    );
+    ref.read(photoPickerNotifierProvider.notifier).selectAll(merged.toList());
   }
 
   Widget _buildBody(
@@ -353,27 +355,37 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage>
       );
     }
 
+    final visible = _visibleAssets;
+    final selectableIds = [
+      for (final asset in visible)
+        if (!state.alreadyLinkedIds.contains(asset.id)) asset.id,
+    ];
+
     // Show grid
     return Column(
       children: [
         // Date range header
         _DateRangeHeader(startTime: widget.startTime, endTime: widget.endTime),
+        GalleryAlbumFilterBar(
+          options: _albumOptions,
+          totalCount: _assets!.length,
+          selectedAlbum: _albumName,
+          onSelected: (name) => setState(() => _albumName = name),
+        ),
         // Selection toolbar. Always present, even with nothing selected, so
         // the first tap does not push the grid down a row under the user's
         // next tap (#2059).
-        _SelectionToolbar(
+        GallerySelectionToolbar(
           selectedCount: state.selectionCount,
-          totalCount: _assets!
-              .where((a) => !state.alreadyLinkedIds.contains(a.id))
-              .length,
+          canSelectAll: selectableIds.any(
+            (id) => !state.selectedIds.contains(id),
+          ),
+          // Adds the photos on screen; picks under other albums stay.
           onSelectAll: () {
-            final selectableIds = _assets!
-                .where((a) => !state.alreadyLinkedIds.contains(a.id))
-                .map((a) => a.id)
-                .toList();
-            ref
-                .read(photoPickerNotifierProvider.notifier)
-                .selectAll(selectableIds);
+            ref.read(photoPickerNotifierProvider.notifier).selectAll([
+              ...state.selectedIds,
+              ...selectableIds,
+            ]);
           },
           onClearSelection: () {
             ref.read(photoPickerNotifierProvider.notifier).clearSelection();
@@ -382,12 +394,15 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage>
         // Photo grid
         Expanded(
           child: DragSelectGridView<AssetInfo>(
-            items: _assets!,
+            // A fresh grid per album: its scroll offset and index-based
+            // selection belong to the list it was built with.
+            key: ValueKey(_albumName),
+            items: visible,
             startInSelectionMode: state.selectionCount > 0,
-            initialSelection: _computeSelectedIndices(state.selectedIds),
-            disabledIndices: _computeDisabledIndices(state.alreadyLinkedIds),
+            initialSelection: _indicesOf(visible, state.selectedIds),
+            disabledIndices: _indicesOf(visible, state.alreadyLinkedIds),
             onSelectionChanged: (indices) {
-              _syncSelectionToNotifier(indices);
+              _syncSelectionToNotifier(visible, indices);
             },
             // Selection visibility is derived from state.selectionCount,
             // so no additional local tracking is needed here.
@@ -395,7 +410,7 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage>
             onItemTap: (index) {
               ref
                   .read(photoPickerNotifierProvider.notifier)
-                  .toggleSelection(_assets![index].id);
+                  .toggleSelection(visible[index].id);
             },
             padding: const EdgeInsets.all(4),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -460,59 +475,6 @@ class _DateRangeHeader extends ConsumerWidget {
         style: textTheme.bodySmall?.copyWith(
           color: colorScheme.onSurfaceVariant,
         ),
-      ),
-    );
-  }
-}
-
-/// Toolbar showing selection count with Select All and Clear buttons.
-///
-/// A button that has nothing to do is disabled rather than removed, so the
-/// toolbar keeps the same layout for every selection.
-class _SelectionToolbar extends StatelessWidget {
-  final int selectedCount;
-  final int totalCount;
-  final VoidCallback onSelectAll;
-  final VoidCallback onClearSelection;
-
-  const _SelectionToolbar({
-    required this.selectedCount,
-    required this.totalCount,
-    required this.onSelectAll,
-    required this.onClearSelection,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: colorScheme.primaryContainer.withValues(alpha: 0.3),
-        border: Border(
-          bottom: BorderSide(color: colorScheme.outlineVariant, width: 0.5),
-        ),
-      ),
-      child: Row(
-        children: [
-          const SizedBox(width: 8),
-          Text(
-            context.l10n.media_photoPicker_selectedCount(selectedCount),
-            style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
-          ),
-          const Spacer(),
-          TextButton(
-            onPressed: selectedCount < totalCount ? onSelectAll : null,
-            child: Text(context.l10n.media_photoPicker_selectAllButton),
-          ),
-          TextButton(
-            onPressed: selectedCount > 0 ? onClearSelection : null,
-            child: Text(context.l10n.media_photoPicker_clearSelectionButton),
-          ),
-        ],
       ),
     );
   }

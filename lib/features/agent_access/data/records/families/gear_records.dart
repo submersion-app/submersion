@@ -8,6 +8,7 @@ import 'package:submersion/features/agent_access/data/records/record_repositorie
 import 'package:submersion/features/agent_access/data/records/record_scope.dart';
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_pairing.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
@@ -156,6 +157,50 @@ List<RecordEntry> gearEntries(RecordRepositories r) => [
       'parent_equipment_id',
       'component_equipment_id',
       'role',
+    ],
+  ),
+  // Twin set pairings (issue #4242), listed under their first cylinder.
+  childEntity<CylinderPairing>(
+    r,
+    name: 'cylinder_pairings',
+    table: 'cylinder_pairings',
+    // Visible through either cylinder, as the Twin set card shows it on both.
+    scope: (diverId, alias) {
+      final a = viaParent('equipment', 'cylinder_a_id', _equipmentScope)(
+        diverId,
+        alias,
+      )!;
+      final b = viaParent('equipment', 'cylinder_b_id', _equipmentScope)(
+        diverId,
+        alias,
+      )!;
+      return (
+        sql: '(${a.sql} OR ${b.sql})',
+        params: [...a.params, ...b.params],
+      );
+    },
+    parentColumn: 'cylinder_a_id',
+    alsoParentColumns: const ['cylinder_b_id'],
+    orderBy: 'r0.cylinder_a_id, r0.paired_on DESC',
+    idOf: (p) => p.id,
+    // One read of every pairing, resolved, split by first cylinder: a
+    // read per parent would resolve the whole table each time.
+    byParents: (parents) async {
+      final all = await r.cylinderPairings.getAll();
+      return {
+        for (final id in parents)
+          id: [
+            for (final p in all)
+              if (p.cylinderAId == id) p,
+          ],
+      };
+    },
+    document: cylinderPairingDocument,
+    summaryKeys: const [
+      'cylinder_a_id',
+      'cylinder_b_id',
+      'paired_on',
+      'unpaired_on',
     ],
   ),
   childEntity<EquipmentShare>(

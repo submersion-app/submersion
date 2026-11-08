@@ -4,7 +4,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -56,15 +55,16 @@ Future<void> shareDivesWithBuddy(
   }
 
   try {
-    // Fetch all dives
-    final diveRepository = ref.read(diveRepositoryProvider);
-    final dives = <Dive>[];
-    for (final diveId in diveIds) {
-      final dive = await diveRepository.getDiveById(diveId);
-      if (dive != null) {
-        dives.add(dive);
-      }
-    }
+    // The buddy's dives without their samples, in the order the ids came:
+    // the export reads each run's samples as it writes it (issue #4249).
+    final byId = {
+      for (final dive
+          in await ref
+              .read(diveRepositoryProvider)
+              .getDivesByIdsWithoutSamples(diveIds))
+        dive.id: dive.copyWith(profile: const []),
+    };
+    final dives = [for (final id in diveIds) ?byId[id]];
 
     if (dives.isEmpty) {
       scaffoldMessenger.hideCurrentSnackBar();
@@ -87,10 +87,7 @@ Future<void> shareDivesWithBuddy(
     // request. Either way no success snackbar follows: the share sheet and
     // the save panel each provide their own feedback.
     final exportService = ref.read(exportServiceProvider);
-    final dataSources = await ref.read(uddfSourceFetchProvider)(
-      dives.map((d) => d.id).toList(growable: false),
-      options,
-    );
+    final loadDiveChunk = ref.read(uddfDiveChunksProvider)(options);
     final extras = await ref.read(uddfDivesExtrasFetchProvider)(
       dives.map((d) => d.id).toList(growable: false),
       options,
@@ -100,9 +97,9 @@ Future<void> shareDivesWithBuddy(
         await exportService.exportDivesToUddf(
           dives,
           sites: sites,
-          dataSources: dataSources,
           extras: extras,
           options: options,
+          loadDiveChunk: loadDiveChunk,
           certificationCatalog: await ref.read(
             allCustomCertificationsCatalogProvider.future,
           ),
@@ -111,9 +108,9 @@ Future<void> shareDivesWithBuddy(
         await exportService.saveDivesToUddfFile(
           dives,
           sites: sites,
-          dataSources: dataSources,
           extras: extras,
           options: options,
+          loadDiveChunk: loadDiveChunk,
           certificationCatalog: await ref.read(
             allCustomCertificationsCatalogProvider.future,
           ),

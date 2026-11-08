@@ -11315,6 +11315,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get divePlanner_label_minutesUnit => 'Min.';
 
   @override
+  String get divePlanner_label_secondsUnit => 'Sek.';
+
+  @override
   String get divePlanner_label_ndl => 'Nullzeit';
 
   @override
@@ -14490,6 +14493,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get passport_history_deleteConfirm => 'Diesen Fülleintrag löschen?';
+
+  @override
+  String get passport_history_deleteFailed =>
+      'Die Füllung konnte nicht gelöscht werden. Bitte erneut versuchen.';
 
   @override
   String get passport_tag_title => 'Tag';
@@ -19766,6 +19773,17 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get media_photoPicker_selectAllButton => 'Alle auswählen';
+
+  @override
+  String get media_photoPicker_albumFilter_all => 'Alle Alben';
+
+  @override
+  String media_photoPicker_albumFilter_chip(String album, int count) {
+    return '$album ($count)';
+  }
+
+  @override
+  String get media_photoPicker_albumFilter_label => 'Nach Album filtern';
 
   @override
   String media_photoPicker_selectedCount(int count) {
@@ -60416,4 +60434,202 @@ class AppLocalizationsDe extends AppLocalizations {
   ) {
     return 'Markierung $number: $time, $depth, $distance';
   }
+
+  @override
+  String get twinSet_title => 'Doppelgerät';
+
+  @override
+  String get twinSet_none => 'Nicht Teil eines Doppelgeräts';
+
+  @override
+  String get twinSet_link => 'Mit einer Partnerflasche verbinden';
+
+  @override
+  String twinSet_since(String date) {
+    return 'Seit $date';
+  }
+
+  @override
+  String get twinSet_replace => 'Partner tauschen';
+
+  @override
+  String get twinSet_unlink => 'Trennen';
+
+  @override
+  String get twinSet_history => 'Verlauf';
+
+  @override
+  String twinSet_historyRange(String partner, String from, String to) {
+    return '$partner, $from bis $to';
+  }
+
+  @override
+  String get twinSet_deletePairing => 'Paarung löschen';
+
+  @override
+  String get twinSet_deletePairingConfirm =>
+      'Diese Paarung aus dem Verlauf löschen? Füllungen und Tauchgänge bleiben unverändert.';
+
+  @override
+  String get twinSet_pickerTitle => 'Partnerflasche';
+
+  @override
+  String get twinSet_pickerEmpty => 'Keine anderen Flaschen zum Paaren.';
+
+  @override
+  String get twinSet_pairedOnHelp => 'Gepaart seit';
+
+  @override
+  String get twinSet_unpairedOnHelp => 'Getrennt am';
+
+  @override
+  String get twinSet_pressureMismatchTitle => 'Unterschiedliche Betriebsdrücke';
+
+  @override
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  ) {
+    return '$a ist für $aPressure ausgelegt und $b für $bPressure. Ein verbundenes Paar wird auf einen Druck gefüllt.';
+  }
+
+  @override
+  String get twinSet_continue => 'Fortfahren';
+
+  @override
+  String get twinSet_replaceTitle => 'Partner tauschen?';
+
+  @override
+  String twinSet_replaceClash(String cylinder, String partner) {
+    return '$cylinder ist mit $partner gepaart.';
+  }
+
+  @override
+  String twinSet_replaceQuestion(String a, String b) {
+    return 'Stattdessen $a mit $b paaren?';
+  }
+
+  @override
+  String twinSet_leftAlone(String name) {
+    return '$name bleibt dann einzeln.';
+  }
+
+  @override
+  String get twinSet_replaceConfirm => 'Tauschen';
+
+  @override
+  String get twinSet_clashTitle => 'Überschneidende Paarung';
+
+  @override
+  String twinSet_clashBody(String pairs) {
+    return 'Das überschneidet sich mit der Paarung von $pairs. Eine Flasche kann an einem Tag nur zu einem Doppelgerät gehören.';
+  }
+
+  @override
+  String twinSet_pairNames(String a, String b) {
+    return '$a und $b';
+  }
+
+  @override
+  String twinSet_endBeforeStart(String date) {
+    return 'Das Enddatum muss nach dem $date liegen.';
+  }
+
+  @override
+  String get twinSet_saveFailed =>
+      'Die Änderung am Doppelgerät konnte nicht gespeichert werden.';
+
+  @override
+  String twinSet_with(String partner) {
+    return 'Doppelgerät mit $partner';
+  }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return 'Beide Flaschen des Doppelgeräts ($partner)';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner, $status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => 'Füllung bearbeiten';
+
+  @override
+  String get passport_logFill_overPressureTitle => 'Über dem Betriebsdruck';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure liegt über dem Betriebsdruck von $name, $workingPressure.';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => 'Trotzdem speichern';
+
+  @override
+  String get passport_logFill_back => 'Zurück';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return 'Auch auf die Füllung von $partner anwenden?';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => 'Ja';
+
+  @override
+  String get passport_logFill_onlyThisOne => 'Nur diese';
+
+  @override
+  String get passport_history_anotherCylinder => 'eine andere Flasche';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return 'Zusammen mit $partner gefüllt';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'Diese Füllung bei beiden Flaschen löschen oder nur bei dieser?';
+
+  @override
+  String get passport_history_deleteBoth => 'Beide Flaschen';
+
+  @override
+  String get passport_history_edit => 'Füllung bearbeiten';
+
+  @override
+  String get twinSet_choiceTitle => 'Das Doppelgerät verwenden?';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'Doppelgerät ($a + $b, $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return 'Nur $a';
+  }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'Gepaart seit';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'Getrennt am';
+
+  @override
+  String get settings_conflict_field_filledTogetherId =>
+      'Füllung des Doppelgeräts';
+
+  @override
+  String get settings_conflict_field_twinPassportId =>
+      'Pass der Partnerflasche';
 }

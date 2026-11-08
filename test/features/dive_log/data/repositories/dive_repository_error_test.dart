@@ -45,6 +45,10 @@ void main() {
         throwsA(anything),
       );
       await expectLater(
+        repository.getDiverIdsAtSite('test-id'),
+        throwsA(anything),
+      );
+      await expectLater(
         repository.getDivesForCourse('test-id'),
         throwsA(anything),
       );

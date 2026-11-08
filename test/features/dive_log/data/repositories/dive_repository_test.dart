@@ -704,6 +704,47 @@ void main() {
       });
     });
 
+    // The mirror undo asks only which profiles still log a dive at a site,
+    // so it reads the ids rather than hydrating every dive (issue #4252).
+    group('getDiverIdsAtSite', () {
+      Future<void> sql(String statement, List<Object?> args) =>
+          DatabaseService.instance.database.customStatement(statement, args);
+
+      test('returns each diver with a dive at the site once', () async {
+        for (final id in ['ana', 'ben', 'cy']) {
+          await sql(
+            'INSERT INTO divers (id, name, created_at, updated_at) '
+            'VALUES (?, ?, 0, 0)',
+            [id, id],
+          );
+        }
+        for (final id in ['S', 'T']) {
+          await sql(
+            'INSERT INTO dive_sites (id, name, created_at, updated_at) '
+            'VALUES (?, ?, 0, 0)',
+            [id, id],
+          );
+        }
+        for (final (id, diver, site) in [
+          ('d1', 'ana', 'S'),
+          ('d2', 'ana', 'S'),
+          ('d3', 'ben', 'S'),
+          ('d4', 'cy', 'T'),
+          ('d5', null, 'S'),
+        ]) {
+          await sql(
+            'INSERT INTO dives (id, diver_id, site_id, dive_date_time, '
+            'created_at, updated_at) VALUES (?, ?, ?, 0, 0, 0)',
+            [id, diver, site],
+          );
+        }
+
+        expect(await repository.getDiverIdsAtSite('S'), {'ana', 'ben'});
+        expect(await repository.getDiverIdsAtSite('T'), {'cy'});
+        expect(await repository.getDiverIdsAtSite('none'), isEmpty);
+      });
+    });
+
     group('getDivesInRange', () {
       test('should return dives within date range', () async {
         await repository.createDive(

@@ -19,6 +19,7 @@ class TheDiveSection extends StatelessWidget {
     required this.avgDepthController,
     required this.bottomTimeController,
     required this.runtimeController,
+    this.onRuntimeChanged,
     required this.diveNumberController,
     required this.entryText,
     required this.onEditEntry,
@@ -45,6 +46,10 @@ class TheDiveSection extends StatelessWidget {
   final TextEditingController avgDepthController;
   final TextEditingController bottomTimeController;
   final TextEditingController runtimeController;
+
+  /// Called as the diver types a runtime, so the exit can follow it (issue
+  /// #241). Not called when the page sets the text itself.
+  final ValueChanged<String>? onRuntimeChanged;
   final TextEditingController diveNumberController;
 
   /// Hidden while the dive is planned: a planned dive holds no number until
@@ -162,6 +167,7 @@ class TheDiveSection extends StatelessWidget {
         FormRow.text(
           label: l10n.diveLog_edit_label_runtime,
           controller: runtimeController,
+          onChanged: onRuntimeChanged,
           suffixText: 'min',
           keyboardType: TextInputType.number,
           // Separators are kept so a fraction is reported, not read as a
