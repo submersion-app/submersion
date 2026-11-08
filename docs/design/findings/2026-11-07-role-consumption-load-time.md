@@ -34,3 +34,31 @@ SAC, which is invalidated on every logbook change. A phone will be slower than
 this Mac. If either shows up as a visible wait, the follow-up named in the
 spec is a per-dive cache on the `deco_classification_cache` pattern, keyed by
 an inputs hash, so only changed dives are recomputed.
+
+## After the review: worst case and the per-dive memo
+
+The whole-branch review pointed out that the first run had no pressure
+series and profiles on only a quarter of the dives. Measured again with every
+one of 2000 dives carrying a 4-second profile and a 4-second transmitter
+series, read a chunk at a time:
+
+| Phase | Total |
+| --- | --- |
+| Lean dive reads | 121 ms |
+| Gas switches | 2 ms |
+| Displayed pressure series (decoded on the calling isolate) | 726 ms |
+| 120-point profile summaries (decoded on a worker isolate) | 1707 ms |
+| Per-cylinder calculation and fold | 65 ms |
+| **First read** | **1614 ms** |
+| **Second and third read** | **9 ms** |
+
+The live logbook (36 dives, every one with a profile and a series) is too
+small to show this. The repository now keeps each dive's figures in memory
+with the version they were worked out from: the dive source stamp
+(`diveSourceStampSql`: the dive, its profile and pressure series and its
+tanks), its gas switches, and which recording is primary. A later read,
+whether a filter change on the Gas page, a logbook change ticking the
+planner's logged default, or opening the Dive Lab, works out only the dives
+whose version moved. Nothing is stored, so the first read after launch still
+pays the full cost.
+

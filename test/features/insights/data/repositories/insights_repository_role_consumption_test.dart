@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/data/services/gas_analysis_service.
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/domain/role_consumption.dart';
+import 'package:submersion/features/insights/domain/role_consumption_trend.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -209,6 +210,122 @@ void main() {
       );
     },
   );
+
+  test(
+    'a short deco window on a long dive stays within 2% of full samples',
+    () async {
+      // Four hours: 120 evenly spaced points would be two minutes apart, so a
+      // three-minute deco stint would rest on one or two of them.
+      await insertDive('cave', runtime: 240 * 60);
+      await insertTank('cave', 'cave-back', 'backGas', end: 40);
+      await insertTank(
+        'cave',
+        'cave-deco',
+        'deco',
+        volume: 7,
+        o2: 50,
+        end: 170,
+        order: 1,
+      );
+      // Deco from 21 m at 222 minutes, a minute and a half at each 3 m stop up
+      // to 6 m, then back gas for the last stretch.
+      await insertSwitch('cave', 'cave-deco', 222 * 60);
+      await insertSwitch('cave', 'cave-back', 231 * 60);
+      double depthAt(int t) {
+        const decoStart = 222 * 60;
+        if (t < decoStart - 240) return 50 + (t % 120) / 60;
+        if (t < decoStart) return 50 - (t - (decoStart - 240)) * 29 / 240;
+        final stop = (t - decoStart) ~/ 90;
+        return stop >= 6 ? 6 : 21 - stop * 3.0;
+      }
+
+      await ProfileSeriesRepository().insertSeries(
+        diveId: 'cave',
+        samples: [
+          for (var t = 0; t <= 240 * 60; t++)
+            ProfileSample(timestamp: t, depth: depthAt(t)),
+        ],
+        now: 0,
+      );
+      final rows = await detailRows('cave');
+      final deco = rows.singleWhere((r) => r.tankId == 'cave-deco');
+
+      final trend = await repository.getRoleConsumptionPerDive();
+
+      expect(
+        trend.rmv[ConsumptionRoleGroup.deco]!.single.value,
+        closeTo(deco.rmv!, deco.rmv! * 0.02),
+      );
+    },
+  );
+
+  group('a second read', () {
+    double bottomGas(RoleConsumptionTrend trend) =>
+        trend.rmv[ConsumptionRoleGroup.bottomGas]!.single.value;
+
+    test('reuses a dive whose stamp did not move', () async {
+      await insertDive('plain');
+      await insertTank('plain', 'plain-back', 'backGas');
+      final first = bottomGas(await repository.getRoleConsumptionPerDive());
+
+      // A write that moves no stamp: nothing says the dive changed.
+      await db.customStatement(
+        "UPDATE dive_tanks SET end_pressure = 20 WHERE id = 'plain-back'",
+      );
+
+      expect(
+        bottomGas(await repository.getRoleConsumptionPerDive()),
+        closeTo(first, 1e-9),
+      );
+    });
+
+    test('reads a tank change that moves its clock', () async {
+      await insertDive('plain');
+      await insertTank('plain', 'plain-back', 'backGas');
+      final first = bottomGas(await repository.getRoleConsumptionPerDive());
+
+      await db.customStatement(
+        "UPDATE dive_tanks SET end_pressure = 20, "
+        "hlc = '000000000000002:000001:node' WHERE id = 'plain-back'",
+      );
+
+      expect(
+        bottomGas(await repository.getRoleConsumptionPerDive()),
+        greaterThan(first),
+      );
+    });
+
+    test('reads a gas switch that arrived alone', () async {
+      await insertDive('hand');
+      await insertTank('hand', 'hand-back', 'backGas');
+      await insertTank(
+        'hand',
+        'hand-deco',
+        'deco',
+        volume: 7,
+        o2: 50,
+        end: 140,
+        order: 1,
+      );
+      expect((await repository.getRoleConsumptionPerDive()).leftOutDives, 1);
+
+      await insertSwitch('hand', 'hand-deco', 50 * 60);
+      final trend = await repository.getRoleConsumptionPerDive();
+
+      expect(trend.leftOutDives, 0);
+      expect(trend.rmv[ConsumptionRoleGroup.deco], hasLength(1));
+    });
+
+    test('drops a deleted dive', () async {
+      await insertDive('gone');
+      await insertTank('gone', 'gone-back', 'backGas');
+      await repository.getRoleConsumptionPerDive();
+
+      await db.customStatement("DELETE FROM dives WHERE id = 'gone'");
+
+      expect((await repository.getRoleConsumptionPerDive()).rmv, isEmpty);
+    });
+  });
 
   test('a profileless back gas dive uses the stored average depth', () async {
     await insertDive('plain');

@@ -30,67 +30,42 @@ extension InsightsRepositoryRoleConsumption on InsightsRepository {
             ccrOnly: true,
           ),
         ]..sort((a, b) => a.dateTime.compareTo(b.dateTime));
-        if (rows.isEmpty) return const RoleConsumptionTrend();
-        final rowsById = {for (final row in rows) row.id: row};
 
-        final service = GasAnalysisService(gasModel: gasModel);
+        final memo = _roleConsumptionMemo;
+        final stale = {
+          for (final row in rows)
+            if (memo[row.id]?.version != row.version) row.id: row,
+        };
+        for (final chunk in InsightsRepository._diveChunks(
+          stale.keys.toList(),
+        )) {
+          final uses = await _roleConsumptionForDives(chunk, stale);
+          for (final MapEntry(key: id, value: use) in uses.entries) {
+            memo[id] = (version: stale[id]!.version, use: use);
+          }
+        }
+
         final rmv = <ConsumptionRoleGroup, List<TrendDataPoint>>{};
         final sac = <ConsumptionRoleGroup, List<TrendDataPoint>>{};
         var leftOutDives = 0;
-        for (final ids in InsightsRepository._diveChunks(
-          rows.map((r) => r.id).toList(),
-        )) {
-          final dives = {
-            for (final dive
-                in await _diveRepository.getDivesByIdsWithoutSamples(ids))
-              dive.id: dive,
-          };
-          final switches = await _diveRepository.getGasSwitchesForDives(ids);
-          final pressures = await _tankPressureRepository
-              .getDisplayedTankPressuresForDives(ids);
-          final profiles = await _diveRepository.getBatchProfileSummaries(ids);
-
-          for (final id in ids) {
-            final dive = dives[id];
-            if (dive == null) continue;
-            final row = rowsById[id]!;
-            final profile = profiles[id] ?? const <DiveProfilePoint>[];
-            final cylinders = service.calculateCylinderSac(
-              dive: dive,
-              profile: profile,
-              gasSwitches: switches[id],
-              tankPressures: pressures[id],
-            );
-            final use = roleConsumptionForDive(
-              dive: dive,
-              cylinders: cylinders,
-              profile: profile,
-              tankPressures: pressures[id],
-              // A dive consolidated from two computers can keep a copy of a
-              // cylinder from each, and these figures add cylinders up.
-              counted: (tank) => tankOwnedByPrimary(
-                tank,
-                primarySourceId: row.primarySourceId,
-                primaryComputerId: row.primaryComputerId,
-              ),
-            );
-            if (use.leftOut) {
-              leftOutDives++;
-              continue;
-            }
-            for (final (figures, series) in [(use.rmv, rmv), (use.sac, sac)]) {
-              for (final MapEntry(key: group, value: value)
-                  in figures.entries) {
-                series
-                    .putIfAbsent(group, () => [])
-                    .add(
-                      TrendDataPoint(
-                        date: row.dateTime,
-                        value: value,
-                        diveId: id,
-                      ),
-                    );
-              }
+        for (final row in rows) {
+          final use = memo[row.id]?.use;
+          if (use == null) continue;
+          if (use.leftOut) {
+            leftOutDives++;
+            continue;
+          }
+          for (final (figures, series) in [(use.rmv, rmv), (use.sac, sac)]) {
+            for (final MapEntry(key: group, value: value) in figures.entries) {
+              series
+                  .putIfAbsent(group, () => [])
+                  .add(
+                    TrendDataPoint(
+                      date: row.dateTime,
+                      value: value,
+                      diveId: row.id,
+                    ),
+                  );
             }
           }
         }
@@ -110,6 +85,51 @@ extension InsightsRepositoryRoleConsumption on InsightsRepository {
     }
   }
 
+  /// Works out consumption by cylinder role for the dives [ids], one chunk:
+  /// the dive detail's own per-cylinder calculation on each, with depth from
+  /// its 120-point profile summary.
+  Future<Map<String, DiveRoleConsumption>> _roleConsumptionForDives(
+    List<String> ids,
+    Map<String, _RoleConsumptionDiveRow> rowsById,
+  ) async {
+    final dives = {
+      for (final dive in await _diveRepository.getDivesByIdsWithoutSamples(ids))
+        dive.id: dive,
+    };
+    final switches = await _diveRepository.getGasSwitchesForDives(ids);
+    final pressures = await _tankPressureRepository
+        .getDisplayedTankPressuresForDives(ids);
+    final profiles = await _diveRepository.getBatchProfileSummaries(ids);
+
+    final service = GasAnalysisService(gasModel: gasModel);
+    final uses = <String, DiveRoleConsumption>{};
+    for (final id in ids) {
+      final dive = dives[id];
+      if (dive == null) continue;
+      final row = rowsById[id]!;
+      final profile = profiles[id] ?? const <DiveProfilePoint>[];
+      uses[id] = roleConsumptionForDive(
+        dive: dive,
+        cylinders: service.calculateCylinderSac(
+          dive: dive,
+          profile: profile,
+          gasSwitches: switches[id],
+          tankPressures: pressures[id],
+        ),
+        profile: profile,
+        tankPressures: pressures[id],
+        // A dive consolidated from two computers can keep a copy of a
+        // cylinder from each, and these figures add cylinders up.
+        counted: (tank) => tankOwnedByPrimary(
+          tank,
+          primarySourceId: row.primarySourceId,
+          primaryComputerId: row.primaryComputerId,
+        ),
+      );
+    }
+    return uses;
+  }
+
   /// The dives in [scope] with at least one cylinder, with their primary
   /// source and computer; only CCR dives when [ccrOnly].
   Future<List<_RoleConsumptionDiveRow>> _roleConsumptionDiveRows(
@@ -123,6 +143,10 @@ extension InsightsRepositoryRoleConsumption on InsightsRepository {
         .customSelect(
           '''
         SELECT d.id, d.dive_date_time,
+          ${diveSourceStampSql('d')} AS stamp,
+          (SELECT COUNT(*) || ':' || COALESCE(SUM(sw.timestamp), 0) || ':' ||
+             COALESCE(GROUP_CONCAT(sw.tank_id), '')
+           FROM gas_switches sw WHERE sw.dive_id = d.id) AS switches,
           (SELECT id FROM dive_data_sources
            WHERE dive_id = d.id AND is_primary = 1 LIMIT 1) AS primary_source_id,
           (SELECT computer_id FROM dive_data_sources
@@ -147,6 +171,15 @@ extension InsightsRepositoryRoleConsumption on InsightsRepository {
           ),
           primarySourceId: row.read<String?>('primary_source_id'),
           primaryComputerId: row.read<String?>('primary_computer_id'),
+          // The dive and every child its figures read: profile and pressure
+          // series and tanks (the source stamp), gas switches, and which
+          // recording is primary. Synced children never re-stamp the dive.
+          version: [
+            row.read<int>('stamp'),
+            row.read<String>('switches'),
+            row.read<String?>('primary_source_id'),
+            row.read<String?>('primary_computer_id'),
+          ].join('|'),
         ),
     ];
   }
@@ -157,4 +190,5 @@ typedef _RoleConsumptionDiveRow = ({
   DateTime dateTime,
   String? primarySourceId,
   String? primaryComputerId,
+  String version,
 });

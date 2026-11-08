@@ -301,8 +301,10 @@ void main() {
       await insertTank('mix', 0, 'backGas', volume: 12);
       await insertTank('mix', 1, 'backGas', o2: 50);
 
+      // A fresh repository each read: the raw delete below moves no stamp,
+      // so a repository that already read the dive would reuse its figures.
       Future<double> bottomGas() async =>
-          (await repository.getRoleConsumptionPerDive())
+          (await InsightsRepository().getRoleConsumptionPerDive())
               .rmv[ConsumptionRoleGroup.bottomGas]!
               .single
               .value;
@@ -315,8 +317,10 @@ void main() {
       await insertDive('role');
       await insertTank('role', 0, 'sidemountLeft', volume: 11.1);
       await insertTank('role', 1, 'sidemountRight');
+      // A fresh repository each read: the raw delete below moves no stamp,
+      // so a repository that already read the dive would reuse its figures.
       Future<double> bottomGas() async =>
-          (await repository.getRoleConsumptionPerDive())
+          (await InsightsRepository().getRoleConsumptionPerDive())
               .rmv[ConsumptionRoleGroup.bottomGas]!
               .single
               .value;

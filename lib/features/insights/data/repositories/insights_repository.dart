@@ -192,6 +192,12 @@ class InsightsRepository with InsightsChartDives {
   late final _diveRepository = DiveRepository();
   late final _tankPressureRepository = TankPressureRepository();
 
+  /// Each dive's consumption by cylinder role with the version it was worked
+  /// out from (see [InsightsRepositoryRoleConsumption]), so a later read
+  /// works out only the dives that changed.
+  final _roleConsumptionMemo =
+      <String, ({String version, DiveRoleConsumption use})>{};
+
   /// How many dives' packed series the profile aggregates read at once.
   ///
   /// The aggregates run over the whole filtered library, and a packed series
