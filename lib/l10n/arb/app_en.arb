@@ -15917,6 +15917,7 @@
   "@dataHealth_backup_overdue": {"placeholders": {"when": {"type": "String"}}},
   "dataHealth_backup_never": "No backup yet",
   "dataHealth_backup_cloudCopyMissing": "Last backup did not reach the cloud",
+  "dataHealth_backup_extraCopyMissing": "Last backup did not reach every account",
   "dataHealth_backup_noOffDeviceCopy": "No copy off this device",
   "dataHealth_sync_off": "Recommended: turn on cloud sync",
   "dataHealth_sync_needsPassphrase": "Sync paused: enter your passphrase",

@@ -43932,6 +43932,12 @@ abstract class AppLocalizations {
   /// **'Last backup did not reach the cloud'**
   String get dataHealth_backup_cloudCopyMissing;
 
+  /// No description provided for @dataHealth_backup_extraCopyMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Last backup did not reach every account'**
+  String get dataHealth_backup_extraCopyMissing;
+
   /// No description provided for @dataHealth_backup_noOffDeviceCopy.
   ///
   /// In en, this message translates to:

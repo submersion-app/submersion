@@ -25895,6 +25895,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dataHealth_backup_cloudCopyMissing => '上次备份未上传到云端';
 
   @override
+  String get dataHealth_backup_extraCopyMissing =>
+      'Last backup did not reach every account';
+
+  @override
   String get dataHealth_backup_noOffDeviceCopy => '没有此设备之外的副本';
 
   @override

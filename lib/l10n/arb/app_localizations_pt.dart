@@ -27412,6 +27412,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'O último backup não chegou à nuvem';
 
   @override
+  String get dataHealth_backup_extraCopyMissing =>
+      'Last backup did not reach every account';
+
+  @override
   String get dataHealth_backup_noOffDeviceCopy =>
       'Nenhuma cópia fora deste dispositivo';
 

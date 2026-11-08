@@ -27500,6 +27500,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'La dernière sauvegarde n\'a pas atteint le cloud';
 
   @override
+  String get dataHealth_backup_extraCopyMissing =>
+      'Last backup did not reach every account';
+
+  @override
   String get dataHealth_backup_noOffDeviceCopy =>
       'Aucune copie hors de cet appareil';
 

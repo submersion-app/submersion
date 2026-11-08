@@ -27675,6 +27675,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'لم يصل آخر نسخ احتياطي إلى السحابة';
 
   @override
+  String get dataHealth_backup_extraCopyMissing =>
+      'Last backup did not reach every account';
+
+  @override
   String get dataHealth_backup_noOffDeviceCopy =>
       'لا توجد نسخة خارج هذا الجهاز';
 

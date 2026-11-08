@@ -27295,6 +27295,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Az utolsó mentés nem került fel a felhőbe';
 
   @override
+  String get dataHealth_backup_extraCopyMissing =>
+      'Last backup did not reach every account';
+
+  @override
   String get dataHealth_backup_noOffDeviceCopy =>
       'Nincs másolat ezen az eszközön kívül';
 

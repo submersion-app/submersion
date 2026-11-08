@@ -26741,6 +26741,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dataHealth_backup_cloudCopyMissing => 'הגיבוי האחרון לא הגיע לענן';
 
   @override
+  String get dataHealth_backup_extraCopyMissing =>
+      'Last backup did not reach every account';
+
+  @override
   String get dataHealth_backup_noOffDeviceCopy => 'אין עותק מחוץ למכשיר הזה';
 
   @override

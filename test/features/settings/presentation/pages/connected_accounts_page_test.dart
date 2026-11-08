@@ -23,6 +23,7 @@ import 'package:submersion/core/services/shared_library/shared_library_models.da
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/accounts/account_location.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/backup/domain/entities/backup_copy_account.dart';
 import 'package:submersion/features/settings/presentation/pages/account_detail_page.dart';
 import 'package:submersion/features/settings/presentation/pages/connected_accounts_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/accounts/account_group_tile.dart';
@@ -541,6 +542,63 @@ void main() {
       expect(dropbox.disconnected, isEmpty);
       expect(settings.cloudBackupEnabled, isTrue);
       expect(settings.copyAccountId, account.id);
+    });
+
+    // Issue #3782: an account backups are also copied to stops getting
+    // copies, and the main copy carries on.
+    group('an extra copy account', () {
+      Future<void> addExtra(String id) async {
+        final backup = BackupPreferences(prefs);
+        await backup.setCloudBackupEnabled(true);
+        await backup.setCopyDestination(
+          accountId: 'another-row',
+          kind: AccountKind.s3,
+        );
+        await backup.setExtraCopyAccounts([
+          BackupCopyAccount(accountId: id, kind: AccountKind.dropbox),
+          const BackupCopyAccount(accountId: 'git-row', kind: AccountKind.git),
+        ]);
+      }
+
+      testWidgets('signing out drops it from the extra copies', (tester) async {
+        final account = await addDropbox(tester);
+        await addExtra(account.id);
+        await pumpPage(tester);
+
+        await openMenu(tester, 'Sign out on this device');
+        expect(find.textContaining('stop making a copy'), findsNothing);
+        await tester.tap(
+          find.descendant(
+            of: find.byType(AlertDialog),
+            matching: find.text('Sign out on this device'),
+          ),
+        );
+        await settle(tester);
+
+        final settings = BackupPreferences(prefs).getSettings();
+        expect(settings.cloudBackupEnabled, isTrue);
+        expect(settings.copyAccountId, 'another-row');
+        expect(settings.extraCopyAccounts.map((a) => a.accountId), ['git-row']);
+      });
+
+      testWidgets('removing drops it from the extra copies', (tester) async {
+        final account = await addDropbox(tester);
+        await addExtra(account.id);
+        await pumpPage(tester);
+
+        await openMenu(tester, 'Remove from all devices');
+        await tester.tap(
+          find.descendant(
+            of: find.byType(AlertDialog),
+            matching: find.text('Remove from all devices'),
+          ),
+        );
+        await settle(tester);
+
+        final settings = BackupPreferences(prefs).getSettings();
+        expect(settings.cloudBackupEnabled, isTrue);
+        expect(settings.extraCopyAccounts.map((a) => a.accountId), ['git-row']);
+      });
     });
   });
 
