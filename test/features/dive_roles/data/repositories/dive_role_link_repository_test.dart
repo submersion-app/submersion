@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 
+import '../../../../helpers/drift_statement_log.dart';
 import '../../../../helpers/test_database.dart';
 
 /// The role junctions behind several roles per person (issue #1221).
@@ -170,6 +171,16 @@ void main() {
           'b2': ['buddy'],
         },
       });
+    });
+    test('allBuddyRoleIds over no buddies reads nothing', () async {
+      await tearDownTestDatabase();
+      await setUpStatementLoggingTestDatabase();
+      late Map<String, Map<String, List<String>>> roles;
+      final sent = await statementsOf(
+        () async => roles = await repo.allBuddyRoleIds(buddyIds: const []),
+      );
+      expect(roles, isEmpty);
+      expect(sent, isEmpty);
     });
   });
 

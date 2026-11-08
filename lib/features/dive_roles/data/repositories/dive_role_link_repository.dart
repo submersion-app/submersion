@@ -87,10 +87,11 @@ class DiveRoleLinkRepository {
 
   /// [buddyRoleIdsForDives] over the whole library, for whole-table
   /// aggregates such as a buddy's usual role; [buddyIds] narrows it to
-  /// those buddies' links.
+  /// those buddies' links, and an empty [buddyIds] reads nothing.
   Future<Map<String, Map<String, List<String>>>> allBuddyRoleIds({
     List<String>? buddyIds,
   }) async {
+    if (buddyIds != null && buddyIds.isEmpty) return const {};
     final links = _db.select(_db.diveBuddies);
     final roles = _db.select(_db.diveBuddyRoles);
     if (buddyIds != null) {

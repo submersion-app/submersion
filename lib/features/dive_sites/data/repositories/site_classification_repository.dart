@@ -76,10 +76,11 @@ class SiteClassificationRepository {
 
   /// Every site's types, in each site's own order, or only those of [siteIds]
   /// when named. A row pointing at a custom type that has not arrived by
-  /// sync yet is skipped by the join.
+  /// sync yet is skipped by the join. An empty [siteIds] reads nothing.
   Future<Map<String, List<SiteTypeEntity>>> getTypesBySite({
     List<String>? siteIds,
   }) async {
+    if (siteIds != null && siteIds.isEmpty) return const {};
     final rows = await _db
         .customSelect(
           'SELECT sst.site_id AS link_site_id, st.* FROM site_site_types sst '
@@ -99,10 +100,12 @@ class SiteClassificationRepository {
     return bySite;
   }
 
-  /// Every site's tags, by name, or only those of [siteIds] when named.
+  /// Every site's tags, by name, or only those of [siteIds] when named. An
+  /// empty [siteIds] reads nothing.
   Future<Map<String, List<domain.Tag>>> getTagsBySite({
     List<String>? siteIds,
   }) async {
+    if (siteIds != null && siteIds.isEmpty) return const {};
     final rows = await _db
         .customSelect(
           'SELECT stg.site_id AS link_site_id, t.* FROM site_tags stg '
