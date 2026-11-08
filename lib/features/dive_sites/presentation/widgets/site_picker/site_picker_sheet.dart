@@ -19,6 +19,7 @@ import 'package:submersion/features/dive_sites/presentation/widgets/similar_valu
 import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/grouped_site_list_view.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_site_tile.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/platform/desktop_target_platform.dart';
 
 /// Identifies the picker's scrolling list, for tests.
 const sitePickerListKey = Key('site-picker-list');
@@ -147,14 +148,7 @@ Future<DiveSite?> pickOrCreateSite(
 /// name is the quickest way in. On phones and tablets focus would raise the
 /// on-screen keyboard over the list, hiding the Nearby section that matters
 /// most for a dive with GPS, so there the diver taps the field to search.
-bool get _autofocusSearch => switch (defaultTargetPlatform) {
-  TargetPlatform.macOS ||
-  TargetPlatform.windows ||
-  TargetPlatform.linux => true,
-  TargetPlatform.android ||
-  TargetPlatform.iOS ||
-  TargetPlatform.fuchsia => false,
-};
+bool get _autofocusSearch => isDesktopTargetPlatform(defaultTargetPlatform);
 
 /// The site picker: a search field over every location field, a Nearby
 /// section when a location is known, and the sites grouped by country and

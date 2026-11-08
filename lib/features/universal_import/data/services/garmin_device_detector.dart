@@ -1,10 +1,10 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart'
-    show TargetPlatform, defaultTargetPlatform;
+import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/platform/host_platform.dart';
+import 'package:submersion/core/platform/desktop_target_platform.dart';
 
 /// A Garmin dive computer mounted as a USB mass-storage volume.
 ///
@@ -49,10 +49,7 @@ class GarminDeviceDetector {
   /// Whether the current platform can mount a Garmin device as a drive.
   static bool get isSupportedPlatform {
     if (HostPlatform.isWeb) return false;
-    final platform = defaultTargetPlatform;
-    return platform == TargetPlatform.macOS ||
-        platform == TargetPlatform.windows ||
-        platform == TargetPlatform.linux;
+    return isDesktopTargetPlatform(defaultTargetPlatform);
   }
 
   /// Scan mounted volumes and return every one that looks like a Garmin
