@@ -2,7 +2,9 @@ import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
+import 'package:submersion/core/deco/entities/gas_exchange.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/features/safety/domain/entities/tissue_load_state.dart';
 
 /// Projects the diver's tissue state at the end of their last dive forward
 /// to the current moment.
@@ -12,9 +14,11 @@ import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 /// using the same [BuhlmannAlgorithm] the dive log and planner already run.
 /// Mirrors `tissue_seed.dart`, which off-gasses a dive's end-of-dive
 /// compartments for a fixed surface interval to seed a plan that follows it;
-/// this projects to "now" instead of to a fixed interval, and re-evaluates
-/// on each UI tick (see `CnsOtuPage`'s minute timer) rather than caching a
-/// stale result from the moment the data was fetched.
+/// this projects to "now" instead of to a fixed interval. `CnsOtuPage`
+/// re-projects on its minute timer rather than keeping the result from the
+/// moment the data was fetched: it reads the state now as the last entry of
+/// [surfaceIntervalTimeline], computed once per minute, so [currentStatus]
+/// is the single-state form of the same projection.
 class TissueLiveService {
   const TissueLiveService._();
 
@@ -172,7 +176,8 @@ class TissueLiveService {
   /// does not linger as "still loaded" for days; large enough to survive
   /// floating-point noise as a compartment's tension asymptotically
   /// approaches the surface value without ever exactly reaching it.
-  static const double _residualLoadEpsilonBar = 0.01;
+  static const double _residualLoadEpsilonBar =
+      DecoStatus.gasEquilibriumToleranceBar;
 
   /// Whether [status] (as returned by [currentStatus]) still carries
   /// residual tissue loading worth showing, i.e. at least one compartment's
@@ -191,6 +196,43 @@ class TissueLiveService {
         calculateInspiredN2(status.ambientPressureBar, airN2Fraction);
     return status.compartments.any(
       (comp) => comp.totalInertGas - surfaceTension > _residualLoadEpsilonBar,
+    );
+  }
+
+  /// The one classification the surface readouts share: [TissueLoadState.settled]
+  /// by [isAtSurfaceEquilibrium], [TissueLoadState.loaded] by
+  /// [hasResidualLoad], [TissueLoadState.settling] in between. Using a single
+  /// call keeps the page's "active load" gate and its "no residual tissue
+  /// load" note from ever disagreeing (two tolerances used to leave a gap
+  /// where the page read clear while the tissues were still moving).
+  static TissueLoadState classify(DecoStatus status) {
+    if (isAtSurfaceEquilibrium(status)) return TissueLoadState.settled;
+    if (hasResidualLoad(status)) return TissueLoadState.loaded;
+    return TissueLoadState.settling;
+  }
+
+  /// Whether every compartment in [status] holds both nitrogen and helium at
+  /// the inspired pressure, each within [DecoStatus.gasEquilibriumToleranceBar]
+  /// (issue #4228).
+  ///
+  /// Stricter than `!hasResidualLoad`, which only looks for total tension
+  /// ABOVE the surface level: right after oxygen or helium-rich deco the fast
+  /// compartments sit below it (taking nitrogen back up) or still hold helium
+  /// while their total stays low, and must not read as settled. Using the
+  /// same tolerance as the per-gas badges keeps the readouts and the badges
+  /// from contradicting each other. It also requires `!hasResidualLoad`:
+  /// both gases can each sit just inside the tolerance while their sum is
+  /// already above the surface level by more than it, and such a status must
+  /// not read as settled while [hasResidualLoad] still counts it as loaded.
+  /// False when the inspired gas is unknown, and for a status without
+  /// compartments, which shows nothing to call settled.
+  static bool isAtSurfaceEquilibrium(DecoStatus status) {
+    if (status.compartments.isEmpty) return false;
+    if (hasResidualLoad(status)) return false;
+    return status.compartments.every(
+      (comp) =>
+          status.n2Exchange(comp) == GasExchange.equilibrium &&
+          status.heExchange(comp) == GasExchange.equilibrium,
     );
   }
 }

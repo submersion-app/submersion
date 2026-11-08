@@ -226,6 +226,10 @@
   "equipment_filter_owner_mine": "Mine",
   "enum_equipmentField_owner": "Owner",
   "enum_equipmentField_owner_short": "Owner",
+  "enum_equipmentField_location": "Location",
+  "@enum_equipmentField_location": {"description": "Table column header for the place an item is kept (issue #3625)"},
+  "enum_equipmentField_location_short": "Location",
+  "@enum_equipmentField_location_short": {"description": "Short table column label for the place an item is kept"},
   "equipment_set_noLongerShared": "No longer shared",
   "equipment_history_title": "History",
   "equipment_history_empty": "Not used on any dive yet",
@@ -2748,6 +2752,15 @@
   "certifications_list_groupBy_status": "Status",
   "certifications_list_section_expired": "Expired",
   "certifications_list_section_expiringSoon": "Expiring Soon",
+  "certifications_list_section_professional": "{agency} Professional",
+  "@certifications_list_section_professional": {
+    "description": "Header of the certification list section holding one agency's professional ratings (divemaster, instructor and up) when grouped by agency.",
+    "placeholders": {
+      "agency": {
+        "type": "String"
+      }
+    }
+  },
   "certifications_list_section_valid": "Valid",
   "certifications_list_sort_title": "Sort Certifications",
   "certifications_list_tile_expired": "Expired",
@@ -4481,6 +4494,95 @@
   "diveLog_deco_sectionTissueLoading": "Tissue Loading",
   "diveLog_deco_semantics_notRequired": "No decompression required",
   "diveLog_deco_semantics_required": "Decompression required",
+  "diveLog_deco_compartmentLeading": "Leading: #{number}",
+  "@diveLog_deco_compartmentLeading": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_compartmentOther": "Compartment: #{number}",
+  "@diveLog_deco_compartmentOther": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_metricLoad": "Load",
+  "diveLog_deco_gasOngassing": "Ongassing",
+  "diveLog_deco_gasOffgassing": "Offgassing",
+  "diveLog_deco_gasEquilibrium": "Equilibrium",
+  "diveLog_deco_heatMapRows": "Rows: fast (top) to slow (bottom)",
+  "diveLog_deco_surfaceLevel": "Surface level",
+  "diveLog_deco_mValue": "M-value",
+  "diveLog_deco_tooltipCompartment": "Compartment {number}",
+  "@diveLog_deco_tooltipCompartment": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_tooltipLoaded": "{percent}% loaded",
+  "@diveLog_deco_tooltipLoaded": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_tooltipHalfTime": "Half-time: {minutes} min",
+  "@diveLog_deco_tooltipHalfTime": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_tooltipSurfaceLevel": "Surface level: {percent}%",
+  "@diveLog_deco_tooltipSurfaceLevel": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_info_title": "What do these values mean?",
+  "diveLog_deco_info_body": "Load: a compartment's inert gas pressure as a percentage of the most it may hold at the surface (its M-value, the red line at 100%).\n\nSurface level: the marker on each bar shows where a fully desaturated compartment settles while you breathe air at the surface. It is never 0%, because your body always holds the nitrogen of the air you breathe. A bar at its marker carries no load left over from diving.\n\nOngassing and offgassing: gas always moves toward the pressure of the gas you breathe. After decompression on oxygen or on a mix rich in helium, the fast compartments can hold less nitrogen than the air at the surface. Back on air, they take nitrogen up again until they reach their marker. That is normal and not a residual load from the dive.\n\nHelium: air contains no helium. After a trimix dive, a compartment releases helium while it can take nitrogen up at the same time. The arrows next to N₂ and He show each gas on its own; the badge next to the compartment number shows the net direction of both.",
+  "diveLog_deco_barChartSemantics": "Tissue loading chart. {count} compartments, loading relative to the M-value; leading compartment {number} at {percent}%.",
+  "@diveLog_deco_barChartSemantics": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "number": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_heatMapUndersaturated": "Undersaturated",
+  "diveLog_deco_heatMapSupersaturated": "Supersaturated",
+  "diveLog_deco_percentValue": "{value}%",
+  "@diveLog_deco_percentValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_minutesValue": "{value} min",
+  "@diveLog_deco_minutesValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_deco_tissueFast": "Fast",
   "diveLog_deco_tissueSlow": "Slow",
   "diveLog_deco_title": "Deco Status",
@@ -5094,6 +5196,14 @@
   "diveLog_edit_tripSuggested": "Suggested: {name}",
   "diveLog_edit_tripUse": "Use",
   "diveLog_edit_useSet": "Use Set",
+  "diveLog_edit_removeSet": "Remove Set",
+  "@diveLog_edit_removeSet": {"description": "Bulk edit: button that stages an equipment set to remove from every selected dive"},
+  "diveLog_bulkEdit_setsToRemove": "Sets to remove",
+  "@diveLog_bulkEdit_setsToRemove": {"description": "Bulk edit: heading over the equipment sets staged for removal"},
+  "diveLog_bulkEdit_removeSetTitle": "Remove Equipment Set",
+  "@diveLog_bulkEdit_removeSetTitle": {"description": "Bulk edit: title of the sheet that picks an equipment set to remove from every selected dive"},
+  "diveLog_bulkEdit_equipmentSets": "Equipment sets",
+  "@diveLog_bulkEdit_equipmentSets": {"description": "Bulk edit confirmation: section title for equipment sets"},
   "diveLog_edit_weightPreset_use": "Use preset",
   "diveLog_edit_weightPreset_save": "Save as preset",
   "diveLog_edit_weightPreset_pickerTitle": "Apply a weight preset",
@@ -6050,6 +6160,8 @@
   "diveLog_cylinders_figureStart": "Start {pressure}",
   "diveLog_cylinders_figureEnd": "End {pressure}",
   "diveLog_cylinders_figureUsed": "Used {pressure}",
+  "diveLog_cylinders_figureNow": "Now {pressure}",
+  "diveLog_cylinders_figureNowEstimated": "Now {pressure} (est.)",
   "diveLog_cylinders_gasSemantics": "Gas {mix}",
   "diveLog_cylinders_gasUsed": "Gas used {amount}",
   "diveLog_cylinders_loopUse": "Loop use {rate}",
@@ -6711,6 +6823,22 @@
   },
   "@diveLog_cylinders_figureUsed": {
     "description": "Cylinders card tank figure label: the pressure used, between the start and end labels beside the tank figure, e.g. \"Used 200 bar\". pressure is the value with its unit.",
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "@diveLog_cylinders_figureNow": {
+    "description": "Cylinders card tank figure label: the tank's pressure at the moment the profile chart's cursor is on, beside a line across the tank figure at that level, e.g. \"Now 130 bar\". Shown only while hovering or dragging on the profile or tissue charts. pressure is the value with its unit.",
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "@diveLog_cylinders_figureNowEstimated": {
+    "description": "Cylinders card tank figure label: as diveLog_cylinders_figureNow, for a tank with no transmitter whose pressure is estimated as a straight line from its start and end pressures, e.g. \"Now 130 bar (est.)\". Use the same estimate marker as diveLog_pressure_estimatedSuffix. pressure is the value with its unit.",
     "placeholders": {
       "pressure": {
         "type": "String"
@@ -9893,6 +10021,8 @@
   "@equipment_location_groupCount": {"description": "Item count beside a location heading and on the Locations page", "placeholders": {"count": {"type": "int"}}},
   "equipment_location_activeFilter": "Location",
   "@equipment_location_activeFilter": {"description": "Chip in the active filters bar when the list is filtered by location"},
+  "equipment_location_tileSemantics": "Location: {name}",
+  "@equipment_location_tileSemantics": {"description": "Screen reader label for the place line on an equipment list card", "placeholders": {"name": {"type": "String"}}},
   "equipment_filter_section_location": "Location",
   "@equipment_filter_section_location": {"description": "Heading of the location section in the equipment filter"},
   "equipment_arrange_groupByLocation": "Group by location",
@@ -15912,7 +16042,7 @@
   "settings_data_importOptions": "Import options",
   "settings_data_importOptions_subtitle": "Site matching, surfacing pressure, auto tags",
   "settings_data_dataTools": "Data tools",
-  "settings_data_dataTools_subtitle": "Fix dive times, link buddies, retype gear, data quality, table editor",
+  "settings_data_dataTools_subtitle": "Fix dive times, link buddies, retype gear, data quality, table editor, re-parse dives",
   "settings_agentAccess_title": "Agent access",
   "settings_agentAccess_confirm_linkedDives": "Dives that lose this link ({diver}): {count}",
   "@settings_agentAccess_confirm_linkedDives": {"placeholders": {"diver": {"type": "String"}, "count": {"type": "int"}}},
@@ -22766,41 +22896,6 @@
       }
     }
   },
-  "diveComputer_detail_reparseAllProgress": "Re-parsing {count} dives...",
-  "@diveComputer_detail_reparseAllProgress": {
-    "placeholders": {
-      "count": {
-        "type": "int",
-        "example": "12"
-      }
-    }
-  },
-  "diveComputer_detail_reparseAllSuccess": "Re-parsed {count} dives successfully",
-  "@diveComputer_detail_reparseAllSuccess": {
-    "placeholders": {
-      "count": {
-        "type": "int",
-        "example": "12"
-      }
-    }
-  },
-  "diveComputer_detail_reparseAllPartial": "Re-parsed {succeeded} of {total} dives. {failed} failed.",
-  "@diveComputer_detail_reparseAllPartial": {
-    "placeholders": {
-      "succeeded": {
-        "type": "int",
-        "example": "10"
-      },
-      "total": {
-        "type": "int",
-        "example": "12"
-      },
-      "failed": {
-        "type": "int",
-        "example": "2"
-      }
-    }
-  },
   "diveComputer_detail_reparseRawDataCount": "{count} dives with raw data",
   "@diveComputer_detail_reparseRawDataCount": {
     "placeholders": {
@@ -22823,6 +22918,66 @@
       }
     }
   },
+  "reparseBatch_progressTitle": "Re-parsing dives",
+  "@reparseBatch_progressTitle": {"description": "Bulk re-parse (issue #224)"},
+  "reparseBatch_progressCount": "Re-parsing {done} of {total} dives",
+  "@reparseBatch_progressCount": {"description": "Bulk re-parse (issue #224)", "placeholders": {"done": {"type": "int"}, "total": {"type": "int"}}},
+  "reparseBatch_cancelling": "Cancelling...",
+  "@reparseBatch_cancelling": {"description": "Bulk re-parse (issue #224)"},
+  "reparseBatch_resultTitle": "Re-parse finished",
+  "@reparseBatch_resultTitle": {"description": "Bulk re-parse (issue #224)"},
+  "reparseBatch_resultCancelledTitle": "Re-parse cancelled",
+  "@reparseBatch_resultCancelledTitle": {"description": "Bulk re-parse (issue #224)"},
+  "reparseBatch_resultErrorTitle": "Re-parse stopped by an error",
+  "@reparseBatch_resultErrorTitle": {"description": "Bulk re-parse (issue #224): the run stopped on an error"},
+  "reparseBatch_resultNotReached": "Not processed: {count}",
+  "@reparseBatch_resultNotReached": {"description": "Bulk re-parse (issue #224): dives a run error left unprocessed", "placeholders": {"count": {"type": "int"}}},
+  "reparseBatch_resultSummary": "Re-parsed {succeeded} of {total} dives.",
+  "@reparseBatch_resultSummary": {"description": "Bulk re-parse (issue #224)", "placeholders": {"succeeded": {"type": "int"}, "total": {"type": "int"}}},
+  "reparseBatch_resultFailed": "Failed: {count}",
+  "@reparseBatch_resultFailed": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
+  "reparseBatch_resultNotProcessed": "Not processed (cancelled): {count}",
+  "@reparseBatch_resultNotProcessed": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
+  "reparseBatch_resultSkipped": "Skipped, no raw data: {count}",
+  "@reparseBatch_resultSkipped": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
+  "reparseBatch_resultProfilesPreserved": "Combined dives that kept their profile: {count}",
+  "@reparseBatch_resultProfilesPreserved": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
+  "reparseBatch_failedListHeader": "Failed dives",
+  "@reparseBatch_failedListHeader": {"description": "Bulk re-parse (issue #224)"},
+  "reparseBatch_failedDiveTitle": "Dive #{number}",
+  "@reparseBatch_failedDiveTitle": {"description": "Bulk re-parse (issue #224)", "placeholders": {"number": {"type": "int"}}},
+  "reparseBatch_failedDiveUnnumbered": "Unnumbered dive",
+  "@reparseBatch_failedDiveUnnumbered": {"description": "Bulk re-parse (issue #224)"},
+  "reparseBatch_missingDescriptors": "Missing dive computer details",
+  "@reparseBatch_missingDescriptors": {"description": "Bulk re-parse (issue #224)"},
+  "reparseBatch_confirmTitle": "Re-parse dives",
+  "@reparseBatch_confirmTitle": {"description": "Bulk re-parse (issue #224)"},
+  "reparseBatch_confirmMessage": "Re-run the dive parser on {count} dives with stored raw data. This updates profile and sensor data but preserves your notes, sites, buddies, and other edits.",
+  "@reparseBatch_confirmMessage": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
+  "reparseBatch_confirmSkipped": "Selected dives without raw data (skipped): {count}",
+  "@reparseBatch_confirmSkipped": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
+  "reparseBatch_noneWithRawData": "None of the selected dives have stored raw data to re-parse.",
+  "@reparseBatch_noneWithRawData": {"description": "Bulk re-parse (issue #224)"},
+  "diveLog_selection_tooltip_reparse": "Re-parse",
+  "@diveLog_selection_tooltip_reparse": {"description": "Bulk re-parse (issue #224)"},
+  "settings_reparseDives_title": "Re-parse dives",
+  "@settings_reparseDives_title": {"description": "Bulk re-parse (issue #224)"},
+  "settings_reparseDives_subtitle": "Re-run the dive parser on every dive with stored raw data",
+  "@settings_reparseDives_subtitle": {"description": "Bulk re-parse (issue #224)"},
+  "settings_reparseDives_intro": "Use this after an app update improves how dive computer data is read. Your notes, sites, buddies, and other edits are preserved.",
+  "@settings_reparseDives_intro": {"description": "Bulk re-parse (issue #224)"},
+  "settings_reparseDives_withRawData": "Dives with raw data: {count}",
+  "@settings_reparseDives_withRawData": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
+  "settings_reparseDives_withoutRawData": "Dives without raw data (not re-parsed): {count}",
+  "@settings_reparseDives_withoutRawData": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
+  "settings_reparseDives_byComputer": "By dive computer",
+  "@settings_reparseDives_byComputer": {"description": "Bulk re-parse (issue #224)"},
+  "settings_reparseDives_unknownComputer": "Unknown computer",
+  "@settings_reparseDives_unknownComputer": {"description": "Bulk re-parse (issue #224)"},
+  "settings_reparseDives_none": "No dives have stored raw data to re-parse.",
+  "@settings_reparseDives_none": {"description": "Bulk re-parse (issue #224)"},
+  "settings_reparseDives_button": "Re-parse all",
+  "@settings_reparseDives_button": {"description": "Bulk re-parse (issue #224)"},
   "diveComputer_rawData_discardAction": "Discard",
   "diveComputer_rawData_discardAllMessage": "Remove the raw download data kept for {count} dives from every dive computer ({size})? Those dives can no longer be re-parsed when the dive parser improves. The dives and your edits stay as they are, and your other synced devices drop the data too.",
   "@diveComputer_rawData_discardAllMessage": {
@@ -24661,8 +24816,12 @@
   "safetyHub_cnsOtu_noProfile_body": "Its CNS% and OTU can't be calculated without depth samples. The totals below leave it out.",
   "safetyHub_cnsOtu_about_title": "About CNS and OTU",
   "safetyHub_cnsOtu_about_body": "Your CNS% (oxygen clock) decays after a dive with a 90-minute half-life -- it's practically back to 0 after about a day.\n\nDaily OTU resets every night at midnight. Weekly OTU is a rolling total of the last 7 days: older dives automatically drop out of the calculation once they fall outside that window.",
+  "safetyHub_tissueLoading_clear_title": "No residual tissue load",
+  "safetyHub_tissueLoading_clear_body": "All compartments are back in equilibrium with the air at the surface. They stay at their normal level (the marker on each bar), not at 0%.",
+  "safetyHub_tissueLoading_unavailable_title": "Tissue loading not available",
+  "safetyHub_tissueLoading_unavailable_body": "The last dive has no data to calculate tissue loading from, for example a dive without a depth profile, in gauge mode or on a rebreather without a setpoint.",
   "safetyHub_tissueLoading_about_title": "About Tissue Loading",
-  "safetyHub_tissueLoading_about_body": "Your body has 16 tissue compartments that absorb and release nitrogen (and, on trimix or rebreather dives, helium too) at different speeds. Fast tissues saturate and desaturate quickly; slow tissues take much longer for both.\n\nAfter a dive with helium, nitrogen and helium in a single compartment can briefly move in opposite directions: while helium is still releasing, the same compartment can simultaneously be absorbing a little nitrogen, until both gases reach equilibrium with the air you're breathing. That's why a compartment can briefly show \"Ongassing\" even while its overall load keeps dropping.",
+  "safetyHub_tissueLoading_about_body": "Your body has 16 tissue compartments that take up and release nitrogen (and, on trimix or rebreather dives, helium too) at different speeds. Fast tissues saturate and desaturate quickly; slow tissues take much longer for both.\n\nResidual load is only what sits above the normal surface level. Even fully desaturated, the bars do not drop to 0%: each compartment settles at the marker that matches the nitrogen in the air you breathe. That is why a fast compartment can read higher here than at the end of a dive with oxygen decompression, without the load having grown.\n\nAfter a dive with helium, a compartment releases helium while it takes up nitrogen at the same time, until both gases are in equilibrium with the air you breathe.",
   "safetyHub_noFly_category_single": "After a single no-deco dive: {hours} h guideline",
   "@safetyHub_noFly_category_single": {
     "placeholders": {
@@ -34244,6 +34403,8 @@
   "@rules_value_no": {"description": "Boolean value shown in a rule"},
   "rules_value_empty": "(empty)",
   "@rules_value_empty": {"description": "An empty field value in a change list"},
+  "rules_value_gearViaSet": "{item} ({set})",
+  "@rules_value_gearViaSet": {"description": "A gear item in a rule change list with the equipment set it came through, shown when only its set changed", "placeholders": {"item": {"type": "String"}, "set": {"type": "String"}}},
   "rules_collection_diveTypes": "dive types",
   "@rules_collection_diveTypes": {"description": "Lower-case collection name in an action summary"},
   "rules_collection_tags": "tags",
@@ -34254,6 +34415,8 @@
   "@rules_collection_buddies": {"description": "Lower-case collection name in an action summary"},
   "rules_collection_courses": "courses",
   "@rules_collection_courses": {"description": "Lower-case collection name in an action summary"},
+  "rules_collection_equipmentSets": "equipment sets",
+  "@rules_collection_equipmentSets": {"description": "Lower-case collection name in an action summary"},
   "rules_collection_siteTags": "site tags",
   "@rules_collection_siteTags": {"description": "Lower-case collection name in an action summary"},
   "rules_collection_siteTypes": "site types",

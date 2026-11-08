@@ -30,7 +30,10 @@ class BaseParseClient {
   static Future<BaseParseClient> spawn(
     String filePath, {
     void Function(int bytes, int total)? onProgress,
+    bool gzipped = false,
   }) async {
+    // Only a nearby full copy is compressed, and a browser never takes one.
+    if (gzipped) throw BaseParseException('no gzipped base in a browser');
     try {
       final exists = await ComputeWorkerClient.instance.call(
         ComputeJob.opfsExists,

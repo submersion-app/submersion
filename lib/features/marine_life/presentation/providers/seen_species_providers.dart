@@ -25,13 +25,19 @@ final seenSpeciesRepositoryProvider = Provider<SeenSpeciesRepository>((ref) {
 /// `sightings`.
 final seenSpeciesProvider = FutureProvider<List<SeenSpecies>>((ref) async {
   final repository = ref.watch(seenSpeciesRepositoryProvider);
-  final speciesRepository = ref.watch(speciesRepositoryProvider);
   final diverId = ref.watch(currentDiverIdProvider);
+  invalidateOnSeenSpeciesChanges(ref);
+  return repository.getSeenSpecies(diverId: diverId);
+});
+
+/// The three ticks of [seenSpeciesProvider], for a read of some of the same
+/// species (Global Search's rows, issue #4247).
+void invalidateOnSeenSpeciesChanges(Ref ref) {
+  final speciesRepository = ref.watch(speciesRepositoryProvider);
   ref.invalidateSelfWhen(speciesRepository.watchSpeciesChanges());
   ref.invalidateSelfWhen(speciesRepository.watchSightingChanges());
   ref.invalidateSelfWhen(ref.watch(diveRepositoryProvider).watchDivesChanges());
-  return repository.getSeenSpecies(diverId: diverId);
-});
+}
 
 /// The dives on which the current diver saw one species, newest first.
 ///

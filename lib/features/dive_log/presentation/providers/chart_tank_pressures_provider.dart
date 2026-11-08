@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// The tank pressure curves the profile chart surfaces draw.
@@ -58,6 +59,12 @@ final estimatedTankPressuresProvider =
       );
       final diveFuture = ref.watch(diveProvider(diveId).future);
       final switchesFuture = ref.watch(gasSwitchesProvider(diveId).future);
+      // The series the chart draws, and so the one its gas strip reads: its
+      // computer's switches and its own time bounds. Another computer's
+      // record of a switch must not start this one's estimated drop, nor its
+      // recording's length stretch it (#4300). Null is one series of every
+      // source, drawn from dive.profile.
+      final active = ref.watch(activeSourceProfileProvider(diveId));
       // Read synchronously, before the first await, so the dependency is
       // registered while the provider is certainly still alive.
       final showEstimates = ref.watch(
@@ -80,16 +87,40 @@ final estimatedTankPressuresProvider =
       if (!showEstimates) {
         return EstimatedTankPressures(real, const <String>{});
       }
-      final switches = await switchesFuture;
+      final inputs = computerGasInputs(
+        dive,
+        gasSwitches: await switchesFuture,
+        computerId: active?.computerId,
+      );
+      final drawn = active?.points ?? dive.profile;
       return synthesizeEstimatedTankPressures(
         existing: real,
-        tanks: dive.tanks,
-        gasSwitches: switches,
-        diveDurationSeconds: dive.profile.isEmpty
-            ? 0
-            : dive.profile.last.timestamp,
-        firstSampleSeconds: dive.profile.isEmpty
-            ? 0
-            : dive.profile.first.timestamp,
+        tanks: inputs.tanks,
+        gasSwitches: inputs.gasSwitches,
+        onLoop: dive.isRebreather,
+        diveDurationSeconds: drawn.isEmpty ? 0 : drawn.last.timestamp,
+        firstSampleSeconds: drawn.isEmpty ? 0 : drawn.first.timestamp,
       );
     });
+
+/// The pressure lines the profile chart draws: [estimated] (the measured
+/// series with their estimates) once it has loaded, else the [measured]
+/// series alone, so the chart still draws what was recorded while the
+/// estimates load or if they fail. Null when neither has loaded.
+EstimatedTankPressures? chartTankSeries(
+  EstimatedTankPressures? estimated,
+  Map<String, List<TankPressurePoint>>? measured,
+) =>
+    estimated ??
+    (measured == null ? null : EstimatedTankPressures(measured, const {}));
+
+/// [chartTankSeries] for [diveId]. Every profile chart and the Cylinders
+/// card, which follows the chart's cursor (issue #4291), read their lines
+/// through this, so they always draw the same ones.
+EstimatedTankPressures? watchChartTankSeries(WidgetRef ref, String diveId) =>
+    chartTankSeries(
+      ref.watch(estimatedTankPressuresProvider(diveId).select((a) => a.value)),
+      ref.watch(
+        activeSourceTankPressuresProvider(diveId).select((a) => a.value),
+      ),
+    );

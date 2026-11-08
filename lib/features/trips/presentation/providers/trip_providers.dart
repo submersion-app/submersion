@@ -108,14 +108,21 @@ final allTripsWithStatsProvider = FutureProvider<List<TripWithStats>>((
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
-  ref.invalidateSelfWhen(repository.watchTripsChanges());
+  invalidateOnTripListChanges(ref);
+  return repository.getAllTripsWithStats(diverId: validatedDiverId);
+});
+
+/// Rebuilds [ref]'s provider whenever [allTripsWithStatsProvider] would
+/// refresh, for a read of some of the same entries (Global Search's rows,
+/// issue #4247).
+void invalidateOnTripListChanges(Ref ref) {
+  ref.invalidateSelfWhen(ref.read(tripRepositoryProvider).watchTripsChanges());
   // The per-trip stats aggregate the trip's dives, so a merge or a bulk delete
   // changes them without the trips table being written (issue #958).
   ref.invalidateSelfWhen(
     ref.read(diveRepositoryProvider).watchMeasuredRuntimeChanges(),
   );
-  return repository.getAllTripsWithStats(diverId: validatedDiverId);
-});
+}
 
 /// The ids the trip filter selects, from the compiled query (#2365). Keyed
 /// on the filter's value; a write to any table the query read refreshes it
