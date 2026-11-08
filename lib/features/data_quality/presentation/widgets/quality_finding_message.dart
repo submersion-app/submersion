@@ -272,13 +272,6 @@ String qualityDurationLabel(AppLocalizations l10n, int seconds) => seconds < 120
     ? l10n.dataQuality_unit_seconds(seconds)
     : l10n.dataQuality_unit_minutes((seconds / 60).round());
 
-/// The mix a gas finding names. Air and oxygen are words and translate;
-/// nitrox and trimix keep their international notation (EAN32, Tx 18/45),
-/// so a trimix keeps its helium instead of reading as nitrox (issue #4209).
-///
-/// A null [hePercent] is a finding stored before the detector recorded it.
-/// Its helium is unknown, so it names the oxygen share alone rather than
-/// calling a Tx 21/35 "Air"; the next scan rewrites it.
 /// The missing-switch finding's text (issue #165): every switch it offers,
 /// then the first start it held back for being deeper than its gas's MOD.
 String _missingSwitchDetail(
@@ -336,6 +329,13 @@ String _missingSwitchDetail(
   return '$listed $also';
 }
 
+/// The mix a gas finding names. Air and oxygen are words and translate;
+/// nitrox and trimix keep their international notation (EAN32, Tx 18/45),
+/// so a trimix keeps its helium instead of reading as nitrox (issue #4209).
+///
+/// A null [hePercent] is a finding stored before the detector recorded it.
+/// Its helium is unknown, so it names the oxygen share alone rather than
+/// calling a Tx 21/35 "Air"; the next scan rewrites it.
 String qualityGasLabel(
   AppLocalizations l10n,
   double o2Percent,
