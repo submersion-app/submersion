@@ -37873,25 +37873,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllProgress(int count) {
-    return '$count duiken worden opnieuw verwerkt...';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllSuccess(int count) {
-    return '$count duiken succesvol opnieuw verwerkt';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
-    return '$succeeded van $total duiken opnieuw verwerkt. $failed mislukt.';
-  }
-
-  @override
   String diveComputer_detail_reparseRawDataCount(int count) {
     return '$count duiken met ruwe data';
   }

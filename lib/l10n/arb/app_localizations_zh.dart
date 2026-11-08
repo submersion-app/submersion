@@ -35888,25 +35888,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllProgress(int count) {
-    return '正在重新解析 $count 次潜水...';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllSuccess(int count) {
-    return '已成功重新解析 $count 次潜水';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
-    return '已重新解析 $total 次潜水中的 $succeeded 次。$failed 次失败。';
-  }
-
-  @override
   String diveComputer_detail_reparseRawDataCount(int count) {
     return '$count 次潜水有原始数据';
   }

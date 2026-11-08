@@ -38060,25 +38060,6 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllProgress(int count) {
-    return '$count Tauchgänge werden neu ausgewertet...';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllSuccess(int count) {
-    return '$count Tauchgänge erfolgreich neu ausgewertet';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
-    return '$succeeded von $total Tauchgängen neu ausgewertet. $failed fehlgeschlagen.';
-  }
-
-  @override
   String diveComputer_detail_reparseRawDataCount(int count) {
     return '$count Tauchgänge mit Rohdaten';
   }

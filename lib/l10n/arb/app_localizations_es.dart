@@ -38164,25 +38164,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllProgress(int count) {
-    return 'Reanalizando $count inmersiones...';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllSuccess(int count) {
-    return 'Se reanalizaron $count inmersiones correctamente';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
-    return 'Se reanalizaron $succeeded de $total inmersiones. $failed fallaron.';
-  }
-
-  @override
   String diveComputer_detail_reparseRawDataCount(int count) {
     return '$count inmersiones con datos sin procesar';
   }

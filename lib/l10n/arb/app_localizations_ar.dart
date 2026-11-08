@@ -38609,25 +38609,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllProgress(int count) {
-    return 'جارٍ إعادة تحليل $count غطسة...';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllSuccess(int count) {
-    return 'تمت إعادة تحليل $count غطسة بنجاح';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
-    return 'تمت إعادة تحليل $succeeded من أصل $total غطسة. فشلت $failed.';
-  }
-
-  @override
   String diveComputer_detail_reparseRawDataCount(int count) {
     return '$count غطسة بها بيانات أولية';
   }

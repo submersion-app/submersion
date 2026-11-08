@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/raw_dive_data_discard.dart';
+import 'package:submersion/features/dive_computer/presentation/widgets/reparse_batch_dialog.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -175,43 +175,14 @@ class _RawDataActions extends ConsumerWidget {
     }
   }
 
+  /// Runs through the shared progress and results dialog (issue #224),
+  /// re-parsing only this computer's sources on a dive combined with another
+  /// computer's.
   Future<void> _executeReparseAll(BuildContext context, WidgetRef ref) async {
-    final service = ref.read(reparseServiceProvider);
-    final l10n = context.l10n;
-
-    final counts = await service.getRawDataCounts(computer.id);
-    if (counts.withRawData == 0) return;
-
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            l10n.diveComputer_detail_reparseAllProgress(counts.withRawData),
-          ),
-        ),
-      );
-    }
-
-    final result = await service.reparseAllForComputer(
-      computer.id,
-      parseFn: pigeon.DiveComputerHostApi().parseRawDiveData,
-    );
-
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            result.failed == 0
-                ? l10n.diveComputer_detail_reparseAllSuccess(result.succeeded)
-                : l10n.diveComputer_detail_reparseAllPartial(
-                    result.succeeded,
-                    result.succeeded + result.failed,
-                    result.failed,
-                  ),
-          ),
-        ),
-      );
-    }
+    final diveIds = await ref
+        .read(reparseBatchServiceProvider)
+        .diveIdsForComputer(computer.id);
+    if (diveIds.isEmpty || !context.mounted) return;
+    await runReparseBatch(context, ref, diveIds, computerId: computer.id);
   }
 }

@@ -60090,28 +60090,6 @@ abstract class AppLocalizations {
   /// **'Re-run the dive parser on {count} dives that have stored raw data. This updates profile and sensor data but preserves your notes, sites, buddies, and other edits.'**
   String diveComputer_detail_reparseAllMessage(int count);
 
-  /// No description provided for @diveComputer_detail_reparseAllProgress.
-  ///
-  /// In en, this message translates to:
-  /// **'Re-parsing {count} dives...'**
-  String diveComputer_detail_reparseAllProgress(int count);
-
-  /// No description provided for @diveComputer_detail_reparseAllSuccess.
-  ///
-  /// In en, this message translates to:
-  /// **'Re-parsed {count} dives successfully'**
-  String diveComputer_detail_reparseAllSuccess(int count);
-
-  /// No description provided for @diveComputer_detail_reparseAllPartial.
-  ///
-  /// In en, this message translates to:
-  /// **'Re-parsed {succeeded} of {total} dives. {failed} failed.'**
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  );
-
   /// No description provided for @diveComputer_detail_reparseRawDataCount.
   ///
   /// In en, this message translates to:

@@ -22750,41 +22750,6 @@
       }
     }
   },
-  "diveComputer_detail_reparseAllProgress": "Re-parsing {count} dives...",
-  "@diveComputer_detail_reparseAllProgress": {
-    "placeholders": {
-      "count": {
-        "type": "int",
-        "example": "12"
-      }
-    }
-  },
-  "diveComputer_detail_reparseAllSuccess": "Re-parsed {count} dives successfully",
-  "@diveComputer_detail_reparseAllSuccess": {
-    "placeholders": {
-      "count": {
-        "type": "int",
-        "example": "12"
-      }
-    }
-  },
-  "diveComputer_detail_reparseAllPartial": "Re-parsed {succeeded} of {total} dives. {failed} failed.",
-  "@diveComputer_detail_reparseAllPartial": {
-    "placeholders": {
-      "succeeded": {
-        "type": "int",
-        "example": "10"
-      },
-      "total": {
-        "type": "int",
-        "example": "12"
-      },
-      "failed": {
-        "type": "int",
-        "example": "2"
-      }
-    }
-  },
   "diveComputer_detail_reparseRawDataCount": "{count} dives with raw data",
   "@diveComputer_detail_reparseRawDataCount": {
     "placeholders": {

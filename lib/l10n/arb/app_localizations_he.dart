@@ -37205,25 +37205,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllProgress(int count) {
-    return 'מנתח מחדש $count צלילות...';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllSuccess(int count) {
-    return 'נותחו מחדש $count צלילות בהצלחה';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
-    return 'נותחו מחדש $succeeded מתוך $total צלילות. $failed נכשלו.';
-  }
-
-  @override
   String diveComputer_detail_reparseRawDataCount(int count) {
     return '$count צלילות עם נתונים גולמיים';
   }
