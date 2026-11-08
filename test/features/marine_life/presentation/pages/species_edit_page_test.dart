@@ -64,7 +64,8 @@ class _FakeSpeciesRepository extends Fake implements SpeciesRepository {
   Stream<void> watchSpeciesChanges() => _changes.stream;
 
   @override
-  Future<List<Species>> getAllSpecies() async => List.of(_stored);
+  Future<List<Species>> getAllSpecies({List<String>? ids}) async =>
+      List.of(_stored);
 
   @override
   Future<Species?> getSpeciesById(String id) async {

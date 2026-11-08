@@ -67,6 +67,15 @@ class GpsTrackRecorder {
   /// after the finalize clears them).
   Future<void> _lastRecord = Future<void>.value();
 
+  /// The running checkpoint, if any. [stop] awaits it before finalizing:
+  /// a checkpoint that read the buffer before the last fixes landed and
+  /// wrote after finalize would replace the final blob with a shorter one.
+  Future<void>? _checkpointInFlight;
+
+  /// Set when a checkpoint tick fires while [_checkpointInFlight] is still
+  /// running, so a catch-up runs once it completes.
+  bool _checkpointMissed = false;
+
   GpsTrackRecorder({
     required GpsTrackRepository repository,
     Stream<Position> Function(LocationSettings)? positionStreamFactory,
@@ -137,8 +146,41 @@ class GpsTrackRecorder {
     });
     _checkpointTimer = Timer.periodic(_checkpointInterval, (_) {
       final id = _state.trackId;
-      if (id != null) unawaited(_repository.checkpoint(id));
+      if (id != null) _runCheckpoint(id);
     });
+  }
+
+  /// Starts a checkpoint unless one is still running. A tick that fires
+  /// during a running checkpoint is not stacked on top of it; instead one
+  /// catch-up starts as soon as it finishes, so a slow write cannot leave
+  /// the synced copy almost two intervals old. Errors are logged, never
+  /// thrown, so a failed checkpoint cannot surface as an unhandled async
+  /// error from the timer.
+  void _runCheckpoint(String trackId) {
+    if (_checkpointInFlight != null) {
+      _checkpointMissed = true;
+      return;
+    }
+    _checkpointMissed = false;
+    _checkpointInFlight = _repository
+        .checkpoint(trackId)
+        .catchError((Object e, StackTrace stackTrace) {
+          _log.error(
+            'Failed to checkpoint GPS track $trackId',
+            error: e,
+            stackTrace: stackTrace,
+          );
+        })
+        .whenComplete(() {
+          _checkpointInFlight = null;
+          // stop() cancels the timer first, so a null timer means stopping:
+          // finalize writes the whole track and needs no catch-up.
+          if (_checkpointMissed &&
+              _checkpointTimer != null &&
+              _state.trackId == trackId) {
+            _runCheckpoint(trackId);
+          }
+        });
   }
 
   Future<void> stop() async {
@@ -151,9 +193,17 @@ class GpsTrackRecorder {
     _checkpointTimer = null;
     _lastPosition = null;
     _lastRealFixAt = null;
+    _checkpointMissed = false;
     // Let any in-flight point write land before finalizing so the last fix
     // makes it into the blob and cannot repopulate the buffer afterwards.
     await _lastRecord;
+    for (
+      var inFlight = _checkpointInFlight;
+      inFlight != null;
+      inFlight = _checkpointInFlight
+    ) {
+      await inFlight;
+    }
     if (trackId != null) {
       // Stamp the session end from the actual stop time, not the last fix.
       // A mostly-stationary device stops emitting fixes once the distance

@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/view_config_repository.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
@@ -35,7 +36,7 @@ final buddyRepositoryProvider = Provider<BuddyRepository>((ref) {
 /// again but debounced. A buddy link written by a sync pull touches only
 /// `dive_buddies` and never restamps the parent dive (#1769/#1915), so
 /// watching plain `dives` alone missed it (#2084).
-void _invalidateOnBuddyDiveChanges(Ref ref, BuddyRepository repository) {
+void invalidateOnBuddyDiveChanges(Ref ref, BuddyRepository repository) {
   ref.invalidateSelfWhen(repository.watchBuddiesChanges());
   ref.invalidateSelfWhen(
     ref.read(diveRepositoryProvider).watchDivesChangesWithBuddyLinks(),
@@ -83,7 +84,7 @@ final allBuddiesWithDiveCountProvider =
       final validatedDiverId = await ref.watch(
         validatedCurrentDiverIdProvider.future,
       );
-      _invalidateOnBuddyDiveChanges(ref, repository);
+      invalidateOnBuddyDiveChanges(ref, repository);
       return repository.getAllBuddiesWithDiveCount(diverId: validatedDiverId);
     });
 
@@ -98,7 +99,7 @@ final buddySearchWithDiveCountProvider =
       final validatedDiverId = await ref.watch(
         validatedCurrentDiverIdProvider.future,
       );
-      _invalidateOnBuddyDiveChanges(ref, repository);
+      invalidateOnBuddyDiveChanges(ref, repository);
       return repository.getAllBuddiesWithDiveCount(
         diverId: validatedDiverId,
         query: query,
@@ -266,7 +267,7 @@ final buddyStatsProvider = FutureProvider.family<BuddyStats, String>((
   buddyId,
 ) async {
   final repository = ref.watch(buddyRepositoryProvider);
-  _invalidateOnBuddyDiveChanges(ref, repository);
+  invalidateOnBuddyDiveChanges(ref, repository);
   return repository.getBuddyStats(buddyId);
 });
 
@@ -280,7 +281,7 @@ final diveIdsForBuddyProvider = FutureProvider.family<List<String>, String>((
   buddyId,
 ) async {
   final repository = ref.watch(buddyRepositoryProvider);
-  _invalidateOnBuddyDiveChanges(ref, repository);
+  invalidateOnBuddyDiveChanges(ref, repository);
   return repository.getDiveIdsForBuddy(buddyId);
 });
 
@@ -294,24 +295,23 @@ const buddySharedDivePreviewLimit = 5;
 /// preview. [diveIdsForBuddyProvider] already orders by dive date descending,
 /// so truncating to the preview limit keeps the newest dives; the Dart sort
 /// below only re-asserts that order over the hydrated entities.
-final divesForBuddyProvider = FutureProvider.family<List<domain.Dive>, String>((
-  ref,
-  buddyId,
-) async {
-  final diveIds = await ref.watch(diveIdsForBuddyProvider(buddyId).future);
-  if (diveIds.isEmpty) return [];
+final divesForBuddyProvider = FutureProvider.autoDispose
+    .family<List<domain.Dive>, String>((ref, buddyId) async {
+      retainDiveData(ref);
+      final diveIds = await ref.watch(diveIdsForBuddyProvider(buddyId).future);
+      if (diveIds.isEmpty) return [];
 
-  final dives = <domain.Dive>[];
-  for (final diveId in diveIds.take(buddySharedDivePreviewLimit)) {
-    final dive = await ref.watch(diveProvider(diveId).future);
-    if (dive != null) {
-      dives.add(dive);
-    }
-  }
+      final dives = <domain.Dive>[];
+      for (final diveId in diveIds.take(buddySharedDivePreviewLimit)) {
+        final dive = await ref.watch(diveProvider(diveId).future);
+        if (dive != null) {
+          dives.add(dive);
+        }
+      }
 
-  dives.sort(compareSharedDivesForPreview);
-  return dives;
-});
+      dives.sort(compareSharedDivesForPreview);
+      return dives;
+    });
 
 /// Orders two shared dives exactly as `BuddyRepository.getDiveIdsForBuddy`
 /// does: newest effective entry time first, then dive number descending, then

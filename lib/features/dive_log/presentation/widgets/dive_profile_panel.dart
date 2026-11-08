@@ -287,9 +287,7 @@ class _DiveProfilePanelContentState
         .watch(activeSourceTankPressuresProvider(widget.diveId))
         .value;
     // Chart-only: real pressures augmented with linear estimates (#197).
-    final estimatedTankPressures = ref
-        .watch(estimatedTankPressuresProvider(widget.diveId))
-        .value;
+    final chartTankPressures = watchChartTankSeries(ref, widget.diveId);
     final units = ref.watch(unitFormatterProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final trackingIndex = ref.watch(
@@ -446,9 +444,8 @@ class _DiveProfilePanelContentState
                   showMaxDepthMarker: showMaxDepthMarker,
                   showPressureThresholdMarkers: showPressureThresholdMarkers,
                   tanks: dive.tanks,
-                  tankPressures:
-                      estimatedTankPressures?.pressures ?? tankPressures,
-                  estimatedTankIds: estimatedTankPressures?.estimatedTankIds,
+                  tankPressures: chartTankPressures?.pressures,
+                  estimatedTankIds: chartTankPressures?.estimatedTankIds,
                   gasSwitches: gasSwitches,
                   gasSegments: (dive.tanks.isEmpty || chartProfile.isEmpty)
                       ? null

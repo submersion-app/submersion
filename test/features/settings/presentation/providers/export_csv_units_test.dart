@@ -267,10 +267,14 @@ class _NoComponents extends Fake implements EquipmentComponentRepository {
 class _NoSiteClassification extends Fake
     implements SiteClassificationRepository {
   @override
-  Future<Map<String, List<SiteTypeEntity>>> getTypesBySite() async => const {};
+  Future<Map<String, List<SiteTypeEntity>>> getTypesBySite({
+    List<String>? siteIds,
+  }) async => const {};
 
   @override
-  Future<Map<String, List<tag_entity.Tag>>> getTagsBySite() async => const {};
+  Future<Map<String, List<tag_entity.Tag>>> getTagsBySite({
+    List<String>? siteIds,
+  }) async => const {};
 }
 
 class _NoSiteFeatures extends Fake implements SiteFeatureRepository {

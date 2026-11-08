@@ -29,6 +29,8 @@
   "equipment_filter_owner_mine": "Meus",
   "enum_equipmentField_owner": "Proprietário",
   "enum_equipmentField_owner_short": "Proprietário",
+  "enum_equipmentField_location": "Localização",
+  "enum_equipmentField_location_short": "Localização",
   "equipment_set_noLongerShared": "Já não é partilhado",
   "equipment_history_title": "Histórico",
   "equipment_history_empty": "Ainda não usado em nenhum mergulho",
@@ -2443,6 +2445,7 @@
   "diveLog_consolidate_alignStarts": "Alinhar inícios",
   "diveLog_consolidate_sameDiveHint": "Estes perfis parecem o mesmo mergulho registrado por dois computadores.",
   "diveLog_consolidate_clockNote": "Estes registros não se sobrepõem no tempo, então o relógio de um computador provavelmente está errado. O mergulho mantém a hora do computador principal.",
+  "diveLog_consolidate_clockNoteOverlap": "Estes perfis de profundidade coincidem em um momento diferente do que os relógios dos computadores indicam, então o relógio de um computador provavelmente está errado. O mergulho mantém a hora do computador principal.",
   "diveLog_consolidate_noProfileFallback": "Um registro não tem perfil de profundidade para comparar, então o início dele é alinhado com o do principal.",
   "diveLog_combine_modeJoinShort": "Juntar",
   "diveLog_combine_modeMergeShort": "Mesclar",
@@ -2467,6 +2470,95 @@
   "diveLog_deco_sectionTissueLoading": "Carga Tecidual",
   "diveLog_deco_semantics_notRequired": "Descompressão não necessária",
   "diveLog_deco_semantics_required": "Descompressão necessária",
+  "diveLog_deco_compartmentLeading": "Líder: #{number}",
+  "@diveLog_deco_compartmentLeading": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_compartmentOther": "Compartimento: #{number}",
+  "@diveLog_deco_compartmentOther": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_metricLoad": "Carga",
+  "diveLog_deco_gasOngassing": "Absorção",
+  "diveLog_deco_gasOffgassing": "Liberação",
+  "diveLog_deco_gasEquilibrium": "Equilíbrio",
+  "diveLog_deco_heatMapRows": "Linhas: rápido (topo) a lento (base)",
+  "diveLog_deco_surfaceLevel": "Nível de superfície",
+  "diveLog_deco_mValue": "Valor M",
+  "diveLog_deco_tooltipCompartment": "Compartimento {number}",
+  "@diveLog_deco_tooltipCompartment": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_tooltipLoaded": "{percent}% de carga",
+  "@diveLog_deco_tooltipLoaded": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_tooltipHalfTime": "Meia-vida: {minutes} min",
+  "@diveLog_deco_tooltipHalfTime": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_tooltipSurfaceLevel": "Nível de superfície: {percent}%",
+  "@diveLog_deco_tooltipSurfaceLevel": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_info_title": "O que significam estes valores?",
+  "diveLog_deco_info_body": "Carga: a pressão de gás inerte de um compartimento como percentagem do máximo que pode conter à superfície (o seu valor M, a linha vermelha a 100%).\n\nNível de superfície: a marca em cada barra mostra onde um compartimento totalmente dessaturado se estabiliza enquanto respira ar à superfície. Nunca fica em 0%, porque o seu corpo contém sempre o azoto do ar que respira. Uma barra na sua marca já não tem carga residual do mergulho.\n\nAbsorção e liberação: o gás move-se sempre em direção à pressão do gás que respira. Após uma descompressão com oxigénio ou com uma mistura rica em hélio, os compartimentos rápidos podem conter menos azoto do que o ar à superfície. De volta ao ar, absorvem azoto novamente até atingirem a sua marca. Isto é normal e não é uma carga residual do mergulho.\n\nHélio: o ar não contém hélio. Após um mergulho com trimix, um compartimento liberta hélio enquanto pode absorver azoto ao mesmo tempo. As setas junto a N₂ e He mostram cada gás separadamente; a indicação junto ao número do compartimento mostra a direção global de ambos.",
+  "diveLog_deco_barChartSemantics": "Gráfico de carga tecidual. {count} compartimentos, carga em relação ao valor M; compartimento líder {number} a {percent}%.",
+  "@diveLog_deco_barChartSemantics": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "number": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_heatMapUndersaturated": "Subsaturado",
+  "diveLog_deco_heatMapSupersaturated": "Supersaturado",
+  "diveLog_deco_percentValue": "{value}%",
+  "@diveLog_deco_percentValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_minutesValue": "{value} min",
+  "@diveLog_deco_minutesValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_deco_tissueFast": "Rápido",
   "diveLog_deco_tissueSlow": "Lento",
   "diveLog_deco_title": "Status Deco",
@@ -2802,6 +2894,10 @@
   "diveLog_edit_tripSuggested": "Sugerido: {name}",
   "diveLog_edit_tripUse": "Usar",
   "diveLog_edit_useSet": "Usar Conjunto",
+  "diveLog_edit_removeSet": "Remover Conjunto",
+  "diveLog_bulkEdit_setsToRemove": "Conjuntos a remover",
+  "diveLog_bulkEdit_removeSetTitle": "Remover Conjunto de Equipamento",
+  "diveLog_bulkEdit_equipmentSets": "Conjuntos de equipamento",
   "diveLog_edit_weightPreset_use": "Usar predefinição",
   "diveLog_edit_weightPreset_save": "Guardar como predefinição",
   "diveLog_edit_weightPreset_pickerTitle": "Aplicar uma predefinição de lastro",
@@ -3362,6 +3458,8 @@
   "diveLog_cylinders_figureStart": "Início {pressure}",
   "diveLog_cylinders_figureEnd": "Fim {pressure}",
   "diveLog_cylinders_figureUsed": "Usado {pressure}",
+  "diveLog_cylinders_figureNow": "Agora {pressure}",
+  "diveLog_cylinders_figureNowEstimated": "Agora {pressure} (est.)",
   "diveLog_cylinders_gasSemantics": "Gás {mix}",
   "diveLog_cylinders_gasUsed": "Gás usado {amount}",
   "diveLog_cylinders_loopUse": "Uso no circuito {rate}",
@@ -4870,6 +4968,7 @@
   "equipment_location_bulkAction": "Mover para localização",
   "equipment_location_groupCount": "{count, plural, one{{count} item} other{{count} itens}}",
   "equipment_location_activeFilter": "Localização",
+  "equipment_location_tileSemantics": "Localização: {name}",
   "equipment_filter_section_location": "Localização",
   "equipment_arrange_groupByLocation": "Agrupar por localização",
   "equipment_arrange_groupByLocationSubtitle": "Um título por local, apenas nesta página",
@@ -7904,7 +8003,7 @@
   "settings_data_importOptions": "Opções de importação",
   "settings_data_importOptions_subtitle": "Correspondência de locais, pressão ao emergir, etiquetas automáticas",
   "settings_data_dataTools": "Ferramentas de dados",
-  "settings_data_dataTools_subtitle": "Corrigir horas, ligar parceiros, retipar equipamento, qualidade dos dados, editor de tabela",
+  "settings_data_dataTools_subtitle": "Corrigir horas, ligar parceiros, retipar equipamento, qualidade dos dados, editor de tabela, reanalisar mergulhos",
   "settings_agentAccess_title": "Acesso de agentes",
   "settings_agentAccess_confirm_linkedDives": "Mergulhos que perdem esta ligação ({diver}): {count}",
   "settings_agentAccess_confirm_alsoDeletes": "Também elimina {kind}: {count}",
@@ -10813,12 +10912,39 @@
   "diveComputer_detail_reimportDialogTitle": "Reimportar todos os mergulhos?",
   "diveComputer_detail_reparseAllButton": "Reanalisar todos os mergulhos",
   "diveComputer_detail_reparseAllMessage": "Reexecute o analisador de mergulhos em {count} mergulhos com dados brutos armazenados. Isso atualiza os dados de perfil e de sensores, mas preserva suas notas, locais, parceiros e outras edições.",
-  "diveComputer_detail_reparseAllPartial": "Reanalisados {succeeded} de {total} mergulhos. {failed} falharam.",
-  "diveComputer_detail_reparseAllProgress": "Reanalisando {count} mergulhos...",
-  "diveComputer_detail_reparseAllSuccess": "{count} mergulhos reanalisados com sucesso",
   "diveComputer_detail_reparseAllTitle": "Reanalisar todos os mergulhos",
   "diveComputer_detail_reparseRawDataCount": "{count} mergulhos com dados brutos",
   "diveComputer_detail_reparseRawDataCountWithout": "{count} mergulhos com dados brutos ({without} sem)",
+  "reparseBatch_progressTitle": "Reanalisando mergulhos",
+  "reparseBatch_progressCount": "Reanalisando {done} de {total} mergulhos",
+  "reparseBatch_cancelling": "Cancelando...",
+  "reparseBatch_resultTitle": "Reanálise concluída",
+  "reparseBatch_resultCancelledTitle": "Reanálise cancelada",
+  "reparseBatch_resultErrorTitle": "Reanálise interrompida por um erro",
+  "reparseBatch_resultNotReached": "Não processados: {count}",
+  "reparseBatch_resultSummary": "Reanalisados {succeeded} de {total} mergulhos.",
+  "reparseBatch_resultFailed": "Com falha: {count}",
+  "reparseBatch_resultNotProcessed": "Não processados (cancelado): {count}",
+  "reparseBatch_resultSkipped": "Ignorados, sem dados brutos: {count}",
+  "reparseBatch_resultProfilesPreserved": "Mergulhos combinados que mantiveram o perfil: {count}",
+  "reparseBatch_failedListHeader": "Mergulhos com falha",
+  "reparseBatch_failedDiveTitle": "Mergulho n.º {number}",
+  "reparseBatch_failedDiveUnnumbered": "Mergulho sem número",
+  "reparseBatch_missingDescriptors": "Faltam os dados do computador de mergulho",
+  "reparseBatch_confirmTitle": "Reanalisar mergulhos",
+  "reparseBatch_confirmMessage": "Reexecute o analisador de mergulhos em {count} mergulhos com dados brutos armazenados. Isso atualiza os dados de perfil e de sensores, mas preserva suas notas, locais, parceiros e outras edições.",
+  "reparseBatch_confirmSkipped": "Mergulhos selecionados sem dados brutos (ignorados): {count}",
+  "reparseBatch_noneWithRawData": "Nenhum dos mergulhos selecionados tem dados brutos armazenados para reanalisar.",
+  "diveLog_selection_tooltip_reparse": "Reanalisar",
+  "settings_reparseDives_title": "Reanalisar mergulhos",
+  "settings_reparseDives_subtitle": "Reexecutar o analisador em cada mergulho com dados brutos armazenados",
+  "settings_reparseDives_intro": "Use isto depois que uma atualização do app melhorar a leitura dos dados do computador de mergulho. Suas notas, locais, parceiros e outras edições são preservados.",
+  "settings_reparseDives_withRawData": "Mergulhos com dados brutos: {count}",
+  "settings_reparseDives_withoutRawData": "Mergulhos sem dados brutos (não reanalisados): {count}",
+  "settings_reparseDives_byComputer": "Por computador de mergulho",
+  "settings_reparseDives_unknownComputer": "Computador desconhecido",
+  "settings_reparseDives_none": "Nenhum mergulho tem dados brutos armazenados para reanalisar.",
+  "settings_reparseDives_button": "Reanalisar tudo",
   "diveComputer_rawData_discardAction": "Descartar",
   "diveComputer_rawData_discardAllMessage": "Remover os dados brutos de download guardados de {count} mergulhos de todos os computadores de mergulho ({size})? Esses mergulhos não poderão mais ser reanalisados quando o analisador de mergulhos melhorar. Os mergulhos e suas edições permanecem como estão, e seus outros dispositivos sincronizados também removem os dados.",
   "diveComputer_rawData_discardButton": "Descartar dados brutos",
@@ -12032,8 +12158,12 @@
   "safetyHub_cnsOtu_noProfile_body": "Sem perfil de profundidade, não é possível calcular o CNS% e as OTU dele. Os totais abaixo não o incluem.",
   "safetyHub_cnsOtu_about_title": "Sobre CNS e OTU",
   "safetyHub_cnsOtu_about_body": "O seu CNS% (relógio de oxigênio) decai após o mergulho com uma meia-vida de 90 minutos -- praticamente volta a 0 depois de cerca de um dia.\n\nA OTU diária é reiniciada todas as noites à meia-noite. A OTU semanal é um total móvel dos últimos 7 dias: mergulhos mais antigos saem automaticamente do cálculo assim que ficam fora dessa janela.",
+  "safetyHub_tissueLoading_clear_title": "Sem carga tecidual residual",
+  "safetyHub_tissueLoading_clear_body": "Todos os compartimentos voltaram ao equilíbrio com o ar à superfície. Ficam no seu nível normal (a marca em cada barra), não em 0%.",
+  "safetyHub_tissueLoading_unavailable_title": "Carga tecidual indisponível",
+  "safetyHub_tissueLoading_unavailable_body": "O último mergulho não tem dados para calcular a carga tecidual, por exemplo um mergulho sem perfil de profundidade, em modo profundímetro ou com rebreather sem setpoint.",
   "safetyHub_tissueLoading_about_title": "Sobre a carga tissular",
-  "safetyHub_tissueLoading_about_body": "O seu corpo tem 16 compartimentos teciduais que absorvem e liberam nitrogênio (e, em mergulhos com trimix ou rebreather, também hélio) em velocidades diferentes. Tecidos rápidos saturam e dessaturam depressa; tecidos lentos levam bem mais tempo para ambos.\n\nApós um mergulho com hélio, o nitrogênio e o hélio num mesmo compartimento podem mover-se brevemente em direções opostas: enquanto o hélio ainda está saindo, esse mesmo compartimento pode estar absorvendo um pouco de nitrogênio ao mesmo tempo, até que ambos os gases atinjam o equilíbrio com o ar que você respira. Por isso um compartimento pode mostrar brevemente \"Ongassing\" mesmo enquanto sua carga total continua caindo.",
+  "safetyHub_tissueLoading_about_body": "O seu corpo tem 16 compartimentos teciduais que absorvem e libertam azoto (e, em mergulhos com trimix ou rebreather, também hélio) a velocidades diferentes. Os tecidos rápidos saturam e dessaturam depressa; os lentos demoram muito mais em ambos os casos.\n\nA carga residual é apenas o que fica acima do nível normal à superfície. Mesmo totalmente dessaturadas, as barras não descem a 0%: cada compartimento estabiliza-se na marca que corresponde ao azoto do ar que respira. Por isso um compartimento rápido pode mostrar aqui um valor mais alto do que no fim de um mergulho com descompressão a oxigénio, sem que a carga tenha aumentado.\n\nApós um mergulho com hélio, um compartimento liberta hélio enquanto absorve azoto ao mesmo tempo, até que ambos os gases estejam em equilíbrio com o ar que respira.",
   "safetyHub_noFly_category_single": "Após um único mergulho sem deco: orientação de {hours} h",
   "@safetyHub_noFly_category_single": {
     "placeholders": {
@@ -12825,6 +12955,7 @@
   "dataQuality_msg_clock_offsetAhead": "{hours, plural, =1{O relógio de uma fonte está {hours} hora adiantado} other{O relógio de uma fonte está {hours} horas adiantado}}",
   "dataQuality_msg_clock_offsetBehind": "{hours, plural, =1{O relógio de uma fonte está {hours} hora atrasado} other{O relógio de uma fonte está {hours} horas atrasado}}",
   "dataQuality_msg_clock_overlap": "Sobrepõe-se a outro mergulho em {minutes} min",
+  "dataQuality_msg_clock_profileFit": "Uma fonte está a {minutes} min de onde seu perfil coincide com o principal",
   "dataQuality_msg_shared_gear_overlap": "{item} está no mergulho de {diverA} às {timeA} e no mergulho de {diverB} às {timeB}.",
   "dataQuality_msg_shared_gear_overlap_parts": "{count, plural, one{Inclui {count} peça instalada.} other{Inclui {count} peças instaladas.}}",
   "dataQuality_msg_duplicate": "{percent}% de correspondência com um mergulho a {minutes} min de distância",
@@ -12863,6 +12994,8 @@
   "dataQuality_repairLabel_fixSourceClock": "Corrigir o relógio deste computador em {offset}",
   "dataQuality_repairLabel_fixSourceClockNamed": "Corrigir o relógio de {computer} em {offset}",
   "dataQuality_repairLabel_fixSourceClockAll": "Corrigir também este computador noutros mergulhos com o mesmo desvio",
+  "dataQuality_repairLabel_alignSourceProfile": "Alinhar este computador pelo seu perfil",
+  "dataQuality_repairLabel_alignSourceProfileNamed": "Alinhar {computer} pelo seu perfil",
   "dataQuality_repairLabel_consolidate": "Consolidar",
   "dataQuality_repairLabel_deleteDuplicate": "Eliminar duplicado",
   "dataQuality_deleteDuplicate_title": "Eliminar a cópia redundante?",
@@ -17253,11 +17386,13 @@
   "rules_value_yes": "Sim",
   "rules_value_no": "Não",
   "rules_value_empty": "(vazio)",
+  "rules_value_gearViaSet": "{item} ({set})",
   "rules_collection_diveTypes": "tipos de mergulho",
   "rules_collection_tags": "etiquetas",
   "rules_collection_equipment": "equipamento",
   "rules_collection_buddies": "parceiros",
   "rules_collection_courses": "cursos",
+  "rules_collection_equipmentSets": "conjuntos de equipamento",
   "rules_collection_siteTags": "etiquetas de local",
   "rules_collection_siteTypes": "tipos de local",
   "rules_field_diveCenter": "centro de mergulho",

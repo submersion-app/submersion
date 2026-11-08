@@ -768,7 +768,8 @@ class UddfFullImportService {
   /// the Submersion section carries everything the standard cannot express,
   /// most importantly the libdivecomputer descriptor triple. Without that
   /// triple a restored blob can never be re-parsed, because
-  /// `ReparseService.reparseAllForComputer` skips any source missing it.
+  /// a batch re-parse (`ReparseBatchService.run`) fails any source missing
+  /// it.
   ///
   /// A dump with no matching entry still yields its bytes, as a lone primary
   /// source with a null descriptor: bytes from someone else's file are not

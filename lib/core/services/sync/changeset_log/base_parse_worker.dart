@@ -5,6 +5,7 @@ import 'dart:isolate';
 
 import 'package:submersion/core/services/sync/changeset_log/base_json_stream_reader.dart';
 import 'package:submersion/core/services/sync/changeset_log/byte_progress_stream.dart';
+import 'package:submersion/core/services/sync/changeset_log/gzip_size_check.dart';
 
 /// Isolate entrypoint for the base-file parse worker.
 ///
@@ -27,10 +28,13 @@ import 'package:submersion/core/services/sync/changeset_log/byte_progress_stream
 /// multi-hundred-MB base can legitimately take minutes without being mistaken
 /// for a dead worker (issue #1421).
 ///
-/// [args] is `[mainSendPort, filePath]` (Isolate.spawn passes one message).
+/// [args] is `[mainSendPort, filePath]` (Isolate.spawn passes one message),
+/// optionally followed by `true` when the file is gzipped: each pass then
+/// reads it through the decoder, and progress counts compressed bytes.
 void baseParseWorkerMain(List<Object> args) {
   final mainSendPort = args[0] as SendPort;
   final filePath = args[1] as String;
+  final gzipped = args.length > 2 && args[2] == true;
   final rx = ReceivePort();
   mainSendPort.send(<String, Object>{'type': 'ready', 'port': rx.sendPort});
 
@@ -54,14 +58,23 @@ void baseParseWorkerMain(List<Object> args) {
   });
 
   final total = File(filePath).lengthSync();
-  Stream<List<int>> openWithProgress() => withByteProgress(
-    File(filePath).openRead(),
-    onProgress: (consumed) => mainSendPort.send(<String, Object>{
-      'type': 'progress',
-      'bytes': consumed,
-      'total': total,
-    }),
-  );
+  // A gzipped file is checked against its trailer on every pass. Read on
+  // first use, inside a pass, so a file too short for a trailer fails that
+  // pass through sendError like any other bad base.
+  late final trailer = _trailer(filePath, total);
+  Stream<List<int>> openWithProgress() {
+    final read = withByteProgress(
+      File(filePath).openRead(),
+      onProgress: (consumed) => mainSendPort.send(<String, Object>{
+        'type': 'progress',
+        'bytes': consumed,
+        'total': total,
+      }),
+    );
+    return gzipped
+        ? checkedGzipTrailer(read.transform(gzip.decoder), trailer)
+        : read;
+  }
 
   Future<void> runDeletions() async {
     try {
@@ -151,4 +164,15 @@ void baseParseWorkerMain(List<Object> args) {
       runDataRows((m['tables'] as List).cast<String>().toSet());
     }
   });
+}
+
+/// The trailer of the gzip at [filePath], [length] bytes long.
+GzipTrailer _trailer(String filePath, int length) {
+  final file = File(filePath).openSync();
+  try {
+    file.setPositionSync(length < 8 ? 0 : length - 8);
+    return gzipTrailer(file.readSync(8));
+  } finally {
+    file.closeSync();
+  }
 }

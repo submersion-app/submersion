@@ -920,13 +920,22 @@ class BuddyRepository {
   /// [query] optionally filters by name/email/phone (case-insensitive), for
   /// the "Add buddy" picker's search box, which needs dive counts too so it
   /// can sort search results the same way as the unfiltered list.
+  ///
+  /// [ids] narrows every read to those buddies (Global Search's few rows,
+  /// issue #4247), so a handful costs no more than a handful.
   Future<List<BuddyWithDiveCount>> getAllBuddiesWithDiveCount({
     String? diverId,
     String? query,
+    List<String>? ids,
   }) async {
+    if (ids != null && ids.isEmpty) return const [];
     try {
+      final idList = ids == null
+          ? null
+          : '(${List.filled(ids.length, '?').join(', ')})';
       final conditions = <String>[
         if (diverId != null) 'b.diver_id = ?',
+        if (idList != null) 'b.id IN $idList',
         if (query != null && query.isNotEmpty)
           '(unicode_lower(b.name) LIKE ? OR unicode_lower(b.email) LIKE ? '
               'OR b.phone LIKE ?)',
@@ -937,8 +946,12 @@ class BuddyRepository {
       final searchTerm = query != null && query.isNotEmpty
           ? '%${query.toLowerCase()}%'
           : null;
+      final idVariables = [...?ids?.map(Variable.withString)];
       final variables = [
+        // The dive-count subquery's narrowing comes first in the statement.
+        ...idVariables,
         if (diverId != null) Variable.withString(diverId),
+        ...idVariables,
         if (searchTerm != null) ...[
           Variable.withString(searchTerm),
           Variable.withString(searchTerm),
@@ -956,6 +969,7 @@ class BuddyRepository {
           FROM dive_buddies db
           INNER JOIN dives d ON d.id = db.dive_id
                             ${DiveStatsScope.and(alias: 'd')}
+          ${idList == null ? '' : 'WHERE db.buddy_id IN $idList'}
           GROUP BY db.buddy_id
         ) dc ON b.id = dc.buddy_id
         $where
@@ -966,7 +980,9 @@ class BuddyRepository {
       // counted (several per dive since #1221). The per-buddy winner is
       // picked in Dart by usualRoleFor.
       final roleCountsByBuddy = <String, Map<String, int>>{};
-      for (final perDive in (await _roleLinks.allBuddyRoleIds()).values) {
+      for (final perDive in (await _roleLinks.allBuddyRoleIds(
+        buddyIds: ids,
+      )).values) {
         for (final entry in perDive.entries) {
           final counts = roleCountsByBuddy.putIfAbsent(entry.key, () => {});
           for (final roleId in entry.value) {

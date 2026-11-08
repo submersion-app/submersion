@@ -522,4 +522,32 @@ void main() {
     await tester.tap(find.text('All sites'));
     expect(cleared, 1);
   });
+
+  group('search focus on open (#4307)', () {
+    bool searchHasFocus(WidgetTester tester) => tester
+        .widget<EditableText>(find.byType(EditableText))
+        .focusNode
+        .hasFocus;
+
+    testWidgets('desktop focuses the search so typing filters at once', (
+      tester,
+    ) async {
+      await _pump(tester, sites: const [_auSite, _egSite, _mxSite]);
+      expect(searchHasFocus(tester), isTrue);
+
+      // No tap first: the keystrokes reach the field because it already
+      // holds the input connection.
+      tester.testTextInput.enterText('hole');
+      await tester.pumpAndSettle();
+      expect(_rowTitles(tester), ['Cod Hole', 'Blue Hole']);
+    }, variant: TargetPlatformVariant.desktop());
+
+    testWidgets('phones and tablets leave the search unfocused', (
+      tester,
+    ) async {
+      await _pump(tester, sites: const [_auSite, _egSite, _mxSite]);
+      // Focusing would raise the on-screen keyboard over the Nearby list.
+      expect(searchHasFocus(tester), isFalse);
+    }, variant: TargetPlatformVariant.mobile());
+  });
 }

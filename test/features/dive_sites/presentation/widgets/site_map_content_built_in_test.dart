@@ -28,7 +28,10 @@ const _builtInA = ExternalDiveSite(
 /// A repository whose createSite always fails, to exercise the add-error path.
 class _ThrowingSiteRepository extends SiteRepository {
   @override
-  Future<List<DiveSite>> getAllSites({String? diverId}) async => [];
+  Future<List<DiveSite>> getAllSites({
+    String? diverId,
+    List<String>? ids,
+  }) async => [];
 
   @override
   Future<DiveSite> createSite(

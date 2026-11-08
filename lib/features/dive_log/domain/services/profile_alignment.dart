@@ -133,7 +133,38 @@ class ProfileAligner {
       consider(shift);
     }
 
-    final fit = best!;
+    return _result(p, best!);
+  }
+
+  /// How well [secondary] fits [primary] shifted by exactly [offsetSeconds],
+  /// judged as [align] judges its best shift. Not limited to [align]'s
+  /// search window: it checks a placement known from elsewhere, such as the
+  /// one two computers' clocks give, which can sit far from lined-up starts
+  /// when the secondary logged only part of the primary (#4296).
+  ProfileAlignmentResult scoreAt(
+    List<DiveProfilePoint> primary,
+    List<DiveProfilePoint> secondary,
+    int offsetSeconds,
+  ) {
+    final p = _sorted(primary);
+    final s = _sorted(secondary);
+    if (_submerged(p) < minSubmergedSamples ||
+        _submerged(s) < minSubmergedSamples) {
+      return const ProfileAlignmentResult.fallback();
+    }
+    final shorter = math.min(
+      p.last.timestamp - p.first.timestamp,
+      s.last.timestamp - s.first.timestamp,
+    );
+    if (shorter <= 0) return const ProfileAlignmentResult.fallback();
+    final fit = _score(p, s, offsetSeconds, shorter);
+    if (fit == null) return const ProfileAlignmentResult.fallback();
+    return _result(p, fit);
+  }
+
+  /// [fit] as a result, strong when the traces overlap enough and agree
+  /// within the depth-scaled error [p] allows.
+  static ProfileAlignmentResult _result(List<DiveProfilePoint> p, _Fit fit) {
     final maxDepth = p.map((e) => e.depth).reduce(math.max);
     final threshold = math.max(
       strongMatchMinRmsMeters,

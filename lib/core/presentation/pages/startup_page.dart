@@ -1874,8 +1874,7 @@ class _StartupWrapperState extends State<StartupWrapper>
 
   /// True where "show me that folder" means something. Mobile file managers
   /// have no addressable folder concept to hand off to.
-  bool get _canRevealBackupsFolder =>
-      HostPlatform.isMacOS || HostPlatform.isWindows || HostPlatform.isLinux;
+  bool get _canRevealBackupsFolder => HostPlatform.isDesktop;
 
   Future<void> _showBackupsFolder() async {
     final dir = _backupsDirectory;

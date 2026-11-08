@@ -119,11 +119,12 @@ void main() {
     NearbyChannel channel, {
     int partSize = 262144,
     Duration messageTimeout = const Duration(seconds: 60),
+    Directory? transferDir,
   }) => NearbySyncProtocol(
     channel: channel,
     engine: d.engine,
     peers: d.peers,
-    tempDir: () async => d.temp,
+    tempDir: () async => transferDir ?? d.temp,
     now: () => d.now,
     partSize: partSize,
     messageTimeout: messageTimeout,
@@ -137,6 +138,7 @@ void main() {
     int partSize = 262144,
     Duration messageTimeout = const Duration(seconds: 60),
     NearbyEndpoint Function(NearbyEndpoint)? wrapLaptop,
+    Directory? laptopTransferDir,
   }) async {
     final (laptopChannel, phoneChannel) = await open(
       laptop,
@@ -148,6 +150,7 @@ void main() {
       channel,
       partSize: partSize,
       messageTimeout: messageTimeout,
+      transferDir: d == laptop ? laptopTransferDir : null,
     );
 
     // Each side hangs up when its run ends, as the link manager does, so a
@@ -241,6 +244,11 @@ void main() {
     expect(laptop.engine.exportFullCalls, 1);
     expect(phone.engine.appliedFiles.single, content);
     expect(lOut.sent, greaterThan(2 * 262144), reason: 'several parts');
+    // Applied from the received gzip, never expanded beside it (#4256).
+    expect(
+      phone.engine.stagedAtApply.single.where((n) => !n.endsWith('.gz')),
+      isEmpty,
+    );
   });
 
   test('a part slower than the message timeout still arrives, so a full '
@@ -623,6 +631,29 @@ void main() {
         .map((f) => p.basename(f.path))
         .where((n) => n.startsWith('nearby-in-'));
     expect(left, isEmpty, reason: 'the sender makes a fresh copy');
+  });
+
+  test('a full copy that cannot be moved into place is not left behind '
+      '(#4256)', () async {
+    final laptop = await device(
+      'L',
+      peerId: 'P',
+      marks: {'L': fakeHlc(5, 'L')},
+    );
+    laptop.engine.fullContent = '{}';
+    final phone = await device('P', peerId: 'L');
+    // A transfer directory that is not there: the export cannot be moved in.
+    await expectLater(
+      session(
+        laptop,
+        phone,
+        laptopTransferDir: Directory(p.join(laptop.temp.path, 'missing')),
+      ),
+      throwsA(isA<FileSystemException>()),
+    );
+
+    expect(laptop.engine.exportFullCalls, 1);
+    expect(laptop.temp.listSync(), isEmpty, reason: 'the export is deleted');
   });
 
   test('rows the merge could not apply fail the direction, and what did '

@@ -446,7 +446,7 @@ void main() {
 
       final result =
           await (buildService()
-                ..baseParseClientSpawn = (_) async =>
+                ..baseParseClientSpawn = (_, {gzipped = false}) async =>
                     throw StateError('forced inline fallback'))
               .performSync();
 

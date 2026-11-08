@@ -374,4 +374,47 @@ void main() {
     // isAtSameMomentAs, not ==: DateTime.== also compares UTC versus local.
     expect(restored.single.entryTime!.isAtSameMomentAs(skewedEntry), isTrue);
   });
+
+  test('apply without a mode folds an overlapping secondary whose clock is '
+      'wrong onto the profile fit, not its clock (#4296)', () async {
+    // 's' recorded the same dive on a clock 20 minutes fast, after 40 s at
+    // the surface. Wrong by less than the dive lasted, so the records still
+    // overlap and no alignment mode is passed.
+    final fastEntry = DateTime.utc(2026, 7, 1, 9, 20);
+    await (db.update(db.dives)..where((d) => d.id.equals('s'))).write(
+      DivesCompanion(
+        entryTime: Value(fastEntry.millisecondsSinceEpoch),
+        runtime: const Value(48 * 60),
+      ),
+    );
+    await (db.update(db.dives)..where((d) => d.id.equals('t'))).write(
+      const DivesCompanion(runtime: Value(48 * 60)),
+    );
+    await profileSeries.insertSeries(
+      diveId: 't',
+      computerId: 'comp-t',
+      sourceId: 'src-t',
+      samples: reefSamples(),
+      now: 1000,
+    );
+    await profileSeries.insertSeries(
+      diveId: 's',
+      computerId: 'comp-s',
+      sourceId: 'src-s',
+      samples: reefSamples(lead: 40),
+      now: 1000,
+    );
+
+    await service.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
+
+    final source = await copiedSourceId();
+    final sourceRow = await (db.select(
+      db.diveDataSources,
+    )..where((d) => d.id.equals(source))).getSingle();
+    expect(sourceRow.timeOffsetSeconds, -40);
+    final copied = (await profileSeries.getSeriesForDive(
+      't',
+    )).where((r) => r.sourceId == source).single;
+    expect(copied.samples.first.timestamp, -40);
+  });
 }

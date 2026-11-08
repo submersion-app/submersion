@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/providers/ref_invalidate_on_change.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_computer/data/services/reparse_batch_service.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_service.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
@@ -28,6 +29,12 @@ final reparseServiceProvider = Provider<ReparseService>((ref) {
     transmitterMatcherLoader: () => loadTransmitterMatcher(ref),
   );
 });
+
+/// The batch re-parse engine (issue #224), over the current [ReparseService]
+/// so a batch applies the same settings a single re-parse does.
+final reparseBatchServiceProvider = Provider<ReparseBatchService>(
+  (ref) => ReparseBatchService(ref.watch(reparseServiceProvider)),
+);
 
 /// Provides raw data counts for all dive computer sources matching [computerId].
 ///
