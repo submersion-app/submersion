@@ -8723,6 +8723,18 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_edit_useSet => 'Usar conjunto';
 
   @override
+  String get diveLog_edit_removeSet => 'Quitar conjunto';
+
+  @override
+  String get diveLog_bulkEdit_setsToRemove => 'Conjuntos a quitar';
+
+  @override
+  String get diveLog_bulkEdit_removeSetTitle => 'Quitar conjunto de equipo';
+
+  @override
+  String get diveLog_bulkEdit_equipmentSets => 'Conjuntos de equipo';
+
+  @override
   String get diveLog_edit_weightPreset_use => 'Usar preajuste';
 
   @override
@@ -58180,6 +58192,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get rules_value_empty => '(vacío)';
 
   @override
+  String rules_value_gearViaSet(String item, String set) {
+    return '$item ($set)';
+  }
+
+  @override
   String get rules_collection_diveTypes => 'tipos de inmersión';
 
   @override
@@ -58193,6 +58210,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get rules_collection_courses => 'cursos';
+
+  @override
+  String get rules_collection_equipmentSets => 'conjuntos de equipo';
 
   @override
   String get rules_collection_siteTags => 'etiquetas de sitio';

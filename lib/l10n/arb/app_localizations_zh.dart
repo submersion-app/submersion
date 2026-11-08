@@ -8282,6 +8282,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_useSet => '使用套装';
 
   @override
+  String get diveLog_edit_removeSet => '移除套装';
+
+  @override
+  String get diveLog_bulkEdit_setsToRemove => '要移除的套装';
+
+  @override
+  String get diveLog_bulkEdit_removeSetTitle => '移除装备套装';
+
+  @override
+  String get diveLog_bulkEdit_equipmentSets => '装备套装';
+
+  @override
   String get diveLog_edit_weightPreset_use => '使用预设';
 
   @override
@@ -54573,6 +54585,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get rules_value_empty => '（空）';
 
   @override
+  String rules_value_gearViaSet(String item, String set) {
+    return '$item（$set）';
+  }
+
+  @override
   String get rules_collection_diveTypes => '潜水类型';
 
   @override
@@ -54586,6 +54603,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get rules_collection_courses => '课程';
+
+  @override
+  String get rules_collection_equipmentSets => '装备套装';
 
   @override
   String get rules_collection_siteTags => '潜点标签';

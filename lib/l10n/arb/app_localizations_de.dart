@@ -8722,6 +8722,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_edit_useSet => 'Set verwenden';
 
   @override
+  String get diveLog_edit_removeSet => 'Set entfernen';
+
+  @override
+  String get diveLog_bulkEdit_setsToRemove => 'Zu entfernende Sets';
+
+  @override
+  String get diveLog_bulkEdit_removeSetTitle => 'Ausrüstungsset entfernen';
+
+  @override
+  String get diveLog_bulkEdit_equipmentSets => 'Ausrüstungssets';
+
+  @override
   String get diveLog_edit_weightPreset_use => 'Vorlage verwenden';
 
   @override
@@ -58010,6 +58022,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get rules_value_empty => '(leer)';
 
   @override
+  String rules_value_gearViaSet(String item, String set) {
+    return '$item ($set)';
+  }
+
+  @override
   String get rules_collection_diveTypes => 'Tauchgangstypen';
 
   @override
@@ -58023,6 +58040,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get rules_collection_courses => 'Kurse';
+
+  @override
+  String get rules_collection_equipmentSets => 'Ausrüstungssets';
 
   @override
   String get rules_collection_siteTags => 'Tauchplatz-Tags';

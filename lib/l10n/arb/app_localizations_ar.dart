@@ -8853,6 +8853,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_useSet => 'استخدام طقم';
 
   @override
+  String get diveLog_edit_removeSet => 'إزالة طقم';
+
+  @override
+  String get diveLog_bulkEdit_setsToRemove => 'أطقم للإزالة';
+
+  @override
+  String get diveLog_bulkEdit_removeSetTitle => 'إزالة طقم معدات';
+
+  @override
+  String get diveLog_bulkEdit_equipmentSets => 'أطقم المعدات';
+
+  @override
   String get diveLog_edit_weightPreset_use => 'استخدام إعداد مسبق';
 
   @override
@@ -58838,6 +58850,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get rules_value_empty => '(فارغ)';
 
   @override
+  String rules_value_gearViaSet(String item, String set) {
+    return '$item ($set)';
+  }
+
+  @override
   String get rules_collection_diveTypes => 'أنواع الغطس';
 
   @override
@@ -58851,6 +58868,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get rules_collection_courses => 'الدورات';
+
+  @override
+  String get rules_collection_equipmentSets => 'أطقم المعدات';
 
   @override
   String get rules_collection_siteTags => 'وسوم المواقع';
