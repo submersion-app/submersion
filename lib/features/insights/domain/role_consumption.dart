@@ -66,7 +66,8 @@ const _switchTimedGroups = {
 /// cylinder lost more gas than carrying it explains without a switch saying
 /// when, the whole dive is [DiveRoleConsumption.leftOut]: the primary gas
 /// window would then span its minutes too. On a CCR dive only bailout gas
-/// counts, in the bailout group.
+/// counts, in the bailout group, and the same rule leaves the dive out: such
+/// a cylinder is open-circuit gas whatever the loop did.
 ///
 /// A rate with no depth behind it counts nowhere: no profile in its window
 /// and no stored average depth (the service then assumes 10 m), or a stored
@@ -90,10 +91,9 @@ DiveRoleConsumption roleConsumptionForDive({
       if (tanks.containsKey(row.tankId)) row,
   ];
 
-  if (!dive.isCCR && dive.tanks.length > 1) {
-    if (_hasUntimedCylinder(dive, tanks.values, rows, tankPressures)) {
-      return const DiveRoleConsumption(leftOut: true);
-    }
+  if (dive.tanks.length > 1 &&
+      _hasUntimedCylinder(dive, tanks.values, rows, tankPressures)) {
+    return const DiveRoleConsumption(leftOut: true);
   }
 
   final groups = <ConsumptionRoleGroup, List<CylinderSac>>{};
@@ -130,9 +130,10 @@ bool _carried(double start, double end) =>
     start - end <= math.max(_carriedDropFloorBar, start * _carriedDropFraction);
 
 /// Whether a counted stage, deco, pony or bailout cylinder lost gas with no
-/// switch saying when: no row at all, past what carrying it explains, or a
-/// row timed by a recorded duration, which says how long but not at what
-/// depth.
+/// switch saying when: no breathing windows, past what carrying it explains
+/// (an open-circuit dive gives such a cylinder no row, a CCR dive a row with
+/// no windows), or a row timed by a recorded duration, which says how long
+/// but not at what depth.
 bool _hasUntimedCylinder(
   Dive dive,
   Iterable<DiveTank> tanks,
@@ -148,7 +149,8 @@ bool _hasUntimedCylinder(
     final lostGas = start != null && end != null && start > end;
     if (!lostGas) continue;
     final row = rowsById[tank.id];
-    if (row == null && !_carried(start, end)) return true;
+    final timed = row != null && row.usageWindows.isNotEmpty;
+    if (!timed && !_carried(start, end)) return true;
     if (row != null && row.usageFromRecordedDuration) return true;
   }
   return false;

@@ -162,6 +162,11 @@ case for a diver who logs deco dives by hand, and it is why the left-out note
 exists. A cylinder unresolved only because its **size** is unknown leaves just
 that cylinder out, since the others' windows are still right.
 
+A CCR dive follows the same rule for its stage, deco, pony and bailout
+cylinders (diluent and oxygen are loop gas and never count): one that lost
+gas past the carried tolerance with no switch onto it leaves the dive out of
+the Bailout line and counts in the note, rather than vanishing unnoticed.
+
 ### The figure
 
 For each dive in scope and each group with at least one counting cylinder:

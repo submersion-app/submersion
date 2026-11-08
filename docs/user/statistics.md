@@ -179,7 +179,9 @@ the chart give each line's average. Tap a dot to open the dive.
   fill cools to the water. A drop of up to 15 bar (about 220 psi), or 7% of the
   start pressure on a fuller fill, counts as carried, so the dive stays in.
 - Open-circuit lines leave out CCR and SCR dives. A CCR dive counts only on the
-  **Bailout** line, with the open-circuit rate while you were bailed out.
+  **Bailout** line, with the open-circuit rate while you were bailed out. The
+  same rule applies there: a bailout, stage, deco or pony cylinder that lost
+  gas with no gas switch onto it leaves the dive out, and the card counts it.
 - The SAC on this card follows the gas model in your settings, as the dive's own
   cylinders do, so it can differ by a few percent from the SAC trend above,
   which uses the plain pressure drop.

@@ -518,6 +518,39 @@ void main() {
         expect(run.result.rmv, isEmpty);
         expect(run.result.leftOut, isFalse);
       });
+
+      test('a bailout that lost gas with no switch onto it leaves the dive '
+          'out', () {
+        final run = _run(
+          _dive(const [diluent, oxygen, bailout], diveMode: DiveMode.ccr),
+        );
+
+        expect(run.result.leftOut, isTrue);
+        expect(run.result.rmv, isEmpty);
+      });
+
+      test('a second bailout with no switch leaves out a dive that bailed '
+          'onto the first', () {
+        final second = bailout.copyWith(id: 'bail-2', order: 3);
+        final run = _run(
+          _dive([diluent, oxygen, bailout, second], diveMode: DiveMode.ccr),
+          switches: [_switchTo('bail', 2400)],
+        );
+
+        expect(run.result.leftOut, isTrue);
+      });
+
+      test('a bailout carried with a small drop leaves nothing out', () {
+        final run = _run(
+          _dive([
+            diluent,
+            oxygen,
+            bailout.copyWith(endPressure: 188),
+          ], diveMode: DiveMode.ccr),
+        );
+
+        expect(run.result.leftOut, isFalse);
+      });
     });
 
     test('a tank not counted is ignored', () {
