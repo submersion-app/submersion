@@ -6,6 +6,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
 import 'package:submersion/shared/widgets/nav/nav_shortcuts.dart';
+import 'package:submersion/core/platform/desktop_target_platform.dart';
 
 /// The header a [NavShortcutGroup] is listed under.
 String navShortcutGroupLabel(AppLocalizations l10n, NavShortcutGroup group) {
@@ -94,14 +95,8 @@ class _NavShortcutPickerState extends State<NavShortcutPicker> {
   /// the on-screen keyboard over the list the diver came to browse. Decided
   /// by platform, not window width: a tablet in landscape is as wide as a
   /// desktop window.
-  bool get _hasHardwareKeyboard => switch (defaultTargetPlatform) {
-    TargetPlatform.macOS ||
-    TargetPlatform.windows ||
-    TargetPlatform.linux => true,
-    TargetPlatform.android ||
-    TargetPlatform.iOS ||
-    TargetPlatform.fuchsia => false,
-  };
+  bool get _hasHardwareKeyboard =>
+      isDesktopTargetPlatform(defaultTargetPlatform);
 
   bool _matches(AppLocalizations l10n, NavShortcut shortcut) {
     if (_query.isEmpty) return true;

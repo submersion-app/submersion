@@ -44,8 +44,12 @@ String tracksMapFramingSignature({
 /// its points have loaded. Derived once per hydration rather than in the
 /// map's build: the map rebuilds far more often than a track's points
 /// change, and each derivation segments and corrects the whole recording.
-final _underwaterFramingPointsProvider =
-    Provider.family<List<GpsTrackPoint>, String>((ref, trackId) {
+///
+/// AutoDispose: the map watches it only for the selected track and its
+/// site's siblings, and a keep-forever entry would hold every route ever
+/// selected, with the decoded points it watches, for the session (#4254).
+final _underwaterFramingPointsProvider = Provider.autoDispose
+    .family<List<GpsTrackPoint>, String>((ref, trackId) {
       final hydrated = ref.watch(navTrackByIdProvider(trackId)).value;
       if (hydrated == null) return const [];
       return [

@@ -95,9 +95,18 @@ extension _GasSwitchEditing on _DiveEditPageState {
     UnitFormatter units,
   ) async {
     final diveId = widget.diveId;
+    // Awaited, not read as a value: the breath starts above keep the family
+    // loaded while this section shows, but a pick made before it finishes
+    // loading still gets the recorded pressures.
     final recorded = diveId == null
         ? null
-        : ref.read(tankPressuresProvider(diveId)).value;
+        : await ref
+              .read(tankPressuresProvider(diveId).future)
+              .then<Map<String, List<TankPressurePoint>>?>(
+                (value) => value,
+                onError: (Object _) => null,
+              );
+    if (!mounted) return;
     final seconds = await showGasSwitchTimeSheet(
       context,
       profile: profile,

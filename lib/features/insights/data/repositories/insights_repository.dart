@@ -23,7 +23,10 @@ import 'package:submersion/features/dive_log/data/repositories/tank_pressure_rep
 import 'package:submersion/features/dive_log/data/sql/dive_weight_sql.dart';
 import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    show DiveProfilePoint;
 import 'package:submersion/features/dive_log/domain/services/ccr_cylinder_use.dart';
+import 'package:submersion/features/dive_log/domain/services/cylinder_usage.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
@@ -58,6 +61,7 @@ part 'insights_repository_conditions.dart';
 part 'insights_repository_focus.dart';
 part 'insights_repository_focus_series.dart';
 part 'insights_repository_tank_configuration.dart';
+part 'insights_repository_tank_role_sac.dart';
 part 'insights_repository_time_of_day.dart';
 part 'insights_repository_twin_set_candidates.dart';
 
@@ -761,86 +765,61 @@ class InsightsRepository with InsightsChartDives {
   /// Returns a map of tank role to average SAC in L/min.
   /// Requires tank volume data.
   ///
+  /// Each cylinder is rated over its own breathing time and depth, as the
+  /// dive's Cylinders card rates it (issue #4315; see [_tankRoleCylinders]),
+  /// then averaged with the others of its role.
+  ///
   /// Each cylinder stands for its own role, so an SCR dive keeps its rows
-  /// here (issue #3673). A CCR dive does not: this divides by depth over the
-  /// whole dive, which means nothing for a loop, and its rates are in
-  /// [getCcrGasUsePerDive] (issue #4082). The planner's default SAC reads the
-  /// backmount rows, which a CCR dive's cylinders must not feed. [roleKey] maps
-  /// a stored role name to the key its cylinders average under, so a caller
-  /// can fold roles into one group (back gas and twin set as one backmount
-  /// rate, issue #3374) and still get an average over cylinders, not over
-  /// averages. The identity by default.
+  /// here (issue #3673). A CCR dive does not: this divides by depth, which
+  /// means nothing for a loop, and its rates are in [getCcrGasUsePerDive]
+  /// (issue #4082). The planner's default SAC reads the backmount rows, which
+  /// a CCR dive's cylinders must not feed. [roleKey] maps a stored role name
+  /// to the key its cylinders average under, so a caller can fold roles into
+  /// one group (back gas and twin set as one backmount rate, issue #3374) and
+  /// still get an average over cylinders, not over averages. The identity by
+  /// default.
   Future<Map<String, double>> getSacVolumeByTankRole({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
     String Function(String role)? roleKey,
   }) async {
     try {
-      final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final df = _diveFilter(filter, alias: 'd', gas: true);
-      final params = diverId != null ? [diverId, ...df.params] : [...df.params];
-
-      final results = await _db.customSelect('''
-        SELECT
-          t.tank_role,
-          t.start_pressure,
-          t.end_pressure,
-          ${consumptionVolumeSql('t')} AS volume,
-          t.o2_percent,
-          t.he_percent,
-          ${diveAmbientBarSql('d', 'd.avg_depth')} AS ambient_bar,
-          ${measuredRuntimeSecondsSql('d')} AS duration_sec
-        FROM dives d
-        INNER JOIN dive_tanks t ON t.dive_id = d.id AND ${breathingTankSql('t')}
-        WHERE t.start_pressure IS NOT NULL
-          AND t.end_pressure IS NOT NULL
-          AND t.start_pressure > t.end_pressure
-          AND ${measuredRuntimeSecondsSql('d')} > 0
-          AND d.avg_depth > 0
-          AND d.dive_mode <> 'ccr'
-          $diverFilter ${df.clause}
-        ''', variables: params.map((p) => Variable(p)).toList()).get();
-
       final Map<String, List<double>> sacsByRole = {};
 
-      for (final row in results) {
-        final role = row.read<String>('tank_role');
-        final o2 = row.read<double>('o2_percent');
-        final he = row.read<double>('he_percent');
-        final vol = row.read<double?>('volume');
+      for (final c in await _tankRoleCylinders(
+        diverId: diverId,
+        filter: filter,
+      )) {
+        final vol = c.volume;
         if (vol == null) continue;
         final used =
             gasVolume(
               tankSizeLiters: vol,
-              pressureBar: row.read<double>('start_pressure'),
-              o2Percent: o2,
-              hePercent: he,
+              pressureBar: c.startPressure,
+              o2Percent: c.o2Percent,
+              hePercent: c.hePercent,
               model: gasModel,
             ) -
             gasVolume(
               tankSizeLiters: vol,
-              pressureBar: row.read<double>('end_pressure'),
-              o2Percent: o2,
-              hePercent: he,
+              pressureBar: c.endPressure,
+              o2Percent: c.o2Percent,
+              hePercent: c.hePercent,
               model: gasModel,
             );
         if (used <= 0) continue;
 
-        final durationMin = row.read<int>('duration_sec') / 60.0;
-        final ambientBar = row.read<double>('ambient_bar');
-        final sac = used / durationMin / ambientBar;
+        final sac = used / c.minutes / c.ambientBar;
         if (sac > 0) {
-          final key = roleKey == null ? role : roleKey(role);
+          final key = roleKey == null ? c.role : roleKey(c.role);
           sacsByRole.putIfAbsent(key, () => []).add(sac);
         }
       }
 
-      final Map<String, double> avgByRole = {};
-      for (final entry in sacsByRole.entries) {
-        avgByRole[entry.key] =
-            entry.value.reduce((a, b) => a + b) / entry.value.length;
-      }
-      return avgByRole;
+      return {
+        for (final entry in sacsByRole.entries)
+          entry.key: entry.value.reduce((a, b) => a + b) / entry.value.length,
+      };
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get SAC in volume by tank role',
@@ -853,54 +832,40 @@ class InsightsRepository with InsightsChartDives {
 
   /// Get pressure-based average SAC by tank role (back gas, stage, deco, etc.)
   ///
-  /// Returns a map of tank role to average SAC in bar/min.
+  /// Returns a map of tank role to average SAC in bar/min, lowest first.
   /// Does not require tank volume.
   ///
+  /// Each cylinder is rated over its own breathing time and depth, as in
+  /// [getSacVolumeByTankRole] (issue #4315).
+  ///
   /// Each cylinder stands for its own role, so an SCR dive keeps its rows
-  /// here (issue #3673). A CCR dive does not: this divides by depth over the
-  /// whole dive, which means nothing for a loop, and its rates are in
-  /// [getCcrGasUsePerDive] (issue #4082). The planner's default SAC reads the
-  /// backmount rows, which a CCR dive's cylinders must not feed.
+  /// here (issue #3673). A CCR dive does not: this divides by depth, which
+  /// means nothing for a loop, and its rates are in [getCcrGasUsePerDive]
+  /// (issue #4082). The planner's default SAC reads the backmount rows, which
+  /// a CCR dive's cylinders must not feed.
   Future<Map<String, double>> getSacPressureByTankRole({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
-      final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final df = _diveFilter(filter, alias: 'd', gas: true);
-      final params = diverId != null ? [diverId, ...df.params] : [...df.params];
-
-      final results = await _db.customSelect('''
-        SELECT
-          t.tank_role,
-          AVG(
-            CASE
-              WHEN t.start_pressure > t.end_pressure THEN
-                (t.start_pressure - t.end_pressure) / (${measuredRuntimeSecondsSql('d')} / 60.0) / ${diveAmbientBarSql('d', 'd.avg_depth')}
-              ELSE NULL
-            END
-          ) AS avg_sac
-        FROM dives d
-        INNER JOIN dive_tanks t ON t.dive_id = d.id AND ${breathingTankSql('t')}
-        WHERE t.start_pressure IS NOT NULL
-          AND t.end_pressure IS NOT NULL
-          AND ${measuredRuntimeSecondsSql('d')} > 0
-          AND d.avg_depth > 0
-          AND d.dive_mode <> 'ccr'
-          $diverFilter ${df.clause}
-        GROUP BY t.tank_role
-        HAVING avg_sac IS NOT NULL
-        ORDER BY avg_sac ASC
-        ''', variables: params.map((p) => Variable(p)).toList()).get();
-
-      final Map<String, double> sacByRole = {};
-      for (final row in results) {
-        final role = row.read<String>('tank_role');
-        final sac = row.read<double>('avg_sac');
-        sacByRole[role] = sac;
+      final Map<String, List<double>> sacsByRole = {};
+      for (final c in await _tankRoleCylinders(
+        diverId: diverId,
+        filter: filter,
+      )) {
+        sacsByRole
+            .putIfAbsent(c.role, () => [])
+            .add((c.startPressure - c.endPressure) / c.minutes / c.ambientBar);
       }
 
-      return sacByRole;
+      final averages = [
+        for (final entry in sacsByRole.entries)
+          (
+            role: entry.key,
+            sac: entry.value.reduce((a, b) => a + b) / entry.value.length,
+          ),
+      ]..sort((a, b) => a.sac.compareTo(b.sac));
+      return {for (final a in averages) a.role: a.sac};
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get SAC in pressure by tank role',

@@ -147,6 +147,7 @@ void main() {
             rangeSelection: (
               startSeconds: 60,
               endSeconds: 480,
+              minSeconds: 0,
               maxSeconds: 570,
             ),
             onRangeChanged: (_, _) {},

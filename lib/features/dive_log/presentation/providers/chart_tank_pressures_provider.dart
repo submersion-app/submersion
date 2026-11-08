@@ -3,6 +3,7 @@ import 'package:submersion/features/dive_log/data/services/estimated_tank_pressu
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show TankPressurePoint;
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
@@ -50,8 +51,9 @@ final activeSourceTankPressuresProvider = FutureProvider.autoDispose
 /// that have start/end pressures but no transmitter data. Chart-only; the
 /// estimates are never persisted, so SAC analysis and exports (which read the
 /// repository directly) still see real measured data only.
-final estimatedTankPressuresProvider =
-    FutureProvider.family<EstimatedTankPressures, String>((ref, diveId) async {
+final estimatedTankPressuresProvider = FutureProvider.autoDispose
+    .family<EstimatedTankPressures, String>((ref, diveId) async {
+      retainDiveData(ref);
       // Start the independent fetches concurrently to avoid a request waterfall
       // on the chart load path.
       final realFuture = ref.watch(

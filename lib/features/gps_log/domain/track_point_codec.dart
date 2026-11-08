@@ -80,16 +80,48 @@ const int kMaxTrackBodyCommas = 4 * kMaxTrackPointCount;
 /// Throws [TrackPointCodecException] if [points] is longer than
 /// [kMaxTrackPointCount].
 Uint8List encodeTrackPoints(List<GpsTrackPoint> points) {
-  if (points.length > kMaxTrackPointCount) {
+  checkTrackPointCount(points.length);
+  return encodeTrackPointTuples([
+    for (final p in points) encodeTrackPointTuple(p),
+  ]);
+}
+
+/// One point as the JSON tuple [encodeTrackPoints] writes for it.
+///
+/// Formatting the doubles is most of an encode's cost, so a caller that
+/// re-encodes a growing track (a recording checkpoint, issue #4255) keeps
+/// these strings and formats only the points it has not seen.
+String encodeTrackPointTuple(GpsTrackPoint p) =>
+    jsonEncode([p.timestamp, p.latitude, p.longitude, p.accuracy]);
+
+/// Encodes tuples from [encodeTrackPointTuple] into the same blob
+/// [encodeTrackPoints] writes for those points: compact JSON has no
+/// whitespace, so an array is exactly its elements joined by commas.
+///
+/// Throws [TrackPointCodecException] if there are more than
+/// [kMaxTrackPointCount] tuples.
+Uint8List encodeTrackPointTuples(List<String> tuples) {
+  checkTrackPointCount(tuples.length);
+  // One buffer, not a join wrapped in brackets, which copies the whole body
+  // a second time: up to about 17 MB at the point cap.
+  final body = StringBuffer('[')
+    ..writeAll(tuples, ',')
+    ..write(']');
+  return PlatformZlib.gzip(utf8.encode(body.toString()));
+}
+
+/// Throws [TrackPointCodecException] if a track of [count] points is more
+/// than this codec can read back.
+///
+/// For a caller that formats tuples itself: checking before formatting keeps
+/// the cap a bound on allocation, not just on what is written.
+void checkTrackPointCount(int count) {
+  if (count > kMaxTrackPointCount) {
     throw TrackPointCodecException(
-      'track of ${points.length} point(s) exceeds the '
+      'track of $count point(s) exceeds the '
       '$kMaxTrackPointCount this codec can read back',
     );
   }
-  final json = jsonEncode([
-    for (final p in points) [p.timestamp, p.latitude, p.longitude, p.accuracy],
-  ]);
-  return PlatformZlib.gzip(utf8.encode(json));
 }
 
 /// Decodes a blob written by [encodeTrackPoints].

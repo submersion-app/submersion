@@ -176,11 +176,18 @@ class NavTrackRepository with _NavTrackRouteLinks, _NavTrackRouteImports {
 
   /// Every route for the routes area's own list, unlinked first and then
   /// most recently recorded within each group. [diverId] scopes it as in
-  /// [getUnlinked].
+  /// [getUnlinked]; [ids] narrows it to those routes (Global Search's few
+  /// rows, issue #4247).
   Future<List<domain.NavTrack>> getAll({
     bool includePoints = false,
     String? diverId,
+    List<String>? ids,
   }) async {
+    if (ids != null && ids.isEmpty) return const [];
+    final where = [
+      if (diverId != null) _visibleToSql,
+      if (ids != null) 'id IN (${List.filled(ids.length, '?').join(', ')})',
+    ];
     final rows = includePoints
         ? await (_db.select(_db.navTracks)
                 ..where(
@@ -188,11 +195,17 @@ class NavTrackRepository with _NavTrackRouteLinks, _NavTrackRouteImports {
                       ? const Constant(true)
                       : _visibleTo(t, diverId),
                 )
+                ..where(
+                  (t) => ids == null ? const Constant(true) : t.id.isIn(ids),
+                )
                 ..orderBy([(t) => OrderingTerm.desc(t.startTime)]))
               .get()
         : await _selectWithoutPoints(
-            where: diverId == null ? null : _visibleToSql,
-            variables: [if (diverId != null) Variable.withString(diverId)],
+            where: where.isEmpty ? null : where.join(' AND '),
+            variables: [
+              if (diverId != null) Variable.withString(diverId),
+              ...?ids?.map(Variable.withString),
+            ],
             orderBy: 'start_time DESC',
           );
     final tracks = [

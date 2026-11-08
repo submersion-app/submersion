@@ -86,6 +86,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_location
 import 'package:submersion/features/equipment/domain/services/equipment_location_arranger.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_group_header.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_tile_location.dart';
 
 /// Content widget for the equipment list, used in master-detail layout.
 class EquipmentListContent extends ConsumerStatefulWidget {
@@ -925,6 +926,13 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                 e.key: [for (final t in e.value) t.name],
             },
             ownerNames: ref.watch(diverNamesByIdProvider).value ?? const {},
+            locationNames: {
+              for (final e
+                  in (ref.watch(currentEquipmentLocationsProvider).value ??
+                          const <String, EquipmentLocation>{})
+                      .entries)
+                e.key: e.value.name,
+            },
           ),
           config: config,
           units: units,
@@ -1256,6 +1264,12 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       ?selectedId,
       ?ref.watch(highlightedEquipmentIdProvider),
     };
+    // Each card names its place (issue #3625), except when grouped by
+    // location: the place heading above the card already says it.
+    final placesById = locationSections == null
+        ? ref.watch(currentEquipmentLocationsProvider).value ??
+              const <String, EquipmentLocation>{}
+        : const <String, EquipmentLocation>{};
 
     // One flat run of rows for the lazy builder: a heading before each group
     // when the arrangement groups, then that group's gear. Grouped by
@@ -1405,6 +1419,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                     ? tagsByEquipment[item.id] ?? const []
                     : const [],
                 label: labels[item.id],
+                location: placesById[item.id],
               ),
               ListViewMode.dense ||
               ListViewMode.table => DenseEquipmentListTile(
@@ -1583,6 +1598,12 @@ class EquipmentListTile extends ConsumerWidget {
   /// brand and model, for a tile shown on its own.
   final EquipmentRowLabel? label;
 
+  /// Where the item is kept (issue #3625), handed in by the list, which reads
+  /// every item's place in one go. Shown under the type when no badge holds
+  /// that line; null shows nothing (no recorded place, or the list already
+  /// names the place in its heading).
+  final EquipmentLocation? location;
+
   const EquipmentListTile({
     super.key,
     required this.item,
@@ -1593,6 +1614,7 @@ class EquipmentListTile extends ConsumerWidget {
     this.onCheckChanged,
     this.tags = const [],
     this.label,
+    this.location,
   });
 
   @override
@@ -1718,62 +1740,51 @@ class EquipmentListTile extends ConsumerWidget {
       overflow: TextOverflow.ellipsis,
     );
 
+    // One second line at most, most urgent first. The place takes it only
+    // when no badge needs it (issue #3625): a badge asks for action, and the
+    // place is on the detail page.
+    final place = location;
+    final Widget? secondLine;
     if (finding != null) {
       final significant = finding.severity == ConditionSeverity.significant;
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          typeLabel,
-          const SizedBox(height: 2),
-          Text(
-            conditionFindingShortLabel(finding.rule, context.l10n),
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: significant
-                  ? theme.colorScheme.error
-                  : theme.colorScheme.tertiary,
-              fontWeight: FontWeight.w600,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
+      secondLine = Text(
+        conditionFindingShortLabel(finding.rule, context.l10n),
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: significant
+              ? theme.colorScheme.error
+              : theme.colorScheme.tertiary,
+          fontWeight: FontWeight.w600,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       );
+    } else if (worstClock != null) {
+      secondLine = ServiceStatusIndicator(
+        clock: worstClock,
+        subjectId: item.id,
+      );
+    } else if (item.status != EquipmentStatus.active) {
+      secondLine = Text(
+        item.status.localizedName(context.l10n),
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.onSecondaryContainer,
+          fontWeight: FontWeight.w500,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      );
+    } else if (place != null) {
+      secondLine = EquipmentTileLocation(location: place);
+    } else {
+      secondLine = null;
     }
 
-    if (worstClock != null) {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          typeLabel,
-          const SizedBox(height: 2),
-          ServiceStatusIndicator(clock: worstClock, subjectId: item.id),
-        ],
-      );
-    }
-
-    if (item.status != EquipmentStatus.active) {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          typeLabel,
-          const SizedBox(height: 2),
-          Text(
-            item.status.localizedName(context.l10n),
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSecondaryContainer,
-              fontWeight: FontWeight.w500,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      );
-    }
-
-    return typeLabel;
+    if (secondLine == null) return typeLabel;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [typeLabel, const SizedBox(height: 2), secondLine],
+    );
   }
 }
 

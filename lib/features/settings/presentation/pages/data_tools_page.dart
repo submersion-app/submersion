@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/agent_access/presentation/providers/agent_access_providers.dart';
 import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_row_tile.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Settings > Data > Advanced > Data tools (issue #3482): the four one-off
-/// repair tools that used to sit at the bottom of the Data page. Each row
-/// still opens the same page it opened there.
+/// Settings > Data > Advanced > Data tools (issue #3482): the one-off repair
+/// tools that used to sit at the bottom of the Data page, each opening its
+/// own page. Re-parse dives (issue #224) is offered where the dive parser
+/// runs.
 ///
 /// Agent access (the in-app MCP server) is listed here too, on desktop only
 /// and, until its write surface is complete, only while debug mode is on.
@@ -20,6 +22,10 @@ class DataToolsPage extends ConsumerWidget {
     final l10n = context.l10n;
     final showAgentAccess = ref.watch(agentAccessAvailableProvider);
     final demoActive = ref.watch(demoModeActiveProvider);
+    // Re-parsing runs the native dive parser, which a browser lacks.
+    final canReparse = ref
+        .watch(deviceCapabilitiesProvider)
+        .diveComputerDownload;
 
     Widget tool(IconData icon, String title, String subtitle, String route) =>
         DataRowTile(icon: icon, title: title, subtitle: subtitle, route: route);
@@ -59,6 +65,13 @@ class DataToolsPage extends ConsumerWidget {
             l10n.settings_tableEditor_subtitle,
             '/settings/table-editor',
           ),
+          if (canReparse)
+            tool(
+              Icons.refresh,
+              l10n.settings_reparseDives_title,
+              l10n.settings_reparseDives_subtitle,
+              '/settings/reparse-dives',
+            ),
           if (showAgentAccess)
             DataRowTile(
               icon: Icons.smart_toy_outlined,

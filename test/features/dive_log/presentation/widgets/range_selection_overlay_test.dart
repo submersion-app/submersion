@@ -16,6 +16,7 @@ void main() {
     int startSeconds = 900,
     int endSeconds = 2700,
     int maxSeconds = 3600,
+    int minSeconds = 0,
     double visibleMinSeconds = 0,
     double visibleMaxSeconds = 3600,
     void Function(int start, int end)? onRangeChanged,
@@ -33,6 +34,7 @@ void main() {
               startSeconds: startSeconds,
               endSeconds: endSeconds,
               maxSeconds: maxSeconds,
+              minSeconds: minSeconds,
               visibleMinSeconds: visibleMinSeconds,
               visibleMaxSeconds: visibleMaxSeconds,
               insets: insets,
@@ -163,6 +165,46 @@ void main() {
       await tester.pump();
 
       expect(changes.last, (900, 3600));
+    });
+
+    testWidgets('stops the start handle at 0 for a series from 0', (
+      tester,
+    ) async {
+      final changes = <(int, int)>[];
+      await pumpOverlay(
+        tester,
+        onRangeChanged: (start, end) => changes.add((start, end)),
+      );
+
+      await tester.drag(
+        find.byKey(RangeSelectionOverlay.startHandleKey),
+        const Offset(-plotWidth, 0),
+      );
+      await tester.pump();
+
+      expect(changes.last, (0, 2700));
+    });
+
+    testWidgets('carries the start handle below 0, to the first sample of a '
+        'series that starts before the primary (#4296)', (tester) async {
+      final changes = <(int, int)>[];
+      await pumpOverlay(
+        tester,
+        startSeconds: 0,
+        endSeconds: 1800,
+        minSeconds: -600,
+        visibleMinSeconds: -600,
+        onRangeChanged: (start, end) => changes.add((start, end)),
+      );
+
+      // Most of the plot to the left: past the first sample at -600 s.
+      await tester.drag(
+        find.byKey(RangeSelectionOverlay.startHandleKey),
+        const Offset(-plotWidth * 0.5, 0),
+      );
+      await tester.pump();
+
+      expect(changes.last, (-600, 1800));
     });
 
     testWidgets('releases the chart when range mode ends mid-drag', (

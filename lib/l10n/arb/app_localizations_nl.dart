@@ -611,6 +611,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_equipmentField_owner_short => 'Eigenaar';
 
   @override
+  String get enum_equipmentField_location => 'Locatie';
+
+  @override
+  String get enum_equipmentField_location_short => 'Locatie';
+
+  @override
   String get equipment_set_noLongerShared => 'Niet meer gedeeld';
 
   @override
@@ -7360,6 +7366,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Deze registraties overlappen niet in tijd, dus de klok van een computer staat waarschijnlijk verkeerd. De duik behoudt de tijd van de primaire computer.';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      'Deze diepteprofielen komen op een ander moment overeen dan de klokken van de computers aangeven, dus de klok van een computer staat waarschijnlijk verkeerd. De duik behoudt de tijd van de primaire computer.';
+
+  @override
   String get diveLog_consolidate_clockNoteShort =>
       'De klok van een computer staat waarschijnlijk verkeerd.';
 
@@ -7473,6 +7483,86 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_deco_semantics_required => 'Decompressie vereist';
+
+  @override
+  String diveLog_deco_compartmentLeading(int number) {
+    return 'Leidend: #$number';
+  }
+
+  @override
+  String diveLog_deco_compartmentOther(int number) {
+    return 'Compartiment: #$number';
+  }
+
+  @override
+  String get diveLog_deco_metricLoad => 'Belading';
+
+  @override
+  String get diveLog_deco_gasOngassing => 'Gasopname';
+
+  @override
+  String get diveLog_deco_gasOffgassing => 'Gasafgifte';
+
+  @override
+  String get diveLog_deco_gasEquilibrium => 'Evenwicht';
+
+  @override
+  String get diveLog_deco_heatMapRows =>
+      'Rijen: snel (boven) tot langzaam (onder)';
+
+  @override
+  String get diveLog_deco_surfaceLevel => 'Oppervlakteniveau';
+
+  @override
+  String get diveLog_deco_mValue => 'M-waarde';
+
+  @override
+  String diveLog_deco_tooltipCompartment(int number) {
+    return 'Compartiment $number';
+  }
+
+  @override
+  String diveLog_deco_tooltipLoaded(String percent) {
+    return '$percent% belading';
+  }
+
+  @override
+  String diveLog_deco_tooltipHalfTime(String minutes) {
+    return 'Halfwaardetijd: $minutes min';
+  }
+
+  @override
+  String diveLog_deco_tooltipSurfaceLevel(String percent) {
+    return 'Oppervlakteniveau: $percent%';
+  }
+
+  @override
+  String get diveLog_deco_info_title => 'Wat betekenen deze waarden?';
+
+  @override
+  String get diveLog_deco_info_body =>
+      'Belading: de inertgasdruk van een compartiment als percentage van het maximum dat het aan de oppervlakte mag bevatten (de M-waarde, de rode lijn bij 100%).\n\nOppervlakteniveau: de markering op elke balk toont waar een volledig ontzadigd compartiment uitkomt terwijl je aan de oppervlakte lucht ademt. Die ligt nooit op 0%, omdat je lichaam altijd de stikstof uit de ingeademde lucht bevat. Een balk op zijn markering draagt geen restbelading van het duiken meer.\n\nGasopname en gasafgifte: gas beweegt altijd naar de druk van het gas dat je ademt. Na decompressie op zuurstof of op een heliumrijk mengsel kunnen de snelle compartimenten minder stikstof bevatten dan de lucht aan de oppervlakte. Terug op lucht nemen ze weer stikstof op tot ze hun markering bereiken. Dat is normaal en geen restbelading van de duik.\n\nHelium: lucht bevat geen helium. Na een trimixduik geeft een compartiment helium af terwijl het tegelijk stikstof kan opnemen. De pijlen naast N₂ en He tonen elk gas afzonderlijk; de aanduiding naast het compartimentnummer toont de netto richting van beide.';
+
+  @override
+  String diveLog_deco_barChartSemantics(int count, int number, String percent) {
+    return 'Grafiek van de weefselbelading. $count compartimenten, belading ten opzichte van de M-waarde; leidend compartiment $number op $percent%.';
+  }
+
+  @override
+  String get diveLog_deco_heatMapUndersaturated => 'Onderverzadigd';
+
+  @override
+  String get diveLog_deco_heatMapSupersaturated => 'Oververzadigd';
+
+  @override
+  String diveLog_deco_percentValue(String value) {
+    return '$value%';
+  }
+
+  @override
+  String diveLog_deco_minutesValue(String value) {
+    return '$value min';
+  }
 
   @override
   String get diveLog_deco_tissueFast => 'Snel';
@@ -8584,6 +8674,18 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_edit_useSet => 'Set gebruiken';
+
+  @override
+  String get diveLog_edit_removeSet => 'Set verwijderen';
+
+  @override
+  String get diveLog_bulkEdit_setsToRemove => 'Te verwijderen sets';
+
+  @override
+  String get diveLog_bulkEdit_removeSetTitle => 'Uitrustingsset verwijderen';
+
+  @override
+  String get diveLog_bulkEdit_equipmentSets => 'Uitrustingssets';
 
   @override
   String get diveLog_edit_weightPreset_use => 'Voorinstelling gebruiken';
@@ -16627,6 +16729,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_location_activeFilter => 'Locatie';
+
+  @override
+  String equipment_location_tileSemantics(String name) {
+    return 'Locatie: $name';
+  }
 
   @override
   String get equipment_filter_section_location => 'Locatie';
@@ -27318,7 +27425,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'Duiktijden corrigeren, buddy\'s koppelen, uitrusting hertyperen, datakwaliteit, tabelbewerker';
+      'Duiktijden corrigeren, buddy\'s koppelen, uitrusting hertyperen, datakwaliteit, tabelbewerker, duiken opnieuw verwerken';
 
   @override
   String get settings_agentAccess_title => 'Agenttoegang';
@@ -37906,25 +38013,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllProgress(int count) {
-    return '$count duiken worden opnieuw verwerkt...';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllSuccess(int count) {
-    return '$count duiken succesvol opnieuw verwerkt';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
-    return '$succeeded van $total duiken opnieuw verwerkt. $failed mislukt.';
-  }
-
-  @override
   String diveComputer_detail_reparseRawDataCount(int count) {
     return '$count duiken met ruwe data';
   }
@@ -37936,6 +38024,127 @@ class AppLocalizationsNl extends AppLocalizations {
   ) {
     return '$count duiken met ruwe data ($without zonder)';
   }
+
+  @override
+  String get reparseBatch_progressTitle => 'Duiken opnieuw verwerken';
+
+  @override
+  String reparseBatch_progressCount(int done, int total) {
+    return '$done van $total duiken opnieuw verwerken';
+  }
+
+  @override
+  String get reparseBatch_cancelling => 'Annuleren...';
+
+  @override
+  String get reparseBatch_resultTitle => 'Opnieuw verwerken voltooid';
+
+  @override
+  String get reparseBatch_resultCancelledTitle =>
+      'Opnieuw verwerken geannuleerd';
+
+  @override
+  String get reparseBatch_resultErrorTitle =>
+      'Opnieuw verwerken gestopt door een fout';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return 'Niet verwerkt: $count';
+  }
+
+  @override
+  String reparseBatch_resultSummary(int succeeded, int total) {
+    return '$succeeded van $total duiken opnieuw verwerkt.';
+  }
+
+  @override
+  String reparseBatch_resultFailed(int count) {
+    return 'Mislukt: $count';
+  }
+
+  @override
+  String reparseBatch_resultNotProcessed(int count) {
+    return 'Niet verwerkt (geannuleerd): $count';
+  }
+
+  @override
+  String reparseBatch_resultSkipped(int count) {
+    return 'Overgeslagen, geen ruwe data: $count';
+  }
+
+  @override
+  String reparseBatch_resultProfilesPreserved(int count) {
+    return 'Gecombineerde duiken die hun profiel behielden: $count';
+  }
+
+  @override
+  String get reparseBatch_failedListHeader => 'Mislukte duiken';
+
+  @override
+  String reparseBatch_failedDiveTitle(int number) {
+    return 'Duik #$number';
+  }
+
+  @override
+  String get reparseBatch_failedDiveUnnumbered => 'Duik zonder nummer';
+
+  @override
+  String get reparseBatch_missingDescriptors =>
+      'Gegevens van de duikcomputer ontbreken';
+
+  @override
+  String get reparseBatch_confirmTitle => 'Duiken opnieuw verwerken';
+
+  @override
+  String reparseBatch_confirmMessage(int count) {
+    return 'Voer de duikparser opnieuw uit voor $count duiken met opgeslagen ruwe data. Dit werkt profiel- en sensordata bij, maar behoudt je notities, locaties, buddy\'s en andere wijzigingen.';
+  }
+
+  @override
+  String reparseBatch_confirmSkipped(int count) {
+    return 'Geselecteerde duiken zonder ruwe data (overgeslagen): $count';
+  }
+
+  @override
+  String get reparseBatch_noneWithRawData =>
+      'Geen van de geselecteerde duiken heeft opgeslagen ruwe data om opnieuw te verwerken.';
+
+  @override
+  String get diveLog_selection_tooltip_reparse => 'Opnieuw verwerken';
+
+  @override
+  String get settings_reparseDives_title => 'Duiken opnieuw verwerken';
+
+  @override
+  String get settings_reparseDives_subtitle =>
+      'Voer de duikparser opnieuw uit voor elke duik met opgeslagen ruwe data';
+
+  @override
+  String get settings_reparseDives_intro =>
+      'Gebruik dit nadat een app-update het inlezen van duikcomputerdata verbetert. Je notities, locaties, buddy\'s en andere wijzigingen blijven behouden.';
+
+  @override
+  String settings_reparseDives_withRawData(int count) {
+    return 'Duiken met ruwe data: $count';
+  }
+
+  @override
+  String settings_reparseDives_withoutRawData(int count) {
+    return 'Duiken zonder ruwe data (niet opnieuw verwerkt): $count';
+  }
+
+  @override
+  String get settings_reparseDives_byComputer => 'Per duikcomputer';
+
+  @override
+  String get settings_reparseDives_unknownComputer => 'Onbekende computer';
+
+  @override
+  String get settings_reparseDives_none =>
+      'Geen enkele duik heeft opgeslagen ruwe data om opnieuw te verwerken.';
+
+  @override
+  String get settings_reparseDives_button => 'Alles opnieuw verwerken';
 
   @override
   String get diveComputer_rawData_discardAction => 'Verwijderen';
@@ -40597,11 +40806,27 @@ class AppLocalizationsNl extends AppLocalizations {
       'Je CNS% (zuurstofklok) neemt na de duik af met een halveringstijd van 90 minuten -- na ongeveer een dag is deze vrijwel terug op 0.\n\nDe dagelijkse OTU wordt elke nacht om middernacht gereset. De wekelijkse OTU is een voortschrijdend totaal van de afgelopen 7 dagen: oudere duiken vallen automatisch uit de berekening zodra ze buiten dat venster vallen.';
 
   @override
+  String get safetyHub_tissueLoading_clear_title =>
+      'Geen resterende weefselbelading';
+
+  @override
+  String get safetyHub_tissueLoading_clear_body =>
+      'Alle compartimenten zijn weer in evenwicht met de lucht aan de oppervlakte. Ze blijven op hun normale niveau (de markering op elke balk), niet op 0%.';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_title =>
+      'Weefselbelading niet beschikbaar';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_body =>
+      'De laatste duik heeft geen gegevens om de weefselbelading uit te berekenen, bijvoorbeeld een duik zonder diepteprofiel, in dieptemetermodus of met een rebreather zonder setpoint.';
+
+  @override
   String get safetyHub_tissueLoading_about_title => 'Over weefselverzadiging';
 
   @override
   String get safetyHub_tissueLoading_about_body =>
-      'Je lichaam heeft 16 weefselcompartimenten die stikstof opnemen en afgeven (en bij trimix- of rebreatherduiken ook helium), elk met een eigen snelheid. Snelle weefsels verzadigen en ontzadigen snel; langzame weefsels hebben voor beide veel meer tijd nodig.\n\nNa een duik met helium kunnen stikstof en helium in één compartiment kortstondig in tegengestelde richtingen bewegen: terwijl het helium nog afgeeft, kan datzelfde compartiment tegelijk wat stikstof opnemen, totdat beide gassen in evenwicht zijn met de lucht die je inademt. Daarom kan een compartiment even \"Ongassing\" tonen, terwijl de totale belasting toch blijft dalen.';
+      'Je lichaam heeft 16 weefselcompartimenten die stikstof (en bij trimix- of rebreatherduiken ook helium) met verschillende snelheden opnemen en afgeven. Snelle weefsels verzadigen en ontzadigen snel; langzame weefsels hebben er voor beide veel langer voor nodig.\n\nRestbelading is alleen wat boven het normale oppervlakteniveau ligt. Zelfs volledig ontzadigd zakken de balken niet naar 0%: elk compartiment komt uit op de markering die past bij de stikstof in de lucht die je ademt. Daarom kan een snel compartiment hier hoger staan dan aan het einde van een duik met zuurstofdecompressie, zonder dat de belading is gestegen.\n\nNa een duik met helium geeft een compartiment helium af terwijl het tegelijk stikstof opneemt, tot beide gassen in evenwicht zijn met de lucht die je ademt.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -42194,6 +42419,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_clock_profileFit(int minutes) {
+    return 'Een bron staat $minutes min van waar haar profiel met het primaire overeenkomt';
+  }
+
+  @override
   String dataQuality_msg_shared_gear_overlap(
     String item,
     String diverA,
@@ -42405,6 +42635,15 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_fixSourceClockAll =>
       'Deze computer ook corrigeren bij andere duiken met dezelfde afwijking';
+
+  @override
+  String get dataQuality_repairLabel_alignSourceProfile =>
+      'Deze computer uitlijnen op zijn profiel';
+
+  @override
+  String dataQuality_repairLabel_alignSourceProfileNamed(String computer) {
+    return '$computer uitlijnen op zijn profiel';
+  }
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Consolideren';
@@ -57566,6 +57805,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get rules_value_empty => '(leeg)';
 
   @override
+  String rules_value_gearViaSet(String item, String set) {
+    return '$item ($set)';
+  }
+
+  @override
   String get rules_collection_diveTypes => 'duiktypes';
 
   @override
@@ -57579,6 +57823,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get rules_collection_courses => 'cursussen';
+
+  @override
+  String get rules_collection_equipmentSets => 'uitrustingssets';
 
   @override
   String get rules_collection_siteTags => 'duikstektags';

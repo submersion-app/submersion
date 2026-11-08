@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/rules/domain/entities/rule_run.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
@@ -43,5 +44,66 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('Wall'), findsNWidgets(2));
+  });
+
+  group('gear a set only tagged (#4284)', () {
+    final l = lookupAppLocalizations(const Locale('en'));
+    const u = UnitFormatter(AppSettings());
+    String? nameOf(QuerySubject subject, String id) => switch ((subject, id)) {
+      (QuerySubject.equipment, 'bcd') => 'BCD',
+      (QuerySubject.equipment, 'reg') => 'Reg',
+      (QuerySubject.equipmentSets, 'warm') => 'Warm',
+      _ => null,
+    };
+    RuleChange gear(List<Object> before, List<Object> after) => RuleChange(
+      subject: RuleSubject.dives,
+      targetId: 'd1',
+      ruleId: 'r1',
+      ruleName: 'Warm water',
+      field: 'equipment',
+      before: before,
+      after: after,
+    );
+
+    test('names the set on the rows whose set changed', () {
+      final d = describeRuleChange(
+        l,
+        u,
+        gear(
+          [
+            {'id': 'bcd'},
+            {'id': 'reg', 'set': 'warm'},
+          ],
+          [
+            {'id': 'bcd', 'set': 'warm'},
+            {'id': 'reg', 'set': 'warm'},
+          ],
+        ),
+        nameOf,
+      );
+
+      expect(d.before, 'BCD, Reg');
+      expect(d.after, 'BCD (Warm), Reg');
+    });
+
+    test('a plain add or remove reads by name alone', () {
+      final d = describeRuleChange(
+        l,
+        u,
+        gear(
+          [
+            {'id': 'bcd', 'set': 'warm'},
+          ],
+          [
+            {'id': 'bcd', 'set': 'warm'},
+            {'id': 'reg', 'set': 'warm'},
+          ],
+        ),
+        nameOf,
+      );
+
+      expect(d.before, 'BCD');
+      expect(d.after, 'BCD, Reg');
+    });
   });
 }

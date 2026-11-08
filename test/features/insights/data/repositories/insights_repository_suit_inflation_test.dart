@@ -49,6 +49,7 @@ void main() {
     double start = 200,
     double end = 74,
     double o2 = 21.0,
+    int? usageSeconds,
   }) async {
     await db
         .into(db.diveTanks)
@@ -63,6 +64,7 @@ void main() {
             o2Percent: Value(o2),
             hePercent: const Value(0.0),
             tankOrder: Value(order),
+            usageDuration: Value(usageSeconds),
           ),
         );
   }
@@ -157,4 +159,34 @@ void main() {
     expect(await repository.getGasMixDistribution(), isEmpty);
     expect(await queryLanguageSac('only'), isNull);
   });
+
+  test(
+    'a switch onto the bottle does not hide a recorded breathing time',
+    () async {
+      // The argon bottle is air and no breathing cylinder is, so the Cylinders
+      // card drops the switch, and the 30 minutes the log recorded for the back
+      // gas stand. Read as logged, the switch would say when the back gas was
+      // breathed and the recorded time would be ignored for the whole dive.
+      await insertDive('sw');
+      await insertSuit('sw');
+      await insertTank('sw', 1, 'backGas', o2: 32, usageSeconds: 30 * 60);
+      await db
+          .into(db.gasSwitches)
+          .insert(
+            const GasSwitchesCompanion(
+              id: Value('sw-switch'),
+              diveId: Value('sw'),
+              tankId: Value('sw-0'),
+              timestamp: Value(10 * 60),
+              createdAt: Value(0),
+            ),
+          );
+
+      final byRole = await repository.getSacPressureByTankRole();
+
+      expect(byRole.keys, ['backGas']);
+      // 126 bar / 30 min / about 3 bar at 20 m; the whole dive would be 1.0.
+      expect(byRole['backGas'], closeTo(1.4, 0.05));
+    },
+  );
 }

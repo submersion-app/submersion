@@ -29,6 +29,8 @@
   "equipment_filter_owner_mine": "Míos",
   "enum_equipmentField_owner": "Propietario",
   "enum_equipmentField_owner_short": "Propietario",
+  "enum_equipmentField_location": "Ubicación",
+  "enum_equipmentField_location_short": "Ubicación",
   "equipment_set_noLongerShared": "Ya no se comparte",
   "equipment_history_title": "Historial",
   "equipment_history_empty": "Aún no se ha usado en ninguna inmersión",
@@ -2443,6 +2445,7 @@
   "diveLog_consolidate_alignStarts": "Alinear inicios",
   "diveLog_consolidate_sameDiveHint": "Estos perfiles parecen la misma inmersión registrada por dos ordenadores.",
   "diveLog_consolidate_clockNote": "Estos registros no se superponen en el tiempo, así que probablemente el reloj de un ordenador está mal. La inmersión conserva la hora del ordenador principal.",
+  "diveLog_consolidate_clockNoteOverlap": "Estos perfiles de profundidad coinciden en un momento distinto del que indican los relojes de los ordenadores, así que probablemente el reloj de un ordenador está mal. La inmersión conserva la hora del ordenador principal.",
   "diveLog_consolidate_noProfileFallback": "Un registro no tiene perfil de profundidad para comparar, así que su inicio se alinea con el del principal.",
   "diveLog_combine_modeJoinShort": "Unir",
   "diveLog_combine_modeMergeShort": "Fusionar",
@@ -2467,6 +2470,95 @@
   "diveLog_deco_sectionTissueLoading": "Carga tisular",
   "diveLog_deco_semantics_notRequired": "No se requiere descompresión",
   "diveLog_deco_semantics_required": "Se requiere descompresión",
+  "diveLog_deco_compartmentLeading": "Líder: #{number}",
+  "@diveLog_deco_compartmentLeading": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_compartmentOther": "Compartimento: #{number}",
+  "@diveLog_deco_compartmentOther": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_metricLoad": "Carga",
+  "diveLog_deco_gasOngassing": "Absorción",
+  "diveLog_deco_gasOffgassing": "Liberación",
+  "diveLog_deco_gasEquilibrium": "Equilibrio",
+  "diveLog_deco_heatMapRows": "Filas: rápido (arriba) a lento (abajo)",
+  "diveLog_deco_surfaceLevel": "Nivel de superficie",
+  "diveLog_deco_mValue": "Valor M",
+  "diveLog_deco_tooltipCompartment": "Compartimento {number}",
+  "@diveLog_deco_tooltipCompartment": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_tooltipLoaded": "{percent}% de carga",
+  "@diveLog_deco_tooltipLoaded": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_tooltipHalfTime": "Semiperiodo: {minutes} min",
+  "@diveLog_deco_tooltipHalfTime": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_tooltipSurfaceLevel": "Nivel de superficie: {percent}%",
+  "@diveLog_deco_tooltipSurfaceLevel": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_info_title": "¿Qué significan estos valores?",
+  "diveLog_deco_info_body": "Carga: la presión de gas inerte de un compartimento como porcentaje del máximo que puede contener en superficie (su valor M, la línea roja al 100%).\n\nNivel de superficie: la marca en cada barra indica dónde se estabiliza un compartimento totalmente desaturado mientras respiras aire en superficie. Nunca está en 0%, porque tu cuerpo siempre contiene el nitrógeno del aire que respiras. Una barra en su marca ya no tiene carga residual del buceo.\n\nAbsorción y liberación: el gas siempre se mueve hacia la presión del gas que respiras. Tras una descompresión con oxígeno o con una mezcla rica en helio, los compartimentos rápidos pueden contener menos nitrógeno que el aire en superficie. Al volver a respirar aire, absorben nitrógeno de nuevo hasta alcanzar su marca. Es normal y no es una carga residual de la inmersión.\n\nHelio: el aire no contiene helio. Tras una inmersión con trimix, un compartimento libera helio mientras puede absorber nitrógeno al mismo tiempo. Las flechas junto a N₂ y He muestran cada gas por separado; la indicación junto al número del compartimento muestra la dirección neta de ambos.",
+  "diveLog_deco_barChartSemantics": "Gráfico de carga tisular. {count} compartimentos, carga respecto al valor M; compartimento líder {number} al {percent}%.",
+  "@diveLog_deco_barChartSemantics": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "number": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_heatMapUndersaturated": "Subsaturado",
+  "diveLog_deco_heatMapSupersaturated": "Sobresaturado",
+  "diveLog_deco_percentValue": "{value}%",
+  "@diveLog_deco_percentValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_minutesValue": "{value} min",
+  "@diveLog_deco_minutesValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_deco_tissueFast": "Rápido",
   "diveLog_deco_tissueSlow": "Lento",
   "diveLog_deco_title": "Estado deco",
@@ -2802,6 +2894,10 @@
   "diveLog_edit_tripSuggested": "Sugerido: {name}",
   "diveLog_edit_tripUse": "Usar",
   "diveLog_edit_useSet": "Usar conjunto",
+  "diveLog_edit_removeSet": "Quitar conjunto",
+  "diveLog_bulkEdit_setsToRemove": "Conjuntos a quitar",
+  "diveLog_bulkEdit_removeSetTitle": "Quitar conjunto de equipo",
+  "diveLog_bulkEdit_equipmentSets": "Conjuntos de equipo",
   "diveLog_edit_weightPreset_use": "Usar preajuste",
   "diveLog_edit_weightPreset_save": "Guardar como preajuste",
   "diveLog_edit_weightPreset_pickerTitle": "Aplicar un preajuste de lastre",
@@ -4873,6 +4969,7 @@
   "equipment_location_bulkAction": "Mover a una ubicación",
   "equipment_location_groupCount": "{count, plural, one{{count} elemento} other{{count} elementos}}",
   "equipment_location_activeFilter": "Ubicación",
+  "equipment_location_tileSemantics": "Ubicación: {name}",
   "equipment_filter_section_location": "Ubicación",
   "equipment_arrange_groupByLocation": "Agrupar por ubicación",
   "equipment_arrange_groupByLocationSubtitle": "Un encabezado por lugar, solo en esta página",
@@ -7907,7 +8004,7 @@
   "settings_data_importOptions": "Opciones de importación",
   "settings_data_importOptions_subtitle": "Coincidencia de puntos, presión al emerger, etiquetas automáticas",
   "settings_data_dataTools": "Herramientas de datos",
-  "settings_data_dataTools_subtitle": "Corregir horas, enlazar compañeros, retipar equipo, calidad de datos, editor de tabla",
+  "settings_data_dataTools_subtitle": "Corregir horas, enlazar compañeros, retipar equipo, calidad de datos, editor de tabla, reanalizar inmersiones",
   "settings_agentAccess_title": "Acceso de agentes",
   "settings_agentAccess_confirm_linkedDives": "Inmersiones que pierden este vínculo ({diver}): {count}",
   "settings_agentAccess_confirm_alsoDeletes": "También elimina {kind}: {count}",
@@ -10816,12 +10913,39 @@
   "diveComputer_detail_reimportDialogTitle": "¿Reimportar todas las inmersiones?",
   "diveComputer_detail_reparseAllButton": "Reanalizar todas las inmersiones",
   "diveComputer_detail_reparseAllMessage": "Volver a ejecutar el analizador de inmersiones para {count} inmersiones con datos sin procesar almacenados. Esto actualiza los datos de perfil y sensores, pero conserva tus notas, sitios, compañeros y otras ediciones.",
-  "diveComputer_detail_reparseAllPartial": "Se reanalizaron {succeeded} de {total} inmersiones. {failed} fallaron.",
-  "diveComputer_detail_reparseAllProgress": "Reanalizando {count} inmersiones...",
-  "diveComputer_detail_reparseAllSuccess": "Se reanalizaron {count} inmersiones correctamente",
   "diveComputer_detail_reparseAllTitle": "Reanalizar todas las inmersiones",
   "diveComputer_detail_reparseRawDataCount": "{count} inmersiones con datos sin procesar",
   "diveComputer_detail_reparseRawDataCountWithout": "{count} inmersiones con datos sin procesar ({without} sin)",
+  "reparseBatch_progressTitle": "Reanalizando inmersiones",
+  "reparseBatch_progressCount": "Reanalizando {done} de {total} inmersiones",
+  "reparseBatch_cancelling": "Cancelando...",
+  "reparseBatch_resultTitle": "Reanálisis terminado",
+  "reparseBatch_resultCancelledTitle": "Reanálisis cancelado",
+  "reparseBatch_resultErrorTitle": "El reanálisis se detuvo por un error",
+  "reparseBatch_resultNotReached": "Sin procesar: {count}",
+  "reparseBatch_resultSummary": "Se reanalizaron {succeeded} de {total} inmersiones.",
+  "reparseBatch_resultFailed": "Fallidas: {count}",
+  "reparseBatch_resultNotProcessed": "Sin procesar (cancelado): {count}",
+  "reparseBatch_resultSkipped": "Omitidas, sin datos sin procesar: {count}",
+  "reparseBatch_resultProfilesPreserved": "Inmersiones combinadas que conservaron su perfil: {count}",
+  "reparseBatch_failedListHeader": "Inmersiones fallidas",
+  "reparseBatch_failedDiveTitle": "Inmersión n.º {number}",
+  "reparseBatch_failedDiveUnnumbered": "Inmersión sin número",
+  "reparseBatch_missingDescriptors": "Faltan los datos del ordenador de buceo",
+  "reparseBatch_confirmTitle": "Reanalizar inmersiones",
+  "reparseBatch_confirmMessage": "Volver a ejecutar el analizador de inmersiones para {count} inmersiones con datos sin procesar almacenados. Esto actualiza los datos de perfil y sensores, pero conserva tus notas, sitios, compañeros y otras ediciones.",
+  "reparseBatch_confirmSkipped": "Inmersiones seleccionadas sin datos sin procesar (se omiten): {count}",
+  "reparseBatch_noneWithRawData": "Ninguna de las inmersiones seleccionadas tiene datos sin procesar almacenados para reanalizar.",
+  "diveLog_selection_tooltip_reparse": "Reanalizar",
+  "settings_reparseDives_title": "Reanalizar inmersiones",
+  "settings_reparseDives_subtitle": "Volver a ejecutar el analizador en cada inmersión con datos sin procesar almacenados",
+  "settings_reparseDives_intro": "Úsalo cuando una actualización de la app mejore la lectura de los datos del ordenador de buceo. Se conservan tus notas, sitios, compañeros y otras ediciones.",
+  "settings_reparseDives_withRawData": "Inmersiones con datos sin procesar: {count}",
+  "settings_reparseDives_withoutRawData": "Inmersiones sin datos sin procesar (no se reanalizan): {count}",
+  "settings_reparseDives_byComputer": "Por ordenador de buceo",
+  "settings_reparseDives_unknownComputer": "Ordenador desconocido",
+  "settings_reparseDives_none": "Ninguna inmersión tiene datos sin procesar almacenados para reanalizar.",
+  "settings_reparseDives_button": "Reanalizar todo",
   "diveComputer_rawData_discardAction": "Descartar",
   "diveComputer_rawData_discardAllMessage": "¿Eliminar los datos de descarga sin procesar guardados de {count} inmersiones de todos los ordenadores de buceo ({size})? Esas inmersiones ya no podrán reanalizarse cuando mejore el analizador de inmersiones. Las inmersiones y tus cambios se mantienen, y tus otros dispositivos sincronizados también eliminan los datos.",
   "diveComputer_rawData_discardButton": "Descartar datos sin procesar",
@@ -12038,8 +12162,12 @@
   "safetyHub_cnsOtu_noProfile_body": "Sin perfil de profundidad no se pueden calcular su CNS% ni sus OTU. Los totales de abajo no la incluyen.",
   "safetyHub_cnsOtu_about_title": "Sobre CNS y OTU",
   "safetyHub_cnsOtu_about_body": "Su CNS% (reloj de oxígeno) decae tras la inmersión con una semivida de 90 minutos; prácticamente vuelve a 0 al cabo de un día.\n\nLa OTU diaria se reinicia cada noche a medianoche. La OTU semanal es un total móvil de los últimos 7 días: las inmersiones más antiguas salen automáticamente del cálculo en cuanto quedan fuera de esa ventana.",
+  "safetyHub_tissueLoading_clear_title": "Sin carga tisular residual",
+  "safetyHub_tissueLoading_clear_body": "Todos los compartimentos han vuelto al equilibrio con el aire en superficie. Se quedan en su nivel normal (la marca en cada barra), no en 0%.",
+  "safetyHub_tissueLoading_unavailable_title": "Carga tisular no disponible",
+  "safetyHub_tissueLoading_unavailable_body": "La última inmersión no tiene datos para calcular la carga tisular, por ejemplo una inmersión sin perfil de profundidad, en modo profundímetro o con recirculador sin setpoint.",
   "safetyHub_tissueLoading_about_title": "Sobre la carga tisular",
-  "safetyHub_tissueLoading_about_body": "Su cuerpo tiene 16 compartimentos tisulares que absorben y liberan nitrógeno (y, en inmersiones con trimix o reciclador, también helio) a distintas velocidades. Los tejidos rápidos se saturan y desaturan deprisa; los lentos tardan mucho más en ambas cosas.\n\nTras una inmersión con helio, el nitrógeno y el helio de un mismo compartimento pueden moverse brevemente en direcciones opuestas: mientras el helio aún se está liberando, ese mismo compartimento puede estar absorbiendo algo de nitrógeno a la vez, hasta que ambos gases alcanzan el equilibrio con el aire que respira. Por eso un compartimento puede mostrar brevemente \"Ongassing\" incluso mientras su carga total sigue bajando.",
+  "safetyHub_tissueLoading_about_body": "Tu cuerpo tiene 16 compartimentos tisulares que absorben y liberan nitrógeno (y, en inmersiones con trimix o recirculador, también helio) a distintas velocidades. Los tejidos rápidos se saturan y desaturan enseguida; los lentos tardan mucho más en ambos casos.\n\nLa carga residual es solo lo que queda por encima del nivel normal en superficie. Incluso totalmente desaturadas, las barras no bajan a 0%: cada compartimento se estabiliza en la marca que corresponde al nitrógeno del aire que respiras. Por eso un compartimento rápido puede marcar aquí más que al final de una inmersión con descompresión con oxígeno, sin que la carga haya aumentado.\n\nTras una inmersión con helio, un compartimento libera helio mientras absorbe nitrógeno al mismo tiempo, hasta que ambos gases están en equilibrio con el aire que respiras.",
   "safetyHub_noFly_category_single": "Tras una única inmersión sin deco: pauta de {hours} h",
   "@safetyHub_noFly_category_single": {
     "placeholders": {
@@ -12831,6 +12959,7 @@
   "dataQuality_msg_clock_offsetAhead": "{hours, plural, =1{El reloj de una fuente va {hours} hora adelantado} other{El reloj de una fuente va {hours} horas adelantado}}",
   "dataQuality_msg_clock_offsetBehind": "{hours, plural, =1{El reloj de una fuente va {hours} hora atrasado} other{El reloj de una fuente va {hours} horas atrasado}}",
   "dataQuality_msg_clock_overlap": "Se solapa con otra inmersión durante {minutes} min",
+  "dataQuality_msg_clock_profileFit": "Una fuente está a {minutes} min de donde su perfil coincide con el principal",
   "dataQuality_msg_shared_gear_overlap": "{item} está en la inmersión de {diverA} a las {timeA} y en la de {diverB} a las {timeB}.",
   "dataQuality_msg_shared_gear_overlap_parts": "{count, plural, one{Incluye {count} pieza instalada.} other{Incluye {count} piezas instaladas.}}",
   "dataQuality_msg_duplicate": "{percent} % de coincidencia con una inmersión separada por {minutes} min",
@@ -12869,6 +12998,8 @@
   "dataQuality_repairLabel_fixSourceClock": "Corregir el reloj de este ordenador {offset}",
   "dataQuality_repairLabel_fixSourceClockNamed": "Corregir el reloj de {computer} {offset}",
   "dataQuality_repairLabel_fixSourceClockAll": "Corregir también este ordenador en otras inmersiones con el mismo desfase",
+  "dataQuality_repairLabel_alignSourceProfile": "Alinear este ordenador por su perfil",
+  "dataQuality_repairLabel_alignSourceProfileNamed": "Alinear {computer} por su perfil",
   "dataQuality_repairLabel_consolidate": "Consolidar",
   "dataQuality_repairLabel_deleteDuplicate": "Eliminar duplicado",
   "dataQuality_deleteDuplicate_title": "¿Eliminar la copia redundante?",
@@ -17259,11 +17390,13 @@
   "rules_value_yes": "Sí",
   "rules_value_no": "No",
   "rules_value_empty": "(vacío)",
+  "rules_value_gearViaSet": "{item} ({set})",
   "rules_collection_diveTypes": "tipos de inmersión",
   "rules_collection_tags": "etiquetas",
   "rules_collection_equipment": "equipo",
   "rules_collection_buddies": "compañeros",
   "rules_collection_courses": "cursos",
+  "rules_collection_equipmentSets": "conjuntos de equipo",
   "rules_collection_siteTags": "etiquetas de sitio",
   "rules_collection_siteTypes": "tipos de sitio",
   "rules_field_diveCenter": "centro de buceo",

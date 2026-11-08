@@ -25,6 +25,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/disposing_provider_scope.dart';
 
 class _FakeSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
@@ -67,7 +68,7 @@ Widget _wrap(List<Override> overrides, {Size? size}) => ProviderScope(
 /// [_wrap] with an externally owned container, for cases that assert on
 /// provider state after the page has run.
 Widget _wrapContainer(ProviderContainer container, {Size? size}) =>
-    UncontrolledProviderScope(
+    DisposingProviderScope(
       container: container,
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -213,7 +214,7 @@ void main() {
       addTearDown(container.dispose);
 
       await tester.pumpWidget(
-        UncontrolledProviderScope(
+        DisposingProviderScope(
           container: container,
           child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
