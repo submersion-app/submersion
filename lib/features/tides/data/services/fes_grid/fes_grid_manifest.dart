@@ -37,7 +37,9 @@ class FesLayerGeometry {
 /// The grid's `manifest.json`, written by `scripts/tide/extract_fes_grid.py`.
 class FesGridManifest {
   static const formatName = 'submersion-fes-grid';
-  static const supportedVersion = 1;
+
+  /// Version 2 is the packed grid (issue #4245); version 1 was unpacked.
+  static const supportedVersion = 2;
   static const manifestPath = 'manifest.json';
   static const globalPath = 'global.bin';
 

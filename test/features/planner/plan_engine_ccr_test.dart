@@ -445,7 +445,9 @@ void main() {
 
     test('END column matches GasMix.end() on the row\'s own gas and depth, '
         'floored at 0 m (depth-matched rows only)', () {
-      final outcome = engine.compute(_plan());
+      final plan = _plan();
+      final outcome = engine.compute(plan);
+      final environment = PlanEngine.environmentFor(plan);
       // A computed travel row (kind == ascent) samples its fraction at the
       // leg's deeper end but is displayed at the shallower arrival depth,
       // so its END is not directly recomputable from the displayed depth
@@ -460,7 +462,7 @@ void main() {
         final expected = GasMix(
           o2: row.gasFO2 * 100,
           he: row.gasFHe * 100,
-        ).end(row.depthMeters, o2Narcotic: true);
+        ).end(row.depthMeters, o2Narcotic: true, environment: environment);
         expect(
           row.endMeters,
           closeTo(math.max(0.0, expected), 1e-9),

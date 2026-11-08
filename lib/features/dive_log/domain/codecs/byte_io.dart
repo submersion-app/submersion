@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:submersion/core/utils/zigzag.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec_exception.dart';
 
 /// Presence mode for a column block: every value is null, no payload.
@@ -169,10 +170,7 @@ class ByteReader {
     }
   }
 
-  int readVarInt() {
-    final zigzag = readVarUint();
-    return zigzag.isEven ? zigzag ~/ 2 : -(zigzag ~/ 2) - 1;
-  }
+  int readVarInt() => zigzagDecode(readVarUint());
 
   double readFloat64() {
     _ensure(8);

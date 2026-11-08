@@ -397,6 +397,10 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
 }
 
 /// Collapsed, read-only group of photos aggregated from the site's dives.
+///
+/// The header reads only a count, so a site with many dives and no photos
+/// stays a single cheap query. The media itself is read by [_DivePhotosGrid],
+/// which [ExpansionTile] mounts only while the group is open (issue #4252).
 class _DivePhotosGroup extends ConsumerWidget {
   final String siteId;
   final UnitFormatterSettings settings;
@@ -405,56 +409,78 @@ class _DivePhotosGroup extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final groupedAsync = ref.watch(mediaFromDivesAtSiteProvider(siteId));
-    final textTheme = Theme.of(context).textTheme;
-
-    final grouped = groupedAsync.valueOrNull;
-    if (grouped == null || grouped.isEmpty) {
+    final count = ref.watch(mediaCountFromDivesAtSiteProvider(siteId)).value;
+    if (count == null || count == 0) {
       return const SizedBox.shrink();
     }
-
-    final flat = grouped.values.expand((list) => list).toList()
-      ..sort((a, b) => a.takenAt.compareTo(b.takenAt));
 
     return ExpansionTile(
       tilePadding: EdgeInsets.zero,
       initiallyExpanded: false,
       title: Text(
-        context.l10n.media_siteMediaSection_divePhotosGroup(flat.length),
-        style: textTheme.titleSmall,
+        context.l10n.media_siteMediaSection_divePhotosGroup(count),
+        style: Theme.of(context).textTheme.titleSmall,
       ),
-      children: [
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 4,
-            crossAxisSpacing: 8,
-            mainAxisSpacing: 8,
-          ),
-          itemCount: flat.length,
-          itemBuilder: (context, index) => GestureDetector(
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                fullscreenDialog: true,
-                builder: (_) => SiteMediaViewerPage(
-                  siteId: siteId,
-                  initialMediaId: flat[index].id,
-                  scope: SiteViewerScope.divePhotos,
-                ),
-              ),
-            ),
-            child: MediaThumbnailTile(
-              item: flat[index],
-              settings: settings,
-              isSelectionMode: false,
-              isSelected: false,
-              semanticsLabel:
-                  context.l10n.media_siteMediaSection_divePhotoLabel,
+      children: [_DivePhotosGrid(siteId: siteId, settings: settings)],
+    );
+  }
+}
+
+/// The open group's grid of every dive photo at the site, chronological.
+class _DivePhotosGrid extends ConsumerWidget {
+  final String siteId;
+  final UnitFormatterSettings settings;
+
+  const _DivePhotosGrid({required this.siteId, required this.settings});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final flatAsync = ref.watch(flatMediaFromDivesAtSiteProvider(siteId));
+    final flat = flatAsync.value;
+    if (flat == null) {
+      if (flatAsync.hasError) {
+        final colorScheme = Theme.of(context).colorScheme;
+        return Text(
+          context.l10n.media_diveMediaSection_errorLoading,
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: colorScheme.error),
+        );
+      }
+      return const SizedBox(
+        height: 100,
+        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      );
+    }
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+      ),
+      itemCount: flat.length,
+      itemBuilder: (context, index) => GestureDetector(
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            fullscreenDialog: true,
+            builder: (_) => SiteMediaViewerPage(
+              siteId: siteId,
+              initialMediaId: flat[index].id,
+              scope: SiteViewerScope.divePhotos,
             ),
           ),
         ),
-      ],
+        child: MediaThumbnailTile(
+          item: flat[index],
+          settings: settings,
+          isSelectionMode: false,
+          isSelected: false,
+          semanticsLabel: context.l10n.media_siteMediaSection_divePhotoLabel,
+        ),
+      ),
     );
   }
 }

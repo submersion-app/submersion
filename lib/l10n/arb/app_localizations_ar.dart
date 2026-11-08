@@ -4731,6 +4731,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_list_section_expiringSoon => 'تنتهي قريبًا';
 
   @override
+  String certifications_list_section_professional(String agency) {
+    return 'شهادات $agency الاحترافية';
+  }
+
+  @override
   String get certifications_list_section_valid => 'سارية';
 
   @override
@@ -10978,6 +10983,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_figureNow(String pressure) {
+    return 'الآن $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureNowEstimated(String pressure) {
+    return 'الآن $pressure (تقديري)';
+  }
+
+  @override
   String diveLog_cylinders_gasSemantics(String mix) {
     return 'غاز $mix';
   }
@@ -11456,6 +11471,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get divePlanner_label_minutesUnit => 'دقيقة';
+
+  @override
+  String get divePlanner_label_secondsUnit => 'ثانية';
 
   @override
   String get divePlanner_label_ndl => 'NDL';
@@ -14682,6 +14700,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get passport_history_deleteConfirm => 'هل تريد حذف سجل التعبئة هذا؟';
+
+  @override
+  String get passport_history_deleteFailed =>
+      'تعذّر حذف التعبئة. حاول مرة أخرى.';
 
   @override
   String get passport_tag_title => 'البطاقة';
@@ -20061,6 +20083,17 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_photoPicker_selectAllButton => 'تحديد الكل';
+
+  @override
+  String get media_photoPicker_albumFilter_all => 'كل الألبومات';
+
+  @override
+  String media_photoPicker_albumFilter_chip(String album, int count) {
+    return '$album ($count)';
+  }
+
+  @override
+  String get media_photoPicker_albumFilter_label => 'التصفية حسب الألبوم';
 
   @override
   String media_photoPicker_selectedCount(int count) {
@@ -27727,7 +27760,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'تصحيح أوقات الغطس، ربط الرفاق، إعادة تصنيف المعدات، جودة البيانات، محرر الجدول';
+      'تصحيح أوقات الغطس، ربط الرفاق، إعادة تصنيف المعدات، جودة البيانات، محرر الجدول، إعادة تحليل الغطسات';
 
   @override
   String get settings_agentAccess_title => 'وصول الوكلاء';
@@ -38618,25 +38651,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllProgress(int count) {
-    return 'جارٍ إعادة تحليل $count غطسة...';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllSuccess(int count) {
-    return 'تمت إعادة تحليل $count غطسة بنجاح';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
-    return 'تمت إعادة تحليل $succeeded من أصل $total غطسة. فشلت $failed.';
-  }
-
-  @override
   String diveComputer_detail_reparseRawDataCount(int count) {
     return '$count غطسة بها بيانات أولية';
   }
@@ -38648,6 +38662,124 @@ class AppLocalizationsAr extends AppLocalizations {
   ) {
     return '$count غطسة بها بيانات أولية ($without بدون)';
   }
+
+  @override
+  String get reparseBatch_progressTitle => 'إعادة تحليل الغطسات';
+
+  @override
+  String reparseBatch_progressCount(int done, int total) {
+    return 'إعادة تحليل $done من أصل $total غطسة';
+  }
+
+  @override
+  String get reparseBatch_cancelling => 'جارٍ الإلغاء...';
+
+  @override
+  String get reparseBatch_resultTitle => 'اكتملت إعادة التحليل';
+
+  @override
+  String get reparseBatch_resultCancelledTitle => 'أُلغيت إعادة التحليل';
+
+  @override
+  String get reparseBatch_resultErrorTitle => 'توقفت إعادة التحليل بسبب خطأ';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return 'لم تُعالَج: $count';
+  }
+
+  @override
+  String reparseBatch_resultSummary(int succeeded, int total) {
+    return 'تمت إعادة تحليل $succeeded من أصل $total غطسة.';
+  }
+
+  @override
+  String reparseBatch_resultFailed(int count) {
+    return 'فشلت: $count';
+  }
+
+  @override
+  String reparseBatch_resultNotProcessed(int count) {
+    return 'لم تُعالَج (أُلغي): $count';
+  }
+
+  @override
+  String reparseBatch_resultSkipped(int count) {
+    return 'تم تخطيها، بلا بيانات أولية: $count';
+  }
+
+  @override
+  String reparseBatch_resultProfilesPreserved(int count) {
+    return 'غطسات مدمجة احتفظت بملفها الشخصي: $count';
+  }
+
+  @override
+  String get reparseBatch_failedListHeader => 'الغطسات التي فشلت';
+
+  @override
+  String reparseBatch_failedDiveTitle(int number) {
+    return 'الغطسة رقم $number';
+  }
+
+  @override
+  String get reparseBatch_failedDiveUnnumbered => 'غطسة بلا رقم';
+
+  @override
+  String get reparseBatch_missingDescriptors => 'تفاصيل كمبيوتر الغوص مفقودة';
+
+  @override
+  String get reparseBatch_confirmTitle => 'إعادة تحليل الغطسات';
+
+  @override
+  String reparseBatch_confirmMessage(int count) {
+    return 'إعادة تشغيل محلل الغطسات على $count غطسة لها بيانات أولية مخزنة. يُحدِّث ذلك بيانات الملف الشخصي والمستشعرات لكنه يحافظ على الملاحظات والمواقع والشركاء والتعديلات الأخرى.';
+  }
+
+  @override
+  String reparseBatch_confirmSkipped(int count) {
+    return 'غطسات محددة بلا بيانات أولية (سيتم تخطيها): $count';
+  }
+
+  @override
+  String get reparseBatch_noneWithRawData =>
+      'لا توجد بيانات أولية مخزنة لإعادة التحليل في أي من الغطسات المحددة.';
+
+  @override
+  String get diveLog_selection_tooltip_reparse => 'إعادة التحليل';
+
+  @override
+  String get settings_reparseDives_title => 'إعادة تحليل الغطسات';
+
+  @override
+  String get settings_reparseDives_subtitle =>
+      'إعادة تشغيل محلل الغطسات على كل غطسة لها بيانات أولية مخزنة';
+
+  @override
+  String get settings_reparseDives_intro =>
+      'استخدم هذا بعد أن يُحسّن تحديث للتطبيق قراءة بيانات كمبيوتر الغوص. تبقى الملاحظات والمواقع والشركاء والتعديلات الأخرى محفوظة.';
+
+  @override
+  String settings_reparseDives_withRawData(int count) {
+    return 'غطسات بها بيانات أولية: $count';
+  }
+
+  @override
+  String settings_reparseDives_withoutRawData(int count) {
+    return 'غطسات بلا بيانات أولية (لن يُعاد تحليلها): $count';
+  }
+
+  @override
+  String get settings_reparseDives_byComputer => 'حسب كمبيوتر الغوص';
+
+  @override
+  String get settings_reparseDives_unknownComputer => 'كمبيوتر غير معروف';
+
+  @override
+  String get settings_reparseDives_none =>
+      'لا توجد غطسات لها بيانات أولية مخزنة لإعادة التحليل.';
+
+  @override
+  String get settings_reparseDives_button => 'إعادة تحليل الكل';
 
   @override
   String get diveComputer_rawData_discardAction => 'حذف';
@@ -61384,4 +61516,199 @@ class AppLocalizationsAr extends AppLocalizations {
   ) {
     return 'علامة $number: $time، $depth، $distance';
   }
+
+  @override
+  String get twinSet_title => 'طقم مزدوج';
+
+  @override
+  String get twinSet_none => 'ليست جزءا من طقم مزدوج';
+
+  @override
+  String get twinSet_link => 'ربط بأسطوانة شريكة في طقم مزدوج';
+
+  @override
+  String twinSet_since(String date) {
+    return 'منذ $date';
+  }
+
+  @override
+  String get twinSet_replace => 'استبدال الشريكة';
+
+  @override
+  String get twinSet_unlink => 'فك الربط';
+
+  @override
+  String get twinSet_history => 'السجل';
+
+  @override
+  String twinSet_historyRange(String partner, String from, String to) {
+    return '$partner، من $from إلى $to';
+  }
+
+  @override
+  String get twinSet_deletePairing => 'حذف الربط';
+
+  @override
+  String get twinSet_deletePairingConfirm =>
+      'حذف هذا الربط من السجل؟ لن تتغير التعبئات ولا الغطسات.';
+
+  @override
+  String get twinSet_pickerTitle => 'الأسطوانة الشريكة';
+
+  @override
+  String get twinSet_pickerEmpty => 'لا توجد أسطوانات أخرى للربط معها.';
+
+  @override
+  String get twinSet_pairedOnHelp => 'مربوطة منذ';
+
+  @override
+  String get twinSet_unpairedOnHelp => 'فك الربط في';
+
+  @override
+  String get twinSet_pressureMismatchTitle => 'ضغوط تشغيل مختلفة';
+
+  @override
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  ) {
+    return 'ضغط تشغيل $a هو $aPressure و$b هو $bPressure. الطقم الموصول بمشعب يُعبأ إلى ضغط واحد.';
+  }
+
+  @override
+  String get twinSet_continue => 'متابعة';
+
+  @override
+  String get twinSet_replaceTitle => 'استبدال الشريكة؟';
+
+  @override
+  String twinSet_replaceClash(String cylinder, String partner) {
+    return '$cylinder مربوطة مع $partner.';
+  }
+
+  @override
+  String twinSet_replaceQuestion(String a, String b) {
+    return 'ربط $a مع $b بدلا من ذلك؟';
+  }
+
+  @override
+  String twinSet_leftAlone(String name) {
+    return 'ستبقى $name منفردة.';
+  }
+
+  @override
+  String get twinSet_replaceConfirm => 'استبدال';
+
+  @override
+  String get twinSet_clashTitle => 'ربط متداخل';
+
+  @override
+  String twinSet_clashBody(String pairs) {
+    return 'يتداخل هذا مع ربط $pairs. يمكن أن تكون الأسطوانة في طقم مزدوج واحد في أي يوم.';
+  }
+
+  @override
+  String twinSet_pairNames(String a, String b) {
+    return '$a و$b';
+  }
+
+  @override
+  String twinSet_endBeforeStart(String date) {
+    return 'يجب أن يكون تاريخ الانتهاء بعد $date.';
+  }
+
+  @override
+  String get twinSet_saveFailed => 'تعذر حفظ تغيير الطقم المزدوج.';
+
+  @override
+  String twinSet_with(String partner) {
+    return 'طقم مزدوج مع $partner';
+  }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return 'كلتا الأسطوانتين في الطقم المزدوج ($partner)';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner، $status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => 'تعديل التعبئة';
+
+  @override
+  String get passport_logFill_overPressureTitle => 'أعلى من ضغط التشغيل';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure أعلى من ضغط تشغيل $name البالغ $workingPressure.';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => 'حفظ على أي حال';
+
+  @override
+  String get passport_logFill_back => 'رجوع';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return 'تطبيق التغيير على تعبئة $partner أيضا؟';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => 'نعم';
+
+  @override
+  String get passport_logFill_onlyThisOne => 'هذه فقط';
+
+  @override
+  String get passport_history_anotherCylinder => 'أسطوانة أخرى';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return 'عُبئت مع $partner';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'حذف هذه التعبئة من كلتا الأسطوانتين، أم من هذه فقط؟';
+
+  @override
+  String get passport_history_deleteBoth => 'كلتا الأسطوانتين';
+
+  @override
+  String get passport_history_edit => 'تعديل التعبئة';
+
+  @override
+  String get twinSet_choiceTitle => 'استخدام الطقم المزدوج؟';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'طقم مزدوج ($a + $b، $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return '$a فقط';
+  }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'مربوطة منذ';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'فك الربط في';
+
+  @override
+  String get settings_conflict_field_filledTogetherId => 'تعبئة الطقم المزدوج';
+
+  @override
+  String get settings_conflict_field_twinPassportId => 'جواز الأسطوانة الشريكة';
 }

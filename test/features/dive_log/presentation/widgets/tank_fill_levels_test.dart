@@ -99,6 +99,48 @@ void main() {
     });
   });
 
+  group('TankFillLevels.resolve now', () {
+    test('measures the cursor pressure against the same full', () {
+      final levels = TankFillLevels.resolve(
+        start: 200,
+        end: 60,
+        rated: 232,
+        now: 130,
+      );
+      expect(levels.now, closeTo(130 / 232, 1e-9));
+    });
+
+    test('without a rated pressure the start is full', () {
+      final levels = TankFillLevels.resolve(start: 200, end: 60, now: 130);
+      expect(levels.now, closeTo(130 / 200, 1e-9));
+    });
+
+    test('no cursor, no level', () {
+      expect(TankFillLevels.resolve(start: 200, end: 60).now, isNull);
+    });
+
+    test('a negative cursor reading is missing', () {
+      expect(TankFillLevels.resolve(start: 200, end: 60, now: -3).now, isNull);
+    });
+
+    test('an outline still places the cursor when it has a full', () {
+      final levels = TankFillLevels.resolve(start: 100, end: 150, now: 120);
+      expect(levels.hasFill, isFalse);
+      expect(levels.now, closeTo(1.0, 1e-9));
+    });
+
+    test('nothing to measure against, no level', () {
+      expect(TankFillLevels.resolve(now: 120).now, isNull);
+    });
+
+    test('the cursor level is part of equality', () {
+      expect(
+        TankFillLevels.resolve(start: 200, end: 60, now: 130),
+        isNot(TankFillLevels.resolve(start: 200, end: 60, now: 120)),
+      );
+    });
+  });
+
   group('spreadLabels', () {
     test('labels with room stay centred on their levels', () {
       expect(

@@ -1,20 +1,11 @@
-import 'package:uuid/uuid.dart';
-
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
+import 'package:submersion/features/trips/domain/services/trip_fill_copy_id.dart';
 
-/// Fixed namespace for the ids of passport copies of trip fills (UUID v5 of
-/// the trip event id). Never change: stored copies are found by it.
-const String kTripFillPassportNamespace =
-    '6b2f0c4e-8d1a-4f7e-9c35-2a7e5d913b08';
-
-/// The id of the passport copy of trip event [tripEventId]. Derived, so
-/// every device agrees on it and an edit or delete finds the copy.
-String tripFillPassportCopyId(String tripEventId) =>
-    const Uuid().v5(kTripFillPassportNamespace, tripEventId);
+export 'package:submersion/features/trips/domain/services/trip_fill_copy_id.dart';
 
 /// Pure. The passport record for a trip fill: the analysed mix when there
 /// is one, else the ordered mix, else air; the fill time as the diver's

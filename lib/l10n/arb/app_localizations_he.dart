@@ -4546,6 +4546,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_list_section_expiringSoon => 'תוקף פג בקרוב';
 
   @override
+  String certifications_list_section_professional(String agency) {
+    return '$agency מקצועי';
+  }
+
+  @override
   String get certifications_list_section_valid => 'בתוקף';
 
   @override
@@ -10598,6 +10603,16 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_figureNow(String pressure) {
+    return 'עכשיו $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureNowEstimated(String pressure) {
+    return 'עכשיו $pressure (משוער)';
+  }
+
+  @override
   String diveLog_cylinders_gasSemantics(String mix) {
     return 'גז $mix';
   }
@@ -11069,6 +11084,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get divePlanner_label_minutesUnit => 'דקות';
+
+  @override
+  String get divePlanner_label_secondsUnit => 'שניות';
 
   @override
   String get divePlanner_label_ndl => 'NDL';
@@ -14186,6 +14204,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get passport_history_deleteConfirm => 'למחוק את רשומת המילוי הזו?';
+
+  @override
+  String get passport_history_deleteFailed =>
+      'לא ניתן היה למחוק את המילוי. נסו שוב.';
 
   @override
   String get passport_tag_title => 'תג';
@@ -19348,6 +19370,17 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get media_photoPicker_selectAllButton => 'בחר הכל';
+
+  @override
+  String get media_photoPicker_albumFilter_all => 'כל האלבומים';
+
+  @override
+  String media_photoPicker_albumFilter_chip(String album, int count) {
+    return '$album ($count)';
+  }
+
+  @override
+  String get media_photoPicker_albumFilter_label => 'סינון לפי אלבום';
 
   @override
   String media_photoPicker_selectedCount(int count) {
@@ -26788,7 +26821,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'תיקון זמני צלילה, קישור שותפים, סיווג ציוד מחדש, איכות נתונים, עורך הטבלה';
+      'תיקון זמני צלילה, קישור שותפים, סיווג ציוד מחדש, איכות נתונים, עורך הטבלה, ניתוח צלילות מחדש';
 
   @override
   String get settings_agentAccess_title => 'גישת סוכנים';
@@ -37214,25 +37247,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllProgress(int count) {
-    return 'מנתח מחדש $count צלילות...';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllSuccess(int count) {
-    return 'נותחו מחדש $count צלילות בהצלחה';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
-    return 'נותחו מחדש $succeeded מתוך $total צלילות. $failed נכשלו.';
-  }
-
-  @override
   String diveComputer_detail_reparseRawDataCount(int count) {
     return '$count צלילות עם נתונים גולמיים';
   }
@@ -37244,6 +37258,124 @@ class AppLocalizationsHe extends AppLocalizations {
   ) {
     return '$count צלילות עם נתונים גולמיים ($without ללא)';
   }
+
+  @override
+  String get reparseBatch_progressTitle => 'מנתח צלילות מחדש';
+
+  @override
+  String reparseBatch_progressCount(int done, int total) {
+    return 'מנתח מחדש $done מתוך $total צלילות';
+  }
+
+  @override
+  String get reparseBatch_cancelling => 'מבטל...';
+
+  @override
+  String get reparseBatch_resultTitle => 'הניתוח מחדש הסתיים';
+
+  @override
+  String get reparseBatch_resultCancelledTitle => 'הניתוח מחדש בוטל';
+
+  @override
+  String get reparseBatch_resultErrorTitle => 'הניתוח מחדש נעצר בגלל שגיאה';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return 'לא עובדו: $count';
+  }
+
+  @override
+  String reparseBatch_resultSummary(int succeeded, int total) {
+    return 'נותחו מחדש $succeeded מתוך $total צלילות.';
+  }
+
+  @override
+  String reparseBatch_resultFailed(int count) {
+    return 'נכשלו: $count';
+  }
+
+  @override
+  String reparseBatch_resultNotProcessed(int count) {
+    return 'לא עובדו (בוטל): $count';
+  }
+
+  @override
+  String reparseBatch_resultSkipped(int count) {
+    return 'דולגו, אין נתונים גולמיים: $count';
+  }
+
+  @override
+  String reparseBatch_resultProfilesPreserved(int count) {
+    return 'צלילות משולבות ששמרו על הפרופיל שלהן: $count';
+  }
+
+  @override
+  String get reparseBatch_failedListHeader => 'צלילות שנכשלו';
+
+  @override
+  String reparseBatch_failedDiveTitle(int number) {
+    return 'צלילה מס\' $number';
+  }
+
+  @override
+  String get reparseBatch_failedDiveUnnumbered => 'צלילה ללא מספר';
+
+  @override
+  String get reparseBatch_missingDescriptors => 'חסרים פרטי מחשב הצלילה';
+
+  @override
+  String get reparseBatch_confirmTitle => 'נתח צלילות מחדש';
+
+  @override
+  String reparseBatch_confirmMessage(int count) {
+    return 'הפעל את מנתח הצלילות מחדש על $count צלילות שיש להן נתונים גולמיים שמורים. פעולה זו מעדכנת את נתוני הפרופיל והחיישנים אך שומרת על ההערות, האתרים, השותפים ושאר העריכות.';
+  }
+
+  @override
+  String reparseBatch_confirmSkipped(int count) {
+    return 'צלילות נבחרות ללא נתונים גולמיים (ידולגו): $count';
+  }
+
+  @override
+  String get reparseBatch_noneWithRawData =>
+      'לאף אחת מהצלילות שנבחרו אין נתונים גולמיים שמורים לניתוח מחדש.';
+
+  @override
+  String get diveLog_selection_tooltip_reparse => 'נתח מחדש';
+
+  @override
+  String get settings_reparseDives_title => 'נתח צלילות מחדש';
+
+  @override
+  String get settings_reparseDives_subtitle =>
+      'הפעל את מנתח הצלילות מחדש על כל צלילה שיש לה נתונים גולמיים שמורים';
+
+  @override
+  String get settings_reparseDives_intro =>
+      'השתמש בזה אחרי שעדכון של האפליקציה משפר את קריאת נתוני מחשב הצלילה. ההערות, האתרים, השותפים ושאר העריכות נשמרים.';
+
+  @override
+  String settings_reparseDives_withRawData(int count) {
+    return 'צלילות עם נתונים גולמיים: $count';
+  }
+
+  @override
+  String settings_reparseDives_withoutRawData(int count) {
+    return 'צלילות ללא נתונים גולמיים (לא ינותחו מחדש): $count';
+  }
+
+  @override
+  String get settings_reparseDives_byComputer => 'לפי מחשב צלילה';
+
+  @override
+  String get settings_reparseDives_unknownComputer => 'מחשב לא ידוע';
+
+  @override
+  String get settings_reparseDives_none =>
+      'לאף צלילה אין נתונים גולמיים שמורים לניתוח מחדש.';
+
+  @override
+  String get settings_reparseDives_button => 'נתח הכול מחדש';
 
   @override
   String get diveComputer_rawData_discardAction => 'מחק';
@@ -59284,4 +59416,199 @@ class AppLocalizationsHe extends AppLocalizations {
   ) {
     return 'סמן $number: $time, $depth, $distance';
   }
+
+  @override
+  String get twinSet_title => 'צמד בלונים';
+
+  @override
+  String get twinSet_none => 'לא חלק מצמד בלונים';
+
+  @override
+  String get twinSet_link => 'קישור לבלון שותף בצמד';
+
+  @override
+  String twinSet_since(String date) {
+    return 'מאז $date';
+  }
+
+  @override
+  String get twinSet_replace => 'החלפת שותף';
+
+  @override
+  String get twinSet_unlink => 'ניתוק';
+
+  @override
+  String get twinSet_history => 'היסטוריה';
+
+  @override
+  String twinSet_historyRange(String partner, String from, String to) {
+    return '$partner, מ-$from עד $to';
+  }
+
+  @override
+  String get twinSet_deletePairing => 'מחיקת הצימוד';
+
+  @override
+  String get twinSet_deletePairingConfirm =>
+      'למחוק את הצימוד הזה מההיסטוריה? מילויים וצלילות לא ישתנו.';
+
+  @override
+  String get twinSet_pickerTitle => 'בלון שותף';
+
+  @override
+  String get twinSet_pickerEmpty => 'אין בלונים אחרים לצימוד.';
+
+  @override
+  String get twinSet_pairedOnHelp => 'בצימוד מאז';
+
+  @override
+  String get twinSet_unpairedOnHelp => 'נותקו בתאריך';
+
+  @override
+  String get twinSet_pressureMismatchTitle => 'לחצי עבודה שונים';
+
+  @override
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  ) {
+    return 'לחץ העבודה של $a הוא $aPressure ושל $b הוא $bPressure. צמד מחובר במניפולד מתמלא ללחץ אחד.';
+  }
+
+  @override
+  String get twinSet_continue => 'המשך';
+
+  @override
+  String get twinSet_replaceTitle => 'להחליף שותף?';
+
+  @override
+  String twinSet_replaceClash(String cylinder, String partner) {
+    return '$cylinder בצימוד עם $partner.';
+  }
+
+  @override
+  String twinSet_replaceQuestion(String a, String b) {
+    return 'לצמד במקום זאת את $a עם $b?';
+  }
+
+  @override
+  String twinSet_leftAlone(String name) {
+    return '$name יישאר לבד.';
+  }
+
+  @override
+  String get twinSet_replaceConfirm => 'החלפה';
+
+  @override
+  String get twinSet_clashTitle => 'צימוד חופף';
+
+  @override
+  String twinSet_clashBody(String pairs) {
+    return 'זה חופף לצימוד של $pairs. בלון יכול להיות בצמד אחד בלבד בכל יום.';
+  }
+
+  @override
+  String twinSet_pairNames(String a, String b) {
+    return '$a ו-$b';
+  }
+
+  @override
+  String twinSet_endBeforeStart(String date) {
+    return 'תאריך הסיום חייב להיות אחרי $date.';
+  }
+
+  @override
+  String get twinSet_saveFailed => 'לא ניתן לשמור את השינוי בצמד.';
+
+  @override
+  String twinSet_with(String partner) {
+    return 'צמד עם $partner';
+  }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return 'שני הבלונים בצמד ($partner)';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner, $status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => 'עריכת מילוי';
+
+  @override
+  String get passport_logFill_overPressureTitle => 'מעל לחץ העבודה';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure גבוה מלחץ העבודה של $name, $workingPressure.';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => 'לשמור בכל זאת';
+
+  @override
+  String get passport_logFill_back => 'חזרה';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return 'להחיל גם על המילוי של $partner?';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => 'כן';
+
+  @override
+  String get passport_logFill_onlyThisOne => 'רק זה';
+
+  @override
+  String get passport_history_anotherCylinder => 'בלון אחר';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return 'מולא יחד עם $partner';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'למחוק את המילוי הזה משני הבלונים, או רק מזה?';
+
+  @override
+  String get passport_history_deleteBoth => 'שני הבלונים';
+
+  @override
+  String get passport_history_edit => 'עריכת מילוי';
+
+  @override
+  String get twinSet_choiceTitle => 'להשתמש בצמד?';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'צמד ($a + $b, $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return 'רק $a';
+  }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'בצימוד מאז';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'נותקו בתאריך';
+
+  @override
+  String get settings_conflict_field_filledTogetherId => 'מילוי צמד';
+
+  @override
+  String get settings_conflict_field_twinPassportId => 'דרכון הבלון השותף';
 }

@@ -1,8 +1,10 @@
+import 'package:clock/clock.dart';
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/gps_log/data/repositories/gps_track_repository.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
+import 'package:submersion/features/gps_log/domain/track_point_codec.dart';
 
 import '../../helpers/test_database.dart';
 
@@ -81,6 +83,251 @@ void main() {
       expect(track.points.single.latitude, 1);
       // Buffer survives a checkpoint (only finalize clears it).
       expect(await repo.getBufferPoints(id), hasLength(1));
+    });
+
+    // Issue #4255: every checkpoint used to read, encode and rewrite the
+    // whole track so far, so the work grew quadratically with duration.
+    group('incremental checkpoint', () {
+      GpsTrackPoint at(int t, {double lat = 1}) =>
+          GpsTrackPoint(timestamp: t, latitude: lat, longitude: 2);
+
+      late List<({int rowsRead, int tuplesEncoded, bool wroteBlob})> stats;
+
+      setUp(() {
+        stats = [];
+        repo.debugOnCheckpoint = stats.add;
+      });
+
+      Future<String> startWith(List<GpsTrackPoint> points) async {
+        final id = await repo.startTrack(
+          startTimeMs: 1700000000000,
+          tzOffsetMinutes: 0,
+        );
+        for (final p in points) {
+          await repo.appendBufferPoint(id, p);
+        }
+        return id;
+      }
+
+      Future<GpsTrackRow> rowOf(String id) =>
+          (db.select(db.gpsTracks)..where((t) => t.id.equals(id))).getSingle();
+
+      test('later checkpoints read and encode only the new fixes', () async {
+        final first = [at(1700000000), at(1700000010), at(1700000020)];
+        final id = await startWith(first);
+        await repo.checkpoint(id);
+
+        final second = [at(1700000030, lat: 3), at(1700000040, lat: 4)];
+        for (final p in second) {
+          await repo.appendBufferPoint(id, p);
+        }
+        await repo.checkpoint(id);
+
+        expect(stats.map((s) => (s.rowsRead, s.tuplesEncoded)), [
+          (3, 3),
+          (2, 2),
+        ]);
+        final row = await rowOf(id);
+        expect(row.pointCount, 5);
+        // Byte-identical to encoding the whole buffer at once.
+        expect(row.points, encodeTrackPoints([...first, ...second]));
+      });
+
+      test('a checkpoint with no new fixes rewrites nothing', () async {
+        final id = await startWith([at(1700000000)]);
+        await repo.checkpoint(id);
+        // Backdate the row so a rewrite would show.
+        await (db.update(db.gpsTracks)..where((t) => t.id.equals(id))).write(
+          const GpsTracksCompanion(updatedAt: Value(1)),
+        );
+
+        await repo.checkpoint(id);
+
+        expect(stats.last, (rowsRead: 0, tuplesEncoded: 0, wroteBlob: false));
+        expect((await rowOf(id)).updatedAt, 1);
+      });
+
+      test('an idle recording still rewrites once the heartbeat is due, so '
+          'another device does not close it as an orphan', () async {
+        var now = 1700000000000;
+        await withClock(
+          Clock(() => DateTime.fromMillisecondsSinceEpoch(now)),
+          () async {
+            final id = await startWith([at(1700000000)]);
+            await repo.checkpoint(id);
+            expect((await rowOf(id)).updatedAt, now);
+
+            now += GpsTrackRepository.checkpointHeartbeat.inMilliseconds - 1;
+            await repo.checkpoint(id);
+            expect(stats.last.wroteBlob, isFalse);
+
+            now += 1;
+            await repo.checkpoint(id);
+
+            expect(stats.last, (
+              rowsRead: 0,
+              tuplesEncoded: 0,
+              wroteBlob: true,
+            ));
+            final row = await rowOf(id);
+            // Stamped on the same clock the heartbeat is measured on.
+            expect(row.updatedAt, now);
+            expect(row.pointCount, 1);
+          },
+        );
+        expect(
+          GpsTrackRepository.checkpointHeartbeat,
+          lessThan(GpsTrackRepository.staleOrphanThreshold),
+        );
+      });
+
+      test('a failed blob write leaves the cursor, so the next checkpoint '
+          'still writes those fixes', () async {
+        final id = await startWith([at(1700000000)]);
+        await repo.checkpoint(id);
+        await repo.appendBufferPoint(id, at(1700000010));
+
+        await db.customStatement(
+          'CREATE TEMP TRIGGER fail_track_write BEFORE UPDATE ON gps_tracks '
+          "BEGIN SELECT RAISE(ABORT, 'write failed'); END",
+        );
+        await expectLater(repo.checkpoint(id), throwsA(anything));
+        await db.customStatement('DROP TRIGGER fail_track_write');
+
+        await repo.checkpoint(id);
+
+        expect(stats.last, (rowsRead: 1, tuplesEncoded: 1, wroteBlob: true));
+        expect((await rowOf(id)).pointCount, 2);
+      });
+
+      test('a fix older than the last checkpointed one is merged into time '
+          'order without re-reading or re-encoding the track', () async {
+        final id = await startWith([at(1700000100), at(1700000200)]);
+        await repo.checkpoint(id);
+        await repo.appendBufferPoint(id, at(1700000150));
+
+        await repo.checkpoint(id);
+
+        final track = await repo.getTrack(id);
+        expect(track!.points.map((p) => p.timestamp), [
+          1700000100,
+          1700000150,
+          1700000200,
+        ]);
+        expect(stats.last, (rowsRead: 1, tuplesEncoded: 1, wroteBlob: true));
+        expect(
+          (await rowOf(id)).points,
+          encodeTrackPoints(await repo.getBufferPoints(id)),
+        );
+      });
+
+      test('a new fix tied with a checkpointed fix time goes after it, as a '
+          'full read orders it', () async {
+        final id = await startWith([at(1700000100), at(1700000200)]);
+        await repo.checkpoint(id);
+        // Fix times have one-second resolution, so ties are ordinary.
+        await repo.appendBufferPoint(id, at(1700000100, lat: 9));
+        await repo.appendBufferPoint(id, at(1700000200, lat: 8));
+
+        await repo.checkpoint(id);
+
+        final track = await repo.getTrack(id);
+        expect(track!.points.map((p) => p.latitude), [1, 9, 1, 8]);
+        expect(
+          (await rowOf(id)).points,
+          encodeTrackPoints(await repo.getBufferPoints(id)),
+        );
+      });
+
+      test('several new fixes falling between the same two checkpointed '
+          'fixes all land in time order', () async {
+        final id = await startWith([at(1700000050), at(1700000200)]);
+        await repo.checkpoint(id);
+        for (final p in [
+          at(1700000150, lat: 3),
+          at(1700000100, lat: 2),
+          at(1700000120, lat: 4),
+        ]) {
+          await repo.appendBufferPoint(id, p);
+        }
+
+        await repo.checkpoint(id);
+
+        final track = await repo.getTrack(id);
+        expect(track!.points.map((p) => p.timestamp), [
+          1700000050,
+          1700000100,
+          1700000120,
+          1700000150,
+          1700000200,
+        ]);
+        expect(
+          (await rowOf(id)).points,
+          encodeTrackPoints(await repo.getBufferPoints(id)),
+        );
+      });
+
+      test('a batch of fixes stepping back in time, as when DST ends, merges '
+          'to the same blob a full read writes', () async {
+        final id = await startWith([
+          at(1700003000),
+          at(1700003600),
+          at(1700007200),
+        ]);
+        await repo.checkpoint(id);
+        // Arrival order deliberately out of time order, with one tie.
+        for (final p in [
+          at(1700003700, lat: 2),
+          at(1700000000, lat: 3),
+          at(1700003600, lat: 4),
+          at(1700009000, lat: 5),
+          at(1700001000, lat: 6),
+        ]) {
+          await repo.appendBufferPoint(id, p);
+        }
+
+        await repo.checkpoint(id);
+
+        expect(stats.last, (rowsRead: 5, tuplesEncoded: 5, wroteBlob: true));
+        final row = await rowOf(id);
+        expect(row.pointCount, 8);
+        expect(row.points, encodeTrackPoints(await repo.getBufferPoints(id)));
+      });
+
+      test('a repository with no cached state checkpoints the whole buffer, '
+          'then continues incrementally', () async {
+        final id = await startWith([at(1700000000), at(1700000010)]);
+        await repo.checkpoint(id);
+        await repo.appendBufferPoint(id, at(1700000020));
+
+        final fresh = GpsTrackRepository();
+        final freshStats =
+            <({int rowsRead, int tuplesEncoded, bool wroteBlob})>[];
+        fresh.debugOnCheckpoint = freshStats.add;
+        await fresh.checkpoint(id);
+        await fresh.appendBufferPoint(id, at(1700000030));
+        await fresh.checkpoint(id);
+
+        expect(freshStats.map((s) => s.rowsRead), [3, 1]);
+        expect((await rowOf(id)).pointCount, 4);
+      });
+
+      test(
+        'finalize after incremental checkpoints writes the full track',
+        () async {
+          final id = await startWith([at(1700000000)]);
+          await repo.checkpoint(id);
+          await repo.appendBufferPoint(id, at(1700000010));
+          await repo.checkpoint(id);
+          await repo.appendBufferPoint(id, at(1700000020));
+
+          await repo.finalizeTrack(id);
+
+          final track = await repo.getTrack(id);
+          expect(track!.points, hasLength(3));
+          expect(track.endTime, 1700000020000);
+        },
+      );
     });
 
     test('finalizeTrack sets endTime, encodes points, clears buffer', () async {

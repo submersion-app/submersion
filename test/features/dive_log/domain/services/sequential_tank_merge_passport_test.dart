@@ -37,6 +37,48 @@ void main() {
     expect(merged.tanks.single.passportId, 'p-1');
   });
 
+  test('a twin set keeps the twin cylinder of the passport it keeps '
+      '(#4242)', () {
+    DiveTank twin(
+      String tankId,
+      double start,
+      double end, {
+      String? a,
+      String? b,
+    }) => DiveTank(
+      id: tankId,
+      gasMix: const GasMix(o2: 32),
+      startPressure: start,
+      endPressure: end,
+      passportId: a,
+      twinPassportId: b,
+    );
+    final fromLater = mergeSequentialTanks([
+      half('d1', twin('a', 200, 120), DateTime.utc(2026, 1, 1, 10)),
+      half(
+        'd2',
+        twin('b', 120, 60, a: 'p-a', b: 'p-b'),
+        DateTime.utc(2026, 1, 1, 11),
+      ),
+    ], idGenerator: id);
+    expect(fromLater.tanks.single.twinPassportId, 'p-b');
+
+    final fromEarlier = mergeSequentialTanks([
+      half(
+        'd1',
+        twin('a', 200, 120, a: 'p-a', b: 'p-b'),
+        DateTime.utc(2026, 1, 1, 10),
+      ),
+      half(
+        'd2',
+        twin('b', 120, 60, a: 'p-c', b: 'p-d'),
+        DateTime.utc(2026, 1, 1, 11),
+      ),
+    ], idGenerator: id);
+    expect(fromEarlier.tanks.single.passportId, 'p-a');
+    expect(fromEarlier.tanks.single.twinPassportId, 'p-b');
+  });
+
   group('regulators across two halves (#3375)', () {
     DiveTank cylinder(String id, double start, double end) => DiveTank(
       id: id,

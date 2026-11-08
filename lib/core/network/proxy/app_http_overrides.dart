@@ -5,6 +5,7 @@ import 'package:submersion/core/network/app_security_context.dart';
 import 'package:submersion/core/network/proxy/effective_proxy.dart';
 import 'package:submersion/core/network/proxy/proxy_routing.dart';
 import 'package:submersion/core/network/proxy/socks5_connector.dart';
+import 'package:submersion/core/network/proxy/startup_gated_http_client.dart';
 
 /// The dart:io proxy directive for [proxy]: `DIRECT`, or
 /// `PROXY [user:pass@]host:port`.
@@ -34,14 +35,22 @@ String proxyDirective(EffectiveProxy proxy) {
 /// HTTP proxies use dart:io's own forwarding and CONNECT tunnels via
 /// findProxy. SOCKS5 has no dart:io support, so findProxy says DIRECT and the
 /// connectionFactory opens the tunnel itself, adding TLS for https.
+///
+/// While [pendingStartup] returns a future (the launch proxy lookup has not
+/// settled yet), a client made here holds each request it opens until that
+/// future completes; see [StartupGatedHttpClient].
 class AppHttpOverrides extends HttpOverrides {
   AppHttpOverrides({
     required EffectiveProxy Function() currentProxy,
     ProxyRoutingPolicy shouldProxy = defaultShouldProxy,
     SecurityContext? Function() fallbackContext = appSecurityContext,
+    Future<void>? Function() pendingStartup = _settled,
   }) : _currentProxy = currentProxy,
        _shouldProxy = shouldProxy,
-       _fallbackContext = fallbackContext;
+       _fallbackContext = fallbackContext,
+       _pendingStartup = pendingStartup;
+
+  static Future<void>? _settled() => null;
 
   /// Per-client certificate checks set with [setBadCertificateCallback].
   static final Expando<BadCertificateCallback> _badCertificateCallbacks =
@@ -67,6 +76,7 @@ class AppHttpOverrides extends HttpOverrides {
   final EffectiveProxy Function() _currentProxy;
   final ProxyRoutingPolicy _shouldProxy;
   final SecurityContext? Function() _fallbackContext;
+  final Future<void>? Function() _pendingStartup;
 
   /// The proxy snapshot new connections use right now.
   EffectiveProxy get currentProxy => _currentProxy();
@@ -90,7 +100,8 @@ class AppHttpOverrides extends HttpOverrides {
   ///
   /// Such a client has no connection factory, so it cannot open a SOCKS5
   /// tunnel. The request is refused rather than sent around the proxy the
-  /// user chose.
+  /// user chose. Nor can it wait for the launch proxy lookup: a request it
+  /// opens before that settles uses the snapshot as it stands.
   @override
   String findProxyFromEnvironment(Uri url, Map<String, String>? environment) {
     final proxy = _currentProxy();
@@ -107,10 +118,14 @@ class AppHttpOverrides extends HttpOverrides {
   HttpClient createHttpClient(SecurityContext? context) {
     final effectiveContext = context ?? _fallbackContext();
     final client = super.createHttpClient(effectiveContext);
+    // The handle the caller holds, which setBadCertificateCallback keys on.
+    final HttpClient handle = _pendingStartup() == null
+        ? client
+        : StartupGatedHttpClient(client, _pendingStartup);
     client.findProxy = (url) => _directiveFor(url, _currentProxy());
     client.connectionFactory = (url, proxyHost, proxyPort) =>
-        _connect(url, proxyHost, proxyPort, effectiveContext, client);
-    return client;
+        _connect(url, proxyHost, proxyPort, effectiveContext, handle);
+    return handle;
   }
 
   Future<ConnectionTask<Socket>> _connect(

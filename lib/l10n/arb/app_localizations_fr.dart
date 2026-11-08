@@ -4658,6 +4658,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get certifications_list_section_expiringSoon => 'Expire bientôt';
 
   @override
+  String certifications_list_section_professional(String agency) {
+    return '$agency Professionnel';
+  }
+
+  @override
   String get certifications_list_section_valid => 'Valide';
 
   @override
@@ -10878,6 +10883,16 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_figureNow(String pressure) {
+    return 'Maintenant $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureNowEstimated(String pressure) {
+    return 'Maintenant $pressure (est.)';
+  }
+
+  @override
   String diveLog_cylinders_gasSemantics(String mix) {
     return 'Gaz $mix';
   }
@@ -11357,6 +11372,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get divePlanner_label_minutesUnit => 'min';
+
+  @override
+  String get divePlanner_label_secondsUnit => 's';
 
   @override
   String get divePlanner_label_ndl => 'NDL';
@@ -14539,6 +14557,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get passport_history_deleteConfirm =>
       'Supprimer cet enregistrement de gonflage ?';
+
+  @override
+  String get passport_history_deleteFailed =>
+      'Impossible de supprimer le gonflage. Réessayez.';
 
   @override
   String get passport_tag_title => 'Étiquette';
@@ -19841,6 +19863,17 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get media_photoPicker_selectAllButton => 'Tout sélectionner';
+
+  @override
+  String get media_photoPicker_albumFilter_all => 'Tous les albums';
+
+  @override
+  String media_photoPicker_albumFilter_chip(String album, int count) {
+    return '$album ($count)';
+  }
+
+  @override
+  String get media_photoPicker_albumFilter_label => 'Filtrer par album';
 
   @override
   String media_photoPicker_selectedCount(int count) {
@@ -27552,7 +27585,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'Corriger les heures, lier les binômes, retyper le matériel, qualité des données, éditeur de tableau';
+      'Corriger les heures, lier les binômes, retyper le matériel, qualité des données, éditeur de tableau, réanalyser les plongées';
 
   @override
   String get settings_agentAccess_title => 'Accès des agents';
@@ -38257,25 +38290,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllProgress(int count) {
-    return 'Réanalyse de $count plongées...';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllSuccess(int count) {
-    return '$count plongées réanalysées avec succès';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
-    return '$succeeded plongées sur $total réanalysées. $failed ont échoué.';
-  }
-
-  @override
   String diveComputer_detail_reparseRawDataCount(int count) {
     return '$count plongées avec données brutes';
   }
@@ -38287,6 +38301,126 @@ class AppLocalizationsFr extends AppLocalizations {
   ) {
     return '$count plongées avec données brutes ($without sans)';
   }
+
+  @override
+  String get reparseBatch_progressTitle => 'Réanalyse des plongées';
+
+  @override
+  String reparseBatch_progressCount(int done, int total) {
+    return 'Réanalyse de $done plongées sur $total';
+  }
+
+  @override
+  String get reparseBatch_cancelling => 'Annulation...';
+
+  @override
+  String get reparseBatch_resultTitle => 'Réanalyse terminée';
+
+  @override
+  String get reparseBatch_resultCancelledTitle => 'Réanalyse annulée';
+
+  @override
+  String get reparseBatch_resultErrorTitle =>
+      'Réanalyse interrompue par une erreur';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return 'Non traitées : $count';
+  }
+
+  @override
+  String reparseBatch_resultSummary(int succeeded, int total) {
+    return '$succeeded plongées sur $total réanalysées.';
+  }
+
+  @override
+  String reparseBatch_resultFailed(int count) {
+    return 'Échecs : $count';
+  }
+
+  @override
+  String reparseBatch_resultNotProcessed(int count) {
+    return 'Non traitées (annulé) : $count';
+  }
+
+  @override
+  String reparseBatch_resultSkipped(int count) {
+    return 'Ignorées, sans données brutes : $count';
+  }
+
+  @override
+  String reparseBatch_resultProfilesPreserved(int count) {
+    return 'Plongées combinées ayant conservé leur profil : $count';
+  }
+
+  @override
+  String get reparseBatch_failedListHeader => 'Plongées en échec';
+
+  @override
+  String reparseBatch_failedDiveTitle(int number) {
+    return 'Plongée n° $number';
+  }
+
+  @override
+  String get reparseBatch_failedDiveUnnumbered => 'Plongée sans numéro';
+
+  @override
+  String get reparseBatch_missingDescriptors =>
+      'Informations sur l\'ordinateur de plongée manquantes';
+
+  @override
+  String get reparseBatch_confirmTitle => 'Réanalyser les plongées';
+
+  @override
+  String reparseBatch_confirmMessage(int count) {
+    return 'Relance l\'analyseur de plongées pour $count plongées disposant de données brutes stockées. Cela met à jour les profils et données de capteurs, mais préserve vos notes, sites, équipiers et autres modifications.';
+  }
+
+  @override
+  String reparseBatch_confirmSkipped(int count) {
+    return 'Plongées sélectionnées sans données brutes (ignorées) : $count';
+  }
+
+  @override
+  String get reparseBatch_noneWithRawData =>
+      'Aucune des plongées sélectionnées n\'a de données brutes stockées à réanalyser.';
+
+  @override
+  String get diveLog_selection_tooltip_reparse => 'Réanalyser';
+
+  @override
+  String get settings_reparseDives_title => 'Réanalyser les plongées';
+
+  @override
+  String get settings_reparseDives_subtitle =>
+      'Relancer l\'analyseur sur chaque plongée disposant de données brutes stockées';
+
+  @override
+  String get settings_reparseDives_intro =>
+      'À utiliser lorsqu\'une mise à jour de l\'app améliore la lecture des données des ordinateurs de plongée. Vos notes, sites, équipiers et autres modifications sont préservés.';
+
+  @override
+  String settings_reparseDives_withRawData(int count) {
+    return 'Plongées avec données brutes : $count';
+  }
+
+  @override
+  String settings_reparseDives_withoutRawData(int count) {
+    return 'Plongées sans données brutes (non réanalysées) : $count';
+  }
+
+  @override
+  String get settings_reparseDives_byComputer => 'Par ordinateur de plongée';
+
+  @override
+  String get settings_reparseDives_unknownComputer => 'Ordinateur inconnu';
+
+  @override
+  String get settings_reparseDives_none =>
+      'Aucune plongée n\'a de données brutes stockées à réanalyser.';
+
+  @override
+  String get settings_reparseDives_button => 'Tout réanalyser';
 
   @override
   String get diveComputer_rawData_discardAction => 'Supprimer';
@@ -60686,4 +60820,204 @@ class AppLocalizationsFr extends AppLocalizations {
   ) {
     return 'Repère $number : $time, $depth, $distance';
   }
+
+  @override
+  String get twinSet_title => 'Bi-bouteille';
+
+  @override
+  String get twinSet_none => 'Ne fait pas partie d\'un bi-bouteille';
+
+  @override
+  String get twinSet_link => 'Associer à une bouteille partenaire';
+
+  @override
+  String twinSet_since(String date) {
+    return 'Depuis le $date';
+  }
+
+  @override
+  String get twinSet_replace => 'Remplacer la partenaire';
+
+  @override
+  String get twinSet_unlink => 'Dissocier';
+
+  @override
+  String get twinSet_history => 'Historique';
+
+  @override
+  String twinSet_historyRange(String partner, String from, String to) {
+    return '$partner, du $from au $to';
+  }
+
+  @override
+  String get twinSet_deletePairing => 'Supprimer l\'association';
+
+  @override
+  String get twinSet_deletePairingConfirm =>
+      'Supprimer cette association de l\'historique ? Les gonflages et les plongées ne changent pas.';
+
+  @override
+  String get twinSet_pickerTitle => 'Bouteille partenaire';
+
+  @override
+  String get twinSet_pickerEmpty => 'Aucune autre bouteille à associer.';
+
+  @override
+  String get twinSet_pairedOnHelp => 'Associées depuis le';
+
+  @override
+  String get twinSet_unpairedOnHelp => 'Dissociées le';
+
+  @override
+  String get twinSet_pressureMismatchTitle =>
+      'Pressions de service différentes';
+
+  @override
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  ) {
+    return '$a a une pression de service de $aPressure et $b de $bPressure. Une paire reliée par un manifold se gonfle à une seule pression.';
+  }
+
+  @override
+  String get twinSet_continue => 'Continuer';
+
+  @override
+  String get twinSet_replaceTitle => 'Remplacer la partenaire ?';
+
+  @override
+  String twinSet_replaceClash(String cylinder, String partner) {
+    return '$cylinder est associée à $partner.';
+  }
+
+  @override
+  String twinSet_replaceQuestion(String a, String b) {
+    return 'Associer plutôt $a à $b ?';
+  }
+
+  @override
+  String twinSet_leftAlone(String name) {
+    return '$name restera seule.';
+  }
+
+  @override
+  String get twinSet_replaceConfirm => 'Remplacer';
+
+  @override
+  String get twinSet_clashTitle => 'Association qui se chevauche';
+
+  @override
+  String twinSet_clashBody(String pairs) {
+    return 'Cela chevauche l\'association de $pairs. Une bouteille ne peut faire partie que d\'un bi-bouteille par jour.';
+  }
+
+  @override
+  String twinSet_pairNames(String a, String b) {
+    return '$a et $b';
+  }
+
+  @override
+  String twinSet_endBeforeStart(String date) {
+    return 'La date de fin doit être après le $date.';
+  }
+
+  @override
+  String get twinSet_saveFailed =>
+      'Impossible d\'enregistrer la modification du bi-bouteille.';
+
+  @override
+  String twinSet_with(String partner) {
+    return 'Bi-bouteille avec $partner';
+  }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return 'Les deux bouteilles du bi-bouteille ($partner)';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner, $status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => 'Modifier le gonflage';
+
+  @override
+  String get passport_logFill_overPressureTitle =>
+      'Au-dessus de la pression de service';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure dépasse la pression de service de $name, $workingPressure.';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => 'Enregistrer quand même';
+
+  @override
+  String get passport_logFill_back => 'Retour';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return 'Appliquer aussi au gonflage de $partner ?';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => 'Oui';
+
+  @override
+  String get passport_logFill_onlyThisOne => 'Seulement celui-ci';
+
+  @override
+  String get passport_history_anotherCylinder => 'une autre bouteille';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return 'Gonflée avec $partner';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'Supprimer ce gonflage des deux bouteilles, ou seulement de celle-ci ?';
+
+  @override
+  String get passport_history_deleteBoth => 'Les deux bouteilles';
+
+  @override
+  String get passport_history_edit => 'Modifier le gonflage';
+
+  @override
+  String get twinSet_choiceTitle => 'Utiliser le bi-bouteille ?';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'Bi-bouteille ($a + $b, $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return 'Seulement $a';
+  }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'Associées depuis';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'Dissociées le';
+
+  @override
+  String get settings_conflict_field_filledTogetherId =>
+      'Gonflage du bi-bouteille';
+
+  @override
+  String get settings_conflict_field_twinPassportId =>
+      'Passeport de la bouteille partenaire';
 }

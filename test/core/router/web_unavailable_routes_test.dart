@@ -116,6 +116,11 @@ void main() {
         webUnavailableFeatureFor('/settings/agent-access'),
         WebUnavailableFeature.agentAccess,
       );
+      // The whole-log re-parse runs the native dive parser (#224).
+      expect(
+        webUnavailableFeatureFor('/settings/reparse-dives'),
+        WebUnavailableFeature.diveComputers,
+      );
     });
 
     test('matches a section a page selects that the browser cannot '

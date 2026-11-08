@@ -41,6 +41,15 @@ import '../../../../helpers/mock_providers.dart';
 /// Counts how many times a refreshed provider was rebuilt.
 int refreshBuilds = 0;
 
+/// How many times each conditional card's provider was built, by card.
+final cardProviderBuilds = <HomeCardType, int>{};
+
+/// Counts a build of [card]'s provider and returns [value].
+T _built<T>(HomeCardType card, T value) {
+  cardProviderBuilds.update(card, (n) => n + 1, ifAbsent: () => 1);
+  return value;
+}
+
 /// Gauges carrying one dive-safety alert (an expired policy), the state that
 /// hardens the strip against being hidden.
 final _expiredInsuranceGauges = DashboardGauges(
@@ -98,6 +107,7 @@ Future<void> pumpDashboard(
   DashboardGauges? gauges,
 }) async {
   refreshBuilds = 0;
+  cardProviderBuilds.clear();
   final overrides = await getBaseOverrides(settingsNotifier: settingsNotifier);
   final router = GoRouter(
     routes: [
@@ -146,19 +156,32 @@ Future<void> pumpDashboard(
               ),
         ),
         milestonesProvider.overrideWith(
-          (ref) async =>
-              milestones ??
-              const DashboardMilestones(
-                nextMilestone: null,
-                divesRemaining: null,
-                anniversaries: [],
-              ),
+          (ref) async => _built(
+            HomeCardType.milestones,
+            milestones ??
+                const DashboardMilestones(
+                  nextMilestone: null,
+                  divesRemaining: null,
+                  anniversaries: [],
+                ),
+          ),
         ),
-        recentMediaProvider.overrideWith((ref) async => lateMedia ?? photos),
-        onThisDayProvider.overrideWith((ref) async => onThisDay),
-        yearInReviewProvider.overrideWith((ref) async => yearInReview),
+        recentMediaProvider.overrideWith(
+          (ref) => _built(
+            HomeCardType.photoRibbon,
+            lateMedia ?? Future.value(photos),
+          ),
+        ),
+        onThisDayProvider.overrideWith(
+          (ref) async => _built(HomeCardType.onThisDay, onThisDay),
+        ),
+        yearInReviewProvider.overrideWith(
+          (ref) async => _built(HomeCardType.yearInReview, yearInReview),
+        ),
         activeCoursesProgressProvider.overrideWith((ref) async => []),
-        recentSitesProvider.overrideWith((ref) async => sites),
+        recentSitesProvider.overrideWith(
+          (ref) async => _built(HomeCardType.recentSitesMap, sites),
+        ),
       ].cast(),
       child: MaterialApp.router(
         locale: const Locale('en'),
@@ -300,6 +323,52 @@ void main() {
 
     expect(find.byType(QuickActionsCard), findsNothing);
     expect(find.byType(RecentDivesCard), findsOneWidget);
+  });
+
+  testWidgets('a hidden card loads nothing (#4251)', (tester) async {
+    // Each of these would otherwise have content, so only hiding them keeps
+    // their reads (On This Day's dive reads among them) off Home.
+    const hidden = {
+      HomeCardType.milestones,
+      HomeCardType.photoRibbon,
+      HomeCardType.onThisDay,
+      HomeCardType.yearInReview,
+      HomeCardType.recentSitesMap,
+    };
+    await pumpDashboard(
+      tester,
+      onThisDay: [Dive(id: 'otd', dateTime: DateTime(2023, 7, 24))],
+      sites: const [RecentSitePin(siteName: 'A', latitude: 36, longitude: 25)],
+      settingsNotifier: MockSettingsNotifier(
+        AppSettings(hiddenHomeCards: {for (final c in hidden) c.name}),
+      ),
+    );
+
+    expect(find.byType(OnThisDayCard, skipOffstage: false), findsNothing);
+    expect(
+      {for (final c in hidden) c: cardProviderBuilds[c] ?? 0},
+      {for (final c in hidden) c: 0},
+    );
+  });
+
+  testWidgets('a hidden photo ribbon does not hold back the map', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 1600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    // Photos that never arrive: the map must not wait on a card that is off.
+    await pumpDashboard(
+      tester,
+      sites: const [RecentSitePin(siteName: 'A', latitude: 36, longitude: 25)],
+      lateMedia: Completer<List<MediaItem>>().future,
+      settingsNotifier: MockSettingsNotifier(
+        AppSettings(hiddenHomeCards: {HomeCardType.photoRibbon.name}),
+      ),
+    );
+
+    expect(find.byType(RecentSitesMapCard), findsOneWidget);
+    expect(cardProviderBuilds[HomeCardType.photoRibbon], isNull);
   });
 
   testWidgets('custom order is respected', (tester) async {

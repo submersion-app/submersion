@@ -49,10 +49,15 @@ class BaseParseClient {
   /// [onProgress] receives the worker's byte-progress heartbeats (bytes of the
   /// file consumed so far in the current pass, and the file's total length).
   ///
+  /// [gzipped] says [filePath] is a compressed base: the worker reads it
+  /// through the decoder on every pass, and its progress counts compressed
+  /// bytes.
+  ///
   /// [entryPoint] and [handshakeTimeout] are injectable for tests only.
   static Future<BaseParseClient> spawn(
     String filePath, {
     void Function(int bytes, int total)? onProgress,
+    bool gzipped = false,
     @visibleForTesting
     void Function(List<Object>) entryPoint = baseParseWorkerMain,
     @visibleForTesting Duration handshakeTimeout = const Duration(seconds: 10),
@@ -104,7 +109,7 @@ class BaseParseClient {
     try {
       isolate = await Isolate.spawn(
         entryPoint,
-        <Object>[fromWorker.sendPort, filePath],
+        <Object>[fromWorker.sendPort, filePath, gzipped],
         onError: fromWorker.sendPort,
         errorsAreFatal: false,
       );

@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
 import 'package:submersion/shared/widgets/forms/form_style.dart';
 
+// Localized, as the app is: a rating row names its stars for a screen reader.
 Widget _wrap(Widget child) => MaterialApp(
+  locale: const Locale('en'),
+  localizationsDelegates: AppLocalizations.localizationsDelegates,
+  supportedLocales: AppLocalizations.supportedLocales,
   home: Scaffold(body: Material(child: child)),
 );
 
 /// Same host, but shrink-wrapped so the row reports its own height rather
 /// than filling the body.
 Widget _wrapIntrinsic(Widget child) => MaterialApp(
+  locale: const Locale('en'),
+  localizationsDelegates: AppLocalizations.localizationsDelegates,
+  supportedLocales: AppLocalizations.supportedLocales,
   home: Scaffold(
     body: Material(
       child: Column(mainAxisSize: MainAxisSize.min, children: [child]),

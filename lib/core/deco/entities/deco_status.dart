@@ -299,12 +299,20 @@ class DecoStop extends Equatable {
   /// [durationSeconds]. Zero when no air breaks occurred.
   final int airBreakSeconds;
 
+  /// Whether this stop is held only for the gas switch made here, with no
+  /// decompression owed at its depth (issue #4160): a switch before the
+  /// first deco stop, or any switch on a dive that owes nothing. It is not a
+  /// decompression stop, so it does not move the ascent onto the slower
+  /// between-stops rates (`AscentPhase.afterStop`).
+  final bool isGasSwitchOnly;
+
   const DecoStop({
     required this.depthMeters,
     required this.durationSeconds,
     this.gasName,
     this.isDeepStop = false,
     this.airBreakSeconds = 0,
+    this.isGasSwitchOnly = false,
   });
 
   /// Duration formatted as minutes
@@ -330,5 +338,14 @@ class DecoStop extends Equatable {
     gasName,
     isDeepStop,
     airBreakSeconds,
+    isGasSwitchOnly,
   ];
 }
+
+/// The depths of the stops in [stops] that are held only to switch gas
+/// ([DecoStop.isGasSwitchOnly]), the form `SchedulePolicy.ascentLegs` takes
+/// them in.
+Set<double> gasSwitchOnlyDepthsOf(Iterable<DecoStop> stops) => {
+  for (final stop in stops)
+    if (stop.isGasSwitchOnly) stop.depthMeters,
+};
