@@ -15,6 +15,13 @@ import '../../../../helpers/test_database.dart';
 /// Issue #241: on the edit form the exit follows the entry, the runtime moves
 /// the exit, and moving the exit shows its runtime. Drives the real form
 /// against a real database so the assertions are on the stored row.
+/// A bounded pump for the new-dive page, which never settles.
+Future<void> pumpFrames(WidgetTester tester) async {
+  for (var i = 0; i < 8; i++) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+}
+
 void main() {
   late DiveRepository repository;
 
@@ -29,7 +36,7 @@ void main() {
 
   Future<void> pumpEditor(
     WidgetTester tester,
-    String diveId, {
+    String? diveId, {
     void Function(String)? onSaved,
   }) async {
     tester.view.physicalSize = const Size(950, 8000);
@@ -60,7 +67,12 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    // A new-dive page runs a continuous animation and never settles.
+    if (diveId == null) {
+      await pumpFrames(tester);
+    } else {
+      await tester.pumpAndSettle();
+    }
   }
 
   Finder row(String label) =>
@@ -86,6 +98,18 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Cancel')); // time
     await tester.pumpAndSettle();
+  }
+
+  /// The text a picker row shows.
+  String? rowValue(WidgetTester tester, String label) =>
+      tester.widget<FormRow>(row(label)).value;
+
+  /// Whether the Exit row shows the same day as the Entry row; both read
+  /// "<date>, <time>".
+  bool exitOnEntryDay(WidgetTester tester) {
+    final entryText = rowValue(tester, 'Entry')!;
+    final day = entryText.substring(0, entryText.lastIndexOf(','));
+    return rowValue(tester, 'Exit')!.startsWith(day);
   }
 
   /// The runtime the form shows; the row builds its text field only while
@@ -121,10 +145,7 @@ void main() {
     await tapRow(tester, 'Entry');
     await pickDayKeepTime(tester, '3');
 
-    expect(
-      find.descendant(of: row('Exit'), matching: find.textContaining('3')),
-      findsWidgets,
-    );
+    expect(exitOnEntryDay(tester), isTrue);
     expect(runtimeText(tester), '49');
 
     final saved = await saveAndReload(tester, 'dive-241-entry');
@@ -298,5 +319,96 @@ void main() {
     final saved = await saveAndReload(tester, 'dive-241-reopen');
     expect(saved.runtime, const Duration(minutes: 47));
     expect(saved.exitTime, exit);
+  });
+
+  testWidgets('moving the entry time moves the exit with it', (tester) async {
+    await repository.createDive(
+      Dive(
+        id: 'dive-241-entry-time',
+        dateTime: entry,
+        entryTime: entry,
+        exitTime: exit,
+        runtime: runtime,
+      ),
+    );
+
+    await pumpEditor(tester, 'dive-241-entry-time');
+    await tapRow(tester, 'Entry');
+    await tester.tap(find.text('OK')); // date unchanged
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.keyboard_outlined));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find
+          .descendant(
+            of: find.byType(TimePickerDialog),
+            matching: find.byType(TextField),
+          )
+          .first,
+      '9',
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OK')); // time: 9:00 AM
+    await tester.pumpAndSettle();
+
+    final saved = await saveAndReload(tester, 'dive-241-entry-time');
+    const shift = Duration(hours: -1);
+    expect(saved.entryTime, entry.add(shift));
+    expect(saved.exitTime, exit.add(shift));
+    expect(saved.runtime, runtime);
+  });
+
+  testWidgets('the runtime profile suggestion moves the exit', (tester) async {
+    await repository.createDive(
+      Dive(
+        id: 'dive-241-profile',
+        dateTime: entry,
+        entryTime: entry,
+        exitTime: exit,
+        runtime: runtime,
+        profile: const [
+          DiveProfilePoint(timestamp: 0, depth: 0),
+          DiveProfilePoint(timestamp: 1800, depth: 18),
+          DiveProfilePoint(timestamp: 3600, depth: 0),
+        ],
+      ),
+    );
+
+    await pumpEditor(tester, 'dive-241-profile');
+    final suggestion = tester.widget<FormRow>(row('Runtime')).profileSuggestion;
+    expect(suggestion, isNotNull);
+    suggestion!.onUse();
+    await tester.pumpAndSettle();
+
+    expect(runtimeText(tester), '60');
+    final saved = await saveAndReload(tester, 'dive-241-profile');
+    expect(saved.exitTime, entry.add(const Duration(minutes: 60)));
+    expect(saved.runtime, const Duration(minutes: 60));
+  });
+
+  testWidgets('a new dive shows a runtime as an exit it does not save', (
+    tester,
+  ) async {
+    String? savedId;
+    await pumpEditor(tester, null, onSaved: (id) => savedId = id);
+    expect(rowValue(tester, 'Exit'), isNull);
+
+    await tester.ensureVisible(row('Runtime'));
+    await pumpFrames(tester);
+    await tester.tap(row('Runtime'));
+    await pumpFrames(tester);
+    await tester.enterText(
+      find.descendant(of: row('Runtime'), matching: find.byType(TextField)),
+      '45',
+    );
+    await pumpFrames(tester);
+    expect(rowValue(tester, 'Exit'), isNotNull);
+
+    await tester.tap(find.text('Save'));
+    await pumpFrames(tester);
+    expect(savedId, isNotNull, reason: 'save should complete');
+    final saved = (await repository.getDiveById(savedId!))!;
+    expect(saved.exitTime, isNull);
+    expect(saved.runtime, const Duration(minutes: 45));
   });
 }
