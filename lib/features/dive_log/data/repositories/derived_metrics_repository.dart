@@ -44,7 +44,12 @@ class DerivedMetricsRepository {
     AppDatabase? database,
     DerivedMetricsRunner? runner,
     MergedProfileReader? mergedProfile,
-  }) : _dbOverride = database,
+  }) : assert(
+         database == null || mergedProfile != null,
+         'The default merged profile reads DatabaseService.instance, so a '
+         'repository bound to another database must say how to read it.',
+       ),
+       _dbOverride = database,
        _runner = runner ?? _computeOnIsolate,
        _mergedProfile = mergedProfile ?? _readMergedProfile;
 

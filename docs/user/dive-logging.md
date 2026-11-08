@@ -98,7 +98,7 @@ The rows, in order:
 >
 > If your computer keeps logging at the surface (some do while the transmitter
 > is still pressurised), or starts logging before you descend, that surface time
-> is left out of the dive's SAC and RMV. Anything shallower than 1 m at the very
+> is left out of the dive's SAC and RMV. Anything at 1 m or shallower at the very
 > start or end of the profile counts as surface time; your runtime and profile
 > stay exactly as recorded.
 

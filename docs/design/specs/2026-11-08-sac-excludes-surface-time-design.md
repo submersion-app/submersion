@@ -46,7 +46,7 @@ exist and are not changed here.
 
 A `GasUseWindow` is computed from the depth samples alone:
 
-1. A sample deeper than **1.0 m** (`kSurfaceDepthM`, matching the buoyancy
+1. A sample deeper than **1.0 m** (`kGasUseSurfaceDepthM`, matching the buoyancy
    twin analyzer) is underwater.
 2. The window starts at the sample just before the first underwater sample
    (the descent starts there) and ends at the sample just after the last one
@@ -74,10 +74,10 @@ common.
 
 ## Where the window lives
 
-- **Dart, with samples** (the detail page): `Dive.gasUseWindow` computes it from
+- **Dart, with samples** (the detail page): `Dive.gasUse` computes it from
   `profile`.
 - **Dart, without samples** (list reads, exports): the dive repository fills a
-  new read-only `Dive.storedGasUseWindow` from the derived metrics cache,
+  new read-only `Dive.storedGasUse` from the derived metrics cache,
   the way `profileSpan` is filled today.
 - **SQL** (statistics, insights, query fields): `gasUseSecondsSql` and
   `gasUseAvgDepthSql` read the same cache row.

@@ -166,6 +166,20 @@ void main() {
       expect(stored.gasUseAvgDepthMeters, isNull);
     });
 
+    test('a repository bound to its own database must name its reader', () {
+      expect(
+        () => DerivedMetricsRepository(database: db),
+        throwsA(isA<AssertionError>()),
+      );
+      expect(
+        DerivedMetricsRepository(
+          database: db,
+          mergedProfile: (_) async => const [],
+        ),
+        isNotNull,
+      );
+    });
+
     test('is none for a dive with no profile', () async {
       await insertDive('d1');
       final metrics = await withMerged(const []).ensureCurrent('d1');
