@@ -374,6 +374,51 @@ void main() {
     expect(restart['t'] as int, closeTo(1800, 30));
   });
 
+  test('a dive starts on its back gas even when a bottle is listed first', () {
+    // The EAN50 is cylinder 1; the gas timeline still starts on back gas.
+    final ctx = makeContext(
+      dive: makeTestDive(
+        tanks: [
+          tank(id: 'deco', order: 0, o2: 50, role: TankRole.deco),
+          tank(id: 'back', order: 1),
+        ],
+      ),
+      samples: profile(3000, (t) => t < 1800 ? 30 : 21),
+      pressures: {
+        'back': pressure(end: 3000, startBar: 200, falling: (t) => t <= 1800),
+        'deco': pressure(end: 3000, startBar: 200, falling: (t) => t > 1800),
+      },
+    );
+
+    final finding = missingSwitchFinding(det.detect(ctx));
+    final first = (finding!.params['missingSwitches'] as List).single as Map;
+    expect(first['tankId'], 'deco');
+    expect(first['tankPosition'], 0);
+    expect(first['t'] as int, closeTo(1800, 30));
+  });
+
+  test('a start before the profile begins is not a switch', () {
+    // The transmitters logged from 0:00, the profile only from 15:00; the
+    // EAN50's start at 5:00 has no depth to judge it by.
+    final ctx = makeContext(
+      dive: makeTestDive(
+        tanks: [
+          tank(id: 'back', order: 0),
+          tank(id: 'deco', order: 1, o2: 50, role: TankRole.deco),
+        ],
+      ),
+      samples: [
+        for (var t = 900; t <= 3000; t += 10) QualitySample(t: t, depth: 20),
+      ],
+      pressures: {
+        'back': pressure(end: 3000, startBar: 200, falling: (t) => t <= 300),
+        'deco': pressure(end: 3000, startBar: 200, falling: (t) => t > 300),
+      },
+    );
+
+    expect(missingSwitchFinding(det.detect(ctx)), isNull);
+  });
+
   test('a start after the profile ends is not a switch', () {
     // The transmitter kept logging at the surface; the profile stopped at
     // 25:00, before the bottle's start at 30:00.

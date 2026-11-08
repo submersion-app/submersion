@@ -6,6 +6,7 @@ import 'package:submersion/features/data_quality/domain/quality_thresholds.dart'
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/cylinder_breath_starts.dart';
 import 'package:submersion/features/dive_log/domain/services/gas_switch_time_suggestions.dart';
+import 'package:submersion/features/dive_log/domain/services/tank_usage_range.dart';
 
 /// A moment the cylinder pressures say the diver started breathing a
 /// cylinder, as stored in a missing-switch finding's params (issue #165).
@@ -47,9 +48,11 @@ const MissedSwitches _none = (
 /// open-circuit dive that logged none (issue #165).
 ///
 /// Each cylinder's turns come from [cylinderBreathTurns], the detector the
-/// switch editor's time chips use (#4089). The dive starts on its first
-/// cylinder in dive order, the one the gas timeline assumes, so a turn is a
-/// switch only when it moves the diver off the cylinder in use. A cylinder
+/// switch editor's time chips use (#4089). The dive starts on the cylinder
+/// the gas timeline starts on ([startingTankOf]: the back gas, else the
+/// first in dive order), so a turn is a switch only when it moves the diver
+/// off the cylinder in use. A switch is only placed inside the profile,
+/// where it has a depth. A cylinder
 /// that feeds a rebreather loop drains whatever the diver breathes and is
 /// left out, and so are rebreather dives, whose bailout the role checks
 /// judge, and a dive whose empty switch list the diver left that way in the
@@ -81,7 +84,9 @@ MissedSwitches missedGasSwitches(DiveQualityContext ctx) {
   final positionById = {
     for (var i = 0; i < ordered.length; i++) ordered[i].id: i,
   };
+  final firstSampleT = ctx.primarySamples.first.t;
   final lastSampleT = ctx.primarySamples.last.t;
+  bool inProfile(int t) => t >= firstSampleT && t <= lastSampleT;
   final turnsById = {
     for (final tank in breathed)
       tank.id: cylinderBreathTurns([
@@ -95,7 +100,7 @@ MissedSwitches missedGasSwitches(DiveQualityContext ctx) {
       <({DiveTank tank, int t, int? previousEnd})>[
         for (final tank in breathed)
           for (final turn in turnsById[tank.id]!.starts)
-            if (turn.t <= lastSampleT)
+            if (inProfile(turn.t))
               (tank: tank, t: turn.t, previousEnd: turn.previousEnd),
       ]..sort((a, b) {
         final byTime = a.t.compareTo(b.t);
@@ -115,12 +120,18 @@ MissedSwitches missedGasSwitches(DiveQualityContext ctx) {
 
   final addable = <MissedSwitch>[];
   final deep = <DeepStart>[];
-  var inUse = ordered.first.id;
+  var inUse = startingTankOf(
+    tanks: ordered,
+    switches: const [],
+    diveStart: firstSampleT,
+  )!.id;
 
-  // Offers a switch to [tank] at [t], unless it shares the last switch's
-  // second (the switch editor allows one a second) or lies deeper than the
-  // gas's MOD. [reported] says whether a too-deep one is named.
+  // Offers a switch to [tank] at [t], unless it lies outside the profile,
+  // shares the last switch's second (the switch editor allows one a
+  // second) or lies deeper than the gas's MOD. [reported] says whether a
+  // too-deep one is named.
   void offer(DiveTank tank, int t, {bool reported = true}) {
+    if (!inProfile(t)) return;
     if (addable.isNotEmpty && addable.last.t == t) return;
     final missed = startOf(tank, t);
     final mod = maxOperatingDepthMeters(
@@ -184,8 +195,8 @@ MissedSwitches missedGasSwitches(DiveQualityContext ctx) {
 }
 
 /// The depth at [t], interpolated linearly between the bracketing samples
-/// as the switch editor's profile lookup does (`profileDepthAt`), and the
-/// nearest end sample's depth outside them. [samples] is in time order.
+/// as the switch editor's profile lookup does (`profileDepthAt`). [t] lies
+/// within the profile; [samples] is in time order.
 double _depthAt(List<QualitySample> samples, int t) {
   if (t <= samples.first.t) return samples.first.depth;
   if (t >= samples.last.t) return samples.last.depth;
