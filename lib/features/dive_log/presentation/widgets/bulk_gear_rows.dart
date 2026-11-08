@@ -32,26 +32,33 @@ BulkGearRows arrangeBulkGearRows(
   EquipmentArrangement arrangement, {
   required String Function(EquipmentType) typeLabel,
 }) {
-  final items = <BulkMembershipItem>[];
-  final headings = <String, EquipmentType>{};
-  for (final group in arrangeEquipment(
-    gear,
-    arrangement,
-    typeLabel: typeLabel,
-  )) {
-    final type = group.type;
-    if (type != null && group.items.isNotEmpty) {
-      headings[group.items.first.id] = type;
-    }
-    for (final item in group.items) {
-      items.add(
-        BulkMembershipItem(
-          id: item.id,
-          label: item.name,
-          icon: equipmentTypeIcon(item.type),
-        ),
-      );
-    }
-  }
-  return BulkGearRows(items: items, headings: headings);
+  final groups = arrangeEquipment(gear, arrangement, typeLabel: typeLabel);
+  return BulkGearRows(
+    items: [
+      for (final group in groups)
+        for (final item in group.items)
+          BulkMembershipItem(
+            id: item.id,
+            label: item.name,
+            icon: equipmentTypeIcon(item.type),
+          ),
+    ],
+    headings: {
+      for (final group in groups)
+        if (group.type case final type? when group.items.isNotEmpty)
+          group.items.first.id: type,
+    },
+  );
 }
+
+/// [gear] with each of [added] it does not already list, by id. Where the
+/// new items go in the list does not matter: the editor renders it through
+/// the arrangement, so they take their sorted place, not the bottom.
+List<EquipmentItem> withBulkGear(
+  List<EquipmentItem> gear,
+  Iterable<EquipmentItem> added,
+) => {
+  for (final item in added) item.id: item,
+  // Listed after the additions so an item already listed keeps its entry.
+  for (final item in gear) item.id: item,
+}.values.toList();

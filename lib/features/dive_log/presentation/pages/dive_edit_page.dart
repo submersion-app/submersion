@@ -143,6 +143,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/pickers/edit_s
 import 'package:submersion/features/dive_log/presentation/widgets/dive_bulk_membership_labels.dart';
 import 'package:submersion/shared/bulk_edit/bulk_change_summary.dart';
 import 'package:submersion/shared/bulk_edit/bulk_membership_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/bulk_gear_actions.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_gear_rows.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
@@ -1968,24 +1969,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           items: gearRows.items,
           counts: _equipmentCounts,
           onAdd: _bulkAddEquipment,
-          secondaryAction: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextButton.icon(
-                onPressed: _bulkUseEquipmentSet,
-                icon: const Icon(Icons.folder_special, size: 18),
-                label: Text(l10n.diveLog_edit_useSet),
-              ),
-              // The same sort sheet as the single-dive gear list, and the
-              // same shared setting (#2274). Icon only, so the section title
-              // keeps its room on a phone.
-              IconButton(
-                icon: const Icon(Icons.sort, size: 18),
-                tooltip: l10n.equipment_list_sortTooltip,
-                onPressed: () => showEquipmentArrangeSheet(context),
-              ),
-            ],
-          ),
+          secondaryAction: BulkGearActions(onUseSet: _bulkUseEquipmentSet),
           headerBuilder: (item) => switch (gearRows.headings[item.id]) {
             final type? => EquipmentGroupHeader(type: type),
             null => null,
@@ -2637,8 +2621,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       (
         title: l10n.diveLog_edit_section_equipment,
         delta: _equipmentDelta,
-        // In the order the editor lists them.
-        members: _bulkGearRows(ref.read(equipmentArrangementProvider)).items,
+        // Only names the ids; the summary sorts them A to Z itself.
+        members: [
+          for (final e in _bulkGear)
+            BulkMembershipItem(id: e.id, label: e.name),
+        ],
       ),
       (
         title: l10n.diveLog_edit_group_buddies,
@@ -4817,17 +4804,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     );
   }
 
-  /// [_bulkGear] with [items] it does not already list. They take their
-  /// sorted place when the editor next renders, not the bottom.
-  List<EquipmentItem> _bulkGearWith(Iterable<EquipmentItem> items) {
-    final existing = {for (final e in _bulkGear) e.id};
-    return [
-      ..._bulkGear,
-      for (final item in items)
-        if (existing.add(item.id)) item,
-    ];
-  }
-
   void _bulkAddEquipment() {
     showModalBottomSheet(
       context: context,
@@ -4845,7 +4821,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           hideAssemblyParts: true,
           offerLeftKit: true,
           onEquipmentConfirmed: (items) {
-            setState(() => _bulkGear = _bulkGearWith(items));
+            setState(() => _bulkGear = withBulkGear(_bulkGear, items));
             Navigator.of(context).pop();
           },
         ),
@@ -4867,7 +4843,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           scrollController: scrollController,
           onSetSelected: (set, items) {
             setState(() {
-              _bulkGear = _bulkGearWith(items);
+              _bulkGear = withBulkGear(_bulkGear, items);
               // Rows already listed keep whatever the user set them to, so
               // appending alone would let an unchecked row remove a set item
               // from every dive (#1754). Switch the whole set on.

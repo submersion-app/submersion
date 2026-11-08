@@ -85,6 +85,16 @@ void main() {
     expect(rows.items.single.icon, isNotNull);
   });
 
+  test('adding gear skips what is already listed or picked twice', () {
+    final gear = withBulkGear(
+      const [faber, apeks],
+      const [zeagle, apeks, zeagle],
+    );
+
+    expect(gear.map((g) => g.id).toSet(), {'tank-1', 'reg-1', 'bcd-1'});
+    expect(gear, hasLength(3));
+  });
+
   test('no gear gives no rows', () {
     final rows = arrangeBulkGearRows(const [], headToToe, typeLabel: typeLabel);
 

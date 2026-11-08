@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/database/database.dart' show AppDatabase;
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
@@ -23,6 +24,13 @@ import '../../../../helpers/test_database.dart';
 /// The bulk editor's gear list follows the diver's gear arrangement, with
 /// the same Sort action as the single-dive gear list (#2274). It used to be
 /// alphabetical only, with newly added gear at the bottom.
+
+/// Stands in for the diver's saved arrangement, so a test can change it
+/// while the editor is open, as picking a sort in the sheet does.
+final _arrangement = StateProvider<EquipmentArrangement>(
+  (ref) => EquipmentArrangement.defaults,
+);
+
 void main() {
   late DiveRepository repository;
   late AppDatabase db;
@@ -93,7 +101,10 @@ void main() {
             (ref) => DiveListNotifier(repository, ref),
           ),
           customTankPresetsProvider.overrideWith((ref) async => []),
-          equipmentArrangementProvider.overrideWithValue(arrangement),
+          _arrangement.overrideWith((ref) => arrangement),
+          equipmentArrangementProvider.overrideWith(
+            (ref) => ref.watch(_arrangement),
+          ),
         ],
         child: const DiveEditPage(bulkDiveIds: ['d1', 'd2'], embedded: true),
       ),
@@ -208,6 +219,44 @@ void main() {
     );
     expect(
       find.descendant(of: apeksRow, matching: find.textContaining('adding')),
+      findsOneWidget,
+    );
+  });
+
+  // Picking a new sort in the sheet changes the shared setting while the
+  // editor is open. The list follows it, and each row keeps its choice.
+  testWidgets('a sort changed mid-edit re-sorts and keeps every choice', (
+    tester,
+  ) async {
+    await seed(onFirstDive: const [zeagle, faber, apeks]);
+    await pump(tester, headToToe);
+
+    final toggle = find.byKey(const ValueKey('membership-toggle-bcd-1'));
+    await tester.ensureVisible(toggle);
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+
+    ProviderScope.containerOf(
+      tester.element(gearEditor()),
+    ).read(_arrangement.notifier).state = headToToe.copyWith(
+      typeOrder: EquipmentTypeOrder.none,
+      groupByType: false,
+      itemSortDirection: SortDirection.descending,
+    );
+    await tester.pumpAndSettle();
+
+    expect(rowOrder(tester, ['Apeks', 'Faber', 'Zeagle']), [
+      'Zeagle',
+      'Faber',
+      'Apeks',
+    ]);
+    expect(inGearEditor(find.byType(EquipmentGroupHeader)), findsNothing);
+    final zeagleRow = find.ancestor(
+      of: inGearEditor(find.text('Zeagle')),
+      matching: find.byType(ListTile),
+    );
+    expect(
+      find.descendant(of: zeagleRow, matching: find.textContaining('adding')),
       findsOneWidget,
     );
   });
