@@ -111,5 +111,12 @@ void main() {
       expect(const GalleryAlbum(id: 'gopro', name: 'GoPro'), equals(_goPro));
       expect(const GalleryAlbum(id: 'gopro', name: 'Other'), isNot(_goPro));
     });
+
+    test('equal albums hash alike, so a set holds one', () {
+      final copy = GalleryAlbum(id: _goPro.id, name: _goPro.name);
+
+      expect(copy.hashCode, _goPro.hashCode);
+      expect({_goPro, copy, _camera}, hasLength(2));
+    });
   });
 }
