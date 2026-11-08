@@ -12,6 +12,7 @@ import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_header_cell.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_menu.dart';
+import 'package:submersion/core/platform/desktop_target_platform.dart';
 
 /// The rows in the order the table shows them for [config]: the sort field
 /// ascending or descending, nulls last, text through the collator. Public so
@@ -213,15 +214,9 @@ class _EntityTableViewState<T, F extends EntityField>
     extends State<EntityTableView<T, F>> {
   String? _hoveredEntityId;
 
-  static const _desktop = {
-    TargetPlatform.macOS,
-    TargetPlatform.windows,
-    TargetPlatform.linux,
-  };
-
   /// Always-visible scrollbars on desktop, the platform default on touch.
   bool? get _thumbVisibility =>
-      _desktop.contains(defaultTargetPlatform) ? true : null;
+      isDesktopTargetPlatform(defaultTargetPlatform) ? true : null;
 
   /// Widths of columns being dragged right now (#2984): the column redraws
   /// on every move, and the config is written once, on drag end.

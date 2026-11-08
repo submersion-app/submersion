@@ -219,8 +219,7 @@ class DatabaseLocationService {
   bool get isCustomFolderSupported => !HostPlatform.isWeb;
 
   /// Check if we're running on a desktop platform
-  bool get isDesktopPlatform =>
-      HostPlatform.isMacOS || HostPlatform.isWindows || HostPlatform.isLinux;
+  bool get isDesktopPlatform => HostPlatform.isDesktop;
 
   /// Pick a custom folder for database storage
   ///
