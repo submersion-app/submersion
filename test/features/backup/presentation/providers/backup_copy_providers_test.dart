@@ -252,6 +252,20 @@ void main() {
       expect(adapter.built, isEmpty);
     });
 
+    // Review of #4328: a roster change reloads the lookup, and the row may
+    // be the one just removed, so the last answer does not hold meanwhile.
+    test('nothing is copied while a roster change is re-checked', () async {
+      var lookups = 0;
+      final c = await container(
+        pinned,
+        rosterLookup: () =>
+            lookups++ == 0 ? Future.value(true) : Completer<bool>().future,
+      );
+      expect((await settledCopyProvider(c))?.providerName, 'copy:acct-b');
+      c.invalidate(copyRowOnRosterProvider('acct-b'));
+      expect(c.read(backupCopyProviderProvider), isNull);
+    });
+
     // As in the background: a database hiccup costs a copy nothing.
     test('an unreadable roster still copies', () async {
       final c = await container(

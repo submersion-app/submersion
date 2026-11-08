@@ -639,12 +639,61 @@ void main() {
         ExtraCloudCopy(
           accountId: 'git-row',
           fileId: '$_folder/${plain.filename}',
+          plaintext: true,
         ),
         ExtraCloudCopy(
           accountId: 'db-row',
           fileId: '$_folder/${record.filename}',
         ),
       ]);
+    });
+
+    // Review of #4328: the record is already encrypted on this device, but
+    // the next run still replaces the copy the last one missed.
+    test('a missed extra is replaced on a later run', () async {
+      final plain = await service().performBackup();
+      await enableBackupEncryption();
+      dropbox.failUploads = true;
+      expect((await service().reencryptExistingBackups()).failed, 1);
+      dropbox.failUploads = false;
+
+      final result = await service().reencryptExistingBackups();
+
+      expect(result.reencrypted, 1);
+      expect(result.failed, 0);
+      final record = preferences.getHistory().single;
+      final copy = dropbox.allStoredFiles().single;
+      expect(copy.name, record.filename);
+      expect(SyncEnvelope.hasMagic(copy.bytes), isTrue);
+      expect(dropbox.deleted, ['$_folder/${plain.filename}']);
+      expect(dropbox.resets, 1);
+      expect(record.extraCloudCopies.where((c) => c.plaintext), isEmpty);
+      // Nothing else is uploaded again.
+      expect(git.allStoredFiles().single.name, record.filename);
+    });
+
+    test('a fully encrypted record is skipped', () async {
+      await service().performBackup();
+      await enableBackupEncryption();
+      await service().reencryptExistingBackups();
+
+      final result = await service().reencryptExistingBackups();
+
+      expect(result.skipped, 1);
+      expect(result.reencrypted, 0);
+    });
+
+    // Review of #4328: a missed extra fails the record, but the main copy's
+    // old plaintext still has to leave its Git history.
+    test('a missed extra still resets the main copy history', () async {
+      await service().performBackup();
+      await enableBackupEncryption();
+      dropbox.failUploads = true;
+
+      final result = await service().reencryptExistingBackups();
+
+      expect(result.failed, 1);
+      expect(main.resets, 1);
     });
 
     test('deletePlaintextCloudBackups clears extra folders', () async {

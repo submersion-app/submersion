@@ -149,14 +149,16 @@ final backupCopyProviderProvider = Provider<CloudStorageProvider?>((ref) {
 ///
 /// Nothing is copied until the roster confirms the row, so an account
 /// removed elsewhere gets no copy while the lookup runs; [ref] rebuilds once
-/// it lands. An unreadable roster copies, as in the background: a database
-/// hiccup costs a copy nothing.
+/// it lands. A roster change re-checks the row the same way: the answer it
+/// had may be about an account just removed. An unreadable roster copies,
+/// as in the background: a database hiccup costs a copy nothing.
 CloudStorageProvider? watchAccountCopyProvider(
   Ref ref,
   String accountId,
   AccountKind kind,
 ) {
   final onRoster = ref.watch(copyRowOnRosterProvider(accountId));
+  if (onRoster.isLoading) return null;
   final unreadable = onRoster.hasError && !onRoster.hasValue;
   if (!unreadable && onRoster.value != true) return null;
   final raw = ref

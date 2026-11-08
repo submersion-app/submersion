@@ -215,9 +215,11 @@ extension _ExtraCopies on BackupService {
   /// is committed, so a failure here leaves it intact and resumable.
   ///
   /// [copies] is the record's new list: a copy that could not be replaced
-  /// (its account unreachable, or the upload failed) keeps its old id and
-  /// sets [residual], since a plaintext copy then stays in that account.
+  /// (its account unreachable, or the upload failed) keeps its old id,
+  /// marked [ExtraCloudCopy.plaintext] for a later run, and sets
+  /// [residual], since a plaintext copy then stays in that account.
   /// [replaced] holds the old copies to delete once the record is committed.
+  /// With [onlyPlaintext], only the copies so marked are uploaded again.
   Future<
     ({
       List<ExtraCloudCopy> copies,
@@ -225,11 +227,20 @@ extension _ExtraCopies on BackupService {
       bool residual,
     })
   >
-  _reuploadExtras(BackupRecord record, String newPath, String newName) async {
+  _reuploadExtras(
+    BackupRecord record,
+    String newPath,
+    String newName, {
+    bool onlyPlaintext = false,
+  }) async {
     final copies = <ExtraCloudCopy>[];
     final replaced = <ExtraCloudCopy>[];
     var residual = false;
     for (final copy in record.extraCloudCopies) {
+      if (onlyPlaintext && !copy.plaintext) {
+        copies.add(copy);
+        continue;
+      }
       final provider = _extraProviderFor(copy.accountId);
       String? fileId;
       if (provider != null) {
@@ -245,7 +256,13 @@ extension _ExtraCopies on BackupService {
       }
       if (fileId == null) {
         residual = true;
-        copies.add(copy);
+        copies.add(
+          ExtraCloudCopy(
+            accountId: copy.accountId,
+            fileId: copy.fileId,
+            plaintext: true,
+          ),
+        );
         continue;
       }
       copies.add(ExtraCloudCopy(accountId: copy.accountId, fileId: fileId));
@@ -254,6 +271,32 @@ extension _ExtraCopies on BackupService {
       if (fileId != copy.fileId) replaced.add(copy);
     }
     return (copies: copies, replaced: replaced, residual: residual);
+  }
+
+  /// Re-encryption for [record], already encrypted on this device, whose
+  /// extra copies an earlier run left plaintext: uploads its file again to
+  /// those accounts, commits the record and deletes the old copies, noting
+  /// each account in [touched] as [_deleteReplacedExtras] does. True when
+  /// none is left.
+  Future<bool> _reencryptPlaintextExtras(
+    BackupRecord record, {
+    required Map<CloudStorageProvider, Set<String>> touched,
+  }) async {
+    final extras = await _reuploadExtras(
+      record,
+      record.localPath!,
+      record.filename,
+      onlyPlaintext: true,
+    );
+    await _preferences.updateRecord(
+      record.copyWith(extraCloudCopies: extras.copies),
+    );
+    final deleteFailed = await _deleteReplacedExtras(
+      record.id,
+      extras.replaced,
+      touched: touched,
+    );
+    return !deleteFailed && !extras.residual;
   }
 
   /// Re-encryption's second half: deletes the [replaced] plaintext copies

@@ -318,6 +318,24 @@ void main() {
       expect(restored, base);
     });
 
+    // Review of #4328: a copy re-encryption could not replace stays marked
+    // across restarts, so a later run still replaces it.
+    test('a plaintext extra copy keeps its mark through JSON', () {
+      final record = base.copyWith(
+        extraCloudCopies: const [
+          ExtraCloudCopy(accountId: 'git-row', fileId: 'g', plaintext: true),
+          ExtraCloudCopy(accountId: 'db-row', fileId: 'd'),
+        ],
+      );
+      final json = record.toJson();
+      expect(BackupRecord.fromJson(json), record);
+      // Unmarked copies are written as before.
+      expect((json['extraCloudCopies'] as List).last, {
+        'accountId': 'db-row',
+        'fileId': 'd',
+      });
+    });
+
     test('a record without extraCloudCopies reads as empty', () {
       final json = base.toJson()..remove('extraCloudCopies');
       expect(BackupRecord.fromJson(json).extraCloudCopies, isEmpty);

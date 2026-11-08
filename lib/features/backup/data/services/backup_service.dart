@@ -535,7 +535,8 @@ class BackupService {
 
   /// Rewrite every plaintext local backup in history as an encrypted `.sbe`,
   /// re-uploading its cloud copy when present. Idempotent: already-encrypted
-  /// artifacts are skipped by magic, so an interrupted run is safe to resume.
+  /// artifacts are skipped by magic, so an interrupted run is safe to resume;
+  /// an extra copy an earlier run left plaintext is replaced then.
   /// SAF (`content://`) and cloud-only records are skipped (logged).
   /// Best-effort per record. Requires backup encryption to be enabled.
   Future<({int reencrypted, int skipped, int failed})>
@@ -547,9 +548,10 @@ class BackupService {
     var reencrypted = 0;
     var skipped = 0;
     var failed = 0;
-    // Re-encrypted records whose plaintext cloud copy was replaced: that copy
-    // is gone only once a backend that defers deletes or keeps history (Git)
-    // has pushed the delete and reset its history.
+    // Records whose plaintext cloud copy was replaced, whether or not the
+    // record then succeeded: that copy is gone only once a backend that
+    // defers deletes or keeps history (Git) has pushed the delete and reset
+    // its history.
     final replacedInCloud = <String>{};
     // The same for extra copies (issue #3782): each account an old extra
     // copy was deleted from, with the records it held, flushed and reset
@@ -585,7 +587,17 @@ class BackupService {
           continue;
         }
         if (await BackupCrypto.isEncryptedBackup(localPath)) {
-          skipped++;
+          if (!record.extraCloudCopies.any((c) => c.plaintext)) {
+            skipped++;
+          } else if (await _reencryptPlaintextExtras(
+            record,
+            touched: extraDeletesByAccount,
+          )) {
+            reencrypted++;
+            rewritten.add(record.id);
+          } else {
+            failed++;
+          }
           continue;
         }
         final dir = p.dirname(localPath);
@@ -706,12 +718,12 @@ class BackupService {
             );
           }
         }
+        if (record.cloudFileId != null) replacedInCloud.add(record.id);
         if (residualExposure) {
           failed++;
         } else {
           reencrypted++;
           rewritten.add(record.id);
-          if (record.cloudFileId != null) replacedInCloud.add(record.id);
         }
       } catch (e, stack) {
         _log.error(
@@ -736,10 +748,12 @@ class BackupService {
           error: e,
           stackTrace: stack,
         );
-        reencrypted -= replacedInCloud.length;
-        failed += replacedInCloud.length;
-        // Already disclosed: not counted twice below.
-        rewritten.removeAll(replacedInCloud);
+        // Only the records counted as rewritten; the others are already
+        // failures, and are not counted twice below.
+        final exposed = replacedInCloud.intersection(rewritten);
+        reencrypted -= exposed.length;
+        failed += exposed.length;
+        rewritten.removeAll(exposed);
       }
     }
     // Only the records whose own account failed to push or reset.
