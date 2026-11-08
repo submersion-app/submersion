@@ -832,6 +832,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 // A tag that described nothing still named the cylinder
                 // (issue #2650).
                 passportId: existing.passportId,
+                twinPassportId: existing.twinPassportId,
               ),
             ];
           }
@@ -920,6 +921,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           order: 0,
           presetName: describesCylinder ? t.presetName : base?.presetName,
           passportId: t.passportId,
+          twinPassportId: t.twinPassportId,
         ),
         ..._tanks.skip(1),
       ];
@@ -3802,6 +3804,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             // A diluent's MOD follows the Dil MOD limit on a rebreather
             // dive only (issue #3752).
             diveMode: _diveMode,
+            // A linked cylinder offers the twin set it was in that day
+            // (issue #4242).
+            diveDate: _entryDate,
             onChanged: (updatedTank) {
               final before = _tanks[i];
               setState(() {

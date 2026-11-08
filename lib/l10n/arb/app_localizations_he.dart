@@ -14179,6 +14179,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get passport_history_deleteConfirm => 'למחוק את רשומת המילוי הזו?';
 
   @override
+  String get passport_history_deleteFailed =>
+      'לא ניתן היה למחוק את המילוי. נסו שוב.';
+
+  @override
   String get passport_tag_title => 'תג';
 
   @override
@@ -59267,4 +59271,199 @@ class AppLocalizationsHe extends AppLocalizations {
   ) {
     return 'סמן $number: $time, $depth, $distance';
   }
+
+  @override
+  String get twinSet_title => 'צמד בלונים';
+
+  @override
+  String get twinSet_none => 'לא חלק מצמד בלונים';
+
+  @override
+  String get twinSet_link => 'קישור לבלון שותף בצמד';
+
+  @override
+  String twinSet_since(String date) {
+    return 'מאז $date';
+  }
+
+  @override
+  String get twinSet_replace => 'החלפת שותף';
+
+  @override
+  String get twinSet_unlink => 'ניתוק';
+
+  @override
+  String get twinSet_history => 'היסטוריה';
+
+  @override
+  String twinSet_historyRange(String partner, String from, String to) {
+    return '$partner, מ-$from עד $to';
+  }
+
+  @override
+  String get twinSet_deletePairing => 'מחיקת הצימוד';
+
+  @override
+  String get twinSet_deletePairingConfirm =>
+      'למחוק את הצימוד הזה מההיסטוריה? מילויים וצלילות לא ישתנו.';
+
+  @override
+  String get twinSet_pickerTitle => 'בלון שותף';
+
+  @override
+  String get twinSet_pickerEmpty => 'אין בלונים אחרים לצימוד.';
+
+  @override
+  String get twinSet_pairedOnHelp => 'בצימוד מאז';
+
+  @override
+  String get twinSet_unpairedOnHelp => 'נותקו בתאריך';
+
+  @override
+  String get twinSet_pressureMismatchTitle => 'לחצי עבודה שונים';
+
+  @override
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  ) {
+    return 'לחץ העבודה של $a הוא $aPressure ושל $b הוא $bPressure. צמד מחובר במניפולד מתמלא ללחץ אחד.';
+  }
+
+  @override
+  String get twinSet_continue => 'המשך';
+
+  @override
+  String get twinSet_replaceTitle => 'להחליף שותף?';
+
+  @override
+  String twinSet_replaceClash(String cylinder, String partner) {
+    return '$cylinder בצימוד עם $partner.';
+  }
+
+  @override
+  String twinSet_replaceQuestion(String a, String b) {
+    return 'לצמד במקום זאת את $a עם $b?';
+  }
+
+  @override
+  String twinSet_leftAlone(String name) {
+    return '$name יישאר לבד.';
+  }
+
+  @override
+  String get twinSet_replaceConfirm => 'החלפה';
+
+  @override
+  String get twinSet_clashTitle => 'צימוד חופף';
+
+  @override
+  String twinSet_clashBody(String pairs) {
+    return 'זה חופף לצימוד של $pairs. בלון יכול להיות בצמד אחד בלבד בכל יום.';
+  }
+
+  @override
+  String twinSet_pairNames(String a, String b) {
+    return '$a ו-$b';
+  }
+
+  @override
+  String twinSet_endBeforeStart(String date) {
+    return 'תאריך הסיום חייב להיות אחרי $date.';
+  }
+
+  @override
+  String get twinSet_saveFailed => 'לא ניתן לשמור את השינוי בצמד.';
+
+  @override
+  String twinSet_with(String partner) {
+    return 'צמד עם $partner';
+  }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return 'שני הבלונים בצמד ($partner)';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner, $status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => 'עריכת מילוי';
+
+  @override
+  String get passport_logFill_overPressureTitle => 'מעל לחץ העבודה';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure גבוה מלחץ העבודה של $name, $workingPressure.';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => 'לשמור בכל זאת';
+
+  @override
+  String get passport_logFill_back => 'חזרה';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return 'להחיל גם על המילוי של $partner?';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => 'כן';
+
+  @override
+  String get passport_logFill_onlyThisOne => 'רק זה';
+
+  @override
+  String get passport_history_anotherCylinder => 'בלון אחר';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return 'מולא יחד עם $partner';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'למחוק את המילוי הזה משני הבלונים, או רק מזה?';
+
+  @override
+  String get passport_history_deleteBoth => 'שני הבלונים';
+
+  @override
+  String get passport_history_edit => 'עריכת מילוי';
+
+  @override
+  String get twinSet_choiceTitle => 'להשתמש בצמד?';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'צמד ($a + $b, $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return 'רק $a';
+  }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'בצימוד מאז';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'נותקו בתאריך';
+
+  @override
+  String get settings_conflict_field_filledTogetherId => 'מילוי צמד';
+
+  @override
+  String get settings_conflict_field_twinPassportId => 'דרכון הבלון השותף';
 }

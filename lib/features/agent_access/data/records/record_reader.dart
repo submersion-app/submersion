@@ -95,16 +95,19 @@ class RecordReader {
       );
     }
     final scope = entry.scope(diverId, 'r0');
+    final parentColumns = [?parentColumn, ...entry.alsoParentColumns];
     final clauses = [
       if (scope != null) scope.sql,
-      if (parentId != null) 'r0.$parentColumn = ?',
+      if (parentId != null)
+        '(${parentColumns.map((c) => 'r0.$c = ?').join(' OR ')})',
     ];
     final where = clauses.isEmpty ? '' : ' WHERE ${clauses.join(' AND ')}';
     final order = [?entry.orderBy, 'r0.id'].join(', ');
     final variables = [
       if (scope != null)
         for (final p in scope.params) Variable<Object>(p),
-      if (parentId != null) Variable<Object>(parentId),
+      if (parentId != null)
+        for (final _ in parentColumns) Variable<Object>(parentId),
     ];
     final count = await _db
         .customSelect(
