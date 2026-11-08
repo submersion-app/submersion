@@ -16,11 +16,12 @@ const _log = LoggerService('SyncTempSweep');
 const Duration syncTempFileGrace = Duration(minutes: 5);
 
 /// Best-effort sweep of leftover streaming-sync temp files (base exports
-/// `ssv1_base_*.json`, assembled peer bases `ssv1_<peer>_*` and adopt parts
-/// `ssv1_adopt_*`) from the app temp dir. Every sync temp file is prefixed
-/// `ssv1_`, so the sweep matches ONLY that prefix -- never an unrelated app
-/// temp file (the dir is a shared, general-purpose temp location). Failure is
-/// logged and ignored; a stale temp file is harmless.
+/// `ssv1_base_*.json`, or `.json.gz` for a nearby full copy, assembled peer
+/// bases `ssv1_<peer>_*` and adopt parts `ssv1_adopt_*`) from the app temp
+/// dir. Every sync temp file is prefixed `ssv1_`, so the sweep matches ONLY
+/// that prefix -- never an unrelated app temp file (the dir is a shared,
+/// general-purpose temp location). Failure is logged and ignored; a stale
+/// temp file is harmless.
 ///
 /// Each normal sync path deletes its own file, so a leftover is what an
 /// interrupted sync (app terminated, background work suspended, crash) leaves

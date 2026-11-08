@@ -29,6 +29,8 @@
   "equipment_filter_owner_mine": "Meine",
   "enum_equipmentField_owner": "Besitzer",
   "enum_equipmentField_owner_short": "Besitzer",
+  "enum_equipmentField_location": "Standort",
+  "enum_equipmentField_location_short": "Standort",
   "equipment_set_noLongerShared": "Nicht mehr geteilt",
   "equipment_history_title": "Verlauf",
   "equipment_history_empty": "Noch bei keinem Tauchgang verwendet",
@@ -1234,6 +1236,7 @@
   "certifications_list_groupBy_status": "Status",
   "certifications_list_section_expired": "Abgelaufen",
   "certifications_list_section_expiringSoon": "Läuft bald ab",
+  "certifications_list_section_professional": "{agency} Profi",
   "certifications_list_section_valid": "Gültig",
   "certifications_list_sort_title": "Zertifizierungen sortieren",
   "certifications_list_tile_expired": "Abgelaufen",
@@ -2468,6 +2471,7 @@
   "diveLog_consolidate_alignStarts": "Anfänge ausrichten",
   "diveLog_consolidate_sameDiveHint": "Diese Profile sehen aus wie derselbe Tauchgang, aufgezeichnet von zwei Computern.",
   "diveLog_consolidate_clockNote": "Diese Aufzeichnungen überschneiden sich zeitlich nicht, daher geht die Uhr eines Computers wahrscheinlich falsch. Der Tauchgang behält die Zeit des primären Computers.",
+  "diveLog_consolidate_clockNoteOverlap": "Diese Tiefenprofile passen zu einer anderen Zeit zusammen, als die Uhren der Computer angeben, daher geht die Uhr eines Computers wahrscheinlich falsch. Der Tauchgang behält die Zeit des primären Computers.",
   "diveLog_consolidate_noProfileFallback": "Eine Aufzeichnung hat kein Tiefenprofil zum Abgleichen, daher wird ihr Anfang an dem des primären Computers ausgerichtet.",
   "diveLog_combine_modeJoinShort": "Verbinden",
   "diveLog_combine_modeMergeShort": "Zusammenführen",
@@ -2492,6 +2496,95 @@
   "diveLog_deco_sectionTissueLoading": "Gewebesättigung",
   "diveLog_deco_semantics_notRequired": "Keine Dekompression erforderlich",
   "diveLog_deco_semantics_required": "Dekompression erforderlich",
+  "diveLog_deco_compartmentLeading": "Führend: #{number}",
+  "@diveLog_deco_compartmentLeading": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_compartmentOther": "Kompartiment: #{number}",
+  "@diveLog_deco_compartmentOther": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_metricLoad": "Belastung",
+  "diveLog_deco_gasOngassing": "Aufsättigung",
+  "diveLog_deco_gasOffgassing": "Entsättigung",
+  "diveLog_deco_gasEquilibrium": "Gleichgewicht",
+  "diveLog_deco_heatMapRows": "Zeilen: schnell (oben) bis langsam (unten)",
+  "diveLog_deco_surfaceLevel": "Oberflächenniveau",
+  "diveLog_deco_mValue": "M-Wert",
+  "diveLog_deco_tooltipCompartment": "Kompartiment {number}",
+  "@diveLog_deco_tooltipCompartment": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_tooltipLoaded": "{percent}% Belastung",
+  "@diveLog_deco_tooltipLoaded": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_tooltipHalfTime": "Halbwertszeit: {minutes} min",
+  "@diveLog_deco_tooltipHalfTime": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_tooltipSurfaceLevel": "Oberflächenniveau: {percent}%",
+  "@diveLog_deco_tooltipSurfaceLevel": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_info_title": "Was bedeuten diese Werte?",
+  "diveLog_deco_info_body": "Belastung: der Inertgasdruck eines Kompartiments in Prozent des Höchstwerts, den es an der Oberfläche halten darf (sein M-Wert, die rote Linie bei 100 %).\n\nOberflächenniveau: Die Markierung auf jedem Balken zeigt, wo sich ein vollständig entsättigtes Kompartiment einpendelt, während du an der Oberfläche Luft atmest. Sie liegt nie bei 0 %, weil dein Körper immer den Stickstoff der Atemluft enthält. Ein Balken auf seiner Markierung trägt keine Restbelastung vom Tauchen mehr.\n\nAufsättigung und Entsättigung: Gas bewegt sich immer in Richtung des Drucks des Gases, das du atmest. Nach einer Deko mit Sauerstoff oder einem heliumreichen Gemisch können die schnellen Kompartimente weniger Stickstoff enthalten als die Luft an der Oberfläche. Atmest du wieder Luft, nehmen sie Stickstoff auf, bis sie ihre Markierung erreichen. Das ist normal und keine Restbelastung vom Tauchgang.\n\nHelium: Luft enthält kein Helium. Nach einem Trimix-Tauchgang gibt ein Kompartiment Helium ab und kann gleichzeitig Stickstoff aufnehmen. Die Pfeile neben N₂ und He zeigen jedes Gas einzeln, die Anzeige neben der Kompartimentnummer zeigt die Gesamtrichtung beider Gase.",
+  "diveLog_deco_barChartSemantics": "Diagramm der Gewebesättigung. {count} Kompartimente, Belastung im Verhältnis zum M-Wert; führendes Kompartiment {number} bei {percent} %.",
+  "@diveLog_deco_barChartSemantics": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "number": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_heatMapUndersaturated": "Untersättigt",
+  "diveLog_deco_heatMapSupersaturated": "Übersättigt",
+  "diveLog_deco_percentValue": "{value}%",
+  "@diveLog_deco_percentValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_minutesValue": "{value} min",
+  "@diveLog_deco_minutesValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_deco_tissueFast": "Schnell",
   "diveLog_deco_tissueSlow": "Langsam",
   "diveLog_deco_title": "Dekostatus",
@@ -2827,6 +2920,10 @@
   "diveLog_edit_tripSuggested": "Vorgeschlagen: {name}",
   "diveLog_edit_tripUse": "Verwenden",
   "diveLog_edit_useSet": "Set verwenden",
+  "diveLog_edit_removeSet": "Set entfernen",
+  "diveLog_bulkEdit_setsToRemove": "Zu entfernende Sets",
+  "diveLog_bulkEdit_removeSetTitle": "Ausrüstungsset entfernen",
+  "diveLog_bulkEdit_equipmentSets": "Ausrüstungssets",
   "diveLog_edit_weightPreset_use": "Vorlage verwenden",
   "diveLog_edit_weightPreset_save": "Als Vorlage speichern",
   "diveLog_edit_weightPreset_pickerTitle": "Bleivorlage anwenden",
@@ -3387,6 +3484,8 @@
   "diveLog_cylinders_figureStart": "Beginn {pressure}",
   "diveLog_cylinders_figureEnd": "Ende {pressure}",
   "diveLog_cylinders_figureUsed": "Verbraucht {pressure}",
+  "diveLog_cylinders_figureNow": "Jetzt {pressure}",
+  "diveLog_cylinders_figureNowEstimated": "Jetzt {pressure} (gesch.)",
   "diveLog_cylinders_gasSemantics": "Gas {mix}",
   "diveLog_cylinders_gasUsed": "Gasverbrauch {amount}",
   "diveLog_cylinders_loopUse": "Loop-Verbrauch {rate}",
@@ -4994,6 +5093,7 @@
   "equipment_location_bulkAction": "An Standort verschieben",
   "equipment_location_groupCount": "{count, plural, one{{count} Teil} other{{count} Teile}}",
   "equipment_location_activeFilter": "Standort",
+  "equipment_location_tileSemantics": "Standort: {name}",
   "equipment_filter_section_location": "Standort",
   "equipment_arrange_groupByLocation": "Nach Standort gruppieren",
   "equipment_arrange_groupByLocationSubtitle": "Eine Überschrift pro Ort, nur auf dieser Seite",
@@ -8037,7 +8137,7 @@
   "settings_data_importOptions": "Importoptionen",
   "settings_data_importOptions_subtitle": "Platzzuordnung, Druck beim Auftauchen, automatische Tags",
   "settings_data_dataTools": "Datenwerkzeuge",
-  "settings_data_dataTools_subtitle": "Tauchzeiten korrigieren, Buddys verknüpfen, Ausrüstung umtypen, Datenqualität, Tabelleneditor",
+  "settings_data_dataTools_subtitle": "Tauchzeiten korrigieren, Buddys verknüpfen, Ausrüstung umtypen, Datenqualität, Tabelleneditor, Tauchgänge neu auswerten",
   "settings_agentAccess_title": "Agentenzugriff",
   "settings_agentAccess_confirm_linkedDives": "Tauchgänge, die diese Verknüpfung verlieren ({diver}): {count}",
   "settings_agentAccess_confirm_alsoDeletes": "Löscht außerdem {kind}: {count}",
@@ -10943,12 +11043,39 @@
   "diveComputer_detail_reimportDialogTitle": "Alle Tauchgänge neu importieren?",
   "diveComputer_detail_reparseAllButton": "Alle Tauchgänge neu auswerten",
   "diveComputer_detail_reparseAllMessage": "Den Tauchgang-Parser für {count} Tauchgänge mit gespeicherten Rohdaten erneut ausführen. Dies aktualisiert Profil- und Sensordaten, behält aber Notizen, Tauchplätze, Tauchpartner und andere Bearbeitungen bei.",
-  "diveComputer_detail_reparseAllPartial": "{succeeded} von {total} Tauchgängen neu ausgewertet. {failed} fehlgeschlagen.",
-  "diveComputer_detail_reparseAllProgress": "{count} Tauchgänge werden neu ausgewertet...",
-  "diveComputer_detail_reparseAllSuccess": "{count} Tauchgänge erfolgreich neu ausgewertet",
   "diveComputer_detail_reparseAllTitle": "Alle Tauchgänge neu auswerten",
   "diveComputer_detail_reparseRawDataCount": "{count} Tauchgänge mit Rohdaten",
   "diveComputer_detail_reparseRawDataCountWithout": "{count} Tauchgänge mit Rohdaten ({without} ohne)",
+  "reparseBatch_progressTitle": "Tauchgänge werden neu ausgewertet",
+  "reparseBatch_progressCount": "{done} von {total} Tauchgängen werden neu ausgewertet",
+  "reparseBatch_cancelling": "Wird abgebrochen...",
+  "reparseBatch_resultTitle": "Neu-Auswertung abgeschlossen",
+  "reparseBatch_resultCancelledTitle": "Neu-Auswertung abgebrochen",
+  "reparseBatch_resultErrorTitle": "Neu-Auswertung durch einen Fehler abgebrochen",
+  "reparseBatch_resultNotReached": "Nicht verarbeitet: {count}",
+  "reparseBatch_resultSummary": "{succeeded} von {total} Tauchgängen neu ausgewertet.",
+  "reparseBatch_resultFailed": "Fehlgeschlagen: {count}",
+  "reparseBatch_resultNotProcessed": "Nicht verarbeitet (abgebrochen): {count}",
+  "reparseBatch_resultSkipped": "Übersprungen, keine Rohdaten: {count}",
+  "reparseBatch_resultProfilesPreserved": "Zusammengeführte Tauchgänge mit unverändertem Profil: {count}",
+  "reparseBatch_failedListHeader": "Fehlgeschlagene Tauchgänge",
+  "reparseBatch_failedDiveTitle": "Tauchgang #{number}",
+  "reparseBatch_failedDiveUnnumbered": "Tauchgang ohne Nummer",
+  "reparseBatch_missingDescriptors": "Tauchcomputer-Angaben fehlen",
+  "reparseBatch_confirmTitle": "Tauchgänge neu auswerten",
+  "reparseBatch_confirmMessage": "Den Tauchgang-Parser für {count} Tauchgänge mit gespeicherten Rohdaten erneut ausführen. Dies aktualisiert Profil- und Sensordaten, behält aber Notizen, Tauchplätze, Tauchpartner und andere Bearbeitungen bei.",
+  "reparseBatch_confirmSkipped": "Ausgewählte Tauchgänge ohne Rohdaten (übersprungen): {count}",
+  "reparseBatch_noneWithRawData": "Keiner der ausgewählten Tauchgänge hat gespeicherte Rohdaten zum Neu-Auswerten.",
+  "diveLog_selection_tooltip_reparse": "Neu auswerten",
+  "settings_reparseDives_title": "Tauchgänge neu auswerten",
+  "settings_reparseDives_subtitle": "Den Tauchgang-Parser für jeden Tauchgang mit gespeicherten Rohdaten erneut ausführen",
+  "settings_reparseDives_intro": "Nutze dies, wenn ein App-Update das Einlesen von Tauchcomputerdaten verbessert. Notizen, Tauchplätze, Tauchpartner und andere Bearbeitungen bleiben erhalten.",
+  "settings_reparseDives_withRawData": "Tauchgänge mit Rohdaten: {count}",
+  "settings_reparseDives_withoutRawData": "Tauchgänge ohne Rohdaten (nicht neu ausgewertet): {count}",
+  "settings_reparseDives_byComputer": "Nach Tauchcomputer",
+  "settings_reparseDives_unknownComputer": "Unbekannter Tauchcomputer",
+  "settings_reparseDives_none": "Keine Tauchgänge haben gespeicherte Rohdaten zum Neu-Auswerten.",
+  "settings_reparseDives_button": "Alle neu auswerten",
   "diveComputer_rawData_discardAction": "Verwerfen",
   "diveComputer_rawData_discardAllMessage": "Die gespeicherten Rohdaten von {count} Tauchgängen aller Tauchcomputer entfernen ({size})? Diese Tauchgänge können danach nicht mehr neu ausgewertet werden, wenn sich der Tauchgang-Parser verbessert. Die Tauchgänge und deine Änderungen bleiben erhalten, und deine anderen synchronisierten Geräte entfernen die Daten ebenfalls.",
   "diveComputer_rawData_discardButton": "Rohdaten verwerfen",
@@ -12182,8 +12309,12 @@
   "safetyHub_cnsOtu_noProfile_body": "Ohne Tiefenprofil lassen sich CNS% und OTU dafür nicht berechnen. Die Summen unten enthalten ihn nicht.",
   "safetyHub_cnsOtu_about_title": "Über CNS und OTU",
   "safetyHub_cnsOtu_about_body": "Der CNS-Wert (Sauerstoff-Uhr) sinkt nach dem Tauchgang mit einer Halbwertszeit von 90 Minuten – nach rund einem Tag ist er praktisch auf 0 zurückgegangen.\n\nDie Tages-OTU wird jede Nacht um Mitternacht zurückgesetzt. Die Wochen-OTU ist eine rollierende Summe der letzten 7 Tage: ältere Tauchgänge fallen automatisch wieder aus der Berechnung heraus, sobald sie ausserhalb dieses Fensters liegen.",
+  "safetyHub_tissueLoading_clear_title": "Keine Restbelastung der Gewebe",
+  "safetyHub_tissueLoading_clear_body": "Alle Kompartimente sind wieder im Gleichgewicht mit der Luft an der Oberfläche. Sie bleiben auf ihrem Normalwert (der Markierung auf jedem Balken) und fallen nicht auf 0 %.",
+  "safetyHub_tissueLoading_unavailable_title": "Gewebesättigung nicht verfügbar",
+  "safetyHub_tissueLoading_unavailable_body": "Für den letzten Tauchgang fehlen die Daten, um die Gewebesättigung zu berechnen, zum Beispiel bei einem Tauchgang ohne Tiefenprofil, im Gauge-Modus oder mit Rebreather ohne Setpoint.",
   "safetyHub_tissueLoading_about_title": "Über die Gewebesättigung",
-  "safetyHub_tissueLoading_about_body": "Ihr Körper hat 16 Gewebekompartimente, die Stickstoff (und bei Trimix- oder Rebreather-Tauchgängen auch Helium) mit unterschiedlichen Geschwindigkeiten aufnehmen und abgeben. Schnelle Gewebe sättigen und entsättigen rasch, langsame Gewebe brauchen dafür deutlich länger.\n\nNach einem Tauchgang mit Helium können sich Stickstoff und Helium in einem Kompartiment kurzzeitig gegenläufig verhalten: Während das Helium noch ausgast, nimmt derselbe Bereich gleichzeitig wieder etwas Stickstoff auf, bis beide Gase das Gleichgewicht mit der Atemluft erreicht haben. Deshalb kann ein Kompartiment vorübergehend \"Ongassing\" anzeigen, auch wenn die Gesamtbelastung insgesamt weiter sinkt.",
+  "safetyHub_tissueLoading_about_body": "Dein Körper hat 16 Gewebekompartimente, die Stickstoff (und bei Trimix- oder Rebreather-Tauchgängen auch Helium) unterschiedlich schnell aufnehmen und abgeben. Schnelle Gewebe sättigen und entsättigen rasch, langsame brauchen dafür deutlich länger.\n\nRestbelastung ist nur der Anteil über dem Normalwert an der Oberfläche. Auch vollständig entsättigt fallen die Balken nicht auf 0 %: Jedes Kompartiment pendelt sich auf der Markierung ein, die dem Stickstoff der Atemluft entspricht. Darum kann ein schnelles Kompartiment nach einer Deko mit Sauerstoff hier höher stehen als am Ende des Tauchgangs, ohne dass die Belastung gestiegen ist.\n\nNach einem Tauchgang mit Helium gibt ein Kompartiment Helium ab und nimmt gleichzeitig Stickstoff auf, bis beide Gase im Gleichgewicht mit der Atemluft sind.",
   "safetyHub_noFly_category_single": "Nach einem einzelnen Nullzeit-Tauchgang: {hours} h Richtwert",
   "@safetyHub_noFly_category_single": {
     "placeholders": {
@@ -12975,6 +13106,7 @@
   "dataQuality_msg_clock_offsetAhead": "{hours, plural, =1{Eine Quellenuhr geht {hours} Stunde vor} other{Eine Quellenuhr geht {hours} Stunden vor}}",
   "dataQuality_msg_clock_offsetBehind": "{hours, plural, =1{Eine Quellenuhr geht {hours} Stunde nach} other{Eine Quellenuhr geht {hours} Stunden nach}}",
   "dataQuality_msg_clock_overlap": "Überschneidet einen anderen Tauchgang um {minutes} Min.",
+  "dataQuality_msg_clock_profileFit": "Eine Quelle liegt {minutes} Min. neben der Stelle, an der ihr Profil zum primären passt",
   "dataQuality_msg_shared_gear_overlap": "{item} ist beim Tauchgang von {diverA} um {timeA} und beim Tauchgang von {diverB} um {timeB} dabei.",
   "dataQuality_msg_shared_gear_overlap_parts": "{count, plural, one{Mit {count} eingebautem Teil.} other{Mit {count} eingebauten Teilen.}}",
   "dataQuality_msg_duplicate": "{percent} % Übereinstimmung mit einem Tauchgang im Abstand von {minutes} Min.",
@@ -13013,6 +13145,8 @@
   "dataQuality_repairLabel_fixSourceClock": "Uhr dieses Computers um {offset} korrigieren",
   "dataQuality_repairLabel_fixSourceClockNamed": "Uhr von {computer} um {offset} korrigieren",
   "dataQuality_repairLabel_fixSourceClockAll": "Diesen Computer auch bei anderen Tauchgängen mit derselben Abweichung korrigieren",
+  "dataQuality_repairLabel_alignSourceProfile": "Diesen Computer anhand seines Profils ausrichten",
+  "dataQuality_repairLabel_alignSourceProfileNamed": "{computer} anhand des Profils ausrichten",
   "dataQuality_repairLabel_consolidate": "Konsolidieren",
   "dataQuality_repairLabel_deleteDuplicate": "Duplikat löschen",
   "dataQuality_deleteDuplicate_title": "Redundante Kopie löschen?",
@@ -17390,11 +17524,13 @@
   "rules_value_yes": "Ja",
   "rules_value_no": "Nein",
   "rules_value_empty": "(leer)",
+  "rules_value_gearViaSet": "{item} ({set})",
   "rules_collection_diveTypes": "Tauchgangstypen",
   "rules_collection_tags": "Tags",
   "rules_collection_equipment": "Ausrüstung",
   "rules_collection_buddies": "Tauchpartner",
   "rules_collection_courses": "Kurse",
+  "rules_collection_equipmentSets": "Ausrüstungssets",
   "rules_collection_siteTags": "Tauchplatz-Tags",
   "rules_collection_siteTypes": "Tauchplatztypen",
   "rules_field_diveCenter": "Tauchbasis",

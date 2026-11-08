@@ -389,7 +389,7 @@ void main() {
     expect(grid, isNotNull);
     expect(source.calls, 1);
     final row = await db.select(db.bathymetryCache).getSingle();
-    expect(row.gridJson, isNotNull);
+    expect(row.gridBlob, isNotNull);
   });
 
   test('a broken cache table degrades to null, never a throw', () async {
@@ -590,7 +590,7 @@ void main() {
       expect(await r.averageCachedGridBytes(), isNull);
     });
 
-    test('averages the JSON byte size of every ok row', () async {
+    test('averages the stored byte size of every ok row', () async {
       final r = repo(ScriptedSource(() => BathymetryResolution.ok(wetGrid())));
       await r.getGrid(bonaire);
       final avg = await r.averageCachedGridBytes();

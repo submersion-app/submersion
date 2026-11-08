@@ -196,15 +196,28 @@ class DocumentRepository {
     return (await q.get()).map(documentFromRow).toList();
   }
 
-  /// Every document of [diverId], with a display label for its owner.
-  Future<List<DocumentListEntry>> getAllForDiver(String diverId) =>
-      _entries('d.diver_id = ?', diverId);
+  /// Every document of [diverId], with a display label for its owner, or
+  /// only those of [ids] when named (Global Search's few rows, issue #4247).
+  Future<List<DocumentListEntry>> getAllForDiver(
+    String diverId, {
+    List<String>? ids,
+  }) async {
+    if (ids == null) return _entries('d.diver_id = ?', [diverId]);
+    if (ids.isEmpty) return const [];
+    return _entries(
+      'd.diver_id = ? AND d.id IN (${List.filled(ids.length, '?').join(', ')})',
+      [diverId, ...ids],
+    );
+  }
 
   /// One document with its owner label, for the detail page.
   Future<DocumentListEntry?> getEntryById(String id) async =>
-      (await _entries('d.id = ?', id)).firstOrNull;
+      (await _entries('d.id = ?', [id])).firstOrNull;
 
-  Future<List<DocumentListEntry>> _entries(String where, String arg) async {
+  Future<List<DocumentListEntry>> _entries(
+    String where,
+    List<String> args,
+  ) async {
     final rows = await _db
         .customSelect(
           'SELECT d.*, '
@@ -229,7 +242,7 @@ class DocumentRepository {
           'LEFT JOIN dive_sites dvs ON dvs.id = dv.site_id '
           'WHERE $where '
           'ORDER BY d.type, d.title, d.created_at',
-          variables: [Variable.withString(arg)],
+          variables: [for (final arg in args) Variable.withString(arg)],
           readsFrom: {_db.documents, _db.documentPages},
         )
         .get();

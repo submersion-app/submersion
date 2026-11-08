@@ -32,6 +32,7 @@ import 'package:submersion/core/services/sync/changeset_log/base_json_stream_rea
 import 'package:submersion/core/services/sync/changeset_log/base_parse_client.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_part_file_sink.dart';
 import 'package:submersion/core/services/sync/changeset_log/byte_progress_stream.dart';
+import 'package:submersion/core/services/sync/changeset_log/gzip_size_check.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_sweep.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
@@ -325,10 +326,10 @@ class SyncService {
 
   /// Test seam: how the base apply spawns its parse worker. Overridable so a
   /// forced-failure test can verify the inline fallback; production uses the
-  /// real isolate spawn.
+  /// real isolate spawn. [gzipped] says the file is a compressed base.
   @visibleForTesting
-  Future<BaseParseClient> Function(String filePath) baseParseClientSpawn =
-      BaseParseClient.spawn;
+  Future<BaseParseClient> Function(String filePath, {bool gzipped})
+  baseParseClientSpawn = BaseParseClient.spawn;
 
   /// Resolves localizations for the user-facing strings this service puts on
   /// [SyncResult] and [SyncProgress] (the Cloud Sync page renders them
@@ -396,12 +397,14 @@ class SyncService {
     DateTime? lastSync,
     String? peerDeviceId,
     void Function(double fraction)? onProgress,
+    bool gzipped = false,
   }) async {
     final r = await _applyRemoteBaseFile(
       filePath,
       lastSync,
       peerDeviceId: peerDeviceId,
       onProgress: onProgress,
+      gzipped: gzipped,
     );
     return (
       recordsApplied: r.recordsApplied,
@@ -430,7 +433,9 @@ class SyncService {
     });
   }
 
-  /// [applyNearbyPayload] for a full copy streamed to [filePath].
+  /// [applyNearbyPayload] for a full copy streamed to [filePath], which is
+  /// gzipped. Each pass reads it through the decoder, so the copy is never
+  /// expanded on disk beside the compressed one (issue #4256).
   Future<NearbyApplyResult> applyNearbyBaseFile(
     String filePath, {
     required DateTime? lastSync,
@@ -444,6 +449,7 @@ class SyncService {
         lastSync,
         peerDeviceId: peerDeviceId,
         onProgress: onProgress,
+        gzipped: true,
       );
       return (
         recordsApplied: r.recordsApplied,
@@ -2300,11 +2306,13 @@ class SyncService {
     DateTime? localLastSync, {
     String? peerDeviceId,
     void Function(double fraction)? onProgress,
+    bool gzipped = false,
   }) async {
     Future<_MergeResult> apply() => _applyRemoteBaseFileInner(
       filePath,
       localLastSync,
       onProgress: onProgress,
+      gzipped: gzipped,
     );
 
     final db = DatabaseService.instance.databaseOrNull;
@@ -2338,10 +2346,13 @@ class SyncService {
     return row.read<int>('has_dives') == 1;
   }
 
+  /// A [gzipped] file is read through the decoder on every pass; progress
+  /// then follows the compressed bytes consumed.
   Future<_MergeResult> _applyRemoteBaseFileInner(
     String filePath,
     DateTime? localLastSync, {
     void Function(double fraction)? onProgress,
+    bool gzipped = false,
   }) async {
     final totalBytes = await SyncTempFiles.length(filePath);
     final stopwatch = Stopwatch()..start();
@@ -2350,7 +2361,7 @@ class SyncService {
     BaseParseClient? client;
     _MergeResult result;
     try {
-      client = await baseParseClientSpawn(filePath);
+      client = await baseParseClientSpawn(filePath, gzipped: gzipped);
       client.onProgress = progress.bytes;
       result = await _applyRemoteBaseFileViaWorker(
         client,
@@ -2378,6 +2389,7 @@ class SyncService {
         filePath,
         localLastSync,
         progress,
+        gzipped: gzipped,
       );
     } finally {
       await client?.dispose();
@@ -2554,15 +2566,29 @@ class SyncService {
   Future<_MergeResult> _applyRemoteBaseFileInline(
     String filePath,
     DateTime? localLastSync,
-    BaseApplyProgress progress,
-  ) async {
+    BaseApplyProgress progress, {
+    bool gzipped = false,
+  }) async {
     final lastSyncMs = localLastSync?.millisecondsSinceEpoch;
+    // A gzipped file is checked against its trailer on every pass.
+    GzipTrailer? trailer;
+    if (gzipped) {
+      final length = await SyncTempFiles.length(filePath);
+      trailer = gzipTrailer(
+        await SyncTempFiles.read(filePath, length < 8 ? 0 : length - 8, 8),
+      );
+    }
     // The inline parse blocks the UI isolate, so its heartbeats are what
     // keep the bar moving; the fallback runs the whole file three times.
-    Stream<List<int>> openWithProgress() => withByteProgress(
-      SyncTempFiles.openRead(filePath),
-      onProgress: progress.consumed,
-    );
+    Stream<List<int>> openWithProgress() {
+      final read = withByteProgress(
+        SyncTempFiles.openRead(filePath),
+        onProgress: progress.consumed,
+      );
+      return trailer != null
+          ? checkedGzipTrailer(SyncTempFiles.gunzip(read), trailer)
+          : read;
+    }
 
     // ---- Pass 1: exportedAt + deletions ----
     var baseExportedAt = 0;

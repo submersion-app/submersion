@@ -1,9 +1,11 @@
-import 'dart:convert';
-
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/bathymetry/data/bathymetry_grid_codec.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
+
+const _log = LoggerService('SwissBathyTileCacheRepository');
 
 /// A cached 'ok' tile plus the freshness bookkeeping the periodic staleness
 /// check needs: the STAC version token it was downloaded under, and when
@@ -106,20 +108,21 @@ class SwissBathyTileCacheRepository {
       return null;
     }
     if (row.status != 'ok') return null;
-    final json = row.gridJson;
-    if (json == null) {
-      // Inconsistent row ('ok' but no grid): delete so callers retry instead
-      // of treating it as a cached negative.
+    final grid = BathymetryGridCodec.decodeStored(
+      blob: row.gridBlob,
+      json: row.gridJson,
+    );
+    if (grid == null) {
+      // An 'ok' row with no grid, or one that does not decode: delete so
+      // callers retry instead of treating it as a cached negative.
       await (_db.delete(
         _db.swissBathyTileCache,
       )..where((t) => t.tileKey.equals(tileKey))).go();
       return null;
     }
+    final SwissBathyTileCacheEntry entry;
     try {
-      final grid = BathymetryGrid.fromJson(
-        jsonDecode(json) as Map<String, dynamic>,
-      );
-      return SwissBathyTileCacheEntry(
+      entry = SwissBathyTileCacheEntry(
         grid: grid,
         sourceDatetime: row.sourceDatetime,
         checkedAt: row.checkedAt == null
@@ -128,12 +131,46 @@ class SwissBathyTileCacheRepository {
         sourceHref: row.sourceHref,
         referenceLevelMeters: row.referenceLevelMeters,
       );
-    } catch (_) {
-      // Corrupt row: delete so callers retry instead of treating it as a cached negative.
+    } on RangeError {
+      // A check stamp past DateTime's range is corruption like a bad grid:
+      // delete so callers retry instead of failing on every read.
       await (_db.delete(
         _db.swissBathyTileCache,
       )..where((t) => t.tileKey.equals(tileKey))).go();
       return null;
+    }
+    if (row.gridBlob == null) await _convertLegacyRow(tileKey, grid);
+    return entry;
+  }
+
+  /// Rewrites a tile cached as JSON before v20 in the compact form (issue
+  /// #4258), touching nothing else in the row. A failure is logged, not
+  /// thrown: the tile is already decoded, and the next read tries again.
+  ///
+  /// Compare-and-set: a write that landed after [read]'s SELECT (a fresh
+  /// grid, or a gap) leaves the row no longer legacy, and the update then
+  /// matches nothing instead of restoring the stale grid over it.
+  Future<void> _convertLegacyRow(String tileKey, BathymetryGrid grid) async {
+    try {
+      await (_db.update(_db.swissBathyTileCache)..where(
+            (t) =>
+                t.tileKey.equals(tileKey) &
+                t.status.equals('ok') &
+                t.gridBlob.isNull() &
+                t.gridJson.isNotNull(),
+          ))
+          .write(
+            SwissBathyTileCacheCompanion(
+              gridJson: const Value(null),
+              gridBlob: Value(BathymetryGridCodec.encode(grid)),
+            ),
+          );
+    } catch (e, stackTrace) {
+      _log.warning(
+        'converting tile $tileKey failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 
@@ -206,7 +243,8 @@ class SwissBathyTileCacheRepository {
           SwissBathyTileCacheCompanion.insert(
             tileKey: tileKey,
             status: 'ok',
-            gridJson: Value(jsonEncode(grid.toJson())),
+            gridJson: const Value(null),
+            gridBlob: Value(BathymetryGridCodec.encode(grid)),
             fetchedAt: now,
             sourceDatetime: Value(sourceDatetime),
             checkedAt: Value(now),
@@ -226,6 +264,9 @@ class SwissBathyTileCacheRepository {
           SwissBathyTileCacheCompanion.insert(
             tileKey: tileKey,
             status: gapStatus,
+            // A gap replacing an 'ok' row must not keep its grid bytes.
+            gridJson: const Value(null),
+            gridBlob: const Value(null),
             fetchedAt: DateTime.now().millisecondsSinceEpoch,
             referenceLevelMeters: Value(referenceLevelMeters),
           ),

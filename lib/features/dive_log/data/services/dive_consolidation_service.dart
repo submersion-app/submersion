@@ -128,6 +128,7 @@ class DiveConsolidationService {
       dives,
       primaryDiveId: targetDiveId,
       alignment: alignment,
+      classified: classification,
     );
     final snapshot = await DiveMergeSnapshot.capture(_db, allIds, targetDiveId);
     final now = DateTime.now().millisecondsSinceEpoch;

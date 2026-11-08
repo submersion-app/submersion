@@ -546,5 +546,35 @@ void main() {
       expect(result['back'], [(start: 0, end: 1800)]);
       expect(result.containsKey('deco'), isFalse);
     });
+
+    test('off the loop, a diluent tag does not take the start', () {
+      final tanks = [
+        _tank(id: 'dil', o2: 10, he: 50, role: TankRole.diluent),
+        _tank(id: 'back', o2: 21, order: 1),
+      ];
+      final onLoop = buildActiveTankIntervals(
+        tanks: tanks,
+        gasSwitches: const [],
+        diveDurationSeconds: 600,
+      );
+      final offLoop = buildActiveTankIntervals(
+        tanks: tanks,
+        gasSwitches: const [],
+        diveDurationSeconds: 600,
+        onLoop: false,
+      );
+      expect(onLoop.keys, ['dil']);
+      expect(offLoop.keys, ['back']);
+      // The strip names the same starting gas the intervals start on.
+      expect(
+        buildGasUsageSegments(
+          tanks: tanks,
+          gasSwitches: const [],
+          diveDurationSeconds: 600,
+          onLoop: false,
+        ).single.label,
+        'Air',
+      );
+    });
   });
 }

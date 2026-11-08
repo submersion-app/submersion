@@ -151,14 +151,19 @@ class _GlobalSearchPageState extends ConsumerState<GlobalSearchPage> {
       padding: const EdgeInsets.only(bottom: 24),
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       itemCount: sections.length,
+      // Each type keeps its section from one search to the next, wherever it
+      // moves, so its rows stay up while the next search's load.
+      findChildIndexCallback: (key) {
+        final index = sections.indexWhere((s) => ValueKey(s.kind) == key);
+        return index < 0 ? null : index;
+      },
       itemBuilder: (context, index) {
         final section = sections[index];
         return Center(
+          key: ValueKey(section.kind),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: _kMaxResultsWidth),
             child: GlobalSearchSectionView(
-              // Per search, so an expanded section does not outlive it.
-              key: ValueKey((section.kind, section.query)),
               section: section,
               onOpen: (id) => _open(section.kind, id),
               onSeeAll: section.hasList

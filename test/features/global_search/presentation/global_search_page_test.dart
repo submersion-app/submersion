@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,27 +13,23 @@ import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
-import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_query_providers.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
-import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_query_providers.dart';
-import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_query_providers.dart';
-import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_query_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/global_search/domain/global_search_models.dart';
 import 'package:submersion/features/global_search/presentation/global_search_navigation.dart';
 import 'package:submersion/features/global_search/presentation/pages/global_search_page.dart';
 import 'package:submersion/features/global_search/presentation/providers/global_search_providers.dart';
+import 'package:submersion/features/global_search/presentation/providers/global_search_record_providers.dart';
 import 'package:submersion/core/constants/enums.dart' show SpeciesCategory;
-import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_query_providers.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
 import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
@@ -123,17 +121,32 @@ Widget _app(
       globalSearchProvider.overrideWith((ref, text) => answer(text)),
       queryNameIndexProvider.overrideWith((ref) async => NameIndex.empty),
       queryUnitPrefsProvider.overrideWithValue(kMetricPrefs),
-      allBuddiesWithDiveCountProvider.overrideWith((ref) async => _buddies),
-      equipmentSetsProvider.overrideWith((ref) async => _sets),
-      // The other lists stay empty: See all reads the section, not its rows.
+      globalSearchBuddiesProvider.overrideWith(
+        (ref, key) async => [
+          for (final entry in _buddies)
+            if (globalSearchIdsOf(key).contains(entry.buddy.id)) entry,
+        ],
+      ),
+      globalSearchEquipmentSetsProvider.overrideWith(
+        (ref, key) async => [
+          for (final set in _sets)
+            if (globalSearchIdsOf(key).contains(set.id)) set,
+        ],
+      ),
+      // The other sections stay empty: See all reads the section, not its
+      // rows.
       globalSearchDivesProvider.overrideWith((ref, key) async => const []),
-      sitesWithCountsProvider.overrideWith((ref) async => const []),
-      allTripsWithStatsProvider.overrideWith((ref) async => const []),
-      allEquipmentProvider.overrideWith((ref) async => const []),
-      allDiveCentersProvider.overrideWith((ref) async => const []),
-      allCertificationsProvider.overrideWith((ref) async => const []),
-      allCoursesProvider.overrideWith((ref) async => const []),
-      allSpeciesProvider.overrideWith((ref) async => const []),
+      globalSearchSitesProvider.overrideWith((ref, key) async => const []),
+      globalSearchTripsProvider.overrideWith((ref, key) async => const []),
+      globalSearchEquipmentProvider.overrideWith((ref, key) async => const []),
+      globalSearchDiveCentersProvider.overrideWith(
+        (ref, key) async => const [],
+      ),
+      globalSearchCertificationsProvider.overrideWith(
+        (ref, key) async => const [],
+      ),
+      globalSearchCoursesProvider.overrideWith((ref, key) async => const []),
+      globalSearchSpeciesProvider.overrideWith((ref, key) async => const []),
       ...overrides.cast(),
     ],
     child: MaterialApp.router(
@@ -342,6 +355,44 @@ void main() {
 
     await _search(tester, 'two');
     expect(find.text('See all 7'), findsOneWidget);
+  });
+
+  testWidgets('a new search keeps the last rows up until its own load', (
+    tester,
+  ) async {
+    GpsTrack track(String id) =>
+        GpsTrack(id: id, startTime: 0, endTime: 60000, name: 'Track $id');
+    final held = Completer<List<GpsTrack>>();
+    await tester.pumpWidget(
+      _app(
+        (text) async => [
+          GlobalSearchSection(
+            kind: GlobalSearchKind.gpsTracks,
+            total: 1,
+            hasList: false,
+            query: TextNode([text]),
+            ids: [text],
+          ),
+        ],
+        overrides: [
+          globalSearchGpsTracksProvider.overrideWith(
+            (ref, key) =>
+                key == 'one' ? Future.value([track('one')]) : held.future,
+          ),
+        ],
+      ),
+    );
+    await _search(tester, 'one');
+    expect(find.text('Track one'), findsOneWidget);
+
+    // A blank section until the read lands would flicker on each keystroke.
+    await _search(tester, 'two');
+    expect(find.text('Track one'), findsOneWidget);
+
+    held.complete([track('two')]);
+    await tester.pumpAndSettle();
+    expect(find.text('Track two'), findsOneWidget);
+    expect(find.text('Track one'), findsNothing);
   });
 
   group('a request from a list\'s Search everything row', () {

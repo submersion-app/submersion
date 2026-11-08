@@ -26,6 +26,7 @@ import 'package:submersion/core/services/sync/sync_json_weight.dart';
 import 'package:submersion/core/services/sync/sync_record_overlay.dart';
 import 'package:submersion/core/services/sync/view_config_merge.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
+import 'package:submersion/core/services/sync/changeset_log/gzip_temp_sink.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_files.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -1723,6 +1724,10 @@ class SyncDataSerializer {
   /// large libraries (#358, write side). Rows stream in `id` order; the internal
   /// `checksum` is patched in over the streamed `data` bytes via a single
   /// seek-back so there is no second DB scan. Caller owns and must delete [path].
+  ///
+  /// [gzipped] writes the same document gzipped as it streams (a nearby full
+  /// copy, issue #4256), so it is never on disk plain as well as compressed;
+  /// the returned `byteLength` is then the compressed size.
   Future<StreamedBase> exportBaseToTempFile({
     required String deviceId,
     required List<DeletionLogData> deletions,
@@ -1733,6 +1738,7 @@ class SyncDataSerializer {
     int blobPageBytes = kBaseBlobPageBytes,
     DateTime Function() now = DateTime.now,
     Future<Directory> Function()? tempDir,
+    bool gzipped = false,
   }) async {
     // The sink joins the directory and name itself (never a literal '/':
     // a mixed-separator path broke the Windows publish in #1304). A browser
@@ -1740,10 +1746,13 @@ class SyncDataSerializer {
     final directoryPath = tempDir == null && HostPlatform.isWeb
         ? null
         : (await (tempDir?.call() ?? resolveSyncTempDir())).path;
-    final out = await SyncTempFiles.create(
-      'ssv1_base_${deviceId}_${seq ?? 0}.${_baseTempUuid.v4()}.json',
+    final file = await SyncTempFiles.create(
+      'ssv1_base_${deviceId}_${seq ?? 0}.${_baseTempUuid.v4()}'
+      '.json${gzipped ? '.gz' : ''}',
       directoryPath: directoryPath,
     );
+    final gzipSink = gzipped ? GzipTempSink(file) : null;
+    final SyncTempSink out = gzipSink ?? file;
     final path = out.path;
     final digestSink = _Sha256DigestSink();
     final dataHash = sha256.startChunkedConversion(digestSink);
@@ -1770,6 +1779,8 @@ class SyncDataSerializer {
       );
       final checksumOffset = out.length;
       await out.add(List.filled(64, 0x30)); // '0'*64 placeholder
+      // Only the bytes up to here are patched later; the rest compresses.
+      await gzipSink?.endHead();
       await out.add(utf8.encode('","data":'));
 
       // ---- data object (hashed) ----
@@ -1877,8 +1888,8 @@ class SyncDataSerializer {
         checksumOffset,
         utf8.encode(digestSink.value.toString()),
       );
-      final byteLength = out.length;
       await out.close();
+      final byteLength = gzipSink?.diskLength ?? out.length;
       return (
         path: path,
         byteLength: byteLength,

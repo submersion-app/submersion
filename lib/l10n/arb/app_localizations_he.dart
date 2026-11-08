@@ -605,6 +605,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_equipmentField_owner_short => 'בעלים';
 
   @override
+  String get enum_equipmentField_location => 'מיקום';
+
+  @override
+  String get enum_equipmentField_location_short => 'מיקום';
+
+  @override
   String get equipment_set_noLongerShared => 'כבר לא משותף';
 
   @override
@@ -4546,6 +4552,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_list_section_expiringSoon => 'תוקף פג בקרוב';
 
   @override
+  String certifications_list_section_professional(String agency) {
+    return '$agency מקצועי';
+  }
+
+  @override
   String get certifications_list_section_valid => 'בתוקף';
 
   @override
@@ -7247,6 +7258,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'הרשומות האלה לא חופפות בזמן, כך שכנראה השעון של אחד המחשבים שגוי. הצלילה שומרת על השעה של המחשב הראשי.';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      'פרופילי העומק האלה תואמים בזמן שונה ממה שהשעונים של המחשבים מראים, כך שכנראה השעון של אחד המחשבים שגוי. הצלילה שומרת על השעה של המחשב הראשי.';
+
+  @override
   String get diveLog_consolidate_clockNoteShort =>
       'כנראה השעון של אחד המחשבים שגוי.';
 
@@ -7357,6 +7372,86 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_deco_semantics_required => 'דקומפרסיה נדרשת';
+
+  @override
+  String diveLog_deco_compartmentLeading(int number) {
+    return 'מוביל: #$number';
+  }
+
+  @override
+  String diveLog_deco_compartmentOther(int number) {
+    return 'תא: #$number';
+  }
+
+  @override
+  String get diveLog_deco_metricLoad => 'עומס';
+
+  @override
+  String get diveLog_deco_gasOngassing => 'ספיגה';
+
+  @override
+  String get diveLog_deco_gasOffgassing => 'שחרור';
+
+  @override
+  String get diveLog_deco_gasEquilibrium => 'שיווי משקל';
+
+  @override
+  String get diveLog_deco_heatMapRows =>
+      'שורות: מהירים (למעלה) עד איטיים (למטה)';
+
+  @override
+  String get diveLog_deco_surfaceLevel => 'רמת פני המים';
+
+  @override
+  String get diveLog_deco_mValue => 'ערך M';
+
+  @override
+  String diveLog_deco_tooltipCompartment(int number) {
+    return 'תא $number';
+  }
+
+  @override
+  String diveLog_deco_tooltipLoaded(String percent) {
+    return 'עומס $percent%';
+  }
+
+  @override
+  String diveLog_deco_tooltipHalfTime(String minutes) {
+    return 'זמן מחצית: $minutes דק\'';
+  }
+
+  @override
+  String diveLog_deco_tooltipSurfaceLevel(String percent) {
+    return 'רמת פני המים: $percent%';
+  }
+
+  @override
+  String get diveLog_deco_info_title => 'מה המשמעות של הערכים האלה?';
+
+  @override
+  String get diveLog_deco_info_body =>
+      'עומס: לחץ הגז האינרטי בתא כאחוז מהמקסימום שהוא רשאי להכיל על פני המים (ערך ה-M שלו, הקו האדום ב-100%).\n\nרמת פני המים: הסימון על כל עמודה מראה היכן מתייצב תא שהתרוקן לגמרי בזמן שאתה נושם אוויר על פני המים. הוא אף פעם לא ב-0%, כי הגוף שלך תמיד מכיל את החנקן שבאוויר שאתה נושם. עמודה שעומדת על הסימון שלה כבר לא נושאת עומס שנותר מהצלילה.\n\nספיגה ושחרור: גז נע תמיד לכיוון הלחץ של הגז שאתה נושם. אחרי דקומפרסיה בחמצן או בתערובת עשירה בהליום, התאים המהירים עשויים להכיל פחות חנקן מהאוויר על פני המים. כשחוזרים לנשום אוויר, הם סופגים שוב חנקן עד שהם מגיעים לסימון שלהם. זה תקין ואינו עומס שנותר מהצלילה.\n\nהליום: אוויר אינו מכיל הליום. אחרי צלילת טרימיקס, תא משחרר הליום ובאותו זמן יכול לספוג חנקן. החיצים ליד N₂ ו-He מציגים כל גז בנפרד; הציון ליד מספר התא מציג את הכיוון הכולל של שניהם.';
+
+  @override
+  String diveLog_deco_barChartSemantics(int count, int number, String percent) {
+    return 'תרשים רוויית רקמות. $count תאים, עומס ביחס לערך M; תא מוביל $number ב-$percent%.';
+  }
+
+  @override
+  String get diveLog_deco_heatMapUndersaturated => 'תת-רווי';
+
+  @override
+  String get diveLog_deco_heatMapSupersaturated => 'על-רווי';
+
+  @override
+  String diveLog_deco_percentValue(String value) {
+    return '$value%';
+  }
+
+  @override
+  String diveLog_deco_minutesValue(String value) {
+    return '$value דק\'';
+  }
 
   @override
   String get diveLog_deco_tissueFast => 'מהירה';
@@ -8450,6 +8545,18 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_edit_useSet => 'שימוש בסט';
+
+  @override
+  String get diveLog_edit_removeSet => 'הסרת סט';
+
+  @override
+  String get diveLog_bulkEdit_setsToRemove => 'סטים להסרה';
+
+  @override
+  String get diveLog_bulkEdit_removeSetTitle => 'הסרת סט ציוד';
+
+  @override
+  String get diveLog_bulkEdit_equipmentSets => 'סטים של ציוד';
 
   @override
   String get diveLog_edit_weightPreset_use => 'שימוש בקבוע מראש';
@@ -10583,6 +10690,16 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String diveLog_cylinders_figureUsed(String pressure) {
     return 'נוצל $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureNow(String pressure) {
+    return 'עכשיו $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureNowEstimated(String pressure) {
+    return 'עכשיו $pressure (משוער)';
   }
 
   @override
@@ -16376,6 +16493,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_location_activeFilter => 'מיקום';
+
+  @override
+  String equipment_location_tileSemantics(String name) {
+    return 'מיקום: $name';
+  }
 
   @override
   String get equipment_filter_section_location => 'מיקום';
@@ -26794,7 +26916,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'תיקון זמני צלילה, קישור שותפים, סיווג ציוד מחדש, איכות נתונים, עורך הטבלה';
+      'תיקון זמני צלילה, קישור שותפים, סיווג ציוד מחדש, איכות נתונים, עורך הטבלה, ניתוח צלילות מחדש';
 
   @override
   String get settings_agentAccess_title => 'גישת סוכנים';
@@ -37221,25 +37343,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllProgress(int count) {
-    return 'מנתח מחדש $count צלילות...';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllSuccess(int count) {
-    return 'נותחו מחדש $count צלילות בהצלחה';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
-    return 'נותחו מחדש $succeeded מתוך $total צלילות. $failed נכשלו.';
-  }
-
-  @override
   String diveComputer_detail_reparseRawDataCount(int count) {
     return '$count צלילות עם נתונים גולמיים';
   }
@@ -37251,6 +37354,124 @@ class AppLocalizationsHe extends AppLocalizations {
   ) {
     return '$count צלילות עם נתונים גולמיים ($without ללא)';
   }
+
+  @override
+  String get reparseBatch_progressTitle => 'מנתח צלילות מחדש';
+
+  @override
+  String reparseBatch_progressCount(int done, int total) {
+    return 'מנתח מחדש $done מתוך $total צלילות';
+  }
+
+  @override
+  String get reparseBatch_cancelling => 'מבטל...';
+
+  @override
+  String get reparseBatch_resultTitle => 'הניתוח מחדש הסתיים';
+
+  @override
+  String get reparseBatch_resultCancelledTitle => 'הניתוח מחדש בוטל';
+
+  @override
+  String get reparseBatch_resultErrorTitle => 'הניתוח מחדש נעצר בגלל שגיאה';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return 'לא עובדו: $count';
+  }
+
+  @override
+  String reparseBatch_resultSummary(int succeeded, int total) {
+    return 'נותחו מחדש $succeeded מתוך $total צלילות.';
+  }
+
+  @override
+  String reparseBatch_resultFailed(int count) {
+    return 'נכשלו: $count';
+  }
+
+  @override
+  String reparseBatch_resultNotProcessed(int count) {
+    return 'לא עובדו (בוטל): $count';
+  }
+
+  @override
+  String reparseBatch_resultSkipped(int count) {
+    return 'דולגו, אין נתונים גולמיים: $count';
+  }
+
+  @override
+  String reparseBatch_resultProfilesPreserved(int count) {
+    return 'צלילות משולבות ששמרו על הפרופיל שלהן: $count';
+  }
+
+  @override
+  String get reparseBatch_failedListHeader => 'צלילות שנכשלו';
+
+  @override
+  String reparseBatch_failedDiveTitle(int number) {
+    return 'צלילה מס\' $number';
+  }
+
+  @override
+  String get reparseBatch_failedDiveUnnumbered => 'צלילה ללא מספר';
+
+  @override
+  String get reparseBatch_missingDescriptors => 'חסרים פרטי מחשב הצלילה';
+
+  @override
+  String get reparseBatch_confirmTitle => 'נתח צלילות מחדש';
+
+  @override
+  String reparseBatch_confirmMessage(int count) {
+    return 'הפעל את מנתח הצלילות מחדש על $count צלילות שיש להן נתונים גולמיים שמורים. פעולה זו מעדכנת את נתוני הפרופיל והחיישנים אך שומרת על ההערות, האתרים, השותפים ושאר העריכות.';
+  }
+
+  @override
+  String reparseBatch_confirmSkipped(int count) {
+    return 'צלילות נבחרות ללא נתונים גולמיים (ידולגו): $count';
+  }
+
+  @override
+  String get reparseBatch_noneWithRawData =>
+      'לאף אחת מהצלילות שנבחרו אין נתונים גולמיים שמורים לניתוח מחדש.';
+
+  @override
+  String get diveLog_selection_tooltip_reparse => 'נתח מחדש';
+
+  @override
+  String get settings_reparseDives_title => 'נתח צלילות מחדש';
+
+  @override
+  String get settings_reparseDives_subtitle =>
+      'הפעל את מנתח הצלילות מחדש על כל צלילה שיש לה נתונים גולמיים שמורים';
+
+  @override
+  String get settings_reparseDives_intro =>
+      'השתמש בזה אחרי שעדכון של האפליקציה משפר את קריאת נתוני מחשב הצלילה. ההערות, האתרים, השותפים ושאר העריכות נשמרים.';
+
+  @override
+  String settings_reparseDives_withRawData(int count) {
+    return 'צלילות עם נתונים גולמיים: $count';
+  }
+
+  @override
+  String settings_reparseDives_withoutRawData(int count) {
+    return 'צלילות ללא נתונים גולמיים (לא ינותחו מחדש): $count';
+  }
+
+  @override
+  String get settings_reparseDives_byComputer => 'לפי מחשב צלילה';
+
+  @override
+  String get settings_reparseDives_unknownComputer => 'מחשב לא ידוע';
+
+  @override
+  String get settings_reparseDives_none =>
+      'לאף צלילה אין נתונים גולמיים שמורים לניתוח מחדש.';
+
+  @override
+  String get settings_reparseDives_button => 'נתח הכול מחדש';
 
   @override
   String get diveComputer_rawData_discardAction => 'מחק';
@@ -39847,11 +40068,26 @@ class AppLocalizationsHe extends AppLocalizations {
       'אחוז ה-CNS שלך (שעון החמצן) דועך לאחר הצלילה עם מחצית חיים של 90 דקות -- הוא חוזר כמעט לגמרי ל-0 אחרי כיום אחד בערך.\n\nה-OTU היומי מתאפס בכל לילה בחצות. ה-OTU השבועי הוא סכום מתגלגל של 7 הימים האחרונים: צלילות ישנות יותר נופלות אוטומטית מהחישוב ברגע שהן יוצאות מחלון הזמן הזה.';
 
   @override
+  String get safetyHub_tissueLoading_clear_title => 'אין עומס שארי ברקמות';
+
+  @override
+  String get safetyHub_tissueLoading_clear_body =>
+      'כל התאים חזרו לשיווי משקל עם האוויר על פני המים. הם נשארים ברמה הרגילה שלהם (הסימון על כל עמודה), ולא ב-0%.';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_title =>
+      'רוויית הרקמות אינה זמינה';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_body =>
+      'לצלילה האחרונה אין נתונים לחישוב רוויית הרקמות, למשל צלילה ללא פרופיל עומק, במצב מד עומק או במחזר ללא נקודת כיוון.';
+
+  @override
   String get safetyHub_tissueLoading_about_title => 'אודות רוויית הרקמות';
 
   @override
   String get safetyHub_tissueLoading_about_body =>
-      'לגוף שלך יש 16 תאי רקמה הסופגים ומשחררים חנקן (ובצלילות טרימיקס או רה-ברית\'ר, גם הליום) במהירויות שונות. רקמות מהירות נרוות ומתרוקנות במהירות; רקמות איטיות לוקחות הרבה יותר זמן לשני התהליכים.\n\nלאחר צלילה עם הליום, חנקן והליום באותו תא רקמה יכולים לנוע לרגע בכיוונים מנוגדים: בעוד ההליום עדיין משתחרר, אותו תא עשוי לספוג במקביל מעט חנקן, עד ששני הגזים מגיעים לשיווי משקל עם האוויר שאתה נושם. זו הסיבה שתא רקמה עשוי להציג לרגע \"Ongassing\" גם כאשר העומס הכולל שלו ממשיך לרדת.';
+      'בגוף שלך יש 16 תאי רקמה שסופגים ומשחררים חנקן (ובצלילות טרימיקס או מחזר גם הליום) במהירויות שונות. רקמות מהירות נרוות ומתרוקנות במהירות; רקמות איטיות צריכות הרבה יותר זמן לשני התהליכים.\n\nעומס שארי הוא רק מה שנמצא מעל הרמה הרגילה על פני המים. גם אחרי התרוקנות מלאה העמודות לא יורדות ל-0%: כל תא מתייצב על הסימון שמתאים לחנקן שבאוויר שאתה נושם. לכן תא מהיר יכול להראות כאן ערך גבוה יותר מאשר בסוף צלילה עם דקומפרסיה בחמצן, בלי שהעומס גדל.\n\nאחרי צלילה עם הליום, תא משחרר הליום ובאותו זמן סופג חנקן, עד ששני הגזים בשיווי משקל עם האוויר שאתה נושם.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -41420,6 +41656,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_clock_profileFit(int minutes) {
+    return 'מקור ממוקם $minutes דק׳ מהמקום שבו הפרופיל שלו תואם לראשי';
+  }
+
+  @override
   String dataQuality_msg_shared_gear_overlap(
     String item,
     String diverA,
@@ -41629,6 +41870,15 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_fixSourceClockAll =>
       'לתקן את המחשב הזה גם בצלילות אחרות עם אותה סטייה';
+
+  @override
+  String get dataQuality_repairLabel_alignSourceProfile =>
+      'יישור המחשב הזה לפי הפרופיל שלו';
+
+  @override
+  String dataQuality_repairLabel_alignSourceProfileNamed(String computer) {
+    return 'יישור $computer לפי הפרופיל שלו';
+  }
 
   @override
   String get dataQuality_repairLabel_consolidate => 'איחוד';
@@ -56699,6 +56949,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get rules_value_empty => '(ריק)';
 
   @override
+  String rules_value_gearViaSet(String item, String set) {
+    return '$item ($set)';
+  }
+
+  @override
   String get rules_collection_diveTypes => 'סוגי צלילה';
 
   @override
@@ -56712,6 +56967,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get rules_collection_courses => 'קורסים';
+
+  @override
+  String get rules_collection_equipmentSets => 'סטים של ציוד';
 
   @override
   String get rules_collection_siteTags => 'תגיות אתר';

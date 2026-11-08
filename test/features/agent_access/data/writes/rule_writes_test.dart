@@ -140,6 +140,38 @@ void main() {
     expect(plan.items.single.block!.reason, BlockReason.otherProfileReference);
   });
 
+  test(
+    'an action naming another profile\'s equipment set is refused',
+    () async {
+      final theirs = (await h.run([
+        createOp('equipment_sets', {'name': 'Theirs'}, diver: kDiverB),
+      ])).created.single.id;
+
+      final plan = await h.preview([
+        createOp('rules', {
+          'subject': 'dives',
+          'name': 'Set',
+          'actions': {
+            'version': 1,
+            'actions': [
+              {
+                'kind': 'diveMembership',
+                'collection': 'equipmentSets',
+                'mode': 'add',
+                'ids': [theirs],
+              },
+            ],
+          },
+        }),
+      ]);
+
+      expect(
+        plan.items.single.block!.reason,
+        BlockReason.otherProfileReference,
+      );
+    },
+  );
+
   test('a copy is held to the checks a new rule is', () async {
     final source = await make({
       'subject': 'dives',

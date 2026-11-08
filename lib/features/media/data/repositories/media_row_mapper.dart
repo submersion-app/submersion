@@ -54,7 +54,7 @@ domain.MediaItem mediaItemFromRow(
     // photo time by the host's UTC offset.
     takenAt: row.takenAt != null
         ? DateTime.fromMillisecondsSinceEpoch(row.takenAt!, isUtc: true)
-        : _defaultTakenAt(row.id),
+        : _defaultTakenAt(row.id, row.createdAt),
     width: row.width,
     height: row.height,
     durationSeconds: row.durationSeconds,
@@ -142,7 +142,7 @@ domain.MediaItem galleryLinkFromRow(TypedResult row, $MediaTable m) {
     mediaType: parseMediaType(row.read(m.fileType)!),
     takenAt: takenAt != null
         ? DateTime.fromMillisecondsSinceEpoch(takenAt, isUtc: true)
-        : _defaultTakenAt(id),
+        : _defaultTakenAt(id, row.read(m.createdAt)!),
     width: row.read(m.width),
     height: row.read(m.height),
     createdAt: DateTime.fromMillisecondsSinceEpoch(row.read(m.createdAt)!),
@@ -222,9 +222,15 @@ String mediaTypeToDbString(domain.MediaType type) {
   }
 }
 
-/// Returns a default DateTime when takenAt is null in database.
-/// Logs a warning since this indicates data integrity issues.
-DateTime _defaultTakenAt(String mediaId) {
-  _log.warning('Media $mediaId has null takenAt, defaulting to now');
-  return DateTime.now();
+/// The capture time of a row whose taken_at is NULL: its created_at, read
+/// the way taken_at is (wall-clock-as-UTC). Logs a warning since this
+/// indicates data integrity issues.
+///
+/// The library's date key is COALESCE(taken_at, created_at), so this is the
+/// time the row sorts by, and the Timeline groups it under that same day
+/// (issue #4268). Defaulting to now filed every such row under today, apart
+/// from the rows it was paged with.
+DateTime _defaultTakenAt(String mediaId, int createdAtMillis) {
+  _log.warning('Media $mediaId has null takenAt, defaulting to createdAt');
+  return DateTime.fromMillisecondsSinceEpoch(createdAtMillis, isUtc: true);
 }

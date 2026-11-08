@@ -28,6 +28,10 @@ class RangeSelectionOverlay extends StatefulWidget {
   /// Last timestamp of the profile; the end handle stops here.
   final int maxSeconds;
 
+  /// Where the start handle stops: 0, or the first sample of a series that
+  /// starts before the primary does (#4296).
+  final int minSeconds;
+
   /// The chart's visible time window in seconds (narrows as it zooms).
   final double visibleMinSeconds;
   final double visibleMaxSeconds;
@@ -47,6 +51,7 @@ class RangeSelectionOverlay extends StatefulWidget {
     required this.startSeconds,
     required this.endSeconds,
     required this.maxSeconds,
+    this.minSeconds = 0,
     required this.visibleMinSeconds,
     required this.visibleMaxSeconds,
     required this.insets,
@@ -289,8 +294,8 @@ class _RangeSelectionOverlayState extends State<RangeSelectionOverlay> {
     // the further the chart is zoomed in. Only the dive bounds stop the
     // handle; the other handle does not, so a drag can carry on past it.
     _dragSeconds = (_dragSeconds + deltaX * axis.secondsPerPixel).clamp(
-      0.0,
-      math.max(widget.maxSeconds, 0).toDouble(),
+      widget.minSeconds.toDouble(),
+      math.max(widget.maxSeconds, widget.minSeconds).toDouble(),
     );
     final seconds = _dragSeconds.round();
     // Sitting exactly on the other handle would be an empty range; hold the

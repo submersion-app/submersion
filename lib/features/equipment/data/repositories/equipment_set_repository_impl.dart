@@ -108,9 +108,17 @@ class EquipmentSetRepository {
   }
 
   /// Get all equipment sets
-  Future<List<domain.EquipmentSet>> getAllSets({String? diverId}) async {
+  ///
+  /// [ids] narrows the read to those records (Global Search's few rows,
+  /// issue #4247), on the same terms.
+  Future<List<domain.EquipmentSet>> getAllSets({
+    String? diverId,
+    List<String>? ids,
+  }) async {
+    if (ids != null && ids.isEmpty) return const [];
     final query = _db.select(_db.equipmentSets)
       ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
+    if (ids != null) query.where((t) => t.id.isIn(ids));
 
     if (diverId != null) {
       query.where((t) => t.diverId.equals(diverId));

@@ -1244,6 +1244,45 @@ void main() {
       expect(find.text('Expired'), findsNothing);
     });
 
+    testWidgets('heads an agency\'s pro ratings with their own section after '
+        'the agency (#730)', (tester) async {
+      final overrides = await _buildPhoneOverrides(
+        certs: [
+          _makeCert(
+            id: 'dm',
+            name: 'Divemaster Card',
+            agency: 'padi',
+            level: 'diveMaster',
+          ),
+          _makeCert(
+            id: 'ow',
+            name: 'Open Water Card',
+            agency: 'padi',
+            level: 'openWater',
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...overrides,
+            certificationGroupByProvider.overrideWith(
+              (ref) => CertificationGroupBy.agency,
+            ),
+          ],
+          child: const CertificationListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final proHeader = find.text('PADI Professional');
+      expect(proHeader, findsOneWidget);
+      double top(Finder f) => tester.getTopLeft(f).dy;
+      expect(top(find.text('Open Water Card')), lessThan(top(proHeader)));
+      expect(top(proHeader), lessThan(top(find.text('Divemaster Card'))));
+    });
+
     testWidgets('shows no section headers at all when grouping is none', (
       tester,
     ) async {

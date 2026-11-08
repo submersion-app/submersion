@@ -74,14 +74,20 @@ class SiteClassificationRepository {
     ];
   }
 
-  /// Every site's types, in each site's own order. A row pointing at a
-  /// custom type that has not arrived by sync yet is skipped by the join.
-  Future<Map<String, List<SiteTypeEntity>>> getTypesBySite() async {
+  /// Every site's types, in each site's own order, or only those of [siteIds]
+  /// when named. A row pointing at a custom type that has not arrived by
+  /// sync yet is skipped by the join. An empty [siteIds] reads nothing.
+  Future<Map<String, List<SiteTypeEntity>>> getTypesBySite({
+    List<String>? siteIds,
+  }) async {
+    if (siteIds != null && siteIds.isEmpty) return const {};
     final rows = await _db
         .customSelect(
           'SELECT sst.site_id AS link_site_id, st.* FROM site_site_types sst '
           'JOIN site_types st ON st.id = sst.site_type_id '
+          '${_whereSiteIn('sst', siteIds)}'
           'ORDER BY sst.site_id, sst.created_at, sst.id',
+          variables: [...?siteIds?.map(Variable.withString)],
           readsFrom: {_db.siteSiteTypes, _db.siteTypes},
         )
         .get();
@@ -94,12 +100,19 @@ class SiteClassificationRepository {
     return bySite;
   }
 
-  /// Every site's tags, by name.
-  Future<Map<String, List<domain.Tag>>> getTagsBySite() async {
+  /// Every site's tags, by name, or only those of [siteIds] when named. An
+  /// empty [siteIds] reads nothing.
+  Future<Map<String, List<domain.Tag>>> getTagsBySite({
+    List<String>? siteIds,
+  }) async {
+    if (siteIds != null && siteIds.isEmpty) return const {};
     final rows = await _db
         .customSelect(
           'SELECT stg.site_id AS link_site_id, t.* FROM site_tags stg '
-          'JOIN tags t ON t.id = stg.tag_id ORDER BY stg.site_id, t.name COLLATE NOCASE',
+          'JOIN tags t ON t.id = stg.tag_id '
+          '${_whereSiteIn('stg', siteIds)}'
+          'ORDER BY stg.site_id, t.name COLLATE NOCASE',
+          variables: [...?siteIds?.map(Variable.withString)],
           readsFrom: {_db.siteTags, _db.tags},
         )
         .get();
@@ -115,6 +128,14 @@ class SiteClassificationRepository {
     }
     return bySite;
   }
+
+  /// A WHERE narrowing [alias]'s junction rows to [siteIds], with its
+  /// trailing space; nothing when [siteIds] is null.
+  static String _whereSiteIn(String alias, List<String>? siteIds) =>
+      siteIds == null
+      ? ''
+      : 'WHERE $alias.site_id IN '
+            '(${List.filled(siteIds.length, '?').join(', ')}) ';
 
   /// The distinct sites of [diveIds], for the dives-only UDDF export.
   Future<List<String>> getSiteIdsForDives(List<String> diveIds) async {

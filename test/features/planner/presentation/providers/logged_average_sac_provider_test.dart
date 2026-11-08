@@ -170,6 +170,43 @@ void main() {
     );
   });
 
+  test('back gas breathed for half the dive is rated over that half', () async {
+    // Issue #4315: with the stage taking over halfway, the back gas gave its
+    // gas in 21 minutes, not 42, so its rate is twice the whole-dive figure.
+    await insertDive('switched', 'backGas');
+    final wholeDive = await detailRmv('switched', 'switched-0');
+    await db
+        .into(db.diveTanks)
+        .insert(
+          const DiveTanksCompanion(
+            id: Value('switched-1'),
+            diveId: Value('switched'),
+            startPressure: Value(200),
+            endPressure: Value(150),
+            volume: Value(11),
+            tankRole: Value('stage'),
+            o2Percent: Value(50),
+            hePercent: Value(0),
+            tankOrder: Value(1),
+          ),
+        );
+    for (final (tankId, at) in [('switched-0', 0), ('switched-1', 21 * 60)]) {
+      await db
+          .into(db.gasSwitches)
+          .insert(
+            GasSwitchesCompanion(
+              id: Value('$tankId-$at'),
+              diveId: const Value('switched'),
+              tankId: Value(tankId),
+              timestamp: Value(at),
+              createdAt: const Value(now),
+            ),
+          );
+    }
+
+    expect(await logged(), closeTo(2 * wholeDive, 1e-9));
+  });
+
   test('a stage alone is not a backmount rate', () async {
     await insertDive('stage', 'stage');
 

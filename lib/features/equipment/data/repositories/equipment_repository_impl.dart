@@ -190,13 +190,21 @@ class EquipmentRepository {
       _db.tableUpdates(TableUpdateQuery.onTable(_db.equipmentAttributes));
 
   /// Get all equipment
-  Future<List<EquipmentItem>> getAllEquipment({String? diverId}) async {
+  ///
+  /// [ids] narrows the read to those records (Global Search's few rows,
+  /// issue #4247), on the same terms.
+  Future<List<EquipmentItem>> getAllEquipment({
+    String? diverId,
+    List<String>? ids,
+  }) async {
+    if (ids != null && ids.isEmpty) return const [];
     try {
       final query = _db.select(_db.equipment)
         ..orderBy([
           (t) => OrderingTerm.asc(t.type),
           (t) => OrderingTerm.asc(t.name.collate(Collate.noCase)),
         ]);
+      if (ids != null) query.where((t) => t.id.isIn(ids));
 
       VisibilityFilter.applyToEquipment(_db, query, diverId);
 
