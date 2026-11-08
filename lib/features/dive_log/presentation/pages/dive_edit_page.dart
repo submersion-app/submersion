@@ -333,6 +333,19 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// stored seconds (issue #3901), and a linked edit re-seeds it so the exit
   /// it moves keeps its seconds (issue #241).
   SeededDiveTimes? _seededTimes;
+
+  /// The exit and times as they were before the diver started typing a
+  /// runtime. Each keystroke links from here, so a digit passed on the way to
+  /// a value, or left by backspacing, never moves the exit for good, and a
+  /// blank or zero runtime puts it back (issue #241). Any other edit of the
+  /// times starts afresh.
+  ({
+    DateTime? exit,
+    DateTime? exitDate,
+    TimeOfDay? exitTime,
+    SeededDiveTimes? seeded,
+  })?
+  _runtimeEditBase;
   final _diveNumberController = TextEditingController();
   final _durationController = TextEditingController();
   final _runtimeController = TextEditingController();
@@ -990,6 +1003,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final seeded = SeededDiveTimes.of(dive);
     final shown = seeded.shown;
     _seededTimes = seeded;
+    _runtimeEditBase = null;
     _entryDate = shown.entry;
     _entryTime = TimeOfDay.fromDateTime(shown.entry);
     _exitDate = shown.exit;
@@ -2784,7 +2798,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       avgDepthController: _avgDepthController,
       bottomTimeController: _durationController,
       runtimeController: _runtimeController,
-      onRuntimeChanged: _followRuntime,
+      onRuntimeChanged: (_) => _followRuntime(),
       diveNumberController: _diveNumberController,
       showDiveNumber: !_isPlanned,
       entryText: _formatEntryText(units),
@@ -2897,6 +2911,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   }
 
   Future<void> _editEntry() async {
+    _runtimeEditBase = null;
     var before = _timeInputs();
     await _selectEntryDate();
     if (!mounted) return;
@@ -2908,6 +2923,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   }
 
   Future<void> _editExit() async {
+    _runtimeEditBase = null;
     final before = _exitInput();
     final seededBefore = _seededTimes;
     await _selectExitDate();
@@ -2930,16 +2946,37 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     _showLinkedTimes(moveDiveEntry(before, entry, seeded: _seededTimes));
   }
 
-  /// Moves the exit to entry plus the runtime the diver typed (issue #241).
-  /// Blank, unreadable or zero text leaves the exit where it is.
-  void _followRuntime(String text) {
-    final minutes = switch (readNumber(text, integer: true)) {
-      NumberValue(:final value) => value.toInt(),
-      NumberBlank() || NumberInvalid() => null,
-    };
-    if (minutes == null || minutes <= 0) return;
+  /// Moves the exit to entry plus the runtime the diver typed (issue #241),
+  /// linking from the times before the runtime edit began. Blank, unreadable
+  /// or zero text puts the exit back where it was.
+  void _followRuntime() {
+    final base = _runtimeEditBase ??= (
+      exit: _exitInput(),
+      exitDate: _exitDate,
+      exitTime: _exitTime,
+      seeded: _seededTimes,
+    );
+    final minutes = _savedNumber(_runtimeController, integer: true)?.toInt();
+    if (minutes == null || minutes <= 0) {
+      setState(() {
+        _seededTimes = base.seeded;
+        _exitDate = base.exitDate;
+        _exitTime = base.exitTime;
+      });
+      return;
+    }
+    final form = _timeInputs();
     _showLinkedTimes(
-      setDiveRuntime(_timeInputs(), minutes, seeded: _seededTimes),
+      setDiveRuntime(
+        DiveTimeInputs(
+          entry: form.entry,
+          exit: base.exit,
+          bottomTimeMinutes: form.bottomTimeMinutes,
+          runtimeMinutes: form.runtimeMinutes,
+        ),
+        minutes,
+        seeded: base.seeded,
+      ),
     );
   }
 
@@ -4194,7 +4231,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     setState(() {
       _runtimeController.text = _seedInt(calculatedRuntime.inMinutes);
     });
-    _followRuntime(_runtimeController.text);
+    _followRuntime();
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

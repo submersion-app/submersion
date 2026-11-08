@@ -164,6 +164,39 @@ void main() {
     expect(saved.bottomTime, bottomTime);
   });
 
+  testWidgets('clearing the runtime puts the exit back where it was', (
+    tester,
+  ) async {
+    // Backspacing "52" passes through "5"; the exit must not stay at entry
+    // plus five minutes once the field is blank.
+    await repository.createDive(
+      Dive(
+        id: 'dive-241-clear',
+        dateTime: entry,
+        entryTime: entry,
+        exitTime: exit,
+        bottomTime: bottomTime,
+        runtime: runtime,
+      ),
+    );
+
+    await pumpEditor(tester, 'dive-241-clear');
+    await tapRow(tester, 'Runtime');
+    final field = find.descendant(
+      of: row('Runtime'),
+      matching: find.byType(TextField),
+    );
+    await tester.enterText(field, '5');
+    await tester.pumpAndSettle();
+    await tester.enterText(field, '');
+    await tester.pumpAndSettle();
+
+    final saved = await saveAndReload(tester, 'dive-241-clear');
+    expect(saved.entryTime, entry);
+    expect(saved.exitTime, exit);
+    expect(saved.runtime, runtime);
+  });
+
   testWidgets('a runtime typed on a dive with no exit saves no exit', (
     tester,
   ) async {

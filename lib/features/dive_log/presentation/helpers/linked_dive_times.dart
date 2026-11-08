@@ -50,7 +50,7 @@ SeededDiveTimes setDiveRuntime(
   return SeededDiveTimes(
     shown: DiveTimeInputs(
       entry: form.entry,
-      exit: _wholeMinute(end),
+      exit: wholeMinute(end),
       bottomTimeMinutes: form.bottomTimeMinutes,
       runtimeMinutes: minutes,
     ),
@@ -62,6 +62,3 @@ SeededDiveTimes setDiveRuntime(
     ),
   );
 }
-
-DateTime _wholeMinute(DateTime time) =>
-    DateTime.utc(time.year, time.month, time.day, time.hour, time.minute);
