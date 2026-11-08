@@ -1,9 +1,11 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 
@@ -20,6 +22,15 @@ void main() {
       EquipmentFieldAdapter.instance.fieldFromName('location'),
       EquipmentField.location,
     );
+  });
+
+  test('the column header is localized', () {
+    final en = lookupAppLocalizations(const Locale('en'));
+    expect(EquipmentField.location.localizedDisplayName(en), 'Location');
+    expect(EquipmentField.location.localizedShortLabel(en), 'Location');
+    final fr = lookupAppLocalizations(const Locale('fr'));
+    expect(EquipmentField.location.localizedDisplayName(fr), 'Emplacement');
+    expect(EquipmentField.location.localizedShortLabel(fr), 'Emplacement');
   });
 
   test('location is a sortable details column', () {
