@@ -63,8 +63,7 @@ a snapshot: if you edit a dive so that it no longer belongs, it stays in the
 list until you go back, and the chart then shows the new number. Back returns
 you to Insights, and removing the chip shows all your dives.
 
-Time at depth and SAC by tank role do not open dives, because they show minutes
-and averages rather than counts. Rankings of buddies, sites, gear and species
+Time at depth does not open dives, because it shows minutes rather than counts. Rankings of buddies, sites, gear and species
 open that item's own page.
 
 ## Overview
@@ -127,7 +126,7 @@ rolling average and an overall trend line, and let you choose the range shown.
 | Dashboard | What you will find |
 |-----------|--------------------|
 | **Connections** | A map of how your buddies, sites and gear link through your dives |
-| **Air Consumption** | SAC or RMV over time, gas mixes, consumption by tank role, rebreather gas use, and your best and highest consumption |
+| **Air Consumption** | SAC or RMV over time, gas mixes, consumption by cylinder role, rebreather gas use, and your best and highest consumption |
 | **Progression** | Maximum depth and bottom time over time, dives per year, dives by suit thickness, and your cumulative dive count |
 | **Dive focus** | A chosen group of dives and what they have in common (see below) |
 | **Conditions** | Visibility, water type, site types, entry method, and water temperature over time, by month and by band |
@@ -148,13 +147,39 @@ rolling average and an overall trend line, and let you choose the range shown.
 > automatically, as gauge dives are. On a rebreather the cylinders do not empty
 > as you breathe, so their pressure drop is not a breathing rate, and the dive
 > shows no SAC or RMV of its own. Rebreather dives still count toward gas
-> mixes and gas used, and SCR dives toward consumption by tank role.
+> mixes and gas used.
 >
 > CCR dives have their own **Rebreather gas use** card instead, which appears
 > once your dives have a rate to show. It charts your O₂ and diluent use in
 > litres per minute on the loop, with no depth correction and leaving out
 > bailout time. To keep a dive out of it, such as one with O₂ flushes, tick
 > "exclude from gas statistics" on the dive.
+
+### Consumption by cylinder role
+
+The **Consumption by cylinder role** card draws one line per kind of cylinder:
+**Bottom gas**, **Stage**, **Deco**, **Pony** and **Bailout**, each only once
+you have a dive with a rate for it. Each dot is one dive, and the tiles above
+the chart give each line's average. Tap a dot to open the dive.
+
+- Each rate covers only the time you breathed that cylinder and the depth you
+  were at then, so a deco gas breathed for ten minutes at 6 m reads as a deco
+  rate, not as a share of the whole dive. It is the same figure the dive shows
+  for that cylinder.
+- **Bottom gas** is your primary gas however you wear it: back gas, a twin set,
+  or both cylinders of a sidemount pair together.
+- The gas switches on a dive say when each cylinder was breathed. A dive with a
+  stage or deco cylinder that lost gas but has no gas switches is left out of
+  every line, since nothing says when that gas was used, and a line under the
+  chart counts those dives. Add the switches on the dive to bring it back.
+- Open-circuit lines leave out CCR and SCR dives. A CCR dive counts only on the
+  **Bailout** line, with the open-circuit rate while you were bailed out.
+- The SAC on this card follows the gas model in your settings, as the dive's own
+  cylinders do, so it can differ by a few percent from the SAC trend above,
+  which uses the plain pressure drop.
+
+The dive planner's "from your log" breathing rate is your **Bottom gas**
+average from this card.
 
 <!-- screenshot: images/statistics/gas-sac.png: air consumption dashboard -->
 
