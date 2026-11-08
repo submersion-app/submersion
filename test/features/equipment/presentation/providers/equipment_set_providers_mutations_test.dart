@@ -1,9 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart'
     hide EquipmentSet, EquipmentSetGeofence;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set_geofence.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
@@ -164,6 +167,39 @@ void main() {
 
     final fences = await c.read(equipmentSetGeofencesProvider('a').future);
     expect(fences.map((g) => g.id), contains('g1'));
+  });
+
+  test('updateSet returns the saved diff when the reload fails', () async {
+    // The set is written before the list reloads. A reload that fails must
+    // not hide what the save changed, or the dives that carry the set never
+    // follow it (issue #4283).
+    var failDiverLookup = false;
+    final c = ProviderContainer(
+      overrides: [
+        validatedCurrentDiverIdProvider.overrideWith((ref) async {
+          if (failDiverLookup) throw StateError('diver lookup failed');
+          return 'd1';
+        }),
+      ],
+    );
+    addTearDown(c.dispose);
+    final bcd = await EquipmentRepository().createEquipment(
+      const EquipmentItem(
+        id: '',
+        diverId: 'd1',
+        name: 'Wing',
+        type: EquipmentType.bcd,
+      ),
+    );
+    final notifier = c.read(equipmentSetListNotifierProvider.notifier);
+    final set = await notifier.addSet(newSet('a', 'A'));
+    failDiverLookup = true;
+    c.invalidate(validatedCurrentDiverIdProvider);
+
+    final diff = await notifier.updateSet(set.copyWith(equipmentIds: [bcd.id]));
+
+    expect(diff.added, [bcd.id]);
+    expect(diff.removed, isEmpty);
   });
 
   test('deleteSet removes it from the list', () async {

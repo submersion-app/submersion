@@ -1426,6 +1426,21 @@ class AppLocalizationsHu extends AppLocalizations {
       'Búvárfigura megjelenítése';
 
   @override
+  String get equipment_setEdit_historyAsk =>
+      'A változásokat azokra a merülésekre is alkalmazza, vagy csak mostantól?';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ez a csoport $count naplózott merülésen szerepel.',
+      one: 'Ez a csoport 1 naplózott merülésen szerepel.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_color_red => 'Piros';
 
   @override

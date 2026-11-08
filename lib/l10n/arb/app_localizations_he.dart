@@ -1405,6 +1405,21 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_setEdit_figureSwitch_title => 'הצגת דמות הצולל';
 
   @override
+  String get equipment_setEdit_historyAsk =>
+      'להחיל את השינויים גם על הצלילות האלה, או רק מעכשיו?';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הסט הזה נמצא ב-$count צלילות רשומות.',
+      one: 'הסט הזה נמצא בצלילה רשומה אחת.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_color_red => 'אדום';
 
   @override

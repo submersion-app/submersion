@@ -266,6 +266,8 @@
   "equipment_setDetail_showFigure": "Mostrar figura del buceador",
   "equipment_setDetail_hideFigure": "Ocultar figura del buceador",
   "equipment_setEdit_figureSwitch_title": "Mostrar figura del buceador",
+  "equipment_setEdit_historyAsk": "¿Aplicar los cambios también a esas inmersiones o solo a partir de ahora?",
+  "equipment_setEdit_historyOnDives": "{count, plural, =1{Este conjunto de equipo está en 1 inmersión registrada.} other{Este conjunto de equipo está en {count} inmersiones registradas.}}",
   "equipment_color_red": "Rojo",
   "equipment_color_orange": "Naranja",
   "equipment_color_amber": "Ámbar",

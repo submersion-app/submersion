@@ -278,6 +278,8 @@
   "equipment_setDetail_showFigure": "Taucherfigur anzeigen",
   "equipment_setDetail_hideFigure": "Taucherfigur ausblenden",
   "equipment_setEdit_figureSwitch_title": "Taucherfigur anzeigen",
+  "equipment_setEdit_historyAsk": "Die Änderungen auch dort übernehmen oder nur ab jetzt?",
+  "equipment_setEdit_historyOnDives": "{count, plural, =1{Dieses Set ist auf 1 protokollierten Tauchgang.} other{Dieses Set ist auf {count} protokollierten Tauchgängen.}}",
   "equipment_color_red": "Rot",
   "equipment_color_orange": "Orange",
   "equipment_color_amber": "Bernstein",

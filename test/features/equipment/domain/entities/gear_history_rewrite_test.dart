@@ -45,6 +45,23 @@ void main() {
     test('a dive without the assembly is unchanged', () {
       expect(const GearPartAdded('first').applyTo(onDive, 'kit'), onDive);
     });
+
+    test('a part the dive may not take is not added (issue #4283)', () {
+      final next = const GearPartAdded(
+        'first',
+      ).applyTo(onDive, 'reg', canAdd: (id) => id != 'first');
+      expect(next, onDive);
+    });
+  });
+
+  group('GearPartReplaced with a part the dive may not take', () {
+    test('only takes the old part off (issue #4283)', () {
+      final next = const GearPartReplaced(
+        oldPartId: 'hose',
+        newPartId: 'theirs',
+      ).applyTo(onDive, 'reg', canAdd: (id) => id != 'theirs');
+      expect(ids(next), ['reg', 'mask']);
+    });
   });
 
   group('GearPartRemoved', () {

@@ -1426,6 +1426,21 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_setEdit_figureSwitch_title => 'Taucherfigur anzeigen';
 
   @override
+  String get equipment_setEdit_historyAsk =>
+      'Die Änderungen auch dort übernehmen oder nur ab jetzt?';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Dieses Set ist auf $count protokollierten Tauchgängen.',
+      one: 'Dieses Set ist auf 1 protokollierten Tauchgang.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_color_red => 'Rot';
 
   @override

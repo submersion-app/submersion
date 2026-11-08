@@ -1427,6 +1427,22 @@ class AppLocalizationsFr extends AppLocalizations {
       'Afficher la silhouette du plongeur';
 
   @override
+  String get equipment_setEdit_historyAsk =>
+      'Appliquer les modifications à ces plongées aussi, ou seulement à partir de maintenant ?';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Cet ensemble d\'équipement figure sur $count plongées enregistrées.',
+      one: 'Cet ensemble d\'équipement figure sur $count plongée enregistrée.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_color_red => 'Rouge';
 
   @override

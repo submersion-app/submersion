@@ -93,6 +93,14 @@ class EquipmentComponentRepository {
     return rows.map(_map).toList();
   }
 
+  /// The row [id], or null when it is gone.
+  Future<EquipmentComponent?> getComponentById(String id) async {
+    final row = await (_db.select(
+      _db.equipmentComponents,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+    return row == null ? null : _map(row);
+  }
+
   /// The rows whose parent and component are both gear on one of [diveIds]
   /// (not necessarily the same dive), ordered as [getAllComponents]. A
   /// share of a few dives reads only the assembly rows it can use, rather

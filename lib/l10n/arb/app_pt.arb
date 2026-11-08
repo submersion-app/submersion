@@ -266,6 +266,8 @@
   "equipment_setDetail_showFigure": "Mostrar figura do mergulhador",
   "equipment_setDetail_hideFigure": "Ocultar figura do mergulhador",
   "equipment_setEdit_figureSwitch_title": "Mostrar figura do mergulhador",
+  "equipment_setEdit_historyAsk": "Aplicar as alterações também a esses mergulhos, ou só a partir de agora?",
+  "equipment_setEdit_historyOnDives": "{count, plural, =1{Este conjunto de equipamentos está em {count} mergulho registado.} other{Este conjunto de equipamentos está em {count} mergulhos registados.}}",
   "equipment_color_red": "Vermelho",
   "equipment_color_orange": "Laranja",
   "equipment_color_amber": "Âmbar",
