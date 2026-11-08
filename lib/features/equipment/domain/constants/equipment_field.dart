@@ -365,7 +365,9 @@ class EquipmentFieldAdapter
       EquipmentField.components => componentCounts[entity.id] ?? 0,
       EquipmentField.tags => tagNames[entity.id] ?? const <String>[],
       EquipmentField.owner => ownerNames[entity.diverId] ?? '',
-      EquipmentField.location => locationNames[entity.id] ?? '',
+      // Null, not '', for no place: the table sorts nulls last, so unplaced
+      // gear does not head an ascending Location sort.
+      EquipmentField.location => locationNames[entity.id],
     };
   }
 
@@ -392,7 +394,7 @@ class EquipmentFieldAdapter
       EquipmentField.components => '${value as int}',
       EquipmentField.tags => _formatTags(value as List<String>),
       EquipmentField.owner => (value as String).isEmpty ? '--' : value,
-      EquipmentField.location => (value as String).isEmpty ? '--' : value,
+      EquipmentField.location => value as String,
     };
   }
 

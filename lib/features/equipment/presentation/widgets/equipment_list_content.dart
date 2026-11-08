@@ -1740,77 +1740,51 @@ class EquipmentListTile extends ConsumerWidget {
       overflow: TextOverflow.ellipsis,
     );
 
+    // One second line at most, most urgent first. The place takes it only
+    // when no badge needs it (issue #3625): a badge asks for action, and the
+    // place is on the detail page.
+    final place = location;
+    final Widget? secondLine;
     if (finding != null) {
       final significant = finding.severity == ConditionSeverity.significant;
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          typeLabel,
-          const SizedBox(height: 2),
-          Text(
-            conditionFindingShortLabel(finding.rule, context.l10n),
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: significant
-                  ? theme.colorScheme.error
-                  : theme.colorScheme.tertiary,
-              fontWeight: FontWeight.w600,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
+      secondLine = Text(
+        conditionFindingShortLabel(finding.rule, context.l10n),
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: significant
+              ? theme.colorScheme.error
+              : theme.colorScheme.tertiary,
+          fontWeight: FontWeight.w600,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       );
+    } else if (worstClock != null) {
+      secondLine = ServiceStatusIndicator(
+        clock: worstClock,
+        subjectId: item.id,
+      );
+    } else if (item.status != EquipmentStatus.active) {
+      secondLine = Text(
+        item.status.localizedName(context.l10n),
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.onSecondaryContainer,
+          fontWeight: FontWeight.w500,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      );
+    } else if (place != null) {
+      secondLine = EquipmentTileLocation(location: place);
+    } else {
+      secondLine = null;
     }
 
-    if (worstClock != null) {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          typeLabel,
-          const SizedBox(height: 2),
-          ServiceStatusIndicator(clock: worstClock, subjectId: item.id),
-        ],
-      );
-    }
-
-    if (item.status != EquipmentStatus.active) {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          typeLabel,
-          const SizedBox(height: 2),
-          Text(
-            item.status.localizedName(context.l10n),
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSecondaryContainer,
-              fontWeight: FontWeight.w500,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      );
-    }
-
-    // The place takes the line only when no badge needs it (issue #3625):
-    // a badge is something to act on, the place is on the detail page.
-    final place = location;
-    if (place != null) {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          typeLabel,
-          const SizedBox(height: 2),
-          EquipmentTileLocation(location: place),
-        ],
-      );
-    }
-
-    return typeLabel;
+    if (secondLine == null) return typeLabel;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [typeLabel, const SizedBox(height: 2), secondLine],
+    );
   }
 }
 
