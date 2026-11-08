@@ -41358,6 +41358,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => 'בלון שגוי';
 
   @override
+  String get dataQuality_detector_missing_gas_switch => 'החלפת גז חסרה';
+
+  @override
   String get dataQuality_detector_source_conflict => 'מקורות סותרים';
 
   @override
@@ -41548,6 +41551,44 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String dataQuality_msg_tankInactive(String drop) {
     return 'בלון זה איבד $drop בעוד ציר הזמן של הגז מציין שהוא לא היה בשימוש';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitches(String switches) {
+    return 'לא נרשמה החלפת גז, אך לחצי הבלונים מראים את ההחלפות האלה: $switches.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return 'בלון $tankNumber ($gas) ב-$time, $depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => '; ';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'לא נרשמה החלפת גז. בלון $tankNumber ($gas) איבד לחץ ב-$depth, עמוק מה-MOD שלו של $mod, ולכן לא מוצעת החלפה אליו.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'גם בלון $tankNumber ($gas) איבד לחץ ב-$depth, עמוק מה-MOD שלו של $mod, ולכן לא מוצעת החלפה אליו.';
   }
 
   @override
@@ -41773,6 +41814,17 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_reassignSeries => 'העברת הסדרה לבלון אחר';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הוספת $count החלפות גז',
+      one: 'הוספת החלפת גז',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary => 'הגדרת מקור זה כראשי';

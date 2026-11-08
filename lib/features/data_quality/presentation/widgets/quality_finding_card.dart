@@ -125,6 +125,8 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
       SwapPressureSeriesRepair() => l10n.dataQuality_repairLabel_swapSeries,
       ReassignPressureSeriesRepair() =>
         l10n.dataQuality_repairLabel_reassignSeries,
+      AddGasSwitchesRepair(:final switches) =>
+        l10n.dataQuality_repairLabel_addGasSwitches(switches.length),
       CompareSourcesRepair() => l10n.dataQuality_repairLabel_compare,
       GoToDiveRepair() => l10n.dataQuality_action_goToDive,
       SetUpTransmitterRepair() =>

@@ -42370,6 +42370,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => 'Cilindro incorreto';
 
   @override
+  String get dataQuality_detector_missing_gas_switch => 'Troca de gás em falta';
+
+  @override
   String get dataQuality_detector_source_conflict => 'Fontes em conflito';
 
   @override
@@ -42560,6 +42563,44 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String dataQuality_msg_tankInactive(String drop) {
     return 'Este cilindro perdeu $drop enquanto a linha temporal de gás indica que não estava em uso';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitches(String switches) {
+    return 'Nenhuma troca de gás foi registrada, mas as pressões dos cilindros mostram estas trocas: $switches.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return 'cilindro $tankNumber ($gas) aos $time, $depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => '; ';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'Nenhuma troca de gás foi registrada. O cilindro $tankNumber ($gas) perdeu pressão a $depth, mais fundo que a sua MOD de $mod, por isso não é sugerida uma troca para ele.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'O cilindro $tankNumber ($gas) também perdeu pressão a $depth, mais fundo que a sua MOD de $mod, por isso não é sugerida uma troca para ele.';
   }
 
   @override
@@ -42792,6 +42833,17 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_reassignSeries =>
       'Mover a série para outro cilindro';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Adicionar $count trocas de gás',
+      one: 'Adicionar troca de gás',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary =>

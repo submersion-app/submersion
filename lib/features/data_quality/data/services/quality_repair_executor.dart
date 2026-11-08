@@ -11,11 +11,14 @@ import 'package:submersion/features/data_quality/data/services/profile_repair_se
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
+import 'package:submersion/features/data_quality/domain/repairs/quality_repair_action.dart'
+    show SwitchToAdd;
 import 'package:submersion/features/data_quality/domain/repairs/repair_predicates.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/source_clock_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_role_repair_repository.dart';
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
@@ -26,6 +29,9 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
+import 'package:uuid/uuid.dart';
+
+const _uuid = Uuid();
 
 typedef RepairUndo = Future<void> Function();
 
@@ -553,6 +559,46 @@ class QualityRepairExecutor {
         ),
       );
       SyncEventBus.notifyLocalChange();
+      _rescan([diveId]);
+    });
+  }
+
+  /// Write the gas switches a missing-switch finding offers (issue #165).
+  ///
+  /// They are untagged, like a switch typed in the dive editor, so they
+  /// apply to every computer on the dive. A dive that has gained a switch
+  /// since the scan is left alone: the finding was written for a dive with
+  /// none, and adding to the diver's own would mix two timelines. Undo
+  /// deletes exactly the switches written here.
+  Future<RepairResult> addGasSwitches({
+    required String diveId,
+    required List<SwitchToAdd> switches,
+    required String findingId,
+  }) async {
+    if (switches.isEmpty) return const RepairResult.noChange();
+    if ((await _diveRepo.getGasSwitchesForDive(diveId)).isNotEmpty) {
+      return const RepairResult.noChange();
+    }
+    final now = DateTime.now().toUtc();
+    final rows = [
+      for (final s in switches)
+        GasSwitch(
+          id: _uuid.v4(),
+          diveId: diveId,
+          timestamp: s.t,
+          tankId: s.tankId,
+          depth: s.depth,
+          createdAt: now,
+        ),
+    ];
+    await _db.transaction(() => _diveRepo.insertGasSwitches(rows));
+    await _finish(findingId, [diveId]);
+    return RepairResult.applied(() async {
+      await _db.transaction(() async {
+        for (final row in rows) {
+          await _diveRepo.deleteGasSwitch(row.id);
+        }
+      });
       _rescan([diveId]);
     });
   }

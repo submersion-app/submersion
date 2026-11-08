@@ -42156,6 +42156,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => 'Rossz palack';
 
   @override
+  String get dataQuality_detector_missing_gas_switch => 'Hiányzó gázváltás';
+
+  @override
   String get dataQuality_detector_source_conflict => 'Ütköző források';
 
   @override
@@ -42345,6 +42348,44 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String dataQuality_msg_tankInactive(String drop) {
     return 'Ez a palack $drop nyomást veszített, miközben a gáz-idővonal szerint nem volt használatban';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitches(String switches) {
+    return 'Nem rögzült gázváltás, de a palacknyomások ezeket a váltásokat mutatják: $switches.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return '$tankNumber. palack ($gas), $time, $depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => '; ';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'Nem rögzült gázváltás. A(z) $tankNumber. palack ($gas) $depth mélységben vesztett nyomást, mélyebben a $mod MOD-jánál, ezért nem javaslunk rá váltást.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'A(z) $tankNumber. palack ($gas) is vesztett nyomást $depth mélységben, mélyebben a $mod MOD-jánál, ezért nem javaslunk rá váltást.';
   }
 
   @override
@@ -42578,6 +42619,17 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_reassignSeries =>
       'Sorozat áthelyezése másik palackra';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gázváltás hozzáadása',
+      one: 'Gázváltás hozzáadása',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary =>

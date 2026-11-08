@@ -485,6 +485,14 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
             findingId: f.id,
           ),
         );
+      case AddGasSwitchesRepair(:final diveId, :final switches):
+        await withUndo(
+          () => executor.addGasSwitches(
+            diveId: diveId,
+            switches: switches,
+            findingId: f.id,
+          ),
+        );
       case CompareSourcesRepair(:final diveId):
         if (context.mounted) context.push('/dives/$diveId');
       case UseAsBailoutRepair():

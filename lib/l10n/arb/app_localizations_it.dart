@@ -42404,6 +42404,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => 'Bombola errata';
 
   @override
+  String get dataQuality_detector_missing_gas_switch => 'Cambio gas mancante';
+
+  @override
   String get dataQuality_detector_source_conflict => 'Fonti in conflitto';
 
   @override
@@ -42594,6 +42597,44 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String dataQuality_msg_tankInactive(String drop) {
     return 'Questa bombola ha perso $drop mentre la cronologia dei gas la indica come non in uso';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitches(String switches) {
+    return 'Nessun cambio gas registrato, ma le pressioni delle bombole mostrano questi cambi: $switches.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return 'bombola $tankNumber ($gas) a $time, $depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => '; ';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'Nessun cambio gas registrato. La bombola $tankNumber ($gas) ha perso pressione a $depth, più in profondità della sua MOD di $mod, quindi non viene suggerito un cambio su di essa.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'Anche la bombola $tankNumber ($gas) ha perso pressione a $depth, più in profondità della sua MOD di $mod, quindi non viene suggerito un cambio su di essa.';
   }
 
   @override
@@ -42827,6 +42868,17 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_reassignSeries =>
       'Sposta la serie su un\'altra bombola';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Aggiungi $count cambi gas',
+      one: 'Aggiungi cambio gas',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary =>

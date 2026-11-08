@@ -42108,6 +42108,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => 'Verkeerde fles';
 
   @override
+  String get dataQuality_detector_missing_gas_switch => 'Ontbrekende gaswissel';
+
+  @override
   String get dataQuality_detector_source_conflict => 'Tegenstrijdige bronnen';
 
   @override
@@ -42296,6 +42299,44 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String dataQuality_msg_tankInactive(String drop) {
     return 'Deze fles verloor $drop terwijl de gastijdlijn aangeeft dat ze niet in gebruik was';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitches(String switches) {
+    return 'Er is geen gaswissel vastgelegd, maar de flesdrukken tonen deze wissels: $switches.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return 'fles $tankNumber ($gas) op $time, $depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => '; ';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'Er is geen gaswissel vastgelegd. Fles $tankNumber ($gas) verloor druk op $depth, dieper dan haar MOD van $mod, dus er wordt geen wissel naar deze fles voorgesteld.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'Fles $tankNumber ($gas) verloor ook druk op $depth, dieper dan haar MOD van $mod, dus er wordt geen wissel naar deze fles voorgesteld.';
   }
 
   @override
@@ -42528,6 +42569,17 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_reassignSeries =>
       'Reeks naar een andere fles verplaatsen';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gaswissels toevoegen',
+      one: 'Gaswissel toevoegen',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary =>

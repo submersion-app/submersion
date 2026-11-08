@@ -225,6 +225,7 @@ void main() {
       'gas_mod',
       'tank_assignment',
       'source_conflict',
+      'missing_gas_switch',
     ]) {
       expect(
         repairOptionsFor(f(detectorId: id, relatedDiveId: 'd2')),
@@ -538,6 +539,45 @@ void main() {
 
     test('tank_assignment without ids gets navigation only', () {
       final actions = repairOptionsFor(f(detectorId: 'tank_assignment'));
+      expect(actions.single, isA<GoToDiveRepair>());
+    });
+  });
+
+  group('missing_gas_switch branches', () {
+    test('missed switches offer adding them, then navigation (#165)', () {
+      final actions = repairOptionsFor(
+        f(
+          detectorId: 'missing_gas_switch',
+          params: {
+            'missingSwitches': [
+              {'tankId': 'deco', 'tankPosition': 2, 't': 1800, 'depth': 21},
+              {'tankId': 'o2', 'tankPosition': 3, 't': 2400, 'depth': 6.0},
+            ],
+            'deepStarts': const [],
+          },
+        ),
+      );
+      final add = actions.first as AddGasSwitchesRepair;
+      expect(add.diveId, 'd1');
+      expect(add.switches, [
+        (tankId: 'deco', t: 1800, depth: 21.0),
+        (tankId: 'o2', t: 2400, depth: 6.0),
+      ]);
+      expect(actions.whereType<GoToDiveRepair>(), hasLength(1));
+    });
+
+    test('only too-deep starts get navigation only (#165)', () {
+      final actions = repairOptionsFor(
+        f(
+          detectorId: 'missing_gas_switch',
+          params: {
+            'missingSwitches': const [],
+            'deepStarts': [
+              {'tankId': 'deco', 'tankPosition': 2, 't': 1800, 'depth': 40},
+            ],
+          },
+        ),
+      );
       expect(actions.single, isA<GoToDiveRepair>());
     });
   });

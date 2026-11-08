@@ -60,6 +60,7 @@ void main() {
         'pressure_anomaly',
         'gas_mod',
         'tank_assignment',
+        'missing_gas_switch',
         'source_conflict',
         'transmitter_role',
         'transmitter_gear_serial_mismatch',
@@ -370,6 +371,69 @@ void main() {
       expect(
         detailFor('gas_mod', {'o2Percent': 10.0, 'hePercent': 70.0}),
         contains('Tx 10/70'),
+      );
+    });
+  });
+
+  group('missing_gas_switch (#165)', () {
+    Map<String, Object?> start({
+      required int position,
+      required int t,
+      required double depth,
+      double o2 = 50,
+      double? mod,
+    }) => {
+      'tankId': 't$position',
+      'tankPosition': position,
+      't': t,
+      'depth': depth,
+      'o2Percent': o2,
+      'hePercent': 0.0,
+      'modMeters': ?mod,
+    };
+
+    test('names the cylinder, gas, time and depth of each switch', () {
+      final detail = detailFor('missing_gas_switch', {
+        'missingSwitches': [
+          start(position: 2, t: 1800, depth: 21),
+          start(position: 3, t: 2730, depth: 6, o2: 100),
+        ],
+        'deepStarts': const [],
+      });
+      expect(
+        detail,
+        'No gas switch was recorded, but the cylinder pressures show these '
+        'switches: cylinder 2 (EAN50) at 30:00, D21.0; cylinder 3 (Oxygen) at '
+        '45:30, D6.0.',
+      );
+    });
+
+    test('a start deeper than its MOD is named, never as a switch', () {
+      final detail = detailFor('missing_gas_switch', {
+        'missingSwitches': const [],
+        'deepStarts': [start(position: 2, t: 600, depth: 40, mod: 22)],
+      });
+      expect(
+        detail,
+        'No gas switch was recorded. Cylinder 2 (EAN50) lost pressure at '
+        'D40.0, deeper than its MOD of L22.0, so no switch to it is '
+        'suggested.',
+      );
+    });
+
+    test('switches and a too-deep start read as two sentences', () {
+      final detail = detailFor('missing_gas_switch', {
+        'missingSwitches': [start(position: 3, t: 2730, depth: 6, o2: 100)],
+        'deepStarts': [start(position: 2, t: 600, depth: 40, mod: 22)],
+      });
+      expect(detail, startsWith('No gas switch was recorded, but'));
+      expect(detail, contains('cylinder 3 (Oxygen) at 45:30, D6.0.'));
+      expect(
+        detail,
+        endsWith(
+          ' Cylinder 2 (EAN50) also lost pressure at D40.0, deeper than its '
+          'MOD of L22.0, so no switch to it is suggested.',
+        ),
       );
     });
   });

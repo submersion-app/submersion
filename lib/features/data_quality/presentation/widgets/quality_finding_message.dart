@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/utils/minutes_seconds.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart'
     show GasMix;
@@ -73,6 +74,7 @@ String detectorTitle(AppLocalizations l10n, String detectorId) =>
       'pressure_anomaly' => l10n.dataQuality_detector_pressure_anomaly,
       'gas_mod' => l10n.dataQuality_detector_gas_mod,
       'tank_assignment' => l10n.dataQuality_detector_tank_assignment,
+      'missing_gas_switch' => l10n.dataQuality_detector_missing_gas_switch,
       'transmitter_role' => l10n.dataQuality_detector_transmitter_role,
       'unknown_transmitter' => l10n.dataQuality_detector_unknown_transmitter,
       'transmitter_gear_serial_mismatch' =>
@@ -221,6 +223,8 @@ QualityFindingMessage buildFindingMessage(
       detail = l10n.dataQuality_msg_transmitterGearSerialMismatch(
         (p['serial'] as String?) ?? '',
       );
+    case 'missing_gas_switch':
+      detail = _missingSwitchDetail(l10n, p, fmt);
     case 'tank_assignment':
       detail = p.containsKey('inactiveDropBar')
           ? l10n.dataQuality_msg_tankInactive(
@@ -275,6 +279,63 @@ String qualityDurationLabel(AppLocalizations l10n, int seconds) => seconds < 120
 /// A null [hePercent] is a finding stored before the detector recorded it.
 /// Its helium is unknown, so it names the oxygen share alone rather than
 /// calling a Tx 21/35 "Air"; the next scan rewrites it.
+/// The missing-switch finding's text (issue #165): every switch it offers,
+/// then the first start it held back for being deeper than its gas's MOD.
+String _missingSwitchDetail(
+  AppLocalizations l10n,
+  Map<String, Object?> p,
+  QualityUnitFormatters fmt,
+) {
+  List<Map<String, Object?>> entries(String key) => [
+    if (p[key] case final List list)
+      for (final e in list)
+        if (e is Map) e.cast<String, Object?>(),
+  ];
+  double d(Map<String, Object?> e, String k) => (e[k] as num?)?.toDouble() ?? 0;
+  int position(Map<String, Object?> e) =>
+      (e['tankPosition'] as num?)?.toInt() ?? 0;
+  String gas(Map<String, Object?> e) => qualityGasLabel(
+    l10n,
+    d(e, 'o2Percent'),
+    (e['hePercent'] as num?)?.toDouble(),
+  );
+
+  final switches = entries('missingSwitches');
+  final deep = entries('deepStarts').firstOrNull;
+  final listed = switches.isEmpty
+      ? null
+      : l10n.dataQuality_msg_missingSwitches(
+          switches
+              .map(
+                (e) => l10n.dataQuality_msg_missingSwitchItem(
+                  position(e),
+                  gas(e),
+                  formatMinutesSeconds((e['t'] as num?)?.toInt() ?? 0),
+                  fmt.depth(d(e, 'depth')),
+                ),
+              )
+              .join(l10n.dataQuality_msg_missingSwitchSeparator),
+        );
+  if (deep == null) return listed ?? '';
+  final depth = fmt.depth(d(deep, 'depth'));
+  final mod = fmt.limitDepth(d(deep, 'modMeters'));
+  if (listed == null) {
+    return l10n.dataQuality_msg_missingSwitchDeep(
+      position(deep),
+      gas(deep),
+      depth,
+      mod,
+    );
+  }
+  final also = l10n.dataQuality_msg_missingSwitchDeepAlso(
+    position(deep),
+    gas(deep),
+    depth,
+    mod,
+  );
+  return '$listed $also';
+}
+
 String qualityGasLabel(
   AppLocalizations l10n,
   double o2Percent,
