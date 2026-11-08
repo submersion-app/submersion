@@ -1466,7 +1466,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   /// The gear listed in the bulk equipment editor, in no particular order:
   /// it renders through the diver's gear arrangement (#2274), so it is kept
-  /// as whole items, which the arrangement sorts by type and date.
+  /// as whole items: the arrangement orders them by type and then by the
+  /// diver's chosen item field (name, or one of the gear's dates).
   List<EquipmentItem> _bulkGear = [];
   MembershipDelta _equipmentDelta = MembershipDelta.empty;
 

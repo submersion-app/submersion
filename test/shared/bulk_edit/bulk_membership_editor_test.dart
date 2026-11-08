@@ -139,6 +139,25 @@ void main() {
     );
   });
 
+  // The choices live in a map by id, but a checkbox also carries state of its
+  // own: its check animation, focus and hover. When the rows reorder, each
+  // checkbox must stay with its item. Matched by position instead, the row
+  // that moved into a slot would animate from the old occupant's mark, and
+  // focus would land on a different item.
+  testWidgets('a reordered row keeps its own checkbox', (tester) async {
+    await pumpEditor(tester);
+    final before = tester.state(
+      find.byKey(const ValueKey('membership-toggle-a')),
+    );
+
+    await pumpEditor(tester, rows: items.reversed.toList());
+
+    expect(
+      tester.state(find.byKey(const ValueKey('membership-toggle-a'))),
+      same(before),
+    );
+  });
+
   testWidgets('shows the add label and empty wording the caller supplies', (
     tester,
   ) async {

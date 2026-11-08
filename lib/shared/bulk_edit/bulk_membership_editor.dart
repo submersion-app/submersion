@@ -369,6 +369,11 @@ class _BulkMembershipEditorState extends State<BulkMembershipEditor> {
             for (final item in widget.items) ...[
               ?widget.headerBuilder?.call(item),
               ListTile(
+                // Keyed by item: a sorted list reorders its rows, or gains
+                // one in the middle (#2274), and a row matched by position
+                // would take over another item's checkbox, with its check
+                // animation, focus and hover.
+                key: ValueKey('membership-row-${item.id}'),
                 contentPadding: EdgeInsets.zero,
                 leading: Checkbox(
                   key: ValueKey('membership-toggle-${item.id}'),
