@@ -21,6 +21,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.da
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/data/sql/dive_weight_sql.dart';
+import 'package:submersion/features/dive_log/data/sql/gas_use_sql.dart';
 import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/domain/services/ccr_cylinder_use.dart';
@@ -255,6 +256,9 @@ class InsightsRepository with InsightsChartDives {
         TableUpdateQuery.allOf([
           TableUpdateQuery.onTable(_db.dives),
           TableUpdateQuery.onTable(_db.diveProfileSeries),
+          // Whole-dive SAC and RMV read the stored gas-use window (#2930),
+          // which the derived metrics sweep writes after the dive itself.
+          TableUpdateQuery.onTable(_db.diveDerivedMetricsRows),
           // The deco card classifies a dive from its stop events, which a
           // sync pull can write without touching the dive.
           TableUpdateQuery.onTable(_db.diveProfileEvents),
@@ -379,8 +383,8 @@ class InsightsRepository with InsightsChartDives {
         SELECT
           d.id AS dive_id,
           d.dive_date_time,
-          ${diveAmbientBarSql('d', 'd.avg_depth')} AS ambient_bar,
-          ${measuredRuntimeSecondsSql('d')} AS duration_sec,
+          ${diveAmbientBarSql('d', gasUseAvgDepthSql('d'))} AS ambient_bar,
+          ${gasUseSecondsSql('d')} AS duration_sec,
           t.start_pressure,
           t.end_pressure,
           ${consumptionVolumeSql('t')} AS volume,
@@ -590,8 +594,8 @@ class InsightsRepository with InsightsChartDives {
           d.id AS dive_id,
           d.dive_number,
           d.dive_date_time,
-          ${diveAmbientBarSql('d', 'd.avg_depth')} AS ambient_bar,
-          ${measuredRuntimeSecondsSql('d')} AS duration_sec,
+          ${diveAmbientBarSql('d', gasUseAvgDepthSql('d'))} AS ambient_bar,
+          ${gasUseSecondsSql('d')} AS duration_sec,
           ds.name AS site_name,
           t.start_pressure,
           t.end_pressure,
@@ -788,8 +792,8 @@ class InsightsRepository with InsightsChartDives {
           ${consumptionVolumeSql('t')} AS volume,
           t.o2_percent,
           t.he_percent,
-          ${diveAmbientBarSql('d', 'd.avg_depth')} AS ambient_bar,
-          ${measuredRuntimeSecondsSql('d')} AS duration_sec
+          ${diveAmbientBarSql('d', gasUseAvgDepthSql('d'))} AS ambient_bar,
+          ${gasUseSecondsSql('d')} AS duration_sec
         FROM dives d
         INNER JOIN dive_tanks t ON t.dive_id = d.id
         WHERE t.start_pressure IS NOT NULL
@@ -876,7 +880,7 @@ class InsightsRepository with InsightsChartDives {
           AVG(
             CASE
               WHEN t.start_pressure > t.end_pressure THEN
-                (t.start_pressure - t.end_pressure) / (${measuredRuntimeSecondsSql('d')} / 60.0) / ${diveAmbientBarSql('d', 'd.avg_depth')}
+                (t.start_pressure - t.end_pressure) / (${gasUseSecondsSql('d')} / 60.0) / ${diveAmbientBarSql('d', gasUseAvgDepthSql('d'))}
               ELSE NULL
             END
           ) AS avg_sac

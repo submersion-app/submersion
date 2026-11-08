@@ -5,7 +5,7 @@ library;
 
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
-import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
+import 'package:submersion/features/dive_log/data/sql/gas_use_sql.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 
 const String _sidemountRolesSql = "('sidemountLeft', 'sidemountRight')";
@@ -61,7 +61,8 @@ String diveAmbientBarSql(String dive, String depth) =>
 /// rebreather dive, whose cylinders do not drain with the diver's breathing
 /// (issue #3673), when the reference has no pressures logged, since it must
 /// join, and when nothing adds up to a drop; the caller guards the runtime
-/// and average depth. Mirrors `Dive.sac`.
+/// and average depth. Divides by the gas-use time and depth, so surface time
+/// at the ends of the recording is left out (issue #2930). Mirrors `Dive.sac`.
 String diveSacPressureSql(String dive) {
   // The cylinders matching [where] once each, with their consumption volume
   // computed once.
@@ -99,6 +100,6 @@ String diveSacPressureSql(String dive) {
       'SELECT 1 FROM dive_tanks t3 WHERE t3.dive_id = $dive.id '
       'AND t3.tank_role IN $_backmountRolesSql)) '
       'ORDER BY t2.tank_order, t2.rowid LIMIT 1)) '
-      '/ (${measuredRuntimeSecondsSql(dive)} / 60.0) '
-      '/ ${diveAmbientBarSql(dive, '$dive.avg_depth')}) END)';
+      '/ (${gasUseSecondsSql(dive)} / 60.0) '
+      '/ ${diveAmbientBarSql(dive, gasUseAvgDepthSql(dive))}) END)';
 }
