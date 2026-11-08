@@ -310,13 +310,13 @@ changing how the web app uses its database.
   shape in a real browser), seeds the library and runs the browser suite,
   failing on any skipped test.
 - `web-smoke` serves `web-build`'s artifact and runs the Playwright smoke
-  in Firefox and WebKit, failing on a junit file with no tests. It is
-  advisory for now (exempt in `scripts/check_ci_success_gate.py`) until it
-  has passed on several runs, issue #4186.
+  in Firefox and WebKit, failing on a junit file with no tests. A test
+  whose browser crashes (not the app) runs once more, and the log shows
+  it as a rerun; any other failure fails the job at once.
 - `build-all`'s `build-web` job zips the bundle as
   `Submersion-<tag>-Web.zip`, which the release workflow attaches and
   validates like every other asset.
 
-`web-build` and `web-tests` sit in the `ci-success` gate (`web-smoke`
-rejoins it with #4186), and `script-tests` covers
+`web-build`, `web-tests` and `web-smoke` sit in the `ci-success` gate,
+and `script-tests` covers
 `check_web_bundle.py`, `check_sqlite3_wasm_lock.py` and `serve_bundle.py`.

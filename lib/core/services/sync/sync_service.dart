@@ -1763,6 +1763,13 @@ class SyncService {
             records: data.equipmentComponents,
             hasUpdatedAt: true,
           ),
+          // Twin set pairings (issue #4242): both cylinders are equipment
+          // rows, so after equipment like equipmentComponents.
+          (
+            type: 'cylinderPairings',
+            records: data.cylinderPairings,
+            hasUpdatedAt: true,
+          ),
           // After both parents (divePlans and equipment).
           (
             type: 'divePlanEquipment',
@@ -3022,6 +3029,7 @@ class SyncService {
     'qualityFindings': true,
     'equipmentAttributes': true,
     'equipmentComponents': true,
+    'cylinderPairings': true,
     'mediaSmartAlbums': true,
     'divePlanEquipment': false,
     'diverWeightEntries': true,
@@ -3747,6 +3755,10 @@ class SyncService {
     'equipmentComponents': [
       (field: 'parentEquipmentId', parent: 'equipment', nullable: false),
       (field: 'componentEquipmentId', parent: 'equipment', nullable: false),
+    ],
+    'cylinderPairings': [
+      (field: 'cylinderAId', parent: 'equipment', nullable: false),
+      (field: 'cylinderBId', parent: 'equipment', nullable: false),
     ],
     'serviceSchedules': [
       (field: 'equipmentId', parent: 'equipment', nullable: false),

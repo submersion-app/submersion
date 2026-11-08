@@ -110,6 +110,7 @@ class SyncRepository {
     'equipmentSetGeofences': (table: 'equipment_set_geofences', pk: 'id'),
     'equipmentAttributes': (table: 'equipment_attributes', pk: 'id'),
     'equipmentComponents': (table: 'equipment_components', pk: 'id'),
+    'cylinderPairings': (table: 'cylinder_pairings', pk: 'id'),
     'cylinderConfigs': (table: 'cylinder_configs', pk: 'id'),
     'cylinderConfigItems': (table: 'cylinder_config_items', pk: 'id'),
     'diveTypes': (table: 'dive_types', pk: 'id'),

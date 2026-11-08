@@ -2,6 +2,7 @@ import 'package:submersion/features/agent_access/data/documents/document_dates.d
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config.dart';
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config_item.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_pairing.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -109,6 +110,14 @@ Map<String, Object?> equipmentComponentDocument(EquipmentComponent c) => {
   'sort_order': c.sortOrder,
 };
 
+Map<String, Object?> cylinderPairingDocument(CylinderPairing p) => {
+  'id': p.id,
+  'cylinder_a_id': p.cylinderAId,
+  'cylinder_b_id': p.cylinderBId,
+  'paired_on': calendarDate(p.pairedOn),
+  'unpaired_on': calendarDate(p.unpairedOn),
+};
+
 Map<String, Object?> equipmentShareDocument(EquipmentShare s) => {
   'id': s.id,
   'equipment_id': s.equipmentId,
@@ -182,6 +191,7 @@ Map<String, Object?> cylinderFillDocument(CylinderFill f) => {
   'signed_record': f.signedRecord,
   'source': f.source.name,
   'notes': f.notes,
+  'filled_together_id': f.filledTogetherId,
 };
 
 Map<String, Object?> transmitterDocument(Transmitter x) => {

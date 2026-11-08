@@ -93,12 +93,18 @@ class _FakeDiveRepository implements DiveRepository {
   @override
   Future<List<Dive>> getDivesByIdsWithoutSamples(
     List<String> ids, {
-    int chunkSize = 50,
     bool offUiIsolate = false,
-  }) async => [
-    for (final dive in dives)
-      if (ids.contains(dive.id)) dive,
-  ];
+    int chunkSize = 50,
+  }) async {
+    offUiIsolateFlags.add(offUiIsolate);
+    return [
+      for (final dive in dives)
+        if (ids.contains(dive.id)) dive,
+    ];
+  }
+
+  /// The offUiIsolate flag of each sample-free read, in call order.
+  final List<bool> offUiIsolateFlags = [];
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -125,9 +131,11 @@ void main() {
   const extrasSentinel = UddfDivesExtras(diveBuddies: {'dive-1': []});
   final extrasCalls = <(List<String>, UddfExportOptions)>[];
   late _RecordingExportService exportService;
+  late _FakeDiveRepository diveRepository;
 
   setUp(() {
     exportService = _RecordingExportService();
+    diveRepository = _FakeDiveRepository(dives);
     extrasCalls.clear();
   });
 
@@ -166,7 +174,7 @@ void main() {
             buddy.id,
           ).overrideWith((ref) async => ['dive-1']),
           divesForBuddyProvider(buddy.id).overrideWith((ref) async => dives),
-          diveRepositoryProvider.overrideWithValue(_FakeDiveRepository(dives)),
+          diveRepositoryProvider.overrideWithValue(diveRepository),
           exportServiceProvider.overrideWithValue(exportService),
           // Every custom agency, loaded on demand (issue #690).
           allCustomCertificationsCatalogProvider.overrideWith(
@@ -224,6 +232,9 @@ void main() {
 
     expect(exportService.calls, ['save:uddf']);
     expect(exportService.sites?.map((s) => s.id), ['site-1']);
+    // A bulk read keeps decoding on the UI isolate; see offUiIsolate on
+    // DiveRepository.getDivesByIdsWithoutSamples.
+    expect(diveRepository.offUiIsolateFlags, [false]);
   });
 
   testWidgets('a share names custom agencies even before the catalog has '

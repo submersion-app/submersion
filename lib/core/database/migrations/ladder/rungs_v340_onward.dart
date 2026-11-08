@@ -52,6 +52,13 @@ extension RungsFromV340 on AppDatabase {
     if (from < 344) await _assertNavTrackSourceFileColumn();
     if (from < 344) await reportProgress();
 
+    // v345: cylinder_pairings, two cylinders linked as a twin set over a
+    // range of days, cylinder_fills.filled_together_id and
+    // dive_tanks.twin_passport_id (issue #4242). Table and nullable columns
+    // only, no backfill. Re-asserted in beforeOpen.
+    if (from < 345) await _assertTwinSetSchema();
+    if (from < 345) await reportProgress();
+
     // v346: an item's last service date is its newest service record's
     // again where logging an older record had moved it back (issue #4201).
     // Data only, so the compatibility floor does not move. Numbered 346 so

@@ -1,4 +1,5 @@
 # The three-browser smoke of the web bundle (scripts/web/smoke_test.py).
 playwright==1.52.0
 pytest==8.3.5
+pytest-rerunfailures==16.7
 boto3==1.38.0

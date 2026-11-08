@@ -47,6 +47,10 @@ abstract interface class RecordEntry {
   /// The column `parent_id` filters on, when the entity has one.
   String? get parentColumn;
 
+  /// Further columns a row may name its parent in, so `parent_id` matches
+  /// any of them (a twin set pairing lists under either cylinder).
+  List<String> get alsoParentColumns;
+
   /// SQL over alias `r0`, ahead of the `r0.id` tie break, when the entity has
   /// an order of its own.
   String? get orderBy;
@@ -77,6 +81,7 @@ class RecordEntity<T> implements RecordEntry {
     required Map<String, Object?> Function(T) document,
     required List<String> summaryKeys,
     this.parentColumn,
+    this.alsoParentColumns = const [],
     this.orderBy,
     Map<String, BlockLoader<T>> blocks = const {},
     Future<List<Map<String, Object?>>> Function(List<String>, RecordLoad)?
@@ -95,6 +100,8 @@ class RecordEntity<T> implements RecordEntry {
   final RecordScope scope;
   @override
   final String? parentColumn;
+  @override
+  final List<String> alsoParentColumns;
   @override
   final String? orderBy;
 
@@ -167,6 +174,7 @@ RecordEntity<T> childEntity<T>(
   required String name,
   required String table,
   required String parentColumn,
+  List<String> alsoParentColumns = const [],
   required RecordScope scope,
   required String Function(T) idOf,
   required Future<Map<String, List<T>>> Function(List<String>) byParents,
@@ -179,6 +187,7 @@ RecordEntity<T> childEntity<T>(
   table: table,
   scope: scope,
   parentColumn: parentColumn,
+  alsoParentColumns: alsoParentColumns,
   orderBy: orderBy,
   blocks: blocks,
   load: (ids, _) => loadChildren<T>(

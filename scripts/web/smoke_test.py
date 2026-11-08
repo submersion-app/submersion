@@ -42,6 +42,13 @@ from botocore.config import Config
 from playwright.sync_api import TimeoutError as PlaywrightTimeout
 from playwright.sync_api import sync_playwright
 
+# A browser whose page process dies is not the app failing: WebKit's crashed
+# about once in 70 runs on GitHub's runners, before the app had drawn
+# anything (#4186). Such a test runs once more, and the log says so
+# (pytest-rerunfailures). Every other failure fails at once.
+BROWSER_CRASHED = [r"TargetClosedError", r"Target crashed"]
+pytestmark = pytest.mark.flaky(reruns=1, only_rerun=BROWSER_CRASHED)
+
 BASE_URL = os.environ.get("SMOKE_BASE_URL", "http://127.0.0.1:8080")
 # The store settings are read when a test needs the store, so the first-run
 # test runs against a bare bundle; the round trip fails, never skips, if
@@ -177,6 +184,52 @@ def by_text(page, text):
     ).first
 
 
+def click_until_taken(page, name, settle_ms=5000):
+    """Clicks the button named [name], then checks the click took: the
+    button leaves the semantics tree or turns disabled, as a busy step's
+    does within half a second. WebKit on the runner lost about one click
+    in 25 here, leaving the button idle and enabled with nothing started
+    (#4186). Recorded locally under load: WebKit sent pointerdown and
+    pointerup to the button's semantics node but no click, as a browser
+    does when the element changes between the two (a Flutter frame landed
+    in between), and the bare pointer pair did not tap the button either.
+    The click made again five seconds later arrived whole and took. So a
+    click the page never received is made once more, and the log says so.
+    A click the page did receive is never repeated, since a starved page may
+    simply not have drawn its effect yet; an app that ignored it fails on
+    the next step."""
+    page.evaluate(COUNT_CLICKS)
+    button(page, name).click(timeout=STEP_TIMEOUT_MS)
+    deadline = time.monotonic() + settle_ms / 1000
+    while time.monotonic() < deadline:
+        target = page.get_by_role("button", name=name)
+        try:
+            if not target.count() or target.first.get_attribute(
+                "aria-disabled", timeout=1000
+            ) == "true":
+                return
+        except PlaywrightTimeout:
+            return  # it left the tree between the count and the read
+        page.wait_for_timeout(100)
+    if page.evaluate("window.__smokeClicks"):
+        print("[click] %s received a click and stayed idle" % name.pattern)
+        return
+    print("[retry] no click reached %s; clicking again" % name.pattern)
+    button(page, name).click(timeout=STEP_TIMEOUT_MS)
+
+
+# Counts the DOM clicks the page receives from here on, in the capture
+# phase so no handler can hide one: zero after a click means the browser
+# never dispatched it.
+COUNT_CLICKS = """() => {
+  window.__smokeClicks = 0;
+  if (!window.__smokeClickCounter) {
+    window.__smokeClickCounter = () => { window.__smokeClicks += 1; };
+    document.addEventListener('click', window.__smokeClickCounter, true);
+  }
+}"""
+
+
 def click_text(page, text):
     by_text(page, text).click(timeout=STEP_TIMEOUT_MS)
 
@@ -191,6 +244,11 @@ def fill_field(page, label, value):
     page.wait_for_timeout(300)
     field.press_sequentially(value)
     page.wait_for_timeout(300)
+
+
+# A line StatementTraceInterceptor prints: `[db <n>] start ...`, `done ...`
+# or `begin transaction`.
+TRACE_LINE = re.compile(r"\[db \d+\] ")
 
 
 def trace_database(page):
@@ -264,7 +322,7 @@ def download_library(page):
     """The sync step offers the seeded library; an empty browser downloads
     it, which runs the first sync."""
     with timed("download offer"):
-        button(page, exact("Download library")).click(timeout=STEP_TIMEOUT_MS)
+        click_until_taken(page, exact("Download library"))
 
 
 def open_dive_list(page):
@@ -404,9 +462,12 @@ PAGE_PROBE = """async () => {
   const countFrames = () => { frames += 1; requestAnimationFrame(countFrames); };
   requestAnimationFrame(countFrames);
   await new Promise((resolve) => setTimeout(resolve, 2000));
-  const opfs = await within(settle(
-    navigator.storage.getDirectory().then(() => 'answers'),
-  ), 5000);
+  // Playwright's WebKit on Linux has no origin private file system, and a
+  // probe that threw on it reported nothing else either.
+  const hasOpfs = Boolean(navigator.storage && navigator.storage.getDirectory);
+  const opfs = hasOpfs
+    ? await within(settle(navigator.storage.getDirectory().then(() => 'answers')), 5000)
+    : 'none';
   const listFiles = async () => {
     const found = [];
     const walk = async (dir, path) => {
@@ -423,8 +484,8 @@ PAGE_PROBE = """async () => {
     await walk(await navigator.storage.getDirectory(), '/');
     return found;
   };
-  const opfsFiles = await within(settle(listFiles()), 5000);
-  const probeWorker = await within(settle(new Promise((resolve) => {
+  const opfsFiles = hasOpfs ? await within(settle(listFiles()), 5000) : 'none';
+  const probeWorker = !hasOpfs ? 'no OPFS' : await within(settle(new Promise((resolve) => {
     const worker = new Worker(URL.createObjectURL(
       new Blob([workerCode], { type: 'text/javascript' }),
     ));
@@ -466,9 +527,16 @@ def report_failure(page, request, heard):
     watched, with a screenshot under SMOKE_ARTIFACT_DIR when that is set."""
     print("\n--- what the page reported (%s) ---" % request.node.name)
     print("url: %s" % page.url)
-    # The tail is what matters: with the database trace on, the last
-    # statement that started and never finished.
-    print("\n".join(heard[-80:]) or "(nothing)")
+    # The database trace prints thousands of lines, so everything else the
+    # page said (errors, failed requests) is listed on its own rather than
+    # pushed out of the tail by it.
+    trace = [line for line in heard if TRACE_LINE.search(line)]
+    others = [line for line in heard if not TRACE_LINE.search(line)]
+    print("\n".join(others[-40:]) or "(nothing besides the database trace)")
+    # The trace's tail is what matters: the last statement that started and
+    # never finished.
+    print("--- database trace, last 40 of %d lines ---" % len(trace))
+    print("\n".join(trace[-40:]) or "(no trace)")
     print("workers: %s" % ([w.url for w in page.workers] or "(none)"))
     try:
         print("probe: %s" % page.evaluate(PAGE_PROBE))
@@ -478,7 +546,10 @@ def report_failure(page, request, heard):
     if folder:
         os.makedirs(folder, exist_ok=True)
         name = re.sub(r"[^a-z0-9]+", "-", request.node.name.lower())
-        page.screenshot(path=os.path.join(folder, name + ".png"))
+        try:
+            page.screenshot(path=os.path.join(folder, name + ".png"))
+        except Exception as error:  # a crashed page has nothing to show
+            print("screenshot failed: %s" % error)
 
 
 # Firefox on the runner has no WebGL, and Flutter's CPU-only fallback is too
