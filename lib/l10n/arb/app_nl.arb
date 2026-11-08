@@ -12851,6 +12851,7 @@
   "dataQuality_msg_missingSwitchSeparator": "; ",
   "dataQuality_msg_missingSwitchDeep": "Er is geen gaswissel vastgelegd. Fles {tankNumber} ({gas}) verloor druk op {depth}, dieper dan haar MOD van {mod}, dus er wordt geen wissel naar deze fles voorgesteld.",
   "dataQuality_msg_missingSwitchDeepAlso": "Fles {tankNumber} ({gas}) verloor ook druk op {depth}, dieper dan haar MOD van {mod}, dus er wordt geen wissel naar deze fles voorgesteld.",
+  "dataQuality_msg_missingSwitchUnplaced": "Er is geen gaswissel vastgelegd. Fles {tankNumber} ({gas}) werd vanaf {time} na een pauze opnieuw geademd, dus in de tussentijd werd een andere fles geademd, en met meer dan twee flessen tonen de drukken niet welke. Voeg de wissels toe in de duikeditor.",
   "dataQuality_detector_transmitter_role": "Rol van de zender",
   "dataQuality_msg_transmitterRoleBailout": "Fles {tankNumber} staat op basis van de zendernaam als {role} gemarkeerd, maar verloor {ocDrop} na de overstap naar open circuit en vrijwel niets op de loop, dus het lijkt de bailout te zijn. Een bailout die nooit is geademd, of zonder gaswissel op de computer, is zo niet te herkennen.",
   "dataQuality_msg_twinTanks": "Twee flessen hebben een vrijwel identieke drukreeks",

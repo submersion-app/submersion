@@ -41929,6 +41929,15 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'No gas switch was recorded. Cylinder $tankNumber ($gas) was breathed again from $time after a pause, so another cylinder was breathed in between, and with more than two cylinders the pressures cannot show which. Add the switches in the dive editor.';
+  }
+
+  @override
   String get dataQuality_detector_transmitter_role => 'Transmitter role';
 
   @override

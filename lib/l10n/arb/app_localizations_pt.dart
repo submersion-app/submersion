@@ -42612,6 +42612,15 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'Nenhuma troca de gás foi registrada. O cilindro $tankNumber ($gas) voltou a ser respirado a partir de $time após uma pausa, então outro cilindro foi respirado nesse intervalo, e com mais de dois cilindros as pressões não mostram qual. Adicione as trocas no editor de mergulho.';
+  }
+
+  @override
   String get dataQuality_detector_transmitter_role => 'Função do transmissor';
 
   @override

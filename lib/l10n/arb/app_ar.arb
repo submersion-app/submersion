@@ -12851,6 +12851,7 @@
   "dataQuality_msg_missingSwitchSeparator": "؛ ",
   "dataQuality_msg_missingSwitchDeep": "لم يُسجَّل أي تبديل للغاز. فقدت الأسطوانة {tankNumber} ({gas}) ضغطًا عند {depth}، أعمق من MOD الخاص بها البالغ {mod}، لذا لا يُقترح التبديل إليها.",
   "dataQuality_msg_missingSwitchDeepAlso": "فقدت الأسطوانة {tankNumber} ({gas}) أيضًا ضغطًا عند {depth}، أعمق من MOD الخاص بها البالغ {mod}، لذا لا يُقترح التبديل إليها.",
+  "dataQuality_msg_missingSwitchUnplaced": "لم يُسجَّل أي تبديل للغاز. تُنفِّس من الأسطوانة {tankNumber} ({gas}) مجددًا بدءًا من {time} بعد توقف، لذا تُنفِّس من أسطوانة أخرى في الأثناء، ومع أكثر من أسطوانتين لا تُظهر الضغوط أيّها. أضف التبديلات في محرر الغطسة.",
   "dataQuality_detector_transmitter_role": "دور جهاز الإرسال",
   "dataQuality_msg_transmitterRoleBailout": "الأسطوانة {tankNumber} معلَّمة على أنها {role} بناءً على اسم جهاز الإرسال، لكنها فقدت {ocDrop} بعد التحويل إلى الدائرة المفتوحة ولم تفقد شيئًا تقريبًا على الدائرة المغلقة، لذا يبدو أنها أسطوانة غاز الطوارئ. لا يمكن بهذه الطريقة اكتشاف غاز طوارئ لم يُتنفَّس منه، أو استُخدم دون تبديل الغاز على الكمبيوتر.",
   "dataQuality_msg_twinTanks": "تحمل أسطوانتان سلسلة ضغط شبه متطابقة",

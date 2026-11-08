@@ -42397,6 +42397,15 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'Nem rögzült gázváltás. A(z) $tankNumber. palackból ($gas) szünet után $time időponttól ismét lélegeztek, így közben egy másik palackból lélegeztek, és kettőnél több palacknál a nyomások nem mutatják meg, melyikből. Add hozzá a váltásokat a merülésszerkesztőben.';
+  }
+
+  @override
   String get dataQuality_detector_transmitter_role => 'Jeladó szerepe';
 
   @override

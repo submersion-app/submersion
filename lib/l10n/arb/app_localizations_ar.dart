@@ -43190,6 +43190,15 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'لم يُسجَّل أي تبديل للغاز. تُنفِّس من الأسطوانة $tankNumber ($gas) مجددًا بدءًا من $time بعد توقف، لذا تُنفِّس من أسطوانة أخرى في الأثناء، ومع أكثر من أسطوانتين لا تُظهر الضغوط أيّها. أضف التبديلات في محرر الغطسة.';
+  }
+
+  @override
   String get dataQuality_detector_transmitter_role => 'دور جهاز الإرسال';
 
   @override

@@ -40145,6 +40145,15 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return '没有记录换气。气瓶 $tankNumber（$gas）在暂停后从 $time 起再次被呼吸，因此期间呼吸的是另一个气瓶；气瓶多于两个时，压力无法显示是哪一个。请在潜水编辑器中添加换气。';
+  }
+
+  @override
   String get dataQuality_detector_transmitter_role => '发射器角色';
 
   @override

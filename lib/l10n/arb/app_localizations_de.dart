@@ -42553,6 +42553,15 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'Es wurde kein Gaswechsel aufgezeichnet. Flasche $tankNumber ($gas) wurde ab $time nach einer Pause wieder geatmet, dazwischen wurde also eine andere Flasche geatmet, und bei mehr als zwei Flaschen zeigen die Drücke nicht, welche. Trage die Wechsel im Tauchgang-Editor ein.';
+  }
+
+  @override
   String get dataQuality_detector_transmitter_role => 'Senderrolle';
 
   @override

@@ -12851,6 +12851,7 @@
   "dataQuality_msg_missingSwitchSeparator": "; ",
   "dataQuality_msg_missingSwitchDeep": "לא נרשמה החלפת גז. בלון {tankNumber} ({gas}) איבד לחץ ב-{depth}, עמוק מה-MOD שלו של {mod}, ולכן לא מוצעת החלפה אליו.",
   "dataQuality_msg_missingSwitchDeepAlso": "גם בלון {tankNumber} ({gas}) איבד לחץ ב-{depth}, עמוק מה-MOD שלו של {mod}, ולכן לא מוצעת החלפה אליו.",
+  "dataQuality_msg_missingSwitchUnplaced": "לא נרשמה החלפת גז. מבלון {tankNumber} ({gas}) נשמו שוב החל מ-{time} אחרי הפסקה, כך שבינתיים נשמו מבלון אחר, ועם יותר משני בלונים הלחצים לא מראים מאיזה. הוסף את ההחלפות בעורך הצלילה.",
   "dataQuality_detector_transmitter_role": "תפקיד המשדר",
   "dataQuality_msg_transmitterRoleBailout": "בלון {tankNumber} מסומן כ{role} לפי שם המשדר, אבל הוא איבד {ocDrop} אחרי המעבר למעגל פתוח וכמעט כלום בלולאה, כך שנראה שזה בלון החירום. בלון חירום שלא נשמו ממנו, או שנשמו ממנו בלי החלפת גז במחשב, אי אפשר לזהות כך.",
   "dataQuality_msg_twinTanks": "שני בלונים נושאים סדרת לחץ כמעט זהה",

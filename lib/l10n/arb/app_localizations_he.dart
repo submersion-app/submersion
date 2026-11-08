@@ -41600,6 +41600,15 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'לא נרשמה החלפת גז. מבלון $tankNumber ($gas) נשמו שוב החל מ-$time אחרי הפסקה, כך שבינתיים נשמו מבלון אחר, ועם יותר משני בלונים הלחצים לא מראים מאיזה. הוסף את ההחלפות בעורך הצלילה.';
+  }
+
+  @override
   String get dataQuality_detector_transmitter_role => 'תפקיד המשדר';
 
   @override

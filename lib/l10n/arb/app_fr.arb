@@ -12851,6 +12851,7 @@
   "dataQuality_msg_missingSwitchSeparator": " ; ",
   "dataQuality_msg_missingSwitchDeep": "Aucun changement de gaz n'a été enregistré. Le bloc {tankNumber} ({gas}) a perdu de la pression à {depth}, plus profond que sa MOD de {mod} ; aucun changement vers ce bloc n'est donc proposé.",
   "dataQuality_msg_missingSwitchDeepAlso": "Le bloc {tankNumber} ({gas}) a aussi perdu de la pression à {depth}, plus profond que sa MOD de {mod} ; aucun changement vers ce bloc n'est donc proposé.",
+  "dataQuality_msg_missingSwitchUnplaced": "Aucun changement de gaz n'a été enregistré. Le bloc {tankNumber} ({gas}) a de nouveau été respiré à partir de {time} après une pause : un autre bloc a donc été respiré entre-temps, et avec plus de deux blocs, les pressions ne permettent pas de savoir lequel. Ajoutez les changements dans l'éditeur de plongée.",
   "dataQuality_detector_transmitter_role": "Rôle de l'émetteur",
   "dataQuality_msg_transmitterRoleBailout": "Le bloc {tankNumber} est marqué {role} d'après le nom de son émetteur, mais il a perdu {ocDrop} après le passage en circuit ouvert et presque rien sur la boucle : c'est donc probablement le bailout. Un bailout jamais respiré, ou respiré sans changement de gaz sur l'ordinateur, ne peut pas être détecté ainsi.",
   "dataQuality_msg_twinTanks": "Deux blocs présentent une série de pression quasi identique",

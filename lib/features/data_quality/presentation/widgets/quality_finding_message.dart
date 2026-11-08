@@ -273,7 +273,8 @@ String qualityDurationLabel(AppLocalizations l10n, int seconds) => seconds < 120
     : l10n.dataQuality_unit_minutes((seconds / 60).round());
 
 /// The missing-switch finding's text (issue #165): every switch it offers,
-/// then every start it held back for being deeper than its gas's MOD.
+/// or the restart that kept it from offering any, then every start it held
+/// back for being deeper than its gas's MOD.
 String _missingSwitchDetail(
   AppLocalizations l10n,
   Map<String, Object?> p,
@@ -296,6 +297,10 @@ String _missingSwitchDetail(
 
   final switches = entries('missingSwitches');
   final deep = entries('deepStarts');
+  final restart = switch (p['unplacedRestart']) {
+    final Map map => map.cast<String, Object?>(),
+    _ => null,
+  };
   final sentences = <String>[
     if (switches.isNotEmpty)
       l10n.dataQuality_msg_missingSwitches(
@@ -311,10 +316,16 @@ String _missingSwitchDetail(
             )
             .join(l10n.dataQuality_msg_missingSwitchSeparator),
       ),
-    // Every too-deep start, the first opening the message when no switch
-    // can be offered.
+    if (restart != null)
+      l10n.dataQuality_msg_missingSwitchUnplaced(
+        number(restart),
+        gas(restart),
+        formatMinutesSeconds((restart['t'] as num?)?.toInt() ?? 0),
+      ),
+    // Every too-deep start, the first opening the message when nothing
+    // before it does.
     for (final (i, e) in deep.indexed)
-      (i == 0 && switches.isEmpty
+      (i == 0 && switches.isEmpty && restart == null
           ? l10n.dataQuality_msg_missingSwitchDeep
           : l10n.dataQuality_msg_missingSwitchDeepAlso)(
         number(e),

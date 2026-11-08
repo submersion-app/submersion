@@ -12851,6 +12851,7 @@
   "dataQuality_msg_missingSwitchSeparator": "; ",
   "dataQuality_msg_missingSwitchDeep": "Nessun cambio gas registrato. La bombola {tankNumber} ({gas}) ha perso pressione a {depth}, più in profondità della sua MOD di {mod}, quindi non viene suggerito un cambio su di essa.",
   "dataQuality_msg_missingSwitchDeepAlso": "Anche la bombola {tankNumber} ({gas}) ha perso pressione a {depth}, più in profondità della sua MOD di {mod}, quindi non viene suggerito un cambio su di essa.",
+  "dataQuality_msg_missingSwitchUnplaced": "Nessun cambio gas registrato. La bombola {tankNumber} ({gas}) è stata respirata di nuovo da {time} dopo una pausa, quindi nel frattempo è stata respirata un'altra bombola, e con più di due bombole le pressioni non mostrano quale. Aggiungi i cambi nell'editor dell'immersione.",
   "dataQuality_detector_transmitter_role": "Ruolo del trasmettitore",
   "dataQuality_msg_transmitterRoleBailout": "La bombola {tankNumber} è indicata come {role} in base al nome del trasmettitore, ma ha perso {ocDrop} dopo il passaggio al circuito aperto e quasi nulla nel loop, quindi sembra essere il bailout. Un bailout mai respirato, o respirato senza un cambio gas sul computer, non può essere rilevato in questo modo.",
   "dataQuality_msg_twinTanks": "Due bombole presentano una serie di pressione quasi identica",

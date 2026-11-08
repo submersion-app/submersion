@@ -42646,6 +42646,15 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'Nessun cambio gas registrato. La bombola $tankNumber ($gas) è stata respirata di nuovo da $time dopo una pausa, quindi nel frattempo è stata respirata un\'altra bombola, e con più di due bombole le pressioni non mostrano quale. Aggiungi i cambi nell\'editor dell\'immersione.';
+  }
+
+  @override
   String get dataQuality_detector_transmitter_role => 'Ruolo del trasmettitore';
 
   @override

@@ -67087,6 +67087,16 @@ abstract class AppLocalizations {
     String mod,
   );
 
+  /// Missing gas switch finding on a dive with more than two cylinders: cylinder {tankNumber} started being breathed again at {time} (minutes:seconds from the start of the dive) after a pause, so another cylinder was breathed in between and no switch is suggested.
+  ///
+  /// In en, this message translates to:
+  /// **'No gas switch was recorded. Cylinder {tankNumber} ({gas}) was breathed again from {time} after a pause, so another cylinder was breathed in between, and with more than two cylinders the pressures cannot show which. Add the switches in the dive editor.'**
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  );
+
   /// No description provided for @dataQuality_detector_transmitter_role.
   ///
   /// In en, this message translates to:

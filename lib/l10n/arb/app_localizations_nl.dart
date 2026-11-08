@@ -42348,6 +42348,15 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'Er is geen gaswissel vastgelegd. Fles $tankNumber ($gas) werd vanaf $time na een pauze opnieuw geademd, dus in de tussentijd werd een andere fles geademd, en met meer dan twee flessen tonen de drukken niet welke. Voeg de wissels toe in de duikeditor.';
+  }
+
+  @override
   String get dataQuality_detector_transmitter_role => 'Rol van de zender';
 
   @override

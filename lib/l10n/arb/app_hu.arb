@@ -12851,6 +12851,7 @@
   "dataQuality_msg_missingSwitchSeparator": "; ",
   "dataQuality_msg_missingSwitchDeep": "Nem rögzült gázváltás. A(z) {tankNumber}. palack ({gas}) {depth} mélységben vesztett nyomást, mélyebben a {mod} MOD-jánál, ezért nem javaslunk rá váltást.",
   "dataQuality_msg_missingSwitchDeepAlso": "A(z) {tankNumber}. palack ({gas}) is vesztett nyomást {depth} mélységben, mélyebben a {mod} MOD-jánál, ezért nem javaslunk rá váltást.",
+  "dataQuality_msg_missingSwitchUnplaced": "Nem rögzült gázváltás. A(z) {tankNumber}. palackból ({gas}) szünet után {time} időponttól ismét lélegeztek, így közben egy másik palackból lélegeztek, és kettőnél több palacknál a nyomások nem mutatják meg, melyikből. Add hozzá a váltásokat a merülésszerkesztőben.",
   "dataQuality_detector_transmitter_role": "Jeladó szerepe",
   "dataQuality_msg_transmitterRoleBailout": "A(z) {tankNumber}. palack a jeladó neve alapján {role} szerepű, de a nyitott körre váltás után {ocDrop} nyomást veszített, a hurkon szinte semmit, így valószínűleg ez a bailout. A soha be nem lélegzett, vagy a komputeren gázváltás nélkül használt bailout így nem ismerhető fel.",
   "dataQuality_msg_twinTanks": "Két palack majdnem azonos nyomássorozatot mutat",

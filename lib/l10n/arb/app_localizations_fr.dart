@@ -42754,6 +42754,15 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'Aucun changement de gaz n\'a été enregistré. Le bloc $tankNumber ($gas) a de nouveau été respiré à partir de $time après une pause : un autre bloc a donc été respiré entre-temps, et avec plus de deux blocs, les pressions ne permettent pas de savoir lequel. Ajoutez les changements dans l\'éditeur de plongée.';
+  }
+
+  @override
   String get dataQuality_detector_transmitter_role => 'Rôle de l\'émetteur';
 
   @override

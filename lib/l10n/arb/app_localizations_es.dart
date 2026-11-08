@@ -42665,6 +42665,15 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'No se registró ningún cambio de gas. El tanque $tankNumber ($gas) se volvió a respirar desde $time tras una pausa, así que entretanto se respiró otro tanque, y con más de dos tanques las presiones no muestran cuál. Añade los cambios en el editor de inmersiones.';
+  }
+
+  @override
   String get dataQuality_detector_transmitter_role => 'Función del transmisor';
 
   @override

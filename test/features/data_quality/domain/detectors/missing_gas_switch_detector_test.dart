@@ -61,6 +61,7 @@ DiveQualityContext decoDive({
   DiveMode diveMode = DiveMode.oc,
   TankRole decoRole = TankRole.deco,
   List<QualitySample>? samples,
+  bool switchesEdited = false,
 }) => makeContext(
   dive: makeTestDive(
     diveMode: diveMode,
@@ -68,7 +69,7 @@ DiveQualityContext decoDive({
       tank(id: 'back', order: 0),
       tank(id: 'deco', order: 1, o2: 50, role: decoRole),
     ],
-  ),
+  ).copyWith(gasSwitchesEdited: switchesEdited),
   samples: samples ?? profile(3000, (t) => t < 1800 ? 30 : switchDepth),
   pressures: {
     'back': pressure(end: 3000, startBar: 200, falling: (t) => t <= 1800),
@@ -114,6 +115,14 @@ void main() {
       ),
     );
     expect(missingSwitchFinding(findings), isNull);
+  });
+
+  test('a switch list the diver emptied in the editor is left alone', () {
+    // An empty list the diver owns is their call, not a missing switch.
+    expect(
+      missingSwitchFinding(det.detect(decoDive(switchesEdited: true))),
+      isNull,
+    );
   });
 
   test('a start deeper than the gas MOD is reported, never suggested', () {
@@ -211,6 +220,158 @@ void main() {
     expect(switches[0]['t'] as int, closeTo(600, 30));
     expect(switches[1]['t'] as int, closeTo(1200, 30));
     expect(switches[2]['t'] as int, closeTo(1800, 30));
+  });
+
+  test('one-sided sidemount: every hand-over to the other cylinder', () {
+    // Only the right cylinder carries a transmitter. It is breathed from
+    // 10:00 to 20:00 and again from 30:00 to 40:00, so the diver was on the
+    // left one from 20:00 to 30:00 and from 40:00 to the end.
+    bool onRight(int t) => (t > 600 && t <= 1200) || (t > 1800 && t <= 2400);
+    final ctx = makeContext(
+      dive: makeTestDive(
+        tanks: [
+          tank(id: 'left', order: 0, role: TankRole.sidemountLeft),
+          tank(id: 'right', order: 1, role: TankRole.sidemountRight),
+        ],
+      ),
+      samples: profile(3000, (_) => 18),
+      pressures: {
+        'right': pressure(end: 3000, startBar: 200, falling: onRight),
+      },
+    );
+
+    final finding = missingSwitchFinding(det.detect(ctx));
+    final switches = [
+      for (final s in finding!.params['missingSwitches'] as List) s as Map,
+    ];
+    expect(
+      [for (final s in switches) s['tankId']],
+      ['right', 'left', 'right', 'left'],
+    );
+    expect(switches[0]['t'] as int, closeTo(600, 30));
+    expect(switches[1]['t'] as int, closeTo(1200, 30));
+    expect(switches[2]['t'] as int, closeTo(1800, 30));
+    expect(switches[3]['t'] as int, closeTo(2400, 30));
+    expect(switches[1]['depth'], 18);
+    expect(finding.params.containsKey('unplacedRestart'), isFalse);
+  });
+
+  test('a back gas transmitter alone shows the switch to the deco bottle', () {
+    // The EAN50 carries no transmitter. The diver reaches 21 m at 29:00 and
+    // switches at 30:00, where back gas stops falling and then holds.
+    final ctx = makeContext(
+      dive: makeTestDive(
+        tanks: [
+          tank(id: 'back', order: 0),
+          tank(id: 'deco', order: 1, o2: 50, role: TankRole.deco),
+        ],
+      ),
+      samples: profile(3000, (t) => t < 1740 ? 30 : 21),
+      pressures: {
+        'back': pressure(end: 3000, startBar: 200, falling: (t) => t <= 1800),
+      },
+    );
+
+    final finding = missingSwitchFinding(det.detect(ctx));
+    final first = (finding!.params['missingSwitches'] as List).single as Map;
+    expect(first['tankId'], 'deco');
+    expect(first['t'] as int, closeTo(1800, 30));
+    expect(first['depth'], 21);
+  });
+
+  test('a cylinder left at the surface hands over to nothing', () {
+    // Back gas is breathed until the diver surfaces at 47:50; the
+    // transmitter goes on logging the full cylinder at the surface.
+    final ctx = makeContext(
+      dive: makeTestDive(
+        tanks: [
+          tank(id: 'back', order: 0),
+          tank(id: 'deco', order: 1, o2: 50, role: TankRole.deco),
+        ],
+      ),
+      samples: profile(3000, (t) => t < 2870 ? 20 : 0),
+      pressures: {
+        'back': pressure(end: 3000, startBar: 200, falling: (t) => t < 2870),
+      },
+    );
+
+    expect(missingSwitchFinding(det.detect(ctx)), isNull);
+  });
+
+  test('a transmitter that stops reporting hands over to nothing', () {
+    // The back gas readings end mid-fall at 30:00; nothing shows it held.
+    final ctx = makeContext(
+      dive: makeTestDive(
+        tanks: [
+          tank(id: 'back', order: 0),
+          tank(id: 'deco', order: 1, o2: 50, role: TankRole.deco),
+        ],
+      ),
+      samples: profile(3000, (_) => 20),
+      pressures: {
+        'back': pressure(end: 1800, startBar: 200, falling: (_) => true),
+      },
+    );
+
+    expect(missingSwitchFinding(det.detect(ctx)), isNull);
+  });
+
+  test('an inferred return deeper than its MOD is named only once', () {
+    // Back gas breathed to 10:00, the EAN50 at 40 m from 10:00 to 20:00,
+    // then back gas again. The EAN50's own start is the too-deep one; the
+    // return inferred from the back gas restart lands on the same moment.
+    final ctx = makeContext(
+      dive: makeTestDive(
+        tanks: [
+          tank(id: 'back', order: 0),
+          tank(id: 'deco', order: 1, o2: 50, role: TankRole.deco),
+        ],
+      ),
+      samples: profile(3000, (_) => 40),
+      pressures: {
+        'back': pressure(
+          end: 3000,
+          startBar: 200,
+          falling: (t) => t <= 600 || t > 1200,
+        ),
+        'deco': pressure(
+          end: 3000,
+          startBar: 200,
+          falling: (t) => t > 600 && t <= 1200,
+        ),
+      },
+    );
+
+    final finding = missingSwitchFinding(det.detect(ctx));
+    expect(finding!.params['missingSwitches'], isEmpty);
+    final deep = finding.params['deepStarts'] as List;
+    expect(deep, hasLength(1));
+    expect((deep.single as Map)['tankId'], 'deco');
+  });
+
+  test('a restart with more than two cylinders offers no switch', () {
+    // Back gas and the O2 carry no transmitter, so when the EAN50 is
+    // breathed again at 30:00 the pressures cannot say which one the diver
+    // was on from 20:00.
+    bool onDeco(int t) => (t > 600 && t <= 1200) || (t > 1800 && t <= 2400);
+    final ctx = makeContext(
+      dive: makeTestDive(
+        tanks: [
+          tank(id: 'back', order: 0),
+          tank(id: 'deco', order: 1, o2: 50, role: TankRole.deco),
+          tank(id: 'o2', order: 2, o2: 100, role: TankRole.deco),
+        ],
+      ),
+      samples: profile(3000, (_) => 6),
+      pressures: {'deco': pressure(end: 3000, startBar: 200, falling: onDeco)},
+    );
+
+    final finding = missingSwitchFinding(det.detect(ctx));
+    expect(finding!.params['missingSwitches'], isEmpty);
+    final restart = finding.params['unplacedRestart'] as Map;
+    expect(restart['tankId'], 'deco');
+    expect(restart['tankPosition'], 1);
+    expect(restart['t'] as int, closeTo(1800, 30));
   });
 
   test('a start after the profile ends is not a switch', () {

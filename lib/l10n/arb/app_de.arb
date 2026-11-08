@@ -13005,6 +13005,7 @@
   "dataQuality_msg_missingSwitchSeparator": "; ",
   "dataQuality_msg_missingSwitchDeep": "Es wurde kein Gaswechsel aufgezeichnet. Flasche {tankNumber} ({gas}) verlor bei {depth} Druck, tiefer als ihre MOD von {mod}, daher wird kein Wechsel darauf vorgeschlagen.",
   "dataQuality_msg_missingSwitchDeepAlso": "Flasche {tankNumber} ({gas}) verlor außerdem bei {depth} Druck, tiefer als ihre MOD von {mod}, daher wird kein Wechsel darauf vorgeschlagen.",
+  "dataQuality_msg_missingSwitchUnplaced": "Es wurde kein Gaswechsel aufgezeichnet. Flasche {tankNumber} ({gas}) wurde ab {time} nach einer Pause wieder geatmet, dazwischen wurde also eine andere Flasche geatmet, und bei mehr als zwei Flaschen zeigen die Drücke nicht, welche. Trage die Wechsel im Tauchgang-Editor ein.",
   "dataQuality_detector_transmitter_role": "Senderrolle",
   "dataQuality_msg_transmitterRoleBailout": "Flasche {tankNumber} ist nach dem Sendernamen als {role} markiert, verlor aber {ocDrop} nach dem Wechsel auf offenen Kreislauf und im Kreislauf fast nichts. Sie ist also wohl das Bailout. Ein nie geatmetes Bailout oder eines ohne Gaswechsel am Computer lässt sich so nicht erkennen.",
   "dataQuality_msg_twinTanks": "Zwei Flaschen weisen eine nahezu identische Druckreihe auf",

@@ -12851,6 +12851,7 @@
   "dataQuality_msg_missingSwitchSeparator": "; ",
   "dataQuality_msg_missingSwitchDeep": "Nenhuma troca de gás foi registrada. O cilindro {tankNumber} ({gas}) perdeu pressão a {depth}, mais fundo que a sua MOD de {mod}, por isso não é sugerida uma troca para ele.",
   "dataQuality_msg_missingSwitchDeepAlso": "O cilindro {tankNumber} ({gas}) também perdeu pressão a {depth}, mais fundo que a sua MOD de {mod}, por isso não é sugerida uma troca para ele.",
+  "dataQuality_msg_missingSwitchUnplaced": "Nenhuma troca de gás foi registrada. O cilindro {tankNumber} ({gas}) voltou a ser respirado a partir de {time} após uma pausa, então outro cilindro foi respirado nesse intervalo, e com mais de dois cilindros as pressões não mostram qual. Adicione as trocas no editor de mergulho.",
   "dataQuality_detector_transmitter_role": "Função do transmissor",
   "dataQuality_msg_transmitterRoleBailout": "O cilindro {tankNumber} está marcado como {role} pelo nome do transmissor, mas perdeu {ocDrop} após a troca para circuito aberto e quase nada no circuito fechado, por isso parece ser o bailout. Um bailout que nunca foi respirado, ou respirado sem troca de gás no computador, não pode ser detectado assim.",
   "dataQuality_msg_twinTanks": "Dois cilindros apresentam uma série de pressão quase idêntica",

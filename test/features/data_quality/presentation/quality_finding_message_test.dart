@@ -452,6 +452,37 @@ void main() {
       );
     });
 
+    test('a restart that cannot be placed says why no switch is offered', () {
+      final detail = detailFor('missing_gas_switch', {
+        'missingSwitches': const [],
+        'deepStarts': const [],
+        'unplacedRestart': start(number: 2, t: 1800, depth: 6),
+      });
+      expect(
+        detail,
+        'No gas switch was recorded. Cylinder 2 (EAN50) was breathed again '
+        'from 30:00 after a pause, so another cylinder was breathed in '
+        'between, and with more than two cylinders the pressures cannot show '
+        'which. Add the switches in the dive editor.',
+      );
+    });
+
+    test('a too-deep start after an unplaced restart reads as also', () {
+      final detail = detailFor('missing_gas_switch', {
+        'missingSwitches': const [],
+        'deepStarts': [start(number: 3, t: 600, depth: 30, o2: 100, mod: 6)],
+        'unplacedRestart': start(number: 2, t: 1800, depth: 6),
+      });
+      expect(detail, startsWith('No gas switch was recorded. Cylinder 2'));
+      expect(
+        detail,
+        endsWith(
+          ' Cylinder 3 (Oxygen) also lost pressure at D30.0, deeper than its '
+          'MOD of L6.0, so no switch to it is suggested.',
+        ),
+      );
+    });
+
     test('switches and a too-deep start read as two sentences', () {
       final detail = detailFor('missing_gas_switch', {
         'missingSwitches': [start(number: 3, t: 2730, depth: 6, o2: 100)],
