@@ -410,6 +410,36 @@ void main() {
       }
     });
 
+    test('retries a dive whose profile failed to read beside one that read '
+        'fine', () async {
+      await insertTechDive('bad', day: 1);
+      await insertTechDive('good', day: 2);
+      final series = await (db.select(
+        db.diveProfileSeries,
+      )..where((t) => t.diveId.equals('bad'))).getSingle();
+      Future<void> writeSamples(Uint8List bytes) =>
+          (db.update(db.diveProfileSeries)
+                ..where((t) => t.id.equals(series.id)))
+              .write(DiveProfileSeriesCompanion(samples: Value(bytes)));
+
+      // Bytes the codec cannot decode: the batch read leaves this dive out
+      // and still returns the other one. The stamp does not move.
+      await writeSamples(Uint8List.fromList(const [1, 2, 3, 4]));
+      await repository.getRoleConsumptionPerDive();
+      await writeSamples(series.samples);
+
+      final retried = await repository.getRoleConsumptionPerDive();
+      final alone = await InsightsRepository(
+        gasModel: GasModel.real,
+      ).getRoleConsumptionPerDive();
+      for (final group in alone.rmv.keys) {
+        expect(
+          retried.rmv[group]!.map((p) => p.value),
+          alone.rmv[group]!.map((p) => p.value),
+        );
+      }
+    });
+
     test('drops a deleted dive', () async {
       await insertDive('gone');
       await insertTank('gone', 'gone-back', 'backGas');

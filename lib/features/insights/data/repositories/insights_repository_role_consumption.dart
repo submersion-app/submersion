@@ -83,7 +83,7 @@ extension InsightsRepositoryRoleConsumption on InsightsRepository {
   /// work out the same dives side by side, and the older could store its
   /// figures over the newer's.
   ///
-  /// Returns the figures of chunks whose batch reads came back incomplete:
+  /// Returns the figures of dives whose batch reads came back incomplete:
   /// this read shows them, and the memo does not keep them.
   Future<Map<String, DiveRoleConsumption>> _refreshRoleConsumption(
     List<_RoleConsumptionDiveRow> rows,
@@ -102,9 +102,12 @@ extension InsightsRepositoryRoleConsumption on InsightsRepository {
       };
       final unkept = <String, DiveRoleConsumption>{};
       for (final chunk in InsightsRepository._diveChunks(stale.keys.toList())) {
-        final (:uses, :complete) = await _roleConsumptionForDives(chunk, stale);
+        final (:uses, :incomplete) = await _roleConsumptionForDives(
+          chunk,
+          stale,
+        );
         for (final MapEntry(key: id, value: use) in uses.entries) {
-          if (complete) {
+          if (!incomplete.contains(id)) {
             memo[id] = (version: stale[id]!.version, use: use);
           } else {
             unkept[id] = use;
@@ -121,10 +124,11 @@ extension InsightsRepositoryRoleConsumption on InsightsRepository {
   /// the dive detail's own per-cylinder calculation on each, with depth from
   /// its 120-point profile summary.
   ///
-  /// Not [complete] when the gas switch or profile summary read came back
-  /// empty although a dive of the chunk has some: both reads log a failure
-  /// and return nothing rather than throw.
-  Future<({Map<String, DiveRoleConsumption> uses, bool complete})>
+  /// A dive is [incomplete] when the gas switch or profile summary read left
+  /// it out although it has some. Both reads log a failure and return
+  /// nothing rather than throw, and the profile read also leaves out just
+  /// the dives whose series it could not decode.
+  Future<({Map<String, DiveRoleConsumption> uses, Set<String> incomplete})>
   _roleConsumptionForDives(
     List<String> ids,
     Map<String, _RoleConsumptionDiveRow> rowsById,
@@ -164,12 +168,13 @@ extension InsightsRepositoryRoleConsumption on InsightsRepository {
         ),
       );
     }
-    bool anyHas(bool Function(_RoleConsumptionDiveRow row) has) =>
-        ids.any((id) => has(rowsById[id]!));
-    final complete =
-        (switches.isNotEmpty || !anyHas((r) => r.hasSwitches)) &&
-        (profiles.isNotEmpty || !anyHas((r) => r.hasProfile));
-    return (uses: uses, complete: complete);
+    final incomplete = {
+      for (final id in uses.keys)
+        if ((rowsById[id]!.hasSwitches && !switches.containsKey(id)) ||
+            (rowsById[id]!.hasProfile && !profiles.containsKey(id)))
+          id,
+    };
+    return (uses: uses, incomplete: incomplete);
   }
 
   /// The dives in [scope] with at least one cylinder, with their primary
