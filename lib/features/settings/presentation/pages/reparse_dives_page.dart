@@ -29,28 +29,27 @@ class ReparseDivesOverview {
 /// Refreshed whenever a data source or dive row changes, so a download, a
 /// discard, a new manual dive or a synced change does not leave a stale
 /// count behind.
-final reparseDivesOverviewProvider = FutureProvider<ReparseDivesOverview>((
-  ref,
-) async {
-  final batch = ref.watch(reparseBatchServiceProvider);
-  final db = ref.watch(reparseServiceProvider).db;
-  ref.invalidateSelfWhen(
-    db.tableUpdates(
-      TableUpdateQuery.onAllTables([db.diveDataSources, db.dives]),
-    ),
-  );
-  final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
-  final (ids, byComputer, withoutRawData) = await (
-    batch.diveIdsWithRawData(diverId: diverId),
-    batch.rawDataCountsByComputer(diverId: diverId),
-    batch.diveCountWithoutRawData(diverId: diverId),
-  ).wait;
-  return ReparseDivesOverview(
-    total: ids.length,
-    byComputer: byComputer,
-    withoutRawData: withoutRawData,
-  );
-});
+final reparseDivesOverviewProvider =
+    FutureProvider.autoDispose<ReparseDivesOverview>((ref) async {
+      final batch = ref.watch(reparseBatchServiceProvider);
+      final db = ref.watch(reparseServiceProvider).db;
+      ref.invalidateSelfWhen(
+        db.tableUpdates(
+          TableUpdateQuery.onAllTables([db.diveDataSources, db.dives]),
+        ),
+      );
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      final (ids, byComputer, withoutRawData) = await (
+        batch.diveIdsWithRawData(diverId: diverId),
+        batch.rawDataCountsByComputer(diverId: diverId),
+        batch.diveCountWithoutRawData(diverId: diverId),
+      ).wait;
+      return ReparseDivesOverview(
+        total: ids.length,
+        byComputer: byComputer,
+        withoutRawData: withoutRawData,
+      );
+    });
 
 /// Settings > Data > Data tools > Re-parse dives (issue #224): re-runs the
 /// dive parser on every dive of the active diver that has stored raw data.

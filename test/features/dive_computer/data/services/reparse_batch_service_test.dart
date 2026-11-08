@@ -11,6 +11,19 @@ import 'package:submersion/features/dive_computer/data/services/reparse_service.
 import '../../../../core/database/change_log/change_log_support.dart';
 import '../../../../helpers/test_database.dart';
 
+/// Fails to read the sources of the dive named [broken].
+class _UnreadableDive extends ReparseService {
+  _UnreadableDive({required super.db, required this.broken});
+
+  final String broken;
+
+  @override
+  Future<List<DiveDataSourcesData>> getSourcesForDiveReparse(String diveId) {
+    if (diveId == broken) throw StateError('corrupt raw data');
+    return super.getSourcesForDiveReparse(diveId);
+  }
+}
+
 void main() {
   late AppDatabase db;
   late ReparseBatchService batch;
@@ -172,6 +185,21 @@ void main() {
         result.failures.single.error,
         'Failed to parse raw dive data: unsupported model',
       );
+    });
+
+    test('a dive whose sources cannot be read fails alone', () async {
+      batch = ReparseBatchService(_UnreadableDive(db: db, broken: 'd1'));
+      await addDive('d1');
+      await addDive('d2');
+      await addSource(id: 's1', diveId: 'd1');
+      await addSource(id: 's2', diveId: 'd2');
+
+      final result = await batch.run(['d1', 'd2'], parseFn: okParse);
+
+      expect(result.failures.single.diveId, 'd1');
+      expect(result.failures.single.error, contains('corrupt raw data'));
+      expect(result.succeeded, 1);
+      expect(await lastParsedAt('s2'), isNotNull);
     });
 
     test('counts missing descriptors as a failure', () async {

@@ -183,12 +183,14 @@ class _ResultsDialog extends ConsumerWidget {
                 style: theme.textTheme.titleSmall,
               ),
               Flexible(
-                child: ListView(
+                child: ListView.builder(
                   shrinkWrap: true,
-                  children: [
-                    for (final dive in state.failedDives)
-                      _FailedDiveTile(dive: dive, units: units, l10n: l10n),
-                  ],
+                  itemCount: state.failedDives.length,
+                  itemBuilder: (context, index) => _FailedDiveTile(
+                    dive: state.failedDives[index],
+                    units: units,
+                    l10n: l10n,
+                  ),
                 ),
               ),
             ],

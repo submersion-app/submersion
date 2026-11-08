@@ -276,10 +276,22 @@ class ReparseBatchService {
     RawDiveParseFn parseFn,
     String? computerId,
   ) async {
-    final sources = [
-      for (final s in await _reparse.getSourcesForDiveReparse(diveId))
-        if (computerId == null || s.computerId == computerId) s,
-    ];
+    final List<DiveDataSourcesData> sources;
+    try {
+      sources = [
+        for (final s in await _reparse.getSourcesForDiveReparse(diveId))
+          if (computerId == null || s.computerId == computerId) s,
+      ];
+    } catch (e, stackTrace) {
+      // One unreadable dive (a corrupt stored blob, say) fails that dive,
+      // not the run.
+      _log.error(
+        'Could not read the sources of dive $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return _Failed(reparseErrorText(e));
+    }
     if (sources.isEmpty) return const _Skipped();
 
     final parsed = <(DiveDataSourcesData, pigeon.ParsedDive)>[];
