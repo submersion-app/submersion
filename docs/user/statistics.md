@@ -63,7 +63,8 @@ a snapshot: if you edit a dive so that it no longer belongs, it stays in the
 list until you go back, and the chart then shows the new number. Back returns
 you to Insights, and removing the chip shows all your dives.
 
-Time at depth does not open dives, because it shows minutes rather than counts. Rankings of buddies, sites, gear and species
+Time at depth does not open dives, because it shows minutes rather than
+counts. Rankings of buddies, sites, gear and species
 open that item's own page.
 
 ## Overview
@@ -164,14 +165,16 @@ the chart give each line's average. Tap a dot to open the dive.
 
 - Each rate covers only the time you breathed that cylinder and the depth you
   were at then, so a deco gas breathed for ten minutes at 6 m reads as a deco
-  rate, not as a share of the whole dive. It is the same figure the dive shows
-  for that cylinder.
+  rate, not as a share of the whole dive. Where only one cylinder of a kind
+  was breathed, it is the figure the dive shows for that cylinder, to within a
+  few percent.
 - **Bottom gas** is your primary gas however you wear it: back gas, a twin set,
   or both cylinders of a sidemount pair together.
-- The gas switches on a dive say when each cylinder was breathed. A dive with a
-  stage or deco cylinder that lost gas but has no gas switches is left out of
-  every line, since nothing says when that gas was used, and a line under the
-  chart counts those dives. Add the switches on the dive to bring it back.
+- The gas switches on a dive say when each cylinder was breathed. A dive where
+  a stage, deco, pony or bailout cylinder lost gas with no gas switch onto it
+  is left out of every line, since nothing says when that gas was used, and a
+  line on the card counts those dives. Add the missing switch on the dive to
+  bring it back.
 - Open-circuit lines leave out CCR and SCR dives. A CCR dive counts only on the
   **Bailout** line, with the open-circuit rate while you were bailed out.
 - The SAC on this card follows the gas model in your settings, as the dive's own

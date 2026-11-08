@@ -30619,9 +30619,9 @@ class AppLocalizationsEs extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          '$count inmersiones con botella de etapa o descompresión no tienen cambios de gas, así que se omiten',
+          '$count inmersiones omitidas: una botella de etapa, descompresión, pony o bailout perdió gas sin un cambio de gas a ella',
       one:
-          '1 inmersión con botella de etapa o descompresión no tiene cambios de gas, así que se omite',
+          '$count inmersión omitida: una botella de etapa, descompresión, pony o bailout perdió gas sin un cambio de gas a ella',
     );
     return '$_temp0';
   }
@@ -31234,9 +31234,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get insights_focus_gas_trimix => 'Trimix';
 
   @override
-  String get insights_gas_tankRole_backGas => 'Gas principal';
-
-  @override
   String get insights_gas_tankRole_bailout => 'Bailout';
 
   @override
@@ -31246,22 +31243,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get insights_gas_tankRole_diluent => 'Diluyente';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'Suministro de O₂';
-
-  @override
   String get insights_gas_tankRole_pony => 'Pony';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => 'Sidemount izq.';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => 'Sidemount der.';
-
-  @override
   String get insights_gas_tankRole_stage => 'Stage';
-
-  @override
-  String get insights_gas_tankRole_twinSet => 'Bibotella';
 
   @override
   String get insights_geographic_appBar_title => 'Geográfico';

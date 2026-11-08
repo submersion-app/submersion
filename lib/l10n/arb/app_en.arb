@@ -17557,7 +17557,7 @@
   "insights_gas_roleUse_empty": "No cylinder role rates yet",
   "insights_gas_roleUse_error": "Failed to load consumption by cylinder role",
   "insights_gas_roleGroup_bottomGas": "Bottom gas",
-  "insights_gas_roleUse_leftOut": "{count, plural, =1{1 dive with a stage or deco cylinder has no gas switches, so it is left out} other{{count} dives with a stage or deco cylinder have no gas switches, so they are left out}}",
+  "insights_gas_roleUse_leftOut": "{count, plural, =1{{count} dive is left out: a stage, deco, pony or bailout cylinder lost gas with no gas switch onto it} other{{count} dives are left out: a stage, deco, pony or bailout cylinder lost gas with no gas switch onto it}}",
   "@insights_gas_roleUse_leftOut": {
     "placeholders": {
       "count": {"type": "int"}
@@ -17864,16 +17864,11 @@
   "insights_focus_gas_air": "Air",
   "insights_focus_gas_nitrox": "Nitrox",
   "insights_focus_gas_trimix": "Trimix",
-  "insights_gas_tankRole_backGas": "Back Gas",
   "insights_gas_tankRole_bailout": "Bailout",
   "insights_gas_tankRole_deco": "Deco",
   "insights_gas_tankRole_diluent": "Diluent",
-  "insights_gas_tankRole_oxygenSupply": "O₂ Supply",
   "insights_gas_tankRole_pony": "Pony",
-  "insights_gas_tankRole_sidemountLeft": "Sidemount L",
-  "insights_gas_tankRole_sidemountRight": "Sidemount R",
   "insights_gas_tankRole_stage": "Stage",
-  "insights_gas_tankRole_twinSet": "Twin Set",
   "insights_geographic_appBar_title": "Geographic",
   "insights_geographic_countries_empty": "No countries visited",
   "insights_geographic_countries_error": "Failed to load country data",

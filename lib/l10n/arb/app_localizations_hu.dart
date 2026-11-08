@@ -30455,9 +30455,9 @@ class AppLocalizationsHu extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          '$count merülésnél a stage- vagy dekópalackhoz nincs gázváltás, ezért kimaradnak',
+          '$count merülés kimaradt: egy stage-, dekó-, póni- vagy bailout-palack gázt vesztett, de nem volt rá gázváltás',
       one:
-          '1 merülésnél a stage- vagy dekópalackhoz nincs gázváltás, ezért kimarad',
+          '$count merülés kimaradt: egy stage-, dekó-, póni- vagy bailout-palack gázt vesztett, de nem volt rá gázváltás',
     );
     return '$_temp0';
   }
@@ -31061,9 +31061,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_focus_gas_trimix => 'Trimix';
 
   @override
-  String get insights_gas_tankRole_backGas => 'Háttérgáz';
-
-  @override
   String get insights_gas_tankRole_bailout => 'Bailout';
 
   @override
@@ -31073,22 +31070,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_gas_tankRole_diluent => 'Hígító';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'O₂ ellátás';
-
-  @override
   String get insights_gas_tankRole_pony => 'Pony';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => 'Sidemount B';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => 'Sidemount J';
-
-  @override
   String get insights_gas_tankRole_stage => 'Stage';
-
-  @override
-  String get insights_gas_tankRole_twinSet => 'Ikerpalack';
 
   @override
   String get insights_geographic_appBar_title => 'Földrajzi';

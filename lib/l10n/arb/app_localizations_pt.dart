@@ -30586,9 +30586,9 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          '$count mergulhos com cilindro de stage ou descompressão não têm trocas de gás, por isso ficaram de fora',
+          '$count mergulhos deixados de fora: um cilindro de stage, descompressão, pony ou bailout perdeu gás sem uma troca de gás para ele',
       one:
-          '$count mergulho com cilindro de stage ou descompressão não tem trocas de gás, por isso ficou de fora',
+          '$count mergulho deixado de fora: um cilindro de stage, descompressão, pony ou bailout perdeu gás sem uma troca de gás para ele',
     );
     return '$_temp0';
   }
@@ -31202,9 +31202,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get insights_focus_gas_trimix => 'Trimix';
 
   @override
-  String get insights_gas_tankRole_backGas => 'Gás Principal';
-
-  @override
   String get insights_gas_tankRole_bailout => 'Bailout';
 
   @override
@@ -31214,22 +31211,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get insights_gas_tankRole_diluent => 'Diluente';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'Suprimento de O₂';
-
-  @override
   String get insights_gas_tankRole_pony => 'Pony';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => 'Sidemount E';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => 'Sidemount D';
-
-  @override
   String get insights_gas_tankRole_stage => 'Stage';
-
-  @override
-  String get insights_gas_tankRole_twinSet => 'Bi-cilindro';
 
   @override
   String get insights_geographic_appBar_title => 'Geográfico';

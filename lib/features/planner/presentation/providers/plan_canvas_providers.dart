@@ -1,10 +1,14 @@
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
+import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/domain/role_consumption.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
@@ -19,10 +23,6 @@ import 'package:submersion/features/planner/domain/services/plan_state_outcome.d
 import 'package:submersion/features/planner/domain/services/segment_rate_split.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
-import 'package:submersion/core/constants/gas_consumption_display.dart';
-import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
-import 'package:submersion/features/insights/domain/role_consumption.dart';
 
 /// PlanEngine thresholds sourced from the diver's deco settings.
 final planEngineConfigProvider = Provider<PlanEngineConfig>((ref) {

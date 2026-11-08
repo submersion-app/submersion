@@ -49002,7 +49002,7 @@ abstract class AppLocalizations {
   /// No description provided for @insights_gas_roleUse_leftOut.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 dive with a stage or deco cylinder has no gas switches, so it is left out} other{{count} dives with a stage or deco cylinder have no gas switches, so they are left out}}'**
+  /// **'{count, plural, =1{{count} dive is left out: a stage, deco, pony or bailout cylinder lost gas with no gas switch onto it} other{{count} dives are left out: a stage, deco, pony or bailout cylinder lost gas with no gas switch onto it}}'**
   String insights_gas_roleUse_leftOut(int count);
 
   /// No description provided for @insights_gas_ccrUse_title.
@@ -49926,12 +49926,6 @@ abstract class AppLocalizations {
   /// **'Trimix'**
   String get insights_focus_gas_trimix;
 
-  /// No description provided for @insights_gas_tankRole_backGas.
-  ///
-  /// In en, this message translates to:
-  /// **'Back Gas'**
-  String get insights_gas_tankRole_backGas;
-
   /// No description provided for @insights_gas_tankRole_bailout.
   ///
   /// In en, this message translates to:
@@ -49950,41 +49944,17 @@ abstract class AppLocalizations {
   /// **'Diluent'**
   String get insights_gas_tankRole_diluent;
 
-  /// No description provided for @insights_gas_tankRole_oxygenSupply.
-  ///
-  /// In en, this message translates to:
-  /// **'O₂ Supply'**
-  String get insights_gas_tankRole_oxygenSupply;
-
   /// No description provided for @insights_gas_tankRole_pony.
   ///
   /// In en, this message translates to:
   /// **'Pony'**
   String get insights_gas_tankRole_pony;
 
-  /// No description provided for @insights_gas_tankRole_sidemountLeft.
-  ///
-  /// In en, this message translates to:
-  /// **'Sidemount L'**
-  String get insights_gas_tankRole_sidemountLeft;
-
-  /// No description provided for @insights_gas_tankRole_sidemountRight.
-  ///
-  /// In en, this message translates to:
-  /// **'Sidemount R'**
-  String get insights_gas_tankRole_sidemountRight;
-
   /// No description provided for @insights_gas_tankRole_stage.
   ///
   /// In en, this message translates to:
   /// **'Stage'**
   String get insights_gas_tankRole_stage;
-
-  /// No description provided for @insights_gas_tankRole_twinSet.
-  ///
-  /// In en, this message translates to:
-  /// **'Twin Set'**
-  String get insights_gas_tankRole_twinSet;
 
   /// No description provided for @insights_geographic_appBar_title.
   ///

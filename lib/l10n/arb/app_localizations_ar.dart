@@ -30853,15 +30853,15 @@ class AppLocalizationsAr extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          '$count غطسة بأسطوانة مرحلية أو تخفيف ضغط بلا تبديل غاز، لذا تم استبعادها',
+          '$count غطسة مستبعدة: أسطوانة مرحلية أو تخفيف ضغط أو احتياطية أو طوارئ فقدت غازًا دون تبديل غاز إليها',
       many:
-          '$count غطسة بأسطوانة مرحلية أو تخفيف ضغط بلا تبديل غاز، لذا تم استبعادها',
+          '$count غطسة مستبعدة: أسطوانة مرحلية أو تخفيف ضغط أو احتياطية أو طوارئ فقدت غازًا دون تبديل غاز إليها',
       few:
-          '$count غطسات بأسطوانة مرحلية أو تخفيف ضغط بلا تبديل غاز، لذا تم استبعادها',
+          '$count غطسات مستبعدة: أسطوانة مرحلية أو تخفيف ضغط أو احتياطية أو طوارئ فقدت غازًا دون تبديل غاز إليها',
       two:
-          'غطستان بأسطوانة مرحلية أو تخفيف ضغط بلا تبديل غاز، لذا تم استبعادهما',
+          'غطستان مستبعدتان: أسطوانة مرحلية أو تخفيف ضغط أو احتياطية أو طوارئ فقدت غازًا دون تبديل غاز إليها',
       one:
-          'غطسة واحدة بأسطوانة مرحلية أو تخفيف ضغط بلا تبديل غاز، لذا تم استبعادها',
+          'غطسة واحدة مستبعدة: أسطوانة مرحلية أو تخفيف ضغط أو احتياطية أو طوارئ فقدت غازًا دون تبديل غاز إليها',
     );
     return '$_temp0';
   }
@@ -31500,9 +31500,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_focus_gas_trimix => 'ترايمكس';
 
   @override
-  String get insights_gas_tankRole_backGas => 'غاز رئيسي';
-
-  @override
   String get insights_gas_tankRole_bailout => 'غاز الطوارئ';
 
   @override
@@ -31512,22 +31509,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_gas_tankRole_diluent => 'مخفف';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'إمداد O₂';
-
-  @override
   String get insights_gas_tankRole_pony => 'أسطوانة احتياطية';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => 'جانبي أيسر';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => 'جانبي أيمن';
-
-  @override
   String get insights_gas_tankRole_stage => 'أسطوانة مرحلية';
-
-  @override
-  String get insights_gas_tankRole_twinSet => 'طقم مزدوج';
 
   @override
   String get insights_geographic_appBar_title => 'جغرافي';

@@ -15,6 +15,7 @@ import 'package:submersion/features/insights/presentation/widgets/role_consumpti
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/contrast_ratio.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
@@ -106,8 +107,8 @@ void main() {
     expect(chart.secondarySeries.map((s) => s.label), ['Stage', 'Deco']);
     expect(
       find.text(
-        '3 dives with a stage or deco cylinder have no gas switches, so '
-        'they are left out',
+        '3 dives are left out: a stage, deco, pony or bailout cylinder lost '
+        'gas with no gas switch onto it',
       ),
       findsOneWidget,
     );
@@ -225,6 +226,64 @@ void main() {
 
     expect(find.text('No cylinder role rates yet'), findsOneWidget);
     expect(find.byType(DiveTrendChart), findsNothing);
+  });
+
+  testWidgets('the empty state still says why dives were left out', (
+    tester,
+  ) async {
+    await _pump(tester, const RoleConsumptionTrend(leftOutDives: 4));
+
+    expect(find.text('No cylinder role rates yet'), findsOneWidget);
+    expect(
+      find.text(
+        '4 dives are left out: a stage, deco, pony or bailout cylinder lost '
+        'gas with no gas switch onto it',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('every line stands out from a dark surface', (tester) async {
+    final overrides = await getBaseOverrides(
+      settingsNotifier: MockSettingsNotifier(const AppSettings()),
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          roleConsumptionTrendProvider.overrideWith((ref) async => _all()),
+          insightsGasLaneOverrideProvider.overrideWith(
+            (ref) => GasConsumptionLane.rmv,
+          ),
+        ].cast(),
+        child: MaterialApp(
+          theme: ThemeData(brightness: Brightness.dark),
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const Scaffold(
+            body: SingleChildScrollView(child: RoleConsumptionSection()),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    final surface = Theme.of(
+      tester.element(find.byType(RoleConsumptionSection)),
+    ).colorScheme.surface;
+    final chart = tester.widget<DiveTrendChart>(find.byType(DiveTrendChart));
+    for (final color in [
+      chart.pointColor!,
+      for (final s in chart.secondarySeries) s.color,
+    ]) {
+      expect(
+        contrastRatio(color, surface),
+        greaterThanOrEqualTo(3),
+        reason: '$color',
+      );
+    }
   });
 
   testWidgets('five tiles fit a 360 px wide screen', (tester) async {

@@ -30536,9 +30536,9 @@ class AppLocalizationsDe extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          '$count Tauchgänge mit Stage- oder Dekoflasche haben keine Gaswechsel und werden ausgelassen',
+          '$count Tauchgänge ausgelassen: Eine Stage-, Deko-, Pony- oder Bailout-Flasche hat Gas verloren, ohne Gaswechsel auf sie',
       one:
-          '1 Tauchgang mit Stage- oder Dekoflasche hat keine Gaswechsel und wird ausgelassen',
+          '$count Tauchgang ausgelassen: Eine Stage-, Deko-, Pony- oder Bailout-Flasche hat Gas verloren, ohne Gaswechsel auf sie',
     );
     return '$_temp0';
   }
@@ -31157,9 +31157,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get insights_focus_gas_trimix => 'Trimix';
 
   @override
-  String get insights_gas_tankRole_backGas => 'Rückengas';
-
-  @override
   String get insights_gas_tankRole_bailout => 'Bailout';
 
   @override
@@ -31169,22 +31166,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get insights_gas_tankRole_diluent => 'Diluent';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'O₂-Versorgung';
-
-  @override
   String get insights_gas_tankRole_pony => 'Pony';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => 'Sidemount L';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => 'Sidemount R';
-
-  @override
   String get insights_gas_tankRole_stage => 'Stage';
-
-  @override
-  String get insights_gas_tankRole_twinSet => 'Doppelgerät';
 
   @override
   String get insights_geographic_appBar_title => 'Geografie';

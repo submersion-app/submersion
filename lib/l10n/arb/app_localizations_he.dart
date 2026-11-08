@@ -29818,8 +29818,10 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count צלילות עם מיכל סטייג׳ או דקו בלי החלפות גז, לכן לא נכללו',
-      one: 'צלילה אחת עם מיכל סטייג׳ או דקו בלי החלפות גז, לכן לא נכללה',
+      other:
+          '$count צלילות לא נכללו: מיכל סטייג׳, דקו, פוני או חירום איבד גז בלי החלפת גז אליו',
+      one:
+          'צלילה אחת לא נכללה: מיכל סטייג׳, דקו, פוני או חירום איבד גז בלי החלפת גז אליו',
     );
     return '$_temp0';
   }
@@ -30437,9 +30439,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_focus_gas_trimix => 'טרימיקס';
 
   @override
-  String get insights_gas_tankRole_backGas => 'גז ראשי';
-
-  @override
   String get insights_gas_tankRole_bailout => 'חילוץ';
 
   @override
@@ -30449,22 +30448,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_gas_tankRole_diluent => 'מדלל';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'אספקת O₂';
-
-  @override
   String get insights_gas_tankRole_pony => 'פוני';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => 'סיידמאונט שמאל';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => 'סיידמאונט ימין';
-
-  @override
   String get insights_gas_tankRole_stage => 'סטייג\'';
-
-  @override
-  String get insights_gas_tankRole_twinSet => 'צמד בלונים';
 
   @override
   String get insights_geographic_appBar_title => 'גיאוגרפיה';

@@ -23,14 +23,20 @@ class RoleConsumptionSection extends ConsumerWidget {
   const RoleConsumptionSection({super.key});
 
   /// Apart from each other, from the rolling mean's amber, and from the
-  /// Rebreather gas use card's blue and green.
-  static const Map<ConsumptionRoleGroup, Color> _colors = {
-    ConsumptionRoleGroup.bottomGas: Colors.indigo,
-    ConsumptionRoleGroup.stage: Colors.purple,
-    ConsumptionRoleGroup.deco: Colors.pink,
-    ConsumptionRoleGroup.pony: Colors.brown,
-    ConsumptionRoleGroup.bailout: Colors.red,
-  };
+  /// Rebreather gas use card's blue and green. Lighter on a dark surface,
+  /// where the full shades fall under 3:1 contrast.
+  static Map<ConsumptionRoleGroup, Color> _colorsFor(Brightness brightness) {
+    final dark = brightness == Brightness.dark;
+    return {
+      ConsumptionRoleGroup.bottomGas: dark
+          ? Colors.indigo.shade300
+          : Colors.indigo,
+      ConsumptionRoleGroup.stage: dark ? Colors.purple.shade300 : Colors.purple,
+      ConsumptionRoleGroup.deco: dark ? Colors.pink.shade300 : Colors.pink,
+      ConsumptionRoleGroup.pony: dark ? Colors.brown.shade300 : Colors.brown,
+      ConsumptionRoleGroup.bailout: dark ? Colors.red.shade300 : Colors.red,
+    };
+  }
 
   static String _label(AppLocalizations l10n, ConsumptionRoleGroup group) =>
       switch (group) {
@@ -95,25 +101,42 @@ class RoleConsumptionSection extends ConsumerWidget {
       for (final group in ConsumptionRoleGroup.values)
         if (series[group]?.isNotEmpty ?? false) group,
     ];
+    final theme = Theme.of(context);
+    // The diver this note is for, one who logs deco dives without switches,
+    // may have every dive left out, so the empty card says so too.
+    final leftOutNote = trend.leftOutDives > 0
+        ? Text(
+            l10n.insights_gas_roleUse_leftOut(trend.leftOutDives),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          )
+        : null;
     if (groups.isEmpty) {
       return StatSectionCard(
         title: l10n.insights_gas_roleUse_title,
         subtitle: l10n.insights_gas_roleUse_subtitle,
-        child: StatEmptyState(
-          icon: MdiIcons.divingScubaTank,
-          message: l10n.insights_gas_roleUse_empty,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            StatEmptyState(
+              icon: MdiIcons.divingScubaTank,
+              message: l10n.insights_gas_roleUse_empty,
+            ),
+            ?leftOutNote,
+          ],
         ),
       );
     }
+    final colors = _colorsFor(theme.brightness);
 
     // The fit, the rolling mean and the range picker read the primary line.
     final primary = groups.contains(ConsumptionRoleGroup.bottomGas)
         ? ConsumptionRoleGroup.bottomGas
         : groups.first;
-    final theme = Theme.of(context);
     return section(
       points: AsyncData(series[primary]!),
-      color: _colors[primary]!,
+      color: colors[primary]!,
       pointLabel: _label(l10n, primary),
       header: Padding(
         padding: const EdgeInsets.only(bottom: 12),
@@ -131,7 +154,7 @@ class RoleConsumptionSection extends ConsumerWidget {
                   SizedBox(
                     width: tileWidth,
                     child: RateAverageTile(
-                      color: _colors[group]!,
+                      color: colors[group]!,
                       value: format(trend.average(lane, group)!),
                       label: _label(l10n, group),
                     ),
@@ -147,17 +170,10 @@ class RoleConsumptionSection extends ConsumerWidget {
             TrendSeries(
               label: _label(l10n, group),
               points: series[group]!,
-              color: _colors[group]!,
+              color: colors[group]!,
             ),
       ],
-      footer: trend.leftOutDives > 0
-          ? Text(
-              l10n.insights_gas_roleUse_leftOut(trend.leftOutDives),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            )
-          : null,
+      footer: leftOutNote,
     );
   }
 }

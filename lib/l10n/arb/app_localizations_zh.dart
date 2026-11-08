@@ -28836,7 +28836,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count 次潜水的阶段瓶或减压瓶没有换气记录，因此未计入',
+      other: '$count 次潜水未计入：阶段瓶、减压瓶、备用瓶或应急瓶耗气，但没有换到该气瓶的记录',
     );
     return '$_temp0';
   }
@@ -29422,9 +29422,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_focus_gas_trimix => '三混气';
 
   @override
-  String get insights_gas_tankRole_backGas => '主气';
-
-  @override
   String get insights_gas_tankRole_bailout => '应急';
 
   @override
@@ -29434,22 +29431,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_gas_tankRole_diluent => '稀释气';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'O₂ 供气';
-
-  @override
   String get insights_gas_tankRole_pony => '应急瓶';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => '左侧挂';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => '右侧挂';
-
-  @override
   String get insights_gas_tankRole_stage => '阶段瓶';
-
-  @override
-  String get insights_gas_tankRole_twinSet => '双瓶';
 
   @override
   String get insights_geographic_appBar_title => '地理';
