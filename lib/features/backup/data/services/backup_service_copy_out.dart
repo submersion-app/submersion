@@ -55,6 +55,9 @@ extension _CopyOut on BackupService {
   Future<PreparedBackupFile> _resolveBackupSource(BackupRecord record) async {
     final localRef = record.localPath;
     bool? cloudHere;
+    // The SAF read's own failure, kept as the true cause when no other copy
+    // can be fetched either.
+    (Object, StackTrace)? safFailure;
     if (localRef != null && isSafRef(localRef)) {
       try {
         if (await _safPort.exists(localRef)) {
@@ -71,6 +74,7 @@ extension _CopyOut on BackupService {
         // "not found", is the true cause.
         cloudHere = await _cloudCopyHere(record);
         if (!cloudHere && !_extraCopyReachable(record)) rethrow;
+        safFailure = (e, stack);
         _log.warning(
           'Reading the backup document failed, trying the cloud copy',
           error: e,
@@ -102,6 +106,9 @@ extension _CopyOut on BackupService {
     }
     final extra = await _fetchFromExtra(record);
     if (extra != null) return extra;
+    if (safFailure case (final error, final stack)) {
+      Error.throwWithStackTrace(error, stack);
+    }
     if (record.cloudFileId != null && record.cloudAccountId != null) {
       throw BackupCopyInOtherAccountException(record.cloudAccountId!);
     }

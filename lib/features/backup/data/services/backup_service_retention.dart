@@ -220,6 +220,8 @@ extension BackupServiceRetention on BackupService {
       if (r.localPath != null) {
         await _preferences.updateRecord(r.withoutCloudCopy());
       } else {
+        // Its extra copies (issue #3782) go with the record.
+        await _deleteExtraCopies(r);
         await _preferences.removeRecord(r.id);
       }
     }

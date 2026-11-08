@@ -176,11 +176,14 @@ extension _ExtraCopies on BackupService {
   }
 
   /// Re-encryption's second half: deletes the [replaced] plaintext copies,
-  /// then drops them from the history of each account that keeps one. True
-  /// when one of them may still be readable there.
-  Future<bool> _dropReplacedExtras(List<ExtraCloudCopy> replaced) async {
+  /// adding each account it deleted from to [touched]. True when one of them
+  /// may still be there. The deletes reach a backend that defers them (Git)
+  /// only through [_resetExtraHistories], run once for the whole migration.
+  Future<bool> _deleteReplacedExtras(
+    List<ExtraCloudCopy> replaced, {
+    required Set<CloudStorageProvider> touched,
+  }) async {
     var residual = false;
-    final touched = Set<CloudStorageProvider>.identity();
     for (final copy in replaced) {
       final provider = _extraProviderFor(copy.accountId)!;
       touched.add(provider);
@@ -195,12 +198,20 @@ extension _ExtraCopies on BackupService {
         );
       }
     }
+    return residual;
+  }
+
+  /// Pushes the deletes in each of [touched] and drops the replaced copies
+  /// from the history of an account that keeps one. False when one account
+  /// may still hold them.
+  Future<bool> _resetExtraHistories(Set<CloudStorageProvider> touched) async {
+    var done = true;
     for (final provider in touched) {
       try {
         await flushDeferredWrites(provider);
         await resetHistoryNowIfSupported(provider);
       } catch (e, stack) {
-        residual = true;
+        done = false;
         _log.error(
           'Re-encrypt: old extra copies stay in an account or its history',
           error: e,
@@ -208,7 +219,7 @@ extension _ExtraCopies on BackupService {
         );
       }
     }
-    return residual;
+    return done;
   }
 
   /// The providers of the extra accounts this device can reach.

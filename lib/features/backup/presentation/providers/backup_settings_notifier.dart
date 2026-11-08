@@ -95,16 +95,31 @@ class BackupSettingsNotifier extends StateNotifier<BackupSettings> {
       ...current,
       BackupCopyAccount(accountId: row.id, kind: row.kind),
     ]);
+    if (!mounted) return;
     state = _prefs.getSettings();
   }
 
   /// Backups stop being copied to [accountId]. Copies already there stay.
-  Future<void> removeExtraCopyAccount(String accountId) async {
-    final current = _prefs.getSettings().extraCopyAccounts;
-    if (!current.any((a) => a.accountId == accountId)) return;
+  Future<void> removeExtraCopyAccount(String accountId) =>
+      removeExtraCopyAccounts({accountId});
+
+  /// [removeExtraCopyAccount] for several rows at once, such as every row of
+  /// an account being signed out. A missed copy to one of them no longer
+  /// counts against the last backup.
+  Future<void> removeExtraCopyAccounts(Set<String> accountIds) async {
+    final settings = _prefs.getSettings();
+    if (!settings.extraCopyAccounts.any(
+      (a) => accountIds.contains(a.accountId),
+    )) {
+      return;
+    }
     await _prefs.setExtraCopyAccounts([
-      for (final a in current)
-        if (a.accountId != accountId) a,
+      for (final a in settings.extraCopyAccounts)
+        if (!accountIds.contains(a.accountId)) a,
+    ]);
+    await _prefs.setLastExtraCopyMissingIds([
+      for (final id in settings.lastExtraCopyMissingIds)
+        if (!accountIds.contains(id)) id,
     ]);
     if (!mounted) return;
     state = _prefs.getSettings();

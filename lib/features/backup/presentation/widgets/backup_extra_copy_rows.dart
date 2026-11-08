@@ -28,7 +28,8 @@ class BackupExtraCopyRows extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final target = ref.watch(backupCopyTargetProvider).value;
-    if (backupCopyGroupOf(target) == null) return const SizedBox.shrink();
+    final main = backupCopyGroupOf(target);
+    if (main == null) return const SizedBox.shrink();
     final l10n = context.l10n;
     final settings = ref.watch(backupSettingsProvider);
     final groups = ref.watch(accountGroupsProvider).value;
@@ -37,12 +38,15 @@ class BackupExtraCopyRows extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         for (final account in settings.extraCopyAccounts)
-          _ExtraCopyTile(
-            account: account,
-            group: groups?.holding(account.accountId),
-            loading: groups == null,
-            missed: missed.contains(account.accountId),
-          ),
+          // An account the main copy now goes to (sync moved onto it) gets
+          // no second copy, so it is not listed as one.
+          if (groups?.holding(account.accountId)?.key != main.key)
+            _ExtraCopyTile(
+              account: account,
+              group: groups?.holding(account.accountId),
+              loading: groups == null,
+              missed: missed.contains(account.accountId),
+            ),
         ListTile(
           key: const Key('backup-extra-copy-add'),
           leading: const Icon(Icons.add),

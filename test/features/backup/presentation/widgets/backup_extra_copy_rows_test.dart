@@ -122,6 +122,15 @@ void main() {
     expect(find.text('Copy to another account too'), findsOneWidget);
   });
 
+  testWidgets('an extra the main copy now goes to is not listed', (
+    tester,
+  ) async {
+    // Sync, and so the main copy, moved onto the Git account.
+    await pumpRows(tester, target: CopyFollowsSync(_groups.holding('git-row')));
+    expect(find.textContaining('Also copy to'), findsNothing);
+    expect(find.text('Copy to another account too'), findsOneWidget);
+  });
+
   testWidgets('shows a missed copy', (tester) async {
     await pumpRows(tester, missed: const ['git-row']);
     expect(

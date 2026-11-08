@@ -545,7 +545,12 @@ class BackupService {
     // Re-encrypted records whose plaintext cloud copy was replaced: that copy
     // is gone only once a backend that defers deletes or keeps history (Git)
     // has pushed the delete and reset its history.
-    var replacedInCloud = 0;
+    final replacedInCloud = <String>{};
+    // The same for extra copies (issue #3782): the ids of records whose
+    // extra copies were replaced, and the accounts those deletes went to,
+    // flushed and reset once at the end like the main copy's.
+    final replacedInExtras = <String>{};
+    final extraAccountsTouched = Set<CloudStorageProvider>.identity();
     for (final record in _preferences.getHistory()) {
       final localPath = record.localPath;
       if (localPath == null || isSafRef(localPath)) {
@@ -649,7 +654,11 @@ class BackupService {
         // as a failure (disclosed to the user) rather than a clean success --
         // without rolling back the committed encrypted record.
         var residualExposure =
-            extras.residual || await _dropReplacedExtras(extras.replaced);
+            await _deleteReplacedExtras(
+              extras.replaced,
+              touched: extraAccountsTouched,
+            ) ||
+            extras.residual;
         if (newPath != localPath) {
           try {
             await file.delete();
@@ -686,7 +695,8 @@ class BackupService {
           failed++;
         } else {
           reencrypted++;
-          if (record.cloudFileId != null) replacedInCloud++;
+          if (record.cloudFileId != null) replacedInCloud.add(record.id);
+          if (extras.replaced.isNotEmpty) replacedInExtras.add(record.id);
         }
       } catch (e, stack) {
         _log.error(
@@ -701,7 +711,7 @@ class BackupService {
     // history, and its deletes above were only recorded. If either fails,
     // those records are disclosed as failures, like any residual exposure.
     final provider = _cloudProvider;
-    if (replacedInCloud > 0 && provider != null) {
+    if (replacedInCloud.isNotEmpty && provider != null) {
       try {
         await flushDeferredWrites(provider);
         await resetHistoryNowIfSupported(provider);
@@ -711,9 +721,16 @@ class BackupService {
           error: e,
           stackTrace: stack,
         );
-        reencrypted -= replacedInCloud;
-        failed += replacedInCloud;
+        reencrypted -= replacedInCloud.length;
+        failed += replacedInCloud.length;
+        // Already disclosed: not counted twice below.
+        replacedInExtras.removeAll(replacedInCloud);
       }
+    }
+    if (replacedInExtras.isNotEmpty &&
+        !await _resetExtraHistories(extraAccountsTouched)) {
+      reencrypted -= replacedInExtras.length;
+      failed += replacedInExtras.length;
     }
     _log.info(
       'Re-encrypt done: $reencrypted rewritten, $skipped skipped, $failed failed',
@@ -1295,7 +1312,11 @@ class BackupService {
     var pruned = false;
 
     for (final record in history) {
-      if (record.localPath != null && record.cloudFileId == null) {
+      // Extra copies (issue #3782) keep a record too: they may be the only
+      // copies left.
+      if (record.localPath != null &&
+          record.cloudFileId == null &&
+          record.extraCloudCopies.isEmpty) {
         final ref = record.localPath!;
         final stillThere = isSafRef(ref)
             ? await _safPort.exists(ref)
@@ -1768,7 +1789,9 @@ class BackupService {
   /// to tell the user why a backup stayed on the device (issue #3089). Backup
   /// encryption exempts the device: its .sbe backups upload regardless.
   Future<bool> isCloudBackupBlockedByEncryptionLock() async {
-    if (_cloudProvider == null) return false;
+    if (_cloudProvider == null && _reachableExtraProviders.isEmpty) {
+      return false;
+    }
     final settings = _preferences.getSettings();
     if (!settings.cloudBackupEnabled || settings.backupEncryptionEnabled) {
       return false;

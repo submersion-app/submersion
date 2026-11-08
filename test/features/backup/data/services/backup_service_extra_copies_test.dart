@@ -400,6 +400,15 @@ void main() {
       expect(preferences.getHistory(), isEmpty);
     });
 
+    test('history keeps a record whose only copies are extra ones', () async {
+      final record = await seed('submersion_backup_a.db', DateTime(2026, 1));
+      await File(record.localPath!).delete();
+
+      final history = await service().getValidatedBackupHistory();
+
+      expect(history.map((r) => r.id), [record.id]);
+    });
+
     test('flushes deferred deletes for extras', () async {
       final record = await seed('submersion_backup_a.db', DateTime(2026, 1));
 
@@ -506,6 +515,20 @@ void main() {
           fileId: '$_folder/${record.filename}',
         ),
       ]);
+    });
+
+    test('re-encrypting several backups resets each history once', () async {
+      await service().performBackup();
+      // Distinct names: the filename has one-second precision.
+      await Future<void>.delayed(const Duration(seconds: 1));
+      await service().performBackup();
+      await enableBackupEncryption();
+
+      final result = await service().reencryptExistingBackups();
+
+      expect(result.reencrypted, 2);
+      expect(git.resets, 1);
+      expect(dropbox.resets, 1);
     });
 
     test('re-encrypt counts an unreachable extra as failed', () async {

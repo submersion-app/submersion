@@ -253,10 +253,9 @@ class _Details extends ConsumerWidget {
   /// An account backups are also copied to (issue #3782) stops getting
   /// copies; the main copy carries on wherever it goes.
   Future<void> _dropExtraCopies(ProviderContainer container) async {
-    final backup = container.read(backupSettingsProvider.notifier);
-    for (final row in group.rows) {
-      await backup.removeExtraCopyAccount(row.id);
-    }
+    await container
+        .read(backupSettingsProvider.notifier)
+        .removeExtraCopyAccounts({for (final row in group.rows) row.id});
   }
 
   /// The backup copy goes with the account it uses: the sync account for a

@@ -154,6 +154,17 @@ void main() {
       expect(prefs.getSettings().extraCopyAccounts, [dropbox]);
     });
 
+    test('removing an account forgets its missed copy', () async {
+      await notifier.addExtraCopyAccount(_row('git-row', AccountKind.git));
+      await notifier.addExtraCopyAccount(_row('db-row', AccountKind.dropbox));
+      await prefs.setLastExtraCopyMissingIds(['git-row', 'db-row']);
+
+      await notifier.removeExtraCopyAccounts({'git-row'});
+
+      expect(notifier.state.extraCopyAccounts, [dropbox]);
+      expect(notifier.state.lastExtraCopyMissingIds, ['db-row']);
+    });
+
     test('setCopyTo removes the row from the extras', () async {
       await notifier.addExtraCopyAccount(_row('git-row', AccountKind.git));
       await notifier.addExtraCopyAccount(_row('db-row', AccountKind.dropbox));
