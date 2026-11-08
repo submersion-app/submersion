@@ -547,6 +547,33 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_cylinder_fills_equipment '
         'ON cylinder_fills(equipment_id)',
   ),
+  // Twin set pairings (v345, issue #4242): the pairings of one cylinder from
+  // either side, the other fill of a twin fill, and the dives that used a
+  // cylinder as the second of a twin set.
+  (
+    name: 'idx_cylinder_pairings_a',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_cylinder_pairings_a '
+        'ON cylinder_pairings(cylinder_a_id)',
+  ),
+  (
+    name: 'idx_cylinder_pairings_b',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_cylinder_pairings_b '
+        'ON cylinder_pairings(cylinder_b_id)',
+  ),
+  (
+    name: 'idx_cylinder_fills_together',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_cylinder_fills_together '
+        'ON cylinder_fills(filled_together_id)',
+  ),
+  (
+    name: 'idx_dive_tanks_twin_passport_id',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_dive_tanks_twin_passport_id '
+        'ON dive_tanks(twin_passport_id)',
+  ),
   // Saved Connections maps and the sightings dive join (v235, issue #2322).
   (
     name: 'idx_connection_maps_diver',

@@ -13805,6 +13805,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passport_history_deleteConfirm => '删除此充气记录？';
 
   @override
+  String get passport_history_deleteFailed => '无法删除充气记录。请重试。';
+
+  @override
   String get passport_tag_title => '标签';
 
   @override
@@ -56828,4 +56831,197 @@ class AppLocalizationsZh extends AppLocalizations {
   ) {
     return '标记 $number：$time，$depth，$distance';
   }
+
+  @override
+  String get twinSet_title => '双瓶';
+
+  @override
+  String get twinSet_none => '不属于任何双瓶组';
+
+  @override
+  String get twinSet_link => '关联双瓶搭档';
+
+  @override
+  String twinSet_since(String date) {
+    return '自 $date 起';
+  }
+
+  @override
+  String get twinSet_replace => '更换搭档';
+
+  @override
+  String get twinSet_unlink => '解除关联';
+
+  @override
+  String get twinSet_history => '历史';
+
+  @override
+  String twinSet_historyRange(String partner, String from, String to) {
+    return '$partner，$from 至 $to';
+  }
+
+  @override
+  String get twinSet_deletePairing => '删除配对';
+
+  @override
+  String get twinSet_deletePairingConfirm => '从历史中删除此配对？充气记录和潜水不会改变。';
+
+  @override
+  String get twinSet_pickerTitle => '双瓶搭档';
+
+  @override
+  String get twinSet_pickerEmpty => '没有其他可配对的气瓶。';
+
+  @override
+  String get twinSet_pairedOnHelp => '配对起始日期';
+
+  @override
+  String get twinSet_unpairedOnHelp => '解除关联日期';
+
+  @override
+  String get twinSet_pressureMismatchTitle => '工作压力不同';
+
+  @override
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  ) {
+    return '$a 的额定压力为 $aPressure，$b 为 $bPressure。通过分流阀连接的一对气瓶只能充到同一压力。';
+  }
+
+  @override
+  String get twinSet_continue => '继续';
+
+  @override
+  String get twinSet_replaceTitle => '更换搭档？';
+
+  @override
+  String twinSet_replaceClash(String cylinder, String partner) {
+    return '$cylinder 目前与 $partner 配对。';
+  }
+
+  @override
+  String twinSet_replaceQuestion(String a, String b) {
+    return '改为将 $a 与 $b 配对？';
+  }
+
+  @override
+  String twinSet_leftAlone(String name) {
+    return '$name 将不再配对。';
+  }
+
+  @override
+  String get twinSet_replaceConfirm => '更换';
+
+  @override
+  String get twinSet_clashTitle => '配对时间重叠';
+
+  @override
+  String twinSet_clashBody(String pairs) {
+    return '这与 $pairs 的配对时间重叠。一个气瓶在同一天只能属于一个双瓶组。';
+  }
+
+  @override
+  String twinSet_pairNames(String a, String b) {
+    return '$a 和 $b';
+  }
+
+  @override
+  String twinSet_endBeforeStart(String date) {
+    return '结束日期必须晚于 $date。';
+  }
+
+  @override
+  String get twinSet_saveFailed => '无法保存双瓶组的更改。';
+
+  @override
+  String twinSet_with(String partner) {
+    return '与 $partner 组成双瓶';
+  }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return '双瓶组的两个气瓶（$partner）';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner，$status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => '编辑充气记录';
+
+  @override
+  String get passport_logFill_overPressureTitle => '超过工作压力';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure 超过了 $name 的工作压力 $workingPressure。';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => '仍然保存';
+
+  @override
+  String get passport_logFill_back => '返回';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return '同时应用到 $partner 的充气记录？';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => '是';
+
+  @override
+  String get passport_logFill_onlyThisOne => '仅此一条';
+
+  @override
+  String get passport_history_anotherCylinder => '另一个气瓶';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return '与 $partner 一起充气';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody => '从两个气瓶中删除此充气记录，还是只删除这一条？';
+
+  @override
+  String get passport_history_deleteBoth => '两个气瓶';
+
+  @override
+  String get passport_history_edit => '编辑充气记录';
+
+  @override
+  String get twinSet_choiceTitle => '使用双瓶组？';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return '双瓶组（$a + $b，$volume）';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return '仅 $a';
+  }
+
+  @override
+  String get settings_conflict_field_pairedOn => '配对起始日期';
+
+  @override
+  String get settings_conflict_field_unpairedOn => '解除关联日期';
+
+  @override
+  String get settings_conflict_field_filledTogetherId => '双瓶组充气';
+
+  @override
+  String get settings_conflict_field_twinPassportId => '双瓶搭档护照';
 }

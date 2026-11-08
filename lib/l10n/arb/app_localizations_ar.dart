@@ -14678,6 +14678,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get passport_history_deleteConfirm => 'هل تريد حذف سجل التعبئة هذا؟';
 
   @override
+  String get passport_history_deleteFailed =>
+      'تعذّر حذف التعبئة. حاول مرة أخرى.';
+
+  @override
   String get passport_tag_title => 'البطاقة';
 
   @override
@@ -61379,4 +61383,199 @@ class AppLocalizationsAr extends AppLocalizations {
   ) {
     return 'علامة $number: $time، $depth، $distance';
   }
+
+  @override
+  String get twinSet_title => 'طقم مزدوج';
+
+  @override
+  String get twinSet_none => 'ليست جزءا من طقم مزدوج';
+
+  @override
+  String get twinSet_link => 'ربط بأسطوانة شريكة في طقم مزدوج';
+
+  @override
+  String twinSet_since(String date) {
+    return 'منذ $date';
+  }
+
+  @override
+  String get twinSet_replace => 'استبدال الشريكة';
+
+  @override
+  String get twinSet_unlink => 'فك الربط';
+
+  @override
+  String get twinSet_history => 'السجل';
+
+  @override
+  String twinSet_historyRange(String partner, String from, String to) {
+    return '$partner، من $from إلى $to';
+  }
+
+  @override
+  String get twinSet_deletePairing => 'حذف الربط';
+
+  @override
+  String get twinSet_deletePairingConfirm =>
+      'حذف هذا الربط من السجل؟ لن تتغير التعبئات ولا الغطسات.';
+
+  @override
+  String get twinSet_pickerTitle => 'الأسطوانة الشريكة';
+
+  @override
+  String get twinSet_pickerEmpty => 'لا توجد أسطوانات أخرى للربط معها.';
+
+  @override
+  String get twinSet_pairedOnHelp => 'مربوطة منذ';
+
+  @override
+  String get twinSet_unpairedOnHelp => 'فك الربط في';
+
+  @override
+  String get twinSet_pressureMismatchTitle => 'ضغوط تشغيل مختلفة';
+
+  @override
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  ) {
+    return 'ضغط تشغيل $a هو $aPressure و$b هو $bPressure. الطقم الموصول بمشعب يُعبأ إلى ضغط واحد.';
+  }
+
+  @override
+  String get twinSet_continue => 'متابعة';
+
+  @override
+  String get twinSet_replaceTitle => 'استبدال الشريكة؟';
+
+  @override
+  String twinSet_replaceClash(String cylinder, String partner) {
+    return '$cylinder مربوطة مع $partner.';
+  }
+
+  @override
+  String twinSet_replaceQuestion(String a, String b) {
+    return 'ربط $a مع $b بدلا من ذلك؟';
+  }
+
+  @override
+  String twinSet_leftAlone(String name) {
+    return 'ستبقى $name منفردة.';
+  }
+
+  @override
+  String get twinSet_replaceConfirm => 'استبدال';
+
+  @override
+  String get twinSet_clashTitle => 'ربط متداخل';
+
+  @override
+  String twinSet_clashBody(String pairs) {
+    return 'يتداخل هذا مع ربط $pairs. يمكن أن تكون الأسطوانة في طقم مزدوج واحد في أي يوم.';
+  }
+
+  @override
+  String twinSet_pairNames(String a, String b) {
+    return '$a و$b';
+  }
+
+  @override
+  String twinSet_endBeforeStart(String date) {
+    return 'يجب أن يكون تاريخ الانتهاء بعد $date.';
+  }
+
+  @override
+  String get twinSet_saveFailed => 'تعذر حفظ تغيير الطقم المزدوج.';
+
+  @override
+  String twinSet_with(String partner) {
+    return 'طقم مزدوج مع $partner';
+  }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return 'كلتا الأسطوانتين في الطقم المزدوج ($partner)';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner، $status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => 'تعديل التعبئة';
+
+  @override
+  String get passport_logFill_overPressureTitle => 'أعلى من ضغط التشغيل';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure أعلى من ضغط تشغيل $name البالغ $workingPressure.';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => 'حفظ على أي حال';
+
+  @override
+  String get passport_logFill_back => 'رجوع';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return 'تطبيق التغيير على تعبئة $partner أيضا؟';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => 'نعم';
+
+  @override
+  String get passport_logFill_onlyThisOne => 'هذه فقط';
+
+  @override
+  String get passport_history_anotherCylinder => 'أسطوانة أخرى';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return 'عُبئت مع $partner';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'حذف هذه التعبئة من كلتا الأسطوانتين، أم من هذه فقط؟';
+
+  @override
+  String get passport_history_deleteBoth => 'كلتا الأسطوانتين';
+
+  @override
+  String get passport_history_edit => 'تعديل التعبئة';
+
+  @override
+  String get twinSet_choiceTitle => 'استخدام الطقم المزدوج؟';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'طقم مزدوج ($a + $b، $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return '$a فقط';
+  }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'مربوطة منذ';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'فك الربط في';
+
+  @override
+  String get settings_conflict_field_filledTogetherId => 'تعبئة الطقم المزدوج';
+
+  @override
+  String get settings_conflict_field_twinPassportId => 'جواز الأسطوانة الشريكة';
 }

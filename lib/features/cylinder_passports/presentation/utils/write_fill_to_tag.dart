@@ -7,6 +7,7 @@ import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_ser
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/log_fill_sheet.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/nfc_write_sheet.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_tag_card.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/fill_summary.dart';
@@ -35,6 +36,32 @@ final tagPayloadProvider = FutureProvider.autoDispose
         newestFill: await ref.watch(newestFillProvider(equipmentId).future),
       );
     });
+
+/// [offerWriteFillToTag]'s shape, so a test can stand in for the NFC offer.
+typedef OfferWriteFillToTag =
+    Future<void> Function(
+      BuildContext context,
+      WidgetRef ref, {
+      required String equipmentId,
+      required CylinderFill fill,
+    });
+
+/// After Log a fill: offers [logged]'s fill to [equipmentId]'s tag, then, for
+/// a twin set fill (issue #4242), the partner's fill to the partner's tag.
+/// The diver can skip either.
+Future<void> offerWriteFillsToTags(
+  BuildContext context,
+  WidgetRef ref,
+  LoggedFill logged, {
+  required String equipmentId,
+  OfferWriteFillToTag offer = offerWriteFillToTag,
+}) async {
+  await offer(context, ref, equipmentId: equipmentId, fill: logged.fill);
+  final partnerFill = logged.partnerFill;
+  final partnerId = partnerFill?.equipmentId;
+  if (partnerFill == null || partnerId == null || !context.mounted) return;
+  await offer(context, ref, equipmentId: partnerId, fill: partnerFill);
+}
 
 /// After Log a fill (spec section 11): on a phone with NFC turned on, offer
 /// to write the fill to the tank's tag straight away.

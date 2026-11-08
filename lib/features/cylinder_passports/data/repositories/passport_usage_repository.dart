@@ -21,6 +21,8 @@ class PassportUsageRepository {
     // IN rather than a join, so a dive with two tanks from one tag is one
     // row without a DISTINCT; and rather than a correlated EXISTS, which
     // scans every dive, so the lookup starts from idx_dive_tanks_passport_id.
+    // A twin set tank names its second cylinder in twin_passport_id (issue
+    // #4242); the UNION keeps each half on its own index.
     final rows = await _db
         .customSelect(
           'SELECT d.id AS dive_id, d.dive_date_time AS dive_date_time, '
@@ -28,13 +30,16 @@ class PassportUsageRepository {
           'FROM dives d '
           'LEFT JOIN dive_sites s ON s.id = d.site_id '
           'WHERE d.id IN (SELECT t.dive_id FROM dive_tanks t '
-          'WHERE t.passport_id = ?) '
+          'WHERE t.passport_id = ? '
+          'UNION SELECT t.dive_id FROM dive_tanks t '
+          'WHERE t.twin_passport_id = ?) '
           // A planned dive has not happened: the cylinder is not used yet.
           'AND d.is_planned = 0 '
           '${diverId == null ? '' : 'AND d.diver_id = ? '}'
           '${excludeDiveId == null ? '' : 'AND d.id != ? '}'
           'ORDER BY d.dive_date_time DESC, d.id',
           variables: [
+            Variable.withString(passportId),
             Variable.withString(passportId),
             if (diverId != null) Variable.withString(diverId),
             if (excludeDiveId != null) Variable.withString(excludeDiveId),
