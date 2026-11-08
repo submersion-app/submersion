@@ -777,6 +777,13 @@ class EquipmentRepository {
                       t.componentEquipmentId.equals(id),
                 ))
                 .get();
+        // Twin set pairings naming the item from either side (issue
+        // #4242): cascaded away by SQLite, so tombstoned here.
+        final pairingRows =
+            await (_db.select(_db.cylinderPairings)..where(
+                  (t) => t.cylinderAId.equals(id) | t.cylinderBId.equals(id),
+                ))
+                .get();
         // Gear check-ins are a synced root of their own, also cascaded
         // away by SQLite (condition phase 3a), so tombstoned here too.
         final observations = await (_db.select(
@@ -828,6 +835,12 @@ class EquipmentRepository {
           await _syncRepository.logDeletion(
             entityType: 'equipmentComponents',
             recordId: c.id,
+          );
+        }
+        for (final p in pairingRows) {
+          await _syncRepository.logDeletion(
+            entityType: 'cylinderPairings',
+            recordId: p.id,
           );
         }
         for (final o in observations) {

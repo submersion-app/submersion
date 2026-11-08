@@ -114,6 +114,7 @@ void main() {
     'dive_roles': 'diveRoles',
     'equipment_attributes': 'equipmentAttributes',
     'equipment_components': 'equipmentComponents',
+    'cylinder_pairings': 'cylinderPairings',
     'equipment_observations': 'equipmentObservations',
     'equipment_findings': 'equipmentFindings',
     'dive_dive_types': 'diveDiveTypes',

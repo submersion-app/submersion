@@ -14,6 +14,7 @@ import 'package:submersion/features/cylinder_passports/presentation/widgets/pass
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_tag_card.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_trip_card.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_usage_card.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/twin_set_card.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -114,6 +115,7 @@ class _PassportPageState extends ConsumerState<PassportPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _PassportHeader(equipment: equipment),
+                TwinSetPartnerLine(equipmentId: equipment.id),
                 const SizedBox(height: 16),
                 PassportO2WarningBanner(equipmentId: equipment.id),
                 PassportSpecCard(equipment: equipment),

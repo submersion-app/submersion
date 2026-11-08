@@ -157,7 +157,7 @@ class BlenderProcedureCard extends ConsumerWidget {
       mixFromPlan: true,
     );
     if (saved == null || !context.mounted) return;
-    await offerWriteFillToTag(context, ref, equipmentId: tank.id, fill: saved);
+    await offerWriteFillsToTags(context, ref, saved, equipmentId: tank.id);
   }
 
   /// The fill and settled temperatures set on the settings page, read-only
