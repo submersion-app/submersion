@@ -18,10 +18,24 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 ///
 /// Seeded synchronously from SharedPreferences so the first frame of a grid
 /// draws with the right answer instead of flashing badges on and then off.
-class MediaProvenanceBadgesNotifier extends StateNotifier<bool> {
+class MediaProvenanceBadgesNotifier extends DeviceBadgeToggleNotifier {
   MediaProvenanceBadgesNotifier(SharedPreferences prefs)
+    : super(prefs, SettingsKeys.mediaProvenanceBadges);
+
+  /// Fixed state with nothing behind it; see
+  /// [DeviceBadgeToggleNotifier.unstored].
+  MediaProvenanceBadgesNotifier.unstored(bool enabled)
+    : super.unstored(enabled, SettingsKeys.mediaProvenanceBadges);
+}
+
+/// A device-local on/off switch for a thumbnail decoration, stored in
+/// SharedPreferences under [_key] and on by default. Shared by the source
+/// badges and the tag markers so the two cannot drift apart.
+class DeviceBadgeToggleNotifier extends StateNotifier<bool> {
+  DeviceBadgeToggleNotifier(SharedPreferences prefs, String key)
     : _prefs = prefs,
-      super(prefs.getBool(SettingsKeys.mediaProvenanceBadges) ?? true);
+      _key = key,
+      super(prefs.getBool(key) ?? true);
 
   /// Fixed state with nothing behind it.
   ///
@@ -29,14 +43,17 @@ class MediaProvenanceBadgesNotifier extends StateNotifier<bool> {
   /// binding, or an early frame before initialization. [setEnabled] becomes a
   /// no-op rather than throwing, so a toggle in that state fails quietly
   /// instead of taking a screen down.
-  MediaProvenanceBadgesNotifier.unstored(super.enabled) : _prefs = null;
+  DeviceBadgeToggleNotifier.unstored(super.enabled, String key)
+    : _prefs = null,
+      _key = key;
 
   final SharedPreferences? _prefs;
+  final String _key;
 
   Future<void> setEnabled(bool value) async {
     if (state == value) return;
     state = value;
-    await _prefs?.setBool(SettingsKeys.mediaProvenanceBadges, value);
+    await _prefs?.setBool(_key, value);
   }
 }
 
@@ -65,22 +82,14 @@ final mediaProvenanceBadgesProvider =
 /// answer different questions: where the bytes came from, and what the diver
 /// has recorded about the picture. Device-local and seeded synchronously for
 /// the same reasons that notifier gives.
-class MediaTagBadgesNotifier extends StateNotifier<bool> {
+class MediaTagBadgesNotifier extends DeviceBadgeToggleNotifier {
   MediaTagBadgesNotifier(SharedPreferences prefs)
-    : _prefs = prefs,
-      super(prefs.getBool(SettingsKeys.mediaTagBadges) ?? true);
+    : super(prefs, SettingsKeys.mediaTagBadges);
 
   /// Fixed state with nothing behind it; see
-  /// [MediaProvenanceBadgesNotifier.unstored].
-  MediaTagBadgesNotifier.unstored(super.enabled) : _prefs = null;
-
-  final SharedPreferences? _prefs;
-
-  Future<void> setEnabled(bool value) async {
-    if (state == value) return;
-    state = value;
-    await _prefs?.setBool(SettingsKeys.mediaTagBadges, value);
-  }
+  /// [DeviceBadgeToggleNotifier.unstored].
+  MediaTagBadgesNotifier.unstored(bool enabled)
+    : super.unstored(enabled, SettingsKeys.mediaTagBadges);
 }
 
 /// Defaults to enabled with no storage behind it, and gains persistence from

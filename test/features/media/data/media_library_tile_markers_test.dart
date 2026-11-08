@@ -41,6 +41,7 @@ void main() {
     String mediaId, {
     required String diveId,
     int? elapsedSeconds,
+    double? depthMeters = 12,
     String confidence = 'exact',
   }) async {
     final db = DatabaseService.instance.database;
@@ -52,6 +53,7 @@ void main() {
             mediaId: Value(mediaId),
             diveId: Value(diveId),
             elapsedSeconds: Value(elapsedSeconds),
+            depthMeters: Value(depthMeters),
             matchConfidence: Value(confidence),
             createdAt: Value(DateTime.now().millisecondsSinceEpoch),
           ),
@@ -123,6 +125,16 @@ void main() {
         diveId: 'd1',
         elapsedSeconds: 600,
         confidence: 'noProfile',
+      );
+      expect((await entryFor('plain')).hasTimeInDive, isFalse);
+    });
+
+    test('a row with no depth is not, as the chart skips it', () async {
+      await enrich(
+        'plain',
+        diveId: 'd1',
+        elapsedSeconds: 600,
+        depthMeters: null,
       );
       expect((await entryFor('plain')).hasTimeInDive, isFalse);
     });

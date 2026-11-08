@@ -29,12 +29,13 @@ abstract final class LibraryTileMarkers {
 
   /// A time in the item's own dive that the profile chart would draw.
   ///
-  /// Mirrors `MediaEnrichment.isWithinDiveWindow`: an elapsed time, a real
-  /// profile match, and either a pin or a capture inside [MediaDiveWindow]
-  /// around the dive. The chart measures the dive by its last profile
-  /// sample, which SQL cannot reach since samples are stored packed, so the
-  /// upper bound uses the dive's runtime instead; the hour of slack after the
-  /// dive dwarfs the difference between the two. A dive with no runtime
+  /// Mirrors what `photoMarkersFromMedia` asks before drawing a marker: an
+  /// elapsed time and a depth, a real profile match, and (per
+  /// `MediaEnrichment.isWithinDiveWindow`) either a pin or a capture inside
+  /// [MediaDiveWindow] around the dive. The chart measures the dive by its
+  /// last profile sample, which SQL cannot reach since samples are stored
+  /// packed, so the upper bound uses the dive's runtime instead; the hour of
+  /// slack after the dive dwarfs the difference between the two. A dive with no runtime
   /// checks only the lower bound rather than marking nothing.
   ///
   /// Keyed on `media.dive_id` so a row left behind for a previous dive by a
@@ -44,6 +45,7 @@ abstract final class LibraryTileMarkers {
     'WHERE me.media_id = media.id '
     'AND me.dive_id = media.dive_id '
     'AND me.elapsed_seconds IS NOT NULL '
+    'AND me.depth_meters IS NOT NULL '
     "AND me.match_confidence <> '${MatchConfidence.noProfile.name}' "
     "AND (me.match_confidence = '${MatchConfidence.manual.name}' "
     'OR (me.elapsed_seconds >= ${-MediaDiveWindow.before.inSeconds} '
