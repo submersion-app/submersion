@@ -270,6 +270,13 @@ typedef ImportTransmitterMatcherLoader =
 /// #3668), read at import time so a switch flipped a moment ago applies.
 typedef OmitUnusedOcGasesLoader = Future<bool> Function(String? diverId);
 
+/// The id of the trip whose dates cover a dive starting at [diveStart], among
+/// the trips the diver it is imported for (null for the active diver) can
+/// see, or null when none does (issue #3022). Read per dive at import time,
+/// so a trip planned a moment ago takes the next download.
+typedef ImportTripResolver =
+    Future<String?> Function(DateTime diveStart, String? diverId);
+
 /// Service for importing downloaded dives into the app's database.
 class DiveImportService {
   final DiveComputerRepository _repository;
@@ -278,6 +285,7 @@ class DiveImportService {
   final DefaultTankPresetLoader? _defaultTankPresetForImports;
   final ImportTransmitterMatcherLoader? _transmitterMatcherForImports;
   final OmitUnusedOcGasesLoader? _omitUnusedOcGasesForImports;
+  final ImportTripResolver? _tripForImports;
   final Set<String> _unmatchedSerials = {};
   static final _log = LoggerService.forClass(DiveImportService);
 
@@ -288,12 +296,14 @@ class DiveImportService {
     DefaultTankPresetLoader? defaultTankPresetForImports,
     ImportTransmitterMatcherLoader? transmitterMatcherForImports,
     OmitUnusedOcGasesLoader? omitUnusedOcGasesForImports,
+    ImportTripResolver? tripForImports,
   }) : _repository = repository,
        _diveRepository = diveRepository,
        _parser = parser ?? const DiveParser(),
        _defaultTankPresetForImports = defaultTankPresetForImports,
        _transmitterMatcherForImports = transmitterMatcherForImports,
-       _omitUnusedOcGasesForImports = omitUnusedOcGasesForImports;
+       _omitUnusedOcGasesForImports = omitUnusedOcGasesForImports,
+       _tripForImports = tripForImports;
 
   /// Serials seen on tanks imported through this service that matched no
   /// registry entry. Accumulated across the per-dive entry points so the
@@ -340,6 +350,24 @@ class DiveImportService {
         stackTrace: st,
       );
       return false;
+    }
+  }
+
+  /// The trip a new dive starting at [diveStart] joins (issue #3022), or null
+  /// when no resolver is configured, no trip covers the dive, or the lookup
+  /// fails: a download must never fail because the trips could not be read.
+  Future<String?> _resolveTrip(DateTime diveStart, String? diverId) async {
+    final resolver = _tripForImports;
+    if (resolver == null) return null;
+    try {
+      return await resolver(diveStart, diverId);
+    } catch (e, st) {
+      _log.warning(
+        'Trips unavailable, importing the dive without one',
+        error: e,
+        stackTrace: st,
+      );
+      return null;
     }
   }
 
@@ -867,6 +895,9 @@ class DiveImportService {
       cnsStart: dive.cnsStart,
       cnsEnd: dive.cnsEnd,
       otu: dive.otu,
+      // The trip whose dates cover the dive (issue #3022). Only a new dive
+      // row takes it; a dive this download matches keeps its own trip.
+      tripId: await _resolveTrip(dive.startTime, diverId),
     );
 
     return diveId;
