@@ -612,7 +612,7 @@ final siteActivePathOverlayProvider = FutureProvider.autoDispose
           );
         case PathOverlaySource.navTrack:
           final track = await ref.watch(
-            navTrackByIdProvider(request.pathId).future,
+            navTrackWithMarkersProvider(request.pathId).future,
           );
           if (track == null || track.points.length < 2) return null;
           path = NavTrackPathAdapter.toReckonedPath(track);

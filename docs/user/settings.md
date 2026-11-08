@@ -35,8 +35,9 @@ light or dark mode, the navigation layout, and service reminders.
 Changing a unit only changes how things are shown: dives are stored in metric,
 so you can switch back and forth without altering any data.
 
-**Quick Select** sets every unit at once to **Metric** or **Imperial**, or choose
-**Custom** and set each one:
+**Quick Select** sets the seven units in its card at once to **Metric** or
+**Imperial**. Change any one of them on its own and Quick Select shows
+**Custom**:
 
 | Setting | Options | Default |
 |---------|---------|---------|
@@ -48,11 +49,12 @@ so you can switch back and forth without altering any data.
 | **Altitude** | Meters, Feet | Meters |
 | **Distance** | Kilometers, Miles | Kilometers |
 
-More settings in this section:
+The rest of the section is grouped under **Gas & Planning**, **Display &
+Formats** and **Time & Date**. Quick Select changes none of it:
 
 | Setting | What it does | Default |
 |---------|--------------|---------|
-| **Gas consumption** | Show **SAC** (pressure drop per minute, works with any logged pressures), **RMV** (volume per minute at the surface, needs a tank volume), or **Both** | Both |
+| **Gas consumption** | Show **SAC** (pressure drop per minute, works with any logged pressures), **RMV** (volume per minute at the surface, needs a tank volume), or **Both**. The unit follows your pressure and volume units. | Both |
 | **Gas calculations** | **Real gas** accounts for compressibility (a 12 L cylinder at 200 bar holds about 2317 L); **Ideal gas** matches hand calculation and dive tables (2400 L). Affects RMV, gas used, gas statistics, the planner and the gas calculators. | Real gas |
 | **Water type** | The default water type for the planner | Salt water |
 | **Default Currency** | For prices and costs | USD |
@@ -61,6 +63,7 @@ More settings in this section:
 | **Place name language** | The language used when a site's country, region and town are looked up from its coordinates. Existing sites are not changed. | |
 | **Time Format** | 12-hour or 24-hour | 12-hour |
 | **Date Format** | MMM D, YYYY, D MMM YYYY, MM/DD/YYYY, DD/MM/YYYY, DD.MM.YYYY or YYYY-MM-DD | MMM D, YYYY |
+| **First day of week** | **Monday**, **Sunday** or **Saturday**, or **Automatic** to follow your device's region. Orders the Day of Week chart, the weekday filter and the date picker calendars, and starts the weeks of weekly trend charts. | Automatic |
 
 <!-- screenshot: images/settings/units.png: units settings -->
 
@@ -292,6 +295,7 @@ which opens that step of Set up this device.
 | **Link buddy names** | Turn buddy names on imported dives into buddy records |
 | **Retype gear marked Other** | Give imported gear the type its name states |
 | **Data quality** | Choose which checks the [Data Quality Assistant](data-quality-assistant.md) runs |
+| **Agent access** | Let an AI agent on this computer read and change your logbook (desktop only; see [Agent Access](agent-access.md)) |
 
 ## App Security
 

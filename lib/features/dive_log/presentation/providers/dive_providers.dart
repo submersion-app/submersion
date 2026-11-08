@@ -21,6 +21,7 @@ import 'package:submersion/features/dive_log/data/services/dive_consolidation_se
 import 'package:submersion/features/dive_log/data/services/dive_merge_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_split_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_uncombine_service.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_list_loader.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_profile_batcher.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
@@ -301,21 +302,20 @@ final divesProvider = FutureProvider<List<domain.Dive>>((ref) async {
 /// self-invalidates on dives-table writes) already shows the new one. The
 /// hydrated [domain.Dive] embeds tanks, tank pressures, profile, and equipment,
 /// so this must watch more than just the `dives` table.
-final diveProvider = FutureProvider.family<domain.Dive?, String>((
+final diveProvider = FutureProvider.autoDispose.family<domain.Dive?, String>((
   ref,
   id,
 ) async {
+  retainDiveData(ref);
   final repository = ref.watch(diveRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchDiveDetailChanges());
   return repository.getDiveById(id);
 });
 
 /// Dive profile provider - for lazy loading profiles in list views
-final diveProfileProvider =
-    FutureProvider.family<List<domain.DiveProfilePoint>, String>((
-      ref,
-      diveId,
-    ) async {
+final diveProfileProvider = FutureProvider.autoDispose
+    .family<List<domain.DiveProfilePoint>, String>((ref, diveId) async {
+      retainDiveData(ref);
       final repository = ref.watch(diveRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchDiveDetailChanges());
       return repository.getDiveProfile(diveId);
@@ -324,11 +324,9 @@ final diveProfileProvider =
 /// Profiles grouped by owning data source (active-source model). Keys are
 /// dive_data_sources ids, primary source first; null-computerId rows are
 /// attributed to the primary source so no source ever renders as unknown.
-final sourceProfilesProvider =
-    FutureProvider.family<Map<String, domain.SourceProfile>, String>((
-      ref,
-      diveId,
-    ) async {
+final sourceProfilesProvider = FutureProvider.autoDispose
+    .family<Map<String, domain.SourceProfile>, String>((ref, diveId) async {
+      retainDiveData(ref);
       final repository = ref.watch(diveRepositoryProvider);
       // Analysis-input tick: this hydration feeds sourceProfileAnalysisProvider
       // and reads only profile/source tables, so the broad detail tick (which
@@ -1562,11 +1560,12 @@ final tankPressureRepositoryProvider = Provider<TankPressureRepository>((ref) {
 /// Returns a map where keys are tank IDs and values are lists of
 /// pressure points sorted by timestamp. Used for multi-tank pressure
 /// visualization in the dive profile chart.
-final tankPressuresProvider =
-    FutureProvider.family<Map<String, List<domain.TankPressurePoint>>, String>((
+final tankPressuresProvider = FutureProvider.autoDispose
+    .family<Map<String, List<domain.TankPressurePoint>>, String>((
       ref,
       diveId,
     ) async {
+      retainDiveData(ref);
       final repository = ref.watch(tankPressureRepositoryProvider);
       // Analysis-input tick covers tank_pressure_series (and the dives
       // cascade); the broad detail tick made every pressure curve re-query

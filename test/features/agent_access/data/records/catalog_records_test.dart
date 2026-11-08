@@ -283,6 +283,8 @@ void main() {
     expect(item['value_label'], 'Pressure');
     expect(item['value_unit'], 'bar');
     expect(item['value_min'], 100.0);
+    // A cell linearity item names the item it reads its air from.
+    expect(item.containsKey('source_item_id'), isTrue);
   });
 
   test('a pre-dive template lists its sections', () async {

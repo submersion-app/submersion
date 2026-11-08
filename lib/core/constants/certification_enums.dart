@@ -356,4 +356,42 @@ enum CertificationLevel {
     CertificationLevel.tdiInstructorTrainer => true,
     _ => false,
   };
+
+  /// Leadership and teaching ratings: dive guide, divemaster, assistant
+  /// instructor, every instructor grade and up (issue #730). A superset of
+  /// [isInstructorLevel]. Drives the separate "`<agency>` Professional"
+  /// section when certifications are grouped by agency. A course aimed at
+  /// professionals (DAN's first aid for professional divers) is not a
+  /// professional rating, and neither are rescue or leader-named diver
+  /// grades that do not qualify the holder to lead or teach others.
+  bool get isProfessionalLevel =>
+      isInstructorLevel ||
+      switch (this) {
+        CertificationLevel.diveGuide ||
+        CertificationLevel.diveMaster ||
+        CertificationLevel.assistantInstructor ||
+        CertificationLevel.cmas3StarDiverAssistantInstructor ||
+        CertificationLevel.cmas4StarDiverAssistantInstructor ||
+        CertificationLevel.ffessmN4 ||
+        CertificationLevel.ffessmN5 ||
+        CertificationLevel.ffessmInitiateur ||
+        CertificationLevel.ffessmE2 ||
+        CertificationLevel.ffessmMoniteurNitroxConfirme ||
+        CertificationLevel.ffessmMoniteurTrimix ||
+        CertificationLevel.ffessmMoniteurRecycleurCcr ||
+        CertificationLevel.ffessmFormateurTiv ||
+        CertificationLevel.ffessmFormateurBio1 ||
+        CertificationLevel.ffessmFormateurBio2 ||
+        CertificationLevel.ffessmFormateurBio3 ||
+        CertificationLevel.acucUnderwaterGuide ||
+        CertificationLevel.acucTeachingAssistant ||
+        CertificationLevel.tdiTechnicalDivemaster ||
+        CertificationLevel.tdiNonDivingSpecialtyInstructor ||
+        CertificationLevel.iartIoc ||
+        CertificationLevel.iartItp ||
+        CertificationLevel.iartIe ||
+        CertificationLevel.iartIdc ||
+        CertificationLevel.iartDiveGuide => true,
+        _ => false,
+      };
 }

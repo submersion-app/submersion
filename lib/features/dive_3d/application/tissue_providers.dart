@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/domain/tissue/subsurface_tissue_builder.dart';
 import 'package:submersion/features/dive_3d/domain/tissue/tissue_surface_grid.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
@@ -17,8 +18,9 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 /// `Dive.computerTissue` snapshot is dive-level (start and end only) and its
 /// compartment model differs by computer, so it cannot seed this per-sample
 /// scene and is deliberately not used here.
-final tissueDecoStatusesProvider =
-    FutureProvider.family<List<DecoStatus>, String>((ref, diveId) async {
+final tissueDecoStatusesProvider = FutureProvider.autoDispose
+    .family<List<DecoStatus>, String>((ref, diveId) async {
+      retainDiveData(ref);
       final analysis = await ref.watch(
         sourceProfileAnalysisProvider((
           diveId: diveId,
@@ -35,8 +37,9 @@ final tissueDecoStatusesProvider =
 /// dimensions. Null when there is nothing to render - mirroring
 /// [SubsurfaceTissueBuilder.buildResult]'s bail-out - i.e. fewer than 2
 /// statuses, or statuses that carry no tissue compartments.
-final tissueSurfaceProvider =
-    FutureProvider.family<TissueSurfaceResult?, String>((ref, diveId) async {
+final tissueSurfaceProvider = FutureProvider.autoDispose
+    .family<TissueSurfaceResult?, String>((ref, diveId) async {
+      retainDiveData(ref);
       final statuses = await ref.watch(
         tissueDecoStatusesProvider(diveId).future,
       );
@@ -48,25 +51,25 @@ final tissueSurfaceProvider =
     });
 
 /// The 3D extrusion of the tissue heat map (derived from [tissueSurfaceProvider]).
-final tissue3dSceneProvider = FutureProvider.family<Scene3d?, String>(
-  (ref, diveId) async =>
-      (await ref.watch(tissueSurfaceProvider(diveId).future))?.scene,
-);
+final tissue3dSceneProvider = FutureProvider.autoDispose
+    .family<Scene3d?, String>((ref, diveId) async {
+      retainDiveData(ref);
+      return (await ref.watch(tissueSurfaceProvider(diveId).future))?.scene;
+    });
 
 /// The topology-preserving grid for the draped wireframe + hover picking.
-final tissueSurfaceGridProvider =
-    FutureProvider.family<TissueSurfaceGrid?, String>(
-      (ref, diveId) async =>
-          (await ref.watch(tissueSurfaceProvider(diveId).future))?.grid,
-    );
+final tissueSurfaceGridProvider = FutureProvider.autoDispose
+    .family<TissueSurfaceGrid?, String>((ref, diveId) async {
+      retainDiveData(ref);
+      return (await ref.watch(tissueSurfaceProvider(diveId).future))?.grid;
+    });
 
 /// Dive runtime in seconds, used to convert the tissue X axis (0..1 progress)
 /// into a wall-clock mm:ss in the hover tooltip. Null when unknown (the tooltip
 /// then shows "% of dive").
-final tissueRuntimeSecondsProvider = FutureProvider.family<int?, String>((
-  ref,
-  diveId,
-) async {
-  final dive = await ref.watch(diveProvider(diveId).future);
-  return dive?.effectiveRuntime?.inSeconds;
-});
+final tissueRuntimeSecondsProvider = FutureProvider.autoDispose
+    .family<int?, String>((ref, diveId) async {
+      retainDiveData(ref);
+      final dive = await ref.watch(diveProvider(diveId).future);
+      return dive?.effectiveRuntime?.inSeconds;
+    });

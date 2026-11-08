@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_data_source.da
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/planned_dive_banner.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_log_links.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -29,6 +30,7 @@ void main() {
     WidgetTester tester, {
     required Dive dive,
     bool embedded = false,
+    String? linkedPlanId,
   }) async {
     final overrides = await getBaseOverrides();
     final router = GoRouter(
@@ -59,6 +61,9 @@ void main() {
           diveDataSourcesProvider(
             dive.id,
           ).overrideWith((ref) async => <DiveDataSource>[]),
+          planForLoggedDiveProvider(
+            dive.id,
+          ).overrideWith((ref) async => linkedPlanId),
         ],
         child: MaterialApp.router(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -151,5 +156,74 @@ void main() {
     ).copyWith(isPlanned: true);
     await pumpDetail(tester, dive: dive, embedded: true);
     expect(find.byType(PlannedDiveBanner), findsOneWidget);
+  });
+
+  group('the way back to the plan (issue #3565)', () {
+    Future<void> openMenu(WidgetTester tester) async {
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+    }
+
+    final planned = createTestDiveWithBottomTime(
+      diveNumber: null,
+    ).copyWith(isPlanned: true);
+
+    testWidgets('a planned dive from a plan offers Open in planner', (
+      tester,
+    ) async {
+      await pumpDetail(tester, dive: planned, linkedPlanId: 'plan-1');
+
+      expect(
+        find.widgetWithText(TextButton, 'Open in planner'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a planned dive with no plan does not', (tester) async {
+      await pumpDetail(tester, dive: planned);
+
+      expect(find.text('Open in planner'), findsNothing);
+    });
+
+    testWidgets('a dived dive from a plan offers View in planner', (
+      tester,
+    ) async {
+      await pumpDetail(
+        tester,
+        dive: createTestDiveWithBottomTime(),
+        linkedPlanId: 'plan-1',
+      );
+
+      await openMenu(tester);
+      expect(find.text('View in planner'), findsOneWidget);
+    });
+
+    testWidgets('a dived dive with no plan does not', (tester) async {
+      await pumpDetail(tester, dive: createTestDiveWithBottomTime());
+
+      await openMenu(tester);
+      expect(find.text('View in planner'), findsNothing);
+    });
+
+    testWidgets('a planned dive exports under Planned dive, not Dive #0', (
+      tester,
+    ) async {
+      await pumpDetail(tester, dive: planned);
+
+      await openMenu(tester);
+      await tester.tap(find.text('Export').last);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(
+        find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.text('Planned dive'),
+        ),
+        findsOneWidget,
+      );
+      expect(find.textContaining('#0'), findsNothing);
+    });
   });
 }

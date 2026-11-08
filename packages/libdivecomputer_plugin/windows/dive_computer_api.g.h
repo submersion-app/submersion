@@ -581,7 +581,8 @@ class ParsedDive {
     const double* entry_latitude,
     const double* entry_longitude,
     const double* exit_latitude,
-    const double* exit_longitude);
+    const double* exit_longitude,
+    const double* surface_pressure_bar);
 
   const std::string& fingerprint() const;
   void set_fingerprint(std::string_view value_arg);
@@ -681,6 +682,10 @@ class ParsedDive {
   void set_exit_longitude(const double* value_arg);
   void set_exit_longitude(double value_arg);
 
+  const double* surface_pressure_bar() const;
+  void set_surface_pressure_bar(const double* value_arg);
+  void set_surface_pressure_bar(double value_arg);
+
 
  private:
   static ParsedDive FromEncodableList(const flutter::EncodableList& list);
@@ -716,6 +721,7 @@ class ParsedDive {
   std::optional<double> entry_longitude_;
   std::optional<double> exit_latitude_;
   std::optional<double> exit_longitude_;
+  std::optional<double> surface_pressure_bar_;
 
 };
 

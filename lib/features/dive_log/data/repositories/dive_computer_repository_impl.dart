@@ -1579,6 +1579,10 @@ class DiveComputerRepository {
     // the dive header and never as a sample, so it cannot be recovered from
     // the profile points.
     double? minTemperature,
+    // Atmospheric pressure in bar the computer measured at the surface
+    // (issue #4208), already checked against the plausible window. A new
+    // dive takes it; see the update branch for an existing one.
+    double? surfacePressure,
     // A dive summary the source reported itself rather than one derived from
     // the profile (Garmin's FIT dive_summary, issue #1798). Like the diluent
     // above, the dive row only takes them when it is brand new; the
@@ -1726,6 +1730,7 @@ class DiveComputerRepository {
                 entryLongitude: Value(entryLongitude),
                 exitLatitude: Value(exitLatitude),
                 exitLongitude: Value(exitLongitude),
+                surfacePressure: Value(surfacePressure),
               ),
             );
 
@@ -2335,20 +2340,37 @@ class DiveComputerRepository {
         final fillsTarget = targetDiveId != null;
         Value<double> exposure(double? value) =>
             fillsTarget && value != null ? Value(value) : const Value.absent();
+        // A reading that just took the primary role from a summary-only
+        // source (a file import's row, or a download's row with no series)
+        // writes the surface pressure it measured over whatever the dive
+        // holds, a value typed or fetched since the import included, the way
+        // the deco settings above follow the reading that reports them. Any
+        // other reading only fills a dive that has none (issue #4208).
+        final surfacePressureWrite = surfacePressure == null
+            ? null
+            : displacedPrimary
+            ? Variable(surfacePressure)
+            : coalesce([_db.dives.surfacePressure, Variable(surfacePressure)]);
+        final diveUpdate = DivesCompanion(
+          updatedAt: Value(now),
+          gradientFactorLow: reported(gfLow),
+          gradientFactorHigh: reported(gfHigh),
+          decoAlgorithm: reported(decoAlgorithm),
+          decoConservatism: reported(decoConservatism),
+          computerTissueJson: writesTissue
+              ? Value(computerTissue?.encode())
+              : const Value.absent(),
+          cnsStart: exposure(cnsStart),
+          cnsEnd: exposure(cnsEnd),
+          otu: exposure(otu),
+        );
+        // One write: the companion's columns, plus the surface pressure as
+        // an expression, since a fill reads the stored value in SQL.
         await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
-          DivesCompanion(
-            updatedAt: Value(now),
-            gradientFactorLow: reported(gfLow),
-            gradientFactorHigh: reported(gfHigh),
-            decoAlgorithm: reported(decoAlgorithm),
-            decoConservatism: reported(decoConservatism),
-            computerTissueJson: writesTissue
-                ? Value(computerTissue?.encode())
-                : const Value.absent(),
-            cnsStart: exposure(cnsStart),
-            cnsEnd: exposure(cnsEnd),
-            otu: exposure(otu),
-          ),
+          RawValuesInsertable({
+            ...diveUpdate.toColumns(false),
+            _db.dives.surfacePressure.name: ?surfacePressureWrite,
+          }),
         );
         await _syncRepository.markRecordPending(
           entityType: 'dives',

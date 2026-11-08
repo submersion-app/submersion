@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
 
@@ -31,8 +32,9 @@ const _abandonedComparison = DiveComparison(profiles: [], comparableCount: 0);
 /// primary source is placed first so it is the reference (index 0). Sources
 /// without usable depth samples are skipped. The full comparable set is
 /// returned; the view caps how many it renders and notes the remainder.
-final computerComparisonProfilesProvider =
-    FutureProvider.family<List<ComparisonProfile>, String>((ref, diveId) async {
+final computerComparisonProfilesProvider = FutureProvider.autoDispose
+    .family<List<ComparisonProfile>, String>((ref, diveId) async {
+      retainDiveData(ref);
       final sources = await ref.watch(diveDataSourcesProvider(diveId).future);
       final profilesBySource = await ref.watch(
         sourceProfilesProvider(diveId).future,

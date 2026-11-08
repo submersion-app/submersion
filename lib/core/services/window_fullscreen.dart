@@ -3,6 +3,7 @@ import 'package:window_manager/window_manager.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/platform/desktop_target_platform.dart';
 
 const _log = LoggerService('WindowFullscreen');
 
@@ -177,13 +178,20 @@ class WindowFullscreenController {
 /// Whether the app runs in a desktop window whose fullscreen state it can
 /// change: macOS, Windows or Linux.
 bool hasDesktopWindow() =>
-    !kIsWeb &&
-    switch (defaultTargetPlatform) {
-      TargetPlatform.macOS ||
-      TargetPlatform.windows ||
-      TargetPlatform.linux => true,
-      _ => false,
-    };
+    !kIsWeb && isDesktopTargetPlatform(defaultTargetPlatform);
+
+/// Shows the desktop window, restoring it if minimized, and with [focus]
+/// brings it to the front. Does nothing where there is no desktop window.
+///
+/// The macOS plugin finds the app's window only in `ensureInitialized`; a
+/// window call before it unwraps nil in native code and the app quits
+/// (#4298), so every reveal goes through here.
+Future<void> revealDesktopWindow({bool focus = false}) async {
+  if (!hasDesktopWindow()) return;
+  await windowManager.ensureInitialized();
+  await windowManager.show();
+  if (focus) await windowManager.focus();
+}
 
 /// The window this app runs in. Read through [defaultTargetPlatform] so a
 /// widget test, which reports Android, never reaches the real plugin.

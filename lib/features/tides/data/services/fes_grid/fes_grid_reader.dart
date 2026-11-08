@@ -8,6 +8,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:submersion/core/tide/entities/tide_constituent.dart';
 import 'package:submersion/features/tides/data/services/fes_grid/fes_grid_layers.dart';
 import 'package:submersion/features/tides/data/services/fes_grid/fes_grid_manifest.dart';
+import 'package:submersion/features/tides/data/services/fes_grid/fes_grid_packing.dart';
 
 /// Constituents interpolated at a point, and the grid spacing behind them.
 class FesGridSample {
@@ -19,9 +20,10 @@ class FesGridSample {
 
 /// Reads the bundled FES2022 grid: the 0.1-degree coastal tiles first, the
 /// 1-degree global layer when no coastal corner has data, else nothing.
-/// Tiles load on demand into a small least-recently-used cache. Every
-/// failure (missing or malformed file) degrades to the next layer and is
-/// logged; nothing throws to the caller.
+/// Tiles load on demand into a small least-recently-used cache, each
+/// unpacked from its bundled file as it loads. Every failure (missing or
+/// malformed file) degrades to the next layer and is logged; nothing throws
+/// to the caller.
 class FesGridReader {
   static const bundledRoot = 'assets/data/tide/fes';
 
@@ -31,7 +33,8 @@ class FesGridReader {
   final int _maxCachedTiles;
 
   /// Insertion-ordered, oldest first: a hit is moved to the end, and the
-  /// front is evicted past [_maxCachedTiles] (a tile is up to about 1 MB).
+  /// front is evicted past [_maxCachedTiles] (an unpacked tile is up to
+  /// about 1 MB).
   final Map<(int, int), Future<FesTile?>> _tiles = {};
 
   FesGridReader({
@@ -104,7 +107,10 @@ class FesGridReader {
     final loading = _tiles[key] = () async {
       try {
         final data = await _load(FesGridManifest.tilePath(tileRow, tileCol));
-        return FesTile.parse(data, expectedConstituents: m.constituents.length);
+        return FesTile.parse(
+          await unpackFesTile(data),
+          expectedConstituents: m.constituents.length,
+        );
       } catch (e) {
         developer.log(
           'FES tile $tileRow,$tileCol unreadable: $e',
@@ -123,7 +129,7 @@ class FesGridReader {
     return _global ??= () async {
       try {
         final layer = FesGlobalLayer.parse(
-          await _load(FesGridManifest.globalPath),
+          await unpackFesGlobalLayer(await _load(FesGridManifest.globalPath)),
           expectedConstituents: m.constituents.length,
         );
         if (layer.rows != m.global.rows || layer.cols != m.global.cols) {

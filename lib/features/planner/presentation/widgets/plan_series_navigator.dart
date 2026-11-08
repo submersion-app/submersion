@@ -24,8 +24,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// its dive number; each planned dive is an outlined diver and its name, or its
 /// letter while it has none; each surface interval is its time above two
 /// waves. Tapping a planned dive selects it, and tapping a logged one shows
-/// it read-only; + adds a dive after the last one. The selected dive can be
-/// removed from its chip. A dot marks a dive with a warning: red when any is
+/// it read-only; + adds a dive after the last one. A planned dive whose log
+/// entry has been dived becomes a logged one, and shows what happened. The
+/// selected planned dive can be removed from its chip; a dived one cannot. A dot marks a dive with a warning: red when any is
 /// critical, orange otherwise. Wider than the screen, the dives scroll by
 /// touch or mouse drag behind faded edges, keeping the selected dive in
 /// view.
@@ -122,7 +123,12 @@ class _PlanSeriesNavigatorState extends ConsumerState<PlanSeriesNavigator> {
     final viewed = ref.watch(viewedLoggedDiveProvider);
     final notifier = ref.read(planSeriesNotifierProvider.notifier);
     final viewedNotifier = ref.read(viewedLoggedDiveIdProvider.notifier);
-    final selected = viewed == null ? series.selectedIndex : -1;
+    // A dive of the series that has been dived shows as viewed while it is
+    // selected, and stays the selected one.
+    final selected =
+        viewed == null || viewed.id == series.selected.actual?.followed.id
+        ? series.selectedIndex
+        : -1;
     final diveIds = {
       ...?series.follow?.loggedDives.map((dive) => dive.id),
       for (final dive in series.dives) dive.state.id,
@@ -163,6 +169,22 @@ class _PlanSeriesNavigatorState extends ConsumerState<PlanSeriesNavigator> {
                 defaultSeriesSurfaceInterval,
           ),
         );
+      }
+      // A dive that has been dived goes by what the log calls it, and stays
+      // in the series: it is what the dives after it carry from.
+      if (dive.actual?.followed case final dived?) {
+        items.add(
+          _LoggedDiveChip(
+            key: _keyFor(dive.state.id),
+            label: seriesLoggedDiveLabel(dived, units),
+            selected: i == selected,
+            onSelected: () {
+              viewedNotifier.state = null;
+              notifier.select(i);
+            },
+          ),
+        );
+        continue;
       }
       final worst = _worstWarning(results[i].outcome.issues);
       items.add(

@@ -31,7 +31,8 @@ abstract class NearbySyncEngine {
 
   Future<SyncPayload> exportDelta(String watermark);
 
-  /// The caller owns and deletes the file.
+  /// A full copy, gzipped as it streams so it is never on disk plain as
+  /// well (issue #4256). The caller owns and deletes the file.
   Future<StreamedBase> exportFull();
 
   Future<NearbyApplyResult> applyPayload(
@@ -39,6 +40,7 @@ abstract class NearbySyncEngine {
     required String peerDeviceId,
   });
 
+  /// Applies the gzipped full copy at [path] without expanding it on disk.
   Future<NearbyApplyResult> applyBaseFile(
     String path, {
     required String peerDeviceId,
@@ -149,6 +151,7 @@ class DatabaseNearbySyncEngine implements NearbySyncEngine {
     deviceId: await _repo.getDeviceId(),
     deletions: await _repo.getAllDeletions(),
     epochId: await _epochId(),
+    gzipped: true,
   );
 
   Future<DateTime?> _lastSync(String peerDeviceId) async {

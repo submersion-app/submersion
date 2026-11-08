@@ -173,7 +173,6 @@ void main() {
       expect(await markedIn(EditorMode.draw), [90, 210]);
       expect(await markedIn(EditorMode.select), isEmpty);
       expect(await markedIn(EditorMode.smooth), isEmpty);
-      expect(await markedIn(EditorMode.trim), isEmpty);
     });
 
     testWidgets('marks nothing before outliers are detected', (tester) async {
@@ -219,7 +218,6 @@ void main() {
 
       expect(await dotsShownIn(EditorMode.select), isFalse);
       expect(await dotsShownIn(EditorMode.smooth), isFalse);
-      expect(await dotsShownIn(EditorMode.trim), isFalse);
       expect(await dotsShownIn(EditorMode.outlier), isFalse);
       expect(
         await dotsShownIn(EditorMode.outlier, outliers: const []),

@@ -46,8 +46,8 @@ extension _ChildRules on _Pass {
       // A record no diver owns, such as a species, has no owner column, and
       // one with no version column is marked by its document instead.
       final columns = await _columnsOf(entry.table);
-      final owner = columns.contains('diver_id')
-          ? 'r.diver_id'
+      final owner = columns.contains(entry.ownerColumn)
+          ? '${entry.ownerOf('r')} AS diver_id'
           : 'NULL AS diver_id';
       final version = columns.contains('updated_at')
           ? 'r.updated_at'
@@ -55,9 +55,30 @@ extension _ChildRules on _Pass {
       return 'SELECT r.id, $owner, $version, NULL AS parent_id '
           'FROM ${entry.table} r';
     }
-    return 'SELECT r.id, p.diver_id, p.updated_at, r.${parent.column} AS '
-        'parent_id FROM ${entry.table} r JOIN ${_parentTable(entry)} p '
-        'ON p.id = r.${parent.column}';
+    final (:joins, :owner) = _ancestors(entry);
+    return 'SELECT r.id, $owner AS diver_id, p.updated_at, r.${parent.column} '
+        'AS parent_id FROM ${entry.table} r JOIN ${_parentTable(entry)} p '
+        'ON p.id = r.${parent.column}$joins';
+  }
+
+  /// The joins from [entry]'s parent, aliased `p`, up to the record that
+  /// holds the owner, and the owner's column there: on `p` itself for a
+  /// child of a record of its own, on a grandparent for a child of a child,
+  /// such as a fill on a trip's cylinder.
+  ({String joins, String owner}) _ancestors(WritableEntry entry) {
+    var joins = '';
+    var alias = 'p';
+    var up = writes.named(entry.parent!.entity)!;
+    for (var level = 0; up.parent != null; level++) {
+      final grand = up.parent!;
+      final next = 'g$level';
+      joins +=
+          ' JOIN ${writes.named(grand.entity)!.table} $next '
+          'ON $next.id = $alias.${grand.column}';
+      alias = next;
+      up = writes.named(grand.entity)!;
+    }
+    return (joins: joins, owner: up.ownerOf(alias));
   }
 
   String _parentTable(WritableEntry entry) =>
@@ -92,9 +113,11 @@ extension _ChildRules on _Pass {
       );
     }
     final table = _parentTable(entry);
+    final (:joins, :owner) = _ancestors(entry);
     final row = await db
         .customSelect(
-          'SELECT diver_id FROM $table WHERE id = ?',
+          'SELECT $owner AS diver_id FROM $table p$joins '
+          'WHERE p.id = ?',
           variables: [Variable.withString(parentId)],
         )
         .getSingleOrNull();

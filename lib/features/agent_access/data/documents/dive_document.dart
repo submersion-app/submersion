@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.d
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     show GeoPoint;
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
@@ -172,6 +173,20 @@ Map<String, Object?> diveBuddyDocument(BuddyWithRole b) => {
   'id': b.buddy.id,
   'name': b.buddy.name,
   'roles': [for (final r in b.roles) r.name],
+};
+
+/// A safety review's finding on a dive: the diver may dismiss it.
+/// [SafetyFinding.startTimestamp] and [SafetyFinding.endTimestamp] are
+/// seconds into the dive.
+Map<String, Object?> safetyFindingDocument(SafetyFinding f) => {
+  'id': f.id,
+  'dive_id': f.diveId,
+  'rule_id': f.ruleId.dbValue,
+  'severity': f.severity.dbValue,
+  'start_s': f.startTimestamp,
+  'end_s': f.endTimestamp,
+  'value': f.value,
+  'dismissed_at': instant(f.dismissedAt),
 };
 
 Map<String, Object?> sightingDocument(Sighting s) => {

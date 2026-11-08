@@ -1,8 +1,7 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
-import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
-import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/domain/services/range_table_service.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
@@ -30,32 +29,25 @@ final viewedLoggedDivePlanProvider = Provider<LinkedPlanComparison?>((ref) {
   return ref.watch(linkedPlanComparisonProvider(logged.id)).value;
 });
 
-/// The plan of [viewedLoggedDivePlanProvider] as the editor's widgets read
-/// a plan, for showing its segments read-only.
-final viewedLoggedDivePlanStateProvider = Provider<DivePlanState?>((ref) {
-  final comparison = ref.watch(viewedLoggedDivePlanProvider);
-  return comparison == null ? null : stateFromDivePlan(comparison.plan);
-});
-
 /// The range table of the plan [diveId] was dived from, computed in the
 /// background like the editor's; null when it has no plan or nothing to
-/// vary. It starts from a fresh diver, as the dive log's overlay does.
-final linkedPlanRangeTableProvider = FutureProvider.family<RangeTable?, String>(
-  (ref, diveId) async {
-    final comparison = await ref.watch(
-      linkedPlanComparisonProvider(diveId).future,
-    );
-    if (comparison == null || comparison.plan.segments.isEmpty) return null;
-    return ref
-        .watch(planResultRunnerProvider)
-        .run(
-          computeRangeTable,
-          comparison.plan,
-          null,
-          ref.watch(planEngineConfigProvider),
-        );
-  },
-);
+/// vary. It starts from a fresh diver, even for a later dive of a series.
+final linkedPlanRangeTableProvider = FutureProvider.autoDispose
+    .family<RangeTable?, String>((ref, diveId) async {
+      retainDiveData(ref);
+      final comparison = await ref.watch(
+        linkedPlanComparisonProvider(diveId).future,
+      );
+      if (comparison == null || comparison.plan.segments.isEmpty) return null;
+      return ref
+          .watch(planResultRunnerProvider)
+          .run(
+            computeRangeTable,
+            comparison.plan,
+            null,
+            ref.watch(planEngineConfigProvider),
+          );
+    });
 
 /// The safety review findings of the logged dive in view that the dive log
 /// would show: none with the review off, and none from a rule the diver

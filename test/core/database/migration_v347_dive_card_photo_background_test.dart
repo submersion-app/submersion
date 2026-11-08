@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v343: diver_settings gains show_photo_background_on_dive_cards, off
+/// Schema v347: diver_settings gains show_photo_background_on_dive_cards, off
 /// for every existing diver so dive cards look as they did until the diver
 /// turns the switch on.
 void main() {
@@ -20,23 +20,23 @@ void main() {
     },
   );
 
-  test('v343 is in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(343));
-    expect(AppDatabase.migrationVersions, contains(343));
+  test('v347 is in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(347));
+    expect(AppDatabase.migrationVersions, contains(347));
     expect(
-      AppDatabase.migrationStepCount(342),
-      AppDatabase.migrationStepCount(343) + 1,
+      AppDatabase.migrationStepCount(346),
+      AppDatabase.migrationStepCount(347) + 1,
     );
   });
 
   test('the column is additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(343));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(347));
   });
 
   test(
-    'upgrading from v342 leaves the switch off for an existing diver',
+    'upgrading from v346 leaves the switch off for an existing diver',
     () async {
-      final db = AppDatabase(dbAt(342));
+      final db = AppDatabase(dbAt(346));
       addTearDown(db.close);
       final row = await db
           .customSelect(
@@ -47,8 +47,8 @@ void main() {
     },
   );
 
-  test('upgrading from v342 gives both overlays the default opacity', () async {
-    final db = AppDatabase(dbAt(342));
+  test('upgrading from v346 gives both overlays the default opacity', () async {
+    final db = AppDatabase(dbAt(346));
     addTearDown(db.close);
     final row = await db
         .customSelect(
@@ -60,8 +60,8 @@ void main() {
     expect(row.read<double>('card_photo_overlay_light'), 0.6);
   });
 
-  test('beforeOpen heals a database already at v343 that lacks it', () async {
-    final db = AppDatabase(dbAt(343));
+  test('beforeOpen heals a database already at v347 that lacks it', () async {
+    final db = AppDatabase(dbAt(347));
     addTearDown(db.close);
     final columns =
         (await db.customSelect("PRAGMA table_info('diver_settings')").get())

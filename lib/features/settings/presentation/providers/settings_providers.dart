@@ -7,6 +7,7 @@ import 'package:submersion/core/deco/schedule_policy.dart' show AirBreakPolicy;
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
+import 'package:submersion/core/constants/first_day_of_week.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/o2_cell_unit.dart';
@@ -233,6 +234,10 @@ class AppSettings implements UnitFormatterSettings {
   final TimeFormat timeFormat;
   @override
   final DateFormatPreference dateFormat;
+
+  /// The day a week starts on (issue #4232). [FirstDayOfWeek.auto] follows
+  /// the device's region; see [firstWeekdayProvider].
+  final FirstDayOfWeek firstDayOfWeek;
   final ThemeMode themeMode;
   final String themePresetId;
 
@@ -775,6 +780,7 @@ class AppSettings implements UnitFormatterSettings {
     this.coordinateFormat = CoordinateFormat.decimalDegrees,
     this.timeFormat = TimeFormat.twelveHour,
     this.dateFormat = DateFormatPreference.mmmDYYYY,
+    this.firstDayOfWeek = FirstDayOfWeek.auto,
     this.themeMode = ThemeMode.system,
     this.themePresetId = 'submersion',
     this.accentNavIcons = false,
@@ -1007,6 +1013,7 @@ class AppSettings implements UnitFormatterSettings {
     CoordinateFormat? coordinateFormat,
     TimeFormat? timeFormat,
     DateFormatPreference? dateFormat,
+    FirstDayOfWeek? firstDayOfWeek,
     ThemeMode? themeMode,
     String? themePresetId,
     bool? accentNavIcons,
@@ -1212,6 +1219,7 @@ class AppSettings implements UnitFormatterSettings {
       coordinateFormat: coordinateFormat ?? this.coordinateFormat,
       timeFormat: timeFormat ?? this.timeFormat,
       dateFormat: dateFormat ?? this.dateFormat,
+      firstDayOfWeek: firstDayOfWeek ?? this.firstDayOfWeek,
       themeMode: themeMode ?? this.themeMode,
       themePresetId: themePresetId ?? this.themePresetId,
       accentNavIcons: accentNavIcons ?? this.accentNavIcons,
@@ -2176,6 +2184,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setDateFormat(DateFormatPreference format) async {
     state = state.copyWith(dateFormat: format);
+    await _saveSettings();
+  }
+
+  Future<void> setFirstDayOfWeek(FirstDayOfWeek day) async {
+    state = state.copyWith(firstDayOfWeek: day);
     await _saveSettings();
   }
 
@@ -3962,6 +3975,28 @@ final timeFormatProvider = Provider<TimeFormat>((ref) {
 
 final dateFormatProvider = Provider<DateFormatPreference>((ref) {
   return ref.watch(settingsProvider.select((s) => s.dateFormat));
+});
+
+/// The device's region (an ISO 3166 country code such as `CH`), the first
+/// one its preferred locales name, or null when the platform names none.
+/// The app root invalidates it when the device's locales change, so it is
+/// read again then; overridden in tests.
+final deviceRegionProvider = Provider<String?>((ref) {
+  return firstNamedRegion(
+    WidgetsBinding.instance.platformDispatcher.locales.map(
+      (locale) => locale.countryCode,
+    ),
+  );
+});
+
+/// The first day of the week in [DateTime.weekday] numbering, or null when
+/// the setting is automatic and the device names no region, in which case
+/// the app language's own week start applies (issue #4232).
+final firstWeekdayProvider = Provider<int?>((ref) {
+  return resolveFirstWeekday(
+    ref.watch(settingsProvider.select((s) => s.firstDayOfWeek)),
+    ref.watch(deviceRegionProvider),
+  );
 });
 
 /// Notification settings convenience providers

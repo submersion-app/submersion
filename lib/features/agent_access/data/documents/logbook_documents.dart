@@ -152,6 +152,7 @@ Map<String, Object?> diveComputerDocument(DiveComputer c) => {
   'last_download_at': instant(c.lastDownload),
   'dive_count': c.diveCount,
   'is_favorite': c.isFavorite,
+  'auto_download_disabled': c.autoDownloadDisabled,
   'notes': c.notes,
   'equipment_id': c.equipmentId,
 };

@@ -4,8 +4,10 @@ import 'package:submersion/features/equipment/domain/constants/equipment_field.d
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 
 void main() {
-  test('owner is appended last so saved layouts keep their order', () {
-    expect(EquipmentField.values.last, EquipmentField.owner);
+  test('owner is appended after tags so saved layouts keep their order', () {
+    // Location (issue #3625) was appended after it; see its own test.
+    const values = EquipmentField.values;
+    expect(values[values.length - 2], EquipmentField.owner);
     expect(
       EquipmentFieldAdapter.instance.fieldFromName('owner'),
       EquipmentField.owner,

@@ -4,7 +4,7 @@ part of '../app_database_migrations.dart';
 /// for every diver, existing ones included: the column is new, so no saved
 /// choice is overwritten.
 extension DiveCardPhotoMigrations on AppDatabase {
-  /// v343: diver_settings.show_photo_background_on_dive_cards and the
+  /// v347: diver_settings.show_photo_background_on_dive_cards and the
   /// overlay opacity for each theme. Idempotent; called from the rung and
   /// the beforeOpen backstop.
   Future<void> _assertDiveCardPhotoBackgroundColumn() async {

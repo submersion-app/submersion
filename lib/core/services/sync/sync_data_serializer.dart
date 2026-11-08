@@ -26,6 +26,7 @@ import 'package:submersion/core/services/sync/sync_json_weight.dart';
 import 'package:submersion/core/services/sync/sync_record_overlay.dart';
 import 'package:submersion/core/services/sync/view_config_merge.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
+import 'package:submersion/core/services/sync/changeset_log/gzip_temp_sink.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_files.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -283,6 +284,7 @@ class SyncData {
   final List<Map<String, dynamic>> qualityFindings;
   final List<Map<String, dynamic>> equipmentAttributes;
   final List<Map<String, dynamic>> equipmentComponents;
+  final List<Map<String, dynamic>> cylinderPairings;
   final List<Map<String, dynamic>> mediaSmartAlbums;
   final List<Map<String, dynamic>> media;
   final List<Map<String, dynamic>> mediaEnrichment;
@@ -431,6 +433,7 @@ class SyncData {
     this.qualityFindings = const [],
     this.equipmentAttributes = const [],
     this.equipmentComponents = const [],
+    this.cylinderPairings = const [],
     this.mediaSmartAlbums = const [],
     this.media = const [],
     this.mediaEnrichment = const [],
@@ -567,6 +570,7 @@ class SyncData {
     'qualityFindings': qualityFindings,
     'equipmentAttributes': equipmentAttributes,
     'equipmentComponents': equipmentComponents,
+    'cylinderPairings': cylinderPairings,
     'mediaSmartAlbums': mediaSmartAlbums,
     'media': media,
     'mediaEnrichment': mediaEnrichment,
@@ -704,6 +708,7 @@ class SyncData {
       qualityFindings: _parseList(json['qualityFindings']),
       equipmentAttributes: _parseList(json['equipmentAttributes']),
       equipmentComponents: _parseList(json['equipmentComponents']),
+      cylinderPairings: _parseList(json['cylinderPairings']),
       mediaSmartAlbums: _parseList(json['mediaSmartAlbums']),
       media: _parseList(json['media']),
       mediaEnrichment: _parseList(json['mediaEnrichment']),
@@ -1140,6 +1145,12 @@ class SyncDataSerializer {
     (
       key: 'equipmentComponents',
       table: _db.equipmentComponents,
+      blob: false,
+      full: null,
+    ),
+    (
+      key: 'cylinderPairings',
+      table: _db.cylinderPairings,
       blob: false,
       full: null,
     ),
@@ -1713,6 +1724,10 @@ class SyncDataSerializer {
   /// large libraries (#358, write side). Rows stream in `id` order; the internal
   /// `checksum` is patched in over the streamed `data` bytes via a single
   /// seek-back so there is no second DB scan. Caller owns and must delete [path].
+  ///
+  /// [gzipped] writes the same document gzipped as it streams (a nearby full
+  /// copy, issue #4256), so it is never on disk plain as well as compressed;
+  /// the returned `byteLength` is then the compressed size.
   Future<StreamedBase> exportBaseToTempFile({
     required String deviceId,
     required List<DeletionLogData> deletions,
@@ -1723,6 +1738,7 @@ class SyncDataSerializer {
     int blobPageBytes = kBaseBlobPageBytes,
     DateTime Function() now = DateTime.now,
     Future<Directory> Function()? tempDir,
+    bool gzipped = false,
   }) async {
     // The sink joins the directory and name itself (never a literal '/':
     // a mixed-separator path broke the Windows publish in #1304). A browser
@@ -1730,10 +1746,13 @@ class SyncDataSerializer {
     final directoryPath = tempDir == null && HostPlatform.isWeb
         ? null
         : (await (tempDir?.call() ?? resolveSyncTempDir())).path;
-    final out = await SyncTempFiles.create(
-      'ssv1_base_${deviceId}_${seq ?? 0}.${_baseTempUuid.v4()}.json',
+    final file = await SyncTempFiles.create(
+      'ssv1_base_${deviceId}_${seq ?? 0}.${_baseTempUuid.v4()}'
+      '.json${gzipped ? '.gz' : ''}',
       directoryPath: directoryPath,
     );
+    final gzipSink = gzipped ? GzipTempSink(file) : null;
+    final SyncTempSink out = gzipSink ?? file;
     final path = out.path;
     final digestSink = _Sha256DigestSink();
     final dataHash = sha256.startChunkedConversion(digestSink);
@@ -1760,6 +1779,8 @@ class SyncDataSerializer {
       );
       final checksumOffset = out.length;
       await out.add(List.filled(64, 0x30)); // '0'*64 placeholder
+      // Only the bytes up to here are patched later; the rest compresses.
+      await gzipSink?.endHead();
       await out.add(utf8.encode('","data":'));
 
       // ---- data object (hashed) ----
@@ -1867,8 +1888,8 @@ class SyncDataSerializer {
         checksumOffset,
         utf8.encode(digestSink.value.toString()),
       );
-      final byteLength = out.length;
       await out.close();
+      final byteLength = gzipSink?.diskLength ?? out.length;
       return (
         path: path,
         byteLength: byteLength,
@@ -2479,6 +2500,10 @@ class SyncDataSerializer {
       equipmentComponents: await _safeExport(
         'equipmentComponents',
         () => _exportEquipmentComponents(hlcSince),
+      ),
+      cylinderPairings: await _safeExport(
+        'cylinderPairings',
+        () => _exportCylinderPairings(hlcSince),
       ),
       mediaSmartAlbums: await _safeExport(
         'mediaSmartAlbums',
@@ -3374,6 +3399,11 @@ class SyncDataSerializer {
           _db.equipmentComponents,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'cylinderPairings':
+        final row = await (_db.select(
+          _db.cylinderPairings,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'equipmentSetItems':
         final parts = _splitCompositeId(recordId);
         if (parts.length != 2) return null;
@@ -4078,6 +4108,11 @@ class SyncDataSerializer {
       case 'equipmentComponents':
         final rows = await (_db.select(
           _db.equipmentComponents,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'cylinderPairings':
+        final rows = await (_db.select(
+          _db.cylinderPairings,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'buddies':
@@ -5414,6 +5449,13 @@ class SyncDataSerializer {
               EquipmentComponentRow.fromJson(data).toCompanion(false),
             );
         return;
+      case 'cylinderPairings':
+        await _db
+            .into(_db.cylinderPairings)
+            .insertOnConflictUpdate(
+              CylinderPairingRow.fromJson(data).toCompanion(false),
+            );
+        return;
       case 'equipmentSetItems':
         await _upsertGearJunction(entityType, [data]);
         return;
@@ -6532,6 +6574,16 @@ class SyncDataSerializer {
                 .map(
                   (r) => EquipmentComponentRow.fromJson(r).toCompanion(false),
                 )
+                .toList(),
+          ),
+        );
+        return;
+      case 'cylinderPairings':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.cylinderPairings,
+            records
+                .map((r) => CylinderPairingRow.fromJson(r).toCompanion(false))
                 .toList(),
           ),
         );
@@ -8152,6 +8204,8 @@ class SyncDataSerializer {
         return plain(_db.equipmentAttributes, _db.equipmentAttributes.id);
       case 'equipmentComponents':
         return plain(_db.equipmentComponents, _db.equipmentComponents.id);
+      case 'cylinderPairings':
+        return plain(_db.cylinderPairings, _db.cylinderPairings.id);
       case 'diveTypes':
         return plain(_db.diveTypes, _db.diveTypes.id);
       case 'siteTypes':
@@ -8703,6 +8757,8 @@ class SyncDataSerializer {
         return _db.equipmentAttributes;
       case 'equipmentComponents':
         return _db.equipmentComponents;
+      case 'cylinderPairings':
+        return _db.cylinderPairings;
       case 'diveTypes':
         return _db.diveTypes;
       case 'siteTypes':
@@ -8985,6 +9041,11 @@ class SyncDataSerializer {
       case 'equipmentComponents':
         await (_db.delete(
           _db.equipmentComponents,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'cylinderPairings':
+        await (_db.delete(
+          _db.cylinderPairings,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'equipmentSetItems':
@@ -9884,6 +9945,17 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
+  Future<List<Map<String, dynamic>>> _exportCylinderPairings(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.cylinderPairings);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
   Future<List<Map<String, dynamic>>> _exportEquipmentSetItems(
     String? hlcSince,
   ) async {
@@ -10449,32 +10521,40 @@ class SyncDataSerializer {
   /// `length()` on a blob column reads the record header, not the payload,
   /// so this costs a scan of a few small tables and no blob reads.
   Future<int> pendingSeriesBlobBytes(String? hlcSince) async {
-    const blobColumnByTable = {
-      'dive_profile_series': 'samples',
-      'tank_pressure_series': 'samples',
-      'nav_tracks': 'points',
+    const blobColumnsByTable = {
+      'dive_profile_series': ['samples'],
+      'tank_pressure_series': ['samples'],
+      // A route carries its original file next to its points (issue #4231),
+      // which moves in the same delta.
+      'nav_tracks': ['points', 'source_file'],
       // Document pages run up to 10 MB each (issue #2613): a burst of scans
       // must trip the streamed-base fallback rather than build one giant
       // in-memory delta.
-      'document_pages': 'bytes',
+      'document_pages': ['bytes'],
     };
     var total = 0;
-    for (final entry in blobColumnByTable.entries) {
+    for (final entry in blobColumnsByTable.entries) {
       final table = entry.key;
-      final column = entry.value;
-      // Guarded per table: _assertProfileSeriesSchema/_assertNavTracksSchema
-      // wait for each table's foreign key parents, so a partially built
-      // database can reach a publish without one.
-      final exists = await _db
-          .customSelect(
-            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
-            variables: [Variable<String>(table)],
-          )
-          .get();
-      if (exists.isEmpty) continue;
+      // Guarded per table and column: _assertProfileSeriesSchema and
+      // _assertNavTracksSchema wait for each table's foreign key parents,
+      // so a partially built database can reach a publish without one, or
+      // with an older table that lacks a later column.
+      final present = {
+        for (final c
+            in await _db.customSelect("PRAGMA table_info('$table')").get())
+          c.read<String>('name'),
+      };
+      final columns = [
+        for (final column in entry.value)
+          if (present.contains(column)) column,
+      ];
+      if (columns.isEmpty) continue;
+      final length = columns
+          .map((column) => 'COALESCE(LENGTH($column), 0)')
+          .join(' + ');
       final row = await _db
           .customSelect(
-            'SELECT COALESCE(SUM(LENGTH($column)), 0) AS n FROM $table'
+            'SELECT COALESCE(SUM($length), 0) AS n FROM $table'
             '${hlcSince == null ? '' : ' WHERE hlc > ?'}',
             variables: hlcSince == null
                 ? const []
@@ -11909,6 +11989,9 @@ class SyncDataSerializer {
       // Time/Date format settings
       'timeFormat': 'twelveHour',
       'dateFormat': 'mmmDYYYY',
+      // Issue #4232. Added in v343; a payload from an older peer hydrates to
+      // automatic, the column default.
+      'firstDayOfWeek': 'auto',
       // Theme
       'themeMode': 'system',
       'themePreset': 'submersion',

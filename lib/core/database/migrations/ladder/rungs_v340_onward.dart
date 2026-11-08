@@ -39,10 +39,37 @@ extension RungsFromV340 on AppDatabase {
     if (from < 342) await _assertDivePlanPhase2Columns();
     if (from < 342) await reportProgress();
 
-    // v343: diver_settings.show_photo_background_on_dive_cards and the
+    // v343: diver_settings.first_day_of_week, the day a week starts on
+    // (issue #4232). Defaulted to 'auto', no backfill. Re-asserted in
+    // beforeOpen.
+    if (from < 343) await _assertFirstDayOfWeekColumn();
+    if (from < 343) await reportProgress();
+
+    // v344: nav_tracks.source_file, the original file a route was imported
+    // from (issue #4231). A nullable column with no backfill: a route
+    // imported before keeps none until it is updated from its file.
+    // Re-asserted in beforeOpen.
+    if (from < 344) await _assertNavTrackSourceFileColumn();
+    if (from < 344) await reportProgress();
+
+    // v345: cylinder_pairings, two cylinders linked as a twin set over a
+    // range of days, cylinder_fills.filled_together_id and
+    // dive_tanks.twin_passport_id (issue #4242). Table and nullable columns
+    // only, no backfill. Re-asserted in beforeOpen.
+    if (from < 345) await _assertTwinSetSchema();
+    if (from < 345) await reportProgress();
+
+    // v346: an item's last service date is its newest service record's
+    // again where logging an older record had moved it back (issue #4201).
+    // Data only, so the compatibility floor does not move. Numbered 346 so
+    // an open PR that also claimed 343 can take 345.
+    if (from < 346) await _repairLastServiceDates();
+    if (from < 346) await reportProgress();
+
+    // v347: diver_settings.show_photo_background_on_dive_cards and the
     // photo overlay opacity per theme. Columns only, defaulted; re-asserted
     // in beforeOpen.
-    if (from < 343) await _assertDiveCardPhotoBackgroundColumn();
-    if (from < 343) await reportProgress();
+    if (from < 347) await _assertDiveCardPhotoBackgroundColumn();
+    if (from < 347) await reportProgress();
   }
 }

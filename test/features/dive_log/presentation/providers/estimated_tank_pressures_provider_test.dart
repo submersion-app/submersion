@@ -3,6 +3,9 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/data/services/estimated_tank_pressure_synthesizer.dart';
+import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
+import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
@@ -318,5 +321,193 @@ void main() {
 
     expect(result.estimatedTankIds, isEmpty);
     expect(result.pressures, same(real));
+  });
+
+  group('windows from the drawn computer\'s own switches (#4300)', () {
+    GasSwitchWithTank change(String computer, int time, String tankId) =>
+        GasSwitchWithTank(
+          gasSwitch: GasSwitch(
+            id: 'switch-$computer-$tankId',
+            diveId: 'd1',
+            timestamp: time,
+            tankId: tankId,
+            computerId: computer,
+            createdAt: DateTime.utc(2026),
+          ),
+          tankName: tankId,
+          gasMix: 'EAN50',
+          o2Fraction: 0.5,
+        );
+
+    Future<EstimatedTankPressures> estimate({
+      required Dive dive,
+      required List<GasSwitchWithTank> switches,
+      SourceProfile? active,
+    }) async {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          activeSourceTankPressuresProvider(
+            'd1',
+          ).overrideWith((ref) async => <String, List<TankPressurePoint>>{}),
+          activeSourceProfileProvider('d1').overrideWith((ref) => active),
+          diveProvider('d1').overrideWith((ref) async => dive),
+          gasSwitchesProvider('d1').overrideWith((ref) async => switches),
+        ],
+      );
+      addTearDown(container.dispose);
+      return container.read(estimatedTankPressuresProvider('d1').future);
+    }
+
+    /// The last moment [points] still reads [start]: where the drop begins.
+    int dropStart(List<TankPressurePoint> points, double start) => points
+        .where((p) => p.pressure == start)
+        .map((p) => p.timestamp)
+        .reduce((a, b) => a > b ? a : b);
+
+    test(
+      'another computer\'s earlier switch does not start the drop',
+      () async {
+        const profile = [
+          DiveProfilePoint(timestamp: 0, depth: 0),
+          DiveProfilePoint(timestamp: 1200, depth: 0),
+        ];
+        final dive = Dive(
+          id: 'd1',
+          dateTime: DateTime(2026, 1, 1),
+          tanks: const [
+            DiveTank(
+              id: 'air',
+              computerId: 'computer-a',
+              sharedComputerIds: ['computer-b'],
+              gasMix: GasMix(o2: 21),
+              startPressure: 200,
+              endPressure: 100,
+            ),
+            DiveTank(
+              id: 'deco',
+              computerId: 'computer-a',
+              sharedComputerIds: ['computer-b'],
+              gasMix: GasMix(o2: 50),
+              role: TankRole.deco,
+              order: 1,
+              startPressure: 200,
+              endPressure: 150,
+            ),
+          ],
+          profile: profile,
+        );
+
+        final result = await estimate(
+          dive: dive,
+          switches: [
+            change('computer-b', 600, 'deco'),
+            change('computer-a', 900, 'deco'),
+          ],
+          active: const SourceProfile(
+            sourceId: 's-a',
+            computerId: 'computer-a',
+            isEdited: false,
+            points: profile,
+          ),
+        );
+
+        expect(dropStart(result.pressures['deco']!, 200), 900);
+      },
+    );
+
+    test(
+      'spans the drawn computer\'s own recording, not the merged one',
+      () async {
+        // The merged profile runs to 1200 s, but A's recording, the series the
+        // chart draws, ends at 1000 s: the estimate must end with it.
+        final dive = Dive(
+          id: 'd1',
+          dateTime: DateTime(2026, 1, 1),
+          tanks: const [
+            DiveTank(
+              id: 'air',
+              computerId: 'computer-a',
+              gasMix: GasMix(o2: 21),
+              startPressure: 200,
+              endPressure: 100,
+            ),
+          ],
+          profile: const [
+            DiveProfilePoint(timestamp: 0, depth: 0),
+            DiveProfilePoint(timestamp: 1200, depth: 0),
+          ],
+        );
+
+        final result = await estimate(
+          dive: dive,
+          switches: const [],
+          active: const SourceProfile(
+            sourceId: 's-a',
+            computerId: 'computer-a',
+            isEdited: false,
+            points: [
+              DiveProfilePoint(timestamp: 10, depth: 0),
+              DiveProfilePoint(timestamp: 1000, depth: 0),
+            ],
+          ),
+        );
+
+        expect(result.pressures['air']!.last.timestamp, 1000);
+      },
+    );
+
+    test(
+      'an open-circuit dive starts on the back gas, not the diluent',
+      () async {
+        // Off the loop a diluent tag does not take the start, as on the chart's
+        // gas strip, so the back gas is breathed until the switch at 600 s.
+        final dive = Dive(
+          id: 'd1',
+          dateTime: DateTime(2026, 1, 1),
+          diveMode: DiveMode.oc,
+          tanks: const [
+            DiveTank(
+              id: 'dil',
+              gasMix: GasMix(o2: 10, he: 50),
+              role: TankRole.diluent,
+              startPressure: 200,
+              endPressure: 180,
+            ),
+            DiveTank(
+              id: 'back',
+              gasMix: GasMix(o2: 21),
+              order: 1,
+              startPressure: 200,
+              endPressure: 120,
+            ),
+            DiveTank(
+              id: 'deco',
+              gasMix: GasMix(o2: 50),
+              role: TankRole.deco,
+              order: 2,
+              startPressure: 200,
+              endPressure: 150,
+            ),
+          ],
+          profile: const [
+            DiveProfilePoint(timestamp: 0, depth: 0),
+            DiveProfilePoint(timestamp: 1200, depth: 0),
+          ],
+        );
+
+        final result = await estimate(
+          dive: dive,
+          switches: [change('computer-a', 600, 'deco')],
+        );
+
+        final back = result.pressures['back']!;
+        expect(
+          back.firstWhere((p) => p.pressure == 120).timestamp,
+          600,
+          reason: 'the back gas is breathed from the start until the switch',
+        );
+      },
+    );
   });
 }

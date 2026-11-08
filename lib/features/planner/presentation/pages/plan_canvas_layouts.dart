@@ -70,6 +70,10 @@ mixin _PlanCanvasLayouts on ConsumerState<PlanCanvasPage> {
           padding: EdgeInsets.fromLTRB(4, 4, 4, 0),
           child: PlanSeriesNavigator(),
         ),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12),
+          child: PlanActualToggle(),
+        ),
         if (logged == null) const PlanFollowPrompt(),
         Expanded(
           child: Stack(
@@ -157,13 +161,11 @@ mixin _PlanCanvasLayouts on ConsumerState<PlanCanvasPage> {
     // chart box and tabs, each showing it read-only (issue #3565). Its chart
     // carries nothing over it: the dive log's chart has its axis at the
     // foot, and its runtime and warnings lead its Results. Setup is
-    // never its own, and Plan only when it was dived from a plan; a tab it
-    // cannot show falls back to Tanks, and the choice comes back on a
-    // planned dive.
+    // never its own, and Plan neither: what happened has no segments. A
+    // tab it cannot show falls back to Tanks, and the choice comes back on
+    // a planned dive.
     final logged = ref.watch(viewedLoggedDiveProvider);
-    final loggedPlan = ref.watch(viewedLoggedDivePlanStateProvider);
-    bool tabEnabled(int i) =>
-        logged == null || i == 0 || i == 3 || (i == 1 && loggedPlan != null);
+    bool tabEnabled(int i) => logged == null || i == 0 || i == 3;
     final shownTab = tabEnabled(tab) ? tab : 0;
     // A single CustomScrollView so the chart and tab selector scroll away
     // with the rest of the page instead of staying pinned and eating the
@@ -171,6 +173,12 @@ mixin _PlanCanvasLayouts on ConsumerState<PlanCanvasPage> {
     return CustomScrollView(
       slivers: [
         const SliverToBoxAdapter(child: PlanSeriesNavigator()),
+        const SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12),
+            child: PlanActualToggle(),
+          ),
+        ),
         if (logged == null) const SliverToBoxAdapter(child: PlanFollowPrompt()),
         SliverToBoxAdapter(
           child: SizedBox(
@@ -208,7 +216,7 @@ mixin _PlanCanvasLayouts on ConsumerState<PlanCanvasPage> {
         SliverToBoxAdapter(
           child: logged == null
               ? _phoneTabBody(shownTab)
-              : _phoneLoggedTabBody(shownTab, loggedPlan),
+              : _phoneLoggedTabBody(shownTab),
         ),
       ],
     );
@@ -266,16 +274,27 @@ mixin _PlanCanvasLayouts on ConsumerState<PlanCanvasPage> {
   }
 
   Widget _phoneTabBody(int tab) {
+    // A plan whose dive has been dived is locked (issue #3565): the page
+    // still scrolls and Setup's sections open, but nothing takes input.
+    final locked = ref.watch(planLockedProvider);
     switch (tab) {
       case 0:
-        return const Padding(
-          padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
-          child: Column(children: [PlanDiveDetailsCard(), PlanTankList()]),
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          child: Column(
+            children: [
+              // Locks itself, keeping its link to the dive open.
+              const PlanDiveDetailsCard(),
+              IgnorePointer(ignoring: locked, child: const PlanTankList()),
+            ],
+          ),
         );
       case 1:
-        return const Padding(
-          padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
-          child: SegmentList(),
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          child: locked
+              ? SegmentList(plan: ref.watch(divePlanNotifierProvider))
+              : const SegmentList(),
         );
       case 2:
         return const Padding(
@@ -291,14 +310,9 @@ mixin _PlanCanvasLayouts on ConsumerState<PlanCanvasPage> {
     }
   }
 
-  /// A logged dive's tabs: Tanks, its plan's segments, and Results.
-  Widget _phoneLoggedTabBody(int tab, DivePlanState? plan) {
+  /// A logged dive's tabs: Tanks and Results.
+  Widget _phoneLoggedTabBody(int tab) {
     switch (tab) {
-      case 1 when plan != null:
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-          child: SegmentList(plan: plan),
-        );
       case 3:
         return LoggedDiveResults(
           controller: _wideResultsController,

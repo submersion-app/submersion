@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:drift/drift.dart' show TableUpdateQuery;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
@@ -175,6 +178,48 @@ void main() {
     final route = (await repo.getById(id))!;
     expect(route.name, 'Renamed');
     expect(route.sourceMetadata, metadata);
+  });
+
+  group('the original file (v343, issue #4231)', () {
+    final file = Uint8List.fromList(
+      utf8.encode(
+        'Date,Time,Pos3Dx,Pos3Dy,Pos3Dz,Course,Pitch,Roll,'
+        'Distance,Speed,Temp,BattV\n'
+        '1.11.2026,11:46:14,0,0,2,246.4,-34.9,-5,0.45,27.7,14,3.92\n'
+        '1.11.2026,11:46:16,0.1,0.2,2.2,252.4,-23.5,-14.4,0.9,10.5,14,-101',
+      ),
+    );
+
+    Future<String> seedWithFile() => repo.insertImportedRoute(
+      points: samplePoints(),
+      source: NavTrackSource.seacraftEnc,
+      sourceRef: '023.DAT.csv',
+      sourceFile: file,
+    );
+
+    test('travels with the route byte for byte', () async {
+      final id = await seedWithFile();
+
+      final fetched = await serializer.fetchRecord('navTracks', id);
+      expect(fetched!['sourceFile'], isA<String>());
+      await serializer.deleteRecord('navTracks', id);
+      await serializer.upsertRecord('navTracks', fetched);
+
+      expect(await repo.getSourceFile(id), file);
+    });
+
+    test('an edit from a peer that predates it keeps the local file', () async {
+      final id = await seedWithFile();
+
+      final fetched = await serializer.fetchRecord('navTracks', id);
+      final peerRow = Map<String, dynamic>.of(fetched!)
+        ..remove('sourceFile')
+        ..['name'] = 'Renamed on old device';
+      await serializer.upsertRecord('navTracks', peerRow);
+
+      expect((await repo.getById(id))!.name, 'Renamed on old device');
+      expect(await repo.getSourceFile(id), file);
+    });
   });
 
   test('a linked route from a peer that predates its owner column takes its '

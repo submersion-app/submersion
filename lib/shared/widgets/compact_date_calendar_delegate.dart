@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 
+import 'package:submersion/core/utils/intl_date_locale.dart';
+
 /// Gives the Material date pickers a compact (numeric) date format of our
 /// choosing without touching anything else about them.
 ///
@@ -56,15 +58,6 @@ class CompactDateCalendarDelegate extends GregorianCalendarDelegate {
 
   /// Falls back the way `GlobalMaterialLocalizations` does when `intl` has no
   /// data for the exact locale: full name, then language, then intl's default.
-  static intl.DateFormat _dateFormat(String pattern, Locale locale) {
-    final localeName = intl.Intl.canonicalizedLocale(locale.toString());
-    if (intl.DateFormat.localeExists(localeName)) {
-      return intl.DateFormat(pattern, localeName);
-    }
-    final language = localeName.split('_').first;
-    if (intl.DateFormat.localeExists(language)) {
-      return intl.DateFormat(pattern, language);
-    }
-    return intl.DateFormat(pattern);
-  }
+  static intl.DateFormat _dateFormat(String pattern, Locale locale) =>
+      intl.DateFormat(pattern, intlDateLocale(locale.toString()));
 }

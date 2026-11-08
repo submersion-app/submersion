@@ -40,7 +40,9 @@ extension BeforeOpenSettingsColumns on AppDatabase {
     // #3565, phase 2).
     await _assertDivePlanPhase2Columns();
 
-    // v343 backstop: diver_settings.show_photo_background_on_dive_cards.
+    // v343 backstop: diver_settings.first_day_of_week (issue #4232).
+    await _assertFirstDayOfWeekColumn();
+    // v347 backstop: diver_settings.show_photo_background_on_dive_cards.
     await _assertDiveCardPhotoBackgroundColumn();
   }
 }

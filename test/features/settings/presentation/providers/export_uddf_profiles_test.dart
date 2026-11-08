@@ -51,9 +51,13 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
           const MethodChannel('plugins.flutter.io/path_provider'),
-          (call) async => call.method == 'getApplicationDocumentsDirectory'
-              ? workDir.path
-              : null,
+          // The documents directory the share path lands in, and the temp
+          // space the backup is built in (issue #4249).
+          (call) async => switch (call.method) {
+            'getApplicationDocumentsDirectory' ||
+            'getTemporaryDirectory' => workDir.path,
+            _ => null,
+          },
         );
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(

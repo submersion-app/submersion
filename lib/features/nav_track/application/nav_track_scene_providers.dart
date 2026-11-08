@@ -4,6 +4,7 @@ import 'package:submersion/features/bathymetry/application/bathymetry_providers.
 import 'package:submersion/features/bathymetry/data/bathymetry_repository.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/dive_3d/application/spatial_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_path_adapter.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -17,9 +18,12 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 /// and path geometry rules; real terrain from `bathymetryGridProvider` when
 /// the route is anchored, else the synthesized fallback (null grid) the
 /// dive scene already falls back to when it has no coordinates.
-final navTrackSceneProvider =
-    FutureProvider.family<SpatialSceneResult?, String>((ref, trackId) async {
-      final route = await ref.watch(navTrackByIdProvider(trackId).future);
+final navTrackSceneProvider = FutureProvider.autoDispose
+    .family<SpatialSceneResult?, String>((ref, trackId) async {
+      retainDiveData(ref);
+      final route = await ref.watch(
+        navTrackWithMarkersProvider(trackId).future,
+      );
       if (route == null || route.points.length < 2) return null;
 
       final path = NavTrackPathAdapter.toReckonedPath(route);

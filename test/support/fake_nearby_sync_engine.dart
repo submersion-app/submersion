@@ -40,7 +40,12 @@ class FakeNearbySyncEngine implements NearbySyncEngine {
   final exportDeltaCalls = <String>[];
   int exportFullCalls = 0;
   final appliedPayloads = <SyncPayload>[];
+
+  /// The content of each full copy applied, unpacked.
   final appliedFiles = <String>[];
+
+  /// The files beside each full copy while it applied.
+  final stagedAtApply = <List<String>>[];
   final recordedApplied = <({String peer, String? high, String? low})>[];
   final recordedAcks = <({String peer, String? ack})>[];
   final adoptedEpochs = <String>[];
@@ -79,10 +84,11 @@ class FakeNearbySyncEngine implements NearbySyncEngine {
     final file = File(
       p.join(
         tempDir.path,
-        'fake-full-${DateTime.now().microsecondsSinceEpoch}',
+        'fake-full-${DateTime.now().microsecondsSinceEpoch}.json.gz',
       ),
     );
-    await file.writeAsString(fullContent!);
+    // Gzipped, as the real export streams it.
+    await file.writeAsBytes(gzip.encode(utf8.encode(fullContent!)));
     return (
       path: file.path,
       byteLength: await file.length(),
@@ -125,7 +131,11 @@ class FakeNearbySyncEngine implements NearbySyncEngine {
   }) async {
     final error = applyError;
     if (error != null) throw error;
-    appliedFiles.add(await File(path).readAsString());
+    final file = File(path);
+    stagedAtApply.add([
+      for (final e in file.parent.listSync()) p.basename(e.path),
+    ]);
+    appliedFiles.add(utf8.decode(gzip.decode(await file.readAsBytes())));
     _moveMarks();
     return (recordsApplied: 1, conflictsFound: 0, recordsFailed: recordsFailed);
   }

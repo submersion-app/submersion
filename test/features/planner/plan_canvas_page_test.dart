@@ -307,7 +307,7 @@ void main() {
     await tester.pumpWidget(harness());
     seed(tester);
     await tester.pumpAndSettle();
-    await openMenu(tester, 'Convert to Dive');
+    await openMenu(tester, 'Create planned dive');
     expect(find.byType(SnackBar), findsOneWidget);
   });
 
@@ -355,7 +355,7 @@ void main() {
     ).read(divePlanNotifierProvider.notifier).updateSite(siteId);
     await tester.pumpAndSettle();
 
-    await openMenu(tester, 'Convert to Dive');
+    await openMenu(tester, 'Create planned dive');
     expect(find.byType(SnackBar), findsOneWidget);
 
     final listed = await tester.runAsync(
@@ -400,7 +400,7 @@ void main() {
         ),
       );
     await tester.pumpAndSettle();
-    expect(container.read(planIsValidProvider), isTrue);
+    expect(container.read(planOutcomeProvider).isDiveable, isTrue);
     final live = container.read(planCanvasSeriesProvider).profile;
 
     container.read(chartDisplayModeProvider.notifier).state =
@@ -412,17 +412,17 @@ void main() {
         (point.timeSeconds, point.depth),
     ], isNot([for (final point in live) (point.timeSeconds, point.depth)]));
 
-    await openMenu(tester, 'Convert to Dive');
+    await openMenu(tester, 'Create planned dive');
     expect(find.byType(SnackBar), findsOneWidget);
 
     final logged = await tester.runAsync(() async {
       final dives = await DiveRepository().getAllDives(diverId: diverId);
       return DiveRepository().getDiveById(dives.single.id);
     });
-    expect(
-      [for (final point in logged!.profile) point.timestamp],
-      [for (final point in live) point.timeSeconds.round()],
-    );
+    // Sampled every 10 seconds, with every corner of the live plan kept.
+    expect([
+      for (final point in logged!.profile) point.timestamp,
+    ], containsAll([for (final point in live) point.timeSeconds.round()]));
   });
 
   testWidgets('convert leaves off a site private to another diver', (
@@ -509,7 +509,7 @@ void main() {
 
     // Convert while the plan is valid, then make it invalid (a deep air
     // plan trips a critical gas-density issue) before the lookup resolves.
-    await openMenu(tester, 'Convert to Dive');
+    await openMenu(tester, 'Create planned dive');
     notifier.addSimplePlan(maxDepth: 50, bottomTimeMinutes: 25);
     lookup.complete(null);
     await tester.pumpAndSettle();

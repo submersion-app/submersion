@@ -148,25 +148,23 @@ void main() {
       },
     );
 
-    test('never starts while debug mode is off', () async {
+    test('agent access is available on desktop with debug mode off', () async {
       final c = await container(
         platform: TargetPlatform.macOS,
         debugMode: false,
       );
-      startController(c);
-      await c.read(agentAccessSettingsProvider.notifier).setEnabled(true);
-      await Future<void>.delayed(const Duration(milliseconds: 300));
-      expect(AgentAccessServer.instance.status.listening, isFalse);
-    });
-
-    test('turning debug mode off stops a running server', () async {
-      final c = await container(platform: TargetPlatform.macOS);
+      expect(c.read(agentAccessAvailableProvider), isTrue);
       startController(c);
       await c.read(agentAccessSettingsProvider.notifier).setPort(0);
       await c.read(agentAccessSettingsProvider.notifier).setEnabled(true);
       await pumpUntil(() => AgentAccessServer.instance.status.listening);
-      await c.read(debugModeNotifierProvider.notifier).disable();
+      await c.read(agentAccessSettingsProvider.notifier).setEnabled(false);
       await pumpUntil(() => !AgentAccessServer.instance.status.listening);
+    });
+
+    test('agent access is unavailable off the desktop', () async {
+      final c = await container(platform: TargetPlatform.android);
+      expect(c.read(agentAccessAvailableProvider), isFalse);
     });
 
     test(

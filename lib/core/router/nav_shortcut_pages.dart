@@ -37,6 +37,7 @@ import 'package:submersion/features/safety/presentation/pages/no_fly_page.dart';
 import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.dart';
 import 'package:submersion/features/settings/presentation/pages/diver_profile_hub_page.dart';
 import 'package:submersion/features/surface_interval_tool/presentation/pages/surface_interval_tool_page.dart';
+import 'package:submersion/features/transfer/presentation/pages/transfer_computers_page.dart';
 import 'package:submersion/features/weight_planner/presentation/pages/weight_planner_page.dart';
 import 'package:submersion/shared/widgets/nav/nav_shortcuts.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/leave_running_import_dialog.dart';
@@ -94,6 +95,7 @@ final Map<String, NavShortcutPageBuilder> kNavShortcutPages = Map.unmodifiable({
   'backup': (_) => const BackupSettingsPage(),
   'offline-maps': (_) => const OfflineMapsPage(),
   'import-wizard': (_) => const UniversalImportWizardRoute(),
+  'transfer-computers': (_) => const TransferComputersPage(),
 });
 
 /// The alias route every nav shortcut opens on (#2936).

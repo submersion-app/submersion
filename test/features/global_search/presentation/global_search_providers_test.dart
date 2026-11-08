@@ -8,6 +8,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/global_search/data/global_search_repository.dart';
 import 'package:submersion/features/global_search/domain/global_search_models.dart';
 import 'package:submersion/features/global_search/presentation/providers/global_search_providers.dart';
+import 'package:submersion/features/global_search/presentation/providers/global_search_record_providers.dart';
 import 'package:submersion/features/query/data/query_id_set_runner.dart';
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
@@ -86,7 +87,7 @@ void main() {
 
   test('a dive row follows an edit to its site', () async {
     await seedDive(db, 'd1', diver: 'me', siteId: 's1');
-    final provider = globalSearchDivesProvider(globalSearchDiveKey(['d1']));
+    final provider = globalSearchDivesProvider(globalSearchIdsKey(['d1']));
     final sub = container.listen(provider, (_, _) {});
     addTearDown(sub.close);
     final before = await container.read(provider.future);
@@ -102,6 +103,35 @@ void main() {
     expect(after.single.siteName, 'Salt Bay');
   });
 
+  test('a site row follows an edit to the site, as its list does', () async {
+    // The section reads the site alone (#4247) and refreshes on the list's
+    // own ticks.
+    final provider = globalSearchSitesProvider(globalSearchIdsKey(['s1']));
+    final sub = container.listen(provider, (_, _) {});
+    addTearDown(sub.close);
+    expect(
+      (await container.read(provider.future)).single.site.name,
+      'Salt Pier',
+    );
+
+    await db.customStatement(
+      "UPDATE dive_sites SET name = 'Salt Bay' WHERE id = 's1'",
+    );
+    db.notifyUpdates({TableUpdate.onTable(db.diveSites)});
+    await Future<void>.delayed(const Duration(seconds: 1));
+
+    expect(
+      (await container.read(provider.future)).single.site.name,
+      'Salt Bay',
+    );
+  });
+
+  test('a section key gives back the ids it was made from', () {
+    expect(globalSearchIdsOf(globalSearchIdsKey(['b', 'a'])), ['b', 'a']);
+    // No ids is no ids, not one empty one, so a read of none sends nothing.
+    expect(globalSearchIdsOf(globalSearchIdsKey(const [])), isEmpty);
+  });
+
   test('text no record type can read is a refusal', () async {
     await expectLater(search('"oops'), throwsA(isA<GlobalSearchRefused>()));
   });
@@ -111,7 +141,7 @@ void main() {
     await seedDive(db, 'd2', diver: 'me');
     await seedDive(db, 'd3', diver: 'me');
     final provider = globalSearchDivesProvider(
-      globalSearchDiveKey(['d1', 'd3']),
+      globalSearchIdsKey(['d1', 'd3']),
     );
     final sub = container.listen(provider, (_, _) {});
     addTearDown(sub.close);

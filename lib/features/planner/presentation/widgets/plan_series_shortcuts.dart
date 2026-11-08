@@ -64,7 +64,9 @@ class _PlanSeriesShortcutsState extends ConsumerState<PlanSeriesShortcuts> {
   /// dive the series has selected.
   void _move(int step) {
     final series = ref.read(planSeriesNotifierProvider.notifier);
-    if (ref.read(viewedLoggedDiveProvider) != null) {
+    // A followed dive picked in the bar; a dived dive of the series is
+    // selected like any other.
+    if (ref.read(viewedLoggedDiveIdProvider) != null) {
       if (step < 0) return;
       ref.read(viewedLoggedDiveIdProvider.notifier).state = null;
       series.select(0);

@@ -202,6 +202,47 @@ void main() {
     expect(() => codec.parse([1]), _refused('object'));
   });
 
+  test('a text object names every key, trimmed, with a blank as null', () {
+    const codec = FieldCodec.textObject(keys: {'name', 'phone'}, maxLength: 5);
+    final parsed = codec.parse({'phone': ' 123 ', 'name': ''});
+    expect(parsed, codec.canonical({'name': null, 'phone': '123'}));
+    expect(codec.wire(parsed), {'name': null, 'phone': '123'});
+    expect(() => codec.parse({'name': 'Ann'}), _refused('name, phone'));
+    expect(() => codec.parse({'name': 'Ann', 'phone': 1}), _refused('text'));
+    expect(
+      () => codec.parse({'name': 'Annabel', 'phone': null}),
+      _refused('5'),
+    );
+    expect(() => codec.parse('Ann'), _refused('object'));
+  });
+
+  test('id lists by id compare whatever their order', () {
+    const codec = FieldCodec.idLists();
+    final parsed = codec.parse({
+      'b': ['y', 'x'],
+      'a': <String>[],
+    });
+    expect(
+      parsed,
+      codec.canonical({
+        'a': <String>[],
+        'b': ['x', 'y'],
+      }),
+    );
+    expect(codec.wire(parsed), {
+      'a': <String>[],
+      'b': ['x', 'y'],
+    });
+    expect(() => codec.parse({'a': 'x'}), _refused('list'));
+    expect(
+      () => codec.parse({
+        'a': ['x', 'x'],
+      }),
+      _refused('more than once'),
+    );
+    expect(() => codec.parse(['a']), _refused('object'));
+  });
+
   test('a date that does not exist is refused', () {
     expect(
       () => const FieldCodec.wallClock().parse('2024-02-31T10:00:00Z'),

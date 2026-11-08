@@ -6,6 +6,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
 import 'package:submersion/shared/widgets/nav/nav_shortcuts.dart';
+import 'package:submersion/core/platform/desktop_target_platform.dart';
 
 /// The header a [NavShortcutGroup] is listed under.
 String navShortcutGroupLabel(AppLocalizations l10n, NavShortcutGroup group) {
@@ -21,11 +22,14 @@ String navShortcutGroupLabel(AppLocalizations l10n, NavShortcutGroup group) {
 /// Asks the diver which page to add to the nav (#2936).
 ///
 /// Returns the chosen `NavShortcut.id`, or null when dismissed. Shortcuts in
-/// [alreadyAdded] are listed but cannot be chosen again. A dialog on wide
-/// windows, a bottom sheet on phones.
+/// [alreadyAdded] are listed but cannot be chosen again. Shortcuts that
+/// [isAvailable] rejects, such as a page a browser cannot serve, are not
+/// listed at all (#4210). A dialog on wide windows, a bottom sheet on
+/// phones.
 Future<String?> showNavShortcutPicker(
   BuildContext context, {
   required Set<String> alreadyAdded,
+  bool Function(NavShortcut shortcut)? isAvailable,
 }) {
   if (ResponsiveBreakpoints.isDesktop(context)) {
     return showDialog<String>(
@@ -34,7 +38,10 @@ Future<String?> showNavShortcutPicker(
         clipBehavior: Clip.antiAlias,
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 480, maxHeight: 640),
-          child: NavShortcutPicker(alreadyAdded: alreadyAdded),
+          child: NavShortcutPicker(
+            alreadyAdded: alreadyAdded,
+            isAvailable: isAvailable,
+          ),
         ),
       ),
     );
@@ -52,17 +59,29 @@ Future<String?> showNavShortcutPicker(
       padding: EdgeInsets.only(
         bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
       ),
-      child: SafeArea(child: NavShortcutPicker(alreadyAdded: alreadyAdded)),
+      child: SafeArea(
+        child: NavShortcutPicker(
+          alreadyAdded: alreadyAdded,
+          isAvailable: isAvailable,
+        ),
+      ),
     ),
   );
 }
 
 /// The searchable, grouped list of nav shortcuts.
 class NavShortcutPicker extends StatefulWidget {
-  const NavShortcutPicker({super.key, required this.alreadyAdded});
+  const NavShortcutPicker({
+    super.key,
+    required this.alreadyAdded,
+    this.isAvailable,
+  });
 
   /// Shortcut ids already on the surface being edited.
   final Set<String> alreadyAdded;
+
+  /// Whether a shortcut is offered at all; null offers every one.
+  final bool Function(NavShortcut shortcut)? isAvailable;
 
   @override
   State<NavShortcutPicker> createState() => _NavShortcutPickerState();
@@ -76,14 +95,8 @@ class _NavShortcutPickerState extends State<NavShortcutPicker> {
   /// the on-screen keyboard over the list the diver came to browse. Decided
   /// by platform, not window width: a tablet in landscape is as wide as a
   /// desktop window.
-  bool get _hasHardwareKeyboard => switch (defaultTargetPlatform) {
-    TargetPlatform.macOS ||
-    TargetPlatform.windows ||
-    TargetPlatform.linux => true,
-    TargetPlatform.android ||
-    TargetPlatform.iOS ||
-    TargetPlatform.fuchsia => false,
-  };
+  bool get _hasHardwareKeyboard =>
+      isDesktopTargetPlatform(defaultTargetPlatform);
 
   bool _matches(AppLocalizations l10n, NavShortcut shortcut) {
     if (_query.isEmpty) return true;
@@ -96,7 +109,11 @@ class _NavShortcutPickerState extends State<NavShortcutPicker> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final visible = kNavShortcuts.where((s) => _matches(l10n, s)).toList();
+    final isAvailable = widget.isAvailable;
+    final visible = kNavShortcuts
+        .where((s) => isAvailable == null || isAvailable(s))
+        .where((s) => _matches(l10n, s))
+        .toList();
 
     return Column(
       mainAxisSize: MainAxisSize.min,

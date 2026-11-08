@@ -8,6 +8,7 @@ import 'package:submersion/features/planner/domain/services/plan_issue_grouping.
 import 'package:submersion/features/planner/domain/services/plan_issue_markers.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_geometry.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_palette.dart';
+import 'package:submersion/features/planner/presentation/chart/plan_chart_popup_layout.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_issue_text.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -204,7 +205,7 @@ class PlanIssueMarkerLayer extends StatelessWidget {
               child: IgnorePointer(
                 child: ExcludeSemantics(
                   child: CustomSingleChildLayout(
-                    delegate: _PopupLayout(placed[active].footprint),
+                    delegate: PlanChartPopupLayout(placed[active].footprint),
                     child: _IssuePopup(
                       key: const Key('planChartIssuePopup'),
                       placed: placed[active],
@@ -324,62 +325,6 @@ class PlanIssueMarkerPainter extends CustomPainter {
         [for (final p in placed) p.glyph],
         [for (final p in oldDelegate.placed) p.glyph],
       );
-}
-
-/// Puts the warnings card beside its marker's [footprint]: to the right
-/// when it fits, else to the left, vertically centred on it. When the card
-/// fits on neither side it goes below the marker, else above, so it never
-/// covers the sign or the ring. It always stays inside the chart.
-class _PopupLayout extends SingleChildLayoutDelegate {
-  const _PopupLayout(this.footprint);
-
-  final Rect footprint;
-
-  static const _margin = 4.0;
-  static const _gap = 8.0;
-
-  @override
-  BoxConstraints getConstraintsForChild(BoxConstraints constraints) =>
-      BoxConstraints(
-        maxWidth: math.min(260, constraints.maxWidth - 2 * _margin),
-        maxHeight: constraints.maxHeight - 2 * _margin,
-      );
-
-  @override
-  Offset getPositionForChild(Size size, Size childSize) {
-    final right = footprint.right + _gap;
-    final left = footprint.left - _gap - childSize.width;
-    final below = footprint.bottom + _gap;
-    final above = footprint.top - _gap - childSize.height;
-    final besideY = footprint.center.dy - childSize.height / 2;
-    final centredX = footprint.center.dx - childSize.width / 2;
-    final Offset position;
-    if (right + childSize.width <= size.width - _margin) {
-      position = Offset(right, besideY);
-    } else if (left >= _margin) {
-      position = Offset(left, besideY);
-    } else if (below + childSize.height <= size.height - _margin) {
-      position = Offset(centredX, below);
-    } else if (above >= _margin) {
-      position = Offset(centredX, above);
-    } else {
-      position = Offset(left, besideY);
-    }
-    return Offset(
-      position.dx.clamp(
-        _margin,
-        math.max(_margin, size.width - childSize.width - _margin),
-      ),
-      position.dy.clamp(
-        _margin,
-        math.max(_margin, size.height - childSize.height - _margin),
-      ),
-    );
-  }
-
-  @override
-  bool shouldRelayout(_PopupLayout oldDelegate) =>
-      footprint != oldDelegate.footprint;
 }
 
 class _IssuePopup extends StatelessWidget {

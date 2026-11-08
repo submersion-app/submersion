@@ -25,6 +25,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/disposing_provider_scope.dart';
 
 class _FakeSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
@@ -67,7 +68,7 @@ Widget _wrap(List<Override> overrides, {Size? size}) => ProviderScope(
 /// [_wrap] with an externally owned container, for cases that assert on
 /// provider state after the page has run.
 Widget _wrapContainer(ProviderContainer container, {Size? size}) =>
-    UncontrolledProviderScope(
+    DisposingProviderScope(
       container: container,
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -111,6 +112,23 @@ void main() {
     expect(find.byType(DiveProfileChart), findsOneWidget);
     expect(find.byType(ProfileTransportBar), findsOneWidget);
     expect(find.byIcon(Icons.close), findsOneWidget);
+  });
+
+  testWidgets('a planned dive is titled as one, not Dive #0', (tester) async {
+    final planned = _dive().copyWith(isPlanned: true);
+    await tester.pumpWidget(
+      _wrap([
+        settingsProvider.overrideWith((ref) => _FakeSettingsNotifier()),
+        diveProvider(planned.id).overrideWith((ref) async => planned),
+        profileAnalysisProvider(planned.id).overrideWith((ref) async => null),
+        gasSwitchesProvider(planned.id).overrideWith((ref) async => []),
+        tankPressuresProvider(planned.id).overrideWith((ref) async => {}),
+      ]),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Planned dive'), findsOneWidget);
+    expect(find.textContaining('#0'), findsNothing);
   });
 
   testWidgets('chart labels a ceiling calculated under computer stops', (
@@ -196,7 +214,7 @@ void main() {
       addTearDown(container.dispose);
 
       await tester.pumpWidget(
-        UncontrolledProviderScope(
+        DisposingProviderScope(
           container: container,
           child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,

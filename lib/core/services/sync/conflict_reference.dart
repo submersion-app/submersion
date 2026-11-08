@@ -139,6 +139,8 @@ class ConflictReferenceResolver {
     'viaEquipmentId': 'equipment',
     'viaSetId': 'equipmentSets',
     'parentEquipmentId': 'equipment',
+    'cylinderAId': 'equipment',
+    'cylinderBId': 'equipment',
     'componentEquipmentId': 'equipment',
     'transmitterEquipmentId': 'equipment',
     'diveComputerId': 'diveComputers',

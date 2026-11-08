@@ -33,6 +33,14 @@ class GlobalSearchSectionView extends StatefulWidget {
 class _GlobalSearchSectionViewState extends State<GlobalSearchSectionView> {
   bool _expanded = false;
 
+  /// A new search starts collapsed: an expanded section does not outlive
+  /// the search it was expanded for.
+  @override
+  void didUpdateWidget(GlobalSearchSectionView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.section.query != oldWidget.section.query) _expanded = false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final section = widget.section;

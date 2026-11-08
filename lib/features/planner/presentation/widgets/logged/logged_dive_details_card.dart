@@ -27,7 +27,7 @@ class LoggedDiveDetailsCard extends ConsumerWidget {
     final follow = ref.watch(
       planSeriesNotifierProvider.select((s) => s.follow),
     );
-    if (logged == null || follow == null) return const SizedBox.shrink();
+    if (logged == null) return const SizedBox.shrink();
 
     final l10n = context.l10n;
     final theme = Theme.of(context);
@@ -35,12 +35,25 @@ class LoggedDiveDetailsCard extends ConsumerWidget {
     final dive = ref.watch(diveProvider(logged.id)).value;
     final planned = ref.watch(viewedLoggedDivePlanProvider) != null;
 
-    final index = follow.loggedDives.indexOf(logged);
-    final isFollowed = index == follow.loggedDives.length - 1;
-    // The gap since the logged dive before it; the first has none shown.
-    final Duration? interval = index > 0
-        ? loggedSurfaceInterval(follow.loggedDives[index - 1], logged)
-        : null;
+    // A followed dive, else the selected dive of the series, dived.
+    final index = follow?.loggedDives.indexOf(logged) ?? -1;
+    final isFollowed = follow != null && index == follow.loggedDives.length - 1;
+    final Duration? interval;
+    if (index < 0) {
+      // As the series settles it, from the end of the dive before; a first
+      // dive that follows nothing has none.
+      final selected = ref.watch(
+        planSeriesNotifierProvider.select((s) => s.selectedIndex),
+      );
+      interval = selected > 0 || follow != null
+          ? ref.watch(planSeriesResultsProvider)[selected].state.surfaceInterval
+          : null;
+    } else {
+      // The gap since the logged dive before it; the first has none shown.
+      interval = index > 0
+          ? loggedSurfaceInterval(follow!.loggedDives[index - 1], logged)
+          : null;
+    }
 
     final label = seriesLoggedDiveLabel(logged, units);
     final number = logged.diveNumber;

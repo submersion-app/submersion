@@ -300,22 +300,24 @@ void main() {
   });
 
   test('an entity that cannot merge refuses merge_into', () async {
-    for (final id in ['b1', 'b2']) {
-      await db
-          .into(db.buddies)
-          .insert(
-            BuddiesCompanion.insert(
-              id: id,
-              name: 'Buddy $id',
-              createdAt: t,
-              updatedAt: t,
-              diverId: const Value(kDiverA),
-            ),
-          );
-    }
+    final trips = [
+      for (final name in ['One', 'Two'])
+        (await h.run([
+          createOp('trips', {
+            'name': name,
+            'start_date': '2024-03-10',
+            'end_date': '2024-03-12',
+          }),
+        ])).created.single.id,
+    ];
 
     final plan = await h.preview([
-      {'op': 'delete', 'entity': 'buddies', 'id': 'b1', 'merge_into': 'b2'},
+      {
+        'op': 'delete',
+        'entity': 'trips',
+        'id': trips.first,
+        'merge_into': trips.last,
+      },
     ]);
 
     expect(plan.items.single.block!.reason, BlockReason.notPermitted);

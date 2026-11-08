@@ -1,4 +1,6 @@
+import 'package:submersion/features/dive_3d/domain/geometry/marker_layout.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/path_scene_markers.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_path_builder.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
@@ -15,12 +17,18 @@ class SiteActivePathOverlay {
   /// recent dives at the site, and never an underwater route, so without
   /// these the scrub cursor would slide across bare terrain.
   final List<SceneLayer> layers;
+
+  /// The markers the recording device set along this path (issue #4231),
+  /// placed with the site's projection like the ribbon itself. The site
+  /// scene carries only its own markers, so these come with the overlay.
+  final List<SceneMarker> markers;
   final PathProvenance provenance;
   final String? pathSourceLabel;
 
   const SiteActivePathOverlay({
     required this.scrubPath,
     this.layers = const [],
+    this.markers = const [],
     required this.provenance,
     this.pathSourceLabel,
   });
@@ -80,6 +88,7 @@ SiteActivePathOverlay? buildSiteActivePathOverlay({
         overlay: SceneOverlay.paths,
       ),
     ],
+    markers: pathSceneMarkers(placed, projection),
     provenance: placed.provenance,
     pathSourceLabel: placed.sourceLabel,
   );
@@ -88,7 +97,7 @@ SiteActivePathOverlay? buildSiteActivePathOverlay({
 /// [scene] with [overlay]'s path drawn into it and its scrub path made the
 /// one the cursor follows. The path layers go ahead of the water layer, the
 /// same order the site scene gives its own dive paths, so the translucent
-/// surface still paints over them.
+/// surface still paints over them. The path's own markers join the site's.
 Scene3d sceneWithActivePath(Scene3d scene, SiteActivePathOverlay overlay) {
   bool isWater(SceneLayer l) => l.overlay == SceneOverlay.water;
   return Scene3d(
@@ -97,7 +106,7 @@ Scene3d sceneWithActivePath(Scene3d scene, SiteActivePathOverlay overlay) {
       ...overlay.layers,
       ...scene.layers.where(isWater),
     ],
-    markers: scene.markers,
+    markers: [...scene.markers, ...overlay.markers],
     bounds: scene.bounds,
     scrubPath: overlay.scrubPath,
   );

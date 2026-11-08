@@ -6,7 +6,9 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_pairing_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_entry_card.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/twin_set_card.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -64,6 +66,7 @@ void main() {
           equipmentDiveCountProvider(item.id).overrideWith((ref) async => 0),
           passportIdProvider(item.id).overrideWith((ref) async => null),
           newestFillProvider(item.id).overrideWith((ref) async => newest),
+          allPairingsProvider.overrideWith((ref) async => []),
           serviceClockStatusesProvider(item.id).overrideWith((ref) async => []),
           serviceRecordsForEquipmentProvider(
             item.id,
@@ -95,6 +98,31 @@ void main() {
     expect(find.byType(PassportEntryCard), findsOneWidget);
     expect(find.text(l10n.passport_open), findsOneWidget);
     expect(find.text(l10n.passport_entry_noFill), findsOneWidget);
+  });
+
+  testWidgets('a cylinder shows the twin set card', (tester) async {
+    final l10n = await pump(
+      tester,
+      const EquipmentItem(
+        id: 'tank',
+        name: 'Faber 12',
+        type: EquipmentType.tank,
+      ),
+    );
+    expect(find.byType(TwinSetCard), findsOneWidget);
+    expect(find.text(l10n.twinSet_none), findsOneWidget);
+  });
+
+  testWidgets('a regulator has no twin set card', (tester) async {
+    await pump(
+      tester,
+      const EquipmentItem(
+        id: 'reg',
+        name: 'Apeks',
+        type: EquipmentType.regulator,
+      ),
+    );
+    expect(find.byType(TwinSetCard), findsNothing);
   });
 
   testWidgets('a regulator shows the gear passport entry card', (tester) async {

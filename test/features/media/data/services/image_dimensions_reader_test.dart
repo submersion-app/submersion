@@ -198,6 +198,18 @@ void main() {
       expect(readImageDimensions(f, 'image/jpeg'), isNull);
     });
 
+    test('steps over stray bytes between segments', () {
+      final f = write(
+        'junk.jpg',
+        jpegBytes(
+          width: 6000,
+          height: 4000,
+          before: [...appSegment(0xe0, 16), 0x00, 0x12, 0xff, 0x00],
+        ),
+      );
+      expect(readImageDimensions(f, 'image/jpeg'), (width: 6000, height: 4000));
+    });
+
     test('returns null on a zero-sized frame', () {
       final f = write('zero.jpg', jpegBytes(width: 0, height: 0));
 

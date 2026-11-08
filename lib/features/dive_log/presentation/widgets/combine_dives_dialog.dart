@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_log/domain/services/profile_alignment.d
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/consolidation_alignment_controls.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/consolidation_preview_cache.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/run_dive_consolidation.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -76,10 +77,8 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
   /// How a secondary that does not overlap the primary is lined up.
   ConsolidationAlignment _alignment = ConsolidationAlignment.bestFit;
 
-  /// The last consolidation plan and its inputs: best fit scans every
-  /// candidate shift, so it is not rebuilt on every frame.
-  ({String? primaryId, ConsolidationAlignment alignment})? _planKey;
-  DiveConsolidationPlan? _plan;
+  /// The consolidation classification and plan, kept between frames.
+  late final _preview = ConsolidationPreviewCache(_dives!);
 
   @override
   void initState() {
@@ -97,7 +96,7 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
       setState(() {
         _dives = dives;
         _classification = classification;
-        if (classification is MergeSequential) _initMergeChoice(dives);
+        if (classification is MergeSequential) _initMergeChoice();
       });
     } catch (_) {
       // A DB/query failure would otherwise leave the dialog stuck on the
@@ -108,12 +107,9 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
 
   /// Whether this non-overlapping selection can be merged as additional
   /// computers, and whether Merge should be the preselected choice.
-  void _initMergeChoice(List<domain.Dive> dives) {
-    final consolidation = const DiveConsolidationBuilder().classify(
-      dives,
-      alignment: ConsolidationAlignment.bestFit,
-    );
-    if (consolidation is! ConsolidationReady) return;
+  void _initMergeChoice() {
+    // Through the preview cache, so the consolidation panel reuses it.
+    if (_consolidationClassification() is! ConsolidationReady) return;
     _mergeAvailable = true;
     if (_looksLikeSameDive()) _mode = CombineMode.merge;
   }
@@ -133,18 +129,11 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
         alignments.values.every((a) => a.isStrongMatch);
   }
 
-  DiveConsolidationPlan _planFor() {
-    final key = (primaryId: _selectedPrimaryId, alignment: _alignment);
-    if (_plan == null || _planKey != key) {
-      _plan = const DiveConsolidationBuilder().build(
-        _dives!,
-        primaryDiveId: _selectedPrimaryId,
-        alignment: _alignment,
-      );
-      _planKey = key;
-    }
-    return _plan!;
-  }
+  DiveConsolidationClassification _consolidationClassification() => _preview
+      .classification(primaryId: _selectedPrimaryId, alignment: _alignment);
+
+  DiveConsolidationPlan _planFor() =>
+      _preview.plan(primaryId: _selectedPrimaryId, alignment: _alignment);
 
   Widget _modeSelector() => CombineModeSelector(
     mode: _mode,
@@ -491,13 +480,7 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
   /// dive) and renders either the mapped error text or the consolidation
   /// preview/selector/confirm panel.
   Widget _buildConsolidationPanel(BuildContext context) {
-    // Always with a mode, so a selection that does not overlap (or only
-    // partly does) is offered for alignment instead of rejected (#552).
-    final classification = const DiveConsolidationBuilder().classify(
-      _dives!,
-      primaryDiveId: _selectedPrimaryId,
-      alignment: _alignment,
-    );
+    final classification = _consolidationClassification();
 
     return switch (classification) {
       final ConsolidationInvalid invalid => _buildErrorPanel(
@@ -584,6 +567,10 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
                       showFallbackNote:
                           _alignment == ConsolidationAlignment.bestFit &&
                           plan.alignments.values.any((a) => a.usedFallback),
+                      // A clock wrong by less than the dive lasted still
+                      // overlaps, so "they don't overlap" would be false for
+                      // that record; the profile note holds for every kind.
+                      recordsOverlap: ready.clockMismatchIds.isNotEmpty,
                     ),
                   ],
                   if (hasProfileData) ...[

@@ -67,7 +67,14 @@ class EquipmentAttributeFormSection extends StatelessWidget {
         return TextFormField(
           key: fieldKey,
           initialValue: current?.valueText ?? '',
-          decoration: InputDecoration(labelText: label),
+          // Helper rather than hint text: a hint only shows once the field
+          // is focused, so it would not explain the label up front. It may
+          // wrap, or a phone would cut off the part that matters.
+          decoration: InputDecoration(
+            labelText: label,
+            helperText: attributeHelperText(context.l10n, def.key),
+            helperMaxLines: 3,
+          ),
           onChanged: (text) {
             final trimmed = text.trim();
             if (trimmed.isEmpty) {

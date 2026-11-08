@@ -87,12 +87,16 @@ class SavedPlansList extends ConsumerWidget {
                 dives: rows[plan.id]!.dives,
                 units: units,
                 onTap: () => open(plan.id),
+                // Pushed, so Back returns to the saved plans.
+                onOpenInLog: (id) => context.push('/dives/$id'),
               ),
               if (rows[plan.id]!.showsDives)
                 SavedSeriesDiveLines(
                   row: rows[plan.id]!,
                   units: units,
                   onOpen: open,
+                  // Pushed, so Back returns to the saved plans.
+                  onOpenInLog: (id) => context.push('/dives/$id'),
                 ),
             ],
           ],
@@ -151,6 +155,9 @@ class _ModeHeader extends StatelessWidget {
 /// For a saved series (issue #3565) it is the whole series' row, given every
 /// dive in [dives]: the dive count, the deepest dive and the total runtime.
 /// Each dive's link is shown on its own line then, not here.
+///
+/// With [onOpenInLog], a plan's link badge opens its dive in the log, as the
+/// series' dive lines and the saved plans sheet do.
 class SavedPlanTile extends StatelessWidget {
   const SavedPlanTile({
     super.key,
@@ -158,6 +165,7 @@ class SavedPlanTile extends StatelessWidget {
     required this.units,
     required this.onTap,
     this.dives,
+    this.onOpenInLog,
   });
 
   final DivePlanSummary plan;
@@ -166,18 +174,37 @@ class SavedPlanTile extends StatelessWidget {
   final List<DivePlanSummary>? dives;
   final UnitFormatter units;
   final VoidCallback onTap;
+  final ValueChanged<String>? onOpenInLog;
 
   @override
   Widget build(BuildContext context) {
     final row = SavedPlanRow(plan: plan, dives: dives ?? [plan]);
+    final summary = savedPlanRowSubtitle(context, row, units);
+    // A series shows each dive's link on that dive's line.
+    final badge = row.showsDives
+        ? null
+        : planLinkBadge(context.l10n, plan, units);
+    final open = onOpenInLog;
+    final linkedDiveId = plan.linkedDiveId;
+    if (badge == null || open == null || linkedDiveId == null) {
+      return ListTile(
+        leading: const Icon(Icons.route),
+        title: Text(plan.name),
+        subtitle: Text(
+          [summary, ?badge].where((part) => part.isNotEmpty).join(' · '),
+        ),
+        onTap: onTap,
+      );
+    }
     return ListTile(
       leading: const Icon(Icons.route),
       title: Text(plan.name),
-      subtitle: Text(
-        [
-          savedPlanRowSubtitle(context, row, units),
-          if (!row.showsDives) ?planLinkBadge(context.l10n, plan, units),
-        ].where((part) => part.isNotEmpty).join(' · '),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (summary.isNotEmpty) Text(summary),
+          PlanLinkBadge(label: badge, onOpen: () => open(linkedDiveId)),
+        ],
       ),
       onTap: onTap,
     );

@@ -31,9 +31,17 @@ class NavTrackImportPreview {
   final List<Dive> nearbyDives;
 
   /// An existing route already stored from the same file (same [sourceRef],
-  /// overlapping recording window), or null when this looks like a fresh
-  /// import. The review page offers "replace" rather than importing a twin.
+  /// recorded within [NavTrackImportService.duplicateWindow] of this one),
+  /// or null when this looks like a fresh import. The review page asks
+  /// whether to update that route or import a new one (issue #4231).
   final String? duplicateOfRouteId;
+
+  /// True when [duplicateOfRouteId]'s recording overlaps this one in time:
+  /// the same recording read again, which the review page proposes to
+  /// update. A file of the same name recorded at another time within the
+  /// window may be a different dive (a console that started its numbering
+  /// over), so the page leaves that choice to the diver.
+  final bool duplicateIsSameRecording;
 
   final String sourceRef;
 
@@ -51,6 +59,7 @@ class NavTrackImportPreview {
     required this.candidateDives,
     required this.nearbyDives,
     required this.duplicateOfRouteId,
+    this.duplicateIsSameRecording = false,
     required this.sourceRef,
     this.diverId,
   });
@@ -116,7 +125,7 @@ class NavTrackImportService {
         : const <Dive>[];
 
     final sourceRef = fileName ?? 'import.csv';
-    final duplicateOfRouteId = await _findDuplicate(
+    final duplicate = await _findDuplicate(
       sourceRef,
       routeStartSeconds,
       routeEndSeconds,
@@ -129,7 +138,8 @@ class NavTrackImportService {
       segmentation: segmentation,
       candidateDives: candidates,
       nearbyDives: nearby,
-      duplicateOfRouteId: duplicateOfRouteId,
+      duplicateOfRouteId: duplicate?.id,
+      duplicateIsSameRecording: duplicate?.sameRecording ?? false,
       sourceRef: sourceRef,
       diverId: diverId,
     );
@@ -144,12 +154,11 @@ class NavTrackImportService {
   /// single match to propose), and a sweep would only override that choice.
   ///
   /// [diverId] is the preview's own [NavTrackImportPreview.diverId], never
-  /// the active diver re-read at save time: [dive] and [replacingRouteId]
-  /// came from that diver's scope. It owns an unlinked route.
+  /// the active diver re-read at save time: [dive] came from that diver's
+  /// scope. It owns an unlinked route.
   ///
-  /// [replacingRouteId] is the duplicate the review page's "replace" option
-  /// supersedes. It is removed only after the new route is stored, so a
-  /// failure anywhere above leaves the original recording in place.
+  /// [sourceFile] is the file [parsed] came from, stored with the route
+  /// (issue #4231).
   Future<String> commit({
     required ParsedNavTrack parsed,
     required String sourceRef,
@@ -159,45 +168,98 @@ class NavTrackImportService {
     String? name,
     String? deviceName,
     String? equipmentId,
-    String? replacingRouteId,
-  }) async {
-    final id = await _routeRepository.insertImportedRoute(
-      points: parsed.points,
-      source: NavTrackSource.seacraftEnc,
-      sourceRef: sourceRef,
-      deviceName: deviceName,
-      name: name,
-      diveId: dive?.id,
-      diverId: diverId,
-      siteId: siteId,
-      equipmentId: equipmentId,
-    );
-    if (replacingRouteId != null) {
-      await _routeRepository.replace(replacingRouteId, withRouteId: id);
-    }
-    return id;
-  }
+    Uint8List? sourceFile,
+  }) => _routeRepository.insertImportedRoute(
+    points: parsed.points,
+    source: NavTrackSource.seacraftEnc,
+    sourceRef: sourceRef,
+    deviceName: deviceName,
+    name: name,
+    diveId: dive?.id,
+    diverId: diverId,
+    siteId: siteId,
+    equipmentId: equipmentId,
+    sourceFile: sourceFile,
+  );
 
-  /// An existing route from the same source file whose recording window
-  /// overlaps this one, or null. A cheap linear scan over every stored
-  /// route: import happens rarely enough (one file at a time, by hand) that
-  /// this need not be indexed.
-  Future<String?> _findDuplicate(
+  /// Replaces [routeId]'s data with [parsed], the file [sourceFile] read
+  /// again, and keeps every setting on the route (issue #4231): the dive
+  /// link, site, name, device, anchor and correction. A non-null
+  /// [sourceRef] also records the file's name. Returns false when the route
+  /// no longer exists.
+  Future<bool> updateFromFile({
+    required String routeId,
+    required ParsedNavTrack parsed,
+    required Uint8List sourceFile,
+    String? sourceRef,
+  }) => _routeRepository.updateImportedData(
+    routeId,
+    points: parsed.points,
+    sourceFile: sourceFile,
+    sourceRef: sourceRef,
+  );
+
+  /// Parses [bytes], a file the diver picked to update a stored route from
+  /// (issue #4231), so the caller can compare it with that route before
+  /// anything is written. Throws [NavTrackParseException] when the file is
+  /// not a route this app reads.
+  ParsedNavTrack parseFile(Uint8List bytes) => parseSeacraftEncCsv(bytes);
+
+  /// True when [parsed] is [route]'s own recording read again: the two
+  /// recording windows overlap in time. A file of the same name recorded at
+  /// another time may be a different dive.
+  static bool isSameRecording(NavTrack route, ParsedNavTrack parsed) =>
+      _overlaps(
+        route,
+        parsed.points.first.timestamp * 1000,
+        parsed.points.last.timestamp * 1000,
+      );
+
+  static bool _overlaps(NavTrack route, int startMs, int endMs) =>
+      route.startTime <= endMs && route.endTime >= startMs;
+
+  /// How far apart two recordings from a file of the same name may start
+  /// and still count as the same recording.
+  ///
+  /// A console numbers its files and starts over once it runs out (a
+  /// Seacraft ENC from `001` to `050`), so a name alone matches different
+  /// dives months apart. A week covers a re-import days later, a console
+  /// clock set a few hours off and a dive spanning midnight.
+  static const Duration duplicateWindow = Duration(days: 7);
+
+  /// An existing route from the same source file recorded within
+  /// [duplicateWindow] of this one, or null, preferring one whose recording
+  /// overlaps this one ([sameRecording]). A cheap linear scan over every
+  /// stored route: import happens rarely enough (one file at a time, by
+  /// hand) that this need not be indexed.
+  Future<({String id, bool sameRecording})?> _findDuplicate(
     String sourceRef,
     int startSeconds,
     int endSeconds, {
     String? diverId,
   }) async {
+    final windowMs = duplicateWindow.inMilliseconds;
     final startMs = startSeconds * 1000;
     final endMs = endSeconds * 1000;
-    // Only routes [diverId] can see: "replace" deletes the duplicate, so
-    // another diver's recording of the same file must never be offered.
+    // Only routes [diverId] can see: updating overwrites the duplicate's
+    // data, so another diver's recording of the same file must never be
+    // offered.
     final existing = await _routeRepository.getAll(diverId: diverId);
+    String? nearId;
     for (final route in existing) {
+      // Only an ENC route can be updated from an ENC file: a route of
+      // another source with the same file name keeps its own data.
+      if (route.source != NavTrackSource.seacraftEnc) continue;
       if (route.sourceRef != sourceRef) continue;
-      final overlaps = route.startTime <= endMs && route.endTime >= startMs;
-      if (overlaps) return route.id;
+      if (_overlaps(route, startMs, endMs)) {
+        return (id: route.id, sameRecording: true);
+      }
+      // The rule is about when the recordings start, not how close their
+      // spans come: a stored recording running for days must not count
+      // because its end reaches near this one's start.
+      final near = (route.startTime - startMs).abs() <= windowMs;
+      if (near) nearId ??= route.id;
     }
-    return null;
+    return nearId == null ? null : (id: nearId, sameRecording: false);
   }
 }

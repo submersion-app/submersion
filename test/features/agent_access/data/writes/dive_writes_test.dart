@@ -117,10 +117,22 @@ void main() {
       'water_type': 'salt',
       'altitude_m': 300.0,
       'weather_description': 'Sunny',
+      'dive_number': 20,
+      'runtime_s': 3000,
+      'bottom_time_s': 2400,
     };
     expect(
       samples.keys.toSet(),
-      writes.fields.keys.toSet().difference({'date_time'}),
+      // The clocks are parsed values, buddy_roles writes the buddy links,
+      // and a measured visibility clears the band this sample sets.
+      writes.fields.keys.toSet().difference({
+        'date_time',
+        'exit_time',
+        'buddy_roles',
+        'visibility_m',
+        'visibility_min_m',
+        'visibility_max_m',
+      }),
     );
 
     await writes.update('d1', kDiverA, const RecordUpdate(values: samples));

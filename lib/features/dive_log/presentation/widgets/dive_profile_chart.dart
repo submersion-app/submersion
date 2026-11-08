@@ -11,10 +11,12 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gas_switch_format.dart';
+import 'package:submersion/features/dive_log/presentation/utils/profile_time_domain.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gtr_format.dart';
 import 'package:submersion/core/deco/ascent_rate_calculator.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/gas_switch/gas_switch_efficiency.dart';
+import 'package:submersion/core/utils/minutes_seconds.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
@@ -27,6 +29,7 @@ import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_position.dart';
+import 'package:submersion/features/dive_log/domain/services/tank_pressure_lookup.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gas_consumption_tooltip.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/chart_series_cache.dart';
@@ -227,6 +230,7 @@ class ChartSourceOverlay {
 /// no viewport or pointer change can move, so a pan frame must not repeat them.
 /// Each min/max pair is null when its series is hidden or has no data.
 typedef _ChartDataBounds = ({
+  double totalMinTime,
   double totalMaxTime,
   double totalMaxDepth,
   double? minTemp,
@@ -463,9 +467,11 @@ class DiveProfileChart extends ConsumerStatefulWidget {
 
   /// Range-statistics selection in seconds from the start of the dive, or
   /// null when range mode is off. Drawn as draggable handles over the plot
-  /// rect; [maxSeconds] is the profile's last timestamp, where the end
-  /// handle stops.
-  final ({int startSeconds, int endSeconds, int maxSeconds})? rangeSelection;
+  /// rect; [minSeconds] and [maxSeconds] are the range state's bounds, where
+  /// the start and end handles stop: below 0 for a series placed before the
+  /// primary (#4296).
+  final ({int startSeconds, int endSeconds, int minSeconds, int maxSeconds})?
+  rangeSelection;
 
   /// New range reported while a handle is dragged.
   final void Function(int startSeconds, int endSeconds)? onRangeChanged;
@@ -1154,46 +1160,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       ? _metricColor(ProfileMetric.depth)
       : _getAscentRateColor(category);
 
-  /// Interpolate tank pressure at a given timestamp
-  double? _interpolateTankPressure(
-    List<TankPressurePoint> points,
-    int timestamp,
-  ) {
-    if (points.isEmpty) return null;
-
-    // Find surrounding points
-    TankPressurePoint? before;
-    TankPressurePoint? after;
-
-    for (final point in points) {
-      if (point.timestamp <= timestamp) {
-        before = point;
-      } else {
-        after = point;
-        break;
-      }
-    }
-
-    // Exact match or only before point
-    if (before != null && (after == null || before.timestamp == timestamp)) {
-      return before.pressure;
-    }
-
-    // Only after point (timestamp before first data point)
-    if (before == null && after != null) {
-      return after.pressure;
-    }
-
-    // Interpolate between before and after
-    if (before != null && after != null) {
-      final t =
-          (timestamp - before.timestamp) / (after.timestamp - before.timestamp);
-      return before.pressure + (after.pressure - before.pressure) * t;
-    }
-
-    return null;
-  }
-
   /// Get color for tank by index (fallback when no gas mix info)
   Color _getTankColor(int index) {
     const colors = [
@@ -1671,12 +1637,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// decimation variant so the windowing math lives in exactly one place.
   (int start, int end) _viewportSampleWindow(int n) {
     if (!_viewport.isZoomed) return (0, n);
-    final t0 = widget.profile.first.timestamp;
-    final span = (widget.profile[n - 1].timestamp - t0).toDouble();
+    final domain = _timeDomain();
+    final span = (domain.max - domain.min).toDouble();
     if (span <= 0) return (0, n);
     final w = _viewport.visibleWidth;
-    final loT = t0 + span * (_viewport.offsetX - w / 2);
-    final hiT = t0 + span * (_viewport.offsetX + w * 1.5);
+    final loT = domain.min + span * (_viewport.offsetX - w / 2);
+    final hiT = domain.min + span * (_viewport.offsetX + w * 1.5);
     final start = _firstProfileIndexAtOrAfter(loT, n);
     final end = _lastProfileIndexAtOrBefore(hiT, n) + 1;
     if (end - start < 2) return (0, n);
@@ -1932,14 +1898,19 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// Returns whether the window moved.
   bool _revealSeconds(
     int seconds, {
+    required double totalMinTime,
     required double totalMaxTime,
     required double totalMaxDepth,
     required UnitFormatter units,
   }) {
-    if (totalMaxTime <= 0 || totalMaxDepth <= 0) return false;
+    final timeSpan = totalMaxTime - totalMinTime;
+    if (timeSpan <= 0 || totalMaxDepth <= 0) return false;
     final before = _viewport;
     final depth = _displayDepthAt(seconds.toDouble(), units);
-    _viewport = before.centredOn(seconds / totalMaxTime, depth / totalMaxDepth);
+    _viewport = before.centredOn(
+      (seconds - totalMinTime) / timeSpan,
+      depth / totalMaxDepth,
+    );
     return !_viewport.sameWindowAs(before);
   }
 
@@ -2082,12 +2053,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final onSurface = colorScheme.onInverseSurface;
 
     // Time
-    final minutes = point.timestamp ~/ 60;
-    final seconds = point.timestamp % 60;
     rows.add(
       TooltipRow(
         label: l10n.diveLog_tooltip_time,
-        value: '$minutes:${seconds.toString().padLeft(2, '0')}',
+        value: formatMinutesSeconds(point.timestamp),
         bulletColor: onSurface.withValues(alpha: 0.5),
       ),
     );
@@ -2714,7 +2683,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         if (!_isComputerVisible(tankComputerIds[tankId])) continue;
         final pressurePoints = widget.tankPressures![tankId];
         if (pressurePoints == null || pressurePoints.isEmpty) continue;
-        final pressure = _interpolateTankPressure(pressurePoints, timestamp);
+        // Shared with the Cylinders card, which follows this cursor (#4291).
+        final pressure = pressureAtCursor(pressurePoints, timestamp);
         final tank = _getTankById(tankId);
         final color =
             _singleTankPressureColor ??
@@ -2867,12 +2837,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       top: insets.top,
       bottom: insets.bottom,
     );
-    final totalMaxTime = widget.profile
-        .map((p) => p.timestamp)
-        .reduce(math.max)
-        .toDouble();
-    final t =
-        (_viewport.offsetX + focal.fx * _viewport.visibleWidth) * totalMaxTime;
+    final t = _secondsAtFraction(focal.fx);
     if (shouldDrawSurfaceLeadIn(widget.profile) &&
         t < widget.profile.first.timestamp / 2) {
       return (index: 0, onLeadIn: true);
@@ -2905,12 +2870,43 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       top: insets.top,
       bottom: insets.bottom,
     );
-    final totalMaxTime = widget.profile.isEmpty
-        ? 0
-        : widget.profile.map((p) => p.timestamp).reduce(math.max);
-    final t =
-        (_viewport.offsetX + focal.fx * _viewport.visibleWidth) * totalMaxTime;
-    return t.round().clamp(0, totalMaxTime);
+    if (widget.profile.isEmpty) return 0;
+    // Clamped to the active profile, not to the axis an overlay widens: the
+    // second is placed on this dive (an annotation, a gas switch).
+    final own = profileTimeDomain(widget.profile);
+    return _secondsAtFraction(focal.fx).round().clamp(own.min, own.max);
+  }
+
+  /// The second on the time axis at fraction [fx] (0 to 1) of the plot's
+  /// width, through the current viewport.
+  double _secondsAtFraction(double fx) {
+    final domain = _timeDomain();
+    return domain.min +
+        (_viewport.offsetX + fx * _viewport.visibleWidth) *
+            (domain.max - domain.min);
+  }
+
+  ({int min, int max})? _timeDomainMemo;
+  List<DiveProfilePoint>? _timeDomainProfile;
+  List<ChartSourceOverlay>? _timeDomainOverlays;
+
+  /// The time axis's full extent over the profile and every overlay (see
+  /// [profileTimeDomain]). Scans every sample, so it is kept until the
+  /// profile or the overlays change: hover and pan frames read it without a
+  /// rescan.
+  ({int min, int max}) _timeDomain() {
+    final memo = _timeDomainMemo;
+    if (memo != null &&
+        identical(_timeDomainProfile, widget.profile) &&
+        identical(_timeDomainOverlays, widget.overlays)) {
+      return memo;
+    }
+    _timeDomainProfile = widget.profile;
+    _timeDomainOverlays = widget.overlays;
+    return _timeDomainMemo = profileTimeDomain(widget.profile, [
+      for (final overlay in widget.overlays ?? const <ChartSourceOverlay>[])
+        overlay.points,
+    ]);
   }
 
   /// Hands [report] the second and profile depth (metres, null without a
@@ -3772,12 +3768,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // Calculate full data bounds (all values stored in meters, convert for
     // display). Overlaid sources widen the extents so a deeper or longer
     // overlay trace is never clipped.
-    final overlayPoints = (widget.overlays ?? const <ChartSourceOverlay>[])
-        .expand((o) => o.points);
-    final totalMaxTime = [
-      widget.profile.map((p) => p.timestamp).reduce(math.max),
-      ...overlayPoints.map((p) => p.timestamp),
-    ].reduce(math.max).toDouble();
+    final timeDomain = _timeDomain();
 
     // Temperature bounds (if showing), in the user's preferred unit. The
     // right axis's own range, so the active source's and every overlaid
@@ -3817,7 +3808,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     }
 
     return (
-      totalMaxTime: totalMaxTime,
+      totalMinTime: timeDomain.min.toDouble(),
+      totalMaxTime: timeDomain.max.toDouble(),
       totalMaxDepth: _totalMaxDepth(units),
       minTemp: tempRange?.min,
       maxTemp: tempRange?.max,
@@ -3927,6 +3919,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     required _ChartDataBounds bounds,
   }) {
     final (
+      :totalMinTime,
       :totalMaxTime,
       :totalMaxDepth,
       :minTemp,
@@ -3943,11 +3936,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final heartRateColor = _metricColor(ProfileMetric.heartRate);
 
     // Apply zoom and pan to calculate visible bounds (see ChartViewport).
-    final visibleRangeX = totalMaxTime * _viewport.visibleWidth;
+    final timeSpan = totalMaxTime - totalMinTime;
+    final visibleRangeX = timeSpan * _viewport.visibleWidth;
     final visibleRangeY = totalMaxDepth * _viewport.visibleHeight;
     final depthInterval = _calculateDepthInterval(visibleRangeY);
 
-    final visibleMinX = _viewport.offsetX * totalMaxTime;
+    final visibleMinX = totalMinTime + _viewport.offsetX * timeSpan;
     final visibleMaxX = visibleMinX + visibleRangeX;
 
     final visibleMinDepth = _viewport.offsetY * totalMaxDepth;
@@ -5186,6 +5180,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               focusedId: widget.focusedAnnotationId,
               onReveal: (seconds) => _revealSeconds(
                 seconds,
+                totalMinTime: totalMinTime,
                 totalMaxTime: totalMaxTime,
                 totalMaxDepth: totalMaxDepth,
                 units: units,
@@ -5242,6 +5237,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               startSeconds: widget.rangeSelection!.startSeconds,
               endSeconds: widget.rangeSelection!.endSeconds,
               maxSeconds: widget.rangeSelection!.maxSeconds,
+              minSeconds: widget.rangeSelection!.minSeconds,
               visibleMinSeconds: visibleMinX,
               visibleMaxSeconds: visibleMaxX,
               insets: plotInsets,
@@ -7811,7 +7807,7 @@ class DiveProfileMiniChart extends StatelessWidget {
 
     final chartColor = color ?? Theme.of(context).colorScheme.primary;
     final maxDepth = profile.map((p) => p.depth).reduce(math.max) * 1.1;
-    final maxTime = profile.map((p) => p.timestamp).reduce(math.max).toDouble();
+    final timeDomain = profileTimeDomain(profile);
 
     return SizedBox(
       height: height,
@@ -7820,8 +7816,8 @@ class DiveProfileMiniChart extends StatelessWidget {
       child: RepaintBoundary(
         child: LineChart(
           LineChartData(
-            minX: 0,
-            maxX: maxTime,
+            minX: timeDomain.min.toDouble(),
+            maxX: timeDomain.max.toDouble(),
             minY: -maxDepth, // Inverted: negative depth at bottom
             maxY: 0, // Surface (0m) at top
             gridData: const FlGridData(show: false),

@@ -132,6 +132,21 @@ In the full-screen photo viewer, tap the info panel (or swipe up on mobile) to:
 
 You can link a species sighting directly to a photo by tagging it in the image. Tags store a bounding box on the photo so the species region is marked. Tap the tag icon in the photo viewer and draw a box around the creature, then select the species from the picker. The tag is linked to the corresponding sighting if one exists for that dive.
 
+### Tagging people in photos and videos
+
+Mark who is in a photo or video, yourself included. People tags are what make a "Photos of me" album possible (see [Smart albums](#smart-albums)).
+
+1. Open the photo or video in the full-screen viewer and tap **Tag people**. On a video, pause it at the moment you want to tag.
+2. Tap the person in the image. A box is placed where you tapped and **Who is this?** opens.
+3. Choose **Me** for yourself, a buddy listed **On this dive**, or anyone under **Everyone else**. Search by name, or add someone you have not logged yet with **New buddy**.
+4. Tag as many people as you like, then tap **Done**.
+
+To fix a tag, tap its box while tagging: drag the corners to fit, drag the middle to move it, or use **Change person** or **Remove tag**. Where a spot cannot be marked (a video that will not play on this device, for example), **Tag without a spot** records who is in it without a box.
+
+Tagged people appear as chips beside the species chips in the viewer; a video tag shows the moment, such as "Alex · 0:42", and marks it on the scrub bar. Tapping a chip with a moment jumps the video to that moment. Any other buddy chip opens that buddy, and any other **Me** chip opens the library showing every photo and video you are tagged in. A buddy you tag gains a **Photos and videos** card on their page (see [Buddies](buddies-and-dive-centers.md#photos-and-videos-of-a-buddy)).
+
+If you tag a buddy who is not logged on the photo's dive, Submersion offers to add them to that dive's buddies. Ignoring the offer leaves the dive as it was.
+
 ---
 
 ## Media sources
@@ -168,7 +183,23 @@ Per-host **credentials** can be saved under **Network sources**: enter a hostnam
 
 ## The Media library
 
-**Media** in the navigation shows every photo and video you have linked, grouped by dive. Filter it (**Filter media**) by **Photos** or **Videos**, **Site**, **Species**, **Trip**, **Dates**, or **Missing files** (media whose file can no longer be found), and sort it (**Sort media**).
+**Media** in the navigation shows every photo and video you have linked, as a **Grid**, grouped **By dive**, on a **Timeline** or on a **Map**. Filter it (**Filter media**) by **Photos** or **Videos**, **Site**, **Trip**, **Species**, **Tags** (once a tag applies to media), **People**, **Source**, **Dates**, or **Missing files** (media whose file can no longer be found), and in **Grid** view sort it (**Sort media**). Within **Tags** or **People**, an item matches when it carries any of the ones you pick; the other filters all apply together. The filters in use show as chips above the library: tap a chip's **x** to remove that filter, or **Clear filters** to remove them all.
+
+### Smart albums
+
+A smart album is a filter saved under a name. It stores the filter, not a list of photos, so it stays up to date: a photo you link or tag later appears in every album it matches.
+
+To create one:
+
+1. In **Media**, open **Filter media** and set the filters you want, then tap **Apply**.
+2. In the row of filter chips above the library, tap **Save as album**.
+3. Name the album and tap **Save**.
+
+To open an album, open **Filter media**, tap **Load album** at the top (shown once you have saved one) and pick the album. Its filters fill the sheet, where you can adjust them before tapping **Apply**. To delete an album, tap the bin icon beside it in the same list; the photos themselves are not touched.
+
+For example, to make a **Photos of me** album, [tag yourself](#tagging-people-in-photos-and-videos) as **Me** in your photos, then in **Filter media** turn on **Me** under **People**, tap **Apply**, and save the result as an album. Add **Videos** or a **Trip** to narrow it further.
+
+With [Multi-Device Sync](multi-device-sync.md) set up, albums reach your other devices with the rest of your logbook. When several diver profiles share a device, a **Me** album shows each diver the photos they are tagged in.
 
 To work on several items at once, use the grid's selection control, then tap items or drag across them to select a range (**Select All** selects everything shown). **Unlink** removes the selected items from your Submersion library, along with their thumbnails and any [Media Sync](media-sync.md) cloud copies; items a dive site still uses are kept. The original files in your photo library or on disk are not touched.
 

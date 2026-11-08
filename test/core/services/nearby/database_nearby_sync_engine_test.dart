@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
@@ -223,7 +225,19 @@ void main() {
       createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
     );
     final base = await engine.exportFull();
+    addTearDown(() => File(base.path).delete());
     expect(base.rowCount, greaterThan(0));
     expect(base.byteLength, greaterThan(0));
+
+    // Gzipped as it streams, so it is never staged plain too (#4256).
+    final bytes = await File(base.path).readAsBytes();
+    expect(base.byteLength, bytes.length);
+    final decoded =
+        jsonDecode(utf8.decode(gzip.decode(bytes))) as Map<String, dynamic>;
+    expect((decoded['data'] as Map)['dives'], hasLength(1));
+    expect(
+      SyncDataSerializer.checksumIsValid(SyncPayload.fromJson(decoded)),
+      isTrue,
+    );
   });
 }

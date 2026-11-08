@@ -82,7 +82,13 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
     // and entering the mode starts from an empty checked set with nothing
     // stale to drop. Selection changes alone do not reach here at all; the
     // ValueListenableBuilder below owns those.
-    if (_selection.value.isActive) {
+    //
+    // Not while page one loads: a new filter, sort or view grouping builds a
+    // new notifier that starts with no rows, and pruning against that would
+    // drop every checked row, even ones the new query brings straight back
+    // (issue #4268 made a mode switch one of these). The prune runs once the
+    // rows land.
+    if (_selection.value.isActive && !state.isLoading) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _selection.pruneTo(visibleIds);
       });
@@ -157,10 +163,9 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
     void loadMore() =>
         ref.read(mediaLibraryNotifierProvider.notifier).loadMore();
 
-    // The grouped modes reorder the sorted page: a dive's photos come
-    // together and unlinked ones go last, days likewise. The viewer pages
-    // through what the gallery shows, so it gets the groups' order, not the
-    // page's (issue #4146).
+    // The grouped modes load pages already ordered by group (issue #4268),
+    // so each group here is one run of rows. The viewer pages through what
+    // the gallery shows, so it gets the groups' order (issue #4146).
     final groups = switch (mode) {
       MediaLibraryViewMode.byDive => groupByDive(state.entries),
       MediaLibraryViewMode.timeline => groupByTimeline(state.entries),

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_tissue_loading_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_area_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_heat_map.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tissue_pressure_bar_chart.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -90,19 +92,34 @@ Widget buildCard({
   List<DecoStatus>? decoStatuses,
   bool expandVisualization = false,
   VoidCallback? onOpen3dView,
+  bool scrollable = false,
+  ThemeData? theme,
+  TextDirection? textDirection,
 }) {
+  final card = CompactTissueLoadingCard(
+    status: status,
+    decoStatuses: decoStatuses,
+    expandVisualization: expandVisualization,
+    onOpen3dView: onOpen3dView,
+  );
+  final body = scrollable ? SingleChildScrollView(child: card) : card;
   return ProviderScope(
     overrides: [settingsProvider.overrideWith((ref) => MockSettingsNotifier())],
     child: MaterialApp(
+      // The assertions read English strings; pin the locale so they do not
+      // depend on the host's.
+      locale: const Locale('en'),
+      theme: theme,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
+      // Both real hosts (dive detail, current dive load page) scroll, so a
+      // test that grows the card (the inline explanation) scrolls too.
+      // An explicit direction keeps the English strings while laying the
+      // card out right to left, as Arabic and Hebrew do.
       home: Scaffold(
-        body: CompactTissueLoadingCard(
-          status: status,
-          decoStatuses: decoStatuses,
-          expandVisualization: expandVisualization,
-          onOpen3dView: onOpen3dView,
-        ),
+        body: textDirection == null
+            ? body
+            : Directionality(textDirection: textDirection, child: body),
       ),
     ),
   );
@@ -320,19 +337,62 @@ void main() {
   });
 
   group('CompactTissueLoadingCard heatmap labels', () {
-    testWidgets('shows Fast and Slow labels when heatmap data is provided', (
-      tester,
-    ) async {
+    testWidgets('names Fast and Slow once, and the heat map rows in a caption '
+        '(issue #4228)', (tester) async {
       await tester.pumpWidget(buildCard(decoStatuses: [_status]));
       await tester.pumpAndSettle();
 
       final context = tester.element(find.byType(CompactTissueLoadingCard));
       final l10n = AppLocalizations.of(context);
-      // Fast appears in the bar chart row and in the heatmap header
-      expect(find.text(l10n.diveLog_deco_tissueFast), findsNWidgets(2));
-      // Slow appears in the bar chart row and below the heatmap strip
-      expect(find.text(l10n.diveLog_deco_tissueSlow), findsNWidgets(2));
+      // Only the bar chart axis: the heat map no longer repeats them.
+      expect(find.text(l10n.diveLog_deco_tissueFast), findsOneWidget);
+      expect(find.text(l10n.diveLog_deco_tissueSlow), findsOneWidget);
+      expect(find.text(l10n.diveLog_deco_heatMapRows), findsOneWidget);
+      // The heat map colors against AMBIENT pressure, so its legend names
+      // the two halves undersaturated / supersaturated instead of borrowing
+      // the badges' "Ongassing"/"Offgassing", which are measured against the
+      // inspired pressure.
+      expect(
+        find.text(l10n.diveLog_deco_heatMapUndersaturated),
+        findsOneWidget,
+      );
+      expect(
+        find.text(l10n.diveLog_deco_heatMapSupersaturated),
+        findsOneWidget,
+      );
+      expect(find.text(l10n.diveLog_deco_gasOngassing), findsNothing);
+      expect(find.text(l10n.diveLog_deco_gasOffgassing), findsNothing);
     });
+
+    for (final direction in TextDirection.values) {
+      testWidgets('keeps the legend at the trailing end with the halves in '
+          'reading order (${direction.name})', (tester) async {
+        await tester.pumpWidget(
+          buildCard(decoStatuses: [_status], textDirection: direction),
+        );
+        await tester.pumpAndSettle();
+
+        final context = tester.element(find.byType(CompactTissueLoadingCard));
+        final l10n = AppLocalizations.of(context);
+        final strip = tester.getRect(find.byType(TissueHeatMapStrip));
+        final legend = tester.getRect(find.byType(TissueHeatMapLegend));
+        final under = tester.getCenter(
+          find.text(l10n.diveLog_deco_heatMapUndersaturated),
+        );
+        final over = tester.getCenter(
+          find.text(l10n.diveLog_deco_heatMapSupersaturated),
+        );
+
+        if (direction == TextDirection.rtl) {
+          // Trailing is the left; the low half reads first, on the right.
+          expect(legend.center.dx, lessThan(strip.center.dx));
+          expect(under.dx, greaterThan(over.dx));
+        } else {
+          expect(legend.center.dx, greaterThan(strip.center.dx));
+          expect(under.dx, lessThan(over.dx));
+        }
+      });
+    }
 
     testWidgets(
       'fires onCompartmentHoverChanged with index on tap then null on release',
@@ -358,9 +418,338 @@ void main() {
 
         final context = tester.element(find.byType(CompactTissueLoadingCard));
         final l10n = AppLocalizations.of(context);
-        expect(find.text(l10n.diveLog_deco_tissueFast), findsNWidgets(2));
-        expect(find.text(l10n.diveLog_deco_tissueSlow), findsNWidgets(2));
+        expect(find.text(l10n.diveLog_deco_tissueFast), findsOneWidget);
+        expect(find.text(l10n.diveLog_deco_tissueSlow), findsOneWidget);
+        expect(find.text(l10n.diveLog_deco_heatMapRows), findsOneWidget);
       },
     );
+  });
+
+  group('CompactTissueLoadingCard surface level marker (issue #4228)', () {
+    testWidgets('draws one marker per compartment and names it in a legend', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildCard(status: _multiCompStatus));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey('tissue-surface-marker-1')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('tissue-surface-marker-2')),
+        findsOneWidget,
+      );
+      expect(find.text('Surface level'), findsOneWidget);
+      expect(find.text('M-value'), findsOneWidget);
+    });
+
+    testWidgets('bar tooltips follow a new status, not the previous one', (
+      tester,
+    ) async {
+      String firstTooltip() => tester
+          .widget<Tooltip>(
+            find
+                .descendant(
+                  of: find.byType(TissuePressureBarChart),
+                  matching: find.byType(Tooltip),
+                )
+                .first,
+          )
+          .message!;
+
+      await tester.pumpWidget(buildCard(status: _status));
+      await tester.pumpAndSettle();
+      expect(firstTooltip(), contains('N₂: 0.74 bar'));
+
+      // Same tree, new status (a profile scrub): the bar chart keeps its
+      // state, so its memoized tooltips must be rebuilt for this status.
+      await tester.pumpWidget(buildCard(status: _overloadedStatus));
+      await tester.pumpAndSettle();
+      expect(firstTooltip(), contains('N₂: 4.50 bar'));
+    });
+
+    for (final brightness in Brightness.values) {
+      testWidgets('draws the M-value line in the full error color '
+          '(${brightness.name} theme)', (tester) async {
+        await tester.pumpWidget(
+          buildCard(
+            status: _multiCompStatus,
+            theme: ThemeData(brightness: brightness),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final colorScheme = Theme.of(
+          tester.element(find.byType(CompactTissueLoadingCard)),
+        ).colorScheme;
+        expect(colorScheme.brightness, brightness);
+        final line = tester.widget<ColoredBox>(
+          find.descendant(
+            of: find.byKey(const ValueKey('tissue-m-value-line')),
+            matching: find.byType(ColoredBox),
+          ),
+        );
+        // At half opacity it all but vanished against the dark card.
+        expect(line.color, colorScheme.error);
+        expect(
+          tester
+              .getSize(find.byKey(const ValueKey('tissue-m-value-line')))
+              .height,
+          TissuePressureBarChart.mValueLineHeight,
+        );
+      });
+    }
+
+    testWidgets('sits the M-value line on whole pixels and lets hovers '
+        'through to the bars', (tester) async {
+      await tester.pumpWidget(buildCard(status: _multiCompStatus));
+      await tester.pumpAndSettle();
+
+      final lineFinder = find.byKey(const ValueKey('tissue-m-value-line'));
+      final chartStack = find
+          .ancestor(of: lineFinder, matching: find.byType(Stack))
+          .first;
+      final offset =
+          tester.getRect(chartStack).bottom - tester.getRect(lineFinder).bottom;
+      // Unrounded, 50 * 100 / 120 - 1 = 40.67 straddles three pixel rows.
+      // Snapped on the device pixel grid of the test view.
+      final dpr = tester.view.devicePixelRatio;
+      expect(offset * dpr, closeTo((offset * dpr).roundToDouble(), 1e-6));
+      expect(
+        find.descendant(of: lineFinder, matching: find.byType(IgnorePointer)),
+        findsOneWidget,
+      );
+    });
+
+    test('bandBottom snaps to device pixels and survives a tiny chart', () {
+      // 50 * 100 / 120 - 1 = 40.67: at 1.5x the nearest device row is
+      // 61 / 1.5 = 40.67, at 1x it is 41.
+      expect(
+        TissuePressureBarChart.bandBottom(
+          chartHeight: 50,
+          percent: 100,
+          height: 2,
+        ),
+        41,
+      );
+      expect(
+        TissuePressureBarChart.bandBottom(
+              chartHeight: 50,
+              percent: 100,
+              height: 2,
+              devicePixelRatio: 1.5,
+            ) *
+            1.5,
+        closeTo(61, 1e-9),
+      );
+      // Shorter than the band: no ArgumentError from clamp.
+      expect(
+        TissuePressureBarChart.bandBottom(
+          chartHeight: 1,
+          percent: 100,
+          height: 2,
+        ),
+        0,
+      );
+    });
+
+    testWidgets('names the same leading compartment to the screen reader as '
+        'the visible text', (tester) async {
+      // Both compartments at the surface N2 tension, at the surface: the
+      // depth-aware ranking ties and keeps #1, while percentLoading alone
+      // would pick #2 (its surface M-value is smaller).
+      const settled = DecoStatus(
+        compartments: [_comp, _comp2],
+        ndlSeconds: 600,
+        ceilingMeters: 0.0,
+        ttsSeconds: 0,
+        gfLow: 0.4,
+        gfHigh: 0.85,
+        decoStops: [],
+        currentDepthMeters: 0.0,
+        ambientPressureBar: 1.0,
+      );
+      final handle = tester.ensureSemantics();
+      await tester.pumpWidget(buildCard(status: settled));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Leading: #1'), findsOneWidget);
+      expect(
+        find.bySemanticsLabel(RegExp('leading compartment 1 at')),
+        findsOneWidget,
+      );
+      expect(
+        find.bySemanticsLabel(RegExp('leading compartment 2 at')),
+        findsNothing,
+      );
+      handle.dispose();
+    });
+
+    testWidgets('sits at each compartment\'s own equilibrium loading', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildCard(status: _multiCompStatus));
+      await tester.pumpAndSettle();
+
+      double markerBottom(int compartment) {
+        final marker = find.byKey(
+          ValueKey('tissue-surface-marker-$compartment'),
+        );
+        final slot = find
+            .ancestor(of: marker, matching: find.byType(Stack))
+            .first;
+        return tester.getRect(slot).bottom - tester.getRect(marker).bottom;
+      }
+
+      // Compartment 2 has a smaller surface M-value than compartment 1, so
+      // the same equilibrium tension is a larger share of it: its marker
+      // must sit higher. A single horizontal line could not show that.
+      expect(markerBottom(2), greaterThan(markerBottom(1)));
+    });
+  });
+
+  group('CompactTissueLoadingCard per-gas directions (issue #4228)', () {
+    // After a trimix dive, at the surface: the compartment still holds
+    // helium, which leaves, and less nitrogen than the air, which comes in.
+    const trimixComp = TissueCompartment(
+      compartmentNumber: 1,
+      halfTimeN2: 4.0,
+      halfTimeHe: 1.51,
+      mValueAN2: 1.2599,
+      mValueBN2: 0.5050,
+      mValueAHe: 1.7424,
+      mValueBHe: 0.4245,
+      currentPN2: 0.40,
+      currentPHe: 0.30,
+    );
+    const afterTrimix = DecoStatus(
+      compartments: [trimixComp],
+      ndlSeconds: 600,
+      ceilingMeters: 0.0,
+      ttsSeconds: 0,
+      gfLow: 0.4,
+      gfHigh: 0.85,
+      decoStops: [],
+      currentDepthMeters: 0.0,
+      ambientPressureBar: 1.0,
+      inspiredN2Bar: 0.74,
+      inspiredHeBar: 0.0,
+    );
+
+    testWidgets('shows N2 on-gassing and He off-gassing side by side', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildCard(status: afterTrimix));
+      await tester.pumpAndSettle();
+
+      final n2 = find.byKey(const ValueKey('tissue-detail-n2'));
+      final he = find.byKey(const ValueKey('tissue-detail-he'));
+      expect(
+        find.descendant(of: n2, matching: find.byIcon(Icons.arrow_downward)),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: he, matching: find.byIcon(Icons.arrow_upward)),
+        findsOneWidget,
+      );
+      // Both half-times, since helium moves on its own clock.
+      expect(find.text('4 / 1.5 min'), findsOneWidget);
+    });
+
+    testWidgets('leaves helium out of an air dive', (tester) async {
+      const airStatus = DecoStatus(
+        compartments: [_comp],
+        ndlSeconds: 600,
+        ceilingMeters: 0.0,
+        ttsSeconds: 0,
+        gfLow: 0.4,
+        gfHigh: 0.85,
+        decoStops: [],
+        currentDepthMeters: 0.0,
+        ambientPressureBar: 1.0,
+        inspiredN2Bar: 0.74,
+        inspiredHeBar: 0.0,
+      );
+      await tester.pumpWidget(buildCard(status: airStatus));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const ValueKey('tissue-detail-he')), findsNothing);
+      expect(find.text('4 min'), findsOneWidget);
+    });
+
+    testWidgets('reads Equilibrium once nothing is moving any more', (
+      tester,
+    ) async {
+      const settled = DecoStatus(
+        compartments: [_comp],
+        ndlSeconds: 600,
+        ceilingMeters: 0.0,
+        ttsSeconds: 0,
+        gfLow: 0.4,
+        gfHigh: 0.85,
+        decoStops: [],
+        currentDepthMeters: 0.0,
+        ambientPressureBar: 1.0,
+        // _comp holds the default surface N2 tension.
+        inspiredN2Bar: inspiredSurfaceN2Bar,
+        inspiredHeBar: 0.0,
+      );
+      await tester.pumpWidget(buildCard(status: settled));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Equilibrium'), findsOneWidget);
+      expect(find.text('Offgassing'), findsNothing);
+      expect(find.text('Ongassing'), findsNothing);
+    });
+
+    testWidgets('labels the leading compartment through localization', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildCard());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Leading: #1'), findsOneWidget);
+      expect(find.text('Load'), findsOneWidget);
+    });
+  });
+
+  group('CompactTissueLoadingCard values explanation (issue #4228)', () {
+    testWidgets('is collapsed by default and expands on tap', (tester) async {
+      await tester.pumpWidget(buildCard(scrollable: true));
+      await tester.pumpAndSettle();
+
+      final context = tester.element(find.byType(CompactTissueLoadingCard));
+      final l10n = AppLocalizations.of(context);
+      expect(find.text(l10n.diveLog_deco_info_title), findsOneWidget);
+      expect(find.text(l10n.diveLog_deco_info_body), findsNothing);
+
+      await tester.tap(find.text(l10n.diveLog_deco_info_title));
+      await tester.pumpAndSettle();
+
+      expect(find.text(l10n.diveLog_deco_info_body), findsOneWidget);
+      expect(find.byType(AlertDialog), findsNothing);
+    });
+
+    testWidgets('opens in a dialog when the card is stretched to a fixed '
+        'height, so it cannot overflow it', (tester) async {
+      await tester.pumpWidget(
+        buildCard(decoStatuses: [_status], expandVisualization: true),
+      );
+      await tester.pumpAndSettle();
+
+      final context = tester.element(find.byType(CompactTissueLoadingCard));
+      final l10n = AppLocalizations.of(context);
+      await tester.tap(find.text(l10n.diveLog_deco_info_title));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.text(l10n.diveLog_deco_info_body), findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      await tester.tap(find.text('Close'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
+    });
   });
 }

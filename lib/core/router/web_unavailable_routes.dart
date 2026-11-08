@@ -1,4 +1,5 @@
 import 'package:submersion/core/platform/device_capabilities.dart';
+import 'package:submersion/shared/widgets/nav/nav_shortcuts.dart';
 
 /// Where a browser sends the user for a screen it cannot serve.
 const String webUnavailableLocation = '/unavailable-in-browser';
@@ -32,6 +33,8 @@ const webUnavailableRoutePrefixes = <String, WebUnavailableFeature>{
   '/buddies/swap': WebUnavailableFeature.nearby,
   '/settings/offline-maps': WebUnavailableFeature.offlineMaps,
   '/settings/agent-access': WebUnavailableFeature.agentAccess,
+  // Runs the native dive parser over stored raw data (issue #224).
+  '/settings/reparse-dives': WebUnavailableFeature.diveComputers,
 };
 
 /// Sections a browser cannot serve on a page it can, by the page's route and
@@ -43,8 +46,14 @@ const webUnavailableSections = <String, Map<String, WebUnavailableFeature>>{
 };
 
 /// The feature [location] belongs to when a browser cannot serve it, or null.
+///
+/// A nav shortcut's alias location is treated as the page it opens
+/// (#4210): a pinned Dive Computers section is still that section.
 WebUnavailableFeature? webUnavailableFeatureFor(String location) {
   final uri = Uri.tryParse(location);
+  final shortcut = uri == null ? null : navShortcutForLocation(uri);
+  // A canonical path is never an alias, so this recurses once at most.
+  if (shortcut != null) return webUnavailableFeatureFor(shortcut.canonicalPath);
   final path = uri?.path ?? location;
   final sections = webUnavailableSections[path];
   if (uri != null && sections != null) {
@@ -89,3 +98,8 @@ String? webUnavailableRedirect(DeviceCapabilities caps, String location) {
   if (feature == null) return null;
   return '$webUnavailableLocation?feature=${feature.name}';
 }
+
+/// Whether [caps] can serve the page [shortcut] opens, so the Add shortcut
+/// picker can leave out the ones a browser would only explain away (#4210).
+bool navShortcutServable(DeviceCapabilities caps, NavShortcut shortcut) =>
+    webUnavailableRedirect(caps, shortcut.canonicalPath) == null;

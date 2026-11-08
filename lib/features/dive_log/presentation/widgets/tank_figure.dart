@@ -31,6 +31,13 @@ const _maxBodyWidth = 28.0;
 /// The labels arrive formatted; the figure only places them. A label whose
 /// value is missing has no level ([markStart] or [markEnd] false) and sits
 /// at the top (start) or bottom (end) of the cylinder.
+///
+/// While the profile cursor is on the chart (issue #4291), [nowLabel] sits
+/// at [TankFillLevels.now] beside a line across the tank in the theme's
+/// primary colour; the whole-dive fill under it is unchanged.
+/// [nowLabelReserve] is the widest that label gets on this tank, measured
+/// whether or not the cursor is on the chart, so the figure keeps its size
+/// as the cursor comes and goes.
 class TankFigure extends StatelessWidget {
   const TankFigure({
     super.key,
@@ -42,6 +49,8 @@ class TankFigure extends StatelessWidget {
     this.usedLabel,
     this.markStart = true,
     this.markEnd = true,
+    this.nowLabel,
+    this.nowLabelReserve,
   });
 
   final TankFillLevels levels;
@@ -54,12 +63,20 @@ class TankFigure extends StatelessWidget {
   final String? usedLabel;
   final bool markStart;
   final bool markEnd;
+  final String? nowLabel;
+  final String? nowLabelReserve;
 
   @override
   Widget build(BuildContext context) {
     return Semantics(
       container: true,
-      label: [startLabel, endLabel, ?usedLabel].join(', '),
+      // The cursor's label is read only when it is drawn, at its level.
+      label: [
+        startLabel,
+        endLabel,
+        ?usedLabel,
+        if (levels.now != null) ?nowLabel,
+      ].join(', '),
       excludeSemantics: true,
       child: LayoutBuilder(
         builder: (context, constraints) =>
@@ -85,6 +102,10 @@ class TankFigure extends StatelessWidget {
       color: colors.onSurface,
       fontWeight: FontWeight.w700,
     );
+    final nowStyle = base.copyWith(
+      color: colors.primary,
+      fontWeight: FontWeight.w700,
+    );
 
     final bodyHeight = tankFigureHeight(volumeLiters);
     final bodyWidth =
@@ -106,9 +127,33 @@ class TankFigure extends StatelessWidget {
       for (final (text, style) in texts)
         _measure(text, style, textScaler, direction, labelMaxWidth, context),
     ];
+    Size? measureNow(String? text) => text == null
+        ? null
+        : _measure(
+            text,
+            nowStyle,
+            textScaler,
+            direction,
+            labelMaxWidth,
+            context,
+          );
+    final nowSize = measureNow(nowLabel);
+    final reserveSize = measureNow(nowLabelReserve);
+    // The room the cursor's label takes: the larger of it and its reserve,
+    // so the figure is the same size with the cursor on or off the chart.
+    final nowSlot = [?nowSize, ?reserveSize].fold<Size?>(
+      null,
+      (slot, s) => slot == null
+          ? s
+          : Size(
+              math.max(slot.width, s.width),
+              math.max(slot.height, s.height),
+            ),
+    );
     final labelsHeight =
         sizes.fold(0.0, (sum, s) => sum + s.height) +
-        _labelSpacing * (sizes.length - 1);
+        _labelSpacing * (sizes.length - 1) +
+        (nowSlot == null ? 0.0 : nowSlot.height + _labelSpacing);
     final figureHeight = _valveHeight + bodyHeight;
     final extent = math.max(figureHeight, labelsHeight);
     final bodyTop = (extent - figureHeight) / 2 + _valveHeight;
@@ -120,10 +165,57 @@ class TankFigure extends StatelessWidget {
     final fill = levels.hasFill;
     final startY = fill && markStart ? y(levels.start!) : bodyTop;
     final endY = fill && markEnd ? y(levels.end!) : bodyBottom;
-    final targets = [startY, if (usedLabel != null) (startY + endY) / 2, endY];
+    // A label pointing at a level gets a leader when it was moved off it;
+    // one without a level (a missing value, an outline) points at nothing.
+    final startMarked = fill && markStart;
+    final endMarked = fill && markEnd;
+    final hasBracket =
+        usedLabel != null && startMarked && endMarked && endY - startY > 1;
+    final labels = <_Label>[
+      (
+        text: texts[0].$1,
+        style: texts[0].$2,
+        size: sizes[0],
+        target: startY,
+        marked: startMarked,
+        fromBracket: false,
+      ),
+      if (usedLabel != null)
+        (
+          text: texts[1].$1,
+          style: texts[1].$2,
+          size: sizes[1],
+          target: (startY + endY) / 2,
+          marked: startMarked && endMarked,
+          // The used label's leader starts on its bracket.
+          fromBracket: hasBracket,
+        ),
+      (
+        text: texts.last.$1,
+        style: texts.last.$2,
+        size: sizes.last,
+        target: endY,
+        marked: endMarked,
+        fromBracket: false,
+      ),
+    ];
+    final nowLevel = levels.now;
+    final nowY = nowLevel != null && nowSize != null ? y(nowLevel) : null;
+    if (nowY != null) {
+      // In level order, so the spread keeps every label beside its level.
+      final at = labels.indexWhere((l) => l.target > nowY);
+      labels.insert(at < 0 ? labels.length : at, (
+        text: nowLabel!,
+        style: nowStyle,
+        size: nowSize!,
+        target: nowY,
+        marked: true,
+        fromBracket: false,
+      ));
+    }
     final tops = spreadLabels(
-      centres: targets,
-      heights: [for (final s in sizes) s.height],
+      centres: [for (final l in labels) l.target],
+      heights: [for (final l in labels) l.size.height],
       extent: extent,
       gap: _labelSpacing,
     );
@@ -132,23 +224,10 @@ class TankFigure extends StatelessWidget {
     // is as wide as the widest of those, or the Stack would clip it.
     final width =
         labelX +
-        sizes.fold(
-          0.0,
-          (widest, s) => math.max(widest, s.width.ceilToDouble()),
-        );
-    // A label pointing at a level gets a leader when it was moved off it;
-    // one without a level (a missing value, an outline) points at nothing.
-    final startMarked = fill && markStart;
-    final endMarked = fill && markEnd;
-    final hasBracket =
-        usedLabel != null && startMarked && endMarked && endY - startY > 1;
-    final marked = [
-      startMarked,
-      if (usedLabel != null) startMarked && endMarked,
-      endMarked,
-    ];
-    // The used label's leader starts on its bracket, the others on a tick.
-    final fromBracket = [false, if (usedLabel != null) hasBracket, false];
+        [
+          for (final l in labels) l.size,
+          ?nowSlot,
+        ].fold(0.0, (widest, s) => math.max(widest, s.width.ceilToDouble()));
     return SizedBox(
       width: width,
       height: extent,
@@ -171,13 +250,15 @@ class TankFigure extends StatelessWidget {
                 startTick: startMarked ? startY : null,
                 endTick: endMarked ? endY : null,
                 bracket: hasBracket ? (startY, endY) : null,
+                nowLine: nowY,
+                nowColor: colors.primary,
                 leaders: [
-                  for (var i = 0; i < targets.length; i++)
-                    if (marked[i])
+                  for (var i = 0; i < labels.length; i++)
+                    if (labels[i].marked)
                       (
-                        level: targets[i],
-                        centre: tops[i] + sizes[i].height / 2,
-                        fromBracket: fromBracket[i],
+                        level: labels[i].target,
+                        centre: tops[i] + labels[i].size.height / 2,
+                        fromBracket: labels[i].fromBracket,
                       ),
                 ],
                 labelX: labelX,
@@ -185,13 +266,13 @@ class TankFigure extends StatelessWidget {
               ),
             ),
           ),
-          for (var i = 0; i < texts.length; i++)
+          for (var i = 0; i < labels.length; i++)
             PositionedDirectional(
               start: labelX,
               top: tops[i],
               // Rounded up, so the label breaks where it was measured.
-              width: sizes[i].width.ceilToDouble(),
-              child: Text(texts[i].$1, style: texts[i].$2),
+              width: labels[i].size.width.ceilToDouble(),
+              child: Text(labels[i].text, style: labels[i].style),
             ),
         ],
       ),
@@ -225,6 +306,18 @@ class TankFigure extends StatelessWidget {
 
 typedef _Leader = ({double level, double centre, bool fromBracket});
 
+/// One label beside the figure: what it says, how it is drawn, its measured
+/// size, the level it points at, whether it has a level at all, and whether
+/// its leader starts on the used bracket rather than a tick.
+typedef _Label = ({
+  String text,
+  TextStyle style,
+  Size size,
+  double target,
+  bool marked,
+  bool fromBracket,
+});
+
 class _TankPainter extends CustomPainter {
   _TankPainter({
     required this.bodyTop,
@@ -238,6 +331,8 @@ class _TankPainter extends CustomPainter {
     required this.startTick,
     required this.endTick,
     required this.bracket,
+    required this.nowLine,
+    required this.nowColor,
     required this.leaders,
     required this.labelX,
     required this.textDirection,
@@ -254,6 +349,10 @@ class _TankPainter extends CustomPainter {
   final double? startTick;
   final double? endTick;
   final (double, double)? bracket;
+
+  /// Where the profile cursor's pressure sits, and the colour of its line.
+  final double? nowLine;
+  final Color nowColor;
 
   /// Each label that has a level: where it points, where its centre sits,
   /// and whether its leader starts on the used bracket rather than a tick.
@@ -332,6 +431,18 @@ class _TankPainter extends CustomPainter {
       );
     }
 
+    // The cursor's pressure: a line across the tank, out to the ticks.
+    final now = nowLine;
+    if (now != null) {
+      canvas.drawLine(
+        Offset(0, now),
+        Offset(tickEnd, now),
+        Paint()
+          ..color = nowColor
+          ..strokeWidth = 2,
+      );
+    }
+
     // A label moved off its level is joined to it by a leader line.
     for (final leader in leaders) {
       if ((leader.level - leader.centre).abs() < 1) continue;
@@ -356,6 +467,8 @@ class _TankPainter extends CustomPainter {
       old.startTick != startTick ||
       old.endTick != endTick ||
       old.bracket != bracket ||
+      old.nowLine != nowLine ||
+      old.nowColor != nowColor ||
       old.labelX != labelX ||
       old.textDirection != textDirection ||
       !_sameLeaders(old.leaders, leaders);

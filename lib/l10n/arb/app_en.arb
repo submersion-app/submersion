@@ -226,6 +226,10 @@
   "equipment_filter_owner_mine": "Mine",
   "enum_equipmentField_owner": "Owner",
   "enum_equipmentField_owner_short": "Owner",
+  "enum_equipmentField_location": "Location",
+  "@enum_equipmentField_location": {"description": "Table column header for the place an item is kept (issue #3625)"},
+  "enum_equipmentField_location_short": "Location",
+  "@enum_equipmentField_location_short": {"description": "Short table column label for the place an item is kept"},
   "equipment_set_noLongerShared": "No longer shared",
   "equipment_history_title": "History",
   "equipment_history_empty": "Not used on any dive yet",
@@ -2746,6 +2750,15 @@
   "certifications_list_groupBy_status": "Status",
   "certifications_list_section_expired": "Expired",
   "certifications_list_section_expiringSoon": "Expiring Soon",
+  "certifications_list_section_professional": "{agency} Professional",
+  "@certifications_list_section_professional": {
+    "description": "Header of the certification list section holding one agency's professional ratings (divemaster, instructor and up) when grouped by agency.",
+    "placeholders": {
+      "agency": {
+        "type": "String"
+      }
+    }
+  },
   "certifications_list_section_valid": "Valid",
   "certifications_list_sort_title": "Sort Certifications",
   "certifications_list_tile_expired": "Expired",
@@ -4443,6 +4456,7 @@
   "diveLog_consolidate_alignStartsShort": "Starts",
   "diveLog_consolidate_alignmentLabel": "Line up the records by",
   "diveLog_consolidate_clockNote": "These records don't overlap in time, so one computer's clock is probably off. The dive keeps the primary computer's time.",
+  "diveLog_consolidate_clockNoteOverlap": "These depth profiles match at a different time than the computers' clocks say, so one computer's clock is probably off. The dive keeps the primary computer's time.",
   "diveLog_consolidate_clockNoteShort": "One computer's clock is probably off.",
   "diveLog_consolidate_confirm": "Keep as one dive with both computers",
   "diveLog_consolidate_error_generic": "Couldn't merge the dives. Nothing was changed.",
@@ -4479,6 +4493,95 @@
   "diveLog_deco_sectionTissueLoading": "Tissue Loading",
   "diveLog_deco_semantics_notRequired": "No decompression required",
   "diveLog_deco_semantics_required": "Decompression required",
+  "diveLog_deco_compartmentLeading": "Leading: #{number}",
+  "@diveLog_deco_compartmentLeading": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_compartmentOther": "Compartment: #{number}",
+  "@diveLog_deco_compartmentOther": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_metricLoad": "Load",
+  "diveLog_deco_gasOngassing": "Ongassing",
+  "diveLog_deco_gasOffgassing": "Offgassing",
+  "diveLog_deco_gasEquilibrium": "Equilibrium",
+  "diveLog_deco_heatMapRows": "Rows: fast (top) to slow (bottom)",
+  "diveLog_deco_surfaceLevel": "Surface level",
+  "diveLog_deco_mValue": "M-value",
+  "diveLog_deco_tooltipCompartment": "Compartment {number}",
+  "@diveLog_deco_tooltipCompartment": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_tooltipLoaded": "{percent}% loaded",
+  "@diveLog_deco_tooltipLoaded": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_tooltipHalfTime": "Half-time: {minutes} min",
+  "@diveLog_deco_tooltipHalfTime": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_tooltipSurfaceLevel": "Surface level: {percent}%",
+  "@diveLog_deco_tooltipSurfaceLevel": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_info_title": "What do these values mean?",
+  "diveLog_deco_info_body": "Load: a compartment's inert gas pressure as a percentage of the most it may hold at the surface (its M-value, the red line at 100%).\n\nSurface level: the marker on each bar shows where a fully desaturated compartment settles while you breathe air at the surface. It is never 0%, because your body always holds the nitrogen of the air you breathe. A bar at its marker carries no load left over from diving.\n\nOngassing and offgassing: gas always moves toward the pressure of the gas you breathe. After decompression on oxygen or on a mix rich in helium, the fast compartments can hold less nitrogen than the air at the surface. Back on air, they take nitrogen up again until they reach their marker. That is normal and not a residual load from the dive.\n\nHelium: air contains no helium. After a trimix dive, a compartment releases helium while it can take nitrogen up at the same time. The arrows next to N₂ and He show each gas on its own; the badge next to the compartment number shows the net direction of both.",
+  "diveLog_deco_barChartSemantics": "Tissue loading chart. {count} compartments, loading relative to the M-value; leading compartment {number} at {percent}%.",
+  "@diveLog_deco_barChartSemantics": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "number": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_heatMapUndersaturated": "Undersaturated",
+  "diveLog_deco_heatMapSupersaturated": "Supersaturated",
+  "diveLog_deco_percentValue": "{value}%",
+  "@diveLog_deco_percentValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_minutesValue": "{value} min",
+  "@diveLog_deco_minutesValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_deco_tissueFast": "Fast",
   "diveLog_deco_tissueSlow": "Slow",
   "diveLog_deco_title": "Deco Status",
@@ -4851,6 +4954,18 @@
       }
     }
   },
+  "diveLog_edit_profile_pointsAndProfiles": "{pointCount, plural, one{1 point} other{{pointCount} points}} · {profileCount, plural, one{1 revision} other{{profileCount} revisions}}",
+  "@diveLog_edit_profile_pointsAndProfiles": {
+    "description": "Dive profile row value: recorded profile samples and number of available profile revisions",
+    "placeholders": {
+      "pointCount": {
+        "type": "num"
+      },
+      "profileCount": {
+        "type": "num"
+      }
+    }
+  },
   "diveLog_edit_row_addSite": "Add site",
   "@diveLog_edit_row_addSite": {
     "description": "Placeholder when no site selected"
@@ -5080,6 +5195,14 @@
   "diveLog_edit_tripSuggested": "Suggested: {name}",
   "diveLog_edit_tripUse": "Use",
   "diveLog_edit_useSet": "Use Set",
+  "diveLog_edit_removeSet": "Remove Set",
+  "@diveLog_edit_removeSet": {"description": "Bulk edit: button that stages an equipment set to remove from every selected dive"},
+  "diveLog_bulkEdit_setsToRemove": "Sets to remove",
+  "@diveLog_bulkEdit_setsToRemove": {"description": "Bulk edit: heading over the equipment sets staged for removal"},
+  "diveLog_bulkEdit_removeSetTitle": "Remove Equipment Set",
+  "@diveLog_bulkEdit_removeSetTitle": {"description": "Bulk edit: title of the sheet that picks an equipment set to remove from every selected dive"},
+  "diveLog_bulkEdit_equipmentSets": "Equipment sets",
+  "@diveLog_bulkEdit_equipmentSets": {"description": "Bulk edit confirmation: section title for equipment sets"},
   "diveLog_edit_weightPreset_use": "Use preset",
   "diveLog_edit_weightPreset_save": "Save as preset",
   "diveLog_edit_weightPreset_pickerTitle": "Apply a weight preset",
@@ -6036,6 +6159,8 @@
   "diveLog_cylinders_figureStart": "Start {pressure}",
   "diveLog_cylinders_figureEnd": "End {pressure}",
   "diveLog_cylinders_figureUsed": "Used {pressure}",
+  "diveLog_cylinders_figureNow": "Now {pressure}",
+  "diveLog_cylinders_figureNowEstimated": "Now {pressure} (est.)",
   "diveLog_cylinders_gasSemantics": "Gas {mix}",
   "diveLog_cylinders_gasUsed": "Gas used {amount}",
   "diveLog_cylinders_loopUse": "Loop use {rate}",
@@ -6703,6 +6828,22 @@
       }
     }
   },
+  "@diveLog_cylinders_figureNow": {
+    "description": "Cylinders card tank figure label: the tank's pressure at the moment the profile chart's cursor is on, beside a line across the tank figure at that level, e.g. \"Now 130 bar\". Shown only while hovering or dragging on the profile or tissue charts. pressure is the value with its unit.",
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "@diveLog_cylinders_figureNowEstimated": {
+    "description": "Cylinders card tank figure label: as diveLog_cylinders_figureNow, for a tank with no transmitter whose pressure is estimated as a straight line from its start and end pressures, e.g. \"Now 130 bar (est.)\". Use the same estimate marker as diveLog_pressure_estimatedSuffix. pressure is the value with its unit.",
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
   "@diveLog_cylinders_gasSemantics": {
     "description": "Cylinders card: what a screen reader says for a cylinder's gas pill, e.g. \"Gas EAN32\". mix is the gas mix name.",
     "placeholders": {
@@ -6786,7 +6927,6 @@
     }
   },
   "divePlanner_action_addTank": "Add Tank",
-  "divePlanner_action_convertToDive": "Convert to Dive",
   "divePlanner_action_deletePlan": "Delete plan",
   "divePlanner_action_editTank": "Edit Tank",
   "divePlanner_action_fillBestMix": "Best mix for {depth}: {mix}",
@@ -6851,6 +6991,10 @@
   "divePlanner_label_gfHigh": "GF High",
   "divePlanner_label_gfLow": "GF Low",
   "divePlanner_label_minutesUnit": "min",
+  "divePlanner_label_secondsUnit": "s",
+  "@divePlanner_label_secondsUnit": {
+    "description": "Unit suffix for a planner field entered in seconds, such as the gas switch stop"
+  },
   "divePlanner_label_ndl": "NDL",
   "divePlanner_label_planSettings": "Plan Settings",
   "divePlanner_label_reserve": "Reserve",
@@ -8560,6 +8704,7 @@
   },
   "passport_history_delete": "Delete fill",
   "passport_history_deleteConfirm": "Delete this fill record?",
+  "passport_history_deleteFailed": "Could not delete the fill. Try again.",
   "passport_tag_title": "Tag",
   "passport_tag_written": "Written {date}",
   "@passport_tag_written": {
@@ -9875,6 +10020,8 @@
   "@equipment_location_groupCount": {"description": "Item count beside a location heading and on the Locations page", "placeholders": {"count": {"type": "int"}}},
   "equipment_location_activeFilter": "Location",
   "@equipment_location_activeFilter": {"description": "Chip in the active filters bar when the list is filtered by location"},
+  "equipment_location_tileSemantics": "Location: {name}",
+  "@equipment_location_tileSemantics": {"description": "Screen reader label for the place line on an equipment list card", "placeholders": {"name": {"type": "String"}}},
   "equipment_filter_section_location": "Location",
   "@equipment_filter_section_location": {"description": "Heading of the location section in the equipment filter"},
   "equipment_arrange_groupByLocation": "Group by location",
@@ -11752,6 +11899,9 @@
   "media_photoPicker_permissionRequestMessage": "Submersion needs access to your photo library to add dive photos.",
   "media_photoPicker_permissionTitle": "Dive Photos",
   "media_photoPicker_selectAllButton": "Select All",
+  "media_photoPicker_albumFilter_all": "All albums",
+  "media_photoPicker_albumFilter_chip": "{album} ({count})",
+  "media_photoPicker_albumFilter_label": "Filter by album",
   "media_photoPicker_selectedCount": "{count} selected",
   "media_photoPicker_showingPhotosFromRange": "Showing photos from {rangeText}",
   "media_photoPicker_thumbnailToggleLabel": "Toggle selection for photo",
@@ -12203,6 +12353,16 @@
   },
   "@media_photoPicker_selectedCount": {
     "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@media_photoPicker_albumFilter_chip": {
+    "placeholders": {
+      "album": {
+        "type": "String"
+      },
       "count": {
         "type": "int"
       }
@@ -13050,10 +13210,10 @@
     }
   },
   "plannerCanvas_chart_removeWaypoint": "Remove waypoint",
+  "plannerCanvas_chart_worstCase": "Worst case",
   "plannerCanvas_contingency_title": "Contingencies",
   "plannerCanvas_contingency_turnFraction": "Turn fraction",
   "plannerCanvas_contingency_turnRule": "Turn pressure rule",
-  "plannerCanvas_convert_success": "Dive created from plan",
   "plannerCanvas_convert_view": "View",
   "plannerCanvas_export_failed": "Export failed: {error}",
   "@plannerCanvas_export_failed": {
@@ -13132,6 +13292,26 @@
     }
   },
   "plannerSeries_openInLog": "Open in dive log",
+  "plannerSeries_view_actual": "Actual",
+  "@plannerSeries_view_actual": {
+    "description": "Toggle segment showing what really happened on a dive of a series that has been dived"
+  },
+  "plannerSeries_view_plan": "Plan",
+  "@plannerSeries_view_plan": {
+    "description": "Toggle segment showing the original plan of a dive of a series that has been dived"
+  },
+  "plannerSeries_saved_divedCount": "{dived} of {count} dived",
+  "@plannerSeries_saved_divedCount": {
+    "description": "How many dives of a saved series have been dived, in the saved plans list",
+    "placeholders": {
+      "dived": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "plannerSeries_stopFollowing": "Stop following",
   "plannerSeries_compareWithPlan": "Compare with its plan",
   "plannerSeries_asPlanned": "As planned",
@@ -13251,7 +13431,54 @@
     }
   },
   "plannerSeries_fillAll": "Fill all tanks",
-  "plannerSeries_convertUnavailable": "A series of dives can't be converted to logged dives yet",
+  "plannerSeries_createPlannedDive": "Create planned dive",
+  "plannerSeries_createPlannedDives": "Create planned dives",
+  "plannerSeries_updatePlannedDive": "Update planned dive",
+  "plannerSeries_updatePlannedDives": "Update planned dives",
+  "plannerSeries_cannotUpdate": "{dive} has a critical warning, so the planned dives weren't updated",
+  "@plannerSeries_cannotUpdate": {
+    "placeholders": {
+      "dive": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerSeries_cannotUpdateEmpty": "{dive} has no segments, so the planned dives weren't updated",
+  "@plannerSeries_cannotUpdateEmpty": {
+    "placeholders": {
+      "dive": {
+        "type": "String"
+      }
+    }
+  },
+  "plannerSeries_cannotUpdateEmptyPlan": "This plan has no segments, so it wasn't written to the log",
+  "plannerSeries_created": "{count, plural, one{{count} planned dive added to the log} other{{count} planned dives added to the log}}",
+  "@plannerSeries_created": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "plannerSeries_updated": "{count, plural, one{{count} planned dive updated in the log} other{{count} planned dives updated in the log}}",
+  "@plannerSeries_updated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "plannerSeries_orphans_title": "Delete from the log?",
+  "plannerSeries_orphans_body": "{count, plural, one{{count} planned dive no longer in this series is still in the log.} other{{count} planned dives no longer in this series are still in the log.}}",
+  "@plannerSeries_orphans_body": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "plannerSeries_orphans_keep": "Keep",
+  "plannerSeries_allDived": "Every dive in this plan has been dived, so there's nothing to update",
   "plannerSeries_missionUnavailable": "A series of dives can't be planned as a DPV mission",
   "plannerSeries_followUnavailableInReplan": "A replan can't follow another dive",
   "plannerCanvas_follow_title": "Follow a dive",
@@ -14177,6 +14404,10 @@
   "navShortcut_short_backup": "Backup",
   "@navShortcut_short_backup": {
     "description": "Short nav bar label for the Backup & Restore shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_diveComputers": "Computers",
+  "@navShortcut_short_diveComputers": {
+    "description": "Short nav bar label for the Transfer > Dive Computers shortcut; must fit one bottom-bar slot."
   },
   "navShortcut_short_speciesStats": "Species stats",
   "@navShortcut_short_speciesStats": {
@@ -15294,6 +15525,7 @@
   "settings_conflict_field_thumbnailGeneratedAt": "Thumbnail made",
   "settings_conflict_field_tideState": "Tide",
   "settings_conflict_field_timeFormat": "Time format",
+  "settings_conflict_field_firstDayOfWeek": "First day of week",
   "settings_conflict_field_timeOffsetSeconds": "Time offset",
   "settings_conflict_field_timestamp": "Time into dive",
   "settings_conflict_field_timestampOffsetSeconds": "Time offset",
@@ -15817,7 +16049,7 @@
   "settings_data_importOptions": "Import options",
   "settings_data_importOptions_subtitle": "Site matching, surfacing pressure, auto tags",
   "settings_data_dataTools": "Data tools",
-  "settings_data_dataTools_subtitle": "Fix dive times, link buddies, retype gear, data quality, table editor",
+  "settings_data_dataTools_subtitle": "Fix dive times, link buddies, retype gear, data quality, table editor, re-parse dives",
   "settings_agentAccess_title": "Agent access",
   "settings_agentAccess_confirm_linkedDives": "Dives that lose this link ({diver}): {count}",
   "@settings_agentAccess_confirm_linkedDives": {"placeholders": {"diver": {"type": "String"}, "count": {"type": "int"}}},
@@ -16750,8 +16982,23 @@
   "settings_units_dialog_timeFormat": "Time Format",
   "settings_units_dialog_volumeUnit": "Volume Unit",
   "settings_units_dialog_weightUnit": "Weight Unit",
-  "settings_units_header_individualUnits": "Individual Units",
-  "settings_units_header_timeDateFormat": "Time & Date Format",
+  "settings_units_header_gasPlanning": "Gas & Planning",
+  "settings_units_header_displayFormats": "Display & Formats",
+  "settings_units_appliesTo": "Applies to the following units",
+  "settings_units_gasConsumption_unitHint": "Unit follows pressure and volume",
+  "settings_units_firstDayOfWeek": "First day of week",
+  "settings_units_dialog_firstDayOfWeek": "First Day of Week",
+  "settings_units_firstDayOfWeek_auto": "Automatic",
+  "settings_units_firstDayOfWeek_autoResolved": "Automatic ({day})",
+  "settings_units_firstDayOfWeek_auto_subtitle": "Follows your device's region",
+  "@settings_units_firstDayOfWeek_autoResolved": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_units_header_timeDateFormat": "Time & Date",
   "settings_units_header_unitSystem": "Unit System",
   "settings_units_imperial": "Imperial",
   "settings_units_metric": "Metric",
@@ -22656,41 +22903,6 @@
       }
     }
   },
-  "diveComputer_detail_reparseAllProgress": "Re-parsing {count} dives...",
-  "@diveComputer_detail_reparseAllProgress": {
-    "placeholders": {
-      "count": {
-        "type": "int",
-        "example": "12"
-      }
-    }
-  },
-  "diveComputer_detail_reparseAllSuccess": "Re-parsed {count} dives successfully",
-  "@diveComputer_detail_reparseAllSuccess": {
-    "placeholders": {
-      "count": {
-        "type": "int",
-        "example": "12"
-      }
-    }
-  },
-  "diveComputer_detail_reparseAllPartial": "Re-parsed {succeeded} of {total} dives. {failed} failed.",
-  "@diveComputer_detail_reparseAllPartial": {
-    "placeholders": {
-      "succeeded": {
-        "type": "int",
-        "example": "10"
-      },
-      "total": {
-        "type": "int",
-        "example": "12"
-      },
-      "failed": {
-        "type": "int",
-        "example": "2"
-      }
-    }
-  },
   "diveComputer_detail_reparseRawDataCount": "{count} dives with raw data",
   "@diveComputer_detail_reparseRawDataCount": {
     "placeholders": {
@@ -22713,6 +22925,66 @@
       }
     }
   },
+  "reparseBatch_progressTitle": "Re-parsing dives",
+  "@reparseBatch_progressTitle": {"description": "Bulk re-parse (issue #224)"},
+  "reparseBatch_progressCount": "Re-parsing {done} of {total} dives",
+  "@reparseBatch_progressCount": {"description": "Bulk re-parse (issue #224)", "placeholders": {"done": {"type": "int"}, "total": {"type": "int"}}},
+  "reparseBatch_cancelling": "Cancelling...",
+  "@reparseBatch_cancelling": {"description": "Bulk re-parse (issue #224)"},
+  "reparseBatch_resultTitle": "Re-parse finished",
+  "@reparseBatch_resultTitle": {"description": "Bulk re-parse (issue #224)"},
+  "reparseBatch_resultCancelledTitle": "Re-parse cancelled",
+  "@reparseBatch_resultCancelledTitle": {"description": "Bulk re-parse (issue #224)"},
+  "reparseBatch_resultErrorTitle": "Re-parse stopped by an error",
+  "@reparseBatch_resultErrorTitle": {"description": "Bulk re-parse (issue #224): the run stopped on an error"},
+  "reparseBatch_resultNotReached": "Not processed: {count}",
+  "@reparseBatch_resultNotReached": {"description": "Bulk re-parse (issue #224): dives a run error left unprocessed", "placeholders": {"count": {"type": "int"}}},
+  "reparseBatch_resultSummary": "Re-parsed {succeeded} of {total} dives.",
+  "@reparseBatch_resultSummary": {"description": "Bulk re-parse (issue #224)", "placeholders": {"succeeded": {"type": "int"}, "total": {"type": "int"}}},
+  "reparseBatch_resultFailed": "Failed: {count}",
+  "@reparseBatch_resultFailed": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
+  "reparseBatch_resultNotProcessed": "Not processed (cancelled): {count}",
+  "@reparseBatch_resultNotProcessed": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
+  "reparseBatch_resultSkipped": "Skipped, no raw data: {count}",
+  "@reparseBatch_resultSkipped": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
+  "reparseBatch_resultProfilesPreserved": "Combined dives that kept their profile: {count}",
+  "@reparseBatch_resultProfilesPreserved": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
+  "reparseBatch_failedListHeader": "Failed dives",
+  "@reparseBatch_failedListHeader": {"description": "Bulk re-parse (issue #224)"},
+  "reparseBatch_failedDiveTitle": "Dive #{number}",
+  "@reparseBatch_failedDiveTitle": {"description": "Bulk re-parse (issue #224)", "placeholders": {"number": {"type": "int"}}},
+  "reparseBatch_failedDiveUnnumbered": "Unnumbered dive",
+  "@reparseBatch_failedDiveUnnumbered": {"description": "Bulk re-parse (issue #224)"},
+  "reparseBatch_missingDescriptors": "Missing dive computer details",
+  "@reparseBatch_missingDescriptors": {"description": "Bulk re-parse (issue #224)"},
+  "reparseBatch_confirmTitle": "Re-parse dives",
+  "@reparseBatch_confirmTitle": {"description": "Bulk re-parse (issue #224)"},
+  "reparseBatch_confirmMessage": "Re-run the dive parser on {count} dives with stored raw data. This updates profile and sensor data but preserves your notes, sites, buddies, and other edits.",
+  "@reparseBatch_confirmMessage": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
+  "reparseBatch_confirmSkipped": "Selected dives without raw data (skipped): {count}",
+  "@reparseBatch_confirmSkipped": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
+  "reparseBatch_noneWithRawData": "None of the selected dives have stored raw data to re-parse.",
+  "@reparseBatch_noneWithRawData": {"description": "Bulk re-parse (issue #224)"},
+  "diveLog_selection_tooltip_reparse": "Re-parse",
+  "@diveLog_selection_tooltip_reparse": {"description": "Bulk re-parse (issue #224)"},
+  "settings_reparseDives_title": "Re-parse dives",
+  "@settings_reparseDives_title": {"description": "Bulk re-parse (issue #224)"},
+  "settings_reparseDives_subtitle": "Re-run the dive parser on every dive with stored raw data",
+  "@settings_reparseDives_subtitle": {"description": "Bulk re-parse (issue #224)"},
+  "settings_reparseDives_intro": "Use this after an app update improves how dive computer data is read. Your notes, sites, buddies, and other edits are preserved.",
+  "@settings_reparseDives_intro": {"description": "Bulk re-parse (issue #224)"},
+  "settings_reparseDives_withRawData": "Dives with raw data: {count}",
+  "@settings_reparseDives_withRawData": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
+  "settings_reparseDives_withoutRawData": "Dives without raw data (not re-parsed): {count}",
+  "@settings_reparseDives_withoutRawData": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
+  "settings_reparseDives_byComputer": "By dive computer",
+  "@settings_reparseDives_byComputer": {"description": "Bulk re-parse (issue #224)"},
+  "settings_reparseDives_unknownComputer": "Unknown computer",
+  "@settings_reparseDives_unknownComputer": {"description": "Bulk re-parse (issue #224)"},
+  "settings_reparseDives_none": "No dives have stored raw data to re-parse.",
+  "@settings_reparseDives_none": {"description": "Bulk re-parse (issue #224)"},
+  "settings_reparseDives_button": "Re-parse all",
+  "@settings_reparseDives_button": {"description": "Bulk re-parse (issue #224)"},
   "diveComputer_rawData_discardAction": "Discard",
   "diveComputer_rawData_discardAllMessage": "Remove the raw download data kept for {count} dives from every dive computer ({size})? Those dives can no longer be re-parsed when the dive parser improves. The dives and your edits stay as they are, and your other synced devices drop the data too.",
   "@diveComputer_rawData_discardAllMessage": {
@@ -24232,7 +24504,8 @@
   "attrLabel_speed_mps": "Top speed",
   "attrLabel_tow_burn_factor": "Tow burn factor",
   "attrLabel_tow_speed_factor": "Tow speed factor",
-  "attrLabel_sku": "SKU",
+  "attrLabel_sku": "Product number (SKU)",
+  "attrHelper_sku": "From the receipt or product label, not the serial number",
   "attrLabel_retailer": "Retailer",
   "attrLabel_product_url": "Web link",
   "attrLabel_color": "Color",
@@ -24550,8 +24823,12 @@
   "safetyHub_cnsOtu_noProfile_body": "Its CNS% and OTU can't be calculated without depth samples. The totals below leave it out.",
   "safetyHub_cnsOtu_about_title": "About CNS and OTU",
   "safetyHub_cnsOtu_about_body": "Your CNS% (oxygen clock) decays after a dive with a 90-minute half-life -- it's practically back to 0 after about a day.\n\nDaily OTU resets every night at midnight. Weekly OTU is a rolling total of the last 7 days: older dives automatically drop out of the calculation once they fall outside that window.",
+  "safetyHub_tissueLoading_clear_title": "No residual tissue load",
+  "safetyHub_tissueLoading_clear_body": "All compartments are back in equilibrium with the air at the surface. They stay at their normal level (the marker on each bar), not at 0%.",
+  "safetyHub_tissueLoading_unavailable_title": "Tissue loading not available",
+  "safetyHub_tissueLoading_unavailable_body": "The last dive has no data to calculate tissue loading from, for example a dive without a depth profile, in gauge mode or on a rebreather without a setpoint.",
   "safetyHub_tissueLoading_about_title": "About Tissue Loading",
-  "safetyHub_tissueLoading_about_body": "Your body has 16 tissue compartments that absorb and release nitrogen (and, on trimix or rebreather dives, helium too) at different speeds. Fast tissues saturate and desaturate quickly; slow tissues take much longer for both.\n\nAfter a dive with helium, nitrogen and helium in a single compartment can briefly move in opposite directions: while helium is still releasing, the same compartment can simultaneously be absorbing a little nitrogen, until both gases reach equilibrium with the air you're breathing. That's why a compartment can briefly show \"Ongassing\" even while its overall load keeps dropping.",
+  "safetyHub_tissueLoading_about_body": "Your body has 16 tissue compartments that take up and release nitrogen (and, on trimix or rebreather dives, helium too) at different speeds. Fast tissues saturate and desaturate quickly; slow tissues take much longer for both.\n\nResidual load is only what sits above the normal surface level. Even fully desaturated, the bars do not drop to 0%: each compartment settles at the marker that matches the nitrogen in the air you breathe. That is why a fast compartment can read higher here than at the end of a dive with oxygen decompression, without the load having grown.\n\nAfter a dive with helium, a compartment releases helium while it takes up nitrogen at the same time, until both gases are in equilibrium with the air you breathe.",
   "safetyHub_noFly_category_single": "After a single no-deco dive: {hours} h guideline",
   "@safetyHub_noFly_category_single": {
     "placeholders": {
@@ -24831,6 +25108,8 @@
   "diveLog_planned_chip": "Planned",
   "diveLog_planned_bannerTitle": "Planned dive",
   "diveLog_planned_bannerBody": "Awaiting dive computer data. Mark it as logged if you dived without one.",
+  "diveLog_planned_openInPlanner": "Open in planner",
+  "diveLog_detail_menu_viewInPlanner": "View in planner",
   "diveLog_detail_menu_markLogged": "Mark as logged",
   "diveLog_planned_markedLogged": "Marked as logged",
   "diveLog_planned_markLoggedFailed": "Couldn't mark the dive as logged.",
@@ -25453,6 +25732,27 @@
       }
     }
   },
+  "dataQuality_dive_tanks": "Affects {tanks}",
+  "@dataQuality_dive_tanks": {
+    "description": "Names the tank or tanks a finding is about, e.g. 'Affects Tank 2' or 'Affects Tank 1, Tank 2'.",
+    "placeholders": {
+      "tanks": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_dive_tankPair": "{first} and {second}",
+  "@dataQuality_dive_tankPair": {
+    "description": "The two tanks of a twin-tank finding inside dataQuality_dive_tanks, e.g. 'Tank 1 and Tank 2'.",
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
+  },
   "dataQuality_badge_tooltip": "Data quality review",
   "dataQuality_scan_start": "Scan library",
   "dataQuality_scan_progress": "Checked {done} of {total} dives",
@@ -25467,7 +25767,7 @@
     }
   },
   "dataQuality_scan_cancel": "Cancel",
-  "dataQuality_scan_done": "{count, plural, =0{Scan complete - no new findings} =1{Scan complete - 1 item to review} other{Scan complete - {count} items to review}}",
+  "dataQuality_scan_done": "{count, plural, =0{Scan complete - nothing open to review} =1{Scan complete - {count} open item to review} other{Scan complete - {count} open items to review}}",
   "@dataQuality_scan_done": {
     "placeholders": {
       "count": {
@@ -25540,8 +25840,18 @@
       }
     }
   },
-  "dataQuality_msg_clock_offset": "A source clock differs by {hours} hours",
-  "@dataQuality_msg_clock_offset": {
+  "dataQuality_msg_clock_offsetAhead": "{hours, plural, =1{A source clock runs {hours} hour ahead} other{A source clock runs {hours} hours ahead}}",
+  "@dataQuality_msg_clock_offsetAhead": {
+    "description": "A secondary source's clock reads later than the primary's by whole hours.",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_msg_clock_offsetBehind": "{hours, plural, =1{A source clock runs {hours} hour behind} other{A source clock runs {hours} hours behind}}",
+  "@dataQuality_msg_clock_offsetBehind": {
+    "description": "A secondary source's clock reads earlier than the primary's by whole hours.",
     "placeholders": {
       "hours": {
         "type": "int"
@@ -25550,6 +25860,15 @@
   },
   "dataQuality_msg_clock_overlap": "Overlaps another dive by {minutes} min",
   "@dataQuality_msg_clock_overlap": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_msg_clock_profileFit": "A source sits {minutes} min from where its profile matches the primary's",
+  "@dataQuality_msg_clock_profileFit": {
+    "description": "A consolidated source's samples sit this far along the timeline from where its depth trace fits the primary's.",
     "placeholders": {
       "minutes": {
         "type": "int"
@@ -25652,13 +25971,31 @@
       }
     }
   },
-  "dataQuality_msg_rate": "Vertical rate of {rate} sustained for {seconds} s",
+  "dataQuality_msg_rate": "Vertical rate of {rate} sustained for {duration}",
   "@dataQuality_msg_rate": {
     "placeholders": {
       "rate": {
         "type": "String"
       },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_unit_seconds": "{seconds} s",
+  "@dataQuality_unit_seconds": {
+    "description": "A short duration in a finding message, in seconds.",
+    "placeholders": {
       "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_unit_minutes": "{minutes} min",
+  "@dataQuality_unit_minutes": {
+    "description": "A duration in a finding message, in whole minutes.",
+    "placeholders": {
+      "minutes": {
         "type": "int"
       }
     }
@@ -25807,8 +26144,28 @@
     }
   },
   "dataQuality_msg_salinityHint": "The consistent ratio suggests a salt/fresh water setting difference",
-  "dataQuality_msg_sourceDuration": "Sources disagree on dive duration",
-  "dataQuality_msg_sourceTemp": "Sources disagree on water temperature",
+  "dataQuality_msg_sourceDuration": "Sources disagree on dive duration: {primary} vs. {source}",
+  "@dataQuality_msg_sourceDuration": {
+    "placeholders": {
+      "primary": {
+        "type": "String"
+      },
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_sourceTemp": "Sources disagree on water temperature: {primary} vs. {source}",
+  "@dataQuality_msg_sourceTemp": {
+    "placeholders": {
+      "primary": {
+        "type": "String"
+      },
+      "source": {
+        "type": "String"
+      }
+    }
+  },
   "dataQuality_repairLabel_shiftTime": "Shift time by {offset}",
   "@dataQuality_repairLabel_shiftTime": {
     "placeholders": {
@@ -25834,7 +26191,29 @@
       }
     }
   },
+  "dataQuality_repairLabel_fixSourceClockNamed": "Fix {computer}'s clock by {offset}",
+  "@dataQuality_repairLabel_fixSourceClockNamed": {
+    "description": "Repair button naming the computer whose clock is corrected.",
+    "placeholders": {
+      "computer": {
+        "type": "String"
+      },
+      "offset": {
+        "type": "String"
+      }
+    }
+  },
   "dataQuality_repairLabel_fixSourceClockAll": "Also fix this computer on other dives with the same offset",
+  "dataQuality_repairLabel_alignSourceProfile": "Line up this computer by its profile",
+  "dataQuality_repairLabel_alignSourceProfileNamed": "Line up {computer} by its profile",
+  "@dataQuality_repairLabel_alignSourceProfileNamed": {
+    "description": "Repair button naming the computer whose samples are lined up with the primary by profile.",
+    "placeholders": {
+      "computer": {
+        "type": "String"
+      }
+    }
+  },
   "dataQuality_repairLabel_consolidate": "Consolidate",
   "dataQuality_repairLabel_deleteDuplicate": "Delete duplicate",
   "@dataQuality_repairLabel_deleteDuplicate": {
@@ -25976,6 +26355,42 @@
   "dataQuality_repairLabel_reassignSeries": "Move series to another tank",
   "dataQuality_repairLabel_setPrimary": "Make this source primary",
   "dataQuality_repairLabel_split": "Split into separate dives",
+  "dataQuality_repairLabel_setPrimaryNamed": "Make {source} the primary source",
+  "@dataQuality_repairLabel_setPrimaryNamed": {
+    "description": "Repair button naming the data source that becomes the dive's primary source.",
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_repairLabel_splitNamed": "Split {source} into its own dive",
+  "@dataQuality_repairLabel_splitNamed": {
+    "description": "Repair button naming the data source that is split off into a dive of its own.",
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_setPrimary_title": "Make {source} the primary source?",
+  "@dataQuality_setPrimary_title": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_setPrimary_body": "The dive's depth, duration and profile will come from {source}. You can change this again under the dive's data sources.",
+  "@dataQuality_setPrimary_body": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_setPrimary_bodyUnnamed": "The dive's depth, duration and profile will come from this source. You can change this again under the dive's data sources.",
+  "dataQuality_setPrimary_confirm": "Make primary",
   "dataQuality_repairLabel_compare": "Compare profiles",
   "dataQuality_settings_title": "Data quality",
   "dataQuality_settings_subtitle": "Choose which checks run when scanning",
@@ -29085,6 +29500,7 @@
   "settings_syncDevices_state_unreadable": "No readable manifest - an unfinished upload, or encrypted",
   "settings_syncDevices_summary": "{deviceCount, plural, =1{1 device} other{{deviceCount} devices}}, {fileCount, plural, =1{1 file} other{{fileCount} files}}, {size}",
   "settings_syncDevices_summary_removable": "{count, plural, =1{1 left over from a replaced or retired library, holding {size}.} other{{count} left over from a replaced or retired library, holding {size}.}}",
+  "settings_syncDevices_summary_removed": "{count, plural, =1{{count} removed device is remembered so it cannot bring back deleted data.} other{{count} removed devices are remembered so they cannot bring back deleted data.}}",
   "settings_syncDevices_tile_filesSize": "{count, plural, =1{1 file} other{{count} files}}, {size}",
   "settings_syncDevices_tile_filesSizeSeen": "{count, plural, =1{1 file} other{{count} files}}, {size} - {when}",
   "settings_syncDevices_unnamedDevice": "Device {shortId}",
@@ -29349,6 +29765,15 @@
       "size": {
         "example": "900 KB",
         "type": "String"
+      }
+    }
+  },
+  "@settings_syncDevices_summary_removed": {
+    "description": "How many removed devices are hidden from the list. Each leaves a small marker on the backend, kept so the device cannot bring deleted data back if it comes online again.",
+    "placeholders": {
+      "count": {
+        "example": "24",
+        "type": "int"
       }
     }
   },
@@ -30348,16 +30773,15 @@
   "diveLog_profileEditor_smoothHeavy": "Heavy",
   "diveLog_profileEditor_applyToAll": "Apply to All",
   "diveLog_profileEditor_applyToSelection": "Apply to Selection",
-  "diveLog_profileEditor_outlierDetection": "Outlier Detection",
-  "diveLog_profileEditor_detect": "Detect",
-  "diveLog_profileEditor_removeAll": "Remove All",
+  "diveLog_profileEditor_cleanup": "Cleanup",
+  "diveLog_profileEditor_detectOutliers": "Detect Outliers",
+  "diveLog_profileEditor_removeOutliers": "Remove Outliers",
   "diveLog_profileEditor_outliersDetected": "{count, plural, =1{1 potential outlier detected} other{{count} potential outliers detected}}",
   "diveLog_profileEditor_manualDrawing": "Manual Drawing",
   "diveLog_profileEditor_drawHint": "Tap on the chart to place waypoints",
   "diveLog_profileEditor_clearWaypoints": "Clear",
   "diveLog_profileEditor_generateProfile": "Generate Profile",
   "diveLog_profileEditor_trimMode": "Trim Mode",
-  "diveLog_profileEditor_trimHint": "Trim profile endpoints",
   "diveLog_profileEditor_trimEnd": "Trim End",
   "diveLog_profileEditor_mode_smooth": "Smooth",
   "diveLog_profileEditor_title": "Edit Profile",
@@ -30372,11 +30796,16 @@
   "diveLog_profileEditor_smoothTooFewBlocked": "Can't smooth: select at least three samples",
   "diveLog_profileEditor_undo": "Undo",
   "diveLog_profileEditor_mode_select": "Select",
-  "diveLog_profileEditor_mode_outlier": "Outlier",
+  "diveLog_profileEditor_mode_cleanup": "Cleanup",
   "diveLog_profileEditor_mode_draw": "Draw",
   "diveLog_profileEditor_mode_trim": "Trim",
   "diveLog_profileEditor_revisionSelectorTooltip": "Switch active revision. This takes effect immediately and all future edits will be based on this revision.",
   "diveLog_profileEditor_revisionSwitchFailed": "Could not switch profile revision.",
+  "diveLog_profileEditor_deleteProfile_title": "Delete Entire Profile",
+  "diveLog_profileEditor_deleteProfile_permanentWarning": "Deleting this profile revision is permanent, cannot be undone, and takes effect immediately.",
+  "diveLog_profileEditor_deleteProfile_computerImportWarning": "This profile was imported from a dive computer and likely contains the original source data.",
+  "diveLog_profileEditor_deleteProfile_confirmNow": "Delete Permanently Now",
+  "diveLog_profileEditor_deleteProfile_failed": "Could not delete the profile revision.",
   "diveLog_profileEditor_revisionLegacyHint": "Saved before revision history; not linked to a computer",
   "diveLog_sources_sectionTitle": "{count, plural, =0{Data Source} =1{Data Source} other{Data Sources}}",
   "diveLog_sources_badge_manual": "Manual",
@@ -30752,8 +31181,8 @@
   "@diveLog_profileEditor_mode_select": {
     "description": "Profile editor mode: select a range of the depth curve."
   },
-  "@diveLog_profileEditor_mode_outlier": {
-    "description": "Profile editor mode: find and remove suspect depth samples."
+  "@diveLog_profileEditor_mode_cleanup": {
+    "description": "Profile editor mode: find and remove unnecessary depth samples or the entire profile."
   },
   "@diveLog_profileEditor_mode_draw": {
     "description": "Profile editor mode: draw the depth curve by placing waypoints."
@@ -32974,7 +33403,6 @@
   "navTrack_review_nameHint": "Name (optional)",
   "navTrack_review_warningNoMovement": "No movement recorded: distance and speed stay at zero throughout this file.",
   "navTrack_review_trackDuplicateWarning": "This looks like a track already imported from the same file.",
-  "navTrack_review_replaceLabel": "Replace",
   "navTrack_review_linkToDive": "Link to dive",
   "navTrack_review_diveSite": "Dive site",
   "navTrack_review_equipment": "Equipment",
@@ -33097,6 +33525,8 @@
     }
   },
   "navTrack_editSheet_removeTrackTooltip": "Remove track",
+  "navTrack_editSheet_trackOnAnotherDive": "This track belongs to another dive. Update it from that dive, or import the file as a new track.",
+  "@navTrack_editSheet_trackOnAnotherDive": {"description": "Dive Edit route sheet: the stored track a re-imported file would update is linked to another dive"},
   "navTrack_editRow_tracksSaveFailed": "Could not update this dive's underwater tracks: {error}",
   "@navTrack_editRow_tracksSaveFailed": {
     "placeholders": {
@@ -33999,6 +34429,8 @@
   "@rules_value_no": {"description": "Boolean value shown in a rule"},
   "rules_value_empty": "(empty)",
   "@rules_value_empty": {"description": "An empty field value in a change list"},
+  "rules_value_gearViaSet": "{item} ({set})",
+  "@rules_value_gearViaSet": {"description": "A gear item in a rule change list with the equipment set it came through, shown when only its set changed", "placeholders": {"item": {"type": "String"}, "set": {"type": "String"}}},
   "rules_collection_diveTypes": "dive types",
   "@rules_collection_diveTypes": {"description": "Lower-case collection name in an action summary"},
   "rules_collection_tags": "tags",
@@ -34009,6 +34441,8 @@
   "@rules_collection_buddies": {"description": "Lower-case collection name in an action summary"},
   "rules_collection_courses": "courses",
   "@rules_collection_courses": {"description": "Lower-case collection name in an action summary"},
+  "rules_collection_equipmentSets": "equipment sets",
+  "@rules_collection_equipmentSets": {"description": "Lower-case collection name in an action summary"},
   "rules_collection_siteTags": "site tags",
   "@rules_collection_siteTags": {"description": "Lower-case collection name in an action summary"},
   "rules_collection_siteTypes": "site types",
@@ -35065,5 +35499,102 @@
   "search_closeTooltip": "Close search",
   "@search_closeTooltip": {"description": "A list's search row, shared by every list"},
   "search_openTooltip": "Search",
-  "@search_openTooltip": {"description": "A list's search row, shared by every list"}
+  "@search_openTooltip": {"description": "A list's search row, shared by every list"},
+  "settings_conflict_field_sourceFile": "Original track file",
+  "@settings_conflict_field_sourceFile": {"description": "Field label in the sync conflict view: the original file an underwater track was imported from"},
+  "navTrack_review_duplicateUpdate": "Update the stored track",
+  "@navTrack_review_duplicateUpdate": {"description": "Import review choice when the file was imported before: re-read the stored track from this file"},
+  "navTrack_review_duplicateUpdateHint": "Reads the data from this file again. Name, dive, site, device and alignment stay as they are.",
+  "@navTrack_review_duplicateUpdateHint": {"description": "Explains the update choice on the import review page"},
+  "navTrack_review_duplicateNew": "Import as a new track",
+  "@navTrack_review_duplicateNew": {"description": "Import review choice when the file was imported before: keep both"},
+  "navTrack_review_updateAction": "Update",
+  "@navTrack_review_updateAction": {"description": "Button that updates a stored track from a file"},
+  "navTrack_review_trackUpdatedConfirmation": "Track updated from the file. Check its alignment: the track may have moved.",
+  "@navTrack_review_trackUpdatedConfirmation": {"description": "Snackbar after a track was updated from its file"},
+  "navTrack_detail_menuUpdateFromFile": "Update from file",
+  "@navTrack_detail_menuUpdateFromFile": {"description": "Track detail overflow menu item"},
+  "navTrack_detail_menuExportCsv": "Export as CSV",
+  "@navTrack_detail_menuExportCsv": {"description": "Track detail overflow menu item"},
+  "navTrack_detail_exportUnavailable": "This track has no stored original file yet. Update it from its file first.",
+  "@navTrack_detail_exportUnavailable": {"description": "Snackbar when a track keeps no original file to export"},
+  "navTrack_detail_exportFailed": "Export failed: {error}",
+  "@navTrack_detail_exportFailed": {"placeholders": {"error": {"type": "String"}}},
+  "navTrack_detail_updateNameMismatchTitle": "Different file name",
+  "@navTrack_detail_updateNameMismatchTitle": {"description": "Dialog title when the chosen file has another name than the track"},
+  "navTrack_detail_updateNameMismatchMessage": "This track was imported from \"{expected}\", the chosen file is \"{actual}\". Update the track from it anyway?",
+  "@navTrack_detail_updateNameMismatchMessage": {"placeholders": {"expected": {"type": "String"}, "actual": {"type": "String"}}},
+  "navTrack_detail_updateOtherRecordingTitle": "Different recording",
+  "@navTrack_detail_updateOtherRecordingTitle": {"description": "Dialog title when the file picked to update a track was recorded at another time than the track"},
+  "navTrack_detail_updateOtherRecordingMessage": "This file was recorded on {fileDate}, the track on {trackDate}, so it may be a different dive. Update the track from it anyway?",
+  "@navTrack_detail_updateOtherRecordingMessage": {"description": "Dialog asking whether to update a track from a file recorded at another time; both dates are formatted dates", "placeholders": {"fileDate": {"type": "String"}, "trackDate": {"type": "String"}}},
+  "navTrack_marker_details": "Marker {number}: {time}, {depth}, {distance}",
+  "@navTrack_marker_details": {"description": "Tooltip of a marker the recording console set: its number, time, depth and distance into the dive", "placeholders": {"number": {"type": "int"}, "time": {"type": "String"}, "depth": {"type": "String"}, "distance": {"type": "String"}}},
+  "twinSet_title": "Twin set",
+  "twinSet_none": "Not part of a twin set",
+  "twinSet_link": "Link to a twin set partner",
+  "twinSet_since": "Since {date}",
+  "@twinSet_since": {"placeholders": {"date": {"type": "String"}}},
+  "twinSet_replace": "Replace partner",
+  "twinSet_unlink": "Unlink",
+  "twinSet_history": "History",
+  "twinSet_historyRange": "{partner}, {from} to {to}",
+  "@twinSet_historyRange": {"placeholders": {"partner": {"type": "String"}, "from": {"type": "String"}, "to": {"type": "String"}}},
+  "twinSet_deletePairing": "Delete pairing",
+  "twinSet_deletePairingConfirm": "Delete this pairing from the history? Fills and dives are not changed.",
+  "twinSet_pickerTitle": "Twin set partner",
+  "twinSet_pickerEmpty": "No other cylinders to pair with.",
+  "twinSet_pairedOnHelp": "Paired since",
+  "twinSet_unpairedOnHelp": "Unlinked on",
+  "twinSet_pressureMismatchTitle": "Different working pressures",
+  "twinSet_pressureMismatchBody": "{a} is rated {aPressure} and {b} {bPressure}. A manifolded pair fills to one pressure.",
+  "@twinSet_pressureMismatchBody": {"placeholders": {"a": {"type": "String"}, "aPressure": {"type": "String"}, "b": {"type": "String"}, "bPressure": {"type": "String"}}},
+  "twinSet_continue": "Continue",
+  "twinSet_replaceTitle": "Replace partner?",
+  "twinSet_replaceClash": "{cylinder} is paired with {partner}.",
+  "@twinSet_replaceClash": {"placeholders": {"cylinder": {"type": "String"}, "partner": {"type": "String"}}},
+  "twinSet_replaceQuestion": "Pair {a} with {b} instead?",
+  "@twinSet_replaceQuestion": {"placeholders": {"a": {"type": "String"}, "b": {"type": "String"}}},
+  "twinSet_leftAlone": "{name} will be left on its own.",
+  "@twinSet_leftAlone": {"placeholders": {"name": {"type": "String"}}},
+  "twinSet_replaceConfirm": "Replace",
+  "twinSet_clashTitle": "Overlapping pairing",
+  "twinSet_clashBody": "This overlaps the pairing of {pairs}. A cylinder can be in one twin set on any day.",
+  "@twinSet_clashBody": {"placeholders": {"pairs": {"type": "String"}}},
+  "twinSet_pairNames": "{a} and {b}",
+  "@twinSet_pairNames": {"placeholders": {"a": {"type": "String"}, "b": {"type": "String"}}},
+  "twinSet_endBeforeStart": "The end date must be after {date}.",
+  "@twinSet_endBeforeStart": {"placeholders": {"date": {"type": "String"}}},
+  "twinSet_saveFailed": "Could not save the twin set change.",
+  "twinSet_with": "Twin set with {partner}",
+  "@twinSet_with": {"placeholders": {"partner": {"type": "String"}}},
+  "passport_logFill_twinSwitch": "Both cylinders in the twin set ({partner})",
+  "@passport_logFill_twinSwitch": {"placeholders": {"partner": {"type": "String"}}},
+  "twinSet_partnerStatus": "{partner}, {status}",
+  "@twinSet_partnerStatus": {"placeholders": {"partner": {"type": "String"}, "status": {"type": "String"}}},
+  "passport_logFill_editTitle": "Edit fill",
+  "passport_logFill_overPressureTitle": "Above working pressure",
+  "passport_logFill_overPressureBody": "{pressure} is above the working pressure of {name}, {workingPressure}.",
+  "@passport_logFill_overPressureBody": {"placeholders": {"pressure": {"type": "String"}, "name": {"type": "String"}, "workingPressure": {"type": "String"}}},
+  "passport_logFill_saveAnyway": "Save anyway",
+  "passport_logFill_back": "Back",
+  "passport_logFill_applyToTied": "Apply to the fill of {partner} too?",
+  "@passport_logFill_applyToTied": {"placeholders": {"partner": {"type": "String"}}},
+  "passport_logFill_applyBoth": "Yes",
+  "passport_logFill_onlyThisOne": "Only this one",
+  "passport_history_anotherCylinder": "another cylinder",
+  "passport_history_filledWith": "Filled with {partner}",
+  "@passport_history_filledWith": {"placeholders": {"partner": {"type": "String"}}},
+  "passport_history_deleteTiedBody": "Delete this fill from both cylinders, or only this one?",
+  "passport_history_deleteBoth": "Both cylinders",
+  "passport_history_edit": "Edit fill",
+  "twinSet_choiceTitle": "Use the twin set?",
+  "twinSet_choicePair": "Twin set ({a} + {b}, {volume})",
+  "@twinSet_choicePair": {"placeholders": {"a": {"type": "String"}, "b": {"type": "String"}, "volume": {"type": "String"}}},
+  "twinSet_choiceSingle": "Just {a}",
+  "@twinSet_choiceSingle": {"placeholders": {"a": {"type": "String"}}},
+  "settings_conflict_field_pairedOn": "Paired since",
+  "settings_conflict_field_unpairedOn": "Unlinked on",
+  "settings_conflict_field_filledTogetherId": "Twin set fill",
+  "settings_conflict_field_twinPassportId": "Twin set partner passport"
 }

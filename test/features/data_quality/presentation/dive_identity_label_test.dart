@@ -18,6 +18,7 @@ void main() {
     limitDepth: (m) => 'L${m.toStringAsFixed(1)}',
     pressure: (bar) => 'P${bar.toStringAsFixed(1)}',
     temperature: (c) => 'T${c.toStringAsFixed(1)}',
+    temperatureDelta: (c) => 'TD${c.toStringAsFixed(1)}',
     sac: (lpm) => 'S${lpm.toStringAsFixed(1)}',
     date: (d) => 'DATE(${d.year}-${d.month}-${d.day})',
     dateTime: (d) =>

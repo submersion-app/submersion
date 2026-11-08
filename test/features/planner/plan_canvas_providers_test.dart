@@ -507,12 +507,7 @@ void main() {
     });
   });
 
-  group('planIsValidProvider (convert to dive gate, issue #3094)', () {
-    test('an empty plan is not valid', () {
-      final container = _container();
-      expect(container.read(planIsValidProvider), isFalse);
-    });
-
+  group('isDiveable, the gate for planned dives (issue #3094)', () {
     test('a plan with no critical engine issue is valid', () {
       final container = _container();
       container
@@ -520,7 +515,6 @@ void main() {
           .addSimplePlan(maxDepth: 18.0, bottomTimeMinutes: 20);
 
       expect(container.read(planOutcomeProvider).isDiveable, isTrue);
-      expect(container.read(planIsValidProvider), isTrue);
     });
 
     test('a critical issue only the engine reports blocks conversion', () {
@@ -541,7 +535,7 @@ void main() {
           PlanIssueSeverity.critical,
         )),
       );
-      expect(container.read(planIsValidProvider), isFalse);
+      expect(container.read(planOutcomeProvider).isDiveable, isFalse);
     });
 
     test(
@@ -554,7 +548,7 @@ void main() {
             .read(divePlanNotifierProvider.notifier)
             .addSimplePlan(maxDepth: 70.0, bottomTimeMinutes: 10);
 
-        expect(container.read(planIsValidProvider), isTrue);
+        expect(container.read(planOutcomeProvider).isDiveable, isTrue);
       },
     );
 
@@ -570,7 +564,7 @@ void main() {
           .read(divePlanNotifierProvider.notifier)
           .addSimplePlan(maxDepth: 18.0, bottomTimeMinutes: 20);
 
-      expect(container.read(planIsValidProvider), isFalse);
+      expect(container.read(planOutcomeProvider).isDiveable, isFalse);
     });
   });
 }

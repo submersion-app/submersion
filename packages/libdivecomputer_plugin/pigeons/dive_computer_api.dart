@@ -224,6 +224,7 @@ class ParsedDive {
     this.entryLongitude,
     this.exitLatitude,
     this.exitLongitude,
+    this.surfacePressureBar,
   });
   final String fingerprint;
   final int dateTimeYear;
@@ -254,6 +255,8 @@ class ParsedDive {
   final double? entryLongitude;
   final double? exitLatitude;
   final double? exitLongitude;
+  // Atmospheric pressure the computer measured at the surface; null if unavailable.
+  final double? surfacePressureBar;
 }
 
 class DownloadProgress {

@@ -609,6 +609,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_equipmentField_owner_short => 'Owner';
 
   @override
+  String get enum_equipmentField_location => 'Location';
+
+  @override
+  String get enum_equipmentField_location_short => 'Location';
+
+  @override
   String get equipment_set_noLongerShared => 'No longer shared';
 
   @override
@@ -4577,6 +4583,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get certifications_list_section_expiringSoon => 'Expiring Soon';
 
   @override
+  String certifications_list_section_professional(String agency) {
+    return '$agency Professional';
+  }
+
+  @override
   String get certifications_list_section_valid => 'Valid';
 
   @override
@@ -7288,6 +7299,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'These records don\'t overlap in time, so one computer\'s clock is probably off. The dive keeps the primary computer\'s time.';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      'These depth profiles match at a different time than the computers\' clocks say, so one computer\'s clock is probably off. The dive keeps the primary computer\'s time.';
+
+  @override
   String get diveLog_consolidate_clockNoteShort =>
       'One computer\'s clock is probably off.';
 
@@ -7400,6 +7415,85 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_deco_semantics_required => 'Decompression required';
+
+  @override
+  String diveLog_deco_compartmentLeading(int number) {
+    return 'Leading: #$number';
+  }
+
+  @override
+  String diveLog_deco_compartmentOther(int number) {
+    return 'Compartment: #$number';
+  }
+
+  @override
+  String get diveLog_deco_metricLoad => 'Load';
+
+  @override
+  String get diveLog_deco_gasOngassing => 'Ongassing';
+
+  @override
+  String get diveLog_deco_gasOffgassing => 'Offgassing';
+
+  @override
+  String get diveLog_deco_gasEquilibrium => 'Equilibrium';
+
+  @override
+  String get diveLog_deco_heatMapRows => 'Rows: fast (top) to slow (bottom)';
+
+  @override
+  String get diveLog_deco_surfaceLevel => 'Surface level';
+
+  @override
+  String get diveLog_deco_mValue => 'M-value';
+
+  @override
+  String diveLog_deco_tooltipCompartment(int number) {
+    return 'Compartment $number';
+  }
+
+  @override
+  String diveLog_deco_tooltipLoaded(String percent) {
+    return '$percent% loaded';
+  }
+
+  @override
+  String diveLog_deco_tooltipHalfTime(String minutes) {
+    return 'Half-time: $minutes min';
+  }
+
+  @override
+  String diveLog_deco_tooltipSurfaceLevel(String percent) {
+    return 'Surface level: $percent%';
+  }
+
+  @override
+  String get diveLog_deco_info_title => 'What do these values mean?';
+
+  @override
+  String get diveLog_deco_info_body =>
+      'Load: a compartment\'s inert gas pressure as a percentage of the most it may hold at the surface (its M-value, the red line at 100%).\n\nSurface level: the marker on each bar shows where a fully desaturated compartment settles while you breathe air at the surface. It is never 0%, because your body always holds the nitrogen of the air you breathe. A bar at its marker carries no load left over from diving.\n\nOngassing and offgassing: gas always moves toward the pressure of the gas you breathe. After decompression on oxygen or on a mix rich in helium, the fast compartments can hold less nitrogen than the air at the surface. Back on air, they take nitrogen up again until they reach their marker. That is normal and not a residual load from the dive.\n\nHelium: air contains no helium. After a trimix dive, a compartment releases helium while it can take nitrogen up at the same time. The arrows next to N₂ and He show each gas on its own; the badge next to the compartment number shows the net direction of both.';
+
+  @override
+  String diveLog_deco_barChartSemantics(int count, int number, String percent) {
+    return 'Tissue loading chart. $count compartments, loading relative to the M-value; leading compartment $number at $percent%.';
+  }
+
+  @override
+  String get diveLog_deco_heatMapUndersaturated => 'Undersaturated';
+
+  @override
+  String get diveLog_deco_heatMapSupersaturated => 'Supersaturated';
+
+  @override
+  String diveLog_deco_percentValue(String value) {
+    return '$value%';
+  }
+
+  @override
+  String diveLog_deco_minutesValue(String value) {
+    return '$value min';
+  }
 
   @override
   String get diveLog_deco_tissueFast => 'Fast';
@@ -8163,6 +8257,26 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_profile_pointsAndProfiles(
+    num pointCount,
+    num profileCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      pointCount,
+      locale: localeName,
+      other: '$pointCount points',
+      one: '1 point',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      profileCount,
+      locale: localeName,
+      other: '$profileCount revisions',
+      one: '1 revision',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
   String get diveLog_edit_row_addSite => 'Add site';
 
   @override
@@ -8479,6 +8593,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_edit_useSet => 'Use Set';
+
+  @override
+  String get diveLog_edit_removeSet => 'Remove Set';
+
+  @override
+  String get diveLog_bulkEdit_setsToRemove => 'Sets to remove';
+
+  @override
+  String get diveLog_bulkEdit_removeSetTitle => 'Remove Equipment Set';
+
+  @override
+  String get diveLog_bulkEdit_equipmentSets => 'Equipment sets';
 
   @override
   String get diveLog_edit_weightPreset_use => 'Use preset';
@@ -10635,6 +10761,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_figureNow(String pressure) {
+    return 'Now $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureNowEstimated(String pressure) {
+    return 'Now $pressure (est.)';
+  }
+
+  @override
   String diveLog_cylinders_gasSemantics(String mix) {
     return 'Gas $mix';
   }
@@ -10973,9 +11109,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get divePlanner_action_addTank => 'Add Tank';
 
   @override
-  String get divePlanner_action_convertToDive => 'Convert to Dive';
-
-  @override
   String get divePlanner_action_deletePlan => 'Delete plan';
 
   @override
@@ -11111,6 +11244,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get divePlanner_label_minutesUnit => 'min';
+
+  @override
+  String get divePlanner_label_secondsUnit => 's';
 
   @override
   String get divePlanner_label_ndl => 'NDL';
@@ -14250,6 +14386,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passport_history_deleteConfirm => 'Delete this fill record?';
 
   @override
+  String get passport_history_deleteFailed =>
+      'Could not delete the fill. Try again.';
+
+  @override
   String get passport_tag_title => 'Tag';
 
   @override
@@ -16458,6 +16598,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_location_activeFilter => 'Location';
+
+  @override
+  String equipment_location_tileSemantics(String name) {
+    return 'Location: $name';
+  }
 
   @override
   String get equipment_filter_section_location => 'Location';
@@ -19466,6 +19611,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_photoPicker_selectAllButton => 'Select All';
 
   @override
+  String get media_photoPicker_albumFilter_all => 'All albums';
+
+  @override
+  String media_photoPicker_albumFilter_chip(String album, int count) {
+    return '$album ($count)';
+  }
+
+  @override
+  String get media_photoPicker_albumFilter_label => 'Filter by album';
+
+  @override
   String media_photoPicker_selectedCount(int count) {
     return '$count selected';
   }
@@ -20639,6 +20795,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerCanvas_chart_removeWaypoint => 'Remove waypoint';
 
   @override
+  String get plannerCanvas_chart_worstCase => 'Worst case';
+
+  @override
   String get plannerCanvas_contingency_title => 'Contingencies';
 
   @override
@@ -20646,9 +20805,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get plannerCanvas_contingency_turnRule => 'Turn pressure rule';
-
-  @override
-  String get plannerCanvas_convert_success => 'Dive created from plan';
 
   @override
   String get plannerCanvas_convert_view => 'View';
@@ -20728,6 +20884,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get plannerSeries_openInLog => 'Open in dive log';
+
+  @override
+  String get plannerSeries_view_actual => 'Actual';
+
+  @override
+  String get plannerSeries_view_plan => 'Plan';
+
+  @override
+  String plannerSeries_saved_divedCount(int dived, int count) {
+    return '$dived of $count dived';
+  }
 
   @override
   String get plannerSeries_stopFollowing => 'Stop following';
@@ -20881,8 +21048,74 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerSeries_fillAll => 'Fill all tanks';
 
   @override
-  String get plannerSeries_convertUnavailable =>
-      'A series of dives can\'t be converted to logged dives yet';
+  String get plannerSeries_createPlannedDive => 'Create planned dive';
+
+  @override
+  String get plannerSeries_createPlannedDives => 'Create planned dives';
+
+  @override
+  String get plannerSeries_updatePlannedDive => 'Update planned dive';
+
+  @override
+  String get plannerSeries_updatePlannedDives => 'Update planned dives';
+
+  @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return '$dive has a critical warning, so the planned dives weren\'t updated';
+  }
+
+  @override
+  String plannerSeries_cannotUpdateEmpty(String dive) {
+    return '$dive has no segments, so the planned dives weren\'t updated';
+  }
+
+  @override
+  String get plannerSeries_cannotUpdateEmptyPlan =>
+      'This plan has no segments, so it wasn\'t written to the log';
+
+  @override
+  String plannerSeries_created(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count planned dives added to the log',
+      one: '$count planned dive added to the log',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerSeries_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count planned dives updated in the log',
+      one: '$count planned dive updated in the log',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_title => 'Delete from the log?';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count planned dives no longer in this series are still in the log.',
+      one: '$count planned dive no longer in this series is still in the log.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'Keep';
+
+  @override
+  String get plannerSeries_allDived =>
+      'Every dive in this plan has been dived, so there\'s nothing to update';
 
   @override
   String get plannerSeries_missionUnavailable =>
@@ -22378,6 +22611,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navShortcut_short_backup => 'Backup';
+
+  @override
+  String get navShortcut_short_diveComputers => 'Computers';
 
   @override
   String get navShortcut_short_speciesStats => 'Species stats';
@@ -25646,6 +25882,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_timeFormat => 'Time format';
 
   @override
+  String get settings_conflict_field_firstDayOfWeek => 'First day of week';
+
+  @override
   String get settings_conflict_field_timeOffsetSeconds => 'Time offset';
 
   @override
@@ -26931,7 +27170,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'Fix dive times, link buddies, retype gear, data quality, table editor';
+      'Fix dive times, link buddies, retype gear, data quality, table editor, re-parse dives';
 
   @override
   String get settings_agentAccess_title => 'Agent access';
@@ -29111,10 +29350,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_units_dialog_weightUnit => 'Weight Unit';
 
   @override
-  String get settings_units_header_individualUnits => 'Individual Units';
+  String get settings_units_header_gasPlanning => 'Gas & Planning';
 
   @override
-  String get settings_units_header_timeDateFormat => 'Time & Date Format';
+  String get settings_units_header_displayFormats => 'Display & Formats';
+
+  @override
+  String get settings_units_appliesTo => 'Applies to the following units';
+
+  @override
+  String get settings_units_gasConsumption_unitHint =>
+      'Unit follows pressure and volume';
+
+  @override
+  String get settings_units_firstDayOfWeek => 'First day of week';
+
+  @override
+  String get settings_units_dialog_firstDayOfWeek => 'First Day of Week';
+
+  @override
+  String get settings_units_firstDayOfWeek_auto => 'Automatic';
+
+  @override
+  String settings_units_firstDayOfWeek_autoResolved(String day) {
+    return 'Automatic ($day)';
+  }
+
+  @override
+  String get settings_units_firstDayOfWeek_auto_subtitle =>
+      'Follows your device\'s region';
+
+  @override
+  String get settings_units_header_timeDateFormat => 'Time & Date';
 
   @override
   String get settings_units_header_unitSystem => 'Unit System';
@@ -37396,25 +37663,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllProgress(int count) {
-    return 'Re-parsing $count dives...';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllSuccess(int count) {
-    return 'Re-parsed $count dives successfully';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
-    return 'Re-parsed $succeeded of $total dives. $failed failed.';
-  }
-
-  @override
   String diveComputer_detail_reparseRawDataCount(int count) {
     return '$count dives with raw data';
   }
@@ -37426,6 +37674,124 @@ class AppLocalizationsEn extends AppLocalizations {
   ) {
     return '$count dives with raw data ($without without)';
   }
+
+  @override
+  String get reparseBatch_progressTitle => 'Re-parsing dives';
+
+  @override
+  String reparseBatch_progressCount(int done, int total) {
+    return 'Re-parsing $done of $total dives';
+  }
+
+  @override
+  String get reparseBatch_cancelling => 'Cancelling...';
+
+  @override
+  String get reparseBatch_resultTitle => 'Re-parse finished';
+
+  @override
+  String get reparseBatch_resultCancelledTitle => 'Re-parse cancelled';
+
+  @override
+  String get reparseBatch_resultErrorTitle => 'Re-parse stopped by an error';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return 'Not processed: $count';
+  }
+
+  @override
+  String reparseBatch_resultSummary(int succeeded, int total) {
+    return 'Re-parsed $succeeded of $total dives.';
+  }
+
+  @override
+  String reparseBatch_resultFailed(int count) {
+    return 'Failed: $count';
+  }
+
+  @override
+  String reparseBatch_resultNotProcessed(int count) {
+    return 'Not processed (cancelled): $count';
+  }
+
+  @override
+  String reparseBatch_resultSkipped(int count) {
+    return 'Skipped, no raw data: $count';
+  }
+
+  @override
+  String reparseBatch_resultProfilesPreserved(int count) {
+    return 'Combined dives that kept their profile: $count';
+  }
+
+  @override
+  String get reparseBatch_failedListHeader => 'Failed dives';
+
+  @override
+  String reparseBatch_failedDiveTitle(int number) {
+    return 'Dive #$number';
+  }
+
+  @override
+  String get reparseBatch_failedDiveUnnumbered => 'Unnumbered dive';
+
+  @override
+  String get reparseBatch_missingDescriptors => 'Missing dive computer details';
+
+  @override
+  String get reparseBatch_confirmTitle => 'Re-parse dives';
+
+  @override
+  String reparseBatch_confirmMessage(int count) {
+    return 'Re-run the dive parser on $count dives with stored raw data. This updates profile and sensor data but preserves your notes, sites, buddies, and other edits.';
+  }
+
+  @override
+  String reparseBatch_confirmSkipped(int count) {
+    return 'Selected dives without raw data (skipped): $count';
+  }
+
+  @override
+  String get reparseBatch_noneWithRawData =>
+      'None of the selected dives have stored raw data to re-parse.';
+
+  @override
+  String get diveLog_selection_tooltip_reparse => 'Re-parse';
+
+  @override
+  String get settings_reparseDives_title => 'Re-parse dives';
+
+  @override
+  String get settings_reparseDives_subtitle =>
+      'Re-run the dive parser on every dive with stored raw data';
+
+  @override
+  String get settings_reparseDives_intro =>
+      'Use this after an app update improves how dive computer data is read. Your notes, sites, buddies, and other edits are preserved.';
+
+  @override
+  String settings_reparseDives_withRawData(int count) {
+    return 'Dives with raw data: $count';
+  }
+
+  @override
+  String settings_reparseDives_withoutRawData(int count) {
+    return 'Dives without raw data (not re-parsed): $count';
+  }
+
+  @override
+  String get settings_reparseDives_byComputer => 'By dive computer';
+
+  @override
+  String get settings_reparseDives_unknownComputer => 'Unknown computer';
+
+  @override
+  String get settings_reparseDives_none =>
+      'No dives have stored raw data to re-parse.';
+
+  @override
+  String get settings_reparseDives_button => 'Re-parse all';
 
   @override
   String get diveComputer_rawData_discardAction => 'Discard';
@@ -39342,7 +39708,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrLabel_tow_speed_factor => 'Tow speed factor';
 
   @override
-  String get attrLabel_sku => 'SKU';
+  String get attrLabel_sku => 'Product number (SKU)';
+
+  @override
+  String get attrHelper_sku =>
+      'From the receipt or product label, not the serial number';
 
   @override
   String get attrLabel_retailer => 'Retailer';
@@ -40045,11 +40415,26 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your CNS% (oxygen clock) decays after a dive with a 90-minute half-life -- it\'s practically back to 0 after about a day.\n\nDaily OTU resets every night at midnight. Weekly OTU is a rolling total of the last 7 days: older dives automatically drop out of the calculation once they fall outside that window.';
 
   @override
+  String get safetyHub_tissueLoading_clear_title => 'No residual tissue load';
+
+  @override
+  String get safetyHub_tissueLoading_clear_body =>
+      'All compartments are back in equilibrium with the air at the surface. They stay at their normal level (the marker on each bar), not at 0%.';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_title =>
+      'Tissue loading not available';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_body =>
+      'The last dive has no data to calculate tissue loading from, for example a dive without a depth profile, in gauge mode or on a rebreather without a setpoint.';
+
+  @override
   String get safetyHub_tissueLoading_about_title => 'About Tissue Loading';
 
   @override
   String get safetyHub_tissueLoading_about_body =>
-      'Your body has 16 tissue compartments that absorb and release nitrogen (and, on trimix or rebreather dives, helium too) at different speeds. Fast tissues saturate and desaturate quickly; slow tissues take much longer for both.\n\nAfter a dive with helium, nitrogen and helium in a single compartment can briefly move in opposite directions: while helium is still releasing, the same compartment can simultaneously be absorbing a little nitrogen, until both gases reach equilibrium with the air you\'re breathing. That\'s why a compartment can briefly show \"Ongassing\" even while its overall load keeps dropping.';
+      'Your body has 16 tissue compartments that take up and release nitrogen (and, on trimix or rebreather dives, helium too) at different speeds. Fast tissues saturate and desaturate quickly; slow tissues take much longer for both.\n\nResidual load is only what sits above the normal surface level. Even fully desaturated, the bars do not drop to 0%: each compartment settles at the marker that matches the nitrogen in the air you breathe. That is why a fast compartment can read higher here than at the end of a dive with oxygen decompression, without the load having grown.\n\nAfter a dive with helium, a compartment releases helium while it takes up nitrogen at the same time, until both gases are in equilibrium with the air you breathe.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -40503,6 +40888,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLog_planned_bannerBody =>
       'Awaiting dive computer data. Mark it as logged if you dived without one.';
+
+  @override
+  String get diveLog_planned_openInPlanner => 'Open in planner';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'View in planner';
 
   @override
   String get diveLog_detail_menu_markLogged => 'Mark as logged';
@@ -41437,6 +41828,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String dataQuality_dive_tanks(String tanks) {
+    return 'Affects $tanks';
+  }
+
+  @override
+  String dataQuality_dive_tankPair(String first, String second) {
+    return '$first and $second';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => 'Data quality review';
 
   @override
@@ -41455,9 +41856,9 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Scan complete - $count items to review',
-      one: 'Scan complete - 1 item to review',
-      zero: 'Scan complete - no new findings',
+      other: 'Scan complete - $count open items to review',
+      one: 'Scan complete - $count open item to review',
+      zero: 'Scan complete - nothing open to review',
     );
     return '$_temp0';
   }
@@ -41586,13 +41987,35 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_clock_offset(int hours) {
-    return 'A source clock differs by $hours hours';
+  String dataQuality_msg_clock_offsetAhead(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'A source clock runs $hours hours ahead',
+      one: 'A source clock runs $hours hour ahead',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_clock_offsetBehind(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'A source clock runs $hours hours behind',
+      one: 'A source clock runs $hours hour behind',
+    );
+    return '$_temp0';
   }
 
   @override
   String dataQuality_msg_clock_overlap(int minutes) {
     return 'Overlaps another dive by $minutes min';
+  }
+
+  @override
+  String dataQuality_msg_clock_profileFit(int minutes) {
+    return 'A source sits $minutes min from where its profile matches the primary\'s';
   }
 
   @override
@@ -41654,8 +42077,18 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_rate(String rate, int seconds) {
-    return 'Vertical rate of $rate sustained for $seconds s';
+  String dataQuality_msg_rate(String rate, String duration) {
+    return 'Vertical rate of $rate sustained for $duration';
+  }
+
+  @override
+  String dataQuality_unit_seconds(int seconds) {
+    return '$seconds s';
+  }
+
+  @override
+  String dataQuality_unit_minutes(int minutes) {
+    return '$minutes min';
   }
 
   @override
@@ -41759,12 +42192,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'The consistent ratio suggests a salt/fresh water setting difference';
 
   @override
-  String get dataQuality_msg_sourceDuration =>
-      'Sources disagree on dive duration';
+  String dataQuality_msg_sourceDuration(String primary, String source) {
+    return 'Sources disagree on dive duration: $primary vs. $source';
+  }
 
   @override
-  String get dataQuality_msg_sourceTemp =>
-      'Sources disagree on water temperature';
+  String dataQuality_msg_sourceTemp(String primary, String source) {
+    return 'Sources disagree on water temperature: $primary vs. $source';
+  }
 
   @override
   String dataQuality_repairLabel_shiftTime(String offset) {
@@ -41786,8 +42221,25 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String dataQuality_repairLabel_fixSourceClockNamed(
+    String computer,
+    String offset,
+  ) {
+    return 'Fix $computer\'s clock by $offset';
+  }
+
+  @override
   String get dataQuality_repairLabel_fixSourceClockAll =>
       'Also fix this computer on other dives with the same offset';
+
+  @override
+  String get dataQuality_repairLabel_alignSourceProfile =>
+      'Line up this computer by its profile';
+
+  @override
+  String dataQuality_repairLabel_alignSourceProfileNamed(String computer) {
+    return 'Line up $computer by its profile';
+  }
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Consolidate';
@@ -41955,6 +42407,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_split => 'Split into separate dives';
+
+  @override
+  String dataQuality_repairLabel_setPrimaryNamed(String source) {
+    return 'Make $source the primary source';
+  }
+
+  @override
+  String dataQuality_repairLabel_splitNamed(String source) {
+    return 'Split $source into its own dive';
+  }
+
+  @override
+  String dataQuality_setPrimary_title(String source) {
+    return 'Make $source the primary source?';
+  }
+
+  @override
+  String dataQuality_setPrimary_body(String source) {
+    return 'The dive\'s depth, duration and profile will come from $source. You can change this again under the dive\'s data sources.';
+  }
+
+  @override
+  String get dataQuality_setPrimary_bodyUnnamed =>
+      'The dive\'s depth, duration and profile will come from this source. You can change this again under the dive\'s data sources.';
+
+  @override
+  String get dataQuality_setPrimary_confirm => 'Make primary';
 
   @override
   String get dataQuality_repairLabel_compare => 'Compare profiles';
@@ -49973,6 +50452,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String settings_syncDevices_summary_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count removed devices are remembered so they cannot bring back deleted data.',
+      one:
+          '$count removed device is remembered so it cannot bring back deleted data.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String settings_syncDevices_tile_filesSize(int count, String size) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -51562,13 +52054,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_profileEditor_applyToSelection => 'Apply to Selection';
 
   @override
-  String get diveLog_profileEditor_outlierDetection => 'Outlier Detection';
+  String get diveLog_profileEditor_cleanup => 'Cleanup';
 
   @override
-  String get diveLog_profileEditor_detect => 'Detect';
+  String get diveLog_profileEditor_detectOutliers => 'Detect Outliers';
 
   @override
-  String get diveLog_profileEditor_removeAll => 'Remove All';
+  String get diveLog_profileEditor_removeOutliers => 'Remove Outliers';
 
   @override
   String diveLog_profileEditor_outliersDetected(int count) {
@@ -51596,9 +52088,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_trimMode => 'Trim Mode';
-
-  @override
-  String get diveLog_profileEditor_trimHint => 'Trim profile endpoints';
 
   @override
   String get diveLog_profileEditor_trimEnd => 'Trim End';
@@ -51652,7 +52141,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_profileEditor_mode_select => 'Select';
 
   @override
-  String get diveLog_profileEditor_mode_outlier => 'Outlier';
+  String get diveLog_profileEditor_mode_cleanup => 'Cleanup';
 
   @override
   String get diveLog_profileEditor_mode_draw => 'Draw';
@@ -51667,6 +52156,26 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLog_profileEditor_revisionSwitchFailed =>
       'Could not switch profile revision.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_title =>
+      'Delete Entire Profile';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_permanentWarning =>
+      'Deleting this profile revision is permanent, cannot be undone, and takes effect immediately.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_computerImportWarning =>
+      'This profile was imported from a dive computer and likely contains the original source data.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_confirmNow =>
+      'Delete Permanently Now';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_failed =>
+      'Could not delete the profile revision.';
 
   @override
   String get diveLog_profileEditor_revisionLegacyHint =>
@@ -55115,9 +55624,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'This looks like a track already imported from the same file.';
 
   @override
-  String get navTrack_review_replaceLabel => 'Replace';
-
-  @override
   String get navTrack_review_linkToDive => 'Link to dive';
 
   @override
@@ -55318,6 +55824,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navTrack_editSheet_removeTrackTooltip => 'Remove track';
+
+  @override
+  String get navTrack_editSheet_trackOnAnotherDive =>
+      'This track belongs to another dive. Update it from that dive, or import the file as a new track.';
 
   @override
   String navTrack_editRow_tracksSaveFailed(String error) {
@@ -56776,6 +57286,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rules_value_empty => '(empty)';
 
   @override
+  String rules_value_gearViaSet(String item, String set) {
+    return '$item ($set)';
+  }
+
+  @override
   String get rules_collection_diveTypes => 'dive types';
 
   @override
@@ -56789,6 +57304,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rules_collection_courses => 'courses';
+
+  @override
+  String get rules_collection_equipmentSets => 'equipment sets';
 
   @override
   String get rules_collection_siteTags => 'site tags';
@@ -59296,4 +59814,267 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get search_openTooltip => 'Search';
+
+  @override
+  String get settings_conflict_field_sourceFile => 'Original track file';
+
+  @override
+  String get navTrack_review_duplicateUpdate => 'Update the stored track';
+
+  @override
+  String get navTrack_review_duplicateUpdateHint =>
+      'Reads the data from this file again. Name, dive, site, device and alignment stay as they are.';
+
+  @override
+  String get navTrack_review_duplicateNew => 'Import as a new track';
+
+  @override
+  String get navTrack_review_updateAction => 'Update';
+
+  @override
+  String get navTrack_review_trackUpdatedConfirmation =>
+      'Track updated from the file. Check its alignment: the track may have moved.';
+
+  @override
+  String get navTrack_detail_menuUpdateFromFile => 'Update from file';
+
+  @override
+  String get navTrack_detail_menuExportCsv => 'Export as CSV';
+
+  @override
+  String get navTrack_detail_exportUnavailable =>
+      'This track has no stored original file yet. Update it from its file first.';
+
+  @override
+  String navTrack_detail_exportFailed(String error) {
+    return 'Export failed: $error';
+  }
+
+  @override
+  String get navTrack_detail_updateNameMismatchTitle => 'Different file name';
+
+  @override
+  String navTrack_detail_updateNameMismatchMessage(
+    String expected,
+    String actual,
+  ) {
+    return 'This track was imported from \"$expected\", the chosen file is \"$actual\". Update the track from it anyway?';
+  }
+
+  @override
+  String get navTrack_detail_updateOtherRecordingTitle => 'Different recording';
+
+  @override
+  String navTrack_detail_updateOtherRecordingMessage(
+    String fileDate,
+    String trackDate,
+  ) {
+    return 'This file was recorded on $fileDate, the track on $trackDate, so it may be a different dive. Update the track from it anyway?';
+  }
+
+  @override
+  String navTrack_marker_details(
+    int number,
+    String time,
+    String depth,
+    String distance,
+  ) {
+    return 'Marker $number: $time, $depth, $distance';
+  }
+
+  @override
+  String get twinSet_title => 'Twin set';
+
+  @override
+  String get twinSet_none => 'Not part of a twin set';
+
+  @override
+  String get twinSet_link => 'Link to a twin set partner';
+
+  @override
+  String twinSet_since(String date) {
+    return 'Since $date';
+  }
+
+  @override
+  String get twinSet_replace => 'Replace partner';
+
+  @override
+  String get twinSet_unlink => 'Unlink';
+
+  @override
+  String get twinSet_history => 'History';
+
+  @override
+  String twinSet_historyRange(String partner, String from, String to) {
+    return '$partner, $from to $to';
+  }
+
+  @override
+  String get twinSet_deletePairing => 'Delete pairing';
+
+  @override
+  String get twinSet_deletePairingConfirm =>
+      'Delete this pairing from the history? Fills and dives are not changed.';
+
+  @override
+  String get twinSet_pickerTitle => 'Twin set partner';
+
+  @override
+  String get twinSet_pickerEmpty => 'No other cylinders to pair with.';
+
+  @override
+  String get twinSet_pairedOnHelp => 'Paired since';
+
+  @override
+  String get twinSet_unpairedOnHelp => 'Unlinked on';
+
+  @override
+  String get twinSet_pressureMismatchTitle => 'Different working pressures';
+
+  @override
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  ) {
+    return '$a is rated $aPressure and $b $bPressure. A manifolded pair fills to one pressure.';
+  }
+
+  @override
+  String get twinSet_continue => 'Continue';
+
+  @override
+  String get twinSet_replaceTitle => 'Replace partner?';
+
+  @override
+  String twinSet_replaceClash(String cylinder, String partner) {
+    return '$cylinder is paired with $partner.';
+  }
+
+  @override
+  String twinSet_replaceQuestion(String a, String b) {
+    return 'Pair $a with $b instead?';
+  }
+
+  @override
+  String twinSet_leftAlone(String name) {
+    return '$name will be left on its own.';
+  }
+
+  @override
+  String get twinSet_replaceConfirm => 'Replace';
+
+  @override
+  String get twinSet_clashTitle => 'Overlapping pairing';
+
+  @override
+  String twinSet_clashBody(String pairs) {
+    return 'This overlaps the pairing of $pairs. A cylinder can be in one twin set on any day.';
+  }
+
+  @override
+  String twinSet_pairNames(String a, String b) {
+    return '$a and $b';
+  }
+
+  @override
+  String twinSet_endBeforeStart(String date) {
+    return 'The end date must be after $date.';
+  }
+
+  @override
+  String get twinSet_saveFailed => 'Could not save the twin set change.';
+
+  @override
+  String twinSet_with(String partner) {
+    return 'Twin set with $partner';
+  }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return 'Both cylinders in the twin set ($partner)';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner, $status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => 'Edit fill';
+
+  @override
+  String get passport_logFill_overPressureTitle => 'Above working pressure';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure is above the working pressure of $name, $workingPressure.';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => 'Save anyway';
+
+  @override
+  String get passport_logFill_back => 'Back';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return 'Apply to the fill of $partner too?';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => 'Yes';
+
+  @override
+  String get passport_logFill_onlyThisOne => 'Only this one';
+
+  @override
+  String get passport_history_anotherCylinder => 'another cylinder';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return 'Filled with $partner';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'Delete this fill from both cylinders, or only this one?';
+
+  @override
+  String get passport_history_deleteBoth => 'Both cylinders';
+
+  @override
+  String get passport_history_edit => 'Edit fill';
+
+  @override
+  String get twinSet_choiceTitle => 'Use the twin set?';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'Twin set ($a + $b, $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return 'Just $a';
+  }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'Paired since';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'Unlinked on';
+
+  @override
+  String get settings_conflict_field_filledTogetherId => 'Twin set fill';
+
+  @override
+  String get settings_conflict_field_twinPassportId =>
+      'Twin set partner passport';
 }

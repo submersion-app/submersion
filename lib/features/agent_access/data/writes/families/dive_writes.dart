@@ -6,6 +6,10 @@ import 'package:submersion/core/database/database.dart'
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/agent_access/data/documents/document_dates.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/writes/families/dive_entry_rules.dart';
+import 'package:submersion/features/agent_access/data/writes/families/dive_link_rules.dart';
+import 'package:submersion/features/agent_access/data/writes/families/trip_rules.dart'
+    show foreignSlotLinks;
 import 'package:submersion/features/agent_access/data/writes/families/write_reach.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
@@ -79,6 +83,21 @@ class DiveWrites extends WritableEntry {
     'water_type': FieldCodec.enumName(WaterType.values, nullable: true),
     'altitude_m': const FieldCodec.number(min: -500, max: 6000, nullable: true),
     'weather_description': _text,
+    'buddy_roles': const FieldCodec.idLists(),
+    'dive_number': const FieldCodec.integer(
+      min: 1,
+      max: 1000000,
+      nullable: true,
+    ),
+    'exit_time': const FieldCodec.wallClock(nullable: true),
+    'runtime_s': const FieldCodec.integer(min: 0, max: 86400, nullable: true),
+    'bottom_time_s': const FieldCodec.integer(
+      min: 0,
+      max: 86400,
+      nullable: true,
+    ),
+    for (final key in measuredVisibilityKeys)
+      key: const FieldCodec.number(min: 0, max: 200, nullable: true),
   };
 
   @override
@@ -90,14 +109,39 @@ class DiveWrites extends WritableEntry {
     'gear': RelationSpec(refEntity: 'equipment'),
     'courses': RelationSpec(refEntity: 'courses'),
     'roles': RelationSpec(refEntity: 'dive_roles'),
+    'trip': RelationSpec(refEntity: 'trips', single: true),
   };
+
+  @override
+  String get note =>
+      'buddy_roles names every buddy on the dive, each with its role ids '
+      '(an empty list is Buddy), and replaces the list; buddies adds or '
+      'removes buddies as Buddy. A dive put on a trip, or moved to another '
+      'day on one, stretches the trip to cover it. A dive with an exit_time '
+      'has the runtime its timestamps give: setting exit_time sets runtime_s, '
+      'and a runtime_s that disagrees with the exit is refused. bottom_time_s '
+      'stands alone. A dive holds one visibility: a band (visibility), a '
+      'measurement (visibility_m) or a range (visibility_min_m, '
+      'visibility_max_m, either end open), and setting one clears the '
+      'others. A create without dive_number takes the next free number.';
 
   @override
   Set<String> get requiredOnCreate => const {'date_time'};
 
-  /// Naming a band clears any measurement, the band it already holds included.
+  /// A visibility shape clears the others even when it restates what the
+  /// dive holds, and a restated exit still sets the runtime it gives.
   @override
-  Set<String> get effectFields => const {'visibility'};
+  Set<String> get effectFields => const {
+    'visibility',
+    'exit_time',
+    ...measuredVisibilityKeys,
+  };
+
+  @override
+  Future<Map<String, Object?>> createDefaults(
+    String diverId,
+    Map<String, Object?> values,
+  ) async => {'runtime_s': ?runtimeFromExit(values, null)};
 
   @override
   Future<Set<String>> currentRelation(String id, String relation) async {
@@ -115,6 +159,7 @@ class DiveWrites extends WritableEntry {
       'gear' => _ids('dive_equipment', 'equipment_id', id),
       'courses' => _ids('dive_courses', 'course_id', id),
       'roles' => (await _roles(id)).toSet(),
+      'trip' => {?(await _row(id))?.tripId},
       _ => const {},
     };
   }
@@ -130,10 +175,31 @@ class DiveWrites extends WritableEntry {
     return {for (final row in rows) row.read<String>(column)};
   }
 
-  /// A role normalize would drop, as it drops Solo beside any other role,
-  /// would be planned as added and never written.
+  /// The dive number, times and visibility follow the editor's rules (see
+  /// dive_entry_rules.dart). A role normalize would drop, as it drops Solo
+  /// beside any other role, would be planned as added and never written.
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {
+    final entered =
+        diveNumberProblem(check.values, check.document) ??
+        diveTimesProblem(check.values, check.document) ??
+        visibilityProblem(check.values, check.document);
+    if (entered != null) return entered;
+    if (check.values.containsKey('buddy_roles')) {
+      if (check.relations['buddies'] case final delta? when !delta.isEmpty) {
+        return const PlanBlock(
+          BlockReason.notPermitted,
+          'buddy_roles replaces the buddy list; change buddies in another '
+          'change.',
+        );
+      }
+      final problem = await buddyRolesProblem(
+        _r,
+        check.values['buddy_roles'],
+        check.ownerId,
+      );
+      if (problem != null) return problem;
+    }
     final roles = check.relations['roles'];
     if (roles == null || check.id == null) return null;
     final after = (await _rolesAfter(check.id!, roles)).toSet();
@@ -153,16 +219,22 @@ class DiveWrites extends WritableEntry {
     return {?(await _row(id))?.diveType};
   }
 
-  /// A read fills an empty water temperature from the profile, and a plan
-  /// must compare with what the column holds: clearing a value only a sample
-  /// shows would change nothing.
+  /// A read fills an empty water temperature from the profile, and reports
+  /// a runtime measured from the exit or the profile, so a plan must compare
+  /// with what the columns hold: clearing a value only a sample shows would
+  /// change nothing.
   @override
   Future<Map<String, Object?>> stored(
     String id,
     Map<String, Object?> document,
   ) async {
     final row = await _row(id);
-    return {...document, 'water_temp_c': row?.waterTemp};
+    return {
+      ...document,
+      'water_temp_c': row?.waterTemp,
+      'runtime_s': row?.runtime,
+      'buddy_roles': await buddyRolesOf(_r, id),
+    };
   }
 
   @override
@@ -212,10 +284,14 @@ class DiveWrites extends WritableEntry {
       if (gained.isNotEmpty) relations['gear'] = gained;
       if (dropped.isNotEmpty) lost['gear'] = dropped;
     }
-    if (update.values['visibility'] != null) {
-      for (final key in _measuredVisibility) {
-        if (document[key] != null) fields[key] = null;
+    for (final key in visibilityCleared(update.values)) {
+      if (document[key] != null && !update.values.containsKey(key)) {
+        fields[key] = null;
       }
+    }
+    if (runtimeFromExit(update.values, document) case final runtime?
+        when runtime != document['runtime_s']) {
+      fields['runtime_s'] = runtime;
     }
     final parts = <String, int>{};
     if (update.values['notes'] case final String notes) {
@@ -238,11 +314,20 @@ class DiveWrites extends WritableEntry {
         }
       }
     }
+    final stretched = await _tripsStretched(id, update);
+    final trip = update.relations['trip'];
+    final slots = trip == null
+        ? 0
+        : await foreignSlotLinks({id}, trip.add.firstOrNull);
     return SideEffects(
       fields: fields,
       relations: relations,
       lost: lost,
       parts: parts,
+      touched: {
+        if (stretched > 0) 'trips': stretched,
+        if (slots > 0) 'dive_tanks': slots,
+      },
     );
   }
 
@@ -325,8 +410,16 @@ class DiveWrites extends WritableEntry {
       domain.Dive(
         id: '',
         diverId: diverId,
-        diveNumber: await _r.dives.getNextDiveNumber(diverId: diverId),
+        diveNumber:
+            v['dive_number'] as int? ??
+            await _r.dives.getNextDiveNumber(diverId: diverId),
         dateTime: v['date_time']! as DateTime,
+        exitTime: v['exit_time'] as DateTime?,
+        runtime: _seconds(v['runtime_s']),
+        bottomTime: _seconds(v['bottom_time_s']),
+        visibilityMeters: v['visibility_m'] as double?,
+        visibilityMinMeters: v['visibility_min_m'] as double?,
+        visibilityMaxMeters: v['visibility_max_m'] as double?,
         name: v['name'] as String?,
         notes: v['notes'] as String? ?? '',
         maxDepth: v['max_depth_m'] as double?,
@@ -362,19 +455,45 @@ class DiveWrites extends WritableEntry {
 
   @override
   Future<void> update(String id, String? ownerId, RecordUpdate update) async {
-    final scalars = _scalars(update.values);
+    // The move comes first, so a named exit is written after the shift it
+    // brings, and its runtime is measured from the moved entry.
+    if (update.values['date_time'] case final DateTime moved) {
+      await _moveTo(id, moved);
+    }
+    final trip = update.relations['trip'];
+    final base = _scalars(update.values, await _runtimeFromExit(id, update));
+    final scalars = trip == null
+        ? base
+        : base.copyWith(tripId: Value(trip.add.firstOrNull));
     final ops = await _ops(id, update.relations);
     if (scalars.toColumns(false).isNotEmpty || ops.isNotEmpty) {
       await _edits.apply(
         BulkEditRequest(diveIds: [id], scalars: scalars, ops: ops),
       );
     }
-    if (update.values['date_time'] case final DateTime moved) {
-      await _moveTo(id, moved);
-    }
     if (update.values['notes'] case final String notes) {
       await _annotations.reconcile(diveId: id, notes: notes);
     }
+    if (update.values.containsKey('buddy_roles')) {
+      await setBuddyRoles(_r, id, update.values['buddy_roles']);
+    }
+    if (await _tripsStretched(id, update) > 0) {
+      await _r.trips.stretchToCoverDives([id]);
+    }
+  }
+
+  /// How many trips this change makes stretch: a dive put on a trip, or
+  /// moved to a day its trip does not cover.
+  Future<int> _tripsStretched(String id, RecordUpdate update) async {
+    final moved = update.values['date_time'] as DateTime?;
+    final trip = update.relations['trip'];
+    if (trip == null && moved == null) return 0;
+    final tripId = trip == null
+        ? (await _row(id))?.tripId
+        : trip.add.firstOrNull;
+    if (tripId == null) return 0;
+    final day = await diveDay(_r, id, moved: moved);
+    return day == null ? 0 : tripsStretched(_r, tripId, day);
   }
 
   @override
@@ -398,18 +517,45 @@ class DiveWrites extends WritableEntry {
     await _r.dives.bulkShiftDiveTimes([id], offset);
   }
 
-  DivesCompanion _scalars(Map<String, Object?> v) {
-    Value<T> field<T>(String key) =>
-        v.containsKey(key) ? Value(v[key] as T) : const Value.absent();
-    // A band and a measurement contradict each other, so bulk edit never
-    // leaves both, and a later save would drop the band anyway.
-    final band = v['visibility'] != null;
-    Value<double?> measurement() =>
-        band ? const Value(null) : const Value.absent();
+  /// The runtime a named exit gives the dive, measured from its entry as
+  /// stored once any move has run, or null when the change names no exit
+  /// or names the runtime itself.
+  Future<int?> _runtimeFromExit(String id, RecordUpdate update) async {
+    final exit = update.values['exit_time'];
+    if (exit is! DateTime || update.values.containsKey('runtime_s')) {
+      return null;
+    }
+    final row = await _row(id);
+    if (row == null) return null;
+    final entry = DateTime.fromMillisecondsSinceEpoch(
+      row.entryTime ?? row.diveDateTime,
+      isUtc: true,
+    );
+    return runtimeBetween(entry, exit);
+  }
+
+  DivesCompanion _scalars(Map<String, Object?> v, int? runtimeFromExit) {
+    // Visibility shapes contradict each other, so the one named clears the
+    // rest, as bulk edit and the editor never leave two.
+    final cleared = visibilityCleared(v);
+    Value<T> field<T>(String key) => v.containsKey(key)
+        ? Value(v[key] as T)
+        : cleared.contains(key)
+        ? Value(null as T)
+        : const Value.absent();
+    final exit = v['exit_time'] as DateTime?;
     return DivesCompanion(
-      visibilityMeters: measurement(),
-      visibilityMinMeters: measurement(),
-      visibilityMaxMeters: measurement(),
+      diveNumber: field('dive_number'),
+      exitTime: v.containsKey('exit_time')
+          ? Value(exit?.millisecondsSinceEpoch)
+          : const Value.absent(),
+      runtime: runtimeFromExit != null
+          ? Value(runtimeFromExit)
+          : field('runtime_s'),
+      bottomTime: field('bottom_time_s'),
+      visibilityMeters: field('visibility_m'),
+      visibilityMinMeters: field('visibility_min_m'),
+      visibilityMaxMeters: field('visibility_max_m'),
       name: field('name'),
       notes: field('notes'),
       maxDepth: field('max_depth_m'),
@@ -576,11 +722,8 @@ class DiveWrites extends WritableEntry {
 /// these go with the dive or stay, record by record.
 const _reportedApart = {'documents', 'media'};
 
-const _measuredVisibility = [
-  'visibility_m',
-  'visibility_min_m',
-  'visibility_max_m',
-];
+Duration? _seconds(Object? seconds) =>
+    seconds == null ? null : Duration(seconds: seconds as int);
 
 T? _enum<T extends Enum>(List<T> values, Object? name) =>
     name == null ? null : values.byName(name as String);

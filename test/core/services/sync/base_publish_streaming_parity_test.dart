@@ -174,4 +174,40 @@ void main() {
     expect(base.rowCount, total);
     expect(base.rowCount, greaterThan(0));
   });
+
+  test(
+    'a gzipped base is the same document, never staged plain (#4256)',
+    () async {
+      await _seedRich();
+      final dir = await Directory.systemTemp.createTemp('gzipped_base');
+      addTearDown(() => dir.delete(recursive: true));
+      final serializer = SyncDataSerializer();
+      Future<StreamedBase> export({required bool gzipped}) =>
+          serializer.exportBaseToTempFile(
+            deviceId: 'peer',
+            deletions: const [],
+            now: () => DateTime.fromMillisecondsSinceEpoch(123),
+            tempDir: () async => dir,
+            gzipped: gzipped,
+          );
+
+      final plain = await export(gzipped: false);
+      final plainBytes = await File(plain.path).readAsBytes();
+      await File(plain.path).delete();
+
+      final packed = await export(gzipped: true);
+      final packedBytes = await File(packed.path).readAsBytes();
+
+      expect(packed.path, endsWith('.json.gz'));
+      expect(dir.listSync().map((e) => e.path), [
+        packed.path,
+      ], reason: 'no plain copy is written beside the compressed one');
+      expect(packed.byteLength, packedBytes.length);
+      expect(packed.byteLength, lessThan(plain.byteLength));
+      // Byte for byte, so the checksum patched over the placeholder too.
+      expect(gzip.decode(packedBytes), plainBytes);
+      expect(packed.rowCount, plain.rowCount);
+      expect(packed.toHlc, plain.toHlc);
+    },
+  );
 }

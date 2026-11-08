@@ -195,6 +195,25 @@ void main() {
     expect(after.single.linkedDiveIsPlanned, isFalse);
   });
 
+  test('a summary knows when its linked dive is gone', () async {
+    await seedDive('dive-1');
+    await seedDive('dive-2');
+    await seedPlan('plan-1', linkedDiveId: 'dive-1');
+    await seedPlan('plan-2', linkedDiveId: 'dive-2');
+    // Deleted on another device: a sync applies the delete without the
+    // plan's link, as it does with foreign keys off.
+    await db.customStatement('PRAGMA foreign_keys = OFF');
+    await (db.delete(db.dives)..where((t) => t.id.equals('dive-2'))).go();
+    await db.customStatement('PRAGMA foreign_keys = ON');
+
+    final summaries = {
+      for (final s in await repository.getAllPlanSummaries()) s.id: s,
+    };
+
+    expect(summaries['plan-1']!.linkedDiveExists, isTrue);
+    expect(summaries['plan-2']!.linkedDiveExists, isFalse);
+  });
+
   test('relinking the same plan to its dive displaces nothing', () async {
     await seedDive('dive-1');
     await seedPlan('plan-1', linkedDiveId: 'dive-1');

@@ -111,6 +111,41 @@ void main() {
       },
     );
 
+    testWidgets('the results keep their state from one search to the next', (
+      WidgetTester tester,
+    ) async {
+      final queryNotifier = ValueNotifier<String>('fruit');
+      final asyncNotifier = ValueNotifier<AsyncValue<List<String>>>(
+        const AsyncValue.data(['Banana', 'Blueberry']),
+      );
+      await tester.pumpWidget(
+        buildSubject(
+          queryNotifier: queryNotifier,
+          asyncNotifier: asyncNotifier,
+        ),
+      );
+      await tester.pump();
+      final first = tester.element(find.byKey(const ValueKey('Banana')));
+
+      Future<void> search(String query, AsyncValue<List<String>> answer) async {
+        asyncNotifier.value = answer;
+        queryNotifier.value = query;
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+      }
+
+      // Into the progress bar's column and back out: a remount would rebuild
+      // every row (and lose what a row holds) each time a search lands.
+      await search('berry', const AsyncValue.loading());
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      expect(tester.element(find.byKey(const ValueKey('Banana'))), same(first));
+
+      await search('berries', const AsyncValue.data(['Banana', 'Cherry']));
+      expect(find.byType(LinearProgressIndicator), findsNothing);
+      expect(find.text('Cherry'), findsOneWidget);
+      expect(tester.element(find.byKey(const ValueKey('Banana'))), same(first));
+    });
+
     testWidgets('immediately clears when query becomes empty', (
       WidgetTester tester,
     ) async {

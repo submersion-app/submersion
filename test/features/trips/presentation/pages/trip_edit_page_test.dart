@@ -2664,8 +2664,10 @@ class _MockTripRepository implements TripRepository {
   Future<List<Trip>> searchTrips(String query, {String? diverId}) async => [];
 
   @override
-  Future<List<TripWithStats>> getAllTripsWithStats({String? diverId}) async =>
-      [];
+  Future<List<TripWithStats>> getAllTripsWithStats({
+    String? diverId,
+    List<String>? ids,
+  }) async => [];
 
   @override
   Future<TripWithStats> getTripWithStats(
@@ -2819,8 +2821,10 @@ class _MockTripRepositoryWithTrip implements TripRepository {
   Future<List<Trip>> searchTrips(String query, {String? diverId}) async => [];
 
   @override
-  Future<List<TripWithStats>> getAllTripsWithStats({String? diverId}) async =>
-      [];
+  Future<List<TripWithStats>> getAllTripsWithStats({
+    String? diverId,
+    List<String>? ids,
+  }) async => [];
 
   @override
   Future<TripWithStats> getTripWithStats(
@@ -2915,8 +2919,10 @@ class _MockTripRepositoryWithSharedTrip implements TripRepository {
   Future<List<Trip>> searchTrips(String query, {String? diverId}) async => [];
 
   @override
-  Future<List<TripWithStats>> getAllTripsWithStats({String? diverId}) async =>
-      [];
+  Future<List<TripWithStats>> getAllTripsWithStats({
+    String? diverId,
+    List<String>? ids,
+  }) async => [];
 
   @override
   Future<TripWithStats> getTripWithStats(
@@ -3101,8 +3107,10 @@ class _SlowTripRepository implements TripRepository {
   Future<List<Trip>> searchTrips(String query, {String? diverId}) async => [];
 
   @override
-  Future<List<TripWithStats>> getAllTripsWithStats({String? diverId}) async =>
-      [];
+  Future<List<TripWithStats>> getAllTripsWithStats({
+    String? diverId,
+    List<String>? ids,
+  }) async => [];
 
   @override
   Future<TripWithStats> getTripWithStats(
@@ -3173,8 +3181,10 @@ class _ErrorTripRepository implements TripRepository {
   Future<List<Trip>> searchTrips(String query, {String? diverId}) async => [];
 
   @override
-  Future<List<TripWithStats>> getAllTripsWithStats({String? diverId}) async =>
-      [];
+  Future<List<TripWithStats>> getAllTripsWithStats({
+    String? diverId,
+    List<String>? ids,
+  }) async => [];
 
   @override
   Future<TripWithStats> getTripWithStats(

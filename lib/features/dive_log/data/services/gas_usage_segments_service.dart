@@ -198,17 +198,21 @@ List<GasUsageSegment> _mergeAdjacentSameGas(List<GasUsageSegment> segments) {
 /// initial-gas declaration and owns the window from t=0, otherwise that window
 /// goes to the starting tank), but keys by tankId with no gas-mix merging.
 ///
+/// [onLoop] is as in [buildGasUsageSegments]: pass the same value, or the
+/// cylinder these intervals start on can differ from the gas the strip names.
+///
 /// Returns an empty map when there are no tanks or the dive has no duration.
 Map<String, List<({int start, int end})>> buildActiveTankIntervals({
   required List<DiveTank> tanks,
   required List<GasSwitchWithTank> gasSwitches,
   required int diveDurationSeconds,
   int firstSampleSeconds = 0,
+  bool onLoop = true,
 }) {
   final result = <String, List<({int start, int end})>>{};
   if (tanks.isEmpty || diveDurationSeconds <= 0) return result;
 
-  final startingTank = _startingTankOf(tanks);
+  final startingTank = _startingTankOf(tanks, onLoop: onLoop);
 
   final inBounds =
       ([...gasSwitches]..sort((a, b) => a.timestamp.compareTo(b.timestamp)))

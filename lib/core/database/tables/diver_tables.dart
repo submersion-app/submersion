@@ -155,6 +155,10 @@ class DiverSettings extends Table {
   TextColumn get timeFormat =>
       text().withDefault(const Constant('twelveHour'))();
   TextColumn get dateFormat => text().withDefault(const Constant('mmmDYYYY'))();
+
+  /// v343: the day a week starts on, a FirstDayOfWeek name (issue #4232).
+  /// 'auto' follows the device's region.
+  TextColumn get firstDayOfWeek => text().withDefault(const Constant('auto'))();
   // Theme
   TextColumn get themeMode => text().withDefault(const Constant('system'))();
   TextColumn get themePreset =>
@@ -318,13 +322,13 @@ class DiverSettings extends Table {
       boolean().withDefault(const Constant(false))();
 
   /// Whether a dive card shows one of the dive's photos behind its text
-  /// (v343). It takes precedence over the map; a dive with no usable photo
+  /// (v347). It takes precedence over the map; a dive with no usable photo
   /// falls back to the map or the attribute colour.
   BoolColumn get showPhotoBackgroundOnDiveCards =>
       boolean().withDefault(const Constant(false))();
 
   /// Opacity (0..1) of the overlay over a dive card's photo, per theme
-  /// (v343): black on the dark theme, white on the light one.
+  /// (v347): black on the dark theme, white on the light one.
   RealColumn get cardPhotoOverlayDark =>
       real().withDefault(const Constant(0.6))();
   RealColumn get cardPhotoOverlayLight =>

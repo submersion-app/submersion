@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<uddf version="3.2.0" xmlns="http://www.streit.cc/uddf/3.2/">
+  <generator>
+    <name>Submersion</name>
+    <version>0.1.0</version>
+    <datetime>GENERATED</datetime>
+    <manufacturer>
+      <name>Submersion App</name>
+    </manufacturer>
+  </generator>
+  <diver>
+    <owner id="owner">
+      <equipment>
+        <divecomputer id="dc_Perdix_P-1">
+          <model>Perdix</model>
+          <serialnumber>P-1</serialnumber>
+        </divecomputer>
+        <divecomputer id="dc_Petrel_unknown">
+          <model>Petrel</model>
+        </divecomputer>
+        <rebreather id="o2cells">
+          <o2sensor id="o2cell_1"/>
+          <o2sensor id="o2cell_2"/>
+          <o2sensor id="o2cell_3"/>
+        </rebreather>
+      </equipment>
+    </owner>
+  </diver>
+  <divesite>
+    <site id="site_site-1">
+      <name>Blue Hole</name>
+    </site>
+  </divesite>
+  <gasdefinitions>
+    <mix id="mix_32_0">
+      <name>EAN32</name>
+      <o2>0.32</o2>
+      <n2>0.68</n2>
+      <he>0.0</he>
+    </mix>
+    <mix id="mix_50_0">
+      <name>EAN50</name>
+      <o2>0.5</o2>
+      <n2>0.5</n2>
+      <he>0.0</he>
+    </mix>
+    <mix id="mix_21_0">
+      <name>Air</name>
+      <o2>0.21</o2>
+      <n2>0.79</n2>
+      <he>0.0</he>
+    </mix>
+  </gasdefinitions>
+  <profiledata>
+    <repetitiongroup>
+      <dive id="dive_dive-d">
+        <informationbeforedive>
+          <datetime>2026-03-04T14:00:00.000Z</datetime>
+          <divenumber>4</divenumber>
+          <link ref="site_site-1"/>
+          <divetype>recreational</divetype>
+          <equipmentused>
+            <link ref="dc_Perdix_P-1"/>
+          </equipmentused>
+        </informationbeforedive>
+        <samples>
+          <waypoint>
+            <divetime>0</divetime>
+            <depth>0.0</depth>
+            <switchmix ref="mix_32_0"/>
+            <temperature>293.15</temperature>
+            <tankpressure ref="tank_tank-a">20000000.0</tankpressure>
+          </waypoint>
+          <waypoint>
+            <divetime>10</divetime>
+            <depth>1.5</depth>
+            <temperature>293.65</temperature>
+            <tankpressure ref="tank_tank-a">19500000.0</tankpressure>
+          </waypoint>
+          <waypoint>
+            <divetime>20</divetime>
+            <depth>3.0</depth>
+            <temperature>294.15</temperature>
+            <tankpressure ref="tank_tank-a">19000000.0</tankpressure>
+          </waypoint>
+          <waypoint>
+            <divetime>30</divetime>
+            <depth>4.5</depth>
+            <temperature>293.15</temperature>
+          </waypoint>
+          <waypoint>
+            <divetime>40</divetime>
+            <depth>6.0</depth>
+            <temperature>293.65</temperature>
+          </waypoint>
+          <waypoint>
+            <divetime>50</divetime>
+            <depth>7.5</depth>
+            <temperature>294.15</temperature>
+          </waypoint>
+        </samples>
+        <tankdata id="tank_tank-a">
+          <link ref="mix_32_0"/>
+          <tankrole>backGas</tankrole>
+          <tankorder>0</tankorder>
+        </tankdata>
+        <tankdata id="tank_tank-b">
+          <link ref="mix_50_0"/>
+          <tankrole>backGas</tankrole>
+          <tankorder>1</tankorder>
+        </tankdata>
+        <informationafterdive>
+          <diveduration>50</diveduration>
+        </informationafterdive>
+      </dive>
+      <dive id="dive_dive-c">
+        <informationbeforedive>
+          <datetime>2026-03-04T09:00:00.000Z</datetime>
+          <divenumber>3</divenumber>
+          <link ref="site_site-1"/>
+          <divetype>recreational</divetype>
+          <equipmentused>
+            <link ref="dc_Perdix_P-1"/>
+          </equipmentused>
+        </informationbeforedive>
+        <samples>
+          <waypoint>
+            <divetime>0</divetime>
+            <depth>0.5</depth>
+          </waypoint>
+          <waypoint>
+            <divetime>60</divetime>
+            <depth>12.0</depth>
+          </waypoint>
+          <waypoint>
+            <divetime>120</divetime>
+            <depth>18.0</depth>
+          </waypoint>
+        </samples>
+        <informationafterdive>
+          <diveduration>120</diveduration>
+        </informationafterdive>
+      </dive>
+    </repetitiongroup>
+    <repetitiongroup>
+      <dive id="dive_dive-b">
+        <informationbeforedive>
+          <datetime>2026-03-02T10:00:00.000Z</datetime>
+          <divenumber>2</divenumber>
+          <divetype>recreational</divetype>
+          <equipmentused>
+            <link ref="dc_Petrel_unknown"/>
+          </equipmentused>
+        </informationbeforedive>
+        <samples>
+          <waypoint>
+            <divetime>0</divetime>
+            <depth>5.0</depth>
+            <switchmix ref="mix_21_0"/>
+            <tankpressure ref="tank_tank-c">21000000.0</tankpressure>
+            <measuredpo2 ref="o2cell_1">110000</measuredpo2>
+            <measuredpo2 ref="o2cell_2">120000</measuredpo2>
+            <measuredmillivolts ref="o2cell_3">40</measuredmillivolts>
+          </waypoint>
+          <waypoint>
+            <divetime>20</divetime>
+            <depth>6.0</depth>
+            <measuredpo2 ref="o2cell_1">110000</measuredpo2>
+            <measuredpo2 ref="o2cell_2">120000</measuredpo2>
+            <measuredmillivolts ref="o2cell_3">41</measuredmillivolts>
+          </waypoint>
+          <waypoint>
+            <divetime>40</divetime>
+            <depth>7.0</depth>
+            <measuredpo2 ref="o2cell_1">110000</measuredpo2>
+            <measuredpo2 ref="o2cell_2">120000</measuredpo2>
+            <measuredmillivolts ref="o2cell_3">42</measuredmillivolts>
+          </waypoint>
+          <waypoint>
+            <divetime>60</divetime>
+            <depth>8.0</depth>
+            <measuredpo2 ref="o2cell_1">110000</measuredpo2>
+            <measuredpo2 ref="o2cell_2">120000</measuredpo2>
+            <measuredmillivolts ref="o2cell_3">43</measuredmillivolts>
+          </waypoint>
+        </samples>
+        <tankdata id="tank_tank-c">
+          <link ref="mix_21_0"/>
+          <tankrole>backGas</tankrole>
+          <tankorder>0</tankorder>
+        </tankdata>
+        <informationafterdive>
+          <diveduration>60</diveduration>
+        </informationafterdive>
+      </dive>
+    </repetitiongroup>
+    <repetitiongroup>
+      <dive id="dive_dive-a">
+        <informationbeforedive>
+          <datetime>2026-03-01T08:00:00.000Z</datetime>
+          <divenumber>1</divenumber>
+          <divetype>recreational</divetype>
+        </informationbeforedive>
+        <informationafterdive/>
+      </dive>
+    </repetitiongroup>
+  </profiledata>
+  <applicationdata>
+    <submersion version="1.0">
+      <computertissue>
+        <dive ref="dive_dive-c">
+          <snapshot>{"end":{"n2_bar":[1.52,1.21],"gf99_percent":37.0}}</snapshot>
+          <n2load>0:12 120:34</n2load>
+        </dive>
+      </computertissue>
+      <datasources>
+        <source diveref="dive_dive-d" ordinal="0" hasdump="true">
+          <descriptor vendor="Shearwater" product="Perdix" model="5"/>
+          <primary>true</primary>
+          <computermodel>Perdix</computermodel>
+          <computerserial>P-1</computerserial>
+          <sourcefilename>src-c1.bin</sourcefilename>
+          <importedat>2026-03-05T12:00:00.000Z</importedat>
+          <createdat>2026-03-05T12:00:00.000Z</createdat>
+          <maxdepth>18.5</maxdepth>
+        </source>
+        <source diveref="dive_dive-d" ordinal="1" hasdump="false">
+          <descriptor vendor="Shearwater" product="Perdix" model="5"/>
+          <primary>false</primary>
+          <computermodel>Perdix</computermodel>
+          <computerserial>P-1</computerserial>
+          <sourcefilename>src-c2.bin</sourcefilename>
+          <importedat>2026-03-05T12:00:00.000Z</importedat>
+          <createdat>2026-03-05T12:00:00.000Z</createdat>
+          <maxdepth>18.5</maxdepth>
+        </source>
+        <source diveref="dive_dive-b" ordinal="0" hasdump="true">
+          <descriptor vendor="Shearwater" product="Perdix" model="5"/>
+          <primary>true</primary>
+          <computermodel>Perdix</computermodel>
+          <computerserial>P-1</computerserial>
+          <sourcefilename>src-b.bin</sourcefilename>
+          <importedat>2026-03-05T12:00:00.000Z</importedat>
+          <createdat>2026-03-05T12:00:00.000Z</createdat>
+          <maxdepth>18.5</maxdepth>
+        </source>
+      </datasources>
+      <tanksources>
+        <tank diveref="dive_dive-d" tankref="tank_tank-a" source="0"/>
+        <tank diveref="dive_dive-d" tankref="tank_tank-b" source="1"/>
+      </tanksources>
+      <tankpressureseries>
+        <series diveref="dive_dive-d" tankref="tank_tank-a" source="0">
+          <sample divetime="0" pressure="200.0"/>
+          <sample divetime="10" pressure="195.0"/>
+          <sample divetime="20" pressure="190.0"/>
+        </series>
+        <series diveref="dive_dive-d" tankref="tank_tank-a" source="1">
+          <sample divetime="1" pressure="201.5"/>
+          <sample divetime="11" pressure="196.5"/>
+        </series>
+        <series diveref="dive_dive-b" tankref="tank_tank-c">
+          <sample divetime="0" pressure="210.0"/>
+          <sample divetime="30" pressure="205.0"/>
+        </series>
+      </tankpressureseries>
+      <sourceprofiles>
+        <series diveref="dive_dive-d" source="0" primary="true">AQIDBA==</series>
+        <series diveref="dive_dive-d" source="1" primary="false">BQYH</series>
+      </sourceprofiles>
+    </submersion>
+  </applicationdata>
+  <divecomputercontrol>
+    <divecomputerdump>
+      <link ref="dive_dive-d"/>
+      <link ref="dc_Perdix_P-1"/>
+      <datetime>2026-03-05T12:00:00.000Z</datetime>
+      <dcdump>QlpoOTFBWSZTWUNC9woAAAB4AH//////////oABBgAmAEwAAmAAJgAOYACYAAmAAAAAHgQYgow5BPwosw049BFJP6oqsuwy02468/BDFH+klmnopqrstuvwxy/56a7b8c9d+ei7kinChIIaF7hQ=</dcdump>
+    </divecomputerdump>
+    <divecomputerdump>
+      <link ref="dive_dive-b"/>
+      <link ref="dc_Perdix_P-1"/>
+      <datetime>2026-03-05T12:00:00.000Z</datetime>
+      <dcdump>QlpoOTFBWSZTWRUBAMgAAA+AAf////+gADGMABMAATCgTEyYCYAAhkL4Y6PUq+Wxrnwj/KdK2vjOt850XckU4UJAVAQDIA==</dcdump>
+    </divecomputerdump>
+  </divecomputercontrol>
+</uddf>

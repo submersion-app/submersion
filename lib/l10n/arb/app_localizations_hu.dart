@@ -611,6 +611,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_equipmentField_owner_short => 'Tulajdonos';
 
   @override
+  String get enum_equipmentField_location => 'Hely';
+
+  @override
+  String get enum_equipmentField_location_short => 'Hely';
+
+  @override
   String get equipment_set_noLongerShared => 'Már nincs megosztva';
 
   @override
@@ -4627,6 +4633,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_list_section_expiringSoon => 'Hamarosan lejár';
 
   @override
+  String certifications_list_section_professional(String agency) {
+    return '$agency Profi';
+  }
+
+  @override
   String get certifications_list_section_valid => 'Érvényes';
 
   @override
@@ -7384,6 +7395,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ezek a felvételek időben nem fedik egymást, így valószínűleg az egyik számítógép órája rosszul jár. A merülés az elsődleges számítógép idejét tartja meg.';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      'Ezek a mélységprofilok más időpontban egyeznek, mint amit a számítógépek órái mutatnak, így valószínűleg az egyik számítógép órája rosszul jár. A merülés az elsődleges számítógép idejét tartja meg.';
+
+  @override
   String get diveLog_consolidate_clockNoteShort =>
       'Valószínűleg az egyik számítógép órája rosszul jár.';
 
@@ -7498,6 +7513,86 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_deco_semantics_required => 'Dekompresszió szükséges';
+
+  @override
+  String diveLog_deco_compartmentLeading(int number) {
+    return 'Vezető: #$number';
+  }
+
+  @override
+  String diveLog_deco_compartmentOther(int number) {
+    return 'Kamra: #$number';
+  }
+
+  @override
+  String get diveLog_deco_metricLoad => 'Terhelés';
+
+  @override
+  String get diveLog_deco_gasOngassing => 'Feltöltődés';
+
+  @override
+  String get diveLog_deco_gasOffgassing => 'Leürülés';
+
+  @override
+  String get diveLog_deco_gasEquilibrium => 'Egyensúly';
+
+  @override
+  String get diveLog_deco_heatMapRows =>
+      'Sorok: gyors (fent) és lassú (lent) között';
+
+  @override
+  String get diveLog_deco_surfaceLevel => 'Felszíni szint';
+
+  @override
+  String get diveLog_deco_mValue => 'M-érték';
+
+  @override
+  String diveLog_deco_tooltipCompartment(int number) {
+    return '$number. kamra';
+  }
+
+  @override
+  String diveLog_deco_tooltipLoaded(String percent) {
+    return '$percent% terhelés';
+  }
+
+  @override
+  String diveLog_deco_tooltipHalfTime(String minutes) {
+    return 'Felezési idő: $minutes perc';
+  }
+
+  @override
+  String diveLog_deco_tooltipSurfaceLevel(String percent) {
+    return 'Felszíni szint: $percent%';
+  }
+
+  @override
+  String get diveLog_deco_info_title => 'Mit jelentenek ezek az értékek?';
+
+  @override
+  String get diveLog_deco_info_body =>
+      'Terhelés: egy kamra inertgáz-nyomása annak a maximumnak a százalékában, amelyet a felszínen tartalmazhat (az M-értéke, a piros vonal 100%-nál).\n\nFelszíni szint: az egyes oszlopokon lévő jelölés mutatja, hol áll be egy teljesen telítetlenné vált kamra, miközben a felszínen levegőt lélegzel. Soha nincs 0%-on, mert a tested mindig tartalmazza a belélegzett levegő nitrogénjét. A jelölésénél álló oszlop már nem hordoz a merülésből visszamaradt terhelést.\n\nFeltöltődés és leürülés: a gáz mindig a belélegzett gáz nyomása felé mozog. Oxigénes vagy héliumban gazdag keverékkel végzett dekompresszió után a gyors kamrák kevesebb nitrogént tartalmazhatnak, mint a felszíni levegő. Ismét levegőt lélegezve újra nitrogént vesznek fel, amíg el nem érik a jelölésüket. Ez normális, és nem a merülésből visszamaradt terhelés.\n\nHélium: a levegő nem tartalmaz héliumot. Trimix merülés után egy kamra héliumot ad le, miközben egyidejűleg nitrogént vehet fel. Az N₂ és He melletti nyilak külön mutatják az egyes gázokat; a kamra száma melletti jelzés a kettő együttes irányát mutatja.';
+
+  @override
+  String diveLog_deco_barChartSemantics(int count, int number, String percent) {
+    return 'Szövetterhelési diagram. $count kamra, terhelés az M-értékhez viszonyítva; a vezető kamra a(z) $number. $percent%-on.';
+  }
+
+  @override
+  String get diveLog_deco_heatMapUndersaturated => 'Alultelített';
+
+  @override
+  String get diveLog_deco_heatMapSupersaturated => 'Túltelített';
+
+  @override
+  String diveLog_deco_percentValue(String value) {
+    return '$value%';
+  }
+
+  @override
+  String diveLog_deco_minutesValue(String value) {
+    return '$value perc';
+  }
 
   @override
   String get diveLog_deco_tissueFast => 'Gyors';
@@ -8270,6 +8365,26 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_profile_pointsAndProfiles(
+    num pointCount,
+    num profileCount,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      pointCount,
+      locale: localeName,
+      other: '$pointCount pont',
+      one: '1 pont',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      profileCount,
+      locale: localeName,
+      other: '$profileCount revízió',
+      one: '1 revízió',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
   String get diveLog_edit_row_addSite => 'Merülőhely hozzáadása';
 
   @override
@@ -8586,6 +8701,19 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_edit_useSet => 'Készlet használata';
+
+  @override
+  String get diveLog_edit_removeSet => 'Készlet eltávolítása';
+
+  @override
+  String get diveLog_bulkEdit_setsToRemove => 'Eltávolítandó készletek';
+
+  @override
+  String get diveLog_bulkEdit_removeSetTitle =>
+      'Felszerelés-készlet eltávolítása';
+
+  @override
+  String get diveLog_bulkEdit_equipmentSets => 'Felszerelés-készletek';
 
   @override
   String get diveLog_edit_weightPreset_use => 'Séma használata';
@@ -10782,6 +10910,16 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_figureNow(String pressure) {
+    return 'Most $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureNowEstimated(String pressure) {
+    return 'Most $pressure (becs.)';
+  }
+
+  @override
   String diveLog_cylinders_gasSemantics(String mix) {
     return 'Gáz $mix';
   }
@@ -11124,9 +11262,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divePlanner_action_addTank => 'Palack hozzáadása';
 
   @override
-  String get divePlanner_action_convertToDive => 'Átalakítás merüléssé';
-
-  @override
   String get divePlanner_action_deletePlan => 'Terv törlése';
 
   @override
@@ -11263,6 +11398,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get divePlanner_label_minutesUnit => 'perc';
+
+  @override
+  String get divePlanner_label_secondsUnit => 'mp';
 
   @override
   String get divePlanner_label_ndl => 'NDL';
@@ -14429,6 +14567,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Törli ezt a töltési bejegyzést?';
 
   @override
+  String get passport_history_deleteFailed =>
+      'A töltés törlése nem sikerült. Próbálja újra.';
+
+  @override
   String get passport_tag_title => 'Címke';
 
   @override
@@ -16641,6 +16783,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_location_activeFilter => 'Hely';
+
+  @override
+  String equipment_location_tileSemantics(String name) {
+    return 'Hely: $name';
+  }
 
   @override
   String get equipment_filter_section_location => 'Hely';
@@ -19686,6 +19833,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_photoPicker_selectAllButton => 'Összes kijelölése';
 
   @override
+  String get media_photoPicker_albumFilter_all => 'Összes album';
+
+  @override
+  String media_photoPicker_albumFilter_chip(String album, int count) {
+    return '$album ($count)';
+  }
+
+  @override
+  String get media_photoPicker_albumFilter_label => 'Szűrés album szerint';
+
+  @override
   String media_photoPicker_selectedCount(int count) {
     return '$count kijelölve';
   }
@@ -20877,6 +21035,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerCanvas_chart_removeWaypoint => 'Útpont eltávolítása';
 
   @override
+  String get plannerCanvas_chart_worstCase => 'Legrosszabb eset';
+
+  @override
   String get plannerCanvas_contingency_title => 'Vészhelyzeti tervek';
 
   @override
@@ -20884,9 +21045,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get plannerCanvas_contingency_turnRule => 'Fordulónyomás-szabály';
-
-  @override
-  String get plannerCanvas_convert_success => 'Merülés létrehozva a tervből';
 
   @override
   String get plannerCanvas_convert_view => 'Megtekintés';
@@ -20966,6 +21124,17 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get plannerSeries_openInLog => 'Megnyitás a naplóban';
+
+  @override
+  String get plannerSeries_view_actual => 'Tényleges';
+
+  @override
+  String get plannerSeries_view_plan => 'Terv';
+
+  @override
+  String plannerSeries_saved_divedCount(int dived, int count) {
+    return '$dived/$count lemerülve';
+  }
 
   @override
   String get plannerSeries_stopFollowing => 'Követés leállítása';
@@ -21120,8 +21289,77 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerSeries_fillAll => 'Minden palack töltése';
 
   @override
-  String get plannerSeries_convertUnavailable =>
-      'Merülések sorozata még nem alakítható naplózott merülésekké';
+  String get plannerSeries_createPlannedDive => 'Tervezett merülés létrehozása';
+
+  @override
+  String get plannerSeries_createPlannedDives =>
+      'Tervezett merülések létrehozása';
+
+  @override
+  String get plannerSeries_updatePlannedDive => 'Tervezett merülés frissítése';
+
+  @override
+  String get plannerSeries_updatePlannedDives =>
+      'Tervezett merülések frissítése';
+
+  @override
+  String plannerSeries_cannotUpdate(String dive) {
+    return '$dive kritikus figyelmeztetést tartalmaz, ezért a tervezett merülések nem frissültek';
+  }
+
+  @override
+  String plannerSeries_cannotUpdateEmpty(String dive) {
+    return '$dive nem tartalmaz szakaszokat, ezért a tervezett merülések nem frissültek';
+  }
+
+  @override
+  String get plannerSeries_cannotUpdateEmptyPlan =>
+      'Ez a terv nem tartalmaz szakaszokat, ezért nem került a naplóba';
+
+  @override
+  String plannerSeries_created(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tervezett merülés hozzáadva a naplóhoz',
+      one: '$count tervezett merülés hozzáadva a naplóhoz',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plannerSeries_updated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tervezett merülés frissítve a naplóban',
+      one: '$count tervezett merülés frissítve a naplóban',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_title => 'Törli a naplóból?';
+
+  @override
+  String plannerSeries_orphans_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count tervezett merülés már nincs ebben a sorozatban, de még a naplóban van.',
+      one:
+          '$count tervezett merülés már nincs ebben a sorozatban, de még a naplóban van.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get plannerSeries_orphans_keep => 'Megtartás';
+
+  @override
+  String get plannerSeries_allDived =>
+      'A terv minden merülése megtörtént, nincs mit frissíteni';
 
   @override
   String get plannerSeries_missionUnavailable =>
@@ -22634,6 +22872,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get navShortcut_short_backup => 'Mentés';
+
+  @override
+  String get navShortcut_short_diveComputers => 'Komputerek';
 
   @override
   String get navShortcut_short_speciesStats => 'Fajstatisztika';
@@ -25967,6 +26208,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_timeFormat => 'Időformátum';
 
   @override
+  String get settings_conflict_field_firstDayOfWeek => 'A hét első napja';
+
+  @override
   String get settings_conflict_field_timeOffsetSeconds => 'Időeltolás';
 
   @override
@@ -27262,7 +27506,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'Merülési idők javítása, társak összekapcsolása, felszerelés átsorolása, adatminőség, táblázatszerkesztő';
+      'Merülési idők javítása, társak összekapcsolása, felszerelés átsorolása, adatminőség, táblázatszerkesztő, merülések újraelemzése';
 
   @override
   String get settings_agentAccess_title => 'Ügynökhozzáférés';
@@ -29466,10 +29710,40 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_units_dialog_weightUnit => 'Súly egység';
 
   @override
-  String get settings_units_header_individualUnits => 'Egyedi egységek';
+  String get settings_units_header_gasPlanning => 'Gáz és tervezés';
 
   @override
-  String get settings_units_header_timeDateFormat => 'Idő és dátum formátum';
+  String get settings_units_header_displayFormats =>
+      'Megjelenítés és formátumok';
+
+  @override
+  String get settings_units_appliesTo =>
+      'A következő mértékegységekre vonatkozik';
+
+  @override
+  String get settings_units_gasConsumption_unitHint =>
+      'A mértékegység a nyomásból és a térfogatból adódik';
+
+  @override
+  String get settings_units_firstDayOfWeek => 'A hét első napja';
+
+  @override
+  String get settings_units_dialog_firstDayOfWeek => 'A hét első napja';
+
+  @override
+  String get settings_units_firstDayOfWeek_auto => 'Automatikus';
+
+  @override
+  String settings_units_firstDayOfWeek_autoResolved(String day) {
+    return 'Automatikus ($day)';
+  }
+
+  @override
+  String get settings_units_firstDayOfWeek_auto_subtitle =>
+      'Az eszköz régióját követi';
+
+  @override
+  String get settings_units_header_timeDateFormat => 'Idő és dátum';
 
   @override
   String get settings_units_header_unitSystem => 'Mértékegység rendszer';
@@ -37830,25 +38104,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllProgress(int count) {
-    return '$count merülés újraelemzése folyamatban...';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllSuccess(int count) {
-    return '$count merülés sikeresen újraelemezve';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
-    return '$succeeded / $total merülés újraelemezve. $failed sikertelen.';
-  }
-
-  @override
   String diveComputer_detail_reparseRawDataCount(int count) {
     return '$count merülés nyers adattal';
   }
@@ -37860,6 +38115,126 @@ class AppLocalizationsHu extends AppLocalizations {
   ) {
     return '$count merülés nyers adattal ($without anélkül)';
   }
+
+  @override
+  String get reparseBatch_progressTitle => 'Merülések újraelemzése';
+
+  @override
+  String reparseBatch_progressCount(int done, int total) {
+    return '$done / $total merülés újraelemzése';
+  }
+
+  @override
+  String get reparseBatch_cancelling => 'Megszakítás...';
+
+  @override
+  String get reparseBatch_resultTitle => 'Az újraelemzés befejeződött';
+
+  @override
+  String get reparseBatch_resultCancelledTitle => 'Az újraelemzés megszakadt';
+
+  @override
+  String get reparseBatch_resultErrorTitle =>
+      'Az újraelemzés hiba miatt leállt';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return 'Nem feldolgozott: $count';
+  }
+
+  @override
+  String reparseBatch_resultSummary(int succeeded, int total) {
+    return '$succeeded / $total merülés újraelemezve.';
+  }
+
+  @override
+  String reparseBatch_resultFailed(int count) {
+    return 'Sikertelen: $count';
+  }
+
+  @override
+  String reparseBatch_resultNotProcessed(int count) {
+    return 'Nem feldolgozott (megszakítva): $count';
+  }
+
+  @override
+  String reparseBatch_resultSkipped(int count) {
+    return 'Kihagyva, nincs nyers adat: $count';
+  }
+
+  @override
+  String reparseBatch_resultProfilesPreserved(int count) {
+    return 'Összevont merülések, amelyek megtartották a profiljukat: $count';
+  }
+
+  @override
+  String get reparseBatch_failedListHeader => 'Sikertelen merülések';
+
+  @override
+  String reparseBatch_failedDiveTitle(int number) {
+    return '$number. merülés';
+  }
+
+  @override
+  String get reparseBatch_failedDiveUnnumbered => 'Sorszám nélküli merülés';
+
+  @override
+  String get reparseBatch_missingDescriptors =>
+      'Hiányoznak a búvárkomputer adatai';
+
+  @override
+  String get reparseBatch_confirmTitle => 'Merülések újraelemzése';
+
+  @override
+  String reparseBatch_confirmMessage(int count) {
+    return 'A merüléselemző újrafuttatása $count merülésre, amelyekhez nyers adat tartozik. Ez frissíti a profil- és érzékelőadatokat, de megőrzi a jegyzeteket, helyszíneket, búvártársakat és egyéb szerkesztéseket.';
+  }
+
+  @override
+  String reparseBatch_confirmSkipped(int count) {
+    return 'Kijelölt merülések nyers adat nélkül (kihagyva): $count';
+  }
+
+  @override
+  String get reparseBatch_noneWithRawData =>
+      'A kijelölt merülések egyikéhez sincs újraelemezhető nyers adat.';
+
+  @override
+  String get diveLog_selection_tooltip_reparse => 'Újraelemzés';
+
+  @override
+  String get settings_reparseDives_title => 'Merülések újraelemzése';
+
+  @override
+  String get settings_reparseDives_subtitle =>
+      'A merüléselemző újrafuttatása minden merülésre, amelyhez nyers adat tartozik';
+
+  @override
+  String get settings_reparseDives_intro =>
+      'Akkor használd, ha egy alkalmazásfrissítés javítja a búvárkomputer-adatok beolvasását. A jegyzetek, helyszínek, búvártársak és egyéb szerkesztések megmaradnak.';
+
+  @override
+  String settings_reparseDives_withRawData(int count) {
+    return 'Merülések nyers adattal: $count';
+  }
+
+  @override
+  String settings_reparseDives_withoutRawData(int count) {
+    return 'Merülések nyers adat nélkül (nem elemezzük újra): $count';
+  }
+
+  @override
+  String get settings_reparseDives_byComputer => 'Búvárkomputerenként';
+
+  @override
+  String get settings_reparseDives_unknownComputer => 'Ismeretlen komputer';
+
+  @override
+  String get settings_reparseDives_none =>
+      'Egyik merüléshez sincs újraelemezhető nyers adat.';
+
+  @override
+  String get settings_reparseDives_button => 'Összes újraelemzése';
 
   @override
   String get diveComputer_rawData_discardAction => 'Elvetés';
@@ -39789,6 +40164,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_sku => 'Cikkszám';
 
   @override
+  String get attrHelper_sku =>
+      'A blokkon vagy a címkén található, nem a sorozatszám';
+
+  @override
   String get attrLabel_retailer => 'Forgalmazó';
 
   @override
@@ -40493,11 +40872,27 @@ class AppLocalizationsHu extends AppLocalizations {
       'A CNS% (oxigénóra) a merülés után 90 perces felezési idővel csökken -- körülbelül egy nap múlva gyakorlatilag visszatér 0-ra.\n\nA napi OTU minden éjjel éjfélkor nullázódik. A heti OTU az utolsó 7 nap gördülő összege: a régebbi merülések automatikusan kikerülnek a számításból, amint kiesnek ebből az időablakból.';
 
   @override
+  String get safetyHub_tissueLoading_clear_title =>
+      'Nincs maradék szövetterhelés';
+
+  @override
+  String get safetyHub_tissueLoading_clear_body =>
+      'Minden kamra ismét egyensúlyban van a felszíni levegővel. A normál szintjükön maradnak (az egyes oszlopokon lévő jelölésnél), nem 0%-on.';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_title =>
+      'A szövetterhelés nem érhető el';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_body =>
+      'Az utolsó merüléshez nincs adat a szövetterhelés kiszámításához, például mélységprofil nélküli merülésnél, mélységmérő módban vagy setpoint nélküli rebreatherrel.';
+
+  @override
   String get safetyHub_tissueLoading_about_title => 'A szövettelítődésről';
 
   @override
   String get safetyHub_tissueLoading_about_body =>
-      'A testednek 16 szövetkompartmentje van, amelyek különböző sebességgel vesznek fel és adnak le nitrogént (trimix- vagy újralégzős merüléseknél héliumot is). A gyors szövetek gyorsan telítődnek és ürülnek; a lassú szövetek mindkettőhöz sokkal több időt igényelnek.\n\nHéliumos merülés után egyazon kompartmentben a nitrogén és a hélium rövid ideig ellentétes irányba mozoghat: amíg a hélium még távozik, ugyanaz a kompartment egyidejűleg kis mennyiségű nitrogént vehet fel, amíg mindkét gáz egyensúlyba nem kerül a belélegzett levegővel. Ezért egy kompartment rövid időre \"Ongassing\" jelzést mutathat, miközben a teljes terhelése továbbra is csökken.';
+      'A testedben 16 szövetkamra van, amelyek különböző sebességgel veszik fel és adják le a nitrogént (trimix vagy rebreather merüléseknél a héliumot is). A gyors szövetek gyorsan telítődnek és ürülnek; a lassú szöveteknek mindkettőhöz sokkal több idő kell.\n\nA maradék terhelés csak az, ami a normál felszíni szint fölött van. Teljesen kiürülve sem esnek az oszlopok 0%-ra: minden kamra a belélegzett levegő nitrogénjének megfelelő jelölésnél áll be. Ezért egy gyors kamra itt magasabb értéket mutathat, mint egy oxigénes dekompressziós merülés végén, anélkül hogy a terhelés nőtt volna.\n\nHéliumos merülés után egy kamra héliumot ad le, miközben egyidejűleg nitrogént vesz fel, amíg mindkét gáz egyensúlyba nem kerül a belélegzett levegővel.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -40953,6 +41348,12 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_planned_bannerBody =>
       'Búvárkomputer-adatokra vár. Jelöld naplózottnak, ha komputer nélkül merültél.';
+
+  @override
+  String get diveLog_planned_openInPlanner => 'Megnyitás a tervezőben';
+
+  @override
+  String get diveLog_detail_menu_viewInPlanner => 'Megtekintés a tervezőben';
 
   @override
   String get diveLog_detail_menu_markLogged => 'Naplózottnak jelölés';
@@ -41898,6 +42299,16 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String dataQuality_dive_tanks(String tanks) {
+    return 'Érintett: $tanks';
+  }
+
+  @override
+  String dataQuality_dive_tankPair(String first, String second) {
+    return '$first és $second';
+  }
+
+  @override
   String get dataQuality_badge_tooltip => 'Adatminőség-ellenőrzés';
 
   @override
@@ -41916,9 +42327,9 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Az átvizsgálás kész - $count elem ellenőrzésre vár',
-      one: 'Az átvizsgálás kész - 1 elem ellenőrzésre vár',
-      zero: 'Az átvizsgálás kész - nincs új észlelés',
+      other: 'Az átvizsgálás kész - $count nyitott elem ellenőrzésre vár',
+      one: 'Az átvizsgálás kész - $count nyitott elem ellenőrzésre vár',
+      zero: 'Az átvizsgálás kész - nincs nyitott észlelés',
     );
     return '$_temp0';
   }
@@ -42049,13 +42460,35 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_clock_offset(int hours) {
-    return 'Az egyik forrás órája $hours órával eltér';
+  String dataQuality_msg_clock_offsetAhead(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'Az egyik forrás órája $hours órát siet',
+      one: 'Az egyik forrás órája $hours órát siet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_clock_offsetBehind(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: 'Az egyik forrás órája $hours órát késik',
+      one: 'Az egyik forrás órája $hours órát késik',
+    );
+    return '$_temp0';
   }
 
   @override
   String dataQuality_msg_clock_overlap(int minutes) {
     return '$minutes perccel átfed egy másik merülést';
+  }
+
+  @override
+  String dataQuality_msg_clock_profileFit(int minutes) {
+    return 'Egy forrás $minutes percre van attól a ponttól, ahol a profilja egyezik az elsődlegesével';
   }
 
   @override
@@ -42117,8 +42550,18 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String dataQuality_msg_rate(String rate, int seconds) {
-    return '$rate függőleges sebesség $seconds másodpercen át fennmaradt';
+  String dataQuality_msg_rate(String rate, String duration) {
+    return '$rate függőleges sebesség $duration időtartamon át fennmaradt';
+  }
+
+  @override
+  String dataQuality_unit_seconds(int seconds) {
+    return '$seconds mp';
+  }
+
+  @override
+  String dataQuality_unit_minutes(int minutes) {
+    return '$minutes perc';
   }
 
   @override
@@ -42222,12 +42665,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Az állandó arány a sós/édesvíz beállítás eltérésére utal';
 
   @override
-  String get dataQuality_msg_sourceDuration =>
-      'A források nem egyeznek a merülés időtartamában';
+  String dataQuality_msg_sourceDuration(String primary, String source) {
+    return 'A források nem egyeznek a merülés időtartamában: $primary vs. $source';
+  }
 
   @override
-  String get dataQuality_msg_sourceTemp =>
-      'A források nem egyeznek a vízhőmérsékletben';
+  String dataQuality_msg_sourceTemp(String primary, String source) {
+    return 'A források nem egyeznek a vízhőmérsékletben: $primary vs. $source';
+  }
 
   @override
   String dataQuality_repairLabel_shiftTime(String offset) {
@@ -42249,8 +42694,25 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String dataQuality_repairLabel_fixSourceClockNamed(
+    String computer,
+    String offset,
+  ) {
+    return '$computer órájának javítása ennyivel: $offset';
+  }
+
+  @override
   String get dataQuality_repairLabel_fixSourceClockAll =>
       'A számítógép javítása a többi, azonos eltérésű merülésnél is';
+
+  @override
+  String get dataQuality_repairLabel_alignSourceProfile =>
+      'A számítógép igazítása a profilja alapján';
+
+  @override
+  String dataQuality_repairLabel_alignSourceProfileNamed(String computer) {
+    return '$computer igazítása a profilja alapján';
+  }
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Konszolidálás';
@@ -42424,6 +42886,33 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_split => 'Szétválasztás külön merülésekre';
+
+  @override
+  String dataQuality_repairLabel_setPrimaryNamed(String source) {
+    return '$source beállítása elsődleges forrásként';
+  }
+
+  @override
+  String dataQuality_repairLabel_splitNamed(String source) {
+    return '$source leválasztása külön merülésként';
+  }
+
+  @override
+  String dataQuality_setPrimary_title(String source) {
+    return 'Beállítja elsődleges forrásként ezt: $source?';
+  }
+
+  @override
+  String dataQuality_setPrimary_body(String source) {
+    return 'A merülés mélysége, időtartama és profilja ezután innen származik: $source. Ezt a merülés adatforrásainál később módosíthatja.';
+  }
+
+  @override
+  String get dataQuality_setPrimary_bodyUnnamed =>
+      'A merülés mélysége, időtartama és profilja ezután ebből a forrásból származik. Ezt a merülés adatforrásainál később módosíthatja.';
+
+  @override
+  String get dataQuality_setPrimary_confirm => 'Beállítás elsődlegesként';
 
   @override
   String get dataQuality_repairLabel_compare => 'Profilok összehasonlítása';
@@ -50461,6 +50950,19 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String settings_syncDevices_summary_removed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count eltávolított eszközt megjegyez az alkalmazás, hogy ne hozhasson vissza törölt adatokat.',
+      one:
+          '$count eltávolított eszközt megjegyez az alkalmazás, hogy ne hozhasson vissza törölt adatokat.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String settings_syncDevices_tile_filesSize(int count, String size) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -52078,14 +52580,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Alkalmazás a kijelölésre';
 
   @override
-  String get diveLog_profileEditor_outlierDetection =>
-      'Kiugró értékek keresése';
+  String get diveLog_profileEditor_cleanup => 'Takarítás';
 
   @override
-  String get diveLog_profileEditor_detect => 'Keresés';
+  String get diveLog_profileEditor_detectOutliers => 'Szórványértékek keresése';
 
   @override
-  String get diveLog_profileEditor_removeAll => 'Összes eltávolítása';
+  String get diveLog_profileEditor_removeOutliers =>
+      'Szórványértékek eltávolítása';
 
   @override
   String diveLog_profileEditor_outliersDetected(int count) {
@@ -52113,10 +52615,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_trimMode => 'Vágás mód';
-
-  @override
-  String get diveLog_profileEditor_trimHint =>
-      'A profil végpontjainak levágása';
 
   @override
   String get diveLog_profileEditor_trimEnd => 'Vég levágása';
@@ -52170,7 +52668,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_profileEditor_mode_select => 'Kijelölés';
 
   @override
-  String get diveLog_profileEditor_mode_outlier => 'Kiugró érték';
+  String get diveLog_profileEditor_mode_cleanup => 'Tisztít';
 
   @override
   String get diveLog_profileEditor_mode_draw => 'Rajzolás';
@@ -52185,6 +52683,26 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_profileEditor_revisionSwitchFailed =>
       'Nem sikerült a profilverzió váltása.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_title =>
+      'Teljes profil törlése';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_permanentWarning =>
+      'A profilverzió törlése végleges, nem vonható vissza, és azonnal életbe lép.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_computerImportWarning =>
+      'Ezt a profilt búvárkomputerből importálták, és valószínűleg az eredeti forrásadatokat tartalmazza.';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_confirmNow =>
+      'Végleges törlés most';
+
+  @override
+  String get diveLog_profileEditor_deleteProfile_failed =>
+      'Nem sikerült törölni a profilverziót.';
 
   @override
   String get diveLog_profileEditor_revisionLegacyHint =>
@@ -55698,9 +56216,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ez egy már ugyanabból a fájlból importált nyomvonalnak tűnik.';
 
   @override
-  String get navTrack_review_replaceLabel => 'Csere';
-
-  @override
   String get navTrack_review_linkToDive => 'Társítás merüléshez';
 
   @override
@@ -55903,6 +56418,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get navTrack_editSheet_removeTrackTooltip => 'Nyomvonal eltávolítása';
+
+  @override
+  String get navTrack_editSheet_trackOnAnotherDive =>
+      'Ez a nyomvonal egy másik merüléshez tartozik. Frissítsd annál a merülésnél, vagy importáld a fájlt új nyomvonalként.';
 
   @override
   String navTrack_editRow_tracksSaveFailed(String error) {
@@ -57371,6 +57890,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get rules_value_empty => '(üres)';
 
   @override
+  String rules_value_gearViaSet(String item, String set) {
+    return '$item ($set)';
+  }
+
+  @override
   String get rules_collection_diveTypes => 'merüléstípusok';
 
   @override
@@ -57384,6 +57908,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get rules_collection_courses => 'tanfolyamok';
+
+  @override
+  String get rules_collection_equipmentSets => 'felszerelés-készletek';
 
   @override
   String get rules_collection_siteTags => 'helyszíncímkék';
@@ -59902,4 +60429,267 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get search_openTooltip => 'Keresés';
+
+  @override
+  String get settings_conflict_field_sourceFile => 'Eredeti nyomvonalfájl';
+
+  @override
+  String get navTrack_review_duplicateUpdate =>
+      'A mentett nyomvonal frissítése';
+
+  @override
+  String get navTrack_review_duplicateUpdateHint =>
+      'Újra beolvassa az adatokat ebből a fájlból. A név, a merülés, a merülőhely, az eszköz és az igazítás változatlan marad.';
+
+  @override
+  String get navTrack_review_duplicateNew => 'Importálás új nyomvonalként';
+
+  @override
+  String get navTrack_review_updateAction => 'Frissítés';
+
+  @override
+  String get navTrack_review_trackUpdatedConfirmation =>
+      'A nyomvonal frissítve a fájlból. Ellenőrizd az igazítást: a nyomvonal elmozdulhatott.';
+
+  @override
+  String get navTrack_detail_menuUpdateFromFile => 'Frissítés fájlból';
+
+  @override
+  String get navTrack_detail_menuExportCsv => 'Exportálás CSV-ként';
+
+  @override
+  String get navTrack_detail_exportUnavailable =>
+      'Ehhez a nyomvonalhoz még nincs mentett eredeti fájl. Előbb frissítsd a saját fájljából.';
+
+  @override
+  String navTrack_detail_exportFailed(String error) {
+    return 'Az exportálás sikertelen: $error';
+  }
+
+  @override
+  String get navTrack_detail_updateNameMismatchTitle => 'Eltérő fájlnév';
+
+  @override
+  String navTrack_detail_updateNameMismatchMessage(
+    String expected,
+    String actual,
+  ) {
+    return 'Ezt a nyomvonalat a(z) „$expected” fájlból importálták, a kiválasztott fájl neve „$actual”. Mégis frissíted belőle a nyomvonalat?';
+  }
+
+  @override
+  String get navTrack_detail_updateOtherRecordingTitle => 'Eltérő felvétel';
+
+  @override
+  String navTrack_detail_updateOtherRecordingMessage(
+    String fileDate,
+    String trackDate,
+  ) {
+    return 'Ez a fájl $fileDate napon készült, a nyomvonal $trackDate napon, így lehet, hogy másik merülés. Mégis frissíted belőle a nyomvonalat?';
+  }
+
+  @override
+  String navTrack_marker_details(
+    int number,
+    String time,
+    String depth,
+    String distance,
+  ) {
+    return 'Jelölő $number: $time, $depth, $distance';
+  }
+
+  @override
+  String get twinSet_title => 'Ikerpalack';
+
+  @override
+  String get twinSet_none => 'Nem része ikerpalacknak';
+
+  @override
+  String get twinSet_link => 'Társpalack hozzákapcsolása';
+
+  @override
+  String twinSet_since(String date) {
+    return '$date óta';
+  }
+
+  @override
+  String get twinSet_replace => 'Társ cseréje';
+
+  @override
+  String get twinSet_unlink => 'Szétválasztás';
+
+  @override
+  String get twinSet_history => 'Előzmények';
+
+  @override
+  String twinSet_historyRange(String partner, String from, String to) {
+    return '$partner, $from és $to között';
+  }
+
+  @override
+  String get twinSet_deletePairing => 'Párosítás törlése';
+
+  @override
+  String get twinSet_deletePairingConfirm =>
+      'Törli ezt a párosítást az előzményekből? A töltések és a merülések nem változnak.';
+
+  @override
+  String get twinSet_pickerTitle => 'Társpalack';
+
+  @override
+  String get twinSet_pickerEmpty => 'Nincs más palack a párosításhoz.';
+
+  @override
+  String get twinSet_pairedOnHelp => 'Párosítva ekkortól';
+
+  @override
+  String get twinSet_unpairedOnHelp => 'Szétválasztva ekkor';
+
+  @override
+  String get twinSet_pressureMismatchTitle => 'Eltérő üzemi nyomások';
+
+  @override
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  ) {
+    return '$a üzemi nyomása $aPressure, $b palacké $bPressure. Az összekötött pár egy nyomásra töltődik.';
+  }
+
+  @override
+  String get twinSet_continue => 'Folytatás';
+
+  @override
+  String get twinSet_replaceTitle => 'Lecseréli a társat?';
+
+  @override
+  String twinSet_replaceClash(String cylinder, String partner) {
+    return '$cylinder párja jelenleg $partner.';
+  }
+
+  @override
+  String twinSet_replaceQuestion(String a, String b) {
+    return 'Inkább $a és $b legyen pár?';
+  }
+
+  @override
+  String twinSet_leftAlone(String name) {
+    return '$name egyedül marad.';
+  }
+
+  @override
+  String get twinSet_replaceConfirm => 'Csere';
+
+  @override
+  String get twinSet_clashTitle => 'Átfedő párosítás';
+
+  @override
+  String twinSet_clashBody(String pairs) {
+    return 'Ez átfedi ezt a párosítást: $pairs. Egy palack egy napon csak egy ikerpalack része lehet.';
+  }
+
+  @override
+  String twinSet_pairNames(String a, String b) {
+    return '$a és $b';
+  }
+
+  @override
+  String twinSet_endBeforeStart(String date) {
+    return 'A záró dátumnak $date utáninak kell lennie.';
+  }
+
+  @override
+  String get twinSet_saveFailed => 'Az ikerpalack módosítása nem menthető.';
+
+  @override
+  String twinSet_with(String partner) {
+    return 'Ikerpalack ezzel: $partner';
+  }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return 'Az ikerpalack mindkét palackja ($partner)';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner, $status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => 'Töltés szerkesztése';
+
+  @override
+  String get passport_logFill_overPressureTitle => 'Az üzemi nyomás felett';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure meghaladja $name üzemi nyomását ($workingPressure).';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => 'Mentés mégis';
+
+  @override
+  String get passport_logFill_back => 'Vissza';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return '$partner töltésére is alkalmazza?';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => 'Igen';
+
+  @override
+  String get passport_logFill_onlyThisOne => 'Csak ezt';
+
+  @override
+  String get passport_history_anotherCylinder => 'egy másik palack';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return '$partner palackkal együtt töltve';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'Mindkét palackról törli ezt a töltést, vagy csak erről?';
+
+  @override
+  String get passport_history_deleteBoth => 'Mindkét palack';
+
+  @override
+  String get passport_history_edit => 'Töltés szerkesztése';
+
+  @override
+  String get twinSet_choiceTitle => 'Az ikerpalackot használja?';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'Ikerpalack ($a + $b, $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return 'Csak $a';
+  }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'Párosítva ekkortól';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'Szétválasztva ekkor';
+
+  @override
+  String get settings_conflict_field_filledTogetherId => 'Ikerpalack-töltés';
+
+  @override
+  String get settings_conflict_field_twinPassportId => 'Társpalack útlevele';
 }

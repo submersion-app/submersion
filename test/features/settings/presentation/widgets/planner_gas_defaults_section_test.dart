@@ -54,6 +54,25 @@ void main() {
     expect(notifier.state.plannerSacBottom, 17.5);
   });
 
+  testWidgets('the gas switch stop is shown and entered in seconds (issue '
+      '#4160)', (tester) async {
+    final notifier = MockSettingsNotifier(
+      const AppSettings(plannerGasSwitchStopSeconds: 60),
+    );
+    await tester.pumpWidget(_app(notifier));
+    await tester.pumpAndSettle();
+
+    expect(find.text('60 s'), findsOneWidget);
+
+    await tester.tap(find.text('Gas switch stop'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField), '45');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(notifier.state.plannerGasSwitchStopSeconds, 45);
+  });
+
   testWidgets('editing the buddy/RMV factor writes through the notifier', (
     tester,
   ) async {

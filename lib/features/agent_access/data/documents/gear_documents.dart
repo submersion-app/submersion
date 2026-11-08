@@ -2,6 +2,7 @@ import 'package:submersion/features/agent_access/data/documents/document_dates.d
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config.dart';
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config_item.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_pairing.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -39,6 +40,11 @@ Map<String, Object?> equipmentDocument(EquipmentItem e) => {
   'custom_reminder_days': e.customReminderDays,
   'parent_equipment_id': e.parentEquipmentId,
   'attributes': [for (final a in e.attributes) _attributeDocument(a)],
+  // The tag id the passport and gear tag cards link, a system attribute.
+  'passport_id': [
+    for (final a in e.attributes)
+      if (!a.isCustom && a.key == 'passport_id') a.valueText,
+  ].firstOrNull,
 };
 
 Map<String, Object?> _attributeDocument(EquipmentAttribute a) => {
@@ -102,6 +108,14 @@ Map<String, Object?> equipmentComponentDocument(EquipmentComponent c) => {
   'component_equipment_id': c.componentEquipmentId,
   'role': c.role,
   'sort_order': c.sortOrder,
+};
+
+Map<String, Object?> cylinderPairingDocument(CylinderPairing p) => {
+  'id': p.id,
+  'cylinder_a_id': p.cylinderAId,
+  'cylinder_b_id': p.cylinderBId,
+  'paired_on': calendarDate(p.pairedOn),
+  'unpaired_on': calendarDate(p.unpairedOn),
 };
 
 Map<String, Object?> equipmentShareDocument(EquipmentShare s) => {
@@ -177,6 +191,7 @@ Map<String, Object?> cylinderFillDocument(CylinderFill f) => {
   'signed_record': f.signedRecord,
   'source': f.source.name,
   'notes': f.notes,
+  'filled_together_id': f.filledTogetherId,
 };
 
 Map<String, Object?> transmitterDocument(Transmitter x) => {

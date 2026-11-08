@@ -5,6 +5,7 @@ import 'package:submersion/core/buoyancy/twin_analyzer.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
@@ -21,8 +22,9 @@ import 'package:submersion/features/weight_planner/presentation/providers/weight
 /// e.g. apnea). The heavy simulation runs in an isolate via `compute`. All
 /// upstream providers self-invalidate on the relevant database changes, so no
 /// extra watchers are needed here.
-final buoyancyTwinProvider =
-    FutureProvider.family<BuoyancyTwinOutcome?, String>((ref, diveId) async {
+final buoyancyTwinProvider = FutureProvider.autoDispose
+    .family<BuoyancyTwinOutcome?, String>((ref, diveId) async {
+      retainDiveData(ref);
       final dive = await ref.watch(diveProvider(diveId).future);
       if (dive == null) return null;
 

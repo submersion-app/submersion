@@ -17,6 +17,12 @@ const String certificationExpiredGroupKey = 'expired';
 const String certificationExpiringSoonGroupKey = 'expiringSoon';
 const String certificationValidGroupKey = 'valid';
 
+/// Key of the group holding [agencyId]'s professional ratings when
+/// grouping by agency (issue #730). The agency's own group keeps the bare
+/// agency id as its key.
+String certificationProfessionalGroupKey(String agencyId) =>
+    '$agencyId#professional';
+
 /// One group of certifications sharing a status or a primary agency. Color
 /// is a presentation concern -- the caller decides, from [key], whether and
 /// how to show one.
@@ -98,26 +104,55 @@ List<CertificationGroup> _groupByStatus(List<Certification> certifications) {
 /// a card with a cross-over credential groups only under its primary
 /// agency, per the issue's scope decision). Groups order alphabetically by
 /// the agency's localized name, case/accent folded.
+///
+/// A card whose primary level is a professional rating (divemaster,
+/// instructor and up) goes in a separate "`<agency>` Professional" group
+/// placed right after that agency's own group (issue #730). An agency with
+/// no professional ratings shows no such group, and one with only
+/// professional ratings shows only that group.
 List<CertificationGroup> _groupByAgency(
   List<Certification> certifications,
   CertificationCatalog catalog,
   AppLocalizations l10n,
 ) {
-  final buckets = <String, List<Certification>>{};
+  final buckets = <(String, bool), List<Certification>>{};
   for (final cert in certifications) {
-    buckets.putIfAbsent(cert.agency, () => []).add(cert);
+    final level = cert.level;
+    final professional =
+        level != null && catalog.level(level).isProfessionalLevel;
+    buckets.putIfAbsent((cert.agency, professional), () => []).add(cert);
   }
 
   final collator = TextCollator();
-  final groups = [
-    for (final entry in buckets.entries)
-      CertificationGroup(
-        key: entry.key,
-        label: catalog.agency(entry.key).localizedName(l10n),
-        certifications: entry.value,
-      ),
-  ]..sort((a, b) => collator.compare(a.label, b.label));
-  return groups;
+  final agencyNames = <String, String>{
+    for (final (agency, _) in buckets.keys)
+      agency: catalog.agency(agency).localizedName(l10n),
+  };
+  // Two distinct agency ids with the same display name stay apart, ordered
+  // by id, so each keeps its own professional group right after it.
+  final agencies = agencyNames.keys.toList()
+    ..sort((a, b) {
+      final byName = collator.compare(agencyNames[a]!, agencyNames[b]!);
+      return byName != 0 ? byName : a.compareTo(b);
+    });
+  return [
+    for (final agency in agencies) ...[
+      if (buckets[(agency, false)] case final main?)
+        CertificationGroup(
+          key: agency,
+          label: agencyNames[agency]!,
+          certifications: main,
+        ),
+      if (buckets[(agency, true)] case final professional?)
+        CertificationGroup(
+          key: certificationProfessionalGroupKey(agency),
+          label: l10n.certifications_list_section_professional(
+            agencyNames[agency]!,
+          ),
+          certifications: professional,
+        ),
+    ],
+  ];
 }
 
 /// [sortedCertifications] unchanged for [CertificationGroupBy.none], else

@@ -6,7 +6,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart' show StateProvider;
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/media_unlink_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -89,7 +88,11 @@ void main() {
     VoidCallback? onPhotos,
     VoidCallback? onDoc,
     void Function(MediaItem)? onOpenDocument,
-    Map<Dive, List<MediaItem>> divePhotos = const {},
+    List<MediaItem> divePhotos = const [],
+    List<String>? divePhotoReads,
+    Future<List<MediaItem>>? pendingDivePhotos,
+    Object? divePhotosError,
+    FutureOr<int> Function(Ref ref)? loadDivePhotoCount,
     List<MediaItem> attachments = const [],
     Future<List<MediaItem>>? pendingAttachments,
     Object? attachmentsError,
@@ -104,9 +107,17 @@ void main() {
           if (attachmentsError != null) throw attachmentsError;
           return attachments;
         }),
-        mediaFromDivesAtSiteProvider(
-          'site-1',
-        ).overrideWith((ref) async => divePhotos),
+        mediaCountFromDivesAtSiteProvider('site-1').overrideWith(
+          (ref) async => loadDivePhotoCount != null
+              ? loadDivePhotoCount(ref)
+              : divePhotos.length,
+        ),
+        flatMediaFromDivesAtSiteProvider('site-1').overrideWith((ref) async {
+          divePhotoReads?.add('site-1');
+          if (pendingDivePhotos != null) return pendingDivePhotos;
+          if (divePhotosError != null) throw divePhotosError;
+          return divePhotos;
+        }),
         ...extraOverrides,
       ],
       home: Scaffold(
@@ -184,7 +195,6 @@ void main() {
   testWidgets('dive photos group shows collapsed header with count', (
     tester,
   ) async {
-    final dive = Dive(id: 'dive-1', dateTime: DateTime(2026, 3, 1));
     final photo = MediaItem(
       id: 'm1',
       diveId: 'dive-1',
@@ -194,18 +204,64 @@ void main() {
       updatedAt: DateTime(2026, 3, 1),
     );
     await tester.pumpWidget(
-      await host(
-        onPhotos: () {},
-        onDoc: () {},
-        divePhotos: {
-          dive: [photo],
-        },
-      ),
+      await host(onPhotos: () {}, onDoc: () {}, divePhotos: [photo]),
     );
     await tester.pumpAndSettle();
     expect(find.text('Photos from dives here (1)'), findsOneWidget);
     // Collapsed by default: no grid tiles rendered.
     expect(find.byType(GridView), findsNothing);
+  });
+
+  // Issue #4252: the collapsed header needs only the count, so the site's
+  // dive media is read when the group opens, not when the section builds.
+  testWidgets('collapsed dive photos group does not read the media', (
+    tester,
+  ) async {
+    final reads = <String>[];
+    final photo = testMediaItem(
+      id: 'dp-1',
+      diveId: 'dive-1',
+      takenAt: DateTime(2026, 3, 1, 11),
+    );
+    await tester.pumpWidget(
+      await host(divePhotos: [photo], divePhotoReads: reads),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Photos from dives here (1)'), findsOneWidget);
+    expect(reads, isEmpty);
+
+    await tester.tap(find.text('Photos from dives here (1)'));
+    await tester.pumpAndSettle();
+    expect(reads, ['site-1']);
+    expect(find.byType(MediaThumbnailTile), findsOneWidget);
+  });
+
+  // Every media or dive write re-reads the count; the header keeps the count
+  // it has meanwhile rather than vanishing for a frame.
+  testWidgets('dive photos header stays up while its count reloads', (
+    tester,
+  ) async {
+    final tick = StateProvider<int>((ref) => 0);
+    final reload = Completer<int>();
+    await tester.pumpWidget(
+      await host(
+        loadDivePhotoCount: (ref) =>
+            ref.watch(tick) == 0 ? Future.value(2) : reload.future,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Photos from dives here (2)'), findsOneWidget);
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(SiteMediaSection)),
+    );
+    container.read(tick.notifier).state = 1;
+    await tester.pump();
+    expect(find.text('Photos from dives here (2)'), findsOneWidget);
+
+    reload.complete(3);
+    await tester.pumpAndSettle();
+    expect(find.text('Photos from dives here (3)'), findsOneWidget);
   });
 
   group('attachments grid', () {
@@ -550,7 +606,42 @@ void main() {
   });
 
   group('dive photos group expanded', () {
-    final dive = Dive(id: 'dive-1', dateTime: DateTime(2026, 3, 1));
+    testWidgets('shows a spinner while the opened group loads', (tester) async {
+      final pending = Completer<List<MediaItem>>();
+      await tester.pumpWidget(
+        await host(
+          divePhotos: [testMediaItem(id: 'dp-0', diveId: 'dive-1')],
+          pendingDivePhotos: pending.future,
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Photos from dives here (1)'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(GridView), findsNothing);
+      pending.complete(const []);
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('shows the error text when the opened group fails', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        await host(
+          divePhotos: [testMediaItem(id: 'dp-0', diveId: 'dive-1')],
+          divePhotosError: StateError('boom'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Photos from dives here (1)'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Error loading media'), findsOneWidget);
+      expect(find.byType(GridView), findsNothing);
+    });
+
     final divePhoto = testMediaItem(
       id: 'dp-1',
       diveId: 'dive-1',
@@ -559,13 +650,7 @@ void main() {
     );
 
     testWidgets('expanding renders the dive photo tiles', (tester) async {
-      await tester.pumpWidget(
-        await host(
-          divePhotos: {
-            dive: [divePhoto],
-          },
-        ),
-      );
+      await tester.pumpWidget(await host(divePhotos: [divePhoto]));
       await tester.pumpAndSettle();
       expect(find.byType(MediaThumbnailTile), findsNothing);
 
@@ -585,13 +670,7 @@ void main() {
     testWidgets('tapping a dive photo opens the viewer in divePhotos scope', (
       tester,
     ) async {
-      await tester.pumpWidget(
-        await host(
-          divePhotos: {
-            dive: [divePhoto],
-          },
-        ),
-      );
+      await tester.pumpWidget(await host(divePhotos: [divePhoto]));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Photos from dives here (1)'));
       await tester.pumpAndSettle();

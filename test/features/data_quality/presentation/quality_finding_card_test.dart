@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
+import 'package:submersion/features/data_quality/domain/entities/quality_finding_subjects.dart';
 import 'package:submersion/features/data_quality/domain/repairs/quality_repair_action.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/dive_identity_label.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_card.dart';
@@ -33,6 +34,7 @@ const _formatters = QualityUnitFormatters(
   limitDepth: _fmt,
   pressure: _fmt,
   temperature: _fmt,
+  temperatureDelta: _fmt,
   sac: _fmt,
   date: _fmtDate,
   dateTime: _fmtDate,
@@ -52,6 +54,7 @@ void main() {
     void Function(String)? onGoToDive,
     DiveIdentityLabel? relatedDive,
     String? computerName,
+    List<QualityTankRef> tanks = const [],
     Widget? evidence,
     String? foreignDiveId,
   }) async {
@@ -66,6 +69,7 @@ void main() {
             onGoToDive: onGoToDive ?? (_) {},
             relatedDive: relatedDive,
             computerName: computerName,
+            tanks: tanks,
             evidence: evidence,
             foreignDiveId: foreignDiveId,
           ),
@@ -215,6 +219,43 @@ void main() {
     });
   });
 
+  group('source placed away from its profile fit (#4296)', () {
+    final finding = _finding(
+      detectorId: 'clock_offset',
+      params: const {'sourceId': 's2', 'profileOffsetSeconds': 1160},
+    );
+
+    testWidgets('offers to line the computer up by its profile', (
+      tester,
+    ) async {
+      final repaired = <QualityRepairAction>[];
+      await pumpCard(tester, finding: finding, onRepair: repaired.add);
+
+      final primary = find.byType(FilledButton);
+      expect(
+        find.descendant(
+          of: primary,
+          matching: find.text('Line up this computer by its profile'),
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(primary);
+      await tester.pumpAndSettle();
+      expect(repaired.single, isA<SourceProfileShiftRepair>());
+    });
+
+    testWidgets('names the computer when one is known', (tester) async {
+      await pumpCard(tester, finding: finding, computerName: 'Perdix 2');
+      expect(
+        find.descendant(
+          of: find.byType(FilledButton),
+          matching: find.text('Line up Perdix 2 by its profile'),
+        ),
+        findsOneWidget,
+      );
+    });
+  });
+
   group('source clock offset (#3655)', () {
     final finding = _finding(
       detectorId: 'clock_offset',
@@ -243,6 +284,99 @@ void main() {
       await tester.tap(find.text('Shift logbook time by +1 h'));
       await tester.pumpAndSettle();
       expect(repaired.last, isA<TimeShiftRepair>());
+    });
+
+    // The button says whose clock it corrects, matching the row above it
+    // (issue #4209).
+    testWidgets('names the computer when one is known', (tester) async {
+      await pumpCard(tester, finding: finding, computerName: 'Suunto EON Core');
+      expect(
+        find.descendant(
+          of: find.byType(FilledButton),
+          matching: find.text("Fix Suunto EON Core's clock by -1 h"),
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Recorded by Suunto EON Core'), findsOneWidget);
+    });
+  });
+
+  group('source conflict repairs name the source (#4209)', () {
+    final conflict = _finding(
+      detectorId: 'source_conflict',
+      params: const {
+        'sourceId': 's1',
+        'primarySeconds': 1390,
+        'sourceSeconds': 4018,
+      },
+    );
+
+    testWidgets('set-primary and split name the source', (tester) async {
+      await pumpCard(
+        tester,
+        finding: conflict,
+        computerName: 'Shearwater Perdix 2',
+      );
+      expect(
+        find.descendant(
+          of: find.byType(FilledButton),
+          matching: find.text('Make Shearwater Perdix 2 the primary source'),
+        ),
+        findsOneWidget,
+      );
+      await toggleExpand(tester);
+      expect(
+        find.text('Split Shearwater Perdix 2 into its own dive'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('fall back to the unnamed labels without a name', (
+      tester,
+    ) async {
+      await pumpCard(tester, finding: conflict);
+      expect(find.text('Make this source primary'), findsOneWidget);
+      await toggleExpand(tester);
+      expect(find.text('Split into separate dives'), findsOneWidget);
+    });
+  });
+
+  group('tank row (#4209)', () {
+    final pressure = _finding(
+      detectorId: 'pressure_anomaly',
+      params: const {'tankId': 't2', 'startBar': 50.0, 'endBar': 200.0},
+    );
+
+    testWidgets('names the tank a finding is about', (tester) async {
+      await pumpCard(
+        tester,
+        finding: pressure,
+        tanks: const [QualityTankRef(number: 2)],
+      );
+      expect(find.text('Affects Tank 2'), findsOneWidget);
+      expect(find.byIcon(Icons.propane_tank_outlined), findsOneWidget);
+    });
+
+    testWidgets('adds the tank name and lists both tanks of a pair', (
+      tester,
+    ) async {
+      await pumpCard(
+        tester,
+        finding: _finding(
+          detectorId: 'tank_assignment',
+          params: const {'tankIdA': 'a', 'tankIdB': 'b'},
+        ),
+        tanks: const [
+          QualityTankRef(number: 1),
+          QualityTankRef(number: 3, name: 'Stage'),
+        ],
+      );
+      expect(find.text('Affects Tank 1 and Tank 3 · Stage'), findsOneWidget);
+    });
+
+    testWidgets('no tanks, no row', (tester) async {
+      await pumpCard(tester, finding: pressure);
+      expect(find.byIcon(Icons.propane_tank_outlined), findsNothing);
     });
   });
 

@@ -118,8 +118,17 @@ class NfcManagerTagService implements NfcTagService {
     sessionActive = true;
     try {
       await _manager.startSession(
-        // NTAG21x and most cylinder tags are ISO 14443 type A.
-        pollingOptions: const {NfcPollingOption.iso14443},
+        // Every tag flow shares this set. ISO 14443 covers NTAG21x
+        // stickers (NFC Forum Type 2) and the Type 4 tag an Android phone
+        // emulates for a buddy card swap (issue #3728). ISO 15693 covers
+        // the small on-metal and glass tags made for gear (Type 5, NXP
+        // ICODE SLIX), which polling 14443 alone never reports (issue
+        // #4226). FeliCa (ISO 18092) is left out: iOS would also need its
+        // system codes declared in Info.plist.
+        pollingOptions: const {
+          NfcPollingOption.iso14443,
+          NfcPollingOption.iso15693,
+        },
         alertMessageIos: promptIos,
         // Left at its default (true): false makes nfc_manager restart
         // polling right after reporting a tag, which invalidates that tag

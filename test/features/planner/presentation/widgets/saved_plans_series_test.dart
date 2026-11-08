@@ -94,7 +94,7 @@ void main() {
       await pumpSheet(tester, series);
 
       expect(find.text('Reef day'), findsOneWidget);
-      expect(find.textContaining('2 dives'), findsOneWidget);
+      expect(find.textContaining('1 of 2 dived'), findsOneWidget);
       expect(line('a'), findsOneWidget);
       expect(line('b'), findsOneWidget);
       expect(
@@ -285,7 +285,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Reef day'), findsOneWidget);
-    expect(find.textContaining('2 dives'), findsOneWidget);
+    expect(find.textContaining('1 of 2 dived'), findsOneWidget);
     expect(line('a'), findsOneWidget);
     expect(line('b'), findsOneWidget);
     expect(

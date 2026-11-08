@@ -240,7 +240,7 @@ void main() {
       final s = c.read(planSeriesNotifierProvider);
       expect(s.isSeries, isFalse);
       expect(s.selected.state, editor(c));
-      expect(c.read(planConvertAllowedProvider), isTrue);
+      expect(c.read(planSeriesSavesAsSeriesProvider), isFalse);
     });
 
     test('from a later dive', () async {
@@ -268,9 +268,9 @@ void main() {
 
   test('a series cannot be logged yet; a single dive can', () async {
     final c = await makeContainer();
-    expect(c.read(planConvertAllowedProvider), isTrue);
+    expect(c.read(planSeriesSavesAsSeriesProvider), isFalse);
     series(c).addDive();
-    expect(c.read(planConvertAllowedProvider), isFalse);
+    expect(c.read(planSeriesSavesAsSeriesProvider), isTrue);
   });
 
   test('segments keep their own tank after a dive is added', () async {
@@ -458,10 +458,10 @@ void main() {
     test('holds Convert to Dive back until it stops following', () async {
       final c = await makeContainer();
       series(c).followDive(follow(), surfaceInterval: const Duration(hours: 2));
-      expect(c.read(planConvertAllowedProvider), isFalse);
+      expect(c.read(planSeriesSavesAsSeriesProvider), isTrue);
 
       series(c).unfollow();
-      expect(c.read(planConvertAllowedProvider), isTrue);
+      expect(c.read(planSeriesSavesAsSeriesProvider), isFalse);
     });
 
     test('applies from a later dive too', () async {

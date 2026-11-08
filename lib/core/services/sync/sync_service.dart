@@ -9,6 +9,7 @@ import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_files.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/computer_tissue_scalar_move.dart';
+import 'package:submersion/core/database/last_service_date_repair.dart';
 import 'package:submersion/core/database/weather_fetched_at_repair.dart';
 import 'package:submersion/core/database/combined_dive_summary_repair.dart';
 import 'package:submersion/core/database/device_gear_heal.dart';
@@ -31,6 +32,7 @@ import 'package:submersion/core/services/sync/changeset_log/base_json_stream_rea
 import 'package:submersion/core/services/sync/changeset_log/base_parse_client.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_part_file_sink.dart';
 import 'package:submersion/core/services/sync/changeset_log/byte_progress_stream.dart';
+import 'package:submersion/core/services/sync/changeset_log/gzip_size_check.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_sweep.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
@@ -324,10 +326,10 @@ class SyncService {
 
   /// Test seam: how the base apply spawns its parse worker. Overridable so a
   /// forced-failure test can verify the inline fallback; production uses the
-  /// real isolate spawn.
+  /// real isolate spawn. [gzipped] says the file is a compressed base.
   @visibleForTesting
-  Future<BaseParseClient> Function(String filePath) baseParseClientSpawn =
-      BaseParseClient.spawn;
+  Future<BaseParseClient> Function(String filePath, {bool gzipped})
+  baseParseClientSpawn = BaseParseClient.spawn;
 
   /// Resolves localizations for the user-facing strings this service puts on
   /// [SyncResult] and [SyncProgress] (the Cloud Sync page renders them
@@ -395,12 +397,14 @@ class SyncService {
     DateTime? lastSync,
     String? peerDeviceId,
     void Function(double fraction)? onProgress,
+    bool gzipped = false,
   }) async {
     final r = await _applyRemoteBaseFile(
       filePath,
       lastSync,
       peerDeviceId: peerDeviceId,
       onProgress: onProgress,
+      gzipped: gzipped,
     );
     return (
       recordsApplied: r.recordsApplied,
@@ -429,7 +433,9 @@ class SyncService {
     });
   }
 
-  /// [applyNearbyPayload] for a full copy streamed to [filePath].
+  /// [applyNearbyPayload] for a full copy streamed to [filePath], which is
+  /// gzipped. Each pass reads it through the decoder, so the copy is never
+  /// expanded on disk beside the compressed one (issue #4256).
   Future<NearbyApplyResult> applyNearbyBaseFile(
     String filePath, {
     required DateTime? lastSync,
@@ -443,6 +449,7 @@ class SyncService {
         lastSync,
         peerDeviceId: peerDeviceId,
         onProgress: onProgress,
+        gzipped: true,
       );
       return (
         recordsApplied: r.recordsApplied,
@@ -1466,15 +1473,17 @@ class SyncService {
   /// peer is current, and each leaves the sync stamp alone, as its rung does:
   /// the sending peer makes the same change when it upgrades. A combined dive
   /// keeps its shape once repaired, so that repair reads only
-  /// [combinedDiveIds], the dives a payload touched; null, for a base file,
-  /// sweeps them all.
+  /// [combinedDiveIds], the dives a payload touched; null, for a base file or
+  /// an adopted library, sweeps them all.
   ///
   /// A peer below v318 still publishes the CNS, OTU and deco model inside a
   /// dive's computer tissue snapshot, with the dive's own columns empty
   /// (issue #2555). One below v337 publishes `weather_fetched_at` in
   /// milliseconds, as does a sync store written before it (issue #4119). One
   /// below v340 publishes a combined dive with its first segment's water
-  /// temperature, CNS and OTU (issue #4136).
+  /// temperature, CNS and OTU (issue #4136). One below v346 publishes an
+  /// item's last service date older than its newest service record when an
+  /// older record was logged there (issue #4201).
   Future<void> _repairLegacyPeerRows({
     Iterable<String>? combinedDiveIds,
   }) async {
@@ -1483,6 +1492,11 @@ class SyncService {
       await repairWeatherFetchedAtSeconds(db);
       await repairCombinedDiveSummaries(db, diveIds: combinedDiveIds);
       await moveComputerTissueScalars(db);
+      // Raw SQL, which Drift's streams do not see; tell open screens, as the
+      // base-file path runs this after its apply has committed.
+      if (await repairLastServiceDates(db) > 0) {
+        db.notifyUpdates({TableUpdate.onTable(db.equipment)});
+      }
     } catch (e, st) {
       // The applied rows are already in place; losing this repair costs only
       // the old values, never the sync.
@@ -1753,6 +1767,13 @@ class SyncService {
           (
             type: 'equipmentComponents',
             records: data.equipmentComponents,
+            hasUpdatedAt: true,
+          ),
+          // Twin set pairings (issue #4242): both cylinders are equipment
+          // rows, so after equipment like equipmentComponents.
+          (
+            type: 'cylinderPairings',
+            records: data.cylinderPairings,
             hasUpdatedAt: true,
           ),
           // After both parents (divePlans and equipment).
@@ -2285,11 +2306,13 @@ class SyncService {
     DateTime? localLastSync, {
     String? peerDeviceId,
     void Function(double fraction)? onProgress,
+    bool gzipped = false,
   }) async {
     Future<_MergeResult> apply() => _applyRemoteBaseFileInner(
       filePath,
       localLastSync,
       onProgress: onProgress,
+      gzipped: gzipped,
     );
 
     final db = DatabaseService.instance.databaseOrNull;
@@ -2323,10 +2346,13 @@ class SyncService {
     return row.read<int>('has_dives') == 1;
   }
 
+  /// A [gzipped] file is read through the decoder on every pass; progress
+  /// then follows the compressed bytes consumed.
   Future<_MergeResult> _applyRemoteBaseFileInner(
     String filePath,
     DateTime? localLastSync, {
     void Function(double fraction)? onProgress,
+    bool gzipped = false,
   }) async {
     final totalBytes = await SyncTempFiles.length(filePath);
     final stopwatch = Stopwatch()..start();
@@ -2335,7 +2361,7 @@ class SyncService {
     BaseParseClient? client;
     _MergeResult result;
     try {
-      client = await baseParseClientSpawn(filePath);
+      client = await baseParseClientSpawn(filePath, gzipped: gzipped);
       client.onProgress = progress.bytes;
       result = await _applyRemoteBaseFileViaWorker(
         client,
@@ -2363,6 +2389,7 @@ class SyncService {
         filePath,
         localLastSync,
         progress,
+        gzipped: gzipped,
       );
     } finally {
       await client?.dispose();
@@ -2539,15 +2566,29 @@ class SyncService {
   Future<_MergeResult> _applyRemoteBaseFileInline(
     String filePath,
     DateTime? localLastSync,
-    BaseApplyProgress progress,
-  ) async {
+    BaseApplyProgress progress, {
+    bool gzipped = false,
+  }) async {
     final lastSyncMs = localLastSync?.millisecondsSinceEpoch;
+    // A gzipped file is checked against its trailer on every pass.
+    GzipTrailer? trailer;
+    if (gzipped) {
+      final length = await SyncTempFiles.length(filePath);
+      trailer = gzipTrailer(
+        await SyncTempFiles.read(filePath, length < 8 ? 0 : length - 8, 8),
+      );
+    }
     // The inline parse blocks the UI isolate, so its heartbeats are what
     // keep the bar moving; the fallback runs the whole file three times.
-    Stream<List<int>> openWithProgress() => withByteProgress(
-      SyncTempFiles.openRead(filePath),
-      onProgress: progress.consumed,
-    );
+    Stream<List<int>> openWithProgress() {
+      final read = withByteProgress(
+        SyncTempFiles.openRead(filePath),
+        onProgress: progress.consumed,
+      );
+      return trailer != null
+          ? checkedGzipTrailer(SyncTempFiles.gunzip(read), trailer)
+          : read;
+    }
 
     // ---- Pass 1: exportedAt + deletions ----
     var baseExportedAt = 0;
@@ -3014,6 +3055,7 @@ class SyncService {
     'qualityFindings': true,
     'equipmentAttributes': true,
     'equipmentComponents': true,
+    'cylinderPairings': true,
     'mediaSmartAlbums': true,
     'divePlanEquipment': false,
     'diverWeightEntries': true,
@@ -3739,6 +3781,10 @@ class SyncService {
     'equipmentComponents': [
       (field: 'parentEquipmentId', parent: 'equipment', nullable: false),
       (field: 'componentEquipmentId', parent: 'equipment', nullable: false),
+    ],
+    'cylinderPairings': [
+      (field: 'cylinderAId', parent: 'equipment', nullable: false),
+      (field: 'cylinderBId', parent: 'equipment', nullable: false),
     ],
     'serviceSchedules': [
       (field: 'equipmentId', parent: 'equipment', nullable: false),
@@ -5517,6 +5563,7 @@ class SyncService {
     }
 
     await _serializer.repairDanglingForeignKeys();
+    await _repairLegacyPeerRows();
   }
 
   /// Lands the explicit fact clears an adopt's upsert would drop.
@@ -5636,6 +5683,10 @@ class SyncService {
         baseExportedAt: baseExportedAt,
         changesets: changesets,
       );
+      // An adopted library is rows from peers like any other apply's, so
+      // the data rungs run over them too, inside the caller's transaction
+      // and change-log scope.
+      await _repairLegacyPeerRows();
     } finally {
       // The device-local values the table clears remembered belong to this
       // adopt's refill only (issue #2947).

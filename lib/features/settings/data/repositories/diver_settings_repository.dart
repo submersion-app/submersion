@@ -22,6 +22,7 @@ import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/first_day_of_week.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/map_style.dart';
@@ -261,6 +262,7 @@ class DiverSettingsRepository {
                 ),
                 timeFormat: Value(s.timeFormat.name),
                 dateFormat: Value(s.dateFormat.name),
+                firstDayOfWeek: Value(s.firstDayOfWeek.name),
                 themeMode: Value(_themeModeToString(s.themeMode)),
                 themePreset: Value(s.themePresetId),
                 accentNavIcons: Value(s.accentNavIcons),
@@ -660,6 +662,7 @@ class DiverSettingsRepository {
       ),
       timeFormat: Value(settings.timeFormat.name),
       dateFormat: Value(settings.dateFormat.name),
+      firstDayOfWeek: Value(settings.firstDayOfWeek.name),
       themeMode: Value(_themeModeToString(settings.themeMode)),
       themePreset: Value(settings.themePresetId),
       accentNavIcons: Value(settings.accentNavIcons),
@@ -940,6 +943,7 @@ class DiverSettingsRepository {
       ),
       timeFormat: _parseTimeFormat(row.timeFormat),
       dateFormat: _parseDateFormat(row.dateFormat),
+      firstDayOfWeek: _parseFirstDayOfWeek(row.firstDayOfWeek),
       themeMode: _parseThemeMode(row.themeMode),
       themePresetId: row.themePreset,
       accentNavIcons: row.accentNavIcons,
@@ -1218,6 +1222,14 @@ class DiverSettingsRepository {
     return DateFormatPreference.values.firstWhere(
       (e) => e.name == value,
       orElse: () => DateFormatPreference.mmmDYYYY,
+    );
+  }
+
+  /// An unknown name, such as one a newer peer wrote, reads as automatic.
+  FirstDayOfWeek _parseFirstDayOfWeek(String value) {
+    return FirstDayOfWeek.values.firstWhere(
+      (e) => e.name == value,
+      orElse: () => FirstDayOfWeek.auto,
     );
   }
 

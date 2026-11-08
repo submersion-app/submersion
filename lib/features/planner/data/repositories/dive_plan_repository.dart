@@ -645,8 +645,17 @@ class DivePlanRepository {
     );
   }
 
-  Future<List<domain.DivePlanSummary>> getAllPlanSummaries() async {
+  /// Every saved plan's summary, newest first, or only those of [ids] and
+  /// the rest of each one's saved series when named (Global Search's few
+  /// rows, issue #4247): a series shows as one row holding all its dives.
+  Future<List<domain.DivePlanSummary>> getAllPlanSummaries({
+    List<String>? ids,
+  }) async {
+    if (ids != null && ids.isEmpty) return const [];
     final dives = _db.dives;
+    // Whether the linked dive is still in the log. Read as an expression:
+    // the joined row's own `id` column would be ambiguous with the plan's.
+    final linkedDiveFound = dives.id.isNotNull();
     final query =
         _db.select(_db.divePlans).join([
             leftOuterJoin(
@@ -656,12 +665,25 @@ class DivePlanRepository {
             ),
           ])
           ..addColumns([
+            linkedDiveFound,
             dives.diveNumber,
             dives.isPlanned,
             dives.entryTime,
             dives.diveDateTime,
           ])
           ..orderBy([OrderingTerm.desc(_db.divePlans.updatedAt)]);
+    if (ids != null) {
+      // The shown plans' series, asked in the same statement.
+      final shownSeries = _db.selectOnly(_db.divePlans)
+        ..addColumns([_db.divePlans.seriesId])
+        ..where(
+          _db.divePlans.id.isIn(ids) & _db.divePlans.seriesId.isNotNull(),
+        );
+      query.where(
+        _db.divePlans.id.isIn(ids) |
+            _db.divePlans.seriesId.isInQuery(shownSeries),
+      );
+    }
     final rows = await query.get();
     return rows.map((row) {
       final r = row.readTable(_db.divePlans);
@@ -678,6 +700,8 @@ class DivePlanRepository {
         linkedDiveId: r.linkedDiveId,
         linkedDiveNumber: row.read(dives.diveNumber),
         linkedDiveIsPlanned: row.read(dives.isPlanned) ?? false,
+        linkedDiveExists:
+            r.linkedDiveId == null || (row.read(linkedDiveFound) ?? false),
         // Dive times are the wall clock flagged UTC.
         linkedDiveDate: diveMillis == null
             ? null

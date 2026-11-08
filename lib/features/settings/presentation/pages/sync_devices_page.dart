@@ -48,20 +48,25 @@ class SyncDevicesPage extends ConsumerWidget {
               text: l10n.settings_syncDevices_empty,
             );
           }
-          final shared = duplicatedSyncDeviceNames(list);
+          // A removed device is only its retirement marker, which stays for
+          // good. Listing it offered a trash button that could do nothing but
+          // rewrite the marker (issue #4219), so it is counted, not shown.
+          final shown = list.where((d) => !d.isRemoved).toList();
+          final removedCount = list.length - shown.length;
+          final shared = duplicatedSyncDeviceNames(shown);
           return ListView.separated(
-            itemCount: list.length + 1,
+            itemCount: shown.length + 1,
             separatorBuilder: (_, _) => const Divider(height: 1),
             itemBuilder: (context, i) => i == 0
-                ? _Summary(devices: list)
+                ? _Summary(devices: shown, removedCount: removedCount)
                 : _DeviceTile(
-                    device: list[i - 1],
+                    device: shown[i - 1],
                     // Two phones of the same model, or two iPhones on iOS 16+
                     // (which hands out the model as the name), publish the
                     // same name. Identical rows are what the device id
                     // fallback was protecting against, so keep that guarantee
                     // by qualifying the name instead of dropping it.
-                    disambiguate: shared.contains(list[i - 1].deviceName),
+                    disambiguate: shared.contains(shown[i - 1].deviceName),
                   ),
           );
         },
@@ -87,9 +92,12 @@ Set<String> duplicatedSyncDeviceNames(List<SyncDeviceFootprint> devices) {
 /// Totals first: the number the user actually came here for is "how much of my
 /// cloud storage is this app using, and how much of that is dead weight".
 class _Summary extends StatelessWidget {
-  const _Summary({required this.devices});
+  const _Summary({required this.devices, required this.removedCount});
 
   final List<SyncDeviceFootprint> devices;
+
+  /// Devices already removed, which are left out of [devices] and the totals.
+  final int removedCount;
 
   @override
   Widget build(BuildContext context) {
@@ -105,14 +113,18 @@ class _Summary extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            l10n.settings_syncDevices_summary(
-              devices.length,
-              files,
-              formatBytes(bytes),
+          // Only removed devices left (this one has not published yet): "0
+          // devices, 0 files" over an empty list reads like a failed read, so
+          // the removed count stands alone.
+          if (devices.isNotEmpty)
+            Text(
+              l10n.settings_syncDevices_summary(
+                devices.length,
+                files,
+                formatBytes(bytes),
+              ),
+              style: theme.textTheme.titleMedium,
             ),
-            style: theme.textTheme.titleMedium,
-          ),
           if (removable.isNotEmpty) ...[
             const SizedBox(height: 4),
             Text(
@@ -120,6 +132,15 @@ class _Summary extends StatelessWidget {
                 removable.length,
                 formatBytes(removableBytes),
               ),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+          if (removedCount > 0) ...[
+            if (devices.isNotEmpty) const SizedBox(height: 4),
+            Text(
+              l10n.settings_syncDevices_summary_removed(removedCount),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),

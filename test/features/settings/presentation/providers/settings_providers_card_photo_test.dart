@@ -7,7 +7,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 
 import '../../../../helpers/test_database.dart';
 
-/// The dive card photo settings (v343) on the real notifier: the switch,
+/// The dive card photo settings (v347) on the real notifier: the switch,
 /// the two overlay opacities and the providers the cards watch.
 void main() {
   late AppDatabase db;
