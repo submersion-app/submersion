@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// The tank pressure curves the profile chart surfaces draw.
@@ -58,6 +59,12 @@ final estimatedTankPressuresProvider =
       );
       final diveFuture = ref.watch(diveProvider(diveId).future);
       final switchesFuture = ref.watch(gasSwitchesProvider(diveId).future);
+      // The drawn series' computer, the one the chart's gas strip reads its
+      // switches from: another computer's record of a switch must not start
+      // this one's estimated drop (#4300). Null is one series of every source.
+      final activeComputerId = ref
+          .watch(activeSourceProfileProvider(diveId))
+          ?.computerId;
       // Read synchronously, before the first await, so the dependency is
       // registered while the provider is certainly still alive.
       final showEstimates = ref.watch(
@@ -80,11 +87,16 @@ final estimatedTankPressuresProvider =
       if (!showEstimates) {
         return EstimatedTankPressures(real, const <String>{});
       }
-      final switches = await switchesFuture;
+      final inputs = computerGasInputs(
+        dive,
+        gasSwitches: await switchesFuture,
+        computerId: activeComputerId,
+      );
       return synthesizeEstimatedTankPressures(
         existing: real,
-        tanks: dive.tanks,
-        gasSwitches: switches,
+        tanks: inputs.tanks,
+        gasSwitches: inputs.gasSwitches,
+        onLoop: dive.isRebreather,
         diveDurationSeconds: dive.profile.isEmpty
             ? 0
             : dive.profile.last.timestamp,
