@@ -8,7 +8,8 @@ extension _ExtraCopies on BackupService {
   /// Uploads [sourcePath] as [storedName] to every extra account, in order.
   /// Never throws. An account the main copy also goes to is skipped, so one
   /// account never receives the same backup twice; it is not missed either.
-  /// [missed] holds the accounts that got no copy.
+  /// With no main provider here nothing goes there, so that account is then
+  /// copied to as an extra. [missed] holds the accounts that got no copy.
   Future<({List<ExtraCloudCopy> copies, List<String> missed})> _copyToExtras(
     String sourcePath,
     String storedName,
@@ -16,7 +17,9 @@ extension _ExtraCopies on BackupService {
     if (_extraCopies.isEmpty) {
       return (copies: const <ExtraCloudCopy>[], missed: const <String>[]);
     }
-    final mainAccountId = await _copyAccountIdOrNull();
+    final mainAccountId = _cloudProvider == null
+        ? null
+        : await _copyAccountIdOrNull();
     final copies = <ExtraCloudCopy>[];
     final missed = <String>[];
     for (final destination in _extraCopies) {
@@ -49,6 +52,72 @@ extension _ExtraCopies on BackupService {
       }
     }
     return (copies: copies, missed: missed);
+  }
+
+  /// Runs [upload] with the bytes every copy of one backup sends. With
+  /// [share] (more than one account gets a copy), sync encryption on and
+  /// this device unlocked, that is one framed .sbe made for all of them,
+  /// which each upload then sends verbatim: the backup is encrypted once,
+  /// not once per account. Otherwise, or when the framing fails, it is
+  /// [path] as [name], and each upload frames (or fails closed) on its own.
+  Future<void> _withSharedUploadSource(
+    String path,
+    String name, {
+    required bool share,
+    required Future<void> Function(String path, String name) upload,
+  }) async {
+    final framed = share ? await _frameOnce(path, name) : null;
+    if (framed == null) return upload(path, name);
+    try {
+      await upload(framed.path, framed.name);
+    } finally {
+      await _deleteQuietly(framed.path);
+    }
+  }
+
+  /// [path] framed with the sync key as `<name>.sbe` in temp, as
+  /// [_uploadToCloud] frames a copy; null when no framing is needed or it
+  /// cannot be done here.
+  Future<({String path, String name})?> _frameOnce(
+    String path,
+    String name,
+  ) async {
+    if (!(_syncPreferences?.syncEncryptionEnabled ?? false)) return null;
+    String? framedPath;
+    try {
+      if (await BackupCrypto.isEncryptedBackup(path)) return null;
+      final unlocked = await _unlockedSyncKey();
+      if (unlocked == null) return null;
+      final framedName =
+          p.basenameWithoutExtension(name) + BackupCrypto.fileExtension;
+      final tempDir = await resolveSyncTempDir();
+      framedPath = p.join(tempDir.path, '${_uuid.v4()}-$framedName');
+      await BackupCrypto.encryptFile(
+        inPath: path,
+        outPath: framedPath,
+        mlk: unlocked.mlk,
+        libraryKeyId: unlocked.libraryKeyId,
+        keyslotBytes: unlocked.keyslotBytes,
+      );
+      return (path: framedPath, name: framedName);
+    } catch (e, stack) {
+      _log.warning(
+        'Could not frame the backup once for every copy',
+        error: e,
+        stackTrace: stack,
+      );
+      if (framedPath != null) await _deleteQuietly(framedPath);
+      return null;
+    }
+  }
+
+  Future<void> _deleteQuietly(String path) async {
+    try {
+      final file = File(path);
+      if (await file.exists()) await file.delete();
+    } catch (_) {
+      // best-effort temp cleanup
+    }
   }
 
   /// The provider for [accountId] while it is an extra destination this

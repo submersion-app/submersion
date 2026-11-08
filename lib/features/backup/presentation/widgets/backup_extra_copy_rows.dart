@@ -20,16 +20,18 @@ const _oneSessionKinds = {AccountKind.googledrive, AccountKind.icloud};
 
 /// "Also copy to {account}" for each account a backup is also copied to,
 /// then "Copy to another account too" (issue #3782). Shown below the main
-/// copy's row, and only while the main copy names an account: the extra
-/// copies ride on it.
+/// copy's row while the copy is on: backups go to the extra accounts then,
+/// even when the main copy names no account (sync not set up, or its
+/// account removed), so they stay listed with Remove. Adding one waits for
+/// the main copy to name an account, since the extras ride on it.
 class BackupExtraCopyRows extends ConsumerWidget {
   const BackupExtraCopyRows({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final target = ref.watch(backupCopyTargetProvider).value;
+    if (target == null || target is NoCopy) return const SizedBox.shrink();
     final main = backupCopyGroupOf(target);
-    if (main == null) return const SizedBox.shrink();
     final l10n = context.l10n;
     final settings = ref.watch(backupSettingsProvider);
     final groups = ref.watch(accountGroupsProvider).value;
@@ -40,19 +42,21 @@ class BackupExtraCopyRows extends ConsumerWidget {
         for (final account in settings.extraCopyAccounts)
           // An account the main copy now goes to (sync moved onto it) gets
           // no second copy, so it is not listed as one.
-          if (groups?.holding(account.accountId)?.key != main.key)
+          if (main == null ||
+              groups?.holding(account.accountId)?.key != main.key)
             _ExtraCopyTile(
               account: account,
               group: groups?.holding(account.accountId),
               loading: groups == null,
               missed: missed.contains(account.accountId),
             ),
-        ListTile(
-          key: const Key('backup-extra-copy-add'),
-          leading: const Icon(Icons.add),
-          title: Text(l10n.settings_backups_addCopyAccount),
-          onTap: () => _add(context, ref, target!),
-        ),
+        if (main != null)
+          ListTile(
+            key: const Key('backup-extra-copy-add'),
+            leading: const Icon(Icons.add),
+            title: Text(l10n.settings_backups_addCopyAccount),
+            onTap: () => _add(context, ref, target),
+          ),
       ],
     );
   }

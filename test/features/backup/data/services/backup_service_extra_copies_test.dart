@@ -42,6 +42,7 @@ class _Account extends FakeCloudStorageProvider
   bool failDeletes = false;
   bool failDownloads = false;
   bool failResets = false;
+  bool failLists = false;
   int flushes = 0;
   int resets = 0;
   final deleted = <String>[];
@@ -71,6 +72,15 @@ class _Account extends FakeCloudStorageProvider
   Future<Uint8List> downloadFile(String fileId) {
     if (failDownloads) throw const CloudStorageException('offline (test)');
     return super.downloadFile(fileId);
+  }
+
+  @override
+  Future<List<CloudFileInfo>> listFiles({
+    String? folderId,
+    String? namePattern,
+  }) {
+    if (failLists) throw const CloudStorageException('offline (test)');
+    return super.listFiles(folderId: folderId, namePattern: namePattern);
   }
 
   @override
@@ -238,6 +248,22 @@ void main() {
       expect(preferences.getSettings().lastExtraCopyMissingIds, isEmpty);
     });
 
+    test("copies to the main copy's account when the main copy has no "
+        'provider', () async {
+      // The copy follows sync on the Git account, but sync has no provider
+      // here (a custom database folder): only the extra can reach it.
+      final record = await service(
+        noMain: true,
+        syncAccountId: 'git-row',
+      ).performBackup();
+
+      expect(git.names, [record.filename]);
+      expect(record.extraCloudCopies.map((c) => c.accountId), [
+        'git-row',
+        'db-row',
+      ]);
+    });
+
     test('still copies to the extras when the main copy fails', () async {
       main.failUploads = true;
 
@@ -319,6 +345,10 @@ void main() {
       expect(copy.name, endsWith('.sbe'));
       expect(SyncEnvelope.hasMagic(copy.bytes), isTrue);
       expect(record.extraCloudCopies.first.fileId, '$_folder/${copy.name}');
+      // Framed once for every copy, not once per account.
+      final framed = copy.bytes;
+      expect(main.allStoredFiles().single.bytes, framed);
+      expect(dropbox.allStoredFiles().single.bytes, framed);
     });
   });
 
@@ -578,6 +608,18 @@ void main() {
       expect(result.failed, 1);
     });
 
+    test('a record kept only for its extra copies counts as failed', () async {
+      final plain = await service(noMain: true).performBackup();
+      await File(plain.localPath!).delete();
+      await enableBackupEncryption();
+
+      final result = await service(noMain: true).reencryptExistingBackups();
+
+      // Its extra copies stay plaintext: disclosed, not skipped.
+      expect(result.failed, 1);
+      expect(result.skipped, 0);
+    });
+
     test('re-encrypt counts an unreachable extra as failed', () async {
       final plain = await service().performBackup();
       await enableBackupEncryption();
@@ -615,6 +657,17 @@ void main() {
       expect(git.names, isEmpty);
       expect(dropbox.names, isEmpty);
       expect(git.resets, 1);
+    });
+
+    test('an account failing the cleanup does not stop the others', () async {
+      await service().performBackup();
+      git.failLists = true;
+
+      final deleted = await service().deletePlaintextCloudBackups();
+
+      expect(deleted, 2);
+      expect(main.names, isEmpty);
+      expect(dropbox.names, isEmpty);
     });
   });
 }

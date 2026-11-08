@@ -102,12 +102,28 @@ void main() {
     expect(find.textContaining('Also copy to'), findsNothing);
   });
 
-  testWidgets('hidden while the copy follows a sync that is not set up', (
-    tester,
-  ) async {
-    await pumpRows(tester, target: const CopyFollowsSync(null));
-    expect(find.byKey(const Key('backup-extra-copy-add')), findsNothing);
-  });
+  // The copy is still on, so backups still go to the extra accounts: they
+  // stay listed, with Remove, though none can be added until the main copy
+  // names an account again.
+  for (final (name, target) in [
+    ('follows a sync that is not set up', const CopyFollowsSync(null)),
+    ('is pinned to a removed account', const CopyAccountGone('gone-row')),
+  ]) {
+    testWidgets('lists the extras, with no add, while the copy $name', (
+      tester,
+    ) async {
+      await pumpRows(tester, target: target);
+      expect(
+        find.text('Also copy to diver/backups @ github.com'),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('backup-extra-copy-remove-git-row')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('backup-extra-copy-add')), findsNothing);
+    });
+  }
 
   testWidgets('lists each extra account', (tester) async {
     await pumpRows(

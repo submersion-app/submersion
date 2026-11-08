@@ -294,10 +294,15 @@ class BackupService {
       missed: const [],
     );
     // Every copy uploads the same stored bytes from [path] as [name].
-    Future<void> copyOut(String path, String name) async {
-      if (wantsCopy) copy = await _copyToCloud(path, name);
-      if (wantsExtras) extras = await _copyToExtras(path, name);
-    }
+    Future<void> copyOut(String path, String name) => _withSharedUploadSource(
+      path,
+      name,
+      share: wantsExtras,
+      upload: (path, name) async {
+        if (wantsCopy) copy = await _copyToCloud(path, name);
+        if (wantsExtras) extras = await _copyToExtras(path, name);
+      },
+    );
 
     final String ref;
     final int sizeBytes;
@@ -570,7 +575,13 @@ class BackupService {
       try {
         final file = File(localPath);
         if (!await file.exists()) {
-          skipped++;
+          // History keeps such a record for its extra copies (issue #3782),
+          // which stay plaintext: disclosed as a failure, not skipped.
+          if (record.extraCloudCopies.isNotEmpty) {
+            failed++;
+          } else {
+            skipped++;
+          }
           continue;
         }
         if (await BackupCrypto.isEncryptedBackup(localPath)) {
@@ -1957,8 +1968,17 @@ class BackupService {
   Future<int> deletePlaintextCloudBackups() async {
     var deleted = 0;
     // The main copy's folder, then each extra account's (issue #3782).
+    // One account failing leaves the others to be cleared.
     for (final provider in [?_cloudProvider, ..._reachableExtraProviders]) {
-      deleted += await _deletePlaintextIn(provider);
+      try {
+        deleted += await _deletePlaintextIn(provider);
+      } catch (e, stack) {
+        _log.error(
+          'Unencrypted backups could not be cleared from one account',
+          error: e,
+          stackTrace: stack,
+        );
+      }
     }
     _log.info('Deleted $deleted unencrypted cloud backups');
     return deleted;

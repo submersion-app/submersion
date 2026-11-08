@@ -91,7 +91,12 @@ class _FolderFailingCloud extends FakeCloudStorageProvider {
 }
 
 /// One recorded call to the notification seam.
-typedef _Notification = ({bool success, String? error, bool cloudCopyMissing});
+typedef _Notification = ({
+  bool success,
+  String? error,
+  bool cloudCopyMissing,
+  bool extraCopyMissing,
+});
 
 /// Per-file temp root, so the backup service's fixed `Submersion/Backups`
 /// subtree does not collide with the other suites that mock path_provider the
@@ -138,11 +143,13 @@ void main() {
     required bool success,
     String? error,
     bool cloudCopyMissing = false,
+    bool extraCopyMissing = false,
   }) async {
     notifications.add((
       success: success,
       error: error,
       cloudCopyMissing: cloudCopyMissing,
+      extraCopyMissing: extraCopyMissing,
     ));
   }
 
@@ -259,7 +266,7 @@ void main() {
     // Issue #3782: an extra account the backup did not reach is a missing
     // copy too. Lightroom holds no files, so no provider can be built for it
     // here, deterministically.
-    test('a missed extra copy reports the copy missing', () async {
+    test('a missed extra copy is reported apart from the main copy', () async {
       final prefs = await seedPrefs();
       await BackupPreferences(prefs).setExtraCopyAccounts(const [
         BackupCopyAccount(
@@ -272,7 +279,9 @@ void main() {
 
       expect(await uploadedBackups(), hasLength(1));
       expect(notifications.single.success, isTrue);
-      expect(notifications.single.cloudCopyMissing, isTrue);
+      // The main copy uploaded: saying "device only" would be false.
+      expect(notifications.single.cloudCopyMissing, isFalse);
+      expect(notifications.single.extraCopyMissing, isTrue);
       expect(BackupPreferences(prefs).getSettings().lastExtraCopyMissingIds, [
         'acct-x',
       ]);
