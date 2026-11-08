@@ -142,6 +142,43 @@ void main() {
       );
     });
 
+    test('a series rate with no depth at all carries the 10 m fallback', () {
+      // No profile and no stored average depth: the transmitter series rate
+      // is worked out at 10 m, and the row must say so, or the role card
+      // would turn it back into litres at some other depth.
+      final dive = Dive(
+        id: 'dive',
+        diveNumber: 1,
+        dateTime: DateTime.utc(2026, 10, 1, 10),
+        runtime: const Duration(minutes: 60),
+        tanks: const [_back],
+      );
+      final rows = _service.calculateCylinderSac(
+        dive: dive,
+        profile: const [],
+        tankPressures: {
+          'back': [
+            for (var t = 0; t <= 3600; t += 60)
+              TankPressurePoint(
+                tankId: 'back',
+                timestamp: t,
+                pressure: 200 - 120 * t / 3600,
+              ),
+          ],
+        },
+      );
+
+      final back = _row(rows, 'back');
+      expect(back.hasTimeSeriesData, isTrue);
+      expect(
+        back.rateAmbientBar,
+        closeTo(dive.environment.pressureAtDepth(10), 1e-9),
+      );
+      final minutes = back.usageDuration!.inSeconds / 60;
+      // Ideal gas: 120 bar of a 12 L cylinder is 1440 L.
+      expect(back.rmv! * minutes * back.rateAmbientBar!, closeTo(1440, 1e-6));
+    });
+
     test('a row without a rate has no ambient pressure', () {
       final full = _deco.copyWith(endPressure: 200);
       final rows = _service.calculateCylinderSac(
