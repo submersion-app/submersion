@@ -220,10 +220,12 @@ void main() {
       isNull,
     );
 
-    await tester.enterText(find.byType(TextField).at(4), '2');
+    // Entered in seconds, so a switch shorter than a minute can be planned
+    // (issue #4160).
+    await tester.enterText(find.byType(TextField).at(4), '30');
     await tester.pumpAndSettle();
 
-    expect(container.read(divePlanNotifierProvider).gasSwitchStopSeconds, 120);
+    expect(container.read(divePlanNotifierProvider).gasSwitchStopSeconds, 30);
   });
 
   testWidgets(
@@ -240,9 +242,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Problem solving time and the gas-switch stop time field both use
-      // the same minute-unit suffix, so there are now two matches.
-      expect(find.text('Min.'), findsNWidgets(2));
+      // Only problem solving time is in minutes; the gas-switch stop is
+      // entered in seconds (issue #4160).
+      expect(find.text('Min.'), findsOneWidget);
+      expect(find.text('Sek.'), findsOneWidget);
       expect(find.text('min'), findsNothing);
     },
   );

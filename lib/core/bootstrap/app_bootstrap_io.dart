@@ -38,7 +38,8 @@ Future<void> bootstrapApp() async {
   // SecurityContext seeded from the OS certificate store, which Dart's
   // bundled BoringSSL cannot read; everywhere it routes each connection by
   // the current proxy snapshot (#3217). Must run before the first network
-  // request; the snapshot stays direct until the saved choice loads below.
+  // request. Requests opened before the saved choice loads below wait for it
+  // (#4246), so even the first one takes the configured route.
   // (Inside main(), so not reachable from the test host.)
   final proxyController = ProxyController(
     resolver: SystemProxyResolver.forPlatform(),
@@ -46,6 +47,7 @@ Future<void> bootstrapApp() async {
   processProxyController = proxyController;
   HttpOverrides.global = AppHttpOverrides(
     currentProxy: () => proxyController.current,
+    pendingStartup: () => proxyController.pendingStartup,
   );
 
   // Relocate the Windows app-data trees off the legacy "Eric Griffin" company
@@ -64,10 +66,20 @@ Future<void> bootstrapApp() async {
   // the first frame; see [applyStartupPreferences].
   applyStartupPreferences(prefs);
 
-  // Load the proxy choice and, in system mode, ask the OS (at most 3 s, so
-  // a slow PAC server cannot hold up launch), then keep it current as the
-  // network changes and the app resumes.
-  await proxyController.initialize(ProxySettingsStore(prefs));
+  // Load the proxy choice and, in system mode, ask the OS, then keep it
+  // current as the network changes and the app resumes. Not awaited: a slow
+  // PAC lookup (Windows evaluates the script inline) would hold the first
+  // frame for up to the 3 s startup timeout (#4246). Network requests wait
+  // for it instead, through the overrides above; the splash never does.
+  unawaited(
+    proxyController
+        .initialize(ProxySettingsStore(prefs))
+        .catchError(
+          (Object e, StackTrace st) => const LoggerService(
+            'Proxy',
+          ).error('Proxy startup failed', error: e, stackTrace: st),
+        ),
+  );
   ProxyRefreshTriggers(proxyController);
 
   // Attach the log file now that prefs and the app-support directory are

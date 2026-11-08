@@ -27,6 +27,7 @@ DiveTank tankFromTripCylinder(DiveTank tank, TripCylinderState slot) {
     clearPresetName: hasSpecs && c.presetName == null,
     clearMaterial: hasSpecs && c.material == null,
     clearPassportId: true,
+    clearTwinPassportId: true,
   );
 }
 

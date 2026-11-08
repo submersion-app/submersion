@@ -94,18 +94,18 @@ class PlannerGasDefaultsSection extends ConsumerWidget {
           const Divider(height: 1),
           PlannerDefaultTile(
             label: context.l10n.divePlanner_gasOptions_gasSwitchStopSeconds,
+            // Entered in seconds, same as the per-plan field (issue #4160).
             valueText:
-                '${(settings.plannerGasSwitchStopSeconds / 60).round()} '
-                '$minutesUnit',
-            initialValue: (settings.plannerGasSwitchStopSeconds / 60)
-                .roundToDouble(),
-            unitSymbol: minutesUnit,
+                '${settings.plannerGasSwitchStopSeconds} '
+                '${context.l10n.divePlanner_label_secondsUnit}',
+            initialValue: settings.plannerGasSwitchStopSeconds.toDouble(),
+            unitSymbol: context.l10n.divePlanner_label_secondsUnit,
             integer: true,
             // 0 (no gas-switch stop) is the existing default and a valid
             // choice, same as the per-plan field.
             accept: PlannerDefaultTile.nonNegative,
             onSaved: (entered) =>
-                notifier.setPlannerGasSwitchStopSeconds((entered * 60).round()),
+                notifier.setPlannerGasSwitchStopSeconds(entered.round()),
           ),
           const Divider(height: 1),
           PlannerDefaultTile(

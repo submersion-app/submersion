@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
+import 'package:submersion/core/services/export/uddf/uddf_export_profiles.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/models/uddf_export_options.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
@@ -95,15 +97,27 @@ void main() {
     });
 
     // What the dive list's bulk export hands the writer: the selected dives
-    // and the extras the export actions fetch.
+    // without their samples, the extras the export actions fetch, and the
+    // loader that reads each run's samples, pressures and sources as it is
+    // written (issue #4249).
     const options = UddfExportOptions();
+    final repository = DiveRepository();
     final xml = await UddfExportService().generateDivesUddfContent(
-      await DiveRepository().getDivesByIds(['dive-a']),
+      [
+        for (final dive in await repository.getDivesByIdsWithoutSamples([
+          'dive-a',
+        ]))
+          dive.copyWith(profile: const []),
+      ],
+      loadDiveChunk: databaseUddfDiveChunks(
+        diveRepository: repository,
+        tankPressureRepository: TankPressureRepository(),
+        fetchSources: (ids) => resolveDataSources(repository, ids),
+      ),
       extras: await resolveDivesExtras(
         BuddyRepository(),
         EquipmentComponentRepository(),
         DiveRoleRepository(),
-        TankPressureRepository(),
         _diverId,
         ['dive-a'],
         options,

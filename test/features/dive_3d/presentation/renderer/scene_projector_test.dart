@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -41,5 +42,71 @@ void main() {
     final a = SceneProjector(size: size, bounds: bounds).project(3, -2, 0.1);
     final b = SceneProjector(size: size, bounds: bounds).project(3, -2, 0.1);
     expect(a, b);
+  });
+
+  test('projectAll fills the buffers exactly as the point methods do', () {
+    final projector = SceneProjector(
+      size: size,
+      bounds: bounds,
+      yawDegrees: 41,
+      pitchDegrees: 63,
+      zoom: 1.7,
+    );
+    final positions = Float32List.fromList([
+      0.5, -3.25, 1.5, //
+      7.0, -0.5, -2.0,
+      3.3, -8.0, 0.0,
+    ]);
+    final sortHeights = Float32List.fromList([0, -1, -7.5]);
+    // Two slots ahead of the mesh, as for the second mesh in a soup.
+    Float32List buf() => Float32List(5);
+    final vx = buf(), vy = buf(), vz = buf(), vzSort = buf();
+    final sx = buf(), sy = buf();
+    projector.projectAll(
+      positions,
+      3,
+      start: 2,
+      vx: vx,
+      vy: vy,
+      vz: vz,
+      vzSort: vzSort,
+      sx: sx,
+      sy: sy,
+      sortHeights: sortHeights,
+    );
+    expect(vx.sublist(0, 2), [0, 0], reason: 'slots before start untouched');
+    for (var i = 0; i < 3; i++) {
+      final x = positions[i * 3], y = positions[i * 3 + 1];
+      final z = positions[i * 3 + 2];
+      final v = projector.viewOf(x, y, z);
+      final o = projector.projectView(v);
+      final w = Float32List.fromList([
+        v.$1,
+        v.$2,
+        v.$3,
+        v.$3 + (sortHeights[i] - y) * projector.depthPerUnitY,
+        o.dx,
+        o.dy,
+      ]);
+      expect(
+        [vx[i + 2], vy[i + 2], vz[i + 2], vzSort[i + 2], sx[i + 2], sy[i + 2]],
+        w,
+        reason: 'vertex $i',
+      );
+    }
+
+    // Without sort heights the sort depth is the view depth.
+    projector.projectAll(
+      positions,
+      3,
+      start: 0,
+      vx: vx,
+      vy: vy,
+      vz: vz,
+      vzSort: vzSort,
+      sx: sx,
+      sy: sy,
+    );
+    expect(vzSort.sublist(0, 3), vz.sublist(0, 3));
   });
 }

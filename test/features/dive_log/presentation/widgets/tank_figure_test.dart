@@ -32,14 +32,24 @@ TankFigure _figure({
   double rated = 232,
   double? volume = 11.1,
   String? usedLabel = 'Used 140 bar',
+  double? now,
+  String? nowLabel,
+  String? nowLabelReserve,
 }) {
   return TankFigure(
-    levels: TankFillLevels.resolve(start: start, end: end, rated: rated),
+    levels: TankFillLevels.resolve(
+      start: start,
+      end: end,
+      rated: rated,
+      now: now,
+    ),
     gasColor: Colors.green,
     volumeLiters: volume,
     startLabel: 'Start ${start?.round() ?? '--'}${start == null ? '' : ' bar'}',
     endLabel: 'End ${end?.round() ?? '--'}${end == null ? '' : ' bar'}',
     usedLabel: usedLabel,
+    nowLabel: nowLabel,
+    nowLabelReserve: nowLabelReserve,
   );
 }
 
@@ -207,5 +217,129 @@ void main() {
         return (from.dx - bracketX).abs() < 0.01 && (to.dx - from.dx) > 1;
       }),
     );
+  });
+
+  group('the profile cursor', () {
+    testWidgets('shows the now label at its level', (tester) async {
+      await tester.pumpWidget(
+        _host(_figure(now: 130, nowLabel: 'Now 130 bar')),
+      );
+
+      expect(find.text('Now 130 bar'), findsOneWidget);
+      final start = tester.getRect(find.text('Start 200 bar'));
+      final now = tester.getRect(find.text('Now 130 bar'));
+      final end = tester.getRect(find.text('End 60 bar'));
+      expect(now.top, greaterThan(start.top));
+      expect(now.top, lessThan(end.top));
+    });
+
+    testWidgets('no label without a cursor', (tester) async {
+      await tester.pumpWidget(_host(_figure(nowLabelReserve: 'Now 200 bar')));
+
+      expect(find.textContaining('Now'), findsNothing);
+    });
+
+    testWidgets('draws the now line across the tank', (tester) async {
+      await tester.pumpWidget(
+        _host(_figure(now: 130, nowLabel: 'Now 130 bar')),
+      );
+
+      final context = tester.element(find.byType(TankFigure));
+      final primary = Theme.of(context).colorScheme.primary;
+      expect(
+        _painted(tester),
+        paints..something((method, args) {
+          if (method != #drawLine) return false;
+          final from = args[0] as Offset;
+          final to = args[1] as Offset;
+          final paint = args[2] as Paint;
+          return paint.color.toARGB32() == primary.toARGB32() &&
+              from.dy == to.dy &&
+              from.dx <= 0.01 &&
+              to.dx > 18;
+        }),
+      );
+    });
+
+    testWidgets('labels stay apart when now meets the used label', (
+      tester,
+    ) async {
+      // Halfway: the same level as the used label's centre.
+      await tester.pumpWidget(
+        _host(_figure(now: 130, nowLabel: 'Now 130 bar')),
+      );
+
+      final labels = [
+        'Start 200 bar',
+        'Used 140 bar',
+        'Now 130 bar',
+        'End 60 bar',
+      ];
+      final rects = [for (final l in labels) tester.getRect(find.text(l))];
+      for (var i = 0; i < rects.length; i++) {
+        for (var j = i + 1; j < rects.length; j++) {
+          expect(
+            rects[i].overlaps(rects[j]),
+            isFalse,
+            reason: '${labels[i]} overlaps ${labels[j]}',
+          );
+        }
+      }
+    });
+
+    testWidgets('the reserve keeps the figure the same size while scrubbing', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _host(
+          _figure(volume: 3, nowLabelReserve: 'Now 200 bar (est.)'),
+          textScale: 1.5,
+        ),
+      );
+      final idle = tester.getSize(find.byType(TankFigure));
+
+      await tester.pumpWidget(
+        _host(
+          _figure(
+            volume: 3,
+            now: 130,
+            nowLabel: 'Now 130 bar (est.)',
+            nowLabelReserve: 'Now 200 bar (est.)',
+          ),
+          textScale: 1.5,
+        ),
+      );
+      expect(tester.takeException(), isNull);
+      expect(tester.getSize(find.byType(TankFigure)), idle);
+    });
+
+    testWidgets('the now label is read with the others', (tester) async {
+      final handle = tester.ensureSemantics();
+      await tester.pumpWidget(
+        _host(_figure(now: 130, nowLabel: 'Now 130 bar')),
+      );
+
+      expect(
+        tester.getSemantics(find.byType(TankFigure)),
+        matchesSemantics(
+          label: 'Start 200 bar, End 60 bar, Used 140 bar, Now 130 bar',
+        ),
+      );
+      handle.dispose();
+    });
+
+    testWidgets('an undrawn now label is not read out', (tester) async {
+      // No cursor level (nothing to measure it against): nothing is drawn,
+      // so nothing is read.
+      final handle = tester.ensureSemantics();
+      await tester.pumpWidget(_host(_figure(nowLabel: 'Now 130 bar')));
+
+      expect(find.text('Now 130 bar'), findsNothing);
+      expect(
+        tester.getSemantics(find.byType(TankFigure)),
+        matchesSemantics(label: 'Start 200 bar, End 60 bar, Used 140 bar'),
+      );
+      handle.dispose();
+    });
   });
 }

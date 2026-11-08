@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/passport_usage_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -57,6 +58,50 @@ void main() {
     expect(result.first.diveNumber, 41);
     expect(result.first.dateTime, DateTime.utc(2026, 3, 12));
     expect(result.last.siteName, isNull);
+  });
+
+  group('twin set tanks (#4242)', () {
+    Future<void> twinDive(String id, DateTime at) => dives.createDive(
+      Dive(
+        id: id,
+        dateTime: at,
+        tanks: [
+          DiveTank(
+            id: '$id-t0',
+            role: TankRole.twinSet,
+            volume: 24,
+            passportId: 'p-a',
+            twinPassportId: 'p-b',
+          ),
+        ],
+      ),
+    );
+
+    test('the partner cylinder counts the dive too', () async {
+      await twinDive('d1', DateTime.utc(2026, 5, 1));
+      expect(
+        (await usage.usageFor('p-b', diverId: null)).map((d) => d.diveId),
+        ['d1'],
+      );
+      expect(
+        (await usage.usageFor('p-a', diverId: null)).map((d) => d.diveId),
+        ['d1'],
+      );
+    });
+
+    test('the twin passport survives a save and reload', () async {
+      await twinDive('d1', DateTime.utc(2026, 5, 1));
+      final tank = (await dives.getDiveById('d1'))!.tanks.single;
+      expect(tank.twinPassportId, 'p-b');
+      expect(tank.role, TankRole.twinSet);
+      await dives.updateDive(
+        (await dives.getDiveById('d1'))!.copyWith(notes: 'edited'),
+      );
+      expect(
+        (await dives.getDiveById('d1'))!.tanks.single.twinPassportId,
+        'p-b',
+      );
+    });
   });
 
   test('a dive with two tanks from one tag counts once', () async {

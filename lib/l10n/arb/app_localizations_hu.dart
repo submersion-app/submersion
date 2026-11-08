@@ -4627,6 +4627,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_list_section_expiringSoon => 'Hamarosan lejár';
 
   @override
+  String certifications_list_section_professional(String agency) {
+    return '$agency Profi';
+  }
+
+  @override
   String get certifications_list_section_valid => 'Érvényes';
 
   @override
@@ -10815,6 +10820,16 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_figureNow(String pressure) {
+    return 'Most $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureNowEstimated(String pressure) {
+    return 'Most $pressure (becs.)';
+  }
+
+  @override
   String diveLog_cylinders_gasSemantics(String mix) {
     return 'Gáz $mix';
   }
@@ -11293,6 +11308,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get divePlanner_label_minutesUnit => 'perc';
+
+  @override
+  String get divePlanner_label_secondsUnit => 'mp';
 
   @override
   String get divePlanner_label_ndl => 'NDL';
@@ -14457,6 +14475,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get passport_history_deleteConfirm =>
       'Törli ezt a töltési bejegyzést?';
+
+  @override
+  String get passport_history_deleteFailed =>
+      'A töltés törlése nem sikerült. Próbálja újra.';
 
   @override
   String get passport_tag_title => 'Címke';
@@ -19714,6 +19736,17 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get media_photoPicker_selectAllButton => 'Összes kijelölése';
+
+  @override
+  String get media_photoPicker_albumFilter_all => 'Összes album';
+
+  @override
+  String media_photoPicker_albumFilter_chip(String album, int count) {
+    return '$album ($count)';
+  }
+
+  @override
+  String get media_photoPicker_albumFilter_label => 'Szűrés album szerint';
 
   @override
   String media_photoPicker_selectedCount(int count) {
@@ -27346,7 +27379,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'Merülési idők javítása, társak összekapcsolása, felszerelés átsorolása, adatminőség, táblázatszerkesztő';
+      'Merülési idők javítása, társak összekapcsolása, felszerelés átsorolása, adatminőség, táblázatszerkesztő, merülések újraelemzése';
 
   @override
   String get settings_agentAccess_title => 'Ügynökhozzáférés';
@@ -37944,25 +37977,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllProgress(int count) {
-    return '$count merülés újraelemzése folyamatban...';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllSuccess(int count) {
-    return '$count merülés sikeresen újraelemezve';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
-    return '$succeeded / $total merülés újraelemezve. $failed sikertelen.';
-  }
-
-  @override
   String diveComputer_detail_reparseRawDataCount(int count) {
     return '$count merülés nyers adattal';
   }
@@ -37974,6 +37988,126 @@ class AppLocalizationsHu extends AppLocalizations {
   ) {
     return '$count merülés nyers adattal ($without anélkül)';
   }
+
+  @override
+  String get reparseBatch_progressTitle => 'Merülések újraelemzése';
+
+  @override
+  String reparseBatch_progressCount(int done, int total) {
+    return '$done / $total merülés újraelemzése';
+  }
+
+  @override
+  String get reparseBatch_cancelling => 'Megszakítás...';
+
+  @override
+  String get reparseBatch_resultTitle => 'Az újraelemzés befejeződött';
+
+  @override
+  String get reparseBatch_resultCancelledTitle => 'Az újraelemzés megszakadt';
+
+  @override
+  String get reparseBatch_resultErrorTitle =>
+      'Az újraelemzés hiba miatt leállt';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return 'Nem feldolgozott: $count';
+  }
+
+  @override
+  String reparseBatch_resultSummary(int succeeded, int total) {
+    return '$succeeded / $total merülés újraelemezve.';
+  }
+
+  @override
+  String reparseBatch_resultFailed(int count) {
+    return 'Sikertelen: $count';
+  }
+
+  @override
+  String reparseBatch_resultNotProcessed(int count) {
+    return 'Nem feldolgozott (megszakítva): $count';
+  }
+
+  @override
+  String reparseBatch_resultSkipped(int count) {
+    return 'Kihagyva, nincs nyers adat: $count';
+  }
+
+  @override
+  String reparseBatch_resultProfilesPreserved(int count) {
+    return 'Összevont merülések, amelyek megtartották a profiljukat: $count';
+  }
+
+  @override
+  String get reparseBatch_failedListHeader => 'Sikertelen merülések';
+
+  @override
+  String reparseBatch_failedDiveTitle(int number) {
+    return '$number. merülés';
+  }
+
+  @override
+  String get reparseBatch_failedDiveUnnumbered => 'Sorszám nélküli merülés';
+
+  @override
+  String get reparseBatch_missingDescriptors =>
+      'Hiányoznak a búvárkomputer adatai';
+
+  @override
+  String get reparseBatch_confirmTitle => 'Merülések újraelemzése';
+
+  @override
+  String reparseBatch_confirmMessage(int count) {
+    return 'A merüléselemző újrafuttatása $count merülésre, amelyekhez nyers adat tartozik. Ez frissíti a profil- és érzékelőadatokat, de megőrzi a jegyzeteket, helyszíneket, búvártársakat és egyéb szerkesztéseket.';
+  }
+
+  @override
+  String reparseBatch_confirmSkipped(int count) {
+    return 'Kijelölt merülések nyers adat nélkül (kihagyva): $count';
+  }
+
+  @override
+  String get reparseBatch_noneWithRawData =>
+      'A kijelölt merülések egyikéhez sincs újraelemezhető nyers adat.';
+
+  @override
+  String get diveLog_selection_tooltip_reparse => 'Újraelemzés';
+
+  @override
+  String get settings_reparseDives_title => 'Merülések újraelemzése';
+
+  @override
+  String get settings_reparseDives_subtitle =>
+      'A merüléselemző újrafuttatása minden merülésre, amelyhez nyers adat tartozik';
+
+  @override
+  String get settings_reparseDives_intro =>
+      'Akkor használd, ha egy alkalmazásfrissítés javítja a búvárkomputer-adatok beolvasását. A jegyzetek, helyszínek, búvártársak és egyéb szerkesztések megmaradnak.';
+
+  @override
+  String settings_reparseDives_withRawData(int count) {
+    return 'Merülések nyers adattal: $count';
+  }
+
+  @override
+  String settings_reparseDives_withoutRawData(int count) {
+    return 'Merülések nyers adat nélkül (nem elemezzük újra): $count';
+  }
+
+  @override
+  String get settings_reparseDives_byComputer => 'Búvárkomputerenként';
+
+  @override
+  String get settings_reparseDives_unknownComputer => 'Ismeretlen komputer';
+
+  @override
+  String get settings_reparseDives_none =>
+      'Egyik merüléshez sincs újraelemezhető nyers adat.';
+
+  @override
+  String get settings_reparseDives_button => 'Összes újraelemzése';
 
   @override
   String get diveComputer_rawData_discardAction => 'Elvetés';
@@ -60201,4 +60335,199 @@ class AppLocalizationsHu extends AppLocalizations {
   ) {
     return 'Jelölő $number: $time, $depth, $distance';
   }
+
+  @override
+  String get twinSet_title => 'Ikerpalack';
+
+  @override
+  String get twinSet_none => 'Nem része ikerpalacknak';
+
+  @override
+  String get twinSet_link => 'Társpalack hozzákapcsolása';
+
+  @override
+  String twinSet_since(String date) {
+    return '$date óta';
+  }
+
+  @override
+  String get twinSet_replace => 'Társ cseréje';
+
+  @override
+  String get twinSet_unlink => 'Szétválasztás';
+
+  @override
+  String get twinSet_history => 'Előzmények';
+
+  @override
+  String twinSet_historyRange(String partner, String from, String to) {
+    return '$partner, $from és $to között';
+  }
+
+  @override
+  String get twinSet_deletePairing => 'Párosítás törlése';
+
+  @override
+  String get twinSet_deletePairingConfirm =>
+      'Törli ezt a párosítást az előzményekből? A töltések és a merülések nem változnak.';
+
+  @override
+  String get twinSet_pickerTitle => 'Társpalack';
+
+  @override
+  String get twinSet_pickerEmpty => 'Nincs más palack a párosításhoz.';
+
+  @override
+  String get twinSet_pairedOnHelp => 'Párosítva ekkortól';
+
+  @override
+  String get twinSet_unpairedOnHelp => 'Szétválasztva ekkor';
+
+  @override
+  String get twinSet_pressureMismatchTitle => 'Eltérő üzemi nyomások';
+
+  @override
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  ) {
+    return '$a üzemi nyomása $aPressure, $b palacké $bPressure. Az összekötött pár egy nyomásra töltődik.';
+  }
+
+  @override
+  String get twinSet_continue => 'Folytatás';
+
+  @override
+  String get twinSet_replaceTitle => 'Lecseréli a társat?';
+
+  @override
+  String twinSet_replaceClash(String cylinder, String partner) {
+    return '$cylinder párja jelenleg $partner.';
+  }
+
+  @override
+  String twinSet_replaceQuestion(String a, String b) {
+    return 'Inkább $a és $b legyen pár?';
+  }
+
+  @override
+  String twinSet_leftAlone(String name) {
+    return '$name egyedül marad.';
+  }
+
+  @override
+  String get twinSet_replaceConfirm => 'Csere';
+
+  @override
+  String get twinSet_clashTitle => 'Átfedő párosítás';
+
+  @override
+  String twinSet_clashBody(String pairs) {
+    return 'Ez átfedi ezt a párosítást: $pairs. Egy palack egy napon csak egy ikerpalack része lehet.';
+  }
+
+  @override
+  String twinSet_pairNames(String a, String b) {
+    return '$a és $b';
+  }
+
+  @override
+  String twinSet_endBeforeStart(String date) {
+    return 'A záró dátumnak $date utáninak kell lennie.';
+  }
+
+  @override
+  String get twinSet_saveFailed => 'Az ikerpalack módosítása nem menthető.';
+
+  @override
+  String twinSet_with(String partner) {
+    return 'Ikerpalack ezzel: $partner';
+  }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return 'Az ikerpalack mindkét palackja ($partner)';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner, $status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => 'Töltés szerkesztése';
+
+  @override
+  String get passport_logFill_overPressureTitle => 'Az üzemi nyomás felett';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure meghaladja $name üzemi nyomását ($workingPressure).';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => 'Mentés mégis';
+
+  @override
+  String get passport_logFill_back => 'Vissza';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return '$partner töltésére is alkalmazza?';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => 'Igen';
+
+  @override
+  String get passport_logFill_onlyThisOne => 'Csak ezt';
+
+  @override
+  String get passport_history_anotherCylinder => 'egy másik palack';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return '$partner palackkal együtt töltve';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'Mindkét palackról törli ezt a töltést, vagy csak erről?';
+
+  @override
+  String get passport_history_deleteBoth => 'Mindkét palack';
+
+  @override
+  String get passport_history_edit => 'Töltés szerkesztése';
+
+  @override
+  String get twinSet_choiceTitle => 'Az ikerpalackot használja?';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'Ikerpalack ($a + $b, $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return 'Csak $a';
+  }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'Párosítva ekkortól';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'Szétválasztva ekkor';
+
+  @override
+  String get settings_conflict_field_filledTogetherId => 'Ikerpalack-töltés';
+
+  @override
+  String get settings_conflict_field_twinPassportId => 'Társpalack útlevele';
 }

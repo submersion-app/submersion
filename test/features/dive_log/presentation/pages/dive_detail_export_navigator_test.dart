@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dive_chunk.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
@@ -54,6 +55,7 @@ class _StubExportService implements ExportService {
     CertificationCatalog? certificationCatalog,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
+    UddfDiveChunkLoader? loadDiveChunk,
   }) async {
     calls.add('share:uddf');
     return '/tmp/shared_uddf';
@@ -68,6 +70,7 @@ class _StubExportService implements ExportService {
     CertificationCatalog? certificationCatalog,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
+    UddfDiveChunkLoader? loadDiveChunk,
   }) async {
     calls.add('save:uddf');
     return '/tmp/saved_uddf';
@@ -88,6 +91,7 @@ class _ThrowingExportService extends _StubExportService {
     CertificationCatalog? certificationCatalog,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
+    UddfDiveChunkLoader? loadDiveChunk,
   }) async {
     calls.add('share:uddf');
     throw StateError('disk full');

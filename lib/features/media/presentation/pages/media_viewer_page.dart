@@ -530,19 +530,31 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                 dataSources,
                 sourceProfiles.values,
               );
-              final perdixProfile = (isMultiSource && activeProfile != null)
+              final drawsActiveSource = isMultiSource && activeProfile != null;
+              final perdixProfile = drawsActiveSource
                   ? activeProfile.points
                   : dive?.profile ?? const [];
               // Rebuilt only on page-level setState (page swipes, toggles),
               // not per video frame; prefix-max and gas segments precompute
-              // here.
-              perdixResolver = PerdixFaceResolver(
-                profile: perdixProfile,
-                analysis: analysis,
-                tanks: dive?.tanks ?? const [],
-                gasSwitches: gasSwitches,
-                tankPressures: tankPressures,
-              );
+              // here. The gas and cylinder come from the drawn source's own
+              // switches, as on the chart's gas strip: another computer's
+              // record of a switch must not move this one's gas (#4300).
+              perdixResolver = dive == null
+                  ? PerdixFaceResolver(
+                      profile: perdixProfile,
+                      analysis: analysis,
+                      tankPressures: tankPressures,
+                    )
+                  : PerdixFaceResolver.forSource(
+                      dive,
+                      profile: perdixProfile,
+                      analysis: analysis,
+                      gasSwitches: gasSwitches,
+                      tankPressures: tankPressures,
+                      computerId: drawsActiveSource
+                          ? activeProfile.computerId
+                          : null,
+                    );
             }
             // Toolbar-toggle visibility, decided the same cheap way in BOTH
             // toggle states: a synced item and a non-empty merged profile.

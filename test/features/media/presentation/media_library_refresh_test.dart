@@ -8,6 +8,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/media/data/repositories/media_library_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
+import 'package:submersion/features/media/domain/entities/media_library_grouping.dart';
 import 'package:submersion/features/media/domain/entities/media_library_sort.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
@@ -59,6 +60,7 @@ class _GatedLibraryRepo implements MediaLibraryRepository {
     required String? diverId,
     MediaLibraryFilter filter = MediaLibraryFilter.none,
     SortState<MediaSortField> sort = kDefaultMediaSort,
+    MediaLibraryGrouping grouping = MediaLibraryGrouping.none,
     MediaLibraryCursor? after,
     int limit = MediaLibraryRepository.pageSize,
   }) {

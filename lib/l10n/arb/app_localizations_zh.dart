@@ -4381,6 +4381,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_list_section_expiringSoon => '即将到期';
 
   @override
+  String certifications_list_section_professional(String agency) {
+    return '$agency 专业级';
+  }
+
+  @override
   String get certifications_list_section_valid => '有效';
 
   @override
@@ -10290,6 +10295,16 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_figureNow(String pressure) {
+    return '当前 $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureNowEstimated(String pressure) {
+    return '当前 $pressure (估算)';
+  }
+
+  @override
   String diveLog_cylinders_gasSemantics(String mix) {
     return '气体 $mix';
   }
@@ -10754,6 +10769,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get divePlanner_label_minutesUnit => '分钟';
+
+  @override
+  String get divePlanner_label_secondsUnit => '秒';
 
   @override
   String get divePlanner_label_ndl => 'NDL';
@@ -13809,6 +13827,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get passport_history_deleteConfirm => '删除此充气记录？';
+
+  @override
+  String get passport_history_deleteFailed => '无法删除充气记录。请重试。';
 
   @override
   String get passport_tag_title => '标签';
@@ -18817,6 +18838,17 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_photoPicker_selectAllButton => '全选';
+
+  @override
+  String get media_photoPicker_albumFilter_all => '所有相册';
+
+  @override
+  String media_photoPicker_albumFilter_chip(String album, int count) {
+    return '$album ($count)';
+  }
+
+  @override
+  String get media_photoPicker_albumFilter_label => '按相册筛选';
 
   @override
   String media_photoPicker_selectedCount(int count) {
@@ -25938,7 +25970,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      '修正潜水时间、关联潜伴、重新分类装备、数据质量、表格编辑器';
+      '修正潜水时间、关联潜伴、重新分类装备、数据质量、表格编辑器、重新解析潜水';
 
   @override
   String get settings_agentAccess_title => '代理访问';
@@ -35897,25 +35929,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllProgress(int count) {
-    return '正在重新解析 $count 次潜水...';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllSuccess(int count) {
-    return '已成功重新解析 $count 次潜水';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
-    return '已重新解析 $total 次潜水中的 $succeeded 次。$failed 次失败。';
-  }
-
-  @override
   String diveComputer_detail_reparseRawDataCount(int count) {
     return '$count 次潜水有原始数据';
   }
@@ -35927,6 +35940,121 @@ class AppLocalizationsZh extends AppLocalizations {
   ) {
     return '$count 次潜水有原始数据（$without 次没有）';
   }
+
+  @override
+  String get reparseBatch_progressTitle => '正在重新解析潜水';
+
+  @override
+  String reparseBatch_progressCount(int done, int total) {
+    return '正在重新解析第 $done 次,共 $total 次潜水';
+  }
+
+  @override
+  String get reparseBatch_cancelling => '正在取消...';
+
+  @override
+  String get reparseBatch_resultTitle => '重新解析完成';
+
+  @override
+  String get reparseBatch_resultCancelledTitle => '重新解析已取消';
+
+  @override
+  String get reparseBatch_resultErrorTitle => '重新解析因错误而停止';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return '未处理:$count';
+  }
+
+  @override
+  String reparseBatch_resultSummary(int succeeded, int total) {
+    return '已重新解析 $total 次潜水中的 $succeeded 次。';
+  }
+
+  @override
+  String reparseBatch_resultFailed(int count) {
+    return '失败:$count';
+  }
+
+  @override
+  String reparseBatch_resultNotProcessed(int count) {
+    return '未处理(已取消):$count';
+  }
+
+  @override
+  String reparseBatch_resultSkipped(int count) {
+    return '已跳过,无原始数据:$count';
+  }
+
+  @override
+  String reparseBatch_resultProfilesPreserved(int count) {
+    return '保留了合并剖面的合并潜水:$count';
+  }
+
+  @override
+  String get reparseBatch_failedListHeader => '失败的潜水';
+
+  @override
+  String reparseBatch_failedDiveTitle(int number) {
+    return '第 $number 次潜水';
+  }
+
+  @override
+  String get reparseBatch_failedDiveUnnumbered => '未编号的潜水';
+
+  @override
+  String get reparseBatch_missingDescriptors => '缺少潜水电脑信息';
+
+  @override
+  String get reparseBatch_confirmTitle => '重新解析潜水';
+
+  @override
+  String reparseBatch_confirmMessage(int count) {
+    return '对 $count 次已存储原始数据的潜水重新运行潜水解析器。这将更新剖面图和传感器数据,但会保留您的笔记、地点、潜伴和其他编辑内容。';
+  }
+
+  @override
+  String reparseBatch_confirmSkipped(int count) {
+    return '所选潜水中没有原始数据的(将跳过):$count';
+  }
+
+  @override
+  String get reparseBatch_noneWithRawData => '所选潜水均没有可重新解析的原始数据。';
+
+  @override
+  String get diveLog_selection_tooltip_reparse => '重新解析';
+
+  @override
+  String get settings_reparseDives_title => '重新解析潜水';
+
+  @override
+  String get settings_reparseDives_subtitle => '对每次已存储原始数据的潜水重新运行潜水解析器';
+
+  @override
+  String get settings_reparseDives_intro =>
+      '在应用更新改进了潜水电脑数据的读取方式后使用。您的笔记、地点、潜伴和其他编辑内容将被保留。';
+
+  @override
+  String settings_reparseDives_withRawData(int count) {
+    return '有原始数据的潜水:$count';
+  }
+
+  @override
+  String settings_reparseDives_withoutRawData(int count) {
+    return '没有原始数据的潜水(不会重新解析):$count';
+  }
+
+  @override
+  String get settings_reparseDives_byComputer => '按潜水电脑';
+
+  @override
+  String get settings_reparseDives_unknownComputer => '未知潜水电脑';
+
+  @override
+  String get settings_reparseDives_none => '没有潜水存储了可重新解析的原始数据。';
+
+  @override
+  String get settings_reparseDives_button => '全部重新解析';
 
   @override
   String get diveComputer_rawData_discardAction => '丢弃';
@@ -56828,4 +56956,197 @@ class AppLocalizationsZh extends AppLocalizations {
   ) {
     return '标记 $number：$time，$depth，$distance';
   }
+
+  @override
+  String get twinSet_title => '双瓶';
+
+  @override
+  String get twinSet_none => '不属于任何双瓶组';
+
+  @override
+  String get twinSet_link => '关联双瓶搭档';
+
+  @override
+  String twinSet_since(String date) {
+    return '自 $date 起';
+  }
+
+  @override
+  String get twinSet_replace => '更换搭档';
+
+  @override
+  String get twinSet_unlink => '解除关联';
+
+  @override
+  String get twinSet_history => '历史';
+
+  @override
+  String twinSet_historyRange(String partner, String from, String to) {
+    return '$partner，$from 至 $to';
+  }
+
+  @override
+  String get twinSet_deletePairing => '删除配对';
+
+  @override
+  String get twinSet_deletePairingConfirm => '从历史中删除此配对？充气记录和潜水不会改变。';
+
+  @override
+  String get twinSet_pickerTitle => '双瓶搭档';
+
+  @override
+  String get twinSet_pickerEmpty => '没有其他可配对的气瓶。';
+
+  @override
+  String get twinSet_pairedOnHelp => '配对起始日期';
+
+  @override
+  String get twinSet_unpairedOnHelp => '解除关联日期';
+
+  @override
+  String get twinSet_pressureMismatchTitle => '工作压力不同';
+
+  @override
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  ) {
+    return '$a 的额定压力为 $aPressure，$b 为 $bPressure。通过分流阀连接的一对气瓶只能充到同一压力。';
+  }
+
+  @override
+  String get twinSet_continue => '继续';
+
+  @override
+  String get twinSet_replaceTitle => '更换搭档？';
+
+  @override
+  String twinSet_replaceClash(String cylinder, String partner) {
+    return '$cylinder 目前与 $partner 配对。';
+  }
+
+  @override
+  String twinSet_replaceQuestion(String a, String b) {
+    return '改为将 $a 与 $b 配对？';
+  }
+
+  @override
+  String twinSet_leftAlone(String name) {
+    return '$name 将不再配对。';
+  }
+
+  @override
+  String get twinSet_replaceConfirm => '更换';
+
+  @override
+  String get twinSet_clashTitle => '配对时间重叠';
+
+  @override
+  String twinSet_clashBody(String pairs) {
+    return '这与 $pairs 的配对时间重叠。一个气瓶在同一天只能属于一个双瓶组。';
+  }
+
+  @override
+  String twinSet_pairNames(String a, String b) {
+    return '$a 和 $b';
+  }
+
+  @override
+  String twinSet_endBeforeStart(String date) {
+    return '结束日期必须晚于 $date。';
+  }
+
+  @override
+  String get twinSet_saveFailed => '无法保存双瓶组的更改。';
+
+  @override
+  String twinSet_with(String partner) {
+    return '与 $partner 组成双瓶';
+  }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return '双瓶组的两个气瓶（$partner）';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner，$status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => '编辑充气记录';
+
+  @override
+  String get passport_logFill_overPressureTitle => '超过工作压力';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure 超过了 $name 的工作压力 $workingPressure。';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => '仍然保存';
+
+  @override
+  String get passport_logFill_back => '返回';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return '同时应用到 $partner 的充气记录？';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => '是';
+
+  @override
+  String get passport_logFill_onlyThisOne => '仅此一条';
+
+  @override
+  String get passport_history_anotherCylinder => '另一个气瓶';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return '与 $partner 一起充气';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody => '从两个气瓶中删除此充气记录，还是只删除这一条？';
+
+  @override
+  String get passport_history_deleteBoth => '两个气瓶';
+
+  @override
+  String get passport_history_edit => '编辑充气记录';
+
+  @override
+  String get twinSet_choiceTitle => '使用双瓶组？';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return '双瓶组（$a + $b，$volume）';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return '仅 $a';
+  }
+
+  @override
+  String get settings_conflict_field_pairedOn => '配对起始日期';
+
+  @override
+  String get settings_conflict_field_unpairedOn => '解除关联日期';
+
+  @override
+  String get settings_conflict_field_filledTogetherId => '双瓶组充气';
+
+  @override
+  String get settings_conflict_field_twinPassportId => '双瓶搭档护照';
 }

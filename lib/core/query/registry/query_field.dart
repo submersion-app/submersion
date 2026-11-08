@@ -17,6 +17,17 @@ enum DateFrame {
   localInstant,
 }
 
+/// The order the builder offers an enum field's values in.
+enum EnumOrder {
+  /// As [QueryField.enumValues] lists them: for values whose order means
+  /// something (current none, light, strong; Monday to Sunday).
+  declared,
+
+  /// By localized label, so the list matches the pickers that sort the same
+  /// values by label (equipment types, #4244) and follows the locale.
+  byLabel,
+}
+
 enum FieldDimension {
   depth,
   temperature,
@@ -86,6 +97,9 @@ class QueryField {
   /// Stored names, for [FieldType.enumName]. The builder localizes them.
   final List<String>? enumValues;
 
+  /// The order the builder lists [enumValues] in.
+  final EnumOrder enumOrder;
+
   /// For an enumName field whose values may also be custom ids (issue #690):
   /// typed text that names no built-in resolves through this name-only
   /// subject, and the validator accepts any value, since a stored custom id
@@ -127,6 +141,7 @@ class QueryField {
     required this.labelKey,
     Set<QueryOp>? ops,
     this.enumValues,
+    this.enumOrder = EnumOrder.declared,
     this.customValueSubject,
     this.enumSqlValues,
     this.boolSql,

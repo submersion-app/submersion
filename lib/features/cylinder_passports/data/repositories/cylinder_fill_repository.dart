@@ -8,6 +8,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
+import 'package:submersion/features/trips/domain/services/trip_fill_copy_id.dart';
 
 /// Fill history of physical cylinders (spec section 10.2), keyed by passport
 /// id. Registered for sync like the transmitter registry: every write marks
@@ -98,6 +99,70 @@ class CylinderFillRepository {
       );
     }
     return known;
+  }
+
+  /// The other fill of the twin set fill [fill] belongs to (issue #4242), or
+  /// null for a single fill or when the other row is gone.
+  Future<CylinderFill?> tiedFillOf(CylinderFill fill) async {
+    final group = fill.filledTogetherId;
+    if (group == null) return null;
+    return tiedFill(id: fill.id, together: group);
+  }
+
+  /// The fill other than [id] that shares the twin set fill tie [together].
+  Future<CylinderFill?> tiedFill({
+    required String id,
+    required String together,
+  }) async {
+    final row =
+        await (_db.select(_db.cylinderFills)
+              ..where(
+                (t) =>
+                    t.filledTogetherId.equals(together) & t.id.equals(id).not(),
+              )
+              ..limit(1))
+            .getSingleOrNull();
+    return row == null ? null : _fromRow(row);
+  }
+
+  /// The other fill of each twin set fill among [fills], keyed by the id of
+  /// the fill in [fills], in one read (issue #4242): a fill history names
+  /// every partner without a lookup per row. A single fill, or one whose
+  /// other row is gone, has no entry.
+  Future<Map<String, CylinderFill>> tiedFillsOf(
+    Iterable<CylinderFill> fills,
+  ) async {
+    final groups = {for (final f in fills) ?f.filledTogetherId};
+    if (groups.isEmpty) return const {};
+    final rows = await (_db.select(
+      _db.cylinderFills,
+    )..where((t) => t.filledTogetherId.isIn(groups))).get();
+    // The other row of a tie is the one that is not the fill itself.
+    final byGroup = <String, List<CylinderFill>>{};
+    for (final row in rows) {
+      byGroup.putIfAbsent(row.filledTogetherId!, () => []).add(_fromRow(row));
+    }
+    return {
+      for (final f in fills)
+        if (f.filledTogetherId case final group?)
+          f.id: ?byGroup[group]?.where((o) => o.id != f.id).firstOrNull,
+    };
+  }
+
+  /// The ids of the passport copies of trip fills on [equipmentId]'s trip
+  /// cylinders. A copy is rewritten whenever its trip fill is saved, so the
+  /// fill history does not offer to edit one.
+  Future<Set<String>> tripCopyIds(String equipmentId) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT e.id AS id FROM trip_cylinder_events e '
+          'JOIN trip_cylinders c ON c.id = e.trip_cylinder_id '
+          "WHERE c.equipment_id = ? AND e.kind = 'fill'",
+          variables: [Variable.withString(equipmentId)],
+          readsFrom: {_db.tripCylinderEvents, _db.tripCylinders},
+        )
+        .get();
+    return {for (final r in rows) tripFillPassportCopyId(r.read<String>('id'))};
   }
 
   Future<CylinderFill?> getById(String id) async {
@@ -323,6 +388,7 @@ class CylinderFillRepository {
     signedRecord: r.signedRecord,
     source: FillSource.fromName(r.source),
     notes: r.notes,
+    filledTogetherId: r.filledTogetherId,
     createdAt: DateTime.fromMillisecondsSinceEpoch(r.createdAt),
     updatedAt: DateTime.fromMillisecondsSinceEpoch(r.updatedAt),
   );
@@ -347,6 +413,7 @@ class CylinderFillRepository {
     signedRecord: Value(f.signedRecord),
     source: Value(f.source.name),
     notes: Value(f.notes),
+    filledTogetherId: Value(f.filledTogetherId),
     createdAt: createdAt != null ? Value(createdAt) : const Value.absent(),
     updatedAt: Value(now),
   );

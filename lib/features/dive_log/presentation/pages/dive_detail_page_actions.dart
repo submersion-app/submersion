@@ -464,7 +464,11 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     } else {
       messenger.showSnackBar(
         SnackBar(
-          content: Text(l10n.diveLog_detail_reparseFailed(errors.first)),
+          content: Text(
+            l10n.diveLog_detail_reparseFailed(
+              reparseErrorLabel(l10n, errors.first),
+            ),
+          ),
         ),
       );
     }

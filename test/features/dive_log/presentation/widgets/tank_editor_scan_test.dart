@@ -257,6 +257,27 @@ void main() {
     expect(scannedItem, isNull);
   });
 
+  testWidgets('a foreign cylinder on a twin set tank makes it back gas '
+      '(#4242)', (tester) async {
+    DiveTank? changed;
+    await pump(
+      tester,
+      scanned: 'https://submersion.app/c#f=1&p=$stranger&v=10&wp=300&m=al',
+      tank: const DiveTank(
+        id: 'tank-1',
+        role: TankRole.twinSet,
+        volume: 24,
+        passportId: 'p-a',
+        twinPassportId: 'p-b',
+      ),
+      onChanged: (t) => changed = t,
+    );
+    await scan(tester);
+    expect(changed!.twinPassportId, isNull);
+    expect(changed!.volume, 10);
+    expect(changed!.role, TankRole.backGas);
+  });
+
   testWidgets("a foreign cylinder's tag fill sets the mix", (tester) async {
     DiveTank? changed;
     await pump(

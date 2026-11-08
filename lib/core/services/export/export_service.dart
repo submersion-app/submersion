@@ -14,6 +14,7 @@ import 'package:submersion/core/services/export/models/blender_invoice_export_da
 import 'package:submersion/core/services/export/models/export_service_record.dart';
 import 'package:submersion/core/services/export/models/uddf_export_options.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dive_chunk.dart';
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
 import 'package:submersion/core/services/export/pdf/blender_invoice_pdf_export_service.dart';
 import 'package:submersion/core/services/export/pdf/equipment_inventory_pdf_export_service.dart';
@@ -638,6 +639,9 @@ class ExportService {
     CertificationCatalog? certificationCatalog,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
+    // Each run of dives' samples, tank pressures and sources, read as the
+    // file is written instead of from the lists above (issue #4249).
+    UddfDiveChunkLoader? loadDiveChunk,
   }) => _uddf.exportDivesToUddf(
     dives,
     sites: sites,
@@ -646,6 +650,7 @@ class ExportService {
     certificationCatalog: certificationCatalog,
     extras: extras,
     options: options,
+    loadDiveChunk: loadDiveChunk,
   );
 
   Future<String?> saveDivesToUddfFile(
@@ -656,6 +661,9 @@ class ExportService {
     CertificationCatalog? certificationCatalog,
     UddfDivesExtras extras = const UddfDivesExtras.empty(),
     UddfExportOptions options = const UddfExportOptions(),
+    // Each run of dives' samples, tank pressures and sources, read as the
+    // file is written instead of from the lists above (issue #4249).
+    UddfDiveChunkLoader? loadDiveChunk,
   }) => _uddf.saveDivesToUddfFile(
     dives,
     sites: sites,
@@ -664,6 +672,7 @@ class ExportService {
     certificationCatalog: certificationCatalog,
     extras: extras,
     options: options,
+    loadDiveChunk: loadDiveChunk,
   );
 
   Future<String> exportAllDataToUddf({
@@ -706,6 +715,9 @@ class ExportService {
     Map<String, DiveTankPressureExport>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
     UddfExportOptions options = const UddfExportOptions(),
+    // Each run of dives' samples, tank pressures and sources, read as the
+    // backup is written instead of from the lists above (issue #4249).
+    UddfDiveChunkLoader? loadDiveChunk,
   }) => _uddfFull.exportAllDataToUddf(
     dives: dives,
     sites: sites,
@@ -744,6 +756,7 @@ class ExportService {
     diveTankPressures: diveTankPressures,
     dataSources: dataSources,
     options: options,
+    loadDiveChunk: loadDiveChunk,
   );
 
   Future<String?> saveAllDataToUddfFile({
@@ -786,6 +799,9 @@ class ExportService {
     Map<String, DiveTankPressureExport>? diveTankPressures,
     List<DiveSourceExport>? dataSources,
     UddfExportOptions options = const UddfExportOptions(),
+    // Each run of dives' samples, tank pressures and sources, read as the
+    // backup is written instead of from the lists above (issue #4249).
+    UddfDiveChunkLoader? loadDiveChunk,
   }) => _uddfFull.saveAllDataToUddfFile(
     dives: dives,
     sites: sites,
@@ -824,6 +840,7 @@ class ExportService {
     diveTankPressures: diveTankPressures,
     dataSources: dataSources,
     options: options,
+    loadDiveChunk: loadDiveChunk,
   );
 
   // ==================== UDDF Import ====================

@@ -348,6 +348,28 @@ void main() {
         expect(lean.waterTemp, 24);
       });
 
+      test(
+        'decoding off the UI isolate gives the same values (#4251)',
+        () async {
+          await repository.createDive(
+            storedDive('warm').copyWith(profile: samples(temperature: 24)),
+          );
+          await clearColumns('warm', ['water_temp', 'runtime']);
+
+          final onUi = (await repository.getDivesByIdsWithoutSamples([
+            'warm',
+          ])).single;
+          final offUi = (await repository.getDivesByIdsWithoutSamples([
+            'warm',
+          ], offUiIsolate: true)).single;
+
+          expect(offUi.waterTemp, 24);
+          expect(offUi.waterTemp, onUi.waterTemp);
+          expect(offUi.measuredRuntime, onUi.measuredRuntime);
+          expect(offUi.profile, onUi.profile);
+        },
+      );
+
       test('runtime comes from the profile span', () async {
         await repository.createDive(storedDive('bare'));
         await clearColumns('bare', ['runtime', 'bottom_time', 'exit_time']);

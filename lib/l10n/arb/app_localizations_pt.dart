@@ -4646,6 +4646,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get certifications_list_section_expiringSoon => 'Expirando em Breve';
 
   @override
+  String certifications_list_section_professional(String agency) {
+    return '$agency Profissional';
+  }
+
+  @override
   String get certifications_list_section_valid => 'Válida';
 
   @override
@@ -10837,6 +10842,16 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_figureNow(String pressure) {
+    return 'Agora $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureNowEstimated(String pressure) {
+    return 'Agora $pressure (est.)';
+  }
+
+  @override
   String diveLog_cylinders_gasSemantics(String mix) {
     return 'Gás $mix';
   }
@@ -11315,6 +11330,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get divePlanner_label_minutesUnit => 'min';
+
+  @override
+  String get divePlanner_label_secondsUnit => 's';
 
   @override
   String get divePlanner_label_ndl => 'NDL';
@@ -14493,6 +14511,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get passport_history_deleteConfirm =>
       'Excluir este registro de carga?';
+
+  @override
+  String get passport_history_deleteFailed =>
+      'Não foi possível excluir a carga. Tente novamente.';
 
   @override
   String get passport_tag_title => 'Etiqueta';
@@ -19781,6 +19803,17 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get media_photoPicker_selectAllButton => 'Selecionar tudo';
+
+  @override
+  String get media_photoPicker_albumFilter_all => 'Todos os álbuns';
+
+  @override
+  String media_photoPicker_albumFilter_chip(String album, int count) {
+    return '$album ($count)';
+  }
+
+  @override
+  String get media_photoPicker_albumFilter_label => 'Filtrar por álbum';
 
   @override
   String media_photoPicker_selectedCount(int count) {
@@ -27464,7 +27497,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'Corrigir horas, ligar parceiros, retipar equipamento, qualidade dos dados, editor de tabela';
+      'Corrigir horas, ligar parceiros, retipar equipamento, qualidade dos dados, editor de tabela, reanalisar mergulhos';
 
   @override
   String get settings_agentAccess_title => 'Acesso de agentes';
@@ -38128,25 +38161,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllProgress(int count) {
-    return 'Reanalisando $count mergulhos...';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllSuccess(int count) {
-    return '$count mergulhos reanalisados com sucesso';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
-    return 'Reanalisados $succeeded de $total mergulhos. $failed falharam.';
-  }
-
-  @override
   String diveComputer_detail_reparseRawDataCount(int count) {
     return '$count mergulhos com dados brutos';
   }
@@ -38158,6 +38172,126 @@ class AppLocalizationsPt extends AppLocalizations {
   ) {
     return '$count mergulhos com dados brutos ($without sem)';
   }
+
+  @override
+  String get reparseBatch_progressTitle => 'Reanalisando mergulhos';
+
+  @override
+  String reparseBatch_progressCount(int done, int total) {
+    return 'Reanalisando $done de $total mergulhos';
+  }
+
+  @override
+  String get reparseBatch_cancelling => 'Cancelando...';
+
+  @override
+  String get reparseBatch_resultTitle => 'Reanálise concluída';
+
+  @override
+  String get reparseBatch_resultCancelledTitle => 'Reanálise cancelada';
+
+  @override
+  String get reparseBatch_resultErrorTitle =>
+      'Reanálise interrompida por um erro';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return 'Não processados: $count';
+  }
+
+  @override
+  String reparseBatch_resultSummary(int succeeded, int total) {
+    return 'Reanalisados $succeeded de $total mergulhos.';
+  }
+
+  @override
+  String reparseBatch_resultFailed(int count) {
+    return 'Com falha: $count';
+  }
+
+  @override
+  String reparseBatch_resultNotProcessed(int count) {
+    return 'Não processados (cancelado): $count';
+  }
+
+  @override
+  String reparseBatch_resultSkipped(int count) {
+    return 'Ignorados, sem dados brutos: $count';
+  }
+
+  @override
+  String reparseBatch_resultProfilesPreserved(int count) {
+    return 'Mergulhos combinados que mantiveram o perfil: $count';
+  }
+
+  @override
+  String get reparseBatch_failedListHeader => 'Mergulhos com falha';
+
+  @override
+  String reparseBatch_failedDiveTitle(int number) {
+    return 'Mergulho n.º $number';
+  }
+
+  @override
+  String get reparseBatch_failedDiveUnnumbered => 'Mergulho sem número';
+
+  @override
+  String get reparseBatch_missingDescriptors =>
+      'Faltam os dados do computador de mergulho';
+
+  @override
+  String get reparseBatch_confirmTitle => 'Reanalisar mergulhos';
+
+  @override
+  String reparseBatch_confirmMessage(int count) {
+    return 'Reexecute o analisador de mergulhos em $count mergulhos com dados brutos armazenados. Isso atualiza os dados de perfil e de sensores, mas preserva suas notas, locais, parceiros e outras edições.';
+  }
+
+  @override
+  String reparseBatch_confirmSkipped(int count) {
+    return 'Mergulhos selecionados sem dados brutos (ignorados): $count';
+  }
+
+  @override
+  String get reparseBatch_noneWithRawData =>
+      'Nenhum dos mergulhos selecionados tem dados brutos armazenados para reanalisar.';
+
+  @override
+  String get diveLog_selection_tooltip_reparse => 'Reanalisar';
+
+  @override
+  String get settings_reparseDives_title => 'Reanalisar mergulhos';
+
+  @override
+  String get settings_reparseDives_subtitle =>
+      'Reexecutar o analisador em cada mergulho com dados brutos armazenados';
+
+  @override
+  String get settings_reparseDives_intro =>
+      'Use isto depois que uma atualização do app melhorar a leitura dos dados do computador de mergulho. Suas notas, locais, parceiros e outras edições são preservados.';
+
+  @override
+  String settings_reparseDives_withRawData(int count) {
+    return 'Mergulhos com dados brutos: $count';
+  }
+
+  @override
+  String settings_reparseDives_withoutRawData(int count) {
+    return 'Mergulhos sem dados brutos (não reanalisados): $count';
+  }
+
+  @override
+  String get settings_reparseDives_byComputer => 'Por computador de mergulho';
+
+  @override
+  String get settings_reparseDives_unknownComputer => 'Computador desconhecido';
+
+  @override
+  String get settings_reparseDives_none =>
+      'Nenhum mergulho tem dados brutos armazenados para reanalisar.';
+
+  @override
+  String get settings_reparseDives_button => 'Reanalisar tudo';
 
   @override
   String get diveComputer_rawData_discardAction => 'Descartar';
@@ -60527,4 +60661,202 @@ class AppLocalizationsPt extends AppLocalizations {
   ) {
     return 'Marcador $number: $time, $depth, $distance';
   }
+
+  @override
+  String get twinSet_title => 'Bi-cilindro';
+
+  @override
+  String get twinSet_none => 'Não faz parte de um bi-cilindro';
+
+  @override
+  String get twinSet_link => 'Vincular a um cilindro parceiro';
+
+  @override
+  String twinSet_since(String date) {
+    return 'Desde $date';
+  }
+
+  @override
+  String get twinSet_replace => 'Trocar parceiro';
+
+  @override
+  String get twinSet_unlink => 'Desvincular';
+
+  @override
+  String get twinSet_history => 'Histórico';
+
+  @override
+  String twinSet_historyRange(String partner, String from, String to) {
+    return '$partner, de $from a $to';
+  }
+
+  @override
+  String get twinSet_deletePairing => 'Excluir pareamento';
+
+  @override
+  String get twinSet_deletePairingConfirm =>
+      'Excluir este pareamento do histórico? Cargas e mergulhos não mudam.';
+
+  @override
+  String get twinSet_pickerTitle => 'Cilindro parceiro';
+
+  @override
+  String get twinSet_pickerEmpty => 'Nenhum outro cilindro para parear.';
+
+  @override
+  String get twinSet_pairedOnHelp => 'Pareados desde';
+
+  @override
+  String get twinSet_unpairedOnHelp => 'Desvinculados em';
+
+  @override
+  String get twinSet_pressureMismatchTitle => 'Pressões de trabalho diferentes';
+
+  @override
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  ) {
+    return '$a tem pressão de trabalho de $aPressure e $b de $bPressure. Um par com manifold é carregado a uma só pressão.';
+  }
+
+  @override
+  String get twinSet_continue => 'Continuar';
+
+  @override
+  String get twinSet_replaceTitle => 'Trocar de parceiro?';
+
+  @override
+  String twinSet_replaceClash(String cylinder, String partner) {
+    return '$cylinder está pareado com $partner.';
+  }
+
+  @override
+  String twinSet_replaceQuestion(String a, String b) {
+    return 'Parear $a com $b em vez disso?';
+  }
+
+  @override
+  String twinSet_leftAlone(String name) {
+    return '$name ficará sozinho.';
+  }
+
+  @override
+  String get twinSet_replaceConfirm => 'Trocar';
+
+  @override
+  String get twinSet_clashTitle => 'Pareamento sobreposto';
+
+  @override
+  String twinSet_clashBody(String pairs) {
+    return 'Isto se sobrepõe ao pareamento de $pairs. Um cilindro só pode estar em um bi-cilindro por dia.';
+  }
+
+  @override
+  String twinSet_pairNames(String a, String b) {
+    return '$a e $b';
+  }
+
+  @override
+  String twinSet_endBeforeStart(String date) {
+    return 'A data de término deve ser posterior a $date.';
+  }
+
+  @override
+  String get twinSet_saveFailed =>
+      'Não foi possível salvar a alteração do bi-cilindro.';
+
+  @override
+  String twinSet_with(String partner) {
+    return 'Bi-cilindro com $partner';
+  }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return 'Os dois cilindros do bi-cilindro ($partner)';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner, $status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => 'Editar carga';
+
+  @override
+  String get passport_logFill_overPressureTitle =>
+      'Acima da pressão de trabalho';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure está acima da pressão de trabalho de $name, $workingPressure.';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => 'Salvar mesmo assim';
+
+  @override
+  String get passport_logFill_back => 'Voltar';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return 'Aplicar também à carga de $partner?';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => 'Sim';
+
+  @override
+  String get passport_logFill_onlyThisOne => 'Só esta';
+
+  @override
+  String get passport_history_anotherCylinder => 'outro cilindro';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return 'Carregado junto com $partner';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'Excluir esta carga dos dois cilindros ou só deste?';
+
+  @override
+  String get passport_history_deleteBoth => 'Os dois cilindros';
+
+  @override
+  String get passport_history_edit => 'Editar carga';
+
+  @override
+  String get twinSet_choiceTitle => 'Usar o bi-cilindro?';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'Bi-cilindro ($a + $b, $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return 'Só $a';
+  }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'Pareados desde';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'Desvinculados em';
+
+  @override
+  String get settings_conflict_field_filledTogetherId => 'Carga do bi-cilindro';
+
+  @override
+  String get settings_conflict_field_twinPassportId =>
+      'Passaporte do cilindro parceiro';
 }
