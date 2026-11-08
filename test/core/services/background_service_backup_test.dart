@@ -6,11 +6,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/background_service.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
+import 'package:submersion/features/backup/domain/entities/backup_copy_account.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 
 import '../../helpers/mock_channels.dart';
@@ -252,6 +254,28 @@ void main() {
             'the local backup succeeded, but claiming plain success would tell '
             'the user their off-device copy is safe when it is not',
       );
+    });
+
+    // Issue #3782: an extra account the backup did not reach is a missing
+    // copy too. Lightroom holds no files, so no provider can be built for it
+    // here, deterministically.
+    test('a missed extra copy reports the copy missing', () async {
+      final prefs = await seedPrefs();
+      await BackupPreferences(prefs).setExtraCopyAccounts(const [
+        BackupCopyAccount(
+          accountId: 'acct-x',
+          kind: AccountKind.adobeLightroom,
+        ),
+      ]);
+
+      await run(prefs);
+
+      expect(await uploadedBackups(), hasLength(1));
+      expect(notifications.single.success, isTrue);
+      expect(notifications.single.cloudCopyMissing, isTrue);
+      expect(BackupPreferences(prefs).getSettings().lastExtraCopyMissingIds, [
+        'acct-x',
+      ]);
     });
 
     test('a failed backup reports the reason', () async {

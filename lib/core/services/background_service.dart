@@ -279,6 +279,11 @@ Future<BackupService> buildScheduledBackupService({
       encryptionKeyStore: encryptionKeyStore,
       instanceFor: instanceFor,
     ),
+    extraCopies: await resolveHeadlessExtraCopyDestinations(
+      prefs: prefs,
+      encryptionKeyStore: encryptionKeyStore,
+      instanceFor: instanceFor,
+    ),
     encryptionKeyStore: encryptionKeyStore,
     syncPreferences: SyncPreferences(prefs),
     backupEncryptionKeyStore: BackupEncryptionKeyStore(),
@@ -335,8 +340,14 @@ Future<void> runScheduledBackup({
     // The record's location is the only honest signal: the upload swallows
     // its own failures to protect the local artifact, so a cloud copy the
     // user asked for can be missing from an otherwise successful backup.
+    // An extra account the backup did not reach (issue #3782) is a missing
+    // copy too; the backup has just written that list.
     final cloudCopyMissing =
-        settings.cloudBackupEnabled && record.location == BackupLocation.local;
+        settings.cloudBackupEnabled &&
+        (record.location == BackupLocation.local ||
+            BackupPreferences(
+              prefs,
+            ).getSettings().lastExtraCopyMissingIds.isNotEmpty);
     log.info(
       'Automatic backup completed: ${record.filename} '
       '(location: ${record.location.name})',

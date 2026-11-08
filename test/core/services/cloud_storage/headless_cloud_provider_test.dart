@@ -216,6 +216,66 @@ void main() {
       expect(built, isEmpty);
     });
   });
+
+  group('the extra copies (#3782)', () {
+    final pinned = <(AccountKind, String)>[];
+
+    CloudStorageProvider forAccount(AccountKind kind, String id) {
+      pinned.add((kind, id));
+      return FakeCloudStorageProvider(providerId: 'copy:$id');
+    }
+
+    setUp(pinned.clear);
+
+    Future<List<(String, String?)>> resolveExtras(
+      SharedPreferences prefs, {
+      Set<String> offRoster = const {},
+    }) async => [
+      for (final d in await resolveHeadlessExtraCopyDestinations(
+        prefs: prefs,
+        encryptionKeyStore: keyStore,
+        instanceFor: instanceFor,
+        forAccount: forAccount,
+        accountOnRoster: (id) async => !offRoster.contains(id),
+      ))
+        (d.accountId, d.provider?.providerId),
+    ];
+
+    const extras = {
+      'backup_cloud_enabled': true,
+      'backup_extra_copy_accounts':
+          '[{"id":"acct-git","kind":"git"},{"id":"acct-d","kind":"dropbox"}]',
+    };
+
+    test('builds each extra destination, in order', () async {
+      final prefs = await prefsWith(extras);
+
+      expect(await resolveExtras(prefs), [
+        ('acct-git', 'copy:acct-git'),
+        ('acct-d', 'copy:acct-d'),
+      ]);
+      expect(pinned, [
+        (AccountKind.git, 'acct-git'),
+        (AccountKind.dropbox, 'acct-d'),
+      ]);
+    });
+
+    test('a row off the roster gets no provider', () async {
+      final prefs = await prefsWith(extras);
+
+      expect(await resolveExtras(prefs, offRoster: {'acct-git'}), [
+        ('acct-git', null),
+        ('acct-d', 'copy:acct-d'),
+      ]);
+    });
+
+    test('none while the copy is off', () async {
+      final prefs = await prefsWith({...extras, 'backup_cloud_enabled': false});
+
+      expect(await resolveExtras(prefs), isEmpty);
+      expect(pinned, isEmpty);
+    });
+  });
 }
 
 /// Models a keychain read that fails (locked device, revoked entitlement).

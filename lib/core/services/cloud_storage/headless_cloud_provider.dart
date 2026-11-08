@@ -15,6 +15,7 @@ import 'package:submersion/core/services/sync/sync_initializer.dart'
     show lastCloudProviderFromPrefs;
 import 'package:submersion/core/services/sync/sync_preferences.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/backup/data/services/extra_copy_destination.dart';
 
 const _log = LoggerService('HeadlessCloudProvider');
 
@@ -94,6 +95,61 @@ Future<CloudStorageProvider?> resolveHeadlessBackupCopyProvider({
       instanceFor: instanceFor,
     );
   }
+  return _accountCopyProvider(
+    kind,
+    id,
+    prefs: prefs,
+    encryptionKeyStore: encryptionKeyStore,
+    instanceFor: instanceFor,
+    forAccount: forAccount,
+    accountOnRoster: accountOnRoster,
+  );
+}
+
+/// The accounts the scheduled backup also copies to (issue #3782), each
+/// built as [resolveHeadlessBackupCopyProvider] builds a chosen account.
+/// Empty while the copy is off; a row gone from the roster, or one that
+/// cannot be built here, comes with no provider so its copy is missed.
+/// [forAccount] and [accountOnRoster] are test seams.
+Future<List<ExtraCopyDestination>> resolveHeadlessExtraCopyDestinations({
+  required SharedPreferences prefs,
+  EncryptionKeyStore? encryptionKeyStore,
+  CloudStorageProvider Function(CloudProviderType type)? instanceFor,
+  CloudStorageProvider? Function(AccountKind kind, String accountId)?
+  forAccount,
+  Future<bool> Function(String accountId)? accountOnRoster,
+}) async {
+  final settings = BackupPreferences(prefs).getSettings();
+  if (!settings.cloudBackupEnabled) return const [];
+  return [
+    for (final account in settings.extraCopyAccounts)
+      ExtraCopyDestination(
+        account.accountId,
+        await _accountCopyProvider(
+          account.kind,
+          account.accountId,
+          prefs: prefs,
+          encryptionKeyStore: encryptionKeyStore,
+          instanceFor: instanceFor,
+          forAccount: forAccount,
+          accountOnRoster: accountOnRoster,
+        ),
+      ),
+  ];
+}
+
+/// The provider for a copy to the roster row [id] of [kind], sealed as the
+/// foreground seals it; null when the row is gone or cannot be built.
+Future<CloudStorageProvider?> _accountCopyProvider(
+  AccountKind kind,
+  String id, {
+  required SharedPreferences prefs,
+  EncryptionKeyStore? encryptionKeyStore,
+  CloudStorageProvider Function(CloudProviderType type)? instanceFor,
+  CloudStorageProvider? Function(AccountKind kind, String accountId)?
+  forAccount,
+  Future<bool> Function(String accountId)? accountOnRoster,
+}) async {
   try {
     if (!await (accountOnRoster ?? _onRoster)(id)) return null;
     final raw = forAccount != null

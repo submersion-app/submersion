@@ -1,6 +1,7 @@
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/accounts/account_group.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/account_sync_providers.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
@@ -138,10 +139,23 @@ final backupCopyProviderProvider = Provider<CloudStorageProvider?>((ref) {
   if (accountId == null || kind == null) {
     return ref.watch(cloudStorageProviderProvider);
   }
-  // Nothing is copied until the roster confirms the row, so an account
-  // removed elsewhere gets no copy while the lookup runs; this rebuilds once
-  // it lands. An unreadable roster copies, as in the background: a
-  // database hiccup costs a copy nothing.
+  return watchAccountCopyProvider(ref, accountId, kind);
+});
+
+/// The provider a backup copy goes through to the roster row [accountId]
+/// of [kind]: the main copy pinned to it, or an extra copy (issue #3782).
+/// Built the way sync builds one, through the row's [SyncCapable] adapter,
+/// and sealed for end-to-end encryption.
+///
+/// Nothing is copied until the roster confirms the row, so an account
+/// removed elsewhere gets no copy while the lookup runs; [ref] rebuilds once
+/// it lands. An unreadable roster copies, as in the background: a database
+/// hiccup costs a copy nothing.
+CloudStorageProvider? watchAccountCopyProvider(
+  Ref ref,
+  String accountId,
+  AccountKind kind,
+) {
   final onRoster = ref.watch(copyRowOnRosterProvider(accountId));
   final unreadable = onRoster.hasError && !onRoster.hasValue;
   if (!unreadable && onRoster.value != true) return null;
@@ -151,4 +165,4 @@ final backupCopyProviderProvider = Provider<CloudStorageProvider?>((ref) {
       ?.syncProvider(accountRowReference(accountId, kind));
   if (raw == null) return null;
   return wrapForLibrary(raw, ref.watch(encryptionKeyNotifierProvider));
-});
+}
