@@ -2182,7 +2182,11 @@ class PlanEngine {
         }
       }
 
-      final end = segment.gasMix.end(deeperEnd, o2Narcotic: config.o2Narcotic);
+      final end = segment.gasMix.end(
+        deeperEnd,
+        o2Narcotic: config.o2Narcotic,
+        environment: environment,
+      );
       if (end > config.endLimitMeters) {
         issues.add(
           PlanIssue(
@@ -2193,7 +2197,11 @@ class PlanEngine {
                 '${config.endLimitMeters.toStringAsFixed(0)} m',
             atRuntime: onset(
               (d) =>
-                  segment.gasMix.end(d, o2Narcotic: config.o2Narcotic) >
+                  segment.gasMix.end(
+                    d,
+                    o2Narcotic: config.o2Narcotic,
+                    environment: environment,
+                  ) >
                   config.endLimitMeters,
             ),
             atDepth: deeperEnd,
@@ -2998,10 +3006,11 @@ class PlanEngine {
           // printed at 3 m on a 7/70 diluent), so the floor is 0 m.
           endMeters: math.max(
             0.0,
-            GasMix(
-              o2: fO2 * 100,
-              he: fHe * 100,
-            ).end(pDepth, o2Narcotic: config.o2Narcotic),
+            GasMix(o2: fO2 * 100, he: fHe * 100).end(
+              pDepth,
+              o2Narcotic: config.o2Narcotic,
+              environment: environment,
+            ),
           ),
           foldedTravel: foldedTravel,
         ),
