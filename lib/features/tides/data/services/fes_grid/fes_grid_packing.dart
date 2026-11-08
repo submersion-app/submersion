@@ -23,6 +23,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:submersion/core/platform/compute/compute_jobs.dart';
 import 'package:submersion/core/platform/zlib/platform_zlib.dart';
 import 'package:submersion/core/utils/off_isolate.dart';
+import 'package:submersion/core/utils/zigzag.dart';
 import 'package:submersion/features/tides/data/services/fes_grid/fes_grid_layers.dart';
 
 const int _packedVersion = 2;
@@ -47,6 +48,7 @@ final class _Kind {
   const _Kind({
     required this.magic,
     required this.headerBytes,
+    required this.dimensionsAt,
     required this.what,
     required this.maxBody,
     required this.rebuild,
@@ -54,6 +56,9 @@ final class _Kind {
 
   final String magic;
   final int headerBytes;
+
+  /// Where the header's uint16 rows, columns and constituent count start.
+  final int dimensionsAt;
   final String what;
   final int Function(ByteData packed) maxBody;
   final ByteData Function(ByteData packed, Uint8List body) rebuild;
@@ -62,6 +67,7 @@ final class _Kind {
 const _tile = _Kind(
   magic: 'SFT2',
   headerBytes: 16,
+  dimensionsAt: 10,
   what: 'FES tile',
   maxBody: _tileMaxBody,
   rebuild: _rebuildTile,
@@ -70,6 +76,7 @@ const _tile = _Kind(
 const _global = _Kind(
   magic: 'SFG2',
   headerBytes: 12,
+  dimensionsAt: 6,
   what: 'FES global layer',
   maxBody: _globalCellBytes,
   rebuild: _rebuildGlobal,
@@ -130,18 +137,24 @@ FormatException _corrupt(String what, ZlibFormatException e) =>
 FormatException _tooLarge(String what) =>
     FormatException('Packed $what is larger than its header allows');
 
+/// The rows, columns and constituent count [kind]'s header states.
+(int, int, int) _dimensions(ByteData packed, _Kind kind) => (
+  packed.getUint16(kind.dimensionsAt, Endian.little),
+  packed.getUint16(kind.dimensionsAt + 2, Endian.little),
+  packed.getUint16(kind.dimensionsAt + 4, Endian.little),
+);
+
+int _bitmapBytes(int rows, int cols) => (rows * cols + 7) ~/ 8;
+
 int _tileMaxBody(ByteData packed) {
-  final rows = packed.getUint16(10, Endian.little);
-  final cols = packed.getUint16(12, Endian.little);
-  final count = packed.getUint16(14, Endian.little);
-  return (rows * cols + 7) ~/ 8 + rows * cols * count * fesBytesPerConstituent;
+  final (rows, cols, count) = _dimensions(packed, _tile);
+  return _bitmapBytes(rows, cols) +
+      rows * cols * count * fesBytesPerConstituent;
 }
 
 ByteData _rebuildTile(ByteData packed, Uint8List body) {
-  final rows = packed.getUint16(10, Endian.little);
-  final cols = packed.getUint16(12, Endian.little);
-  final count = packed.getUint16(14, Endian.little);
-  final bitmapBytes = (rows * cols + 7) ~/ 8;
+  final (rows, cols, count) = _dimensions(packed, _tile);
+  final bitmapBytes = _bitmapBytes(rows, cols);
   if (body.length < bitmapBytes) {
     throw const FormatException('Packed FES tile is truncated');
   }
@@ -174,20 +187,18 @@ ByteData _rebuildTile(ByteData packed, Uint8List body) {
   return out;
 }
 
-int _globalCellBytes(ByteData packed) =>
-    packed.getUint16(6, Endian.little) *
-    packed.getUint16(8, Endian.little) *
-    packed.getUint16(10, Endian.little) *
-    fesBytesPerConstituent;
+int _globalCellBytes(ByteData packed) {
+  final (rows, cols, count) = _dimensions(packed, _global);
+  return rows * cols * count * fesBytesPerConstituent;
+}
 
 ByteData _rebuildGlobal(ByteData packed, Uint8List body) {
-  final cellBytes = _globalCellBytes(packed);
+  final (rows, cols, count) = _dimensions(packed, _global);
+  final cells = rows * cols;
+  final cellBytes = cells * count * fesBytesPerConstituent;
   if (body.length != cellBytes) {
     throw const FormatException('Packed FES global layer length mismatch');
   }
-  final cells =
-      packed.getUint16(6, Endian.little) * packed.getUint16(8, Endian.little);
-  final count = packed.getUint16(10, Endian.little);
   final out = ByteData(_global.headerBytes + cellBytes);
   _writeDecodedHeader(out, packed, FesGlobalLayer.magic, _global.headerBytes);
   _unpackPlanes(body, 0, out, _global.headerBytes, cells, count);
@@ -214,10 +225,7 @@ void _writeDecodedHeader(
 /// Writes [cells] cells of [count] constituents at [outOffset], read from
 /// the planes at [srcOffset]: every amplitude plane, then every phase plane,
 /// each [cells] zigzag deltas long, all low bytes before all high bytes.
-///
-/// The arithmetic avoids bitwise operators on negative numbers: compiled to
-/// JavaScript they work on 32 bits and return unsigned results, so the usual
-/// `(z >> 1) ^ -(z & 1)` decodes -6 as 4294967290 there.
+/// [zigzagDecode] and `%` keep the arithmetic exact compiled to JavaScript.
 void _unpackPlanes(
   Uint8List src,
   int srcOffset,
@@ -238,8 +246,7 @@ void _unpackPlanes(
     var i = srcOffset + plane * cells;
     var value = 0;
     for (var cell = 0; cell < cells; cell++, i++, at += stride) {
-      final zigzag = src[i] + src[i + highOffset] * 256;
-      final delta = zigzag.isEven ? zigzag ~/ 2 : -(zigzag ~/ 2) - 1;
+      final delta = zigzagDecode(src[i] + src[i + highOffset] * 256);
       // Dart's % is never negative for a positive divisor.
       value = (value + delta) % modulus;
       out.setUint16(at, value, Endian.little);

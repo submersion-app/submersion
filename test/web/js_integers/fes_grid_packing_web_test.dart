@@ -56,14 +56,13 @@ void main() {
   const amplitudes = [1000, 994, 1010];
   const phases = [100, 94, 35990];
 
+  // One row of three cells, one constituent.
+  final globalHeader = [..._uint16(1), ..._uint16(3), ..._uint16(1)];
+
   test('a global layer keeps phases that fall from cell to cell', () async {
     final layer = FesGlobalLayer.parse(
       await unpackFesGlobalLayer(
-        _file('SFG2', [
-          ..._uint16(1),
-          ..._uint16(3),
-          ..._uint16(1),
-        ], _planes(amplitudes, phases)),
+        _file('SFG2', globalHeader, _planes(amplitudes, phases)),
       ),
       expectedConstituents: 1,
     );
@@ -73,6 +72,23 @@ void main() {
       expect(cell.amplitudeMeters(0), closeTo(amplitudes[col] / 1000, 1e-9));
       expect(cell.phaseDegrees(0), closeTo(phases[col] / 100, 1e-9));
     }
+  });
+
+  // The web branch maps the compute worker's zlib errors itself, apart from
+  // the native one the VM suite covers.
+  test('a corrupt or oversized body is a FormatException', () async {
+    final planes = _planes(amplitudes, phases);
+    final corrupt = _file('SFG2', globalHeader, planes);
+    // The last byte is part of the zlib stream's checksum.
+    corrupt.setUint8(
+      corrupt.lengthInBytes - 1,
+      corrupt.getUint8(corrupt.lengthInBytes - 1) ^ 0xff,
+    );
+    await expectLater(unpackFesGlobalLayer(corrupt), throwsFormatException);
+    await expectLater(
+      unpackFesGlobalLayer(_file('SFG2', globalHeader, [...planes, 0, 0])),
+      throwsFormatException,
+    );
   });
 
   test('a coastal tile keeps phases that fall from cell to cell', () async {

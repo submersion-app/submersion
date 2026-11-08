@@ -164,7 +164,8 @@ def _cells_view(data, offset, n, count):
 
 
 def _check_header(data, magic, version, what):
-    if data[:4] != magic or struct.unpack_from("<H", data, 4)[0] != version:
+    if (len(data) < 6 or data[:4] != magic
+            or struct.unpack_from("<H", data, 4)[0] != version):
         raise ValueError(f"not a version {version} {what}")
 
 
