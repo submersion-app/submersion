@@ -62,19 +62,42 @@ class _DiveCardPhotoBackgroundState
   /// resolve the photo again on every pixel.
   static const _decodeStep = 160.0;
 
+  /// The image that drew this photo, kept so the crop can be worked out
+  /// again when the tags on it change.
+  ImageProvider? _provider;
+
   @override
   void didUpdateWidget(covariant DiveCardPhotoBackground oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.photo.mediaId != widget.photo.mediaId) {
+    final photo = widget.photo;
+    if (oldWidget.photo.mediaId != photo.mediaId) {
       _imageSize = null;
       _rows = null;
+      _provider = null;
       _ready = false;
+      return;
+    }
+    // The same photo, its people untagged: the boxes placed the crop, so
+    // the pixels must now. New boxes need nothing: the crop reads them.
+    final provider = _provider;
+    if (oldWidget.photo.focusBoxes.isNotEmpty &&
+        photo.focusBoxes.isEmpty &&
+        CardPhotoTuning.usePixelAnalysis &&
+        _rows == null &&
+        provider != null) {
+      final analyzer = ref.read(cardFocusAnalyzerProvider);
+      if (analyzer.hasAnswer(photo.mediaId)) {
+        _rows = analyzer.peek(photo.mediaId);
+      } else {
+        _analyse(photo.mediaId, provider);
+      }
     }
   }
 
   void _onImageReady(ImageProvider provider, Size size) {
     if (!mounted) return;
     final mediaId = widget.photo.mediaId;
+    _provider = provider;
     if (widget.photo.focusBoxes.isNotEmpty ||
         !CardPhotoTuning.usePixelAnalysis) {
       setState(() {
@@ -93,7 +116,15 @@ class _DiveCardPhotoBackgroundState
       return;
     }
     _imageSize = size;
-    analyzer.rowScoresFor(mediaId, provider).then((rows) {
+    _analyse(mediaId, provider);
+  }
+
+  /// Analyses [provider]'s pixels for [mediaId]'s crop, and shows the photo
+  /// once they are known.
+  void _analyse(String mediaId, ImageProvider provider) {
+    ref.read(cardFocusAnalyzerProvider).rowScoresFor(mediaId, provider).then((
+      rows,
+    ) {
       if (!mounted || widget.photo.mediaId != mediaId) return;
       setState(() {
         _rows = rows;
