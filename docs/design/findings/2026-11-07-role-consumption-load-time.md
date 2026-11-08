@@ -56,9 +56,13 @@ The live logbook (36 dives, every one with a profile and a series) is too
 small to show this. The repository now keeps each dive's figures in memory
 with the version they were worked out from: the dive source stamp
 (`diveSourceStampSql`: the dive, its profile and pressure series and its
-tanks), its gas switches, and which recording is primary. A later read,
-whether a filter change on the Gas page, a logbook change ticking the
-planner's logged default, or opening the Dive Lab, works out only the dives
-whose version moved. Nothing is stored, so the first read after launch still
-pays the full cost.
+tanks), its effective water type (a site's water never re-stamps its dives),
+each gas switch's time and cylinder, and which recording is primary. A chunk
+whose gas switch or profile summary read came back empty although its dives
+have some is shown but not kept, since both reads return nothing on a failure.
+Two reads at once take turns, so the second finds the first's figures. A
+later read, whether a filter change on the Gas page, a logbook change ticking
+the planner's logged default, or opening the Dive Lab, works out only the
+dives whose version moved. Nothing is stored, so the first read after launch
+still pays the full cost.
 

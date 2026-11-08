@@ -34,6 +34,4 @@ class RoleConsumptionTrend {
     if (points == null || points.isEmpty) return null;
     return points.map((p) => p.value).average;
   }
-
-  bool isEmptyFor(GasConsumptionLane lane) => forLane(lane).isEmpty;
 }

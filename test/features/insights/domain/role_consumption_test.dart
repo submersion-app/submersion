@@ -171,6 +171,43 @@ void main() {
       );
     });
 
+    test('a rate at an unknown depth gives no figure', () {
+      // No profile and no stored average depth: the service divides a
+      // pressure series at a stand-in 10 m, which says nothing of the dive.
+      final dive = Dive(
+        id: 'dive',
+        diveNumber: 1,
+        dateTime: DateTime.utc(2026, 10, 1, 10),
+        maxDepth: 25,
+        runtime: const Duration(minutes: 60),
+        tanks: const [_back],
+      );
+      final run = _run(
+        dive,
+        profile: const [],
+        pressures: const {
+          'back': [
+            TankPressurePoint(tankId: 'back', timestamp: 0, pressure: 200),
+            TankPressurePoint(tankId: 'back', timestamp: 3600, pressure: 90),
+          ],
+        },
+      );
+
+      expect(run.rows.single.sacRate, isNotNull);
+      expect(run.result.rmv, isEmpty);
+      expect(run.result.sac, isEmpty);
+    });
+
+    test('a rate at a stored 0 m average depth gives no figure', () {
+      final run = _run(
+        _dive(const [_back]).copyWith(avgDepth: 0),
+        profile: const [],
+      );
+
+      expect(run.rows.single.sacRate, isNotNull);
+      expect(run.result.rmv, isEmpty);
+    });
+
     test('back gas and deco each use their own window', () {
       final run = _run(
         _dive(const [_back, _deco]),

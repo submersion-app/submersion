@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - Before Task 1, initialize the worktree: `git submodule update --init --recursive`, `flutter pub get`, then `dart run build_runner build --delete-conflicting-outputs` (never with `--build-filter`).
-- No em-dashes anywhere (code, comments, ARB, docs, commits). No mention of Claude or Anthropic in commits or the PR.
+- No em-dashes anywhere (code, comments, ARB, docs, commits). No tool or model attribution in commits or the PR.
 - No schema change, migration, sync change or stored-value change.
 - `lib/features/insights/data/repositories/insights_repository.dart` must not grow beyond the one `part` line and the removals in Task 5.
 - New SQL over `dives` goes through `_diveFilter(...)`: `consumptionRate: true` for open-circuit groups, `gas: true` plus `d.dive_mode = 'ccr'` for CCR bailout.

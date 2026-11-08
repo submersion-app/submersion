@@ -25,6 +25,8 @@ void main() {
     bool excludedFromGasStats = false,
     String? diverId,
     int? runtime = 60 * 60,
+    double? avgDepth = 20.0,
+    String? siteId,
   }) async {
     final at = DateTime.utc(2026, 1, day).millisecondsSinceEpoch;
     await db
@@ -36,7 +38,8 @@ void main() {
             diveMode: Value(diveMode),
             diverId: Value(diverId),
             runtime: Value(runtime),
-            avgDepth: const Value(20.0),
+            avgDepth: Value(avgDepth),
+            siteId: Value(siteId),
             maxDepth: const Value(25.0),
             excludedFromGasStats: Value(excludedFromGasStats),
             createdAt: Value(at),
@@ -316,6 +319,97 @@ void main() {
       expect(trend.rmv[ConsumptionRoleGroup.deco], hasLength(1));
     });
 
+    test(
+      'reads a site water change, which never re-stamps its dives',
+      () async {
+        await db
+            .into(db.diveSites)
+            .insert(
+              const DiveSitesCompanion(
+                id: Value('reef'),
+                name: Value('Reef'),
+                waterType: Value('salt'),
+                createdAt: Value(0),
+                updatedAt: Value(0),
+              ),
+            );
+        await insertDive('plain', siteId: 'reef');
+        await insertTank('plain', 'plain-back', 'backGas');
+        final salt = bottomGas(await repository.getRoleConsumptionPerDive());
+
+        await db.customStatement(
+          "UPDATE dive_sites SET water_type = 'fresh' WHERE id = 'reef'",
+        );
+
+        // Fresh water weighs less, so the same depth is a lower ambient
+        // pressure and the same gas a higher surface rate.
+        expect(
+          bottomGas(await repository.getRoleConsumptionPerDive()),
+          greaterThan(salt),
+        );
+      },
+    );
+
+    test('reads switches that moved by amounts that cancel out', () async {
+      await insertDive('tech');
+      await insertTank('tech', 'tech-back', 'backGas');
+      await insertTank(
+        'tech',
+        'tech-deco',
+        'deco',
+        volume: 7,
+        o2: 50,
+        end: 140,
+        order: 1,
+      );
+      await insertSwitch('tech', 'tech-deco', 40 * 60);
+      await insertSwitch('tech', 'tech-back', 50 * 60);
+      await insertProfile('tech', switchAt: 40 * 60);
+      double deco(RoleConsumptionTrend trend) =>
+          trend.rmv[ConsumptionRoleGroup.deco]!.single.value;
+      final before = deco(await repository.getRoleConsumptionPerDive());
+
+      // A sync pull writes switches without re-stamping the dive. The count,
+      // the sum of the times and the cylinders named all stay the same.
+      await db.customStatement(
+        "UPDATE gas_switches SET timestamp = timestamp + 60 "
+        "WHERE id = 'tech-deco-${40 * 60}'",
+      );
+      await db.customStatement(
+        "UPDATE gas_switches SET timestamp = timestamp - 60 "
+        "WHERE id = 'tech-back-${50 * 60}'",
+      );
+
+      // Eight minutes on deco instead of ten.
+      expect(
+        deco(await repository.getRoleConsumptionPerDive()),
+        greaterThan(before * 1.2),
+      );
+    });
+
+    test('two reads at once agree with one read alone', () async {
+      await insertTechDive('one', day: 1);
+      await insertTechDive('two', day: 2);
+
+      final (a, b) = await (
+        repository.getRoleConsumptionPerDive(),
+        repository.getRoleConsumptionPerDive(),
+      ).wait;
+      final alone = await InsightsRepository(
+        gasModel: GasModel.real,
+      ).getRoleConsumptionPerDive();
+
+      for (final trend in [a, b]) {
+        for (final group in alone.rmv.keys) {
+          expect(
+            trend.rmv[group]!.map((p) => p.value),
+            alone.rmv[group]!.map((p) => p.value),
+          );
+        }
+        expect(trend.rmv.keys, alone.rmv.keys);
+      }
+    });
+
     test('drops a deleted dive', () async {
       await insertDive('gone');
       await insertTank('gone', 'gone-back', 'backGas');
@@ -338,6 +432,19 @@ void main() {
       trend.rmv[ConsumptionRoleGroup.bottomGas]!.single.value,
       closeTo(rows.single.rmv!, 1e-9),
     );
+  });
+
+  test('a profileless dive stored at 0 m adds no point', () async {
+    // The SAC trend leaves it out too: dividing at the surface would read
+    // about three times a 20 m rate.
+    await insertDive('flat', avgDepth: 0);
+    await insertTank('flat', 'flat-back', 'backGas');
+
+    final trend = await repository.getRoleConsumptionPerDive();
+
+    expect(trend.rmv, isEmpty);
+    expect(trend.sac, isEmpty);
+    expect(await repository.getSacVolumePerDive(), isEmpty);
   });
 
   test('a dive with no runtime and no profile adds no point', () async {

@@ -31,25 +31,17 @@ extension InsightsRepositoryRoleConsumption on InsightsRepository {
           ),
         ]..sort((a, b) => a.dateTime.compareTo(b.dateTime));
 
+        final unkept = await _refreshRoleConsumption(rows);
         final memo = _roleConsumptionMemo;
-        final stale = {
-          for (final row in rows)
-            if (memo[row.id]?.version != row.version) row.id: row,
-        };
-        for (final chunk in InsightsRepository._diveChunks(
-          stale.keys.toList(),
-        )) {
-          final uses = await _roleConsumptionForDives(chunk, stale);
-          for (final MapEntry(key: id, value: use) in uses.entries) {
-            memo[id] = (version: stale[id]!.version, use: use);
-          }
-        }
 
         final rmv = <ConsumptionRoleGroup, List<TrendDataPoint>>{};
         final sac = <ConsumptionRoleGroup, List<TrendDataPoint>>{};
         var leftOutDives = 0;
         for (final row in rows) {
-          final use = memo[row.id]?.use;
+          final kept = memo[row.id];
+          final use =
+              unkept[row.id] ??
+              (kept?.version == row.version ? kept?.use : null);
           if (use == null) continue;
           if (use.leftOut) {
             leftOutDives++;
@@ -85,10 +77,55 @@ extension InsightsRepositoryRoleConsumption on InsightsRepository {
     }
   }
 
+  /// Works out the dives of [rows] whose version moved since the memo last
+  /// saw them, once any refresh already running has finished. Two reads at
+  /// once (the Gas page and the planner's logged default) would otherwise
+  /// work out the same dives side by side, and the older could store its
+  /// figures over the newer's.
+  ///
+  /// Returns the figures of chunks whose batch reads came back incomplete:
+  /// this read shows them, and the memo does not keep them.
+  Future<Map<String, DiveRoleConsumption>> _refreshRoleConsumption(
+    List<_RoleConsumptionDiveRow> rows,
+  ) {
+    final previous = _roleConsumptionRefresh;
+    final refresh = () async {
+      try {
+        await previous;
+      } catch (_) {
+        // That read has already reported its own failure.
+      }
+      final memo = _roleConsumptionMemo;
+      final stale = {
+        for (final row in rows)
+          if (memo[row.id]?.version != row.version) row.id: row,
+      };
+      final unkept = <String, DiveRoleConsumption>{};
+      for (final chunk in InsightsRepository._diveChunks(stale.keys.toList())) {
+        final (:uses, :complete) = await _roleConsumptionForDives(chunk, stale);
+        for (final MapEntry(key: id, value: use) in uses.entries) {
+          if (complete) {
+            memo[id] = (version: stale[id]!.version, use: use);
+          } else {
+            unkept[id] = use;
+          }
+        }
+      }
+      return unkept;
+    }();
+    _roleConsumptionRefresh = refresh;
+    return refresh;
+  }
+
   /// Works out consumption by cylinder role for the dives [ids], one chunk:
   /// the dive detail's own per-cylinder calculation on each, with depth from
   /// its 120-point profile summary.
-  Future<Map<String, DiveRoleConsumption>> _roleConsumptionForDives(
+  ///
+  /// Not [complete] when the gas switch or profile summary read came back
+  /// empty although a dive of the chunk has some: both reads log a failure
+  /// and return nothing rather than throw.
+  Future<({Map<String, DiveRoleConsumption> uses, bool complete})>
+  _roleConsumptionForDives(
     List<String> ids,
     Map<String, _RoleConsumptionDiveRow> rowsById,
   ) async {
@@ -127,7 +164,12 @@ extension InsightsRepositoryRoleConsumption on InsightsRepository {
         ),
       );
     }
-    return uses;
+    bool anyHas(bool Function(_RoleConsumptionDiveRow row) has) =>
+        ids.any((id) => has(rowsById[id]!));
+    final complete =
+        (switches.isNotEmpty || !anyHas((r) => r.hasSwitches)) &&
+        (profiles.isNotEmpty || !anyHas((r) => r.hasProfile));
+    return (uses: uses, complete: complete);
   }
 
   /// The dives in [scope] with at least one cylinder, with their primary
@@ -144,9 +186,15 @@ extension InsightsRepositoryRoleConsumption on InsightsRepository {
           '''
         SELECT d.id, d.dive_date_time,
           ${diveSourceStampSql('d')} AS stamp,
-          (SELECT COUNT(*) || ':' || COALESCE(SUM(sw.timestamp), 0) || ':' ||
-             COALESCE(GROUP_CONCAT(sw.tank_id), '')
+          ${diveEffectiveWaterTypeSql('d')} AS water_type,
+          (SELECT COUNT(*) || ':' ||
+             COALESCE(GROUP_CONCAT(sw.timestamp || '@' || sw.tank_id), '')
            FROM gas_switches sw WHERE sw.dive_id = d.id) AS switches,
+          EXISTS (SELECT 1 FROM gas_switches sw
+            JOIN dive_tanks st ON st.id = sw.tank_id
+            WHERE sw.dive_id = d.id) AS has_switches,
+          EXISTS (SELECT 1 FROM dive_profile_series ps
+            WHERE ps.dive_id = d.id AND ps.sample_count > 0) AS has_profile,
           (SELECT id FROM dive_data_sources
            WHERE dive_id = d.id AND is_primary = 1 LIMIT 1) AS primary_source_id,
           (SELECT computer_id FROM dive_data_sources
@@ -171,11 +219,16 @@ extension InsightsRepositoryRoleConsumption on InsightsRepository {
           ),
           primarySourceId: row.read<String?>('primary_source_id'),
           primaryComputerId: row.read<String?>('primary_computer_id'),
-          // The dive and every child its figures read: profile and pressure
-          // series and tanks (the source stamp), gas switches, and which
-          // recording is primary. Synced children never re-stamp the dive.
+          hasSwitches: row.read<bool>('has_switches'),
+          hasProfile: row.read<bool>('has_profile'),
+          // The dive and everything its figures read: profile and pressure
+          // series and tanks (the source stamp), the water its depth is
+          // measured in (a site's, which never re-stamps its dives), each gas
+          // switch's time and cylinder, and which recording is primary.
+          // Synced children never re-stamp the dive either.
           version: [
             row.read<int>('stamp'),
+            row.read<String?>('water_type'),
             row.read<String>('switches'),
             row.read<String?>('primary_source_id'),
             row.read<String?>('primary_computer_id'),
@@ -190,5 +243,9 @@ typedef _RoleConsumptionDiveRow = ({
   DateTime dateTime,
   String? primarySourceId,
   String? primaryComputerId,
+  // Whether the dive has gas switches naming its cylinders, and a profile:
+  // what the chunk's batch reads must bring back for it.
+  bool hasSwitches,
+  bool hasProfile,
   String version,
 });

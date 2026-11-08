@@ -65,7 +65,12 @@ const _switchTimedGroups = {
 /// lane leaves that lane with its time. When a stage, deco, pony or bailout
 /// cylinder lost more gas than carrying it explains without a switch saying
 /// when, the whole dive is [DiveRoleConsumption.leftOut]: the primary gas
-/// window would then span its minutes too. On a CCR dive only bailout gas counts, in the bailout group.
+/// window would then span its minutes too. On a CCR dive only bailout gas
+/// counts, in the bailout group.
+///
+/// A rate with no depth behind it counts nowhere: no profile in its window
+/// and no stored average depth (the service then assumes 10 m), or a stored
+/// average of 0 m. The SAC trend leaves those dives out the same way.
 ///
 /// [counted] picks the cylinders that count, for a dive holding two
 /// recordings' copies of one cylinder; all count when it is null.
@@ -94,6 +99,7 @@ DiveRoleConsumption roleConsumptionForDive({
   final groups = <ConsumptionRoleGroup, List<CylinderSac>>{};
   for (final row in rows) {
     if (row.sacRate == null) continue;
+    if ((row.avgDepthDuringUse ?? dive.avgDepth ?? 0) <= 0) continue;
     final group = dive.isCCR
         ? ConsumptionRoleGroup.bailout
         : consumptionRoleGroupOf(row.role);

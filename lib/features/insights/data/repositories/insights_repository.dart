@@ -198,6 +198,10 @@ class InsightsRepository with InsightsChartDives {
   final _roleConsumptionMemo =
       <String, ({String version, DiveRoleConsumption use})>{};
 
+  /// The latest refresh of [_roleConsumptionMemo], which the next one waits
+  /// for, so two reads at once never work out the same dives side by side.
+  Future<void> _roleConsumptionRefresh = Future<void>.value();
+
   /// How many dives' packed series the profile aggregates read at once.
   ///
   /// The aggregates run over the whole filtered library, and a packed series

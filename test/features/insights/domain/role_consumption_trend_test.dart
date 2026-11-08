@@ -37,20 +37,18 @@ void main() {
     );
   });
 
-  test('forLane and isEmptyFor follow the lane', () {
+  test('forLane follows the lane', () {
     expect(trend.forLane(GasConsumptionLane.rmv).keys, [
       ConsumptionRoleGroup.bottomGas,
       ConsumptionRoleGroup.stage,
     ]);
     expect(trend.forLane(GasConsumptionLane.sac), isEmpty);
-    expect(trend.isEmptyFor(GasConsumptionLane.rmv), isFalse);
-    expect(trend.isEmptyFor(GasConsumptionLane.sac), isTrue);
   });
 
   test('the empty trend has nothing in either lane', () {
     const empty = RoleConsumptionTrend();
-    expect(empty.isEmptyFor(GasConsumptionLane.rmv), isTrue);
-    expect(empty.isEmptyFor(GasConsumptionLane.sac), isTrue);
+    expect(empty.forLane(GasConsumptionLane.rmv), isEmpty);
+    expect(empty.forLane(GasConsumptionLane.sac), isEmpty);
     expect(empty.leftOutDives, 0);
   });
 }
