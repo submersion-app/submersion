@@ -118,7 +118,10 @@ void main() {
       expect(await switchesEdited(), isFalse);
     });
 
-    test('undo keeps a list the diver already owned as theirs', () async {
+    test('changes nothing once the diver has emptied the list in the '
+        'editor', () async {
+      // The detector skips such a dive, so a finding for it is stale: the
+      // diver removed the switches it would add.
       final finding = await seedDiveAndFinding();
       final db = DatabaseService.instance.database;
       await (db.update(db.dives)..where((t) => t.id.equals('d1'))).write(
@@ -130,9 +133,11 @@ void main() {
         switches: const [(tankId: 'deco', t: 1800, depth: 21.0)],
         findingId: finding.id,
       );
-      await result.undo!();
 
+      expect(result.changed, isFalse);
+      expect(await diveRepo.getGasSwitchesForDive('d1'), isEmpty);
       expect(await switchesEdited(), isTrue);
+      expect(await statusOf(finding.id), QualityStatus.open);
     });
 
     test('changes nothing once the dive has a switch of its own', () async {

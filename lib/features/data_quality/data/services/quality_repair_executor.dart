@@ -615,9 +615,10 @@ class QualityRepairExecutor {
   /// is rebuilt from them. A dive that has gained a switch since the scan is
   /// left alone, since the finding was written for a dive with none and
   /// adding to the diver's own would mix two timelines; so is one that has
-  /// lost a cylinder a switch names. Both are checked in the transaction
-  /// that writes. Undo deletes exactly the switches written here and gives
-  /// the dive back the switch-list ownership it had, unless a switch added
+  /// lost a cylinder a switch names, and one whose list the diver has since
+  /// emptied in the editor, which the detector skips. All are checked in the
+  /// transaction that writes. Undo deletes exactly the switches written here
+  /// and hands the list back to the dive's computers, unless a switch added
   /// since (in the editor, or by a peer) is still there: that list is the
   /// diver's, and a re-parse must leave it alone.
   Future<RepairResult> addGasSwitches({
@@ -637,30 +638,29 @@ class QualityRepairExecutor {
           createdAt: DateTime.now().toUtc(),
         ),
     ];
-    final wasEdited = await _db.transaction<bool?>(() async {
+    final written = await _db.transaction<bool>(() async {
       final existing = await (_db.select(
         _db.gasSwitches,
       )..where((t) => t.diveId.equals(diveId))).get();
-      if (existing.isNotEmpty) return null;
+      if (existing.isNotEmpty) return false;
       final tankIds = {
         for (final row in await (_db.select(
           _db.diveTanks,
         )..where((t) => t.diveId.equals(diveId))).get())
           row.id,
       };
-      if (!switches.every((s) => tankIds.contains(s.tankId))) return null;
+      if (!switches.every((s) => tankIds.contains(s.tankId))) return false;
       final dive = await (_db.select(
         _db.dives,
       )..where((t) => t.id.equals(diveId))).getSingleOrNull();
-      if (dive == null) return null;
-      await _switchWriter.save(
+      if (dive == null || dive.gasSwitchesEdited) return false;
+      return _switchWriter.save(
         diveId: diveId,
         switches: rows,
         loadedIds: const {},
       );
-      return dive.gasSwitchesEdited;
     });
-    if (wasEdited == null) return const RepairResult.noChange();
+    if (!written) return const RepairResult.noChange();
     await _finish(findingId, [diveId]);
     return RepairResult.applied(() async {
       final added = {for (final r in rows) r.id};
@@ -672,7 +672,7 @@ class QualityRepairExecutor {
           diveId: diveId,
           switches: const [],
           loadedIds: added,
-          edited: wasEdited || later.isNotEmpty,
+          edited: later.isNotEmpty,
         );
       });
       _rescan([diveId]);
