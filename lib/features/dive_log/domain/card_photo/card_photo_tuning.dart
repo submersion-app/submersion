@@ -53,4 +53,8 @@ abstract final class CardPhotoTuning {
 
   /// How long the photo takes to fade in once it is ready.
   static const fadeIn = Duration(milliseconds: 250);
+
+  /// How many of a dive's photos a card tries before it gives up on photos
+  /// and shows the map or the attribute colour instead.
+  static const maxPhotoAttempts = 3;
 }

@@ -33,8 +33,10 @@ abstract final class DiveCardPhotoScrim {
 /// [child] over one of the dive's photos, cropped to cover the card.
 ///
 /// The photo stays hidden until it has decoded and its crop is known, then
-/// fades in at its final position, so it never jumps. Until then, and for a
-/// photo that cannot be drawn, the card shows its own fill.
+/// fades in at its final position, so it never jumps. Until then the card
+/// shows its own fill. A photo that cannot be drawn is marked failed in
+/// [failedCardPhotosProvider], so the card moves on to another of the
+/// dive's photos, or to the map or colour.
 class DiveCardPhotoBackground extends ConsumerStatefulWidget {
   const DiveCardPhotoBackground({
     super.key,
@@ -100,6 +102,28 @@ class _DiveCardPhotoBackgroundState
     });
   }
 
+  /// Gives up on this photo, so the card picks another of the dive's or
+  /// falls back to the map or colour. [MediaItemView] calls this after its
+  /// frame, outside any build.
+  void _markFailed() {
+    if (!mounted) return;
+    ref
+        .read(failedCardPhotosProvider.notifier)
+        .markFailed(widget.photo.mediaId);
+  }
+
+  /// [_markFailed] from inside build, where it would change what the card
+  /// above is building: after the frame, with one asked for so it comes
+  /// even when nothing else on screen is moving.
+  void _markFailedAfterFrame() {
+    final mediaId = widget.photo.mediaId;
+    WidgetsBinding.instance
+      ..addPostFrameCallback((_) {
+        if (mounted && widget.photo.mediaId == mediaId) _markFailed();
+      })
+      ..ensureVisualUpdate();
+  }
+
   double _alignmentY(Size card) {
     final image = _imageSize;
     if (!_ready || image == null || image.height <= 0 || card.height <= 0) {
@@ -115,7 +139,10 @@ class _DiveCardPhotoBackgroundState
 
   @override
   Widget build(BuildContext context) {
-    final item = ref.watch(mediaByIdProvider(widget.photo.mediaId)).value;
+    final media = ref.watch(mediaByIdProvider(widget.photo.mediaId));
+    // The row went away (deleted, or not on this device yet): no photo.
+    if (media.hasValue && media.value == null) _markFailedAfterFrame();
+    final item = media.value;
     final brightness = Theme.of(context).brightness;
     final overlay = ref.watch(cardPhotoOverlayProvider);
     final opacity = brightness == Brightness.dark
@@ -143,6 +170,7 @@ class _DiveCardPhotoBackgroundState
                         fit: BoxFit.cover,
                         alignment: Alignment(0, _alignmentY(card)),
                         onImageReady: _onImageReady,
+                        onImageFailed: _markFailed,
                       ),
                       DecoratedBox(
                         decoration: BoxDecoration(

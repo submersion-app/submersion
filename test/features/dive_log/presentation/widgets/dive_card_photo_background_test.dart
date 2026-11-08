@@ -22,6 +22,7 @@ import 'package:submersion/features/media/domain/value_objects/verify_result.dar
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -34,7 +35,9 @@ class _BytesResolver implements MediaSourceResolver {
   bool canResolveOnThisDevice(MediaItem item) => true;
   @override
   Future<MediaSourceData> resolve(MediaItem item) async =>
-      BytesData(bytes: bytes);
+      item.id.startsWith('missing')
+      ? const UnavailableData(kind: UnavailableKind.notFound)
+      : BytesData(bytes: bytes);
   @override
   Future<MediaSourceData> resolveThumbnail(
     MediaItem item, {
@@ -114,6 +117,8 @@ void main() {
             cardFocusAnalyzerProvider.overrideWithValue(analyzer),
           ],
           child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             theme: ThemeData(brightness: brightness),
             home: Center(
               child: SizedBox.fromSize(
@@ -133,6 +138,10 @@ void main() {
       await settle(tester);
     });
   }
+
+  Set<String> failed(WidgetTester tester) => ProviderScope.containerOf(
+    tester.element(find.byType(DiveCardPhotoBackground)),
+  ).read(failedCardPhotosProvider);
 
   Finder fade() => find.descendant(
     of: find.byType(DiveCardPhotoBackground),
@@ -168,6 +177,31 @@ void main() {
 
     expect(find.text('card'), findsOneWidget);
     expect(fade(), findsNothing);
+    // So the card moves on to another photo, or the map.
+    expect(failed(tester), {'gone'});
+  });
+
+  testWidgets('a photo whose file cannot be found is marked failed', (
+    tester,
+  ) async {
+    await pumpCard(
+      tester,
+      photo: ValueNotifier(const CardPhoto(mediaId: 'missing-1')),
+      analyzer: CardFocusAnalyzer(decode: (_) async => null),
+    );
+
+    expect(failed(tester), {'missing-1'});
+    expect(opacity(tester), 0);
+  });
+
+  testWidgets('a photo that draws is not marked failed', (tester) async {
+    await pumpCard(
+      tester,
+      photo: ValueNotifier(const CardPhoto(mediaId: 'm1')),
+      analyzer: CardFocusAnalyzer(decode: (_) async => null),
+    );
+
+    expect(failed(tester), isEmpty);
   });
 
   testWidgets('a photo with tagged people fades in cropped to them, without '

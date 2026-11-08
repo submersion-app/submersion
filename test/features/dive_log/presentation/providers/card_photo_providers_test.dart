@@ -54,6 +54,8 @@ const _b = CardPhoto(
   focusBoxes: [FocusBox(x: 0.2, y: 0.1, width: 0.3, height: 0.3)],
 );
 const _c = CardPhoto(mediaId: 'c');
+const _d = CardPhoto(mediaId: 'd');
+const _e = CardPhoto(mediaId: 'e');
 
 void main() {
   late _FakeCardPhotoRepository photos;
@@ -65,6 +67,7 @@ void main() {
     photos = _FakeCardPhotoRepository({
       'd1': const [_a],
       'd2': const [_b, _c],
+      'd5': const [_a, _b, _c, _d, _e],
     });
     media = _FakeMediaRepository();
     people = _FakePeopleRepository();
@@ -118,7 +121,7 @@ void main() {
 
     final map = await loaded();
 
-    expect(map.keys, unorderedEquals(['d1', 'd2']));
+    expect(map.keys, unorderedEquals(['d1', 'd2', 'd5']));
     expect(map['d2'], [_b, _c]);
     expect(photos.reads, 1);
   });
@@ -199,5 +202,70 @@ void main() {
 
   test('while the photos load, no dive has one', () {
     expect(container.read(cardPhotoForDiveProvider('d1')), isNull);
+  });
+
+  group('a photo that cannot be drawn', () {
+    void markFailed(String mediaId) =>
+        container.read(failedCardPhotosProvider.notifier).markFailed(mediaId);
+
+    Future<CardPhoto?> photoFor(String diveId) async {
+      final sub = container.listen(cardPhotoForDiveProvider(diveId), (_, _) {});
+      addTearDown(sub.close);
+      await loaded();
+      return container.read(cardPhotoForDiveProvider(diveId));
+    }
+
+    test("is passed over for another of the dive's photos", () async {
+      final first = await photoFor('d2');
+      markFailed(first!.mediaId);
+
+      final next = container.read(cardPhotoForDiveProvider('d2'));
+      expect(next, isNotNull);
+      expect(next, isNot(first));
+    });
+
+    test(
+      'leaves the card without a photo once the dive has no other',
+      () async {
+        markFailed('a');
+
+        expect(await photoFor('d1'), isNull);
+      },
+    );
+
+    test('three failures and the card stops trying photos', () async {
+      final tried = <String>[];
+      CardPhoto? photo = await photoFor('d5');
+      for (var i = 0; i < 3; i++) {
+        expect(photo, isNotNull, reason: 'attempt ${i + 1}');
+        tried.add(photo!.mediaId);
+        markFailed(photo.mediaId);
+        photo = container.read<CardPhoto?>(cardPhotoForDiveProvider('d5'));
+      }
+
+      // Two of the five were never tried, but the card gives up on photos.
+      expect(tried.toSet(), hasLength(3));
+      expect(photo, isNull);
+    });
+
+    test(
+      "a failure on another dive leaves this one's photo as it was",
+      () async {
+        final before = await photoFor('d2');
+        markFailed('a');
+
+        expect(container.read(cardPhotoForDiveProvider('d2')), same(before));
+      },
+    );
+
+    test('is remembered once', () {
+      final notifier = container.read(failedCardPhotosProvider.notifier);
+      notifier.markFailed('a');
+      final state = container.read(failedCardPhotosProvider);
+      notifier.markFailed('a');
+
+      expect(container.read(failedCardPhotosProvider), same(state));
+      expect(state, {'a'});
+    });
   });
 }

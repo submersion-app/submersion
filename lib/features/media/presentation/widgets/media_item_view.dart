@@ -194,9 +194,13 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
     final report = widget.onImageFailed;
     if (report == null || _failureReportedFor == itemId) return;
     _failureReportedFor = itemId;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && widget.item.id == itemId) report();
-    });
+    // A frame is asked for: a resolution that lands while nothing else on
+    // screen moves would otherwise leave the report waiting.
+    WidgetsBinding.instance
+      ..addPostFrameCallback((_) {
+        if (mounted && widget.item.id == itemId) report();
+      })
+      ..ensureVisualUpdate();
   }
 
   /// Reports [provider]'s decoded size to [MediaItemView.onImageSize] and
