@@ -50,9 +50,15 @@ class BackupSettingsNotifier extends StateNotifier<BackupSettings> {
   /// backup twice.
   Future<void> setCopyTo(ConnectedAccount row) async {
     await _prefs.setCopyDestination(accountId: row.id, kind: row.kind);
+    final settings = _prefs.getSettings();
     await _prefs.setExtraCopyAccounts([
-      for (final a in _prefs.getSettings().extraCopyAccounts)
+      for (final a in settings.extraCopyAccounts)
         if (a.accountId != row.id) a,
+    ]);
+    // Nor does a copy it missed as an extra count against the last backup.
+    await _prefs.setLastExtraCopyMissingIds([
+      for (final id in settings.lastExtraCopyMissingIds)
+        if (id != row.id) id,
     ]);
     await _prefs.setCloudBackupEnabled(true);
     await _prefs.setLastCloudCopyNeedsSignIn(false);

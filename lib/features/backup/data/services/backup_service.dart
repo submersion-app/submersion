@@ -546,11 +546,14 @@ class BackupService {
     // is gone only once a backend that defers deletes or keeps history (Git)
     // has pushed the delete and reset its history.
     final replacedInCloud = <String>{};
-    // The same for extra copies (issue #3782): the ids of records whose
-    // extra copies were replaced, and the accounts those deletes went to,
-    // flushed and reset once at the end like the main copy's.
-    final replacedInExtras = <String>{};
-    final extraAccountsTouched = Set<CloudStorageProvider>.identity();
+    // The same for extra copies (issue #3782): each account an old extra
+    // copy was deleted from, with the records it held, flushed and reset
+    // once at the end like the main copy's, whether the record succeeded or
+    // not. Only the records counted as rewritten can still be moved to
+    // failed.
+    final extraDeletesByAccount =
+        Map<CloudStorageProvider, Set<String>>.identity();
+    final rewritten = <String>{};
     for (final record in _preferences.getHistory()) {
       final localPath = record.localPath;
       if (localPath == null || isSafRef(localPath)) {
@@ -655,8 +658,9 @@ class BackupService {
         // without rolling back the committed encrypted record.
         var residualExposure =
             await _deleteReplacedExtras(
+              record.id,
               extras.replaced,
-              touched: extraAccountsTouched,
+              touched: extraDeletesByAccount,
             ) ||
             extras.residual;
         if (newPath != localPath) {
@@ -695,8 +699,8 @@ class BackupService {
           failed++;
         } else {
           reencrypted++;
+          rewritten.add(record.id);
           if (record.cloudFileId != null) replacedInCloud.add(record.id);
-          if (extras.replaced.isNotEmpty) replacedInExtras.add(record.id);
         }
       } catch (e, stack) {
         _log.error(
@@ -724,14 +728,15 @@ class BackupService {
         reencrypted -= replacedInCloud.length;
         failed += replacedInCloud.length;
         // Already disclosed: not counted twice below.
-        replacedInExtras.removeAll(replacedInCloud);
+        rewritten.removeAll(replacedInCloud);
       }
     }
-    if (replacedInExtras.isNotEmpty &&
-        !await _resetExtraHistories(extraAccountsTouched)) {
-      reencrypted -= replacedInExtras.length;
-      failed += replacedInExtras.length;
-    }
+    // Only the records whose own account failed to push or reset.
+    final exposed = (await _resetExtraHistories(
+      extraDeletesByAccount,
+    )).intersection(rewritten);
+    reencrypted -= exposed.length;
+    failed += exposed.length;
     _log.info(
       'Re-encrypt done: $reencrypted rewritten, $skipped skipped, $failed failed',
     );

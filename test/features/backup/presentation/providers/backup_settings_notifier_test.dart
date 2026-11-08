@@ -173,6 +173,15 @@ void main() {
       expect(notifier.state.copyAccountId, 'git-row');
       expect(notifier.state.extraCopyAccounts, [dropbox]);
     });
+
+    test('setCopyTo forgets the missed copy of the row it takes', () async {
+      await notifier.addExtraCopyAccount(_row('git-row', AccountKind.git));
+      await prefs.setLastExtraCopyMissingIds(['git-row', 'db-row']);
+
+      await notifier.setCopyTo(_row('git-row', AccountKind.git));
+
+      expect(notifier.state.lastExtraCopyMissingIds, ['db-row']);
+    });
   });
 
   group('copy destination', () {

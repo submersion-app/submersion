@@ -41,6 +41,7 @@ class _Account extends FakeCloudStorageProvider
   bool failUploads = false;
   bool failDeletes = false;
   bool failDownloads = false;
+  bool failResets = false;
   int flushes = 0;
   int resets = 0;
   final deleted = <String>[];
@@ -76,7 +77,10 @@ class _Account extends FakeCloudStorageProvider
   Future<void> flush({Duration? timeout}) async => flushes++;
 
   @override
-  Future<void> resetHistoryNow() async => resets++;
+  Future<void> resetHistoryNow() async {
+    if (failResets) throw const CloudStorageException('push refused (test)');
+    resets++;
+  }
 }
 
 class _Adapter implements BackupDatabaseAdapter {
@@ -541,6 +545,37 @@ void main() {
       expect(result.reencrypted, 2);
       expect(git.resets, 1);
       expect(dropbox.resets, 1);
+    });
+
+    test('a partial failure still pushes the extras it replaced', () async {
+      final plain = await service().performBackup();
+      await enableBackupEncryption();
+      dropbox.failUploads = true;
+
+      final result = await service().reencryptExistingBackups();
+
+      expect(result.failed, 1);
+      // The Git copy was replaced, so its plaintext must leave the history.
+      expect(git.deleted, ['$_folder/${plain.filename}']);
+      expect(git.resets, 1);
+    });
+
+    test('an account failing its reset fails only its own records', () async {
+      await service(
+        extras: [ExtraCopyDestination('git-row', git)],
+      ).performBackup();
+      // Distinct names: the filename has one-second precision.
+      await Future<void>.delayed(const Duration(seconds: 1));
+      await service(
+        extras: [ExtraCopyDestination('db-row', dropbox)],
+      ).performBackup();
+      await enableBackupEncryption();
+      dropbox.failResets = true;
+
+      final result = await service().reencryptExistingBackups();
+
+      expect(result.reencrypted, 1);
+      expect(result.failed, 1);
     });
 
     test('re-encrypt counts an unreachable extra as failed', () async {

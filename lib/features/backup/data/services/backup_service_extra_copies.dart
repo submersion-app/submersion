@@ -187,18 +187,20 @@ extension _ExtraCopies on BackupService {
     return (copies: copies, replaced: replaced, residual: residual);
   }
 
-  /// Re-encryption's second half: deletes the [replaced] plaintext copies,
-  /// adding each account it deleted from to [touched]. True when one of them
-  /// may still be there. The deletes reach a backend that defers them (Git)
-  /// only through [_resetExtraHistories], run once for the whole migration.
+  /// Re-encryption's second half: deletes the [replaced] plaintext copies
+  /// of the record [recordId], noting in [touched] each account deleted from
+  /// and the records it held. True when one of them may still be there. The
+  /// deletes reach a backend that defers them (Git) only through
+  /// [_resetExtraHistories], run once for the whole migration.
   Future<bool> _deleteReplacedExtras(
+    String recordId,
     List<ExtraCloudCopy> replaced, {
-    required Set<CloudStorageProvider> touched,
+    required Map<CloudStorageProvider, Set<String>> touched,
   }) async {
     var residual = false;
     for (final copy in replaced) {
       final provider = _extraProviderFor(copy.accountId)!;
-      touched.add(provider);
+      touched.putIfAbsent(provider, () => {}).add(recordId);
       try {
         await provider.deleteFile(copy.fileId);
       } catch (e, stack) {
@@ -213,17 +215,20 @@ extension _ExtraCopies on BackupService {
     return residual;
   }
 
-  /// Pushes the deletes in each of [touched] and drops the replaced copies
-  /// from the history of an account that keeps one. False when one account
-  /// may still hold them.
-  Future<bool> _resetExtraHistories(Set<CloudStorageProvider> touched) async {
-    var done = true;
-    for (final provider in touched) {
+  /// Pushes the deletes in each account of [touched] and drops the replaced
+  /// copies from the history of an account that keeps one. Returns the
+  /// records of every account that failed: their old copies may still be
+  /// readable there.
+  Future<Set<String>> _resetExtraHistories(
+    Map<CloudStorageProvider, Set<String>> touched,
+  ) async {
+    final exposed = <String>{};
+    for (final MapEntry(key: provider, value: records) in touched.entries) {
       try {
         await flushDeferredWrites(provider);
         await resetHistoryNowIfSupported(provider);
       } catch (e, stack) {
-        done = false;
+        exposed.addAll(records);
         _log.error(
           'Re-encrypt: old extra copies stay in an account or its history',
           error: e,
@@ -231,7 +236,7 @@ extension _ExtraCopies on BackupService {
         );
       }
     }
-    return done;
+    return exposed;
   }
 
   /// The providers of the extra accounts this device can reach.
