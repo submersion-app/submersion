@@ -1046,6 +1046,18 @@ abstract class AppLocalizations {
   /// **'Owner'**
   String get enum_equipmentField_owner_short;
 
+  /// Table column header for the place an item is kept (issue #3625)
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get enum_equipmentField_location;
+
+  /// Short table column label for the place an item is kept
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get enum_equipmentField_location_short;
+
   /// No description provided for @equipment_set_noLongerShared.
   ///
   /// In en, this message translates to:
@@ -26835,6 +26847,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Location'**
   String get equipment_location_activeFilter;
+
+  /// Screen reader label for the place line on an equipment list card
+  ///
+  /// In en, this message translates to:
+  /// **'Location: {name}'**
+  String equipment_location_tileSemantics(String name);
 
   /// Heading of the location section in the equipment filter
   ///
