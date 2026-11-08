@@ -17,6 +17,7 @@ import 'package:submersion/features/insights/data/services/deco_classification_s
 import 'package:submersion/features/insights/domain/calendar_day_matrix.dart';
 import 'package:submersion/features/insights/domain/entities/species_insights.dart';
 import 'package:submersion/features/insights/domain/logbook_dive_counts.dart';
+import 'package:submersion/features/insights/domain/role_consumption_trend.dart';
 import 'package:submersion/features/insights/domain/suit_thickness_stats.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 import 'package:submersion/features/insights/domain/water_temp_band_metrics.dart';
@@ -242,6 +243,21 @@ final ccrGasUseTrendProvider = FutureProvider<CcrGasUseTrend>((ref) async {
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
   return repository.getCcrGasUsePerDive(
+    diverId: currentDiverId,
+    filter: filter,
+  );
+});
+
+/// Consumption by cylinder role per dive (issue #771). Both lanes come back
+/// at once, so it does not watch the lane and the toggle needs no reload.
+final roleConsumptionTrendProvider = FutureProvider<RoleConsumptionTrend>((
+  ref,
+) async {
+  _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
+  return repository.getRoleConsumptionPerDive(
     diverId: currentDiverId,
     filter: filter,
   );
