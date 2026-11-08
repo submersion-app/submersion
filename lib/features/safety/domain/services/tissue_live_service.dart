@@ -218,11 +218,15 @@ class TissueLiveService {
   /// compartments sit below it (taking nitrogen back up) or still hold helium
   /// while their total stays low, and must not read as settled. Using the
   /// same tolerance as the per-gas badges keeps the readouts and the badges
-  /// from contradicting each other. False when the inspired gas is unknown,
-  /// and for a status without compartments, which shows nothing to call
-  /// settled.
+  /// from contradicting each other. It also requires `!hasResidualLoad`:
+  /// both gases can each sit just inside the tolerance while their sum is
+  /// already above the surface level by more than it, and such a status must
+  /// not read as settled while [hasResidualLoad] still counts it as loaded.
+  /// False when the inspired gas is unknown, and for a status without
+  /// compartments, which shows nothing to call settled.
   static bool isAtSurfaceEquilibrium(DecoStatus status) {
     if (status.compartments.isEmpty) return false;
+    if (hasResidualLoad(status)) return false;
     return status.compartments.every(
       (comp) =>
           status.n2Exchange(comp) == GasExchange.equilibrium &&

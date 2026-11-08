@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
+import 'package:submersion/core/deco/entities/gas_exchange.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/features/safety/domain/entities/tissue_load_state.dart';
@@ -417,6 +418,35 @@ void main() {
 
       expect(TissueLiveService.hasResidualLoad(status), isFalse);
       expect(TissueLiveService.isAtSurfaceEquilibrium(status), isFalse);
+    });
+
+    test('false when each gas is inside the tolerance but their sum is '
+        'residual load', () {
+      // N2 and He each 0.008 bar above the inspired pressure: both badges
+      // read equilibrium, but the total is 0.016 bar above the surface
+      // level, which hasResidualLoad counts as loaded.
+      final settled = statusAfter(
+        loadedCompartments(),
+        const Duration(days: 10),
+      );
+      final inspiredN2 = settled.inspiredN2Bar!;
+      final compartments = [
+        for (final comp in settled.compartments)
+          comp.copyWith(currentPN2: inspiredN2 + 0.008, currentPHe: 0.008),
+      ];
+      final status = statusAfter(compartments, Duration.zero);
+
+      expect(
+        status.compartments.every(
+          (comp) =>
+              status.n2Exchange(comp) == GasExchange.equilibrium &&
+              status.heExchange(comp) == GasExchange.equilibrium,
+        ),
+        isTrue,
+      );
+      expect(TissueLiveService.hasResidualLoad(status), isTrue);
+      expect(TissueLiveService.isAtSurfaceEquilibrium(status), isFalse);
+      expect(TissueLiveService.classify(status), TissueLoadState.loaded);
     });
   });
 }
