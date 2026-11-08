@@ -39959,6 +39959,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_clock_profileFit(int minutes) {
+    return '某个来源的位置与其深度轮廓和主来源吻合之处相差 $minutes 分钟';
+  }
+
+  @override
   String dataQuality_msg_shared_gear_overlap(
     String item,
     String diverA,
@@ -40164,6 +40169,14 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_fixSourceClockAll =>
       '同时校正此电脑在其他具有相同偏差的潜水中的时钟';
+
+  @override
+  String get dataQuality_repairLabel_alignSourceProfile => '按深度轮廓对齐此电脑';
+
+  @override
+  String dataQuality_repairLabel_alignSourceProfileNamed(String computer) {
+    return '按深度轮廓对齐 $computer';
+  }
 
   @override
   String get dataQuality_repairLabel_consolidate => '整合';

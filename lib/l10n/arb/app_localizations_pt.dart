@@ -42418,6 +42418,11 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_clock_profileFit(int minutes) {
+    return 'Uma fonte está a $minutes min de onde seu perfil coincide com o principal';
+  }
+
+  @override
   String dataQuality_msg_shared_gear_overlap(
     String item,
     String diverA,
@@ -42631,6 +42636,15 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_fixSourceClockAll =>
       'Corrigir também este computador noutros mergulhos com o mesmo desvio';
+
+  @override
+  String get dataQuality_repairLabel_alignSourceProfile =>
+      'Alinhar este computador pelo seu perfil';
+
+  @override
+  String dataQuality_repairLabel_alignSourceProfileNamed(String computer) {
+    return 'Alinhar $computer pelo seu perfil';
+  }
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Consolidar';

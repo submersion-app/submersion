@@ -42204,6 +42204,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_clock_profileFit(int minutes) {
+    return 'Egy forrás $minutes percre van attól a ponttól, ahol a profilja egyezik az elsődlegesével';
+  }
+
+  @override
   String dataQuality_msg_shared_gear_overlap(
     String item,
     String diverA,
@@ -42416,6 +42421,15 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_fixSourceClockAll =>
       'A számítógép javítása a többi, azonos eltérésű merülésnél is';
+
+  @override
+  String get dataQuality_repairLabel_alignSourceProfile =>
+      'A számítógép igazítása a profilja alapján';
+
+  @override
+  String dataQuality_repairLabel_alignSourceProfileNamed(String computer) {
+    return '$computer igazítása a profilja alapján';
+  }
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Konszolidálás';

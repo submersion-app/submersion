@@ -41736,6 +41736,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_clock_profileFit(int minutes) {
+    return 'A source sits $minutes min from where its profile matches the primary\'s';
+  }
+
+  @override
   String dataQuality_msg_shared_gear_overlap(
     String item,
     String diverA,
@@ -41948,6 +41953,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_fixSourceClockAll =>
       'Also fix this computer on other dives with the same offset';
+
+  @override
+  String get dataQuality_repairLabel_alignSourceProfile =>
+      'Line up this computer by its profile';
+
+  @override
+  String dataQuality_repairLabel_alignSourceProfileNamed(String computer) {
+    return 'Line up $computer by its profile';
+  }
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Consolidate';

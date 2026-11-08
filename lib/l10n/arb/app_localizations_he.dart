@@ -41408,6 +41408,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_clock_profileFit(int minutes) {
+    return 'מקור ממוקם $minutes דק׳ מהמקום שבו הפרופיל שלו תואם לראשי';
+  }
+
+  @override
   String dataQuality_msg_shared_gear_overlap(
     String item,
     String diverA,
@@ -41617,6 +41622,15 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_fixSourceClockAll =>
       'לתקן את המחשב הזה גם בצלילות אחרות עם אותה סטייה';
+
+  @override
+  String get dataQuality_repairLabel_alignSourceProfile =>
+      'יישור המחשב הזה לפי הפרופיל שלו';
+
+  @override
+  String dataQuality_repairLabel_alignSourceProfileNamed(String computer) {
+    return 'יישור $computer לפי הפרופיל שלו';
+  }
 
   @override
   String get dataQuality_repairLabel_consolidate => 'איחוד';
