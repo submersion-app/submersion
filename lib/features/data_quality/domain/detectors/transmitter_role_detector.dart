@@ -23,9 +23,12 @@ class TransmitterRoleDetector extends QualityDetector {
   @override
   List<QualityFinding> detect(DiveQualityContext ctx) {
     if (ctx.dive.diveMode != DiveMode.ccr) return const [];
+    // A suit inflation bottle drains on the way up too, but it is never
+    // breathing gas, so it is never a bailout (issue #4243).
     final candidates = [
       for (final t in ctx.tanks)
-        if (t.roleSource == TankRoleSource.transmitterName &&
+        if (t.role.isBreathingGas &&
+            t.roleSource == TankRoleSource.transmitterName &&
             (ctx.pressuresByTankId[t.id]?.length ?? 0) >= 2)
           t,
     ];

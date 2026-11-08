@@ -314,10 +314,8 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     if (plan == null || !mounted) return false;
     _loaded = plan;
     _loadCount++;
-    // A plan holds breathing gas only (issue #4243).
-    state = _withCcrSlots(
-      withoutSuitInflationCylinders(stateFromDivePlan(plan)),
-    );
+    // Breathing gas only: the mapper strips suit bottles (issue #4243).
+    state = _withCcrSlots(stateFromDivePlan(plan));
     final mission = plan.mission;
     if (mission != null) {
       // A scooter picked from equipment follows the live item; a manual or

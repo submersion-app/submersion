@@ -64,4 +64,43 @@ void main() {
   test('a bottle\'s pressure series is left out, every other kept', () {
     expect(snapshot().tankPressures.keys, ['back', 'transmitter-only']);
   });
+
+  test('a file that names a bottle is read as breathing gas only', () {
+    // A .sublab written by an older build, or by hand, can still carry one.
+    final json = DiveSnapshot(
+      diveId: 'dive-1',
+      diveDateTime: DateTime.utc(2026, 5, 3, 10),
+      tanks: const [back, deco, airSuit, argon],
+      gasSwitches: const [
+        ScenarioGasSwitch(timestamp: 600, tankId: 'deco'),
+        ScenarioGasSwitch(timestamp: 900, tankId: 'air-suit'),
+        ScenarioGasSwitch(timestamp: 1200, tankId: 'argon'),
+      ],
+      tankPressures: {'back': series(200), 'argon': series(150)},
+    ).toJson();
+    final read = DiveSnapshot.fromJson(json);
+    expect(read.tanks.map((t) => t.id), ['back', 'deco']);
+    expect(read.gasSwitches, const [
+      ScenarioGasSwitch(timestamp: 600, tankId: 'deco'),
+      ScenarioGasSwitch(timestamp: 900, tankId: 'back'),
+    ]);
+    expect(read.tankPressures.keys, ['back']);
+  });
+
+  test('a file with no bottle reads back as written', () {
+    final written = DiveSnapshot(
+      diveId: 'dive-1',
+      diveDateTime: DateTime.utc(2026, 5, 3, 10),
+      tanks: const [back, deco],
+      gasSwitches: const [ScenarioGasSwitch(timestamp: 600, tankId: 'deco')],
+      tankPressures: {'back': series(200)},
+    );
+    final read = DiveSnapshot.fromJson(written.toJson());
+    expect(read.tanks.map((t) => (t.id, t.role)), [
+      ('back', TankRole.backGas),
+      ('deco', TankRole.deco),
+    ]);
+    expect(read.gasSwitches, written.gasSwitches);
+    expect(read.tankPressures, written.tankPressures);
+  });
 }

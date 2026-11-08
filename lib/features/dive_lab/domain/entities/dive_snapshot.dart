@@ -5,6 +5,13 @@ import 'package:submersion/features/dive_lab/domain/entities/scenario_request.da
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/breathing_gas_switches.dart';
 
+/// A snapshot's tanks, switches and pressure series, breathing gas only.
+typedef _BreathingGas = ({
+  List<DiveTank> tanks,
+  List<ScenarioGasSwitch> gasSwitches,
+  Map<String, List<TankPressureSample>> tankPressures,
+});
+
 /// What a `.sublab` file carries about the dive so a recipient without it
 /// can run the scenario: inputs only (profile, tanks, switches, pressures,
 /// deco settings), never results.
@@ -55,13 +62,8 @@ class DiveSnapshot extends Equatable {
   final Map<String, List<TankPressureSample>> tankPressures;
   final String? computerName;
 
-  /// From a logged dive and its primary profile.
-  ///
-  /// Breathing gas only: a suit inflation bottle is never played (issue
-  /// #4243), so the file names none. A switch to one moves to the breathing
-  /// cylinder on its mix or goes, as every breathing gas reading takes it,
-  /// and its pressure series is left out, where it would otherwise come back
-  /// on import as a series with no cylinder and count toward SAC.
+  /// From a logged dive and its primary profile, holding breathing gas only
+  /// (see [_breathingOnly]).
   factory DiveSnapshot.fromDive({
     required Dive dive,
     required List<DiveProfilePoint> profile,
@@ -70,11 +72,7 @@ class DiveSnapshot extends Equatable {
     String? siteName,
     String? computerName,
   }) {
-    final target = breathingSwitchTarget(dive.tanks);
-    final bottles = {
-      for (final t in dive.tanks)
-        if (!t.role.isBreathingGas) t.id,
-    };
+    final gas = _breathingOnly(dive.tanks, gasSwitches, tankPressures);
     return DiveSnapshot(
       diveId: dive.id,
       diveDateTime: dive.dateTime,
@@ -90,14 +88,8 @@ class DiveSnapshot extends Equatable {
       scrInjectionRate: dive.scrInjectionRate,
       assumedVo2: dive.assumedVo2,
       diluentGas: dive.diluentGas,
-      tanks: dive.breathingTanks,
-      gasSwitches: [
-        for (final s in gasSwitches)
-          if (target(s.tankId) case final tankId?)
-            tankId == s.tankId
-                ? s
-                : ScenarioGasSwitch(timestamp: s.timestamp, tankId: tankId),
-      ],
+      tanks: gas.tanks,
+      gasSwitches: gas.gasSwitches,
       profile: [
         for (final p in profile)
           DiveProfilePoint(
@@ -108,13 +100,48 @@ class DiveSnapshot extends Equatable {
             ppO2: p.ppO2,
           ),
       ],
-      tankPressures: bottles.isEmpty
-          ? tankPressures
-          : {
-              for (final e in tankPressures.entries)
-                if (!bottles.contains(e.key)) e.key: e.value,
-            },
+      tankPressures: gas.tankPressures,
       computerName: computerName,
+    );
+  }
+
+  /// [tanks], [switches] and [pressures] holding breathing gas only: a suit
+  /// inflation bottle is never played (issue #4243), so a snapshot names
+  /// none, whether built from a dive or read from a file someone else wrote.
+  /// A switch to one moves to the breathing cylinder on its mix or goes, as
+  /// every breathing gas reading takes it, and its pressure series is left
+  /// out, where it would otherwise come back on import as a series with no
+  /// cylinder and count toward SAC. Returns the same lists when there is no
+  /// bottle.
+  static _BreathingGas _breathingOnly(
+    List<DiveTank> tanks,
+    List<ScenarioGasSwitch> switches,
+    Map<String, List<TankPressureSample>> pressures,
+  ) {
+    final bottles = {
+      for (final t in tanks)
+        if (!t.role.isBreathingGas) t.id,
+    };
+    if (bottles.isEmpty) {
+      return (tanks: tanks, gasSwitches: switches, tankPressures: pressures);
+    }
+    final target = breathingSwitchTarget(tanks);
+    return (
+      tanks: [
+        for (final t in tanks)
+          if (t.role.isBreathingGas) t,
+      ],
+      gasSwitches: [
+        for (final s in switches)
+          if (target(s.tankId) case final tankId?)
+            tankId == s.tankId
+                ? s
+                : ScenarioGasSwitch(timestamp: s.timestamp, tankId: tankId),
+      ],
+      tankPressures: {
+        for (final e in pressures.entries)
+          if (!bottles.contains(e.key)) e.key: e.value,
+      },
     );
   }
 
@@ -199,6 +226,26 @@ class DiveSnapshot extends Equatable {
           );
         }(),
     ];
+    final gas = _breathingOnly(
+      tanks,
+      [
+        for (final raw in (json['gasSwitches'] as List? ?? const []))
+          ScenarioGasSwitch(
+            timestamp: ((raw as Map)['timestamp'] as num).toInt(),
+            tankId: raw['tankId'] as String,
+          ),
+      ],
+      {
+        for (final e in ((json['tankPressures'] as Map?) ?? const {}).entries)
+          e.key as String: [
+            for (final raw in (e.value as List))
+              TankPressureSample(
+                timestamp: ((raw as Map)['t'] as num).toInt(),
+                pressureBar: (raw['bar'] as num).toDouble(),
+              ),
+          ],
+      },
+    );
     return DiveSnapshot(
       diveId: json['diveId'] as String,
       diveDateTime: DateTime.parse(json['diveDateTime'] as String),
@@ -219,14 +266,8 @@ class DiveSnapshot extends Equatable {
               he: (json['diluentHe'] as num?)?.toDouble() ?? 0,
             )
           : null,
-      tanks: tanks,
-      gasSwitches: [
-        for (final raw in (json['gasSwitches'] as List? ?? const []))
-          ScenarioGasSwitch(
-            timestamp: ((raw as Map)['timestamp'] as num).toInt(),
-            tankId: raw['tankId'] as String,
-          ),
-      ],
+      tanks: gas.tanks,
+      gasSwitches: gas.gasSwitches,
       profile: [
         for (final raw in (json['profile'] as List? ?? const []))
           () {
@@ -240,16 +281,7 @@ class DiveSnapshot extends Equatable {
             );
           }(),
       ],
-      tankPressures: {
-        for (final e in ((json['tankPressures'] as Map?) ?? const {}).entries)
-          e.key as String: [
-            for (final raw in (e.value as List))
-              TankPressureSample(
-                timestamp: ((raw as Map)['t'] as num).toInt(),
-                pressureBar: (raw['bar'] as num).toDouble(),
-              ),
-          ],
-      },
+      tankPressures: gas.tankPressures,
       computerName: json['computerName'] as String?,
     );
   }
