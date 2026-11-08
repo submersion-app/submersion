@@ -14,6 +14,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/range_stats_pa
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/disposing_provider_scope.dart';
+
 /// Range statistics in the fullscreen profile (issue #1577): the same
 /// selection the detail page uses, with the stats strip below the chart.
 
@@ -59,7 +61,7 @@ Future<void> _pumpPage(
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
-    UncontrolledProviderScope(
+    DisposingProviderScope(
       container: container,
       child: const MaterialApp(
         locale: Locale('en'),

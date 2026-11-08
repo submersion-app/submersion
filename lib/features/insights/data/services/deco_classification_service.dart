@@ -2,7 +2,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/analysis_settings_provider.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_analysis_release.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/insights/data/repositories/deco_classification_cache.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -58,10 +58,9 @@ class DecoClassificationService {
   ///
   /// The whole cache is read in one query up front, so a warm library performs
   /// a single SELECT and hydrates no profiles at all. Only genuine misses are
-  /// analyzed, with their analysis invalidated afterwards:
-  /// [profileAnalysisProvider] and [analysisDiveProvider] are keepAlive
-  /// families, so a library-wide pass would otherwise retain every profile's
-  /// curves for the whole session.
+  /// analyzed, each released afterwards by [releaseDiveAnalysis]: an unused
+  /// analysis is held for `diveDataRetention`, so a library-wide pass would
+  /// otherwise keep every profile's curves it analyzed in that window.
   Future<Map<String, bool>> classify(
     Ref ref,
     Map<String, int> revisions, {
@@ -154,12 +153,7 @@ class DecoClassificationService {
         );
       } finally {
         if (ref.mounted) {
-          ref.invalidate(profileAnalysisProvider(diveId));
-          ref.invalidate(diveAnalysisSeriesProvider(diveId));
-          ref.invalidate(analysisDiveProvider(diveId));
-          // A multi-source dive's analysis also read its per-source buckets.
-          ref.invalidate(sourceProfilesProvider(diveId));
-          ref.invalidate(diveDataSourcesProvider(diveId));
+          releaseDiveAnalysis(ref, diveId);
           onProgress?.call(results, --pending);
         }
       }
