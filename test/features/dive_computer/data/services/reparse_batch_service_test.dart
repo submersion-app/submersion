@@ -58,6 +58,24 @@ class _WriteFault extends ReparseService {
   }
 }
 
+/// Reports every write as one that left a combined dive's profile alone.
+class _CombinedDives extends ReparseService {
+  _CombinedDives({required super.db});
+
+  @override
+  Future<({bool profilePreserved})> applyParsedUpdate({
+    required String diveId,
+    required String sourceRowId,
+    required pigeon.ParsedDive parsed,
+    required String? descriptorVendor,
+    required String? descriptorProduct,
+    required int? descriptorModel,
+    required String? libdivecomputerVersion,
+    Uint8List? rawData,
+    Uint8List? rawFingerprint,
+  }) async => (profilePreserved: true);
+}
+
 void main() {
   late AppDatabase db;
   late ReparseBatchService batch;
@@ -263,6 +281,17 @@ void main() {
       expect(result.failed, 2);
       expect(await lastParsedAt('s-a1'), isNotNull);
       expect(refreshed, ['ok', 'partial']);
+    });
+
+    test('counts a combined dive that kept its profile as succeeded', () async {
+      batch = ReparseBatchService(_CombinedDives(db: db));
+      await addDive('d1');
+      await addSource(id: 's1', diveId: 'd1');
+
+      final result = await batch.run(['d1'], parseFn: okParse);
+
+      expect(result.succeeded, 1);
+      expect(result.profilesPreserved, 1);
     });
 
     test('counts missing descriptors as a failure', () async {

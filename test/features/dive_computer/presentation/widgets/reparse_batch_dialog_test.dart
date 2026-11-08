@@ -18,8 +18,14 @@ import '../../../../helpers/test_app.dart';
 /// Runs dive by dive, each dive waiting for its gate, so a test can stop the
 /// run at any point.
 class _GatedBatch implements ReparseBatchService {
-  _GatedBatch(int count, {this.failing = const {}, this.errors = const {}})
-    : gates = [for (var i = 0; i < count; i++) Completer<void>()];
+  _GatedBatch(
+    int count, {
+    this.failing = const {},
+    this.errors = const {},
+    this.profilesPreserved = 0,
+  }) : gates = [for (var i = 0; i < count; i++) Completer<void>()];
+
+  final int profilesPreserved;
 
   final List<Completer<void>> gates;
   final Set<String> failing;
@@ -61,7 +67,7 @@ class _GatedBatch implements ReparseBatchService {
       succeeded: processed - failures.length,
       skipped: 0,
       notProcessed: notProcessed,
-      profilesPreserved: 0,
+      profilesPreserved: profilesPreserved,
       failures: failures,
     );
   }
@@ -297,5 +303,22 @@ void main() {
     expect(find.text('Failed: 1'), findsOneWidget);
     expect(find.text('Unnumbered dive'), findsOneWidget);
     expect(find.textContaining('bad bytes'), findsOneWidget);
+  });
+
+  testWidgets('says how many combined dives kept their profile', (
+    tester,
+  ) async {
+    batch = _GatedBatch(2, profilesPreserved: 1);
+    await pumpHost(tester, ['d1', 'd2']);
+    batch
+      ..release(0)
+      ..release(1);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Re-parsed 2 of 2 dives.'), findsOneWidget);
+    expect(
+      find.text('Combined dives that kept their profile: 1'),
+      findsOneWidget,
+    );
   });
 }
