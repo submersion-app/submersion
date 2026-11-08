@@ -59,12 +59,12 @@ final estimatedTankPressuresProvider =
       );
       final diveFuture = ref.watch(diveProvider(diveId).future);
       final switchesFuture = ref.watch(gasSwitchesProvider(diveId).future);
-      // The drawn series' computer, the one the chart's gas strip reads its
-      // switches from: another computer's record of a switch must not start
-      // this one's estimated drop (#4300). Null is one series of every source.
-      final activeComputerId = ref
-          .watch(activeSourceProfileProvider(diveId))
-          ?.computerId;
+      // The series the chart draws, and so the one its gas strip reads: its
+      // computer's switches and its own time bounds. Another computer's
+      // record of a switch must not start this one's estimated drop, nor its
+      // recording's length stretch it (#4300). Null is one series of every
+      // source, drawn from dive.profile.
+      final active = ref.watch(activeSourceProfileProvider(diveId));
       // Read synchronously, before the first await, so the dependency is
       // registered while the provider is certainly still alive.
       final showEstimates = ref.watch(
@@ -90,18 +90,15 @@ final estimatedTankPressuresProvider =
       final inputs = computerGasInputs(
         dive,
         gasSwitches: await switchesFuture,
-        computerId: activeComputerId,
+        computerId: active?.computerId,
       );
+      final drawn = active?.points ?? dive.profile;
       return synthesizeEstimatedTankPressures(
         existing: real,
         tanks: inputs.tanks,
         gasSwitches: inputs.gasSwitches,
         onLoop: dive.isRebreather,
-        diveDurationSeconds: dive.profile.isEmpty
-            ? 0
-            : dive.profile.last.timestamp,
-        firstSampleSeconds: dive.profile.isEmpty
-            ? 0
-            : dive.profile.first.timestamp,
+        diveDurationSeconds: drawn.isEmpty ? 0 : drawn.last.timestamp,
+        firstSampleSeconds: drawn.isEmpty ? 0 : drawn.first.timestamp,
       );
     });

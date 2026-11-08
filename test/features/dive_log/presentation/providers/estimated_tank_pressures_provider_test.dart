@@ -417,6 +417,47 @@ void main() {
     );
 
     test(
+      'spans the drawn computer\'s own recording, not the merged one',
+      () async {
+        // The merged profile runs to 1200 s, but A's recording, the series the
+        // chart draws, ends at 1000 s: the estimate must end with it.
+        final dive = Dive(
+          id: 'd1',
+          dateTime: DateTime(2026, 1, 1),
+          tanks: const [
+            DiveTank(
+              id: 'air',
+              computerId: 'computer-a',
+              gasMix: GasMix(o2: 21),
+              startPressure: 200,
+              endPressure: 100,
+            ),
+          ],
+          profile: const [
+            DiveProfilePoint(timestamp: 0, depth: 0),
+            DiveProfilePoint(timestamp: 1200, depth: 0),
+          ],
+        );
+
+        final result = await estimate(
+          dive: dive,
+          switches: const [],
+          active: const SourceProfile(
+            sourceId: 's-a',
+            computerId: 'computer-a',
+            isEdited: false,
+            points: [
+              DiveProfilePoint(timestamp: 10, depth: 0),
+              DiveProfilePoint(timestamp: 1000, depth: 0),
+            ],
+          ),
+        );
+
+        expect(result.pressures['air']!.last.timestamp, 1000);
+      },
+    );
+
+    test(
       'an open-circuit dive starts on the back gas, not the diluent',
       () async {
         // Off the loop a diluent tag does not take the start, as on the chart's
