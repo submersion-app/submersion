@@ -263,6 +263,20 @@ void main() {
       );
     });
 
+    test('a cursor from another grouping is refused', () async {
+      final ungrouped = await repo.getPage(diverId: 'd1', limit: 2);
+      expect(ungrouped.nextCursor?.groupKeys, isEmpty);
+      await expectLater(
+        repo.getPage(
+          diverId: 'd1',
+          grouping: MediaLibraryGrouping.dive,
+          after: ungrouped.nextCursor,
+          limit: 2,
+        ),
+        throwsArgumentError,
+      );
+    });
+
     test('the cursor carries the group of the last row', () async {
       final page = await repo.getPage(
         diverId: 'd1',
