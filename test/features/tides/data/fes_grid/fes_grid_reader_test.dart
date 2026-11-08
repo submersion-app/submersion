@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 
+import 'package:submersion/features/tides/data/services/fes_grid/fes_grid_packing.dart';
 import 'package:submersion/features/tides/data/services/fes_grid/fes_grid_reader.dart';
 
 final _root = p.join(
@@ -101,13 +102,14 @@ void main() {
   );
 
   test(
-    'a tile with a corrupt row count falls back instead of throwing',
+    'a tile with a corrupt packed body falls back instead of throwing',
     () async {
       ByteData corrupt() {
         final bytes = Uint8List.fromList(
           File(p.join(_root, 'coastal', 'tile_0_0.bin')).readAsBytesSync(),
         );
-        ByteData.sublistView(bytes).setUint32(22, 99, Endian.little);
+        // The last byte is part of the zlib stream's checksum.
+        bytes[bytes.length - 1] ^= 0xff;
         return ByteData.sublistView(bytes);
       }
 
@@ -136,6 +138,29 @@ void main() {
 
     expect(await tile00Loads(1), 2);
     expect(await tile00Loads(2), 1);
+  });
+
+  test(
+    'a tile in the unpacked layout falls back to the global layer',
+    () async {
+      final unpacked = await unpackFesTile(
+        ByteData.sublistView(
+          File(p.join(_root, 'coastal', 'tile_0_0.bin')).readAsBytesSync(),
+        ),
+      );
+
+      final sample = await _reader(
+        replace: {'coastal/tile_0_0.bin': () => unpacked},
+      ).sampleAt(10.0, -180.0);
+      expect(sample!.resolutionKm, closeTo(555.975, 0.01));
+    },
+  );
+
+  test('a corrupt global layer yields no global sample', () async {
+    final sample = await _reader(
+      replace: {'global.bin': () => ByteData(40)},
+    ).sampleAt(10.25, -170.0);
+    expect(sample, isNull);
   });
 
   test('a malformed manifest yields no data', () async {
