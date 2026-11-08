@@ -1,5 +1,3 @@
-import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_lab/domain/entities/compare_column.dart';
 import 'package:submersion/features/dive_lab/domain/entities/dive_scenario.dart';
@@ -8,6 +6,7 @@ import 'package:submersion/features/dive_lab/domain/services/compare_columns.dar
 import 'package:submersion/features/dive_lab/presentation/providers/dive_scenario_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
+import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
 
 /// Whether a dive has a linked plan, for deciding if Compare shows at all.
@@ -27,12 +26,8 @@ final plannedColumnProvider = Provider.family<CompareColumn?, String>((
   final plan = comparison.plan;
   return plannedColumn(
     outcome: comparison.outcome,
-    // As the engine reads it: an altitude of zero or less is unset.
-    surfacePressureBar: DiveEnvironment.forConditions(
-      altitudeMeters: (plan.altitude ?? 0) > 0 ? plan.altitude : null,
-      waterType: plan.waterType ?? WaterType.salt,
-      salinityPpt: plan.salinityPpt,
-    ).surfacePressureBar,
+    // As the engine reads it.
+    surfacePressureBar: PlanEngine.environmentFor(plan).surfacePressureBar,
   );
 });
 

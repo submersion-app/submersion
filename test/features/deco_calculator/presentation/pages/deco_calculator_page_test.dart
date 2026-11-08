@@ -126,6 +126,24 @@ void main() {
       );
     });
 
+    testWidgets('a below-sea-level altitude computes at its own surface '
+        'pressure in the planner', (tester) async {
+      final container = await pumpCalculator(tester);
+      container.read(calcAltitudeProvider.notifier).state = -430;
+      container.read(calcWaterTypeProvider.notifier).state = WaterType.salt;
+      await tester.pump();
+
+      await tapAddToPlanner(tester);
+
+      final plan = container.read(divePlanNotifierProvider);
+      expect(plan.altitude, -430);
+      expect(
+        PlanEngine.environmentFor(divePlanFromState(plan)),
+        container.read(calcEnvironmentProvider),
+        reason: 'the engine used to read -430 m as a 1.0 bar surface',
+      );
+    });
+
     testWidgets('a blank altitude is sea level and Standard water leaves the '
         "plan's water alone", (tester) async {
       final container = await pumpCalculator(tester);

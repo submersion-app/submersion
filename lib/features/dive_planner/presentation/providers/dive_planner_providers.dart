@@ -1286,12 +1286,10 @@ final planResultsProvider = Provider<PlanResult>((ref) {
     sacRate: resolved.sacBottom,
     reservePressure: resolved.reservePressure,
     initialTissueState: state.initialTissueState,
-    // Altitude 0 keeps the legacy sea-level surface pressure. Null water
-    // type is salt, matching the planner default - though a custom salinity,
-    // when set, overrides either one (see DiveEnvironment's precedence).
-    environment: DiveEnvironment.forConditions(
-      altitudeMeters: (state.altitude ?? 0) > 0 ? state.altitude : null,
-      waterType: state.waterType ?? WaterType.salt,
+    // The same conditions the plan engine computes in.
+    environment: PlanEngine.environmentForConditions(
+      altitude: state.altitude,
+      waterType: state.waterType,
       salinityPpt: state.salinityPpt,
     ),
   );
