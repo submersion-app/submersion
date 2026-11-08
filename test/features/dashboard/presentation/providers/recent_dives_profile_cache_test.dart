@@ -7,6 +7,7 @@ import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -45,7 +46,11 @@ class _GatedProfileRepository implements DiveRepository {
   }) => _inner.getDiveSummaries(diverId: diverId, limit: limit);
 
   @override
-  Future<Dive?> getDiveById(String id) => _inner.getDiveById(id);
+  Future<List<Dive>> getDivesByIdsWithoutSamples(
+    List<String> ids, {
+    bool offUiIsolate = false,
+    int chunkSize = kSeriesIdChunkSize,
+  }) => _inner.getDivesByIdsWithoutSamples(ids, offUiIsolate: offUiIsolate);
 
   @override
   Future<Map<String, List<DiveProfilePoint>>> getBatchProfileSummaries(

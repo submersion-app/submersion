@@ -35,6 +35,26 @@ class TextCollator {
       _keys.putIfAbsent(text, () => textSortKey(text));
 }
 
+/// Orders items by the folded form of [textOf], each item's key folded once
+/// per comparator; items whose folded text is equal fall back to [tieBreak],
+/// so the order is total and stable even when two labels coincide.
+///
+/// For a list ordered by its on-screen labels but keyed by something else,
+/// such as an enum's stored name, where [compareTextForSort]'s raw-text
+/// fallback would follow the locale's spelling instead.
+Comparator<T> foldedTextComparator<T>(
+  String Function(T item) textOf, {
+  required String Function(T item) tieBreak,
+}) {
+  final keys = <T, String>{};
+  String keyOf(T item) => keys[item] ??= textSortKey(textOf(item));
+  return (a, b) {
+    if (a == b) return 0;
+    final byKey = keyOf(a).compareTo(keyOf(b));
+    return byKey != 0 ? byKey : tieBreak(a).compareTo(tieBreak(b));
+  };
+}
+
 int _compareFolded(String a, String keyA, String b, String keyB) {
   final byKey = keyA.compareTo(keyB);
   return byKey != 0 ? byKey : a.compareTo(b);

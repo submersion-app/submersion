@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -626,10 +627,22 @@ void main() {
       ),
     ];
 
+    // The prompt reads the log itself rather than the dive list, so its
+    // dives are logged in the database as well.
+    Future<void> pumpLogged(WidgetTester tester, List<Dive> dives) async {
+      await tester.runAsync(() async {
+        final repository = DiveRepository();
+        for (final dive in dives) {
+          await repository.createDive(dive);
+        }
+      });
+      await pumpPlan(tester, dives);
+    }
+
     testWidgets('offers a dive that ended in the last 48 hours', (
       tester,
     ) async {
-      await pumpPlan(tester, recent());
+      await pumpLogged(tester, recent());
 
       expect(find.textContaining('Dive #42 ended'), findsOneWidget);
       await tester.tap(find.text('Follow'));
@@ -653,7 +666,7 @@ void main() {
     });
 
     testWidgets('names a named dive', (tester) async {
-      await pumpPlan(tester, [
+      await pumpLogged(tester, [
         loggedDive(
           'd42',
           NoFlyService.wallClockNowUtc().subtract(const Duration(hours: 3)),
@@ -666,7 +679,7 @@ void main() {
     });
 
     testWidgets('goes away when dismissed', (tester) async {
-      await pumpPlan(tester, recent());
+      await pumpLogged(tester, recent());
 
       await tester.tap(
         find.descendant(
@@ -684,13 +697,13 @@ void main() {
     });
 
     testWidgets('is not offered for an older dive', (tester) async {
-      await pumpPlan(tester, dayDives);
+      await pumpLogged(tester, dayDives);
 
       expect(find.textContaining('ended'), findsNothing);
     });
 
     testWidgets('is not offered on a later dive of a replan', (tester) async {
-      await pumpPlan(tester, recent());
+      await pumpLogged(tester, recent());
       final container = containerOf(tester);
       final editor = container.read(divePlanNotifierProvider.notifier);
       editor.loadPlan(
@@ -706,12 +719,70 @@ void main() {
 
     testWidgets('skips a dive stamped in the future', (tester) async {
       final now = NoFlyService.wallClockNowUtc();
-      await pumpPlan(tester, [
+      await pumpLogged(tester, [
         ...recent(),
         loggedDive('d43', now.add(const Duration(days: 2)), number: 43),
       ]);
 
       expect(find.textContaining('Dive #42 ended'), findsOneWidget);
+    });
+
+    // Issue #4250: the prompt once loaded the whole log to find one dive.
+    testWidgets('never loads the dive list to make its offer', (tester) async {
+      await pumpLogged(tester, recent());
+
+      expect(find.textContaining('Dive #42 ended'), findsOneWidget);
+      expect(containerOf(tester).exists(divesProvider), isFalse);
+    });
+
+    testWidgets('offers a dive logged while the planner is open', (
+      tester,
+    ) async {
+      await pumpLogged(tester, dayDives);
+      expect(find.textContaining('ended'), findsNothing);
+
+      await tester.runAsync(
+        () => DiveRepository().createDive(
+          loggedDive(
+            'd43',
+            NoFlyService.wallClockNowUtc().subtract(const Duration(hours: 3)),
+            number: 43,
+          ),
+        ),
+      );
+      // The reread needs the real event loop, which runAsync turns, and the
+      // dives change tick is debounced on the test's fake clock, which the
+      // pump advances.
+      final prompt = find.textContaining('Dive #43 ended');
+      for (var i = 0; i < 50 && prompt.evaluate().isEmpty; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 10)),
+        );
+        await tester.pump(DiveRepository.changeTickDebounce);
+      }
+
+      expect(prompt, findsOneWidget);
+    });
+
+    testWidgets('reads nothing once the plan follows a dive', (tester) async {
+      await pumpLogged(tester, recent());
+      await follow(tester, 'd42');
+
+      expect(containerOf(tester).exists(followSuggestionProvider), isFalse);
+    });
+
+    testWidgets('reads nothing on a replan', (tester) async {
+      await pumpLogged(tester, recent());
+      final container = containerOf(tester);
+      final editor = container.read(divePlanNotifierProvider.notifier);
+      editor.loadPlan(
+        container
+            .read(divePlanNotifierProvider)
+            .copyWith(sourceDiveId: 'replanned'),
+      );
+      await tester.pumpAndSettle();
+
+      expect(container.exists(followSuggestionProvider), isFalse);
     });
   });
 }

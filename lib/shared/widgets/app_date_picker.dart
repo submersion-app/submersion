@@ -26,6 +26,7 @@ Future<DateTime?> showAppDatePicker({
   required DateTime lastDate,
   DatePickerMode initialDatePickerMode = DatePickerMode.day,
   DateFormatPreference? dateFormat,
+  String? helpText,
 }) {
   final format = dateFormat ?? _resolveFormat(context);
   return showDatePicker(
@@ -34,6 +35,7 @@ Future<DateTime?> showAppDatePicker({
     firstDate: firstDate,
     lastDate: lastDate,
     initialDatePickerMode: initialDatePickerMode,
+    helpText: helpText,
     calendarDelegate: _compactDateDelegate(context, format),
   );
 }

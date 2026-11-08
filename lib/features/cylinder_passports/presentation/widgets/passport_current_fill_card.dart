@@ -54,11 +54,11 @@ class PassportCurrentFillCard extends ConsumerWidget {
                           equipmentId: equipmentId,
                         );
                         if (saved == null || !context.mounted) return;
-                        await offerWriteFillToTag(
+                        await offerWriteFillsToTags(
                           context,
                           ref,
+                          saved,
                           equipmentId: equipmentId,
-                          fill: saved,
                         );
                       },
                 icon: const Icon(Icons.add),

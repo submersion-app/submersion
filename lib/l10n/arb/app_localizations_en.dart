@@ -11130,6 +11130,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get divePlanner_label_minutesUnit => 'min';
 
   @override
+  String get divePlanner_label_secondsUnit => 's';
+
+  @override
   String get divePlanner_label_ndl => 'NDL';
 
   @override
@@ -14265,6 +14268,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get passport_history_deleteConfirm => 'Delete this fill record?';
+
+  @override
+  String get passport_history_deleteFailed =>
+      'Could not delete the fill. Try again.';
 
   @override
   String get passport_tag_title => 'Tag';
@@ -19481,6 +19488,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_photoPicker_selectAllButton => 'Select All';
+
+  @override
+  String get media_photoPicker_albumFilter_all => 'All albums';
+
+  @override
+  String media_photoPicker_albumFilter_chip(String album, int count) {
+    return '$album ($count)';
+  }
+
+  @override
+  String get media_photoPicker_albumFilter_label => 'Filter by album';
 
   @override
   String media_photoPicker_selectedCount(int count) {
@@ -59574,4 +59592,200 @@ class AppLocalizationsEn extends AppLocalizations {
   ) {
     return 'Marker $number: $time, $depth, $distance';
   }
+
+  @override
+  String get twinSet_title => 'Twin set';
+
+  @override
+  String get twinSet_none => 'Not part of a twin set';
+
+  @override
+  String get twinSet_link => 'Link to a twin set partner';
+
+  @override
+  String twinSet_since(String date) {
+    return 'Since $date';
+  }
+
+  @override
+  String get twinSet_replace => 'Replace partner';
+
+  @override
+  String get twinSet_unlink => 'Unlink';
+
+  @override
+  String get twinSet_history => 'History';
+
+  @override
+  String twinSet_historyRange(String partner, String from, String to) {
+    return '$partner, $from to $to';
+  }
+
+  @override
+  String get twinSet_deletePairing => 'Delete pairing';
+
+  @override
+  String get twinSet_deletePairingConfirm =>
+      'Delete this pairing from the history? Fills and dives are not changed.';
+
+  @override
+  String get twinSet_pickerTitle => 'Twin set partner';
+
+  @override
+  String get twinSet_pickerEmpty => 'No other cylinders to pair with.';
+
+  @override
+  String get twinSet_pairedOnHelp => 'Paired since';
+
+  @override
+  String get twinSet_unpairedOnHelp => 'Unlinked on';
+
+  @override
+  String get twinSet_pressureMismatchTitle => 'Different working pressures';
+
+  @override
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  ) {
+    return '$a is rated $aPressure and $b $bPressure. A manifolded pair fills to one pressure.';
+  }
+
+  @override
+  String get twinSet_continue => 'Continue';
+
+  @override
+  String get twinSet_replaceTitle => 'Replace partner?';
+
+  @override
+  String twinSet_replaceClash(String cylinder, String partner) {
+    return '$cylinder is paired with $partner.';
+  }
+
+  @override
+  String twinSet_replaceQuestion(String a, String b) {
+    return 'Pair $a with $b instead?';
+  }
+
+  @override
+  String twinSet_leftAlone(String name) {
+    return '$name will be left on its own.';
+  }
+
+  @override
+  String get twinSet_replaceConfirm => 'Replace';
+
+  @override
+  String get twinSet_clashTitle => 'Overlapping pairing';
+
+  @override
+  String twinSet_clashBody(String pairs) {
+    return 'This overlaps the pairing of $pairs. A cylinder can be in one twin set on any day.';
+  }
+
+  @override
+  String twinSet_pairNames(String a, String b) {
+    return '$a and $b';
+  }
+
+  @override
+  String twinSet_endBeforeStart(String date) {
+    return 'The end date must be after $date.';
+  }
+
+  @override
+  String get twinSet_saveFailed => 'Could not save the twin set change.';
+
+  @override
+  String twinSet_with(String partner) {
+    return 'Twin set with $partner';
+  }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return 'Both cylinders in the twin set ($partner)';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner, $status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => 'Edit fill';
+
+  @override
+  String get passport_logFill_overPressureTitle => 'Above working pressure';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure is above the working pressure of $name, $workingPressure.';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => 'Save anyway';
+
+  @override
+  String get passport_logFill_back => 'Back';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return 'Apply to the fill of $partner too?';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => 'Yes';
+
+  @override
+  String get passport_logFill_onlyThisOne => 'Only this one';
+
+  @override
+  String get passport_history_anotherCylinder => 'another cylinder';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return 'Filled with $partner';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'Delete this fill from both cylinders, or only this one?';
+
+  @override
+  String get passport_history_deleteBoth => 'Both cylinders';
+
+  @override
+  String get passport_history_edit => 'Edit fill';
+
+  @override
+  String get twinSet_choiceTitle => 'Use the twin set?';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'Twin set ($a + $b, $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return 'Just $a';
+  }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'Paired since';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'Unlinked on';
+
+  @override
+  String get settings_conflict_field_filledTogetherId => 'Twin set fill';
+
+  @override
+  String get settings_conflict_field_twinPassportId =>
+      'Twin set partner passport';
 }

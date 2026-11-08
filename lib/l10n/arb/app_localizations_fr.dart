@@ -11346,6 +11346,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get divePlanner_label_minutesUnit => 'min';
 
   @override
+  String get divePlanner_label_secondsUnit => 's';
+
+  @override
   String get divePlanner_label_ndl => 'NDL';
 
   @override
@@ -14526,6 +14529,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get passport_history_deleteConfirm =>
       'Supprimer cet enregistrement de gonflage ?';
+
+  @override
+  String get passport_history_deleteFailed =>
+      'Impossible de supprimer le gonflage. Réessayez.';
 
   @override
   String get passport_tag_title => 'Étiquette';
@@ -19828,6 +19835,17 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get media_photoPicker_selectAllButton => 'Tout sélectionner';
+
+  @override
+  String get media_photoPicker_albumFilter_all => 'Tous les albums';
+
+  @override
+  String media_photoPicker_albumFilter_chip(String album, int count) {
+    return '$album ($count)';
+  }
+
+  @override
+  String get media_photoPicker_albumFilter_label => 'Filtrer par album';
 
   @override
   String media_photoPicker_selectedCount(int count) {
@@ -60665,4 +60683,204 @@ class AppLocalizationsFr extends AppLocalizations {
   ) {
     return 'Repère $number : $time, $depth, $distance';
   }
+
+  @override
+  String get twinSet_title => 'Bi-bouteille';
+
+  @override
+  String get twinSet_none => 'Ne fait pas partie d\'un bi-bouteille';
+
+  @override
+  String get twinSet_link => 'Associer à une bouteille partenaire';
+
+  @override
+  String twinSet_since(String date) {
+    return 'Depuis le $date';
+  }
+
+  @override
+  String get twinSet_replace => 'Remplacer la partenaire';
+
+  @override
+  String get twinSet_unlink => 'Dissocier';
+
+  @override
+  String get twinSet_history => 'Historique';
+
+  @override
+  String twinSet_historyRange(String partner, String from, String to) {
+    return '$partner, du $from au $to';
+  }
+
+  @override
+  String get twinSet_deletePairing => 'Supprimer l\'association';
+
+  @override
+  String get twinSet_deletePairingConfirm =>
+      'Supprimer cette association de l\'historique ? Les gonflages et les plongées ne changent pas.';
+
+  @override
+  String get twinSet_pickerTitle => 'Bouteille partenaire';
+
+  @override
+  String get twinSet_pickerEmpty => 'Aucune autre bouteille à associer.';
+
+  @override
+  String get twinSet_pairedOnHelp => 'Associées depuis le';
+
+  @override
+  String get twinSet_unpairedOnHelp => 'Dissociées le';
+
+  @override
+  String get twinSet_pressureMismatchTitle =>
+      'Pressions de service différentes';
+
+  @override
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  ) {
+    return '$a a une pression de service de $aPressure et $b de $bPressure. Une paire reliée par un manifold se gonfle à une seule pression.';
+  }
+
+  @override
+  String get twinSet_continue => 'Continuer';
+
+  @override
+  String get twinSet_replaceTitle => 'Remplacer la partenaire ?';
+
+  @override
+  String twinSet_replaceClash(String cylinder, String partner) {
+    return '$cylinder est associée à $partner.';
+  }
+
+  @override
+  String twinSet_replaceQuestion(String a, String b) {
+    return 'Associer plutôt $a à $b ?';
+  }
+
+  @override
+  String twinSet_leftAlone(String name) {
+    return '$name restera seule.';
+  }
+
+  @override
+  String get twinSet_replaceConfirm => 'Remplacer';
+
+  @override
+  String get twinSet_clashTitle => 'Association qui se chevauche';
+
+  @override
+  String twinSet_clashBody(String pairs) {
+    return 'Cela chevauche l\'association de $pairs. Une bouteille ne peut faire partie que d\'un bi-bouteille par jour.';
+  }
+
+  @override
+  String twinSet_pairNames(String a, String b) {
+    return '$a et $b';
+  }
+
+  @override
+  String twinSet_endBeforeStart(String date) {
+    return 'La date de fin doit être après le $date.';
+  }
+
+  @override
+  String get twinSet_saveFailed =>
+      'Impossible d\'enregistrer la modification du bi-bouteille.';
+
+  @override
+  String twinSet_with(String partner) {
+    return 'Bi-bouteille avec $partner';
+  }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return 'Les deux bouteilles du bi-bouteille ($partner)';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner, $status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => 'Modifier le gonflage';
+
+  @override
+  String get passport_logFill_overPressureTitle =>
+      'Au-dessus de la pression de service';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure dépasse la pression de service de $name, $workingPressure.';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => 'Enregistrer quand même';
+
+  @override
+  String get passport_logFill_back => 'Retour';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return 'Appliquer aussi au gonflage de $partner ?';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => 'Oui';
+
+  @override
+  String get passport_logFill_onlyThisOne => 'Seulement celui-ci';
+
+  @override
+  String get passport_history_anotherCylinder => 'une autre bouteille';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return 'Gonflée avec $partner';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'Supprimer ce gonflage des deux bouteilles, ou seulement de celle-ci ?';
+
+  @override
+  String get passport_history_deleteBoth => 'Les deux bouteilles';
+
+  @override
+  String get passport_history_edit => 'Modifier le gonflage';
+
+  @override
+  String get twinSet_choiceTitle => 'Utiliser le bi-bouteille ?';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'Bi-bouteille ($a + $b, $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return 'Seulement $a';
+  }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'Associées depuis';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'Dissociées le';
+
+  @override
+  String get settings_conflict_field_filledTogetherId =>
+      'Gonflage du bi-bouteille';
+
+  @override
+  String get settings_conflict_field_twinPassportId =>
+      'Passeport de la bouteille partenaire';
 }

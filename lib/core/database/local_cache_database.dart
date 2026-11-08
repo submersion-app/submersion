@@ -65,9 +65,10 @@ class MediaCacheEntries extends Table {
 
 /// Cached bathymetry grids keyed by quantized coordinate (0.02 degree
 /// cells). Re-derivable third-party data: never synced, never backed up.
-/// status semantics: 'ok' = usable grid in gridJson; 'empty' = fetched
-/// fine, definitively no water here; 'unavailable' = reserved for future
-/// definitive negatives. Transient failures write NO row.
+/// status semantics: 'ok' = usable grid in gridBlob (or, for a row cached
+/// before v20, in gridJson); 'empty' = fetched fine, definitively no water
+/// here; 'unavailable' = reserved for future definitive negatives.
+/// Transient failures write NO row.
 class BathymetryCache extends Table {
   TextColumn get cacheKey => text()();
   RealColumn get centerLat => real()();
@@ -75,8 +76,24 @@ class BathymetryCache extends Table {
   TextColumn get status => text()();
   TextColumn get sourceId => text().nullable()();
   RealColumn get resolutionMeters => real().nullable()();
+
+  /// The pre-v20 grid encoding. Read only to convert a legacy row, which is
+  /// rewritten into [gridBlob] (and this cleared) the first time it is read.
   TextColumn get gridJson => text().nullable()();
   IntColumn get fetchedAt => integer()();
+
+  /// The grid in `bathymetry_grid_codec.dart`'s compact binary form (v20).
+  BlobColumn get gridBlob => blob().nullable()();
+
+  /// Stored bytes of [gridBlob], so the byte budget can total the cache
+  /// without reading a single grid (v20). Null for a row cached as JSON
+  /// before v20 until its first read converts it; the budget sizes such a
+  /// row from its JSON instead (`bathymetryStoredBytes`).
+  IntColumn get gridBytes => integer().nullable()();
+
+  /// Epoch millis this row last served a read, the eviction order for the
+  /// byte budget. Null falls back to [fetchedAt] (v20).
+  IntColumn get lastUsedAt => integer().nullable()();
 
   @override
   Set<Column> get primaryKey => {cacheKey};
@@ -89,7 +106,8 @@ class BathymetryCache extends Table {
 /// [BathymetryCache] quantized cells, so caching at tile granularity is what
 /// actually guarantees "every tile is downloaded only once" (the task's OGD
 /// fair-use requirement), independent of the coarser 0.02 degree cache grid.
-/// status semantics: 'ok' = usable grid in gridJson; 'gap' = the STAC
+/// status semantics: 'ok' = usable grid in gridBlob (gridJson before v20);
+/// 'gap' = the STAC
 /// lookup for this tile definitively found no covering asset. Transient
 /// failures (network error, STAC error, a download that is not a zip) write
 /// NO row. 'empty' is the pre-#1770 negative, written before downloads were
@@ -140,6 +158,11 @@ class SwissBathyTileCache extends Table {
   /// AND 'gap' row written since then stores its actual level, so the
   /// mismatch check above applies uniformly to both statuses.
   RealColumn get referenceLevelMeters => real().nullable()();
+
+  /// The tile in `bathymetry_grid_codec.dart`'s compact binary form (v20).
+  /// A row cached before v20 holds [gridJson] instead and is rewritten into
+  /// this column the first time it is read.
+  BlobColumn get gridBlob => blob().nullable()();
 
   @override
   Set<Column> get primaryKey => {tileKey};
@@ -321,7 +344,7 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
   LocalCacheDatabase(super.e);
 
   @override
-  int get schemaVersion => 19;
+  int get schemaVersion => 20;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -501,6 +524,12 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
           await m.addColumn(recentQueries, recentQueries.kind);
         }
       }
+      // v20: terrain grids in a compact binary column, plus the size and
+      // last-read stamp the byte budget needs (#4258). Legacy JSON rows
+      // stay readable and are converted the first time they are read.
+      if (from < 20) {
+        await _addGridBlobColumns();
+      }
     },
     beforeOpen: (details) async {
       // Ladder-collision self-heal: a parallel branch that also claimed v7
@@ -518,6 +547,9 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
           resolution_meters REAL NULL,
           grid_json TEXT NULL,
           fetched_at INTEGER NOT NULL,
+          grid_blob BLOB NULL,
+          grid_bytes INTEGER NULL,
+          last_used_at INTEGER NULL,
           PRIMARY KEY (cache_key)
         )
       ''');
@@ -631,6 +663,7 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
           checked_at INTEGER NULL,
           source_href TEXT NULL,
           reference_level_meters REAL NULL,
+          grid_blob BLOB NULL,
           PRIMARY KEY (tile_key)
         )
       ''');
@@ -653,6 +686,53 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
           'ADD COLUMN reference_level_meters REAL NULL',
         );
       }
+      // v20 mirror, for a database a colliding branch stamped at v20 first.
+      await _addGridBlobColumns();
     },
   );
+
+  /// The v20 columns, added wherever a table lacks them. Idempotent, so the
+  /// rung and the open backstop share it. Legacy rows are not backfilled:
+  /// an UPDATE that grows a record rewrites its whole JSON grid, which on
+  /// the unbounded caches #4258 is about meant seconds of blocked open at
+  /// launch. The budget sizes them from their JSON on demand instead.
+  Future<void> _addGridBlobColumns() async {
+    final hasTable = await _addMissingColumns('bathymetry_cache', const {
+      'grid_blob': 'BLOB NULL',
+      'grid_bytes': 'INTEGER NULL',
+      'last_used_at': 'INTEGER NULL',
+    });
+    if (hasTable) {
+      // The byte budget's columns sit after grid_blob in every record, so a
+      // table scan for them walks each grid's overflow pages: the whole
+      // cache, after every write. This covering index answers the budget's
+      // queries without reading a grid.
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS bathymetry_cache_budget_idx '
+        'ON bathymetry_cache '
+        '(status, grid_bytes, last_used_at, fetched_at, cache_key)',
+      );
+    }
+    await _addMissingColumns('swiss_bathy_tile_cache', const {
+      'grid_blob': 'BLOB NULL',
+    });
+  }
+
+  /// Adds each of [columns] (name to SQL type) that [table] lacks, and
+  /// returns whether [table] exists. A missing table is left alone:
+  /// whatever creates it later builds the current shape.
+  Future<bool> _addMissingColumns(
+    String table,
+    Map<String, String> columns,
+  ) async {
+    final existing = (await customSelect(
+      "PRAGMA table_info('$table')",
+    ).get()).map((c) => c.read<String>('name')).toSet();
+    if (existing.isEmpty) return false;
+    for (final MapEntry(key: name, value: type) in columns.entries) {
+      if (existing.contains(name)) continue;
+      await customStatement('ALTER TABLE $table ADD COLUMN $name $type');
+    }
+    return true;
+  }
 }

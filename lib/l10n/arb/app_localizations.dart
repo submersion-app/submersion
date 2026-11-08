@@ -18043,6 +18043,12 @@ abstract class AppLocalizations {
   /// **'min'**
   String get divePlanner_label_minutesUnit;
 
+  /// Unit suffix for a planner field entered in seconds, such as the gas switch stop
+  ///
+  /// In en, this message translates to:
+  /// **'s'**
+  String get divePlanner_label_secondsUnit;
+
   /// No description provided for @divePlanner_label_ndl.
   ///
   /// In en, this message translates to:
@@ -23376,6 +23382,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete this fill record?'**
   String get passport_history_deleteConfirm;
+
+  /// No description provided for @passport_history_deleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete the fill. Try again.'**
+  String get passport_history_deleteFailed;
 
   /// No description provided for @passport_tag_title.
   ///
@@ -31527,6 +31539,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select All'**
   String get media_photoPicker_selectAllButton;
+
+  /// No description provided for @media_photoPicker_albumFilter_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All albums'**
+  String get media_photoPicker_albumFilter_all;
+
+  /// No description provided for @media_photoPicker_albumFilter_chip.
+  ///
+  /// In en, this message translates to:
+  /// **'{album} ({count})'**
+  String media_photoPicker_albumFilter_chip(String album, int count);
+
+  /// No description provided for @media_photoPicker_albumFilter_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by album'**
+  String get media_photoPicker_albumFilter_label;
 
   /// No description provided for @media_photoPicker_selectedCount.
   ///
@@ -95345,6 +95375,315 @@ abstract class AppLocalizations {
     String depth,
     String distance,
   );
+
+  /// No description provided for @twinSet_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Twin set'**
+  String get twinSet_title;
+
+  /// No description provided for @twinSet_none.
+  ///
+  /// In en, this message translates to:
+  /// **'Not part of a twin set'**
+  String get twinSet_none;
+
+  /// No description provided for @twinSet_link.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to a twin set partner'**
+  String get twinSet_link;
+
+  /// No description provided for @twinSet_since.
+  ///
+  /// In en, this message translates to:
+  /// **'Since {date}'**
+  String twinSet_since(String date);
+
+  /// No description provided for @twinSet_replace.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace partner'**
+  String get twinSet_replace;
+
+  /// No description provided for @twinSet_unlink.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink'**
+  String get twinSet_unlink;
+
+  /// No description provided for @twinSet_history.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get twinSet_history;
+
+  /// No description provided for @twinSet_historyRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{partner}, {from} to {to}'**
+  String twinSet_historyRange(String partner, String from, String to);
+
+  /// No description provided for @twinSet_deletePairing.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete pairing'**
+  String get twinSet_deletePairing;
+
+  /// No description provided for @twinSet_deletePairingConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this pairing from the history? Fills and dives are not changed.'**
+  String get twinSet_deletePairingConfirm;
+
+  /// No description provided for @twinSet_pickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Twin set partner'**
+  String get twinSet_pickerTitle;
+
+  /// No description provided for @twinSet_pickerEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No other cylinders to pair with.'**
+  String get twinSet_pickerEmpty;
+
+  /// No description provided for @twinSet_pairedOnHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Paired since'**
+  String get twinSet_pairedOnHelp;
+
+  /// No description provided for @twinSet_unpairedOnHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlinked on'**
+  String get twinSet_unpairedOnHelp;
+
+  /// No description provided for @twinSet_pressureMismatchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Different working pressures'**
+  String get twinSet_pressureMismatchTitle;
+
+  /// No description provided for @twinSet_pressureMismatchBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{a} is rated {aPressure} and {b} {bPressure}. A manifolded pair fills to one pressure.'**
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  );
+
+  /// No description provided for @twinSet_continue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get twinSet_continue;
+
+  /// No description provided for @twinSet_replaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace partner?'**
+  String get twinSet_replaceTitle;
+
+  /// No description provided for @twinSet_replaceClash.
+  ///
+  /// In en, this message translates to:
+  /// **'{cylinder} is paired with {partner}.'**
+  String twinSet_replaceClash(String cylinder, String partner);
+
+  /// No description provided for @twinSet_replaceQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Pair {a} with {b} instead?'**
+  String twinSet_replaceQuestion(String a, String b);
+
+  /// No description provided for @twinSet_leftAlone.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} will be left on its own.'**
+  String twinSet_leftAlone(String name);
+
+  /// No description provided for @twinSet_replaceConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get twinSet_replaceConfirm;
+
+  /// No description provided for @twinSet_clashTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Overlapping pairing'**
+  String get twinSet_clashTitle;
+
+  /// No description provided for @twinSet_clashBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This overlaps the pairing of {pairs}. A cylinder can be in one twin set on any day.'**
+  String twinSet_clashBody(String pairs);
+
+  /// No description provided for @twinSet_pairNames.
+  ///
+  /// In en, this message translates to:
+  /// **'{a} and {b}'**
+  String twinSet_pairNames(String a, String b);
+
+  /// No description provided for @twinSet_endBeforeStart.
+  ///
+  /// In en, this message translates to:
+  /// **'The end date must be after {date}.'**
+  String twinSet_endBeforeStart(String date);
+
+  /// No description provided for @twinSet_saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the twin set change.'**
+  String get twinSet_saveFailed;
+
+  /// No description provided for @twinSet_with.
+  ///
+  /// In en, this message translates to:
+  /// **'Twin set with {partner}'**
+  String twinSet_with(String partner);
+
+  /// No description provided for @passport_logFill_twinSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Both cylinders in the twin set ({partner})'**
+  String passport_logFill_twinSwitch(String partner);
+
+  /// No description provided for @twinSet_partnerStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'{partner}, {status}'**
+  String twinSet_partnerStatus(String partner, String status);
+
+  /// No description provided for @passport_logFill_editTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit fill'**
+  String get passport_logFill_editTitle;
+
+  /// No description provided for @passport_logFill_overPressureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Above working pressure'**
+  String get passport_logFill_overPressureTitle;
+
+  /// No description provided for @passport_logFill_overPressureBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{pressure} is above the working pressure of {name}, {workingPressure}.'**
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  );
+
+  /// No description provided for @passport_logFill_saveAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Save anyway'**
+  String get passport_logFill_saveAnyway;
+
+  /// No description provided for @passport_logFill_back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get passport_logFill_back;
+
+  /// No description provided for @passport_logFill_applyToTied.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply to the fill of {partner} too?'**
+  String passport_logFill_applyToTied(String partner);
+
+  /// No description provided for @passport_logFill_applyBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get passport_logFill_applyBoth;
+
+  /// No description provided for @passport_logFill_onlyThisOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Only this one'**
+  String get passport_logFill_onlyThisOne;
+
+  /// No description provided for @passport_history_anotherCylinder.
+  ///
+  /// In en, this message translates to:
+  /// **'another cylinder'**
+  String get passport_history_anotherCylinder;
+
+  /// No description provided for @passport_history_filledWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled with {partner}'**
+  String passport_history_filledWith(String partner);
+
+  /// No description provided for @passport_history_deleteTiedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this fill from both cylinders, or only this one?'**
+  String get passport_history_deleteTiedBody;
+
+  /// No description provided for @passport_history_deleteBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Both cylinders'**
+  String get passport_history_deleteBoth;
+
+  /// No description provided for @passport_history_edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit fill'**
+  String get passport_history_edit;
+
+  /// No description provided for @twinSet_choiceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the twin set?'**
+  String get twinSet_choiceTitle;
+
+  /// No description provided for @twinSet_choicePair.
+  ///
+  /// In en, this message translates to:
+  /// **'Twin set ({a} + {b}, {volume})'**
+  String twinSet_choicePair(String a, String b, String volume);
+
+  /// No description provided for @twinSet_choiceSingle.
+  ///
+  /// In en, this message translates to:
+  /// **'Just {a}'**
+  String twinSet_choiceSingle(String a);
+
+  /// No description provided for @settings_conflict_field_pairedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Paired since'**
+  String get settings_conflict_field_pairedOn;
+
+  /// No description provided for @settings_conflict_field_unpairedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlinked on'**
+  String get settings_conflict_field_unpairedOn;
+
+  /// No description provided for @settings_conflict_field_filledTogetherId.
+  ///
+  /// In en, this message translates to:
+  /// **'Twin set fill'**
+  String get settings_conflict_field_filledTogetherId;
+
+  /// No description provided for @settings_conflict_field_twinPassportId.
+  ///
+  /// In en, this message translates to:
+  /// **'Twin set partner passport'**
+  String get settings_conflict_field_twinPassportId;
 }
 
 class _AppLocalizationsDelegate

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
@@ -531,6 +533,29 @@ void main() {
         expect(
           row.endMeters,
           greaterThanOrEqualTo(0.0),
+          reason: 'row at ${row.depthMeters} m (${row.kind})',
+        );
+      }
+    });
+
+    // Issue #4299: END reads the narcotic pressure in the plan's own water,
+    // as the row's ppO2 already does.
+    test('END follows the plan altitude and water on depth-matched rows', () {
+      final plan = _plan().copyWith(altitude: 3000, waterType: WaterType.fresh);
+      final environment = PlanEngine.environmentFor(plan);
+      final rows = solver
+          .solve(plan)!
+          .worstCaseRows
+          .where((r) => r.kind != PlanScheduleRowKind.ascent);
+      expect(rows, isNotEmpty);
+      for (final row in rows) {
+        final expected = GasMix(
+          o2: row.gasFO2 * 100,
+          he: row.gasFHe * 100,
+        ).end(row.depthMeters, environment: environment);
+        expect(
+          row.endMeters,
+          closeTo(math.max(0.0, expected), 1e-9),
           reason: 'row at ${row.depthMeters} m (${row.kind})',
         );
       }

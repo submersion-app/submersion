@@ -4,6 +4,7 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/presentation/query_builder_strings.dart';
 import 'package:submersion/core/query/presentation/query_editor_context.dart';
+import 'package:submersion/core/query/presentation/query_labels.dart';
 import 'package:submersion/core/query/presentation/query_ref_picker_sheet.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_registry.dart';
@@ -11,6 +12,7 @@ import 'package:submersion/core/query/registry/query_relation.dart';
 import 'package:submersion/core/query/syntax/query_parser.dart';
 import 'package:submersion/core/query/syntax/query_printer.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
+import 'package:submersion/core/text/text_sort.dart' show foldedTextComparator;
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart'
     show numberInputFormatters;
@@ -63,6 +65,19 @@ List<QueryOp> opsFor(PathResolution target) {
   return ops;
 }
 
+/// [field]'s enum values in the order the builder lists them (#4244): as
+/// declared, or by [labels] when the field asks for label order. Labels
+/// compare with case and accents folded, as the gear pickers do, so French
+/// "Émetteur" files under E; a tie falls back to the stored name, so the
+/// order is total and stable.
+List<String> enumOptions(QueryField field, QueryLabels labels) {
+  final values = field.enumValues!;
+  if (field.enumOrder == EnumOrder.declared) return values;
+  return [...values]..sort(
+    foldedTextComparator((v) => labels.enumValue(field, v), tieBreak: (v) => v),
+  );
+}
+
 /// The value a fresh row holds for [op] on [target]; null when [op] takes
 /// no value or the row cannot exist without a pick (a ref).
 QueryValue? defaultValueFor(
@@ -86,7 +101,7 @@ QueryValue? defaultValueFor(
     case FieldType.bool:
       return const BoolValue(true);
     case FieldType.enumName:
-      final first = EnumValue(field.enumValues!.first);
+      final first = EnumValue(enumOptions(field, context.labels).first);
       return op == QueryOp.inList ? ListValue([first]) : first;
     case FieldType.date:
       return switch (op) {
@@ -255,7 +270,7 @@ class QueryValueEditor extends StatelessWidget {
   }
 
   Widget _enumDropdown(QueryField field) {
-    final values = field.enumValues!;
+    final values = enumOptions(field, context.labels);
     final custom = _customOptions(field);
     final current = (value as EnumValue?)?.name ?? values.first;
     final known = values.contains(current) || custom.containsKey(current);
@@ -281,7 +296,7 @@ class QueryValueEditor extends StatelessWidget {
     // Names the field still lists: a retired name is dropped on the next
     // edit, so it must not count toward the last selected value.
     final custom = _customOptions(field);
-    final options = [...field.enumValues!, ...custom.keys];
+    final options = [...enumOptions(field, context.labels), ...custom.keys];
     final selected = {
       for (final item in (value as ListValue?)?.items ?? const <QueryValue>[])
         if (item is EnumValue && options.contains(item.name)) item.name,

@@ -6862,6 +6862,10 @@
   "divePlanner_label_gfHigh": "GF High",
   "divePlanner_label_gfLow": "GF Low",
   "divePlanner_label_minutesUnit": "min",
+  "divePlanner_label_secondsUnit": "s",
+  "@divePlanner_label_secondsUnit": {
+    "description": "Unit suffix for a planner field entered in seconds, such as the gas switch stop"
+  },
   "divePlanner_label_ndl": "NDL",
   "divePlanner_label_planSettings": "Plan Settings",
   "divePlanner_label_reserve": "Reserve",
@@ -8571,6 +8575,7 @@
   },
   "passport_history_delete": "Delete fill",
   "passport_history_deleteConfirm": "Delete this fill record?",
+  "passport_history_deleteFailed": "Could not delete the fill. Try again.",
   "passport_tag_title": "Tag",
   "passport_tag_written": "Written {date}",
   "@passport_tag_written": {
@@ -11763,6 +11768,9 @@
   "media_photoPicker_permissionRequestMessage": "Submersion needs access to your photo library to add dive photos.",
   "media_photoPicker_permissionTitle": "Dive Photos",
   "media_photoPicker_selectAllButton": "Select All",
+  "media_photoPicker_albumFilter_all": "All albums",
+  "media_photoPicker_albumFilter_chip": "{album} ({count})",
+  "media_photoPicker_albumFilter_label": "Filter by album",
   "media_photoPicker_selectedCount": "{count} selected",
   "media_photoPicker_showingPhotosFromRange": "Showing photos from {rangeText}",
   "media_photoPicker_thumbnailToggleLabel": "Toggle selection for photo",
@@ -12214,6 +12222,16 @@
   },
   "@media_photoPicker_selectedCount": {
     "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@media_photoPicker_albumFilter_chip": {
+    "placeholders": {
+      "album": {
+        "type": "String"
+      },
       "count": {
         "type": "int"
       }
@@ -35320,5 +35338,72 @@
   "navTrack_detail_updateOtherRecordingMessage": "This file was recorded on {fileDate}, the track on {trackDate}, so it may be a different dive. Update the track from it anyway?",
   "@navTrack_detail_updateOtherRecordingMessage": {"description": "Dialog asking whether to update a track from a file recorded at another time; both dates are formatted dates", "placeholders": {"fileDate": {"type": "String"}, "trackDate": {"type": "String"}}},
   "navTrack_marker_details": "Marker {number}: {time}, {depth}, {distance}",
-  "@navTrack_marker_details": {"description": "Tooltip of a marker the recording console set: its number, time, depth and distance into the dive", "placeholders": {"number": {"type": "int"}, "time": {"type": "String"}, "depth": {"type": "String"}, "distance": {"type": "String"}}}
+  "@navTrack_marker_details": {"description": "Tooltip of a marker the recording console set: its number, time, depth and distance into the dive", "placeholders": {"number": {"type": "int"}, "time": {"type": "String"}, "depth": {"type": "String"}, "distance": {"type": "String"}}},
+  "twinSet_title": "Twin set",
+  "twinSet_none": "Not part of a twin set",
+  "twinSet_link": "Link to a twin set partner",
+  "twinSet_since": "Since {date}",
+  "@twinSet_since": {"placeholders": {"date": {"type": "String"}}},
+  "twinSet_replace": "Replace partner",
+  "twinSet_unlink": "Unlink",
+  "twinSet_history": "History",
+  "twinSet_historyRange": "{partner}, {from} to {to}",
+  "@twinSet_historyRange": {"placeholders": {"partner": {"type": "String"}, "from": {"type": "String"}, "to": {"type": "String"}}},
+  "twinSet_deletePairing": "Delete pairing",
+  "twinSet_deletePairingConfirm": "Delete this pairing from the history? Fills and dives are not changed.",
+  "twinSet_pickerTitle": "Twin set partner",
+  "twinSet_pickerEmpty": "No other cylinders to pair with.",
+  "twinSet_pairedOnHelp": "Paired since",
+  "twinSet_unpairedOnHelp": "Unlinked on",
+  "twinSet_pressureMismatchTitle": "Different working pressures",
+  "twinSet_pressureMismatchBody": "{a} is rated {aPressure} and {b} {bPressure}. A manifolded pair fills to one pressure.",
+  "@twinSet_pressureMismatchBody": {"placeholders": {"a": {"type": "String"}, "aPressure": {"type": "String"}, "b": {"type": "String"}, "bPressure": {"type": "String"}}},
+  "twinSet_continue": "Continue",
+  "twinSet_replaceTitle": "Replace partner?",
+  "twinSet_replaceClash": "{cylinder} is paired with {partner}.",
+  "@twinSet_replaceClash": {"placeholders": {"cylinder": {"type": "String"}, "partner": {"type": "String"}}},
+  "twinSet_replaceQuestion": "Pair {a} with {b} instead?",
+  "@twinSet_replaceQuestion": {"placeholders": {"a": {"type": "String"}, "b": {"type": "String"}}},
+  "twinSet_leftAlone": "{name} will be left on its own.",
+  "@twinSet_leftAlone": {"placeholders": {"name": {"type": "String"}}},
+  "twinSet_replaceConfirm": "Replace",
+  "twinSet_clashTitle": "Overlapping pairing",
+  "twinSet_clashBody": "This overlaps the pairing of {pairs}. A cylinder can be in one twin set on any day.",
+  "@twinSet_clashBody": {"placeholders": {"pairs": {"type": "String"}}},
+  "twinSet_pairNames": "{a} and {b}",
+  "@twinSet_pairNames": {"placeholders": {"a": {"type": "String"}, "b": {"type": "String"}}},
+  "twinSet_endBeforeStart": "The end date must be after {date}.",
+  "@twinSet_endBeforeStart": {"placeholders": {"date": {"type": "String"}}},
+  "twinSet_saveFailed": "Could not save the twin set change.",
+  "twinSet_with": "Twin set with {partner}",
+  "@twinSet_with": {"placeholders": {"partner": {"type": "String"}}},
+  "passport_logFill_twinSwitch": "Both cylinders in the twin set ({partner})",
+  "@passport_logFill_twinSwitch": {"placeholders": {"partner": {"type": "String"}}},
+  "twinSet_partnerStatus": "{partner}, {status}",
+  "@twinSet_partnerStatus": {"placeholders": {"partner": {"type": "String"}, "status": {"type": "String"}}},
+  "passport_logFill_editTitle": "Edit fill",
+  "passport_logFill_overPressureTitle": "Above working pressure",
+  "passport_logFill_overPressureBody": "{pressure} is above the working pressure of {name}, {workingPressure}.",
+  "@passport_logFill_overPressureBody": {"placeholders": {"pressure": {"type": "String"}, "name": {"type": "String"}, "workingPressure": {"type": "String"}}},
+  "passport_logFill_saveAnyway": "Save anyway",
+  "passport_logFill_back": "Back",
+  "passport_logFill_applyToTied": "Apply to the fill of {partner} too?",
+  "@passport_logFill_applyToTied": {"placeholders": {"partner": {"type": "String"}}},
+  "passport_logFill_applyBoth": "Yes",
+  "passport_logFill_onlyThisOne": "Only this one",
+  "passport_history_anotherCylinder": "another cylinder",
+  "passport_history_filledWith": "Filled with {partner}",
+  "@passport_history_filledWith": {"placeholders": {"partner": {"type": "String"}}},
+  "passport_history_deleteTiedBody": "Delete this fill from both cylinders, or only this one?",
+  "passport_history_deleteBoth": "Both cylinders",
+  "passport_history_edit": "Edit fill",
+  "twinSet_choiceTitle": "Use the twin set?",
+  "twinSet_choicePair": "Twin set ({a} + {b}, {volume})",
+  "@twinSet_choicePair": {"placeholders": {"a": {"type": "String"}, "b": {"type": "String"}, "volume": {"type": "String"}}},
+  "twinSet_choiceSingle": "Just {a}",
+  "@twinSet_choiceSingle": {"placeholders": {"a": {"type": "String"}}},
+  "settings_conflict_field_pairedOn": "Paired since",
+  "settings_conflict_field_unpairedOn": "Unlinked on",
+  "settings_conflict_field_filledTogetherId": "Twin set fill",
+  "settings_conflict_field_twinPassportId": "Twin set partner passport"
 }
