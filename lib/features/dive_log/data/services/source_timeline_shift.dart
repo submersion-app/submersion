@@ -130,11 +130,42 @@ class SourceTimelineShifter {
       gasSwitchIds: switches,
       window: await _sourceClocks.snapshot([sourceId]),
     );
+    final windowShift = await _windowShift(diveId, sourceId, seconds);
     await _db.transaction(() async {
       await _move(record, seconds);
-      await _sourceClocks.shift(record.window, Duration(seconds: seconds));
+      await _sourceClocks.shift(record.window, windowShift);
     });
     return record;
+  }
+
+  /// How far the source's own entry and exit move. Its window should end up
+  /// where its samples now start on the primary's timeline: the primary's
+  /// entry plus the source's new offset. While the window still reads the
+  /// wrong clock that is [seconds] itself; after a whole-hour clock repair
+  /// already moved it (#3655) it is less, and moving it by [seconds] again
+  /// would push it past the primary the other way.
+  Future<Duration> _windowShift(
+    String diveId,
+    String sourceId,
+    int seconds,
+  ) async {
+    final rows = await (_db.select(
+      _db.diveDataSources,
+    )..where((t) => t.diveId.equals(diveId))).get();
+    final row = rows.where((r) => r.id == sourceId).firstOrNull;
+    final primary = rows.where((r) => r.isPrimary).firstOrNull;
+    final offset = row?.timeOffsetSeconds;
+    final entry = row?.entryTime;
+    final primaryEntry = primary?.entryTime;
+    if (offset == null ||
+        entry == null ||
+        primaryEntry == null ||
+        primary!.id == sourceId) {
+      return Duration(seconds: seconds);
+    }
+    return primaryEntry
+        .add(Duration(seconds: offset + seconds))
+        .difference(entry);
   }
 
   /// Puts back what [record] moved.

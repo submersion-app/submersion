@@ -168,10 +168,20 @@ class QualityContextBuilder {
   }
 
   Future<DiveQualityContext> _build(domain.Dive dive, DateTime now) async {
-    final primarySeries = await _profileSeries.getSeriesForDive(
-      dive.id,
-      primaryOnly: true,
-    );
+    final sources = await _diveRepo.getDataSources(dive.id);
+    // A dive with more than one source reads every series once, so each
+    // source's placement can be checked against the primary's trace; one
+    // source has nothing to be checked against and reads the primary alone.
+    final multiSource = sources.length >= 2;
+    final everySeries = multiSource
+        ? await _profileSeries.getSeriesForDive(dive.id)
+        : const <series.ProfileSeries>[];
+    final primarySeries = multiSource
+        ? [
+            for (final s in everySeries)
+              if (s.isPrimary) s,
+          ]
+        : await _profileSeries.getSeriesForDive(dive.id, primaryOnly: true);
     // Summed from the stored summaries, not counted off the merged list
     // below, so it agrees with the neighbor query's SUM over the same column.
     final primarySampleCount = primarySeries.isEmpty
@@ -184,15 +194,7 @@ class QualityContextBuilder {
           QualitySample(t: p.timestamp, depth: p.depth, temp: p.temperature),
     ];
 
-    final sources = await _diveRepo.getDataSources(dive.id);
-    // Every series, so each source's placement can be checked against the
-    // primary's trace; one source has nothing to be checked against.
-    final sourceSamples = sources.length < 2
-        ? const <String, List<QualitySample>>{}
-        : qualitySourceSamples(
-            sources,
-            await _profileSeries.getSeriesForDive(dive.id),
-          );
+    final sourceSamples = qualitySourceSamples(sources, everySeries);
     final pressures = <String, List<QualityPressureSample>>{};
     // The detectors read what the rest of the app reads: one source per
     // stretch of a tank, never two recordings interleaved (#2440).

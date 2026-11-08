@@ -239,6 +239,34 @@ void main() {
     expect(restored.entryTime!.isAtSameMomentAs(secondEntry), isTrue);
   });
 
+  test('a window an earlier clock repair already corrected is not moved '
+      'again (#3655)', () async {
+    // The whole-hour repair put the window on the primary's clock, but the
+    // samples it does not touch still sit where the wrong clock put them.
+    final corrected = entry.subtract(const Duration(seconds: 40));
+    await (db.update(
+      db.diveDataSources,
+    )..where((t) => t.id.equals('src-2'))).write(
+      DiveDataSourcesCompanion(
+        entryTime: Value(corrected),
+        exitTime: Value(corrected.add(exitAfter)),
+      ),
+    );
+    final finding = await seedFinding();
+
+    await executor.shiftSourceProfile(
+      diveId: 'd1',
+      sourceId: 'src-2',
+      seconds: shift,
+      findingId: finding.id,
+    );
+
+    final row = await sourceRow('src-2');
+    expect(row.entryTime!.isAtSameMomentAs(corrected), isTrue);
+    expect(row.timeOffsetSeconds, -40);
+    expect((await seriesStarts())['src-2'], [-40, 20]);
+  });
+
   test('a source the dive no longer has changes nothing', () async {
     final finding = await seedFinding();
     final result = await executor.shiftSourceProfile(
