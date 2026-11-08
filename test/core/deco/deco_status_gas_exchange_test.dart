@@ -72,6 +72,39 @@ void main() {
       expect(status.isOffgassing(comp), isTrue);
     });
 
+    test('the net direction is the only moving gas when the other is in '
+        'equilibrium', () {
+      // N2 0.012 bar below the inspired pressure (moving in), He 0.005 bar
+      // above it (inside the tolerance). The combined Haldane rate is
+      // negative here (0.012 / 4 < 0.005 / 1.51), but the He arrow reads
+      // Equilibrium, so the badge must follow the N2 arrow, not the sign.
+      final comp = comp1(pN2: 0.74 - 0.012, pHe: 0.005);
+      final status = statusWith(comp, inspiredN2: 0.74, inspiredHe: 0.0);
+
+      expect(status.n2Exchange(comp), GasExchange.ongassing);
+      expect(status.heExchange(comp), GasExchange.equilibrium);
+      expect(status.isOffgassing(comp), isTrue);
+      expect(status.netExchange(comp), GasExchange.ongassing);
+    });
+
+    test('gases moving apart take the sign of the combined rate', () {
+      final comp = comp1(pN2: 0.40, pHe: 0.30);
+      final status = statusWith(comp, inspiredN2: 0.74, inspiredHe: 0.0);
+
+      // (0.74 - 0.40) / 4 - 0.30 / 1.51 < 0: helium leaves faster.
+      expect(status.netExchange(comp), GasExchange.offgassing);
+    });
+
+    test('gasExchanges returns each direction and the net one together', () {
+      final comp = comp1(pN2: 0.40, pHe: 0.30);
+      final status = statusWith(comp, inspiredN2: 0.74, inspiredHe: 0.0);
+
+      final exchanges = status.gasExchanges(comp);
+      expect(exchanges.n2, status.n2Exchange(comp));
+      expect(exchanges.he, status.heExchange(comp));
+      expect(exchanges.net, status.netExchange(comp));
+    });
+
     test('every direction is unknown without an inspired gas', () {
       final comp = comp1(pN2: 1.6, pHe: 0.2);
       final status = statusWith(comp);

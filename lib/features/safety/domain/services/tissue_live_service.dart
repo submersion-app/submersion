@@ -14,9 +14,11 @@ import 'package:submersion/features/safety/domain/entities/tissue_load_state.dar
 /// using the same [BuhlmannAlgorithm] the dive log and planner already run.
 /// Mirrors `tissue_seed.dart`, which off-gasses a dive's end-of-dive
 /// compartments for a fixed surface interval to seed a plan that follows it;
-/// this projects to "now" instead of to a fixed interval, and re-evaluates
-/// on each UI tick (see `CnsOtuPage`'s minute timer) rather than caching a
-/// stale result from the moment the data was fetched.
+/// this projects to "now" instead of to a fixed interval. `CnsOtuPage`
+/// re-projects on its minute timer rather than keeping the result from the
+/// moment the data was fetched: it reads the state now as the last entry of
+/// [surfaceIntervalTimeline], computed once per minute, so [currentStatus]
+/// is the single-state form of the same projection.
 class TissueLiveService {
   const TissueLiveService._();
 

@@ -94,6 +94,7 @@ Widget buildCard({
   VoidCallback? onOpen3dView,
   bool scrollable = false,
   ThemeData? theme,
+  TextDirection? textDirection,
 }) {
   final card = CompactTissueLoadingCard(
     status: status,
@@ -101,6 +102,7 @@ Widget buildCard({
     expandVisualization: expandVisualization,
     onOpen3dView: onOpen3dView,
   );
+  final body = scrollable ? SingleChildScrollView(child: card) : card;
   return ProviderScope(
     overrides: [settingsProvider.overrideWith((ref) => MockSettingsNotifier())],
     child: MaterialApp(
@@ -112,8 +114,12 @@ Widget buildCard({
       supportedLocales: AppLocalizations.supportedLocales,
       // Both real hosts (dive detail, current dive load page) scroll, so a
       // test that grows the card (the inline explanation) scrolls too.
+      // An explicit direction keeps the English strings while laying the
+      // card out right to left, as Arabic and Hebrew do.
       home: Scaffold(
-        body: scrollable ? SingleChildScrollView(child: card) : card,
+        body: textDirection == null
+            ? body
+            : Directionality(textDirection: textDirection, child: body),
       ),
     ),
   );
@@ -358,21 +364,35 @@ void main() {
       expect(find.text(l10n.diveLog_deco_gasOffgassing), findsNothing);
     });
 
-    testWidgets('keeps the legend at the trailing end, which is the left in '
-        'RTL', (tester) async {
-      await tester.pumpWidget(buildCard(decoStatuses: [_status]));
-      await tester.pumpAndSettle();
+    for (final direction in TextDirection.values) {
+      testWidgets('keeps the legend at the trailing end with the halves in '
+          'reading order (${direction.name})', (tester) async {
+        await tester.pumpWidget(
+          buildCard(decoStatuses: [_status], textDirection: direction),
+        );
+        await tester.pumpAndSettle();
 
-      final align = tester.widget<Align>(
-        find
-            .ancestor(
-              of: find.byType(TissueHeatMapLegend),
-              matching: find.byType(Align),
-            )
-            .first,
-      );
-      expect(align.alignment, AlignmentDirectional.centerEnd);
-    });
+        final context = tester.element(find.byType(CompactTissueLoadingCard));
+        final l10n = AppLocalizations.of(context);
+        final strip = tester.getRect(find.byType(TissueHeatMapStrip));
+        final legend = tester.getRect(find.byType(TissueHeatMapLegend));
+        final under = tester.getCenter(
+          find.text(l10n.diveLog_deco_heatMapUndersaturated),
+        );
+        final over = tester.getCenter(
+          find.text(l10n.diveLog_deco_heatMapSupersaturated),
+        );
+
+        if (direction == TextDirection.rtl) {
+          // Trailing is the left; the low half reads first, on the right.
+          expect(legend.center.dx, lessThan(strip.center.dx));
+          expect(under.dx, greaterThan(over.dx));
+        } else {
+          expect(legend.center.dx, greaterThan(strip.center.dx));
+          expect(under.dx, lessThan(over.dx));
+        }
+      });
+    }
 
     testWidgets(
       'fires onCompartmentHoverChanged with index on tap then null on release',
@@ -422,6 +442,31 @@ void main() {
       );
       expect(find.text('Surface level'), findsOneWidget);
       expect(find.text('M-value'), findsOneWidget);
+    });
+
+    testWidgets('bar tooltips follow a new status, not the previous one', (
+      tester,
+    ) async {
+      String firstTooltip() => tester
+          .widget<Tooltip>(
+            find
+                .descendant(
+                  of: find.byType(TissuePressureBarChart),
+                  matching: find.byType(Tooltip),
+                )
+                .first,
+          )
+          .message!;
+
+      await tester.pumpWidget(buildCard(status: _status));
+      await tester.pumpAndSettle();
+      expect(firstTooltip(), contains('N₂: 0.74 bar'));
+
+      // Same tree, new status (a profile scrub): the bar chart keeps its
+      // state, so its memoized tooltips must be rebuilt for this status.
+      await tester.pumpWidget(buildCard(status: _overloadedStatus));
+      await tester.pumpAndSettle();
+      expect(firstTooltip(), contains('N₂: 4.50 bar'));
     });
 
     for (final brightness in Brightness.values) {

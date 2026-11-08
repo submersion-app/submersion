@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/gas_exchange.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_exchange_style.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/loading_severity_color.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -43,11 +44,10 @@ class TissueCompartmentDetail extends StatelessWidget {
       double.infinity,
     );
     // Null when the status carries no inspired gas: the badge and arrows are
-    // left out rather than guessed from ambient pressure (issue #2593). Each
-    // direction once: the net one is combined from the per-gas results.
-    final n2 = status.n2Exchange(comp);
-    final he = status.heExchange(comp);
-    final net = status.combineExchanges(comp, n2: n2, he: he);
+    // left out rather than guessed from ambient pressure (issue #2593). The
+    // net direction is derived from the per-gas ones, so the badge always
+    // agrees with the arrows.
+    final (:n2, :he, :net) = status.gasExchanges(comp);
     final withHelium = showsHelium(comp, status.inspiredHeBar);
 
     final labelStyle = textTheme.labelSmall?.copyWith(
@@ -87,21 +87,23 @@ class TissueCompartmentDetail extends StatelessWidget {
             _Metric(
               label: l10n.diveLog_deco_metricLoad,
               value: l10n.diveLog_deco_percentValue(
-                comp.percentLoading.toStringAsFixed(0),
+                formatFixedForDisplay(comp.percentLoading, 0),
               ),
               labelStyle: labelStyle,
               valueStyle: valueStyle,
             ),
             _Metric(
               label: 'GF',
-              value: l10n.diveLog_deco_percentValue(gf.toStringAsFixed(0)),
+              value: l10n.diveLog_deco_percentValue(
+                formatFixedForDisplay(gf, 0),
+              ),
               labelStyle: labelStyle,
               valueStyle: valueStyle?.copyWith(color: loadingSeverityColor(gf)),
             ),
             _Metric(
               key: const ValueKey('tissue-detail-n2'),
               label: 'N₂',
-              value: '${comp.currentPN2.toStringAsFixed(2)} bar',
+              value: '${formatFixedForDisplay(comp.currentPN2, 2)} bar',
               exchange: n2,
               labelStyle: labelStyle,
               valueStyle: valueStyle,
@@ -110,7 +112,7 @@ class TissueCompartmentDetail extends StatelessWidget {
               _Metric(
                 key: const ValueKey('tissue-detail-he'),
                 label: 'He',
-                value: '${comp.currentPHe.toStringAsFixed(2)} bar',
+                value: '${formatFixedForDisplay(comp.currentPHe, 2)} bar',
                 exchange: he,
                 labelStyle: labelStyle,
                 valueStyle: valueStyle,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/deco/entities/gas_exchange.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Label, icon and color the tissue views use for a [GasExchange], so the
@@ -33,11 +34,13 @@ bool showsHelium(TissueCompartment compartment, double? inspiredHeBar) =>
 
 /// Half-time text for [compartment]: nitrogen alone, or "N2 / He" when
 /// [withHelium], since helium moves on its own, much shorter half-time.
+/// Decimals take the active locale's separator.
 String halfTimeText(TissueCompartment compartment, {required bool withHelium}) {
-  final n2 = compartment.halfTimeN2.toStringAsFixed(0);
+  final n2 = formatFixedForDisplay(compartment.halfTimeN2, 0);
   if (!withHelium) return n2;
-  final he = compartment.halfTimeHe < 10
-      ? compartment.halfTimeHe.toStringAsFixed(1)
-      : compartment.halfTimeHe.toStringAsFixed(0);
+  final he = formatFixedForDisplay(
+    compartment.halfTimeHe,
+    compartment.halfTimeHe < 10 ? 1 : 0,
+  );
   return '$n2 / $he';
 }

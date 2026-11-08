@@ -181,11 +181,12 @@ class CnsOtuStatusCard extends StatelessWidget {
     // can draw its heat map / area chart over that off-gassing the same way
     // it draws one over a dive.
     //
-    // The timeline's last entry is the state now (see
+    // The timeline's last entry is the state at the start of this minute (see
     // TissueLiveService.surfaceIntervalTimeline), so the off-gassing runs
-    // once, and _TissueTimelineCache keeps it for the rest of the minute:
-    // rebuilds in between (the minute tick, theme or provider changes) reuse
-    // it instead of re-running every sampled deco evaluation.
+    // once per minute. Each minute tick lands in a new minute and recomputes;
+    // _TissueTimelineCache only spares the other rebuilds within a minute
+    // (theme or provider changes) from re-running every sampled deco
+    // evaluation.
     // An empty list is no tissue data too. It must be caught here, before
     // the projection: restoring an empty state leaves the algorithm with its
     // default surface-saturated compartments, which would then read as a
@@ -272,7 +273,7 @@ class CnsOtuStatusCard extends StatelessWidget {
         unknownDiveAge != null &&
         unknownDiveAge + elapsed < CnsTable.cnsRecoveryWindow;
 
-    // Tissues that have not settled count as active too -- without this,
+    // Tissues that have not settled count as active too. Without this,
     // CNS/OTU decaying below their own epsilons (CNS within ~15h, daily OTU
     // at midnight) would read as "no active load" while the tissues are
     // still loaded, or still visibly moving (refilling with nitrogen after
@@ -360,8 +361,10 @@ class CnsOtuStatusCard extends StatelessWidget {
 /// Keeps the last surface interval timeline for the rest of its minute.
 ///
 /// The page rebuilds every minute (and on theme or provider changes); each
-/// timeline is 60 sampled deco evaluations, so a rebuild within the same
-/// minute for the same dive and settings reuses the previous one.
+/// timeline is 61 deco evaluations (the end of the dive plus
+/// [TissueLiveService.timelineSampleCount] samples), so a rebuild within the
+/// same minute for the same dive and settings reuses the previous one. The
+/// minute tick itself always starts a new minute and recomputes.
 ///
 /// Attached to the snapshot's end-of-dive compartment list through an
 /// [Expando], not held in a static field: the entry lives exactly as long as

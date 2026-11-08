@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/loading_severity_color.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_tooltip_text.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Subsurface-style bar chart of the 16 compartments' loading, fast to slow.
@@ -16,7 +18,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 ///
 /// Used by the tissue loading card and the deco calculator's panel, so both
 /// draw, label and explain the same chart.
-class TissuePressureBarChart extends StatelessWidget {
+class TissuePressureBarChart extends StatefulWidget {
   final DecoStatus status;
 
   /// Compartment (0-based) drawn with an outline, or null for none.
@@ -89,11 +91,45 @@ class TissuePressureBarChart extends StatelessWidget {
   static Color mValueLineColor(ColorScheme colorScheme) => colorScheme.error;
 
   @override
+  State<TissuePressureBarChart> createState() => _TissuePressureBarChartState();
+}
+
+class _TissuePressureBarChartState extends State<TissuePressureBarChart> {
+  /// Every bar's tooltip, built once for the status on screen: the chart
+  /// rebuilds on each hover with the same status, while a new status (a
+  /// profile scrub) replaces them. Only the current status is kept, so
+  /// scrubbing a long dive does not retain the text of every sample passed.
+  DecoStatus? _tooltipStatus;
+  AppLocalizations? _tooltipL10n;
+  String? _tooltipLocale;
+  List<String> _tooltips = const [];
+
+  List<String> _tooltipsFor(DecoStatus status, AppLocalizations l10n) {
+    // The decimals follow Intl's locale, the words follow l10n.
+    final locale = Intl.getCurrentLocale();
+    if (!identical(status, _tooltipStatus) ||
+        !identical(l10n, _tooltipL10n) ||
+        locale != _tooltipLocale) {
+      _tooltipStatus = status;
+      _tooltipL10n = l10n;
+      _tooltipLocale = locale;
+      _tooltips = List.unmodifiable([
+        for (final comp in status.compartments)
+          tissueCompartmentTooltip(l10n, status, comp),
+      ]);
+    }
+    return _tooltips;
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final status = widget.status;
+    final chartHeight = widget.chartHeight;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = context.l10n;
     final comps = status.compartments;
+    final tooltips = _tooltipsFor(status, l10n);
 
     final labelStyle = textTheme.labelSmall?.copyWith(
       fontSize: 11,
@@ -103,19 +139,24 @@ class TissuePressureBarChart extends StatelessWidget {
     final outlineColor = colorScheme.onSurface.withValues(
       alpha: isDark ? 1.0 : 0.8,
     );
-    final markerColor = surfaceLevelMarkerColor(colorScheme);
-    final mValueColor = mValueLineColor(colorScheme);
+    final markerColor = TissuePressureBarChart.surfaceLevelMarkerColor(
+      colorScheme,
+    );
+    final mValueColor = TissuePressureBarChart.mValueLineColor(colorScheme);
+    const markerHeight = TissuePressureBarChart.markerHeight;
+    const mValueLineHeight = TissuePressureBarChart.mValueLineHeight;
     final equilibriumN2 = status.surfaceEquilibriumN2Bar;
 
-    final leadingIdx = leadingIndex;
+    final leadingIdx = widget.leadingIndex;
     final leading = comps.isEmpty
         ? null
         : (leadingIdx != null && leadingIdx >= 0 && leadingIdx < comps.length)
         ? comps[leadingIdx]
         : status.leadingCompartment;
 
-    final hover = onCompartmentHover;
-    final exit = onHoverExit;
+    final hover = widget.onCompartmentHover;
+    final exit = widget.onHoverExit;
+    final highlightedIndex = widget.highlightedIndex;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,11 +193,7 @@ class TissuePressureBarChart extends StatelessWidget {
                                     ? null
                                     : (_) => hover(entry.key),
                                 child: Tooltip(
-                                  message: tissueCompartmentTooltip(
-                                    l10n,
-                                    status,
-                                    entry.value,
-                                  ),
+                                  message: tooltips[entry.key],
                                   child: _CompartmentBar(
                                     comp: entry.value,
                                     chartHeight: chartHeight,
@@ -181,7 +218,7 @@ class TissuePressureBarChart extends StatelessWidget {
                 // hovering a bar at that height still reaches its tooltip.
                 Positioned(
                   key: const ValueKey('tissue-m-value-line'),
-                  bottom: bandBottom(
+                  bottom: TissuePressureBarChart.bandBottom(
                     chartHeight: chartHeight,
                     percent: 100,
                     height: mValueLineHeight,

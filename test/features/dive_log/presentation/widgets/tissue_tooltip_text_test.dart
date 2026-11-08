@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_tooltip_text.dart';
@@ -92,5 +93,34 @@ void main() {
     expect(text, startsWith('Kompartiment 1\n'));
     expect(text, contains('Halbwertszeit: 4 min'));
     expect(text, endsWith('Entsättigung'));
+  });
+
+  group('in a comma-decimal language', () {
+    late String? previous;
+
+    setUp(() => previous = Intl.defaultLocale);
+    tearDown(() => Intl.defaultLocale = previous);
+
+    test('uses the locale decimal separator for every decimal value', () {
+      Intl.defaultLocale = 'de';
+      final l10n = lookupAppLocalizations(const Locale('de'));
+      final c = comp(pN2: 0.40, pHe: 0.30);
+      final text = tissueCompartmentTooltip(
+        l10n,
+        statusOf(c, inspiredN2: 0.74),
+        c,
+      );
+
+      expect(
+        text,
+        contains(
+          '${c.percentLoading.toStringAsFixed(1).replaceFirst('.', ',')}% ',
+        ),
+      );
+      expect(text, contains('N₂: 0,40 bar'));
+      expect(text, contains('He: 0,30 bar'));
+      expect(text, contains('Halbwertszeit: 4 / 1,5 min'));
+      expect(text, isNot(contains('0.40')));
+    });
   });
 }

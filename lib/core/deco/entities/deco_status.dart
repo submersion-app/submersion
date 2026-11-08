@@ -116,10 +116,9 @@ class DecoStatus extends Equatable {
   /// pressure of one gas below which that gas reads as in equilibrium rather
   /// than still moving. Far above the floating-point noise a long surface
   /// projection leaves behind, and below anything a diver would care about.
-  /// The same 0.01 bar the live residual-load check uses
-  /// (`TissueLiveService.hasResidualLoad`), so "settled" and "no residual
-  /// load" share one threshold and a trivial dive does not read as still
-  /// moving for an extra slow-compartment half-time.
+  /// The same 0.01 bar the live residual-load check uses on the total
+  /// (`TissueLiveService.hasResidualLoad`), so a trivial dive does not read
+  /// as still moving for an extra slow-compartment half-time.
   static const double gasEquilibriumToleranceBar = 0.01;
 
   /// Direction nitrogen alone moves in [compartment], or null when the
@@ -139,28 +138,38 @@ class DecoStatus extends Equatable {
     return _exchange(inspired, compartment.currentPHe);
   }
 
-  /// Net direction of both gases together: [GasExchange.equilibrium] when
-  /// neither is moving, otherwise the sign [isOffgassing] reads. Null when
-  /// the inspired gas is unknown.
-  GasExchange? netExchange(TissueCompartment compartment) => combineExchanges(
-    compartment,
-    n2: n2Exchange(compartment),
-    he: heExchange(compartment),
-  );
+  /// Net direction of both gases together, as [gasExchanges] reads it.
+  GasExchange? netExchange(TissueCompartment compartment) =>
+      gasExchanges(compartment).net;
 
-  /// [netExchange] from per-gas directions the caller already has, so a
-  /// view showing all three (tooltip, detail panel) evaluates each once.
-  GasExchange? combineExchanges(
-    TissueCompartment compartment, {
-    required GasExchange? n2,
-    required GasExchange? he,
-  }) {
-    final offgassing = isOffgassing(compartment);
-    if (n2 == null || he == null || offgassing == null) return null;
-    if (n2 == GasExchange.equilibrium && he == GasExchange.equilibrium) {
-      return GasExchange.equilibrium;
+  /// Each gas's direction in [compartment] and the net direction of both,
+  /// evaluated once for a view that shows all three (tooltip, detail panel).
+  /// Every field is null when the inspired gas is unknown.
+  ///
+  /// The net direction is derived from the per-gas ones, so the badge can
+  /// never contradict the arrows next to it: [GasExchange.equilibrium] when
+  /// neither gas moves, the moving gas's direction when only one does or
+  /// both move the same way, and the sign of the combined rate
+  /// ([isOffgassing]) only when they move in opposite directions. Taking
+  /// that sign whenever either gas moves let a helium difference inside the
+  /// tolerance (no arrow) outweigh nitrogen visibly moving in.
+  ({GasExchange? n2, GasExchange? he, GasExchange? net}) gasExchanges(
+    TissueCompartment compartment,
+  ) {
+    final n2 = n2Exchange(compartment);
+    final he = heExchange(compartment);
+    if (n2 == null || he == null) return (n2: n2, he: he, net: null);
+    final GasExchange net;
+    if (he == GasExchange.equilibrium) {
+      net = n2;
+    } else if (n2 == GasExchange.equilibrium || n2 == he) {
+      net = he;
+    } else {
+      net = isOffgassing(compartment)!
+          ? GasExchange.offgassing
+          : GasExchange.ongassing;
     }
-    return offgassing ? GasExchange.offgassing : GasExchange.ongassing;
+    return (n2: n2, he: he, net: net);
   }
 
   static GasExchange _exchange(double inspired, double tension) {

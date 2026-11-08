@@ -98,6 +98,9 @@ class _CompactTissueLoadingCardState
     final vizMode = ref.watch(tissueVizModeProvider);
 
     final expand = widget.expandVisualization;
+    // Once per build: the detail panel, the bar chart's screen reader label
+    // and both visualizations all name this compartment.
+    final leadingIndex = _leadingCompartmentIndex();
     final hasViz =
         widget.decoStatuses != null && widget.decoStatuses!.isNotEmpty;
     final vizWidget = hasViz
@@ -106,16 +109,20 @@ class _CompactTissueLoadingCardState
               context,
               colorScheme,
               textTheme,
+              leadingIndex: leadingIndex,
               expandToFill: expand,
             ),
             TissueVizMode.stackedArea => _buildAreaChartSection(
+              leadingIndex: leadingIndex,
               expandToFill: expand,
             ),
           }
         : null;
 
     final hasCompartments = widget.status.compartments.isNotEmpty;
-    final displayIndex = hasCompartments ? _barChartDisplayIndex() : null;
+    final displayIndex = hasCompartments
+        ? _barChartDisplayIndex(leadingIndex)
+        : null;
 
     return Card(
       child: Padding(
@@ -170,7 +177,7 @@ class _CompactTissueLoadingCardState
               TissueCompartmentDetail(
                 status: widget.status,
                 displayIndex: displayIndex,
-                isLeading: displayIndex == _leadingCompartmentIndex(),
+                isLeading: displayIndex == leadingIndex,
               ),
               const SizedBox(height: 6),
             ],
@@ -181,7 +188,7 @@ class _CompactTissueLoadingCardState
               highlightedIndex: displayIndex,
               // The compartment the visible "Leading" text names, so the
               // screen reader announces the same one.
-              leadingIndex: hasCompartments ? _leadingCompartmentIndex() : null,
+              leadingIndex: hasCompartments ? leadingIndex : null,
               onCompartmentHover: (index) =>
                   _setHoveredCompartment(index, fromBarChart: true),
               onHoverExit: _clearHoveredCompartment,
@@ -210,6 +217,7 @@ class _CompactTissueLoadingCardState
     BuildContext context,
     ColorScheme colorScheme,
     TextTheme textTheme, {
+    required int leadingIndex,
     bool expandToFill = false,
   }) {
     final l10n = context.l10n;
@@ -228,7 +236,7 @@ class _CompactTissueLoadingCardState
         height: 72,
         flexible: flexible,
         colorFn: colorFn,
-        hoveredCompartmentIndex: _highlightedCompartmentIndex(),
+        hoveredCompartmentIndex: _highlightedCompartmentIndex(leadingIndex),
         onHoverIndexChanged: widget.onHeatMapHover,
         onCompartmentHoverChanged: (compIdx) {
           if (compIdx != null) {
@@ -264,7 +272,10 @@ class _CompactTissueLoadingCardState
     );
   }
 
-  Widget _buildAreaChartSection({bool expandToFill = false}) {
+  Widget _buildAreaChartSection({
+    required int leadingIndex,
+    bool expandToFill = false,
+  }) {
     final tissueScheme = ref.watch(tissueColorSchemeProvider);
     final colorFn = colorFnForScheme(tissueScheme);
 
@@ -275,7 +286,7 @@ class _CompactTissueLoadingCardState
       isExpanded: true,
       flexible: expandToFill,
       colorFn: colorFn,
-      leadingCompartmentIndex: _leadingCompartmentIndex(),
+      leadingCompartmentIndex: leadingIndex,
       hoveredCompartmentIndex: _hoveredCompartmentIndex,
       onHoverIndexChanged: widget.onHeatMapHover,
       onCompartmentHoverChanged: (compIdx) {
@@ -370,18 +381,20 @@ class _CompactTissueLoadingCardState
 
   /// Returns the compartment index to visually emphasize on cross-chart
   /// widgets (heat map outline, area chart bold line): whichever compartment
-  /// is hovered, regardless of source, or the leading compartment.
-  int _highlightedCompartmentIndex() {
-    return _hoveredCompartmentIndex ?? _leadingCompartmentIndex();
+  /// is hovered, regardless of source, or the leading compartment
+  /// ([leadingIndex], from [_leadingCompartmentIndex]).
+  int _highlightedCompartmentIndex(int leadingIndex) {
+    return _hoveredCompartmentIndex ?? leadingIndex;
   }
 
   /// Returns the compartment index for the bar chart and detail panel:
-  /// only bar-chart hovers override the leading compartment, since the
-  /// heat map and area chart have their own per-compartment tooltips.
-  int _barChartDisplayIndex() {
+  /// only bar-chart hovers override the leading compartment
+  /// ([leadingIndex]), since the heat map and area chart have their own
+  /// per-compartment tooltips.
+  int _barChartDisplayIndex(int leadingIndex) {
     return (_hoveredCompartmentIndex != null && _hoverFromBarChart)
         ? _hoveredCompartmentIndex!
-        : _leadingCompartmentIndex();
+        : leadingIndex;
   }
 
   void _setHoveredCompartment(int index, {bool fromBarChart = false}) {
