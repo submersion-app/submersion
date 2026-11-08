@@ -26,6 +26,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_list_snapshot.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_picker_rows.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
+import 'package:submersion/features/dive_log/data/sql/gas_use_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/latest_ended_dive.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_site_snap.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
@@ -72,6 +73,7 @@ import 'package:submersion/features/dive_log/domain/entities/profile_series_revi
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/domain/services/gas_use_window.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_depth_summary.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_event_mapper.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_series_merge.dart';
@@ -364,6 +366,9 @@ class DiveRepository {
     'dive_dive_types',
     // The row's Runtime.
     ...measuredRuntimeTickTables,
+    // The row's SAC and RMV read the stored gas-use window (#2930), which the
+    // derived metrics sweep writes after the dive itself.
+    ...gasUseTables,
   };
 
   List<TableUpdateQuery> get _diveListTables => [
@@ -819,6 +824,7 @@ class DiveRepository {
     final buddiesByDive = await _buddyRepository.getBuddiesForDives(diveIds);
 
     final profileSpans = await _profileSpansFor(rows);
+    final gasUses = await _gasUsesFor(diveIds);
 
     return rows
         .map(
@@ -842,6 +848,7 @@ class DiveRepository {
             buddies: buddiesByDive[row.id] ?? const [],
             weights: weightsByDive[row.id] ?? const [],
             profileSpan: profileSpans[row.id],
+            storedGasUse: gasUses[row.id],
           ),
         )
         .toList();
@@ -881,6 +888,36 @@ class DiveRepository {
       }
     }
     return spans;
+  }
+
+  /// The stored gas-use window of each of [diveIds] that has one (issue
+  /// #2930): what `Dive.sac` and `Dive.rmvFor` divide by on a dive read
+  /// without its samples, so a list row reports the rate the detail page
+  /// works out from the profile. Only dives with surface time at the ends of
+  /// their recording have a window.
+  // stats-scope-exempt: hydrates the dives of a list, and aggregates nothing
+  Future<Map<String, GasUse>> _gasUsesFor(List<String> diveIds) async {
+    final uses = <String, GasUse>{};
+    for (final chunk in seriesIdChunks(diveIds)) {
+      final placeholders = List.filled(chunk.length, '?').join(', ');
+      final result = await _db
+          .customSelect(
+            'SELECT dive_id, gas_use_s, gas_use_avg_depth_m '
+            'FROM dive_derived_metrics '
+            'WHERE dive_id IN ($placeholders) '
+            'AND gas_use_s > 0 AND gas_use_avg_depth_m IS NOT NULL',
+            variables: [for (final id in chunk) Variable<String>(id)],
+            readsFrom: {_db.diveDerivedMetricsRows},
+          )
+          .get();
+      for (final row in result) {
+        uses[row.read<String>('dive_id')] = GasUse(
+          seconds: row.read<int>('gas_use_s'),
+          avgDepth: row.read<double>('gas_use_avg_depth_m'),
+        );
+      }
+    }
+    return uses;
   }
 
   /// Get a single dive by ID
@@ -4893,6 +4930,7 @@ class DiveRepository {
     List<domain.BuddyWithRole> buddies = const [],
     List<domain.DiveWeight> weights = const [],
     Duration? profileSpan,
+    GasUse? storedGasUse,
   }) {
     // Map site if exists
     final domainSite = site == null ? null : mapDiveSiteRow(site);
@@ -4966,6 +5004,7 @@ class DiveRepository {
           : null,
       runtime: row.runtime != null ? Duration(seconds: row.runtime!) : null,
       profileSpan: profileSpan,
+      storedGasUse: storedGasUse,
       maxDepth: row.maxDepth,
       avgDepth: row.avgDepth,
       entryLocation: row.entryLatitude != null && row.entryLongitude != null
