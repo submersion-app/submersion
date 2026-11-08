@@ -612,6 +612,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get enum_equipmentField_owner_short => 'Propietario';
 
   @override
+  String get enum_equipmentField_location => 'Ubicación';
+
+  @override
+  String get enum_equipmentField_location_short => 'Ubicación';
+
+  @override
   String get equipment_set_noLongerShared => 'Ya no se comparte';
 
   @override
@@ -16727,6 +16733,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_location_activeFilter => 'Ubicación';
+
+  @override
+  String equipment_location_tileSemantics(String name) {
+    return 'Ubicación: $name';
+  }
 
   @override
   String get equipment_filter_section_location => 'Ubicación';

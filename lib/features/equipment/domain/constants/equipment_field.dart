@@ -50,7 +50,11 @@ enum EquipmentField implements EntityField {
   tags,
 
   // Owner (issue #2046). Appended for the same reason; never reordered.
-  owner;
+  owner,
+
+  // Location (issue #3625): the item's current place. Appended for the same
+  // reason; never reordered.
+  location;
 
   @override
   String get name => toString().split('.').last;
@@ -76,6 +80,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.components => 'Components',
     EquipmentField.tags => 'Tags',
     EquipmentField.owner => 'Owner',
+    EquipmentField.location => 'Location',
   };
 
   @override
@@ -99,6 +104,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.components => 'Parts',
     EquipmentField.tags => 'Tags',
     EquipmentField.owner => 'Owner',
+    EquipmentField.location => 'Location',
   };
 
   @override
@@ -124,6 +130,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.components => l10n.enum_equipmentField_components,
     EquipmentField.tags => l10n.enum_equipmentField_tags,
     EquipmentField.owner => l10n.enum_equipmentField_owner,
+    EquipmentField.location => l10n.enum_equipmentField_location,
   };
 
   @override
@@ -152,6 +159,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.components => l10n.enum_equipmentField_components_short,
     EquipmentField.tags => l10n.enum_equipmentField_tags_short,
     EquipmentField.owner => l10n.enum_equipmentField_owner_short,
+    EquipmentField.location => l10n.enum_equipmentField_location_short,
   };
 
   @override
@@ -175,6 +183,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.components => Icons.account_tree_outlined,
     EquipmentField.tags => Icons.sell_outlined,
     EquipmentField.owner => Icons.person_outline,
+    EquipmentField.location => Icons.place_outlined,
   };
 
   @override
@@ -198,6 +207,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.components => 90,
     EquipmentField.tags => 160,
     EquipmentField.owner => 140,
+    EquipmentField.location => 140,
   };
 
   @override
@@ -221,6 +231,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.components => 60,
     EquipmentField.tags => 80,
     EquipmentField.owner => 90,
+    EquipmentField.location => 90,
   };
 
   @override
@@ -244,6 +255,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.components => true,
     EquipmentField.tags => false,
     EquipmentField.owner => true,
+    EquipmentField.location => true,
   };
 
   @override
@@ -267,6 +279,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.components => 'details',
     EquipmentField.tags => 'other',
     EquipmentField.owner => 'details',
+    EquipmentField.location => 'details',
   };
 
   @override
@@ -299,11 +312,16 @@ class EquipmentFieldAdapter
   /// lifecycle as [worstClocks].
   final Map<String, String> ownerNames;
 
+  /// Current place name per item id, for the Location column (issue #3625);
+  /// absent means no recorded place. Same lifecycle as [worstClocks].
+  final Map<String, String> locationNames;
+
   EquipmentFieldAdapter({
     this.worstClocks = const {},
     this.componentCounts = const {},
     this.tagNames = const {},
     this.ownerNames = const {},
+    this.locationNames = const {},
   });
 
   static final instance = EquipmentFieldAdapter();
@@ -347,6 +365,7 @@ class EquipmentFieldAdapter
       EquipmentField.components => componentCounts[entity.id] ?? 0,
       EquipmentField.tags => tagNames[entity.id] ?? const <String>[],
       EquipmentField.owner => ownerNames[entity.diverId] ?? '',
+      EquipmentField.location => locationNames[entity.id] ?? '',
     };
   }
 
@@ -373,6 +392,7 @@ class EquipmentFieldAdapter
       EquipmentField.components => '${value as int}',
       EquipmentField.tags => _formatTags(value as List<String>),
       EquipmentField.owner => (value as String).isEmpty ? '--' : value,
+      EquipmentField.location => (value as String).isEmpty ? '--' : value,
     };
   }
 

@@ -591,6 +591,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_equipmentField_owner_short => '所有者';
 
   @override
+  String get enum_equipmentField_location => '位置';
+
+  @override
+  String get enum_equipmentField_location_short => '位置';
+
+  @override
   String get equipment_set_noLongerShared => '已不再共享';
 
   @override
@@ -15940,6 +15946,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_location_activeFilter => '位置';
+
+  @override
+  String equipment_location_tileSemantics(String name) {
+    return '位置：$name';
+  }
 
   @override
   String get equipment_filter_section_location => '位置';

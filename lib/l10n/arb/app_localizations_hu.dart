@@ -611,6 +611,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_equipmentField_owner_short => 'Tulajdonos';
 
   @override
+  String get enum_equipmentField_location => 'Hely';
+
+  @override
+  String get enum_equipmentField_location_short => 'Hely';
+
+  @override
   String get equipment_set_noLongerShared => 'Már nincs megosztva';
 
   @override
@@ -16680,6 +16686,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_location_activeFilter => 'Hely';
+
+  @override
+  String equipment_location_tileSemantics(String name) {
+    return 'Hely: $name';
+  }
 
   @override
   String get equipment_filter_section_location => 'Hely';

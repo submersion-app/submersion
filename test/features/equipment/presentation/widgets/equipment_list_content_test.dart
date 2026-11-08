@@ -1947,6 +1947,31 @@ void main() {
       expect(find.byType(EquipmentLocationGroupHeader), findsNothing);
       expect(find.byType(EquipmentGroupHeader), findsNWidgets(3));
     });
+
+    Map<String, String?> tilePlaces(WidgetTester tester) => {
+      for (final tile in tester.widgetList<EquipmentListTile>(
+        find.byType(EquipmentListTile),
+      ))
+        tile.item.name: tile.location?.name,
+    };
+
+    testWidgets('ungrouped, each card names its place (#3625)', (tester) async {
+      await pumpList(tester, groupByLocation: false);
+      expect(tilePlaces(tester), {
+        'Alpha Reg': "Joe's Scuba",
+        'Bravo BCD': 'Garage',
+        'Charlie Reg': 'Garage',
+        'Delta Suit': null,
+      });
+      expect(find.text("Joe's Scuba"), findsOneWidget);
+      expect(find.text('Garage'), findsNWidgets(2));
+    });
+
+    testWidgets('grouped by place, the heading names it and the cards '
+        'leave it off (#3625)', (tester) async {
+      await pumpList(tester, groupByLocation: true);
+      expect(tilePlaces(tester).values, everyElement(isNull));
+    });
   });
 
   group('group by type (shared gear arrangement)', () {
