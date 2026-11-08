@@ -72,11 +72,9 @@ void main() {
 
   testWidgets('draws one glyph per marker, in a fixed order', (tester) async {
     await pump(tester, people: true, species: true, time: true);
-    final xs = [
-      for (final key in [_people, _species, _time])
-        tester.getCenter(find.byKey(key)).dx,
-    ];
-    expect(xs, orderedEquals([...xs]..sort()));
+    double x(Key key) => tester.getCenter(find.byKey(key)).dx;
+    expect(x(_people), lessThan(x(_species)));
+    expect(x(_species), lessThan(x(_time)));
   });
 
   testWidgets('draws only the markers the item has', (tester) async {
