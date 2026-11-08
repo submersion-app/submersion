@@ -83,7 +83,10 @@ class _FakeSiteRepository implements SiteRepository {
   _FakeSiteRepository({required List<domain.DiveSite> sites}) : _sites = sites;
 
   @override
-  Future<List<domain.DiveSite>> getAllSites({String? diverId}) async => _sites;
+  Future<List<domain.DiveSite>> getAllSites({
+    String? diverId,
+    List<String>? ids,
+  }) async => _sites;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError(

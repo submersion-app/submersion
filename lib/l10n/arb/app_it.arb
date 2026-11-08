@@ -29,6 +29,8 @@
   "equipment_filter_owner_mine": "Miei",
   "enum_equipmentField_owner": "Proprietario",
   "enum_equipmentField_owner_short": "Proprietario",
+  "enum_equipmentField_location": "Posizione",
+  "enum_equipmentField_location_short": "Posizione",
   "equipment_set_noLongerShared": "Non più condiviso",
   "equipment_history_title": "Cronologia",
   "equipment_history_empty": "Non ancora usato in nessuna immersione",
@@ -1208,6 +1210,7 @@
   "certifications_list_groupBy_status": "Stato",
   "certifications_list_section_expired": "Scadute",
   "certifications_list_section_expiringSoon": "In scadenza",
+  "certifications_list_section_professional": "{agency} Professionale",
   "certifications_list_section_valid": "Valide",
   "certifications_list_sort_title": "Ordina certificazioni",
   "certifications_list_tile_expired": "Scaduta",
@@ -2341,6 +2344,7 @@
   "diveLog_consolidate_alignStarts": "Allinea gli inizi",
   "diveLog_consolidate_sameDiveHint": "Questi profili sembrano la stessa immersione registrata da due computer.",
   "diveLog_consolidate_clockNote": "Queste registrazioni non si sovrappongono nel tempo, quindi l'orologio di un computer è probabilmente sbagliato. L'immersione mantiene l'ora del computer principale.",
+  "diveLog_consolidate_clockNoteOverlap": "Questi profili di profondità coincidono in un momento diverso da quello indicato dagli orologi dei computer, quindi l'orologio di un computer è probabilmente sbagliato. L'immersione mantiene l'ora del computer principale.",
   "diveLog_consolidate_noProfileFallback": "Una registrazione non ha un profilo di profondità da confrontare, quindi il suo inizio viene allineato a quello del principale.",
   "diveLog_combine_modeJoinShort": "Concatena",
   "diveLog_combine_modeMergeShort": "Unisci",
@@ -2365,6 +2369,95 @@
   "diveLog_deco_sectionTissueLoading": "Carico tissutale",
   "diveLog_deco_semantics_notRequired": "Decompressione non richiesta",
   "diveLog_deco_semantics_required": "Decompressione richiesta",
+  "diveLog_deco_compartmentLeading": "Principale: #{number}",
+  "@diveLog_deco_compartmentLeading": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_compartmentOther": "Compartimento: #{number}",
+  "@diveLog_deco_compartmentOther": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_metricLoad": "Carico",
+  "diveLog_deco_gasOngassing": "Assorbimento",
+  "diveLog_deco_gasOffgassing": "Rilascio",
+  "diveLog_deco_gasEquilibrium": "Equilibrio",
+  "diveLog_deco_heatMapRows": "Righe: veloce (in alto) a lento (in basso)",
+  "diveLog_deco_surfaceLevel": "Livello in superficie",
+  "diveLog_deco_mValue": "Valore M",
+  "diveLog_deco_tooltipCompartment": "Compartimento {number}",
+  "@diveLog_deco_tooltipCompartment": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_tooltipLoaded": "{percent}% di carico",
+  "@diveLog_deco_tooltipLoaded": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_tooltipHalfTime": "Emitempo: {minutes} min",
+  "@diveLog_deco_tooltipHalfTime": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_tooltipSurfaceLevel": "Livello in superficie: {percent}%",
+  "@diveLog_deco_tooltipSurfaceLevel": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_info_title": "Cosa significano questi valori?",
+  "diveLog_deco_info_body": "Carico: la pressione di gas inerte di un compartimento come percentuale del massimo che può contenere in superficie (il suo valore M, la linea rossa al 100%).\n\nLivello in superficie: il segno su ogni barra indica dove si stabilizza un compartimento completamente desaturato mentre respiri aria in superficie. Non è mai a 0%, perché il tuo corpo contiene sempre l'azoto dell'aria che respiri. Una barra al suo segno non ha più carico residuo dell'immersione.\n\nAssorbimento e rilascio: il gas si muove sempre verso la pressione del gas che respiri. Dopo una decompressione con ossigeno o con una miscela ricca di elio, i compartimenti veloci possono contenere meno azoto dell'aria in superficie. Tornando a respirare aria, assorbono di nuovo azoto fino a raggiungere il loro segno. È normale e non è un carico residuo dell'immersione.\n\nElio: l'aria non contiene elio. Dopo un'immersione in trimix, un compartimento rilascia elio mentre può assorbire azoto nello stesso momento. Le frecce accanto a N₂ e He mostrano ogni gas separatamente; l'indicazione accanto al numero del compartimento mostra la direzione complessiva di entrambi.",
+  "diveLog_deco_barChartSemantics": "Grafico del carico tissutale. {count} compartimenti, carico rispetto al valore M; compartimento principale {number} al {percent}%.",
+  "@diveLog_deco_barChartSemantics": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "number": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_heatMapUndersaturated": "Sottosaturo",
+  "diveLog_deco_heatMapSupersaturated": "Sovrasaturo",
+  "diveLog_deco_percentValue": "{value}%",
+  "@diveLog_deco_percentValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_minutesValue": "{value} min",
+  "@diveLog_deco_minutesValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_deco_tissueFast": "Veloce",
   "diveLog_deco_tissueSlow": "Lento",
   "diveLog_deco_title": "Stato deco",
@@ -2700,6 +2793,10 @@
   "diveLog_edit_tripSuggested": "Suggerito: {name}",
   "diveLog_edit_tripUse": "Usa",
   "diveLog_edit_useSet": "Usa set",
+  "diveLog_edit_removeSet": "Rimuovi set",
+  "diveLog_bulkEdit_setsToRemove": "Set da rimuovere",
+  "diveLog_bulkEdit_removeSetTitle": "Rimuovi set di attrezzatura",
+  "diveLog_bulkEdit_equipmentSets": "Set di attrezzatura",
   "diveLog_edit_weightPreset_use": "Usa preset",
   "diveLog_edit_weightPreset_save": "Salva come preset",
   "diveLog_edit_weightPreset_pickerTitle": "Applica un preset di zavorra",
@@ -3260,6 +3357,8 @@
   "diveLog_cylinders_figureStart": "Inizio {pressure}",
   "diveLog_cylinders_figureEnd": "Fine {pressure}",
   "diveLog_cylinders_figureUsed": "Usato {pressure}",
+  "diveLog_cylinders_figureNow": "Ora {pressure}",
+  "diveLog_cylinders_figureNowEstimated": "Ora {pressure} (stim.)",
   "diveLog_cylinders_gasSemantics": "Gas {mix}",
   "diveLog_cylinders_gasUsed": "Gas usato {amount}",
   "diveLog_cylinders_loopUse": "Uso sul loop {rate}",
@@ -4287,6 +4386,7 @@
   "passport_history_sinceHydro": "{count, plural, =0{Nessuna ricarica dall'ultimo collaudo} =1{{count} ricarica dall'ultimo collaudo} other{{count} ricariche dall'ultimo collaudo}}",
   "passport_history_delete": "Elimina ricarica",
   "passport_history_deleteConfirm": "Eliminare questa ricarica?",
+  "passport_history_deleteFailed": "Impossibile eliminare la ricarica. Riprova.",
   "passport_tag_title": "Tag",
   "passport_tag_written": "Scritto il {date}",
   "passport_tag_stale": "Il tag è stato scritto prima dell'ultima manutenzione o modifica delle specifiche. Ristampalo.",
@@ -4767,6 +4867,7 @@
   "equipment_location_bulkAction": "Sposta in una posizione",
   "equipment_location_groupCount": "{count, plural, one{{count} elemento} other{{count} elementi}}",
   "equipment_location_activeFilter": "Posizione",
+  "equipment_location_tileSemantics": "Posizione: {name}",
   "equipment_filter_section_location": "Posizione",
   "equipment_arrange_groupByLocation": "Raggruppa per posizione",
   "equipment_arrange_groupByLocationSubtitle": "Un'intestazione per luogo, solo in questa pagina",
@@ -5582,6 +5683,9 @@
   "media_photoPicker_permissionRequestMessage": "Submersion ha bisogno dell'accesso alla tua libreria foto per aggiungere foto delle immersioni.",
   "media_photoPicker_permissionTitle": "Foto delle immersioni",
   "media_photoPicker_selectAllButton": "Seleziona tutto",
+  "media_photoPicker_albumFilter_all": "Tutti gli album",
+  "media_photoPicker_albumFilter_chip": "{album} ({count})",
+  "media_photoPicker_albumFilter_label": "Filtra per album",
   "media_photoPicker_selectedCount": "{count} selezionati",
   "media_photoPicker_showingPhotosFromRange": "Foto mostrate dal periodo {rangeText}",
   "media_photoPicker_thumbnailAlreadyLinkedLabel": "Foto già collegata a questa immersione",
@@ -7798,7 +7902,7 @@
   "settings_data_importOptions": "Opzioni di importazione",
   "settings_data_importOptions_subtitle": "Abbinamento siti, pressione in emersione, tag automatici",
   "settings_data_dataTools": "Strumenti dati",
-  "settings_data_dataTools_subtitle": "Correggi orari, collega compagni, ritipizza attrezzatura, qualità dati, editor tabellare",
+  "settings_data_dataTools_subtitle": "Correggi orari, collega compagni, ritipizza attrezzatura, qualità dati, editor tabellare, rianalizza immersioni",
   "settings_agentAccess_title": "Accesso agenti",
   "settings_agentAccess_confirm_linkedDives": "Immersioni che perdono questo collegamento ({diver}): {count}",
   "settings_agentAccess_confirm_alsoDeletes": "Elimina anche {kind}: {count}",
@@ -10808,12 +10912,39 @@
   "diveComputer_detail_reimportDialogTitle": "Reimportare tutte le immersioni?",
   "diveComputer_detail_reparseAllButton": "Rianalizza tutte le immersioni",
   "diveComputer_detail_reparseAllMessage": "Riesegui il parser delle immersioni su {count} immersioni con dati grezzi salvati. Questa azione aggiorna i dati di profilo e dei sensori, ma conserva note, siti, compagni e altre modifiche.",
-  "diveComputer_detail_reparseAllPartial": "Rianalizzate {succeeded} su {total} immersioni. {failed} non riuscite.",
-  "diveComputer_detail_reparseAllProgress": "Rianalisi di {count} immersioni in corso...",
-  "diveComputer_detail_reparseAllSuccess": "{count} immersioni rianalizzate con successo",
   "diveComputer_detail_reparseAllTitle": "Rianalizza tutte le immersioni",
   "diveComputer_detail_reparseRawDataCount": "{count} immersioni con dati grezzi",
   "diveComputer_detail_reparseRawDataCountWithout": "{count} immersioni con dati grezzi ({without} senza)",
+  "reparseBatch_progressTitle": "Rianalisi delle immersioni",
+  "reparseBatch_progressCount": "Rianalisi di {done} immersioni su {total}",
+  "reparseBatch_cancelling": "Annullamento...",
+  "reparseBatch_resultTitle": "Rianalisi completata",
+  "reparseBatch_resultCancelledTitle": "Rianalisi annullata",
+  "reparseBatch_resultErrorTitle": "Rianalisi interrotta da un errore",
+  "reparseBatch_resultNotReached": "Non elaborate: {count}",
+  "reparseBatch_resultSummary": "Rianalizzate {succeeded} immersioni su {total}.",
+  "reparseBatch_resultFailed": "Non riuscite: {count}",
+  "reparseBatch_resultNotProcessed": "Non elaborate (annullato): {count}",
+  "reparseBatch_resultSkipped": "Saltate, senza dati grezzi: {count}",
+  "reparseBatch_resultProfilesPreserved": "Immersioni combinate che hanno mantenuto il profilo: {count}",
+  "reparseBatch_failedListHeader": "Immersioni non riuscite",
+  "reparseBatch_failedDiveTitle": "Immersione n. {number}",
+  "reparseBatch_failedDiveUnnumbered": "Immersione senza numero",
+  "reparseBatch_missingDescriptors": "Dati del computer subacqueo mancanti",
+  "reparseBatch_confirmTitle": "Rianalizza immersioni",
+  "reparseBatch_confirmMessage": "Riesegui il parser delle immersioni su {count} immersioni con dati grezzi salvati. Questa azione aggiorna i dati di profilo e dei sensori, ma conserva note, siti, compagni e altre modifiche.",
+  "reparseBatch_confirmSkipped": "Immersioni selezionate senza dati grezzi (saltate): {count}",
+  "reparseBatch_noneWithRawData": "Nessuna delle immersioni selezionate ha dati grezzi salvati da rianalizzare.",
+  "diveLog_selection_tooltip_reparse": "Rianalizza",
+  "settings_reparseDives_title": "Rianalizza immersioni",
+  "settings_reparseDives_subtitle": "Riesegui il parser su ogni immersione con dati grezzi salvati",
+  "settings_reparseDives_intro": "Usalo quando un aggiornamento dell'app migliora la lettura dei dati del computer subacqueo. Note, siti, compagni e altre modifiche vengono conservati.",
+  "settings_reparseDives_withRawData": "Immersioni con dati grezzi: {count}",
+  "settings_reparseDives_withoutRawData": "Immersioni senza dati grezzi (non rianalizzate): {count}",
+  "settings_reparseDives_byComputer": "Per computer subacqueo",
+  "settings_reparseDives_unknownComputer": "Computer sconosciuto",
+  "settings_reparseDives_none": "Nessuna immersione ha dati grezzi salvati da rianalizzare.",
+  "settings_reparseDives_button": "Rianalizza tutto",
   "diveComputer_rawData_discardAction": "Elimina",
   "diveComputer_rawData_discardAllMessage": "Rimuovere i dati grezzi di download conservati per {count} immersioni da tutti i computer subacquei ({size})? Queste immersioni non potranno più essere rianalizzate quando il parser delle immersioni migliorerà. Le immersioni e le tue modifiche restano invariate, e anche gli altri dispositivi sincronizzati rimuovono i dati.",
   "diveComputer_rawData_discardButton": "Elimina dati grezzi",
@@ -12027,8 +12158,12 @@
   "safetyHub_cnsOtu_noProfile_body": "Senza profilo di profondità non è possibile calcolarne CNS% e OTU. I totali qui sotto la escludono.",
   "safetyHub_cnsOtu_about_title": "Informazioni su CNS e OTU",
   "safetyHub_cnsOtu_about_body": "Il tuo CNS% (orologio dell'ossigeno) decade dopo l'immersione con un'emivita di 90 minuti -- torna praticamente a 0 dopo circa un giorno.\n\nL'OTU giornaliero si azzera ogni notte a mezzanotte. L'OTU settimanale è un totale mobile degli ultimi 7 giorni: le immersioni più vecchie escono automaticamente dal calcolo non appena restano fuori da questa finestra.",
+  "safetyHub_tissueLoading_clear_title": "Nessun carico tissutale residuo",
+  "safetyHub_tissueLoading_clear_body": "Tutti i compartimenti sono tornati in equilibrio con l'aria in superficie. Restano al loro livello normale (il segno su ogni barra), non a 0%.",
+  "safetyHub_tissueLoading_unavailable_title": "Carico tissutale non disponibile",
+  "safetyHub_tissueLoading_unavailable_body": "L'ultima immersione non ha dati per calcolare il carico tissutale, per esempio un'immersione senza profilo di profondità, in modalità profondimetro o con rebreather senza setpoint.",
   "safetyHub_tissueLoading_about_title": "Informazioni sul carico tissutale",
-  "safetyHub_tissueLoading_about_body": "Il tuo corpo ha 16 compartimenti tissutali che assorbono e rilasciano azoto (e, nelle immersioni in trimix o con ricircolatore, anche elio) a velocità diverse. I tessuti veloci si saturano e desaturano rapidamente; quelli lenti impiegano molto più tempo per entrambi i processi.\n\nDopo un'immersione con elio, azoto ed elio in uno stesso compartimento possono muoversi brevemente in direzioni opposte: mentre l'elio sta ancora uscendo, lo stesso compartimento può contemporaneamente assorbire un po' di azoto, finché entrambi i gas non raggiungono l'equilibrio con l'aria che respiri. Per questo un compartimento può mostrare brevemente \"Ongassing\" anche mentre il suo carico complessivo continua a scendere.",
+  "safetyHub_tissueLoading_about_body": "Il tuo corpo ha 16 compartimenti tissutali che assorbono e rilasciano azoto (e, nelle immersioni in trimix o con rebreather, anche elio) a velocità diverse. I tessuti veloci si saturano e desaturano rapidamente; quelli lenti impiegano molto più tempo in entrambi i casi.\n\nIl carico residuo è solo ciò che supera il livello normale in superficie. Anche completamente desaturate, le barre non scendono a 0%: ogni compartimento si stabilizza al segno che corrisponde all'azoto dell'aria che respiri. Per questo un compartimento veloce può risultare qui più alto che alla fine di un'immersione con decompressione a ossigeno, senza che il carico sia aumentato.\n\nDopo un'immersione con elio, un compartimento rilascia elio mentre assorbe azoto nello stesso momento, finché entrambi i gas sono in equilibrio con l'aria che respiri.",
   "safetyHub_noFly_category_single": "Dopo una singola immersione senza deco: linea guida di {hours} h",
   "@safetyHub_noFly_category_single": {
     "placeholders": {
@@ -12821,6 +12956,7 @@
   "dataQuality_msg_clock_offsetAhead": "{hours, plural, =1{L'orologio di una fonte è avanti di {hours} ora} other{L'orologio di una fonte è avanti di {hours} ore}}",
   "dataQuality_msg_clock_offsetBehind": "{hours, plural, =1{L'orologio di una fonte è indietro di {hours} ora} other{L'orologio di una fonte è indietro di {hours} ore}}",
   "dataQuality_msg_clock_overlap": "Si sovrappone a un'altra immersione di {minutes} min",
+  "dataQuality_msg_clock_profileFit": "Una fonte si trova a {minutes} min da dove il suo profilo coincide con quello principale",
   "dataQuality_msg_shared_gear_overlap": "{item} è nell'immersione di {diverA} alle {timeA} e in quella di {diverB} alle {timeB}.",
   "dataQuality_msg_shared_gear_overlap_parts": "{count, plural, one{Include {count} parte installata.} other{Include {count} parti installate.}}",
   "dataQuality_msg_duplicate": "{percent}% di corrispondenza con un'immersione distante {minutes} min",
@@ -12865,6 +13001,8 @@
   "dataQuality_repairLabel_fixSourceClock": "Correggi l'orologio di questo computer di {offset}",
   "dataQuality_repairLabel_fixSourceClockNamed": "Correggi l'orologio di {computer} di {offset}",
   "dataQuality_repairLabel_fixSourceClockAll": "Correggi questo computer anche nelle altre immersioni con lo stesso scarto",
+  "dataQuality_repairLabel_alignSourceProfile": "Allinea questo computer in base al suo profilo",
+  "dataQuality_repairLabel_alignSourceProfileNamed": "Allinea {computer} in base al suo profilo",
   "dataQuality_repairLabel_consolidate": "Consolida",
   "dataQuality_repairLabel_deleteDuplicate": "Elimina duplicato",
   "dataQuality_deleteDuplicate_title": "Eliminare la copia ridondante?",
@@ -17256,11 +17394,13 @@
   "rules_value_yes": "Sì",
   "rules_value_no": "No",
   "rules_value_empty": "(vuoto)",
+  "rules_value_gearViaSet": "{item} ({set})",
   "rules_collection_diveTypes": "tipi di immersione",
   "rules_collection_tags": "tag",
   "rules_collection_equipment": "attrezzatura",
   "rules_collection_buddies": "compagni",
   "rules_collection_courses": "corsi",
+  "rules_collection_equipmentSets": "set di attrezzatura",
   "rules_collection_siteTags": "tag del sito",
   "rules_collection_siteTypes": "tipi di sito",
   "rules_field_diveCenter": "centro immersioni",
@@ -17855,5 +17995,55 @@
   "navTrack_detail_updateNameMismatchMessage": "Questa traccia è stata importata da \"{expected}\", il file scelto è \"{actual}\". Aggiornare comunque la traccia da questo file?",
   "navTrack_detail_updateOtherRecordingTitle": "Registrazione diversa",
   "navTrack_detail_updateOtherRecordingMessage": "Questo file è stato registrato il {fileDate}, la traccia il {trackDate}: potrebbe essere un'altra immersione. Aggiornare comunque la traccia da questo file?",
-  "navTrack_marker_details": "Marcatore {number}: {time}, {depth}, {distance}"
+  "navTrack_marker_details": "Marcatore {number}: {time}, {depth}, {distance}",
+  "twinSet_title": "Bibombola",
+  "twinSet_none": "Non fa parte di una bibombola",
+  "twinSet_link": "Collega a una bombola gemella",
+  "twinSet_since": "Dal {date}",
+  "twinSet_replace": "Sostituisci gemella",
+  "twinSet_unlink": "Scollega",
+  "twinSet_history": "Cronologia",
+  "twinSet_historyRange": "{partner}, dal {from} al {to}",
+  "twinSet_deletePairing": "Elimina abbinamento",
+  "twinSet_deletePairingConfirm": "Eliminare questo abbinamento dalla cronologia? Ricariche e immersioni non cambiano.",
+  "twinSet_pickerTitle": "Bombola gemella",
+  "twinSet_pickerEmpty": "Nessun'altra bombola da abbinare.",
+  "twinSet_pairedOnHelp": "Abbinate dal",
+  "twinSet_unpairedOnHelp": "Scollegate il",
+  "twinSet_pressureMismatchTitle": "Pressioni di esercizio diverse",
+  "twinSet_pressureMismatchBody": "{a} ha una pressione di esercizio di {aPressure} e {b} di {bPressure}. Una coppia con rubinetteria si ricarica a una sola pressione.",
+  "twinSet_continue": "Continua",
+  "twinSet_replaceTitle": "Sostituire la gemella?",
+  "twinSet_replaceClash": "{cylinder} è abbinata a {partner}.",
+  "twinSet_replaceQuestion": "Abbinare invece {a} a {b}?",
+  "twinSet_leftAlone": "{name} resterà da sola.",
+  "twinSet_replaceConfirm": "Sostituisci",
+  "twinSet_clashTitle": "Abbinamento sovrapposto",
+  "twinSet_clashBody": "Si sovrappone all'abbinamento di {pairs}. Una bombola può far parte di una sola bibombola al giorno.",
+  "twinSet_pairNames": "{a} e {b}",
+  "twinSet_endBeforeStart": "La data di fine deve essere successiva al {date}.",
+  "twinSet_saveFailed": "Impossibile salvare la modifica della bibombola.",
+  "twinSet_with": "Bibombola con {partner}",
+  "passport_logFill_twinSwitch": "Entrambe le bombole della bibombola ({partner})",
+  "twinSet_partnerStatus": "{partner}, {status}",
+  "passport_logFill_editTitle": "Modifica ricarica",
+  "passport_logFill_overPressureTitle": "Oltre la pressione di esercizio",
+  "passport_logFill_overPressureBody": "{pressure} supera la pressione di esercizio di {name}, {workingPressure}.",
+  "passport_logFill_saveAnyway": "Salva comunque",
+  "passport_logFill_back": "Indietro",
+  "passport_logFill_applyToTied": "Applicare anche alla ricarica di {partner}?",
+  "passport_logFill_applyBoth": "Sì",
+  "passport_logFill_onlyThisOne": "Solo questa",
+  "passport_history_anotherCylinder": "un'altra bombola",
+  "passport_history_filledWith": "Ricaricata insieme a {partner}",
+  "passport_history_deleteTiedBody": "Eliminare questa ricarica da entrambe le bombole o solo da questa?",
+  "passport_history_deleteBoth": "Entrambe le bombole",
+  "passport_history_edit": "Modifica ricarica",
+  "twinSet_choiceTitle": "Usare la bibombola?",
+  "twinSet_choicePair": "Bibombola ({a} + {b}, {volume})",
+  "twinSet_choiceSingle": "Solo {a}",
+  "settings_conflict_field_pairedOn": "Abbinate dal",
+  "settings_conflict_field_unpairedOn": "Scollegate il",
+  "settings_conflict_field_filledTogetherId": "Ricarica della bibombola",
+  "settings_conflict_field_twinPassportId": "Passaporto della bombola gemella"
 }

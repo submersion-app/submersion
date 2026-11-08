@@ -1046,6 +1046,18 @@ abstract class AppLocalizations {
   /// **'Owner'**
   String get enum_equipmentField_owner_short;
 
+  /// Table column header for the place an item is kept (issue #3625)
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get enum_equipmentField_location;
+
+  /// Short table column label for the place an item is kept
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get enum_equipmentField_location_short;
+
   /// No description provided for @equipment_set_noLongerShared.
   ///
   /// In en, this message translates to:
@@ -7160,6 +7172,12 @@ abstract class AppLocalizations {
   /// **'Expiring Soon'**
   String get certifications_list_section_expiringSoon;
 
+  /// Header of the certification list section holding one agency's professional ratings (divemaster, instructor and up) when grouped by agency.
+  ///
+  /// In en, this message translates to:
+  /// **'{agency} Professional'**
+  String certifications_list_section_professional(String agency);
+
   /// No description provided for @certifications_list_section_valid.
   ///
   /// In en, this message translates to:
@@ -11646,6 +11664,12 @@ abstract class AppLocalizations {
   /// **'These records don\'t overlap in time, so one computer\'s clock is probably off. The dive keeps the primary computer\'s time.'**
   String get diveLog_consolidate_clockNote;
 
+  /// No description provided for @diveLog_consolidate_clockNoteOverlap.
+  ///
+  /// In en, this message translates to:
+  /// **'These depth profiles match at a different time than the computers\' clocks say, so one computer\'s clock is probably off. The dive keeps the primary computer\'s time.'**
+  String get diveLog_consolidate_clockNoteOverlap;
+
   /// No description provided for @diveLog_consolidate_clockNoteShort.
   ///
   /// In en, this message translates to:
@@ -11829,6 +11853,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Decompression required'**
   String get diveLog_deco_semantics_required;
+
+  /// No description provided for @diveLog_deco_compartmentLeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Leading: #{number}'**
+  String diveLog_deco_compartmentLeading(int number);
+
+  /// No description provided for @diveLog_deco_compartmentOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Compartment: #{number}'**
+  String diveLog_deco_compartmentOther(int number);
+
+  /// No description provided for @diveLog_deco_metricLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Load'**
+  String get diveLog_deco_metricLoad;
+
+  /// No description provided for @diveLog_deco_gasOngassing.
+  ///
+  /// In en, this message translates to:
+  /// **'Ongassing'**
+  String get diveLog_deco_gasOngassing;
+
+  /// No description provided for @diveLog_deco_gasOffgassing.
+  ///
+  /// In en, this message translates to:
+  /// **'Offgassing'**
+  String get diveLog_deco_gasOffgassing;
+
+  /// No description provided for @diveLog_deco_gasEquilibrium.
+  ///
+  /// In en, this message translates to:
+  /// **'Equilibrium'**
+  String get diveLog_deco_gasEquilibrium;
+
+  /// No description provided for @diveLog_deco_heatMapRows.
+  ///
+  /// In en, this message translates to:
+  /// **'Rows: fast (top) to slow (bottom)'**
+  String get diveLog_deco_heatMapRows;
+
+  /// No description provided for @diveLog_deco_surfaceLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface level'**
+  String get diveLog_deco_surfaceLevel;
+
+  /// No description provided for @diveLog_deco_mValue.
+  ///
+  /// In en, this message translates to:
+  /// **'M-value'**
+  String get diveLog_deco_mValue;
+
+  /// No description provided for @diveLog_deco_tooltipCompartment.
+  ///
+  /// In en, this message translates to:
+  /// **'Compartment {number}'**
+  String diveLog_deco_tooltipCompartment(int number);
+
+  /// No description provided for @diveLog_deco_tooltipLoaded.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% loaded'**
+  String diveLog_deco_tooltipLoaded(String percent);
+
+  /// No description provided for @diveLog_deco_tooltipHalfTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Half-time: {minutes} min'**
+  String diveLog_deco_tooltipHalfTime(String minutes);
+
+  /// No description provided for @diveLog_deco_tooltipSurfaceLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface level: {percent}%'**
+  String diveLog_deco_tooltipSurfaceLevel(String percent);
+
+  /// No description provided for @diveLog_deco_info_title.
+  ///
+  /// In en, this message translates to:
+  /// **'What do these values mean?'**
+  String get diveLog_deco_info_title;
+
+  /// No description provided for @diveLog_deco_info_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Load: a compartment\'s inert gas pressure as a percentage of the most it may hold at the surface (its M-value, the red line at 100%).\n\nSurface level: the marker on each bar shows where a fully desaturated compartment settles while you breathe air at the surface. It is never 0%, because your body always holds the nitrogen of the air you breathe. A bar at its marker carries no load left over from diving.\n\nOngassing and offgassing: gas always moves toward the pressure of the gas you breathe. After decompression on oxygen or on a mix rich in helium, the fast compartments can hold less nitrogen than the air at the surface. Back on air, they take nitrogen up again until they reach their marker. That is normal and not a residual load from the dive.\n\nHelium: air contains no helium. After a trimix dive, a compartment releases helium while it can take nitrogen up at the same time. The arrows next to N₂ and He show each gas on its own; the badge next to the compartment number shows the net direction of both.'**
+  String get diveLog_deco_info_body;
+
+  /// No description provided for @diveLog_deco_barChartSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Tissue loading chart. {count} compartments, loading relative to the M-value; leading compartment {number} at {percent}%.'**
+  String diveLog_deco_barChartSemantics(int count, int number, String percent);
+
+  /// No description provided for @diveLog_deco_heatMapUndersaturated.
+  ///
+  /// In en, this message translates to:
+  /// **'Undersaturated'**
+  String get diveLog_deco_heatMapUndersaturated;
+
+  /// No description provided for @diveLog_deco_heatMapSupersaturated.
+  ///
+  /// In en, this message translates to:
+  /// **'Supersaturated'**
+  String get diveLog_deco_heatMapSupersaturated;
+
+  /// No description provided for @diveLog_deco_percentValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}%'**
+  String diveLog_deco_percentValue(String value);
+
+  /// No description provided for @diveLog_deco_minutesValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} min'**
+  String diveLog_deco_minutesValue(String value);
 
   /// No description provided for @diveLog_deco_tissueFast.
   ///
@@ -13590,6 +13734,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use Set'**
   String get diveLog_edit_useSet;
+
+  /// Bulk edit: button that stages an equipment set to remove from every selected dive
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Set'**
+  String get diveLog_edit_removeSet;
+
+  /// Bulk edit: heading over the equipment sets staged for removal
+  ///
+  /// In en, this message translates to:
+  /// **'Sets to remove'**
+  String get diveLog_bulkEdit_setsToRemove;
+
+  /// Bulk edit: title of the sheet that picks an equipment set to remove from every selected dive
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Equipment Set'**
+  String get diveLog_bulkEdit_removeSetTitle;
+
+  /// Bulk edit confirmation: section title for equipment sets
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment sets'**
+  String get diveLog_bulkEdit_equipmentSets;
 
   /// No description provided for @diveLog_edit_weightPreset_use.
   ///
@@ -17220,6 +17388,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Used {pressure}'**
   String diveLog_cylinders_figureUsed(String pressure);
+
+  /// Cylinders card tank figure label: the tank's pressure at the moment the profile chart's cursor is on, beside a line across the tank figure at that level, e.g. "Now 130 bar". Shown only while hovering or dragging on the profile or tissue charts. pressure is the value with its unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Now {pressure}'**
+  String diveLog_cylinders_figureNow(String pressure);
+
+  /// Cylinders card tank figure label: as diveLog_cylinders_figureNow, for a tank with no transmitter whose pressure is estimated as a straight line from its start and end pressures, e.g. "Now 130 bar (est.)". Use the same estimate marker as diveLog_pressure_estimatedSuffix. pressure is the value with its unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Now {pressure} (est.)'**
+  String diveLog_cylinders_figureNowEstimated(String pressure);
 
   /// Cylinders card: what a screen reader says for a cylinder's gas pill, e.g. "Gas EAN32". mix is the gas mix name.
   ///
@@ -23383,6 +23563,12 @@ abstract class AppLocalizations {
   /// **'Delete this fill record?'**
   String get passport_history_deleteConfirm;
 
+  /// No description provided for @passport_history_deleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete the fill. Try again.'**
+  String get passport_history_deleteFailed;
+
   /// No description provided for @passport_tag_title.
   ///
   /// In en, this message translates to:
@@ -26811,6 +26997,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Location'**
   String get equipment_location_activeFilter;
+
+  /// Screen reader label for the place line on an equipment list card
+  ///
+  /// In en, this message translates to:
+  /// **'Location: {name}'**
+  String equipment_location_tileSemantics(String name);
 
   /// Heading of the location section in the equipment filter
   ///
@@ -31533,6 +31725,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select All'**
   String get media_photoPicker_selectAllButton;
+
+  /// No description provided for @media_photoPicker_albumFilter_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All albums'**
+  String get media_photoPicker_albumFilter_all;
+
+  /// No description provided for @media_photoPicker_albumFilter_chip.
+  ///
+  /// In en, this message translates to:
+  /// **'{album} ({count})'**
+  String media_photoPicker_albumFilter_chip(String album, int count);
+
+  /// No description provided for @media_photoPicker_albumFilter_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by album'**
+  String get media_photoPicker_albumFilter_label;
 
   /// No description provided for @media_photoPicker_selectedCount.
   ///
@@ -43995,7 +44205,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_data_dataTools_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Fix dive times, link buddies, retype gear, data quality, table editor'**
+  /// **'Fix dive times, link buddies, retype gear, data quality, table editor, re-parse dives'**
   String get settings_data_dataTools_subtitle;
 
   /// No description provided for @settings_agentAccess_title.
@@ -60090,28 +60300,6 @@ abstract class AppLocalizations {
   /// **'Re-run the dive parser on {count} dives that have stored raw data. This updates profile and sensor data but preserves your notes, sites, buddies, and other edits.'**
   String diveComputer_detail_reparseAllMessage(int count);
 
-  /// No description provided for @diveComputer_detail_reparseAllProgress.
-  ///
-  /// In en, this message translates to:
-  /// **'Re-parsing {count} dives...'**
-  String diveComputer_detail_reparseAllProgress(int count);
-
-  /// No description provided for @diveComputer_detail_reparseAllSuccess.
-  ///
-  /// In en, this message translates to:
-  /// **'Re-parsed {count} dives successfully'**
-  String diveComputer_detail_reparseAllSuccess(int count);
-
-  /// No description provided for @diveComputer_detail_reparseAllPartial.
-  ///
-  /// In en, this message translates to:
-  /// **'Re-parsed {succeeded} of {total} dives. {failed} failed.'**
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  );
-
   /// No description provided for @diveComputer_detail_reparseRawDataCount.
   ///
   /// In en, this message translates to:
@@ -60123,6 +60311,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} dives with raw data ({without} without)'**
   String diveComputer_detail_reparseRawDataCountWithout(int count, int without);
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parsing dives'**
+  String get reparseBatch_progressTitle;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parsing {done} of {total} dives'**
+  String reparseBatch_progressCount(int done, int total);
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelling...'**
+  String get reparseBatch_cancelling;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parse finished'**
+  String get reparseBatch_resultTitle;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parse cancelled'**
+  String get reparseBatch_resultCancelledTitle;
+
+  /// Bulk re-parse (issue #224): the run stopped on an error
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parse stopped by an error'**
+  String get reparseBatch_resultErrorTitle;
+
+  /// Bulk re-parse (issue #224): dives a run error left unprocessed
+  ///
+  /// In en, this message translates to:
+  /// **'Not processed: {count}'**
+  String reparseBatch_resultNotReached(int count);
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parsed {succeeded} of {total} dives.'**
+  String reparseBatch_resultSummary(int succeeded, int total);
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Failed: {count}'**
+  String reparseBatch_resultFailed(int count);
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Not processed (cancelled): {count}'**
+  String reparseBatch_resultNotProcessed(int count);
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped, no raw data: {count}'**
+  String reparseBatch_resultSkipped(int count);
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Combined dives that kept their profile: {count}'**
+  String reparseBatch_resultProfilesPreserved(int count);
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Failed dives'**
+  String get reparseBatch_failedListHeader;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Dive #{number}'**
+  String reparseBatch_failedDiveTitle(int number);
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Unnumbered dive'**
+  String get reparseBatch_failedDiveUnnumbered;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Missing dive computer details'**
+  String get reparseBatch_missingDescriptors;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parse dives'**
+  String get reparseBatch_confirmTitle;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Re-run the dive parser on {count} dives with stored raw data. This updates profile and sensor data but preserves your notes, sites, buddies, and other edits.'**
+  String reparseBatch_confirmMessage(int count);
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Selected dives without raw data (skipped): {count}'**
+  String reparseBatch_confirmSkipped(int count);
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'None of the selected dives have stored raw data to re-parse.'**
+  String get reparseBatch_noneWithRawData;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parse'**
+  String get diveLog_selection_tooltip_reparse;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parse dives'**
+  String get settings_reparseDives_title;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Re-run the dive parser on every dive with stored raw data'**
+  String get settings_reparseDives_subtitle;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Use this after an app update improves how dive computer data is read. Your notes, sites, buddies, and other edits are preserved.'**
+  String get settings_reparseDives_intro;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Dives with raw data: {count}'**
+  String settings_reparseDives_withRawData(int count);
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Dives without raw data (not re-parsed): {count}'**
+  String settings_reparseDives_withoutRawData(int count);
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'By dive computer'**
+  String get settings_reparseDives_byComputer;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown computer'**
+  String get settings_reparseDives_unknownComputer;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'No dives have stored raw data to re-parse.'**
+  String get settings_reparseDives_none;
+
+  /// Bulk re-parse (issue #224)
+  ///
+  /// In en, this message translates to:
+  /// **'Re-parse all'**
+  String get settings_reparseDives_button;
 
   /// No description provided for @diveComputer_rawData_discardAction.
   ///
@@ -64500,6 +64868,30 @@ abstract class AppLocalizations {
   /// **'Your CNS% (oxygen clock) decays after a dive with a 90-minute half-life -- it\'s practically back to 0 after about a day.\n\nDaily OTU resets every night at midnight. Weekly OTU is a rolling total of the last 7 days: older dives automatically drop out of the calculation once they fall outside that window.'**
   String get safetyHub_cnsOtu_about_body;
 
+  /// No description provided for @safetyHub_tissueLoading_clear_title.
+  ///
+  /// In en, this message translates to:
+  /// **'No residual tissue load'**
+  String get safetyHub_tissueLoading_clear_title;
+
+  /// No description provided for @safetyHub_tissueLoading_clear_body.
+  ///
+  /// In en, this message translates to:
+  /// **'All compartments are back in equilibrium with the air at the surface. They stay at their normal level (the marker on each bar), not at 0%.'**
+  String get safetyHub_tissueLoading_clear_body;
+
+  /// No description provided for @safetyHub_tissueLoading_unavailable_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Tissue loading not available'**
+  String get safetyHub_tissueLoading_unavailable_title;
+
+  /// No description provided for @safetyHub_tissueLoading_unavailable_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The last dive has no data to calculate tissue loading from, for example a dive without a depth profile, in gauge mode or on a rebreather without a setpoint.'**
+  String get safetyHub_tissueLoading_unavailable_body;
+
   /// No description provided for @safetyHub_tissueLoading_about_title.
   ///
   /// In en, this message translates to:
@@ -64509,7 +64901,7 @@ abstract class AppLocalizations {
   /// No description provided for @safetyHub_tissueLoading_about_body.
   ///
   /// In en, this message translates to:
-  /// **'Your body has 16 tissue compartments that absorb and release nitrogen (and, on trimix or rebreather dives, helium too) at different speeds. Fast tissues saturate and desaturate quickly; slow tissues take much longer for both.\n\nAfter a dive with helium, nitrogen and helium in a single compartment can briefly move in opposite directions: while helium is still releasing, the same compartment can simultaneously be absorbing a little nitrogen, until both gases reach equilibrium with the air you\'re breathing. That\'s why a compartment can briefly show \"Ongassing\" even while its overall load keeps dropping.'**
+  /// **'Your body has 16 tissue compartments that take up and release nitrogen (and, on trimix or rebreather dives, helium too) at different speeds. Fast tissues saturate and desaturate quickly; slow tissues take much longer for both.\n\nResidual load is only what sits above the normal surface level. Even fully desaturated, the bars do not drop to 0%: each compartment settles at the marker that matches the nitrogen in the air you breathe. That is why a fast compartment can read higher here than at the end of a dive with oxygen decompression, without the load having grown.\n\nAfter a dive with helium, a compartment releases helium while it takes up nitrogen at the same time, until both gases are in equilibrium with the air you breathe.'**
   String get safetyHub_tissueLoading_about_body;
 
   /// No description provided for @safetyHub_noFly_category_single.
@@ -66886,6 +67278,12 @@ abstract class AppLocalizations {
   /// **'Overlaps another dive by {minutes} min'**
   String dataQuality_msg_clock_overlap(int minutes);
 
+  /// A consolidated source's samples sit this far along the timeline from where its depth trace fits the primary's.
+  ///
+  /// In en, this message translates to:
+  /// **'A source sits {minutes} min from where its profile matches the primary\'s'**
+  String dataQuality_msg_clock_profileFit(int minutes);
+
   /// Data quality finding: the same item is on two different profiles' dives at the same time (issue #2853).
   ///
   /// In en, this message translates to:
@@ -67181,6 +67579,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Also fix this computer on other dives with the same offset'**
   String get dataQuality_repairLabel_fixSourceClockAll;
+
+  /// No description provided for @dataQuality_repairLabel_alignSourceProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Line up this computer by its profile'**
+  String get dataQuality_repairLabel_alignSourceProfile;
+
+  /// Repair button naming the computer whose samples are lined up with the primary by profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Line up {computer} by its profile'**
+  String dataQuality_repairLabel_alignSourceProfileNamed(String computer);
 
   /// No description provided for @dataQuality_repairLabel_consolidate.
   ///
@@ -91769,6 +92179,12 @@ abstract class AppLocalizations {
   /// **'(empty)'**
   String get rules_value_empty;
 
+  /// A gear item in a rule change list with the equipment set it came through, shown when only its set changed
+  ///
+  /// In en, this message translates to:
+  /// **'{item} ({set})'**
+  String rules_value_gearViaSet(String item, String set);
+
   /// Lower-case collection name in an action summary
   ///
   /// In en, this message translates to:
@@ -91798,6 +92214,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'courses'**
   String get rules_collection_courses;
+
+  /// Lower-case collection name in an action summary
+  ///
+  /// In en, this message translates to:
+  /// **'equipment sets'**
+  String get rules_collection_equipmentSets;
 
   /// Lower-case collection name in an action summary
   ///
@@ -95418,6 +95840,315 @@ abstract class AppLocalizations {
     String depth,
     String distance,
   );
+
+  /// No description provided for @twinSet_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Twin set'**
+  String get twinSet_title;
+
+  /// No description provided for @twinSet_none.
+  ///
+  /// In en, this message translates to:
+  /// **'Not part of a twin set'**
+  String get twinSet_none;
+
+  /// No description provided for @twinSet_link.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to a twin set partner'**
+  String get twinSet_link;
+
+  /// No description provided for @twinSet_since.
+  ///
+  /// In en, this message translates to:
+  /// **'Since {date}'**
+  String twinSet_since(String date);
+
+  /// No description provided for @twinSet_replace.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace partner'**
+  String get twinSet_replace;
+
+  /// No description provided for @twinSet_unlink.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink'**
+  String get twinSet_unlink;
+
+  /// No description provided for @twinSet_history.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get twinSet_history;
+
+  /// No description provided for @twinSet_historyRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{partner}, {from} to {to}'**
+  String twinSet_historyRange(String partner, String from, String to);
+
+  /// No description provided for @twinSet_deletePairing.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete pairing'**
+  String get twinSet_deletePairing;
+
+  /// No description provided for @twinSet_deletePairingConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this pairing from the history? Fills and dives are not changed.'**
+  String get twinSet_deletePairingConfirm;
+
+  /// No description provided for @twinSet_pickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Twin set partner'**
+  String get twinSet_pickerTitle;
+
+  /// No description provided for @twinSet_pickerEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No other cylinders to pair with.'**
+  String get twinSet_pickerEmpty;
+
+  /// No description provided for @twinSet_pairedOnHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Paired since'**
+  String get twinSet_pairedOnHelp;
+
+  /// No description provided for @twinSet_unpairedOnHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlinked on'**
+  String get twinSet_unpairedOnHelp;
+
+  /// No description provided for @twinSet_pressureMismatchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Different working pressures'**
+  String get twinSet_pressureMismatchTitle;
+
+  /// No description provided for @twinSet_pressureMismatchBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{a} is rated {aPressure} and {b} {bPressure}. A manifolded pair fills to one pressure.'**
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  );
+
+  /// No description provided for @twinSet_continue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get twinSet_continue;
+
+  /// No description provided for @twinSet_replaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace partner?'**
+  String get twinSet_replaceTitle;
+
+  /// No description provided for @twinSet_replaceClash.
+  ///
+  /// In en, this message translates to:
+  /// **'{cylinder} is paired with {partner}.'**
+  String twinSet_replaceClash(String cylinder, String partner);
+
+  /// No description provided for @twinSet_replaceQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Pair {a} with {b} instead?'**
+  String twinSet_replaceQuestion(String a, String b);
+
+  /// No description provided for @twinSet_leftAlone.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} will be left on its own.'**
+  String twinSet_leftAlone(String name);
+
+  /// No description provided for @twinSet_replaceConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get twinSet_replaceConfirm;
+
+  /// No description provided for @twinSet_clashTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Overlapping pairing'**
+  String get twinSet_clashTitle;
+
+  /// No description provided for @twinSet_clashBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This overlaps the pairing of {pairs}. A cylinder can be in one twin set on any day.'**
+  String twinSet_clashBody(String pairs);
+
+  /// No description provided for @twinSet_pairNames.
+  ///
+  /// In en, this message translates to:
+  /// **'{a} and {b}'**
+  String twinSet_pairNames(String a, String b);
+
+  /// No description provided for @twinSet_endBeforeStart.
+  ///
+  /// In en, this message translates to:
+  /// **'The end date must be after {date}.'**
+  String twinSet_endBeforeStart(String date);
+
+  /// No description provided for @twinSet_saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the twin set change.'**
+  String get twinSet_saveFailed;
+
+  /// No description provided for @twinSet_with.
+  ///
+  /// In en, this message translates to:
+  /// **'Twin set with {partner}'**
+  String twinSet_with(String partner);
+
+  /// No description provided for @passport_logFill_twinSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Both cylinders in the twin set ({partner})'**
+  String passport_logFill_twinSwitch(String partner);
+
+  /// No description provided for @twinSet_partnerStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'{partner}, {status}'**
+  String twinSet_partnerStatus(String partner, String status);
+
+  /// No description provided for @passport_logFill_editTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit fill'**
+  String get passport_logFill_editTitle;
+
+  /// No description provided for @passport_logFill_overPressureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Above working pressure'**
+  String get passport_logFill_overPressureTitle;
+
+  /// No description provided for @passport_logFill_overPressureBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{pressure} is above the working pressure of {name}, {workingPressure}.'**
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  );
+
+  /// No description provided for @passport_logFill_saveAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Save anyway'**
+  String get passport_logFill_saveAnyway;
+
+  /// No description provided for @passport_logFill_back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get passport_logFill_back;
+
+  /// No description provided for @passport_logFill_applyToTied.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply to the fill of {partner} too?'**
+  String passport_logFill_applyToTied(String partner);
+
+  /// No description provided for @passport_logFill_applyBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get passport_logFill_applyBoth;
+
+  /// No description provided for @passport_logFill_onlyThisOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Only this one'**
+  String get passport_logFill_onlyThisOne;
+
+  /// No description provided for @passport_history_anotherCylinder.
+  ///
+  /// In en, this message translates to:
+  /// **'another cylinder'**
+  String get passport_history_anotherCylinder;
+
+  /// No description provided for @passport_history_filledWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled with {partner}'**
+  String passport_history_filledWith(String partner);
+
+  /// No description provided for @passport_history_deleteTiedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this fill from both cylinders, or only this one?'**
+  String get passport_history_deleteTiedBody;
+
+  /// No description provided for @passport_history_deleteBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Both cylinders'**
+  String get passport_history_deleteBoth;
+
+  /// No description provided for @passport_history_edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit fill'**
+  String get passport_history_edit;
+
+  /// No description provided for @twinSet_choiceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the twin set?'**
+  String get twinSet_choiceTitle;
+
+  /// No description provided for @twinSet_choicePair.
+  ///
+  /// In en, this message translates to:
+  /// **'Twin set ({a} + {b}, {volume})'**
+  String twinSet_choicePair(String a, String b, String volume);
+
+  /// No description provided for @twinSet_choiceSingle.
+  ///
+  /// In en, this message translates to:
+  /// **'Just {a}'**
+  String twinSet_choiceSingle(String a);
+
+  /// No description provided for @settings_conflict_field_pairedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Paired since'**
+  String get settings_conflict_field_pairedOn;
+
+  /// No description provided for @settings_conflict_field_unpairedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlinked on'**
+  String get settings_conflict_field_unpairedOn;
+
+  /// No description provided for @settings_conflict_field_filledTogetherId.
+  ///
+  /// In en, this message translates to:
+  /// **'Twin set fill'**
+  String get settings_conflict_field_filledTogetherId;
+
+  /// No description provided for @settings_conflict_field_twinPassportId.
+  ///
+  /// In en, this message translates to:
+  /// **'Twin set partner passport'**
+  String get settings_conflict_field_twinPassportId;
 }
 
 class _AppLocalizationsDelegate

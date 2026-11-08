@@ -32,6 +32,11 @@ abstract final class SyncTempFiles {
   static Stream<List<int>> openRead(String path, [int? start, int? end]) =>
       File(path).openRead(start, end);
 
+  /// [compressed], a gzipped temp file read through [openRead], expanded as
+  /// it streams so the plain bytes never reach disk.
+  static Stream<List<int>> gunzip(Stream<List<int>> compressed) =>
+      compressed.transform(gzip.decoder);
+
   /// Up to [length] bytes from [offset]; shorter at the end of the file.
   static Future<Uint8List> read(String path, int offset, int length) async {
     final file = await File(path).open();

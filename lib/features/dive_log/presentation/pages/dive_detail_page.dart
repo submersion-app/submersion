@@ -27,6 +27,7 @@ import 'package:submersion/features/data_quality/data/services/quality_scan_serv
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
+import 'package:submersion/features/dive_computer/presentation/widgets/reparse_batch_dialog.dart';
 import 'package:submersion/features/dive_import/data/services/dive_resync_orchestrator.dart';
 import 'package:submersion/features/dive_import/domain/dive_resync_failure.dart';
 import 'package:submersion/features/dive_import/presentation/dive_resync_failure_message.dart';

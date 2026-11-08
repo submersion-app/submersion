@@ -222,6 +222,13 @@ const List<DiverDeleteStep> diverGearSteps = [
         'OR component_equipment_id IN ($_diverGear)',
   ),
   (
+    table: 'cylinder_pairings',
+    entityType: 'cylinderPairings',
+    where:
+        'cylinder_a_id IN ($_diverGear) '
+        'OR cylinder_b_id IN ($_diverGear)',
+  ),
+  (
     table: 'equipment_observations',
     entityType: 'equipmentObservations',
     where: 'equipment_id IN ($_diverGear)',

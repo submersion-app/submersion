@@ -65,8 +65,8 @@ class SeededDiveTimes {
         (estimateSpan == null ? null : entry.add(estimateSpan));
     return SeededDiveTimes(
       shown: DiveTimeInputs(
-        entry: _wholeMinute(entry),
-        exit: shownExit == null ? null : _wholeMinute(shownExit),
+        entry: wholeMinute(entry),
+        exit: shownExit == null ? null : wholeMinute(shownExit),
         bottomTimeMinutes: bottomTime?.inMinutes,
         runtimeMinutes: runtime?.inMinutes,
       ),
@@ -78,9 +78,6 @@ class SeededDiveTimes {
       ),
     );
   }
-
-  static DateTime _wholeMinute(DateTime time) =>
-      DateTime.utc(time.year, time.month, time.day, time.hour, time.minute);
 
   /// The instant [input] stands for, the stored one until the diver moves it.
   DateTime entryFor(DateTime input) =>
@@ -143,6 +140,10 @@ ExactDiveTimes resolveDiveTimes(
     runtime: runtime,
   );
 }
+
+/// [time] to the minute, as the form's time inputs show it.
+DateTime wholeMinute(DateTime time) =>
+    DateTime.utc(time.year, time.month, time.day, time.hour, time.minute);
 
 Duration? _minutes(int? minutes) =>
     minutes == null ? null : Duration(minutes: minutes);

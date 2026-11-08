@@ -83,6 +83,10 @@ class LevelEntry extends Equatable {
   /// Custom and fallback levels never qualify as instructor grades.
   bool get isInstructorLevel => builtIn?.isInstructorLevel ?? false;
 
+  /// Custom and fallback levels never count as professional ratings
+  /// (issue #730): only built-in levels carry the flag.
+  bool get isProfessionalLevel => builtIn?.isProfessionalLevel ?? false;
+
   /// English text for interchange: the built-in display name, the custom
   /// name, the slug, or "Unknown certification".
   String get interchangeName {

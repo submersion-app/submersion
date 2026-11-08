@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tissue_tooltip_text.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A Subsurface-style tissue loading heat map that visualizes all 16
@@ -12,8 +13,12 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Each row represents a tissue compartment (fast tissues at top, slow at
 /// bottom). Each column represents a time point. Color encodes the tissue
 /// loading relative to ambient pressure using Subsurface's two-phase scale:
-/// - Below ambient (ongassing): cyan -> blue -> purple -> black
-/// - Above ambient (offgassing): green -> yellow -> orange -> red
+/// - Undersaturated (below ambient): cyan -> blue -> purple -> black
+/// - Supersaturated (above ambient): green -> yellow -> orange -> red
+///
+/// The halves say nothing about which way gas moves: a compartment between
+/// the inspired and the ambient pressure is undersaturated yet already
+/// offgassing. Direction is the badges' job (see `DecoStatus.n2Exchange`).
 class TissueHeatMap extends StatelessWidget {
   /// Full time-series of decompression statuses across the dive
   final List<DecoStatus> decoStatuses;
@@ -54,11 +59,17 @@ class TissueHeatMap extends StatelessWidget {
                   context.l10n.diveLog_tissue_title,
                   style: textTheme.titleSmall,
                 ),
-                const Spacer(),
-                TissueHeatMapLegend(
-                  colorScheme: colorScheme,
-                  textTheme: textTheme,
-                  colorFn: colorFn,
+                const SizedBox(width: 8),
+                // Bounded width, so the legend's labels can shorten.
+                Expanded(
+                  child: Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: TissueHeatMapLegend(
+                      colorScheme: colorScheme,
+                      textTheme: textTheme,
+                      colorFn: colorFn,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -210,21 +221,7 @@ class _TissueHeatMapStripState extends State<TissueHeatMapStrip> {
 
     final status = widget.decoStatuses[timeIdx];
     final comp = status.compartments[compIdx];
-    final ambientPressure = status.ambientPressureBar;
-    final isOffgassing = status.isOffgassing(comp);
-
-    final gfAtDepth = comp.gradientFactor(ambientPressure);
-    final lines = <String>[
-      'Compartment ${comp.compartmentNumber}',
-      '${comp.percentLoading.toStringAsFixed(1)}% loaded',
-      'GF: ${(gfAtDepth * 100).toStringAsFixed(0)}%',
-      'N\u2082: ${comp.currentPN2.toStringAsFixed(2)} bar',
-      if (comp.currentPHe > 0.001)
-        'He: ${comp.currentPHe.toStringAsFixed(2)} bar',
-      'Half-time: ${comp.halfTimeN2.toStringAsFixed(0)} min',
-      if (isOffgassing != null) isOffgassing ? 'Offgassing' : 'Ongassing',
-    ];
-    final message = lines.join('\n');
+    final message = tissueCompartmentTooltip(context.l10n, status, comp);
 
     // Position tooltip horizontally at the cell center, above the heat map
     final numTimePoints = widget.decoStatuses.length;
@@ -309,10 +306,15 @@ class _TissueHeatMapStripState extends State<TissueHeatMapStrip> {
   }
 }
 
-/// Small legend showing the Subsurface heat map color scale.
+/// Small legend showing the Subsurface heat map color scale: the cool,
+/// undersaturated half (below ambient) at the start, the warm,
+/// supersaturated half (above ambient) at the end.
 ///
-/// Shows the two-phase color gradient: cool colors (ongassing) on the left,
-/// warm colors (offgassing) on the right, with the ambient boundary marked.
+/// The legend names the halves itself, in the standard deco terms (issue
+/// #4228). The scale is measured against AMBIENT pressure, so it must not
+/// borrow "Ongassing"/"Offgassing": those are measured against the inspired
+/// gas, and a compartment between the two pressures is undersaturated yet
+/// already offgassing, which would contradict the compartment badges.
 class TissueHeatMapLegend extends StatelessWidget {
   final ColorScheme colorScheme;
   final TextTheme textTheme;
@@ -320,23 +322,17 @@ class TissueHeatMapLegend extends StatelessWidget {
   /// Color function mapping tissue loading percentage to a color.
   final TissueColorFn colorFn;
 
-  /// Label displayed on the left (low-loading) end of the gradient.
-  final String leftLabel;
-
-  /// Label displayed on the right (high-loading) end of the gradient.
-  final String rightLabel;
-
   const TissueHeatMapLegend({
     super.key,
     required this.colorScheme,
     required this.textTheme,
     required this.colorFn,
-    this.leftLabel = 'On-gassing',
-    this.rightLabel = 'Off-gassing',
   });
 
   @override
   Widget build(BuildContext context) {
+    final leftLabel = context.l10n.diveLog_deco_heatMapUndersaturated;
+    final rightLabel = context.l10n.diveLog_deco_heatMapSupersaturated;
     // Sample the color scale at many points to build a smooth gradient
     final colors = <Color>[];
     for (int i = 0; i <= 20; i++) {
@@ -352,18 +348,40 @@ class TissueHeatMapLegend extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(leftLabel, style: labelStyle),
+        // Flexible: some locales' labels are long, and a narrow card must
+        // shorten them rather than overflow.
+        Flexible(
+          child: Text(
+            leftLabel,
+            style: labelStyle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
         const SizedBox(width: 4),
         Container(
           width: 60,
           height: 8,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(2),
-            gradient: LinearGradient(colors: colors),
+            // Directional, like the Row around it: in RTL the labels swap
+            // sides, so the low end must follow leftLabel to the right.
+            gradient: LinearGradient(
+              begin: AlignmentDirectional.centerStart,
+              end: AlignmentDirectional.centerEnd,
+              colors: colors,
+            ),
           ),
         ),
         const SizedBox(width: 4),
-        Text(rightLabel, style: labelStyle),
+        Flexible(
+          child: Text(
+            rightLabel,
+            style: labelStyle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       ],
     );
   }

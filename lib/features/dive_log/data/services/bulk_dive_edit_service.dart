@@ -94,7 +94,7 @@ class BulkDiveEditService {
           priorCourseIds = {
             for (final id in ids) id: current[id] ?? const <String>[],
           };
-        case EquipmentOp():
+        case EquipmentOp() || EquipmentSetsOp():
           if (priorGear != null) continue;
           final rows = await (_db.select(
             _db.diveEquipment,
@@ -341,16 +341,29 @@ class BulkDiveEditService {
           case BulkCollectionMode.update:
             throw UnsupportedError('Courses have no in-place update');
         }
-      case EquipmentOp(:final mode, :final equipmentIds):
+      case EquipmentOp(:final mode, :final equipmentIds, :final viaSetId):
         switch (mode) {
           case BulkCollectionMode.add:
-            await _diveRepo.bulkAddEquipment(ids, equipmentIds);
+            await _diveRepo.bulkAddEquipment(
+              ids,
+              equipmentIds,
+              viaSetId: viaSetId,
+            );
           case BulkCollectionMode.remove:
             await _diveRepo.bulkRemoveEquipment(ids, equipmentIds);
           case BulkCollectionMode.replace:
             await _diveRepo.bulkReplaceEquipment(ids, equipmentIds);
           case BulkCollectionMode.update:
             throw UnsupportedError('Equipment has no in-place update');
+        }
+      case EquipmentSetsOp(:final mode, :final setIds):
+        switch (mode) {
+          case BulkCollectionMode.add:
+            await _diveRepo.bulkAddEquipmentSets(ids, setIds);
+          case BulkCollectionMode.remove:
+            await _diveRepo.bulkRemoveEquipmentSets(ids, setIds);
+          case BulkCollectionMode.replace || BulkCollectionMode.update:
+            throw UnsupportedError('Equipment sets are added or removed only');
         }
       case BuddiesOp(:final mode, :final buddies, :final overwriteRole):
         switch (mode) {

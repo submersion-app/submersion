@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/minutes_seconds.dart';
 
 /// State for profile range selection functionality.
 ///
@@ -19,12 +20,19 @@ class RangeSelectionState extends Equatable {
   /// Maximum timestamp in seconds (dive duration)
   final int maxTimestamp;
 
+  /// Earliest timestamp in seconds: 0, or the first sample of a series that
+  /// starts before the primary does (#4296).
+  final int minTimestamp;
+
   const RangeSelectionState({
     this.isEnabled = false,
     this.startTimestamp,
     this.endTimestamp,
     this.maxTimestamp = 0,
+    this.minTimestamp = 0,
   });
+
+  int get _span => maxTimestamp - minTimestamp;
 
   /// Whether a valid range is selected
   bool get hasSelection =>
@@ -40,36 +48,29 @@ class RangeSelectionState extends Equatable {
 
   /// Start progress as a value from 0.0 to 1.0
   double get startProgress {
-    if (startTimestamp == null || maxTimestamp == 0) return 0.0;
-    return startTimestamp! / maxTimestamp;
+    if (startTimestamp == null || _span <= 0) return 0.0;
+    return (startTimestamp! - minTimestamp) / _span;
   }
 
   /// End progress as a value from 0.0 to 1.0
   double get endProgress {
-    if (endTimestamp == null || maxTimestamp == 0) return 1.0;
-    return endTimestamp! / maxTimestamp;
+    if (endTimestamp == null || _span <= 0) return 1.0;
+    return (endTimestamp! - minTimestamp) / _span;
   }
 
   /// Selection duration formatted as MM:SS
-  String get formattedDuration {
-    final seconds = selectionDuration;
-    final minutes = seconds ~/ 60;
-    final secs = seconds % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
-  }
+  String get formattedDuration => formatPaddedMinutesSeconds(selectionDuration);
 
-  /// Format a timestamp as MM:SS
-  static String formatTimestamp(int seconds) {
-    final minutes = seconds ~/ 60;
-    final secs = seconds % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
-  }
+  /// Format a timestamp as MM:SS, signed before 0
+  static String formatTimestamp(int seconds) =>
+      formatPaddedMinutesSeconds(seconds);
 
   RangeSelectionState copyWith({
     bool? isEnabled,
     int? startTimestamp,
     int? endTimestamp,
     int? maxTimestamp,
+    int? minTimestamp,
     bool clearSelection = false,
   }) {
     return RangeSelectionState(
@@ -79,6 +80,7 @@ class RangeSelectionState extends Equatable {
           : (startTimestamp ?? this.startTimestamp),
       endTimestamp: clearSelection ? null : (endTimestamp ?? this.endTimestamp),
       maxTimestamp: maxTimestamp ?? this.maxTimestamp,
+      minTimestamp: minTimestamp ?? this.minTimestamp,
     );
   }
 
@@ -88,6 +90,7 @@ class RangeSelectionState extends Equatable {
     startTimestamp,
     endTimestamp,
     maxTimestamp,
+    minTimestamp,
   ];
 }
 
@@ -95,11 +98,22 @@ class RangeSelectionState extends Equatable {
 class RangeSelectionNotifier extends StateNotifier<RangeSelectionState> {
   RangeSelectionNotifier() : super(const RangeSelectionState());
 
-  /// Initialize with the dive duration
-  void initialize(int durationSeconds) {
+  /// Initialize with the dive duration, and with [startSeconds] for a
+  /// series whose first sample comes before the primary's start (#4296).
+  void initialize(int durationSeconds, {int startSeconds = 0}) {
     state = RangeSelectionState(
       maxTimestamp: durationSeconds,
+      minTimestamp: startSeconds,
       isEnabled: false,
+    );
+  }
+
+  /// The middle half of the series, the selection range mode starts with.
+  (int, int) _defaultRange() {
+    final span = state.maxTimestamp - state.minTimestamp;
+    return (
+      state.minTimestamp + span ~/ 4,
+      state.minTimestamp + (span * 3) ~/ 4,
     );
   }
 
@@ -110,8 +124,7 @@ class RangeSelectionNotifier extends StateNotifier<RangeSelectionState> {
       state = state.copyWith(isEnabled: false, clearSelection: true);
     } else {
       // Turning on - set default selection to middle 50%
-      final start = state.maxTimestamp ~/ 4;
-      final end = (state.maxTimestamp * 3) ~/ 4;
+      final (start, end) = _defaultRange();
       state = state.copyWith(
         isEnabled: true,
         startTimestamp: start,
@@ -138,10 +151,11 @@ class RangeSelectionNotifier extends StateNotifier<RangeSelectionState> {
   void setStart(int timestamp) {
     if (!state.isEnabled) return;
 
-    final clampedStart = timestamp.clamp(0, state.maxTimestamp);
+    final min = state.minTimestamp;
+    final clampedStart = timestamp.clamp(min, state.maxTimestamp);
     // Ensure start is before end
     final effectiveStart = state.endTimestamp != null
-        ? clampedStart.clamp(0, state.endTimestamp! - 1)
+        ? clampedStart.clamp(min, state.endTimestamp! - 1)
         : clampedStart;
 
     state = state.copyWith(startTimestamp: effectiveStart);
@@ -151,7 +165,7 @@ class RangeSelectionNotifier extends StateNotifier<RangeSelectionState> {
   void setEnd(int timestamp) {
     if (!state.isEnabled) return;
 
-    final clampedEnd = timestamp.clamp(0, state.maxTimestamp);
+    final clampedEnd = timestamp.clamp(state.minTimestamp, state.maxTimestamp);
     // Ensure end is after start
     final effectiveEnd = state.startTimestamp != null
         ? clampedEnd.clamp(state.startTimestamp! + 1, state.maxTimestamp)
@@ -164,7 +178,10 @@ class RangeSelectionNotifier extends StateNotifier<RangeSelectionState> {
   void setRange(int start, int end) {
     if (!state.isEnabled) return;
 
-    final clampedStart = start.clamp(0, state.maxTimestamp - 1);
+    final clampedStart = start.clamp(
+      state.minTimestamp,
+      state.maxTimestamp - 1,
+    );
     final clampedEnd = end.clamp(clampedStart + 1, state.maxTimestamp);
 
     state = state.copyWith(
@@ -174,24 +191,22 @@ class RangeSelectionNotifier extends StateNotifier<RangeSelectionState> {
   }
 
   /// Set start from a progress value (0.0 to 1.0)
-  void setStartProgress(double progress) {
-    final timestamp = (progress * state.maxTimestamp).round();
-    setStart(timestamp);
-  }
+  void setStartProgress(double progress) => setStart(_atProgress(progress));
+
+  /// The timestamp [progress] (0.0 to 1.0) of the way through the series.
+  int _atProgress(double progress) =>
+      state.minTimestamp +
+      (progress * (state.maxTimestamp - state.minTimestamp)).round();
 
   /// Set end from a progress value (0.0 to 1.0)
-  void setEndProgress(double progress) {
-    final timestamp = (progress * state.maxTimestamp).round();
-    setEnd(timestamp);
-  }
+  void setEndProgress(double progress) => setEnd(_atProgress(progress));
 
   /// Clear the current selection but stay in range mode
   void clearSelection() {
     if (!state.isEnabled) return;
 
     // Reset to default selection
-    final start = state.maxTimestamp ~/ 4;
-    final end = (state.maxTimestamp * 3) ~/ 4;
+    final (start, end) = _defaultRange();
     state = state.copyWith(startTimestamp: start, endTimestamp: end);
   }
 }

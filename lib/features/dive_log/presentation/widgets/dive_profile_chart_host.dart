@@ -185,9 +185,7 @@ class DiveProfileChartHost extends ConsumerWidget {
     final tankPressures = ref.watch(
       activeSourceTankPressuresProvider(diveId).select((a) => a.value),
     );
-    final estimatedTankPressures = ref.watch(
-      estimatedTankPressuresProvider(diveId).select((a) => a.value),
-    );
+    final chartTankPressures = watchChartTankSeries(ref, diveId);
 
     final rangeState = ref.watch(rangeSelectionProvider(diveId));
 
@@ -432,8 +430,8 @@ class DiveProfileChartHost extends ConsumerWidget {
         showMaxDepthMarker: showMaxDepthMarker,
         showPressureThresholdMarkers: showPressureThresholdMarkers,
         tanks: dive.tanks,
-        tankPressures: estimatedTankPressures?.pressures ?? tankPressures,
-        estimatedTankIds: estimatedTankPressures?.estimatedTankIds,
+        tankPressures: chartTankPressures?.pressures,
+        estimatedTankIds: chartTankPressures?.estimatedTankIds,
         tankSourceColors: tankSourceColors,
         gasSwitches: gasSwitches,
         gasSegments: (dive.tanks.isEmpty || chartProfile.isEmpty)
@@ -497,8 +495,10 @@ class DiveProfileChartHost extends ConsumerWidget {
         // plot rect at any zoom (#1579).
         rangeSelection: rangeState.isEnabled
             ? (
-                startSeconds: rangeState.startTimestamp ?? 0,
+                startSeconds:
+                    rangeState.startTimestamp ?? rangeState.minTimestamp,
                 endSeconds: rangeState.endTimestamp ?? rangeState.maxTimestamp,
+                minSeconds: rangeState.minTimestamp,
                 maxSeconds: rangeState.maxTimestamp,
               )
             : null,

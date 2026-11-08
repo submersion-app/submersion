@@ -190,9 +190,7 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
         .watch(activeSourceTankPressuresProvider(widget.diveId))
         .value;
     // Chart-only: real pressures augmented with linear estimates (#197).
-    final estimatedTankPressures = ref
-        .watch(estimatedTankPressuresProvider(widget.diveId))
-        .value;
+    final chartTankPressures = watchChartTankSeries(ref, widget.diveId);
     final reviewTimestamp = ref.watch(profileReviewProvider(widget.diveId));
     final playbackIsPlaying = ref.watch(
       playbackProvider(widget.diveId).select((s) => s.isPlaying),
@@ -581,11 +579,9 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                           showPressureThresholdMarkers:
                               showPressureThresholdMarkers,
                           tanks: dive.tanks,
-                          tankPressures:
-                              estimatedTankPressures?.pressures ??
-                              tankPressures,
+                          tankPressures: chartTankPressures?.pressures,
                           estimatedTankIds:
-                              estimatedTankPressures?.estimatedTankIds,
+                              chartTankPressures?.estimatedTankIds,
                           gasSwitches: gasSwitches,
                           gasSegments:
                               (dive.tanks.isEmpty || chartProfile.isEmpty)
@@ -604,10 +600,13 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                           // land on the plot rect at any zoom (#1579).
                           rangeSelection: rangeState.isEnabled
                               ? (
-                                  startSeconds: rangeState.startTimestamp ?? 0,
+                                  startSeconds:
+                                      rangeState.startTimestamp ??
+                                      rangeState.minTimestamp,
                                   endSeconds:
                                       rangeState.endTimestamp ??
                                       rangeState.maxTimestamp,
+                                  minSeconds: rangeState.minTimestamp,
                                   maxSeconds: rangeState.maxTimestamp,
                                 )
                               : null,

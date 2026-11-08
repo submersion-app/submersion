@@ -273,6 +273,21 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
             findingId: f.id,
           ),
         );
+      case SourceProfileShiftRepair(
+        :final diveId,
+        :final sourceId,
+        :final seconds,
+      ):
+        // One tap with Undo: the shift is the one the profiles agree on,
+        // and nothing but that source's own rows moves (#4296).
+        await withUndo(
+          () => executor.shiftSourceProfile(
+            diveId: diveId,
+            sourceId: sourceId,
+            seconds: seconds,
+            findingId: f.id,
+          ),
+        );
       case ConsolidateDuplicateRepair(:final diveIds):
         // The dialog owns the survivor choice, and runDiveConsolidation
         // queues the rescan once apply has resolved. Queueing one here on

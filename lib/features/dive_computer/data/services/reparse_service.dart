@@ -4,8 +4,6 @@ import 'package:drift/drift.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:uuid/uuid.dart';
 
-import 'package:submersion/core/services/change_log/change_log_scope.dart';
-import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/surface_pressure_limits.dart';
@@ -19,13 +17,13 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_computer/data/services/bailout_gas_claim.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_dive_mode.dart';
 import 'package:submersion/features/dive_computer/data/services/parsed_dive_start_time.dart';
+import 'package:submersion/features/dive_computer/data/services/reparse_batch_service.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_empty_parse.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
 import 'package:submersion/features/dive_log/data/repositories/stored_tank_matching.dart';
-import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/domain/codecs/deco_type.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart'
     as codec;
@@ -40,7 +38,6 @@ import 'package:submersion/features/dive_computer/data/services/transmitter_regi
 import 'package:submersion/features/dive_computer/data/services/unused_oc_gas_cleanup.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_pressure_series.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_sample_units.dart';
-import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 
 /// Service responsible for applying re-parsed dive computer data back to the
@@ -435,7 +432,7 @@ class ReparseService {
       //    the profile strand and, under it, the events, tanks and gas
       //    switches (ownsStrand). A re-parse that rewrote none of them leaves
       //    a valid review alone, rather than tombstoning it on every peer.
-      //    Both reparseDive and reparseAllForComputer land here.
+      //    Both reparseDive and ReparseBatchService.run land here.
       // ------------------------------------------------------------------
       if (sourceRow.isPrimary || ownsStrand || filledSurfacePressure != null) {
         await SafetyFindingsRepository.clearReviewForDive(db, _sync, diveId);
@@ -538,16 +535,6 @@ class ReparseService {
     return (result.data['cnt'] as int) > 0;
   }
 
-  /// Get all DiveDataSources rows with raw data for a given computer.
-  Future<List<DiveDataSourcesData>> getSourcesForComputerReparse(
-    String computerId,
-  ) async {
-    return (db.select(db.diveDataSources)..where(
-          (t) => t.computerId.equals(computerId) & t.rawData.isNotNull(),
-        ))
-        .get();
-  }
-
   /// Get all DiveDataSources rows with raw data for a given dive.
   Future<List<DiveDataSourcesData>> getSourcesForDiveReparse(
     String diveId,
@@ -557,78 +544,14 @@ class ReparseService {
     )..where((t) => t.diveId.equals(diveId) & t.rawData.isNotNull())).get();
   }
 
-  /// Re-parse all sources with raw data for a given computer.
-  ///
-  /// [parseFn] is the function that calls the native Pigeon API to parse raw
-  /// bytes. Accepting it as a parameter makes this method testable without
-  /// requiring a live native bridge.
-  ///
-  /// Returns a record with the count of succeeded and failed re-parses.
-  Future<({int succeeded, int failed})> reparseAllForComputer(
-    String computerId, {
-    required Future<pigeon.ParsedDive> Function(
-      String vendor,
-      String product,
-      int model,
-      Uint8List rawData,
-    )
-    parseFn,
-  }) => ChangeLogScope.bulk(
-    DatabaseService.instance.databaseOrNull,
-    label: ChangeLogLabels.reparse,
-    body: () => _reparseAllForComputerInner(computerId, parseFn: parseFn),
-  );
-
-  Future<({int succeeded, int failed})> _reparseAllForComputerInner(
-    String computerId, {
-    required Future<pigeon.ParsedDive> Function(
-      String vendor,
-      String product,
-      int model,
-      Uint8List rawData,
-    )
-    parseFn,
-  }) async {
-    final sources = await getSourcesForComputerReparse(computerId);
-
-    int succeeded = 0;
-    int failed = 0;
-
-    for (final source in sources) {
-      if (source.descriptorVendor == null ||
-          source.descriptorProduct == null ||
-          source.descriptorModel == null) {
-        failed++;
-        continue;
-      }
-      try {
-        final parsed = await parseFn(
-          source.descriptorVendor!,
-          source.descriptorProduct!,
-          source.descriptorModel!,
-          source.rawData!,
-        );
-        await applyParsedUpdate(
-          diveId: source.diveId,
-          sourceRowId: source.id,
-          parsed: parsed,
-          descriptorVendor: source.descriptorVendor,
-          descriptorProduct: source.descriptorProduct,
-          descriptorModel: source.descriptorModel,
-          libdivecomputerVersion: source.libdivecomputerVersion,
-        );
-        succeeded++;
-      } catch (e) {
-        failed++;
-      }
-    }
-
-    return (succeeded: succeeded, failed: failed);
-  }
-
   /// Re-parse all sources with raw data for a single dive.
   ///
   /// [parseFn] is the function that calls the native Pigeon API.
+  ///
+  /// Runs the same per-dive step as a batch re-parse (issue #224): every
+  /// source is parsed before any is written, so a parse failure leaves the
+  /// dive untouched, and a source missing its descriptors is an error rather
+  /// than a silent no-op.
   ///
   /// Returns the error messages (empty on full success) alongside the number
   /// of sources whose profile strand was deliberately left alone -- see
@@ -643,45 +566,7 @@ class ReparseService {
       Uint8List rawData,
     )
     parseFn,
-  }) async {
-    final sources = await getSourcesForDiveReparse(diveId);
-    final errors = <String>[];
-    var profilesPreserved = 0;
-
-    for (final source in sources) {
-      if (source.descriptorVendor == null ||
-          source.descriptorProduct == null ||
-          source.descriptorModel == null) {
-        continue;
-      }
-      try {
-        final parsed = await parseFn(
-          source.descriptorVendor!,
-          source.descriptorProduct!,
-          source.descriptorModel!,
-          source.rawData!,
-        );
-        final outcome = await applyParsedUpdate(
-          diveId: diveId,
-          sourceRowId: source.id,
-          parsed: parsed,
-          descriptorVendor: source.descriptorVendor,
-          descriptorProduct: source.descriptorProduct,
-          descriptorModel: source.descriptorModel,
-          libdivecomputerVersion: source.libdivecomputerVersion,
-        );
-        if (outcome.profilePreserved) profilesPreserved++;
-      } catch (e) {
-        errors.add(e.toString());
-      }
-    }
-
-    // The re-parse rewrote the profile strands; the sensor summary is
-    // derived from them (condition phase 2).
-    if (sources.isNotEmpty) scheduleSensorSummaryRefresh([diveId]);
-    if (sources.isNotEmpty) scheduleDerivedMetricsRefresh([diveId]);
-    return (errors: errors, profilesPreserved: profilesPreserved);
-  }
+  }) => ReparseBatchService(this).reparseSingleDive(diveId, parseFn: parseFn);
 
   // ==========================================================================
   // Private helpers

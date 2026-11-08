@@ -28,10 +28,18 @@ class DiveCenterRepository {
       _db.tableUpdates(TableUpdateQuery.onTable(_db.diveCenters));
 
   /// Get all dive centers
-  Future<List<domain.DiveCenter>> getAllDiveCenters({String? diverId}) async {
+  ///
+  /// [ids] narrows the read to those records (Global Search's few rows,
+  /// issue #4247), on the same terms.
+  Future<List<domain.DiveCenter>> getAllDiveCenters({
+    String? diverId,
+    List<String>? ids,
+  }) async {
+    if (ids != null && ids.isEmpty) return const [];
     try {
       final query = _db.select(_db.diveCenters)
         ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
+      if (ids != null) query.where((t) => t.id.isIn(ids));
 
       if (diverId != null) {
         query.where((t) => t.diverId.equals(diverId));
@@ -390,16 +398,25 @@ class DiveCenterRepository {
 
   /// Dive count per center id, counted in SQL so any number of centers costs
   /// one read. A center with no counted dives is absent from the map.
-  Future<Map<String, int>> getDiveCountsByCenter() async {
+  /// [centerIds] narrows the count to those centers.
+  Future<Map<String, int>> getDiveCountsByCenter({
+    List<String>? centerIds,
+  }) async {
+    if (centerIds != null && centerIds.isEmpty) return const {};
     try {
+      final onlyIds = centerIds == null
+          ? ''
+          : ' AND dive_center_id IN '
+                '(${List.filled(centerIds.length, '?').join(', ')})';
       final rows = await _db
           .customSelect(
             '''
       SELECT dive_center_id, COUNT(*) AS count
       FROM dives
-      WHERE dive_center_id IS NOT NULL${DiveStatsScope.and(alias: 'dives')}
+      WHERE dive_center_id IS NOT NULL${DiveStatsScope.and(alias: 'dives')}$onlyIds
       GROUP BY dive_center_id
     ''',
+            variables: [...?centerIds?.map(Variable.withString)],
             readsFrom: {_db.dives},
           )
           .get();

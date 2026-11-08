@@ -106,30 +106,71 @@ class NearbyTransferFiles {
     }
   }
 
-  /// Gzips [jsonFile] into an outgoing full copy for [peerId], remembered
-  /// for resumes, and deletes [jsonFile].
+  /// Moves [gzFile], a full copy the export already gzipped, into place as
+  /// the outgoing copy for [peerId], remembered for resumes. It is renamed,
+  /// not rewritten, so no second copy is staged beside it (issue #4256).
   Future<NearbyOutgoing> prepareFull(
     String peerId,
     String id,
-    File jsonFile,
+    File gzFile,
   ) async {
     await discardOutgoing(peerId);
     final out = _file('nearby-out', [peerId, id], '.gz');
-    await jsonFile.openRead().transform(gzip.encoder).pipe(out.openWrite());
-    await jsonFile.delete();
-    await _sidecar(peerId).writeAsString(
-      jsonEncode({
-        'id': id,
-        'path': out.path,
-        'createdAt': _now().millisecondsSinceEpoch,
-      }),
-    );
-    return NearbyOutgoing(
-      id: id,
-      kind: 'full',
-      file: out,
-      byteLength: await out.length(),
-    );
+    await _move(gzFile, out);
+    final sidecar = _sidecar(peerId);
+    try {
+      await sidecar.writeAsString(
+        jsonEncode({
+          'id': id,
+          'path': out.path,
+          'createdAt': _now().millisecondsSinceEpoch,
+        }),
+      );
+      return NearbyOutgoing(
+        id: id,
+        kind: 'full',
+        file: out,
+        byteLength: await out.length(),
+      );
+    } on Object {
+      // Moved in but not remembered (a full disk fails the small record
+      // too): nothing would find the copy again before the stale sweep.
+      await _deleteQuietly(out);
+      await _deleteQuietly(sidecar);
+      rethrow;
+    }
+  }
+
+  /// Removes [file] if it is there, keeping the error being handled.
+  static Future<void> _deleteQuietly(File file) async {
+    try {
+      if (await file.exists()) await file.delete();
+    } on FileSystemException {
+      // The stale sweep reaps it.
+    }
+  }
+
+  /// The export and this directory share a volume (this one sits inside
+  /// the sync temp directory), so a rename is all it takes. A copy is the
+  /// fallback for a platform that keeps them apart.
+  static Future<void> _move(File from, File to) async {
+    try {
+      await from.rename(to.path);
+    } on FileSystemException {
+      try {
+        await from.copy(to.path);
+      } on Object {
+        // A copy cut short (a full disk) must not stay beside the export.
+        if (await to.exists()) await to.delete();
+        rethrow;
+      }
+      try {
+        await from.delete();
+      } on FileSystemException {
+        // The copy is complete and is what goes out; a source held open
+        // (a scanner on Windows) is left to the ssv1_ temp sweep.
+      }
+    }
   }
 
   Future<NearbyOutgoing> prepareDelta(
@@ -217,8 +258,9 @@ class NearbyTransferFiles {
     }
   }
 
-  /// Gunzips a received transfer to a JSON file beside it. A transfer that
-  /// is not valid gzip throws and leaves no output behind.
+  /// Gunzips a received delta to a JSON file beside it. A transfer that is
+  /// not valid gzip throws and leaves no output behind. A full copy is never
+  /// unpacked like this: it is applied straight from the gzip.
   Future<File> gunzip(File gz) async {
     final out = File('${gz.path}.json');
     final sink = out.openWrite();

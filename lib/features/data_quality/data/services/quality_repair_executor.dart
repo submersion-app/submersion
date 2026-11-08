@@ -17,6 +17,7 @@ import 'package:submersion/features/data_quality/domain/repairs/quality_repair_a
 import 'package:submersion/features/data_quality/domain/repairs/repair_predicates.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/source_clock_repository.dart';
+import 'package:submersion/features/dive_log/data/services/source_timeline_shift.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_role_repair_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
@@ -69,11 +70,13 @@ class QualityRepairExecutor {
     TransmitterRepository? transmitterRepository,
     SourceClockRepository? sourceClockRepository,
     DiverGasSwitchWriter? gasSwitchWriter,
+    SourceTimelineShifter? sourceTimelineShifter,
     Future<void> Function(List<DocumentSnapshotEntry> snapshot)?
     restoreDocuments,
   }) : _diveRepo = diveRepository ?? DiveRepository(),
        _sourceClocks = sourceClockRepository ?? SourceClockRepository(),
        _injectedSwitchWriter = gasSwitchWriter,
+       _sourceTimelines = sourceTimelineShifter ?? SourceTimelineShifter(),
        _tankRoles = tankRoleRepository ?? TankRoleRepairRepository(),
        _transmitters = transmitterRepository ?? TransmitterRepository(),
        _tankRepo = tankPressureRepository ?? TankPressureRepository(),
@@ -93,6 +96,7 @@ class QualityRepairExecutor {
   /// yet open.
   DiverGasSwitchWriter get _switchWriter =>
       _injectedSwitchWriter ?? DiverGasSwitchWriter();
+  final SourceTimelineShifter _sourceTimelines;
   final TankRoleRepairRepository _tankRoles;
   final TransmitterRepository _transmitters;
   final TankPressureRepository _tankRepo;
@@ -228,6 +232,34 @@ class QualityRepairExecutor {
       _rescan(diveIds);
     });
   }
+
+  /// Lines one source of [diveId] up with the primary by its profile: moves
+  /// its samples, events and recorded offset by [seconds] along the
+  /// primary's timeline, and its own clock window with them (#4296).
+  Future<RepairResult> shiftSourceProfile({
+    required String diveId,
+    required String sourceId,
+    required int seconds,
+    required String findingId,
+  }) => ChangeLogScope.bulk(
+    DatabaseService.instance.databaseOrNull,
+    label: ChangeLogLabels.qualityRepair,
+    body: () async {
+      final record = await _sourceTimelines.shift(
+        diveId: diveId,
+        sourceId: sourceId,
+        seconds: seconds,
+      );
+      if (record == null) return const RepairResult.noChange();
+      SyncEventBus.notifyLocalChange();
+      await _finish(findingId, [diveId]);
+      return RepairResult.applied(() async {
+        await _sourceTimelines.undo(record);
+        SyncEventBus.notifyLocalChange();
+        _rescan([diveId]);
+      });
+    },
+  );
 
   /// [compute] is one of ProfileRepairService's pure functions.
   ///

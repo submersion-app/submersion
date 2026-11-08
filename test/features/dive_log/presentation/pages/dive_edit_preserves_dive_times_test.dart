@@ -193,10 +193,9 @@ void main() {
     await tester.tap(find.text('Cancel')); // time
     await tester.pumpAndSettle();
 
-    expect(
-      flightWindowEnd(tester),
-      DateTime.utc(2026, 1, 2, 10).add(const Duration(seconds: 2960)),
-    );
+    // The entry moves a day with its seconds kept (issue #241), and the end
+    // with it.
+    expect(flightWindowEnd(tester), exit.add(const Duration(days: 1)));
   });
 
   testWidgets('an exit estimated from bottom time still ends the dive', (

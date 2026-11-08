@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
-import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/loading_severity_color.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tissue_pressure_bar_chart.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Panel displaying decompression status and tissue loading.
@@ -174,7 +174,7 @@ class DecoInfoPanel extends StatelessWidget {
             value: '${status.gf99.toStringAsFixed(0)}%',
             subtitle: '#${status.gf99LeadingCompartmentNumber}',
             icon: Icons.show_chart,
-            color: _getGfColor(status.gf99),
+            color: loadingSeverityColor(status.gf99),
           ),
         ),
         const SizedBox(width: 12),
@@ -186,7 +186,7 @@ class DecoInfoPanel extends StatelessWidget {
             label: context.l10n.diveLog_deco_label_surfGf,
             value: '${status.surfGf.toStringAsFixed(0)}%',
             icon: Icons.arrow_upward,
-            color: _getGfColor(status.surfGf),
+            color: loadingSeverityColor(status.surfGf),
           ),
         ),
       ],
@@ -243,11 +243,7 @@ class DecoInfoPanel extends StatelessWidget {
   }
 
   Widget _buildTissueChart(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    const chartHeight = 80.0;
-    const maxLoadingPercent = 120.0;
-    const mValueBottom = chartHeight * (100.0 / maxLoadingPercent);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -257,125 +253,11 @@ class DecoInfoPanel extends StatelessWidget {
           style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
-        Semantics(
-          label: chartSummaryLabel(
-            chartType: 'Tissue pressure diagram',
-            description:
-                '${status.compartments.length} compartments showing nitrogen '
-                'and helium loading relative to M-value, leading compartment '
-                '${status.leadingCompartmentNumber} at '
-                '${status.leadingCompartmentLoading.toStringAsFixed(0)} percent',
-          ),
-          child: SizedBox(
-            height: chartHeight,
-            child: Stack(
-              children: [
-                // Tissue bars
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: status.compartments.map((comp) {
-                    return Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 1),
-                        child: _buildSubsurfaceBar(
-                          comp,
-                          chartHeight,
-                          maxLoadingPercent,
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-                // M-value reference line at 100%
-                Positioned(
-                  bottom: mValueBottom,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    height: 1,
-                    color: colorScheme.error.withValues(alpha: 0.5),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              context.l10n.diveLog_deco_tissueFast,
-              style: textTheme.labelSmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-            Text(
-              context.l10n.diveLog_deco_tissueSlow,
-              style: textTheme.labelSmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
+        // The tissue card's chart: same bars, surface level markers, M-value
+        // line, localized tooltips and screen reader label, so a compartment
+        // reads the same here as in the dive log.
+        TissuePressureBarChart(status: status, chartHeight: 80),
       ],
-    );
-  }
-
-  Widget _buildSubsurfaceBar(
-    TissueCompartment comp,
-    double chartHeight,
-    double maxLoading,
-  ) {
-    final totalLoading = comp.percentLoading.clamp(0.0, maxLoading);
-    final barHeight = chartHeight * (totalLoading / maxLoading);
-
-    // Split bar into N2 and He portions
-    final totalGas = comp.totalInertGas;
-    final n2Ratio = totalGas > 0 ? comp.currentPN2 / totalGas : 1.0;
-    final heRatio = totalGas > 0 ? comp.currentPHe / totalGas : 0.0;
-
-    final n2Height = barHeight * n2Ratio;
-    final heHeight = barHeight * heRatio;
-
-    final n2Color = _getN2Color(totalLoading);
-
-    return Tooltip(
-      message:
-          'Compartment ${comp.compartmentNumber}\n'
-          '${totalLoading.toStringAsFixed(1)}% loaded\n'
-          'N\u2082: ${comp.currentPN2.toStringAsFixed(2)} bar'
-          '${comp.currentPHe > 0 ? '\nHe: ${comp.currentPHe.toStringAsFixed(2)} bar' : ''}\n'
-          'Half-time: ${comp.halfTimeN2.toStringAsFixed(0)} min',
-      child: SizedBox(
-        height: chartHeight,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            // He portion (top, purple) - only if helium present
-            if (heHeight > 0.5)
-              Container(
-                height: heHeight,
-                decoration: BoxDecoration(
-                  color: Colors.deepPurple.withValues(alpha: 0.8),
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(2),
-                  ),
-                ),
-              ),
-            // N2 portion (bottom, teal-to-red gradient)
-            Container(
-              height: n2Height.clamp(0.0, barHeight),
-              decoration: BoxDecoration(
-                color: n2Color,
-                borderRadius: BorderRadius.vertical(
-                  top: heHeight > 0.5 ? Radius.zero : const Radius.circular(2),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -457,20 +339,6 @@ class DecoInfoPanel extends StatelessWidget {
     final totalSeconds = status.totalDecoTime;
     final minutes = totalSeconds ~/ 60;
     return '${minutes}min';
-  }
-
-  Color _getN2Color(double loading) {
-    if (loading >= 100) return Colors.red;
-    if (loading >= 80) return Colors.orange;
-    if (loading >= 60) return Colors.amber;
-    return Colors.green;
-  }
-
-  Color _getGfColor(double gfPercent) {
-    if (gfPercent >= 100) return Colors.red;
-    if (gfPercent >= 80) return Colors.orange;
-    if (gfPercent >= 60) return Colors.amber;
-    return Colors.green;
   }
 }
 

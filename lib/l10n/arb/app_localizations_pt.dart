@@ -612,6 +612,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get enum_equipmentField_owner_short => 'Proprietário';
 
   @override
+  String get enum_equipmentField_location => 'Localização';
+
+  @override
+  String get enum_equipmentField_location_short => 'Localização';
+
+  @override
   String get equipment_set_noLongerShared => 'Já não é partilhado';
 
   @override
@@ -4646,6 +4652,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get certifications_list_section_expiringSoon => 'Expirando em Breve';
 
   @override
+  String certifications_list_section_professional(String agency) {
+    return '$agency Profissional';
+  }
+
+  @override
   String get certifications_list_section_valid => 'Válida';
 
   @override
@@ -7401,6 +7412,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Estes registros não se sobrepõem no tempo, então o relógio de um computador provavelmente está errado. O mergulho mantém a hora do computador principal.';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      'Estes perfis de profundidade coincidem em um momento diferente do que os relógios dos computadores indicam, então o relógio de um computador provavelmente está errado. O mergulho mantém a hora do computador principal.';
+
+  @override
   String get diveLog_consolidate_clockNoteShort =>
       'O relógio de um computador provavelmente está errado.';
 
@@ -7516,6 +7531,85 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_deco_semantics_required => 'Descompressão necessária';
+
+  @override
+  String diveLog_deco_compartmentLeading(int number) {
+    return 'Líder: #$number';
+  }
+
+  @override
+  String diveLog_deco_compartmentOther(int number) {
+    return 'Compartimento: #$number';
+  }
+
+  @override
+  String get diveLog_deco_metricLoad => 'Carga';
+
+  @override
+  String get diveLog_deco_gasOngassing => 'Absorção';
+
+  @override
+  String get diveLog_deco_gasOffgassing => 'Liberação';
+
+  @override
+  String get diveLog_deco_gasEquilibrium => 'Equilíbrio';
+
+  @override
+  String get diveLog_deco_heatMapRows => 'Linhas: rápido (topo) a lento (base)';
+
+  @override
+  String get diveLog_deco_surfaceLevel => 'Nível de superfície';
+
+  @override
+  String get diveLog_deco_mValue => 'Valor M';
+
+  @override
+  String diveLog_deco_tooltipCompartment(int number) {
+    return 'Compartimento $number';
+  }
+
+  @override
+  String diveLog_deco_tooltipLoaded(String percent) {
+    return '$percent% de carga';
+  }
+
+  @override
+  String diveLog_deco_tooltipHalfTime(String minutes) {
+    return 'Meia-vida: $minutes min';
+  }
+
+  @override
+  String diveLog_deco_tooltipSurfaceLevel(String percent) {
+    return 'Nível de superfície: $percent%';
+  }
+
+  @override
+  String get diveLog_deco_info_title => 'O que significam estes valores?';
+
+  @override
+  String get diveLog_deco_info_body =>
+      'Carga: a pressão de gás inerte de um compartimento como percentagem do máximo que pode conter à superfície (o seu valor M, a linha vermelha a 100%).\n\nNível de superfície: a marca em cada barra mostra onde um compartimento totalmente dessaturado se estabiliza enquanto respira ar à superfície. Nunca fica em 0%, porque o seu corpo contém sempre o azoto do ar que respira. Uma barra na sua marca já não tem carga residual do mergulho.\n\nAbsorção e liberação: o gás move-se sempre em direção à pressão do gás que respira. Após uma descompressão com oxigénio ou com uma mistura rica em hélio, os compartimentos rápidos podem conter menos azoto do que o ar à superfície. De volta ao ar, absorvem azoto novamente até atingirem a sua marca. Isto é normal e não é uma carga residual do mergulho.\n\nHélio: o ar não contém hélio. Após um mergulho com trimix, um compartimento liberta hélio enquanto pode absorver azoto ao mesmo tempo. As setas junto a N₂ e He mostram cada gás separadamente; a indicação junto ao número do compartimento mostra a direção global de ambos.';
+
+  @override
+  String diveLog_deco_barChartSemantics(int count, int number, String percent) {
+    return 'Gráfico de carga tecidual. $count compartimentos, carga em relação ao valor M; compartimento líder $number a $percent%.';
+  }
+
+  @override
+  String get diveLog_deco_heatMapUndersaturated => 'Subsaturado';
+
+  @override
+  String get diveLog_deco_heatMapSupersaturated => 'Supersaturado';
+
+  @override
+  String diveLog_deco_percentValue(String value) {
+    return '$value%';
+  }
+
+  @override
+  String diveLog_deco_minutesValue(String value) {
+    return '$value min';
+  }
 
   @override
   String get diveLog_deco_tissueFast => 'Rápido';
@@ -8628,6 +8722,19 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_edit_useSet => 'Usar Conjunto';
+
+  @override
+  String get diveLog_edit_removeSet => 'Remover Conjunto';
+
+  @override
+  String get diveLog_bulkEdit_setsToRemove => 'Conjuntos a remover';
+
+  @override
+  String get diveLog_bulkEdit_removeSetTitle =>
+      'Remover Conjunto de Equipamento';
+
+  @override
+  String get diveLog_bulkEdit_equipmentSets => 'Conjuntos de equipamento';
 
   @override
   String get diveLog_edit_weightPreset_use => 'Usar predefinição';
@@ -10821,6 +10928,16 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String diveLog_cylinders_figureUsed(String pressure) {
     return 'Usado $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureNow(String pressure) {
+    return 'Agora $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureNowEstimated(String pressure) {
+    return 'Agora $pressure (est.)';
   }
 
   @override
@@ -14485,6 +14602,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Excluir este registro de carga?';
 
   @override
+  String get passport_history_deleteFailed =>
+      'Não foi possível excluir a carga. Tente novamente.';
+
+  @override
   String get passport_tag_title => 'Etiqueta';
 
   @override
@@ -16711,6 +16832,11 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_location_activeFilter => 'Localização';
+
+  @override
+  String equipment_location_tileSemantics(String name) {
+    return 'Localização: $name';
+  }
 
   @override
   String get equipment_filter_section_location => 'Localização';
@@ -19771,6 +19897,17 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get media_photoPicker_selectAllButton => 'Selecionar tudo';
+
+  @override
+  String get media_photoPicker_albumFilter_all => 'Todos os álbuns';
+
+  @override
+  String media_photoPicker_albumFilter_chip(String album, int count) {
+    return '$album ($count)';
+  }
+
+  @override
+  String get media_photoPicker_albumFilter_label => 'Filtrar por álbum';
 
   @override
   String media_photoPicker_selectedCount(int count) {
@@ -27454,7 +27591,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'Corrigir horas, ligar parceiros, retipar equipamento, qualidade dos dados, editor de tabela';
+      'Corrigir horas, ligar parceiros, retipar equipamento, qualidade dos dados, editor de tabela, reanalisar mergulhos';
 
   @override
   String get settings_agentAccess_title => 'Acesso de agentes';
@@ -38118,25 +38255,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllProgress(int count) {
-    return 'Reanalisando $count mergulhos...';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllSuccess(int count) {
-    return '$count mergulhos reanalisados com sucesso';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
-    return 'Reanalisados $succeeded de $total mergulhos. $failed falharam.';
-  }
-
-  @override
   String diveComputer_detail_reparseRawDataCount(int count) {
     return '$count mergulhos com dados brutos';
   }
@@ -38148,6 +38266,126 @@ class AppLocalizationsPt extends AppLocalizations {
   ) {
     return '$count mergulhos com dados brutos ($without sem)';
   }
+
+  @override
+  String get reparseBatch_progressTitle => 'Reanalisando mergulhos';
+
+  @override
+  String reparseBatch_progressCount(int done, int total) {
+    return 'Reanalisando $done de $total mergulhos';
+  }
+
+  @override
+  String get reparseBatch_cancelling => 'Cancelando...';
+
+  @override
+  String get reparseBatch_resultTitle => 'Reanálise concluída';
+
+  @override
+  String get reparseBatch_resultCancelledTitle => 'Reanálise cancelada';
+
+  @override
+  String get reparseBatch_resultErrorTitle =>
+      'Reanálise interrompida por um erro';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return 'Não processados: $count';
+  }
+
+  @override
+  String reparseBatch_resultSummary(int succeeded, int total) {
+    return 'Reanalisados $succeeded de $total mergulhos.';
+  }
+
+  @override
+  String reparseBatch_resultFailed(int count) {
+    return 'Com falha: $count';
+  }
+
+  @override
+  String reparseBatch_resultNotProcessed(int count) {
+    return 'Não processados (cancelado): $count';
+  }
+
+  @override
+  String reparseBatch_resultSkipped(int count) {
+    return 'Ignorados, sem dados brutos: $count';
+  }
+
+  @override
+  String reparseBatch_resultProfilesPreserved(int count) {
+    return 'Mergulhos combinados que mantiveram o perfil: $count';
+  }
+
+  @override
+  String get reparseBatch_failedListHeader => 'Mergulhos com falha';
+
+  @override
+  String reparseBatch_failedDiveTitle(int number) {
+    return 'Mergulho n.º $number';
+  }
+
+  @override
+  String get reparseBatch_failedDiveUnnumbered => 'Mergulho sem número';
+
+  @override
+  String get reparseBatch_missingDescriptors =>
+      'Faltam os dados do computador de mergulho';
+
+  @override
+  String get reparseBatch_confirmTitle => 'Reanalisar mergulhos';
+
+  @override
+  String reparseBatch_confirmMessage(int count) {
+    return 'Reexecute o analisador de mergulhos em $count mergulhos com dados brutos armazenados. Isso atualiza os dados de perfil e de sensores, mas preserva suas notas, locais, parceiros e outras edições.';
+  }
+
+  @override
+  String reparseBatch_confirmSkipped(int count) {
+    return 'Mergulhos selecionados sem dados brutos (ignorados): $count';
+  }
+
+  @override
+  String get reparseBatch_noneWithRawData =>
+      'Nenhum dos mergulhos selecionados tem dados brutos armazenados para reanalisar.';
+
+  @override
+  String get diveLog_selection_tooltip_reparse => 'Reanalisar';
+
+  @override
+  String get settings_reparseDives_title => 'Reanalisar mergulhos';
+
+  @override
+  String get settings_reparseDives_subtitle =>
+      'Reexecutar o analisador em cada mergulho com dados brutos armazenados';
+
+  @override
+  String get settings_reparseDives_intro =>
+      'Use isto depois que uma atualização do app melhorar a leitura dos dados do computador de mergulho. Suas notas, locais, parceiros e outras edições são preservados.';
+
+  @override
+  String settings_reparseDives_withRawData(int count) {
+    return 'Mergulhos com dados brutos: $count';
+  }
+
+  @override
+  String settings_reparseDives_withoutRawData(int count) {
+    return 'Mergulhos sem dados brutos (não reanalisados): $count';
+  }
+
+  @override
+  String get settings_reparseDives_byComputer => 'Por computador de mergulho';
+
+  @override
+  String get settings_reparseDives_unknownComputer => 'Computador desconhecido';
+
+  @override
+  String get settings_reparseDives_none =>
+      'Nenhum mergulho tem dados brutos armazenados para reanalisar.';
+
+  @override
+  String get settings_reparseDives_button => 'Reanalisar tudo';
 
   @override
   String get diveComputer_rawData_discardAction => 'Descartar';
@@ -40808,11 +41046,27 @@ class AppLocalizationsPt extends AppLocalizations {
       'O seu CNS% (relógio de oxigênio) decai após o mergulho com uma meia-vida de 90 minutos -- praticamente volta a 0 depois de cerca de um dia.\n\nA OTU diária é reiniciada todas as noites à meia-noite. A OTU semanal é um total móvel dos últimos 7 dias: mergulhos mais antigos saem automaticamente do cálculo assim que ficam fora dessa janela.';
 
   @override
+  String get safetyHub_tissueLoading_clear_title =>
+      'Sem carga tecidual residual';
+
+  @override
+  String get safetyHub_tissueLoading_clear_body =>
+      'Todos os compartimentos voltaram ao equilíbrio com o ar à superfície. Ficam no seu nível normal (a marca em cada barra), não em 0%.';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_title =>
+      'Carga tecidual indisponível';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_body =>
+      'O último mergulho não tem dados para calcular a carga tecidual, por exemplo um mergulho sem perfil de profundidade, em modo profundímetro ou com rebreather sem setpoint.';
+
+  @override
   String get safetyHub_tissueLoading_about_title => 'Sobre a carga tissular';
 
   @override
   String get safetyHub_tissueLoading_about_body =>
-      'O seu corpo tem 16 compartimentos teciduais que absorvem e liberam nitrogênio (e, em mergulhos com trimix ou rebreather, também hélio) em velocidades diferentes. Tecidos rápidos saturam e dessaturam depressa; tecidos lentos levam bem mais tempo para ambos.\n\nApós um mergulho com hélio, o nitrogênio e o hélio num mesmo compartimento podem mover-se brevemente em direções opostas: enquanto o hélio ainda está saindo, esse mesmo compartimento pode estar absorvendo um pouco de nitrogênio ao mesmo tempo, até que ambos os gases atinjam o equilíbrio com o ar que você respira. Por isso um compartimento pode mostrar brevemente \"Ongassing\" mesmo enquanto sua carga total continua caindo.';
+      'O seu corpo tem 16 compartimentos teciduais que absorvem e libertam azoto (e, em mergulhos com trimix ou rebreather, também hélio) a velocidades diferentes. Os tecidos rápidos saturam e dessaturam depressa; os lentos demoram muito mais em ambos os casos.\n\nA carga residual é apenas o que fica acima do nível normal à superfície. Mesmo totalmente dessaturadas, as barras não descem a 0%: cada compartimento estabiliza-se na marca que corresponde ao azoto do ar que respira. Por isso um compartimento rápido pode mostrar aqui um valor mais alto do que no fim de um mergulho com descompressão a oxigénio, sem que a carga tenha aumentado.\n\nApós um mergulho com hélio, um compartimento liberta hélio enquanto absorve azoto ao mesmo tempo, até que ambos os gases estejam em equilíbrio com o ar que respira.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -42417,6 +42671,11 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_clock_profileFit(int minutes) {
+    return 'Uma fonte está a $minutes min de onde seu perfil coincide com o principal';
+  }
+
+  @override
   String dataQuality_msg_shared_gear_overlap(
     String item,
     String diverA,
@@ -42685,6 +42944,15 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_fixSourceClockAll =>
       'Corrigir também este computador noutros mergulhos com o mesmo desvio';
+
+  @override
+  String get dataQuality_repairLabel_alignSourceProfile =>
+      'Alinhar este computador pelo seu perfil';
+
+  @override
+  String dataQuality_repairLabel_alignSourceProfileNamed(String computer) {
+    return 'Alinhar $computer pelo seu perfil';
+  }
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Consolidar';
@@ -57955,6 +58223,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get rules_value_empty => '(vazio)';
 
   @override
+  String rules_value_gearViaSet(String item, String set) {
+    return '$item ($set)';
+  }
+
+  @override
   String get rules_collection_diveTypes => 'tipos de mergulho';
 
   @override
@@ -57968,6 +58241,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get rules_collection_courses => 'cursos';
+
+  @override
+  String get rules_collection_equipmentSets => 'conjuntos de equipamento';
 
   @override
   String get rules_collection_siteTags => 'etiquetas de local';
@@ -60583,4 +60859,202 @@ class AppLocalizationsPt extends AppLocalizations {
   ) {
     return 'Marcador $number: $time, $depth, $distance';
   }
+
+  @override
+  String get twinSet_title => 'Bi-cilindro';
+
+  @override
+  String get twinSet_none => 'Não faz parte de um bi-cilindro';
+
+  @override
+  String get twinSet_link => 'Vincular a um cilindro parceiro';
+
+  @override
+  String twinSet_since(String date) {
+    return 'Desde $date';
+  }
+
+  @override
+  String get twinSet_replace => 'Trocar parceiro';
+
+  @override
+  String get twinSet_unlink => 'Desvincular';
+
+  @override
+  String get twinSet_history => 'Histórico';
+
+  @override
+  String twinSet_historyRange(String partner, String from, String to) {
+    return '$partner, de $from a $to';
+  }
+
+  @override
+  String get twinSet_deletePairing => 'Excluir pareamento';
+
+  @override
+  String get twinSet_deletePairingConfirm =>
+      'Excluir este pareamento do histórico? Cargas e mergulhos não mudam.';
+
+  @override
+  String get twinSet_pickerTitle => 'Cilindro parceiro';
+
+  @override
+  String get twinSet_pickerEmpty => 'Nenhum outro cilindro para parear.';
+
+  @override
+  String get twinSet_pairedOnHelp => 'Pareados desde';
+
+  @override
+  String get twinSet_unpairedOnHelp => 'Desvinculados em';
+
+  @override
+  String get twinSet_pressureMismatchTitle => 'Pressões de trabalho diferentes';
+
+  @override
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  ) {
+    return '$a tem pressão de trabalho de $aPressure e $b de $bPressure. Um par com manifold é carregado a uma só pressão.';
+  }
+
+  @override
+  String get twinSet_continue => 'Continuar';
+
+  @override
+  String get twinSet_replaceTitle => 'Trocar de parceiro?';
+
+  @override
+  String twinSet_replaceClash(String cylinder, String partner) {
+    return '$cylinder está pareado com $partner.';
+  }
+
+  @override
+  String twinSet_replaceQuestion(String a, String b) {
+    return 'Parear $a com $b em vez disso?';
+  }
+
+  @override
+  String twinSet_leftAlone(String name) {
+    return '$name ficará sozinho.';
+  }
+
+  @override
+  String get twinSet_replaceConfirm => 'Trocar';
+
+  @override
+  String get twinSet_clashTitle => 'Pareamento sobreposto';
+
+  @override
+  String twinSet_clashBody(String pairs) {
+    return 'Isto se sobrepõe ao pareamento de $pairs. Um cilindro só pode estar em um bi-cilindro por dia.';
+  }
+
+  @override
+  String twinSet_pairNames(String a, String b) {
+    return '$a e $b';
+  }
+
+  @override
+  String twinSet_endBeforeStart(String date) {
+    return 'A data de término deve ser posterior a $date.';
+  }
+
+  @override
+  String get twinSet_saveFailed =>
+      'Não foi possível salvar a alteração do bi-cilindro.';
+
+  @override
+  String twinSet_with(String partner) {
+    return 'Bi-cilindro com $partner';
+  }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return 'Os dois cilindros do bi-cilindro ($partner)';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner, $status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => 'Editar carga';
+
+  @override
+  String get passport_logFill_overPressureTitle =>
+      'Acima da pressão de trabalho';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure está acima da pressão de trabalho de $name, $workingPressure.';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => 'Salvar mesmo assim';
+
+  @override
+  String get passport_logFill_back => 'Voltar';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return 'Aplicar também à carga de $partner?';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => 'Sim';
+
+  @override
+  String get passport_logFill_onlyThisOne => 'Só esta';
+
+  @override
+  String get passport_history_anotherCylinder => 'outro cilindro';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return 'Carregado junto com $partner';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'Excluir esta carga dos dois cilindros ou só deste?';
+
+  @override
+  String get passport_history_deleteBoth => 'Os dois cilindros';
+
+  @override
+  String get passport_history_edit => 'Editar carga';
+
+  @override
+  String get twinSet_choiceTitle => 'Usar o bi-cilindro?';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'Bi-cilindro ($a + $b, $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return 'Só $a';
+  }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'Pareados desde';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'Desvinculados em';
+
+  @override
+  String get settings_conflict_field_filledTogetherId => 'Carga do bi-cilindro';
+
+  @override
+  String get settings_conflict_field_twinPassportId =>
+      'Passaporte do cilindro parceiro';
 }

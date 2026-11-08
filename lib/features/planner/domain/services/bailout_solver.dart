@@ -598,10 +598,11 @@ class BailoutSolver {
           // goes negative for a helium-rich mix at shallow depth.
           endMeters: math.max(
             0.0,
-            GasMix(
-              o2: fO2 * 100,
-              he: fHe * 100,
-            ).end(depth, o2Narcotic: config.o2Narcotic),
+            GasMix(o2: fO2 * 100, he: fHe * 100).end(
+              depth,
+              o2Narcotic: config.o2Narcotic,
+              environment: environment,
+            ),
           ),
         ),
       );
@@ -733,10 +734,11 @@ class BailoutSolver {
           // Floored at 0 m, same as PlanEngine's END column.
           endMeters: math.max(
             0.0,
-            GasMix(
-              o2: fO2 * 100,
-              he: fHe * 100,
-            ).end(endDepth, o2Narcotic: config.o2Narcotic),
+            GasMix(o2: fO2 * 100, he: fHe * 100).end(
+              endDepth,
+              o2Narcotic: config.o2Narcotic,
+              environment: environment,
+            ),
           ),
         ),
       );

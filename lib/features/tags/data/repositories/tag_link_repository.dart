@@ -61,14 +61,22 @@ class TagLinkRepository {
     ];
   }
 
-  /// Every item's tags, by name, in one query. An item with no tags has no
-  /// entry.
-  Future<Map<String, List<domain.Tag>>> getTagsByItem() async {
+  /// Every item's tags, by name, in one query, or only those of [itemIds] when
+  /// named. An item with no tags has no entry.
+  Future<Map<String, List<domain.Tag>>> getTagsByItem({
+    List<String>? itemIds,
+  }) async {
+    if (itemIds != null && itemIds.isEmpty) return const {};
+    final onlyIds = itemIds == null
+        ? ''
+        : 'WHERE l.$_item IN (${List.filled(itemIds.length, '?').join(', ')}) ';
     final rows = await _db
         .customSelect(
           'SELECT l.$_item AS link_item_id, t.* '
           'FROM $_junction l JOIN tags t ON t.id = l.tag_id '
+          '$onlyIds'
           'ORDER BY l.$_item, t.name COLLATE NOCASE',
+          variables: [...?itemIds?.map(Variable.withString)],
           readsFrom: {_junctionTable, _db.tags},
         )
         .get();

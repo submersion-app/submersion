@@ -102,7 +102,11 @@ QualityFindingMessage buildFindingMessage(
   String detail;
   switch (f.detectorId) {
     case 'clock_offset':
-      if (p.containsKey('offsetHours')) {
+      if (p.containsKey('profileOffsetSeconds')) {
+        // How far the source's samples sit from where they fit (#4296).
+        final minutes = (i('profileOffsetSeconds').abs() / 60).round();
+        detail = l10n.dataQuality_msg_clock_profileFit(minutes);
+      } else if (p.containsKey('offsetHours')) {
         // The secondary source reads `offsetHours` later than the primary, so
         // a positive offset is a clock running ahead.
         final hours = i('offsetHours');

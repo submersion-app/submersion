@@ -613,6 +613,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_equipmentField_owner_short => 'Besitzer';
 
   @override
+  String get enum_equipmentField_location => 'Standort';
+
+  @override
+  String get enum_equipmentField_location_short => 'Standort';
+
+  @override
   String get equipment_set_noLongerShared => 'Nicht mehr geteilt';
 
   @override
@@ -4648,6 +4654,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get certifications_list_section_expiringSoon => 'Läuft bald ab';
 
   @override
+  String certifications_list_section_professional(String agency) {
+    return '$agency Profi';
+  }
+
+  @override
   String get certifications_list_section_valid => 'Gültig';
 
   @override
@@ -7406,6 +7417,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Diese Aufzeichnungen überschneiden sich zeitlich nicht, daher geht die Uhr eines Computers wahrscheinlich falsch. Der Tauchgang behält die Zeit des primären Computers.';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      'Diese Tiefenprofile passen zu einer anderen Zeit zusammen, als die Uhren der Computer angeben, daher geht die Uhr eines Computers wahrscheinlich falsch. Der Tauchgang behält die Zeit des primären Computers.';
+
+  @override
   String get diveLog_consolidate_clockNoteShort =>
       'Die Uhr eines Computers geht wahrscheinlich falsch.';
 
@@ -7520,6 +7535,86 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_deco_semantics_required => 'Dekompression erforderlich';
+
+  @override
+  String diveLog_deco_compartmentLeading(int number) {
+    return 'Führend: #$number';
+  }
+
+  @override
+  String diveLog_deco_compartmentOther(int number) {
+    return 'Kompartiment: #$number';
+  }
+
+  @override
+  String get diveLog_deco_metricLoad => 'Belastung';
+
+  @override
+  String get diveLog_deco_gasOngassing => 'Aufsättigung';
+
+  @override
+  String get diveLog_deco_gasOffgassing => 'Entsättigung';
+
+  @override
+  String get diveLog_deco_gasEquilibrium => 'Gleichgewicht';
+
+  @override
+  String get diveLog_deco_heatMapRows =>
+      'Zeilen: schnell (oben) bis langsam (unten)';
+
+  @override
+  String get diveLog_deco_surfaceLevel => 'Oberflächenniveau';
+
+  @override
+  String get diveLog_deco_mValue => 'M-Wert';
+
+  @override
+  String diveLog_deco_tooltipCompartment(int number) {
+    return 'Kompartiment $number';
+  }
+
+  @override
+  String diveLog_deco_tooltipLoaded(String percent) {
+    return '$percent% Belastung';
+  }
+
+  @override
+  String diveLog_deco_tooltipHalfTime(String minutes) {
+    return 'Halbwertszeit: $minutes min';
+  }
+
+  @override
+  String diveLog_deco_tooltipSurfaceLevel(String percent) {
+    return 'Oberflächenniveau: $percent%';
+  }
+
+  @override
+  String get diveLog_deco_info_title => 'Was bedeuten diese Werte?';
+
+  @override
+  String get diveLog_deco_info_body =>
+      'Belastung: der Inertgasdruck eines Kompartiments in Prozent des Höchstwerts, den es an der Oberfläche halten darf (sein M-Wert, die rote Linie bei 100 %).\n\nOberflächenniveau: Die Markierung auf jedem Balken zeigt, wo sich ein vollständig entsättigtes Kompartiment einpendelt, während du an der Oberfläche Luft atmest. Sie liegt nie bei 0 %, weil dein Körper immer den Stickstoff der Atemluft enthält. Ein Balken auf seiner Markierung trägt keine Restbelastung vom Tauchen mehr.\n\nAufsättigung und Entsättigung: Gas bewegt sich immer in Richtung des Drucks des Gases, das du atmest. Nach einer Deko mit Sauerstoff oder einem heliumreichen Gemisch können die schnellen Kompartimente weniger Stickstoff enthalten als die Luft an der Oberfläche. Atmest du wieder Luft, nehmen sie Stickstoff auf, bis sie ihre Markierung erreichen. Das ist normal und keine Restbelastung vom Tauchgang.\n\nHelium: Luft enthält kein Helium. Nach einem Trimix-Tauchgang gibt ein Kompartiment Helium ab und kann gleichzeitig Stickstoff aufnehmen. Die Pfeile neben N₂ und He zeigen jedes Gas einzeln, die Anzeige neben der Kompartimentnummer zeigt die Gesamtrichtung beider Gase.';
+
+  @override
+  String diveLog_deco_barChartSemantics(int count, int number, String percent) {
+    return 'Diagramm der Gewebesättigung. $count Kompartimente, Belastung im Verhältnis zum M-Wert; führendes Kompartiment $number bei $percent %.';
+  }
+
+  @override
+  String get diveLog_deco_heatMapUndersaturated => 'Untersättigt';
+
+  @override
+  String get diveLog_deco_heatMapSupersaturated => 'Übersättigt';
+
+  @override
+  String diveLog_deco_percentValue(String value) {
+    return '$value%';
+  }
+
+  @override
+  String diveLog_deco_minutesValue(String value) {
+    return '$value min';
+  }
 
   @override
   String get diveLog_deco_tissueFast => 'Schnell';
@@ -8629,6 +8724,18 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_edit_useSet => 'Set verwenden';
+
+  @override
+  String get diveLog_edit_removeSet => 'Set entfernen';
+
+  @override
+  String get diveLog_bulkEdit_setsToRemove => 'Zu entfernende Sets';
+
+  @override
+  String get diveLog_bulkEdit_removeSetTitle => 'Ausrüstungsset entfernen';
+
+  @override
+  String get diveLog_bulkEdit_equipmentSets => 'Ausrüstungssets';
 
   @override
   String get diveLog_edit_weightPreset_use => 'Vorlage verwenden';
@@ -10818,6 +10925,16 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String diveLog_cylinders_figureUsed(String pressure) {
     return 'Verbraucht $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureNow(String pressure) {
+    return 'Jetzt $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureNowEstimated(String pressure) {
+    return 'Jetzt $pressure (gesch.)';
   }
 
   @override
@@ -14480,6 +14597,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get passport_history_deleteConfirm => 'Diesen Fülleintrag löschen?';
 
   @override
+  String get passport_history_deleteFailed =>
+      'Die Füllung konnte nicht gelöscht werden. Bitte erneut versuchen.';
+
+  @override
   String get passport_tag_title => 'Tag';
 
   @override
@@ -16702,6 +16823,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_location_activeFilter => 'Standort';
+
+  @override
+  String equipment_location_tileSemantics(String name) {
+    return 'Standort: $name';
+  }
 
   @override
   String get equipment_filter_section_location => 'Standort';
@@ -19754,6 +19880,17 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get media_photoPicker_selectAllButton => 'Alle auswählen';
+
+  @override
+  String get media_photoPicker_albumFilter_all => 'Alle Alben';
+
+  @override
+  String media_photoPicker_albumFilter_chip(String album, int count) {
+    return '$album ($count)';
+  }
+
+  @override
+  String get media_photoPicker_albumFilter_label => 'Nach Album filtern';
 
   @override
   String media_photoPicker_selectedCount(int count) {
@@ -27412,7 +27549,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'Tauchzeiten korrigieren, Buddys verknüpfen, Ausrüstung umtypen, Datenqualität, Tabelleneditor';
+      'Tauchzeiten korrigieren, Buddys verknüpfen, Ausrüstung umtypen, Datenqualität, Tabelleneditor, Tauchgänge neu auswerten';
 
   @override
   String get settings_agentAccess_title => 'Agentenzugriff';
@@ -38060,25 +38197,6 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllProgress(int count) {
-    return '$count Tauchgänge werden neu ausgewertet...';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllSuccess(int count) {
-    return '$count Tauchgänge erfolgreich neu ausgewertet';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
-    return '$succeeded von $total Tauchgängen neu ausgewertet. $failed fehlgeschlagen.';
-  }
-
-  @override
   String diveComputer_detail_reparseRawDataCount(int count) {
     return '$count Tauchgänge mit Rohdaten';
   }
@@ -38090,6 +38208,126 @@ class AppLocalizationsDe extends AppLocalizations {
   ) {
     return '$count Tauchgänge mit Rohdaten ($without ohne)';
   }
+
+  @override
+  String get reparseBatch_progressTitle => 'Tauchgänge werden neu ausgewertet';
+
+  @override
+  String reparseBatch_progressCount(int done, int total) {
+    return '$done von $total Tauchgängen werden neu ausgewertet';
+  }
+
+  @override
+  String get reparseBatch_cancelling => 'Wird abgebrochen...';
+
+  @override
+  String get reparseBatch_resultTitle => 'Neu-Auswertung abgeschlossen';
+
+  @override
+  String get reparseBatch_resultCancelledTitle => 'Neu-Auswertung abgebrochen';
+
+  @override
+  String get reparseBatch_resultErrorTitle =>
+      'Neu-Auswertung durch einen Fehler abgebrochen';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return 'Nicht verarbeitet: $count';
+  }
+
+  @override
+  String reparseBatch_resultSummary(int succeeded, int total) {
+    return '$succeeded von $total Tauchgängen neu ausgewertet.';
+  }
+
+  @override
+  String reparseBatch_resultFailed(int count) {
+    return 'Fehlgeschlagen: $count';
+  }
+
+  @override
+  String reparseBatch_resultNotProcessed(int count) {
+    return 'Nicht verarbeitet (abgebrochen): $count';
+  }
+
+  @override
+  String reparseBatch_resultSkipped(int count) {
+    return 'Übersprungen, keine Rohdaten: $count';
+  }
+
+  @override
+  String reparseBatch_resultProfilesPreserved(int count) {
+    return 'Zusammengeführte Tauchgänge mit unverändertem Profil: $count';
+  }
+
+  @override
+  String get reparseBatch_failedListHeader => 'Fehlgeschlagene Tauchgänge';
+
+  @override
+  String reparseBatch_failedDiveTitle(int number) {
+    return 'Tauchgang #$number';
+  }
+
+  @override
+  String get reparseBatch_failedDiveUnnumbered => 'Tauchgang ohne Nummer';
+
+  @override
+  String get reparseBatch_missingDescriptors => 'Tauchcomputer-Angaben fehlen';
+
+  @override
+  String get reparseBatch_confirmTitle => 'Tauchgänge neu auswerten';
+
+  @override
+  String reparseBatch_confirmMessage(int count) {
+    return 'Den Tauchgang-Parser für $count Tauchgänge mit gespeicherten Rohdaten erneut ausführen. Dies aktualisiert Profil- und Sensordaten, behält aber Notizen, Tauchplätze, Tauchpartner und andere Bearbeitungen bei.';
+  }
+
+  @override
+  String reparseBatch_confirmSkipped(int count) {
+    return 'Ausgewählte Tauchgänge ohne Rohdaten (übersprungen): $count';
+  }
+
+  @override
+  String get reparseBatch_noneWithRawData =>
+      'Keiner der ausgewählten Tauchgänge hat gespeicherte Rohdaten zum Neu-Auswerten.';
+
+  @override
+  String get diveLog_selection_tooltip_reparse => 'Neu auswerten';
+
+  @override
+  String get settings_reparseDives_title => 'Tauchgänge neu auswerten';
+
+  @override
+  String get settings_reparseDives_subtitle =>
+      'Den Tauchgang-Parser für jeden Tauchgang mit gespeicherten Rohdaten erneut ausführen';
+
+  @override
+  String get settings_reparseDives_intro =>
+      'Nutze dies, wenn ein App-Update das Einlesen von Tauchcomputerdaten verbessert. Notizen, Tauchplätze, Tauchpartner und andere Bearbeitungen bleiben erhalten.';
+
+  @override
+  String settings_reparseDives_withRawData(int count) {
+    return 'Tauchgänge mit Rohdaten: $count';
+  }
+
+  @override
+  String settings_reparseDives_withoutRawData(int count) {
+    return 'Tauchgänge ohne Rohdaten (nicht neu ausgewertet): $count';
+  }
+
+  @override
+  String get settings_reparseDives_byComputer => 'Nach Tauchcomputer';
+
+  @override
+  String get settings_reparseDives_unknownComputer =>
+      'Unbekannter Tauchcomputer';
+
+  @override
+  String get settings_reparseDives_none =>
+      'Keine Tauchgänge haben gespeicherte Rohdaten zum Neu-Auswerten.';
+
+  @override
+  String get settings_reparseDives_button => 'Alle neu auswerten';
 
   @override
   String get diveComputer_rawData_discardAction => 'Verwerfen';
@@ -40749,11 +40987,27 @@ class AppLocalizationsDe extends AppLocalizations {
       'Der CNS-Wert (Sauerstoff-Uhr) sinkt nach dem Tauchgang mit einer Halbwertszeit von 90 Minuten – nach rund einem Tag ist er praktisch auf 0 zurückgegangen.\n\nDie Tages-OTU wird jede Nacht um Mitternacht zurückgesetzt. Die Wochen-OTU ist eine rollierende Summe der letzten 7 Tage: ältere Tauchgänge fallen automatisch wieder aus der Berechnung heraus, sobald sie ausserhalb dieses Fensters liegen.';
 
   @override
+  String get safetyHub_tissueLoading_clear_title =>
+      'Keine Restbelastung der Gewebe';
+
+  @override
+  String get safetyHub_tissueLoading_clear_body =>
+      'Alle Kompartimente sind wieder im Gleichgewicht mit der Luft an der Oberfläche. Sie bleiben auf ihrem Normalwert (der Markierung auf jedem Balken) und fallen nicht auf 0 %.';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_title =>
+      'Gewebesättigung nicht verfügbar';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_body =>
+      'Für den letzten Tauchgang fehlen die Daten, um die Gewebesättigung zu berechnen, zum Beispiel bei einem Tauchgang ohne Tiefenprofil, im Gauge-Modus oder mit Rebreather ohne Setpoint.';
+
+  @override
   String get safetyHub_tissueLoading_about_title => 'Über die Gewebesättigung';
 
   @override
   String get safetyHub_tissueLoading_about_body =>
-      'Ihr Körper hat 16 Gewebekompartimente, die Stickstoff (und bei Trimix- oder Rebreather-Tauchgängen auch Helium) mit unterschiedlichen Geschwindigkeiten aufnehmen und abgeben. Schnelle Gewebe sättigen und entsättigen rasch, langsame Gewebe brauchen dafür deutlich länger.\n\nNach einem Tauchgang mit Helium können sich Stickstoff und Helium in einem Kompartiment kurzzeitig gegenläufig verhalten: Während das Helium noch ausgast, nimmt derselbe Bereich gleichzeitig wieder etwas Stickstoff auf, bis beide Gase das Gleichgewicht mit der Atemluft erreicht haben. Deshalb kann ein Kompartiment vorübergehend \"Ongassing\" anzeigen, auch wenn die Gesamtbelastung insgesamt weiter sinkt.';
+      'Dein Körper hat 16 Gewebekompartimente, die Stickstoff (und bei Trimix- oder Rebreather-Tauchgängen auch Helium) unterschiedlich schnell aufnehmen und abgeben. Schnelle Gewebe sättigen und entsättigen rasch, langsame brauchen dafür deutlich länger.\n\nRestbelastung ist nur der Anteil über dem Normalwert an der Oberfläche. Auch vollständig entsättigt fallen die Balken nicht auf 0 %: Jedes Kompartiment pendelt sich auf der Markierung ein, die dem Stickstoff der Atemluft entspricht. Darum kann ein schnelles Kompartiment nach einer Deko mit Sauerstoff hier höher stehen als am Ende des Tauchgangs, ohne dass die Belastung gestiegen ist.\n\nNach einem Tauchgang mit Helium gibt ein Kompartiment Helium ab und nimmt gleichzeitig Stickstoff auf, bis beide Gase im Gleichgewicht mit der Atemluft sind.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -42358,6 +42612,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_clock_profileFit(int minutes) {
+    return 'Eine Quelle liegt $minutes Min. neben der Stelle, an der ihr Profil zum primären passt';
+  }
+
+  @override
   String dataQuality_msg_shared_gear_overlap(
     String item,
     String diverA,
@@ -42626,6 +42885,15 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_fixSourceClockAll =>
       'Diesen Computer auch bei anderen Tauchgängen mit derselben Abweichung korrigieren';
+
+  @override
+  String get dataQuality_repairLabel_alignSourceProfile =>
+      'Diesen Computer anhand seines Profils ausrichten';
+
+  @override
+  String dataQuality_repairLabel_alignSourceProfileNamed(String computer) {
+    return '$computer anhand des Profils ausrichten';
+  }
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Konsolidieren';
@@ -57841,6 +58109,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get rules_value_empty => '(leer)';
 
   @override
+  String rules_value_gearViaSet(String item, String set) {
+    return '$item ($set)';
+  }
+
+  @override
   String get rules_collection_diveTypes => 'Tauchgangstypen';
 
   @override
@@ -57854,6 +58127,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get rules_collection_courses => 'Kurse';
+
+  @override
+  String get rules_collection_equipmentSets => 'Ausrüstungssets';
 
   @override
   String get rules_collection_siteTags => 'Tauchplatz-Tags';
@@ -60473,4 +60749,202 @@ class AppLocalizationsDe extends AppLocalizations {
   ) {
     return 'Markierung $number: $time, $depth, $distance';
   }
+
+  @override
+  String get twinSet_title => 'Doppelgerät';
+
+  @override
+  String get twinSet_none => 'Nicht Teil eines Doppelgeräts';
+
+  @override
+  String get twinSet_link => 'Mit einer Partnerflasche verbinden';
+
+  @override
+  String twinSet_since(String date) {
+    return 'Seit $date';
+  }
+
+  @override
+  String get twinSet_replace => 'Partner tauschen';
+
+  @override
+  String get twinSet_unlink => 'Trennen';
+
+  @override
+  String get twinSet_history => 'Verlauf';
+
+  @override
+  String twinSet_historyRange(String partner, String from, String to) {
+    return '$partner, $from bis $to';
+  }
+
+  @override
+  String get twinSet_deletePairing => 'Paarung löschen';
+
+  @override
+  String get twinSet_deletePairingConfirm =>
+      'Diese Paarung aus dem Verlauf löschen? Füllungen und Tauchgänge bleiben unverändert.';
+
+  @override
+  String get twinSet_pickerTitle => 'Partnerflasche';
+
+  @override
+  String get twinSet_pickerEmpty => 'Keine anderen Flaschen zum Paaren.';
+
+  @override
+  String get twinSet_pairedOnHelp => 'Gepaart seit';
+
+  @override
+  String get twinSet_unpairedOnHelp => 'Getrennt am';
+
+  @override
+  String get twinSet_pressureMismatchTitle => 'Unterschiedliche Betriebsdrücke';
+
+  @override
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  ) {
+    return '$a ist für $aPressure ausgelegt und $b für $bPressure. Ein verbundenes Paar wird auf einen Druck gefüllt.';
+  }
+
+  @override
+  String get twinSet_continue => 'Fortfahren';
+
+  @override
+  String get twinSet_replaceTitle => 'Partner tauschen?';
+
+  @override
+  String twinSet_replaceClash(String cylinder, String partner) {
+    return '$cylinder ist mit $partner gepaart.';
+  }
+
+  @override
+  String twinSet_replaceQuestion(String a, String b) {
+    return 'Stattdessen $a mit $b paaren?';
+  }
+
+  @override
+  String twinSet_leftAlone(String name) {
+    return '$name bleibt dann einzeln.';
+  }
+
+  @override
+  String get twinSet_replaceConfirm => 'Tauschen';
+
+  @override
+  String get twinSet_clashTitle => 'Überschneidende Paarung';
+
+  @override
+  String twinSet_clashBody(String pairs) {
+    return 'Das überschneidet sich mit der Paarung von $pairs. Eine Flasche kann an einem Tag nur zu einem Doppelgerät gehören.';
+  }
+
+  @override
+  String twinSet_pairNames(String a, String b) {
+    return '$a und $b';
+  }
+
+  @override
+  String twinSet_endBeforeStart(String date) {
+    return 'Das Enddatum muss nach dem $date liegen.';
+  }
+
+  @override
+  String get twinSet_saveFailed =>
+      'Die Änderung am Doppelgerät konnte nicht gespeichert werden.';
+
+  @override
+  String twinSet_with(String partner) {
+    return 'Doppelgerät mit $partner';
+  }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return 'Beide Flaschen des Doppelgeräts ($partner)';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner, $status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => 'Füllung bearbeiten';
+
+  @override
+  String get passport_logFill_overPressureTitle => 'Über dem Betriebsdruck';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure liegt über dem Betriebsdruck von $name, $workingPressure.';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => 'Trotzdem speichern';
+
+  @override
+  String get passport_logFill_back => 'Zurück';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return 'Auch auf die Füllung von $partner anwenden?';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => 'Ja';
+
+  @override
+  String get passport_logFill_onlyThisOne => 'Nur diese';
+
+  @override
+  String get passport_history_anotherCylinder => 'eine andere Flasche';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return 'Zusammen mit $partner gefüllt';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'Diese Füllung bei beiden Flaschen löschen oder nur bei dieser?';
+
+  @override
+  String get passport_history_deleteBoth => 'Beide Flaschen';
+
+  @override
+  String get passport_history_edit => 'Füllung bearbeiten';
+
+  @override
+  String get twinSet_choiceTitle => 'Das Doppelgerät verwenden?';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'Doppelgerät ($a + $b, $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return 'Nur $a';
+  }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'Gepaart seit';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'Getrennt am';
+
+  @override
+  String get settings_conflict_field_filledTogetherId =>
+      'Füllung des Doppelgeräts';
+
+  @override
+  String get settings_conflict_field_twinPassportId =>
+      'Pass der Partnerflasche';
 }

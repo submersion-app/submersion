@@ -394,6 +394,10 @@ class RuleUndoService {
     return (removeNow: removeNow, addBack: addBack, blocked: absent.isNotEmpty);
   }
 
+  /// Whether two stored gear rows carry the same assembly and set.
+  bool _sameItem(Map<Object?, Object?>? a, Map<Object?, Object?>? b) =>
+      a?['via'] == b?['via'] && a?['set'] == b?['set'];
+
   GearProvenance _gear(String id, Map<Object?, Object?>? m) => GearProvenance(
     equipmentId: id,
     viaEquipmentId: m?['via'] as String?,
@@ -402,8 +406,14 @@ class RuleUndoService {
 
   Future<_Outcome> _undoDiveMembership(
     RuleChange c,
-    DiveCollection collection,
+    DiveCollection recorded,
   ) async {
+    // A set action changes gear and is recorded as gear (#4284). A change
+    // stored under the set collection all the same is gear too: its ids are
+    // equipment, checked against the equipment table, never against sets.
+    final collection = recorded == DiveCollection.equipmentSets
+        ? DiveCollection.equipment
+        : recorded;
     final before = _items(c.before);
     final after = _items(c.after);
     final current = _items(
@@ -419,7 +429,19 @@ class RuleUndoService {
           ? (id) => '${_roles(current[id])}' == '${_roles(after[id])}'
           : null,
     );
-    if (removeNow.isEmpty && addBack.isEmpty) {
+    // Gear the run only re-tagged (a hand-added item a set took on, #4284)
+    // and that is still as the run left it gets its old provenance back.
+    final retagged = collection == DiveCollection.equipment
+        ? {
+            for (final id in before.keys)
+              if (after.containsKey(id) &&
+                  current.containsKey(id) &&
+                  !_sameItem(before[id], after[id]) &&
+                  _sameItem(current[id], after[id]))
+                id,
+          }
+        : const <String>{};
+    if (removeNow.isEmpty && addBack.isEmpty && retagged.isEmpty) {
       return blocked ? _Outcome.blocked : _Outcome.edited;
     }
     final diveId = c.targetId;
@@ -436,10 +458,12 @@ class RuleUndoService {
           types.insert(order.indexOf(t).clamp(0, types.length), t);
         }
         await _dives.replaceDiveTypes(diveId, types);
-      case DiveCollection.equipment:
+      // A set change was turned into a gear change above, so only gear
+      // lands here. The gear write itself drops a set deleted since the run.
+      case DiveCollection.equipment || DiveCollection.equipmentSets:
         await _dives.replaceGear(
           diveId,
-          _restoredGear(before, current, removeNow, addBack),
+          _restoredGear(before, current, removeNow, addBack, retagged),
         );
       case DiveCollection.buddies:
         if (removeNow.isNotEmpty) {
@@ -485,12 +509,14 @@ class RuleUndoService {
     Map<String, Map<Object?, Object?>?> current,
     List<String> removeNow,
     List<String> addBack,
+    Set<String> retagged,
   ) {
     final gone = removeNow.toSet();
     final rows = [
       for (final e in current.entries)
         if (!gone.contains(e.key))
           switch (_gear(e.key, e.value)) {
+            _ when retagged.contains(e.key) => _gear(e.key, before[e.key]),
             final g when gone.contains(g.viaEquipmentId) =>
               before.containsKey(e.key)
                   ? _gear(e.key, before[e.key])

@@ -151,6 +151,44 @@ void main() {
       expect(picked, ConsolidationAlignment.starts);
     });
 
+    testWidgets('records that overlap get the profile clock note (#4296)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        ConsolidationAlignmentControls(
+          alignment: ConsolidationAlignment.bestFit,
+          onChanged: (_) {},
+          recordsOverlap: true,
+        ),
+      );
+      expect(find.textContaining("don't overlap in time"), findsNothing);
+      expect(
+        find.textContaining('match at a different time than the computers'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the short note folds the profile clock note too (#4296)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        ConsolidationAlignmentControls(
+          alignment: ConsolidationAlignment.bestFit,
+          onChanged: (_) {},
+          recordsOverlap: true,
+        ),
+        width: 262,
+      );
+      await tester.tap(find.text("One computer's clock is probably off."));
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining('match at a different time than the computers'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('shows the no-profile note only when asked', (tester) async {
       const note =
           'A record has no depth profile to match, so its start is lined up '

@@ -13,7 +13,24 @@ int? parseMinutesSeconds(String text) {
 }
 
 /// `m:ss` for a count of seconds: 750 is "12:30", 67 is "1:07". The one
-/// shape a time from the dive's start is shown in, on a gas switch and in
-/// the field that edits one.
-String formatMinutesSeconds(int seconds) =>
-    '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
+/// shape a time from the dive's start is shown in, on a gas switch, in the
+/// field that edits one and in the profile chart's tooltip.
+///
+/// A time before the start keeps its sign: -65 is "-1:05". A second
+/// computer placed on the primary's timeline can start first (#4296), and
+/// Dart's `%` is never negative, so formatting the signed count directly
+/// gave "-1:55".
+String formatMinutesSeconds(int seconds) {
+  final sign = seconds < 0 ? '-' : '';
+  final elapsed = seconds.abs();
+  return '$sign${elapsed ~/ 60}:${(elapsed % 60).toString().padLeft(2, '0')}';
+}
+
+/// `mm:ss` with the minutes padded to two digits, the shape playback and
+/// range selection read out in: 65 is "01:05", -65 is "-01:05".
+String formatPaddedMinutesSeconds(int seconds) {
+  final sign = seconds < 0 ? '-' : '';
+  final elapsed = seconds.abs();
+  final minutes = (elapsed ~/ 60).toString().padLeft(2, '0');
+  return '$sign$minutes:${(elapsed % 60).toString().padLeft(2, '0')}';
+}
