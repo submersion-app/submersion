@@ -413,21 +413,27 @@ class GasAnalysisService {
 
       // Calculate SAC rate
       double? sacRate;
+      // The ambient pressure the rate was divided by (issue #771).
+      double? rateAmbientBar;
 
       if (tsPressures != null && tsPressures.length >= 2) {
         // Enhanced calculation using time-series data
+        final seriesDepth = avgDepthDuringUse ?? dive.avgDepth ?? 10.0;
         sacRate = _calculateSacFromTimeSeries(
           pressurePoints: tsPressures,
           // A cylinder holds its pressure between breathing periods, so the
           // drop from the first to the last is the gas breathed in them all.
           startTime: usageWindows.first.start,
           endTime: usageWindows.last.end,
-          avgDepth: avgDepthDuringUse ?? dive.avgDepth ?? 10.0,
+          avgDepth: seriesDepth,
           environment: environment,
           tankVolume: volume,
           gasMix: tank.gasMix,
           breathingSeconds: usageSeconds,
         );
+        if (sacRate != null) {
+          rateAmbientBar = environment.pressureAtDepth(seriesDepth);
+        }
       }
       // A series that shows no drop over the window (a flat or lost
       // transmitter) falls back to the logged pressures (issue #3373).
@@ -465,6 +471,7 @@ class GasAnalysisService {
               // Fallback: pressure-based SAC (bar/min) when no tank volume
               sacRate = pressureUsed / durationMin / ambientPressureBar;
             }
+            if (sacRate != null) rateAmbientBar = ambientPressureBar;
           }
         }
       }
@@ -484,6 +491,9 @@ class GasAnalysisService {
           avgDepthDuringUse: avgDepthDuringUse,
           hasTimeSeriesData: hasTsData,
           order: tank.order,
+          usageWindows: usageWindows,
+          usageFromRecordedDuration: hasRecordedUsage,
+          rateAmbientBar: rateAmbientBar,
         ),
       );
     }
