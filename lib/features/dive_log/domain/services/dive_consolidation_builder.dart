@@ -139,8 +139,11 @@ class DiveConsolidationBuilder {
   /// Whether [secondary], which overlaps [primary] in time, is the same dive
   /// on a computer whose clock is wrong: its depth trace [fit] matches the
   /// primary's strongly, at an offset more than [clockTolerance] away from
-  /// the one the entry times give. A weak fit, or none, leaves the clocks
-  /// trusted.
+  /// the one the entry times give, and the trace does not also fit where the
+  /// clock puts it. A record that logged only part of the primary (one half
+  /// of a combined dive) can match a look-alike stretch near lined-up starts
+  /// while its clock already places it right. A weak fit, or none, leaves
+  /// the clocks trusted.
   bool _clockDisagrees(
     Dive primary,
     Dive secondary,
@@ -150,7 +153,12 @@ class DiveConsolidationBuilder {
     final byClock = secondary.effectiveEntryTime
         .difference(primary.effectiveEntryTime)
         .inSeconds;
-    return (fit.offsetSeconds - byClock).abs() > clockTolerance.inSeconds;
+    if ((fit.offsetSeconds - byClock).abs() <= clockTolerance.inSeconds) {
+      return false;
+    }
+    return !const ProfileAligner()
+        .scoreAt(primary.profile, secondary.profile, byClock)
+        .isStrongMatch;
   }
 
   /// [alignment] null rejects a secondary that does not overlap the primary

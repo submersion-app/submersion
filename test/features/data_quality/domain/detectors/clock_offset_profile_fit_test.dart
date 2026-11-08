@@ -120,6 +120,25 @@ void main() {
       expect(fitFindings(_reef(start: -3200)), isEmpty);
     });
 
+    test('a source whose placement fits is not flagged, even where its trace '
+        'also matches somewhere else', () {
+      // The primary was combined from two halves that look alike, and this
+      // source logged only the second, where it sits. The search around its
+      // lined-up start finds the first half instead.
+      final out = det.detect(
+        makeContext(
+          dive: makeTestDive(entry: entry),
+          sources: twoSources(),
+          samples: [..._reef(), ..._reef(start: 3000)],
+          sourceSamples: {'s-second': _reef(start: 3000)},
+        ),
+      );
+      expect(
+        out.where((f) => f.params.containsKey('profileOffsetSeconds')),
+        isEmpty,
+      );
+    });
+
     test('a source with no samples is not flagged', () {
       expect(fitFindings(const []), isEmpty);
     });

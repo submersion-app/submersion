@@ -1164,6 +1164,39 @@ void main() {
       );
     });
 
+    test('a record whose clock placement fits is trusted, even where its '
+        'trace also matches somewhere else', () {
+      // The primary was combined from two halves that look alike; 'b' logged
+      // only the second, and its clock places it there correctly. The search
+      // around lined-up starts finds the first half instead.
+      final dives = [
+        makeDive(
+          'a',
+          entry: t,
+          runtimeMin: 98,
+          serial: 'A',
+          profile: [
+            ...reefProfile(),
+            for (final p in reefProfile())
+              DiveProfilePoint(timestamp: p.timestamp + 3000, depth: p.depth),
+          ],
+        ),
+        makeDive(
+          'b',
+          entry: t.add(const Duration(seconds: 3000)),
+          runtimeMin: 48,
+          serial: 'B',
+          profile: reefProfile(),
+        ),
+      ];
+      final result = builder.classify(dives, primaryDiveId: 'a');
+      expect((result as ConsolidationReady).realignedIds, isEmpty);
+      expect(
+        builder.build(dives, primaryDiveId: 'a').offsetsSeconds['b'],
+        3000,
+      );
+    });
+
     test('a non-overlapping secondary is realigned but no clock mismatch', () {
       final result = builder.classify([
         makeDive('a', entry: t, runtimeMin: 48, serial: 'A'),

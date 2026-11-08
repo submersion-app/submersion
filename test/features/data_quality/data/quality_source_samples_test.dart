@@ -23,13 +23,14 @@ ProfileSeries _series(
   required String sourceId,
   String? computerId,
   int? activatedAt,
+  bool isPrimary = false,
   required List<ProfileSample> samples,
 }) => ProfileSeries(
   id: id,
   diveId: 'd1',
   computerId: computerId,
   sourceId: sourceId,
-  isPrimary: false,
+  isPrimary: isPrimary,
   activatedAt: activatedAt,
   summary: ProfileSeriesSummary.of(samples),
   samples: samples,
@@ -72,14 +73,15 @@ void main() {
       expect([for (final q in samples['s2']!) q.depth], [20, 20]);
     });
 
-    test('with no source flagged primary, leaves out the first source, the '
-        'one the detector treats as primary', () {
+    test('with no source flagged primary, leaves out the one whose series '
+        'the primary trace is drawn from', () {
       final samples = qualitySourceSamples(
         [_source('s1', computerId: 'c1'), _source('s2', computerId: 'c2')],
         [
           _series(
             'a',
             sourceId: 's1',
+            isPrimary: true,
             samples: const [ProfileSample(timestamp: 0, depth: 10)],
           ),
           _series(
@@ -90,6 +92,68 @@ void main() {
         ],
       );
       expect(samples.keys, ['s2']);
+    });
+
+    test('a combined dive carries none of its halves, an edited half '
+        "included: each owns part of the primary trace", () {
+      final samples = qualitySourceSamples(
+        [_source('h1', computerId: 'c1'), _source('h2', computerId: 'c2')],
+        [
+          _series(
+            'h1-live',
+            sourceId: 'h1',
+            isPrimary: true,
+            samples: const [ProfileSample(timestamp: 0, depth: 10)],
+          ),
+          _series(
+            'h2-edit',
+            sourceId: 'h2',
+            isPrimary: true,
+            samples: const [ProfileSample(timestamp: 3000, depth: 10)],
+          ),
+          // The second half's original, superseded by its edit.
+          _series(
+            'h2-orig',
+            sourceId: 'h2',
+            computerId: 'c2',
+            samples: const [ProfileSample(timestamp: 3000, depth: 9)],
+          ),
+        ],
+      );
+      expect(samples, isEmpty);
+    });
+
+    test('a computer consolidated onto a combined dive is still carried, '
+        'whichever source comes first', () {
+      final samples = qualitySourceSamples(
+        [
+          // Consolidated computers sort anywhere among the halves.
+          _source('extra', computerId: 'c3'),
+          _source('h1', computerId: 'c1'),
+          _source('h2', computerId: 'c2'),
+        ],
+        [
+          _series(
+            'h1-live',
+            sourceId: 'h1',
+            isPrimary: true,
+            samples: const [ProfileSample(timestamp: 0, depth: 10)],
+          ),
+          _series(
+            'h2-live',
+            sourceId: 'h2',
+            isPrimary: true,
+            samples: const [ProfileSample(timestamp: 3000, depth: 10)],
+          ),
+          _series(
+            'extra-series',
+            sourceId: 'extra',
+            computerId: 'c3',
+            samples: const [ProfileSample(timestamp: -600, depth: 10)],
+          ),
+        ],
+      );
+      expect(samples.keys, ['extra']);
     });
   });
 }

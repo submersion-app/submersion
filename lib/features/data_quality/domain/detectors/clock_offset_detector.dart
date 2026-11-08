@@ -72,7 +72,7 @@ class ClockOffsetDetector extends QualityDetector {
       }
     }
 
-    if (primary != null) out.addAll(_misplacedSources(ctx, primary.id));
+    out.addAll(_misplacedSources(ctx));
 
     // Same-diver dives overlapping in time cannot both be right.
     final runtime = ctx.dive.effectiveRuntime;
@@ -105,10 +105,10 @@ class ClockOffsetDetector extends QualityDetector {
   /// trace fits the primary's. A consolidation before #4296 trusted any clock
   /// that overlapped the primary, so a clock wrong by less than the dive
   /// lasted left that source's samples shifted by its error.
-  List<QualityFinding> _misplacedSources(
-    DiveQualityContext ctx,
-    String primaryId,
-  ) {
+  ///
+  /// Only [DiveQualityContext.sourceSamples] are checked, which holds the
+  /// sources placed against the primary trace and none it is drawn from.
+  List<QualityFinding> _misplacedSources(DiveQualityContext ctx) {
     if (ctx.primarySamples.isEmpty) return const [];
     final primaryTrace = [
       for (final q in ctx.primarySamples)
@@ -118,7 +118,7 @@ class ClockOffsetDetector extends QualityDetector {
     final primaryEnd = ctx.primarySamples.last.t;
     final out = <QualityFinding>[];
     for (final s in ctx.sources) {
-      if (s.id == primaryId) continue;
+      if (s.isPrimary) continue;
       final samples = ctx.sourceSamples[s.id];
       if (samples == null || samples.isEmpty) continue;
       // Only a source placed over the primary's recording, the case a
@@ -130,14 +130,23 @@ class ClockOffsetDetector extends QualityDetector {
       // The aligner searches around lined-up starts, so the source is moved
       // to its own start first and its placement is measured against that.
       final placedAt = samples.first.t;
-      final fit = const ProfileAligner().align(primaryTrace, [
+      final trace = [
         for (final q in samples)
           DiveProfilePoint(timestamp: q.t - placedAt, depth: q.depth),
-      ]);
+      ];
+      final fit = const ProfileAligner().align(primaryTrace, trace);
       if (!fit.isStrongMatch) continue;
       final shift = fit.offsetSeconds - placedAt;
       if (shift.abs() <=
           QualityThresholds.sourceProfileFitTolerance.inSeconds) {
+        continue;
+      }
+      // A source that also fits where it sits is placed right: one that
+      // logged only part of the primary can match a look-alike stretch
+      // near its lined-up start as well.
+      if (const ProfileAligner()
+          .scoreAt(primaryTrace, trace, placedAt)
+          .isStrongMatch) {
         continue;
       }
       out.add(

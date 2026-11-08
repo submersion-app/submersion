@@ -96,7 +96,7 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
       setState(() {
         _dives = dives;
         _classification = classification;
-        if (classification is MergeSequential) _initMergeChoice(dives);
+        if (classification is MergeSequential) _initMergeChoice();
       });
     } catch (_) {
       // A DB/query failure would otherwise leave the dialog stuck on the
@@ -107,12 +107,9 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
 
   /// Whether this non-overlapping selection can be merged as additional
   /// computers, and whether Merge should be the preselected choice.
-  void _initMergeChoice(List<domain.Dive> dives) {
-    final consolidation = const DiveConsolidationBuilder().classify(
-      dives,
-      alignment: ConsolidationAlignment.bestFit,
-    );
-    if (consolidation is! ConsolidationReady) return;
+  void _initMergeChoice() {
+    // Through the preview cache, so the consolidation panel reuses it.
+    if (_consolidationClassification() is! ConsolidationReady) return;
     _mergeAvailable = true;
     if (_looksLikeSameDive()) _mode = CombineMode.merge;
   }
