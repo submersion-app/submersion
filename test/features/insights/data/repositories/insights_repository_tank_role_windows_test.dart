@@ -352,6 +352,26 @@ void main() {
       expect(pressure['stage'], closeTo(5 / 3, 1e-9));
     });
 
+    test('a recorded duration counts on a dive with no runtime', () async {
+      // An import with per-cylinder durations but no runtime or profile:
+      // the Cylinders card still rates the cylinder over its own duration.
+      await insertDive('no-runtime');
+      await db.customStatement(
+        "UPDATE dives SET runtime = NULL WHERE id = 'no-runtime'",
+      );
+      await insertTank('no-runtime', 'nr-back', 'backGas', usageSeconds: 1800);
+      // Nothing says how long this one was breathed.
+      await insertTank('no-runtime', 'nr-stage', 'stage', o2: 50, order: 1);
+
+      final volume = await InsightsRepository(
+        gasModel: GasModel.ideal,
+      ).getSacVolumeByTankRole();
+
+      expect(volume, {'backGas': closeTo(20, 1e-9)});
+      final card = await cylinderCard('no-runtime', GasModel.ideal);
+      expect(card.single.rmv, closeTo(20, 1e-9));
+    });
+
     test('switches win over a recorded duration', () async {
       await insertSwitchedDive('both');
       // A recorded duration that disagrees with the switches.

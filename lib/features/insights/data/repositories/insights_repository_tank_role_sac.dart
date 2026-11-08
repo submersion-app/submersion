@@ -74,7 +74,9 @@ extension _InsightsRepositoryTankRoleSac on InsightsRepository {
         WHERE t.start_pressure IS NOT NULL
           AND t.end_pressure IS NOT NULL
           AND t.start_pressure > t.end_pressure
-          AND $runtime > 0
+          -- A duration recorded for the cylinder is enough on its own, as
+          -- the Cylinders card reads one when the dive has no runtime.
+          AND ($runtime > 0 OR t.usage_duration > 0)
           AND d.dive_mode <> 'ccr'
           $diverFilter ${df.clause}
         ''',
