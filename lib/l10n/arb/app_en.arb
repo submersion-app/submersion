@@ -2746,6 +2746,15 @@
   "certifications_list_groupBy_status": "Status",
   "certifications_list_section_expired": "Expired",
   "certifications_list_section_expiringSoon": "Expiring Soon",
+  "certifications_list_section_professional": "{agency} Professional",
+  "@certifications_list_section_professional": {
+    "description": "Header of the certification list section holding one agency's professional ratings (divemaster, instructor and up) when grouped by agency.",
+    "placeholders": {
+      "agency": {
+        "type": "String"
+      }
+    }
+  },
   "certifications_list_section_valid": "Valid",
   "certifications_list_sort_title": "Sort Certifications",
   "certifications_list_tile_expired": "Expired",
@@ -6048,6 +6057,8 @@
   "diveLog_cylinders_figureStart": "Start {pressure}",
   "diveLog_cylinders_figureEnd": "End {pressure}",
   "diveLog_cylinders_figureUsed": "Used {pressure}",
+  "diveLog_cylinders_figureNow": "Now {pressure}",
+  "diveLog_cylinders_figureNowEstimated": "Now {pressure} (est.)",
   "diveLog_cylinders_gasSemantics": "Gas {mix}",
   "diveLog_cylinders_gasUsed": "Gas used {amount}",
   "diveLog_cylinders_loopUse": "Loop use {rate}",
@@ -6709,6 +6720,22 @@
   },
   "@diveLog_cylinders_figureUsed": {
     "description": "Cylinders card tank figure label: the pressure used, between the start and end labels beside the tank figure, e.g. \"Used 200 bar\". pressure is the value with its unit.",
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "@diveLog_cylinders_figureNow": {
+    "description": "Cylinders card tank figure label: the tank's pressure at the moment the profile chart's cursor is on, beside a line across the tank figure at that level, e.g. \"Now 130 bar\". Shown only while hovering or dragging on the profile or tissue charts. pressure is the value with its unit.",
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "@diveLog_cylinders_figureNowEstimated": {
+    "description": "Cylinders card tank figure label: as diveLog_cylinders_figureNow, for a tank with no transmitter whose pressure is estimated as a straight line from its start and end pressures, e.g. \"Now 130 bar (est.)\". Use the same estimate marker as diveLog_pressure_estimatedSuffix. pressure is the value with its unit.",
     "placeholders": {
       "pressure": {
         "type": "String"
@@ -11769,6 +11796,9 @@
   "media_photoPicker_permissionRequestMessage": "Submersion needs access to your photo library to add dive photos.",
   "media_photoPicker_permissionTitle": "Dive Photos",
   "media_photoPicker_selectAllButton": "Select All",
+  "media_photoPicker_albumFilter_all": "All albums",
+  "media_photoPicker_albumFilter_chip": "{album} ({count})",
+  "media_photoPicker_albumFilter_label": "Filter by album",
   "media_photoPicker_selectedCount": "{count} selected",
   "media_photoPicker_showingPhotosFromRange": "Showing photos from {rangeText}",
   "media_photoPicker_thumbnailToggleLabel": "Toggle selection for photo",
@@ -12220,6 +12250,16 @@
   },
   "@media_photoPicker_selectedCount": {
     "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@media_photoPicker_albumFilter_chip": {
+    "placeholders": {
+      "album": {
+        "type": "String"
+      },
       "count": {
         "type": "int"
       }

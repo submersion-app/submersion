@@ -4627,6 +4627,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_list_section_expiringSoon => 'Hamarosan lejár';
 
   @override
+  String certifications_list_section_professional(String agency) {
+    return '$agency Profi';
+  }
+
+  @override
   String get certifications_list_section_valid => 'Érvényes';
 
   @override
@@ -10799,6 +10804,16 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String diveLog_cylinders_figureUsed(String pressure) {
     return 'Felhasznált $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureNow(String pressure) {
+    return 'Most $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureNowEstimated(String pressure) {
+    return 'Most $pressure (becs.)';
   }
 
   @override
@@ -19711,6 +19726,17 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get media_photoPicker_selectAllButton => 'Összes kijelölése';
+
+  @override
+  String get media_photoPicker_albumFilter_all => 'Összes album';
+
+  @override
+  String media_photoPicker_albumFilter_chip(String album, int count) {
+    return '$album ($count)';
+  }
+
+  @override
+  String get media_photoPicker_albumFilter_label => 'Szűrés album szerint';
 
   @override
   String media_photoPicker_selectedCount(int count) {

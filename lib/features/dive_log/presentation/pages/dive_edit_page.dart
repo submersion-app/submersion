@@ -38,6 +38,7 @@ import 'package:submersion/features/dive_log/domain/services/gas_switch_editing.
 import 'package:submersion/features/dive_log/domain/services/profile_depth_at.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_usage_range.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
+import 'package:submersion/features/dive_log/presentation/helpers/linked_dive_times.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/seeded_dive_times.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
@@ -194,6 +195,7 @@ import 'package:submersion/features/dive_log/domain/services/multi_cylinder_cons
 
 part 'dive_edit_page_annotations.dart';
 part 'dive_edit_page_gas_switches.dart';
+part 'dive_edit_page_linked_times.dart';
 
 const _createNewDiveCenterSentinel = '__create_new_dive_center__';
 const _createNewTripSentinel = '__create_new_trip__';
@@ -328,9 +330,30 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   TimeOfDay? _exitTime;
 
   /// What the time inputs were filled with and the exact values they round;
-  /// null for a new dive. The save reads it so an unrelated edit does not
-  /// write whole minutes over stored seconds (issue #3901).
+  /// null for a new dive until an entry or runtime edit moves its exit. The
+  /// save reads it so an unrelated edit does not write whole minutes over
+  /// stored seconds (issue #3901), and a linked edit re-seeds it so the exit
+  /// it moves keeps its seconds (issue #241).
   SeededDiveTimes? _seededTimes;
+
+  /// The times as they last settled (seeded, or after an entry or exit
+  /// edit), with the runtime shown then. Each runtime keystroke links
+  /// from here, so a digit passed on the way to a value, or left by
+  /// backspacing, never moves the exit for good, and a blank, zero or
+  /// unchanged runtime puts the exact times back (issues #241, #3901).
+  ({
+    DateTime? exit,
+    DateTime? exitDate,
+    TimeOfDay? exitTime,
+    SeededDiveTimes? seeded,
+    bool settled,
+    int? runtimeMinutes,
+  })?
+  _runtimeEditBase;
+
+  // The one setState seam for the linked time edits in
+  // dive_edit_page_linked_times.dart.
+  void _updateTimes(VoidCallback mutate) => setState(mutate);
   final _diveNumberController = TextEditingController();
   final _durationController = TextEditingController();
   final _runtimeController = TextEditingController();
@@ -1003,6 +1026,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     _waterTempController.text = dive.waterTemp != null
         ? _seedDecimal(units.convertTemperature(dive.waterTemp!), 0)
         : '';
+    _settleTimes();
   }
 
   /// Seeds the depth fields, which a saved profile edit recomputes. Call
@@ -2784,6 +2808,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       avgDepthController: _avgDepthController,
       bottomTimeController: _durationController,
       runtimeController: _runtimeController,
+      onRuntimeChanged: (_) => _followRuntime(),
       diveNumberController: _diveNumberController,
       showDiveNumber: !_isPlanned,
       entryText: _formatEntryText(units),
@@ -2893,18 +2918,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   String? _formatExitText(UnitFormatter units) {
     if (_exitDate == null || _exitTime == null) return null;
     return '${units.formatDate(_exitDate!)}, ${_exitTime!.format(context)}';
-  }
-
-  Future<void> _editEntry() async {
-    await _selectEntryDate();
-    if (!mounted) return;
-    await _selectEntryTime();
-  }
-
-  Future<void> _editExit() async {
-    await _selectExitDate();
-    if (!mounted) return;
-    await _selectExitTime();
   }
 
   Widget? _surfaceIntervalRow() {
@@ -4135,6 +4148,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     setState(() {
       _runtimeController.text = _seedInt(calculatedRuntime.inMinutes);
     });
+    _followRuntime();
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

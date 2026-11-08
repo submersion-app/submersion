@@ -8,6 +8,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/media/data/repositories/media_library_repository.dart';
 import 'package:submersion/features/media/data/services/volume_status.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
+import 'package:submersion/features/media/domain/entities/media_library_grouping.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_sort_provider.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
@@ -17,7 +18,22 @@ import 'package:submersion/core/utils/log_failure.dart';
 /// Library browse presentations. Values are persisted by name via the app
 /// settings key-value store; an unknown stored name falls back to [grid],
 /// which is what makes adding a value here migration-free.
-enum MediaLibraryViewMode { grid, byDive, timeline, map }
+enum MediaLibraryViewMode {
+  grid,
+  byDive,
+  timeline,
+  map;
+
+  /// How this mode's library pages are ordered before the sort (issue
+  /// #4268). The grouped modes group what they load, so their pages must
+  /// hold each group in one run.
+  MediaLibraryGrouping get grouping => switch (this) {
+    MediaLibraryViewMode.byDive => MediaLibraryGrouping.dive,
+    MediaLibraryViewMode.timeline => MediaLibraryGrouping.day,
+    MediaLibraryViewMode.grid ||
+    MediaLibraryViewMode.map => MediaLibraryGrouping.none,
+  };
+}
 
 final mediaLibraryRepositoryProvider = Provider<MediaLibraryRepository>((ref) {
   return MediaLibraryRepository();
@@ -115,21 +131,43 @@ class MediaLibraryState extends Equatable {
   ];
 }
 
-/// Paged library notifier. Rebuilt whenever the filter, sort, or active diver
-/// changes; re-reads the rows it has loaded whenever a table behind them
-/// changes.
+/// Paged library notifier. Rebuilt whenever the filter, sort, active diver
+/// or page grouping changes; re-reads the rows it has loaded whenever a table
+/// behind them changes.
+///
+/// The grouping is selected from the view mode and narrowed by the sort, so
+/// moving between modes whose pages are ordered alike keeps the loaded rows:
+/// Grid and Map always, and Timeline too under a date sort.
+/// [MediaLibraryGrouping.forSort] says which.
 final mediaLibraryNotifierProvider =
     StateNotifierProvider<MediaLibraryNotifier, MediaLibraryState>((ref) {
       final repo = ref.watch(mediaLibraryRepositoryProvider);
       final diverId = ref.watch(currentDiverIdProvider);
       final filter = ref.watch(mediaLibraryFilterProvider);
       final sort = ref.watch(mediaLibrarySortProvider);
-      return MediaLibraryNotifier(repo, diverId, filter, sort);
+      final grouping = ref.watch(
+        mediaLibraryViewModeProvider.select(
+          (mode) => mode.grouping.forSort(sort.field),
+        ),
+      );
+      return MediaLibraryNotifier(
+        repo,
+        diverId,
+        filter,
+        sort,
+        grouping: grouping,
+      );
     });
 
 class MediaLibraryNotifier extends StateNotifier<MediaLibraryState> {
-  MediaLibraryNotifier(this._repo, this._diverId, this._filter, this._sort)
-    : super(const MediaLibraryState()) {
+  MediaLibraryNotifier(
+    this._repo,
+    this._diverId,
+    this._filter,
+    this._sort, {
+    MediaLibraryGrouping grouping = MediaLibraryGrouping.none,
+  }) : _grouping = grouping,
+       super(const MediaLibraryState()) {
     _changesSub = _repo.watchLibraryChanges().listen(
       (_) => _refreshAfterChange(),
     );
@@ -140,6 +178,7 @@ class MediaLibraryNotifier extends StateNotifier<MediaLibraryState> {
   final String? _diverId;
   final MediaLibraryFilter _filter;
   final SortState<MediaSortField> _sort;
+  final MediaLibraryGrouping _grouping;
   StreamSubscription<void>? _changesSub;
 
   /// Serializes every read that rewrites the loaded rows.
@@ -149,8 +188,8 @@ class MediaLibraryNotifier extends StateNotifier<MediaLibraryState> {
   /// reload had just replaced. One at a time, each read starts from a state
   /// that is still current when it writes, and a read that may have missed a
   /// write always has another behind it. This is the whole policy: the query
-  /// cannot change under a read, because a new filter, sort or diver builds a
-  /// new notifier.
+  /// cannot change under a read, because a new filter, sort, diver or
+  /// grouping builds a new notifier.
   Future<void> _pagingQueue = Future<void>.value();
 
   /// A refresh is queued and has not started reading. Any change landing now
@@ -214,6 +253,7 @@ class MediaLibraryNotifier extends StateNotifier<MediaLibraryState> {
         diverId: _diverId,
         filter: _filter,
         sort: _sort,
+        grouping: _grouping,
         limit: state.hasMore
             ? loaded
             : loaded + MediaLibraryRepository.pageSize,
@@ -267,6 +307,7 @@ class MediaLibraryNotifier extends StateNotifier<MediaLibraryState> {
         diverId: _diverId,
         filter: _filter,
         sort: _sort,
+        grouping: _grouping,
         after: cursor,
       );
       if (!mounted) return;

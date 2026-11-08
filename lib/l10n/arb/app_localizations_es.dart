@@ -4651,6 +4651,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get certifications_list_section_expiringSoon => 'Por vencer';
 
   @override
+  String certifications_list_section_professional(String agency) {
+    return '$agency Profesional';
+  }
+
+  @override
   String get certifications_list_section_valid => 'Vigentes';
 
   @override
@@ -10825,6 +10830,16 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String diveLog_cylinders_figureUsed(String pressure) {
     return 'Usado $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureNow(String pressure) {
+    return 'Ahora $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureNowEstimated(String pressure) {
+    return 'Ahora $pressure (est.)';
   }
 
   @override
@@ -19770,6 +19785,17 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get media_photoPicker_selectAllButton => 'Seleccionar todo';
+
+  @override
+  String get media_photoPicker_albumFilter_all => 'Todos los álbumes';
+
+  @override
+  String media_photoPicker_albumFilter_chip(String album, int count) {
+    return '$album ($count)';
+  }
+
+  @override
+  String get media_photoPicker_albumFilter_label => 'Filtrar por álbum';
 
   @override
   String media_photoPicker_selectedCount(int count) {

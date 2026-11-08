@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:photo_manager/photo_manager.dart' as pm;
 
 import 'package:submersion/features/media/data/services/exif_date_parser.dart';
+import 'package:submersion/features/media/data/services/gallery_album_membership.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
 
@@ -101,6 +102,8 @@ class PhotoPickerServiceMobile implements PhotoPickerService {
     // An asset is listed once per album it is in, and each one below costs
     // platform calls. Not _assetCache: a concurrent query fills that too.
     final seen = <String>{};
+    // Every album an asset was listed in, for the picker's album filter.
+    final membership = GalleryAlbumMembership();
 
     for (final album in albums) {
       // Get asset count for this album
@@ -109,6 +112,9 @@ class PhotoPickerServiceMobile implements PhotoPickerService {
 
       // Load all assets from the album
       final assets = await album.getAssetListRange(start: 0, end: count);
+      final galleryAlbum = album.isAll
+          ? null
+          : GalleryAlbum(id: album.id, name: album.name);
 
       for (final asset in assets) {
         // Filter by date range (photo_manager filter should handle this,
@@ -117,6 +123,7 @@ class PhotoPickerServiceMobile implements PhotoPickerService {
         if (createTime.isBefore(start) || createTime.isAfter(end)) {
           continue;
         }
+        membership.add(asset.id, galleryAlbum);
         if (!seen.add(asset.id)) continue;
 
         // Cache asset for later file retrieval
@@ -148,7 +155,7 @@ class PhotoPickerServiceMobile implements PhotoPickerService {
     }
 
     // Sort by creation date (newest first)
-    return results
+    return membership.attach(results)
       ..sort((a, b) => b.createDateTime.compareTo(a.createDateTime));
   }
 

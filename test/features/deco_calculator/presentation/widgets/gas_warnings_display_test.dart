@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/deco_calculator/presentation/providers/deco_calculator_providers.dart';
@@ -108,5 +109,38 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('1,28 bar'), findsOneWidget);
+  });
+
+  // Issue #4299: the card's values and their warnings follow the altitude and
+  // water the decompression result uses, in both directions.
+  testWidgets('a 3000 m fresh-water lake lowers EAN36 at 35 m to a caution', (
+    tester,
+  ) async {
+    final ref = await _pump(tester);
+    ref.read(calcDepthProvider.notifier).state = 35;
+    ref.read(calcO2Provider.notifier).state = 36;
+    ref.read(calcAltitudeProvider.notifier).state = 3000;
+    ref.read(calcWaterTypeProvider.notifier).state = WaterType.fresh;
+    await tester.pumpAndSettle();
+
+    // 0.701 bar surface + 35 m x 0.0981 bar/m = 4.133 bar x 0.36 = 1.488 bar.
+    expect(find.text('1.49 bar'), findsOneWidget);
+    expect(find.byTooltip('ppO2 Caution'), findsOneWidget);
+    expect(find.byTooltip('ppO2 Danger'), findsNothing);
+  });
+
+  testWidgets('salt water below sea level raises oxygen at 6 m to danger', (
+    tester,
+  ) async {
+    final ref = await _pump(tester);
+    ref.read(calcDepthProvider.notifier).state = 6;
+    ref.read(calcO2Provider.notifier).state = 100;
+    ref.read(calcAltitudeProvider.notifier).state = -430;
+    ref.read(calcWaterTypeProvider.notifier).state = WaterType.salt;
+    await tester.pumpAndSettle();
+
+    // 1.066 bar surface + 6 m x 0.1005 bar/m = 1.669 bar of oxygen.
+    expect(find.text('1.67 bar'), findsOneWidget);
+    expect(find.byTooltip('ppO2 Danger'), findsOneWidget);
   });
 }

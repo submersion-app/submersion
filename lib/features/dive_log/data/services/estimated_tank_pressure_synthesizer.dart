@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/services/tank_pressure_lookup.dart';
 
 /// Real per-tank pressures augmented with in-memory linear estimates, plus the
 /// set of tankIds that were synthesized (so the UI can label them "estimated").
@@ -41,8 +42,12 @@ EstimatedTankPressures synthesizeEstimatedTankPressures({
     firstSampleSeconds: firstSampleSeconds,
   );
 
+  // A tank's measured series may still be keyed by an old tank id (#276);
+  // it is matched the way every reader matches it, so such a tank is not
+  // given an estimate beside its own transmitter line (#4291).
+  final measured = resolveTankPressureSeries(tanks, existing);
   for (final tank in tanks) {
-    if (existing[tank.id]?.isNotEmpty ?? false) continue;
+    if (measured[tank.id]?.isNotEmpty ?? false) continue;
     // A suit inflation bottle is not breathed (issue #4243): an estimated
     // line would draw it as if it were. Its logged pressures still show.
     if (!tank.role.isBreathingGas) continue;

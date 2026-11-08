@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/features/bathymetry/data/bathymetry_grid_codec.dart';
 import 'package:submersion/features/bathymetry/data/sources/swiss_bathy_tile_cache_repository.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 
@@ -424,5 +427,177 @@ void main() {
         expect(await repo.hasCachedAnswer('2726_1221'), isFalse);
       },
     );
+  });
+
+  group('compact storage (#4258)', () {
+    final grid = BathymetryGrid(
+      originLat: 47.2,
+      originLon: 9.1,
+      cellSizeLatDeg: 0.001,
+      cellSizeLonDeg: 0.001,
+      rows: 2,
+      cols: 2,
+      depthsMeters: const [1.5, null, 3.25, 4.0],
+      sourceId: 'swissbathy3d',
+      resolutionMeters: 2,
+      fetchedAt: DateTime.utc(2026, 1, 1),
+    );
+
+    test('writeOk stores the compact form and no JSON', () async {
+      await repo.writeOk('2726_1221', grid, referenceLevelMeters: 405.92);
+      final row = await db.select(db.swissBathyTileCache).getSingle();
+      expect(row.gridJson, isNull);
+      expect(BathymetryGridCodec.isEncoded(row.gridBlob!), isTrue);
+      expect((await repo.read('2726_1221'))!.grid.depthsMeters, [
+        1.5,
+        null,
+        3.25,
+        4.0,
+      ]);
+    });
+
+    test('a legacy JSON tile is served, then rewritten compact with its '
+        'freshness bookkeeping untouched', () async {
+      await db
+          .into(db.swissBathyTileCache)
+          .insert(
+            SwissBathyTileCacheCompanion.insert(
+              tileKey: '2726_1221',
+              status: 'ok',
+              gridJson: Value(jsonEncode(grid.toJson())),
+              fetchedAt: 1,
+              sourceDatetime: const Value('2024-01-01T00:00:00Z'),
+              checkedAt: const Value(2),
+              sourceHref: const Value('https://example.test/tile.zip'),
+              referenceLevelMeters: const Value(405.92),
+            ),
+          );
+
+      final entry = await repo.read(
+        '2726_1221',
+        expectedReferenceLevelMeters: 405.92,
+      );
+      expect(entry!.grid.depthsMeters, grid.depthsMeters);
+
+      final row = await db.select(db.swissBathyTileCache).getSingle();
+      expect(row.gridJson, isNull);
+      expect(
+        BathymetryGridCodec.decode(row.gridBlob!).depthsMeters,
+        grid.depthsMeters,
+      );
+      expect(row.fetchedAt, 1);
+      expect(row.sourceDatetime, '2024-01-01T00:00:00Z');
+      expect(row.checkedAt, 2);
+      expect(row.sourceHref, 'https://example.test/tile.zip');
+      expect(row.referenceLevelMeters, 405.92);
+    });
+
+    test('a failed conversion still serves the legacy tile', () async {
+      await db
+          .into(db.swissBathyTileCache)
+          .insert(
+            SwissBathyTileCacheCompanion.insert(
+              tileKey: '2726_1221',
+              status: 'ok',
+              gridJson: Value(jsonEncode(grid.toJson())),
+              fetchedAt: 1,
+            ),
+          );
+      await db.customStatement(
+        'CREATE TRIGGER no_update BEFORE UPDATE ON swiss_bathy_tile_cache '
+        "BEGIN SELECT RAISE(ABORT, 'read-only'); END",
+      );
+
+      final entry = await repo.read('2726_1221');
+      expect(entry!.grid.depthsMeters, grid.depthsMeters);
+      final row = await db.select(db.swissBathyTileCache).getSingle();
+      expect(row.gridJson, isNotNull); // left as it was, retried next read
+    });
+
+    test('a corrupt compact tile is deleted, not served', () async {
+      await db
+          .into(db.swissBathyTileCache)
+          .insert(
+            SwissBathyTileCacheCompanion.insert(
+              tileKey: '2726_1221',
+              status: 'ok',
+              gridBlob: Value(Uint8List.fromList([0x53, 0x42, 0x47, 0x01, 9])),
+              fetchedAt: 1,
+            ),
+          );
+      expect(await repo.read('2726_1221'), isNull);
+      expect(await repo.hasCachedAnswer('2726_1221'), isFalse);
+    });
+
+    test('a tile with a damaged check stamp is deleted, not thrown', () async {
+      await repo.writeOk('2726_1221', grid, referenceLevelMeters: 405.92);
+      // Past DateTime's range, which no clock reading can produce.
+      await db
+          .update(db.swissBathyTileCache)
+          .write(
+            const SwissBathyTileCacheCompanion(checkedAt: Value(9e15 ~/ 1)),
+          );
+      expect(await repo.read('2726_1221'), isNull);
+      expect(await repo.hasCachedAnswer('2726_1221'), isFalse);
+    });
+
+    test('a gap replacing an ok tile drops its grid', () async {
+      await repo.writeOk('2726_1221', grid, referenceLevelMeters: 405.92);
+      await repo.writeEmpty('2726_1221', referenceLevelMeters: 405.92);
+      final row = await db.select(db.swissBathyTileCache).getSingle();
+      expect(row.status, SwissBathyTileCacheRepository.gapStatus);
+      expect(row.gridBlob, isNull);
+      expect(row.gridJson, isNull);
+    });
+
+    // A write started while a read of the legacy row is in flight runs
+    // between the read's SELECT and its conversion UPDATE.
+    group('a write racing a legacy conversion wins', () {
+      final fresh = BathymetryGrid(
+        originLat: grid.originLat,
+        originLon: grid.originLon,
+        cellSizeLatDeg: grid.cellSizeLatDeg,
+        cellSizeLonDeg: grid.cellSizeLonDeg,
+        rows: 2,
+        cols: 2,
+        depthsMeters: const [9.0, 9.0, 9.0, 9.0],
+        sourceId: grid.sourceId,
+        resolutionMeters: grid.resolutionMeters,
+        fetchedAt: DateTime.utc(2026, 6, 1),
+      );
+
+      setUp(
+        () => db
+            .into(db.swissBathyTileCache)
+            .insert(
+              SwissBathyTileCacheCompanion.insert(
+                tileKey: '2726_1221',
+                status: 'ok',
+                gridJson: Value(jsonEncode(grid.toJson())),
+                fetchedAt: 1,
+              ),
+            ),
+      );
+
+      test('a new grid is not overwritten with the stale one', () async {
+        final reading = repo.read('2726_1221');
+        await repo.writeOk('2726_1221', fresh, referenceLevelMeters: 405.92);
+        await reading;
+        final row = await db.select(db.swissBathyTileCache).getSingle();
+        expect(
+          BathymetryGridCodec.decode(row.gridBlob!).depthsMeters,
+          fresh.depthsMeters,
+        );
+      });
+
+      test('a gap is not refilled with the stale grid', () async {
+        final reading = repo.read('2726_1221');
+        await repo.writeEmpty('2726_1221', referenceLevelMeters: 405.92);
+        await reading;
+        final row = await db.select(db.swissBathyTileCache).getSingle();
+        expect(row.status, SwissBathyTileCacheRepository.gapStatus);
+        expect(row.gridBlob, isNull);
+      });
+    });
   });
 }

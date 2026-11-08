@@ -4381,6 +4381,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_list_section_expiringSoon => '即将到期';
 
   @override
+  String certifications_list_section_professional(String agency) {
+    return '$agency 专业级';
+  }
+
+  @override
   String get certifications_list_section_valid => '有效';
 
   @override
@@ -10275,6 +10280,16 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String diveLog_cylinders_figureUsed(String pressure) {
     return '已用 $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureNow(String pressure) {
+    return '当前 $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureNowEstimated(String pressure) {
+    return '当前 $pressure (估算)';
   }
 
   @override
@@ -18814,6 +18829,17 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_photoPicker_selectAllButton => '全选';
+
+  @override
+  String get media_photoPicker_albumFilter_all => '所有相册';
+
+  @override
+  String media_photoPicker_albumFilter_chip(String album, int count) {
+    return '$album ($count)';
+  }
+
+  @override
+  String get media_photoPicker_albumFilter_label => '按相册筛选';
 
   @override
   String media_photoPicker_selectedCount(int count) {
