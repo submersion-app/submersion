@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/bathymetry/data/bathymetry_cache_budget.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/reef/data/repositories/reef_cache_dao.dart';
@@ -68,6 +69,10 @@ class LocalCacheSweepReport {
 /// - Bathymetry grids whose key [BathymetryRepository.keyFor] can no longer
 ///   build: every earlier generation, and Swiss lake rows keyed under a level
 ///   the lake no longer documents. These are most of the file.
+/// - Current bathymetry grids past the byte budget, least recently read first
+///   (issue #4258). A write already enforces it; this covers an install whose
+///   cache was over budget before the budget existed and that fetches nothing
+///   new.
 /// - Track geometry, deco classifications and resolved asset ids whose track,
 ///   dive or media item is gone from the library. A delete made on this device
 ///   evicts some of them directly; a delete applied by sync, or one from a
@@ -100,7 +105,8 @@ class LocalCacheSweep {
 
   /// Throws on a database failure the caller should see.
   Future<LocalCacheSweepReport> run({DateTime? now}) async {
-    final bathymetryRows = await _sweepBathymetry();
+    final at = now ?? DateTime.now();
+    final bathymetryRows = await _sweepBathymetry(at);
     final trackGeometryRows = await _sweepOrphans(
       localTable: _local.gpsTrackGeometryCache,
       localId: _local.gpsTrackGeometryCache.trackId,
@@ -119,7 +125,6 @@ class LocalCacheSweep {
       libraryTable: _library.media,
       libraryId: _library.media.id,
     );
-    final at = now ?? DateTime.now();
     final reefRows = await ReefCacheDao(_local, now: () => at).deleteExpired();
     final vacuumed = await _vacuumIfWorthIt();
 
@@ -137,8 +142,9 @@ class LocalCacheSweep {
     return report;
   }
 
-  /// Reads only the keys: the grids themselves run to 143 KB a row.
-  Future<int> _sweepBathymetry() async {
+  /// Reads only the keys and sizes: the grids themselves run to hundreds of
+  /// kilobytes a row.
+  Future<int> _sweepBathymetry(DateTime now) async {
     final table = _local.bathymetryCache;
     final keys = await (_local.selectOnly(
       table,
@@ -146,7 +152,16 @@ class LocalCacheSweep {
     final dead = keys
         .where((key) => !BathymetryRepository.isCurrentKey(key))
         .toList();
-    return _deleteWhereIn(table, table.cacheKey, dead);
+    final stale = await _deleteWhereIn(table, table.cacheKey, dead);
+    // Grids used within the last hour are kept: a load may have just
+    // written one, and the sweep cannot see the repository's loads.
+    final evicted = await evictBathymetryCacheOverBudget(
+      _local,
+      keepUsedSince: now
+          .subtract(kBathymetryCacheTouchInterval)
+          .millisecondsSinceEpoch,
+    );
+    return stale + evicted;
   }
 
   Future<int> _sweepOrphans({
