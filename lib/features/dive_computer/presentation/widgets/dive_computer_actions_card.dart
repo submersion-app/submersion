@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/raw_dive_data_discard.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/reparse_batch_dialog.dart';
@@ -9,6 +10,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
 import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+final _log = LoggerService.forClass(DiveComputerActionsCard);
 
 /// Download, view, re-import and re-parse, on a dive computer's Equipment
 /// page (issue #3676).
@@ -179,9 +182,22 @@ class _RawDataActions extends ConsumerWidget {
   /// re-parsing only this computer's sources on a dive combined with another
   /// computer's.
   Future<void> _executeReparseAll(BuildContext context, WidgetRef ref) async {
-    final diveIds = await ref
-        .read(reparseBatchServiceProvider)
-        .diveIdsForComputer(computer.id);
+    final messenger = ScaffoldMessenger.of(context);
+    final failed = context.l10n.common_error_tryAgain;
+    final List<String> diveIds;
+    try {
+      diveIds = await ref
+          .read(reparseBatchServiceProvider)
+          .diveIdsForComputer(computer.id);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Could not list the dives to re-parse for ${computer.id}',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      messenger.showSnackBar(SnackBar(content: Text(failed)));
+      return;
+    }
     if (diveIds.isEmpty || !context.mounted) return;
     await runReparseBatch(context, ref, diveIds, computerId: computer.id);
   }

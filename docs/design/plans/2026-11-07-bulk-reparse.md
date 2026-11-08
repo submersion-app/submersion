@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - Never use the em-dash character anywhere (code, comments, strings, commits).
-- No new code in `reparse_service.dart` beyond delegating `reparseAllForComputer`; it is already about 1,500 lines (800 is the cap).
+- No new code in `reparse_service.dart` beyond delegating `reparseDive` to the batch engine; it is already about 1,500 lines (800 is the cap).
 - Every new user-visible string goes in `app_en.arb` and is translated into all 11 other locale ARBs; regenerate with `flutter gen-l10n`.
 - Re-parse UI is hidden when `ref.watch(deviceCapabilitiesProvider).diveComputerDownload` is false.
 - Tests inject `parseFn`; never call `pigeon.DiveComputerHostApi` in tests.
@@ -34,7 +34,7 @@
 
 **Files:**
 - Create: `lib/features/dive_computer/data/services/reparse_batch_service.dart`
-- Modify: `lib/features/dive_computer/data/services/reparse_service.dart` (`reparseAllForComputer` delegates; delete `_reparseAllForComputerInner`)
+- Modify: `lib/features/dive_computer/data/services/reparse_service.dart` (remove `reparseAllForComputer`, `_reparseAllForComputerInner` and `getSourcesForComputerReparse`; `reparseDive` delegates to `ReparseBatchService.reparseSingleDive`)
 - Modify: `lib/features/dive_computer/presentation/providers/reparse_providers.dart` (add `reparseBatchServiceProvider`)
 - Test: `test/features/dive_computer/data/services/reparse_batch_service_test.dart`
 
@@ -59,7 +59,7 @@
 - Call `onProgress(done, total)` after every dive, including skipped and failed ones.
 - After the loop, call `scheduleSensorSummaryRefresh(changed)` and `scheduleDerivedMetricsRefresh(changed)` once with every succeeded dive id, when non-empty.
 
-`ReparseService.reparseAllForComputer` keeps its signature and returns `(succeeded: r.succeeded, failed: r.failed)` from `ReparseBatchService(this).run(await ReparseBatchService(this).diveIdsForComputer(computerId), parseFn: parseFn, computerId: computerId)`. Its existing tests in `reparse_service_test.dart` and `reparse_service_empty_parse_test.dart` must still pass unchanged.
+`ReparseService.reparseAllForComputer` and `getSourcesForComputerReparse` are removed (as built, after code review): the per-computer button calls `ReparseBatchService.diveIdsForComputer` and `run(..., computerId:)` directly, and nothing else used them. Their cases (missing descriptors, a throwing parse, an empty parse, mixed results) are covered in `reparse_batch_service_test.dart`. `ReparseService.reparseDive` keeps its signature and delegates to `ReparseBatchService.reparseSingleDive`, the same per-dive step `run` takes.
 
 - [ ] **Step 1: Write the failing tests** in `reparse_batch_service_test.dart`, reusing the in-memory DB setup and the `insertDive` / `insertComputer` / source-insert helper shapes from `reparse_service_test.dart` (copy what you need; a parsed dive from the same `makeParsedDive` shape):
   - `run re-parses every dive and reports succeeded`: 2 dives, 1 source each, `succeeded == 2`, `failed == 0`, `notProcessed == 0`, `total == 2`.
@@ -73,7 +73,7 @@
   - `diveIdsWithRawData filters by diver`: dives for diver-1 and diver-2 with raw data; `diverId: 'diver-1'` returns only diver-1's.
   - `rawDataCountsByComputer groups by computer` and `diveCountWithoutRawData counts manual dives`.
 - [ ] **Step 2: Run** `flutter test test/features/dive_computer/data/services/reparse_batch_service_test.dart`. Expected: FAIL (file does not exist).
-- [ ] **Step 3: Implement** the service, the provider and the `reparseAllForComputer` delegation.
+- [ ] **Step 3: Implement** the service and the provider, and remove the per-computer methods it replaces.
 - [ ] **Step 4: Run** the new test file plus `reparse_service_test.dart` and `reparse_service_empty_parse_test.dart`. Expected: all PASS.
 - [ ] **Step 5: Commit** `feat(dive-computer): add a batch re-parse engine with progress and cancel`.
 

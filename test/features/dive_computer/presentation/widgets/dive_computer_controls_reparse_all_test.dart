@@ -28,13 +28,15 @@ class _MockDiveComputerNotifier
 /// Records the re-parse the button asks for, returning [failing] dives as
 /// failed and the rest as re-parsed.
 class _RecordingBatch implements ReparseBatchService {
-  _RecordingBatch({this.failing = const {}});
+  _RecordingBatch({this.failing = const {}, this.listingFails = false});
 
   final Set<String> failing;
+  final bool listingFails;
   final reparsed = <(List<String>, String?)>[];
 
   @override
   Future<List<String>> diveIdsForComputer(String computerId) async => [
+    if (listingFails) throw StateError('database is closed'),
     '$computerId-d1',
     '$computerId-d2',
     '$computerId-d3',
@@ -200,6 +202,30 @@ void main() {
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
 
+    expect(batch.reparsed, isEmpty);
+  });
+
+  testWidgets('a failed listing after confirming reports an error', (
+    tester,
+  ) async {
+    final batch = _RecordingBatch(listingFails: true);
+    await pump(
+      tester,
+      counts: (withRawData: 3, withoutRawData: 0),
+      batch: batch,
+    );
+
+    await tester.tap(find.text('Re-parse all dives'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Re-parse'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(find.text('Re-parsing dives'), findsNothing);
     expect(batch.reparsed, isEmpty);
   });
 }

@@ -148,4 +148,22 @@ void main() {
     await pumpEventQueue();
     expect((await c.read(reparseDivesOverviewProvider.future)).total, 3);
   });
+
+  test('refreshes when a dive computer is renamed', () async {
+    final sub = container.listen(reparseDivesOverviewProvider, (_, _) {});
+    addTearDown(sub.close);
+    final before = await container.read(reparseDivesOverviewProvider.future);
+    expect(
+      before.byComputer.map((c) => c.computerName),
+      contains('Computer c1'),
+    );
+
+    await (db.update(db.diveComputers)..where((t) => t.id.equals('c1'))).write(
+      const DiveComputersCompanion(name: Value('Perdix 2')),
+    );
+    await pumpEventQueue();
+
+    final after = await container.read(reparseDivesOverviewProvider.future);
+    expect(after.byComputer.map((c) => c.computerName), contains('Perdix 2'));
+  });
 }

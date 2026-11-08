@@ -27,9 +27,9 @@ class ReparseDivesOverview {
   final int withoutRawData;
 }
 
-/// Refreshed whenever a data source or dive row changes, so a download, a
-/// discard, a new manual dive or a synced change does not leave a stale
-/// count behind.
+/// Refreshed whenever a data source, dive or dive computer row changes, so a
+/// download, a discard, a new manual dive, a renamed computer or a synced
+/// change does not leave a stale count or name behind.
 final reparseDivesOverviewProvider =
     FutureProvider.autoDispose<ReparseDivesOverview>((ref) async {
       final batch = ref.watch(reparseBatchServiceProvider);
@@ -43,7 +43,11 @@ final reparseDivesOverviewProvider =
       ref.invalidateSelfWhen(
         db
             .tableUpdates(
-              TableUpdateQuery.onAllTables([db.diveDataSources, db.dives]),
+              TableUpdateQuery.onAllTables([
+                db.diveDataSources,
+                db.dives,
+                db.diveComputers,
+              ]),
             )
             .where((_) => !batchRunning),
       );
