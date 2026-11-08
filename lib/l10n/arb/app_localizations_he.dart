@@ -10591,6 +10591,16 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_figureNow(String pressure) {
+    return 'עכשיו $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureNowEstimated(String pressure) {
+    return 'עכשיו $pressure (משוער)';
+  }
+
+  @override
   String diveLog_cylinders_gasSemantics(String mix) {
     return 'גז $mix';
   }

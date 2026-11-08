@@ -10283,6 +10283,16 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String diveLog_cylinders_figureNow(String pressure) {
+    return '当前 $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureNowEstimated(String pressure) {
+    return '当前 $pressure (估算)';
+  }
+
+  @override
   String diveLog_cylinders_gasSemantics(String mix) {
     return '气体 $mix';
   }

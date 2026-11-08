@@ -6057,6 +6057,8 @@
   "diveLog_cylinders_figureStart": "Start {pressure}",
   "diveLog_cylinders_figureEnd": "End {pressure}",
   "diveLog_cylinders_figureUsed": "Used {pressure}",
+  "diveLog_cylinders_figureNow": "Now {pressure}",
+  "diveLog_cylinders_figureNowEstimated": "Now {pressure} (est.)",
   "diveLog_cylinders_gasSemantics": "Gas {mix}",
   "diveLog_cylinders_gasUsed": "Gas used {amount}",
   "diveLog_cylinders_loopUse": "Loop use {rate}",
@@ -6718,6 +6720,22 @@
   },
   "@diveLog_cylinders_figureUsed": {
     "description": "Cylinders card tank figure label: the pressure used, between the start and end labels beside the tank figure, e.g. \"Used 200 bar\". pressure is the value with its unit.",
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "@diveLog_cylinders_figureNow": {
+    "description": "Cylinders card tank figure label: the tank's pressure at the moment the profile chart's cursor is on, beside a line across the tank figure at that level, e.g. \"Now 130 bar\". Shown only while hovering or dragging on the profile or tissue charts. pressure is the value with its unit.",
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "@diveLog_cylinders_figureNowEstimated": {
+    "description": "Cylinders card tank figure label: as diveLog_cylinders_figureNow, for a tank with no transmitter whose pressure is estimated as a straight line from its start and end pressures, e.g. \"Now 130 bar (est.)\". Use the same estimate marker as diveLog_pressure_estimatedSuffix. pressure is the value with its unit.",
     "placeholders": {
       "pressure": {
         "type": "String"

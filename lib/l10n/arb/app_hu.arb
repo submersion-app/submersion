@@ -3261,6 +3261,8 @@
   "diveLog_cylinders_figureStart": "Kezdő {pressure}",
   "diveLog_cylinders_figureEnd": "Záró {pressure}",
   "diveLog_cylinders_figureUsed": "Felhasznált {pressure}",
+  "diveLog_cylinders_figureNow": "Most {pressure}",
+  "diveLog_cylinders_figureNowEstimated": "Most {pressure} (becs.)",
   "diveLog_cylinders_gasSemantics": "Gáz {mix}",
   "diveLog_cylinders_gasUsed": "Felhasznált gáz {amount}",
   "diveLog_cylinders_loopUse": "Hurokfogyasztás {rate}",

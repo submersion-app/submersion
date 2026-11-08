@@ -3362,6 +3362,8 @@
   "diveLog_cylinders_figureStart": "البداية {pressure}",
   "diveLog_cylinders_figureEnd": "النهاية {pressure}",
   "diveLog_cylinders_figureUsed": "المستخدم {pressure}",
+  "diveLog_cylinders_figureNow": "الآن {pressure}",
+  "diveLog_cylinders_figureNowEstimated": "الآن {pressure} (تقديري)",
   "diveLog_cylinders_gasSemantics": "غاز {mix}",
   "diveLog_cylinders_gasUsed": "الغاز المستخدم {amount}",
   "diveLog_cylinders_loopUse": "استهلاك الحلقة {rate}",

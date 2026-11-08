@@ -3362,6 +3362,8 @@
   "diveLog_cylinders_figureStart": "Inicio {pressure}",
   "diveLog_cylinders_figureEnd": "Fin {pressure}",
   "diveLog_cylinders_figureUsed": "Usado {pressure}",
+  "diveLog_cylinders_figureNow": "Ahora {pressure}",
+  "diveLog_cylinders_figureNowEstimated": "Ahora {pressure} (est.)",
   "diveLog_cylinders_gasSemantics": "Gas {mix}",
   "diveLog_cylinders_gasUsed": "Gas usado {amount}",
   "diveLog_cylinders_loopUse": "Uso en el circuito {rate}",

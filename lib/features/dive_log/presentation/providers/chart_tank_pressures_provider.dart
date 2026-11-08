@@ -93,3 +93,25 @@ final estimatedTankPressuresProvider =
             : dive.profile.first.timestamp,
       );
     });
+
+/// The pressure lines the profile chart draws: [estimated] (the measured
+/// series with their estimates) once it has loaded, else the [measured]
+/// series alone, so the chart still draws what was recorded while the
+/// estimates load or if they fail. Null when neither has loaded.
+EstimatedTankPressures? chartTankSeries(
+  EstimatedTankPressures? estimated,
+  Map<String, List<TankPressurePoint>>? measured,
+) =>
+    estimated ??
+    (measured == null ? null : EstimatedTankPressures(measured, const {}));
+
+/// [chartTankSeries] for [diveId]. Every profile chart and the Cylinders
+/// card, which follows the chart's cursor (issue #4291), read their lines
+/// through this, so they always draw the same ones.
+EstimatedTankPressures? watchChartTankSeries(WidgetRef ref, String diveId) =>
+    chartTankSeries(
+      ref.watch(estimatedTankPressuresProvider(diveId).select((a) => a.value)),
+      ref.watch(
+        activeSourceTankPressuresProvider(diveId).select((a) => a.value),
+      ),
+    );
