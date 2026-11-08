@@ -286,16 +286,18 @@ class DiveConsolidationBuilder {
     return (primary - secondary).abs() <= _pressureToleranceBar;
   }
 
+  /// [classified] is [classify]'s result for these same arguments when the
+  /// caller already has it, so the profile fits it holds are not searched
+  /// for again.
   DiveConsolidationPlan build(
     List<Dive> dives, {
     String? primaryDiveId,
     ConsolidationAlignment? alignment,
+    DiveConsolidationClassification? classified,
   }) {
-    final classification = classify(
-      dives,
-      primaryDiveId: primaryDiveId,
-      alignment: alignment,
-    );
+    final classification =
+        classified ??
+        classify(dives, primaryDiveId: primaryDiveId, alignment: alignment);
     if (classification is! ConsolidationReady) {
       throw ArgumentError(
         'build() requires a consolidatable selection; got $classification',

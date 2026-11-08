@@ -466,9 +466,11 @@ class DiveProfileChart extends ConsumerStatefulWidget {
 
   /// Range-statistics selection in seconds from the start of the dive, or
   /// null when range mode is off. Drawn as draggable handles over the plot
-  /// rect; [maxSeconds] is the profile's last timestamp, where the end
-  /// handle stops.
-  final ({int startSeconds, int endSeconds, int maxSeconds})? rangeSelection;
+  /// rect; [minSeconds] and [maxSeconds] are the range state's bounds, where
+  /// the start and end handles stop: below 0 for a series placed before the
+  /// primary (#4296).
+  final ({int startSeconds, int endSeconds, int minSeconds, int maxSeconds})?
+  rangeSelection;
 
   /// New range reported while a handle is dragged.
   final void Function(int startSeconds, int endSeconds)? onRangeChanged;
@@ -5273,11 +5275,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               startSeconds: widget.rangeSelection!.startSeconds,
               endSeconds: widget.rangeSelection!.endSeconds,
               maxSeconds: widget.rangeSelection!.maxSeconds,
-              // The profile is in time order, so its first sample is its
-              // earliest: below 0 for a series placed before the primary.
-              minSeconds: widget.profile.isEmpty
-                  ? 0
-                  : math.min(0, widget.profile.first.timestamp),
+              minSeconds: widget.rangeSelection!.minSeconds,
               visibleMinSeconds: visibleMinX,
               visibleMaxSeconds: visibleMaxX,
               insets: plotInsets,

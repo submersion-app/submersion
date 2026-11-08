@@ -239,6 +239,23 @@ void main() {
     expect(restored.entryTime!.isAtSameMomentAs(secondEntry), isTrue);
   });
 
+  test('undo leaves a source that recorded no offset without one', () async {
+    await (db.update(db.diveDataSources)..where((t) => t.id.equals('src-2')))
+        .write(const DiveDataSourcesCompanion(timeOffsetSeconds: Value(null)));
+    final finding = await seedFinding();
+    final result = await executor.shiftSourceProfile(
+      diveId: 'd1',
+      sourceId: 'src-2',
+      seconds: shift,
+      findingId: finding.id,
+    );
+    expect((await sourceRow('src-2')).timeOffsetSeconds, shift);
+
+    await result.undo!();
+
+    expect((await sourceRow('src-2')).timeOffsetSeconds, isNull);
+  });
+
   test('a window an earlier clock repair already corrected is not moved '
       'again (#3655)', () async {
     // The whole-hour repair put the window on the primary's clock, but the

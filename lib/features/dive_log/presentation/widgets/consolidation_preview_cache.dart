@@ -13,21 +13,22 @@ class ConsolidationPreviewCache {
 
   final List<Dive> dives;
 
-  _PreviewKey? _classificationKey;
+  String? _classificationPrimaryId;
   DiveConsolidationClassification? _classification;
   _PreviewKey? _planKey;
   DiveConsolidationPlan? _plan;
 
   /// Always with a mode, so a selection that does not overlap (or only
   /// partly does) is offered for alignment instead of rejected (#552).
+  /// Kept per primary only: classify reads whether a mode is given, never
+  /// which, so flipping the toggle does not search the fits again.
   DiveConsolidationClassification classification({
     required String? primaryId,
     required ConsolidationAlignment alignment,
   }) {
-    final key = (primaryId: primaryId, alignment: alignment);
     final cached = _classification;
-    if (cached != null && _classificationKey == key) return cached;
-    _classificationKey = key;
+    if (cached != null && _classificationPrimaryId == primaryId) return cached;
+    _classificationPrimaryId = primaryId;
     return _classification = const DiveConsolidationBuilder().classify(
       dives,
       primaryDiveId: primaryId,
@@ -47,6 +48,7 @@ class ConsolidationPreviewCache {
       dives,
       primaryDiveId: primaryId,
       alignment: alignment,
+      classified: classification(primaryId: primaryId, alignment: alignment),
     );
   }
 }

@@ -500,6 +500,7 @@ class DiveProfileChartHost extends ConsumerWidget {
                 startSeconds:
                     rangeState.startTimestamp ?? rangeState.minTimestamp,
                 endSeconds: rangeState.endTimestamp ?? rangeState.maxTimestamp,
+                minSeconds: rangeState.minTimestamp,
                 maxSeconds: rangeState.maxTimestamp,
               )
             : null,

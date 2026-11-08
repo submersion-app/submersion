@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/range_selection_overlay.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -33,6 +34,8 @@ Widget _buildChart(
   List<ChartSourceOverlay>? overlays,
   void Function(List<TooltipRow>? rows)? onTooltipData,
   void Function(int seconds)? onSecondaryTapAt,
+  ({int startSeconds, int endSeconds, int minSeconds, int maxSeconds})?
+  rangeSelection,
 }) => ProviderScope(
   overrides: [settingsProvider.overrideWith((ref) => _TestSettingsNotifier())],
   child: MaterialApp(
@@ -46,6 +49,8 @@ Widget _buildChart(
         child: DiveProfileChart(
           profile: profile,
           overlays: overlays,
+          rangeSelection: rangeSelection,
+          onRangeChanged: rangeSelection == null ? null : (_, _) {},
           tooltipPresentation: onTooltipData != null
               ? TooltipPresentation.external
               : TooltipPresentation.inChart,
@@ -251,5 +256,28 @@ void main() {
     );
 
     expect(_chartData(tester).minX, -600);
+  });
+
+  testWidgets("the range handles stop at the range state's start", (
+    tester,
+  ) async {
+    _ignoreOverflowErrors();
+    await tester.pumpWidget(
+      _buildChart(
+        _profile(),
+        rangeSelection: (
+          startSeconds: -300,
+          endSeconds: 1200,
+          minSeconds: -600,
+          maxSeconds: 2400,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final overlay = tester.widget<RangeSelectionOverlay>(
+      find.byType(RangeSelectionOverlay),
+    );
+    expect(overlay.minSeconds, -600);
+    expect(overlay.maxSeconds, 2400);
   });
 }

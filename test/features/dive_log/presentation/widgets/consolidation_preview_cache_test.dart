@@ -45,5 +45,32 @@ void main() {
       );
       expect(starts, isNot(same(plan)));
     });
+
+    test('keeps the classification when only the alignment changes', () {
+      // classify reads whether a mode is given, not which one.
+      final first = cache.classification(primaryId: 'a', alignment: fit);
+      expect(
+        cache.classification(
+          primaryId: 'a',
+          alignment: ConsolidationAlignment.starts,
+        ),
+        same(first),
+      );
+    });
+
+    test('plans from the classification it already holds', () {
+      final dives = [dive('a', 0, 'A'), dive('b', 5, 'B')];
+      final plan = const DiveConsolidationBuilder().build(
+        dives,
+        alignment: fit,
+        classified: const DiveConsolidationBuilder().classify(
+          dives,
+          primaryDiveId: 'b',
+          alignment: fit,
+        ),
+      );
+      // No primaryDiveId was passed, so a fresh classify would pick 'a'.
+      expect(plan.primary.id, 'b');
+    });
   });
 }

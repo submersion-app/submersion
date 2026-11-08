@@ -22,6 +22,7 @@ class SourceTimelineShift {
     required this.eventIds,
     required this.gasSwitchIds,
     required this.window,
+    required this.offsetBefore,
   });
 
   final String diveId;
@@ -34,6 +35,10 @@ class SourceTimelineShift {
 
   /// The source's entry and exit times before the shift.
   final List<SourceTimesSnapshot> window;
+
+  /// The source's recorded offset before the shift, null when it had none,
+  /// so undo writes it back as it was rather than subtracting to 0.
+  final int? offsetBefore;
 }
 
 /// Moves one source of a dive along the primary's timeline: everything a
@@ -72,70 +77,84 @@ class SourceTimelineShifter {
     required int seconds,
   }) async {
     if (seconds == 0) return null;
-    final sources = await _diveRepo.getDataSources(diveId);
-    final source = sources.where((s) => s.id == sourceId).firstOrNull;
-    if (source == null) return null;
-    bool owns({String? sourceId, String? computerId}) =>
-        seriesSourceOwner(
-          sourceId: sourceId,
-          computerId: computerId,
-          sources: sources,
-        ) ==
-        source.id;
-    // Events and switches carry no source, only a computer, so they move
-    // only when that computer names this source alone.
-    final computerId = source.computerId;
-    final ownsComputer = computerId != null && owns(computerId: computerId);
+    // Read and written in one transaction, so a sync apply landing between
+    // the two cannot leave the window moved by a stale offset, or the undo
+    // record holding a window older than the synced one.
+    return _db.transaction(() async {
+      final sources = await _diveRepo.getDataSources(diveId);
+      final source = sources.where((s) => s.id == sourceId).firstOrNull;
+      if (source == null) return null;
+      bool owns({String? sourceId, String? computerId}) =>
+          seriesSourceOwner(
+            sourceId: sourceId,
+            computerId: computerId,
+            sources: sources,
+          ) ==
+          source.id;
+      // Events and switches carry no source, only a computer, so they move
+      // only when that computer names this source alone.
+      final computerId = source.computerId;
+      final ownsComputer = computerId != null && owns(computerId: computerId);
 
-    final profile = [
-      for (final s in await _profileSeries.getSeriesForDive(diveId))
-        if (owns(sourceId: s.sourceId, computerId: s.computerId)) s.id,
-    ];
-    final tanks = [
-      for (final s in await _tankSeries.getSeriesForDive(diveId))
-        if (owns(sourceId: s.sourceId, computerId: s.computerId)) s.id,
-    ];
-    final events = !ownsComputer
-        ? const <String>[]
-        : [
-            for (final row
-                in await (_db.select(_db.diveProfileEvents)..where(
-                      (t) =>
-                          t.diveId.equals(diveId) &
-                          t.computerId.equals(computerId) &
-                          t.source.equals(EventSource.user.name).not(),
-                    ))
-                    .get())
-              row.id,
-          ];
-    final switches = !ownsComputer
-        ? const <String>[]
-        : [
-            for (final row
-                in await (_db.select(_db.gasSwitches)..where(
-                      (t) =>
-                          t.diveId.equals(diveId) &
-                          t.computerId.equals(computerId),
-                    ))
-                    .get())
-              row.id,
-          ];
-    final record = SourceTimelineShift(
-      diveId: diveId,
-      sourceId: sourceId,
-      seconds: seconds,
-      profileSeriesIds: profile,
-      tankSeriesIds: tanks,
-      eventIds: events,
-      gasSwitchIds: switches,
-      window: await _sourceClocks.snapshot([sourceId]),
-    );
-    final windowShift = await _windowShift(diveId, sourceId, seconds);
-    await _db.transaction(() async {
-      await _move(record, seconds);
-      await _sourceClocks.shift(record.window, windowShift);
+      final profile = [
+        for (final s in await _profileSeries.getSeriesForDive(diveId))
+          if (owns(sourceId: s.sourceId, computerId: s.computerId)) s.id,
+      ];
+      final tanks = [
+        for (final s in await _tankSeries.getSeriesForDive(diveId))
+          if (owns(sourceId: s.sourceId, computerId: s.computerId)) s.id,
+      ];
+      final events = !ownsComputer
+          ? const <String>[]
+          : [
+              for (final row
+                  in await (_db.select(_db.diveProfileEvents)..where(
+                        (t) =>
+                            t.diveId.equals(diveId) &
+                            t.computerId.equals(computerId) &
+                            t.source.equals(EventSource.user.name).not(),
+                      ))
+                      .get())
+                row.id,
+            ];
+      final switches = !ownsComputer
+          ? const <String>[]
+          : [
+              for (final row
+                  in await (_db.select(_db.gasSwitches)..where(
+                        (t) =>
+                            t.diveId.equals(diveId) &
+                            t.computerId.equals(computerId),
+                      ))
+                      .get())
+                row.id,
+            ];
+      final rows = await (_db.select(
+        _db.diveDataSources,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      final row = rows.where((r) => r.id == sourceId).firstOrNull;
+      final record = SourceTimelineShift(
+        diveId: diveId,
+        sourceId: sourceId,
+        seconds: seconds,
+        profileSeriesIds: profile,
+        tankSeriesIds: tanks,
+        eventIds: events,
+        gasSwitchIds: switches,
+        window: await _sourceClocks.snapshot([sourceId]),
+        offsetBefore: row?.timeOffsetSeconds,
+      );
+      await _move(
+        record,
+        seconds,
+        offset: (record.offsetBefore ?? 0) + seconds,
+      );
+      await _sourceClocks.shift(
+        record.window,
+        _windowShift(rows, row, seconds),
+      );
+      return record;
     });
-    return record;
   }
 
   /// How far the source's own entry and exit move. Its window should end up
@@ -144,15 +163,11 @@ class SourceTimelineShifter {
   /// wrong clock that is [seconds] itself; after a whole-hour clock repair
   /// already moved it (#3655) it is less, and moving it by [seconds] again
   /// would push it past the primary the other way.
-  Future<Duration> _windowShift(
-    String diveId,
-    String sourceId,
+  Duration _windowShift(
+    List<DiveDataSourcesData> rows,
+    DiveDataSourcesData? row,
     int seconds,
-  ) async {
-    final rows = await (_db.select(
-      _db.diveDataSources,
-    )..where((t) => t.diveId.equals(diveId))).get();
-    final row = rows.where((r) => r.id == sourceId).firstOrNull;
+  ) {
     final primary = rows.where((r) => r.isPrimary).firstOrNull;
     final offset = row?.timeOffsetSeconds;
     final entry = row?.entryTime;
@@ -160,7 +175,7 @@ class SourceTimelineShifter {
     if (offset == null ||
         entry == null ||
         primaryEntry == null ||
-        primary!.id == sourceId) {
+        primary!.id == row!.id) {
       return Duration(seconds: seconds);
     }
     return primaryEntry
@@ -170,11 +185,17 @@ class SourceTimelineShifter {
 
   /// Puts back what [record] moved.
   Future<void> undo(SourceTimelineShift record) => _db.transaction(() async {
-    await _move(record, -record.seconds);
+    await _move(record, -record.seconds, offset: record.offsetBefore);
     await _sourceClocks.restore(record.window);
   });
 
-  Future<void> _move(SourceTimelineShift record, int seconds) async {
+  /// Moves [record]'s rows by [seconds] and sets the source's recorded
+  /// offset to [offset].
+  Future<void> _move(
+    SourceTimelineShift record,
+    int seconds, {
+    required int? offset,
+  }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     final profileIds = record.profileSeriesIds.toSet();
     await _profileSeries.shiftSamples(
@@ -220,13 +241,8 @@ class SourceTimelineShifter {
       );
     }
     await _db.customUpdate(
-      'UPDATE dive_data_sources '
-      'SET time_offset_seconds = COALESCE(time_offset_seconds, 0) + ? '
-      'WHERE id = ?',
-      variables: [
-        Variable.withInt(seconds),
-        Variable.withString(record.sourceId),
-      ],
+      'UPDATE dive_data_sources SET time_offset_seconds = ? WHERE id = ?',
+      variables: [Variable<int>(offset), Variable.withString(record.sourceId)],
       updates: {_db.diveDataSources},
     );
     await _sync.markRecordPending(

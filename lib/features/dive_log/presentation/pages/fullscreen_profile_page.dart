@@ -610,6 +610,7 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                                   endSeconds:
                                       rangeState.endTimestamp ??
                                       rangeState.maxTimestamp,
+                                  minSeconds: rangeState.minTimestamp,
                                   maxSeconds: rangeState.maxTimestamp,
                                 )
                               : null,

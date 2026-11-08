@@ -128,6 +128,7 @@ void main() {
     expect(_chart(tester).rangeSelection, (
       startSeconds: 150,
       endSeconds: 450,
+      minSeconds: 0,
       maxSeconds: 600,
     ));
     expect(find.byKey(RangeSelectionOverlay.startHandleKey), findsOneWidget);
@@ -205,6 +206,7 @@ void main() {
     expect(_chart(tester).rangeSelection, (
       startSeconds: 100,
       endSeconds: 300,
+      minSeconds: 0,
       maxSeconds: 600,
     ));
     expect(find.text('01:40 - 05:00'), findsOneWidget);
