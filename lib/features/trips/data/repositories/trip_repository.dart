@@ -782,9 +782,14 @@ class TripRepository {
   ///   - The dive JOIN is scoped to that diver so stats reflect only their
   ///     dives on shared trips.
   /// Pass null to return all trips with unfiltered stats.
+  ///
+  /// [ids] narrows the read to those trips (Global Search's few rows, issue
+  /// #4247), on the same terms, so a handful costs no more than a handful.
   Future<List<domain.TripWithStats>> getAllTripsWithStats({
     String? diverId,
+    List<String>? ids,
   }) async {
+    if (ids != null && ids.isEmpty) return const [];
     try {
       final vis = VisibilityFilter.sqlFragment(
         tableAlias: 't',
@@ -812,7 +817,12 @@ class TripRepository {
       final variables = [
         if (diverId != null) Variable.withString(diverId),
         ...vis.variables,
+        ...?ids?.map(Variable.withString),
       ];
+      final onlyIds = ids == null
+          ? ''
+          : '${vis.whereClause.isEmpty ? 'WHERE' : 'AND'} t.id IN '
+                '(${List.filled(ids.length, '?').join(', ')})';
 
       final rows = await _db.customSelect('''
         SELECT
@@ -824,6 +834,7 @@ class TripRepository {
         FROM trips t
         $joinClause
         ${vis.whereClause}
+        $onlyIds
         GROUP BY t.id
         ORDER BY t.start_date DESC
       ''', variables: variables).get();

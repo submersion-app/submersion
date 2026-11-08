@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/tag_chip_colors.dart';
+import 'package:submersion/core/platform/desktop_target_platform.dart';
 
 /// A tag shown in the colour the diver gave it (issues #2254, #2269).
 ///
@@ -136,10 +137,8 @@ class TagChip extends StatelessWidget {
 /// a 48 dp box inside a chip is out of scale on a desktop, so it takes the
 /// 32 dp pointer minimum instead. Shared by the chip's close button and by
 /// the colour swatches in Settings, which are chips the diver taps.
-double tagTapTarget(TargetPlatform platform) => switch (platform) {
-  TargetPlatform.android || TargetPlatform.iOS || TargetPlatform.fuchsia => 48,
-  TargetPlatform.macOS || TargetPlatform.linux || TargetPlatform.windows => 32,
-};
+double tagTapTarget(TargetPlatform platform) =>
+    isDesktopTargetPlatform(platform) ? 32 : 48;
 
 /// The close button of a removable chip.
 ///

@@ -15,6 +15,7 @@ import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_source_stamp.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
+import 'package:submersion/core/database/existing_row_ids.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/courses/data/dive_course_links.dart';
@@ -119,11 +120,13 @@ import 'package:submersion/features/buddies/data/repositories/buddy_repository.d
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_visibility_queries.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 
 part 'dive_repository_gear_preview.dart';
+part 'dive_repository_gear_sets.dart';
 
 /// A dive that a conditions fetch can still do something for: its site carries
 /// coordinates and at least one weather column is empty.
@@ -8078,10 +8081,20 @@ class DiveRepository {
   }
 
   /// Writes [rows] as the dive's exact gear list, with provenance (the
-  /// bulk-edit undo path). No notify/txn.
+  /// bulk-edit, rule and repair undo paths). A set deleted since the rows
+  /// were captured cannot be named again: such a row comes back untagged,
+  /// as the delete left every other row of that set (#4284). No notify/txn.
   Future<void> replaceGearRows(String diveId, List<GearProvenance> rows) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await _writeGearDiff(diveId, rows, now);
+    final liveSets = await existingRowIds(_db, _db.equipmentSets, [
+      for (final r in rows) ?r.viaSetId,
+    ]);
+    await _writeGearDiff(diveId, [
+      for (final r in rows)
+        r.viaSetId == null || liveSets.contains(r.viaSetId)
+            ? r
+            : r.copyWith(clearViaSetId: true),
+    ], now);
     await _bumpDives([diveId], now);
   }
 
@@ -8191,14 +8204,15 @@ class DiveRepository {
 
   /// Add each equipment id to each dive, expanding assemblies into their
   /// active parts and tagging every written row with [viaSetId] when the
-  /// addition came from a set. No notify/txn.
+  /// addition came from a set. Writes and bumps only the dives whose rows
+  /// change: a bulk "Use Set" re-adds items every dive already has (#4284),
+  /// and those dives must not be re-stamped for sync. No notify/txn.
   Future<void> bulkAddEquipment(
     List<String> diveIds,
     List<String> equipmentIds, {
     String? viaSetId,
   }) async {
     if (diveIds.isEmpty || equipmentIds.isEmpty) return;
-    final now = DateTime.now().millisecondsSinceEpoch;
     final index = await _loadComponentsIndex();
     final candidates = {
       for (final id in equipmentIds) ...[id, ...index.descendantsOf(id)],
@@ -8207,16 +8221,15 @@ class DiveRepository {
     final additions = [
       for (final id in equipmentIds) (equipmentId: id, viaSetId: viaSetId),
     ];
-    for (final diveId in diveIds) {
-      final expanded = GearExpander.expand(
+    await _rewriteGear(
+      diveIds,
+      (rows) => GearExpander.expand(
         additions: additions,
         index: index,
-        existing: await _provenanceOf(diveId),
+        existing: rows,
         isActive: active.contains,
-      );
-      await _writeGearDiff(diveId, expanded, now);
-    }
-    await _bumpDives(diveIds, now);
+      ),
+    );
   }
 
   /// Remove each equipment id, and everything attached through it, from

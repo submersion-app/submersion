@@ -42,6 +42,7 @@ void main() {
           '/settings/retype-other-gear',
           '/settings/data-quality',
           '/settings/table-editor',
+          '/settings/reparse-dives',
           '/settings/agent-access',
         ])
           GoRoute(
@@ -73,18 +74,19 @@ void main() {
     return router;
   }
 
-  testWidgets('lists the five tools and pushes their routes', (tester) async {
+  testWidgets('lists the six tools and pushes their routes', (tester) async {
     await pumpPage(tester);
 
     expect(find.text('Data tools'), findsOneWidget);
     // Same row widget as the Data page, so the tools look like its rows.
-    expect(find.byType(DataRowTile), findsNWidgets(5));
+    expect(find.byType(DataRowTile), findsNWidgets(6));
     for (final title in const [
       'Fix dive times',
       'Link buddy names',
       'Retype gear marked Other',
       'Data quality',
       'Table editor',
+      'Re-parse dives',
     ]) {
       expect(find.text(title), findsOneWidget, reason: title);
     }
@@ -100,6 +102,7 @@ void main() {
       ('Retype gear marked Other', '/settings/retype-other-gear'),
       ('Data quality', '/settings/data-quality'),
       ('Table editor', '/settings/table-editor'),
+      ('Re-parse dives', '/settings/reparse-dives'),
     ]) {
       await pumpPage(tester);
       await tester.tap(find.text(title));
@@ -110,7 +113,7 @@ void main() {
 
   testWidgets('hides the agent access row off the desktop', (tester) async {
     await pumpPage(tester);
-    expect(find.byType(DataRowTile), findsNWidgets(5));
+    expect(find.byType(DataRowTile), findsNWidgets(6));
     expect(find.text('Agent access'), findsNothing);
   });
 
@@ -120,7 +123,7 @@ void main() {
     debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
     await pumpPage(tester);
-    expect(find.byType(DataRowTile), findsNWidgets(6));
+    expect(find.byType(DataRowTile), findsNWidgets(7));
     expect(find.text('Agent access'), findsOneWidget);
     await tester.tap(find.text('Agent access'));
     await tester.pumpAndSettle();
@@ -134,7 +137,7 @@ void main() {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
     await pumpPage(tester, debugMode: true);
-    expect(find.byType(DataRowTile), findsNWidgets(5));
+    expect(find.byType(DataRowTile), findsNWidgets(6));
     debugDefaultTargetPlatformOverride = null;
   });
 
@@ -155,9 +158,11 @@ void main() {
     debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
     await pumpPage(tester, debugMode: true, browser: true);
-    // The five tools, and no agent access row.
+    // The five tools a browser can run: no re-parse (the dive parser is
+    // native) and no agent access row.
     expect(find.byType(DataRowTile), findsNWidgets(5));
     expect(find.text('Agent access'), findsNothing);
+    expect(find.text('Re-parse dives'), findsNothing);
     debugDefaultTargetPlatformOverride = null;
   });
 }

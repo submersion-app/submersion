@@ -591,6 +591,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_equipmentField_owner_short => '所有者';
 
   @override
+  String get enum_equipmentField_location => '位置';
+
+  @override
+  String get enum_equipmentField_location_short => '位置';
+
+  @override
   String get equipment_set_noLongerShared => '已不再共享';
 
   @override
@@ -7138,6 +7144,85 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_deco_semantics_required => '需要减压';
 
   @override
+  String diveLog_deco_compartmentLeading(int number) {
+    return '前导：#$number';
+  }
+
+  @override
+  String diveLog_deco_compartmentOther(int number) {
+    return '隔间：#$number';
+  }
+
+  @override
+  String get diveLog_deco_metricLoad => '负荷';
+
+  @override
+  String get diveLog_deco_gasOngassing => '吸收';
+
+  @override
+  String get diveLog_deco_gasOffgassing => '释放';
+
+  @override
+  String get diveLog_deco_gasEquilibrium => '平衡';
+
+  @override
+  String get diveLog_deco_heatMapRows => '行：快速（上）到慢速（下）';
+
+  @override
+  String get diveLog_deco_surfaceLevel => '水面水平';
+
+  @override
+  String get diveLog_deco_mValue => 'M 值';
+
+  @override
+  String diveLog_deco_tooltipCompartment(int number) {
+    return '隔间 $number';
+  }
+
+  @override
+  String diveLog_deco_tooltipLoaded(String percent) {
+    return '负荷 $percent%';
+  }
+
+  @override
+  String diveLog_deco_tooltipHalfTime(String minutes) {
+    return '半衰期：$minutes 分钟';
+  }
+
+  @override
+  String diveLog_deco_tooltipSurfaceLevel(String percent) {
+    return '水面水平：$percent%';
+  }
+
+  @override
+  String get diveLog_deco_info_title => '这些数值代表什么？';
+
+  @override
+  String get diveLog_deco_info_body =>
+      '负荷：隔间内惰性气体压力占其在水面可容纳最大值（M 值，即 100% 处的红线）的百分比。\n\n水面水平：每根柱上的标记表示在水面呼吸空气时，完全脱饱和的隔间最终稳定的位置。它永远不会是 0%，因为你的身体始终含有所呼吸空气中的氮气。处于标记处的柱不再带有潜水遗留的负荷。\n\n吸收与释放：气体总是向你所呼吸气体的压力方向移动。使用氧气或富氦混合气减压后，快速隔间中的氮气可能少于水面空气中的氮气。重新呼吸空气后，它们会再次吸收氮气，直到达到各自的标记。这是正常现象，并非潜水遗留的负荷。\n\n氦气：空气中不含氦气。三混气潜水后，隔间在释放氦气的同时可能吸收氮气。N₂ 和 He 旁的箭头分别显示每种气体的方向；隔间编号旁的标识显示两者的总体方向。';
+
+  @override
+  String diveLog_deco_barChartSemantics(int count, int number, String percent) {
+    return '组织饱和度图表。$count 个隔间，负荷相对于 M 值；前导隔间 $number 为 $percent%。';
+  }
+
+  @override
+  String get diveLog_deco_heatMapUndersaturated => '欠饱和';
+
+  @override
+  String get diveLog_deco_heatMapSupersaturated => '过饱和';
+
+  @override
+  String diveLog_deco_percentValue(String value) {
+    return '$value%';
+  }
+
+  @override
+  String diveLog_deco_minutesValue(String value) {
+    return '$value 分钟';
+  }
+
+  @override
   String get diveLog_deco_tissueFast => '快速';
 
   @override
@@ -8195,6 +8280,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_edit_useSet => '使用套装';
+
+  @override
+  String get diveLog_edit_removeSet => '移除套装';
+
+  @override
+  String get diveLog_bulkEdit_setsToRemove => '要移除的套装';
+
+  @override
+  String get diveLog_bulkEdit_removeSetTitle => '移除装备套装';
+
+  @override
+  String get diveLog_bulkEdit_equipmentSets => '装备套装';
 
   @override
   String get diveLog_edit_weightPreset_use => '使用预设';
@@ -15940,6 +16037,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_location_activeFilter => '位置';
+
+  @override
+  String equipment_location_tileSemantics(String name) {
+    return '位置：$name';
+  }
 
   @override
   String get equipment_filter_section_location => '位置';
@@ -25958,7 +26060,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      '修正潜水时间、关联潜伴、重新分类装备、数据质量、表格编辑器';
+      '修正潜水时间、关联潜伴、重新分类装备、数据质量、表格编辑器、重新解析潜水';
 
   @override
   String get settings_agentAccess_title => '代理访问';
@@ -35917,25 +36019,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllProgress(int count) {
-    return '正在重新解析 $count 次潜水...';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllSuccess(int count) {
-    return '已成功重新解析 $count 次潜水';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
-    return '已重新解析 $total 次潜水中的 $succeeded 次。$failed 次失败。';
-  }
-
-  @override
   String diveComputer_detail_reparseRawDataCount(int count) {
     return '$count 次潜水有原始数据';
   }
@@ -35947,6 +36030,121 @@ class AppLocalizationsZh extends AppLocalizations {
   ) {
     return '$count 次潜水有原始数据（$without 次没有）';
   }
+
+  @override
+  String get reparseBatch_progressTitle => '正在重新解析潜水';
+
+  @override
+  String reparseBatch_progressCount(int done, int total) {
+    return '正在重新解析第 $done 次,共 $total 次潜水';
+  }
+
+  @override
+  String get reparseBatch_cancelling => '正在取消...';
+
+  @override
+  String get reparseBatch_resultTitle => '重新解析完成';
+
+  @override
+  String get reparseBatch_resultCancelledTitle => '重新解析已取消';
+
+  @override
+  String get reparseBatch_resultErrorTitle => '重新解析因错误而停止';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return '未处理:$count';
+  }
+
+  @override
+  String reparseBatch_resultSummary(int succeeded, int total) {
+    return '已重新解析 $total 次潜水中的 $succeeded 次。';
+  }
+
+  @override
+  String reparseBatch_resultFailed(int count) {
+    return '失败:$count';
+  }
+
+  @override
+  String reparseBatch_resultNotProcessed(int count) {
+    return '未处理(已取消):$count';
+  }
+
+  @override
+  String reparseBatch_resultSkipped(int count) {
+    return '已跳过,无原始数据:$count';
+  }
+
+  @override
+  String reparseBatch_resultProfilesPreserved(int count) {
+    return '保留了合并剖面的合并潜水:$count';
+  }
+
+  @override
+  String get reparseBatch_failedListHeader => '失败的潜水';
+
+  @override
+  String reparseBatch_failedDiveTitle(int number) {
+    return '第 $number 次潜水';
+  }
+
+  @override
+  String get reparseBatch_failedDiveUnnumbered => '未编号的潜水';
+
+  @override
+  String get reparseBatch_missingDescriptors => '缺少潜水电脑信息';
+
+  @override
+  String get reparseBatch_confirmTitle => '重新解析潜水';
+
+  @override
+  String reparseBatch_confirmMessage(int count) {
+    return '对 $count 次已存储原始数据的潜水重新运行潜水解析器。这将更新剖面图和传感器数据,但会保留您的笔记、地点、潜伴和其他编辑内容。';
+  }
+
+  @override
+  String reparseBatch_confirmSkipped(int count) {
+    return '所选潜水中没有原始数据的(将跳过):$count';
+  }
+
+  @override
+  String get reparseBatch_noneWithRawData => '所选潜水均没有可重新解析的原始数据。';
+
+  @override
+  String get diveLog_selection_tooltip_reparse => '重新解析';
+
+  @override
+  String get settings_reparseDives_title => '重新解析潜水';
+
+  @override
+  String get settings_reparseDives_subtitle => '对每次已存储原始数据的潜水重新运行潜水解析器';
+
+  @override
+  String get settings_reparseDives_intro =>
+      '在应用更新改进了潜水电脑数据的读取方式后使用。您的笔记、地点、潜伴和其他编辑内容将被保留。';
+
+  @override
+  String settings_reparseDives_withRawData(int count) {
+    return '有原始数据的潜水:$count';
+  }
+
+  @override
+  String settings_reparseDives_withoutRawData(int count) {
+    return '没有原始数据的潜水(不会重新解析):$count';
+  }
+
+  @override
+  String get settings_reparseDives_byComputer => '按潜水电脑';
+
+  @override
+  String get settings_reparseDives_unknownComputer => '未知潜水电脑';
+
+  @override
+  String get settings_reparseDives_none => '没有潜水存储了可重新解析的原始数据。';
+
+  @override
+  String get settings_reparseDives_button => '全部重新解析';
 
   @override
   String get diveComputer_rawData_discardAction => '丢弃';
@@ -38460,11 +38658,25 @@ class AppLocalizationsZh extends AppLocalizations {
       '潜水后 CNS%（氧气钟）以 90 分钟的半衰期衰减——大约一天后基本降回 0。\n\n每日 OTU 每晚午夜重置。每周 OTU 是过去 7 天的滚动总和：较早的潜水一旦超出该时间窗口，就会自动从计算中剔除。';
 
   @override
+  String get safetyHub_tissueLoading_clear_title => '组织无残余负荷';
+
+  @override
+  String get safetyHub_tissueLoading_clear_body =>
+      '所有隔间均已与水面空气恢复平衡。它们停留在正常水平（每根柱上的标记），而不是 0%。';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_title => '无法提供组织饱和度';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_body =>
+      '上一次潜水没有可用于计算组织饱和度的数据，例如没有深度曲线的潜水、深度计模式下的潜水，或未设置设定点的循环呼吸器潜水。';
+
+  @override
   String get safetyHub_tissueLoading_about_title => '关于组织饱和度';
 
   @override
   String get safetyHub_tissueLoading_about_body =>
-      '你的身体有 16 个组织舱室，以不同速度吸收和释放氮气（在三元气体或循环呼吸器潜水中，还有氦气）。快速组织饱和与脱饱和都很快；慢速组织两者都需要更长时间。\n\n使用氦气潜水后，同一舱室中的氮气和氦气可能会短暂地朝相反方向变化：氦气仍在释放的同时，同一舱室可能同时在吸收少量氮气，直到两种气体都与你呼吸的空气达到平衡。这就是为什么一个舱室可能短暂显示\"Ongassing\"，即使其总负荷仍在下降。';
+      '你的身体有 16 个组织隔间，它们以不同速度吸收和释放氮气（在三混气或循环呼吸器潜水中也包括氦气）。快速组织饱和与脱饱和都很快；慢速组织两者都需要长得多的时间。\n\n残余负荷仅指高于水面正常水平的部分。即使完全脱饱和，柱也不会降到 0%：每个隔间都会稳定在与所呼吸空气中氮气相对应的标记处。因此，在使用氧气减压的潜水后，快速隔间在这里的数值可能高于潜水结束时，但负荷并没有增加。\n\n含氦潜水后，隔间在释放氦气的同时会吸收氮气，直到两种气体都与所呼吸的空气达到平衡。';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -54373,6 +54585,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get rules_value_empty => '（空）';
 
   @override
+  String rules_value_gearViaSet(String item, String set) {
+    return '$item（$set）';
+  }
+
+  @override
   String get rules_collection_diveTypes => '潜水类型';
 
   @override
@@ -54386,6 +54603,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get rules_collection_courses => '课程';
+
+  @override
+  String get rules_collection_equipmentSets => '装备套装';
 
   @override
   String get rules_collection_siteTags => '潜点标签';

@@ -220,11 +220,26 @@ ScanResult scanForTickViolations({
     _parse(file).unit.accept(ticks);
   }
 
+  // Public helpers by name across every file, for a provider that shares
+  // its ticks with another file's (a list and a narrower read of its rows,
+  // issue #4247). A private name cannot be called from another file.
+  final parsedFiles = [for (final file in providerFiles) (file, _parse(file))];
+  final publicHelpers = <String, List<AstNode>>{};
+  for (final (_, parsed) in parsedFiles) {
+    // Declarations of the unit itself: a function nested in another body
+    // cannot be called from another file.
+    for (final helper
+        in parsed.unit.declarations.whereType<FunctionDeclaration>()) {
+      final name = helper.name.lexeme;
+      if (name.startsWith('_')) continue;
+      publicHelpers.putIfAbsent(name, () => []).add(helper.functionExpression);
+    }
+  }
+
   final violations = <TickViolation>[];
   var readers = 0;
 
-  for (final file in providerFiles) {
-    final parsed = _parse(file);
+  for (final (file, parsed) in parsedFiles) {
     final functions = _TopLevelFunctions();
     parsed.unit.accept(functions);
 
@@ -262,7 +277,9 @@ ScanResult scanForTickViolations({
         if (repositoryCall == null) continue;
         readers++;
 
-        if (_hasTick(invocations, functions, ticks.names)) continue;
+        if (_hasTick(invocations, functions, publicHelpers, ticks.names)) {
+          continue;
+        }
 
         final line = parsed.lineInfo.getLocation(variable.offset).lineNumber;
         if (_hasNoTickMarker(parsed.lines, line)) continue;
@@ -289,8 +306,10 @@ ScanResult scanForTickViolations({
   );
 }
 
-/// Whether the provider subscribes to a tick, directly or through a same-file
-/// helper resolved one level deep.
+/// Whether the provider subscribes to a tick, directly or through a helper
+/// resolved one level deep: one in its own file, or a public one in another
+/// ([publicHelpers]) whose every declaration of that name subscribes, since
+/// the scan cannot tell which import a call resolves to.
 ///
 /// The indirection is what lets all three legitimate shapes pass: the
 /// `ref.invalidateSelfWhen(repo.watchXChanges())` used at most call sites, the
@@ -300,17 +319,26 @@ ScanResult scanForTickViolations({
 bool _hasTick(
   _Invocations invocations,
   _TopLevelFunctions functions,
+  Map<String, List<AstNode>> publicHelpers,
   Set<String> tickNames,
 ) {
   if (invocations.calls.any((c) => tickNames.contains(c.method))) return true;
 
-  for (final call in invocations.calls) {
-    if (call.target != null) continue;
-    final body = functions.bodies[call.method];
-    if (body == null) continue;
+  bool subscribes(AstNode body) {
     final inner = _Invocations();
     body.accept(inner);
-    if (inner.calls.any((c) => tickNames.contains(c.method))) return true;
+    return inner.calls.any((c) => tickNames.contains(c.method));
+  }
+
+  for (final call in invocations.calls) {
+    if (call.target != null) continue;
+    final local = functions.bodies[call.method];
+    if (local != null) {
+      if (subscribes(local)) return true;
+      continue;
+    }
+    final elsewhere = publicHelpers[call.method];
+    if (elsewhere != null && elsewhere.every(subscribes)) return true;
   }
   return false;
 }

@@ -21,13 +21,16 @@ class SpeciesRepository {
   final LibraryEditStamper _libraryStamper = LibraryEditStamper();
   final _uuid = const Uuid();
 
-  /// Get all species
-  Future<List<domain.Species>> getAllSpecies() async {
+  /// Get all species, or only those of [ids] when named (Global Search's
+  /// few rows, issue #4247).
+  Future<List<domain.Species>> getAllSpecies({List<String>? ids}) async {
+    if (ids != null && ids.isEmpty) return const [];
     final query = _db.select(_db.species)
       ..orderBy([
         (t) => OrderingTerm.asc(t.category),
         (t) => OrderingTerm.asc(t.commonName.collate(Collate.noCase)),
       ]);
+    if (ids != null) query.where((t) => t.id.isIn(ids));
 
     final rows = await query.get();
     return sortedByText(

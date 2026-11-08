@@ -29,6 +29,8 @@
   "equipment_filter_owner_mine": "Van mij",
   "enum_equipmentField_owner": "Eigenaar",
   "enum_equipmentField_owner_short": "Eigenaar",
+  "enum_equipmentField_location": "Locatie",
+  "enum_equipmentField_location_short": "Locatie",
   "equipment_set_noLongerShared": "Niet meer gedeeld",
   "equipment_history_title": "Geschiedenis",
   "equipment_history_empty": "Nog bij geen enkele duik gebruikt",
@@ -2467,6 +2469,95 @@
   "diveLog_deco_sectionTissueLoading": "Weefselbelading",
   "diveLog_deco_semantics_notRequired": "Geen decompressie vereist",
   "diveLog_deco_semantics_required": "Decompressie vereist",
+  "diveLog_deco_compartmentLeading": "Leidend: #{number}",
+  "@diveLog_deco_compartmentLeading": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_compartmentOther": "Compartiment: #{number}",
+  "@diveLog_deco_compartmentOther": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_metricLoad": "Belading",
+  "diveLog_deco_gasOngassing": "Gasopname",
+  "diveLog_deco_gasOffgassing": "Gasafgifte",
+  "diveLog_deco_gasEquilibrium": "Evenwicht",
+  "diveLog_deco_heatMapRows": "Rijen: snel (boven) tot langzaam (onder)",
+  "diveLog_deco_surfaceLevel": "Oppervlakteniveau",
+  "diveLog_deco_mValue": "M-waarde",
+  "diveLog_deco_tooltipCompartment": "Compartiment {number}",
+  "@diveLog_deco_tooltipCompartment": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_tooltipLoaded": "{percent}% belading",
+  "@diveLog_deco_tooltipLoaded": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_tooltipHalfTime": "Halfwaardetijd: {minutes} min",
+  "@diveLog_deco_tooltipHalfTime": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_tooltipSurfaceLevel": "Oppervlakteniveau: {percent}%",
+  "@diveLog_deco_tooltipSurfaceLevel": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_info_title": "Wat betekenen deze waarden?",
+  "diveLog_deco_info_body": "Belading: de inertgasdruk van een compartiment als percentage van het maximum dat het aan de oppervlakte mag bevatten (de M-waarde, de rode lijn bij 100%).\n\nOppervlakteniveau: de markering op elke balk toont waar een volledig ontzadigd compartiment uitkomt terwijl je aan de oppervlakte lucht ademt. Die ligt nooit op 0%, omdat je lichaam altijd de stikstof uit de ingeademde lucht bevat. Een balk op zijn markering draagt geen restbelading van het duiken meer.\n\nGasopname en gasafgifte: gas beweegt altijd naar de druk van het gas dat je ademt. Na decompressie op zuurstof of op een heliumrijk mengsel kunnen de snelle compartimenten minder stikstof bevatten dan de lucht aan de oppervlakte. Terug op lucht nemen ze weer stikstof op tot ze hun markering bereiken. Dat is normaal en geen restbelading van de duik.\n\nHelium: lucht bevat geen helium. Na een trimixduik geeft een compartiment helium af terwijl het tegelijk stikstof kan opnemen. De pijlen naast N₂ en He tonen elk gas afzonderlijk; de aanduiding naast het compartimentnummer toont de netto richting van beide.",
+  "diveLog_deco_barChartSemantics": "Grafiek van de weefselbelading. {count} compartimenten, belading ten opzichte van de M-waarde; leidend compartiment {number} op {percent}%.",
+  "@diveLog_deco_barChartSemantics": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "number": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_heatMapUndersaturated": "Onderverzadigd",
+  "diveLog_deco_heatMapSupersaturated": "Oververzadigd",
+  "diveLog_deco_percentValue": "{value}%",
+  "@diveLog_deco_percentValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_minutesValue": "{value} min",
+  "@diveLog_deco_minutesValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_deco_tissueFast": "Snel",
   "diveLog_deco_tissueSlow": "Langzaam",
   "diveLog_deco_title": "Decostatus",
@@ -2802,6 +2893,10 @@
   "diveLog_edit_tripSuggested": "Voorgesteld: {name}",
   "diveLog_edit_tripUse": "Gebruiken",
   "diveLog_edit_useSet": "Set gebruiken",
+  "diveLog_edit_removeSet": "Set verwijderen",
+  "diveLog_bulkEdit_setsToRemove": "Te verwijderen sets",
+  "diveLog_bulkEdit_removeSetTitle": "Uitrustingsset verwijderen",
+  "diveLog_bulkEdit_equipmentSets": "Uitrustingssets",
   "diveLog_edit_weightPreset_use": "Voorinstelling gebruiken",
   "diveLog_edit_weightPreset_save": "Opslaan als voorinstelling",
   "diveLog_edit_weightPreset_pickerTitle": "Loodvoorinstelling toepassen",
@@ -4872,6 +4967,7 @@
   "equipment_location_bulkAction": "Naar locatie verplaatsen",
   "equipment_location_groupCount": "{count, plural, one{{count} item} other{{count} items}}",
   "equipment_location_activeFilter": "Locatie",
+  "equipment_location_tileSemantics": "Locatie: {name}",
   "equipment_filter_section_location": "Locatie",
   "equipment_arrange_groupByLocation": "Groeperen op locatie",
   "equipment_arrange_groupByLocationSubtitle": "Eén kop per plek, alleen op deze pagina",
@@ -7906,7 +8002,7 @@
   "settings_data_importOptions": "Importopties",
   "settings_data_importOptions_subtitle": "Stekkoppeling, druk bij opduiken, automatische tags",
   "settings_data_dataTools": "Gegevenshulpmiddelen",
-  "settings_data_dataTools_subtitle": "Duiktijden corrigeren, buddy's koppelen, uitrusting hertyperen, datakwaliteit, tabelbewerker",
+  "settings_data_dataTools_subtitle": "Duiktijden corrigeren, buddy's koppelen, uitrusting hertyperen, datakwaliteit, tabelbewerker, duiken opnieuw verwerken",
   "settings_agentAccess_title": "Agenttoegang",
   "settings_agentAccess_confirm_linkedDives": "Duiken die deze koppeling verliezen ({diver}): {count}",
   "settings_agentAccess_confirm_alsoDeletes": "Verwijdert ook {kind}: {count}",
@@ -10815,12 +10911,39 @@
   "diveComputer_detail_reimportDialogTitle": "Alle duiken opnieuw importeren?",
   "diveComputer_detail_reparseAllButton": "Alle duiken opnieuw verwerken",
   "diveComputer_detail_reparseAllMessage": "Voer de duikparser opnieuw uit voor {count} duiken met opgeslagen ruwe data. Dit werkt profiel- en sensordata bij, maar behoudt je notities, locaties, buddy's en andere wijzigingen.",
-  "diveComputer_detail_reparseAllPartial": "{succeeded} van {total} duiken opnieuw verwerkt. {failed} mislukt.",
-  "diveComputer_detail_reparseAllProgress": "{count} duiken worden opnieuw verwerkt...",
-  "diveComputer_detail_reparseAllSuccess": "{count} duiken succesvol opnieuw verwerkt",
   "diveComputer_detail_reparseAllTitle": "Alle duiken opnieuw verwerken",
   "diveComputer_detail_reparseRawDataCount": "{count} duiken met ruwe data",
   "diveComputer_detail_reparseRawDataCountWithout": "{count} duiken met ruwe data ({without} zonder)",
+  "reparseBatch_progressTitle": "Duiken opnieuw verwerken",
+  "reparseBatch_progressCount": "{done} van {total} duiken opnieuw verwerken",
+  "reparseBatch_cancelling": "Annuleren...",
+  "reparseBatch_resultTitle": "Opnieuw verwerken voltooid",
+  "reparseBatch_resultCancelledTitle": "Opnieuw verwerken geannuleerd",
+  "reparseBatch_resultErrorTitle": "Opnieuw verwerken gestopt door een fout",
+  "reparseBatch_resultNotReached": "Niet verwerkt: {count}",
+  "reparseBatch_resultSummary": "{succeeded} van {total} duiken opnieuw verwerkt.",
+  "reparseBatch_resultFailed": "Mislukt: {count}",
+  "reparseBatch_resultNotProcessed": "Niet verwerkt (geannuleerd): {count}",
+  "reparseBatch_resultSkipped": "Overgeslagen, geen ruwe data: {count}",
+  "reparseBatch_resultProfilesPreserved": "Gecombineerde duiken die hun profiel behielden: {count}",
+  "reparseBatch_failedListHeader": "Mislukte duiken",
+  "reparseBatch_failedDiveTitle": "Duik #{number}",
+  "reparseBatch_failedDiveUnnumbered": "Duik zonder nummer",
+  "reparseBatch_missingDescriptors": "Gegevens van de duikcomputer ontbreken",
+  "reparseBatch_confirmTitle": "Duiken opnieuw verwerken",
+  "reparseBatch_confirmMessage": "Voer de duikparser opnieuw uit voor {count} duiken met opgeslagen ruwe data. Dit werkt profiel- en sensordata bij, maar behoudt je notities, locaties, buddy's en andere wijzigingen.",
+  "reparseBatch_confirmSkipped": "Geselecteerde duiken zonder ruwe data (overgeslagen): {count}",
+  "reparseBatch_noneWithRawData": "Geen van de geselecteerde duiken heeft opgeslagen ruwe data om opnieuw te verwerken.",
+  "diveLog_selection_tooltip_reparse": "Opnieuw verwerken",
+  "settings_reparseDives_title": "Duiken opnieuw verwerken",
+  "settings_reparseDives_subtitle": "Voer de duikparser opnieuw uit voor elke duik met opgeslagen ruwe data",
+  "settings_reparseDives_intro": "Gebruik dit nadat een app-update het inlezen van duikcomputerdata verbetert. Je notities, locaties, buddy's en andere wijzigingen blijven behouden.",
+  "settings_reparseDives_withRawData": "Duiken met ruwe data: {count}",
+  "settings_reparseDives_withoutRawData": "Duiken zonder ruwe data (niet opnieuw verwerkt): {count}",
+  "settings_reparseDives_byComputer": "Per duikcomputer",
+  "settings_reparseDives_unknownComputer": "Onbekende computer",
+  "settings_reparseDives_none": "Geen enkele duik heeft opgeslagen ruwe data om opnieuw te verwerken.",
+  "settings_reparseDives_button": "Alles opnieuw verwerken",
   "diveComputer_rawData_discardAction": "Verwijderen",
   "diveComputer_rawData_discardAllMessage": "De bewaarde ruwe downloaddata van {count} duiken van alle duikcomputers verwijderen ({size})? Deze duiken kunnen daarna niet meer opnieuw worden verwerkt wanneer de duikparser verbetert. De duiken en je wijzigingen blijven behouden, en je andere gesynchroniseerde apparaten verwijderen de data ook.",
   "diveComputer_rawData_discardButton": "Ruwe data verwijderen",
@@ -12034,8 +12157,12 @@
   "safetyHub_cnsOtu_noProfile_body": "Zonder diepteprofiel kunnen CNS% en OTU ervan niet worden berekend. De totalen hieronder laten hem buiten beschouwing.",
   "safetyHub_cnsOtu_about_title": "Over CNS en OTU",
   "safetyHub_cnsOtu_about_body": "Je CNS% (zuurstofklok) neemt na de duik af met een halveringstijd van 90 minuten -- na ongeveer een dag is deze vrijwel terug op 0.\n\nDe dagelijkse OTU wordt elke nacht om middernacht gereset. De wekelijkse OTU is een voortschrijdend totaal van de afgelopen 7 dagen: oudere duiken vallen automatisch uit de berekening zodra ze buiten dat venster vallen.",
+  "safetyHub_tissueLoading_clear_title": "Geen resterende weefselbelading",
+  "safetyHub_tissueLoading_clear_body": "Alle compartimenten zijn weer in evenwicht met de lucht aan de oppervlakte. Ze blijven op hun normale niveau (de markering op elke balk), niet op 0%.",
+  "safetyHub_tissueLoading_unavailable_title": "Weefselbelading niet beschikbaar",
+  "safetyHub_tissueLoading_unavailable_body": "De laatste duik heeft geen gegevens om de weefselbelading uit te berekenen, bijvoorbeeld een duik zonder diepteprofiel, in dieptemetermodus of met een rebreather zonder setpoint.",
   "safetyHub_tissueLoading_about_title": "Over weefselverzadiging",
-  "safetyHub_tissueLoading_about_body": "Je lichaam heeft 16 weefselcompartimenten die stikstof opnemen en afgeven (en bij trimix- of rebreatherduiken ook helium), elk met een eigen snelheid. Snelle weefsels verzadigen en ontzadigen snel; langzame weefsels hebben voor beide veel meer tijd nodig.\n\nNa een duik met helium kunnen stikstof en helium in één compartiment kortstondig in tegengestelde richtingen bewegen: terwijl het helium nog afgeeft, kan datzelfde compartiment tegelijk wat stikstof opnemen, totdat beide gassen in evenwicht zijn met de lucht die je inademt. Daarom kan een compartiment even \"Ongassing\" tonen, terwijl de totale belasting toch blijft dalen.",
+  "safetyHub_tissueLoading_about_body": "Je lichaam heeft 16 weefselcompartimenten die stikstof (en bij trimix- of rebreatherduiken ook helium) met verschillende snelheden opnemen en afgeven. Snelle weefsels verzadigen en ontzadigen snel; langzame weefsels hebben er voor beide veel langer voor nodig.\n\nRestbelading is alleen wat boven het normale oppervlakteniveau ligt. Zelfs volledig ontzadigd zakken de balken niet naar 0%: elk compartiment komt uit op de markering die past bij de stikstof in de lucht die je ademt. Daarom kan een snel compartiment hier hoger staan dan aan het einde van een duik met zuurstofdecompressie, zonder dat de belading is gestegen.\n\nNa een duik met helium geeft een compartiment helium af terwijl het tegelijk stikstof opneemt, tot beide gassen in evenwicht zijn met de lucht die je ademt.",
   "safetyHub_noFly_category_single": "Na een enkele duik zonder deco: richtlijn van {hours} u",
   "@safetyHub_noFly_category_single": {
     "placeholders": {
@@ -17255,11 +17382,13 @@
   "rules_value_yes": "Ja",
   "rules_value_no": "Nee",
   "rules_value_empty": "(leeg)",
+  "rules_value_gearViaSet": "{item} ({set})",
   "rules_collection_diveTypes": "duiktypes",
   "rules_collection_tags": "tags",
   "rules_collection_equipment": "uitrusting",
   "rules_collection_buddies": "buddy's",
   "rules_collection_courses": "cursussen",
+  "rules_collection_equipmentSets": "uitrustingssets",
   "rules_collection_siteTags": "duikstektags",
   "rules_collection_siteTypes": "duikstektypes",
   "rules_field_diveCenter": "duikcentrum",
