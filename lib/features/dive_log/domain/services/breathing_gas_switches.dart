@@ -14,42 +14,48 @@ import 'package:submersion/features/dive_log/domain/services/multi_cylinder_cons
 /// The stored switch is never rewritten: this is how calculations read it.
 ///
 /// A switch to a breathing cylinder, or to a cylinder not in the list, is
-/// kept as it is.
+/// kept as it is. Returns [switches] itself when no cylinder is a bottle.
 List<GasSwitch> breathingRawGasSwitches(
   List<GasSwitch> switches,
   List<DiveTank> tanks,
-) {
-  if (!_carriesSuitBottle(tanks)) return switches;
-  final targets = _Targets(tanks);
-  return [
-    for (final sw in switches)
-      if (targets.resolve(sw.tankId) case final tankId?)
-        tankId == sw.tankId ? sw : sw.copyWith(tankId: tankId),
-  ];
-}
+) => breathingSwitchesOf(
+  switches,
+  tanks,
+  tankIdOf: (sw) => sw.tankId,
+  moveTo: (sw, tank) => sw.copyWith(tankId: tank.id),
+);
 
 /// [breathingRawGasSwitches] for switches that carry their cylinder's name
 /// and mix: a moved switch takes the new cylinder's.
 List<GasSwitchWithTank> breathingGasSwitches(
   List<GasSwitchWithTank> switches,
   List<DiveTank> tanks,
-) {
+) => breathingSwitchesOf(
+  switches,
+  tanks,
+  tankIdOf: (sw) => sw.gasSwitch.tankId,
+  moveTo: _relabel,
+);
+
+/// The rule [breathingRawGasSwitches] applies, for a switch type of its own
+/// (the Dive Lab's, a statistic's): each of [switches] is kept, moved with
+/// [moveTo] onto the breathing cylinder it counts against, or dropped.
+/// [tankIdOf] reads the cylinder a switch names. Returns [switches] itself
+/// when no cylinder is a bottle.
+List<S> breathingSwitchesOf<S>(
+  List<S> switches,
+  List<DiveTank> tanks, {
+  required String Function(S sw) tankIdOf,
+  required S Function(S sw, DiveTank tank) moveTo,
+}) {
   if (!_carriesSuitBottle(tanks)) return switches;
   final targets = _Targets(tanks);
   return [
     for (final sw in switches)
-      if (targets.resolve(sw.gasSwitch.tankId) case final tankId?)
-        tankId == sw.gasSwitch.tankId
-            ? sw
-            : _relabel(sw, targets.tankById(tankId)!),
+      if (targets.resolve(tankIdOf(sw)) case final tankId?)
+        tankId == tankIdOf(sw) ? sw : moveTo(sw, targets.tankById(tankId)!),
   ];
 }
-
-/// The rule [breathingRawGasSwitches] applies, for a switch type of its own
-/// (the Dive Lab's): the cylinder a switch to a tank id counts against, the
-/// id itself for a breathing or unknown tank, null to drop it.
-String? Function(String tankId) breathingSwitchTarget(List<DiveTank> tanks) =>
-    _carriesSuitBottle(tanks) ? _Targets(tanks).resolve : (tankId) => tankId;
 
 /// Whether any of [tanks] is a suit inflation bottle. Nearly every dive
 /// carries none, and then no switch moves, so nothing else is built.

@@ -173,7 +173,12 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
       _volumeController.text =
           settings.volumeUnit == VolumeUnit.cubicFeet && cuft != null
           ? formatRoundedForInput(cuft, 1)
-          : formatRoundedForInput(volumeL, 1);
+          // A small bottle keeps two decimals, as the tank editor does: a
+          // 0.85 L argon bottle must not save as 0.9 (issue #4243).
+          : formatRoundedForInput(
+              volumeL,
+              UnitFormatter.tankVolumeLiterDecimals(volumeL),
+            );
     } else {
       _volumeController.text = '';
     }

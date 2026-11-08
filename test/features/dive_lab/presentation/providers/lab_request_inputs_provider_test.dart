@@ -148,6 +148,16 @@ void main() {
         createdAt: DateTime(2026),
       ),
     );
+    await TankPressureRepository().insertTankPressures(dive.id, {
+      'suit': [
+        (timestamp: 0, pressure: 200.0),
+        (timestamp: 1800, pressure: 150.0),
+      ],
+      'back': [
+        (timestamp: 0, pressure: 200.0),
+        (timestamp: 1800, pressure: 80.0),
+      ],
+    });
 
     final c = container();
     addTearDown(c.dispose);
@@ -155,5 +165,6 @@ void main() {
 
     expect(inputs!.tanks.map((t) => t.id), ['back']);
     expect(inputs.gasSwitches.single.tankId, 'back');
+    expect(inputs.tankPressures.keys, ['back']);
   });
 }

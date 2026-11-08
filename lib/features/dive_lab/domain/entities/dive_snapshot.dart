@@ -125,19 +125,18 @@ class DiveSnapshot extends Equatable {
     if (bottles.isEmpty) {
       return (tanks: tanks, gasSwitches: switches, tankPressures: pressures);
     }
-    final target = breathingSwitchTarget(tanks);
     return (
       tanks: [
         for (final t in tanks)
           if (t.role.isBreathingGas) t,
       ],
-      gasSwitches: [
-        for (final s in switches)
-          if (target(s.tankId) case final tankId?)
-            tankId == s.tankId
-                ? s
-                : ScenarioGasSwitch(timestamp: s.timestamp, tankId: tankId),
-      ],
+      gasSwitches: breathingSwitchesOf(
+        switches,
+        tanks,
+        tankIdOf: (s) => s.tankId,
+        moveTo: (s, tank) =>
+            ScenarioGasSwitch(timestamp: s.timestamp, tankId: tank.id),
+      ),
       tankPressures: {
         for (final e in pressures.entries)
           if (!bottles.contains(e.key)) e.key: e.value,

@@ -31,15 +31,15 @@ TankConfigurationResult classifyTankConfiguration(TankConfigurationDive dive) {
 
 TankConfigurationDive _breathingOnly(TankConfigurationDive dive) {
   if (dive.tanks.every((t) => t.role.isBreathingGas)) return dive;
-  final target = breathingSwitchTarget(dive.tanks);
   return TankConfigurationDive(
     diveMode: dive.diveMode,
     tanks: breathingTanks(dive.tanks),
-    gasSwitches: [
-      for (final s in dive.gasSwitches)
-        if (target(s.tankId) case final tankId?)
-          (tankId: tankId, timestamp: s.timestamp),
-    ],
+    gasSwitches: breathingSwitchesOf(
+      dive.gasSwitches,
+      dive.tanks,
+      tankIdOf: (s) => s.tankId,
+      moveTo: (s, tank) => (tankId: tank.id, timestamp: s.timestamp),
+    ),
     hasProfile: dive.hasProfile,
   );
 }

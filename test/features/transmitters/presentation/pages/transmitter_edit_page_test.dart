@@ -492,6 +492,31 @@ void main() {
     },
   );
 
+  testWidgets('a small bottle keeps both decimals of its size (#4243)', (
+    tester,
+  ) async {
+    // A drysuit's 0.85 L argon bottle must not load, and so save, as 0.9.
+    await TransmitterRepository().create(
+      Transmitter(
+        id: 'e1',
+        diverId: 'diver-1',
+        transmitterSerial: '555',
+        label: 'Argon',
+        role: TankRole.suitInflation,
+        volumeL: 0.85,
+        workingPressureBar: 200,
+        createdAt: DateTime.utc(2026, 9, 1),
+        updatedAt: DateTime.utc(2026, 9, 1),
+      ),
+    );
+    await _pumpPage(
+      tester,
+      _buildPage(diverIdNotifier, prefs, transmitterId: 'e1'),
+    );
+
+    expect(find.widgetWithText(TextFormField, '0.85'), findsOneWidget);
+  });
+
   testWidgets('shows volume in cubic feet and stores liters', (tester) async {
     final settings = MockSettingsNotifier();
     await settings.setVolumeUnit(VolumeUnit.cubicFeet);

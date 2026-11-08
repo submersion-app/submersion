@@ -55,14 +55,17 @@ class TankSchedule extends Equatable {
     // A switch to a suit inflation bottle counts against the breathing
     // cylinder on its mix, or is dropped when none holds it (issue #4243),
     // so no interval names a cylinder that is not breathed.
-    final target = breathingSwitchTarget(tanks);
+    // A copy: the helper hands back [switches] itself when there is no
+    // bottle, and the caller's list is never sorted in place.
     final sorted =
         [
-          for (final s in switches)
-            if (target(s.tankId) case final tankId?)
-              tankId == s.tankId
-                  ? s
-                  : ScenarioGasSwitch(timestamp: s.timestamp, tankId: tankId),
+          ...breathingSwitchesOf(
+            switches,
+            tanks,
+            tankIdOf: (s) => s.tankId,
+            moveTo: (s, tank) =>
+                ScenarioGasSwitch(timestamp: s.timestamp, tankId: tank.id),
+          ),
         ]..sort((a, b) {
           final c = a.timestamp.compareTo(b.timestamp);
           return c != 0 ? c : a.tankId.compareTo(b.tankId);

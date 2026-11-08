@@ -153,6 +153,10 @@ final labRequestInputsProvider = FutureProvider.family<LabRequestInputs?, String
         )
       : null;
 
+  final suitBottleIds = {
+    for (final t in dive.tanks)
+      if (!t.role.isBreathingGas) t.id,
+  };
   return LabRequestInputs(
     dive: dive,
     profile: profile,
@@ -160,8 +164,9 @@ final labRequestInputsProvider = FutureProvider.family<LabRequestInputs?, String
     timestamps: timestamps,
     diveMode: dive.diveMode,
     // A suit inflation bottle is not breathed (issue #4243): the lab plays
-    // what-ifs on breathing gas only, and a switch to the bottle counts
-    // against the breathing cylinder on its mix.
+    // what-ifs on breathing gas only, a switch to the bottle counts against
+    // the breathing cylinder on its mix, and its pressure series is left
+    // out, so nothing in the inputs names a cylinder they do not carry.
     tanks: dive.breathingTanks,
     gasSwitches: [
       for (final s in breathingGasSwitches(switches, dive.tanks))
@@ -169,10 +174,14 @@ final labRequestInputsProvider = FutureProvider.family<LabRequestInputs?, String
     ],
     tankPressures: {
       for (final entry in pressures.entries)
-        entry.key: [
-          for (final p in entry.value)
-            TankPressureSample(timestamp: p.timestamp, pressureBar: p.pressure),
-        ],
+        if (!suitBottleIds.contains(entry.key))
+          entry.key: [
+            for (final p in entry.value)
+              TankPressureSample(
+                timestamp: p.timestamp,
+                pressureBar: p.pressure,
+              ),
+          ],
     },
     loopGasSegments: loopGas,
     rebreatherPpO2Curve: rebreather?.curve,
