@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_log/domain/services/profile_alignment.d
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/consolidation_alignment_controls.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/consolidation_preview_cache.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/run_dive_consolidation.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -76,16 +77,8 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
   /// How a secondary that does not overlap the primary is lined up.
   ConsolidationAlignment _alignment = ConsolidationAlignment.bestFit;
 
-  /// The last consolidation plan and its inputs: best fit scans every
-  /// candidate shift, so it is not rebuilt on every frame.
-  ({String? primaryId, ConsolidationAlignment alignment})? _planKey;
-  DiveConsolidationPlan? _plan;
-
-  /// The consolidation panel's classification and its inputs: it runs the
-  /// profile aligner on every overlapping record (#4296), so it is not redone
-  /// on every frame either.
-  ({String? primaryId, ConsolidationAlignment alignment})? _consolidationKey;
-  DiveConsolidationClassification? _consolidation;
+  /// The consolidation classification and plan, kept between frames.
+  late final _preview = ConsolidationPreviewCache(_dives!);
 
   @override
   void initState() {
@@ -139,32 +132,11 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
         alignments.values.every((a) => a.isStrongMatch);
   }
 
-  /// Always with a mode, so a selection that does not overlap (or only partly
-  /// does) is offered for alignment instead of rejected (#552).
-  DiveConsolidationClassification _consolidationClassification() {
-    final key = (primaryId: _selectedPrimaryId, alignment: _alignment);
-    final cached = _consolidation;
-    if (cached != null && _consolidationKey == key) return cached;
-    _consolidationKey = key;
-    return _consolidation = const DiveConsolidationBuilder().classify(
-      _dives!,
-      primaryDiveId: _selectedPrimaryId,
-      alignment: _alignment,
-    );
-  }
+  DiveConsolidationClassification _consolidationClassification() => _preview
+      .classification(primaryId: _selectedPrimaryId, alignment: _alignment);
 
-  DiveConsolidationPlan _planFor() {
-    final key = (primaryId: _selectedPrimaryId, alignment: _alignment);
-    if (_plan == null || _planKey != key) {
-      _plan = const DiveConsolidationBuilder().build(
-        _dives!,
-        primaryDiveId: _selectedPrimaryId,
-        alignment: _alignment,
-      );
-      _planKey = key;
-    }
-    return _plan!;
-  }
+  DiveConsolidationPlan _planFor() =>
+      _preview.plan(primaryId: _selectedPrimaryId, alignment: _alignment);
 
   Widget _modeSelector() => CombineModeSelector(
     mode: _mode,
