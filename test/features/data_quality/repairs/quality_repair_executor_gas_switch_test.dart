@@ -152,4 +152,21 @@ void main() {
       ['later'],
     );
   });
+
+  test('changes nothing when a cylinder it names has left the dive', () async {
+    final finding = await seedDiveAndFinding();
+
+    final result = await executor.addGasSwitches(
+      diveId: 'd1',
+      switches: const [
+        (tankId: 'deco', t: 1800, depth: 21.0),
+        (tankId: 'gone', t: 2700, depth: 6.0),
+      ],
+      findingId: finding.id,
+    );
+
+    expect(result.changed, isFalse);
+    expect(await diveRepo.getGasSwitchesForDive('d1'), isEmpty);
+    expect(await statusOf(finding.id), QualityStatus.open);
+  });
 }

@@ -35,8 +35,8 @@ class MissingGasSwitchDetector extends QualityDetector {
             for (final m in missed.addable) missedSwitchParams(m),
           ],
           'deepStarts': [
-            for (var i = 0; i < missed.deep.length; i++)
-              missedSwitchParams(missed.deep[i], mod: missed.deepModMeters[i]),
+            for (final d in missed.deep)
+              missedSwitchParams(d.start, mod: d.modMeters),
           ],
         },
       ),

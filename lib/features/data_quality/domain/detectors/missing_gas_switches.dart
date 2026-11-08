@@ -20,21 +20,15 @@ typedef MissedSwitch = ({
   double hePercent,
 });
 
+/// A start deeper than its gas's MOD, with that MOD in meters.
+typedef DeepStart = ({MissedSwitch start, double modMeters});
+
 /// The switches a dive's cylinder pressures show although no computer
 /// logged one: [addable] are safe to write as gas switches, [deep] started
-/// deeper than their gas's MOD and are only reported, with [deepModMeters]
-/// giving each one's MOD in the same order.
-typedef MissedSwitches = ({
-  List<MissedSwitch> addable,
-  List<MissedSwitch> deep,
-  List<double> deepModMeters,
-});
+/// deeper than their gas's MOD and are only reported.
+typedef MissedSwitches = ({List<MissedSwitch> addable, List<DeepStart> deep});
 
-const MissedSwitches _none = (
-  addable: <MissedSwitch>[],
-  deep: <MissedSwitch>[],
-  deepModMeters: <double>[],
-);
+const MissedSwitches _none = (addable: <MissedSwitch>[], deep: <DeepStart>[]);
 
 /// The gas switches [ctx]'s recorded cylinder pressures show on an
 /// open-circuit dive that logged none (issue #165).
@@ -60,23 +54,30 @@ MissedSwitches missedGasSwitches(DiveQualityContext ctx) {
   ];
   if (breathed.length < 2) return _none;
 
-  final lastSampleT = ctx.primarySamples.last.t;
-  final turns = <({DiveTank tank, int t})>[
-    for (final tank in breathed)
-      for (final t in cylinderBreathStarts([
-        for (final p in ctx.pressuresByTankId[tank.id] ?? const [])
-          (t: p.t, bar: p.bar),
-      ]))
-        if (t <= lastSampleT) (tank: tank, t: t),
-  ]..sort((a, b) => a.t.compareTo(b.t));
-  if (turns.isEmpty) return _none;
-
   final positionById = {
     for (var i = 0; i < ordered.length; i++) ordered[i].id: i + 1,
   };
+  final lastSampleT = ctx.primarySamples.last.t;
+  // Ties go to dive order, so two cylinders starting on one second give the
+  // same suggestion on every scan (List.sort is not stable).
+  final turns =
+      <({DiveTank tank, int t})>[
+        for (final tank in breathed)
+          for (final t in cylinderBreathStarts([
+            for (final p in ctx.pressuresByTankId[tank.id] ?? const [])
+              (t: p.t, bar: p.bar),
+          ]))
+            if (t <= lastSampleT) (tank: tank, t: t),
+      ]..sort((a, b) {
+        final byTime = a.t.compareTo(b.t);
+        return byTime != 0
+            ? byTime
+            : positionById[a.tank.id]!.compareTo(positionById[b.tank.id]!);
+      });
+  if (turns.isEmpty) return _none;
+
   final addable = <MissedSwitch>[];
-  final deep = <MissedSwitch>[];
-  final deepMods = <double>[];
+  final deep = <DeepStart>[];
   var inUse = ordered.first.id;
   for (final turn in turns) {
     final tank = turn.tank;
@@ -97,14 +98,13 @@ MissedSwitches missedGasSwitches(DiveQualityContext ctx) {
       environment: ctx.dive.environment,
     );
     if (missed.depth > mod + QualityThresholds.modToleranceMeters) {
-      deep.add(missed);
-      deepMods.add(mod);
+      deep.add((start: missed, modMeters: mod));
       continue;
     }
     addable.add(missed);
     inUse = tank.id;
   }
-  return (addable: addable, deep: deep, deepModMeters: deepMods);
+  return (addable: addable, deep: deep);
 }
 
 /// The depth of the last sample at or before [t], or the first sample's

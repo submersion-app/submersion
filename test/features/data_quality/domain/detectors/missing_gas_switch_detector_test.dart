@@ -212,4 +212,36 @@ void main() {
     expect(switches[1]['t'] as int, closeTo(1200, 30));
     expect(switches[2]['t'] as int, closeTo(1800, 30));
   });
+
+  test('a start after the profile ends is not a switch', () {
+    // The transmitter kept logging at the surface; the profile stopped at
+    // 25:00, before the bottle's start at 30:00.
+    final finding = missingSwitchFinding(
+      det.detect(decoDive(samples: profile(1500, (_) => 21))),
+    );
+    expect(finding, isNull);
+  });
+
+  test('two cylinders starting on one second suggest the first in dive '
+      'order', () {
+    final ctx = makeContext(
+      dive: makeTestDive(
+        tanks: [
+          tank(id: 'back', order: 0),
+          tank(id: 'stage-b', order: 2, o2: 50, role: TankRole.stage),
+          tank(id: 'stage-a', order: 1, o2: 50, role: TankRole.stage),
+        ],
+      ),
+      samples: profile(3000, (_) => 20),
+      pressures: {
+        'back': pressure(end: 3000, startBar: 200, falling: (t) => t <= 1800),
+        'stage-b': pressure(end: 3000, startBar: 200, falling: (t) => t > 1800),
+        'stage-a': pressure(end: 3000, startBar: 200, falling: (t) => t > 1800),
+      },
+    );
+
+    final finding = missingSwitchFinding(det.detect(ctx));
+    final switches = finding!.params['missingSwitches'] as List;
+    expect([for (final s in switches) (s as Map)['tankId']], ['stage-a']);
+  });
 }

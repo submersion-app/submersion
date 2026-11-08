@@ -568,8 +568,9 @@ class QualityRepairExecutor {
   /// They are untagged, like a switch typed in the dive editor, so they
   /// apply to every computer on the dive. A dive that has gained a switch
   /// since the scan is left alone: the finding was written for a dive with
-  /// none, and adding to the diver's own would mix two timelines. Undo
-  /// deletes exactly the switches written here.
+  /// none, and adding to the diver's own would mix two timelines. So is one
+  /// that has lost a cylinder a switch names, which the switch's foreign key
+  /// would refuse. Undo deletes exactly the switches written here.
   Future<RepairResult> addGasSwitches({
     required String diveId,
     required List<SwitchToAdd> switches,
@@ -577,6 +578,15 @@ class QualityRepairExecutor {
   }) async {
     if (switches.isEmpty) return const RepairResult.noChange();
     if ((await _diveRepo.getGasSwitchesForDive(diveId)).isNotEmpty) {
+      return const RepairResult.noChange();
+    }
+    final tankIds = {
+      for (final row in await (_db.select(
+        _db.diveTanks,
+      )..where((t) => t.diveId.equals(diveId))).get())
+        row.id,
+    };
+    if (!switches.every((s) => tankIds.contains(s.tankId))) {
       return const RepairResult.noChange();
     }
     final now = DateTime.now().toUtc();
