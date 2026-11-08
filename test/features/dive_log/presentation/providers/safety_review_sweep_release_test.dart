@@ -143,6 +143,26 @@ void main() {
         }
       });
 
+      test('a cancelled sweep releases its trail too', () async {
+        final container = makeContainer();
+        var done = 0;
+
+        final result = await container
+            .read(safetyReviewSweepProvider)
+            .run(
+              diverId: 'diver-a',
+              recompute: recompute,
+              onProgress: (swept, _) => done = swept,
+              isCancelled: () => done >= 3,
+            );
+        await pumpEventQueue();
+
+        expect(result.cancelled, isTrue);
+        for (final id in diveIds.take(3)) {
+          expect(holds(container, id), isFalse, reason: id);
+        }
+      });
+
       test('an analysis something else holds is left alone', () async {
         final container = makeContainer();
         final sub = container.listen(
