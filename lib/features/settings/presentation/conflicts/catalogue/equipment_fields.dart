@@ -189,6 +189,25 @@ final Map<String, ConflictField> equipmentFields = {
     (l) => l.settings_conflict_field_passportId,
     FieldKind.shortText,
   ),
+  // Twin set pairings (issue #4242): whole calendar days stored as UTC
+  // midnight, the tie between a twin fill's two rows, and a twin set tank's
+  // second cylinder.
+  'pairedOn': ConflictField(
+    (l) => l.settings_conflict_field_pairedOn,
+    FieldKind.utcDate,
+  ),
+  'unpairedOn': ConflictField(
+    (l) => l.settings_conflict_field_unpairedOn,
+    FieldKind.utcDate,
+  ),
+  'filledTogetherId': ConflictField(
+    (l) => l.settings_conflict_field_filledTogetherId,
+    FieldKind.opaque,
+  ),
+  'twinPassportId': ConflictField(
+    (l) => l.settings_conflict_field_twinPassportId,
+    FieldKind.shortText,
+  ),
   'pressureBar': ConflictField(
     (l) => l.settings_conflict_field_pressureBar,
     FieldKind.pressure,

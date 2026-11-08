@@ -14449,6 +14449,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Törli ezt a töltési bejegyzést?';
 
   @override
+  String get passport_history_deleteFailed =>
+      'A töltés törlése nem sikerült. Próbálja újra.';
+
+  @override
   String get passport_tag_title => 'Címke';
 
   @override
@@ -60189,4 +60193,199 @@ class AppLocalizationsHu extends AppLocalizations {
   ) {
     return 'Jelölő $number: $time, $depth, $distance';
   }
+
+  @override
+  String get twinSet_title => 'Ikerpalack';
+
+  @override
+  String get twinSet_none => 'Nem része ikerpalacknak';
+
+  @override
+  String get twinSet_link => 'Társpalack hozzákapcsolása';
+
+  @override
+  String twinSet_since(String date) {
+    return '$date óta';
+  }
+
+  @override
+  String get twinSet_replace => 'Társ cseréje';
+
+  @override
+  String get twinSet_unlink => 'Szétválasztás';
+
+  @override
+  String get twinSet_history => 'Előzmények';
+
+  @override
+  String twinSet_historyRange(String partner, String from, String to) {
+    return '$partner, $from és $to között';
+  }
+
+  @override
+  String get twinSet_deletePairing => 'Párosítás törlése';
+
+  @override
+  String get twinSet_deletePairingConfirm =>
+      'Törli ezt a párosítást az előzményekből? A töltések és a merülések nem változnak.';
+
+  @override
+  String get twinSet_pickerTitle => 'Társpalack';
+
+  @override
+  String get twinSet_pickerEmpty => 'Nincs más palack a párosításhoz.';
+
+  @override
+  String get twinSet_pairedOnHelp => 'Párosítva ekkortól';
+
+  @override
+  String get twinSet_unpairedOnHelp => 'Szétválasztva ekkor';
+
+  @override
+  String get twinSet_pressureMismatchTitle => 'Eltérő üzemi nyomások';
+
+  @override
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  ) {
+    return '$a üzemi nyomása $aPressure, $b palacké $bPressure. Az összekötött pár egy nyomásra töltődik.';
+  }
+
+  @override
+  String get twinSet_continue => 'Folytatás';
+
+  @override
+  String get twinSet_replaceTitle => 'Lecseréli a társat?';
+
+  @override
+  String twinSet_replaceClash(String cylinder, String partner) {
+    return '$cylinder párja jelenleg $partner.';
+  }
+
+  @override
+  String twinSet_replaceQuestion(String a, String b) {
+    return 'Inkább $a és $b legyen pár?';
+  }
+
+  @override
+  String twinSet_leftAlone(String name) {
+    return '$name egyedül marad.';
+  }
+
+  @override
+  String get twinSet_replaceConfirm => 'Csere';
+
+  @override
+  String get twinSet_clashTitle => 'Átfedő párosítás';
+
+  @override
+  String twinSet_clashBody(String pairs) {
+    return 'Ez átfedi ezt a párosítást: $pairs. Egy palack egy napon csak egy ikerpalack része lehet.';
+  }
+
+  @override
+  String twinSet_pairNames(String a, String b) {
+    return '$a és $b';
+  }
+
+  @override
+  String twinSet_endBeforeStart(String date) {
+    return 'A záró dátumnak $date utáninak kell lennie.';
+  }
+
+  @override
+  String get twinSet_saveFailed => 'Az ikerpalack módosítása nem menthető.';
+
+  @override
+  String twinSet_with(String partner) {
+    return 'Ikerpalack ezzel: $partner';
+  }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return 'Az ikerpalack mindkét palackja ($partner)';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner, $status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => 'Töltés szerkesztése';
+
+  @override
+  String get passport_logFill_overPressureTitle => 'Az üzemi nyomás felett';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure meghaladja $name üzemi nyomását ($workingPressure).';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => 'Mentés mégis';
+
+  @override
+  String get passport_logFill_back => 'Vissza';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return '$partner töltésére is alkalmazza?';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => 'Igen';
+
+  @override
+  String get passport_logFill_onlyThisOne => 'Csak ezt';
+
+  @override
+  String get passport_history_anotherCylinder => 'egy másik palack';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return '$partner palackkal együtt töltve';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'Mindkét palackról törli ezt a töltést, vagy csak erről?';
+
+  @override
+  String get passport_history_deleteBoth => 'Mindkét palack';
+
+  @override
+  String get passport_history_edit => 'Töltés szerkesztése';
+
+  @override
+  String get twinSet_choiceTitle => 'Az ikerpalackot használja?';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'Ikerpalack ($a + $b, $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return 'Csak $a';
+  }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'Párosítva ekkortól';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'Szétválasztva ekkor';
+
+  @override
+  String get settings_conflict_field_filledTogetherId => 'Ikerpalack-töltés';
+
+  @override
+  String get settings_conflict_field_twinPassportId => 'Társpalack útlevele';
 }

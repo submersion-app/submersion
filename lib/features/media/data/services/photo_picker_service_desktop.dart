@@ -64,12 +64,13 @@ class PhotoPickerServiceDesktop implements PhotoPickerService {
       return [];
     }
 
-    // Reading the capture time still means reading each file's bytes -- a
-    // JPEG's EXIF comes out of a full-file parse -- which would jank the UI
-    // thread for a pick of large photos (the old stat()-only implementation
-    // was cheap enough to inline). Do the batch on a background isolate, then
-    // register the paths here -- the isolate only ever mutates its own copy
-    // of [_filePathCache].
+    // Reading the capture time means opening each file and seeking through
+    // its metadata (a JPEG's header segments, a HEIC's meta box), several
+    // small synchronous reads per file that would jank the UI thread over a
+    // large pick (the old stat()-only implementation was cheap enough to
+    // inline). Do the batch on a background isolate, then register the paths
+    // here, since the isolate only ever mutates its own copy of
+    // [_filePathCache].
     final assets = await compute(
       _extractAssets,
       files.map((f) => f.path).toList(),
