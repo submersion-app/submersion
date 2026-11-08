@@ -22,8 +22,12 @@ typedef DerivedMetricsRunner =
 typedef MergedProfileReader =
     Future<List<DiveProfilePoint>> Function(String diveId);
 
+/// One repository for every read: a sweep reads thousands of dives, and
+/// each [DiveRepository] builds its own media and deletion collaborators.
+final DiveRepository _mergedProfileSource = DiveRepository();
+
 Future<List<DiveProfilePoint>> _readMergedProfile(String diveId) =>
-    DiveRepository().getMergedProfile(diveId);
+    _mergedProfileSource.getMergedProfile(diveId);
 
 Future<DiveDerivedMetrics> _computeOnIsolate(DerivedMetricsWorkInput input) =>
     compute(computeDerivedMetricsFromBlobs, input);

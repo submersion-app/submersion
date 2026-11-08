@@ -1,8 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart'
+    show AppDatabase, DiveComputersCompanion;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/data/repositories/derived_metrics_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_worker.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 
@@ -13,9 +17,10 @@ import '../../../../helpers/test_database.dart';
 /// gas-use window the derived metrics sweep stores.
 void main() {
   late DiveRepository repository;
+  late AppDatabase db;
 
   setUp(() async {
-    await setUpTestDatabase();
+    db = await setUpTestDatabase();
     repository = DiveRepository();
   });
   tearDown(() async => tearDownTestDatabase());
@@ -76,6 +81,66 @@ void main() {
     final detail = (await repository.getDiveById('d'))!;
     final listed = (await repository.getAllDives()).single;
     expect(listed.storedGasUse, isNotNull);
+    expect(listed.sac, closeTo(detail.sac!, 1e-9));
+  });
+
+  test('a dive logged by two computers agrees on its merged profile', () async {
+    // The primary stops at the surface; the second computer keeps logging
+    // there for ten more minutes, so only the merged profile has the tail.
+    await repository.createDive(
+      domain.Dive(
+        id: 'd',
+        dateTime: DateTime.utc(2026, 5, 1, 10),
+        runtime: const Duration(minutes: 40),
+        avgDepth: 13.5,
+        tanks: const [
+          domain.DiveTank(
+            id: 't',
+            volume: 12,
+            startPressure: 200,
+            endPressure: 110,
+          ),
+        ],
+      ),
+    );
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final id in ['primary', 'second']) {
+      await db
+          .into(db.diveComputers)
+          .insert(
+            DiveComputersCompanion.insert(
+              id: id,
+              name: id,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+    }
+    final series = ProfileSeriesRepository();
+    await series.insertSeries(
+      diveId: 'd',
+      computerId: 'primary',
+      samples: [
+        for (final p in profile)
+          if (p.timestamp <= 30 * 60)
+            ProfileSample(timestamp: p.timestamp, depth: p.depth),
+      ],
+    );
+    await series.insertSeries(
+      diveId: 'd',
+      computerId: 'second',
+      isPrimary: false,
+      samples: [
+        for (final p in profile)
+          ProfileSample(timestamp: p.timestamp, depth: p.depth),
+      ],
+    );
+    await sweep();
+
+    final detail = (await repository.getDiveById('d'))!;
+    final listed = (await repository.getAllDives()).single;
+    expect(detail.gasUse, isNotNull);
+    expect(listed.storedGasUse, detail.gasUse);
     expect(listed.sac, closeTo(detail.sac!, 1e-9));
   });
 
