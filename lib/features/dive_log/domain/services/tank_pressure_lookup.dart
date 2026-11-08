@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// Map each tank to its time-series pressure, tolerating a re-keyed series.
@@ -156,13 +157,14 @@ double? pressureAtCursor(
 }
 
 /// [points] itself when already in timestamp order (as the repository
-/// returns series), else a sorted copy. Sorting is stable, so samples that
-/// share a timestamp keep their order.
+/// returns series), else a sorted copy. `mergeSort` is stable, unlike
+/// `List.sort`, so samples that share a timestamp keep their order.
 List<TankPressurePoint> _inTimestampOrder(List<TankPressurePoint> points) {
   for (var i = 1; i < points.length; i++) {
     if (points[i].timestamp < points[i - 1].timestamp) {
-      return List<TankPressurePoint>.from(points)
-        ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+      final sorted = List<TankPressurePoint>.of(points);
+      mergeSort(sorted, compare: (a, b) => a.timestamp.compareTo(b.timestamp));
+      return sorted;
     }
   }
   return points;

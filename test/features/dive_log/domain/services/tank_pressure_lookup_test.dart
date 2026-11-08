@@ -71,5 +71,14 @@ void main() {
       final dupes = [_p(0, 200), _p(0, 198), _p(100, 150), _p(100, 140)];
       expect(pressureAtCursor(dupes, 50), closeTo(174, 1e-9));
     });
+
+    test('an out-of-order series keeps shared timestamps in input order', () {
+      // Long enough that List.sort would use its unstable quicksort.
+      final series = [
+        for (var i = 0; i < 50; i++) _p(60, 200.0 - i),
+        _p(0, 250),
+      ];
+      expect(pressureAtCursor(series, 60), 151);
+    });
   });
 }
