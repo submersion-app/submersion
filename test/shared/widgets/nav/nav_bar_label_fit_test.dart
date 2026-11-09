@@ -339,5 +339,38 @@ void main() {
         1,
       );
     });
+
+    testWidgets('scales a themed style that leaves the size to the ambient', (
+      tester,
+    ) async {
+      // The themed style sets only a colour, so the label draws at the
+      // ambient 12; the fitted style must carry the shrunk size itself.
+      final style = await _fittedStyle(
+        tester,
+        labels: labels,
+        barWidth: 375,
+        ambient: const TextStyle(fontSize: 12, letterSpacing: 4),
+        theme: ThemeData(
+          navigationBarTheme: const NavigationBarThemeData(
+            labelTextStyle: WidgetStatePropertyAll(
+              TextStyle(color: Color(0xFF00FF00)),
+            ),
+          ),
+        ),
+      );
+
+      final resolved = style!.resolve(<WidgetState>{})!;
+      expect(resolved.color, const Color(0xFF00FF00));
+      expect(resolved.fontSize, lessThan(12));
+      expect(
+        _lineCount(
+          'Dives',
+          fontSize: resolved.fontSize!,
+          maxWidth: 75,
+          letterSpacing: 4,
+        ),
+        1,
+      );
+    });
   });
 }
