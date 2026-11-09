@@ -671,11 +671,14 @@ class Dive extends Equatable {
 
   /// Seconds the diver entered for breathing this dive's cylinders at the
   /// surface after the computer stopped logging (issue #2930). A suit
-  /// inflation bottle is not breathed, so its entry counts for nothing.
-  int get surfaceBreathingSeconds => breathingTanks.fold(
-    0,
-    (total, t) => total + (t.surfaceBreathingDuration?.inSeconds ?? 0),
-  );
+  /// inflation bottle is not breathed, and a cylinder with no logged drop
+  /// adds no gas to a rate, so neither entry counts.
+  int get surfaceBreathingSeconds => breathingTanks.fold(0, (total, t) {
+    final start = t.startPressure;
+    final end = t.endPressure;
+    if (start == null || end == null || start <= end) return total;
+    return total + (t.surfaceBreathingDuration?.inSeconds ?? 0);
+  });
 
   /// The cylinders that hold breathing gas, in order: every one but a suit
   /// inflation bottle (issue #4243). Gas calculations start from these;

@@ -161,6 +161,25 @@ void main() {
       expect(records.best!.value, closeTo(dive.sac!, 1e-9));
     });
 
+    test('a cylinder with no logged drop adds none', () async {
+      await insertDive();
+      await db
+          .into(db.diveTanks)
+          .insert(
+            const DiveTanksCompanion(
+              id: Value('o2'),
+              diveId: Value('d1'),
+              tankRole: Value('deco'),
+              o2Percent: Value(100.0),
+              hePercent: Value(0.0),
+              tankOrder: Value(1),
+              surfaceBreathingDuration: Value(600),
+            ),
+          );
+      final sac = await repository.getSacPressurePerDive();
+      expect(sac.single.value, closeTo(entity().sac!, 1e-9));
+    });
+
     test('count without a stored window too', () async {
       await insertDive(surfaceBreathingSeconds: 600);
       final dive = entity(surfaceBreathing: const Duration(minutes: 10));

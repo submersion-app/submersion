@@ -35,10 +35,12 @@ String _recordedSeconds(String dive) {
 
 /// Seconds the diver entered for breathing the dive's cylinders at the
 /// surface after the computer stopped logging, 0 when none: the SQL form of
-/// `Dive.surfaceBreathingSeconds`. A suit inflation bottle is not breathed.
+/// `Dive.surfaceBreathingSeconds`. A suit inflation bottle is not breathed,
+/// and a cylinder with no logged drop adds no gas to a rate.
 String _surfaceSeconds(String dive) =>
     '(SELECT COALESCE(SUM(gu_t.surface_breathing_duration), 0) '
     'FROM dive_tanks gu_t WHERE gu_t.dive_id = $dive.id '
+    'AND gu_t.start_pressure > gu_t.end_pressure '
     "AND ${breathingTankSql('gu_t')})";
 
 /// Seconds a whole-dive rate of the `dives` row aliased [dive] divides by:

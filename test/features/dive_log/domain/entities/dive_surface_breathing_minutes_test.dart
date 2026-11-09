@@ -49,6 +49,24 @@ void main() {
     expect(d.sac, closeTo(100 / 40 / d.environment.pressureAtDepth(18), 1e-9));
   });
 
+  test('a cylinder with no logged drop adds no surface minutes', () {
+    // Its gas is not in the rate, so neither is its time.
+    final d = dive(
+      tanks: const [
+        DiveTank(id: 't', startPressure: 200, endPressure: 100),
+        DiveTank(
+          id: 'o2',
+          gasMix: GasMix(o2: 100),
+          role: TankRole.deco,
+          surfaceBreathingDuration: Duration(minutes: 10),
+          order: 1,
+        ),
+      ],
+    );
+    expect(d.surfaceBreathingSeconds, 0);
+    expect(d.sac, closeTo(100 / 40 / d.environment.pressureAtDepth(18), 1e-9));
+  });
+
   test('a suit inflation bottle adds no surface minutes', () {
     final d = dive(
       tanks: const [
