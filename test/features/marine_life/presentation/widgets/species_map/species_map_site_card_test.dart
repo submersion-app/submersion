@@ -58,13 +58,16 @@ Future<void> _pump(
   bool publicOn = false,
   List<SiteSpeciesEntry> expected = const [],
   Future<List<LoggedSpeciesAtSite>>? logged,
+  Future<List<Species>>? catalog,
   bool settle = true,
 }) async {
   await tester.pumpWidget(
     await speciesMapHarness(
       prefs: {kSpeciesMapPublicLayerKey: publicOn},
       overrides: [
-        allSpeciesProvider.overrideWith((ref) async => _catalog),
+        allSpeciesProvider.overrideWith(
+          (ref) => catalog ?? Future.value(_catalog),
+        ),
         speciesMapLoggedAtSiteProvider('site-1').overrideWith(
           (ref) =>
               logged ??
@@ -162,6 +165,20 @@ void main() {
       logged: Completer<List<LoggedSpeciesAtSite>>().future,
       settle: false,
     );
+
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.text('Nothing logged here yet'), findsNothing);
+  });
+
+  testWidgets('shows progress while the catalog that names them loads', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      catalog: Completer<List<Species>>().future,
+      settle: false,
+    );
+    await tester.pump();
 
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     expect(find.text('Nothing logged here yet'), findsNothing);

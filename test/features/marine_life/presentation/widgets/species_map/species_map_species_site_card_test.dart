@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/marine_life/domain/entities/species_map_pins.dart';
 import 'package:submersion/features/marine_life/domain/entities/species_sighting_record.dart';
@@ -19,16 +22,23 @@ SpeciesSightingRecord _record(String id, String siteId, int number) =>
       notes: '',
     );
 
-Future<void> _pump(WidgetTester tester, SpeciesSitePin pin) async {
+Future<void> _pump(
+  WidgetTester tester,
+  SpeciesSitePin pin, {
+  Future<List<SpeciesSightingRecord>>? records,
+  bool settle = true,
+}) async {
   await tester.pumpWidget(
     await speciesMapHarness(
       overrides: [
         speciesSightingsProvider('manta').overrideWith(
-          (ref) async => [
-            _record('d1', 'site-1', 11),
-            _record('d2', 'site-2', 12),
-            _record('d3', 'site-1', 13),
-          ],
+          (ref) =>
+              records ??
+              Future.value([
+                _record('d1', 'site-1', 11),
+                _record('d2', 'site-2', 12),
+                _record('d3', 'site-1', 13),
+              ]),
         ),
       ],
       child: SpeciesMapSpeciesSiteCard(
@@ -38,8 +48,21 @@ Future<void> _pump(WidgetTester tester, SpeciesSitePin pin) async {
       ),
     ),
   );
-  await tester.pumpAndSettle();
+  if (settle) {
+    await tester.pumpAndSettle();
+  } else {
+    await tester.pump();
+  }
 }
+
+const _loggedPin = SpeciesSitePin(
+  siteId: 'site-1',
+  siteName: 'Manta Point',
+  latitude: 1,
+  longitude: 2,
+  kind: SpeciesPinKind.logged,
+  sightingCount: 4,
+);
 
 void main() {
   testWidgets("a logged pin lists only that site's sightings", (tester) async {
@@ -95,5 +118,26 @@ void main() {
 
     expect(find.text('Crystal Bay'), findsOneWidget);
     expect(find.text('Expected here, not logged yet'), findsOneWidget);
+  });
+
+  testWidgets('shows progress while the sightings load', (tester) async {
+    await _pump(
+      tester,
+      _loggedPin,
+      records: Completer<List<SpeciesSightingRecord>>().future,
+      settle: false,
+    );
+
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+  });
+
+  testWidgets('says so when the sightings fail to load', (tester) async {
+    final records = Completer<List<SpeciesSightingRecord>>();
+    await _pump(tester, _loggedPin, records: records.future, settle: false);
+
+    records.completeError(StateError('db'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Could not load the species map.'), findsOneWidget);
   });
 }

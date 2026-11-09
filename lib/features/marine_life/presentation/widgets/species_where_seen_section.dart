@@ -79,6 +79,9 @@ class SpeciesWhereSeenSection extends ConsumerWidget {
                         // claim the page cannot make.
                         pinsAsync.hasError
                             ? l10n.speciesMap_error_loading
+                            // Nothing to claim until the read is back.
+                            : !pinsAsync.hasValue
+                            ? ''
                             : topSites.isEmpty
                             ? l10n.speciesMap_whereSeen_empty
                             : topSites,
@@ -112,6 +115,9 @@ class _MiniMap extends ConsumerWidget {
     final points = [for (final p in pins) LatLng(p.latitude, p.longitude)];
     final urlTemplate = ref.watch(mapTileUrlProvider);
     return FlutterMap(
+      // The camera frames the pins once, at creation, and the diver cannot
+      // pan this map; a new set of sites is a new map, framed afresh.
+      key: ValueKey(Object.hashAll(points)),
       options: MapOptions(
         initialCameraFit: MapCameraAnimator.fitAllCameraFit(
           points,

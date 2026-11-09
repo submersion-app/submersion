@@ -55,19 +55,19 @@ class _SpeciesMapListPaneState extends ConsumerState<SpeciesMapListPane> {
         ..sort((a, b) => b.totalSightings.compareTo(a.totalSightings));
       rows = [for (final s in sorted) s.species];
     } else {
+      // Each name is folded once, not once per comparison while sorting.
+      final folded = {
+        for (final s in catalog) s.id: normalize(s.localizedCommonName(l10n)),
+      };
       bool matches(Species s) =>
-          normalize(s.localizedCommonName(l10n)).contains(needle) ||
+          folded[s.id]!.contains(needle) ||
           normalize(s.scientificName ?? '').contains(needle);
+      int seenRank(Species s) => seenById.containsKey(s.id) ? 0 : 1;
       final found = catalog.where(matches).toList()
         ..sort((a, b) {
           // Seen species first, then by name.
-          final seenOrder = (seenById.containsKey(a.id) ? 0 : 1).compareTo(
-            seenById.containsKey(b.id) ? 0 : 1,
-          );
-          if (seenOrder != 0) return seenOrder;
-          return normalize(
-            a.localizedCommonName(l10n),
-          ).compareTo(normalize(b.localizedCommonName(l10n)));
+          final bySeen = seenRank(a).compareTo(seenRank(b));
+          return bySeen != 0 ? bySeen : folded[a.id]!.compareTo(folded[b.id]!);
         });
       rows = found;
     }

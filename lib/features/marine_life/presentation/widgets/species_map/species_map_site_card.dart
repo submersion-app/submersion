@@ -32,11 +32,14 @@ class SpeciesMapSiteCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
+    final catalogAsync = ref.watch(allSpeciesProvider);
     final catalog = {
-      for (final s in ref.watch(allSpeciesProvider).value ?? const <Species>[])
-        s.id: s,
+      for (final s in catalogAsync.value ?? const <Species>[]) s.id: s,
     };
     final loggedAsync = ref.watch(speciesMapLoggedAtSiteProvider(pin.siteId));
+    // The chips need both reads: the counts, and the catalog that names them.
+    final failed = loggedAsync.hasError || catalogAsync.hasError;
+    final loading = !loggedAsync.hasValue || !catalogAsync.hasValue;
     final logged = loggedAsync.value ?? const <LoggedSpeciesAtSite>[];
     final loggedIds = {for (final l in logged) l.speciesId};
     final expected = [
@@ -62,7 +65,9 @@ class SpeciesMapSiteCard extends ConsumerWidget {
         const SizedBox(height: 6),
         // While loading, a spinner: the pin already says species were
         // logged here, so "nothing logged" would contradict it.
-        if (!loggedAsync.hasValue && !loggedAsync.hasError)
+        if (failed)
+          Text(l10n.speciesMap_error_loading)
+        else if (loading)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 4),
             child: SizedBox(
@@ -71,8 +76,6 @@ class SpeciesMapSiteCard extends ConsumerWidget {
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
           )
-        else if (loggedAsync.hasError)
-          Text(l10n.speciesMap_error_loading)
         else if (logged.isEmpty)
           Text(l10n.speciesMap_card_nothingLogged)
         else

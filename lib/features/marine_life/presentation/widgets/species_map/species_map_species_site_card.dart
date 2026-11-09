@@ -30,26 +30,38 @@ class SpeciesMapSpeciesSiteCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final units = ref.watch(unitFormatterProvider);
-    final records = pin.kind == SpeciesPinKind.logged
-        ? [
-            for (final record
-                in ref.watch(speciesSightingsProvider(speciesId)).value ??
-                    const <SpeciesSightingRecord>[])
-              if (record.siteId == pin.siteId) record,
-          ]
-        : const <SpeciesSightingRecord>[];
+    final isLogged = pin.kind == SpeciesPinKind.logged;
+    final sightingsAsync = isLogged
+        ? ref.watch(speciesSightingsProvider(speciesId))
+        : null;
+    final records = [
+      for (final record
+          in sightingsAsync?.value ?? const <SpeciesSightingRecord>[])
+        if (record.siteId == pin.siteId) record,
+    ];
 
     return SpeciesMapCardFrame(
       title: pin.siteName,
-      subtitle: pin.kind == SpeciesPinKind.logged
+      subtitle: isLogged
           ? l10n.marineLife_speciesPage_sightingsCount(pin.sightingCount)
           : null,
       openTooltip: l10n.speciesMap_card_openSite,
       onOpenTitle: () => context.push('/sites/${pin.siteId}'),
       onClose: onClose,
       children: [
-        if (pin.kind == SpeciesPinKind.expected)
+        if (!isLogged)
           Text(l10n.speciesMap_card_expectedPin)
+        else if (sightingsAsync!.hasError)
+          Text(l10n.speciesMap_error_loading)
+        else if (!sightingsAsync.hasValue)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 4),
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          )
         else
           for (final record in records)
             ListTile(

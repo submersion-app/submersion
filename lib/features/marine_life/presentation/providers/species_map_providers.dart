@@ -41,8 +41,12 @@ final speciesMapSitePinsProvider = FutureProvider<List<SiteSpeciesPin>>((
 
 /// One species' map: where the current diver logged it, and where it is
 /// expected under the chosen [ExpectedSiteScope].
-final speciesMapSpeciesPinsProvider =
-    FutureProvider.family<List<SpeciesSitePin>, String>((ref, speciesId) async {
+///
+/// This and the per-site reads below are dropped once nothing watches them:
+/// every species page the diver opens would otherwise keep one alive,
+/// re-querying on each sighting, dive and site change.
+final speciesMapSpeciesPinsProvider = FutureProvider.autoDispose
+    .family<List<SpeciesSitePin>, String>((ref, speciesId) async {
       final repository = ref.watch(speciesMapRepositoryProvider);
       final diverId = ref.watch(currentDiverIdProvider);
       final scope = ref.watch(speciesMapExpectedScopeProvider);
@@ -59,25 +63,20 @@ final speciesMapSpeciesPinsProvider =
 
 /// Sightings that cannot be drawn (no site, or no usable coordinates), for
 /// one species or, with a null id, every species.
-final speciesMapUnplacedCountProvider = FutureProvider.family<int, String?>((
-  ref,
-  speciesId,
-) async {
-  final repository = ref.watch(speciesMapRepositoryProvider);
-  final diverId = ref.watch(currentDiverIdProvider);
-  _invalidateOnPlacedSightingChanges(ref);
-  return repository.countUnplacedSightings(
-    speciesId: speciesId,
-    diverId: diverId,
-  );
-});
+final speciesMapUnplacedCountProvider = FutureProvider.autoDispose
+    .family<int, String?>((ref, speciesId) async {
+      final repository = ref.watch(speciesMapRepositoryProvider);
+      final diverId = ref.watch(currentDiverIdProvider);
+      _invalidateOnPlacedSightingChanges(ref);
+      return repository.countUnplacedSightings(
+        speciesId: speciesId,
+        diverId: diverId,
+      );
+    });
 
 /// The species the current diver logged at one site, most seen first.
-final speciesMapLoggedAtSiteProvider =
-    FutureProvider.family<List<LoggedSpeciesAtSite>, String>((
-      ref,
-      siteId,
-    ) async {
+final speciesMapLoggedAtSiteProvider = FutureProvider.autoDispose
+    .family<List<LoggedSpeciesAtSite>, String>((ref, siteId) async {
       final repository = ref.watch(speciesMapRepositoryProvider);
       final diverId = ref.watch(currentDiverIdProvider);
       _invalidateOnPlacedSightingChanges(ref);

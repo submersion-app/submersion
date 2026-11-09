@@ -246,4 +246,27 @@ void main() {
       expect(pins.single.kind, SpeciesPinKind.expected);
     });
   });
+
+  group('per-species and per-site reads', () {
+    test('are dropped once nothing watches them', () async {
+      final container = makeContainer();
+      final subs = [
+        container.listen(speciesMapSpeciesPinsProvider('fish'), (_, _) {}),
+        container.listen(speciesMapUnplacedCountProvider('fish'), (_, _) {}),
+        container.listen(speciesMapLoggedAtSiteProvider('site'), (_, _) {}),
+      ];
+      await container.pump();
+      for (final sub in subs) {
+        sub.close();
+      }
+      await container.pump();
+
+      expect(container.exists(speciesMapSpeciesPinsProvider('fish')), isFalse);
+      expect(
+        container.exists(speciesMapUnplacedCountProvider('fish')),
+        isFalse,
+      );
+      expect(container.exists(speciesMapLoggedAtSiteProvider('site')), isFalse);
+    });
+  });
 }
