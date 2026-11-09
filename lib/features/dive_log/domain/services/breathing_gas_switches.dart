@@ -1,0 +1,109 @@
+import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart';
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
+
+/// Gas switches as breathing gas calculations read them (issue #4243).
+///
+/// A suit inflation bottle is not breathing gas, yet a downloaded computer
+/// can attach a switch to it when its gas list holds the bottle's mix, which
+/// is air in practice, the same as the back gas. Dropping that switch would
+/// leave the diver on the previous gas (a deco mix, say) and understate deco,
+/// the unsafe direction. So a switch to a suit bottle moves to the breathing
+/// cylinder on the same mix, the SAC reference cylinder first when it
+/// matches, and is dropped only when no breathing cylinder holds that mix.
+/// The stored switch is never rewritten: this is how calculations read it.
+///
+/// A switch to a breathing cylinder, or to a cylinder not in the list, is
+/// kept as it is. Returns [switches] itself when no cylinder is a bottle.
+List<GasSwitch> breathingRawGasSwitches(
+  List<GasSwitch> switches,
+  List<DiveTank> tanks,
+) => breathingSwitchesOf(
+  switches,
+  tanks,
+  tankIdOf: (sw) => sw.tankId,
+  moveTo: (sw, tank) => sw.copyWith(tankId: tank.id),
+);
+
+/// [breathingRawGasSwitches] for switches that carry their cylinder's name
+/// and mix: a moved switch takes the new cylinder's.
+List<GasSwitchWithTank> breathingGasSwitches(
+  List<GasSwitchWithTank> switches,
+  List<DiveTank> tanks,
+) => breathingSwitchesOf(
+  switches,
+  tanks,
+  tankIdOf: (sw) => sw.gasSwitch.tankId,
+  moveTo: _relabel,
+);
+
+/// The rule [breathingRawGasSwitches] applies, for a switch type of its own
+/// (the Dive Lab's, a statistic's): each of [switches] is kept, moved with
+/// [moveTo] onto the breathing cylinder it counts against, or dropped.
+/// [tankIdOf] reads the cylinder a switch names. Returns [switches] itself
+/// when no cylinder is a bottle.
+List<S> breathingSwitchesOf<S>(
+  List<S> switches,
+  List<DiveTank> tanks, {
+  required String Function(S sw) tankIdOf,
+  required S Function(S sw, DiveTank tank) moveTo,
+}) {
+  if (!_carriesSuitBottle(tanks)) return switches;
+  final targets = _Targets(tanks);
+  return [
+    for (final sw in switches)
+      if (targets.resolve(tankIdOf(sw)) case final tankId?)
+        tankId == tankIdOf(sw) ? sw : moveTo(sw, targets.tankById(tankId)!),
+  ];
+}
+
+/// Whether any of [tanks] is a suit inflation bottle. Nearly every dive
+/// carries none, and then no switch moves, so nothing else is built.
+bool _carriesSuitBottle(List<DiveTank> tanks) =>
+    tanks.any((t) => !t.role.isBreathingGas);
+
+GasSwitchWithTank _relabel(GasSwitchWithTank sw, DiveTank tank) =>
+    GasSwitchWithTank(
+      gasSwitch: sw.gasSwitch.copyWith(tankId: tank.id),
+      tankName: tank.name ?? '',
+      gasMix: tank.gasMix.name,
+      o2Fraction: tank.gasMix.o2 / 100,
+      heFraction: tank.gasMix.he / 100,
+    );
+
+/// Where a switch to each cylinder of a dive lands.
+class _Targets {
+  _Targets(List<DiveTank> tanks)
+    : _byId = {for (final tank in tanks) tank.id: tank},
+      _breathing = breathingTanks(tanks);
+
+  final Map<String, DiveTank> _byId;
+  final List<DiveTank> _breathing;
+
+  /// Where each suit inflation bottle's switches land, worked out once per
+  /// bottle rather than once per switch.
+  final Map<String, String?> _resolved = {};
+  late final DiveTank? _reference = sacReferenceTankOf(_breathing);
+
+  /// The cylinder of the dive with [id], if any.
+  DiveTank? tankById(String id) => _byId[id];
+
+  /// The cylinder a switch to [tankId] counts against, or null to drop it.
+  String? resolve(String tankId) {
+    final tank = _byId[tankId];
+    if (tank == null || tank.role.isBreathingGas) return tankId;
+    return _resolved.putIfAbsent(tankId, () {
+      final matches = _breathing.where((t) => _sameGas(t, tank)).toList();
+      if (matches.isEmpty) return null;
+      final reference = _reference;
+      if (reference != null && matches.contains(reference)) {
+        return reference.id;
+      }
+      return matches.first.id;
+    });
+  }
+
+  static bool _sameGas(DiveTank a, DiveTank b) =>
+      (a.gasMix.o2 - b.gasMix.o2).abs() <= sameGasTolerancePct &&
+      (a.gasMix.he - b.gasMix.he).abs() <= sameGasTolerancePct;
+}

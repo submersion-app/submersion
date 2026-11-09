@@ -1405,6 +1405,21 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_setEdit_figureSwitch_title => 'הצגת דמות הצולל';
 
   @override
+  String get equipment_setEdit_historyAsk =>
+      'להחיל את השינויים גם על הצלילות האלה, או רק מעכשיו?';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הסט הזה נמצא ב-$count צלילות רשומות.',
+      one: 'הסט הזה נמצא בצלילה רשומה אחת.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_color_red => 'אדום';
 
   @override
@@ -13998,6 +14013,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_tankRole_stage => 'סטייג\'';
+
+  @override
+  String get enum_tankRole_suitInflation => 'ניפוח חליפה';
 
   @override
   String get enum_tankRole_twinSet => 'צמד בלונים';
@@ -39216,6 +39234,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_valve_type => 'שסתום';
 
   @override
+  String get attrLabel_cylinder_use => 'שימוש בבלון';
+
+  @override
   String get attrLabel_tank_identifier => 'מזהה';
 
   @override
@@ -39571,6 +39592,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => 'הפיך';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => 'גז נשימה';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => 'ניפוח חליפה';
 
   @override
   String get attrChoice_connection_din => 'DIN';

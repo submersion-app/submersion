@@ -97,6 +97,39 @@ void main() {
     );
   });
 
+  test('the walk stops below a row that is under another parent', () {
+    // reg is the other assembly's, so the parts it lacks on this dive (one
+    // the diver took off, say) are not hung under it for kit.
+    final rows = GearExpander.expand(
+      additions: const [(equipmentId: 'kit', viaSetId: 'winter')],
+      index: index,
+      existing: const [
+        GearProvenance(equipmentId: 'reg', viaEquipmentId: 'other'),
+      ],
+      isActive: allActive,
+    );
+    expect(ids(rows), ['reg', 'kit', 'fins']);
+    expect(rows.first.viaEquipmentId, 'other');
+    expect(rows.first.viaSetId, isNull);
+  });
+
+  test('a row already under the same parent still has its parts walked', () {
+    final rows = GearExpander.expand(
+      additions: const [(equipmentId: 'kit', viaSetId: null)],
+      index: index,
+      existing: const [
+        GearProvenance(equipmentId: 'kit'),
+        GearProvenance(equipmentId: 'reg', viaEquipmentId: 'kit'),
+      ],
+      isActive: allActive,
+    );
+    expect(ids(rows), ['kit', 'reg', 'first', 'second', 'hose', 'fins']);
+    expect(
+      rows.firstWhere((r) => r.equipmentId == 'hose').viaEquipmentId,
+      'reg',
+    );
+  });
+
   test('a top-level item already present gains the set when it had none', () {
     final rows = GearExpander.expand(
       additions: const [(equipmentId: 'fins', viaSetId: 'winter')],

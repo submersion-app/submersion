@@ -602,6 +602,24 @@ void main() {
       expect(textOf(tester, 'Working P'), '207');
     });
 
+    testWidgets('a small bottle keeps both decimals of its size (#4243)', (
+      tester,
+    ) async {
+      // A drysuit's 0.85 L argon bottle must not read as 0.9.
+      await tester.pumpWidget(
+        host(
+          item: seed(
+            role: TankRole.suitInflation,
+            o2: 0,
+            volumeL: 0.85,
+            workingPressureBar: 200,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(textOf(tester, 'Volume'), '0.85');
+    });
+
     testWidgets('volume and working pressure show in imperial units', (
       tester,
     ) async {

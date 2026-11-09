@@ -19,6 +19,7 @@ import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.da
     show TripCylinderTankUse;
 import 'package:submersion/features/trips/domain/entities/trip_gas_record.dart'
     show TripGasRecordTank, TripUnlinkedTank;
+import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
 
 /// Reads and writes the cylinder slots of a trip and their ledger, and reads
 /// the lean facts the state fold needs from the dive log.
@@ -693,7 +694,7 @@ class TripCylinderRepository {
                  COALESCE(d.entry_time, d.dive_date_time) AS entry_ms,
                  d.diver_id, v.name AS diver_name, s.name AS site_name,
                  t.tank_order, t.volume, t.start_pressure, t.end_pressure,
-                 t.o2_percent, t.he_percent, t.trip_cylinder_id
+                 t.o2_percent, t.he_percent, t.trip_cylinder_id, t.tank_role
           FROM dive_tanks t
           JOIN dives d ON d.id = t.dive_id
           LEFT JOIN divers v ON v.id = d.diver_id
@@ -736,6 +737,9 @@ class TripCylinderRepository {
             he: r.read<double>('he_percent'),
           ),
           tripCylinderId: r.read<String>('trip_cylinder_id'),
+          breathing: TankRole.fromName(
+            r.readNullable<String>('tank_role'),
+          ).isBreathingGas,
         ),
     ];
   }
@@ -761,6 +765,9 @@ class TripCylinderRepository {
           LEFT JOIN dive_sites s ON s.id = d.site_id
           WHERE ${tripDivesScopeSql('d', '?1')}
             AND d.is_planned = 0
+            -- A suit inflation bottle breathes from no slot because it is
+            -- not breathed at all, so it is no gap (issue #4243).
+            AND ${breathingTankSql('t')}
             AND (t.trip_cylinder_id IS NULL
                  OR t.trip_cylinder_id NOT IN (${accountedSlotIdsSql('?1')}))
           ORDER BY entry_ms ASC, t.dive_id ASC, t.tank_order ASC

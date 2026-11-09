@@ -189,6 +189,24 @@ void main() {
       expect(r.suggested, isEmpty);
     });
 
+    test('a suit inflation bottle is never suggested a slot', () {
+      // An air argon bottle matches any full slot, and the slot's fill would
+      // replace its size (issue #4243). The breathing tank takes the slot.
+      const bottle = DiveTank(
+        id: 'suit',
+        volume: 0.85,
+        role: TankRole.suitInflation,
+      );
+      final r = suggestTripCylindersForTanks(
+        tanks: [bottle, air],
+        states: [filled(slot('a'))],
+        eligibleTankIds: {'suit', 'k1'},
+      );
+      expect(r.tanks[0], bottle);
+      expect(r.tanks[1].tripCylinderId, 'a');
+      expect(r.suggested, {'k1'});
+    });
+
     test('nothing full, nothing suggested', () {
       final r = suggestTripCylindersForTanks(
         tanks: [air],

@@ -1426,6 +1426,21 @@ class AppLocalizationsHu extends AppLocalizations {
       'Búvárfigura megjelenítése';
 
   @override
+  String get equipment_setEdit_historyAsk =>
+      'A változásokat azokra a merülésekre is alkalmazza, vagy csak mostantól?';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ez a csoport $count naplózott merülésen szerepel.',
+      one: 'Ez a csoport 1 naplózott merülésen szerepel.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_color_red => 'Piros';
 
   @override
@@ -14268,6 +14283,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_tankRole_stage => 'Stage';
+
+  @override
+  String get enum_tankRole_suitInflation => 'Ruhatöltő palack';
 
   @override
   String get enum_tankRole_twinSet => 'Ikerpalack';
@@ -39982,6 +40000,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_valve_type => 'Szelep';
 
   @override
+  String get attrLabel_cylinder_use => 'Palack felhasználása';
+
+  @override
   String get attrLabel_tank_identifier => 'Azonosító';
 
   @override
@@ -40338,6 +40359,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => 'Átalakítható';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => 'Légzőgáz';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => 'Ruhatöltő palack';
 
   @override
   String get attrChoice_connection_din => 'DIN';

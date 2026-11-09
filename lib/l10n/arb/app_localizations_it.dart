@@ -1429,6 +1429,21 @@ class AppLocalizationsIt extends AppLocalizations {
       'Mostra figura del subacqueo';
 
   @override
+  String get equipment_setEdit_historyAsk =>
+      'Applicare le modifiche anche a quelle immersioni o solo da ora in poi?';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Questo set è su $count immersioni registrate.',
+      one: 'Questo set è su 1 immersione registrata.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_color_red => 'Rosso';
 
   @override
@@ -14307,6 +14322,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get enum_tankRole_stage => 'Stage';
+
+  @override
+  String get enum_tankRole_suitInflation => 'Gonfiaggio muta';
 
   @override
   String get enum_tankRole_twinSet => 'Bibombola';
@@ -40219,6 +40237,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get attrLabel_valve_type => 'Rubinetto';
 
   @override
+  String get attrLabel_cylinder_use => 'Uso della bombola';
+
+  @override
   String get attrLabel_tank_identifier => 'Identificativo';
 
   @override
@@ -40577,6 +40598,12 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => 'Convertibile';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => 'Gas respirabile';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => 'Gonfiaggio muta';
 
   @override
   String get attrChoice_connection_din => 'DIN';

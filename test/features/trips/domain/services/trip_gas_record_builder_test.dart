@@ -377,4 +377,29 @@ void main() {
     );
     expect(r.unlinked.map((u) => u.tankId), ['n1', 'n2']);
   });
+
+  // A suit inflation bottle is not breathed (issue #4243): its fills stay
+  // on the record, it adds no litres and is no dive left out.
+  test('a suit inflation bottle keeps its fill and adds no litres', () {
+    final suit = TripGasRecordTank(
+      tankId: 'suit',
+      diveId: 'd1',
+      entryTime: at(9, 9),
+      volume: 0.85,
+      startPressure: 200,
+      endPressure: 120,
+      gasMix: const GasMix(o2: 21),
+      tripCylinderId: 'b',
+      breathing: false,
+    );
+
+    final r = record(tanks: [suit]);
+    final row = r.rows.single;
+    final total = r.slots.singleWhere((t) => t.cylinder.id == 'b');
+
+    expect(row.fill?.id, 'g1');
+    expect(row.litres, isNull);
+    expect(total.litres, isNull);
+    expect(total.leftOut, 0);
+  });
 }

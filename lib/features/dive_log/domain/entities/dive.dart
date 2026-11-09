@@ -26,6 +26,9 @@ import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/services/bottom_time_calculator.dart';
 import 'package:submersion/features/dive_log/domain/services/gas_use_window.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
+import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart'
+    as multi
+    show breathingTanks;
 
 /// Core dive log entry entity
 class Dive extends Equatable {
@@ -547,16 +550,19 @@ class Dive extends Equatable {
   /// `gasModelProvider`. Nothing is added for a safety stop (issue #828), and
   /// surface time at the ends of the recording is left out (see [gasUse]).
   double? rmvFor(GasModel model) {
+    final breathing = breathingTanks;
+    if (breathing.isEmpty) return null;
     final basis = _consumptionBasis();
     if (basis == null) return null;
     final (:minutes, :avgPressureBar) = basis;
 
-    // Sum gas consumed across all tanks (in liters at 1 bar)
+    // Sum gas consumed across the breathing cylinders (in liters at 1 bar);
+    // a suit inflation bottle is not breathed (issue #4243).
     double totalGasLiters = 0;
     int tanksWithData = 0;
 
-    for (final tank in tanks) {
-      final volume = consumptionVolume(tank, tanks);
+    for (final tank in breathing) {
+      final volume = consumptionVolume(tank, breathing);
       if (tank.startPressure == null ||
           tank.endPressure == null ||
           volume == null) {
@@ -623,14 +629,12 @@ class Dive extends Equatable {
   /// [measuredRuntime], cut to [gasUse] when that is shorter (a runtime
   /// already shortened by hand is not cut twice), at the depth of [gasUse],
   /// else the recorded [avgDepth]. Null when no rate can be given: a
-  /// rebreather, no cylinders, no runtime or no average depth.
+  /// rebreather, no runtime or no average depth. Each rate checks its own
+  /// cylinders.
   ({double minutes, double avgPressureBar})? _consumptionBasis() {
     final runtime = measuredRuntime;
     final recordedDepth = avgDepth;
-    if (isRebreather ||
-        tanks.isEmpty ||
-        runtime == null ||
-        recordedDepth == null) {
+    if (isRebreather || runtime == null || recordedDepth == null) {
       return null;
     }
     final use = gasUse;
@@ -649,11 +653,16 @@ class Dive extends Equatable {
     );
   }
 
+  /// The cylinders that hold breathing gas, in order: every one but a suit
+  /// inflation bottle (issue #4243). Gas calculations start from these;
+  /// [tanks] is what the dive lists.
+  List<DiveTank> get breathingTanks => multi.breathingTanks(tanks);
+
   /// The cylinder whose bar the pressure lane ([sac]) is expressed in, and
   /// the one whose volume converts an unattributed SAC segment to L/min:
   /// on a multi-tank dive the back gas, else the first cylinder; the only
-  /// cylinder on a single-tank dive whatever its role. Null when the dive
-  /// has no cylinders.
+  /// cylinder on a single-tank dive whatever its role. Never a suit inflation
+  /// bottle (issue #4243). Null when the dive has no breathing cylinder.
   DiveTank? get sacReferenceTank => sacReferenceTankOf(tanks);
 
   /// The volume of [sacReferenceTank], its own or its matched partner's
@@ -679,12 +688,14 @@ class Dive extends Equatable {
   /// unless it pairs with the reference (see [isMatchedPair]). Surface time
   /// at the ends of the recording is left out (see [gasUse]).
   double? get sac {
+    final reference = sacReferenceTank;
+    if (reference == null) return null;
     final basis = _consumptionBasis();
     if (basis == null) return null;
     final (:minutes, :avgPressureBar) = basis;
 
     final pressureUsed = referencePressureDrop(
-      reference: sacReferenceTank!,
+      reference: reference,
       tanks: tanks,
     );
     if (pressureUsed == null) return null;

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:submersion/core/utils/time_weighted_mean.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/services/breathing_gas_switches.dart';
 import 'package:submersion/features/dive_log/domain/services/gas_use_window.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_usage_range.dart';
 
@@ -40,10 +41,12 @@ CylinderUsage? cylinderUsage({
   required int diveEnd,
 }) {
   // Only a switch that says when a cylinder was breathed overrides a
-  // recorded duration: not a stale id (#110), nor one after the dive.
+  // recorded duration: not a stale id (#110), nor one after the dive, nor one
+  // to a suit inflation bottle that no breathing cylinder's mix takes over
+  // (issue #4243), as [tankUsageWindows] reads them.
   final hasGasSwitches = knownGasSwitches(
     tanks,
-    gasSwitches,
+    gasSwitches == null ? null : breathingGasSwitches(gasSwitches, tanks),
     before: diveEnd,
   ).isNotEmpty;
   // Gas switches say when, which is more, so they win; without them this is

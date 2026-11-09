@@ -27,6 +27,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_data_source.da
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/domain/services/breathing_gas_switches.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/dive_log/domain/services/ccr_gas_schedule.dart';
 import 'package:submersion/features/dive_log/domain/services/computer_cns_extractor.dart';
@@ -87,6 +88,21 @@ List<double>? combineMultiTankPressures({
   required List<DiveTank> tanks,
 }) {
   if (tankPressures.isEmpty || tanks.isEmpty) return null;
+
+  // A suit inflation bottle's pressure is not breathing (issue #4243): its
+  // series never joins the curve, even as an orphan of unknown volume.
+  final notBreathed = {
+    for (final tank in tanks)
+      if (!tank.role.isBreathingGas) tank.id,
+  };
+  if (notBreathed.isNotEmpty) {
+    tankPressures = {
+      for (final entry in tankPressures.entries)
+        if (!notBreathed.contains(entry.key)) entry.key: entry.value,
+    };
+    tanks = breathingTanks(tanks);
+    if (tankPressures.isEmpty || tanks.isEmpty) return null;
+  }
 
   // Build a map of tank volumes for weighting (needed to normalize consumption)
   final tankVolumes = <String, double>{};
@@ -191,11 +207,13 @@ final _log = LoggerService.forClass(_ProfileAnalysisProvider);
 /// The schedule starts at [buildProfileGasSegments]'s `startTimestamp`
 /// (0 by default) using the primary tank gas when available, otherwise air.
 /// Gas switches then replace the active gas from their timestamp onward.
+/// Never a suit inflation bottle, which is not breathed (issue #4243).
 DiveTank? _selectOcPrimaryTank(List<DiveTank> tanks) {
-  if (tanks.isEmpty) return null;
-  return tanks.firstWhere(
+  final breathing = breathingTanks(tanks);
+  if (breathing.isEmpty) return null;
+  return breathing.firstWhere(
     (t) => backmountRoles.contains(t.role),
-    orElse: () => tanks.first,
+    orElse: () => breathing.first,
   );
 }
 
@@ -221,6 +239,9 @@ List<ProfileGasSegment> buildProfileGasSegments(
 }) {
   final primaryMix =
       _selectOcPrimaryTank(tanks ?? dive.tanks)?.gasMix ?? const GasMix();
+  // A switch to a suit inflation bottle counts against the breathing
+  // cylinder on its mix, never as a gas breathed (issue #4243).
+  gasSwitches = breathingGasSwitches(gasSwitches, tanks ?? dive.tanks);
 
   final segments = <ProfileGasSegment>[
     ProfileGasSegment(
@@ -282,7 +303,8 @@ GasMix resolveCcrDiluentMix(Dive dive, {List<DiveTank>? tanks}) =>
 /// [resolveCcrDiluentMix] without its air default: null when the log holds no
 /// gas the loop could run on.
 GasMix? _recordedCcrDiluentMix(Dive dive, {List<DiveTank>? tanks}) {
-  final candidates = tanks ?? dive.tanks;
+  // A suit inflation bottle is never the loop's gas (issue #4243).
+  final candidates = breathingTanks(tanks ?? dive.tanks);
   for (final tank in candidates) {
     if (tank.role == TankRole.diluent) return tank.gasMix;
   }
@@ -460,6 +482,8 @@ List<AvailableGas> buildAvailableGases(
   DiveEnvironment environment = DiveEnvironment.standard,
 }) {
   bool keep(DiveTank t) {
+    // A suit inflation bottle is no ascent gas (issue #4243).
+    if (!t.role.isBreathingGas) return false;
     // A CCR bailout reads cylinder roles the way its switches are read, so
     // an untagged diluent is left out here exactly as a tagged one is.
     final role = forCcrBailout ? ccrCylinderRole(t) : t.role;
@@ -1393,11 +1417,10 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
       }
     }
 
-    // Get gas mix from primary tank
+    // Get gas mix from the first breathing cylinder (issue #4243)
     double o2Fraction = 0.21; // Default to air
     double heFraction = 0.0;
-    if (tanks.isNotEmpty) {
-      final primaryTank = tanks.first;
+    if (breathingTanks(tanks) case [final primaryTank, ...]) {
       o2Fraction = primaryTank.gasMix.o2 / 100.0;
       heFraction = primaryTank.gasMix.he / 100.0;
     }
@@ -2178,11 +2201,10 @@ final diveProfileAnalysisProvider = Provider.autoDispose
         // Extract profile data
         final depths = dive.profile.map((p) => p.depth).toList();
         final timestamps = dive.profile.map((p) => p.timestamp).toList();
-        // Get gas mix from primary tank
+        // Get gas mix from the first breathing cylinder (issue #4243)
         double o2Fraction = 0.21; // Default to air
         double heFraction = 0.0;
-        if (dive.tanks.isNotEmpty) {
-          final primaryTank = dive.tanks.first;
+        if (dive.breathingTanks case [final primaryTank, ...]) {
           o2Fraction = primaryTank.gasMix.o2 / 100.0;
           heFraction = primaryTank.gasMix.he / 100.0;
         }

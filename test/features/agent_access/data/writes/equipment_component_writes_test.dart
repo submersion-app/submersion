@@ -2,7 +2,9 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/features/agent_access/data/writes/families/equipment_component_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
+import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 
 import '../../../../helpers/test_database.dart';
 import '../records/record_harness.dart';
@@ -80,6 +82,88 @@ void main() {
 
     await h.run([deleteOp('equipment_components', first)]);
     expect([for (final p in await parts('reg')) p.id], [second]);
+  });
+
+  test('a part change follows on planned dives only (#4283)', () async {
+    // d1 is logged, p1 planned; both carry reg with first under it.
+    await h.dive('p1');
+    await (db.update(db.dives)..where((d) => d.id.equals('p1'))).write(
+      const DivesCompanion(isPlanned: Value(true)),
+    );
+    final first = (await h.run([
+      createOp('equipment_components', part('reg', 'first')),
+    ])).created.single.id;
+    for (final dive in ['d1', 'p1']) {
+      await db
+          .into(db.diveEquipment)
+          .insert(
+            DiveEquipmentCompanion.insert(diveId: dive, equipmentId: 'reg'),
+          );
+      await db
+          .into(db.diveEquipment)
+          .insert(
+            DiveEquipmentCompanion.insert(
+              diveId: dive,
+              equipmentId: 'first',
+              viaEquipmentId: const Value('reg'),
+            ),
+          );
+    }
+    Future<Set<String>> gearOn(String dive) async => {
+      for (final row in await (db.select(
+        db.diveEquipment,
+      )..where((r) => r.diveId.equals(dive))).get())
+        row.equipmentId,
+    };
+
+    final added = await h.preview([
+      createOp('equipment_components', part('reg', 'second')),
+    ]);
+    expect(added.items.single.alsoChanges, {'dives': 1});
+    await h.apply(added);
+    expect(await gearOn('p1'), {'reg', 'first', 'second'});
+    expect(await gearOn('d1'), {'reg', 'first'});
+
+    await h.run([
+      updateOp('equipment_components', first, {
+        'component_equipment_id': 'octo',
+      }),
+    ]);
+    expect(await gearOn('p1'), {'reg', 'octo', 'second'});
+
+    await h.run([deleteOp('equipment_components', first)]);
+    expect(await gearOn('p1'), {'reg', 'second'});
+    expect(await gearOn('d1'), {'reg', 'first'});
+
+    // The rewritten dive waits for afterApply, which rescans it once the
+    // apply has committed, then lets it go.
+    final entry =
+        h.writes.named('equipment_components')! as EquipmentComponentWrites;
+    expect(entry.pendingRescan, isEmpty);
+    await entry.create(kDiverA, part('reg', 'octo'));
+    expect(entry.pendingRescan, {'p1'});
+    await entry.afterApply(const [], ApplyRun());
+    expect(entry.pendingRescan, isEmpty);
+  });
+
+  test('an update of a part that is gone is refused', () async {
+    final entry =
+        h.writes.named('equipment_components')! as EquipmentComponentWrites;
+    for (final values in const <Map<String, Object?>>[
+      {'sort_order': 0},
+      {'component_equipment_id': 'octo'},
+    ]) {
+      await expectLater(
+        entry.update('gone', kDiverA, RecordUpdate(values: values)),
+        throwsA(
+          isA<AgentToolException>().having(
+            (e) => e.code,
+            'code',
+            AgentToolErrorCode.writeRefused,
+          ),
+        ),
+      );
+    }
   });
 
   test('a part that would close a loop is blocked', () async {

@@ -76,9 +76,11 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
               1,
             );
           } else {
+            // A small bottle keeps two decimals, as the tank editor does:
+            // a 0.85 L argon bottle must not save as 0.9 (issue #4243).
             _volumeController.text = formatRoundedForInput(
               preset.volumeLiters,
-              1,
+              UnitFormatter.tankVolumeLiterDecimals(preset.volumeLiters),
             );
           }
 
@@ -310,7 +312,9 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
             const SizedBox(height: 8),
             Text(
               context.l10n.tankPresets_edit_waterVolume(
-                volumeLiters.toStringAsFixed(1),
+                volumeLiters.toStringAsFixed(
+                  UnitFormatter.tankVolumeLiterDecimals(volumeLiters),
+                ),
               ),
               style: Theme.of(context).textTheme.bodyMedium,
             ),

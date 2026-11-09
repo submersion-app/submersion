@@ -59,6 +59,25 @@ void main() {
     }
   });
 
+  test('false when only a suit inflation bottle dropped (#4243)', () {
+    expect(
+      sacSegmentsLackRecordedPressure(
+        noPressureAnalysis,
+        diveWith(const [
+          noPressures,
+          DiveTank(
+            id: 'suit',
+            startPressure: 200.0,
+            endPressure: 150.0,
+            gasMix: GasMix(),
+            role: TankRole.suitInflation,
+          ),
+        ]),
+      ),
+      isFalse,
+    );
+  });
+
   test('true when only start and end pressures were logged', () {
     expect(
       sacSegmentsLackRecordedPressure(

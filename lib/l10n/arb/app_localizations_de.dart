@@ -1426,6 +1426,21 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_setEdit_figureSwitch_title => 'Taucherfigur anzeigen';
 
   @override
+  String get equipment_setEdit_historyAsk =>
+      'Die Änderungen auch dort übernehmen oder nur ab jetzt?';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Dieses Set ist auf $count protokollierten Tauchgängen.',
+      one: 'Dieses Set ist auf 1 protokollierten Tauchgang.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_color_red => 'Rot';
 
   @override
@@ -14298,6 +14313,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_tankRole_stage => 'Stageflasche';
+
+  @override
+  String get enum_tankRole_suitInflation => 'Anzugflasche';
 
   @override
   String get enum_tankRole_twinSet => 'Doppelgerät';
@@ -40128,6 +40146,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get attrLabel_valve_type => 'Ventil';
 
   @override
+  String get attrLabel_cylinder_use => 'Flaschenverwendung';
+
+  @override
   String get attrLabel_tank_identifier => 'Kennung';
 
   @override
@@ -40487,6 +40508,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => 'Umrüstbar';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => 'Atemgas';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => 'Anzugflasche';
 
   @override
   String get attrChoice_connection_din => 'DIN';

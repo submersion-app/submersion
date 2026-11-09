@@ -18,7 +18,8 @@ typedef _RoleCylinder = ({
 /// [InsightsRepository.getSacPressureByTankRole], kept beside the repository
 /// so the main file does not grow further; a part shares its scope helpers.
 extension _InsightsRepositoryTankRoleSac on InsightsRepository {
-  /// Every breathed cylinder of the open-circuit and SCR dives in scope, each
+  /// Every breathed cylinder of the open-circuit and SCR dives in scope (a
+  /// suit inflation bottle is not breathed, issue #4243), each
   /// with the breathing time and depth the dive's Cylinders card gives it
   /// (issue #4315).
   ///
@@ -71,7 +72,7 @@ extension _InsightsRepositoryTankRoleSac on InsightsRepository {
           (SELECT COUNT(*) FROM dive_tanks c
             WHERE c.dive_id = d.id) AS tank_count
         FROM dives d
-        INNER JOIN dive_tanks t ON t.dive_id = d.id
+        INNER JOIN dive_tanks t ON t.dive_id = d.id AND ${breathingTankSql('t')}
         WHERE t.start_pressure IS NOT NULL
           AND t.end_pressure IS NOT NULL
           AND t.start_pressure > t.end_pressure

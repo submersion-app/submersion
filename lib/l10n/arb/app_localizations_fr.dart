@@ -1427,6 +1427,22 @@ class AppLocalizationsFr extends AppLocalizations {
       'Afficher la silhouette du plongeur';
 
   @override
+  String get equipment_setEdit_historyAsk =>
+      'Appliquer les modifications à ces plongées aussi, ou seulement à partir de maintenant ?';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Cet ensemble d\'équipement figure sur $count plongées enregistrées.',
+      one: 'Cet ensemble d\'équipement figure sur $count plongée enregistrée.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_color_red => 'Rouge';
 
   @override
@@ -14349,6 +14365,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get enum_tankRole_stage => 'Stage';
+
+  @override
+  String get enum_tankRole_suitInflation => 'Gonflage combinaison';
 
   @override
   String get enum_tankRole_twinSet => 'Bi-bouteille';
@@ -40327,6 +40346,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get attrLabel_valve_type => 'Robinet';
 
   @override
+  String get attrLabel_cylinder_use => 'Usage de la bouteille';
+
+  @override
   String get attrLabel_tank_identifier => 'Identifiant';
 
   @override
@@ -40685,6 +40707,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => 'Convertible';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => 'Gaz respirable';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => 'Gonflage combinaison';
 
   @override
   String get attrChoice_connection_din => 'DIN';
