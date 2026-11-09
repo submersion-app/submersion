@@ -100,6 +100,19 @@ void main() {
       expect([for (final a in edits.added) a.t], [944]);
     });
 
+    test('a profile that starts late still has its starting row', () {
+      // The computer's first sample, and its logged start, at 1:30.
+      final edits = detectedGasSwitchEdits(
+        switches: [_sw('start', 90, 't2')],
+        tanks: [left, right],
+        detected: _detected([_at('t1', 90), _at('t2', 944)], start: 't1'),
+        diveStart: 90,
+      );
+
+      expect(edits.retanked, {'start': 't1'});
+      expect([for (final a in edits.added) a.t], [944]);
+    });
+
     test('without a start row, a detected start switch is added', () {
       final edits = detectedGasSwitchEdits(
         switches: const [],

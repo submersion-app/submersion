@@ -156,13 +156,14 @@ List<PressureReading> _cleanReadings(
 /// A source that derives its endpoints from the samples (libdivecomputer's
 /// Shearwater parser takes the first and last non-zero reading) inherits any
 /// glitch sitting at either end. When [reportedBar] matches a glitch reading
-/// of [readings] that sits below the first or last clean reading, or above
-/// any cylinder fill, that clean reading replaces it; any other value, and a null, comes back unchanged.
+/// of [readings] that sits below the first or last clean reading, or a
+/// start lead-in reading above any cylinder fill, that clean reading
+/// replaces it; any other value, and a null, comes back unchanged.
 ///
-/// Only a low glitch counts, and a reading above any cylinder fill: a
-/// lead-in, a dropout and a dip all read below the cylinder, and those are
-/// what a source takes an endpoint from, as is a "no reading" value at the
-/// head of the series (issue #4335). A reported value that equals a spike,
+/// Only a low glitch counts, and for the start a lead-in reading above any
+/// cylinder fill: a lead-in, a dropout and a dip all read below the
+/// cylinder, and those are what a source takes an endpoint from, as is a
+/// "no reading" value at the head of the series (issue #4335). A reported value that equals a spike,
 /// which reads above it, is a header value that happens to coincide, and is
 /// kept.
 ///
@@ -181,13 +182,20 @@ double? replaceGlitchedEndpoint({
   final clean = _cleanReadings(readings, scan);
   if (clean.isEmpty) return reportedBar;
   final replacement = atStart ? clean.first.bar : clean.last.bar;
-  final matchesLowGlitch = scan.glitchIndices.any(
+  // The glitches before the first clean reading: the lead-in.
+  var leadIn = 0;
+  while (scan.glitchIndices.contains(leadIn)) {
+    leadIn++;
+  }
+  final matchesGlitch = scan.glitchIndices.any(
     (i) =>
         (readings[i].bar < replacement ||
-            readings[i].bar >= kPressureGlitchAboveAnyFillBar) &&
+            (atStart &&
+                i < leadIn &&
+                readings[i].bar >= kPressureGlitchAboveAnyFillBar)) &&
         (readings[i].bar - reportedBar).abs() <= _endpointMatchToleranceBar,
   );
-  return matchesLowGlitch ? replacement : reportedBar;
+  return matchesGlitch ? replacement : reportedBar;
 }
 
 /// The start ([atStart]) or end pressure to record for a cylinder whose

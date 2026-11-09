@@ -326,6 +326,34 @@ void main() {
   });
 
   group('replaceGlitchedEndpoint', () {
+    test('a mid-dive spike above any fill never replaces an endpoint', () {
+      // Only the lead-in is what a source takes a start from.
+      final series = withValues(draining(), {10: 564.7});
+      expect(scanPressureGlitches(series).glitchIndices, {10});
+      for (final atStart in [true, false]) {
+        expect(
+          replaceGlitchedEndpoint(
+            reportedBar: 564.7,
+            readings: series,
+            atStart: atStart,
+          ),
+          564.7,
+        );
+      }
+    });
+
+    test('an end matching a high lead-in is kept', () {
+      final series = withValues(draining(), {0: 564.7});
+      expect(
+        replaceGlitchedEndpoint(
+          reportedBar: 564.7,
+          readings: series,
+          atStart: false,
+        ),
+        564.7,
+      );
+    });
+
     test('a start taken from a reading above any fill is replaced', () {
       // Issue #4335: the 564.7 bar "no reading" value at the head.
       final series = withValues(draining(), {0: 564.7});

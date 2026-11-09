@@ -73,11 +73,17 @@ extension _GasSwitchEditing on _DiveEditPageState {
     if (diveId == null || _diveMode != DiveMode.oc) return null;
     final detected = ref.watch(detectedGasSwitchesProvider(diveId)).value;
     if (detected == null) return null;
+    // The detector places a starting switch at the profile's first sample,
+    // which a computer can log after 0; a row there is the starting row.
+    final profile = _existingDive?.profile ?? const <DiveProfilePoint>[];
+    final firstSample = profile.isEmpty
+        ? 0
+        : profile.map((p) => p.timestamp).reduce((a, b) => a < b ? a : b);
     return detectedGasSwitchEdits(
       switches: _gasSwitches,
       tanks: _tanks,
       detected: detected,
-      diveStart: 0,
+      diveStart: firstSample > 0 ? firstSample : 0,
     );
   }
 
