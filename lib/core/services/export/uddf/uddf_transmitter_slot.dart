@@ -12,3 +12,31 @@ int? shearwaterSlotFromRef(String? ref) {
 }
 
 final RegExp _slotRef = RegExp(r'^[Tt]([1-4])$');
+
+/// The cylinder an unmatched `<tankpressure ref>` belongs to, from
+/// [fallbackIndices] (the tanks with no id of their own) less [claimed].
+///
+/// Shearwater Cloud writes its tanks in slot order but a later slot can
+/// report first, so first appearance alone would swap them (issue #4347).
+/// The ref takes the one unclaimed tank whose begin pressure is within 1 bar
+/// of [firstReading]; with none or several, the next unclaimed tank in file
+/// order, as before. Null once every tank is claimed.
+int? fallbackTankForRef(
+  double firstReading,
+  List<Map<String, dynamic>> tanks,
+  List<int> fallbackIndices, {
+  required Set<int> claimed,
+}) {
+  final open = [
+    for (final i in fallbackIndices)
+      if (!claimed.contains(i)) i,
+  ];
+  if (open.isEmpty) return null;
+  final matching = [
+    for (final i in open)
+      if ((tanks[i]['startPressure'] as num?) case final begin?
+          when (begin.toDouble() - firstReading).abs() <= 1.0)
+        i,
+  ];
+  return matching.length == 1 ? matching.single : open.first;
+}

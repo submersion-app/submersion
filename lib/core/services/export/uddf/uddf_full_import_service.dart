@@ -2478,7 +2478,6 @@ class UddfFullImportService {
         if (tanks[i]['uddfTankId'] == null) i,
     ];
     final fallbackRefToIndex = <String, int>{};
-    var nextFallbackTankIndex = 0;
 
     if (tanks.isNotEmpty) {
       diveData['tanks'] = tanks;
@@ -2619,8 +2618,14 @@ class UddfFullImportService {
               final fallbackTankIndex = fallbackRefToIndex[tankRef];
               if (fallbackTankIndex != null) {
                 tankIdx = fallbackTankIndex;
-              } else if (nextFallbackTankIndex < fallbackTankIndices.length) {
-                tankIdx = fallbackTankIndices[nextFallbackTankIndex++];
+              } else if (fallbackTankForRef(
+                    pressure,
+                    tanks,
+                    fallbackTankIndices,
+                    claimed: fallbackRefToIndex.values.toSet(),
+                  )
+                  case final picked?) {
+                tankIdx = picked;
                 fallbackRefToIndex[tankRef] = tankIdx;
                 // Shearwater Cloud names the transmitter slot in the ref and
                 // nowhere else (issue #4347).

@@ -444,12 +444,20 @@ class TransmitterRepository {
 
   /// The file-imported tanks with no serial that [t]'s serial matches by
   /// computer, slot and date (issue #4347), for the Apply dialog. Empty for
-  /// an entry with no serial.
-  Future<TransmitterSlotPreview> previewSlotMatches(Transmitter t) async {
+  /// an entry with no serial. [computerIds], when given, is what
+  /// [computersForSerial] returned for the entry's serial, so a caller that
+  /// already has it does not scan the tanks again.
+  Future<TransmitterSlotPreview> previewSlotMatches(
+    Transmitter t, {
+    Set<String>? computerIds,
+  }) async {
     final serial = normalizeTransmitterSerial(t.transmitterSerial);
     if (serial == null) return TransmitterSlotPreview.empty;
     final queries = TransmitterSlotQueries(_db);
-    return queries.preview(serial, await queries.computersForSerial(serial));
+    return queries.preview(
+      serial,
+      computerIds ?? await queries.computersForSerial(serial),
+    );
   }
 
   /// Retroactive fill for the tanks that carry [t]'s key: empty size,

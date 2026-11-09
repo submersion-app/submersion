@@ -46,8 +46,10 @@ class _FakeApplyRepository extends TransmitterRepository {
   }
 
   @override
-  Future<TransmitterSlotPreview> previewSlotMatches(Transmitter t) async =>
-      slots;
+  Future<TransmitterSlotPreview> previewSlotMatches(
+    Transmitter t, {
+    Set<String>? computerIds,
+  }) async => slots;
 
   @override
   Future<ApplyToExistingResult> previewApplyToExistingDives(

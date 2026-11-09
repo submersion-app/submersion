@@ -93,7 +93,8 @@ class TransmitterSlotQueries {
       final computerId = r.read<String>('c');
       final resolved = timeline.resolve(computerId, slot, _date(r));
       if (resolved.changedHands) {
-        changedHands.add(diveId);
+        // Only a change involving this transmitter is its skipped dive.
+        if (resolved.handsBetween.contains(wanted)) changedHands.add(diveId);
       } else if (resolved.serial == wanted) {
         candidates.add(
           SlotCandidate(

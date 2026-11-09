@@ -78,11 +78,12 @@ Future<void> applyTransmitterSetupToExistingDives(
   final l10n = context.l10n;
   final messenger = ScaffoldMessenger.of(context);
   final repo = ref.read(transmitterRepositoryProvider);
-  final computers = <String>{
+  final computersByKey = <String, Set<String>>{
     for (final key in keys)
       if (normalizeTransmitterSerial(key.transmitterSerial) case final serial?)
-        ...await repo.computersForSerial(serial),
+        key.id: await repo.computersForSerial(serial),
   };
+  final computers = {for (final set in computersByKey.values) ...set};
   final backfill = ref.read(transmitterSlotBackfillProvider);
   // A Cloud database's dives gain serials from their file, so its computers
   // join the scope even before any of their tanks carries this serial.
@@ -99,7 +100,10 @@ Future<void> applyTransmitterSetupToExistingDives(
     final preview = await repo.previewApplyToExistingDives(key);
     tanks += preview.tanksUpdated;
     dives += preview.divesUpdated;
-    slotsByKey[key.id] = await repo.previewSlotMatches(key);
+    slotsByKey[key.id] = await repo.previewSlotMatches(
+      key,
+      computerIds: computersByKey[key.id],
+    );
   }
   final slots = TransmitterSlotPreview.merge(slotsByKey.values);
   if (!context.mounted) return;

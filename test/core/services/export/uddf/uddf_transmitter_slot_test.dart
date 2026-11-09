@@ -83,6 +83,54 @@ void main() {
     expect(tanks.map((t) => t['transmitterSlot']), [1, 2]);
   });
 
+  test('a later slot that reports first still takes its own cylinder, '
+      'matched by its first reading', () async {
+    // T3 reports before T2; first appearance alone would give T3 the first
+    // cylinder (T2's) and swap both slots and pressure series.
+    const uddf = '''
+<uddf version="3.2.3">
+  <profiledata>
+    <repetitiongroup>
+      <dive id="d">
+        <informationbeforedive>
+          <datetime>2026-05-01T10:00:00Z</datetime>
+        </informationbeforedive>
+        <tankdata>
+          <tankpressurebegin>20000000</tankpressurebegin>
+          <tankpressureend>10000000</tankpressureend>
+        </tankdata>
+        <tankdata>
+          <tankpressurebegin>21000000</tankpressurebegin>
+          <tankpressureend>11000000</tankpressureend>
+        </tankdata>
+        <samples>
+          <waypoint>
+            <depth>1</depth>
+            <divetime>0</divetime>
+            <tankpressure ref="T3">21000000</tankpressure>
+          </waypoint>
+          <waypoint>
+            <depth>2</depth>
+            <divetime>10</divetime>
+            <tankpressure ref="T3">20950000</tankpressure>
+            <tankpressure ref="T2">20000000</tankpressure>
+          </waypoint>
+        </samples>
+      </dive>
+    </repetitiongroup>
+  </profiledata>
+</uddf>
+''';
+    final result = await UddfFullImportService().importAllDataFromUddf(uddf);
+    final dive = result.dives.first;
+    final tanks = dive['tanks'] as List<Map<String, dynamic>>;
+    expect(tanks.map((t) => t['transmitterSlot']), [1, 2]);
+    final first = (dive['profile'] as List).first as Map<String, dynamic>;
+    expect(first['allTankPressures'], [
+      {'pressure': 210.0, 'tankIndex': 1},
+    ]);
+  });
+
   test('tanks with their own ids take no slot from the ref', () async {
     const uddf = '''
 <uddf version="3.2.3">

@@ -126,6 +126,18 @@ void main() {
     expect(preview.changedHandsDiveIds, {'mid'});
   });
 
+  test('a slot that changed hands between two other transmitters is not '
+      'counted against this one', () async {
+    await dive('bt', mar, serial: '180777', slot: 1);
+    await dive('s2-a', mar, serial: '222222', slot: 2);
+    await dive('s2-b', jun, serial: '333333', slot: 2);
+    await dive('mid', DateTime.utc(2026, 5, 1), slot: 2);
+
+    final preview = await repo.previewSlotMatches(entry());
+    expect(preview.candidates, isEmpty);
+    expect(preview.changedHandsDiveIds, isEmpty);
+  });
+
   test('two computers sharing the transmitter keep their own slots', () async {
     await dive('bt-a', mar, serial: '180777', slot: 1);
     await dive('bt-b', mar, computerId: 'petrel', serial: '180777', slot: 2);
@@ -134,6 +146,19 @@ void main() {
 
     final preview = await repo.previewSlotMatches(entry());
     expect(preview.tankIds(includeOlder: true), {'cloud-a-t'});
+  });
+
+  test('given computer ids scope the preview without a second scan', () async {
+    await dive('bt-a', mar, serial: '180777', slot: 1);
+    await dive('bt-b', mar, computerId: 'petrel', serial: '180777', slot: 1);
+    await dive('cloud-a', jun, slot: 1);
+    await dive('cloud-b', jun, computerId: 'petrel', slot: 1);
+
+    final preview = await repo.previewSlotMatches(
+      entry(),
+      computerIds: {'petrel'},
+    );
+    expect(preview.tankIds(includeOlder: true), {'cloud-b-t'});
   });
 
   test(

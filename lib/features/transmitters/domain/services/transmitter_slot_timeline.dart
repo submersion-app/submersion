@@ -29,6 +29,9 @@ class SlotResolution {
   /// the slot changed hands somewhere in that gap.
   final bool changedHands;
 
+  /// The serials on either side of the gap, when [changedHands].
+  final Set<String> handsBetween;
+
   /// The first download that showed the slot, set when
   /// [olderThanFirstDownload] is.
   final DateTime? firstDownload;
@@ -37,6 +40,7 @@ class SlotResolution {
     this.serial,
     this.olderThanFirstDownload = false,
     this.changedHands = false,
+    this.handsBetween = const {},
     this.firstDownload,
   });
 
@@ -85,7 +89,10 @@ class TransmitterSlotTimeline {
     if (prev != null && next != null) {
       return prev.serial == next.serial
           ? SlotResolution(serial: prev.serial)
-          : const SlotResolution(changedHands: true);
+          : SlotResolution(
+              changedHands: true,
+              handsBetween: {prev.serial, next.serial},
+            );
     }
     if (prev != null) return SlotResolution(serial: prev.serial);
     return SlotResolution(

@@ -31,4 +31,35 @@ void main() {
     ], idGenerator: id);
     expect(fromEarlier.tanks.single.transmitterSlot, 0);
   });
+
+  test('the slot follows the serial when only the later half has one', () {
+    final merged = mergeSequentialTanks([
+      half(
+        'd1',
+        const DiveTank(
+          id: 'a',
+          gasMix: GasMix(o2: 32),
+          startPressure: 200,
+          endPressure: 120,
+          transmitterSlot: 0,
+        ),
+        DateTime.utc(2026, 1, 1, 10),
+      ),
+      half(
+        'd2',
+        const DiveTank(
+          id: 'b',
+          gasMix: GasMix(o2: 32),
+          startPressure: 120,
+          endPressure: 60,
+          transmitterSerial: '180777',
+          transmitterSlot: 1,
+        ),
+        DateTime.utc(2026, 1, 1, 11),
+      ),
+    ], idGenerator: id);
+    final tank = merged.tanks.single;
+    expect(tank.transmitterSerial, '180777');
+    expect(tank.transmitterSlot, 1);
+  });
 }
