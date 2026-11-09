@@ -665,7 +665,10 @@ class DiveReimportService {
   /// leaves that edit as the primary null-computer series over the demoted
   /// generation it corrects -- the shape `relinkComputer` already spares --
   /// so where one exists the fresh parse lands demoted beneath it and
-  /// `restoreOriginalProfile` promotes it if the diver drops the edit.
+  /// `restoreOriginalProfile` promotes it if the diver drops the edit. An
+  /// edit stays demoted too, where re-activating the original in the
+  /// revision picker leaves it: its synced `is_edit` mark names it there,
+  /// where the shape no longer can (issue #4386).
   Future<void> _replaceProfile({
     required String diveId,
     required Map<String, dynamic> diveData,
@@ -676,7 +679,12 @@ class DiveReimportService {
     if (profileData == null) return;
 
     final identities = await _profileSeries.getIdentitiesForDive(diveId);
-    final editIds = await _profileSeries.liveEditIds(diveId);
+    final liveEditIds = ProfileSeriesRepository.liveEditIdsOf(identities);
+    final editIds = {
+      ...liveEditIds,
+      for (final s in identities)
+        if (s.isEdit == true) s.id,
+    };
     // No samples to land beneath the edit, so the generation there stays: it
     // is what the edit undoes to, and what tells the next resync it is one.
     if (profileData.isEmpty && editIds.isNotEmpty) return;
@@ -690,7 +698,8 @@ class DiveReimportService {
     await _profileSeries.insertSeries(
       diveId: diveId,
       sourceId: source?.id,
-      isPrimary: editIds.isEmpty,
+      isPrimary: liveEditIds.isEmpty,
+      isEdit: false,
       samples: [
         for (final p in profileData)
           codec.ProfileSample(

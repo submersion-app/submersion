@@ -24009,6 +24009,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_isDone => '已完成';
 
   @override
+  String get settings_conflict_field_isEdit => '剖面已手动编辑';
+
+  @override
   String get settings_conflict_field_isOrphaned => '文件缺失';
 
   @override

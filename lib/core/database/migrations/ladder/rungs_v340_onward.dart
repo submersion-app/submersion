@@ -79,5 +79,12 @@ extension RungsFromV340 on AppDatabase {
     // Numbered 349 so open PR #4327, which claimed 347, can take 348.
     if (from < 349) await fillDiveWaterTempsFromSources(this);
     if (from < 349) await reportProgress();
+
+    // v353: dive_profile_series.is_edit, the synced mark that a series is
+    // the diver's manual edit (issue #4386). Nullable, no backfill: a series
+    // written before it stays unknown. Re-asserted in beforeOpen. Numbered
+    // 353 because open PRs claim 350 to 352.
+    if (from < 353) await _assertProfileSeriesIsEditColumn();
+    if (from < 353) await reportProgress();
   }
 }

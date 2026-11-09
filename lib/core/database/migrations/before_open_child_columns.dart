@@ -60,5 +60,9 @@ extension BeforeOpenChildColumns on AppDatabase {
     // computer read selects the whole row, for the same reason as the tank
     // columns.
     await _assertDiveComputerAutoDownloadDisabledColumn();
+
+    // v353: dive_profile_series.is_edit (issue #4386). Every series read
+    // selects the whole row, for the same reason as the tank columns.
+    await _assertProfileSeriesIsEditColumn();
   }
 }

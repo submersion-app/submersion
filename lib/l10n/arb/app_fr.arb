@@ -7451,6 +7451,7 @@
   "settings_conflict_field_isCustom": "Personnalisé",
   "settings_conflict_field_isDefault": "Par défaut",
   "settings_conflict_field_isDone": "Fait",
+  "settings_conflict_field_isEdit": "Profil modifié à la main",
   "settings_conflict_field_isOrphaned": "Fichier manquant",
   "settings_conflict_field_isPackage": "Fait partie d'un forfait",
   "settings_conflict_field_isPlanned": "Plongée planifiée",

@@ -7552,6 +7552,7 @@
   "settings_conflict_field_isCustom": "Aangepast",
   "settings_conflict_field_isDefault": "Standaard",
   "settings_conflict_field_isDone": "Klaar",
+  "settings_conflict_field_isEdit": "Profiel handmatig bewerkt",
   "settings_conflict_field_isOrphaned": "Bestand ontbreekt",
   "settings_conflict_field_isPackage": "Onderdeel van een pakket",
   "settings_conflict_field_isPlanned": "Geplande duik",

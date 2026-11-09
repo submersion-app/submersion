@@ -44,5 +44,6 @@ ProfileSeries _seriesOf(DiveProfileSeriesRow row, List<ProfileSample> samples) {
     updatedAt: row.updatedAt,
     hlc: row.hlc,
     activatedAt: row.activatedAt,
+    isEdit: row.isEdit,
   );
 }

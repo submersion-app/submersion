@@ -741,6 +741,10 @@ final Map<String, ConflictField> diveLogOverrides = {
     (l) => l.settings_conflict_field_lastUsedAt,
     FieldKind.dateTime,
   ),
+  'diveProfileSeries.isEdit': ConflictField(
+    (l) => l.settings_conflict_field_isEdit,
+    FieldKind.boolean,
+  ),
   'diveSafetyFindings.severity': ConflictField(
     (l) => l.settings_conflict_field_diveSafetyFindings_severity,
     FieldKind.enumValue,

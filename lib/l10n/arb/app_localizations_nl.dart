@@ -25244,6 +25244,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_isDone => 'Klaar';
 
   @override
+  String get settings_conflict_field_isEdit => 'Profiel handmatig bewerkt';
+
+  @override
   String get settings_conflict_field_isOrphaned => 'Bestand ontbreekt';
 
   @override

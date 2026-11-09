@@ -25414,6 +25414,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_field_isDone => 'Fatto';
 
   @override
+  String get settings_conflict_field_isEdit => 'Profilo modificato a mano';
+
+  @override
   String get settings_conflict_field_isOrphaned => 'File mancante';
 
   @override

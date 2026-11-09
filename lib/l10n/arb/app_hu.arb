@@ -7451,6 +7451,7 @@
   "settings_conflict_field_isCustom": "Egyéni",
   "settings_conflict_field_isDefault": "Alapértelmezett",
   "settings_conflict_field_isDone": "Kész",
+  "settings_conflict_field_isEdit": "Profil kézzel szerkesztve",
   "settings_conflict_field_isOrphaned": "Hiányzó fájl",
   "settings_conflict_field_isPackage": "Csomag része",
   "settings_conflict_field_isPlanned": "Tervezett merülés",

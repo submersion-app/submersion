@@ -7556,6 +7556,7 @@
   "settings_conflict_field_isCustom": "מותאם",
   "settings_conflict_field_isDefault": "ברירת מחדל",
   "settings_conflict_field_isDone": "בוצע",
+  "settings_conflict_field_isEdit": "הפרופיל נערך ידנית",
   "settings_conflict_field_isOrphaned": "הקובץ חסר",
   "settings_conflict_field_isPackage": "חלק מחבילה",
   "settings_conflict_field_isPlanned": "צלילה מתוכננת",

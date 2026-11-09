@@ -246,6 +246,7 @@ class DiveUncombineService {
               sourceId: s.sourceId,
               isPrimary: s.isPrimary,
               activatedAt: Value(s.activatedAt),
+              isEdit: s.isEdit,
               samples: trimmed,
               now: now,
             );
@@ -564,6 +565,7 @@ class DiveUncombineService {
         sourceId: newSourceIdByOld[s.sourceId],
         isPrimary: s.isPrimary,
         activatedAt: Value(s.activatedAt),
+        isEdit: s.isEdit,
         samples: samples,
         now: now,
       );

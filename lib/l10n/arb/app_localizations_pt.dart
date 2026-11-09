@@ -25393,6 +25393,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_field_isDone => 'Feito';
 
   @override
+  String get settings_conflict_field_isEdit => 'Perfil editado manualmente';
+
+  @override
   String get settings_conflict_field_isOrphaned => 'Arquivo ausente';
 
   @override

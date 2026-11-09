@@ -7552,6 +7552,7 @@
   "settings_conflict_field_isCustom": "مخصص",
   "settings_conflict_field_isDefault": "افتراضي",
   "settings_conflict_field_isDone": "تم",
+  "settings_conflict_field_isEdit": "الملف الشخصي معدّل يدويًا",
   "settings_conflict_field_isOrphaned": "الملف مفقود",
   "settings_conflict_field_isPackage": "جزء من باقة",
   "settings_conflict_field_isPlanned": "غوصة مخططة",

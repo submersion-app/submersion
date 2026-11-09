@@ -24793,6 +24793,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_isDone => 'בוצע';
 
   @override
+  String get settings_conflict_field_isEdit => 'הפרופיל נערך ידנית';
+
+  @override
   String get settings_conflict_field_isOrphaned => 'הקובץ חסר';
 
   @override

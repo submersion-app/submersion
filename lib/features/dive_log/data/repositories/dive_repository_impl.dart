@@ -1541,6 +1541,9 @@ class DiveRepository {
             isPrimary: true,
             parentSeriesId: parentSeriesId,
             revisionKind: revisionKind,
+            // Synced, so a re-parse on any device keeps this edit once a
+            // re-activated original demotes it (issue #4386).
+            isEdit: true,
             samples: [
               for (final point in editedPoints) profileSampleFromPoint(point),
             ],
@@ -9735,6 +9738,7 @@ class DiveRepository {
             computerId: computerId,
             sourceId: reading.id.value,
             isPrimary: false,
+            isEdit: false,
             samples: [
               for (final point in profile) profileSampleFromPoint(point),
             ],

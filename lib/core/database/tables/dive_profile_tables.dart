@@ -341,6 +341,14 @@ class DiveProfileSeries extends Table {
   /// generation a source owns (issue #3189).
   IntColumn get activatedAt => integer().nullable()();
 
+  /// v353: whether this series is the diver's manual edit, written by
+  /// `saveEditedProfile`. False for a series a parse or import wrote; null
+  /// for one written before v353, whose kind only its shape can suggest.
+  /// Synced, unlike the revision history that also names an edit, so a
+  /// re-parse on any device can keep an edit once it is demoted
+  /// (issue #4386).
+  BoolColumn get isEdit => boolean().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
   // coverage:ignore-end
