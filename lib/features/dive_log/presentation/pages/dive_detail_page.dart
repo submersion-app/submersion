@@ -32,7 +32,10 @@ import 'package:submersion/features/dive_computer/presentation/widgets/reparse_b
 import 'package:submersion/features/dive_import/data/services/dive_resync_orchestrator.dart';
 import 'package:submersion/features/dive_import/domain/dive_resync_failure.dart';
 import 'package:submersion/features/dive_import/presentation/dive_resync_failure_message.dart';
+import 'package:submersion/features/dive_import/presentation/providers/dive_health_metrics_providers.dart';
 import 'package:submersion/features/dive_import/presentation/providers/dive_resync_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_health_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_health_section.dart';
 import 'package:submersion/features/dive_lab/presentation/what_if_entry.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -586,6 +589,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
         context.push('/incidents/new?diveId=$diveId');
       case 'markLogged' || 'markComplete':
         _markAsLogged(dive);
+      case 'addHeartRate':
+        _addHeartRate(dive);
       case 'logForBuddy':
         _logForBuddy(dive);
       case 'linkPreDive':

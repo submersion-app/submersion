@@ -8463,6 +8463,90 @@ abstract class AppLocalizations {
   /// **'Set'**
   String get diveLog_gear_unknownSet;
 
+  /// No description provided for @diveLog_health_after15.
+  ///
+  /// In en, this message translates to:
+  /// **'After 15 min'**
+  String get diveLog_health_after15;
+
+  /// No description provided for @diveLog_health_after5.
+  ///
+  /// In en, this message translates to:
+  /// **'After 5 min'**
+  String get diveLog_health_after5;
+
+  /// No description provided for @diveLog_health_atSurfacing.
+  ///
+  /// In en, this message translates to:
+  /// **'At surfacing'**
+  String get diveLog_health_atSurfacing;
+
+  /// No description provided for @diveLog_health_average.
+  ///
+  /// In en, this message translates to:
+  /// **'Average'**
+  String get diveLog_health_average;
+
+  /// No description provided for @diveLog_health_bpm.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} bpm'**
+  String diveLog_health_bpm(int value);
+
+  /// No description provided for @diveLog_health_maximum.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum'**
+  String get diveLog_health_maximum;
+
+  /// No description provided for @diveLog_health_ms.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} ms'**
+  String diveLog_health_ms(int value);
+
+  /// No description provided for @diveLog_health_noneFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple Health has no readings for this dive'**
+  String get diveLog_health_noneFound;
+
+  /// No description provided for @diveLog_health_overnightHrv.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart rate variability the night after'**
+  String get diveLog_health_overnightHrv;
+
+  /// No description provided for @diveLog_health_readFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read Apple Health'**
+  String get diveLog_health_readFailed;
+
+  /// No description provided for @diveLog_health_recovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery'**
+  String get diveLog_health_recovery;
+
+  /// No description provided for @diveLog_health_recoveryExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart rate at surfacing and 5 and 15 minutes later, from Apple Health.'**
+  String get diveLog_health_recoveryExplain;
+
+  /// No description provided for @diveLog_health_sleepBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Slept {hours} h {minutes} min the night before'**
+  String diveLog_health_sleepBefore(int hours, int minutes);
+
+  /// No description provided for @diveLog_health_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart rate and recovery'**
+  String get diveLog_health_title;
+
   /// No description provided for @diveLog_listPage_bottomSheet_preDiveChecklist.
   ///
   /// In en, this message translates to:
@@ -35678,6 +35762,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Equipment'**
   String get diveDetailSection_equipment_name;
+
+  /// No description provided for @diveDetailSection_health_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart rate, recovery and sleep from Apple Health'**
+  String get diveDetailSection_health_description;
 
   /// No description provided for @diveDetailSection_equipment_description.
   ///
@@ -66127,6 +66217,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'awaiting their dive computer'**
   String get diveLog_detail_loggedWithPlanned;
+
+  /// No description provided for @diveLog_detail_menu_addHeartRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Add heart rate from Apple Health'**
+  String get diveLog_detail_menu_addHeartRate;
 
   /// No description provided for @diveLog_detail_linkedIncidents.
   ///

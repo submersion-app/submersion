@@ -19,12 +19,14 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/di
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_equipment_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_gas_cards.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_sac_segments_section.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_health_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_section_gates.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_signature_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_sightings_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_surface_gps_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_text_sections.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_tide_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_health_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_weight_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_safety_summary_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/responsive_section_pair.dart';
@@ -243,6 +245,12 @@ class DiveDetailSectionList extends ConsumerWidget {
         return DiveAltitudeSection(dive: dive);
       case DiveDetailSectionId.tide:
         return DiveTideSection(dive: dive, topGap: topGap);
+      case DiveDetailSectionId.health:
+        // Only once a record with something in it has loaded, so no empty
+        // card flashes.
+        final health = ref.watch(diveHealthRecordProvider(dive.id)).value;
+        if (!diveHealthHasContent(health)) return null;
+        return DiveHealthSection(record: health!);
       case DiveDetailSectionId.surfaceGps:
         if (!diveHasLocationMap(dive)) return null;
         return DiveDetailSurfaceGpsSection(dive: dive);

@@ -7,6 +7,8 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/utils/stream_debounce.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_health_record.dart'
     as domain;
 
@@ -30,9 +32,12 @@ class DiveHealthRecordRepository {
     return row == null ? null : _toEntity(row);
   }
 
-  Stream<domain.DiveHealthRecord?> watchForDive(String diveId) => _query(
-    diveId,
-  ).watchSingleOrNull().map((row) => row == null ? null : _toEntity(row));
+  /// Fires when any health record changes: a table tick, debounced like the
+  /// dive ticks, for a provider to re-read on (never a query stream, which
+  /// emits on listen).
+  Stream<void> watchChanges() => _db
+      .tableUpdates(TableUpdateQuery.onTable(_db.diveHealthRecords))
+      .debounce(DiveRepository.changeTickDebounce);
 
   /// Writes [record] as the dive's record, replacing the one it has.
   Future<void> upsert(domain.DiveHealthRecord record) async {

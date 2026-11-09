@@ -3295,6 +3295,44 @@
   },
   "diveLog_gear_removeSet": "Remove set from this dive",
   "diveLog_gear_unknownSet": "Set",
+  "diveLog_health_after15": "After 15 min",
+  "diveLog_health_after5": "After 5 min",
+  "diveLog_health_atSurfacing": "At surfacing",
+  "diveLog_health_average": "Average",
+  "diveLog_health_bpm": "{value} bpm",
+  "@diveLog_health_bpm": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_health_maximum": "Maximum",
+  "diveLog_health_ms": "{value} ms",
+  "@diveLog_health_ms": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_health_noneFound": "Apple Health has no readings for this dive",
+  "diveLog_health_overnightHrv": "Heart rate variability the night after",
+  "diveLog_health_readFailed": "Could not read Apple Health",
+  "diveLog_health_recovery": "Recovery",
+  "diveLog_health_recoveryExplain": "Heart rate at surfacing and 5 and 15 minutes later, from Apple Health.",
+  "diveLog_health_sleepBefore": "Slept {hours} h {minutes} min the night before",
+  "@diveLog_health_sleepBefore": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_health_title": "Heart rate and recovery",
   "diveLog_listPage_bottomSheet_preDiveChecklist": "Start pre-dive checklist",
   "preDive_dashboard_resume": "Resume - {done} of {total}",
   "@preDive_dashboard_resume": {
@@ -14113,6 +14151,7 @@
   "diveDetailSection_signatures_name": "Signatures",
   "diveDetailSection_signatures_description": "Buddy/instructor signature display and capture",
   "diveDetailSection_equipment_name": "Equipment",
+  "diveDetailSection_health_description": "Heart rate, recovery and sleep from Apple Health",
   "diveDetailSection_equipment_description": "Equipment used in dive",
   "diveDetailSection_sightings_name": "Species Sightings",
   "diveDetailSection_sightings_description": "Species spotted, sighting details",
@@ -25266,6 +25305,7 @@
   "diveLog_detail_menu_logForBuddy": "Log for a buddy's profile",
   "diveLog_detail_loggedWith": "Logged with",
   "diveLog_detail_loggedWithPlanned": "awaiting their dive computer",
+  "diveLog_detail_menu_addHeartRate": "Add heart rate from Apple Health",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 near-miss linked to this dive} other{{count} near-misses linked to this dive}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {

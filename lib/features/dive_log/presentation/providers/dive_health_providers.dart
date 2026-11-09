@@ -6,9 +6,11 @@ final diveHealthRecordRepositoryProvider = Provider<DiveHealthRecordRepository>(
   (ref) => DiveHealthRecordRepository(),
 );
 
-/// The dive's Apple Health readings (issue #637), or null.
-final diveHealthRecordProvider = StreamProvider.autoDispose
-    .family<DiveHealthRecord?, String>(
-      (ref, diveId) =>
-          ref.watch(diveHealthRecordRepositoryProvider).watchForDive(diveId),
-    );
+/// The dive's Apple Health readings (issue #637), or null. Re-read when a
+/// health record changes.
+final diveHealthRecordProvider = FutureProvider.autoDispose
+    .family<DiveHealthRecord?, String>((ref, diveId) {
+      final repository = ref.watch(diveHealthRecordRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchChanges());
+      return repository.forDive(diveId);
+    });

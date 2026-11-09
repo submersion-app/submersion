@@ -23,6 +23,29 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     container.invalidate(diveDataSourcesProvider(id));
   }
 
+  /// Reads heart rate, recovery and sleep from Apple Health for [dive]
+  /// (issue #637), for a dive the automatic read never reached. Says so
+  /// when Health has nothing for it.
+  Future<void> _addHeartRate(Dive dive) async {
+    final metrics = ref.read(diveHealthMetricsServiceProvider);
+    if (metrics == null) return;
+    final records = ref.read(diveHealthRecordRepositoryProvider);
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    String? problem;
+    try {
+      await metrics.refresh(dive.id);
+      if (!diveHealthHasContent(await records.forDive(dive.id))) {
+        problem = l10n.diveLog_health_noneFound;
+      }
+    } catch (_) {
+      problem = l10n.diveLog_health_readFailed;
+    }
+    if (problem != null) {
+      messenger.showSnackBar(SnackBar(content: Text(problem)));
+    }
+  }
+
   Future<void> _addPhotos(Dive dive) async {
     await PhotoImportHelper.importPhotosForDive(
       context: context,

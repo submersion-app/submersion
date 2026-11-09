@@ -5425,6 +5425,57 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_gear_unknownSet => 'Set';
 
   @override
+  String get diveLog_health_after15 => 'After 15 min';
+
+  @override
+  String get diveLog_health_after5 => 'After 5 min';
+
+  @override
+  String get diveLog_health_atSurfacing => 'At surfacing';
+
+  @override
+  String get diveLog_health_average => 'Average';
+
+  @override
+  String diveLog_health_bpm(int value) {
+    return '$value bpm';
+  }
+
+  @override
+  String get diveLog_health_maximum => 'Maximum';
+
+  @override
+  String diveLog_health_ms(int value) {
+    return '$value ms';
+  }
+
+  @override
+  String get diveLog_health_noneFound =>
+      'Apple Health has no readings for this dive';
+
+  @override
+  String get diveLog_health_overnightHrv =>
+      'Heart rate variability the night after';
+
+  @override
+  String get diveLog_health_readFailed => 'Could not read Apple Health';
+
+  @override
+  String get diveLog_health_recovery => 'Recovery';
+
+  @override
+  String get diveLog_health_recoveryExplain =>
+      'Heart rate at surfacing and 5 and 15 minutes later, from Apple Health.';
+
+  @override
+  String diveLog_health_sleepBefore(int hours, int minutes) {
+    return 'Slept $hours h $minutes min the night before';
+  }
+
+  @override
+  String get diveLog_health_title => 'Heart rate and recovery';
+
+  @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist =>
       'Checkliste vor dem Tauchgang starten';
 
@@ -22430,6 +22481,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveDetailSection_equipment_name => 'Ausrüstung';
+
+  @override
+  String get diveDetailSection_health_description =>
+      'Heart rate, recovery and sleep from Apple Health';
 
   @override
   String get diveDetailSection_equipment_description =>
@@ -41776,6 +41831,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveLog_detail_loggedWithPlanned =>
       'wartet auf ihren Tauchcomputer';
+
+  @override
+  String get diveLog_detail_menu_addHeartRate =>
+      'Add heart rate from Apple Health';
 
   @override
   String diveLog_detail_linkedIncidents(int count) {
