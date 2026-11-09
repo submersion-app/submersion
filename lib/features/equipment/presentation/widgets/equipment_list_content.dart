@@ -837,6 +837,16 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent>
 
   /// One tap policy for every equipment row.
   void _handleRowTap(EquipmentItem item) {
+    // Shift extends from the anchor over the rows on screen (issue #3364),
+    // falling back to the highlighted row, as on the site list.
+    if (SelectableListScope.isShiftPressed()) {
+      _selection.extendTo(
+        item.id,
+        _visibleItemIds,
+        fallbackAnchorId: ref.read(highlightedEquipmentIdProvider),
+      );
+      return;
+    }
     if (SelectableListScope.isModifierPressed()) {
       _selection.enterImplicit(item.id);
       return;

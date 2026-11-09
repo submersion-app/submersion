@@ -33,6 +33,10 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
   /// during the filter, is revealed when it clears.
   String? _openWhenFiltered;
 
+  /// The items on screen this build, in order: what a Shift-click range
+  /// walks, so a range across a folded group skips the items inside it.
+  List<String> _visibleItemIds = const [];
+
   /// The outermost fold keys last published to
   /// [equipmentOuterGroupKeysProvider], so it is written only on change.
   List<String> _publishedOuterKeys = const [];
@@ -85,6 +89,10 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
         if (folds.contains(key) && !_dismissed.contains(key)) key,
     };
     if (_revealed.isNotEmpty) layout = layOut(_revealed);
+    _visibleItemIds = [
+      for (final row in layout.rows)
+        if (row is EquipmentItemRow) row.item.id,
+    ];
     return layout;
   }
 

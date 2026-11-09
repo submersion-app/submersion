@@ -65,8 +65,6 @@ mixin _PickerFolds on ConsumerState<EquipmentPickerSheet> {
   }) {
     if (_wasFiltered && !filtered) _closedWhileFiltered = const {};
     _wasFiltered = filtered;
-    if (_wasFiltered && !filtered) _closedWhileFiltered = const {};
-    _wasFiltered = filtered;
     final arranged = [
       for (final section in sections)
         (

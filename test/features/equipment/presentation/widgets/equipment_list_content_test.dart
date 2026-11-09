@@ -3026,6 +3026,37 @@ void main() {
       expect(rowNames(tester), ['BCD A', 'Reg A', 'BCD B', 'Reg B']);
     });
 
+    testWidgets('a shift-click range across a folded group skips its items', (
+      tester,
+    ) async {
+      final selection = SelectionController();
+      addTearDown(selection.dispose);
+      // Canonical order: regulator, BCD (folded), mask, fins.
+      await pumpList(
+        tester,
+        groupByLocation: false,
+        saved: '["type:bcd"]',
+        selection: selection,
+        items: [
+          _makeEquipment(id: 'r', name: 'Apeks', type: EquipmentType.regulator),
+          _makeEquipment(id: 'b', name: 'Wing', type: EquipmentType.bcd),
+          _makeEquipment(id: 'm', name: 'Cressi', type: EquipmentType.mask),
+          _makeEquipment(id: 'f', name: 'Jets', type: EquipmentType.fins),
+        ],
+      );
+      selection.enterExplicit();
+      selection.toggle('r');
+      await tester.pumpAndSettle();
+
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+      await tester.tap(find.text('Jets'));
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+      await tester.pumpAndSettle();
+
+      // The range takes the visible mask between them, not the folded BCD.
+      expect(selection.value.checkedIds, {'r', 'm', 'f'});
+    });
+
     testWidgets('folded header shows N of M selected in selection mode', (
       tester,
     ) async {
