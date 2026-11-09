@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -107,6 +108,7 @@ class _Candidate {
 void main() {
   late _FakePlatform platform;
   late List<Future<void>> releasing;
+  late List<VideoPlayerController> created;
 
   setUp(() {
     final original = VideoPlayerPlatform.instance;
@@ -116,8 +118,27 @@ void main() {
     // Runs before the restore above: a release still running after it
     // would reach the real platform.
     releasing = [];
-    addTearDown(() => Future.wait(releasing));
+    created = [];
+    // Every player made here, disposed before the restore: a playing one
+    // polls its position on a timer that would otherwise reach the real
+    // platform after the test (CI runs many files in one isolate).
+    addTearDown(() async {
+      await Future.wait(releasing);
+      await Future.wait(created.map((c) => c.dispose()));
+    });
   });
+
+  VideoPlayerController network(Uri url) {
+    final controller = VideoPlayerController.networkUrl(url);
+    created.add(controller);
+    return controller;
+  }
+
+  VideoPlayerController file(String path) {
+    final controller = VideoPlayerController.file(File(path));
+    created.add(controller);
+    return controller;
+  }
 
   void release(VideoPlayerController controller) =>
       releasing.add(controller.dispose());
@@ -126,6 +147,7 @@ void main() {
       VideoPlaybackOpener(
         StreamPlayback([for (final c in candidates) c.candidate]),
         release: release,
+        network: network,
       );
 
   test(
@@ -202,6 +224,8 @@ void main() {
     final opener = VideoPlaybackOpener(
       const FilePlayback('/videos/clip.mp4'),
       release: release,
+      network: network,
+      file: file,
     );
     final controller = await opener.open();
     expect(controller.dataSource, endsWith('/videos/clip.mp4'));
@@ -239,6 +263,8 @@ void main() {
         ),
       ]),
       release: release,
+      network: network,
+      file: file,
     );
     final opening = opener.open();
     opener.dispose();
