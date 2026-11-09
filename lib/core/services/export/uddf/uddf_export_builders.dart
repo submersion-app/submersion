@@ -300,6 +300,11 @@ class UddfExportBuilders {
             if (dive.isPlanned) {
               builder.element('isplanned', nest: 'true');
             }
+            // Draft dive flag (issue #637): restored without it, a draft
+            // would count in the totals with no readings.
+            if (dive.isDraft) {
+              builder.element('isdraft', nest: 'true');
+            }
             buildDiverRole(builder, dive);
             // Course associations, one link per course (#2515)
             for (final courseId in dive.courseIds) {

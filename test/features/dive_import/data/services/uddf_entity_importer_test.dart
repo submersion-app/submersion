@@ -545,6 +545,14 @@ void main() {
           as Dive;
     }
 
+    test('carries the draft flag onto the Dive (#637)', () async {
+      expect((await importDive({'isDraft': true})).isDraft, isTrue);
+    });
+
+    test('a dive without the draft flag is not a draft', () async {
+      expect((await importDive(const {})).isDraft, isFalse);
+    });
+
     test('maps the weather fields onto the Dive', () async {
       final dive = await importDive({
         'windSpeed': 5.0,

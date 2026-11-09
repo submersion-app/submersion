@@ -1345,6 +1345,15 @@ class UddfFullImportService {
         diveData['isPlanned'] = true;
       }
 
+      // Draft dive flag (issue #637)
+      final isDraft = UddfImportParsers.getElementText(
+        beforeElement,
+        'isdraft',
+      );
+      if (isDraft?.toLowerCase() == 'true') {
+        diveData['isDraft'] = true;
+      }
+
       // The logbook owner's own role on the dive (custom element). The
       // importer checks the id against the database, since a dives-only
       // file declares no custom roles yet may name one already present.
