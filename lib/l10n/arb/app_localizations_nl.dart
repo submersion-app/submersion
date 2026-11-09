@@ -60893,7 +60893,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get info_term_gf99_body =>
-      'Hoe dicht het zwaarst beladen weefsel nu bij zijn M-waarde zit, in procenten. Bij 100% ligt het precies op de onaangepaste Bühlmann-grens.';
+      'Hoe dicht het zwaarst beladen weefsel nu bij zijn M-waarde zit, in procenten. Bij 100% ligt het precies op de onaangepaste Buhlmann-grens.';
 
   @override
   String get info_term_surfaceGf_label =>
@@ -60901,14 +60901,14 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get info_term_surfaceGf_body =>
-      'De GF99 die de weefsels zouden hebben als de duiker meteen bovenkwam. Boven 100% zou de onaangepaste Bühlmann-grens aan de oppervlakte overschreden worden.';
+      'De GF99 die de weefsels zouden hebben als de duiker meteen bovenkwam. Boven 100% zou de onaangepaste Buhlmann-grens aan de oppervlakte overschreden worden.';
 
   @override
   String get info_term_gradientFactors_label => 'GF (gradiëntfactoren)';
 
   @override
   String get info_term_gradientFactors_body =>
-      'Twee percentages die de Bühlmann-grenzen verkleinen: GF Low bepaalt waar de eerste stop valt en GF High de grens bij het bovenkomen. Lagere getallen geven langere, conservatievere schema\'s.';
+      'Twee percentages die de Buhlmann-grenzen verkleinen: GF Low bepaalt waar de eerste stop valt en GF High de grens bij het bovenkomen. Lagere getallen geven langere, conservatievere schema\'s.';
 
   @override
   String get info_term_cns_label =>
@@ -61086,7 +61086,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get info_term_mValue_body =>
-      'De hoogste inertgasdruk die een compartiment volgens het Bühlmann-model op een bepaalde diepte kan bevatten. De gradiëntfactoren bepalen hoeveel daarvan gebruikt wordt.';
+      'De hoogste inertgasdruk die een compartiment volgens het Buhlmann-model op een bepaalde diepte kan bevatten. De gradiëntfactoren bepalen hoeveel daarvan gebruikt wordt.';
 
   @override
   String get info_term_surfaceLevel_label => 'Oppervlakteniveau';

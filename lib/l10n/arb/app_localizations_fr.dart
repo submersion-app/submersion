@@ -61416,7 +61416,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get info_term_gf99_body =>
-      'La proximité actuelle du tissu le plus chargé avec sa valeur M, en pourcentage. À 100 %, il se trouve exactement sur la limite de Bühlmann brute.';
+      'La proximité actuelle du tissu le plus chargé avec sa valeur M, en pourcentage. À 100 %, il se trouve exactement sur la limite de Buhlmann brute.';
 
   @override
   String get info_term_surfaceGf_label =>
@@ -61424,14 +61424,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get info_term_surfaceGf_body =>
-      'Le GF99 qu\'auraient les tissus si le plongeur faisait surface instantanément. Au-delà de 100 %, la limite de Bühlmann brute serait dépassée en surface.';
+      'Le GF99 qu\'auraient les tissus si le plongeur faisait surface instantanément. Au-delà de 100 %, la limite de Buhlmann brute serait dépassée en surface.';
 
   @override
   String get info_term_gradientFactors_label => 'GF (facteurs de gradient)';
 
   @override
   String get info_term_gradientFactors_body =>
-      'Deux pourcentages qui réduisent les limites de Bühlmann : GF Low fixe la profondeur du premier palier et GF High la limite à l\'arrivée en surface. Des valeurs plus basses donnent des profils plus longs et plus prudents.';
+      'Deux pourcentages qui réduisent les limites de Buhlmann : GF Low fixe la profondeur du premier palier et GF High la limite à l\'arrivée en surface. Des valeurs plus basses donnent des profils plus longs et plus prudents.';
 
   @override
   String get info_term_cns_label => 'CNS% (oxygène et système nerveux central)';
@@ -61609,7 +61609,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get info_term_mValue_body =>
-      'La pression de gaz inerte maximale qu\'un compartiment peut tenir à une profondeur donnée selon le modèle de Bühlmann. Les facteurs de gradient fixent la part utilisée.';
+      'La pression de gaz inerte maximale qu\'un compartiment peut tenir à une profondeur donnée selon le modèle de Buhlmann. Les facteurs de gradient fixent la part utilisée.';
 
   @override
   String get info_term_surfaceLevel_label => 'Niveau de surface';
@@ -61619,7 +61619,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'La pression de gaz d\'un compartiment entièrement stabilisé en surface à l\'air. Les barres au-dessus de cette ligne portent encore du gaz en excès.';
 
   @override
-  String get info_term_halfTime_label => 'Période';
+  String get info_term_halfTime_label => 'Demi-période';
 
   @override
   String get info_term_halfTime_body =>

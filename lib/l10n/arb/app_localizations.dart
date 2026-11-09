@@ -96405,7 +96405,7 @@ abstract class AppLocalizations {
   /// No description provided for @info_term_gf99_body.
   ///
   /// In en, this message translates to:
-  /// **'How close the most loaded tissue is to its M-value right now, as a percent. At 100% it sits exactly on the raw Bühlmann limit.'**
+  /// **'How close the most loaded tissue is to its M-value right now, as a percent. At 100% it sits exactly on the raw Buhlmann limit.'**
   String get info_term_gf99_body;
 
   /// No description provided for @info_term_surfaceGf_label.
@@ -96417,7 +96417,7 @@ abstract class AppLocalizations {
   /// No description provided for @info_term_surfaceGf_body.
   ///
   /// In en, this message translates to:
-  /// **'The GF99 the tissues would have if the diver surfaced instantly. Above 100% the raw Bühlmann limit would be exceeded at the surface.'**
+  /// **'The GF99 the tissues would have if the diver surfaced instantly. Above 100% the raw Buhlmann limit would be exceeded at the surface.'**
   String get info_term_surfaceGf_body;
 
   /// No description provided for @info_term_gradientFactors_label.
@@ -96429,7 +96429,7 @@ abstract class AppLocalizations {
   /// No description provided for @info_term_gradientFactors_body.
   ///
   /// In en, this message translates to:
-  /// **'Two percentages that scale back the Bühlmann limits: GF Low sets where the first stop falls and GF High sets the limit on surfacing. Lower numbers give longer, more conservative schedules.'**
+  /// **'Two percentages that scale back the Buhlmann limits: GF Low sets where the first stop falls and GF High sets the limit on surfacing. Lower numbers give longer, more conservative schedules.'**
   String get info_term_gradientFactors_body;
 
   /// No description provided for @info_term_cns_label.
@@ -96729,7 +96729,7 @@ abstract class AppLocalizations {
   /// No description provided for @info_term_mValue_body.
   ///
   /// In en, this message translates to:
-  /// **'The most inert gas pressure a compartment can hold at a given depth under the Bühlmann model. Gradient factors set how much of it is used.'**
+  /// **'The most inert gas pressure a compartment can hold at a given depth under the Buhlmann model. Gradient factors set how much of it is used.'**
   String get info_term_mValue_body;
 
   /// No description provided for @info_term_surfaceLevel_label.

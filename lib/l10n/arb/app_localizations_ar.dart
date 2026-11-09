@@ -62327,7 +62327,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'ضغط الغاز في الحجيرة عندما تستقر تمامًا على السطح مع تنفس الهواء. الأعمدة فوق هذا الخط لا تزال تحمل غازًا زائدًا.';
 
   @override
-  String get info_term_halfTime_label => 'نصف الزمن';
+  String get info_term_halfTime_label => 'نصف العمر';
 
   @override
   String get info_term_halfTime_body =>

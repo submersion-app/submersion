@@ -57517,21 +57517,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get info_term_gf99_body =>
-      '负荷最高的组织此刻接近其 M 值的程度，以百分比表示。100% 时恰好位于未调整的 Bühlmann 极限上。';
+      '负荷最高的组织此刻接近其 M 值的程度，以百分比表示。100% 时恰好位于未调整的 Buhlmann 极限上。';
 
   @override
   String get info_term_surfaceGf_label => 'SurfGF（水面梯度因子）';
 
   @override
   String get info_term_surfaceGf_body =>
-      '如果潜水员立即出水，组织将具有的 GF99。超过 100% 表示在水面会超出未调整的 Bühlmann 极限。';
+      '如果潜水员立即出水，组织将具有的 GF99。超过 100% 表示在水面会超出未调整的 Buhlmann 极限。';
 
   @override
   String get info_term_gradientFactors_label => 'GF（梯度因子）';
 
   @override
   String get info_term_gradientFactors_body =>
-      '两个缩小 Bühlmann 极限的百分比：GF Low 决定第一个停留的位置，GF High 决定出水时的极限。数值越低，计划越长越保守。';
+      '两个缩小 Buhlmann 极限的百分比：GF Low 决定第一个停留的位置，GF High 决定出水时的极限。数值越低，计划越长越保守。';
 
   @override
   String get info_term_cns_label => 'CNS%（中枢神经系统氧暴露）';
@@ -57697,7 +57697,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get info_term_mValue_body =>
-      '在 Bühlmann 模型下，某舱室在特定深度可承受的最高惰性气体压力。梯度因子决定实际使用其中多少。';
+      '在 Buhlmann 模型下，某舱室在特定深度可承受的最高惰性气体压力。梯度因子决定实际使用其中多少。';
 
   @override
   String get info_term_surfaceLevel_label => '水面水平';
@@ -57707,7 +57707,7 @@ class AppLocalizationsZh extends AppLocalizations {
       '舱室在水面呼吸空气并完全平衡时的气体压力。高于此线的条柱仍带有多余气体。';
 
   @override
-  String get info_term_halfTime_label => '半饱和时间';
+  String get info_term_halfTime_label => '半衰期';
 
   @override
   String get info_term_halfTime_body => '舱室向环境压力靠近一半所需的分钟数。范围从几分钟到十多个小时。';

@@ -61148,7 +61148,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get info_term_gf99_body =>
-      'Wie nah das am stärksten beladene Gewebe gerade an seinem M-Wert ist, in Prozent. Bei 100 % liegt es genau auf der unveränderten Bühlmann-Grenze.';
+      'Wie nah das am stärksten beladene Gewebe gerade an seinem M-Wert ist, in Prozent. Bei 100 % liegt es genau auf der unveränderten Buhlmann-Grenze.';
 
   @override
   String get info_term_surfaceGf_label =>
@@ -61156,14 +61156,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get info_term_surfaceGf_body =>
-      'Der GF99, den die Gewebe bei sofortigem Auftauchen hätten. Über 100 % wäre die unveränderte Bühlmann-Grenze an der Oberfläche überschritten.';
+      'Der GF99, den die Gewebe bei sofortigem Auftauchen hätten. Über 100 % wäre die unveränderte Buhlmann-Grenze an der Oberfläche überschritten.';
 
   @override
   String get info_term_gradientFactors_label => 'GF (Gradientenfaktoren)';
 
   @override
   String get info_term_gradientFactors_body =>
-      'Zwei Prozentwerte, die die Bühlmann-Grenzen verkleinern: GF Low bestimmt die Tiefe des ersten Stopps, GF High die Grenze beim Auftauchen. Niedrigere Werte ergeben längere, konservativere Pläne.';
+      'Zwei Prozentwerte, die die Buhlmann-Grenzen verkleinern: GF Low bestimmt die Tiefe des ersten Stopps, GF High die Grenze beim Auftauchen. Niedrigere Werte ergeben längere, konservativere Pläne.';
 
   @override
   String get info_term_cns_label =>
@@ -61251,18 +61251,18 @@ class AppLocalizationsDe extends AppLocalizations {
       'Wie schwer das Atemgas in der Tiefe ist, in Gramm pro Liter, was die Atemarbeit bestimmt. Veröffentlichte Studien nennen 5,2 g/L als empfohlenes Maximum und 6,2 g/L als Obergrenze.';
 
   @override
-  String get info_term_sac_label => 'SAC (Oberflächenluftverbrauch)';
+  String get info_term_sac_label => 'Druckverbrauch (Oberflächenverbrauch)';
 
   @override
   String get info_term_sac_body =>
       'Gasverbrauch pro Minute, auf Oberflächendruck umgerechnet und als Druckabfall pro Minute angezeigt. Er hängt von der Flaschengröße ab und vergleicht daher Tauchgänge mit derselben Flasche.';
 
   @override
-  String get info_term_rmv_label => 'RMV (Atemminutenvolumen)';
+  String get info_term_rmv_label => 'AMV (Atemminutenvolumen)';
 
   @override
   String get info_term_rmv_body =>
-      'Pro Minute geatmetes Gasvolumen, auf Oberflächendruck umgerechnet. Anders als SAC hängt es nicht von der Flaschengröße ab.';
+      'Pro Minute geatmetes Gasvolumen, auf Oberflächendruck umgerechnet. Anders als der Druckverbrauch hängt es nicht von der Flaschengröße ab.';
 
   @override
   String get info_term_ascentRate_label => 'Aufstiegsgeschwindigkeit';
@@ -61341,7 +61341,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get info_term_mValue_body =>
-      'Der höchste Inertgasdruck, den ein Kompartiment nach dem Bühlmann-Modell auf einer bestimmten Tiefe halten kann. Die Gradientenfaktoren legen fest, wie viel davon genutzt wird.';
+      'Der höchste Inertgasdruck, den ein Kompartiment nach dem Buhlmann-Modell auf einer bestimmten Tiefe halten kann. Die Gradientenfaktoren legen fest, wie viel davon genutzt wird.';
 
   @override
   String get info_term_surfaceLevel_label => 'Oberflächenniveau';

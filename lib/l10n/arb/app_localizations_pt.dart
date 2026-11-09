@@ -61256,7 +61256,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_term_gf99_body =>
-      'Quão perto o tecido mais carregado está agora do seu valor M, em percentagem. A 100% fica exatamente no limite de Bühlmann sem ajuste.';
+      'Quão perto o tecido mais carregado está agora do seu valor M, em percentagem. A 100% fica exatamente no limite de Buhlmann sem ajuste.';
 
   @override
   String get info_term_surfaceGf_label =>
@@ -61264,14 +61264,14 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_term_surfaceGf_body =>
-      'O GF99 que os tecidos teriam se o mergulhador subisse à superfície de imediato. Acima de 100% o limite de Bühlmann sem ajuste seria ultrapassado à superfície.';
+      'O GF99 que os tecidos teriam se o mergulhador subisse à superfície de imediato. Acima de 100% o limite de Buhlmann sem ajuste seria ultrapassado à superfície.';
 
   @override
   String get info_term_gradientFactors_label => 'GF (fatores de gradiente)';
 
   @override
   String get info_term_gradientFactors_body =>
-      'Duas percentagens que reduzem os limites de Bühlmann: GF Low define onde cai a primeira paragem e GF High o limite ao chegar à superfície. Valores mais baixos dão planos mais longos e conservadores.';
+      'Duas percentagens que reduzem os limites de Buhlmann: GF Low define onde cai a primeira paragem e GF High o limite ao chegar à superfície. Valores mais baixos dão planos mais longos e conservadores.';
 
   @override
   String get info_term_cns_label => 'CNS% (oxigénio e sistema nervoso central)';
@@ -61449,7 +61449,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_term_mValue_body =>
-      'A maior pressão de gás inerte que um compartimento pode conter a uma dada profundidade segundo o modelo de Bühlmann. Os fatores de gradiente definem quanto dela é usado.';
+      'A maior pressão de gás inerte que um compartimento pode conter a uma dada profundidade segundo o modelo de Buhlmann. Os fatores de gradiente definem quanto dela é usado.';
 
   @override
   String get info_term_surfaceLevel_label => 'Nível de superfície';
@@ -61459,7 +61459,7 @@ class AppLocalizationsPt extends AppLocalizations {
       'A pressão de gás de um compartimento totalmente estabilizado à superfície a respirar ar. As barras acima desta linha ainda carregam gás a mais.';
 
   @override
-  String get info_term_halfTime_label => 'Semiperíodo';
+  String get info_term_halfTime_label => 'Meia-vida';
 
   @override
   String get info_term_halfTime_body =>

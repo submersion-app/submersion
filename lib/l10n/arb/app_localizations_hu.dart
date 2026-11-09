@@ -60930,21 +60930,21 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get info_term_gf99_body =>
-      'Mennyire van most közel a legterheltebb szövet az M-értékéhez, százalékban. 100%-nál pontosan a módosítatlan Bühlmann-határon van.';
+      'Mennyire van most közel a legterheltebb szövet az M-értékéhez, százalékban. 100%-nál pontosan a módosítatlan Buhlmann-határon van.';
 
   @override
   String get info_term_surfaceGf_label => 'SurfGF (felszíni gradiensfaktor)';
 
   @override
   String get info_term_surfaceGf_body =>
-      'Az a GF99, amely a szövetekre jellemző lenne, ha a búvár azonnal a felszínre jönne. 100% fölött a felszínen túllépné a módosítatlan Bühlmann-határt.';
+      'Az a GF99, amely a szövetekre jellemző lenne, ha a búvár azonnal a felszínre jönne. 100% fölött a felszínen túllépné a módosítatlan Buhlmann-határt.';
 
   @override
   String get info_term_gradientFactors_label => 'GF (gradiensfaktorok)';
 
   @override
   String get info_term_gradientFactors_body =>
-      'Két százalék, amely szűkíti a Bühlmann-határokat: a GF Low az első megálló helyét, a GF High a felszínre érkezés határát állítja be. Alacsonyabb értékek hosszabb, óvatosabb tervet adnak.';
+      'Két százalék, amely szűkíti a Buhlmann-határokat: a GF Low az első megálló helyét, a GF High a felszínre érkezés határát állítja be. Alacsonyabb értékek hosszabb, óvatosabb tervet adnak.';
 
   @override
   String get info_term_cns_label =>
@@ -61123,7 +61123,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get info_term_mValue_body =>
-      'Az a legnagyobb inertgáz-nyomás, amelyet egy kompartment adott mélységben a Bühlmann-modell szerint megtarthat. A gradiensfaktorok szabják meg, mennyit használunk ki belőle.';
+      'Az a legnagyobb inertgáz-nyomás, amelyet egy kompartment adott mélységben a Buhlmann-modell szerint megtarthat. A gradiensfaktorok szabják meg, mennyit használunk ki belőle.';
 
   @override
   String get info_term_surfaceLevel_label => 'Felszíni szint';

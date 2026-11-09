@@ -60310,21 +60310,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get info_term_gf99_body =>
-      'How close the most loaded tissue is to its M-value right now, as a percent. At 100% it sits exactly on the raw Bühlmann limit.';
+      'How close the most loaded tissue is to its M-value right now, as a percent. At 100% it sits exactly on the raw Buhlmann limit.';
 
   @override
   String get info_term_surfaceGf_label => 'SurfGF (surface gradient factor)';
 
   @override
   String get info_term_surfaceGf_body =>
-      'The GF99 the tissues would have if the diver surfaced instantly. Above 100% the raw Bühlmann limit would be exceeded at the surface.';
+      'The GF99 the tissues would have if the diver surfaced instantly. Above 100% the raw Buhlmann limit would be exceeded at the surface.';
 
   @override
   String get info_term_gradientFactors_label => 'GF (gradient factors)';
 
   @override
   String get info_term_gradientFactors_body =>
-      'Two percentages that scale back the Bühlmann limits: GF Low sets where the first stop falls and GF High sets the limit on surfacing. Lower numbers give longer, more conservative schedules.';
+      'Two percentages that scale back the Buhlmann limits: GF Low sets where the first stop falls and GF High sets the limit on surfacing. Lower numbers give longer, more conservative schedules.';
 
   @override
   String get info_term_cns_label => 'CNS% (central nervous system oxygen)';
@@ -60501,7 +60501,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get info_term_mValue_body =>
-      'The most inert gas pressure a compartment can hold at a given depth under the Bühlmann model. Gradient factors set how much of it is used.';
+      'The most inert gas pressure a compartment can hold at a given depth under the Buhlmann model. Gradient factors set how much of it is used.';
 
   @override
   String get info_term_surfaceLevel_label => 'Surface level';

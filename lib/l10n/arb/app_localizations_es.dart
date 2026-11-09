@@ -61316,7 +61316,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get info_term_gf99_body =>
-      'Lo cerca que está ahora el tejido más cargado de su valor M, en porcentaje. Al 100 % se sitúa justo en el límite de Bühlmann sin ajustar.';
+      'Lo cerca que está ahora el tejido más cargado de su valor M, en porcentaje. Al 100 % se sitúa justo en el límite de Buhlmann sin ajustar.';
 
   @override
   String get info_term_surfaceGf_label =>
@@ -61324,14 +61324,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get info_term_surfaceGf_body =>
-      'El GF99 que tendrían los tejidos si el buceador saliera a superficie al instante. Por encima del 100 % se superaría en superficie el límite de Bühlmann sin ajustar.';
+      'El GF99 que tendrían los tejidos si el buceador saliera a superficie al instante. Por encima del 100 % se superaría en superficie el límite de Buhlmann sin ajustar.';
 
   @override
   String get info_term_gradientFactors_label => 'GF (factores de gradiente)';
 
   @override
   String get info_term_gradientFactors_body =>
-      'Dos porcentajes que reducen los límites de Bühlmann: GF Low fija dónde cae la primera parada y GF High fija el límite al salir a superficie. Valores más bajos dan planes más largos y conservadores.';
+      'Dos porcentajes que reducen los límites de Buhlmann: GF Low fija dónde cae la primera parada y GF High fija el límite al salir a superficie. Valores más bajos dan planes más largos y conservadores.';
 
   @override
   String get info_term_cns_label =>
@@ -61510,7 +61510,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get info_term_mValue_body =>
-      'La mayor presión de gas inerte que un compartimento puede contener a una profundidad dada según el modelo de Bühlmann. Los factores de gradiente fijan cuánto se usa.';
+      'La mayor presión de gas inerte que un compartimento puede contener a una profundidad dada según el modelo de Buhlmann. Los factores de gradiente fijan cuánto se usa.';
 
   @override
   String get info_term_surfaceLevel_label => 'Nivel de superficie';
@@ -61520,7 +61520,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'La presión de gas de un compartimento totalmente estabilizado en superficie respirando aire. Las barras por encima de esta línea aún llevan gas de más.';
 
   @override
-  String get info_term_halfTime_label => 'Semiperíodo';
+  String get info_term_halfTime_label => 'Semiperiodo';
 
   @override
   String get info_term_halfTime_body =>
