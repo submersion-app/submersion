@@ -211,9 +211,9 @@ class ReparseService {
           : null;
 
       // ------------------------------------------------------------------
-      // 3. Replace DiveProfiles for this source's computerId -- but only
-      //    when this source actually authored that strand in its own parse
-      //    frame (#1164).
+      // 3. Replace the series this source wrote on its computerId's strand
+      //    (#4367), but only when this source actually authored that strand
+      //    in its own parse frame (#1164).
       // ------------------------------------------------------------------
       final computerId = sourceRow.computerId;
       if (ownsStrand) {
@@ -763,6 +763,14 @@ class ReparseService {
 
   /// [timeOffset] shifts every re-inserted sample onto the dive's timeline;
   /// see the note at the call site (issue #1177).
+  ///
+  /// Replaces only the series this source owns on its own computer strand:
+  /// those with its `source_id`, plus legacy rows that carry no source, the
+  /// pre-v154 rule every ownership write uses (see
+  /// `ProfileSeriesRepository.promoteOwnedBy`). A series another source
+  /// wrote is never touched. Matching on `computer_id` alone took every other
+  /// null-computer source's series with it, a file import's primary among
+  /// them (issue #4367).
   Future<void> _replaceDiveProfiles({
     required String diveId,
     required String? computerId,
@@ -772,19 +780,27 @@ class ReparseService {
     required bool beneathEdit,
     required int timeOffset,
   }) async {
-    // Delete existing profiles for this (diveId, computerId)
-    await _profileSeries.deleteByComputer(diveId, computerId);
+    final replaced = [
+      for (final s in await _profileSeries.getIdentitiesForDive(diveId))
+        if (s.computerId == computerId &&
+            (s.sourceId == sourceId || s.sourceId == null))
+          s,
+    ];
+    await _profileSeries.deleteByIds([for (final s in replaced) s.id]);
 
     // Re-insert from parsed samples. [beneathEdit] lands them demoted, the
     // rule DiveReimportService._replaceProfile follows for a file. Inserted
     // primary they would sit live beside the edit and, stamped newer, outrank
-    // it on the next primary swap (issue #3189).
+    // it on the next primary swap (issue #3189). A series that was live stays
+    // live, so a non-primary source whose reading the diver chose as the
+    // dive's profile does not leave the dive with none.
+    final wasLive = replaced.any((s) => s.isPrimary);
     if (parsed.samples.isNotEmpty) {
       await _profileSeries.insertSeries(
         diveId: diveId,
         computerId: computerId,
         sourceId: sourceId,
-        isPrimary: isPrimary && !beneathEdit,
+        isPrimary: (isPrimary || wasLive) && !beneathEdit,
         samples: [
           for (final s in parsed.samples) _sampleFromParsed(s, timeOffset),
         ],
