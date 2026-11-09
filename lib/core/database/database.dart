@@ -315,7 +315,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 349;
+  static const int currentSchemaVersion = 352;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1601,6 +1601,10 @@ class AppDatabase extends _$AppDatabase {
     // does not move. Numbered 349 so open PR #4327, which claimed 347, can
     // take 348.
     349,
+    // v352: media.observation_id and equipment.cover_media_id, gear photos
+    // and an item's cover photo (issue #3355). Nullable columns an older
+    // peer omits, with no backfill, so the floor does not move.
+    352,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

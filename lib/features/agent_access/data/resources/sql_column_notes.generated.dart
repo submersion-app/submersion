@@ -455,6 +455,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   },
   'equipment': {
     'buoyancy_kg': 'Buoyancy metadata: net in-water buoyancy in kg (positive floats), and dry weight in kg (feeds displacement scaling)',
+    'cover_media_id': 'The media row chosen to represent this item in the equipment list and page header',
     'custom_reminder_days': 'JSON array override, e.g. "[7, 30]"',
     'custom_reminder_enabled': 'Notification overrides',
     'parent_equipment_id': 'the item this one is installed in (an O2 cell in a rebreather, a battery in a computer)',
@@ -530,6 +531,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'file_type': 'photo, video, instructor_signature',
     'image_data': 'Signature image data - stores signature as BLOB instead of file',
     'manual_elapsed_seconds': 'the moment in the dive the diver pinned this item to, in seconds from the dive start',
+    'observation_id': 'The check-in (equipment_observations.id) this gear photo backs up',
     'platform_asset_id': 'Gallery photo fields - for underwater photography feature',
     'remote_store_id': 'The store the three remote_*_uploaded_at stamps refer to',
     'retain_in_library': 'Media section Phase 1: kept-in-library marker',

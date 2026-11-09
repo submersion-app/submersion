@@ -79,5 +79,12 @@ extension RungsFromV340 on AppDatabase {
     // Numbered 349 so open PR #4327, which claimed 347, can take 348.
     if (from < 349) await fillDiveWaterTempsFromSources(this);
     if (from < 349) await reportProgress();
+
+    // v352: media.observation_id, the check-in a gear photo backs up, and
+    // equipment.cover_media_id, the photo that stands for an item (issue
+    // #3355). Nullable columns, no backfill. Re-asserted in beforeOpen.
+    // Numbered 352 so open PRs that claimed 348, 350 and 351 keep theirs.
+    if (from < 352) await _assertEquipmentPhotoColumns();
+    if (from < 352) await reportProgress();
   }
 }
