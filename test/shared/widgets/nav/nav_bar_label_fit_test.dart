@@ -22,6 +22,50 @@ int _lineCount(
   return lines;
 }
 
+/// Adds a fixed amount to every size, so small text grows proportionally
+/// more than large text, as Android's nonlinear font scaling does.
+class _AddingTextScaler extends TextScaler {
+  const _AddingTextScaler(this.amount);
+
+  final double amount;
+
+  @override
+  double scale(double fontSize) => fontSize + amount;
+
+  @override
+  double get textScaleFactor => 1;
+}
+
+/// Builds the bar's fitted label style under [theme] and [padding].
+Future<WidgetStateProperty<TextStyle?>?> _fittedStyle(
+  WidgetTester tester, {
+  required List<String> labels,
+  required double barWidth,
+  ThemeData? theme,
+  EdgeInsets padding = EdgeInsets.zero,
+}) async {
+  WidgetStateProperty<TextStyle?>? result;
+  await tester.pumpWidget(
+    MaterialApp(
+      theme: theme,
+      home: MediaQuery(
+        data: MediaQueryData(padding: padding),
+        child: Builder(
+          builder: (context) {
+            result = fittedNavBarLabelTextStyle(
+              context,
+              labels: labels,
+              barWidth: barWidth,
+            );
+            return const SizedBox();
+          },
+        ),
+      ),
+    ),
+  );
+  return result;
+}
+
 void main() {
   // The test font draws every glyph one em wide, so a word of n letters at
   // font size s is exactly n * s wide.
@@ -169,6 +213,97 @@ void main() {
           textDirection: TextDirection.ltr,
         ),
         1.0,
+      );
+    });
+    test('fits under a nonlinear text scaler', () {
+      const slotWidth = 75.0;
+      const scaler = _AddingTextScaler(6);
+      final scale = fitNavBarLabelScale(
+        labels: const ['Dives'],
+        styles: const [base],
+        slotWidth: slotWidth,
+        textScaler: scaler,
+        textDirection: TextDirection.ltr,
+        minFontSize: 4,
+      );
+
+      // A factor of slot / width (74 / 90) would draw at 15.9 and still
+      // split; the fitted size has to account for the added 6.
+      expect(
+        _lineCount(
+          'Dives',
+          fontSize: 12 * scale,
+          maxWidth: slotWidth,
+          textScaler: scaler,
+        ),
+        1,
+      );
+    });
+
+    test('keeps words joined by a no-break space together', () {
+      final joined = fitNavBarLabelScale(
+        labels: const ['Sites\u00A0de'],
+        styles: const [base],
+        slotWidth: 75,
+        textScaler: TextScaler.noScaling,
+        textDirection: TextDirection.ltr,
+        minFontSize: 4,
+      );
+      final spaced = fitNavBarLabelScale(
+        labels: const ['Sites de'],
+        styles: const [base],
+        slotWidth: 75,
+        textScaler: TextScaler.noScaling,
+        textDirection: TextDirection.ltr,
+        minFontSize: 4,
+      );
+
+      expect(spaced, 1.0);
+      expect(joined, lessThan(1.0));
+    });
+  });
+
+  group('fittedNavBarLabelTextStyle', () {
+    // Five labels whose longest word, "Dives", is 60 wide at 12.
+    const labels = ['Home', 'Dives', 'Sites', 'Trips', 'More'];
+
+    testWidgets('keeps the default style when the words fit', (tester) async {
+      final style = await _fittedStyle(tester, labels: labels, barWidth: 375);
+
+      expect(style, isNull);
+    });
+
+    testWidgets('takes the safe-area insets off the bar', (tester) async {
+      final style = await _fittedStyle(
+        tester,
+        labels: labels,
+        barWidth: 375,
+        // A landscape notch: 375 less 100 leaves 55 a slot.
+        padding: const EdgeInsets.symmetric(horizontal: 50),
+      );
+
+      expect(
+        style!.resolve(<WidgetState>{})!.fontSize,
+        lessThanOrEqualTo(12 * 54 / 60),
+      );
+    });
+
+    testWidgets('takes the theme label padding off each slot', (tester) async {
+      final style = await _fittedStyle(
+        tester,
+        labels: labels,
+        barWidth: 375,
+        theme: ThemeData(
+          navigationBarTheme: const NavigationBarThemeData(
+            labelPadding: EdgeInsets.symmetric(horizontal: 10),
+          ),
+        ),
+      );
+
+      // 75 a slot less 20 of padding leaves 55.
+      expect(
+        style!.resolve(<WidgetState>{})!.fontSize,
+        lessThanOrEqualTo(12 * 54 / 60),
       );
     });
   });
