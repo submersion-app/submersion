@@ -58,11 +58,11 @@ void main() {
             (ref) async => const [zeagle, faber, fins],
           ),
         ],
-        child: MaterialApp(
-          locale: const Locale('en'),
+        child: const MaterialApp(
+          locale: Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const EquipmentSetEditPage(setId: 'set-1'),
+          home: EquipmentSetEditPage(setId: 'set-1'),
         ),
       ),
     );
