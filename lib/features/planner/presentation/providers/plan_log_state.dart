@@ -5,6 +5,8 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
+import 'package:submersion/features/planner/data/services/planned_dives_writer.dart'
+    show plannedEntryName;
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
@@ -186,7 +188,7 @@ final plannedDivesLogStateProvider = FutureProvider<PlannedDivesLogState>((
     final site = siteId == null ? null : logged.sites[(siteId, entry.diverId)];
     final planned = PlannedLogEntry.of(
       result,
-      name: series.isSeries ? series.dives[i].name : result.state.name,
+      name: plannedEntryName(series, i, result),
       config: config,
     );
     final profile = logged.profiles[entry.id] ?? const <DiveProfilePoint>[];

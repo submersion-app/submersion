@@ -80,8 +80,10 @@ Future<void> _pumpPage(WidgetTester tester, Widget page) async {
 /// A repository whose retroactive apply fails, as a closed database would.
 class _FailingApplyRepository extends TransmitterRepository {
   @override
-  Future<ApplyToExistingResult> applyToExistingDives(Transmitter entry) =>
-      Future.error(StateError('database closed'));
+  Future<ApplyToExistingResult> applyToExistingDives(
+    Transmitter entry, {
+    Iterable<String> slotTankIds = const [],
+  }) => Future.error(StateError('database closed'));
 }
 
 void main() {
@@ -328,6 +330,47 @@ void main() {
   );
 
   testWidgets(
+    'a cylinder marked for suit inflation sets the Role ahead of its history '
+    '(#4243)',
+    (tester) async {
+      final db = DatabaseService.instance.database;
+      await db.customStatement(
+        "INSERT INTO equipment (id, diver_id, name, type, created_at, "
+        "updated_at) VALUES ('tank1', 'diver-1', 'Argon 0.85', 'tank', 1, 1)",
+      );
+      await db.customStatement(
+        "INSERT INTO equipment_attributes (id, equipment_id, attr_key, "
+        "value_text, created_at, updated_at) VALUES ('a1', 'tank1', "
+        "'cylinder_use', 'suit_inflation', 1, 1)",
+      );
+      // Logged before as a pony, which the history would suggest.
+      await db.customStatement(
+        "INSERT INTO dives (id, diver_id, dive_date_time, created_at, "
+        "updated_at) VALUES ('d1', 'diver-1', 1, 1, 1)",
+      );
+      await db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion.insert(
+              id: 'k1',
+              diveId: 'd1',
+              equipmentId: const Value('tank1'),
+              tankRole: const Value('pony'),
+            ),
+          );
+      await _pumpPage(tester, _buildPage(diverIdNotifier, prefs));
+
+      await tester.tap(find.text('Cylinder from gear'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Argon 0.85'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Suit Inflation'), findsOneWidget);
+      expect(find.text('Pony Bottle'), findsNothing);
+    },
+  );
+
+  testWidgets(
     'picking a cylinder with no dive history leaves Role at Back Gas (#3367)',
     (tester) async {
       await DatabaseService.instance.database.customStatement(
@@ -450,6 +493,31 @@ void main() {
       expect(find.widgetWithText(TextFormField, '11.1'), findsOneWidget);
     },
   );
+
+  testWidgets('a small bottle keeps both decimals of its size (#4243)', (
+    tester,
+  ) async {
+    // A drysuit's 0.85 L argon bottle must not load, and so save, as 0.9.
+    await TransmitterRepository().create(
+      Transmitter(
+        id: 'e1',
+        diverId: 'diver-1',
+        transmitterSerial: '555',
+        label: 'Argon',
+        role: TankRole.suitInflation,
+        volumeL: 0.85,
+        workingPressureBar: 200,
+        createdAt: DateTime.utc(2026, 9, 1),
+        updatedAt: DateTime.utc(2026, 9, 1),
+      ),
+    );
+    await _pumpPage(
+      tester,
+      _buildPage(diverIdNotifier, prefs, transmitterId: 'e1'),
+    );
+
+    expect(find.widgetWithText(TextFormField, '0.85'), findsOneWidget);
+  });
 
   testWidgets('shows volume in cubic feet and stores liters', (tester) async {
     final settings = MockSettingsNotifier();

@@ -18,10 +18,24 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 ///
 /// Seeded synchronously from SharedPreferences so the first frame of a grid
 /// draws with the right answer instead of flashing badges on and then off.
-class MediaProvenanceBadgesNotifier extends StateNotifier<bool> {
+class MediaProvenanceBadgesNotifier extends DeviceBadgeToggleNotifier {
   MediaProvenanceBadgesNotifier(SharedPreferences prefs)
+    : super(prefs, SettingsKeys.mediaProvenanceBadges);
+
+  /// Fixed state with nothing behind it; see
+  /// [DeviceBadgeToggleNotifier.unstored].
+  MediaProvenanceBadgesNotifier.unstored(bool enabled)
+    : super.unstored(enabled, SettingsKeys.mediaProvenanceBadges);
+}
+
+/// A device-local on/off switch for a thumbnail decoration, stored in
+/// SharedPreferences under [_key] and on by default. Shared by the source
+/// badges and the tag markers so the two cannot drift apart.
+class DeviceBadgeToggleNotifier extends StateNotifier<bool> {
+  DeviceBadgeToggleNotifier(SharedPreferences prefs, String key)
     : _prefs = prefs,
-      super(prefs.getBool(SettingsKeys.mediaProvenanceBadges) ?? true);
+      _key = key,
+      super(prefs.getBool(key) ?? true);
 
   /// Fixed state with nothing behind it.
   ///
@@ -29,14 +43,32 @@ class MediaProvenanceBadgesNotifier extends StateNotifier<bool> {
   /// binding, or an early frame before initialization. [setEnabled] becomes a
   /// no-op rather than throwing, so a toggle in that state fails quietly
   /// instead of taking a screen down.
-  MediaProvenanceBadgesNotifier.unstored(super.enabled) : _prefs = null;
+  DeviceBadgeToggleNotifier.unstored(super.enabled, String key)
+    : _prefs = null,
+      _key = key;
 
   final SharedPreferences? _prefs;
+  final String _key;
 
-  Future<void> setEnabled(bool value) async {
-    if (state == value) return;
+  /// The latest preference write, which the next one waits on.
+  ///
+  /// The switch does not await a change, so two quick toggles can have
+  /// writes out together, and where a write replaces the whole preferences
+  /// file (Windows, Linux) two in flight can land in either order. One at a
+  /// time keeps the stored choice the last one shown, as
+  /// `MediaCacheSettingsNotifier` does for its sizes.
+  Future<void> _lastWrite = Future<void>.value();
+
+  Future<void> setEnabled(bool value) {
+    if (state == value) return Future<void>.value();
     state = value;
-    await _prefs?.setBool(SettingsKeys.mediaProvenanceBadges, value);
+    final prefs = _prefs;
+    if (prefs == null) return Future<void>.value();
+    final write = _lastWrite.then((_) => prefs.setBool(_key, value));
+    // A failed write must not hold up the ones after it; its caller still
+    // sees the error.
+    _lastWrite = write.then<void>((_) {}, onError: (Object _) {});
+    return write;
   }
 }
 
@@ -55,4 +87,30 @@ class MediaProvenanceBadgesNotifier extends StateNotifier<bool> {
 final mediaProvenanceBadgesProvider =
     StateNotifierProvider<MediaProvenanceBadgesNotifier, bool>(
       (ref) => MediaProvenanceBadgesNotifier.unstored(true),
+    );
+
+/// Whether library thumbnails show the tag markers (issue #4218): a person
+/// when someone is tagged, a fish when a species is, a timer when the item
+/// has a time in its dive.
+///
+/// A separate switch from [MediaProvenanceBadgesNotifier], since the two
+/// answer different questions: where the bytes came from, and what the diver
+/// has recorded about the picture. Device-local and seeded synchronously for
+/// the same reasons that notifier gives.
+class MediaTagBadgesNotifier extends DeviceBadgeToggleNotifier {
+  MediaTagBadgesNotifier(SharedPreferences prefs)
+    : super(prefs, SettingsKeys.mediaTagBadges);
+
+  /// Fixed state with nothing behind it; see
+  /// [DeviceBadgeToggleNotifier.unstored].
+  MediaTagBadgesNotifier.unstored(bool enabled)
+    : super.unstored(enabled, SettingsKeys.mediaTagBadges);
+}
+
+/// Defaults to enabled with no storage behind it, and gains persistence from
+/// `rootProviderOverrides`, exactly as [mediaProvenanceBadgesProvider] does
+/// and for the same reason: it is watched from inside a grid tile.
+final mediaTagBadgesProvider =
+    StateNotifierProvider<MediaTagBadgesNotifier, bool>(
+      (ref) => MediaTagBadgesNotifier.unstored(true),
     );

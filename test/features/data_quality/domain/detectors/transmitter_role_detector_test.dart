@@ -90,6 +90,19 @@ void main() {
     expect(detector.detect(ctx(tanks: [dil, mine, oc])), isEmpty);
   });
 
+  test('ignores a suit inflation bottle (issue #4243)', () {
+    // A suit transmitter drains during the bailout too (the diver adds gas
+    // to the suit on the way up), but it is never breathing gas, so it is
+    // never re-roled as the bailout.
+    final suit = tank(
+      'tx',
+      1,
+      TankRole.suitInflation,
+      roleSource: TankRoleSource.transmitterName,
+    );
+    expect(detector.detect(ctx(tanks: [dil, suit, oc])), isEmpty);
+  });
+
   test('ignores OC and SCR dives', () {
     expect(detector.detect(ctx(mode: DiveMode.oc)), isEmpty);
     expect(detector.detect(ctx(mode: DiveMode.scr)), isEmpty);

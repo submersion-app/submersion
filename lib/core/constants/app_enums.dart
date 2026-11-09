@@ -301,10 +301,30 @@ enum TankRole {
   sidemountRight('Sidemount Right'),
   pony('Pony Bottle'),
   diluent('Diluent'), // CCR diluent tank
-  oxygenSupply('O₂ Supply'); // CCR oxygen supply cylinder
+  oxygenSupply('O₂ Supply'), // CCR oxygen supply cylinder
+
+  /// A drysuit's inflation bottle, often argon (issue #4243). Not breathing
+  /// gas: see [isBreathingGas].
+  suitInflation('Suit Inflation');
 
   final String displayName;
   const TankRole(this.displayName);
+
+  /// Whether a cylinder in this role holds gas the diver breathes. Only a
+  /// suit inflation bottle does not, and every breathing gas calculation
+  /// (consumption, deco, oxygen exposure, plans, statistics) leaves it out
+  /// while the dive still lists it (issue #4243).
+  bool get isBreathingGas => this != TankRole.suitInflation;
+
+  /// The role stored as [name], or back gas for null or a name this build
+  /// does not know (a newer peer's role), the fallback every tolerant reader
+  /// of a stored role uses.
+  static TankRole fromName(String? name) {
+    for (final role in values) {
+      if (role.name == name) return role;
+    }
+    return TankRole.backGas;
+  }
 }
 
 /// Where a cylinder's [TankRole] came from when no person chose it (issue

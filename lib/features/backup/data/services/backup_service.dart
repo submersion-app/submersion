@@ -38,6 +38,7 @@ import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_ex
 import 'package:submersion/features/backup/data/services/backup_attribution.dart';
 import 'package:submersion/features/backup/data/services/backup_pin_markers.dart';
 import 'package:submersion/features/backup/data/services/cross_device_retention.dart';
+import 'package:submersion/features/backup/data/services/extra_copy_destination.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/marine_life/data/services/builtin_species_seed_version_store.dart';
 import 'package:submersion/features/backup/data/services/backup_database_adapter.dart';
@@ -46,6 +47,7 @@ import 'package:submersion/features/backup/data/services/backup_target.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
+import 'package:submersion/features/backup/domain/entities/extra_cloud_copy.dart';
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
@@ -58,6 +60,7 @@ export 'package:submersion/features/backup/data/services/backup_database_adapter
 
 part 'backup_service_cloud_copy.dart';
 part 'backup_service_copy_out.dart';
+part 'backup_service_extra_copies.dart';
 part 'backup_service_image_restore.dart';
 part 'backup_service_pruning.dart';
 part 'backup_service_retention.dart';
@@ -160,6 +163,10 @@ class BackupService {
   /// while the copy follows sync (or is off).
   final String? _pinnedCopyAccountId;
 
+  /// The accounts each backup is also copied to (issue #3782), fixed with
+  /// [_cloudProvider] when this service is built.
+  final List<ExtraCopyDestination> _extraCopies;
+
   /// SAF write/read/delete seam for Android custom (`content://`) backup
   /// locations. Defaults to the real platform channel; injectable for tests.
   final BackupSafPort _safPort;
@@ -195,6 +202,7 @@ class BackupService {
     BackupEncryptionKeyStore? backupEncryptionKeyStore,
     BuiltInSpeciesSeedVersionStore? seedVersionStore,
     String? copyAccountId,
+    List<ExtraCopyDestination> extraCopies = const [],
     Future<String> Function(
       Uint8List image, {
       void Function(int currentStep, int totalSteps)? onMigrationProgress,
@@ -214,6 +222,7 @@ class BackupService {
        _backupEncryptionKeyStore = backupEncryptionKeyStore,
        _seedVersionStore = seedVersionStore,
        _pinnedCopyAccountId = copyAccountId,
+       _extraCopies = List.unmodifiable(extraCopies),
        _restoreImage = restoreImage ?? DatabaseService.instance.restoreImage,
        _retireLibrary =
            retireLibrary ?? DatabaseService.instance.retireWebLibrary;
@@ -272,10 +281,27 @@ class BackupService {
     // uploads from a filesystem file holding the stored bytes, never from
     // the folder's ref, which on Android is a content:// URI.
     final wantsCopy = settings.cloudBackupEnabled && _cloudProvider != null;
+    // Extra copies (issue #3782) ride on the main copy's switch, and run
+    // even when the main copy's own account cannot be reached.
+    final wantsExtras = settings.cloudBackupEnabled && _extraCopies.isNotEmpty;
     ({String? fileId, String? accountId, bool needsSignIn}) copy = (
       fileId: null,
       accountId: null,
       needsSignIn: false,
+    );
+    ({List<ExtraCloudCopy> copies, List<String> missed}) extras = (
+      copies: const [],
+      missed: const [],
+    );
+    // Every copy uploads the same stored bytes from [path] as [name].
+    Future<void> copyOut(String path, String name) => _withSharedUploadSource(
+      path,
+      name,
+      share: wantsExtras,
+      upload: (path, name) async {
+        if (wantsCopy) copy = await _copyToCloud(path, name);
+        if (wantsExtras) extras = await _copyToExtras(path, name);
+      },
     );
 
     final String ref;
@@ -291,8 +317,8 @@ class BackupService {
         _dbAdapter,
         filename,
         note: note,
-        whileWritten: wantsCopy
-            ? (path) async => copy = await _copyToCloud(path, storedName)
+        whileWritten: wantsCopy || wantsExtras
+            ? (path) => copyOut(path, filename)
             : null,
       );
       ref = written.ref;
@@ -321,7 +347,7 @@ class BackupService {
         );
         ref = await target.writeSource(tempSbe, storedName);
         sizeBytes = await File(tempSbe).length();
-        if (wantsCopy) copy = await _copyToCloud(tempSbe, storedName);
+        await copyOut(tempSbe, storedName);
       } finally {
         for (final t in [tempPlain, tempSbe]) {
           final f = File(t);
@@ -357,6 +383,7 @@ class BackupService {
       localPath: ref,
       isAutomatic: isAutomatic,
       note: note,
+      extraCloudCopies: extras.copies,
     );
 
     // Persist record and update last backup time
@@ -368,13 +395,21 @@ class BackupService {
       settings.cloudBackupEnabled && location == BackupLocation.local,
     );
     await _preferences.setLastCloudCopyNeedsSignIn(copy.needsSignIn);
+    await _preferences.setLastExtraCopyMissingIds(extras.missed);
+    // An extra copy (issue #3782) puts the backup off the device too, when
+    // the main copy did not.
+    final reachedAccountId = location == BackupLocation.both
+        ? uploadAccountId
+        : extras.copies.firstOrNull?.accountId;
+    final offDevice =
+        location == BackupLocation.both || extras.copies.isNotEmpty;
     await _preferences.setLastBackupDestination(
-      location == BackupLocation.both
+      offDevice
           ? LastBackupDestination.cloud
           : toChosenFolder
           ? LastBackupDestination.folder
           : LastBackupDestination.device,
-      cloudAccountId: location == BackupLocation.both ? uploadAccountId : null,
+      cloudAccountId: offDevice ? reachedAccountId : null,
     );
 
     // Prune old backups
@@ -507,7 +542,8 @@ class BackupService {
 
   /// Rewrite every plaintext local backup in history as an encrypted `.sbe`,
   /// re-uploading its cloud copy when present. Idempotent: already-encrypted
-  /// artifacts are skipped by magic, so an interrupted run is safe to resume.
+  /// artifacts are skipped by magic, so an interrupted run is safe to resume;
+  /// an extra copy an earlier run left plaintext is replaced then.
   /// SAF (`content://`) and cloud-only records are skipped (logged).
   /// Best-effort per record. Requires backup encryption to be enabled.
   Future<({int reencrypted, int skipped, int failed})>
@@ -519,10 +555,19 @@ class BackupService {
     var reencrypted = 0;
     var skipped = 0;
     var failed = 0;
-    // Re-encrypted records whose plaintext cloud copy was replaced: that copy
-    // is gone only once a backend that defers deletes or keeps history (Git)
-    // has pushed the delete and reset its history.
-    var replacedInCloud = 0;
+    // Records whose plaintext cloud copy was replaced, whether or not the
+    // record then succeeded: that copy is gone only once a backend that
+    // defers deletes or keeps history (Git) has pushed the delete and reset
+    // its history.
+    final replacedInCloud = <String>{};
+    // The same for extra copies (issue #3782): each account an old extra
+    // copy was deleted from, with the records it held, flushed and reset
+    // once at the end like the main copy's, whether the record succeeded or
+    // not. Only the records counted as rewritten can still be moved to
+    // failed.
+    final extraDeletesByAccount =
+        Map<CloudStorageProvider, Set<String>>.identity();
+    final rewritten = <String>{};
     for (final record in _preferences.getHistory()) {
       final localPath = record.localPath;
       if (localPath == null || isSafRef(localPath)) {
@@ -539,11 +584,27 @@ class BackupService {
       try {
         final file = File(localPath);
         if (!await file.exists()) {
-          skipped++;
+          // History keeps such a record for its extra copies (issue #3782),
+          // which stay plaintext: disclosed as a failure, not skipped.
+          if (record.extraCloudCopies.isNotEmpty) {
+            failed++;
+          } else {
+            skipped++;
+          }
           continue;
         }
         if (await BackupCrypto.isEncryptedBackup(localPath)) {
-          skipped++;
+          if (!record.extraCloudCopies.any((c) => c.plaintext)) {
+            skipped++;
+          } else if (await _reencryptPlaintextExtras(
+            record,
+            touched: extraDeletesByAccount,
+          )) {
+            reencrypted++;
+            rewritten.add(record.id);
+          } else {
+            failed++;
+          }
           continue;
         }
         final dir = p.dirname(localPath);
@@ -603,6 +664,15 @@ class BackupService {
           }
         }
 
+        // The extra copies (issue #3782) are replaced the same way: the new
+        // .sbe goes up before the record is committed.
+        final extras = await _reuploadExtras(
+          record,
+          newPath,
+          newName,
+          touched: extraDeletesByAccount,
+        );
+
         // Commit the record to the on-disk .sbe (which now exists) BEFORE
         // deleting the old plaintext/cloud artifacts. A failed delete below is
         // then a best-effort leak, never a dangling history pointer or data
@@ -613,6 +683,7 @@ class BackupService {
             localPath: newPath,
             sizeBytes: await File(newPath).length(),
             cloudFileId: newCloudFileId,
+            extraCloudCopies: extras.copies,
           ),
         );
 
@@ -620,7 +691,13 @@ class BackupService {
         // copy cannot be removed it is a residual exposure, so count the record
         // as a failure (disclosed to the user) rather than a clean success --
         // without rolling back the committed encrypted record.
-        var residualExposure = false;
+        var residualExposure =
+            await _deleteReplacedExtras(
+              record.id,
+              extras.replaced,
+              touched: extraDeletesByAccount,
+            ) ||
+            extras.residual;
         if (newPath != localPath) {
           try {
             await file.delete();
@@ -653,11 +730,12 @@ class BackupService {
             );
           }
         }
+        if (record.cloudFileId != null) replacedInCloud.add(record.id);
         if (residualExposure) {
           failed++;
         } else {
           reencrypted++;
-          if (record.cloudFileId != null) replacedInCloud++;
+          rewritten.add(record.id);
         }
       } catch (e, stack) {
         _log.error(
@@ -672,7 +750,7 @@ class BackupService {
     // history, and its deletes above were only recorded. If either fails,
     // those records are disclosed as failures, like any residual exposure.
     final provider = _cloudProvider;
-    if (replacedInCloud > 0 && provider != null) {
+    if (replacedInCloud.isNotEmpty && provider != null) {
       try {
         await flushDeferredWrites(provider);
         await resetHistoryNowIfSupported(provider);
@@ -682,10 +760,20 @@ class BackupService {
           error: e,
           stackTrace: stack,
         );
-        reencrypted -= replacedInCloud;
-        failed += replacedInCloud;
+        // Only the records counted as rewritten; the others are already
+        // failures, and are not counted twice below.
+        final exposed = replacedInCloud.intersection(rewritten);
+        reencrypted -= exposed.length;
+        failed += exposed.length;
+        rewritten.removeAll(exposed);
       }
     }
+    // Only the records whose own account failed to push or reset.
+    final exposed = (await _resetExtraHistories(
+      extraDeletesByAccount,
+    )).intersection(rewritten);
+    reencrypted -= exposed.length;
+    failed += exposed.length;
     _log.info(
       'Re-encrypt done: $reencrypted rewritten, $skipped skipped, $failed failed',
     );
@@ -1258,15 +1346,21 @@ class BackupService {
   /// Checks each record's local file existence. Removes records where:
   /// - localPath is set but file no longer exists
   /// - AND there is no cloud backup (cloudFileId is null)
+  /// - AND there are no extra copies (issue #3782)
   ///
-  /// Records with no localPath (legacy) or with cloud backups are kept.
+  /// Records with no localPath (legacy), a cloud backup or an extra copy are
+  /// kept.
   Future<List<BackupRecord>> getValidatedBackupHistory() async {
     final history = _preferences.getHistory();
     final validRecords = <BackupRecord>[];
     var pruned = false;
 
     for (final record in history) {
-      if (record.localPath != null && record.cloudFileId == null) {
+      // Extra copies (issue #3782) keep a record too: they may be the only
+      // copies left.
+      if (record.localPath != null &&
+          record.cloudFileId == null &&
+          record.extraCloudCopies.isEmpty) {
         final ref = record.localPath!;
         final stillThere = isSafRef(ref)
             ? await _safPort.exists(ref)
@@ -1294,9 +1388,12 @@ class BackupService {
 
   /// [deleteBackup]. Without [deleteCloud] the cloud copy is left to the
   /// caller, which has already deleted it (pruning batches those deletes).
+  /// With [extraFlushes], the extra copies' deletes are left for the caller
+  /// to push, as [_deleteExtraCopies] says.
   Future<void> _deleteBackup(
     BackupRecord record, {
     required bool deleteCloud,
+    Set<CloudStorageProvider>? extraFlushes,
   }) async {
     _log.info('Deleting backup: ${record.filename}');
 
@@ -1319,6 +1416,10 @@ class BackupService {
         if (record.localPath == null && !tracked) rethrow;
       }
     }
+
+    // Extra copies go with the record whoever removes it: pruning batches
+    // only the main copy's deletes (issue #3782).
+    await _deleteExtraCopies(record, deferFlushTo: extraFlushes);
 
     // Remove from history
     await _preferences.removeRecord(record.id);
@@ -1735,7 +1836,9 @@ class BackupService {
   /// to tell the user why a backup stayed on the device (issue #3089). Backup
   /// encryption exempts the device: its .sbe backups upload regardless.
   Future<bool> isCloudBackupBlockedByEncryptionLock() async {
-    if (_cloudProvider == null) return false;
+    if (_cloudProvider == null && _reachableExtraProviders.isEmpty) {
+      return false;
+    }
     final settings = _preferences.getSettings();
     if (!settings.cloudBackupEnabled || settings.backupEncryptionEnabled) {
       return false;
@@ -1754,8 +1857,14 @@ class BackupService {
     return (mlk: key.mlk, libraryKeyId: key.libraryKeyId, keyslotBytes: mirror);
   }
 
-  Future<String?> _uploadToCloud(String localPath, String filename) async {
-    if (_cloudProvider == null) return null;
+  /// Uploads to [via], the main copy's provider when null.
+  Future<String?> _uploadToCloud(
+    String localPath,
+    String filename, {
+    CloudStorageProvider? via,
+  }) async {
+    final provider = via ?? _cloudProvider;
+    if (provider == null) return null;
 
     // When backup encryption (issue #580) already produced a framed .sbe, the
     // local artifact IS the encrypted upload -- send it verbatim. Otherwise, if
@@ -1778,7 +1887,10 @@ class BackupService {
       return null;
     }
 
-    final folderId = await _getOrCreateCloudBackupFolder(rethrowRefused: true);
+    final folderId = await _getOrCreateCloudBackupFolder(
+      rethrowRefused: true,
+      via: provider,
+    );
     if (folderId == null) return null;
 
     var uploadPath = localPath;
@@ -1803,7 +1915,7 @@ class BackupService {
     try {
       // Path-based upload: providers stream from disk, so a multi-hundred-MB
       // backup is never resident in memory.
-      final result = await _cloudProvider.uploadFileFromPath(
+      final result = await provider.uploadFileFromPath(
         uploadPath,
         uploadName,
         folderId: folderId,
@@ -1882,9 +1994,27 @@ class BackupService {
   /// cloud backup folder. Offered at encryption-enable time; encrypted .sbe
   /// artifacts are left alone. Returns the number deleted.
   Future<int> deletePlaintextCloudBackups() async {
-    final provider = _cloudProvider;
-    if (provider == null) return 0;
-    final folderId = await _getOrCreateCloudBackupFolder();
+    var deleted = 0;
+    // The main copy's folder, then each extra account's (issue #3782).
+    // One account failing leaves the others to be cleared.
+    for (final provider in [?_cloudProvider, ..._reachableExtraProviders]) {
+      try {
+        deleted += await _deletePlaintextIn(provider);
+      } catch (e, stack) {
+        _log.error(
+          'Unencrypted backups could not be cleared from one account',
+          error: e,
+          stackTrace: stack,
+        );
+      }
+    }
+    _log.info('Deleted $deleted unencrypted cloud backups');
+    return deleted;
+  }
+
+  /// [deletePlaintextCloudBackups] for one account's backup folder.
+  Future<int> _deletePlaintextIn(CloudStorageProvider provider) async {
+    final folderId = await _getOrCreateCloudBackupFolder(via: provider);
     if (folderId == null) return 0;
     final files = await provider.listFiles(
       folderId: folderId,
@@ -1900,19 +2030,21 @@ class BackupService {
     // On a backend that keeps history (Git) the plaintext copies would
     // otherwise stay readable in it.
     if (deleted > 0) await resetHistoryNowIfSupported(provider);
-    _log.info('Deleted $deleted unencrypted cloud backups');
     return deleted;
   }
 
   /// [rethrowRefused] lets a refusal out for a caller that keeps the reason;
-  /// anything else is a null, as it is for every other caller.
+  /// anything else is a null, as it is for every other caller. [via] is the
+  /// account's provider, the main copy's when null.
   Future<String?> _getOrCreateCloudBackupFolder({
     bool rethrowRefused = false,
+    CloudStorageProvider? via,
   }) async {
-    if (_cloudProvider == null) return null;
+    final provider = via ?? _cloudProvider;
+    if (provider == null) return null;
 
     try {
-      return await _cloudProvider.createFolder(_cloudBackupFolder);
+      return await provider.createFolder(_cloudBackupFolder);
     } catch (e, stack) {
       if (rethrowRefused && isAccessRefused(e)) rethrow;
       _log.error(

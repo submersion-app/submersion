@@ -104,7 +104,8 @@ class CsvDivesWriter {
     final rows = <List<dynamic>>[headers];
 
     for (final dive in dives) {
-      final tank = dive.tanks.isNotEmpty ? dive.tanks.first : null;
+      // The first breathing cylinder, never a suit inflation bottle (#4243).
+      final tank = dive.breathingTanks.firstOrNull;
       final gas = gasMixCells(tank?.gasMix);
       rows.add([
         dive.diveNumber ?? '',

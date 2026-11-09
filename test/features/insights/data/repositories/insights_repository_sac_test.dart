@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/domain/role_consumption.dart';
 
 import '../../../../helpers/test_database.dart';
 import '../../../../helpers/unique_ids.dart';
@@ -462,11 +463,11 @@ void main() {
   });
 
   // ---------------------------------------------------------------------------
-  // SAC In Volume By Tank Role
+  // Consumption by cylinder role (issue #771)
   // ---------------------------------------------------------------------------
 
-  group('getSacVolumeByTankRole', () {
-    test('groups SAC in volume by tank role using runtime', () async {
+  group('getRoleConsumptionPerDive', () {
+    test('divides by runtime, not bottom time', () async {
       await insertDiveWithTank(
         id: 'dive-back',
         bottomTimeSeconds: 35 * 60,
@@ -478,11 +479,12 @@ void main() {
         volume: 12.0,
       );
 
-      final sacByRole = await repository.getSacVolumeByTankRole();
+      final trend = await repository.getRoleConsumptionPerDive();
+      final sac = trend.sac[ConsumptionRoleGroup.bottomGas]!.single.value;
 
-      expect(sacByRole, isNotEmpty);
-      expect(sacByRole.containsKey('backGas'), isTrue);
-      expect(sacByRole['backGas']!, greaterThan(0));
+      // About 150 bar over 42 min at 3 ata; the real gas model trims a few
+      // percent off the raw drop, and 35 minutes would read 20% higher.
+      expect(sac, closeTo(150 / 42 / 3, 150 / 42 / 3 * 0.06));
     });
 
     test('leaves out a dive with only a bottom time', () async {
@@ -497,10 +499,12 @@ void main() {
         volume: 12.0,
       );
 
-      expect(await repository.getSacVolumeByTankRole(), isEmpty);
+      final trend = await repository.getRoleConsumptionPerDive();
+      expect(trend.rmv, isEmpty);
+      expect(trend.sac, isEmpty);
     });
 
-    test('excludes tanks with zero volume', () async {
+    test('a tank with zero volume has no RMV', () async {
       await insertDiveWithTank(
         id: 'dive-zerovol',
         bottomTimeSeconds: 40 * 60,
@@ -512,59 +516,13 @@ void main() {
         volume: 0,
       );
 
-      final sacByRole = await repository.getSacVolumeByTankRole();
-
-      expect(sacByRole, isEmpty);
-    });
-  });
-
-  // ---------------------------------------------------------------------------
-  // SAC In Pressure By Tank Role
-  // ---------------------------------------------------------------------------
-
-  group('getSacPressureByTankRole', () {
-    test('groups SAC in pressure by tank role using runtime', () async {
-      await insertDiveWithTank(
-        id: 'dive-back',
-        bottomTimeSeconds: 35 * 60,
-        runtimeSeconds: 42 * 60,
-        avgDepth: 20.0,
-        startPressure: 200,
-        endPressure: 50,
-        tankRole: 'backGas',
-      );
-
-      final sacByRole = await repository.getSacPressureByTankRole();
-
-      expect(sacByRole, isNotEmpty);
-      expect(sacByRole.containsKey('backGas'), isTrue);
-      expect(sacByRole['backGas']!, greaterThan(0));
+      expect((await repository.getRoleConsumptionPerDive()).rmv, isEmpty);
     });
 
-    test('leaves out a dive with only a bottom time', () async {
-      await insertDiveWithTank(
-        id: 'dive-norunt',
-        bottomTimeSeconds: 40 * 60,
-        runtimeSeconds: null,
-        avgDepth: 20.0,
-        startPressure: 200,
-        endPressure: 50,
-        tankRole: 'backGas',
-      );
-
-      expect(await repository.getSacPressureByTankRole(), isEmpty);
-    });
-  });
-
-  // ---------------------------------------------------------------------------
-  // SAC By Tank Role: the two units are genuinely different calculations
-  // ---------------------------------------------------------------------------
-
-  group('SAC by tank role across units', () {
     // Issues #160 and #219: the card once read one query for both settings,
     // so switching bar/min to L/min swapped the unit label while leaving the
     // number untouched (1.6 bar/min became 1.6 L/min).
-    test('volume and pressure roles report different magnitudes', () async {
+    test('the two lanes report different magnitudes', () async {
       await insertDiveWithTank(
         id: 'dive-units',
         bottomTimeSeconds: 35 * 60,
@@ -576,17 +534,10 @@ void main() {
         volume: 12.0,
       );
 
-      final pressureByRole = await repository.getSacPressureByTankRole();
-      final volumeByRole = await repository.getSacVolumeByTankRole();
-
-      // 150 bar over 42 min at 3 ata.
-      expect(pressureByRole['backGas']!, closeTo(150 / 42 / 3, 0.01));
-      // The same drop through a 12 L cylinder is an order of magnitude larger
-      // in litres, so the displayed number must move when the unit does.
-      expect(
-        volumeByRole['backGas']!,
-        greaterThan(pressureByRole['backGas']! * 5),
-      );
+      final trend = await repository.getRoleConsumptionPerDive();
+      final sac = trend.sac[ConsumptionRoleGroup.bottomGas]!.single.value;
+      final rmv = trend.rmv[ConsumptionRoleGroup.bottomGas]!.single.value;
+      expect(rmv, greaterThan(sac * 5));
     });
   });
 

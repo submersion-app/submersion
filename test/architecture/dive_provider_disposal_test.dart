@@ -1,0 +1,194 @@
+import 'dart:io';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/dive_3d/application/compare_providers.dart'
+    as dive_3d;
+import 'package:submersion/features/dive_3d/application/providers.dart';
+import 'package:submersion/features/dive_3d/application/spatial_providers.dart';
+import 'package:submersion/features/dive_3d/application/tissue_providers.dart';
+import 'package:submersion/features/dive_lab/presentation/providers/compare_providers.dart'
+    as lab;
+import 'package:submersion/features/dive_lab/presentation/providers/lab_draft_provider.dart';
+import 'package:submersion/features/dive_lab/presentation/providers/lab_request_inputs_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/buoyancy_history_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/buoyancy_twin_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/outlier_suggestion_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
+import 'package:submersion/features/gps_log/presentation/providers/gps_track_map_providers.dart';
+import 'package:submersion/features/nav_track/application/nav_track_scene_providers.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_3d_providers.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_logged_dive_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
+
+import 'provider_family_scanner.dart';
+
+/// Per-dive families holding decoded samples or analyses must auto-dispose
+/// (#4254).
+///
+/// Riverpod 3 defaults `isAutoDispose` to false, so a `.family` keyed per dive
+/// keeps one entry per dive for the process lifetime. For these that entry is
+/// a full detail dive, a source's samples, or a `ProfileAnalysis` with 16
+/// compartment states per sample, so every dive a session opened stayed in
+/// memory. Each now auto-disposes and calls `retainDiveData`, which keeps it
+/// warm for a window after its last listener leaves.
+///
+/// The list covers the heavy families and the per-dive families that watch
+/// them. A keep-forever watcher holds its dependency alive as surely as the
+/// dependency keeping itself, so the lib/ checks below do not rely on the
+/// list for that: they fail on any keep-forever family that watches a
+/// retained one, listed or not, and on a retained family that does not
+/// auto-dispose.
+///
+/// Asserted through `dynamic` for the reason given in
+/// `media_provider_disposal_test.dart`: the declaring type of
+/// `isAutoDispose` is not exported.
+void main() {
+  final mustAutoDispose = <String, dynamic>{
+    // The decoded dive and its samples.
+    'diveProvider': diveProvider,
+    'diveProfileProvider': diveProfileProvider,
+    'sourceProfilesProvider': sourceProfilesProvider,
+    'tankPressuresProvider': tankPressuresProvider,
+    // The analysis pipeline.
+    'analysisDiveProvider': analysisDiveProvider,
+    'diveAnalysisSeriesProvider': diveAnalysisSeriesProvider,
+    'profileAnalysisProvider': profileAnalysisProvider,
+    'sourceProfileAnalysisProvider': sourceProfileAnalysisProvider,
+    'residualCnsProvider': residualCnsProvider,
+    'residualTissueStateProvider': residualTissueStateProvider,
+    'diveProfileAnalysisProvider': diveProfileAnalysisProvider,
+    // Dive detail sections that watch them.
+    'outlierSuggestionProvider': outlierSuggestionProvider,
+    'estimatedTankPressuresProvider': estimatedTankPressuresProvider,
+    'buoyancyTwinProvider': buoyancyTwinProvider,
+    'buoyancyHistoryProvider': buoyancyHistoryProvider,
+    'gasSwitchSegmentsProvider': gasSwitchSegmentsProvider,
+    'phaseSegmentsProvider': phaseSegmentsProvider,
+    'cylinderSacProvider': cylinderSacProvider,
+    'safetyReviewProvider': safetyReviewProvider,
+    'trackForDiveProvider': trackForDiveProvider,
+    // 3D views.
+    'dive3dSceneDataProvider': dive3dSceneDataProvider,
+    'dive3dZAxisProvider': dive3dZAxisProvider,
+    'dive3dGeometryProvider': dive3dGeometryProvider,
+    'tissueDecoStatusesProvider': tissueDecoStatusesProvider,
+    'tissueSurfaceProvider': tissueSurfaceProvider,
+    'tissue3dSceneProvider': tissue3dSceneProvider,
+    'tissueSurfaceGridProvider': tissueSurfaceGridProvider,
+    'tissueRuntimeSecondsProvider': tissueRuntimeSecondsProvider,
+    'computerComparisonProfilesProvider':
+        dive_3d.computerComparisonProfilesProvider,
+    'spatialReckonedPathProvider': spatialReckonedPathProvider,
+    'spatialGeometryProvider': spatialGeometryProvider,
+    // Dive Lab and the planner's plan-vs-actual views.
+    'hasLinkedPlanProvider': lab.hasLinkedPlanProvider,
+    'plannedColumnProvider': lab.plannedColumnProvider,
+    'labDefaultBranchProvider': labDefaultBranchProvider,
+    'labRequestInputsProvider': labRequestInputsProvider,
+    'linkedPlanComparisonProvider': linkedPlanComparisonProvider,
+    'plannedProfileOverlayProvider': plannedProfileOverlayProvider,
+    'linkedPlanRangeTableProvider': linkedPlanRangeTableProvider,
+    'seriesFollowProvider': seriesFollowProvider,
+    // Per buddy, but holds hydrated dives.
+    'divesForBuddyProvider': divesForBuddyProvider,
+    // Per route or GPS track, but reached from a dive (its 3D seascape, its
+    // matched track) and holding decoded points, so they count the same.
+    'gpsTrackDetailProvider': gpsTrackDetailProvider,
+    'divesOnTrackProvider': divesOnTrackProvider,
+    'primaryNavTrackForDiveProvider': primaryNavTrackForDiveProvider,
+    'navTrackByIdProvider': navTrackByIdProvider,
+    'navTrackWithMarkersProvider': navTrackWithMarkersProvider,
+    'navTrackSceneProvider': navTrackSceneProvider,
+    'navTrack3dSceneDataProvider': navTrack3dSceneDataProvider,
+  };
+
+  for (final entry in mustAutoDispose.entries) {
+    test('${entry.key} auto-disposes', () {
+      expect(
+        entry.value.isAutoDispose,
+        isTrue,
+        reason:
+            '${entry.key} holds a dive\'s decoded samples or analysis, or '
+            'watches a provider that does. Riverpod 3 keeps a family entry '
+            'forever unless the provider passes isAutoDispose: true, so every '
+            'dive a session visits would stay in memory.',
+      );
+    });
+  }
+
+  group('lib/', () {
+    final families = [
+      for (final file in Directory('lib').listSync(recursive: true))
+        if (file is File &&
+            file.path.endsWith('.dart') &&
+            !file.path.endsWith('.g.dart') &&
+            !file.path.endsWith('.freezed.dart'))
+          ...scanProviderFamilies(
+            p.relative(file.path),
+            file.readAsStringSync(),
+          ),
+    ];
+
+    // A private name is only visible in its own file, so it is matched there.
+    String key(String file, String name) =>
+        name.startsWith('_') ? '$file::$name' : name;
+    final retained = {
+      ...mustAutoDispose.keys,
+      for (final family in families)
+        if (family.retains) key(family.file, family.name),
+    };
+
+    test('every listed family is found and retains its entry', () {
+      for (final name in mustAutoDispose.keys) {
+        final found = families.where((family) => family.name == name);
+        expect(found, isNotEmpty, reason: 'the scan did not find $name');
+        expect(
+          found.every((family) => family.retains),
+          isTrue,
+          reason:
+              '$name auto-disposes but does not call retainDiveData, so '
+              'stepping between dives replays its whole build each time.',
+        );
+      }
+    });
+
+    test('a family that retains its entry auto-disposes', () {
+      expect(
+        [
+          for (final family in families)
+            if (family.retains && !family.isAutoDispose) '$family',
+        ],
+        isEmpty,
+        reason:
+            'retainDiveData only times out the keepAlive it takes; on a '
+            'keep-forever family the entry stays for the session anyway.',
+      );
+    });
+
+    test('no keep-forever family watches a retained one', () {
+      expect(
+        [
+          for (final family in families)
+            if (!family.isAutoDispose)
+              for (final name in family.watched)
+                if (retained.contains(key(family.file, name)))
+                  '$family watches $name',
+        ],
+        isEmpty,
+        reason:
+            'A keep-forever family entry keeps every provider it watches '
+            'alive for the session, so a retained dependency is never '
+            'released. Declare the watcher autoDispose (with retainDiveData '
+            'when it is costly to rebuild).',
+      );
+    });
+  });
+}

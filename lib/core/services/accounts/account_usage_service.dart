@@ -42,6 +42,7 @@ class AccountUsageSnapshot {
     this.syncAccountId,
     this.mediaStoreAccountId,
     this.backupCopyAccountId,
+    this.backupExtraCopyAccountIds = const {},
     this.libraryNamesByAccount = const {},
   });
 
@@ -50,6 +51,10 @@ class AccountUsageSnapshot {
 
   /// The roster row the backup copy is pinned to while the copy is on.
   final String? backupCopyAccountId;
+
+  /// The roster rows backups are also copied to while the copy is on
+  /// (issue #3782).
+  final Set<String> backupExtraCopyAccountIds;
 
   /// Library names per account id, each list sorted by name.
   final Map<String, List<String>> libraryNamesByAccount;
@@ -61,7 +66,8 @@ class AccountUsageSnapshot {
       const AccountUsage(AccountUsageKind.databaseSync),
     if (account.id == mediaStoreAccountId)
       const AccountUsage(AccountUsageKind.mediaStorage),
-    if (account.id == backupCopyAccountId)
+    if (account.id == backupCopyAccountId ||
+        backupExtraCopyAccountIds.contains(account.id))
       const AccountUsage(AccountUsageKind.backupCopy),
     for (final name in libraryNamesByAccount[account.id] ?? const <String>[])
       AccountUsage(AccountUsageKind.sharedLibrary, libraryName: name),
@@ -117,6 +123,10 @@ class AccountUsageService {
       backupCopyAccountId: (backup?.cloudBackupEnabled ?? false)
           ? backup?.copyAccountId
           : null,
+      backupExtraCopyAccountIds: {
+        if (backup != null && backup.cloudBackupEnabled)
+          for (final a in backup.extraCopyAccounts) a.accountId,
+      },
       // Only account-layer attachments carry an id; the startup migration
       // gave every pre-account attachment one, so null means none attached.
       mediaStoreAccountId: attachedStoreId == null ? null : attachedAccountId,

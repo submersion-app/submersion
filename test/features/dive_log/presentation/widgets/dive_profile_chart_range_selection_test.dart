@@ -71,6 +71,7 @@ void main() {
                     ? (
                         startSeconds: startSeconds,
                         endSeconds: endSeconds,
+                        minSeconds: 0,
                         maxSeconds: maxSeconds,
                       )
                     : null,

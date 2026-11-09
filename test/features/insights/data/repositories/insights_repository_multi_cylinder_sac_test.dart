@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/domain/role_consumption.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -300,32 +301,54 @@ void main() {
       await insertTank('mix', 0, 'backGas', volume: 12);
       await insertTank('mix', 1, 'backGas', o2: 50);
 
-      final byRole = await repository.getSacVolumeByTankRole();
-      final alone = byRole['backGas']!;
+      // A fresh repository each read: the raw delete below moves no stamp,
+      // so a repository that already read the dive would reuse its figures.
+      Future<double> bottomGas() async =>
+          (await InsightsRepository().getRoleConsumptionPerDive())
+              .rmv[ConsumptionRoleGroup.bottomGas]!
+              .single
+              .value;
+      final both = await bottomGas();
       await db.customStatement("DELETE FROM dive_tanks WHERE id = 'mix-1'");
-      expect(
-        (await repository.getSacVolumeByTankRole())['backGas'],
-        closeTo(alone, 1e-9),
-      );
+      expect(both, closeTo(await bottomGas(), 1e-9));
     });
 
-    test('the by-role average includes the unsized cylinder', () async {
+    test('the bottom gas figure includes the unsized cylinder', () async {
       await insertDive('role');
       await insertTank('role', 0, 'sidemountLeft', volume: 11.1);
       await insertTank('role', 1, 'sidemountRight');
+      // A fresh repository each read: the raw delete below moves no stamp,
+      // so a repository that already read the dive would reuse its figures.
+      Future<double> bottomGas() async =>
+          (await InsightsRepository().getRoleConsumptionPerDive())
+              .rmv[ConsumptionRoleGroup.bottomGas]!
+              .single
+              .value;
 
-      final byRole = await repository.getSacVolumeByTankRole();
-      expect(byRole.keys, containsAll(['sidemountLeft', 'sidemountRight']));
-      expect(byRole['sidemountRight'], closeTo(byRole['sidemountLeft']!, 1e-9));
+      final pair = await bottomGas();
+      await db.customStatement("DELETE FROM dive_tanks WHERE id = 'role-1'");
+      // The right cylinder borrows the left's size and lost the same gas.
+      expect(pair, closeTo(2 * await bottomGas(), 1e-9));
     });
 
     test('does not borrow outside the sidemount pair', () async {
       await insertDive('stage');
       await insertTank('stage', 0, 'backGas', volume: 12);
       await insertTank('stage', 1, 'stage');
+      await db
+          .into(db.gasSwitches)
+          .insert(
+            const GasSwitchesCompanion(
+              id: Value('stage-switch'),
+              diveId: Value('stage'),
+              tankId: Value('stage-1'),
+              timestamp: Value(20 * 60),
+              createdAt: Value(0),
+            ),
+          );
 
-      final byRole = await repository.getSacVolumeByTankRole();
-      expect(byRole.keys, ['backGas']);
+      final trend = await repository.getRoleConsumptionPerDive();
+      expect(trend.rmv.keys, [ConsumptionRoleGroup.bottomGas]);
     });
   });
 }

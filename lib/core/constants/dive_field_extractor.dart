@@ -89,16 +89,18 @@ extension DiveFieldExtractor on DiveField {
         return dive.weatherDescription;
       case DiveField.surfaceConditions:
         return dive.surfaceConditions;
+      // The gas columns read the first breathing cylinder: a suit inflation
+      // bottle listed first is not the gas the dive was on (issue #4243).
       case DiveField.primaryGas:
-        return dive.tanks.isNotEmpty ? dive.tanks.first.gasMix.name : null;
+        return dive.breathingTanks.firstOrNull?.gasMix.name;
       case DiveField.diluentGas:
         return dive.diluentGas?.name;
       case DiveField.tankCount:
         return dive.tanks.length;
       case DiveField.startPressure:
-        return dive.tanks.isNotEmpty ? dive.tanks.first.startPressure : null;
+        return dive.breathingTanks.firstOrNull?.startPressure;
       case DiveField.endPressure:
-        return dive.tanks.isNotEmpty ? dive.tanks.first.endPressure : null;
+        return dive.breathingTanks.firstOrNull?.endPressure;
       case DiveField.sac:
         return dive.sac;
       case DiveField.rmv:
@@ -232,14 +234,16 @@ extension DiveFieldExtractor on DiveField {
   }
 }
 
-/// Compute the total gas consumed in liters across all tanks of a [Dive].
+/// Compute the total gas consumed in liters across the breathing cylinders
+/// of a [Dive]; a suit inflation bottle is not breathed (issue #4243).
 double? _computeGasConsumed(Dive dive, GasModel gasModel) {
-  if (dive.tanks.isEmpty) return null;
+  final tanks = dive.breathingTanks;
+  if (tanks.isEmpty) return null;
   double total = 0;
-  for (final tank in dive.tanks) {
+  for (final tank in tanks) {
     final start = tank.startPressure;
     final end = tank.endPressure;
-    final volume = consumptionVolume(tank, dive.tanks);
+    final volume = consumptionVolume(tank, tanks);
     if (start == null || end == null || volume == null || end >= start) {
       continue;
     }

@@ -1427,6 +1427,22 @@ class AppLocalizationsFr extends AppLocalizations {
       'Afficher la silhouette du plongeur';
 
   @override
+  String get equipment_setEdit_historyAsk =>
+      'Appliquer les modifications à ces plongées aussi, ou seulement à partir de maintenant ?';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Cet ensemble d\'équipement figure sur $count plongées enregistrées.',
+      one: 'Cet ensemble d\'équipement figure sur $count plongée enregistrée.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_color_red => 'Rouge';
 
   @override
@@ -7432,6 +7448,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ces enregistrements ne se chevauchent pas dans le temps : l\'horloge d\'un ordinateur est probablement décalée. La plongée garde l\'heure de l\'ordinateur principal.';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      'Ces profils de profondeur concordent à un autre moment que celui indiqué par les horloges des ordinateurs : l\'horloge d\'un ordinateur est probablement décalée. La plongée garde l\'heure de l\'ordinateur principal.';
+
+  @override
   String get diveLog_consolidate_clockNoteShort =>
       'L\'horloge d\'un ordinateur est probablement décalée.';
 
@@ -8227,6 +8247,17 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_gasSwitches_fillDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Compléter $count changements d\'après les pressions des blocs',
+      one: 'Compléter $count changement d\'après les pressions des blocs',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'Obtention de la position...';
 
   @override
@@ -8742,6 +8773,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_edit_useSet => 'Utiliser un ensemble';
 
   @override
+  String get diveLog_edit_removeSet => 'Retirer un ensemble';
+
+  @override
+  String get diveLog_bulkEdit_setsToRemove => 'Ensembles à retirer';
+
+  @override
+  String get diveLog_bulkEdit_removeSetTitle =>
+      'Retirer un ensemble d\'équipement';
+
+  @override
+  String get diveLog_bulkEdit_equipmentSets => 'Ensembles d\'équipement';
+
+  @override
   String get diveLog_edit_weightPreset_use => 'Utiliser un preset';
 
   @override
@@ -9216,6 +9260,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_legend_label_annotations => 'Annotations';
 
   @override
+  String get diveLog_legend_label_plan => 'Plan';
+
+  @override
   String get diveLog_legend_label_computedEvents => 'Événements calculés';
 
   @override
@@ -9479,6 +9526,40 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Les conditions manquent pour $count des $total plongées sélectionnées.',
+      one:
+          'Les conditions manquent pour $count des $total plongées sélectionnées.',
+    );
+    return '$_temp0 Seuls les champs vides sont remplis : rien de ce que vous avez déjà saisi ne sera modifié.';
+  }
+
+  @override
+  String diveLog_fetchConditions_skippedNoLocation(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count plongées n\'ont ni coordonnées de site ni position GPS et seront ignorées.',
+      one:
+          '$count plongée n\'a ni coordonnées de site ni position GPS et sera ignorée.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_fetchConditions_noneNeededSelected =>
+      'Les conditions ne manquent pour aucune des plongées sélectionnées.';
+
+  @override
+  String get diveLog_fetchConditions_noneLocatedSelected =>
+      'Les plongées sélectionnées sans conditions n\'ont ni coordonnées de site ni position GPS.';
 
   @override
   String diveLog_fetchConditions_summaryCancelled(int count) {
@@ -14332,6 +14413,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get enum_tankRole_stage => 'Stage';
+
+  @override
+  String get enum_tankRole_suitInflation => 'Gonflage combinaison';
 
   @override
   String get enum_tankRole_twinSet => 'Bi-bouteille';
@@ -20419,6 +20503,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_photoViewer_videoFileNotFound => 'Fichier vidéo introuvable';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      'La lecture de cette vidéo nécessite une fenêtre de navigateur normale. Les fenêtres privées ne peuvent pas diffuser depuis Google Drive ou WebDAV.';
+
+  @override
   String get media_photoViewer_videoNotLinked =>
       'Vidéo non liée à la bibliothèque';
 
@@ -22634,6 +22722,26 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_appearance_mapBackgroundDiveCards_subtitleWithNote =>
       'Afficher la carte du site de plongée en fond sur les cartes de plongée (localisation du site requise)';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards =>
+      'Photo en fond des cartes de plongée';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards_subtitle =>
+      'Afficher une des photos de la plongée en fond des cartes (sans photo, la carte ou la couleur est utilisée)';
+
+  @override
+  String get settings_appearance_photoOverlayDark =>
+      'Opacité du voile sur la photo, thème sombre';
+
+  @override
+  String get settings_appearance_photoOverlayLight =>
+      'Opacité du voile sur la photo, thème clair';
+
+  @override
+  String get settings_appearance_photoOverlay_subtitle =>
+      'Plus fort garde le texte lisible, plus faible montre davantage la photo';
 
   @override
   String get settings_appearance_mapBackgroundSiteCards =>
@@ -26120,6 +26228,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'Carte derrière les cartes de plongée';
 
   @override
+  String get settings_conflict_field_showPhotoBackgroundOnDiveCards =>
+      'Photo derrière les cartes de plongée';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayDark =>
+      'Voile sur la photo des cartes (thème sombre)';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayLight =>
+      'Voile sur la photo des cartes (thème clair)';
+
+  @override
   String get settings_conflict_field_showMapBackgroundOnSiteCards =>
       'Carte derrière les cartes de site';
 
@@ -27588,6 +27708,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get dataHealth_backup_cloudCopyMissing =>
       'La dernière sauvegarde n\'a pas atteint le cloud';
+
+  @override
+  String get dataHealth_backup_extraCopyMissing =>
+      'La dernière sauvegarde n\'a pas atteint tous les comptes';
 
   @override
   String get dataHealth_backup_noOffDeviceCopy =>
@@ -30793,20 +30917,35 @@ class AppLocalizationsFr extends AppLocalizations {
   String get insights_gas_gasMix_title => 'Distribution des mélanges gazeux';
 
   @override
-  String get insights_gas_sacByRole_empty =>
-      'Aucune donnée multi-blocs disponible';
+  String get insights_gas_roleUse_title => 'Consommation par rôle de bouteille';
 
   @override
-  String get insights_gas_sacByRole_error =>
-      'Échec du chargement de la consommation par rôle';
+  String get insights_gas_roleUse_subtitle =>
+      'Chaque rôle sur le temps où il a été respiré';
 
   @override
-  String get insights_gas_sacByRole_subtitle =>
-      'Consommation moyenne par type de bloc';
+  String get insights_gas_roleUse_empty =>
+      'Pas encore de valeurs par rôle de bouteille';
 
   @override
-  String get insights_gas_sacByRole_title =>
-      'Consommation de gaz par rôle du bloc';
+  String get insights_gas_roleUse_error =>
+      'Impossible de charger la consommation par rôle de bouteille';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => 'Gaz fond';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count plongées exclues : un relais, une bouteille de déco, un pony ou un bailout a perdu du gaz sans changement de gaz vers lui',
+      one:
+          '$count plongée exclue : un relais, une bouteille de déco, un pony ou un bailout a perdu du gaz sans changement de gaz vers lui',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => 'Consommation de gaz du recycleur';
@@ -31418,9 +31557,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get insights_focus_gas_trimix => 'Trimix';
 
   @override
-  String get insights_gas_tankRole_backGas => 'Gaz dorsal';
-
-  @override
   String get insights_gas_tankRole_bailout => 'Bailout';
 
   @override
@@ -31430,22 +31566,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get insights_gas_tankRole_diluent => 'Diluant';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'Alimentation O₂';
-
-  @override
   String get insights_gas_tankRole_pony => 'Pony';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => 'Sidemount G';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => 'Sidemount D';
-
-  @override
   String get insights_gas_tankRole_stage => 'Stage';
-
-  @override
-  String get insights_gas_tankRole_twinSet => 'Bi-bouteille';
 
   @override
   String get insights_geographic_appBar_title => 'Géographie';
@@ -38463,6 +38587,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucune des plongées sélectionnées n\'a de données brutes stockées à réanalyser.';
 
   @override
+  String get diveLog_selection_tooltip_fetchConditions =>
+      'Récupérer les conditions';
+
+  @override
   String get diveLog_selection_tooltip_reparse => 'Réanalyser';
 
   @override
@@ -40310,6 +40438,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get attrLabel_valve_type => 'Robinet';
 
   @override
+  String get attrLabel_cylinder_use => 'Usage de la bouteille';
+
+  @override
   String get attrLabel_tank_identifier => 'Identifiant';
 
   @override
@@ -40668,6 +40799,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => 'Convertible';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => 'Gaz respirable';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => 'Gonflage combinaison';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -42748,6 +42885,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => 'Mauvais bloc';
 
   @override
+  String get dataQuality_detector_missing_gas_switch =>
+      'Changement de gaz manquant';
+
+  @override
   String get dataQuality_detector_source_conflict => 'Sources contradictoires';
 
   @override
@@ -42789,6 +42930,11 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String dataQuality_msg_clock_overlap(int minutes) {
     return 'Chevauche une autre plongée de $minutes min';
+  }
+
+  @override
+  String dataQuality_msg_clock_profileFit(int minutes) {
+    return 'Une source est placée à $minutes min de l\'endroit où son profil correspond au principal';
   }
 
   @override
@@ -42941,6 +43087,61 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Aucun changement de gaz n\'a été enregistré, mais les pressions des blocs montrent ces changements : $switches.',
+      one:
+          'Aucun changement de gaz n\'a été enregistré, mais les pressions des blocs montrent ce changement : $switches.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return 'bloc $tankNumber ($gas) à $time, $depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => ' ; ';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'Aucun changement de gaz n\'a été enregistré. Les pressions des blocs montrent un passage sur le bloc $tankNumber ($gas) à $depth, plus profond que sa MOD de $mod ; aucun changement vers ce bloc n\'est donc proposé.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'Les pressions des blocs montrent aussi un passage sur le bloc $tankNumber ($gas) à $depth, plus profond que sa MOD de $mod ; aucun changement vers ce bloc n\'est donc proposé.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'Aucun changement de gaz n\'a été enregistré. Le bloc $tankNumber ($gas) a de nouveau été respiré à partir de $time après une pause : un autre bloc a donc été respiré entre-temps, et avec plus de deux blocs, les pressions ne permettent pas de savoir lequel. Ajoutez les changements dans l\'éditeur de plongée.';
+  }
+
+  @override
   String get dataQuality_detector_transmitter_role => 'Rôle de l\'émetteur';
 
   @override
@@ -43005,6 +43206,15 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_fixSourceClockAll =>
       'Corriger aussi cet ordinateur sur les autres plongées ayant le même décalage';
+
+  @override
+  String get dataQuality_repairLabel_alignSourceProfile =>
+      'Aligner cet ordinateur sur son profil';
+
+  @override
+  String dataQuality_repairLabel_alignSourceProfileNamed(String computer) {
+    return 'Aligner $computer sur son profil';
+  }
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Consolider';
@@ -43172,6 +43382,17 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_reassignSeries =>
       'Déplacer la série vers un autre bloc';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ajouter $count changements de gaz',
+      one: 'Ajouter le changement de gaz',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary =>
@@ -54088,6 +54309,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Une petite icône indiquant d\'où provient chaque élément. Les badges de problème restent toujours visibles.';
 
   @override
+  String get settings_media_tagBadges =>
+      'Afficher les badges d\'étiquettes sur les miniatures';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      'Petites icônes pour les photos avec des personnes identifiées, des espèces identifiées ou un moment dans la plongée.';
+
+  @override
   String get settings_media_autoColorCorrection =>
       'Correction automatique des couleurs';
 
@@ -54136,6 +54365,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => 'Non sauvegardé';
+
+  @override
+  String get media_tileMarker_people => 'Personnes identifiées';
+
+  @override
+  String get media_tileMarker_species => 'Espèces identifiées';
+
+  @override
+  String get media_tileMarker_timeInDive => 'Placée sur le profil de plongée';
 
   @override
   String get media_tile_infoMenuItem => 'Infos du média';
@@ -55905,7 +56143,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks bouteilles sur $dives plongées portent cet émetteur. Les champs vides de taille, matériau, nom et équipement seront remplis, et un rôle encore réglé sur Gaz fond ou lu dans le nom de l\'émetteur sera remplacé.';
+    return '$tanks bouteilles sur $dives plongées portant cet émetteur ont besoin de sa configuration. Les champs vides de taille, matériau, nom et équipement seront remplis, et un rôle encore réglé sur Gaz fond ou lu dans le nom de l\'émetteur sera remplacé.';
   }
 
   @override
@@ -55914,8 +56152,43 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing =>
-      'Aucune bouteille ne porte cet émetteur';
+  String transmitters_apply_slot_label(String computer) {
+    return 'Emplacement sur $computer';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'Ne pas associer par emplacement';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives plongées',
+      one: '$dives plongée',
+    );
+    return 'T$slot : $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading => 'Lecture des fichiers importés';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'Les bouteilles importées d\'un fichier n\'ont pas de numéro de série. Elles peuvent être remplies selon l\'emplacement qu\'occupait cet émetteur sur l\'ordinateur de plongée.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'Plongées remplies par numéro de série : $serialDives, par emplacement : $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'Aucune bouteille n\'a besoin de la configuration de cet émetteur';
+
+  @override
+  String get transmitters_apply_slot_read_failed =>
+      'Les fichiers importés n\'ont pas pu être lus, les bouteilles ne peuvent donc pas être associées par emplacement';
 
   @override
   String transmitters_channel(String computer, int channel) {
@@ -58261,6 +58534,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get rules_value_empty => '(vide)';
 
   @override
+  String rules_value_gearViaSet(String item, String set) {
+    return '$item ($set)';
+  }
+
+  @override
   String get rules_collection_diveTypes => 'types de plongée';
 
   @override
@@ -58274,6 +58552,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get rules_collection_courses => 'cours';
+
+  @override
+  String get rules_collection_equipmentSets => 'ensembles d\'équipement';
 
   @override
   String get rules_collection_siteTags => 'étiquettes de site';
@@ -59140,6 +59421,19 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_backups_copyAccountGone =>
       'Le compte de la copie a été supprimé';
+
+  @override
+  String settings_backups_alsoCopyTo(String account) {
+    return 'Aussi une copie dans $account';
+  }
+
+  @override
+  String get settings_backups_addCopyAccount =>
+      'Copier aussi dans un autre compte';
+
+  @override
+  String get settings_backups_extraCopyMissed =>
+      'La dernière sauvegarde n\'a pas atteint ce compte';
 
   @override
   String get settings_backups_auto => 'Sauvegarder automatiquement';

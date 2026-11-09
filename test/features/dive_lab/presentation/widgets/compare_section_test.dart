@@ -212,6 +212,15 @@ void main() {
 
     expect(chip('Planned'), findsOneWidget);
     expect(columnIds(tester), ['planned', 'dived']);
+    // The plan's line is named as its chip is (#4215).
+    expect(
+      tester
+          .widget<DiveProfileChart>(find.byType(DiveProfileChart))
+          .overlays
+          ?.where((o) => o.sourceId.startsWith('plan:'))
+          .map((o) => o.name),
+      ['Planned'],
+    );
   });
 
   testWidgets('a plan with no schedule draws no line and has no column', (

@@ -1418,6 +1418,21 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_setEdit_figureSwitch_title => 'Duikerfiguur tonen';
 
   @override
+  String get equipment_setEdit_historyAsk =>
+      'De wijzigingen ook op die duiken toepassen, of alleen vanaf nu?';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Deze set staat op $count gelogde duiken.',
+      one: 'Deze set staat op 1 gelogde duik.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_color_red => 'Rood';
 
   @override
@@ -7366,6 +7381,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Deze registraties overlappen niet in tijd, dus de klok van een computer staat waarschijnlijk verkeerd. De duik behoudt de tijd van de primaire computer.';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      'Deze diepteprofielen komen op een ander moment overeen dan de klokken van de computers aangeven, dus de klok van een computer staat waarschijnlijk verkeerd. De duik behoudt de tijd van de primaire computer.';
+
+  @override
   String get diveLog_consolidate_clockNoteShort =>
       'De klok van een computer staat waarschijnlijk verkeerd.';
 
@@ -8158,6 +8177,17 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_gasSwitches_fillDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count wissels invullen uit de flesdrukken',
+      one: '1 wissel invullen uit de flesdrukken',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'Locatie ophalen...';
 
   @override
@@ -8672,6 +8702,18 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_useSet => 'Set gebruiken';
 
   @override
+  String get diveLog_edit_removeSet => 'Set verwijderen';
+
+  @override
+  String get diveLog_bulkEdit_setsToRemove => 'Te verwijderen sets';
+
+  @override
+  String get diveLog_bulkEdit_removeSetTitle => 'Uitrustingsset verwijderen';
+
+  @override
+  String get diveLog_bulkEdit_equipmentSets => 'Uitrustingssets';
+
+  @override
   String get diveLog_edit_weightPreset_use => 'Voorinstelling gebruiken';
 
   @override
@@ -9130,6 +9172,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_legend_label_annotations => 'Annotaties';
 
   @override
+  String get diveLog_legend_label_plan => 'Plan';
+
+  @override
   String get diveLog_legend_label_computedEvents => 'Berekende gebeurtenissen';
 
   @override
@@ -9388,6 +9433,40 @@ class AppLocalizationsNl extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Bij $count van de $total geselecteerde duiken ontbreken de omstandigheden.',
+      one:
+          'Bij $count van de $total geselecteerde duiken ontbreken de omstandigheden.',
+    );
+    return '$_temp0 Alleen lege velden worden ingevuld; wat je al hebt ingevoerd blijft ongewijzigd.';
+  }
+
+  @override
+  String diveLog_fetchConditions_skippedNoLocation(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count duiken hebben geen duikstekcoördinaten of GPS-positie en worden overgeslagen.',
+      one:
+          '$count duik heeft geen duikstekcoördinaten of GPS-positie en wordt overgeslagen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_fetchConditions_noneNeededSelected =>
+      'Bij geen van de geselecteerde duiken ontbreken omstandigheden.';
+
+  @override
+  String get diveLog_fetchConditions_noneLocatedSelected =>
+      'De geselecteerde duiken zonder omstandigheden hebben geen duikstekcoördinaten of GPS-positie.';
 
   @override
   String diveLog_fetchConditions_summaryCancelled(int count) {
@@ -14190,6 +14269,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get enum_tankRole_stage => 'Stagefles';
+
+  @override
+  String get enum_tankRole_suitInflation => 'Droogpakfles';
 
   @override
   String get enum_tankRole_twinSet => 'Dubbelset';
@@ -20228,6 +20310,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Videobestand niet gevonden';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      'Voor het afspelen van deze video is een normaal browservenster nodig. Privévensters kunnen niet streamen vanuit Google Drive of WebDAV.';
+
+  @override
   String get media_photoViewer_videoNotLinked =>
       'Video niet gekoppeld aan bibliotheek';
 
@@ -22427,6 +22513,26 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_appearance_mapBackgroundDiveCards_subtitleWithNote =>
       'Toon duikstekkaart als achtergrond op duikkaarten (vereist steklocatie)';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards =>
+      'Fotoachtergrond op duikkaarten';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards_subtitle =>
+      'Toon een van de foto\'s van de duik als achtergrond op duikkaarten (zonder foto\'s wordt de kaart of kleur gebruikt)';
+
+  @override
+  String get settings_appearance_photoOverlayDark =>
+      'Dekking van de fotolaag, donker thema';
+
+  @override
+  String get settings_appearance_photoOverlayLight =>
+      'Dekking van de fotolaag, licht thema';
+
+  @override
+  String get settings_appearance_photoOverlay_subtitle =>
+      'Hoger houdt de tekst leesbaar, lager toont meer van de foto';
 
   @override
   String get settings_appearance_mapBackgroundSiteCards =>
@@ -25876,6 +25982,18 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kaart achter duikkaarten';
 
   @override
+  String get settings_conflict_field_showPhotoBackgroundOnDiveCards =>
+      'Foto achter duikkaarten';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayDark =>
+      'Fotolaag op duikkaarten (donker thema)';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayLight =>
+      'Fotolaag op duikkaarten (licht thema)';
+
+  @override
   String get settings_conflict_field_showMapBackgroundOnSiteCards =>
       'Kaart achter stekkaarten';
 
@@ -27333,6 +27451,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get dataHealth_backup_cloudCopyMissing =>
       'Laatste back-up heeft de cloud niet bereikt';
+
+  @override
+  String get dataHealth_backup_extraCopyMissing =>
+      'Laatste back-up heeft niet elk account bereikt';
 
   @override
   String get dataHealth_backup_noOffDeviceCopy =>
@@ -30490,18 +30612,34 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_gas_gasMix_title => 'Gasmengselverdeling';
 
   @override
-  String get insights_gas_sacByRole_empty =>
-      'Geen multi-flesgegevens beschikbaar';
+  String get insights_gas_roleUse_title => 'Verbruik per flesrol';
 
   @override
-  String get insights_gas_sacByRole_error => 'Kan verbruik per rol niet laden';
+  String get insights_gas_roleUse_subtitle =>
+      'Elke rol over de tijd dat eruit geademd werd';
 
   @override
-  String get insights_gas_sacByRole_subtitle =>
-      'Gemiddeld verbruik per flestype';
+  String get insights_gas_roleUse_empty => 'Nog geen waarden per flesrol';
 
   @override
-  String get insights_gas_sacByRole_title => 'Gasverbruik per flesrol';
+  String get insights_gas_roleUse_error =>
+      'Verbruik per flesrol kon niet worden geladen';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => 'Bodemgas';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count duiken weggelaten: een stage-, deco-, pony- of bailoutfles verloor gas zonder gaswissel ernaar',
+      one:
+          '$count duik weggelaten: een stage-, deco-, pony- of bailoutfles verloor gas zonder gaswissel ernaar',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => 'Gasverbruik rebreather';
@@ -31108,9 +31246,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_focus_gas_trimix => 'Trimix';
 
   @override
-  String get insights_gas_tankRole_backGas => 'Achtergas';
-
-  @override
   String get insights_gas_tankRole_bailout => 'Bailout';
 
   @override
@@ -31120,22 +31255,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_gas_tankRole_diluent => 'Diluent';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'O₂-toevoer';
-
-  @override
   String get insights_gas_tankRole_pony => 'Ponyfles';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => 'Sidemount L';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => 'Sidemount R';
-
-  @override
   String get insights_gas_tankRole_stage => 'Stagefles';
-
-  @override
-  String get insights_gas_tankRole_twinSet => 'Dubbelset';
 
   @override
   String get insights_geographic_appBar_title => 'Geografisch';
@@ -38091,6 +38214,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen van de geselecteerde duiken heeft opgeslagen ruwe data om opnieuw te verwerken.';
 
   @override
+  String get diveLog_selection_tooltip_fetchConditions =>
+      'Omstandigheden ophalen';
+
+  @override
   String get diveLog_selection_tooltip_reparse => 'Opnieuw verwerken';
 
   @override
@@ -39924,6 +40051,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrLabel_valve_type => 'Kraan';
 
   @override
+  String get attrLabel_cylinder_use => 'Gebruik van de fles';
+
+  @override
   String get attrLabel_tank_identifier => 'Identificatie';
 
   @override
@@ -40280,6 +40410,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => 'Ombouwbaar';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => 'Ademgas';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => 'Droogpakfles';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -42347,6 +42483,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => 'Verkeerde fles';
 
   @override
+  String get dataQuality_detector_missing_gas_switch => 'Ontbrekende gaswissel';
+
+  @override
   String get dataQuality_detector_source_conflict => 'Tegenstrijdige bronnen';
 
   @override
@@ -42388,6 +42527,11 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String dataQuality_msg_clock_overlap(int minutes) {
     return 'Overlapt een andere duik met $minutes min';
+  }
+
+  @override
+  String dataQuality_msg_clock_profileFit(int minutes) {
+    return 'Een bron staat $minutes min van waar haar profiel met het primaire overeenkomt';
   }
 
   @override
@@ -42538,6 +42682,61 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Er is geen gaswissel vastgelegd, maar de flesdrukken tonen deze wissels: $switches.',
+      one:
+          'Er is geen gaswissel vastgelegd, maar de flesdrukken tonen deze wissel: $switches.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return 'fles $tankNumber ($gas) op $time, $depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => '; ';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'Er is geen gaswissel vastgelegd. De flesdrukken tonen op $depth een wissel naar fles $tankNumber ($gas), dieper dan haar MOD van $mod, dus er wordt geen wissel naar deze fles voorgesteld.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'De flesdrukken tonen ook op $depth een wissel naar fles $tankNumber ($gas), dieper dan haar MOD van $mod, dus er wordt geen wissel naar deze fles voorgesteld.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'Er is geen gaswissel vastgelegd. Fles $tankNumber ($gas) werd vanaf $time na een pauze opnieuw geademd, dus in de tussentijd werd een andere fles geademd, en met meer dan twee flessen tonen de drukken niet welke. Voeg de wissels toe in de duikeditor.';
+  }
+
+  @override
   String get dataQuality_detector_transmitter_role => 'Rol van de zender';
 
   @override
@@ -42602,6 +42801,15 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_fixSourceClockAll =>
       'Deze computer ook corrigeren bij andere duiken met dezelfde afwijking';
+
+  @override
+  String get dataQuality_repairLabel_alignSourceProfile =>
+      'Deze computer uitlijnen op zijn profiel';
+
+  @override
+  String dataQuality_repairLabel_alignSourceProfileNamed(String computer) {
+    return '$computer uitlijnen op zijn profiel';
+  }
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Consolideren';
@@ -42767,6 +42975,17 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_reassignSeries =>
       'Reeks naar een andere fles verplaatsen';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gaswissels toevoegen',
+      one: 'Gaswissel toevoegen',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary =>
@@ -53619,6 +53838,13 @@ class AppLocalizationsNl extends AppLocalizations {
       'Een klein pictogram dat laat zien waar elk item vandaan komt. Probleembadges blijven altijd zichtbaar.';
 
   @override
+  String get settings_media_tagBadges => 'Labelbadges op miniaturen tonen';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      'Kleine pictogrammen voor foto\'s met getagde personen, getagde soorten of een tijdstip in de duik.';
+
+  @override
   String get settings_media_autoColorCorrection =>
       'Automatische kleurcorrectie';
 
@@ -53668,6 +53894,15 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => 'Geen back-up';
+
+  @override
+  String get media_tileMarker_people => 'Personen getagd';
+
+  @override
+  String get media_tileMarker_species => 'Soorten getagd';
+
+  @override
+  String get media_tileMarker_timeInDive => 'Op het duikprofiel geplaatst';
 
   @override
   String get media_tile_infoMenuItem => 'Media-info';
@@ -55421,7 +55656,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks flessen in $dives duiken dragen deze zender. Lege velden voor inhoud, materiaal, naam en uitrusting worden ingevuld, en een rol die nog op Ruggas staat of uit de zendernaam is afgeleid wordt vervangen.';
+    return '$tanks flessen in $dives duiken met deze zender hebben de instellingen ervan nodig. Lege velden voor inhoud, materiaal, naam en uitrusting worden ingevuld, en een rol die nog op Ruggas staat of uit de zendernaam is afgeleid wordt vervangen.';
   }
 
   @override
@@ -55430,8 +55665,43 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing =>
-      'Geen enkele fles draagt deze zender';
+  String transmitters_apply_slot_label(String computer) {
+    return 'Positie op $computer';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'Niet koppelen op positie';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives duiken',
+      one: '$dives duik',
+    );
+    return 'T$slot: $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading => 'Geïmporteerde bestanden lezen';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'Flessen die uit een bestand zijn geïmporteerd hebben geen serienummer. Ze kunnen worden ingevuld op basis van de positie die deze zender op de duikcomputer innam.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'Duiken ingevuld via serienummer: $serialDives, via positie: $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'Geen enkele fles heeft de instellingen van deze zender nodig';
+
+  @override
+  String get transmitters_apply_slot_read_failed =>
+      'De geïmporteerde bestanden konden niet worden gelezen, dus flessen kunnen niet op slot worden gekoppeld';
 
   @override
   String transmitters_channel(String computer, int channel) {
@@ -57763,6 +58033,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get rules_value_empty => '(leeg)';
 
   @override
+  String rules_value_gearViaSet(String item, String set) {
+    return '$item ($set)';
+  }
+
+  @override
   String get rules_collection_diveTypes => 'duiktypes';
 
   @override
@@ -57776,6 +58051,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get rules_collection_courses => 'cursussen';
+
+  @override
+  String get rules_collection_equipmentSets => 'uitrustingssets';
 
   @override
   String get rules_collection_siteTags => 'duikstektags';
@@ -58642,6 +58920,19 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_backups_copyAccountGone =>
       'Het account van de kopie is verwijderd';
+
+  @override
+  String settings_backups_alsoCopyTo(String account) {
+    return 'Ook een kopie in $account';
+  }
+
+  @override
+  String get settings_backups_addCopyAccount =>
+      'Ook naar een ander account kopiëren';
+
+  @override
+  String get settings_backups_extraCopyMissed =>
+      'De laatste back-up heeft dit account niet bereikt';
 
   @override
   String get settings_backups_auto => 'Automatisch back-uppen';

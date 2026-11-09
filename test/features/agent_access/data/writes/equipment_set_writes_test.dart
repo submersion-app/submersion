@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/features/agent_access/data/writes/families/equipment_set_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -103,6 +104,61 @@ void main() {
       members(id, remove: ['wing']),
     ]);
     expect(await memberIds(id), {'fins'});
+  });
+
+  test('a member change follows on planned dives only (#4283)', () async {
+    final id = await created({'name': 'Warm'});
+    await h.run([
+      members(id, add: ['wing']),
+    ]);
+    // d1 is logged, p1 planned; both carry the set.
+    await h.dive('p1');
+    await (db.update(db.dives)..where((d) => d.id.equals('p1'))).write(
+      const DivesCompanion(isPlanned: Value(true)),
+    );
+    for (final dive in ['d1', 'p1']) {
+      await db
+          .into(db.diveEquipment)
+          .insert(
+            DiveEquipmentCompanion.insert(
+              diveId: dive,
+              equipmentId: 'wing',
+              viaSetId: Value(id),
+            ),
+          );
+    }
+    Future<Set<String>> gearOn(String dive) async => {
+      for (final row in await (db.select(
+        db.diveEquipment,
+      )..where((r) => r.diveId.equals(dive))).get())
+        row.equipmentId,
+    };
+
+    final plan = await h.preview([
+      members(id, add: ['fins'], remove: ['wing']),
+    ]);
+    expect(plan.items.single.alsoChanges, {'dives': 1});
+    await h.apply(plan);
+
+    expect(await gearOn('p1'), {'fins'});
+    expect(await gearOn('d1'), {'wing'});
+
+    // The rewritten dive waits for afterApply, which rescans it once the
+    // apply has committed, then lets it go.
+    final entry = h.writes.named('equipment_sets')! as EquipmentSetWrites;
+    expect(entry.pendingRescan, isEmpty);
+    await entry.update(
+      id,
+      kDiverA,
+      const RecordUpdate(
+        relations: {
+          'equipment_ids': RelationDelta(remove: {'fins'}),
+        },
+      ),
+    );
+    expect(entry.pendingRescan, {'p1'});
+    await entry.afterApply(const [], ApplyRun());
+    expect(entry.pendingRescan, isEmpty);
   });
 
   test('a member the owner cannot see is blocked', () async {

@@ -126,6 +126,17 @@ and WebDAV open from any site. A photo store kept in a different bucket or
 server from the sync store needs the same rule, or its photos stay as
 placeholders in the browser.
 
+Videos in the store play in the browser too. S3 and Dropbox videos stream
+from a short-lived link the app signs or asks the store for, which needs
+nothing more. Google Drive and WebDAV videos stream through the app's media
+stream worker (`media_stream_worker.js`), which hands each piece the video
+player asks for to the page, and the page reads it from the store it is
+signed in to. A WebDAV server must therefore allow the `Range` request
+header from this site. The rule the app shows includes it; a rule copied
+from an earlier release needs `Range` added to its allowed headers. Firefox
+gives private windows no service workers, so there Google Drive and WebDAV
+videos say they need a normal window.
+
 ## What to know before you share the address
 
 - **Credentials live in the browser.** A full connection holds the store's
@@ -152,10 +163,12 @@ placeholders in the browser.
 
 ## Updating
 
-Replace the files with the next release's bundle. There is no service
-worker, and the hosting files mark everything that keeps its name across
-releases `no-cache`: `index.html`, `flutter_bootstrap.js`, `main.dart.js`,
-`version.json`, the two workers and `sqlite3.wasm`. A browser revalidates
+Replace the files with the next release's bundle. The one service worker,
+`media_stream_worker.js`, caches nothing: it only relays video requests to
+the page, so it never serves an old bundle. The hosting files mark
+everything that keeps its name across releases `no-cache`: `index.html`,
+`flutter_bootstrap.js`, `main.dart.js`, `version.json`, the three workers
+and `sqlite3.wasm`. A browser revalidates
 them on the next load and picks the new bundle up at once, which matters
 because the app, its workers and the SQLite module must all come from one
 release. On a host that cannot set headers (GitHub Pages, an S3 website

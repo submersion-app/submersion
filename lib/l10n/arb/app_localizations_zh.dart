@@ -1365,6 +1365,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_setEdit_figureSwitch_title => '显示潜水员图示';
 
   @override
+  String get equipment_setEdit_historyAsk => '也将这些更改应用到这些潜水，还是仅从现在起？';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '此套装出现在 $count 次已记录的潜水中。',
+      one: '此套装出现在 1 次已记录的潜水中。',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_color_red => '红色';
 
   @override
@@ -7036,6 +7050,10 @@ class AppLocalizationsZh extends AppLocalizations {
       '这些记录在时间上没有重叠，可能是某台电脑的时钟不准。潜水保留主电脑的时间。';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      '这些深度轮廓吻合的时间与电脑时钟显示的不同，可能是某台电脑的时钟不准。潜水保留主电脑的时间。';
+
+  @override
   String get diveLog_consolidate_clockNoteShort => '可能是某台电脑的时钟不准。';
 
   @override
@@ -7795,6 +7813,17 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_gasSwitches_fillDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '根据气瓶压力填入 $count 次切换',
+      one: '根据气瓶压力填入 $count 次切换',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => '正在获取位置...';
 
   @override
@@ -8282,6 +8311,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_useSet => '使用套装';
 
   @override
+  String get diveLog_edit_removeSet => '移除套装';
+
+  @override
+  String get diveLog_bulkEdit_setsToRemove => '要移除的套装';
+
+  @override
+  String get diveLog_bulkEdit_removeSetTitle => '移除装备套装';
+
+  @override
+  String get diveLog_bulkEdit_equipmentSets => '装备套装';
+
+  @override
   String get diveLog_edit_weightPreset_use => '使用预设';
 
   @override
@@ -8711,6 +8752,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_legend_label_annotations => '标注';
 
   @override
+  String get diveLog_legend_label_plan => '计划';
+
+  @override
   String get diveLog_legend_label_computedEvents => '计算的事件';
 
   @override
@@ -8957,6 +9001,33 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '所选 $total 次潜水中有 $count 次缺少环境条件。',
+    );
+    return '$_temp0仅填充空白字段，您已填写的内容不会改变。';
+  }
+
+  @override
+  String diveLog_fetchConditions_skippedNoLocation(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水既没有潜水点坐标也没有 GPS 定位，将被跳过。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_fetchConditions_noneNeededSelected => '所选潜水均不缺少环境条件。';
+
+  @override
+  String get diveLog_fetchConditions_noneLocatedSelected =>
+      '所选缺少环境条件的潜水既没有潜水点坐标也没有 GPS 定位。';
 
   @override
   String diveLog_fetchConditions_summaryCancelled(int count) {
@@ -13606,6 +13677,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_tankRole_stage => '阶段';
+
+  @override
+  String get enum_tankRole_suitInflation => '干衣充气';
 
   @override
   String get enum_tankRole_twinSet => '双瓶';
@@ -19359,6 +19433,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_photoViewer_videoFileNotFound => '视频文件未找到';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      '播放此视频需要普通浏览器窗口。隐私窗口无法从 Google Drive 或 WebDAV 进行串流。';
+
+  @override
   String get media_photoViewer_videoNotLinked => '视频未关联到图库';
 
   @override
@@ -21439,6 +21517,22 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_appearance_mapBackgroundDiveCards_subtitleWithNote =>
       '在潜水卡片上显示潜水点地图作为背景（需要潜水点位置信息）';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards => '潜水卡片照片背景';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards_subtitle =>
+      '在潜水卡片上以该次潜水的一张照片作为背景（没有照片时使用地图或颜色）';
+
+  @override
+  String get settings_appearance_photoOverlayDark => '照片遮罩不透明度（深色主题）';
+
+  @override
+  String get settings_appearance_photoOverlayLight => '照片遮罩不透明度（浅色主题）';
+
+  @override
+  String get settings_appearance_photoOverlay_subtitle => '数值越高文字越清晰，越低照片显示越多';
 
   @override
   String get settings_appearance_mapBackgroundSiteCards => '潜水点卡片地图背景';
@@ -24586,6 +24680,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_showMapBackgroundOnDiveCards => '潜水卡片背景地图';
 
   @override
+  String get settings_conflict_field_showPhotoBackgroundOnDiveCards =>
+      '潜水卡片背景照片';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayDark => '潜水卡片照片遮罩（深色主题）';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayLight => '潜水卡片照片遮罩（浅色主题）';
+
+  @override
   String get settings_conflict_field_showMapBackgroundOnSiteCards =>
       '潜水点卡片背景地图';
 
@@ -25983,6 +26087,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dataHealth_backup_cloudCopyMissing => '上次备份未上传到云端';
+
+  @override
+  String get dataHealth_backup_extraCopyMissing => '上次备份未上传到所有账户';
 
   @override
   String get dataHealth_backup_noOffDeviceCopy => '没有此设备之外的副本';
@@ -28936,16 +29043,29 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_gas_gasMix_title => '混合气分布';
 
   @override
-  String get insights_gas_sacByRole_empty => '无可用多气瓶数据';
+  String get insights_gas_roleUse_title => '按气瓶用途的耗气量';
 
   @override
-  String get insights_gas_sacByRole_error => '加载按用途分类的消耗失败';
+  String get insights_gas_roleUse_subtitle => '按各用途实际呼吸的时间计算';
 
   @override
-  String get insights_gas_sacByRole_subtitle => '按气瓶类型的平均耗气量';
+  String get insights_gas_roleUse_empty => '暂无按气瓶用途的数据';
 
   @override
-  String get insights_gas_sacByRole_title => '按气瓶用途的气体消耗';
+  String get insights_gas_roleUse_error => '无法加载按气瓶用途的耗气量';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => '底部气体';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水未计入：阶段瓶、减压瓶、备用瓶或应急瓶耗气，但没有换到该气瓶的记录',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => '循环呼吸器气体用量';
@@ -29528,9 +29648,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_focus_gas_trimix => '三混气';
 
   @override
-  String get insights_gas_tankRole_backGas => '主气';
-
-  @override
   String get insights_gas_tankRole_bailout => '应急';
 
   @override
@@ -29540,22 +29657,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_gas_tankRole_diluent => '稀释气';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'O₂ 供气';
-
-  @override
   String get insights_gas_tankRole_pony => '应急瓶';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => '左侧挂';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => '右侧挂';
-
-  @override
   String get insights_gas_tankRole_stage => '阶段瓶';
-
-  @override
-  String get insights_gas_tankRole_twinSet => '双瓶';
 
   @override
   String get insights_geographic_appBar_title => '地理';
@@ -36100,6 +36205,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get reparseBatch_noneWithRawData => '所选潜水均没有可重新解析的原始数据。';
 
   @override
+  String get diveLog_selection_tooltip_fetchConditions => '获取环境条件';
+
+  @override
   String get diveLog_selection_tooltip_reparse => '重新解析';
 
   @override
@@ -37801,6 +37909,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_valve_type => '阀门';
 
   @override
+  String get attrLabel_cylinder_use => '气瓶用途';
+
+  @override
   String get attrLabel_tank_identifier => '标识';
 
   @override
@@ -38156,6 +38267,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => '两用式';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => '呼吸气体';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => '干衣充气';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -40143,6 +40260,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => '气瓶错误';
 
   @override
+  String get dataQuality_detector_missing_gas_switch => '缺少换气记录';
+
+  @override
   String get dataQuality_detector_source_conflict => '来源冲突';
 
   @override
@@ -40181,6 +40301,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String dataQuality_msg_clock_overlap(int minutes) {
     return '与另一次潜水重叠 $minutes 分钟';
+  }
+
+  @override
+  String dataQuality_msg_clock_profileFit(int minutes) {
+    return '某个来源的位置与其深度轮廓和主来源吻合之处相差 $minutes 分钟';
   }
 
   @override
@@ -40328,6 +40453,58 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '没有记录换气，但气瓶压力显示了以下换气：$switches。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return '气瓶 $tankNumber（$gas），$time，$depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => '；';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return '没有记录换气。气瓶压力显示在 $depth 处换到气瓶 $tankNumber（$gas），深于其 MOD $mod，因此不建议切换到该气瓶。';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return '气瓶压力还显示在 $depth 处换到气瓶 $tankNumber（$gas），深于其 MOD $mod，因此不建议切换到该气瓶。';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return '没有记录换气。气瓶 $tankNumber（$gas）在暂停后从 $time 起再次被呼吸，因此期间呼吸的是另一个气瓶；气瓶多于两个时，压力无法显示是哪一个。请在潜水编辑器中添加换气。';
+  }
+
+  @override
   String get dataQuality_detector_transmitter_role => '发射器角色';
 
   @override
@@ -40389,6 +40566,14 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_fixSourceClockAll =>
       '同时校正此电脑在其他具有相同偏差的潜水中的时钟';
+
+  @override
+  String get dataQuality_repairLabel_alignSourceProfile => '按深度轮廓对齐此电脑';
+
+  @override
+  String dataQuality_repairLabel_alignSourceProfileNamed(String computer) {
+    return '按深度轮廓对齐 $computer';
+  }
 
   @override
   String get dataQuality_repairLabel_consolidate => '整合';
@@ -40548,6 +40733,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_reassignSeries => '将序列移到另一个气瓶';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '添加 $count 次换气',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary => '将此来源设为主要来源';
@@ -50613,6 +50808,13 @@ class AppLocalizationsZh extends AppLocalizations {
       '一个小图标，显示每个项目的来源。问题徽章始终显示。';
 
   @override
+  String get settings_media_tagBadges => '在缩略图上显示标记徽章';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      '为标记了人物、标记了物种或在潜水中有时间点的照片显示小图标。';
+
+  @override
   String get settings_media_autoColorCorrection => '自动色彩校正';
 
   @override
@@ -50658,6 +50860,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => '未备份';
+
+  @override
+  String get media_tileMarker_people => '已标记人物';
+
+  @override
+  String get media_tileMarker_species => '已标记物种';
+
+  @override
+  String get media_tileMarker_timeInDive => '已放置在潜水轮廓上';
 
   @override
   String get media_tile_infoMenuItem => '媒体信息';
@@ -52307,7 +52518,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$dives 次潜水中的 $tanks 个气瓶带有此发射器。空白的容量、材质、名称和装备字段将被填充，仍为背气或根据发射器名称识别的用途将被替换。';
+    return '$dives 次潜水中带有此发射器的 $tanks 个气瓶需要其设置。空白的容量、材质、名称和装备字段将被填充，仍为背气或根据发射器名称识别的用途将被替换。';
   }
 
   @override
@@ -52316,7 +52527,40 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing => '没有气瓶带有此发射器';
+  String transmitters_apply_slot_label(String computer) {
+    return '$computer 上的插槽';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => '不按插槽匹配';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives 次潜水',
+    );
+    return 'T$slot：$_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading => '正在读取导入的文件';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      '从文件导入的气瓶没有序列号。可以按此发射器在潜水电脑上所占的插槽来填充它们。';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return '按序列号填充的潜水：$serialDives，按插槽：$slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill => '没有气瓶需要此发射器的设置';
+
+  @override
+  String get transmitters_apply_slot_read_failed => '无法读取导入的文件，因此无法按插槽匹配气瓶';
 
   @override
   String transmitters_channel(String computer, int channel) {
@@ -54573,6 +54817,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get rules_value_empty => '（空）';
 
   @override
+  String rules_value_gearViaSet(String item, String set) {
+    return '$item（$set）';
+  }
+
+  @override
   String get rules_collection_diveTypes => '潜水类型';
 
   @override
@@ -54586,6 +54835,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get rules_collection_courses => '课程';
+
+  @override
+  String get rules_collection_equipmentSets => '装备套装';
 
   @override
   String get rules_collection_siteTags => '潜点标签';
@@ -55411,6 +55663,17 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_backups_copyAccountGone => '副本所在的账户已被移除';
+
+  @override
+  String settings_backups_alsoCopyTo(String account) {
+    return '另存副本于$account';
+  }
+
+  @override
+  String get settings_backups_addCopyAccount => '同时复制到另一个账户';
+
+  @override
+  String get settings_backups_extraCopyMissed => '上次备份未上传到此账户';
 
   @override
   String get settings_backups_auto => '自动备份';

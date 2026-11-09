@@ -89,6 +89,7 @@ String ruleDiveCollectionLabel(AppLocalizations l, DiveCollection c) =>
       DiveCollection.equipment => l.rules_collection_equipment,
       DiveCollection.buddies => l.rules_collection_buddies,
       DiveCollection.courses => l.rules_collection_courses,
+      DiveCollection.equipmentSets => l.rules_collection_equipmentSets,
     };
 
 String ruleSiteCollectionLabel(AppLocalizations l, SiteCollection c) =>
@@ -103,6 +104,7 @@ QuerySubject diveCollectionSubject(DiveCollection c) => switch (c) {
   DiveCollection.equipment => QuerySubject.equipment,
   DiveCollection.buddies => QuerySubject.buddies,
   DiveCollection.courses => QuerySubject.courses,
+  DiveCollection.equipmentSets => QuerySubject.equipmentSets,
 };
 
 QuerySubject siteCollectionSubject(SiteCollection c) => switch (c) {

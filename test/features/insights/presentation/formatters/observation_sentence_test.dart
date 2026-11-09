@@ -191,6 +191,66 @@ void main() {
     expect(s, isNot(contains('improved')));
   });
 
+  // Issue #4339: the new species sentence named a catalog species by its
+  // stored English name under a German locale.
+  group('new species names the species in the active language', () {
+    final de = lookupAppLocalizations(const Locale('de'));
+    final date = DateTime.utc(2026, 9, 20);
+
+    test('a catalog species takes its translated name', () {
+      final s = observationSentence(
+        _o(
+          ObservationRuleId.newSpecies,
+          NewSpeciesFacts(
+            count: 2,
+            newestSpeciesId: 'sp_european_perch',
+            newestSpeciesName: 'European Perch',
+            newestDate: date,
+          ),
+        ),
+        de,
+        metric,
+      );
+      expect(s, contains('Flussbarsch'));
+      expect(s, isNot(contains('European Perch')));
+    });
+
+    test('a custom species keeps the name the diver gave it', () {
+      final s = observationSentence(
+        _o(
+          ObservationRuleId.newSpecies,
+          NewSpeciesFacts(
+            count: 1,
+            newestSpeciesId: '3f2b6c1e-0d4a-4b7e-9c1a-2e5f8d9b0a11',
+            newestSpeciesName: 'Mein Barsch',
+            newestDate: date,
+          ),
+        ),
+        de,
+        metric,
+      );
+      expect(s, contains('Mein Barsch'));
+    });
+
+    test('a renamed catalog species keeps the diver\'s name', () {
+      final s = observationSentence(
+        _o(
+          ObservationRuleId.newSpecies,
+          NewSpeciesFacts(
+            count: 1,
+            newestSpeciesId: 'sp_european_perch',
+            newestSpeciesName: 'Barsch vom Steg',
+            newestDate: date,
+          ),
+        ),
+        de,
+        metric,
+      );
+      expect(s, contains('Barsch vom Steg'));
+      expect(s, isNot(contains('Flussbarsch')));
+    });
+  });
+
   group('every rule renders in every locale', () {
     final date = DateTime.utc(2026, 9, 20);
     // Frequency facts carry the counts themselves, so the counts follow

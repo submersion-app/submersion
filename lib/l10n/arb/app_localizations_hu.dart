@@ -1426,6 +1426,21 @@ class AppLocalizationsHu extends AppLocalizations {
       'Búvárfigura megjelenítése';
 
   @override
+  String get equipment_setEdit_historyAsk =>
+      'A változásokat azokra a merülésekre is alkalmazza, vagy csak mostantól?';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ez a csoport $count naplózott merülésen szerepel.',
+      one: 'Ez a csoport 1 naplózott merülésen szerepel.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_color_red => 'Piros';
 
   @override
@@ -7395,6 +7410,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ezek a felvételek időben nem fedik egymást, így valószínűleg az egyik számítógép órája rosszul jár. A merülés az elsődleges számítógép idejét tartja meg.';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      'Ezek a mélységprofilok más időpontban egyeznek, mint amit a számítógépek órái mutatnak, így valószínűleg az egyik számítógép órája rosszul jár. A merülés az elsődleges számítógép idejét tartja meg.';
+
+  @override
   String get diveLog_consolidate_clockNoteShort =>
       'Valószínűleg az egyik számítógép órája rosszul jár.';
 
@@ -8184,6 +8203,17 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_gasSwitches_fillDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count váltás kitöltése a palacknyomásokból',
+      one: '1 váltás kitöltése a palacknyomásokból',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'Helymeghatározás...';
 
   @override
@@ -8699,6 +8729,19 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_useSet => 'Készlet használata';
 
   @override
+  String get diveLog_edit_removeSet => 'Készlet eltávolítása';
+
+  @override
+  String get diveLog_bulkEdit_setsToRemove => 'Eltávolítandó készletek';
+
+  @override
+  String get diveLog_bulkEdit_removeSetTitle =>
+      'Felszerelés-készlet eltávolítása';
+
+  @override
+  String get diveLog_bulkEdit_equipmentSets => 'Felszerelés-készletek';
+
+  @override
   String get diveLog_edit_weightPreset_use => 'Séma használata';
 
   @override
@@ -9166,6 +9209,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_legend_label_annotations => 'Jelölések';
 
   @override
+  String get diveLog_legend_label_plan => 'Terv';
+
+  @override
   String get diveLog_legend_label_computedEvents => 'Számított események';
 
   @override
@@ -9426,6 +9472,40 @@ class AppLocalizationsHu extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'A kiválasztott $total merülésből $count esetében hiányoznak a körülmények.',
+      one:
+          'A kiválasztott $total merülésből $count esetében hiányoznak a körülmények.',
+    );
+    return '$_temp0 Csak az üres mezők töltődnek ki, a már megadott adatok nem változnak.';
+  }
+
+  @override
+  String diveLog_fetchConditions_skippedNoLocation(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count merülésnek nincs helyszínkoordinátája vagy GPS-pozíciója, ezért kimaradnak.',
+      one:
+          '$count merülésnek nincs helyszínkoordinátája vagy GPS-pozíciója, ezért kimarad.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_fetchConditions_noneNeededSelected =>
+      'A kiválasztott merülések egyikéből sem hiányoznak a körülmények.';
+
+  @override
+  String get diveLog_fetchConditions_noneLocatedSelected =>
+      'A kiválasztott, körülmények nélküli merüléseknek nincs helyszínkoordinátája vagy GPS-pozíciója.';
 
   @override
   String diveLog_fetchConditions_summaryCancelled(int count) {
@@ -14251,6 +14331,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_tankRole_stage => 'Stage';
+
+  @override
+  String get enum_tankRole_suitInflation => 'Ruhatöltő palack';
 
   @override
   String get enum_tankRole_twinSet => 'Ikerpalack';
@@ -20290,6 +20373,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_photoViewer_videoFileNotFound => 'Videó fájl nem található';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      'A videó lejátszásához normál böngészőablak szükséges. A privát ablakok nem tudnak streamelni a Google Drive-ról vagy WebDAV-ről.';
+
+  @override
   String get media_photoViewer_videoNotLinked =>
       'A videó nincs a könyvtárhoz csatolva';
 
@@ -22498,6 +22585,26 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_appearance_mapBackgroundDiveCards_subtitleWithNote =>
       'Merülőhely térkép megjelenítés háttérként a merülési kártyákon (merülőhely szükséges)';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards =>
+      'Fotóháttér a merüléskártyákon';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards_subtitle =>
+      'A merülés egyik fotójának megjelenítése háttérként a merüléskártyákon (fotó nélkül a térkép vagy a szín látszik)';
+
+  @override
+  String get settings_appearance_photoOverlayDark =>
+      'Fotó fedőréteg átlátszatlansága, sötét téma';
+
+  @override
+  String get settings_appearance_photoOverlayLight =>
+      'Fotó fedőréteg átlátszatlansága, világos téma';
+
+  @override
+  String get settings_appearance_photoOverlay_subtitle =>
+      'Magasabb érték olvashatóbb szöveget, alacsonyabb több fotót ad';
 
   @override
   String get settings_appearance_mapBackgroundSiteCards =>
@@ -25929,6 +26036,18 @@ class AppLocalizationsHu extends AppLocalizations {
       'Térkép a merüléskártyák mögött';
 
   @override
+  String get settings_conflict_field_showPhotoBackgroundOnDiveCards =>
+      'Fotó a merüléskártyák mögött';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayDark =>
+      'Merüléskártya fotó fedőréteg (sötét téma)';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayLight =>
+      'Merüléskártya fotó fedőréteg (világos téma)';
+
+  @override
   String get settings_conflict_field_showMapBackgroundOnSiteCards =>
       'Térkép a merülőhely-kártyák mögött';
 
@@ -27384,6 +27503,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get dataHealth_backup_cloudCopyMissing =>
       'Az utolsó mentés nem került fel a felhőbe';
+
+  @override
+  String get dataHealth_backup_extraCopyMissing =>
+      'Az utolsó mentés nem került fel minden fiókba';
 
   @override
   String get dataHealth_backup_noOffDeviceCopy =>
@@ -30553,19 +30676,35 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_gas_gasMix_title => 'Gázkeverék megoszlás';
 
   @override
-  String get insights_gas_sacByRole_empty => 'Nincsenek többpalackos adatok';
+  String get insights_gas_roleUse_title => 'Fogyasztás palackszerep szerint';
 
   @override
-  String get insights_gas_sacByRole_error =>
-      'Nem sikerült a szerep szerinti fogyasztás betöltése';
+  String get insights_gas_roleUse_subtitle =>
+      'Minden szerep a belélegzés ideje alatt';
 
   @override
-  String get insights_gas_sacByRole_subtitle =>
-      'Átlagos felhasználás palack típus szerint';
+  String get insights_gas_roleUse_empty =>
+      'Még nincs érték palackszerep szerint';
 
   @override
-  String get insights_gas_sacByRole_title =>
-      'Gázfogyasztás palack szerep szerint';
+  String get insights_gas_roleUse_error =>
+      'Nem sikerült betölteni a palackszerep szerinti fogyasztást';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => 'Fenékgáz';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count merülés kimaradt: egy stage-, dekó-, póni- vagy bailout-palack gázt vesztett, de nem volt rá gázváltás',
+      one:
+          '$count merülés kimaradt: egy stage-, dekó-, póni- vagy bailout-palack gázt vesztett, de nem volt rá gázváltás',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => 'Rebreather gázfogyasztás';
@@ -31166,9 +31305,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_focus_gas_trimix => 'Trimix';
 
   @override
-  String get insights_gas_tankRole_backGas => 'Háttérgáz';
-
-  @override
   String get insights_gas_tankRole_bailout => 'Bailout';
 
   @override
@@ -31178,22 +31314,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_gas_tankRole_diluent => 'Hígító';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'O₂ ellátás';
-
-  @override
   String get insights_gas_tankRole_pony => 'Pony';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => 'Sidemount B';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => 'Sidemount J';
-
-  @override
   String get insights_gas_tankRole_stage => 'Stage';
-
-  @override
-  String get insights_gas_tankRole_twinSet => 'Ikerpalack';
 
   @override
   String get insights_geographic_appBar_title => 'Földrajzi';
@@ -38151,6 +38275,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'A kijelölt merülések egyikéhez sincs újraelemezhető nyers adat.';
 
   @override
+  String get diveLog_selection_tooltip_fetchConditions =>
+      'Körülmények lekérése';
+
+  @override
   String get diveLog_selection_tooltip_reparse => 'Újraelemzés';
 
   @override
@@ -39965,6 +40093,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_valve_type => 'Szelep';
 
   @override
+  String get attrLabel_cylinder_use => 'Palack felhasználása';
+
+  @override
   String get attrLabel_tank_identifier => 'Azonosító';
 
   @override
@@ -40321,6 +40452,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => 'Átalakítható';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => 'Légzőgáz';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => 'Ruhatöltő palack';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -42394,6 +42531,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => 'Rossz palack';
 
   @override
+  String get dataQuality_detector_missing_gas_switch => 'Hiányzó gázváltás';
+
+  @override
   String get dataQuality_detector_source_conflict => 'Ütköző források';
 
   @override
@@ -42435,6 +42575,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String dataQuality_msg_clock_overlap(int minutes) {
     return '$minutes perccel átfed egy másik merülést';
+  }
+
+  @override
+  String dataQuality_msg_clock_profileFit(int minutes) {
+    return 'Egy forrás $minutes percre van attól a ponttól, ahol a profilja egyezik az elsődlegesével';
   }
 
   @override
@@ -42586,6 +42731,61 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Nem rögzült gázváltás, de a palacknyomások ezeket a váltásokat mutatják: $switches.',
+      one:
+          'Nem rögzült gázváltás, de a palacknyomások ezt a váltást mutatják: $switches.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return '$tankNumber. palack ($gas), $time, $depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => '; ';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'Nem rögzült gázváltás. A palacknyomások $depth mélységben váltást mutatnak a(z) $tankNumber. palackra ($gas), mélyebben a $mod MOD-jánál, ezért nem javaslunk rá váltást.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'A palacknyomások $depth mélységben a(z) $tankNumber. palackra ($gas) való váltást is mutatnak, mélyebben a $mod MOD-jánál, ezért nem javaslunk rá váltást.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'Nem rögzült gázváltás. A(z) $tankNumber. palackból ($gas) szünet után $time időponttól ismét lélegeztek, így közben egy másik palackból lélegeztek, és kettőnél több palacknál a nyomások nem mutatják meg, melyikből. Add hozzá a váltásokat a merülésszerkesztőben.';
+  }
+
+  @override
   String get dataQuality_detector_transmitter_role => 'Jeladó szerepe';
 
   @override
@@ -42650,6 +42850,15 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_fixSourceClockAll =>
       'A számítógép javítása a többi, azonos eltérésű merülésnél is';
+
+  @override
+  String get dataQuality_repairLabel_alignSourceProfile =>
+      'A számítógép igazítása a profilja alapján';
+
+  @override
+  String dataQuality_repairLabel_alignSourceProfileNamed(String computer) {
+    return '$computer igazítása a profilja alapján';
+  }
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Konszolidálás';
@@ -42816,6 +43025,17 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_reassignSeries =>
       'Sorozat áthelyezése másik palackra';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gázváltás hozzáadása',
+      one: 'Gázváltás hozzáadása',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary =>
@@ -53672,6 +53892,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Kis ikon, amely megmutatja, honnan érkezik az egyes elemek tartalma. A problémajelvények mindig láthatók.';
 
   @override
+  String get settings_media_tagBadges =>
+      'Címkejelvények megjelenítése a bélyegképeken';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      'Kis ikonok a megjelölt személyeket, megjelölt fajokat vagy merülésbeli időpontot tartalmazó fotókhoz.';
+
+  @override
   String get settings_media_autoColorCorrection => 'Automatikus színkorrekció';
 
   @override
@@ -53721,6 +53949,15 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => 'Nincs mentve';
+
+  @override
+  String get media_tileMarker_people => 'Személyek megjelölve';
+
+  @override
+  String get media_tileMarker_species => 'Fajok megjelölve';
+
+  @override
+  String get media_tileMarker_timeInDive => 'A merülési profilon elhelyezve';
 
   @override
   String get media_tile_infoMenuItem => 'Média infó';
@@ -55480,7 +55717,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks palack $dives merülésben viseli ezt a jeladót. Az üres méret-, anyag-, név- és felszerelésmezők kitöltődnek, és a még Hátgázra állított vagy a jeladó nevéből kiolvasott szerep lecserélődik.';
+    return '$tanks palacknak $dives merülésben, amely ezt a jeladót viseli, szüksége van a beállítására. Az üres méret-, anyag-, név- és felszerelésmezők kitöltődnek, és a még Hátgázra állított vagy a jeladó nevéből kiolvasott szerep lecserélődik.';
   }
 
   @override
@@ -55489,8 +55726,43 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing =>
-      'Egyetlen palack sem viseli ezt a jeladót';
+  String transmitters_apply_slot_label(String computer) {
+    return 'Hely ($computer)';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'Nincs hely szerinti párosítás';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives merülés',
+      one: '$dives merülés',
+    );
+    return 'T$slot: $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading => 'Importált fájlok olvasása';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'A fájlból importált palackoknak nincs sorozatszáma. Kitölthetők annak a helynek az alapján, amelyet ez a jeladó a búvárkomputeren elfoglalt.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'Sorozatszám alapján kitöltött merülések: $serialDives, hely alapján: $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'Egyetlen palacknak sincs szüksége ennek a jeladónak a beállítására';
+
+  @override
+  String get transmitters_apply_slot_read_failed =>
+      'Az importált fájlokat nem sikerült beolvasni, így a palackok nem párosíthatók foglalat szerint';
 
   @override
   String transmitters_channel(String computer, int channel) {
@@ -57827,6 +58099,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get rules_value_empty => '(üres)';
 
   @override
+  String rules_value_gearViaSet(String item, String set) {
+    return '$item ($set)';
+  }
+
+  @override
   String get rules_collection_diveTypes => 'merüléstípusok';
 
   @override
@@ -57840,6 +58117,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get rules_collection_courses => 'tanfolyamok';
+
+  @override
+  String get rules_collection_equipmentSets => 'felszerelés-készletek';
 
   @override
   String get rules_collection_siteTags => 'helyszíncímkék';
@@ -58701,6 +58981,18 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_backups_copyAccountGone =>
       'A másolat fiókját eltávolították';
+
+  @override
+  String settings_backups_alsoCopyTo(String account) {
+    return 'Másolat ide is: $account';
+  }
+
+  @override
+  String get settings_backups_addCopyAccount => 'Másolás egy másik fiókba is';
+
+  @override
+  String get settings_backups_extraCopyMissed =>
+      'Az utolsó mentés nem került fel ebbe a fiókba';
 
   @override
   String get settings_backups_auto => 'Automatikus mentés';

@@ -798,4 +798,58 @@ void main() {
       ),
     );
   });
+
+  group('readRange', () {
+    const key = 'smv1/objects/ab/abc.mp4';
+    Future<GoogleDriveMediaObjectStore> withVideo() async {
+      final store = build();
+      final src = File('${tmp.path}/v.mp4')
+        ..writeAsBytesSync(List<int>.generate(100, (i) => i));
+      await store.putFile(key, src, contentType: 'video/mp4');
+      return store;
+    }
+
+    test('sends the Range header and returns the 206 body', () async {
+      final store = await withVideo();
+      final bytes = await store.readRange(key, start: 10, endInclusive: 19);
+      expect(bytes, List<int>.generate(10, (i) => 10 + i));
+      expect(server.captured.last.headers['Range'], 'bytes=10-19');
+    });
+
+    test('slices a 200 answer to the requested range', () async {
+      final store = await withVideo();
+      server.ignoresRange = true;
+      final bytes = await store.readRange(key, start: 95, endInclusive: 120);
+      expect(bytes, [95, 96, 97, 98, 99]);
+    });
+
+    test('missing key throws notFound', () async {
+      await expectLater(
+        build().readRange(
+          'smv1/objects/zz/none.mp4',
+          start: 0,
+          endInclusive: 9,
+        ),
+        throwsA(
+          isA<MediaStoreException>().having(
+            (e) => e.kind,
+            'kind',
+            MediaStoreErrorKind.notFound,
+          ),
+        ),
+      );
+    });
+
+    test('looks the file id up once across reads', () async {
+      final store = await withVideo();
+      bool isLookup(http.Request r) =>
+          r.method == 'GET' &&
+          r.url.path == '/drive/v3/files' &&
+          (r.url.queryParameters['q'] ?? '').contains("name = '$key'");
+      final before = server.captured.where(isLookup).length;
+      await store.readRange(key, start: 0, endInclusive: 9);
+      await store.readRange(key, start: 10, endInclusive: 19);
+      expect(server.captured.where(isLookup).length, before + 1);
+    });
+  });
 }

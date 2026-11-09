@@ -51,8 +51,9 @@ class ComponentsCard extends ConsumerWidget {
     await repository.updateRole(part.id, role);
   }
 
-  /// Removes the part from the template, and from the past dives that
-  /// carry the assembly when the diver asks for that (swap with history).
+  /// Removes the part from the template and from the planned dives that
+  /// carry the assembly, and from the logged ones too when the diver asks
+  /// for that (swap with history, issue #4283).
   Future<void> _remove(
     BuildContext context,
     WidgetRef ref,
@@ -73,12 +74,12 @@ class ComponentsCard extends ConsumerWidget {
       await ref
           .read(equipmentComponentRepositoryProvider)
           .removeComponent(part.id);
-      if (choice == AssemblyHistoryChoice.alsoPast) {
-        await ref.read(diveRepositoryProvider).rewriteAssemblyOnPastDives(
-          equipmentId,
-          [GearPartRemoved(part.componentEquipmentId)],
-        );
-      }
+      // Planned dives follow on every answer (issue #4283).
+      await ref.read(diveRepositoryProvider).rewriteAssemblyOnDives(
+        equipmentId,
+        [GearPartRemoved(part.componentEquipmentId)],
+        alsoLogged: choice == AssemblyHistoryChoice.alsoPast,
+      );
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('$e')));
     }

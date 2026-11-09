@@ -219,6 +219,104 @@ void main() {
     });
   });
 
+  group('missing gas switch (#165)', () {
+    Map<String, Object?> start(String tankId, int t) => {
+      'tankId': tankId,
+      'tankPosition': 1,
+      't': t,
+      'depth': 21.0,
+      'o2Percent': 50.0,
+      'hePercent': 0.0,
+    };
+
+    testWidgets('one switch: the button adds it', (tester) async {
+      final repaired = <QualityRepairAction>[];
+      await pumpCard(
+        tester,
+        finding: _finding(
+          detectorId: 'missing_gas_switch',
+          params: {
+            'missingSwitches': [start('deco', 1800)],
+            'deepStarts': const [],
+          },
+        ),
+        onRepair: repaired.add,
+      );
+      expect(find.text('Add gas switch'), findsOneWidget);
+      await tester.tap(find.text('Add gas switch'));
+      await tester.pumpAndSettle();
+      final add = repaired.single as AddGasSwitchesRepair;
+      expect(add.switches.single, (tankId: 'deco', t: 1800, depth: 21.0));
+    });
+
+    testWidgets('several switches: the button counts them', (tester) async {
+      await pumpCard(
+        tester,
+        finding: _finding(
+          detectorId: 'missing_gas_switch',
+          params: {
+            'missingSwitches': [start('deco', 1800), start('back', 2400)],
+            'deepStarts': const [],
+          },
+        ),
+      );
+      expect(find.text('Add 2 gas switches'), findsOneWidget);
+    });
+
+    testWidgets('only too-deep starts: no button', (tester) async {
+      await pumpCard(
+        tester,
+        finding: _finding(
+          detectorId: 'missing_gas_switch',
+          params: {
+            'missingSwitches': const [],
+            'deepStarts': [
+              {...start('deco', 600), 'depth': 40.0, 'modMeters': 22.0},
+            ],
+          },
+        ),
+      );
+      expect(find.byType(FilledButton), findsNothing);
+    });
+  });
+
+  group('source placed away from its profile fit (#4296)', () {
+    final finding = _finding(
+      detectorId: 'clock_offset',
+      params: const {'sourceId': 's2', 'profileOffsetSeconds': 1160},
+    );
+
+    testWidgets('offers to line the computer up by its profile', (
+      tester,
+    ) async {
+      final repaired = <QualityRepairAction>[];
+      await pumpCard(tester, finding: finding, onRepair: repaired.add);
+
+      final primary = find.byType(FilledButton);
+      expect(
+        find.descendant(
+          of: primary,
+          matching: find.text('Line up this computer by its profile'),
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(primary);
+      await tester.pumpAndSettle();
+      expect(repaired.single, isA<SourceProfileShiftRepair>());
+    });
+
+    testWidgets('names the computer when one is known', (tester) async {
+      await pumpCard(tester, finding: finding, computerName: 'Perdix 2');
+      expect(
+        find.descendant(
+          of: find.byType(FilledButton),
+          matching: find.text('Line up Perdix 2 by its profile'),
+        ),
+        findsOneWidget,
+      );
+    });
+  });
+
   group('source clock offset (#3655)', () {
     final finding = _finding(
       detectorId: 'clock_offset',

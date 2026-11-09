@@ -14,6 +14,9 @@ void main() {
       'b1',
     ], buddyRoleId: 'buddy'),
     DiveMembershipAction(DiveCollection.tags, MembershipMode.remove, ['t1']),
+    DiveMembershipAction(DiveCollection.equipmentSets, MembershipMode.add, [
+      'warm',
+    ]),
     AppendDiveNotesAction('Boat dive'),
     SetSiteFieldAction(SiteRuleField.country, 'Egypt'),
     SiteMembershipAction(SiteCollection.tags, MembershipMode.add, ['red-sea']),

@@ -120,6 +120,7 @@ void main() {
       'dive_number': 20,
       'runtime_s': 3000,
       'bottom_time_s': 2400,
+      'surface_interval_s': 5400,
     };
     expect(
       samples.keys.toSet(),
@@ -141,6 +142,53 @@ void main() {
     for (final MapEntry(:key, :value) in samples.entries) {
       expect(doc[key], value, reason: key);
     }
+  });
+
+  group('surface_interval_s (#4333)', () {
+    const hour = 3600000;
+
+    /// An earlier dive that ended two hours before d1 starts.
+    Future<void> earlierDive() =>
+        dive('d0', entry: seededClock - 3 * hour, exit: seededClock - 2 * hour);
+
+    test('a plan compares with the column, not the gap a read shows', () async {
+      await earlierDive();
+      final doc = (await h.one('dives', 'd1'))!;
+      expect(doc['surface_interval_s'], 7200);
+
+      final stored = await writes.stored('d1', doc);
+
+      expect(stored['surface_interval_s'], isNull);
+    });
+
+    test('a stored interval is what a plan compares with', () async {
+      await writes.update(
+        'd1',
+        kDiverA,
+        const RecordUpdate(values: {'surface_interval_s': 600}),
+      );
+      final doc = (await h.one('dives', 'd1'))!;
+
+      expect((await writes.stored('d1', doc))['surface_interval_s'], 600);
+    });
+
+    test('null clears a stored interval back to the gap', () async {
+      await earlierDive();
+      await writes.update(
+        'd1',
+        kDiverA,
+        const RecordUpdate(values: {'surface_interval_s': 600}),
+      );
+      expect((await h.one('dives', 'd1'))!['surface_interval_s'], 600);
+
+      await writes.update(
+        'd1',
+        kDiverA,
+        const RecordUpdate(values: {'surface_interval_s': null}),
+      );
+
+      expect((await h.one('dives', 'd1'))!['surface_interval_s'], 7200);
+    });
   });
 
   test('date_time moves entry and exit by the same difference', () async {
@@ -358,9 +406,11 @@ void main() {
       'date_time': DateTime.utc(2025, 1, 2, 8),
       'max_depth_m': 18.0,
       'water_type': 'fresh',
+      'surface_interval_s': 4200,
     });
 
     final doc = (await h.one('dives', id))!;
+    expect(doc['surface_interval_s'], 4200);
     expect(doc['diver_id'], kDiverA);
     expect(doc['date_time'], '2025-01-02T08:00:00.000Z');
     expect(doc['max_depth_m'], 18.0);

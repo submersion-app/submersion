@@ -1,19 +1,41 @@
 // Up to five digits of minutes (69 days): no dive is longer, and a longer run
 // is text int.parse refuses or a count that overflows when scaled to seconds.
-final RegExp _minutesSeconds = RegExp(r'^(\d{1,5})(?::([0-5]?\d))?$');
+// A leading minus is a time before the start, which
+// [formatMinutesSeconds] writes that way (#4335).
+final RegExp _minutesSeconds = RegExp(r'^(-?)(\d{1,5})(?::([0-5]?\d))?$');
 
 /// Seconds for a `minutes:seconds` text, or bare minutes; null when the
 /// text is not a time ("ab", "1:60", "", a minutes run over five digits).
+/// A leading minus reads a time before the start, so every text
+/// [formatMinutesSeconds] writes reads back as the count it came from.
 int? parseMinutesSeconds(String text) {
   final match = _minutesSeconds.firstMatch(text.trim());
   if (match == null) return null;
-  final minutes = int.parse(match.group(1)!);
-  final seconds = match.group(2);
-  return minutes * 60 + (seconds == null ? 0 : int.parse(seconds));
+  final minutes = int.parse(match.group(2)!);
+  final seconds = match.group(3);
+  final elapsed = minutes * 60 + (seconds == null ? 0 : int.parse(seconds));
+  return match.group(1)!.isEmpty ? elapsed : -elapsed;
 }
 
 /// `m:ss` for a count of seconds: 750 is "12:30", 67 is "1:07". The one
-/// shape a time from the dive's start is shown in, on a gas switch and in
-/// the field that edits one.
-String formatMinutesSeconds(int seconds) =>
-    '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
+/// shape a time from the dive's start is shown in, on a gas switch, in the
+/// field that edits one and in the profile chart's tooltip.
+///
+/// A time before the start keeps its sign: -65 is "-1:05". A second
+/// computer placed on the primary's timeline can start first (#4296), and
+/// Dart's `%` is never negative, so formatting the signed count directly
+/// gave "-1:55".
+String formatMinutesSeconds(int seconds) {
+  final sign = seconds < 0 ? '-' : '';
+  final elapsed = seconds.abs();
+  return '$sign${elapsed ~/ 60}:${(elapsed % 60).toString().padLeft(2, '0')}';
+}
+
+/// `mm:ss` with the minutes padded to two digits, the shape playback and
+/// range selection read out in: 65 is "01:05", -65 is "-01:05".
+String formatPaddedMinutesSeconds(int seconds) {
+  final sign = seconds < 0 ? '-' : '';
+  final elapsed = seconds.abs();
+  final minutes = (elapsed ~/ 60).toString().padLeft(2, '0');
+  return '$sign$minutes:${(elapsed % 60).toString().padLeft(2, '0')}';
+}

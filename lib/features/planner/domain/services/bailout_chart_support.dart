@@ -8,13 +8,14 @@ import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/air_break_runs.dart';
 import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
+import 'package:submersion/features/planner/domain/services/plan_gas_switches.dart';
 import 'package:submersion/features/planner/domain/services/same_mix_share.dart';
 
 /// Chart-only support for [BailoutOutcome]: the worst-case point's own
-/// ceiling trace and its OC ascent stops, unfolded. Split out of
-/// bailout_solver.dart to keep that file under the repo's size guideline --
-/// both functions are pure, taking every input explicitly, with no
-/// BailoutSolver instance state of their own.
+/// ceiling trace, its OC ascent stops unfolded, and its OC travel stretch by
+/// stretch. Split out of bailout_solver.dart to keep that file under the
+/// repo's size guideline. Every function here is pure, taking every input
+/// explicitly, with no BailoutSolver instance state of its own.
 
 /// The worst-case point's own ceiling trace: the bottom-phase samples
 /// already computed up to it (reusing [states], not re-simulating the
@@ -189,4 +190,64 @@ List<PlanStop> unfoldedOcStops(
     phase = phase.afterStop(gasSwitchOnly: stop.isGasSwitchOnly);
   }
   return stops;
+}
+
+/// [point]'s OC ascent travel, stretch by stretch, for the chart's gas-switch
+/// flags (issue #4078): every leg, to each stop and to the surface, split
+/// wherever [bailoutPlan] changes gas, from where each stretch starts.
+///
+/// The printed table folds the travel between stops into the stop it leads
+/// to (#3138), so a gas picked up at its MOD between two stops has no line
+/// of its own there; this places it where it is crossed. A stretch rounded to
+/// no time is never breathed, and is left out. Walks the stops the way
+/// [unfoldedOcStops] does, so the two line up on the chart.
+List<PlanBreathingStretch> ocTravelStretches(
+  BailoutPoint point, {
+  required AscentGasPlan bailoutPlan,
+  required SchedulePolicy policy,
+  required List<DiveTank> bailoutTanks,
+}) {
+  final stretches = <PlanBreathingStretch>[];
+  var time = point.runtimeSeconds;
+  var depth = point.depthMeters;
+  var phase = AscentPhase.toFirstStop;
+  void travel(double toDepth, AscentPhase legPhase) {
+    final seconds = policy.ascentSeconds(
+      fromDepth: depth,
+      toDepth: toDepth,
+      phase: legPhase,
+    );
+    for (final span in splitAscentLeg(
+      bailoutPlan,
+      fromDepth: depth,
+      toDepth: toDepth,
+      seconds: seconds,
+    )) {
+      if (span.seconds > 0) {
+        final gas = bailoutPlan.gasForDepth(span.fromDepth);
+        final fO2 = 1.0 - gas.fN2 - gas.fHe;
+        stretches.add((
+          startSeconds: time,
+          startDepthMeters: span.fromDepth,
+          tankId: sameMixTanks(
+            bailoutTanks,
+            fO2: fO2,
+            fHe: gas.fHe,
+          ).firstOrNull?.id,
+          fO2: fO2,
+          fHe: gas.fHe,
+        ));
+      }
+      time += span.seconds;
+    }
+    depth = toDepth;
+  }
+
+  for (final stop in point.schedule.stops) {
+    travel(stop.depthMeters, phase);
+    time += stop.durationSeconds;
+    phase = phase.afterStop(gasSwitchOnly: stop.isGasSwitchOnly);
+  }
+  if (depth > 0) travel(0, AscentPhase.surfacingAfter(phase));
+  return stretches;
 }

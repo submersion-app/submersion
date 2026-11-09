@@ -5,6 +5,7 @@ import 'package:submersion/features/backup/data/services/backup_attribution.dart
 import 'package:submersion/features/backup/data/services/backup_pin_markers.dart';
 import 'package:submersion/features/backup/data/services/cloud_backup_history.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
+import 'package:submersion/features/backup/domain/entities/extra_cloud_copy.dart';
 
 CloudFileInfo _file(
   String name, {
@@ -190,6 +191,86 @@ void main() {
       accountId: 'acct-b',
     );
     expect(merged.map((r) => r.cloudFileId), containsAll(['other-id', 'f1']));
+  });
+
+  // Review of #4328 (issue #3782): once the main copy goes to an account a
+  // backup was also copied to, that copy is listed with the main folder.
+  group('a record with an extra copy in the listed account', () {
+    final record = BackupRecord(
+      id: 'r1',
+      filename: 'submersion_backup_2026-10-19_101500.db',
+      timestamp: DateTime(2026, 10, 19),
+      sizeBytes: 1,
+      location: BackupLocation.both,
+      cloudFileId: 'main-id',
+      cloudAccountId: 'acct-a',
+      localPath: '/backups/submersion_backup_2026-10-19_101500.db',
+      extraCloudCopies: const [
+        ExtraCloudCopy(accountId: 'acct-b', fileId: 'extra-id'),
+      ],
+    );
+
+    test('is not listed again by id', () {
+      final merged = mergeCloudBackups(
+        [record],
+        [
+          CloudFileInfo(
+            id: 'extra-id',
+            name: 'renamed.db',
+            modifiedTime: DateTime(2026, 10, 19),
+          ),
+        ],
+        accountId: 'acct-b',
+      );
+      expect(merged, [record]);
+    });
+
+    // Review of #4328: Git, S3 and WebDAV ids are paths, unique only within
+    // one account.
+    test('an id in another account does not hide a listed file', () {
+      final merged = mergeCloudBackups(
+        [record],
+        [
+          CloudFileInfo(
+            id: 'extra-id',
+            name: 'submersion_backup_2026-10-20_101500.db',
+            modifiedTime: DateTime(2026, 10, 20),
+          ),
+        ],
+        accountId: 'acct-c',
+      );
+      expect(merged.map((r) => r.cloudFileId), ['extra-id', 'main-id']);
+    });
+
+    test("a main copy's id in another account does not hide one either", () {
+      final merged = mergeCloudBackups(
+        [record],
+        [
+          CloudFileInfo(
+            id: 'main-id',
+            name: 'submersion_backup_2026-10-20_101500.db',
+            modifiedTime: DateTime(2026, 10, 20),
+          ),
+        ],
+        accountId: 'acct-c',
+      );
+      expect(merged, hasLength(2));
+    });
+
+    test('is not listed again by name', () {
+      final merged = mergeCloudBackups(
+        [record],
+        [
+          CloudFileInfo(
+            id: 'other-id',
+            name: 'submersion_backup_2026-10-19_101500.sbe',
+            modifiedTime: DateTime(2026, 10, 19),
+          ),
+        ],
+        accountId: 'acct-b',
+      );
+      expect(merged, [record]);
+    });
   });
 
   test('rows from a listing note the account they were listed from', () {

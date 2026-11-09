@@ -531,8 +531,9 @@ class _LabBody extends ConsumerWidget {
       outcome: outcome.value,
       branchSeconds: draft.branchSeconds,
       exportKey: chartKey,
+      // Named as its chip is, not after the plan (#4215).
       planOverlay: planOn && comparison.overlay.points.isNotEmpty
-          ? comparison.overlay
+          ? comparison.overlay.copyWith(name: l10n.diveLab_compare_line_planned)
           : null,
     );
     final controls = Column(

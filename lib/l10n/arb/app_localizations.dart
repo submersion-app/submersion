@@ -2204,6 +2204,18 @@ abstract class AppLocalizations {
   /// **'Show diver figure'**
   String get equipment_setEdit_figureSwitch_title;
 
+  /// No description provided for @equipment_setEdit_historyAsk.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply the changes to those dives as well, or only from now on?'**
+  String get equipment_setEdit_historyAsk;
+
+  /// No description provided for @equipment_setEdit_historyOnDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{This set is on 1 logged dive.} other{This set is on {count} logged dives.}}'**
+  String equipment_setEdit_historyOnDives(num count);
+
   /// No description provided for @equipment_color_red.
   ///
   /// In en, this message translates to:
@@ -11664,6 +11676,12 @@ abstract class AppLocalizations {
   /// **'These records don\'t overlap in time, so one computer\'s clock is probably off. The dive keeps the primary computer\'s time.'**
   String get diveLog_consolidate_clockNote;
 
+  /// No description provided for @diveLog_consolidate_clockNoteOverlap.
+  ///
+  /// In en, this message translates to:
+  /// **'These depth profiles match at a different time than the computers\' clocks say, so one computer\'s clock is probably off. The dive keeps the primary computer\'s time.'**
+  String get diveLog_consolidate_clockNoteOverlap;
+
   /// No description provided for @diveLog_consolidate_clockNoteShort.
   ///
   /// In en, this message translates to:
@@ -12922,6 +12940,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{{count} gas switch removed with its tank} other{{count} gas switches removed with their tank}}'**
   String diveLog_edit_gasSwitches_removedWithTank(int count);
 
+  /// Gas switch editor: action that adds the switches the recorded cylinder pressures show, and re-points a starting switch on the same gas to the cylinder breathed first. count is how many rows it adds or changes
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Fill in 1 switch from the cylinder pressures} other{Fill in {count} switches from the cylinder pressures}}'**
+  String diveLog_edit_gasSwitches_fillDetected(int count);
+
   /// No description provided for @diveLog_edit_gettingLocation.
   ///
   /// In en, this message translates to:
@@ -13729,6 +13753,30 @@ abstract class AppLocalizations {
   /// **'Use Set'**
   String get diveLog_edit_useSet;
 
+  /// Bulk edit: button that stages an equipment set to remove from every selected dive
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Set'**
+  String get diveLog_edit_removeSet;
+
+  /// Bulk edit: heading over the equipment sets staged for removal
+  ///
+  /// In en, this message translates to:
+  /// **'Sets to remove'**
+  String get diveLog_bulkEdit_setsToRemove;
+
+  /// Bulk edit: title of the sheet that picks an equipment set to remove from every selected dive
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Equipment Set'**
+  String get diveLog_bulkEdit_removeSetTitle;
+
+  /// Bulk edit confirmation: section title for equipment sets
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment sets'**
+  String get diveLog_bulkEdit_equipmentSets;
+
   /// No description provided for @diveLog_edit_weightPreset_use.
   ///
   /// In en, this message translates to:
@@ -14515,6 +14563,12 @@ abstract class AppLocalizations {
   /// **'Annotations'**
   String get diveLog_legend_label_annotations;
 
+  /// No description provided for @diveLog_legend_label_plan.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get diveLog_legend_label_plan;
+
   /// No description provided for @diveLog_legend_label_computedEvents.
   ///
   /// In en, this message translates to:
@@ -14910,6 +14964,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 dive had nothing to fill} other{{count} dives had nothing to fill}}'**
   String diveLog_fetchConditions_summaryUnchanged(int count);
+
+  /// Confirm text for fetching conditions on selected dives (issue #4329): how many of the checked dives can be filled
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} of {total} selected dives is missing conditions.} other{{count} of {total} selected dives are missing conditions.}} Only empty fields are filled, so nothing you have already entered will change.'**
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total);
+
+  /// Added to the confirm text when some checked dives have no location to fetch conditions for (issue #4329)
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} dive has no site location or GPS fix and will be skipped.} other{{count} dives have no site location or GPS fix and will be skipped.}}'**
+  String diveLog_fetchConditions_skippedNoLocation(int count);
+
+  /// Snackbar when no checked dive is missing conditions (issue #4329)
+  ///
+  /// In en, this message translates to:
+  /// **'None of the selected dives are missing conditions.'**
+  String get diveLog_fetchConditions_noneNeededSelected;
+
+  /// Snackbar when the checked dives missing conditions all lack a location (issue #4329)
+  ///
+  /// In en, this message translates to:
+  /// **'The selected dives that are missing conditions have no site location or GPS fix.'**
+  String get diveLog_fetchConditions_noneLocatedSelected;
 
   /// No description provided for @diveLog_fetchConditions_summaryCancelled.
   ///
@@ -23070,6 +23148,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Stage'**
   String get enum_tankRole_stage;
+
+  /// No description provided for @enum_tankRole_suitInflation.
+  ///
+  /// In en, this message translates to:
+  /// **'Suit Inflation'**
+  String get enum_tankRole_suitInflation;
 
   /// No description provided for @enum_tankRole_twinSet.
   ///
@@ -32322,6 +32406,12 @@ abstract class AppLocalizations {
   /// **'Video file not found'**
   String get media_photoViewer_videoFileNotFound;
 
+  /// Media viewer, in a browser with no service workers (a private window): a Google Drive or WebDAV video cannot stream.
+  ///
+  /// In en, this message translates to:
+  /// **'Playing this video needs a normal browser window. Private windows cannot stream from Google Drive or WebDAV.'**
+  String get media_photoViewer_videoNeedsNormalWindow;
+
   /// No description provided for @media_photoViewer_videoNotLinked.
   ///
   /// In en, this message translates to:
@@ -35882,6 +35972,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show dive site map as background on dive cards (requires site location)'**
   String get settings_appearance_mapBackgroundDiveCards_subtitleWithNote;
+
+  /// No description provided for @settings_appearance_photoBackgroundDiveCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo background on dive cards'**
+  String get settings_appearance_photoBackgroundDiveCards;
+
+  /// No description provided for @settings_appearance_photoBackgroundDiveCards_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show one of the dive\'s photos as background on dive cards (falls back to the map or colour when a dive has no photos)'**
+  String get settings_appearance_photoBackgroundDiveCards_subtitle;
+
+  /// No description provided for @settings_appearance_photoOverlayDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo overlay opacity, dark theme'**
+  String get settings_appearance_photoOverlayDark;
+
+  /// No description provided for @settings_appearance_photoOverlayLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo overlay opacity, light theme'**
+  String get settings_appearance_photoOverlayLight;
+
+  /// No description provided for @settings_appearance_photoOverlay_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Higher keeps the text readable, lower shows more of the photo'**
+  String get settings_appearance_photoOverlay_subtitle;
 
   /// No description provided for @settings_appearance_mapBackgroundSiteCards.
   ///
@@ -41532,6 +41652,24 @@ abstract class AppLocalizations {
   /// **'Map behind dive cards'**
   String get settings_conflict_field_showMapBackgroundOnDiveCards;
 
+  /// No description provided for @settings_conflict_field_showPhotoBackgroundOnDiveCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo behind dive cards'**
+  String get settings_conflict_field_showPhotoBackgroundOnDiveCards;
+
+  /// No description provided for @settings_conflict_field_cardPhotoOverlayDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive card photo overlay (dark theme)'**
+  String get settings_conflict_field_cardPhotoOverlayDark;
+
+  /// No description provided for @settings_conflict_field_cardPhotoOverlayLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive card photo overlay (light theme)'**
+  String get settings_conflict_field_cardPhotoOverlayLight;
+
   /// No description provided for @settings_conflict_field_showMapBackgroundOnSiteCards.
   ///
   /// In en, this message translates to:
@@ -44069,6 +44207,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Last backup did not reach the cloud'**
   String get dataHealth_backup_cloudCopyMissing;
+
+  /// No description provided for @dataHealth_backup_extraCopyMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Last backup did not reach every account'**
+  String get dataHealth_backup_extraCopyMissing;
 
   /// No description provided for @dataHealth_backup_noOffDeviceCopy.
   ///
@@ -49149,29 +49293,41 @@ abstract class AppLocalizations {
   /// **'Gas Mix Distribution'**
   String get insights_gas_gasMix_title;
 
-  /// No description provided for @insights_gas_sacByRole_empty.
+  /// No description provided for @insights_gas_roleUse_title.
   ///
   /// In en, this message translates to:
-  /// **'No multi-tank data available'**
-  String get insights_gas_sacByRole_empty;
+  /// **'Consumption by cylinder role'**
+  String get insights_gas_roleUse_title;
 
-  /// No description provided for @insights_gas_sacByRole_error.
+  /// No description provided for @insights_gas_roleUse_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Failed to load consumption by role'**
-  String get insights_gas_sacByRole_error;
+  /// **'Each role over the time it was breathed'**
+  String get insights_gas_roleUse_subtitle;
 
-  /// No description provided for @insights_gas_sacByRole_subtitle.
+  /// No description provided for @insights_gas_roleUse_empty.
   ///
   /// In en, this message translates to:
-  /// **'Average consumption by tank type'**
-  String get insights_gas_sacByRole_subtitle;
+  /// **'No cylinder role rates yet'**
+  String get insights_gas_roleUse_empty;
 
-  /// No description provided for @insights_gas_sacByRole_title.
+  /// No description provided for @insights_gas_roleUse_error.
   ///
   /// In en, this message translates to:
-  /// **'Gas consumption by tank role'**
-  String get insights_gas_sacByRole_title;
+  /// **'Failed to load consumption by cylinder role'**
+  String get insights_gas_roleUse_error;
+
+  /// No description provided for @insights_gas_roleGroup_bottomGas.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom gas'**
+  String get insights_gas_roleGroup_bottomGas;
+
+  /// No description provided for @insights_gas_roleUse_leftOut.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} dive is left out: a stage, deco, pony or bailout cylinder lost gas with no gas switch onto it} other{{count} dives are left out: a stage, deco, pony or bailout cylinder lost gas with no gas switch onto it}}'**
+  String insights_gas_roleUse_leftOut(int count);
 
   /// No description provided for @insights_gas_ccrUse_title.
   ///
@@ -50094,12 +50250,6 @@ abstract class AppLocalizations {
   /// **'Trimix'**
   String get insights_focus_gas_trimix;
 
-  /// No description provided for @insights_gas_tankRole_backGas.
-  ///
-  /// In en, this message translates to:
-  /// **'Back Gas'**
-  String get insights_gas_tankRole_backGas;
-
   /// No description provided for @insights_gas_tankRole_bailout.
   ///
   /// In en, this message translates to:
@@ -50118,41 +50268,17 @@ abstract class AppLocalizations {
   /// **'Diluent'**
   String get insights_gas_tankRole_diluent;
 
-  /// No description provided for @insights_gas_tankRole_oxygenSupply.
-  ///
-  /// In en, this message translates to:
-  /// **'O₂ Supply'**
-  String get insights_gas_tankRole_oxygenSupply;
-
   /// No description provided for @insights_gas_tankRole_pony.
   ///
   /// In en, this message translates to:
   /// **'Pony'**
   String get insights_gas_tankRole_pony;
 
-  /// No description provided for @insights_gas_tankRole_sidemountLeft.
-  ///
-  /// In en, this message translates to:
-  /// **'Sidemount L'**
-  String get insights_gas_tankRole_sidemountLeft;
-
-  /// No description provided for @insights_gas_tankRole_sidemountRight.
-  ///
-  /// In en, this message translates to:
-  /// **'Sidemount R'**
-  String get insights_gas_tankRole_sidemountRight;
-
   /// No description provided for @insights_gas_tankRole_stage.
   ///
   /// In en, this message translates to:
   /// **'Stage'**
   String get insights_gas_tankRole_stage;
-
-  /// No description provided for @insights_gas_tankRole_twinSet.
-  ///
-  /// In en, this message translates to:
-  /// **'Twin Set'**
-  String get insights_gas_tankRole_twinSet;
 
   /// No description provided for @insights_geographic_appBar_title.
   ///
@@ -60402,6 +60528,12 @@ abstract class AppLocalizations {
   /// **'None of the selected dives have stored raw data to re-parse.'**
   String get reparseBatch_noneWithRawData;
 
+  /// Selection bar action that fetches conditions for the checked dives (issue #4329)
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch Conditions'**
+  String get diveLog_selection_tooltip_fetchConditions;
+
   /// Bulk re-parse (issue #224)
   ///
   /// In en, this message translates to:
@@ -63194,6 +63326,12 @@ abstract class AppLocalizations {
   /// **'Valve'**
   String get attrLabel_valve_type;
 
+  /// No description provided for @attrLabel_cylinder_use.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder use'**
+  String get attrLabel_cylinder_use;
+
   /// No description provided for @attrLabel_tank_identifier.
   ///
   /// In en, this message translates to:
@@ -63907,6 +64045,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Convertible'**
   String get attrChoice_valve_type_convertible;
+
+  /// No description provided for @attrChoice_cylinder_use_breathing_gas.
+  ///
+  /// In en, this message translates to:
+  /// **'Breathing gas'**
+  String get attrChoice_cylinder_use_breathing_gas;
+
+  /// No description provided for @attrChoice_cylinder_use_suit_inflation.
+  ///
+  /// In en, this message translates to:
+  /// **'Suit inflation'**
+  String get attrChoice_cylinder_use_suit_inflation;
 
   /// No description provided for @attrChoice_connection_din.
   ///
@@ -67200,6 +67350,12 @@ abstract class AppLocalizations {
   /// **'Wrong cylinder'**
   String get dataQuality_detector_tank_assignment;
 
+  /// No description provided for @dataQuality_detector_missing_gas_switch.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing gas switch'**
+  String get dataQuality_detector_missing_gas_switch;
+
   /// No description provided for @dataQuality_detector_source_conflict.
   ///
   /// In en, this message translates to:
@@ -67241,6 +67397,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Overlaps another dive by {minutes} min'**
   String dataQuality_msg_clock_overlap(int minutes);
+
+  /// A consolidated source's samples sit this far along the timeline from where its depth trace fits the primary's.
+  ///
+  /// In en, this message translates to:
+  /// **'A source sits {minutes} min from where its profile matches the primary\'s'**
+  String dataQuality_msg_clock_profileFit(int minutes);
 
   /// Data quality finding: the same item is on two different profiles' dives at the same time (issue #2853).
   ///
@@ -67398,6 +67560,61 @@ abstract class AppLocalizations {
   /// **'This tank lost {drop} while the gas timeline says it was not in use'**
   String dataQuality_msg_tankInactive(String drop);
 
+  /// Missing gas switch finding: {switches} is a list of {count} dataQuality_msg_missingSwitchItem entries.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{No gas switch was recorded, but the cylinder pressures show this switch: {switches}.} other{No gas switch was recorded, but the cylinder pressures show these switches: {switches}.}}'**
+  String dataQuality_msg_missingSwitches(int count, String switches);
+
+  /// One switch in dataQuality_msg_missingSwitches; {time} is minutes:seconds from the start of the dive.
+  ///
+  /// In en, this message translates to:
+  /// **'cylinder {tankNumber} ({gas}) at {time}, {depth}'**
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  );
+
+  /// Joins the switches listed in dataQuality_msg_missingSwitches.
+  ///
+  /// In en, this message translates to:
+  /// **'; '**
+  String get dataQuality_msg_missingSwitchSeparator;
+
+  /// Missing gas switch finding when no switch can be offered: the pressures show the diver changing to cylinder {tankNumber} at {depth}, deeper than {mod}, the maximum operating depth (MOD) of its gas {gas}. The change is read from that cylinder starting to lose pressure, or from the other cylinder being left, so it may have no readings of its own.
+  ///
+  /// In en, this message translates to:
+  /// **'No gas switch was recorded. The cylinder pressures show a change to cylinder {tankNumber} ({gas}) at {depth}, deeper than its MOD of {mod}, so no switch to it is suggested.'**
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  );
+
+  /// A further sentence of the missing gas switch finding, after its switches or an earlier change: the pressures also show the diver changing to cylinder {tankNumber} at {depth}, deeper than {mod}, the maximum operating depth (MOD) of its gas {gas}.
+  ///
+  /// In en, this message translates to:
+  /// **'The cylinder pressures also show a change to cylinder {tankNumber} ({gas}) at {depth}, deeper than its MOD of {mod}, so no switch to it is suggested.'**
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  );
+
+  /// Missing gas switch finding on a dive with more than two cylinders: cylinder {tankNumber} started being breathed again at {time} (minutes:seconds from the start of the dive) after a pause, so another cylinder was breathed in between and no switch is suggested.
+  ///
+  /// In en, this message translates to:
+  /// **'No gas switch was recorded. Cylinder {tankNumber} ({gas}) was breathed again from {time} after a pause, so another cylinder was breathed in between, and with more than two cylinders the pressures cannot show which. Add the switches in the dive editor.'**
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  );
+
   /// No description provided for @dataQuality_detector_transmitter_role.
   ///
   /// In en, this message translates to:
@@ -67482,6 +67699,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Also fix this computer on other dives with the same offset'**
   String get dataQuality_repairLabel_fixSourceClockAll;
+
+  /// No description provided for @dataQuality_repairLabel_alignSourceProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Line up this computer by its profile'**
+  String get dataQuality_repairLabel_alignSourceProfile;
+
+  /// Repair button naming the computer whose samples are lined up with the primary by profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Line up {computer} by its profile'**
+  String dataQuality_repairLabel_alignSourceProfileNamed(String computer);
 
   /// No description provided for @dataQuality_repairLabel_consolidate.
   ///
@@ -67674,6 +67903,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Move series to another tank'**
   String get dataQuality_repairLabel_reassignSeries;
+
+  /// Repair button that writes the suggested gas switches to the dive.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Add gas switch} other{Add {count} gas switches}}'**
+  String dataQuality_repairLabel_addGasSwitches(int count);
 
   /// No description provided for @dataQuality_repairLabel_setPrimary.
   ///
@@ -85163,6 +85398,18 @@ abstract class AppLocalizations {
   /// **'A small glyph showing where each item is served from. Problem badges always show.'**
   String get settings_media_provenanceBadgesSubtitle;
 
+  /// No description provided for @settings_media_tagBadges.
+  ///
+  /// In en, this message translates to:
+  /// **'Show tag badges on thumbnails'**
+  String get settings_media_tagBadges;
+
+  /// No description provided for @settings_media_tagBadgesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Small icons for photos with people tagged, species tagged, or a time in the dive.'**
+  String get settings_media_tagBadgesSubtitle;
+
   /// No description provided for @settings_media_autoColorCorrection.
   ///
   /// In en, this message translates to:
@@ -85252,6 +85499,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not backed up'**
   String get media_status_notBackedUp;
+
+  /// No description provided for @media_tileMarker_people.
+  ///
+  /// In en, this message translates to:
+  /// **'People tagged'**
+  String get media_tileMarker_people;
+
+  /// No description provided for @media_tileMarker_species.
+  ///
+  /// In en, this message translates to:
+  /// **'Species tagged'**
+  String get media_tileMarker_species;
+
+  /// No description provided for @media_tileMarker_timeInDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Placed on the dive profile'**
+  String get media_tileMarker_timeInDive;
 
   /// No description provided for @media_tile_infoMenuItem.
   ///
@@ -88020,7 +88285,7 @@ abstract class AppLocalizations {
   /// No description provided for @transmitters_apply_content.
   ///
   /// In en, this message translates to:
-  /// **'{tanks} cylinders on {dives} dives carry this transmitter. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas or read from the transmitter\'s name will be replaced.'**
+  /// **'{tanks} cylinders on {dives} dives carrying this transmitter need its setup. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas or read from the transmitter\'s name will be replaced.'**
   String transmitters_apply_content(int tanks, int dives);
 
   /// No description provided for @transmitters_apply_done.
@@ -88029,11 +88294,53 @@ abstract class AppLocalizations {
   /// **'Updated {tanks} cylinders on {dives} dives'**
   String transmitters_apply_done(int tanks, int dives);
 
-  /// No description provided for @transmitters_apply_nothing.
+  /// No description provided for @transmitters_apply_slot_label.
   ///
   /// In en, this message translates to:
-  /// **'No cylinders carry this transmitter'**
-  String get transmitters_apply_nothing;
+  /// **'Slot on {computer}'**
+  String transmitters_apply_slot_label(String computer);
+
+  /// No description provided for @transmitters_apply_slot_none.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t match by slot'**
+  String get transmitters_apply_slot_none;
+
+  /// No description provided for @transmitters_apply_slot_option.
+  ///
+  /// In en, this message translates to:
+  /// **'T{slot}: {dives, plural, one{{dives} dive} other{{dives} dives}}'**
+  String transmitters_apply_slot_option(int slot, int dives);
+
+  /// No description provided for @transmitters_apply_slot_reading.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading imported files'**
+  String get transmitters_apply_slot_reading;
+
+  /// No description provided for @transmitters_apply_slot_intro.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinders imported from a file carry no serial. They can be filled by the slot this transmitter sat in on the dive computer.'**
+  String get transmitters_apply_slot_intro;
+
+  /// No description provided for @transmitters_apply_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives filled by serial: {serialDives}, by slot: {slotDives}'**
+  String transmitters_apply_summary(int serialDives, int slotDives);
+
+  /// No description provided for @transmitters_apply_nothing_to_fill.
+  ///
+  /// In en, this message translates to:
+  /// **'No cylinder needs this transmitter\'s setup'**
+  String get transmitters_apply_nothing_to_fill;
+
+  /// No description provided for @transmitters_apply_slot_read_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'The imported files could not be read, so cylinders cannot be matched by slot'**
+  String get transmitters_apply_slot_read_failed;
 
   /// No description provided for @transmitters_channel.
   ///
@@ -92064,6 +92371,12 @@ abstract class AppLocalizations {
   /// **'(empty)'**
   String get rules_value_empty;
 
+  /// A gear item in a rule change list with the equipment set it came through, shown when only its set changed
+  ///
+  /// In en, this message translates to:
+  /// **'{item} ({set})'**
+  String rules_value_gearViaSet(String item, String set);
+
   /// Lower-case collection name in an action summary
   ///
   /// In en, this message translates to:
@@ -92093,6 +92406,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'courses'**
   String get rules_collection_courses;
+
+  /// Lower-case collection name in an action summary
+  ///
+  /// In en, this message translates to:
+  /// **'equipment sets'**
+  String get rules_collection_equipmentSets;
 
   /// Lower-case collection name in an action summary
   ///
@@ -93343,6 +93662,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The copy\'s account was removed'**
   String get settings_backups_copyAccountGone;
+
+  /// Backups page: an extra account each backup is also copied to, beside the main copy
+  ///
+  /// In en, this message translates to:
+  /// **'Also copy to {account}'**
+  String settings_backups_alsoCopyTo(String account);
+
+  /// Backups page: adds an extra account each backup is also copied to
+  ///
+  /// In en, this message translates to:
+  /// **'Copy to another account too'**
+  String get settings_backups_addCopyAccount;
+
+  /// Subtitle of an Also copy to row when the most recent backup's copy to that account failed
+  ///
+  /// In en, this message translates to:
+  /// **'The last backup did not reach this account'**
+  String get settings_backups_extraCopyMissed;
 
   /// Switch: run backups on a schedule
   ///

@@ -33,13 +33,17 @@ class PreparedBackupFile {
   final bool isTemp;
 
   Future<void> discard() async {
-    if (!isTemp) return;
-    try {
-      final file = File(path);
-      if (await file.exists()) await file.delete();
-    } catch (_) {
-      // best-effort temp cleanup
-    }
+    if (isTemp) await _deleteTempQuietly(path);
+  }
+}
+
+/// Deletes the temp file at [path] if it is there; a failure is ignored.
+Future<void> _deleteTempQuietly(String path) async {
+  try {
+    final file = File(path);
+    if (await file.exists()) await file.delete();
+  } catch (_) {
+    // best-effort temp cleanup
   }
 }
 
@@ -55,6 +59,9 @@ extension _CopyOut on BackupService {
   Future<PreparedBackupFile> _resolveBackupSource(BackupRecord record) async {
     final localRef = record.localPath;
     bool? cloudHere;
+    // The SAF read's own failure, kept as the true cause when no other copy
+    // can be fetched either.
+    (Object, StackTrace)? safFailure;
     if (localRef != null && isSafRef(localRef)) {
       try {
         if (await _safPort.exists(localRef)) {
@@ -70,7 +77,8 @@ extension _CopyOut on BackupService {
         // cleaned up. With no cloud copy to fall back to, this error, not
         // "not found", is the true cause.
         cloudHere = await _cloudCopyHere(record);
-        if (!cloudHere) rethrow;
+        if (!cloudHere && !await _extraCopyReachable(record)) rethrow;
+        safFailure = (e, stack);
         _log.warning(
           'Reading the backup document failed, trying the cloud copy',
           error: e,
@@ -88,10 +96,22 @@ extension _CopyOut on BackupService {
         throw const BackupException('No cloud provider available for download');
       }
       _log.info('Downloading backup from cloud');
-      return _fetchToTemp(
-        record,
-        (dest) => provider.downloadToFile(record.cloudFileId!, dest),
-      );
+      try {
+        return await _fetchToTemp(
+          record,
+          (dest) => provider.downloadToFile(record.cloudFileId!, dest),
+        );
+      } catch (_) {
+        // The same backup may still be in another account (issue #3782).
+        final extra = await _fetchFromExtra(record);
+        if (extra != null) return extra;
+        rethrow;
+      }
+    }
+    final extra = await _fetchFromExtra(record);
+    if (extra != null) return extra;
+    if (safFailure case (final error, final stack)) {
+      Error.throwWithStackTrace(error, stack);
     }
     if (record.cloudFileId != null && record.cloudAccountId != null) {
       throw BackupCopyInOtherAccountException(record.cloudAccountId!);

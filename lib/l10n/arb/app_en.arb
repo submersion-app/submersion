@@ -790,6 +790,8 @@
   "equipment_setEdit_computerAutoApplySwitch_subtitle": "If this set includes a dive computer, auto-add the whole set to a dive downloaded or imported from it",
   "equipment_setEdit_figureSwitch_subtitle": "Draw this set's gear on a diver",
   "equipment_setEdit_figureSwitch_title": "Show diver figure",
+  "equipment_setEdit_historyAsk": "Apply the changes to those dives as well, or only from now on?",
+  "equipment_setEdit_historyOnDives": "{count, plural, =1{This set is on 1 logged dive.} other{This set is on {count} logged dives.}}",
   "equipment_color_red": "Red",
   "equipment_color_orange": "Orange",
   "equipment_color_amber": "Amber",
@@ -4456,6 +4458,7 @@
   "diveLog_consolidate_alignStartsShort": "Starts",
   "diveLog_consolidate_alignmentLabel": "Line up the records by",
   "diveLog_consolidate_clockNote": "These records don't overlap in time, so one computer's clock is probably off. The dive keeps the primary computer's time.",
+  "diveLog_consolidate_clockNoteOverlap": "These depth profiles match at a different time than the computers' clocks say, so one computer's clock is probably off. The dive keeps the primary computer's time.",
   "diveLog_consolidate_clockNoteShort": "One computer's clock is probably off.",
   "diveLog_consolidate_confirm": "Keep as one dive with both computers",
   "diveLog_consolidate_error_generic": "Couldn't merge the dives. Nothing was changed.",
@@ -4836,6 +4839,15 @@
       }
     }
   },
+  "diveLog_edit_gasSwitches_fillDetected": "{count, plural, one{Fill in 1 switch from the cylinder pressures} other{Fill in {count} switches from the cylinder pressures}}",
+  "@diveLog_edit_gasSwitches_fillDetected": {
+    "description": "Gas switch editor: action that adds the switches the recorded cylinder pressures show, and re-points a starting switch on the same gas to the cylinder breathed first. count is how many rows it adds or changes",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_edit_gettingLocation": "Getting location...",
   "diveLog_edit_group_buddies": "Buddies",
   "@diveLog_edit_group_buddies": {
@@ -5194,6 +5206,14 @@
   "diveLog_edit_tripSuggested": "Suggested: {name}",
   "diveLog_edit_tripUse": "Use",
   "diveLog_edit_useSet": "Use Set",
+  "diveLog_edit_removeSet": "Remove Set",
+  "@diveLog_edit_removeSet": {"description": "Bulk edit: button that stages an equipment set to remove from every selected dive"},
+  "diveLog_bulkEdit_setsToRemove": "Sets to remove",
+  "@diveLog_bulkEdit_setsToRemove": {"description": "Bulk edit: heading over the equipment sets staged for removal"},
+  "diveLog_bulkEdit_removeSetTitle": "Remove Equipment Set",
+  "@diveLog_bulkEdit_removeSetTitle": {"description": "Bulk edit: title of the sheet that picks an equipment set to remove from every selected dive"},
+  "diveLog_bulkEdit_equipmentSets": "Equipment sets",
+  "@diveLog_bulkEdit_equipmentSets": {"description": "Bulk edit confirmation: section title for equipment sets"},
   "diveLog_edit_weightPreset_use": "Use preset",
   "diveLog_edit_weightPreset_save": "Save as preset",
   "diveLog_edit_weightPreset_pickerTitle": "Apply a weight preset",
@@ -5346,6 +5366,7 @@
   "diveLog_legend_label_depth": "Depth",
   "diveLog_legend_label_events": "Events",
   "diveLog_legend_label_annotations": "Annotations",
+  "diveLog_legend_label_plan": "Plan",
   "diveLog_legend_label_computedEvents": "Computed events",
   "diveLog_legend_label_gasDensity": "Gas Density",
   "diveLog_legend_label_lateGasSwitches": "Late gas switches",
@@ -5472,6 +5493,14 @@
       }
     }
   },
+  "diveLog_fetchConditions_confirmBodySelected": "{count, plural, =1{{count} of {total} selected dives is missing conditions.} other{{count} of {total} selected dives are missing conditions.}} Only empty fields are filled, so nothing you have already entered will change.",
+  "@diveLog_fetchConditions_confirmBodySelected": {"description": "Confirm text for fetching conditions on selected dives (issue #4329): how many of the checked dives can be filled", "placeholders": {"count": {"type": "int"}, "total": {"type": "int"}}},
+  "diveLog_fetchConditions_skippedNoLocation": "{count, plural, =1{{count} dive has no site location or GPS fix and will be skipped.} other{{count} dives have no site location or GPS fix and will be skipped.}}",
+  "@diveLog_fetchConditions_skippedNoLocation": {"description": "Added to the confirm text when some checked dives have no location to fetch conditions for (issue #4329)", "placeholders": {"count": {"type": "int"}}},
+  "diveLog_fetchConditions_noneNeededSelected": "None of the selected dives are missing conditions.",
+  "@diveLog_fetchConditions_noneNeededSelected": {"description": "Snackbar when no checked dive is missing conditions (issue #4329)"},
+  "diveLog_fetchConditions_noneLocatedSelected": "The selected dives that are missing conditions have no site location or GPS fix.",
+  "@diveLog_fetchConditions_noneLocatedSelected": {"description": "Snackbar when the checked dives missing conditions all lack a location (issue #4329)"},
   "diveLog_fetchConditions_summaryCancelled": "{count, plural, =1{Stopped early; 1 dive was processed.} other{Stopped early; {count} dives were processed.}}",
   "@diveLog_fetchConditions_summaryCancelled": {
     "placeholders": {
@@ -8496,6 +8525,7 @@
   "enum_tankRole_sidemountLeft": "Sidemount Left",
   "enum_tankRole_sidemountRight": "Sidemount Right",
   "enum_tankRole_stage": "Stage",
+  "enum_tankRole_suitInflation": "Suit Inflation",
   "enum_tankRole_twinSet": "Twin Set",
   "enum_tideState_rising": "Rising",
   "enum_tideState_falling": "Falling",
@@ -12155,6 +12185,10 @@
   "media_photoViewer_shareTooltip": "Share photo",
   "media_photoViewer_toggleOverlayLabel": "Toggle photo overlay",
   "media_photoViewer_videoFileNotFound": "Video file not found",
+  "media_photoViewer_videoNeedsNormalWindow": "Playing this video needs a normal browser window. Private windows cannot stream from Google Drive or WebDAV.",
+  "@media_photoViewer_videoNeedsNormalWindow": {
+    "description": "Media viewer, in a browser with no service workers (a private window): a Google Drive or WebDAV video cannot stream."
+  },
   "media_photoViewer_videoNotLinked": "Video not linked to library",
   "media_photoViewer_writeDiveDataTooltip": "Write dive data to photo",
   "media_quickSiteDialog_cancelButton": "Cancel",
@@ -14143,6 +14177,11 @@
   "theme_deep": "Deep",
   "settings_appearance_mapBackgroundDiveCards": "Map background on dive cards",
   "settings_appearance_mapBackgroundDiveCards_subtitleWithNote": "Show dive site map as background on dive cards (requires site location)",
+  "settings_appearance_photoBackgroundDiveCards": "Photo background on dive cards",
+  "settings_appearance_photoBackgroundDiveCards_subtitle": "Show one of the dive's photos as background on dive cards (falls back to the map or colour when a dive has no photos)",
+  "settings_appearance_photoOverlayDark": "Photo overlay opacity, dark theme",
+  "settings_appearance_photoOverlayLight": "Photo overlay opacity, light theme",
+  "settings_appearance_photoOverlay_subtitle": "Higher keeps the text readable, lower shows more of the photo",
   "settings_appearance_mapBackgroundSiteCards": "Map background on site cards",
   "settings_appearance_mapBackgroundSiteCards_subtitleWithNote": "Show map as background on dive site cards (requires site location)",
   "settings_appearance_maxDepthMarker": "Max depth marker",
@@ -15436,6 +15475,9 @@
   "settings_conflict_field_showInDetailHeader": "Shown in the dive header",
   "settings_conflict_field_showInListView": "Shown in the dive list",
   "settings_conflict_field_showMapBackgroundOnDiveCards": "Map behind dive cards",
+  "settings_conflict_field_showPhotoBackgroundOnDiveCards": "Photo behind dive cards",
+  "settings_conflict_field_cardPhotoOverlayDark": "Dive card photo overlay (dark theme)",
+  "settings_conflict_field_cardPhotoOverlayLight": "Dive card photo overlay (light theme)",
   "settings_conflict_field_showMapBackgroundOnSiteCards": "Map behind site cards",
   "settings_conflict_field_showMaxDepthMarker": "Profile shows maximum depth",
   "settings_conflict_field_showNdlOnProfile": "Profile shows NDL",
@@ -16012,6 +16054,7 @@
   "@dataHealth_backup_overdue": {"placeholders": {"when": {"type": "String"}}},
   "dataHealth_backup_never": "No backup yet",
   "dataHealth_backup_cloudCopyMissing": "Last backup did not reach the cloud",
+  "dataHealth_backup_extraCopyMissing": "Last backup did not reach every account",
   "dataHealth_backup_noOffDeviceCopy": "No copy off this device",
   "dataHealth_sync_off": "Recommended: turn on cloud sync",
   "dataHealth_sync_needsPassphrase": "Sync paused: enter your passphrase",
@@ -17688,10 +17731,17 @@
   "insights_gas_gasMix_error": "Failed to load gas mix data",
   "insights_gas_gasMix_subtitle": "Dives by gas type",
   "insights_gas_gasMix_title": "Gas Mix Distribution",
-  "insights_gas_sacByRole_empty": "No multi-tank data available",
-  "insights_gas_sacByRole_error": "Failed to load consumption by role",
-  "insights_gas_sacByRole_subtitle": "Average consumption by tank type",
-  "insights_gas_sacByRole_title": "Gas consumption by tank role",
+  "insights_gas_roleUse_title": "Consumption by cylinder role",
+  "insights_gas_roleUse_subtitle": "Each role over the time it was breathed",
+  "insights_gas_roleUse_empty": "No cylinder role rates yet",
+  "insights_gas_roleUse_error": "Failed to load consumption by cylinder role",
+  "insights_gas_roleGroup_bottomGas": "Bottom gas",
+  "insights_gas_roleUse_leftOut": "{count, plural, =1{{count} dive is left out: a stage, deco, pony or bailout cylinder lost gas with no gas switch onto it} other{{count} dives are left out: a stage, deco, pony or bailout cylinder lost gas with no gas switch onto it}}",
+  "@insights_gas_roleUse_leftOut": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "insights_gas_ccrUse_title": "Rebreather gas use",
   "insights_gas_ccrUse_subtitle": "Per minute on the loop, leaving out bailout time",
   "insights_gas_ccrUse_o2Average": "O₂ average",
@@ -17993,16 +18043,11 @@
   "insights_focus_gas_air": "Air",
   "insights_focus_gas_nitrox": "Nitrox",
   "insights_focus_gas_trimix": "Trimix",
-  "insights_gas_tankRole_backGas": "Back Gas",
   "insights_gas_tankRole_bailout": "Bailout",
   "insights_gas_tankRole_deco": "Deco",
   "insights_gas_tankRole_diluent": "Diluent",
-  "insights_gas_tankRole_oxygenSupply": "O₂ Supply",
   "insights_gas_tankRole_pony": "Pony",
-  "insights_gas_tankRole_sidemountLeft": "Sidemount L",
-  "insights_gas_tankRole_sidemountRight": "Sidemount R",
   "insights_gas_tankRole_stage": "Stage",
-  "insights_gas_tankRole_twinSet": "Twin Set",
   "insights_geographic_appBar_title": "Geographic",
   "insights_geographic_countries_empty": "No countries visited",
   "insights_geographic_countries_error": "Failed to load country data",
@@ -22948,6 +22993,8 @@
   "@reparseBatch_confirmSkipped": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
   "reparseBatch_noneWithRawData": "None of the selected dives have stored raw data to re-parse.",
   "@reparseBatch_noneWithRawData": {"description": "Bulk re-parse (issue #224)"},
+  "diveLog_selection_tooltip_fetchConditions": "Fetch Conditions",
+  "@diveLog_selection_tooltip_fetchConditions": {"description": "Selection bar action that fetches conditions for the checked dives (issue #4329)"},
   "diveLog_selection_tooltip_reparse": "Re-parse",
   "@diveLog_selection_tooltip_reparse": {"description": "Bulk re-parse (issue #224)"},
   "settings_reparseDives_title": "Re-parse dives",
@@ -24438,6 +24485,7 @@
   "attrLabel_working_pressure_bar": "Working pressure",
   "attrLabel_tank_material": "Material",
   "attrLabel_valve_type": "Valve",
+  "attrLabel_cylinder_use": "Cylinder use",
   "attrLabel_tank_identifier": "Identifier",
   "attrLabel_last_visual_inspection": "Last visual inspection",
   "attrLabel_last_hydro_test": "Last hydrostatic test",
@@ -24557,6 +24605,8 @@
   "attrChoice_valve_type_din": "DIN",
   "attrChoice_valve_type_yoke": "Yoke (INT)",
   "attrChoice_valve_type_convertible": "Convertible",
+  "attrChoice_cylinder_use_breathing_gas": "Breathing gas",
+  "attrChoice_cylinder_use_suit_inflation": "Suit inflation",
   "attrChoice_connection_din": "DIN",
   "attrChoice_connection_yoke": "Yoke (INT)",
   "attrChoice_hose_type_lp": "LP (low pressure)",
@@ -25805,6 +25855,7 @@
   "dataQuality_detector_pressure_anomaly": "Pressure anomaly",
   "dataQuality_detector_gas_mod": "Gas/MOD inconsistency",
   "dataQuality_detector_tank_assignment": "Wrong cylinder",
+  "dataQuality_detector_missing_gas_switch": "Missing gas switch",
   "dataQuality_detector_source_conflict": "Conflicting sources",
   "dataQuality_detector_shared_gear_overlap": "Shared gear on overlapping dives",
   "dataQuality_msg_clock_future": "Dive is dated in the future ({date})",
@@ -25843,6 +25894,15 @@
   },
   "dataQuality_msg_clock_overlap": "Overlaps another dive by {minutes} min",
   "@dataQuality_msg_clock_overlap": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_msg_clock_profileFit": "A source sits {minutes} min from where its profile matches the primary's",
+  "@dataQuality_msg_clock_profileFit": {
+    "description": "A consolidated source's samples sit this far along the timeline from where its depth trace fits the primary's.",
     "placeholders": {
       "minutes": {
         "type": "int"
@@ -26090,6 +26150,91 @@
       }
     }
   },
+  "dataQuality_msg_missingSwitches": "{count, plural, one{No gas switch was recorded, but the cylinder pressures show this switch: {switches}.} other{No gas switch was recorded, but the cylinder pressures show these switches: {switches}.}}",
+  "@dataQuality_msg_missingSwitches": {
+    "description": "Missing gas switch finding: {switches} is a list of {count} dataQuality_msg_missingSwitchItem entries.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "switches": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_missingSwitchItem": "cylinder {tankNumber} ({gas}) at {time}, {depth}",
+  "@dataQuality_msg_missingSwitchItem": {
+    "description": "One switch in dataQuality_msg_missingSwitches; {time} is minutes:seconds from the start of the dive.",
+    "placeholders": {
+      "tankNumber": {
+        "type": "int"
+      },
+      "gas": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_missingSwitchSeparator": "; ",
+  "@dataQuality_msg_missingSwitchSeparator": {
+    "description": "Joins the switches listed in dataQuality_msg_missingSwitches."
+  },
+  "dataQuality_msg_missingSwitchDeep": "No gas switch was recorded. The cylinder pressures show a change to cylinder {tankNumber} ({gas}) at {depth}, deeper than its MOD of {mod}, so no switch to it is suggested.",
+  "@dataQuality_msg_missingSwitchDeep": {
+    "description": "Missing gas switch finding when no switch can be offered: the pressures show the diver changing to cylinder {tankNumber} at {depth}, deeper than {mod}, the maximum operating depth (MOD) of its gas {gas}. The change is read from that cylinder starting to lose pressure, or from the other cylinder being left, so it may have no readings of its own.",
+    "placeholders": {
+      "tankNumber": {
+        "type": "int"
+      },
+      "gas": {
+        "type": "String"
+      },
+      "depth": {
+        "type": "String"
+      },
+      "mod": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_missingSwitchDeepAlso": "The cylinder pressures also show a change to cylinder {tankNumber} ({gas}) at {depth}, deeper than its MOD of {mod}, so no switch to it is suggested.",
+  "@dataQuality_msg_missingSwitchDeepAlso": {
+    "description": "A further sentence of the missing gas switch finding, after its switches or an earlier change: the pressures also show the diver changing to cylinder {tankNumber} at {depth}, deeper than {mod}, the maximum operating depth (MOD) of its gas {gas}.",
+    "placeholders": {
+      "tankNumber": {
+        "type": "int"
+      },
+      "gas": {
+        "type": "String"
+      },
+      "depth": {
+        "type": "String"
+      },
+      "mod": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_missingSwitchUnplaced": "No gas switch was recorded. Cylinder {tankNumber} ({gas}) was breathed again from {time} after a pause, so another cylinder was breathed in between, and with more than two cylinders the pressures cannot show which. Add the switches in the dive editor.",
+  "@dataQuality_msg_missingSwitchUnplaced": {
+    "description": "Missing gas switch finding on a dive with more than two cylinders: cylinder {tankNumber} started being breathed again at {time} (minutes:seconds from the start of the dive) after a pause, so another cylinder was breathed in between and no switch is suggested.",
+    "placeholders": {
+      "tankNumber": {
+        "type": "int"
+      },
+      "gas": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "dataQuality_detector_transmitter_role": "Transmitter role",
   "dataQuality_msg_transmitterRoleBailout": "Tank {tankNumber} is marked {role} from its transmitter's name, but it lost {ocDrop} after the switch to open circuit and almost none on the loop, so it looks like the bailout. A bailout that was never breathed, or one breathed without a gas switch on the computer, cannot be detected this way.",
   "@dataQuality_msg_transmitterRoleBailout": {
@@ -26178,6 +26323,16 @@
     }
   },
   "dataQuality_repairLabel_fixSourceClockAll": "Also fix this computer on other dives with the same offset",
+  "dataQuality_repairLabel_alignSourceProfile": "Line up this computer by its profile",
+  "dataQuality_repairLabel_alignSourceProfileNamed": "Line up {computer} by its profile",
+  "@dataQuality_repairLabel_alignSourceProfileNamed": {
+    "description": "Repair button naming the computer whose samples are lined up with the primary by profile.",
+    "placeholders": {
+      "computer": {
+        "type": "String"
+      }
+    }
+  },
   "dataQuality_repairLabel_consolidate": "Consolidate",
   "dataQuality_repairLabel_deleteDuplicate": "Delete duplicate",
   "@dataQuality_repairLabel_deleteDuplicate": {
@@ -26317,6 +26472,15 @@
   "dataQuality_repairLabel_setFromSeries": "Use sensor values",
   "dataQuality_repairLabel_swapSeries": "Swap tank series",
   "dataQuality_repairLabel_reassignSeries": "Move series to another tank",
+  "dataQuality_repairLabel_addGasSwitches": "{count, plural, one{Add gas switch} other{Add {count} gas switches}}",
+  "@dataQuality_repairLabel_addGasSwitches": {
+    "description": "Repair button that writes the suggested gas switches to the dive.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "dataQuality_repairLabel_setPrimary": "Make this source primary",
   "dataQuality_repairLabel_split": "Split into separate dives",
   "dataQuality_repairLabel_setPrimaryNamed": "Make {source} the primary source",
@@ -31873,6 +32037,8 @@
   "media_servedFrom_embedded": "Stored in this logbook",
   "settings_media_provenanceBadges": "Show source badges on thumbnails",
   "settings_media_provenanceBadgesSubtitle": "A small glyph showing where each item is served from. Problem badges always show.",
+  "settings_media_tagBadges": "Show tag badges on thumbnails",
+  "settings_media_tagBadgesSubtitle": "Small icons for photos with people tagged, species tagged, or a time in the dive.",
   "settings_media_autoColorCorrection": "Automatic color correction",
   "settings_media_autoColorCorrectionSubtitle": "Warms up blue underwater photos and videos on screen, using the depth each was taken at. Your files are never changed.",
   "settings_photosMedia_cacheHeader": "Cache",
@@ -31888,6 +32054,9 @@
   "media_status_queued": "Waiting to upload",
   "media_status_cloudOnly": "Stored in the cloud only",
   "media_status_notBackedUp": "Not backed up",
+  "media_tileMarker_people": "People tagged",
+  "media_tileMarker_species": "Species tagged",
+  "media_tileMarker_timeInDive": "Placed on the dive profile",
   "media_tile_infoMenuItem": "Media info",
   "diveImport_healthkit_accessGrantedHint": "Apple Health never tells apps whether read access was granted. If no dives turn up, open Health, then Sharing, Apps, Submersion, and turn on Workouts, Underwater Depth, Water Temperature, and Heart Rate.",
   "diveImport_healthkit_foundNoDivesHint": "No underwater diving workouts in this range. Check that the dates cover the dive, and that Health, Sharing, Apps, Submersion has Workouts and Underwater Depth turned on.",
@@ -32954,7 +33123,7 @@
   "transmitters_section_setUp": "Set up",
   "transmitters_action_apply": "Apply to existing dives",
   "transmitters_apply_title": "Apply to existing dives?",
-  "transmitters_apply_content": "{tanks} cylinders on {dives} dives carry this transmitter. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas or read from the transmitter's name will be replaced.",
+  "transmitters_apply_content": "{tanks} cylinders on {dives} dives carrying this transmitter need its setup. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas or read from the transmitter's name will be replaced.",
   "@transmitters_apply_content": {
     "placeholders": {
       "tanks": { "type": "int" },
@@ -32968,7 +33137,23 @@
       "dives": { "type": "int" }
     }
   },
-  "transmitters_apply_nothing": "No cylinders carry this transmitter",
+  "transmitters_apply_slot_label": "Slot on {computer}",
+  "@transmitters_apply_slot_label": {
+    "placeholders": { "computer": { "type": "String" } }
+  },
+  "transmitters_apply_slot_none": "Don't match by slot",
+  "transmitters_apply_slot_option": "T{slot}: {dives, plural, one{{dives} dive} other{{dives} dives}}",
+  "@transmitters_apply_slot_option": {
+    "placeholders": { "slot": { "type": "int" }, "dives": { "type": "int" } }
+  },
+  "transmitters_apply_slot_reading": "Reading imported files",
+  "transmitters_apply_slot_intro": "Cylinders imported from a file carry no serial. They can be filled by the slot this transmitter sat in on the dive computer.",
+  "transmitters_apply_summary": "Dives filled by serial: {serialDives}, by slot: {slotDives}",
+  "@transmitters_apply_summary": {
+    "placeholders": { "serialDives": { "type": "int" }, "slotDives": { "type": "int" } }
+  },
+  "transmitters_apply_nothing_to_fill": "No cylinder needs this transmitter's setup",
+  "transmitters_apply_slot_read_failed": "The imported files could not be read, so cylinders cannot be matched by slot",
   "transmitters_channel": "{computer}, channel {channel}",
   "@transmitters_channel": {
     "placeholders": {
@@ -34393,6 +34578,8 @@
   "@rules_value_no": {"description": "Boolean value shown in a rule"},
   "rules_value_empty": "(empty)",
   "@rules_value_empty": {"description": "An empty field value in a change list"},
+  "rules_value_gearViaSet": "{item} ({set})",
+  "@rules_value_gearViaSet": {"description": "A gear item in a rule change list with the equipment set it came through, shown when only its set changed", "placeholders": {"item": {"type": "String"}, "set": {"type": "String"}}},
   "rules_collection_diveTypes": "dive types",
   "@rules_collection_diveTypes": {"description": "Lower-case collection name in an action summary"},
   "rules_collection_tags": "tags",
@@ -34403,6 +34590,8 @@
   "@rules_collection_buddies": {"description": "Lower-case collection name in an action summary"},
   "rules_collection_courses": "courses",
   "@rules_collection_courses": {"description": "Lower-case collection name in an action summary"},
+  "rules_collection_equipmentSets": "equipment sets",
+  "@rules_collection_equipmentSets": {"description": "Lower-case collection name in an action summary"},
   "rules_collection_siteTags": "site tags",
   "@rules_collection_siteTags": {"description": "Lower-case collection name in an action summary"},
   "rules_collection_siteTypes": "site types",
@@ -34815,6 +35004,12 @@
   "@settings_backups_chooseAccount": {"description": "Action on the Copy to row when no account receives the copy"},
   "settings_backups_copyAccountGone": "The copy's account was removed",
   "@settings_backups_copyAccountGone": {"description": "Copy to row when the account chosen for the copy no longer exists"},
+  "settings_backups_alsoCopyTo": "Also copy to {account}",
+  "@settings_backups_alsoCopyTo": {"description": "Backups page: an extra account each backup is also copied to, beside the main copy", "placeholders": {"account": {"type": "String"}}},
+  "settings_backups_addCopyAccount": "Copy to another account too",
+  "@settings_backups_addCopyAccount": {"description": "Backups page: adds an extra account each backup is also copied to"},
+  "settings_backups_extraCopyMissed": "The last backup did not reach this account",
+  "@settings_backups_extraCopyMissed": {"description": "Subtitle of an Also copy to row when the most recent backup's copy to that account failed"},
   "settings_backups_auto": "Back up automatically",
   "@settings_backups_auto": {"description": "Switch: run backups on a schedule"},
   "settings_backups_backUpNow": "Back up now",

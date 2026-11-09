@@ -1413,6 +1413,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_setEdit_figureSwitch_title => 'Show diver figure';
 
   @override
+  String get equipment_setEdit_historyAsk =>
+      'Apply the changes to those dives as well, or only from now on?';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'This set is on $count logged dives.',
+      one: 'This set is on 1 logged dive.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_color_red => 'Red';
 
   @override
@@ -7299,6 +7314,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'These records don\'t overlap in time, so one computer\'s clock is probably off. The dive keeps the primary computer\'s time.';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      'These depth profiles match at a different time than the computers\' clocks say, so one computer\'s clock is probably off. The dive keeps the primary computer\'s time.';
+
+  @override
   String get diveLog_consolidate_clockNoteShort =>
       'One computer\'s clock is probably off.';
 
@@ -8080,6 +8099,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_gasSwitches_fillDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Fill in $count switches from the cylinder pressures',
+      one: 'Fill in 1 switch from the cylinder pressures',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'Getting location...';
 
   @override
@@ -8591,6 +8621,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_edit_useSet => 'Use Set';
 
   @override
+  String get diveLog_edit_removeSet => 'Remove Set';
+
+  @override
+  String get diveLog_bulkEdit_setsToRemove => 'Sets to remove';
+
+  @override
+  String get diveLog_bulkEdit_removeSetTitle => 'Remove Equipment Set';
+
+  @override
+  String get diveLog_bulkEdit_equipmentSets => 'Equipment sets';
+
+  @override
   String get diveLog_edit_weightPreset_use => 'Use preset';
 
   @override
@@ -9041,6 +9083,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_legend_label_annotations => 'Annotations';
 
   @override
+  String get diveLog_legend_label_plan => 'Plan';
+
+  @override
   String get diveLog_legend_label_computedEvents => 'Computed events';
 
   @override
@@ -9298,6 +9343,37 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count of $total selected dives are missing conditions.',
+      one: '$count of $total selected dives is missing conditions.',
+    );
+    return '$_temp0 Only empty fields are filled, so nothing you have already entered will change.';
+  }
+
+  @override
+  String diveLog_fetchConditions_skippedNoLocation(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count dives have no site location or GPS fix and will be skipped.',
+      one: '$count dive has no site location or GPS fix and will be skipped.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_fetchConditions_noneNeededSelected =>
+      'None of the selected dives are missing conditions.';
+
+  @override
+  String get diveLog_fetchConditions_noneLocatedSelected =>
+      'The selected dives that are missing conditions have no site location or GPS fix.';
 
   @override
   String diveLog_fetchConditions_summaryCancelled(int count) {
@@ -14072,6 +14148,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get enum_tankRole_stage => 'Stage';
+
+  @override
+  String get enum_tankRole_suitInflation => 'Suit Inflation';
 
   @override
   String get enum_tankRole_twinSet => 'Twin Set';
@@ -20060,6 +20139,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_photoViewer_videoFileNotFound => 'Video file not found';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      'Playing this video needs a normal browser window. Private windows cannot stream from Google Drive or WebDAV.';
+
+  @override
   String get media_photoViewer_videoNotLinked => 'Video not linked to library';
 
   @override
@@ -22240,6 +22323,26 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_appearance_mapBackgroundDiveCards_subtitleWithNote =>
       'Show dive site map as background on dive cards (requires site location)';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards =>
+      'Photo background on dive cards';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards_subtitle =>
+      'Show one of the dive\'s photos as background on dive cards (falls back to the map or colour when a dive has no photos)';
+
+  @override
+  String get settings_appearance_photoOverlayDark =>
+      'Photo overlay opacity, dark theme';
+
+  @override
+  String get settings_appearance_photoOverlayLight =>
+      'Photo overlay opacity, light theme';
+
+  @override
+  String get settings_appearance_photoOverlay_subtitle =>
+      'Higher keeps the text readable, lower shows more of the photo';
 
   @override
   String get settings_appearance_mapBackgroundSiteCards =>
@@ -25611,6 +25714,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Map behind dive cards';
 
   @override
+  String get settings_conflict_field_showPhotoBackgroundOnDiveCards =>
+      'Photo behind dive cards';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayDark =>
+      'Dive card photo overlay (dark theme)';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayLight =>
+      'Dive card photo overlay (light theme)';
+
+  @override
   String get settings_conflict_field_showMapBackgroundOnSiteCards =>
       'Map behind site cards';
 
@@ -27052,6 +27167,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dataHealth_backup_cloudCopyMissing =>
       'Last backup did not reach the cloud';
+
+  @override
+  String get dataHealth_backup_extraCopyMissing =>
+      'Last backup did not reach every account';
 
   @override
   String get dataHealth_backup_noOffDeviceCopy => 'No copy off this device';
@@ -30180,18 +30299,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insights_gas_gasMix_title => 'Gas Mix Distribution';
 
   @override
-  String get insights_gas_sacByRole_empty => 'No multi-tank data available';
+  String get insights_gas_roleUse_title => 'Consumption by cylinder role';
 
   @override
-  String get insights_gas_sacByRole_error =>
-      'Failed to load consumption by role';
+  String get insights_gas_roleUse_subtitle =>
+      'Each role over the time it was breathed';
 
   @override
-  String get insights_gas_sacByRole_subtitle =>
-      'Average consumption by tank type';
+  String get insights_gas_roleUse_empty => 'No cylinder role rates yet';
 
   @override
-  String get insights_gas_sacByRole_title => 'Gas consumption by tank role';
+  String get insights_gas_roleUse_error =>
+      'Failed to load consumption by cylinder role';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => 'Bottom gas';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count dives are left out: a stage, deco, pony or bailout cylinder lost gas with no gas switch onto it',
+      one:
+          '$count dive is left out: a stage, deco, pony or bailout cylinder lost gas with no gas switch onto it',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => 'Rebreather gas use';
@@ -30797,9 +30932,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insights_focus_gas_trimix => 'Trimix';
 
   @override
-  String get insights_gas_tankRole_backGas => 'Back Gas';
-
-  @override
   String get insights_gas_tankRole_bailout => 'Bailout';
 
   @override
@@ -30809,22 +30941,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insights_gas_tankRole_diluent => 'Diluent';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'O₂ Supply';
-
-  @override
   String get insights_gas_tankRole_pony => 'Pony';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => 'Sidemount L';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => 'Sidemount R';
-
-  @override
   String get insights_gas_tankRole_stage => 'Stage';
-
-  @override
-  String get insights_gas_tankRole_twinSet => 'Twin Set';
 
   @override
   String get insights_geographic_appBar_title => 'Geographic';
@@ -37709,6 +37829,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'None of the selected dives have stored raw data to re-parse.';
 
   @override
+  String get diveLog_selection_tooltip_fetchConditions => 'Fetch Conditions';
+
+  @override
   String get diveLog_selection_tooltip_reparse => 'Re-parse';
 
   @override
@@ -39513,6 +39636,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrLabel_valve_type => 'Valve';
 
   @override
+  String get attrLabel_cylinder_use => 'Cylinder use';
+
+  @override
   String get attrLabel_tank_identifier => 'Identifier';
 
   @override
@@ -39869,6 +39995,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => 'Convertible';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => 'Breathing gas';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => 'Suit inflation';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -41922,6 +42054,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => 'Wrong cylinder';
 
   @override
+  String get dataQuality_detector_missing_gas_switch => 'Missing gas switch';
+
+  @override
   String get dataQuality_detector_source_conflict => 'Conflicting sources';
 
   @override
@@ -41963,6 +42098,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String dataQuality_msg_clock_overlap(int minutes) {
     return 'Overlaps another dive by $minutes min';
+  }
+
+  @override
+  String dataQuality_msg_clock_profileFit(int minutes) {
+    return 'A source sits $minutes min from where its profile matches the primary\'s';
   }
 
   @override
@@ -42114,6 +42254,61 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'No gas switch was recorded, but the cylinder pressures show these switches: $switches.',
+      one:
+          'No gas switch was recorded, but the cylinder pressures show this switch: $switches.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return 'cylinder $tankNumber ($gas) at $time, $depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => '; ';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'No gas switch was recorded. The cylinder pressures show a change to cylinder $tankNumber ($gas) at $depth, deeper than its MOD of $mod, so no switch to it is suggested.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'The cylinder pressures also show a change to cylinder $tankNumber ($gas) at $depth, deeper than its MOD of $mod, so no switch to it is suggested.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'No gas switch was recorded. Cylinder $tankNumber ($gas) was breathed again from $time after a pause, so another cylinder was breathed in between, and with more than two cylinders the pressures cannot show which. Add the switches in the dive editor.';
+  }
+
+  @override
   String get dataQuality_detector_transmitter_role => 'Transmitter role';
 
   @override
@@ -42178,6 +42373,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_fixSourceClockAll =>
       'Also fix this computer on other dives with the same offset';
+
+  @override
+  String get dataQuality_repairLabel_alignSourceProfile =>
+      'Line up this computer by its profile';
+
+  @override
+  String dataQuality_repairLabel_alignSourceProfileNamed(String computer) {
+    return 'Line up $computer by its profile';
+  }
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Consolidate';
@@ -42339,6 +42543,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_reassignSeries =>
       'Move series to another tank';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Add $count gas switches',
+      one: 'Add gas switch',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary => 'Make this source primary';
@@ -53118,6 +53333,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'A small glyph showing where each item is served from. Problem badges always show.';
 
   @override
+  String get settings_media_tagBadges => 'Show tag badges on thumbnails';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      'Small icons for photos with people tagged, species tagged, or a time in the dive.';
+
+  @override
   String get settings_media_autoColorCorrection => 'Automatic color correction';
 
   @override
@@ -53165,6 +53387,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => 'Not backed up';
+
+  @override
+  String get media_tileMarker_people => 'People tagged';
+
+  @override
+  String get media_tileMarker_species => 'Species tagged';
+
+  @override
+  String get media_tileMarker_timeInDive => 'Placed on the dive profile';
 
   @override
   String get media_tile_infoMenuItem => 'Media info';
@@ -54898,7 +55129,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks cylinders on $dives dives carry this transmitter. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas or read from the transmitter\'s name will be replaced.';
+    return '$tanks cylinders on $dives dives carrying this transmitter need its setup. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas or read from the transmitter\'s name will be replaced.';
   }
 
   @override
@@ -54907,8 +55138,43 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing =>
-      'No cylinders carry this transmitter';
+  String transmitters_apply_slot_label(String computer) {
+    return 'Slot on $computer';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'Don\'t match by slot';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives dives',
+      one: '$dives dive',
+    );
+    return 'T$slot: $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading => 'Reading imported files';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'Cylinders imported from a file carry no serial. They can be filled by the slot this transmitter sat in on the dive computer.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'Dives filled by serial: $serialDives, by slot: $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'No cylinder needs this transmitter\'s setup';
+
+  @override
+  String get transmitters_apply_slot_read_failed =>
+      'The imported files could not be read, so cylinders cannot be matched by slot';
 
   @override
   String transmitters_channel(String computer, int channel) {
@@ -57224,6 +57490,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rules_value_empty => '(empty)';
 
   @override
+  String rules_value_gearViaSet(String item, String set) {
+    return '$item ($set)';
+  }
+
+  @override
   String get rules_collection_diveTypes => 'dive types';
 
   @override
@@ -57237,6 +57508,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rules_collection_courses => 'courses';
+
+  @override
+  String get rules_collection_equipmentSets => 'equipment sets';
 
   @override
   String get rules_collection_siteTags => 'site tags';
@@ -58093,6 +58367,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_backups_copyAccountGone =>
       'The copy\'s account was removed';
+
+  @override
+  String settings_backups_alsoCopyTo(String account) {
+    return 'Also copy to $account';
+  }
+
+  @override
+  String get settings_backups_addCopyAccount => 'Copy to another account too';
+
+  @override
+  String get settings_backups_extraCopyMissed =>
+      'The last backup did not reach this account';
 
   @override
   String get settings_backups_auto => 'Back up automatically';

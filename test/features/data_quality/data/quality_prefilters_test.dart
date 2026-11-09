@@ -6,6 +6,7 @@ import 'package:submersion/features/data_quality/data/services/quality_prefilter
 import 'package:submersion/features/data_quality/domain/detectors/quality_detector_registry.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
@@ -112,9 +113,9 @@ void main() {
     expect(candidates['unknown_transmitter'], {'real'});
   });
 
-  test('registry contains all 15 detectors with unique ids', () {
+  test('registry contains all 16 detectors with unique ids', () {
     final ids = kQualityDetectors.map((d) => d.id).toList();
-    expect(ids.toSet(), hasLength(15));
+    expect(ids.toSet(), hasLength(16));
     expect(
       ids.toSet(),
       containsAll({
@@ -128,6 +129,7 @@ void main() {
         'pressure_anomaly',
         'gas_mod',
         'tank_assignment',
+        'missing_gas_switch',
         'unknown_transmitter',
         'source_conflict',
         'shared_gear_overlap',
@@ -165,6 +167,41 @@ void main() {
     expect(candidates['sample_gap'], contains('with-profile'));
     expect(candidates['sample_gap'], isNot(contains('bare')));
     expect(candidates['depth_spike'], contains('with-profile'));
+  });
+
+  test('missing gas switch candidates need a profile and tank pressures '
+      '(#165)', () async {
+    final tankRepo = TankPressureRepository();
+    final entry = DateTime.utc(2026, 7, 1, 10);
+    const profile = [
+      domain.DiveProfilePoint(timestamp: 0, depth: 0),
+      domain.DiveProfilePoint(timestamp: 60, depth: 20),
+    ];
+    for (final (i, id, withProfile, withPressure) in [
+      (0, 'both', true, true),
+      (1, 'profile-only', true, false),
+      (2, 'pressure-only', false, true),
+    ]) {
+      await diveRepo.createDive(
+        domain.Dive(
+          id: id,
+          dateTime: entry.add(Duration(days: 30 * i)),
+          entryTime: entry.add(Duration(days: 30 * i)),
+          tanks: [domain.DiveTank(id: 't-$id')],
+          profile: withProfile ? profile : const [],
+        ),
+      );
+      if (withPressure) {
+        await tankRepo.insertTankPressures(id, {
+          't-$id': const [
+            (timestamp: 0, pressure: 200.0),
+            (timestamp: 60, pressure: 190.0),
+          ],
+        });
+      }
+    }
+    final candidates = await prefilters.candidatesByDetector();
+    expect(candidates['missing_gas_switch'], {'both'});
   });
 
   test('a dive with only non-primary profile rows is not a profile '

@@ -255,6 +255,40 @@ void main() {
     expect(restored.segments.map((s) => s.id), ['descent', 'bottom']);
   });
 
+  test('a stored suit inflation bottle never reaches the state', () {
+    // Every reader of a stored plan (a series, the plan vs actual overlay)
+    // hands the state to the engine, so the mapper strips it (issue #4243).
+    const suit = DiveTank(
+      id: 'suit',
+      volume: 0.85,
+      gasMix: GasMix(o2: 0),
+      role: TankRole.suitInflation,
+      order: 1,
+    );
+    final plan = divePlanFromState(
+      state().copyWith(
+        tanks: [tank, suit],
+        segments: [
+          ...segments,
+          PlanSegment.hold(
+            id: 's2',
+            depth: 20.0,
+            durationMinutes: 5,
+            tankId: 'suit',
+            gasMix: const GasMix(o2: 0),
+            order: 1,
+          ),
+        ],
+      ),
+    );
+    final restored = stateFromDivePlan(plan);
+    expect(restored.tanks.map((t) => t.id), ['t1']);
+    expect(restored.segments.map((s) => (s.tankId, s.gasMix)), [
+      ('t1', gas),
+      ('t1', gas),
+    ]);
+  });
+
   test('contingency config round-trips through the state', () {
     final configured = state().copyWith(
       deviationDepthDelta: 6.0,

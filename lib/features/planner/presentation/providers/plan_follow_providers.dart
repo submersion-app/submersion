@@ -2,11 +2,12 @@ import 'package:clock/clock.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
-import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/planner/data/services/stored_series_results.dart';
 import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 import 'package:submersion/features/planner/domain/services/logged_dive_chain.dart';
 import 'package:submersion/features/planner/domain/services/plan_series_calculator.dart';
@@ -22,61 +23,60 @@ import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 /// The dive is found whichever diver it belongs to. Saved plans are not scoped
 /// to a diver, so another profile can open a plan that follows this diver's
 /// dive, and it must carry the same load rather than read as a fresh diver.
-final seriesFollowProvider = FutureProvider.family<SeriesFollow?, String>((
-  ref,
-  diveId,
-) async {
-  var dives = await ref.watch(divesProvider.future);
-  if (!dives.any((dive) => dive.id == diveId)) {
-    final repository = ref.watch(diveRepositoryProvider);
-    ref.invalidateSelfWhen(repository.watchDivesChanges());
-    final dive = await repository.getDiveById(diveId);
-    if (dive == null) return null;
-    // A dive with no diver has no log of its own to chain through, and
-    // reading every diver's dives would chain in someone else's.
-    dives = dive.diverId == null
-        ? [dive]
-        : await repository.getAllDives(diverId: dive.diverId);
-  }
-  final chain = loggedDiveChain(dives, diveId);
-  if (chain.isEmpty) return null;
-  final followed = chain.last;
-  final followedEnd = diveEnd(followed);
+final seriesFollowProvider = FutureProvider.autoDispose
+    .family<SeriesFollow?, String>((ref, diveId) async {
+      retainDiveData(ref);
+      var dives = await ref.watch(divesProvider.future);
+      if (!dives.any((dive) => dive.id == diveId)) {
+        final repository = ref.watch(diveRepositoryProvider);
+        ref.invalidateSelfWhen(repository.watchDivesChanges());
+        final dive = await repository.getDiveById(diveId);
+        if (dive == null) return null;
+        // A dive with no diver has no log of its own to chain through, and
+        // reading every diver's dives would chain in someone else's.
+        dives = dive.diverId == null
+            ? [dive]
+            : await repository.getAllDives(diverId: dive.diverId);
+      }
+      final chain = loggedDiveChain(dives, diveId);
+      if (chain.isEmpty) return null;
+      final followed = chain.last;
+      final followedEnd = diveEnd(followed);
 
-  final logged = <SeriesLoggedDive>[];
-  ProfileAnalysis? analysis;
-  for (final dive in chain) {
-    final end = diveEnd(dive);
-    // A dive that ended a day before the followed one can never count, and
-    // a long chain would otherwise analyse every dive of the trip.
-    analysis = followedEnd.difference(end) < otuCarryWindow
-        ? await ref.watch(profileAnalysisProvider(dive.id).future)
-        : null;
-    logged.add(
-      SeriesLoggedDive(
-        id: dive.id,
-        diveNumber: dive.diveNumber,
-        name: dive.name,
-        start: dive.effectiveEntryTime,
-        end: end,
-        endInstant: diveEndInstant(dive),
-        otu: analysis?.o2Exposure.otu,
-        maxDepth: dive.maxDepth,
-      ),
-    );
-  }
+      final logged = <SeriesLoggedDive>[];
+      ProfileAnalysis? analysis;
+      for (final dive in chain) {
+        final end = diveEnd(dive);
+        // A dive that ended a day before the followed one can never count, and
+        // a long chain would otherwise analyse every dive of the trip.
+        analysis = followedEnd.difference(end) < otuCarryWindow
+            ? await ref.watch(profileAnalysisProvider(dive.id).future)
+            : null;
+        logged.add(
+          SeriesLoggedDive(
+            id: dive.id,
+            diveNumber: dive.diveNumber,
+            name: dive.name,
+            start: dive.effectiveEntryTime,
+            end: end,
+            endInstant: diveEndInstant(dive),
+            otu: analysis?.o2Exposure.otu,
+            maxDepth: dive.maxDepth,
+          ),
+        );
+      }
 
-  final statuses = analysis?.decoStatuses;
-  return SeriesFollow(
-    loggedDives: logged,
-    endTissues: statuses == null || statuses.isEmpty
-        ? null
-        : statuses.last.compartments,
-    endEnvironment: followed.environment,
-    endCns: analysis?.o2Exposure.cnsEnd,
-    endTanks: followed.tanks,
-  );
-});
+      final statuses = analysis?.decoStatuses;
+      return SeriesFollow(
+        loggedDives: logged,
+        endTissues: statuses == null || statuses.isEmpty
+            ? null
+            : statuses.last.compartments,
+        endEnvironment: followed.environment,
+        endCns: analysis?.o2Exposure.cnsEnd,
+        endTanks: followed.tanks,
+      );
+    });
 
 /// Makes the series follow the logged dive [diveId], starting the first dive
 /// after the time since it ended when that was recent, else after an hour.
@@ -155,31 +155,6 @@ final seriesActualsProvider = FutureProvider<Map<String, SeriesFollow>>((
     (diveId) => ref.watch(seriesFollowProvider(diveId).future),
   );
 });
-
-/// What the log says about [links], (plan id, dive id) pairs, by plan id:
-/// for each entry no longer planned, the dive as a followed dive reads.
-/// Shared by [seriesActualsProvider] and opening a saved plan, which reads
-/// it before the plan shows so a dived dive never shows as a plan first.
-Future<Map<String, SeriesFollow>> readSeriesActuals(
-  Iterable<(String, String)> links,
-  DiveRepository repository,
-  Future<SeriesFollow?> Function(String diveId) followOf,
-) async {
-  // Each link is read on its own, so all of them at once.
-  final read = await Future.wait([
-    for (final (planId, diveId) in links)
-      () async {
-        final dive = await repository.getDiveById(diveId);
-        if (dive == null || dive.isPlanned) return null;
-        final follow = await followOf(diveId);
-        return follow == null ? null : (planId, follow);
-      }(),
-  ]);
-  return {
-    for (final entry in read)
-      if (entry case (final planId, final follow)) planId: follow,
-  };
-}
 
 /// Logged dives whose Follow prompt the diver dismissed this session.
 final dismissedFollowSuggestionsProvider = StateProvider<Set<String>>(

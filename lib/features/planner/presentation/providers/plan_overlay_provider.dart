@@ -1,13 +1,14 @@
-import 'package:flutter/material.dart';
-
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/plan_series_calculator.dart';
+import 'package:submersion/features/planner/domain/services/stored_series_mapper.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
@@ -39,8 +40,9 @@ class LinkedPlanComparison {
 /// Recomputes the plan through the same PlanEngine the canvas uses so the
 /// result always reflects the plan's full computed schedule (segments + deco
 /// ascent), not just the stored bottom segments.
-final linkedPlanComparisonProvider =
-    FutureProvider.family<LinkedPlanComparison?, String>((ref, diveId) async {
+final linkedPlanComparisonProvider = FutureProvider.autoDispose
+    .family<LinkedPlanComparison?, String>((ref, diveId) async {
+      retainDiveData(ref);
       final repository = ref.watch(divePlanRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchPlanChanges());
 
@@ -94,8 +96,9 @@ Future<PlanOutcome?> _seriesOutcome(
 /// The planned profile for a dive with a linked plan, rendered as a chart
 /// overlay next to the actual logged profile ("plan vs actual"). Null when
 /// the dive has no linked plan.
-final plannedProfileOverlayProvider =
-    FutureProvider.family<ChartSourceOverlay?, String>((ref, diveId) async {
+final plannedProfileOverlayProvider = FutureProvider.autoDispose
+    .family<ChartSourceOverlay?, String>((ref, diveId) async {
+      retainDiveData(ref);
       final comparison = await ref.watch(
         linkedPlanComparisonProvider(diveId).future,
       );
@@ -119,7 +122,7 @@ ChartSourceOverlay buildPlannedOverlay(
   return ChartSourceOverlay(
     sourceId: 'plan:${plan.id}',
     name: plan.name,
-    color: Colors.purple,
+    color: ProfileMetricColors.plannedProfile,
     // A plan is not another computer's reading of the same dive, so it keeps
     // its own identity colour rather than a tint of each metric's colour.
     tintByMetric: false,

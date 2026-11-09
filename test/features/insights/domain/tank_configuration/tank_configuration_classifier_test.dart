@@ -249,4 +249,47 @@ void main() {
       TankConfigurationExtra.decoGas: 2,
     });
   });
+
+  // A suit inflation bottle is not breathing gas (issue #4243).
+  group('a suit inflation bottle', () {
+    test('adds no gas to a hand-logged single', () {
+      final result = classify([
+        tank(TankRole.suitInflation, o2: 21),
+        tank(TankRole.backGas, o2: 32),
+      ], hasProfile: false);
+
+      expect(result.base, TankBaseConfiguration.singleBackmount);
+      expect(result.extras, isEmpty);
+    });
+
+    test('adds no gas when it dropped', () {
+      final result = classify([
+        tank(TankRole.backGas, o2: 32, start: 200, end: 60),
+        tank(TankRole.suitInflation, o2: 21, start: 200, end: 150),
+      ]);
+
+      expect(result.extras, isNot(contains(TankConfigurationExtra.multiGas)));
+    });
+
+    test('a switch to it counts against the cylinder on its mix', () {
+      // Every other reading moves the switch to the air stage, so the stage
+      // was breathed and the dive used two gases.
+      final left = tank(TankRole.sidemountLeft, o2: 32);
+      final stage = tank(TankRole.stage, o2: 21);
+      final suit = tank(TankRole.suitInflation, o2: 21);
+      final result = classify(
+        [left, stage, suit],
+        switches: [(tankId: suit.id, timestamp: 1800)],
+      );
+
+      expect(result.extras, contains(TankConfigurationExtra.multiGas));
+    });
+
+    test('alone is no tanks', () {
+      expect(
+        classify([tank(TankRole.suitInflation)]).base,
+        TankBaseConfiguration.noTanks,
+      );
+    });
+  });
 }

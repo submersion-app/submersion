@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/minutes_seconds.dart';
 
 /// State for dive profile playback functionality.
 ///
@@ -25,6 +26,10 @@ class PlaybackState extends Equatable {
   /// Maximum timestamp in seconds (dive duration)
   final int maxTimestamp;
 
+  /// Earliest timestamp in seconds: 0, or the first sample of a series that
+  /// starts before the primary does (#4296).
+  final int minTimestamp;
+
   /// Whether playback mode is active (cursor visible)
   final bool isActive;
 
@@ -34,32 +39,30 @@ class PlaybackState extends Equatable {
     this.stepIncrement = 10,
     this.playbackSpeed = 30.0,
     this.maxTimestamp = 0,
+    this.minTimestamp = 0,
     this.isActive = false,
   });
 
   /// Whether we're at the start of the dive
-  bool get atStart => currentTimestamp <= 0;
+  bool get atStart => currentTimestamp <= minTimestamp;
 
   /// Whether we're at the end of the dive
   bool get atEnd => currentTimestamp >= maxTimestamp;
 
   /// Progress as a value from 0.0 to 1.0
-  double get progress =>
-      maxTimestamp > 0 ? currentTimestamp / maxTimestamp : 0.0;
+  double get progress => maxTimestamp > minTimestamp
+      ? (currentTimestamp - minTimestamp) / (maxTimestamp - minTimestamp)
+      : 0.0;
 
-  /// Current time formatted as MM:SS
-  String get formattedTime {
-    final minutes = currentTimestamp ~/ 60;
-    final seconds = currentTimestamp % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-  }
+  /// The timestamp [progress] (0.0 to 1.0) of the way through the series.
+  int timestampAtProgress(double progress) =>
+      minTimestamp + (progress * (maxTimestamp - minTimestamp)).round();
+
+  /// Current time formatted as MM:SS, signed before 0
+  String get formattedTime => formatPaddedMinutesSeconds(currentTimestamp);
 
   /// Total time formatted as MM:SS
-  String get formattedTotalTime {
-    final minutes = maxTimestamp ~/ 60;
-    final seconds = maxTimestamp % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-  }
+  String get formattedTotalTime => formatPaddedMinutesSeconds(maxTimestamp);
 
   PlaybackState copyWith({
     bool? isPlaying,
@@ -67,6 +70,7 @@ class PlaybackState extends Equatable {
     int? stepIncrement,
     double? playbackSpeed,
     int? maxTimestamp,
+    int? minTimestamp,
     bool? isActive,
   }) {
     return PlaybackState(
@@ -75,6 +79,7 @@ class PlaybackState extends Equatable {
       stepIncrement: stepIncrement ?? this.stepIncrement,
       playbackSpeed: playbackSpeed ?? this.playbackSpeed,
       maxTimestamp: maxTimestamp ?? this.maxTimestamp,
+      minTimestamp: minTimestamp ?? this.minTimestamp,
       isActive: isActive ?? this.isActive,
     );
   }
@@ -86,6 +91,7 @@ class PlaybackState extends Equatable {
     stepIncrement,
     playbackSpeed,
     maxTimestamp,
+    minTimestamp,
     isActive,
   ];
 }
@@ -107,12 +113,14 @@ class PlaybackNotifier extends StateNotifier<PlaybackState> {
 
   PlaybackNotifier() : super(const PlaybackState());
 
-  /// Initialize playback with the dive duration
-  void initialize(int durationSeconds) {
+  /// Initialize playback with the dive duration, and with [startSeconds] for
+  /// a series whose first sample comes before the primary's start (#4296).
+  void initialize(int durationSeconds, {int startSeconds = 0}) {
     _timer?.cancel();
     state = PlaybackState(
       maxTimestamp: durationSeconds,
-      currentTimestamp: 0,
+      minTimestamp: startSeconds,
+      currentTimestamp: startSeconds,
       isActive: false,
       isPlaying: false,
     );
@@ -126,7 +134,10 @@ class PlaybackNotifier extends StateNotifier<PlaybackState> {
       state = state.copyWith(isActive: false, isPlaying: false);
     } else {
       // Turning on - activate at current position or start
-      state = state.copyWith(isActive: true, currentTimestamp: 0);
+      state = state.copyWith(
+        isActive: true,
+        currentTimestamp: state.minTimestamp,
+      );
     }
   }
 
@@ -160,7 +171,7 @@ class PlaybackNotifier extends StateNotifier<PlaybackState> {
     if (!state.isActive) return;
 
     final newTimestamp = (state.currentTimestamp + state.stepIncrement).clamp(
-      0,
+      state.minTimestamp,
       state.maxTimestamp,
     );
     _fractional = newTimestamp.toDouble();
@@ -177,7 +188,7 @@ class PlaybackNotifier extends StateNotifier<PlaybackState> {
     if (!state.isActive) return;
 
     final newTimestamp = (state.currentTimestamp - state.stepIncrement).clamp(
-      0,
+      state.minTimestamp,
       state.maxTimestamp,
     );
     _fractional = newTimestamp.toDouble();
@@ -187,8 +198,8 @@ class PlaybackNotifier extends StateNotifier<PlaybackState> {
   /// Jump to the start of the dive
   void skipToStart() {
     if (!state.isActive) return;
-    _fractional = 0;
-    state = state.copyWith(currentTimestamp: 0);
+    _fractional = state.minTimestamp.toDouble();
+    state = state.copyWith(currentTimestamp: state.minTimestamp);
   }
 
   /// Jump to the end of the dive
@@ -203,7 +214,10 @@ class PlaybackNotifier extends StateNotifier<PlaybackState> {
   void seekTo(int timestamp) {
     if (!state.isActive) return;
 
-    final clampedTimestamp = timestamp.clamp(0, state.maxTimestamp);
+    final clampedTimestamp = timestamp.clamp(
+      state.minTimestamp,
+      state.maxTimestamp,
+    );
     _fractional = clampedTimestamp.toDouble();
     state = state.copyWith(currentTimestamp: clampedTimestamp);
   }
@@ -212,8 +226,7 @@ class PlaybackNotifier extends StateNotifier<PlaybackState> {
   void seekToProgress(double progress) {
     if (!state.isActive) return;
 
-    final timestamp = (progress * state.maxTimestamp).round();
-    seekTo(timestamp);
+    seekTo(state.timestampAtProgress(progress));
   }
 
   /// Set the playback speed (dive-seconds per wall-second)

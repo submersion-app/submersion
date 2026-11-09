@@ -1405,6 +1405,21 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_setEdit_figureSwitch_title => 'הצגת דמות הצולל';
 
   @override
+  String get equipment_setEdit_historyAsk =>
+      'להחיל את השינויים גם על הצלילות האלה, או רק מעכשיו?';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הסט הזה נמצא ב-$count צלילות רשומות.',
+      one: 'הסט הזה נמצא בצלילה רשומה אחת.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_color_red => 'אדום';
 
   @override
@@ -7258,6 +7273,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'הרשומות האלה לא חופפות בזמן, כך שכנראה השעון של אחד המחשבים שגוי. הצלילה שומרת על השעה של המחשב הראשי.';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      'פרופילי העומק האלה תואמים בזמן שונה ממה שהשעונים של המחשבים מראים, כך שכנראה השעון של אחד המחשבים שגוי. הצלילה שומרת על השעה של המחשב הראשי.';
+
+  @override
   String get diveLog_consolidate_clockNoteShort =>
       'כנראה השעון של אחד המחשבים שגוי.';
 
@@ -8036,6 +8055,17 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_gasSwitches_fillDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'מילוי $count החלפות מלחצי המיכלים',
+      one: 'מילוי החלפה אחת מלחצי המיכלים',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'מקבל מיקום...';
 
   @override
@@ -8543,6 +8573,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_useSet => 'שימוש בסט';
 
   @override
+  String get diveLog_edit_removeSet => 'הסרת סט';
+
+  @override
+  String get diveLog_bulkEdit_setsToRemove => 'סטים להסרה';
+
+  @override
+  String get diveLog_bulkEdit_removeSetTitle => 'הסרת סט ציוד';
+
+  @override
+  String get diveLog_bulkEdit_equipmentSets => 'סטים של ציוד';
+
+  @override
   String get diveLog_edit_weightPreset_use => 'שימוש בקבוע מראש';
 
   @override
@@ -8984,6 +9026,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_legend_label_annotations => 'סימונים';
 
   @override
+  String get diveLog_legend_label_plan => 'תוכנית';
+
+  @override
   String get diveLog_legend_label_computedEvents => 'אירועים מחושבים';
 
   @override
@@ -9240,6 +9285,36 @@ class AppLocalizationsHe extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ב-$count מתוך $total הצלילות שנבחרו חסרים תנאים.',
+      one: 'בצלילה אחת מתוך $total הצלילות שנבחרו חסרים תנאים.',
+    );
+    return '$_temp0 רק שדות ריקים ימולאו, ושום דבר שכבר הזנת לא ישתנה.';
+  }
+
+  @override
+  String diveLog_fetchConditions_skippedNoLocation(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ל-$count צלילות אין קואורדינטות אתר או מיקום GPS, והן ידולגו.',
+      one: 'לצלילה אחת אין קואורדינטות אתר או מיקום GPS, והיא תדולג.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_fetchConditions_noneNeededSelected =>
+      'לא חסרים תנאים באף אחת מהצלילות שנבחרו.';
+
+  @override
+  String get diveLog_fetchConditions_noneLocatedSelected =>
+      'לצלילות שנבחרו וחסרים בהן תנאים אין קואורדינטות אתר או מיקום GPS.';
 
   @override
   String diveLog_fetchConditions_summaryCancelled(int count) {
@@ -13982,6 +14057,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_tankRole_stage => 'סטייג\'';
+
+  @override
+  String get enum_tankRole_suitInflation => 'ניפוח חליפה';
 
   @override
   String get enum_tankRole_twinSet => 'צמד בלונים';
@@ -19913,6 +19991,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_photoViewer_videoFileNotFound => 'קובץ הסרטון לא נמצא';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      'כדי להפעיל את הסרטון הזה נדרש חלון דפדפן רגיל. חלונות פרטיים אינם יכולים להזרים מ-Google Drive או מ-WebDAV.';
+
+  @override
   String get media_photoViewer_videoNotLinked => 'הסרטון אינו מקושר לספרייה';
 
   @override
@@ -22077,6 +22159,26 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_appearance_mapBackgroundDiveCards_subtitleWithNote =>
       'הצג מפת אתר צלילה כרקע בכרטיסי צלילה (דורש מיקום אתר)';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards =>
+      'רקע תמונה בכרטיסי צלילה';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards_subtitle =>
+      'הצגת אחת מתמונות הצלילה כרקע בכרטיסי הצלילה (ללא תמונות מוצגים המפה או הצבע)';
+
+  @override
+  String get settings_appearance_photoOverlayDark =>
+      'אטימות השכבה מעל התמונה, ערכת נושא כהה';
+
+  @override
+  String get settings_appearance_photoOverlayLight =>
+      'אטימות השכבה מעל התמונה, ערכת נושא בהירה';
+
+  @override
+  String get settings_appearance_photoOverlay_subtitle =>
+      'ערך גבוה שומר על קריאות הטקסט, ערך נמוך מציג יותר מהתמונה';
 
   @override
   String get settings_appearance_mapBackgroundSiteCards =>
@@ -25397,6 +25499,18 @@ class AppLocalizationsHe extends AppLocalizations {
       'מפה מאחורי כרטיסי הצלילה';
 
   @override
+  String get settings_conflict_field_showPhotoBackgroundOnDiveCards =>
+      'תמונה מאחורי כרטיסי צלילה';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayDark =>
+      'שכבה מעל תמונת כרטיס הצלילה (כהה)';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayLight =>
+      'שכבה מעל תמונת כרטיס הצלילה (בהירה)';
+
+  @override
   String get settings_conflict_field_showMapBackgroundOnSiteCards =>
       'מפה מאחורי כרטיסי האתרים';
 
@@ -26830,6 +26944,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dataHealth_backup_cloudCopyMissing => 'הגיבוי האחרון לא הגיע לענן';
+
+  @override
+  String get dataHealth_backup_extraCopyMissing =>
+      'הגיבוי האחרון לא הגיע לכל החשבונות';
 
   @override
   String get dataHealth_backup_noOffDeviceCopy => 'אין עותק מחוץ למכשיר הזה';
@@ -29920,16 +30038,32 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_gas_gasMix_title => 'התפלגות תערובות גזים';
 
   @override
-  String get insights_gas_sacByRole_empty => 'אין נתוני ריבוי בלונים זמינים';
+  String get insights_gas_roleUse_title => 'צריכה לפי תפקיד המיכל';
 
   @override
-  String get insights_gas_sacByRole_error => 'שגיאה בטעינת צריכה לפי תפקיד';
+  String get insights_gas_roleUse_subtitle => 'כל תפקיד לאורך הזמן שנשמו ממנו';
 
   @override
-  String get insights_gas_sacByRole_subtitle => 'צריכה ממוצעת לפי סוג בלון';
+  String get insights_gas_roleUse_empty => 'אין עדיין ערכים לפי תפקיד מיכל';
 
   @override
-  String get insights_gas_sacByRole_title => 'צריכת גז לפי תפקיד בלון';
+  String get insights_gas_roleUse_error => 'טעינת הצריכה לפי תפקיד מיכל נכשלה';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => 'גז תחתית';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count צלילות לא נכללו: מיכל סטייג׳, דקו, פוני או חירום איבד גז בלי החלפת גז אליו',
+      one:
+          'צלילה אחת לא נכללה: מיכל סטייג׳, דקו, פוני או חירום איבד גז בלי החלפת גז אליו',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => 'צריכת גז במעגל סגור';
@@ -30544,9 +30678,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_focus_gas_trimix => 'טרימיקס';
 
   @override
-  String get insights_gas_tankRole_backGas => 'גז ראשי';
-
-  @override
   String get insights_gas_tankRole_bailout => 'חילוץ';
 
   @override
@@ -30556,22 +30687,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_gas_tankRole_diluent => 'מדלל';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'אספקת O₂';
-
-  @override
   String get insights_gas_tankRole_pony => 'פוני';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => 'סיידמאונט שמאל';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => 'סיידמאונט ימין';
-
-  @override
   String get insights_gas_tankRole_stage => 'סטייג\'';
-
-  @override
-  String get insights_gas_tankRole_twinSet => 'צמד בלונים';
 
   @override
   String get insights_geographic_appBar_title => 'גיאוגרפיה';
@@ -37420,6 +37539,9 @@ class AppLocalizationsHe extends AppLocalizations {
       'לאף אחת מהצלילות שנבחרו אין נתונים גולמיים שמורים לניתוח מחדש.';
 
   @override
+  String get diveLog_selection_tooltip_fetchConditions => 'אחזור תנאים';
+
+  @override
   String get diveLog_selection_tooltip_reparse => 'נתח מחדש';
 
   @override
@@ -39200,6 +39322,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_valve_type => 'שסתום';
 
   @override
+  String get attrLabel_cylinder_use => 'שימוש בבלון';
+
+  @override
   String get attrLabel_tank_identifier => 'מזהה';
 
   @override
@@ -39555,6 +39680,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => 'הפיך';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => 'גז נשימה';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => 'ניפוח חליפה';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -41593,6 +41724,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => 'בלון שגוי';
 
   @override
+  String get dataQuality_detector_missing_gas_switch => 'החלפת גז חסרה';
+
+  @override
   String get dataQuality_detector_source_conflict => 'מקורות סותרים';
 
   @override
@@ -41636,6 +41770,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String dataQuality_msg_clock_overlap(int minutes) {
     return 'חופפת לצלילה אחרת ב-$minutes דק׳';
+  }
+
+  @override
+  String dataQuality_msg_clock_profileFit(int minutes) {
+    return 'מקור ממוקם $minutes דק׳ מהמקום שבו הפרופיל שלו תואם לראשי';
   }
 
   @override
@@ -41786,6 +41925,61 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'לא נרשמה החלפת גז, אך לחצי הבלונים מראים את ההחלפות האלה: $switches.',
+      one:
+          'לא נרשמה החלפת גז, אך לחצי הבלונים מראים את ההחלפה הזאת: $switches.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return 'בלון $tankNumber ($gas) ב-$time, $depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => '; ';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'לא נרשמה החלפת גז. לחצי הבלונים מראים החלפה לבלון $tankNumber ($gas) ב-$depth, עמוק מה-MOD שלו של $mod, ולכן לא מוצעת החלפה אליו.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'לחצי הבלונים מראים גם החלפה לבלון $tankNumber ($gas) ב-$depth, עמוק מה-MOD שלו של $mod, ולכן לא מוצעת החלפה אליו.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'לא נרשמה החלפת גז. מבלון $tankNumber ($gas) נשמו שוב החל מ-$time אחרי הפסקה, כך שבינתיים נשמו מבלון אחר, ועם יותר משני בלונים הלחצים לא מראים מאיזה. הוסף את ההחלפות בעורך הצלילה.';
+  }
+
+  @override
   String get dataQuality_detector_transmitter_role => 'תפקיד המשדר';
 
   @override
@@ -41848,6 +42042,15 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_fixSourceClockAll =>
       'לתקן את המחשב הזה גם בצלילות אחרות עם אותה סטייה';
+
+  @override
+  String get dataQuality_repairLabel_alignSourceProfile =>
+      'יישור המחשב הזה לפי הפרופיל שלו';
+
+  @override
+  String dataQuality_repairLabel_alignSourceProfileNamed(String computer) {
+    return 'יישור $computer לפי הפרופיל שלו';
+  }
 
   @override
   String get dataQuality_repairLabel_consolidate => 'איחוד';
@@ -42008,6 +42211,17 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_reassignSeries => 'העברת הסדרה לבלון אחר';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הוספת $count החלפות גז',
+      one: 'הוספת החלפת גז',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary => 'הגדרת מקור זה כראשי';
@@ -52831,6 +53045,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'סמל קטן שמראה מאיפה כל פריט מוגש. תגי בעיה מוצגים תמיד.';
 
   @override
+  String get settings_media_tagBadges => 'הצג תגי תיוג על התמונות הממוזערות';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      'סמלים קטנים לתמונות עם אנשים מתויגים, מינים מתויגים או זמן בצלילה.';
+
+  @override
   String get settings_media_autoColorCorrection => 'תיקון צבע אוטומטי';
 
   @override
@@ -52878,6 +53099,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => 'לא מגובה';
+
+  @override
+  String get media_tileMarker_people => 'אנשים מתויגים';
+
+  @override
+  String get media_tileMarker_species => 'מינים מתויגים';
+
+  @override
+  String get media_tileMarker_timeInDive => 'ממוקמת על פרופיל הצלילה';
 
   @override
   String get media_tile_infoMenuItem => 'פרטי מדיה';
@@ -54596,7 +54826,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks מיכלים ב-$dives צלילות נושאים משדר זה. שדות ריקים של נפח, חומר, שם וציוד ימולאו, ותפקיד שעדיין מוגדר כגז גב או שנקרא משם המשדר יוחלף.';
+    return '$tanks מיכלים ב-$dives צלילות הנושאים משדר זה זקוקים להגדרות שלו. שדות ריקים של נפח, חומר, שם וציוד ימולאו, ותפקיד שעדיין מוגדר כגז גב או שנקרא משם המשדר יוחלף.';
   }
 
   @override
@@ -54605,7 +54835,43 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing => 'אף מיכל אינו נושא משדר זה';
+  String transmitters_apply_slot_label(String computer) {
+    return 'חריץ ב-$computer';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'ללא התאמה לפי חריץ';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives צלילות',
+      one: 'צלילה אחת',
+    );
+    return 'T$slot: $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading => 'קריאת קבצים מיובאים';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'למיכלים שיובאו מקובץ אין מספר סידורי. אפשר למלא אותם לפי החריץ שבו ישב משדר זה במחשב הצלילה.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'צלילות שמולאו לפי מספר סידורי: $serialDives, לפי חריץ: $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'אף מיכל אינו צריך את הגדרות המשדר הזה';
+
+  @override
+  String get transmitters_apply_slot_read_failed =>
+      'לא ניתן היה לקרוא את הקבצים המיובאים, ולכן לא ניתן להתאים מיכלים לפי חריץ';
 
   @override
   String transmitters_channel(String computer, int channel) {
@@ -56918,6 +57184,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get rules_value_empty => '(ריק)';
 
   @override
+  String rules_value_gearViaSet(String item, String set) {
+    return '$item ($set)';
+  }
+
+  @override
   String get rules_collection_diveTypes => 'סוגי צלילה';
 
   @override
@@ -56931,6 +57202,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get rules_collection_courses => 'קורסים';
+
+  @override
+  String get rules_collection_equipmentSets => 'סטים של ציוד';
 
   @override
   String get rules_collection_siteTags => 'תגיות אתר';
@@ -57782,6 +58056,18 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_backups_copyAccountGone => 'החשבון של העותק הוסר';
+
+  @override
+  String settings_backups_alsoCopyTo(String account) {
+    return 'גם עותק ב-$account';
+  }
+
+  @override
+  String get settings_backups_addCopyAccount => 'העתקה גם לחשבון נוסף';
+
+  @override
+  String get settings_backups_extraCopyMissed =>
+      'הגיבוי האחרון לא הגיע לחשבון הזה';
 
   @override
   String get settings_backups_auto => 'גיבוי אוטומטי';

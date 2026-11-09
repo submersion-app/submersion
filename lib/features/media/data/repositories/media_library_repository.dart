@@ -7,6 +7,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/media/data/repositories/media_library_group_order.dart';
+import 'package:submersion/features/media/data/repositories/media_library_tile_markers.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_row_mapper.dart';
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
@@ -410,7 +411,10 @@ class MediaLibraryRepository {
               leftOuterJoin(attached, attached.id.equalsExp(m.siteId)),
               leftOuterJoin(e, e.id.equalsExp(m.equipmentId)),
             ])
-            ..addColumns([for (final key in groupKeys) key.expression])
+            ..addColumns([
+              for (final key in groupKeys) key.expression,
+              ...LibraryTileMarkers.all,
+            ])
             ..where(where)
             ..orderBy([
               for (final key in groupKeys) key.ordering,
@@ -442,6 +446,9 @@ class MediaLibraryRepository {
           siteName: siteRow?.name,
           attachedSiteName: row.readTableOrNull(attached)?.name,
           attachedEquipmentName: row.readTableOrNull(e)?.name,
+          hasPeople: row.read(LibraryTileMarkers.hasPeople) ?? false,
+          hasSpecies: row.read(LibraryTileMarkers.hasSpecies) ?? false,
+          hasTimeInDive: row.read(LibraryTileMarkers.hasTimeInDive) ?? false,
         );
       }).toList();
 
@@ -703,6 +710,8 @@ class MediaLibraryRepository {
   /// and `divers` decide whether a facet applies at all
   /// and who Me names. Deleting a tag or buddy already ticks through its
   /// cascade; these catch one arriving late or changing owner.
+  /// `media_enrichment` decides each tile's time-in-dive marker (issue
+  /// #4218), which the enricher writes without touching the media row.
   Stream<void> watchLibraryChanges() => _db
       .tableUpdates(
         TableUpdateQuery.onAllTables([
@@ -710,6 +719,7 @@ class MediaLibraryRepository {
           _db.mediaTags,
           _db.mediaPeople,
           _db.mediaSpecies,
+          _db.mediaEnrichment,
           _db.trips,
           _db.dives,
           _db.diveSites,

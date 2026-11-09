@@ -9,13 +9,15 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 const _diveId = 'd1';
 
-List<DiveProfilePoint> _profile() =>
-    List.generate(61, (i) => DiveProfilePoint(timestamp: i * 10, depth: 10));
+List<DiveProfilePoint> _profile({int start = 0}) => List.generate(
+  61,
+  (i) => DiveProfilePoint(timestamp: start + i * 10, depth: 10),
+);
 
 void main() {
   late ProviderContainer container;
 
-  Widget wrap() {
+  Widget wrap({int start = 0}) {
     container = ProviderContainer();
     return UncontrolledProviderScope(
       container: container,
@@ -23,7 +25,10 @@ void main() {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
-          body: ProfileTransportControls(diveId: _diveId, profile: _profile()),
+          body: ProfileTransportControls(
+            diveId: _diveId,
+            profile: _profile(start: start),
+          ),
         ),
       ),
     );
@@ -39,6 +44,24 @@ void main() {
 
     expect(container.read(playbackProvider(_diveId)).isPlaying, isTrue);
     container.read(playbackProvider(_diveId).notifier).pause();
+  });
+
+  testWidgets('a series that starts before the primary plays from its first '
+      'sample, and skip-to-start goes back there (#4296)', (tester) async {
+    await tester.pumpWidget(wrap(start: -300));
+    await tester.pump();
+
+    final playback = container.read(playbackProvider(_diveId));
+    expect(playback.minTimestamp, -300);
+    expect(playback.maxTimestamp, 300);
+    expect(playback.currentTimestamp, -300);
+
+    container.read(playbackProvider(_diveId).notifier).seekTo(100);
+    await tester.pump();
+    await tester.tap(find.byIcon(Icons.skip_previous));
+    await tester.pump();
+    expect(container.read(playbackProvider(_diveId)).currentTimestamp, -300);
+    expect(container.read(profileReviewProvider(_diveId)), -300);
   });
 
   testWidgets('slider seek updates playback and review position', (

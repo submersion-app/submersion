@@ -1,74 +1,36 @@
-import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
+import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/domain/role_consumption.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
+import 'package:submersion/features/planner/data/services/plan_engine_settings.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
-import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
 import 'package:submersion/features/planner/domain/services/contingency_service.dart';
 import 'package:submersion/features/planner/domain/services/diluent_switch_time.dart';
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/domain/services/plan_best_mix.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
+import 'package:submersion/features/planner/domain/services/plan_gas_switches.dart';
 import 'package:submersion/features/planner/domain/services/plan_state_outcome.dart';
+import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/domain/services/segment_rate_split.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 
 /// PlanEngine thresholds sourced from the diver's deco settings.
+/// Selected by value, so a change to a setting the planner does not read
+/// leaves its dependents alone.
 final planEngineConfigProvider = Provider<PlanEngineConfig>((ref) {
-  return PlanEngineConfig(
-    ppO2Working: ref.watch(ppO2MaxWorkingProvider),
-    ppO2Deco: ref.watch(ppO2MaxDecoProvider),
-    ppO2DecoBandsEnabled: ref.watch(ppO2DecoBandsEnabledProvider),
-    ppO2DecoBand1: ref.watch(ppO2DecoBand1Provider),
-    ppO2DecoBand2: ref.watch(ppO2DecoBand2Provider),
-    ppO2DecoBand3: ref.watch(ppO2DecoBand3Provider),
-    maxO2DepthEnabled: ref.watch(maxO2DepthEnabledProvider),
-    maxO2DepthMeters: ref.watch(maxO2DepthMetersProvider),
-    hypercapniaEnabled: ref.watch(plannerHypercapniaEnabledProvider),
-    hypercapniaFactor: ref.watch(plannerHypercapniaFactorProvider),
-    hypercapniaMinutes: ref.watch(plannerHypercapniaMinutesProvider),
-    ccrDiluentModPpO2: ref.watch(ccrDiluentModPpO2Provider),
-    ccrSetpointLow: ref.watch(ccrSetpointLowProvider),
-    ccrSetpointHigh: ref.watch(ccrSetpointHighProvider),
-    cnsWarningThreshold: ref.watch(cnsWarningThresholdProvider),
-    o2Narcotic: ref.watch(settingsProvider.select((s) => s.o2Narcotic)),
-    endLimitMeters: ref.watch(settingsProvider.select((s) => s.endLimit)),
-    pscrRatio: ref.watch(pscrRatioProvider),
-    cnsMethod: ref.watch(cnsCalculationMethodProvider),
-    gasModel: ref.watch(gasModelProvider),
-    descentRate: ref.watch(plannerDescentRateProvider),
-    ascentRate: ref.watch(plannerAscentRateProvider),
-    intermediateAscentRate: ref.watch(plannerIntermediateAscentRateProvider),
-    shallowAscentRate: ref.watch(plannerShallowAscentRateProvider),
-    finalAscentRate: ref.watch(plannerFinalAscentRateProvider),
-    lastStopDepth: ref.watch(lastStopDepthProvider),
-    gasSwitchStopSeconds: ref.watch(plannerGasSwitchStopSecondsProvider),
-    sacBottom: ref.watch(plannerSacBottomProvider),
-    sacDeco: ref.watch(plannerSacDecoProvider),
-    sacStressedFactor: ref.watch(plannerSacStressedFactorProvider),
-    problemSolvingMinutes: ref.watch(plannerProblemSolvingMinutesProvider),
-    buddyFactor: ref.watch(plannerBuddyFactorProvider),
-    bestMixEndMeters: ref.watch(plannerBestMixEndMetersProvider),
-    deviationDepthDelta: ref.watch(plannerDeviationDepthDeltaProvider),
-    deviationTimeMinutes: ref.watch(plannerDeviationTimeMinutesProvider),
-    turnPressureRule: ref.watch(plannerTurnPressureRuleProvider),
-    turnPressureFraction: ref.watch(plannerTurnPressureFractionProvider),
-    airBreakPolicy: ref.watch(plannerAirBreakPolicyProvider),
-    gfLow: ref.watch(gfLowProvider),
-    gfHigh: ref.watch(gfHighProvider),
-    reservePressure: ref.watch(plannerReservePressureProvider),
-    batteryReserveFraction: ref.watch(plannerBatteryReserveFractionProvider),
-    walkSpeedMps: ref.watch(plannerWalkSpeedMpsProvider),
-  );
+  return ref.watch(settingsProvider.select(planEngineConfigFromSettings));
 });
 
 /// [planEngineConfigProvider] resolved against the plan being edited: each
@@ -128,26 +90,20 @@ final planOutcomeProvider = Provider<PlanOutcome>((ref) {
   );
 });
 
-/// The key [loggedAverageSacProvider] averages backmount cylinders under.
-const String _backmountSacKey = 'backmount';
-
-/// The current diver's logged average backmount SAC in L/min ("from your
-/// log"): back gas and twin set cylinders as one group (issue #3374), so
-/// marking a logbook's twin sets does not move its history out of the
-/// planner's default. Null when no logged backmount cylinder carries enough
-/// tank data to compute one; a stage or deco rate is not a bottom-gas rate.
+/// The current diver's logged average bottom gas RMV in L/min ("from your
+/// log"): the bottom gas line of the consumption by cylinder role card, each
+/// dive's rate over the time that gas was breathed (issue #771), averaged
+/// over dives. Back gas, twin set and sidemount count as one (issue #3374).
+/// Null when no logged dive has a bottom gas rate; a stage or deco rate is
+/// not a bottom-gas rate.
 final loggedAverageSacProvider = FutureProvider<double?>((ref) async {
   final repository = ref.watch(insightsRepositoryProvider);
   final diverId = ref.watch(currentDiverIdProvider);
   // Not autoDispose, so without this the logged SAC was computed once and
   // cached for the whole process lifetime (issue #974).
   ref.invalidateSelfWhen(repository.watchInsightsChanges());
-  final sacByRole = await repository.getSacVolumeByTankRole(
-    diverId: diverId,
-    roleKey: (role) =>
-        backmountRoles.any((r) => r.name == role) ? _backmountSacKey : role,
-  );
-  return sacByRole[_backmountSacKey];
+  final trend = await repository.getRoleConsumptionPerDive(diverId: diverId);
+  return trend.average(GasConsumptionLane.rmv, ConsumptionRoleGroup.bottomGas);
 });
 
 /// Scrub cursor position along the plan, in seconds (null = not scrubbing).
@@ -256,36 +212,36 @@ final planLiveCanvasSeriesProvider = Provider<PlanCanvasSeries>((ref) {
 /// then-climb steps the CCR profile itself shows for every stop.
 PlanCanvasSeries buildBailoutCanvasSeries(BailoutOutcome bailout) {
   final profile = <CanvasPoint>[const CanvasPoint(0, 0)];
-  final gasSwitches = <CanvasMarker>[];
   final stopLabels = <CanvasMarker>[];
   var maxDepth = 0.0;
-  double? previousFO2;
-  double? previousFHe;
+  // Each stretch of the picture on one gas, from where it starts, for the
+  // switch markers (issue #4078).
+  final stretches = <PlanBreathingStretch>[];
+  PlanBreathingStretch stretchOf(PlanScheduleRow row, double startDepth) => (
+    startSeconds: row.startRuntimeSeconds,
+    startDepthMeters: startDepth,
+    tankId: row.tankId,
+    fO2: row.gasFO2,
+    fHe: row.gasFHe,
+  );
 
   final ccrRows = bailout.ccrRows;
   var legStartDepth = 0.0;
-  for (var i = 0; i < ccrRows.length; i++) {
-    final row = ccrRows[i];
+  for (final row in ccrRows) {
     profile.add(CanvasPoint(row.runtimeSeconds.toDouble(), row.depthMeters));
     if (row.depthMeters > maxDepth) maxDepth = row.depthMeters;
-    // The first row's own gas is the starting gas, not a switch into it.
-    // Marked at the row's own START (time and depth): depthMeters is its
-    // END depth, which for a depth-changing leg (a descent/ascent, not a
-    // flat hold) is not where the leg -- and so the switch into its gas --
-    // actually begins, landing the marker off the drawn line entirely.
-    if (row.gasSwitch && i > 0) {
-      gasSwitches.add(
-        CanvasMarker(
-          row.startRuntimeSeconds.toDouble(),
-          legStartDepth,
-          GasMix(o2: row.gasFO2 * 100.0, he: row.gasFHe * 100.0).name,
-        ),
-      );
-    }
-    previousFO2 = row.gasFO2;
-    previousFHe = row.gasFHe;
+    // From the row's own START (time and depth): depthMeters is its END
+    // depth, which for a depth-changing leg (a descent or ascent, not a flat
+    // hold) is not where the leg, and so the switch into its gas, begins.
+    // Marking it there would land the flag off the drawn line entirely.
+    stretches.add(stretchOf(row, legStartDepth));
     legStartDepth = row.depthMeters;
   }
+
+  // The OC ascent's travel, to each stop and the surface, carries a bailout
+  // gas picked up between them, where it is crossed. The table folds the
+  // travel between stops into the stop (#3138), so it is not read from there.
+  stretches.addAll(bailout.ocTravel);
 
   for (final stop in bailout.ocStops) {
     profile.add(
@@ -306,23 +262,30 @@ PlanCanvasSeries buildBailoutCanvasSeries(BailoutOutcome bailout) {
         durationSeconds: stop.durationSeconds,
       ),
     );
-    final switched =
-        previousFO2 == null ||
-        previousFHe == null ||
-        (stop.gasFO2 - previousFO2).abs() > 0.005 ||
-        (stop.gasFHe - previousFHe).abs() > 0.005;
-    if (switched && previousFO2 != null) {
-      gasSwitches.add(
-        CanvasMarker(
-          stop.arrivalRuntimeSeconds.toDouble(),
-          stop.depthMeters,
-          GasMix(o2: stop.gasFO2 * 100.0, he: stop.gasFHe * 100.0).name,
-        ),
-      );
-    }
-    previousFO2 = stop.gasFO2;
-    previousFHe = stop.gasFHe;
+    stretches.add((
+      startSeconds: stop.arrivalRuntimeSeconds,
+      startDepthMeters: stop.depthMeters,
+      tankId: stop.tankId,
+      fO2: stop.gasFO2,
+      fHe: stop.gasFHe,
+    ));
   }
+
+  // In dive order, the deeper first where two start together. The first
+  // stretch's gas is the one the dive starts on, not a switch into it.
+  stretches.sort(
+    (a, b) => a.startSeconds != b.startSeconds
+        ? a.startSeconds.compareTo(b.startSeconds)
+        : b.startDepthMeters.compareTo(a.startDepthMeters),
+  );
+  final gasSwitches = <CanvasMarker>[
+    for (final change in planGasChanges(stretches))
+      CanvasMarker(
+        change.startSeconds.toDouble(),
+        change.startDepthMeters,
+        GasMix(o2: change.fO2 * 100.0, he: change.fHe * 100.0).name,
+      ),
+  ];
   if (profile.isNotEmpty && profile.last.depth > 0) {
     // ttsSeconds is relative to the worst-case instant, not an absolute
     // runtime -- it is [BailoutPoint.ttsSeconds]'s own definition, the
@@ -351,34 +314,6 @@ PlanCanvasSeries buildBailoutCanvasSeries(BailoutOutcome bailout) {
   );
 }
 
-/// Where the ascent into [stop] reaches the gas held there: the stop itself,
-/// unless that gas's switch depth, a MOD or one the diver set, sits partway up
-/// a leg folded into the stop.
-({int time, double depth}) _gasSwitchPoint(
-  List<PlanScheduleRow> schedule,
-  PlanStop stop,
-) {
-  var time = stop.arrivalRuntimeSeconds;
-  var depth = stop.depthMeters;
-  final legs =
-      schedule
-          .where(
-            (row) =>
-                row.kind == PlanScheduleRowKind.stop &&
-                row.startRuntimeSeconds == time,
-          )
-          .firstOrNull
-          ?.foldedTravel ??
-      const <PlanFoldedTravel>[];
-  for (final leg in legs.reversed) {
-    if (leg.seconds == 0) continue;
-    if (leg.tankId != stop.tankId) break;
-    time -= leg.seconds;
-    depth = leg.fromDepthMeters;
-  }
-  return (time: time, depth: depth);
-}
-
 /// Builds the chart series for any (plan, outcome) pair — the live plan or a
 /// contingency variant (ghost overlay). [outcome] is [plan]'s own computed
 /// schedule -- the same instance a caller like [PlanEngine.compute] already
@@ -388,7 +323,6 @@ PlanCanvasSeries buildCanvasSeries({
   required PlanOutcome outcome,
   required PlanEngineConfig config,
 }) {
-  final isCcr = plan.mode == domain.PlanMode.ccr;
   // Cylinder roles feed [withDiluentSwitchTime]'s diluent-switch detection,
   // same as PlanEngine.compute and BailoutSolver.solve; a caller passing a
   // plan with raw, unresolved roles must not read a different authored
@@ -423,14 +357,7 @@ PlanCanvasSeries buildCanvasSeries({
   }
 
   // Computed ascent tail: travel to each stop, hold, then surface.
-  final gasSwitches = <CanvasMarker>[];
   final stopLabels = <CanvasMarker>[];
-  double? previousFO2;
-  double? previousFHe;
-  if (sorted.isNotEmpty) {
-    previousFO2 = sorted.last.gasMix.o2 / 100.0;
-    previousFHe = sorted.last.gasMix.he / 100.0;
-  }
   for (final stop in outcome.stops) {
     profile.add(
       CanvasPoint(stop.arrivalRuntimeSeconds.toDouble(), stop.depthMeters),
@@ -449,33 +376,30 @@ PlanCanvasSeries buildCanvasSeries({
         durationSeconds: stop.durationSeconds,
       ),
     );
-    // The computed ascent only ever carries one fixed diluent, so its
-    // ppO2-at-constant-setpoint fraction necessarily drifts with ambient
-    // pressure at almost every stop even though the diver never leaves the
-    // loop. Comparing it against previousFO2/FHe would fabricate a
-    // different gas name at nearly every marker (#3131); CCR never shows a
-    // switch marker on the computed ascent.
-    final switched =
-        !isCcr &&
-        (previousFO2 == null ||
-            (stop.gasFO2 - previousFO2).abs() > 0.005 ||
-            (stop.gasFHe - (previousFHe ?? 0)).abs() > 0.005);
-    if (switched && previousFO2 != null) {
-      final at = _gasSwitchPoint(outcome.schedule, stop);
-      gasSwitches.add(
-        CanvasMarker(
-          at.time.toDouble(),
-          at.depth,
-          GasMix(o2: stop.gasFO2 * 100.0, he: stop.gasFHe * 100.0).name,
-        ),
-      );
-    }
-    previousFO2 = stop.gasFO2;
-    previousFHe = stop.gasFHe;
   }
   if (profile.isNotEmpty && profile.last.depth > 0) {
     profile.add(CanvasPoint(outcome.runtimeSeconds.toDouble(), 0));
   }
+
+  // Every switch the table lists, where it happens (issue #4078): in the
+  // authored legs, on the leg up to the first stop, partway up travel folded
+  // into a stop, and at a stop. Read from the schedule the log's switches
+  // are written from, rather than from the stops, which miss a gas breathed
+  // only on the way between them.
+  //
+  // A loop's computed ascent reads its supply gas on every line, never the
+  // fraction drifting with depth that the deco engine keeps (#3131), so it
+  // shows no switch the diver does not make.
+  final gasSwitches = <CanvasMarker>[
+    for (final change in planGasChanges(
+      planBreathingStretches(outcome.schedule, planTanks: resolvedPlan.tanks),
+    ))
+      CanvasMarker(
+        change.startSeconds.toDouble(),
+        change.startDepthMeters,
+        GasMix(o2: change.fO2 * 100.0, he: change.fHe * 100.0).name,
+      ),
+  ];
 
   // The finely-sampled ceiling curve (see PlanEngine._ceilingTrace): a
   // continuous rise as tissues load and fall as each stop clears, rather

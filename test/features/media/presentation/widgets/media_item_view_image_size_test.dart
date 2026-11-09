@@ -87,4 +87,56 @@ void main() {
     expect(sizes, hasLength(1));
     expect(sizes.single.aspectRatio, closeTo(120 / 80, 0.01));
   });
+
+  testWidgets(
+    'onImageReady hands over the drawn provider and size, and alignment '
+    'reaches the image',
+    (tester) async {
+      final png = Uint8List.fromList(
+        img.encodePng(img.Image(width: 60, height: 120)),
+      );
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final ready = <(ImageProvider, Size)>[];
+      await tester.runAsync(() async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              sharedPreferencesProvider.overrideWithValue(prefs),
+              mediaSourceResolverRegistryProvider.overrideWithValue(
+                MediaSourceResolverRegistry({
+                  MediaSourceType.platformGallery: _BytesResolver(png),
+                }),
+              ),
+            ],
+            child: MaterialApp(
+              home: MediaItemView(
+                item: MediaItem(
+                  id: 'm1',
+                  mediaType: MediaType.photo,
+                  sourceType: MediaSourceType.platformGallery,
+                  takenAt: DateTime(2024),
+                  createdAt: DateTime(2024),
+                  updatedAt: DateTime(2024),
+                ),
+                thumbnail: true,
+                alignment: const Alignment(0, -0.6),
+                onImageReady: (provider, size) => ready.add((provider, size)),
+              ),
+            ),
+          ),
+        );
+        for (var i = 0; i < 6; i++) {
+          await Future<void>.delayed(const Duration(milliseconds: 100));
+          await tester.pump();
+        }
+      });
+
+      expect(ready, hasLength(1));
+      expect(ready.single.$2.aspectRatio, closeTo(60 / 120, 0.01));
+      final image = tester.widget<Image>(find.byType(Image));
+      expect(image.image, ready.single.$1);
+      expect(image.alignment, const Alignment(0, -0.6));
+    },
+  );
 }

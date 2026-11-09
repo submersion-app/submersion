@@ -53,6 +53,7 @@ class AccountChooser extends ConsumerStatefulWidget {
     this.webdavCheck,
     this.noneLabel,
     this.noneSelected = false,
+    this.excludedKeys = const {},
     this.offerHints = false,
     this.signedInFirst = false,
     this.embedded = false,
@@ -75,6 +76,11 @@ class AccountChooser extends ConsumerStatefulWidget {
   /// device", spec section 12), shown as selected when [noneSelected].
   final String? noneLabel;
   final bool noneSelected;
+
+  /// Accounts left out of the list, by group key: the ones a backup is
+  /// already copied to (issue #3782). Their kinds still count as added, so
+  /// none is offered again under Add.
+  final Set<String> excludedKeys;
 
   /// Says under each kind what adding it takes (spec 6.4, step 1).
   final bool offerHints;
@@ -277,6 +283,10 @@ class _AccountChooserState extends ConsumerState<AccountChooser> {
         if (_offerAllowed(o) && !alreadyAdded(o) && !unavailable.containsKey(o))
           o,
     ];
+    final listed = [
+      for (final g in groups)
+        if (!widget.excludedKeys.contains(g.key)) g,
+    ];
     final noneLabel = widget.noneLabel;
     // Not closed while a sign-in or switch runs: what follows it needs this
     // chooser's context and ref.
@@ -288,7 +298,7 @@ class _AccountChooserState extends ConsumerState<AccountChooser> {
           padding: const EdgeInsets.only(bottom: 24),
           children: [
             if (!widget.addOnly &&
-                (groups.isNotEmpty || noneLabel != null)) ...[
+                (listed.isNotEmpty || noneLabel != null)) ...[
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
                 child: buildSettingsSectionHeader(
@@ -306,7 +316,7 @@ class _AccountChooserState extends ConsumerState<AccountChooser> {
                       : null,
                   onTap: () => widget.onChosen(const ChoseNone()),
                 ),
-              for (final g in groups)
+              for (final g in listed)
                 AccountGroupTile(
                   group: g,
                   inSheet: true,

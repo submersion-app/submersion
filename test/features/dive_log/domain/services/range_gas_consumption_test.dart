@@ -706,4 +706,44 @@ void main() {
       expect(rmv(GasModel.real), lessThan(rmv(GasModel.ideal)!));
     });
   });
+
+  // A suit inflation bottle is not breathing gas (issue #4243).
+  group('suit inflation bottle', () {
+    const suit = DiveTank(
+      id: 'suit',
+      volume: 0.85,
+      role: TankRole.suitInflation,
+    );
+    final pressures = {
+      'bg': _linear('bg', from: 200, to: 100),
+      'suit': _linear('suit', from: 200, to: 150),
+    };
+
+    test('adds nothing to the range SAC or RMV', () {
+      RangeGasConsumption of(List<DiveTank> tanks) => rangeGasConsumption(
+        tanks: tanks,
+        tankPressures: pressures,
+        startTimestamp: 120,
+        endTimestamp: 420,
+        profile: _flatAt10m,
+        model: GasModel.ideal,
+      );
+
+      expect(of(const [suit, backGas]), of(const [backGas]));
+    });
+
+    test('alone gives no figures', () {
+      final result = rangeGasConsumption(
+        tanks: const [suit],
+        tankPressures: pressures,
+        startTimestamp: 120,
+        endTimestamp: 420,
+        profile: _flatAt10m,
+        model: GasModel.ideal,
+      );
+
+      expect(result.sac, isNull);
+      expect(result.rmv, isNull);
+    });
+  });
 }

@@ -65,5 +65,19 @@ extension RungsFromV340 on AppDatabase {
     // an open PR that also claimed 343 can take 345.
     if (from < 346) await _repairLastServiceDates();
     if (from < 346) await reportProgress();
+
+    // v347: diver_settings.show_photo_background_on_dive_cards and the
+    // photo overlay opacity per theme. Columns only, defaulted; re-asserted
+    // in beforeOpen.
+    if (from < 347) await _assertDiveCardPhotoBackgroundColumn();
+    if (from < 347) await reportProgress();
+
+    // v349: an empty dives.water_temp takes the temperature the dive's source
+    // rows measured; a download kept it on the source row only (issue #4333).
+    // Data only, so the compatibility floor does not move. It fills empty
+    // columns and rewrites none, so changeLogRewrittenColumns needs no entry.
+    // Numbered 349 so open PR #4327, which claimed 347, can take 348.
+    if (from < 349) await fillDiveWaterTempsFromSources(this);
+    if (from < 349) await reportProgress();
   }
 }

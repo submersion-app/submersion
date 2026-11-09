@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_playback_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_review_provider.dart';
+import 'package:submersion/features/dive_log/presentation/utils/profile_time_domain.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The slider's hover overlay radius, and so the distance its track is inset
@@ -37,9 +38,11 @@ class _ProfileTransportControlsState
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || widget.profile.isEmpty) return;
       final notifier = ref.read(playbackProvider(widget.diveId).notifier);
-      if (ref.read(playbackProvider(widget.diveId)).maxTimestamp !=
-          widget.profile.last.timestamp) {
-        notifier.initialize(widget.profile.last.timestamp);
+      final current = ref.read(playbackProvider(widget.diveId));
+      final start = profileTimeDomain(widget.profile).min;
+      if (current.maxTimestamp != widget.profile.last.timestamp ||
+          current.minTimestamp != start) {
+        notifier.initialize(widget.profile.last.timestamp, startSeconds: start);
       }
       // Re-read after a possible initialize() so we don't act on a stale
       // isActive snapshot from before the reset.
@@ -73,7 +76,9 @@ class _ProfileTransportControlsState
     return Row(
       children: [
         IconButton(
-          onPressed: enabled && !playback.atStart ? () => _seek(0) : null,
+          onPressed: enabled && !playback.atStart
+              ? () => _seek(playback.minTimestamp)
+              : null,
           icon: const Icon(Icons.skip_previous),
           tooltip: context.l10n.diveLog_playback_tooltip_skipStart,
           visualDensity: VisualDensity.compact,
@@ -130,7 +135,7 @@ class _ProfileTransportControlsState
                 child: Slider(
                   value: playback.progress.clamp(0.0, 1.0),
                   onChanged: enabled
-                      ? (v) => _seek((v * playback.maxTimestamp).round())
+                      ? (v) => _seek(playback.timestampAtProgress(v))
                       : null,
                 ),
               ),

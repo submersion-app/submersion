@@ -1083,4 +1083,52 @@ void main() {
       );
     });
   });
+
+  group('presignGet', () {
+    test('uses path-style addressing on a custom endpoint', () {
+      final url = clientWith(
+        minioConfig(),
+        MockClient((_) async => http.Response('', 200)),
+      ).presignGet('media/a b.mp4', expiresIn: const Duration(hours: 6));
+      expect(url.scheme, 'http');
+      expect(url.host, 'nas.local');
+      expect(url.port, 9000);
+      expect(url.path, '/dive-sync/media/a%20b.mp4');
+      expect(url.queryParameters['X-Amz-Expires'], '21600');
+      expect(
+        url.queryParameters['X-Amz-Credential'],
+        'ak/20260609/us-east-1/s3/aws4_request',
+      );
+      // Recomputed independently for these inputs.
+      expect(
+        url.queryParameters['X-Amz-Signature'],
+        'fad506f1cbc00f2cd2c2c3df52a2e25661b474579bb37588d04dd35f906fd1b9',
+      );
+    });
+
+    test('signs for the region the server corrected', () async {
+      var requests = 0;
+      final client = clientWith(
+        awsConfig(),
+        MockClient((request) async {
+          requests++;
+          if (requests == 1) {
+            return http.Response(malformedAuthBody('eu-central-1'), 400);
+          }
+          return http.Response('', 200);
+        }),
+      );
+      await client.headObject('media/probe');
+      final url = client.presignGet(
+        'media/a b.mp4',
+        expiresIn: const Duration(hours: 6),
+      );
+      expect(url.host, 'dive-sync.s3.eu-central-1.amazonaws.com');
+      expect(url.path, '/media/a%20b.mp4');
+      expect(
+        url.queryParameters['X-Amz-Signature'],
+        '8235eca27d47e4135e58b8313f5479de088a15076687ecef83310c4f9cea375b',
+      );
+    });
+  });
 }

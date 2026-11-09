@@ -1429,6 +1429,21 @@ class AppLocalizationsIt extends AppLocalizations {
       'Mostra figura del subacqueo';
 
   @override
+  String get equipment_setEdit_historyAsk =>
+      'Applicare le modifiche anche a quelle immersioni o solo da ora in poi?';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Questo set è su $count immersioni registrate.',
+      one: 'Questo set è su 1 immersione registrata.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_color_red => 'Rosso';
 
   @override
@@ -7412,6 +7427,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Queste registrazioni non si sovrappongono nel tempo, quindi l\'orologio di un computer è probabilmente sbagliato. L\'immersione mantiene l\'ora del computer principale.';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      'Questi profili di profondità coincidono in un momento diverso da quello indicato dagli orologi dei computer, quindi l\'orologio di un computer è probabilmente sbagliato. L\'immersione mantiene l\'ora del computer principale.';
+
+  @override
   String get diveLog_consolidate_clockNoteShort =>
       'L\'orologio di un computer è probabilmente sbagliato.';
 
@@ -8205,6 +8224,17 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_gasSwitches_fillDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Completa $count cambi dalle pressioni delle bombole',
+      one: 'Completa 1 cambio dalle pressioni delle bombole',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'Acquisizione posizione...';
 
   @override
@@ -8721,6 +8751,18 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_edit_useSet => 'Usa set';
 
   @override
+  String get diveLog_edit_removeSet => 'Rimuovi set';
+
+  @override
+  String get diveLog_bulkEdit_setsToRemove => 'Set da rimuovere';
+
+  @override
+  String get diveLog_bulkEdit_removeSetTitle => 'Rimuovi set di attrezzatura';
+
+  @override
+  String get diveLog_bulkEdit_equipmentSets => 'Set di attrezzatura';
+
+  @override
   String get diveLog_edit_weightPreset_use => 'Usa preset';
 
   @override
@@ -9188,6 +9230,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_legend_label_annotations => 'Annotazioni';
 
   @override
+  String get diveLog_legend_label_plan => 'Piano';
+
+  @override
   String get diveLog_legend_label_computedEvents => 'Eventi calcolati';
 
   @override
@@ -9450,6 +9495,40 @@ class AppLocalizationsIt extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'A $count delle $total immersioni selezionate mancano le condizioni.',
+      one:
+          'A $count delle $total immersioni selezionate mancano le condizioni.',
+    );
+    return '$_temp0 Vengono compilati solo i campi vuoti: nulla di quanto hai già inserito verrà modificato.';
+  }
+
+  @override
+  String diveLog_fetchConditions_skippedNoLocation(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count immersioni non hanno né coordinate del sito né posizione GPS e verranno saltate.',
+      one:
+          '$count immersione non ha né coordinate del sito né posizione GPS e verrà saltata.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_fetchConditions_noneNeededSelected =>
+      'A nessuna delle immersioni selezionate mancano le condizioni.';
+
+  @override
+  String get diveLog_fetchConditions_noneLocatedSelected =>
+      'Le immersioni selezionate prive di condizioni non hanno né coordinate del sito né posizione GPS.';
 
   @override
   String diveLog_fetchConditions_summaryCancelled(int count) {
@@ -14291,6 +14370,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get enum_tankRole_stage => 'Stage';
+
+  @override
+  String get enum_tankRole_suitInflation => 'Gonfiaggio muta';
 
   @override
   String get enum_tankRole_twinSet => 'Bibombola';
@@ -20365,6 +20447,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_photoViewer_videoFileNotFound => 'File video non trovato';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      'Per riprodurre questo video serve una normale finestra del browser. Le finestre private non possono trasmettere da Google Drive o WebDAV.';
+
+  @override
   String get media_photoViewer_videoNotLinked =>
       'Video non collegato alla libreria';
 
@@ -22573,6 +22659,26 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_appearance_mapBackgroundDiveCards_subtitleWithNote =>
       'Mostra la mappa del sito di immersione come sfondo sulle schede immersione (richiede la posizione del sito)';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards =>
+      'Foto di sfondo sulle schede immersione';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards_subtitle =>
+      'Mostra una delle foto dell\'immersione come sfondo delle schede (senza foto si usa la mappa o il colore)';
+
+  @override
+  String get settings_appearance_photoOverlayDark =>
+      'Opacità del velo sulla foto, tema scuro';
+
+  @override
+  String get settings_appearance_photoOverlayLight =>
+      'Opacità del velo sulla foto, tema chiaro';
+
+  @override
+  String get settings_appearance_photoOverlay_subtitle =>
+      'Più alto mantiene il testo leggibile, più basso mostra più foto';
 
   @override
   String get settings_appearance_mapBackgroundSiteCards =>
@@ -26061,6 +26167,18 @@ class AppLocalizationsIt extends AppLocalizations {
       'Mappa dietro le schede immersione';
 
   @override
+  String get settings_conflict_field_showPhotoBackgroundOnDiveCards =>
+      'Foto dietro le schede immersione';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayDark =>
+      'Velo sulla foto delle schede (tema scuro)';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayLight =>
+      'Velo sulla foto delle schede (tema chiaro)';
+
+  @override
   String get settings_conflict_field_showMapBackgroundOnSiteCards =>
       'Mappa dietro le schede sito';
 
@@ -27531,6 +27649,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get dataHealth_backup_cloudCopyMissing =>
       'L\'ultimo backup non ha raggiunto il cloud';
+
+  @override
+  String get dataHealth_backup_extraCopyMissing =>
+      'L\'ultimo backup non ha raggiunto tutti gli account';
 
   @override
   String get dataHealth_backup_noOffDeviceCopy =>
@@ -30712,19 +30834,35 @@ class AppLocalizationsIt extends AppLocalizations {
   String get insights_gas_gasMix_title => 'Distribuzione miscele gas';
 
   @override
-  String get insights_gas_sacByRole_empty =>
-      'Nessun dato multi-bombola disponibile';
+  String get insights_gas_roleUse_title => 'Consumo per ruolo della bombola';
 
   @override
-  String get insights_gas_sacByRole_error =>
-      'Impossibile caricare il consumo per ruolo';
+  String get insights_gas_roleUse_subtitle =>
+      'Ogni ruolo nel tempo in cui è stato respirato';
 
   @override
-  String get insights_gas_sacByRole_subtitle =>
-      'Consumo medio per tipo di bombola';
+  String get insights_gas_roleUse_empty =>
+      'Ancora nessun valore per ruolo della bombola';
 
   @override
-  String get insights_gas_sacByRole_title => 'Consumo di gas per ruolo bombola';
+  String get insights_gas_roleUse_error =>
+      'Impossibile caricare il consumo per ruolo della bombola';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => 'Gas di fondo';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count immersioni escluse: una bombola stage, deco, pony o bailout ha perso gas senza un cambio gas su di essa',
+      one:
+          '$count immersione esclusa: una bombola stage, deco, pony o bailout ha perso gas senza un cambio gas su di essa',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => 'Uso di gas del rebreather';
@@ -31338,9 +31476,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get insights_focus_gas_trimix => 'Trimix';
 
   @override
-  String get insights_gas_tankRole_backGas => 'Gas principale';
-
-  @override
   String get insights_gas_tankRole_bailout => 'Bailout';
 
   @override
@@ -31350,22 +31485,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get insights_gas_tankRole_diluent => 'Diluente';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'Riserva O₂';
-
-  @override
   String get insights_gas_tankRole_pony => 'Pony';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => 'Sidemount S';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => 'Sidemount D';
-
-  @override
   String get insights_gas_tankRole_stage => 'Stage';
-
-  @override
-  String get insights_gas_tankRole_twinSet => 'Bibombola';
 
   @override
   String get insights_geographic_appBar_title => 'Geografiche';
@@ -38366,6 +38489,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessuna delle immersioni selezionate ha dati grezzi salvati da rianalizzare.';
 
   @override
+  String get diveLog_selection_tooltip_fetchConditions =>
+      'Recupera le condizioni';
+
+  @override
   String get diveLog_selection_tooltip_reparse => 'Rianalizza';
 
   @override
@@ -40203,6 +40330,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get attrLabel_valve_type => 'Rubinetto';
 
   @override
+  String get attrLabel_cylinder_use => 'Uso della bombola';
+
+  @override
   String get attrLabel_tank_identifier => 'Identificativo';
 
   @override
@@ -40561,6 +40691,12 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => 'Convertibile';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => 'Gas respirabile';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => 'Gonfiaggio muta';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -42642,6 +42778,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => 'Bombola errata';
 
   @override
+  String get dataQuality_detector_missing_gas_switch => 'Cambio gas mancante';
+
+  @override
   String get dataQuality_detector_source_conflict => 'Fonti in conflitto';
 
   @override
@@ -42683,6 +42822,11 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String dataQuality_msg_clock_overlap(int minutes) {
     return 'Si sovrappone a un\'altra immersione di $minutes min';
+  }
+
+  @override
+  String dataQuality_msg_clock_profileFit(int minutes) {
+    return 'Una fonte si trova a $minutes min da dove il suo profilo coincide con quello principale';
   }
 
   @override
@@ -42835,6 +42979,61 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Nessun cambio gas registrato, ma le pressioni delle bombole mostrano questi cambi: $switches.',
+      one:
+          'Nessun cambio gas registrato, ma le pressioni delle bombole mostrano questo cambio: $switches.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return 'bombola $tankNumber ($gas) a $time, $depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => '; ';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'Nessun cambio gas registrato. Le pressioni delle bombole mostrano un cambio sulla bombola $tankNumber ($gas) a $depth, più in profondità della sua MOD di $mod, quindi non viene suggerito un cambio su di essa.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'Le pressioni delle bombole mostrano anche un cambio sulla bombola $tankNumber ($gas) a $depth, più in profondità della sua MOD di $mod, quindi non viene suggerito un cambio su di essa.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'Nessun cambio gas registrato. La bombola $tankNumber ($gas) è stata respirata di nuovo da $time dopo una pausa, quindi nel frattempo è stata respirata un\'altra bombola, e con più di due bombole le pressioni non mostrano quale. Aggiungi i cambi nell\'editor dell\'immersione.';
+  }
+
+  @override
   String get dataQuality_detector_transmitter_role => 'Ruolo del trasmettitore';
 
   @override
@@ -42899,6 +43098,15 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_fixSourceClockAll =>
       'Correggi questo computer anche nelle altre immersioni con lo stesso scarto';
+
+  @override
+  String get dataQuality_repairLabel_alignSourceProfile =>
+      'Allinea questo computer in base al suo profilo';
+
+  @override
+  String dataQuality_repairLabel_alignSourceProfileNamed(String computer) {
+    return 'Allinea $computer in base al suo profilo';
+  }
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Consolida';
@@ -43065,6 +43273,17 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_reassignSeries =>
       'Sposta la serie su un\'altra bombola';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Aggiungi $count cambi gas',
+      one: 'Aggiungi cambio gas',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary =>
@@ -53966,6 +54185,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Una piccola icona che indica da dove proviene ogni elemento. I badge di problema sono sempre visibili.';
 
   @override
+  String get settings_media_tagBadges =>
+      'Mostra i badge dei tag sulle miniature';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      'Piccole icone per le foto con persone taggate, specie taggate o un momento nell\'immersione.';
+
+  @override
   String get settings_media_autoColorCorrection =>
       'Correzione automatica del colore';
 
@@ -54016,6 +54243,16 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => 'Nessun backup';
+
+  @override
+  String get media_tileMarker_people => 'Persone taggate';
+
+  @override
+  String get media_tileMarker_species => 'Specie taggate';
+
+  @override
+  String get media_tileMarker_timeInDive =>
+      'Posizionata sul profilo dell\'immersione';
 
   @override
   String get media_tile_infoMenuItem => 'Info media';
@@ -55783,7 +56020,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks bombole in $dives immersioni portano questo trasmettitore. I campi vuoti di dimensione, materiale, nome e attrezzatura verranno compilati e un ruolo ancora impostato su Gas di fondo o letto dal nome del trasmettitore verrà sostituito.';
+    return '$tanks bombole in $dives immersioni con questo trasmettitore richiedono la sua configurazione. I campi vuoti di dimensione, materiale, nome e attrezzatura verranno compilati e un ruolo ancora impostato su Gas di fondo o letto dal nome del trasmettitore verrà sostituito.';
   }
 
   @override
@@ -55792,8 +56029,43 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing =>
-      'Nessuna bombola porta questo trasmettitore';
+  String transmitters_apply_slot_label(String computer) {
+    return 'Slot su $computer';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'Non abbinare per slot';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives immersioni',
+      one: '$dives immersione',
+    );
+    return 'T$slot: $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading => 'Lettura dei file importati';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'Le bombole importate da un file non hanno numero di serie. Possono essere compilate in base allo slot che questo trasmettitore occupava sul computer subacqueo.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'Immersioni compilate per numero di serie: $serialDives, per slot: $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'Nessuna bombola ha bisogno della configurazione di questo trasmettitore';
+
+  @override
+  String get transmitters_apply_slot_read_failed =>
+      'Non è stato possibile leggere i file importati, quindi le bombole non possono essere abbinate per slot';
 
   @override
   String transmitters_channel(String computer, int channel) {
@@ -58142,6 +58414,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get rules_value_empty => '(vuoto)';
 
   @override
+  String rules_value_gearViaSet(String item, String set) {
+    return '$item ($set)';
+  }
+
+  @override
   String get rules_collection_diveTypes => 'tipi di immersione';
 
   @override
@@ -58155,6 +58432,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get rules_collection_courses => 'corsi';
+
+  @override
+  String get rules_collection_equipmentSets => 'set di attrezzatura';
 
   @override
   String get rules_collection_siteTags => 'tag del sito';
@@ -59022,6 +59302,19 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_backups_copyAccountGone =>
       'L\'account della copia è stato rimosso';
+
+  @override
+  String settings_backups_alsoCopyTo(String account) {
+    return 'Anche una copia in $account';
+  }
+
+  @override
+  String get settings_backups_addCopyAccount =>
+      'Copia anche in un altro account';
+
+  @override
+  String get settings_backups_extraCopyMissed =>
+      'L\'ultimo backup non ha raggiunto questo account';
 
   @override
   String get settings_backups_auto => 'Esegui il backup automaticamente';

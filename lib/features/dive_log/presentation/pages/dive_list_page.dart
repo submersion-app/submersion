@@ -27,13 +27,14 @@ import 'package:submersion/features/dive_log/presentation/navigation/open_dive_l
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
+import 'package:submersion/features/dive_log/presentation/providers/card_photo_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_list_count_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_profile_batcher.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_scrubber_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
-import 'package:submersion/features/weather/presentation/widgets/fetch_all_conditions_flow.dart';
+import 'package:submersion/features/weather/presentation/widgets/fetch_conditions_flow.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
@@ -44,6 +45,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_summary_widget.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_card_photo_background.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_card_stat_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/table_column_picker.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
@@ -131,7 +133,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
   Future<void> _fetchAllConditions() async {
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
     if (!mounted) return;
-    await showFetchAllConditionsFlow(
+    await showFetchConditionsFlow(
       context: context,
       service: ref.read(bulkConditionsServiceProvider),
       diverId: diverId,
@@ -670,6 +672,9 @@ class DiveListTile extends ConsumerWidget {
     final showCardColors = colorAttribute != CardColorAttribute.none;
     // Check if map background is enabled
     final showMapBackground = ref.watch(showMapBackgroundOnDiveCardsProvider);
+    final showPhotoBackground = ref.watch(
+      showPhotoBackgroundOnDiveCardsProvider,
+    );
 
     // A dive awaiting its computer data (issue #2002): no number of its own,
     // so the badge and the screen-reader label leave the number out.
@@ -681,13 +686,23 @@ class DiveListTile extends ConsumerWidget {
     // unchecked row stays plain instead of reading as selected.
     final showsSelectionFill = isChecked || (isHighlighted && !isSelectionMode);
 
-    // Determine if we should show the map (setting enabled + location available)
+    // A photo of the dive comes first (setting enabled + the dive has one),
+    // then the map (setting enabled + location available). Only watched with
+    // the setting on, so a log that never uses it never reads its photos.
+    final cardPhoto = showPhotoBackground && !showsSelectionFill
+        ? ref.watch(cardPhotoForDiveProvider(diveId))
+        : null;
+    final shouldShowPhoto = cardPhoto != null;
     final shouldShowMap =
-        showMapBackground && _hasLocation && !showsSelectionFill;
+        !shouldShowPhoto &&
+        showMapBackground &&
+        _hasLocation &&
+        !showsSelectionFill;
 
-    // Determine card background: selection takes priority, then attribute coloring
-    // When map is shown, we don't use attribute coloring on the card itself
-    final attributeColor = (showCardColors && !shouldShowMap)
+    // Determine card background: selection takes priority, then attribute
+    // coloring. Under a photo or a map the card itself is not coloured.
+    final attributeColor =
+        (showCardColors && !shouldShowMap && !shouldShowPhoto)
         ? _getAttributeBackgroundColor()
         : null;
     final cardColor = showsSelectionFill
@@ -695,13 +710,24 @@ class DiveListTile extends ConsumerWidget {
         : attributeColor;
 
     // Text colours follow the background the text sits on; under a map that
-    // is the dark gradient overlay, not the card.
+    // is the dark gradient overlay, under a photo the theme's overlay, not
+    // the card.
     final textColors = RecordCardColors.forFill(
       colorScheme,
-      shouldShowMap ? const Color(0xFF1A1A2E) : cardColor,
+      shouldShowPhoto
+          ? DiveCardPhotoScrim.textBase(Theme.of(context).brightness)
+          : shouldShowMap
+          ? const Color(0xFF1A1A2E)
+          : cardColor,
     );
     final primaryTextColor = textColors.primaryText;
-    final secondaryTextColor = textColors.secondaryText;
+    // Over a photo on the light theme the faded secondary colour washes into
+    // the picture, so the details take the title's colour there.
+    final photoOnLight =
+        shouldShowPhoto && Theme.of(context).brightness == Brightness.light;
+    final secondaryTextColor = photoOnLight
+        ? textColors.primaryText
+        : textColors.secondaryText;
     final accentColor = textColors.accent;
 
     // Detailed card config: slots + extra fields
@@ -1111,7 +1137,7 @@ class DiveListTile extends ConsumerWidget {
     return RecordListCard(
       margin: margin,
       color: cardColor,
-      clipBehavior: shouldShowMap ? Clip.antiAlias : null,
+      clipBehavior: (shouldShowMap || shouldShowPhoto) ? Clip.antiAlias : null,
       semanticsLabel: isPlannedDive
           ? context.l10n.diveLog_listPage_semanticsPlannedDiveAtSite(
               siteName ?? context.l10n.diveLog_listPage_unknownSite,
@@ -1124,7 +1150,9 @@ class DiveListTile extends ConsumerWidget {
       onDoubleTap: onDoubleTap,
       child: Container(
         key: isHighlighted ? const ValueKey('dive_row_highlight') : null,
-        child: shouldShowMap
+        child: shouldShowPhoto
+            ? DiveCardPhotoBackground(photo: cardPhoto, child: buildContent())
+            : shouldShowMap
             ? withMapBackground(buildContent())
             : buildContent(),
       ),

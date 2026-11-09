@@ -712,15 +712,32 @@ class PlanEngine {
   /// The water and surface conditions [plan] is computed in. Shared with
   /// every caller that must charge gas at the same ambient pressure the
   /// deco schedule used (the DPV mission's per-diver gas, issue #2086).
+  /// Conditions are read as [environmentForConditions] describes.
+  static DiveEnvironment environmentFor(domain.DivePlan plan) =>
+      environmentForConditions(
+        altitude: plan.altitude,
+        waterType: plan.waterType,
+        salinityPpt: plan.salinityPpt,
+      );
+
+  /// [environmentFor] from a plan's raw conditions, for callers holding
+  /// planner state rather than a [domain.DivePlan].
   ///
-  /// Altitude <= 0 is treated as unset (legacy 1.0 bar surface), matching
-  /// the rest of the planner: a literal 0 must not switch to barometric
-  /// sea-level pressure and subtly change the deco math.
-  static DiveEnvironment environmentFor(domain.DivePlan plan) {
+  /// An unset or zero altitude keeps the legacy 1.0 bar surface: a literal 0
+  /// must not switch to barometric sea-level pressure and subtly change the
+  /// deco math. A negative altitude is a dive below sea level, which the
+  /// planner and the deco calculator both accept, so it takes its barometric
+  /// surface pressure like any other altitude (#4314). Null water type is
+  /// salt, the planner default; a custom salinity overrides either.
+  static DiveEnvironment environmentForConditions({
+    double? altitude,
+    WaterType? waterType,
+    double? salinityPpt,
+  }) {
     return DiveEnvironment.forConditions(
-      altitudeMeters: (plan.altitude ?? 0) > 0 ? plan.altitude : null,
-      waterType: plan.waterType ?? WaterType.salt,
-      salinityPpt: plan.salinityPpt,
+      altitudeMeters: altitude == 0 ? null : altitude,
+      waterType: waterType ?? WaterType.salt,
+      salinityPpt: salinityPpt,
     );
   }
 
@@ -2906,7 +2923,7 @@ class PlanEngine {
 
   /// Two gas fractions closer than this are the same gas for the purpose of
   /// marking a switch on the table.
-  static const double _gasFractionEpsilon = 0.0005;
+  static const double gasFractionEpsilon = 0.0005;
 
   /// The dive as table lines: the authored legs, then the computed ascent as
   /// the leg to the first stop, every stop, and the leg to the surface. Travel
@@ -2984,8 +3001,8 @@ class PlanEngine {
       final switched =
           lastFO2 == null ||
           lastFHe == null ||
-          (fO2 - lastFO2).abs() > _gasFractionEpsilon ||
-          (fHe - lastFHe).abs() > _gasFractionEpsilon;
+          (fO2 - lastFO2).abs() > gasFractionEpsilon ||
+          (fHe - lastFHe).abs() > gasFractionEpsilon;
       final pDepth = physicsDepth ?? depth;
       rows.add(
         PlanScheduleRow(

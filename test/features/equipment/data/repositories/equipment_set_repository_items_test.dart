@@ -153,6 +153,22 @@ void main() {
       );
     });
 
+    test('returns the members it actually added and removed (#4283)', () async {
+      for (final id in ['e1', 'e2', 'e3']) {
+        await seedEquipment(id);
+      }
+      await repo.createSet(newSet('s1', ['e1', 'e2']));
+
+      // ghost has no equipment row, so it is dropped and not reported.
+      final diff = await repo.updateSet(newSet('s1', ['e1', 'e3', 'ghost']));
+
+      expect(diff.added, ['e3']);
+      expect(diff.removed, ['e2']);
+      final unchanged = await repo.updateSet(newSet('s1', ['e1', 'e3']));
+      expect(unchanged.added, isEmpty);
+      expect(unchanged.removed, isEmpty);
+    });
+
     test('a failed write rolls back and logs no sync bookkeeping', () async {
       await seedEquipment('e1');
 

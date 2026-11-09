@@ -8,8 +8,8 @@ import 'package:submersion/features/dive_planner/presentation/providers/dive_pla
 import 'package:submersion/features/planner/domain/entities/stored_series.dart';
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/domain/services/plan_setting_groups.dart';
+import 'package:submersion/features/planner/domain/services/stored_series_mapper.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
-import 'package:submersion/features/planner/presentation/providers/plan_series_store.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import 'series_fixtures.dart';

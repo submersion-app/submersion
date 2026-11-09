@@ -40,9 +40,12 @@ class GasSwitchesEditor extends StatelessWidget {
     required this.onChanged,
     required this.onRemove,
     required this.onAdd,
+    this.minTimestamp = 0,
     this.onTimeSettled,
     this.breathStarts = const {},
     this.onPickTime,
+    this.detectedEditCount = 0,
+    this.onFillDetected,
   });
 
   /// The switches in the order to show them.
@@ -55,6 +58,10 @@ class GasSwitchesEditor extends StatelessWidget {
 
   /// The dive's runtime in seconds; null when nothing says how long it was.
   final int? maxTimestamp;
+
+  /// The earliest second a switch may fall on: 0, or the profile's first
+  /// sample when a computer started before the primary one (#4296, #4335).
+  final int minTimestamp;
 
   /// The cylinder the dive starts on; null hides the line.
   final DiveTank? startingTank;
@@ -77,6 +84,13 @@ class GasSwitchesEditor extends StatelessWidget {
   /// Opens the profile picker for a row; null when there is no profile to
   /// pick on, which hides the control.
   final ValueChanged<GasSwitch>? onPickTime;
+
+  /// How many rows [onFillDetected] adds or changes to match the cylinder
+  /// pressures (issue #4335); the action shows only when it is positive.
+  final int detectedEditCount;
+
+  /// Fills in the switches the cylinder pressures show.
+  final VoidCallback? onFillDetected;
 
   @override
   Widget build(BuildContext context) {
@@ -103,6 +117,7 @@ class GasSwitchesEditor extends StatelessWidget {
             gasSwitch: sw,
             tanks: tanks,
             units: units,
+            minTimestamp: minTimestamp,
             maxTimestamp: maxTimestamp,
             otherTimestamps: {
               for (final other in switches)
@@ -119,6 +134,13 @@ class GasSwitchesEditor extends StatelessWidget {
             onRemove: onRemove,
             onTimeSettled: onTimeSettled,
             onPickTime: onPickTime,
+          ),
+        if (onFillDetected case final fill? when detectedEditCount > 0)
+          FormAppendRow(
+            label: l10n.diveLog_edit_gasSwitches_fillDetected(
+              detectedEditCount,
+            ),
+            onTap: fill,
           ),
         FormAppendRow(label: l10n.diveLog_edit_gasSwitches_add, onTap: onAdd),
       ],
@@ -144,6 +166,7 @@ class _GasSwitchRow extends StatefulWidget {
     required this.gasSwitch,
     required this.tanks,
     required this.units,
+    required this.minTimestamp,
     required this.maxTimestamp,
     required this.otherTimestamps,
     required this.suggestedTimes,
@@ -156,6 +179,7 @@ class _GasSwitchRow extends StatefulWidget {
   final GasSwitch gasSwitch;
   final List<DiveTank> tanks;
   final UnitFormatter units;
+  final int minTimestamp;
   final int? maxTimestamp;
   final Set<int> otherTimestamps;
   final List<int> suggestedTimes;
@@ -207,7 +231,7 @@ class _GasSwitchRowState extends State<_GasSwitchRow> {
 
   String? _timeError(AppLocalizations l10n, int seconds) {
     final max = widget.maxTimestamp;
-    if (seconds < 0 || (max != null && seconds > max)) {
+    if (seconds < widget.minTimestamp || (max != null && seconds > max)) {
       return l10n.diveLog_edit_gasSwitches_timeRangeError;
     }
     if (widget.otherTimestamps.contains(seconds)) {
@@ -231,7 +255,13 @@ class _GasSwitchRowState extends State<_GasSwitchRow> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final sw = widget.gasSwitch;
-    final tankIds = {for (final t in widget.tanks) t.id};
+    // A suit inflation bottle is not breathed, so it is offered as a switch
+    // target only when a downloaded switch already names it (issue #4243).
+    final targets = [
+      for (final t in widget.tanks)
+        if (t.role.isBreathingGas || t.id == sw.tankId) t,
+    ];
+    final tankIds = {for (final t in targets) t.id};
     final onPickTime = widget.onPickTime;
 
     final time = MinutesSecondsField(
@@ -263,7 +293,7 @@ class _GasSwitchRowState extends State<_GasSwitchRow> {
         isDense: true,
       ),
       items: [
-        for (final tank in widget.tanks)
+        for (final tank in targets)
           DropdownMenuItem(
             value: tank.id,
             child: Text(

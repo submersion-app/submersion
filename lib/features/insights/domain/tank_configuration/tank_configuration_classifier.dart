@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 
 import 'package:submersion/core/constants/app_enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart';
+import 'package:submersion/features/dive_log/domain/services/breathing_gas_switches.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_usage_range.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
@@ -17,8 +18,31 @@ const Set<TankRole> _rebreatherRoles = {
 /// backmount only when a cylinder's role is Twin Set, never by a name, a
 /// size or a matched pair of Back Gas rows, so a sidemount dive logged as
 /// two untagged cylinders stays a single until the diver says otherwise.
-TankConfigurationResult classifyTankConfiguration(TankConfigurationDive dive) =>
-    (base: _base(dive), extras: _extras(dive));
+///
+/// A suit inflation bottle is not breathing gas (issue #4243): the dive is
+/// sorted as if it were not carried, so a dive with only one has no tanks
+/// and one never adds a gas. A switch naming one counts against the
+/// breathing cylinder on its mix, or is dropped when none holds it, as every
+/// breathing gas reading takes it.
+TankConfigurationResult classifyTankConfiguration(TankConfigurationDive dive) {
+  final breathing = _breathingOnly(dive);
+  return (base: _base(breathing), extras: _extras(breathing));
+}
+
+TankConfigurationDive _breathingOnly(TankConfigurationDive dive) {
+  if (dive.tanks.every((t) => t.role.isBreathingGas)) return dive;
+  return TankConfigurationDive(
+    diveMode: dive.diveMode,
+    tanks: breathingTanks(dive.tanks),
+    gasSwitches: breathingSwitchesOf(
+      dive.gasSwitches,
+      dive.tanks,
+      tankIdOf: (s) => s.tankId,
+      moveTo: (s, tank) => (tankId: tank.id, timestamp: s.timestamp),
+    ),
+    hasProfile: dive.hasProfile,
+  );
+}
 
 TankBaseConfiguration _base(TankConfigurationDive dive) {
   final tanks = dive.tanks;

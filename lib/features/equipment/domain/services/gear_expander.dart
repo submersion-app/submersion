@@ -16,7 +16,9 @@ typedef GearAddition = ({String equipmentId, String? viaSetId});
 /// - A retired or lost part is skipped ([isActive] decides).
 /// - An item already present as a top-level row that is now being added
 ///   beneath an assembly adopts that parent and set. A row that already has
-///   a parent is left alone. A top-level row that had no set gains the set.
+///   another parent is left alone, and so is everything below it: its
+///   missing parts are that assembly's business. A top-level row that had
+///   no set gains the set.
 /// - A visited set makes the walk terminate even on a corrupt loop.
 ///
 /// Installed-in children (equipment.parent_equipment_id) are not parts and
@@ -56,8 +58,11 @@ abstract final class GearExpander {
             viaSetId: setId ?? current.viaSetId,
           ),
         );
+      } else if (current.viaEquipmentId != parentId) {
+        // Under another assembly: it keeps its parent, and the walk stops
+        // here, so nothing is hung under that assembly for this addition.
+        return;
       }
-      // A row that already has a parent keeps it.
       for (final edge in index.byParent[id] ?? const []) {
         final child = edge.componentEquipmentId;
         if (isActive(child)) addPart(child, id, setId, seen);
