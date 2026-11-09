@@ -60820,6 +60820,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get changeLog_label_splitDive => 'Mergulho dividido';
 
   @override
+  String get changeLog_label_removeSource => 'Fonte de dados removida';
+
+  @override
+  String get changeLog_label_removeDuplicateCylinders =>
+      'Cilindros duplicados removidos';
+
+  @override
   String get changeLog_label_gearTransfer => 'Equipamento transferido';
 
   @override

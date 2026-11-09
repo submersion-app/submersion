@@ -18003,6 +18003,8 @@
   "changeLog_label_tableEditor": "Éditeur de tableau",
   "changeLog_label_reparse": "Plongées réanalysées",
   "changeLog_label_splitDive": "Plongée scindée",
+  "changeLog_label_removeSource": "Source de données supprimée",
+  "changeLog_label_removeDuplicateCylinders": "Blocs en double supprimés",
   "changeLog_label_gearTransfer": "Équipement transféré",
   "changeLog_label_mediaRepair": "Liens multimédias réparés",
   "changeLog_label_gearFileConversion": "Fichiers d'équipement déplacés vers Documents",

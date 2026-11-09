@@ -18003,6 +18003,8 @@
   "changeLog_label_tableEditor": "محرر الجدول",
   "changeLog_label_reparse": "تمت إعادة تحليل الغطسات",
   "changeLog_label_splitDive": "تم تقسيم غطسة",
+  "changeLog_label_removeSource": "إزالة مصدر بيانات",
+  "changeLog_label_removeDuplicateCylinders": "إزالة الأسطوانات المكررة",
   "changeLog_label_gearTransfer": "تم نقل المعدات",
   "changeLog_label_mediaRepair": "تم إصلاح روابط الوسائط",
   "changeLog_label_gearFileConversion": "تم نقل ملفات المعدات إلى المستندات",

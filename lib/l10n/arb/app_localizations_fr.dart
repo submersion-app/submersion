@@ -60975,6 +60975,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get changeLog_label_splitDive => 'Plongée scindée';
 
   @override
+  String get changeLog_label_removeSource => 'Source de données supprimée';
+
+  @override
+  String get changeLog_label_removeDuplicateCylinders =>
+      'Blocs en double supprimés';
+
+  @override
   String get changeLog_label_gearTransfer => 'Équipement transféré';
 
   @override

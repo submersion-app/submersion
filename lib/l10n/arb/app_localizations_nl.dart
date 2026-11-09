@@ -60459,6 +60459,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get changeLog_label_splitDive => 'Duik gesplitst';
 
   @override
+  String get changeLog_label_removeSource => 'Gegevensbron verwijderd';
+
+  @override
+  String get changeLog_label_removeDuplicateCylinders =>
+      'Dubbele flessen verwijderd';
+
+  @override
   String get changeLog_label_gearTransfer => 'Uitrusting overgedragen';
 
   @override

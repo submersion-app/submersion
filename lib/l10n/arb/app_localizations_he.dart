@@ -59573,6 +59573,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get changeLog_label_splitDive => 'צלילה פוצלה';
 
   @override
+  String get changeLog_label_removeSource => 'מקור נתונים הוסר';
+
+  @override
+  String get changeLog_label_removeDuplicateCylinders => 'מכלים כפולים הוסרו';
+
+  @override
   String get changeLog_label_gearTransfer => 'ציוד הועבר';
 
   @override

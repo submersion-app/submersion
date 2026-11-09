@@ -18003,6 +18003,8 @@
   "changeLog_label_tableEditor": "עורך הטבלה",
   "changeLog_label_reparse": "צלילות נותחו מחדש",
   "changeLog_label_splitDive": "צלילה פוצלה",
+  "changeLog_label_removeSource": "מקור נתונים הוסר",
+  "changeLog_label_removeDuplicateCylinders": "מכלים כפולים הוסרו",
   "changeLog_label_gearTransfer": "ציוד הועבר",
   "changeLog_label_mediaRepair": "קישורי מדיה תוקנו",
   "changeLog_label_gearFileConversion": "קובצי ציוד הועברו למסמכים",

@@ -61683,6 +61683,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get changeLog_label_splitDive => 'تم تقسيم غطسة';
 
   @override
+  String get changeLog_label_removeSource => 'إزالة مصدر بيانات';
+
+  @override
+  String get changeLog_label_removeDuplicateCylinders =>
+      'إزالة الأسطوانات المكررة';
+
+  @override
   String get changeLog_label_gearTransfer => 'تم نقل المعدات';
 
   @override

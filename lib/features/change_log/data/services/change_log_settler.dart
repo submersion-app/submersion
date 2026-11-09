@@ -184,8 +184,12 @@ class _SettlePass {
     final root = await _rootOf(event);
 
     // Machine rows are kept only to bring back a deleted record. While the
-    // record lives, a sweep replacing them is nothing the diver did.
+    // record lives, a sweep replacing them is nothing the diver did. An
+    // update is the exception: its trigger fires only inside an operation
+    // that asked for it (changeLogOptInUpdateTables), and that operation's
+    // revert needs it.
     if (changeLogTables[event.table] == ChangeLogClass.deleteCopyOnly &&
+        event.action != 'U' &&
         await _exists(root) &&
         !await _machineOwnerGone(event)) {
       await _deleteEvents([event.id]);

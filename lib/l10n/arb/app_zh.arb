@@ -18003,6 +18003,8 @@
   "changeLog_label_tableEditor": "表格编辑器",
   "changeLog_label_reparse": "已重新解析潜水",
   "changeLog_label_splitDive": "已拆分潜水",
+  "changeLog_label_removeSource": "已移除数据源",
+  "changeLog_label_removeDuplicateCylinders": "已移除重复气瓶",
   "changeLog_label_gearTransfer": "已转移装备",
   "changeLog_label_mediaRepair": "已修复媒体链接",
   "changeLog_label_gearFileConversion": "已将装备文件移至文档",

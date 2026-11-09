@@ -488,6 +488,27 @@ const Set<String> _displaySettingsKeys = {
 /// and no pending mark to take.
 const Set<String> changeLogDeviceLocalTables = {'dive_profile_series_history'};
 
+/// Machine tables whose updates are recorded, but only inside an operation
+/// labelled with one of [changeLogSeriesUpdateLabels] (issue #4393).
+///
+/// Removing a source or a duplicate cylinder re-zeroes, promotes or moves
+/// series rows in place. Without their old values a revert would bring back
+/// the deleted rows beside series still shifted, which is a broken dive.
+/// Downloads, re-parses and analysis sweeps rewrite these large rows all the
+/// time and nothing the diver did, so they stay out of the log.
+const Set<String> changeLogOptInUpdateTables = {
+  'dive_profile_series',
+  'tank_pressure_series',
+};
+
+/// The operation labels that record updates to [changeLogOptInUpdateTables].
+/// Kept equal to `ChangeLogLabels.removeSource` and
+/// `ChangeLogLabels.removeDuplicateCylinders`, which this file cannot import.
+const Set<String> changeLogSeriesUpdateLabels = {
+  'remove_source',
+  'remove_duplicate_cylinders',
+};
+
 /// Machine tables whose row belongs to another row besides its root, by
 /// column and that row's table. Such a row's delete copy is kept when that
 /// row has gone, even with the root alive: reverting a deleted tank must

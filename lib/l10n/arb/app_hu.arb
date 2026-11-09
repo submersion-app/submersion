@@ -18003,6 +18003,8 @@
   "changeLog_label_tableEditor": "Táblázatszerkesztő",
   "changeLog_label_reparse": "Merülések újraelemezve",
   "changeLog_label_splitDive": "Merülés szétválasztva",
+  "changeLog_label_removeSource": "Adatforrás eltávolítva",
+  "changeLog_label_removeDuplicateCylinders": "Ismétlődő palackok eltávolítva",
   "changeLog_label_gearTransfer": "Felszerelés átadva",
   "changeLog_label_mediaRepair": "Médiahivatkozások javítva",
   "changeLog_label_gearFileConversion": "Felszerelésfájlok áthelyezve a Dokumentumokba",

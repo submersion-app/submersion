@@ -18128,6 +18128,8 @@
   "changeLog_label_tableEditor": "Tabelleneditor",
   "changeLog_label_reparse": "Tauchgänge neu ausgewertet",
   "changeLog_label_splitDive": "Tauchgang geteilt",
+  "changeLog_label_removeSource": "Datenquelle entfernt",
+  "changeLog_label_removeDuplicateCylinders": "Doppelte Flaschen entfernt",
   "changeLog_label_gearTransfer": "Ausrüstung übertragen",
   "changeLog_label_mediaRepair": "Medienverknüpfungen repariert",
   "changeLog_label_gearFileConversion": "Ausrüstungsdateien nach Dokumente verschoben",

@@ -60844,6 +60844,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get changeLog_label_splitDive => 'Immersione divisa';
 
   @override
+  String get changeLog_label_removeSource => 'Fonte dati rimossa';
+
+  @override
+  String get changeLog_label_removeDuplicateCylinders =>
+      'Bombole duplicate rimosse';
+
+  @override
   String get changeLog_label_gearTransfer => 'Attrezzatura trasferita';
 
   @override

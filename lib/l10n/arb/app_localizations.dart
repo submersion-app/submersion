@@ -95731,6 +95731,18 @@ abstract class AppLocalizations {
   /// **'Split a dive'**
   String get changeLog_label_splitDive;
 
+  /// Change log entry title for removing a data source from a dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed a data source'**
+  String get changeLog_label_removeSource;
+
+  /// Change log entry title for merging duplicate cylinders on dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed duplicate cylinders'**
+  String get changeLog_label_removeDuplicateCylinders;
+
   /// No description provided for @changeLog_label_gearTransfer.
   ///
   /// In en, this message translates to:

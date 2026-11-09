@@ -18003,6 +18003,8 @@
   "changeLog_label_tableEditor": "Editor de tabla",
   "changeLog_label_reparse": "Inmersiones reanalizadas",
   "changeLog_label_splitDive": "Inmersión dividida",
+  "changeLog_label_removeSource": "Fuente de datos eliminada",
+  "changeLog_label_removeDuplicateCylinders": "Botellas duplicadas eliminadas",
   "changeLog_label_gearTransfer": "Equipo transferido",
   "changeLog_label_mediaRepair": "Enlaces multimedia reparados",
   "changeLog_label_gearFileConversion": "Archivos de equipo movidos a Documentos",

@@ -60879,6 +60879,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get changeLog_label_splitDive => 'Inmersión dividida';
 
   @override
+  String get changeLog_label_removeSource => 'Fuente de datos eliminada';
+
+  @override
+  String get changeLog_label_removeDuplicateCylinders =>
+      'Botellas duplicadas eliminadas';
+
+  @override
   String get changeLog_label_gearTransfer => 'Equipo transferido';
 
   @override

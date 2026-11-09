@@ -35699,6 +35699,14 @@
   "changeLog_label_tableEditor": "Table editor",
   "changeLog_label_reparse": "Reparsed dives",
   "changeLog_label_splitDive": "Split a dive",
+  "changeLog_label_removeSource": "Removed a data source",
+  "@changeLog_label_removeSource": {
+    "description": "Change log entry title for removing a data source from a dive."
+  },
+  "changeLog_label_removeDuplicateCylinders": "Removed duplicate cylinders",
+  "@changeLog_label_removeDuplicateCylinders": {
+    "description": "Change log entry title for merging duplicate cylinders on dives."
+  },
   "changeLog_label_gearTransfer": "Transferred gear",
   "changeLog_label_mediaRepair": "Repaired media links",
   "changeLog_label_gearFileConversion": "Moved gear files to Documents",

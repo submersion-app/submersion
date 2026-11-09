@@ -18003,6 +18003,8 @@
   "changeLog_label_tableEditor": "Tabelbewerker",
   "changeLog_label_reparse": "Duiken opnieuw verwerkt",
   "changeLog_label_splitDive": "Duik gesplitst",
+  "changeLog_label_removeSource": "Gegevensbron verwijderd",
+  "changeLog_label_removeDuplicateCylinders": "Dubbele flessen verwijderd",
   "changeLog_label_gearTransfer": "Uitrusting overgedragen",
   "changeLog_label_mediaRepair": "Medialinks hersteld",
   "changeLog_label_gearFileConversion": "Uitrustingsbestanden verplaatst naar Documenten",

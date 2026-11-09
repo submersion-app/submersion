@@ -57103,6 +57103,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get changeLog_label_splitDive => '已拆分潜水';
 
   @override
+  String get changeLog_label_removeSource => '已移除数据源';
+
+  @override
+  String get changeLog_label_removeDuplicateCylinders => '已移除重复气瓶';
+
+  @override
   String get changeLog_label_gearTransfer => '已转移装备';
 
   @override

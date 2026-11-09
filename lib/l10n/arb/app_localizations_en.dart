@@ -59880,6 +59880,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get changeLog_label_splitDive => 'Split a dive';
 
   @override
+  String get changeLog_label_removeSource => 'Removed a data source';
+
+  @override
+  String get changeLog_label_removeDuplicateCylinders =>
+      'Removed duplicate cylinders';
+
+  @override
   String get changeLog_label_gearTransfer => 'Transferred gear';
 
   @override

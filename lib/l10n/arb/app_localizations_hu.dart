@@ -60505,6 +60505,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get changeLog_label_splitDive => 'Merülés szétválasztva';
 
   @override
+  String get changeLog_label_removeSource => 'Adatforrás eltávolítva';
+
+  @override
+  String get changeLog_label_removeDuplicateCylinders =>
+      'Ismétlődő palackok eltávolítva';
+
+  @override
   String get changeLog_label_gearTransfer => 'Felszerelés átadva';
 
   @override
