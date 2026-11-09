@@ -55,7 +55,7 @@ GasSwitchEdits detectedGasSwitchEdits({
       pressureStart != null &&
       rowTank != null &&
       rowTank.id != pressureStart.id &&
-      _sameMix(rowTank.gasMix, pressureStart.gasMix)) {
+      rowTank.gasMix == pressureStart.gasMix) {
     retanked[startRow.id] = pressureStart.id;
   }
 
@@ -81,5 +81,3 @@ GasSwitchEdits detectedGasSwitchEdits({
   }
   return (retanked: retanked, added: added);
 }
-
-bool _sameMix(GasMix a, GasMix b) => a.o2 == b.o2 && a.he == b.he;

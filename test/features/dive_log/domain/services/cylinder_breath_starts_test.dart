@@ -364,7 +364,6 @@ void main() {
       List<String> ids = const ['a', 'b'],
     }) => cylinderBreathedFromStart(
       cylinderIds: ids,
-      readingsById: readingsById,
       turnsById: {
         for (final MapEntry(:key, :value) in readingsById.entries)
           key: cylinderBreathTurns(value),
@@ -383,6 +382,17 @@ void main() {
     test('a transmitter that paired late says nothing about the start', () {
       final late = [for (final r in falling) (t: r.t + 600, bar: r.bar)];
       expect(startOf({'b': late}), isNull);
+    });
+
+    test('a transmitter logging zeros until it paired was not read from '
+        'the start', () {
+      // Ten minutes of 0 bar before the transmitter paired: a lead-in the
+      // glitch scan drops, so it says nothing about the start (#4335).
+      final pairedLate = [
+        for (var t = 0; t < 600; t += 2) (t: t, bar: 0.0),
+        for (final r in held) (t: r.t + 600, bar: r.bar),
+      ];
+      expect(startOf({'a': pairedLate}), isNull);
     });
 
     test('a lone cylinder held at the start puts the diver on the other', () {

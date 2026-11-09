@@ -51,11 +51,14 @@ typedef BreathStart = ({int t, int? previousEnd});
 /// its readings then show it holding for [kBreathHoldSeconds] without being
 /// breathed again. Null when it was breathed to the end of its readings, or
 /// never. [fromStart] says it was breathed from its first reading, with no
-/// hold before: the cylinder a dive began on (issue #4335).
+/// hold before: the cylinder a dive began on (issue #4335). [readFrom] is
+/// the second of that first reading, glitches left out, or null with fewer
+/// than two clean readings.
 typedef BreathTurns = ({
   List<BreathStart> starts,
   int? heldFrom,
   bool fromStart,
+  int? readFrom,
 });
 
 /// [cylinderBreathStarts], with when the breathing around them ended.
@@ -69,7 +72,7 @@ typedef BreathTurns = ({
 BreathTurns cylinderBreathTurns(List<PressureReading> readings) {
   final series = withoutPressureGlitches(readingsInTimeOrder(readings));
   if (series.length < 2) {
-    return (starts: const [], heldFrom: null, fromStart: false);
+    return (starts: const [], heldFrom: null, fromStart: false, readFrom: null);
   }
 
   final starts = <BreathStart>[];
@@ -139,7 +142,12 @@ BreathTurns cylinderBreathTurns(List<PressureReading> readings) {
   }
   if (inTurn) closeTurn(series.last.bar, held: false);
 
-  return (starts: starts, heldFrom: heldFrom, fromStart: fromStart);
+  return (
+    starts: starts,
+    heldFrom: heldFrom,
+    fromStart: fromStart,
+    readFrom: series.first.t,
+  );
 }
 
 /// The cylinder of [cylinderIds] (in dive order) the recorded pressures
@@ -147,7 +155,8 @@ BreathTurns cylinderBreathTurns(List<PressureReading> readings) {
 ///
 /// It is the one whose [turnsById] entry was breathed from its first reading
 /// ([BreathTurns.fromStart]), that reading taken within [kBreathHoldSeconds]
-/// of [diveStart]; with several such cylinders the pressures contradict one
+/// of [diveStart] ([BreathTurns.readFrom], so a transmitter logging zeros
+/// until it paired counts from when it did); with several such cylinders the pressures contradict one
 /// another and name none. With none, on a dive of two cylinders, a cylinder
 /// read from the start that held means the diver breathed the other one, as
 /// long as the other's own readings do not say otherwise.
@@ -157,15 +166,12 @@ BreathTurns cylinderBreathTurns(List<PressureReading> readings) {
 /// pressures say which one the dive began on.
 String? cylinderBreathedFromStart({
   required List<String> cylinderIds,
-  required Map<String, List<PressureReading>> readingsById,
   required Map<String, BreathTurns> turnsById,
   required int diveStart,
 }) {
   bool readFromStart(String id) {
-    final readings = readingsById[id];
-    if (readings == null || readings.isEmpty) return false;
-    final first = readings.map((r) => r.t).reduce((a, b) => a < b ? a : b);
-    return first <= diveStart + kBreathHoldSeconds;
+    final first = turnsById[id]?.readFrom;
+    return first != null && first <= diveStart + kBreathHoldSeconds;
   }
 
   final read = [
