@@ -9476,6 +9476,40 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Bei $count von $total ausgewählten Tauchgängen fehlen die Bedingungen.',
+      one:
+          'Bei $count von $total ausgewählten Tauchgängen fehlen die Bedingungen.',
+    );
+    return '$_temp0 Es werden nur leere Felder gefüllt; bereits eingetragene Werte bleiben unverändert.';
+  }
+
+  @override
+  String diveLog_fetchConditions_skippedNoLocation(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Tauchgänge haben weder Tauchplatzkoordinaten noch eine GPS-Position und werden übersprungen.',
+      one:
+          '$count Tauchgang hat weder Tauchplatzkoordinaten noch eine GPS-Position und wird übersprungen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_fetchConditions_noneNeededSelected =>
+      'Bei keinem der ausgewählten Tauchgänge fehlen Bedingungen.';
+
+  @override
+  String get diveLog_fetchConditions_noneLocatedSelected =>
+      'Die ausgewählten Tauchgänge ohne Bedingungen haben weder Tauchplatzkoordinaten noch eine GPS-Position.';
+
+  @override
   String diveLog_fetchConditions_summaryCancelled(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -38345,6 +38379,9 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get reparseBatch_noneWithRawData =>
       'Keiner der ausgewählten Tauchgänge hat gespeicherte Rohdaten zum Neu-Auswerten.';
+
+  @override
+  String get diveLog_selection_tooltip_fetchConditions => 'Bedingungen abrufen';
 
   @override
   String get diveLog_selection_tooltip_reparse => 'Neu auswerten';

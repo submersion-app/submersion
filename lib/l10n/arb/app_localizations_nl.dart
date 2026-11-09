@@ -9421,6 +9421,40 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Bij $count van de $total geselecteerde duiken ontbreken de omstandigheden.',
+      one:
+          'Bij $count van de $total geselecteerde duiken ontbreken de omstandigheden.',
+    );
+    return '$_temp0 Alleen lege velden worden ingevuld; wat je al hebt ingevoerd blijft ongewijzigd.';
+  }
+
+  @override
+  String diveLog_fetchConditions_skippedNoLocation(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count duiken hebben geen duikstekcoördinaten of GPS-positie en worden overgeslagen.',
+      one:
+          '$count duik heeft geen duikstekcoördinaten of GPS-positie en wordt overgeslagen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_fetchConditions_noneNeededSelected =>
+      'Bij geen van de geselecteerde duiken ontbreken omstandigheden.';
+
+  @override
+  String get diveLog_fetchConditions_noneLocatedSelected =>
+      'De geselecteerde duiken zonder omstandigheden hebben geen duikstekcoördinaten of GPS-positie.';
+
+  @override
   String diveLog_fetchConditions_summaryCancelled(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -38160,6 +38194,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get reparseBatch_noneWithRawData =>
       'Geen van de geselecteerde duiken heeft opgeslagen ruwe data om opnieuw te verwerken.';
+
+  @override
+  String get diveLog_selection_tooltip_fetchConditions =>
+      'Omstandigheden ophalen';
 
   @override
   String get diveLog_selection_tooltip_reparse => 'Opnieuw verwerken';
