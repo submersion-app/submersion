@@ -542,7 +542,16 @@ class TransmitterRepository {
           'SELECT dt.id AS id FROM dive_tanks dt '
           'JOIN dives d ON d.id = dt.dive_id '
           'WHERE (dt.computer_id = ? OR d.computer_id = ?) '
-          'AND COALESCE(dt.source_tank_index, dt.tank_order) = ?',
+          'AND COALESCE(dt.source_tank_index, dt.tank_order) = ? '
+          // A channel is a download's parsed index. A cylinder a file brought
+          // in has neither that index nor a computer of its own, and its
+          // order is only its place in the file (#4347), so it never
+          // matches. A download from before source indices keeps its order.
+          'AND NOT (dt.source_tank_index IS NULL '
+          'AND dt.computer_id IS NULL '
+          'AND EXISTS (SELECT 1 FROM dive_data_sources s '
+          'WHERE s.dive_id = d.id AND s.is_primary = 1 '
+          'AND s.source_file_format IS NOT NULL))',
           variables: [
             Variable<String>(t.diveComputerId),
             Variable<String>(t.diveComputerId),
