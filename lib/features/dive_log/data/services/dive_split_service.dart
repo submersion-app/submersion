@@ -10,16 +10,11 @@ import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
-import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
-import 'package:submersion/features/dive_log/data/services/data_source_strand.dart';
-import 'package:submersion/features/dive_log/data/services/dive_timeline_rezero.dart';
-import 'package:submersion/features/dive_log/domain/entities/profile_series.dart'
-    as series;
+import 'package:submersion/features/dive_log/data/services/primary_source_promotion.dart';
+import 'package:submersion/features/dive_log/data/services/source_ownership.dart';
 import 'package:submersion/features/dive_log/domain/services/source_bottom_time.dart';
-import 'package:submersion/features/dive_log/domain/services/source_runtime.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
-import 'package:submersion/features/dive_log/domain/entities/tank_shared_computers.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 
 /// Splits one data source's computer data out of a dive into a new dive —
@@ -104,30 +99,11 @@ class DiveSplitService {
     // How far along this dive's timeline the source's own clock starts.
     final sourceOffset = source.timeOffsetSeconds ?? 0;
 
-    // Series move by computer attribution. A computer-less source cannot be
-    // attributed at the row level by computer, so only non-primary
-    // null-computer profile series follow it (never user-edited isPrimary
-    // series) and no events move. This follows the retired unlinkComputer's
-    // convention. Pressure series are the exception: one that names the
-    // source moves with it whatever its computer, cloning the tank it sits
-    // on (issue #2440). So are a computer-less source's tanks: one with no
-    // computer that names the source is its (issue #2716). A source with a
-    // computer moves its tanks by the computer rule, as before.
-
-    bool ownedByComputer(String? computerId) =>
-        source.computerId != null && computerId == source.computerId;
-    // The legacy row rule, applied to whole series: not owned by another
-    // source by FK, then the computer convention for the source's primacy.
-    bool profileBelongsToSource(series.ProfileSeries s) {
-      final notOwnedByAnotherSource =
-          s.sourceId == null || s.sourceId == source.id;
-      final byLegacyRule = source.computerId == null
-          ? s.computerId == null && !s.isPrimary
-          : source.isPrimary
-          ? ownedByComputer(s.computerId) || s.computerId == null
-          : ownedByComputer(s.computerId);
-      return notOwnedByAnotherSource && byLegacyRule;
-    }
+    // What the source owns: see SourceOwnership. A pressure series that names
+    // the source moves with it whatever its computer, cloning the tank it
+    // sits on (issue #2440).
+    final ownership = SourceOwnership(source);
+    final ownedByComputer = ownership.ownedByComputer;
 
     await _db.transaction(() async {
       // Read INSIDE the transaction, and before step 13's deletes: the
@@ -141,37 +117,23 @@ class DiveSplitService {
       // recognised by.
       final liveEditIds = await _profileSeries.liveEditIds(diveId);
       final allPressureSeries = await _tankSeries.getSeriesForDive(diveId);
-      final movingProfiles = [
-        for (final s in allProfileSeries)
-          if (profileBelongsToSource(s)) s,
-      ];
-      // A series that names its source moves with exactly that source,
-      // computer or not (issue #2440); an unattributed one falls back to the
-      // computer rule.
-      final movingPressures = [
-        for (final s in allPressureSeries)
-          if (s.sourceId == null
-              ? ownedByComputer(s.computerId)
-              : s.sourceId == source.id)
-            s,
-      ];
+      final movingProfiles = allProfileSeries
+          .where(ownership.ownsProfile)
+          .toList();
+      final movingPressures = allPressureSeries
+          .where(ownership.ownsPressure)
+          .toList();
       // Read here too, before step 2 deletes the source row:
       // dive_tanks.source_id is ON DELETE SET NULL (v251), so reading after
       // would lose the ownership signal the tank rule below reads.
       final allTanks = await (_db.select(
         _db.diveTanks,
       )..where((t) => t.diveId.equals(diveId))).get();
-      // A source with a computer keeps the computer rule exactly; only a
-      // computer-less one, which that rule can never match, claims the
-      // computer-less tanks that name it.
-      bool tankBelongsToSource(DiveTank t) => source.computerId != null
-          ? ownedByComputer(t.computerId)
-          : t.computerId == null && t.sourceId == source.id;
 
       // 1. New dive: copy the original row, attribute it to the source's
       // computer, override summary fields with the source's snapshot, and
       // leave the logbook entry (site, notes, number) behind.
-      final newDiveTiming = _snapshotTiming(
+      final newDiveTiming = snapshotSourceTiming(
         [source],
         source,
         diveRow,
@@ -300,23 +262,13 @@ class DiveSplitService {
 
       final tankIdMap = <String, String>{};
       final movedTankIds = <String>[];
-      for (final tank in allTanks.where(tankBelongsToSource)) {
-        final hasRemainingRefs =
-            allPressureSeries.any(
-              (r) => r.tankId == tank.id && !ownedByComputer(r.computerId),
-            ) ||
-            allEvents.any(
-              (r) => r.tankId == tank.id && !ownedByComputer(r.computerId),
-            ) ||
-            // Another computer's switch (or an unattributed one, which
-            // belongs to the dive's gas plan) still needs the tank here.
-            switchRows.any(
-              (r) => r.tankId == tank.id && !ownedByComputer(r.computerId),
-            ) ||
-            // Another computer breathed this cylinder too (a consolidated
-            // tank both logged), so it cannot leave the original dive.
-            (decodeSharedComputerIds(tank.sharedComputerIds)?.isNotEmpty ??
-                false);
+      for (final tank in allTanks.where(ownership.ownsTank)) {
+        final hasRemainingRefs = ownership.tankStillNeeded(
+          tank,
+          pressures: allPressureSeries,
+          events: allEvents,
+          switches: switchRows,
+        );
 
         final freshId = _uuid.v4();
         tankIdMap[tank.id] = freshId;
@@ -340,40 +292,12 @@ class DiveSplitService {
         );
 
         if (hasRemainingRefs) {
-          // A computer that shares the cylinder takes it over (#2560): left
-          // unattributed it would become every remaining computer's, and a
-          // third computer on its own gas would start the dive on it.
-          final sharers = [
-            for (final c
-                in decodeSharedComputerIds(tank.sharedComputerIds) ??
-                    const <String>[])
-              if (c != source.computerId) c,
-          ];
-          final heir = sharers.firstOrNull;
-          final heirSourceId = heir == null
-              ? null
-              : sources.where((s) => s.computerId == heir).firstOrNull?.id;
-          // A link to the source that left goes with this clock rather than
-          // the FK's silent SET NULL (v251). Only that one: the computer
-          // rule also selects tanks of another source of the same computer
-          // (a combined dive's other half), which stays.
-          await (_db.update(
-            _db.diveTanks,
-          )..where((t) => t.id.equals(tank.id))).write(
-            DiveTanksCompanion(
-              computerId: Value(heir),
-              sourceId: tank.sourceId == source.id
-                  ? Value(heirSourceId)
-                  : const Value.absent(),
-              sharedComputerIds: heir == null
-                  ? const Value.absent()
-                  : Value(encodeSharedComputerIds(sharers.skip(1))),
-            ),
-          );
-          await _sync.markRecordPending(
-            entityType: 'diveTanks',
-            recordId: tank.id,
-            localUpdatedAt: now,
+          await ownership.handTankToHeir(
+            _db,
+            _sync,
+            tank: tank,
+            sources: sources,
+            now: now,
           );
         } else {
           movedTankIds.add(tank.id);
@@ -417,31 +341,11 @@ class DiveSplitService {
       // Cylinders the departing computer shared with another (tanks a
       // consolidation merged): it breathed them too, so the new dive gets
       // its own copy and the original stops listing it.
-      for (final tank in allTanks) {
-        final sharers =
-            decodeSharedComputerIds(tank.sharedComputerIds) ?? const <String>[];
-        if (source.computerId == null || !sharers.contains(source.computerId)) {
-          continue;
-        }
+      for (final tank in allTanks.where(ownership.sharesTank)) {
         if (!tankIdMap.containsKey(tank.id)) {
           await cloneForDepartingComputer(tank);
         }
-        await (_db.update(
-          _db.diveTanks,
-        )..where((t) => t.id.equals(tank.id))).write(
-          DiveTanksCompanion(
-            sharedComputerIds: Value(
-              encodeSharedComputerIds(
-                sharers.where((c) => c != source.computerId),
-              ),
-            ),
-          ),
-        );
-        await _sync.markRecordPending(
-          entityType: 'diveTanks',
-          recordId: tank.id,
-          localUpdatedAt: now,
-        );
+        await ownership.stopSharingTank(_db, _sync, tank: tank, now: now);
       }
 
       // 5. Profile series. A primary source with a computer takes its whole
@@ -612,110 +516,21 @@ class DiveSplitService {
       // original dive's attribution and summary from it.
       var diveUpdate = DivesCompanion(updatedAt: Value(now));
       if (source.isPrimary) {
-        final promoted = sources.firstWhere((s) => s.id != source.id);
-        await (_db.update(_db.diveDataSources)
-              ..where((t) => t.id.equals(promoted.id)))
-            .write(const DiveDataSourcesCompanion(isPrimary: Value(true)));
-        await _sync.markRecordPending(
-          entityType: 'diveDataSources',
-          recordId: promoted.id,
-          localUpdatedAt: now,
-        );
-
-        // Promote the remaining source's profile series so getDiveProfile
-        // (which filters isPrimary) still returns a profile — unless
-        // primary series (e.g. a user-edited profile) already remain.
-        // promoteOwnedBy matches on the owning-source FK first, and only
-        // falls back to the pre-v154 computerId convention for series that
-        // carry none. The old code gated the whole promote on
-        // `promoted.computerId != null`, so a file-imported source promoted
-        // nothing and left the remaining dive with zero is_primary series --
-        // the same stranding as issue #1149.
-        if (!await _profileSeries.hasPrimarySeries(diveId)) {
-          await _profileSeries.promoteOwnedBy(
-            diveId,
-            sourceId: promoted.id,
-            computerId: promoted.computerId,
-            now: now,
-          );
-        }
-
-        // The dive now starts when the promoted source did, so that moment
-        // becomes the zero of everything left on its timeline. Without this
-        // the promoted source's first sample would read as its offset past
-        // its own entry time.
-        final promotedOffset = promoted.timeOffsetSeconds ?? 0;
-        if (promotedOffset != 0) {
-          await rezeroDiveTimeline(
-            db: _db,
-            sync: _sync,
-            profileSeries: _profileSeries,
-            tankSeries: _tankSeries,
-            diveId: diveId,
-            offset: promotedOffset,
-            now: now,
-          );
-        }
-
-        // The safety review grades the primary's own samples, so the stored
-        // one graded the computer that just left.
-        await SafetyFindingsRepository.clearReviewForDive(_db, _sync, diveId);
-
-        // An edit that stayed behind describes the dive; the promoted source's
-        // row describes a recording the dive is not showing (issue #3931).
-        final keptEdit = liveEditIds.difference({
-          for (final s in movingProfiles) s.id,
-        }).isNotEmpty;
-        final keptDepths = keptEdit
-            ? await _profileSeries.liveDepthSummary(diveId)
-            : null;
-
-        final promotedTiming = _snapshotTiming(
-          sources.where((s) => s.id != source.id).toList()
-            ..sort(compareDataSourcesInShownOrder),
-          promoted,
-          diveRow,
-          promotedOffset,
-        );
-
-        diveUpdate = diveUpdate.copyWith(
-          diveDateTime: Value(
-            promotedTiming.entryMs ??
-                diveRow.diveDateTime + promotedOffset * 1000,
+        diveUpdate = await promoteAfterPrimaryLeaves(
+          db: _db,
+          sync: _sync,
+          profileSeries: _profileSeries,
+          tankSeries: _tankSeries,
+          diveId: diveId,
+          leaving: source,
+          sources: sources,
+          diveRow: diveRow,
+          liveEditIds: liveEditIds,
+          remainingProfileSeries: allProfileSeries.where(
+            (s) => !movingProfiles.contains(s),
           ),
-          computerId: Value(promoted.computerId),
-          diveComputerModel: Value(promoted.computerModel),
-          diveComputerSerial: Value(promoted.computerSerial),
-          maxDepth: Value(
-            keptDepths?.maxDepth ?? promoted.maxDepth ?? diveRow.maxDepth,
-          ),
-          avgDepth: Value(
-            keptDepths?.avgDepth ?? promoted.avgDepth ?? diveRow.avgDepth,
-          ),
-          bottomTime: Value(
-            sourceBottomTimeSeconds(
-                  allProfileSeries.where((s) => !movingProfiles.contains(s)),
-                  sourceId: promoted.id,
-                  computerId: promoted.computerId,
-                  runtimeSeconds: promotedTiming.runtimeSeconds,
-                ) ??
-                diveRow.bottomTime,
-          ),
-          runtime: Value(promotedTiming.runtimeSeconds ?? diveRow.runtime),
-          waterTemp: Value(promoted.waterTemp ?? diveRow.waterTemp),
-          entryTime: Value(promotedTiming.entryMs),
-          exitTime: Value(promotedTiming.exitMs),
-          surfaceIntervalSeconds: Value(
-            promoted.surfaceInterval ?? diveRow.surfaceIntervalSeconds,
-          ),
-          cnsEnd: Value(promoted.cns ?? diveRow.cnsEnd),
-          decoAlgorithm: Value(promoted.decoAlgorithm ?? diveRow.decoAlgorithm),
-          gradientFactorLow: Value(
-            promoted.gradientFactorLow ?? diveRow.gradientFactorLow,
-          ),
-          gradientFactorHigh: Value(
-            promoted.gradientFactorHigh ?? diveRow.gradientFactorHigh,
-          ),
+          leavingProfileIds: {for (final s in movingProfiles) s.id},
+          now: now,
         );
       }
 
@@ -732,34 +547,5 @@ class DiveSplitService {
 
     SyncEventBus.notifyLocalChange();
     return newDiveId;
-  }
-
-  /// [epochMs] moved [seconds] later, for a time that only the dive can give
-  /// a source with no window of its own. Null stays null.
-  int? _later(int? epochMs, int seconds) =>
-      epochMs == null ? null : epochMs + seconds * 1000;
-
-  /// The timing [row] gives a dive, among [rows]: each timestamp falls back
-  /// to [diveRow]'s moved [offset] seconds later, and the runtime is null when
-  /// neither yields one, leaving the caller to keep the dive's own alongside
-  /// those timestamps.
-  ({int? entryMs, int? exitMs, int? runtimeSeconds}) _snapshotTiming(
-    List<DiveDataSourcesData> rows,
-    DiveDataSourcesData row,
-    Dive diveRow,
-    int offset,
-  ) {
-    final timing = dataSourceStrandTiming(rows, row);
-    final entryMs = timing.entryMs ?? _later(diveRow.entryTime, offset);
-    final exitMs = timing.exitMs ?? _later(diveRow.exitTime, offset);
-    return (
-      entryMs: entryMs,
-      exitMs: exitMs,
-      runtimeSeconds: sourceRuntimeSeconds(
-        durationSeconds: timing.durationSeconds,
-        entryTimeMs: entryMs,
-        exitTimeMs: exitMs,
-      ),
-    );
   }
 }
