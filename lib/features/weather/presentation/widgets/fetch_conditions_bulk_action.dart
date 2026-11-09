@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
-import 'package:submersion/features/weather/presentation/widgets/fetch_all_conditions_flow.dart';
+import 'package:submersion/features/weather/presentation/widgets/fetch_conditions_flow.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 
@@ -21,7 +21,7 @@ BulkAction fetchConditionsBulkAction(
   id: 'fetch_conditions',
   icon: Icons.cloud_download_outlined,
   label: context.l10n.diveLog_selection_tooltip_fetchConditions,
-  onInvoke: () => showFetchAllConditionsFlow(
+  onInvoke: () => showFetchConditionsFlow(
     context: context,
     service: ref.read(bulkConditionsServiceProvider),
     diveIds: selected(),

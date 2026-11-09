@@ -19,7 +19,7 @@ import 'package:submersion/shared/selection/bulk_action.dart';
 /// Kept out of the dive list so the list keeps its own size and the flow can
 /// be widget-tested against a [BulkConditionsService] built over a test
 /// database, with no navigation or provider scaffolding.
-Future<BulkActionOutcome> showFetchAllConditionsFlow({
+Future<BulkActionOutcome> showFetchConditionsFlow({
   required BuildContext context,
   required BulkConditionsService service,
   String? diverId,
@@ -31,18 +31,18 @@ Future<BulkActionOutcome> showFetchAllConditionsFlow({
   final int candidates;
   final int unlocated;
   try {
-    candidates = await service.countCandidates(
-      diverId: diverId,
-      diveIds: diveIds,
-    );
-    // Only a selection says what it will skip: across the whole logbook the
-    // menu entry has always meant "whatever can be filled".
-    unlocated = diveIds == null
-        ? 0
-        : await service.countWithoutLocation(
-            diverId: diverId,
-            diveIds: diveIds,
-          );
+    // Independent reads, so they run together. Future.wait rather than a
+    // record's `.wait`: it rethrows the original error, which the snackbar
+    // shows, instead of wrapping it in a ParallelWaitError.
+    final counts = await Future.wait<int>([
+      service.countCandidates(diverId: diverId, diveIds: diveIds),
+      // Only a selection says what it will skip: across the whole logbook
+      // the menu entry has always meant "whatever can be filled".
+      if (diveIds != null)
+        service.countWithoutLocation(diverId: diverId, diveIds: diveIds),
+    ]);
+    candidates = counts.first;
+    unlocated = counts.length > 1 ? counts[1] : 0;
   } catch (e) {
     if (context.mounted) {
       messenger.showSnackBar(SnackBar(content: Text('$e')));

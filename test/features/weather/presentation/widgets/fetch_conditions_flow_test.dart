@@ -10,7 +10,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/weather/data/services/bulk_conditions_service.dart';
 import 'package:submersion/features/weather/data/services/weather_service.dart';
-import 'package:submersion/features/weather/presentation/widgets/fetch_all_conditions_flow.dart';
+import 'package:submersion/features/weather/presentation/widgets/fetch_conditions_flow.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 
@@ -142,7 +142,7 @@ void main() {
       body: Builder(
         builder: (context) => ElevatedButton(
           onPressed: () async {
-            final outcome = await showFetchAllConditionsFlow(
+            final outcome = await showFetchConditionsFlow(
               context: context,
               service: service,
               diveIds: diveIds,
@@ -445,6 +445,26 @@ void main() {
     expect(find.text('Conditions fetched'), findsNothing);
     expect(find.textContaining('run exploded'), findsOneWidget);
   });
+  testWidgets('the logbook-wide flow never words itself as a selection', (
+    tester,
+  ) async {
+    await insertSite('s1', 12.5, -68.25);
+    await insertDive('d1', 's1', DateTime.utc(2024, 6, 15, 9));
+    await insertSitelessDive('nowhere');
+
+    final (:widget, :requests) = harness();
+    await tester.pumpWidget(widget);
+    await tester.tap(find.text('go'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.textContaining('1 dive is missing conditions.'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('selected dives'), findsNothing);
+    expect(find.textContaining('will be skipped'), findsNothing);
+  });
+
   group('scoped to selected dives (#4329)', () {
     testWidgets('confirm names the share of the selection and the skipped', (
       tester,

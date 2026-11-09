@@ -38,7 +38,7 @@ is unchanged: it follows the site picked in the form.
    `dive_repository_conditions_test.dart`.
 2. `BulkConditionsService`: `countCandidates`, `run` and a new
    `countWithoutLocation` take `diveIds`. Tests first.
-3. `showFetchAllConditionsFlow` takes `diveIds`, uses the selection wording,
+3. `showFetchConditionsFlow` takes `diveIds`, uses the selection wording,
    and returns a `BulkActionOutcome`. Tests first.
 4. `fetchConditionsBulkAction` in the weather feature, wired into
    `DiveListContent._bulkActions`. Widget test that it is offered.
