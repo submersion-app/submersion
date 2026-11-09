@@ -84,7 +84,6 @@ class DiveMatcher {
   bool isPossibleDuplicate(double score) => score >= 0.5;
 }
 
-/// Result of matching an imported dive against an existing dive.
 /// Which kind of dive waiting for its readings a download fills.
 enum FillTargetKind { plan, draft }
 
@@ -109,6 +108,7 @@ class FillTarget {
   int get hashCode => Object.hash(diveId, kind);
 }
 
+/// Result of matching an imported dive against an existing dive.
 class DiveMatchResult {
   /// The ID of the matched existing dive.
   final String diveId;

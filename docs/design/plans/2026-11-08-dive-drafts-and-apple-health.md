@@ -46,7 +46,7 @@ Heart rate, recovery and sleep live in a new synced per-dive table
 
 ## Review Focus
 
-1. **A dive across midnight.** "Entered water" at 23:50, "Surfaced" at 00:40: plan adoption, pairing and the reminder use the entry's wall-clock day. Test in Task 7 (`adoptsPlanFromEntryDay`) and Task 11 (`pairsAcrossMidnight`).
+1. **A dive across midnight.** "Entered water" at 23:50, "Surfaced" at 00:40: plan adoption and pairing use the entry's wall-clock day; the reminder counts its three days from the exit, as the spec's "waited 3 days" says. Test in Task 7 (`adoptsPlanFromEntryDay`) and Task 11 (`pairsAcrossMidnight`).
 2. **Back-to-back dives with a short surface interval.** Two drafts both within the clock-drift tolerance of one download: nothing is defaulted. Test in Task 11 (`twoCandidatesIsAmbiguous`).
 3. **Diver switched mid-dive.** "Surfaced" closes the open draft of the diver who entered, not the newly active diver. Test in Task 7 (`surfacedClosesDraftOfItsOwnDiver`).
 4. **No GPS fix at the tap** (recording just started). The draft is created without a position and the existing GPS sweep fills it from the track later. Test in Task 7 (`entryWithoutFixLeavesPositionEmpty`) and Task 8 (sweep picks it up).

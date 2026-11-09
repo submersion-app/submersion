@@ -239,10 +239,8 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     container.invalidate(diveProvider(dive.id));
   }
 
-  /// A draft's "Download now": the dive computers list, where a download
-  /// fills it.
-  /// Opens the download of the computer the diver used last, or the picker
-  /// when there is none (issue #637).
+  /// A draft's "Download now" (issue #637): opens the download of the
+  /// computer the diver used last, or the computer picker when there is none.
   Future<void> _downloadForDraft() async {
     final target = await ref.read(downloadTargetComputerProvider.future);
     if (!mounted) return;
