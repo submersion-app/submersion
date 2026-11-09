@@ -234,10 +234,9 @@ class ShearwaterDiveMapper {
   ) {
     final serialBySlot = <int, String>{
       for (final t in parsedTanks)
-        if (t.transmitterSlot case final slot?)
-          if (normalizeTransmitterSerial(t.transmitterSerial?.toString())
-              case final serial?)
-            slot: serial,
+        ?t.transmitterSlot: ?normalizeTransmitterSerial(
+          t.transmitterSerial?.toString(),
+        ),
     };
     return [
       for (final tank in tanks)

@@ -145,7 +145,7 @@ void main() {
     expect(xml, contains('<transmitterslot>2</transmitterslot>'));
     expect('<transmitterslot>'.allMatches(xml), hasLength(1));
 
-    final uddf = '''
+    const uddf = '''
 <uddf version="3.2.3">
   <profiledata>
     <repetitiongroup>
