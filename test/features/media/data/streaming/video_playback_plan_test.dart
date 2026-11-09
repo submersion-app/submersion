@@ -27,10 +27,12 @@ MediaItem _video({bool original = true, bool rendition = false}) => MediaItem(
 /// An S3-like store: every link names the key and a running count.
 class _LinkStore implements MediaObjectStore, DirectLinkStore {
   final List<String> asked = [];
+  final List<bool> fresh = [];
 
   @override
-  Future<DirectLink> directLink(String key) async {
+  Future<DirectLink> directLink(String key, {bool fresh = false}) async {
     asked.add(key);
+    this.fresh.add(fresh);
     return DirectLink(
       url: Uri.parse('https://s3.test/$key?n=${asked.length}'),
       expiresAt: DateTime.utc(2026, 6, 9, 18),
@@ -155,4 +157,16 @@ void main() {
     final plan = planStoreVideo(_video(), store: _PlainStore(), relay: null);
     expect((plan as NoPlayback).reason, NoPlaybackReason.notFound);
   });
+
+  test(
+    'a candidate asks for a fresh link on every open after its first',
+    () async {
+      final store = _LinkStore();
+      final plan = planStoreVideo(_video(), store: store, relay: null);
+      final candidate = (plan as StreamPlayback).candidates.single;
+      await candidate.open();
+      await candidate.open();
+      expect(store.fresh, [false, true]);
+    },
+  );
 }

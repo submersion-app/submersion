@@ -23,8 +23,9 @@ class DirectLink {
 
 /// A store that can give a player a self-authorising link to an object.
 abstract interface class DirectLinkStore {
-  /// A fresh (or still fresh) link to [key].
-  Future<DirectLink> directLink(String key);
+  /// A link to [key]: one still fresh may be reused, unless [fresh] asks
+  /// for a new one (the last one failed, so it may have been revoked).
+  Future<DirectLink> directLink(String key, {bool fresh = false});
 }
 
 /// A store that can read one byte range of an object. The object's total

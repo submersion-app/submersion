@@ -48,9 +48,10 @@ class S3MediaObjectStore implements MediaObjectStore, DirectLinkStore {
   String _wire(String key) => '$_keyPrefix$key';
 
   /// A presigned link a browser's video player streams from (issue
-  /// #4162). Signed locally: no request reaches the store.
+  /// #4162). Signed locally: no request reaches the store, and every link
+  /// is new, so [fresh] changes nothing.
   @override
-  Future<DirectLink> directLink(String key) async {
+  Future<DirectLink> directLink(String key, {bool fresh = false}) async {
     final issuedAt = _now();
     final url = _client.presignGet(_wire(key), expiresIn: kS3PresignLifetime);
     // A link that will not play gives the player only a bare error (a wrong

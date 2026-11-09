@@ -28,10 +28,11 @@ final _video = MediaItem(
 
 class _LinkStore implements MediaObjectStore, DirectLinkStore {
   @override
-  Future<DirectLink> directLink(String key) async => DirectLink(
-    url: Uri.parse('https://s3.test/$key'),
-    expiresAt: DateTime.utc(2026, 6, 9, 18),
-  );
+  Future<DirectLink> directLink(String key, {bool fresh = false}) async =>
+      DirectLink(
+        url: Uri.parse('https://s3.test/$key'),
+        expiresAt: DateTime.utc(2026, 6, 9, 18),
+      );
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

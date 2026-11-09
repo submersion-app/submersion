@@ -285,4 +285,29 @@ void main() {
       expect(renewed.expiresAt, DateTime.utc(2026, 6, 9, 19, 51));
     });
   });
+
+  test('a fresh link skips the cache', () async {
+    // A link that already failed (Dropbox revokes one when the file
+    // changes) must not be handed back for the reopen.
+    var links = 0;
+    final store = DropboxMediaObjectStore(
+      client: DropboxApiClient(
+        getAccessToken: () async => 't',
+        onAccessTokenRejected: () {},
+        httpClient: MockClient((request) async {
+          links++;
+          return http.Response(
+            jsonEncode({'link': 'https://dl.example/$links'}),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }),
+      ),
+      now: () => DateTime.utc(2026, 6, 9, 12),
+    );
+    await store.directLink('k');
+    final again = await store.directLink('k', fresh: true);
+    expect(again.url, Uri.parse('https://dl.example/2'));
+    expect((await store.directLink('k')).url, again.url);
+  });
 }

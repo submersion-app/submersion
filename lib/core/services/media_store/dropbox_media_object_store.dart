@@ -47,10 +47,11 @@ class DropboxMediaObjectStore implements MediaObjectStore, DirectLinkStore {
   static const Duration temporaryLinkMargin = Duration(minutes: 10);
 
   /// A temporary link a browser's video player streams from (issue #4162),
-  /// reused until [temporaryLinkMargin] before it expires.
+  /// reused until [temporaryLinkMargin] before it expires, unless [fresh]
+  /// asks for a new one: Dropbox revokes a link when its file changes.
   @override
-  Future<DirectLink> directLink(String key) async {
-    final kept = _links[key];
+  Future<DirectLink> directLink(String key, {bool fresh = false}) async {
+    final kept = fresh ? null : _links[key];
     if (kept != null &&
         _now().isBefore(kept.expiresAt.subtract(temporaryLinkMargin))) {
       return kept;

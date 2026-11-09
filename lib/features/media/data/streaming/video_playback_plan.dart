@@ -51,8 +51,10 @@ class StreamCandidate {
 
   final ServedTier tier;
 
-  /// A fresh address for the player each call: a new presigned URL, a
-  /// still-fresh temporary link, or a new relay ticket.
+  /// An address for the player each call: a new presigned URL, a
+  /// temporary link (reused only on the first call; a later call is a
+  /// reopen after a failure, so it asks for a new one), or a new relay
+  /// ticket.
   final Future<Uri> Function() open;
 
   /// Lets go of an address [open] gave (a relay ticket); nothing for a
@@ -96,11 +98,7 @@ VideoPlayback planStoreVideo(
     final links = store as DirectLinkStore;
     return StreamPlayback([
       for (final version in versions)
-        StreamCandidate(
-          tier: version.tier,
-          open: () async => (await links.directLink(version.key)).url,
-          close: (_) {},
-        ),
+        _directCandidate(links, version.tier, version.key),
     ]);
   }
   if (store is RangeReadStore) {
@@ -121,4 +119,23 @@ VideoPlayback planStoreVideo(
     ]);
   }
   return const NoPlayback(NoPlaybackReason.notFound);
+}
+
+/// A candidate whose first open may reuse a still-fresh link and whose
+/// later opens (reopens after a failure) ask the store for a new one.
+StreamCandidate _directCandidate(
+  DirectLinkStore links,
+  ServedTier tier,
+  String key,
+) {
+  var opened = false;
+  return StreamCandidate(
+    tier: tier,
+    open: () async {
+      final link = await links.directLink(key, fresh: opened);
+      opened = true;
+      return link.url;
+    },
+    close: (_) {},
+  );
 }
