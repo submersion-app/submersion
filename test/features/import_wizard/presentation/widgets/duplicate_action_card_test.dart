@@ -562,4 +562,37 @@ void main() {
       expect(find.text('REPLACE'), findsNothing);
     });
   });
+
+  group('a draft fill (#637)', () {
+    const draftFill = DiveMatchResult(
+      diveId: 'draft-1',
+      score: 1,
+      timeDifferenceMs: 0,
+      fillTarget: FillTarget(diveId: 'draft-1', kind: FillTargetKind.draft),
+    );
+
+    testWidgets('says Fill draft and names the draft it fills', (tester) async {
+      await tester.pumpWidget(
+        _buildCard(
+          card: DuplicateActionCard(
+            item: _testItem,
+            matchResult: draftFill,
+            selectedAction: DuplicateAction.fillPlanned,
+            availableActions: DuplicateAction.values.toSet(),
+            onActionChanged: (_) {},
+            existingDiveId: 'draft-1',
+            plannedDiveLabel: 'Draft from 10:02 to 10:54',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Fill draft'), findsWidgets);
+      expect(find.text('Fill planned dive'), findsNothing);
+      expect(
+        find.text('Fills draft: Draft from 10:02 to 10:54'),
+        findsOneWidget,
+      );
+    });
+  });
 }

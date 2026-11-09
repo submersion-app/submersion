@@ -36452,6 +36452,28 @@ class AppLocalizationsAr extends AppLocalizations {
       'إرفاق هذا التنزيل بالغوصة التي خططت لها';
 
   @override
+  String get universalImport_label_fillDraft => 'Fill draft';
+
+  @override
+  String get universalImport_compare_fillDraftSubtitle =>
+      'Attach this download to the dive you marked at the site';
+
+  @override
+  String universalImport_fillDraft_target(String label) {
+    return 'Fills draft: $label';
+  }
+
+  @override
+  String universalImport_fillDraft_window(String start, String end) {
+    return 'Draft from $start to $end';
+  }
+
+  @override
+  String universalImport_fillDraft_windowOpen(String start) {
+    return 'Draft from $start';
+  }
+
+  @override
   String get universalImport_label_filledPlanned => 'الغوصات المخططة المكتملة';
 
   @override

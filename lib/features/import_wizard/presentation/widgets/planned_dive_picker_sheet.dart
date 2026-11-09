@@ -63,12 +63,16 @@ Future<String?> showPlannedDivePicker(
 }
 
 /// "Blue Hole, 1 Jun 2026 at 09:00", or the date alone when the dive has
-/// neither a name nor a site.
+/// neither a name nor a site. A draft (issue #637) reads by its taps, "Draft
+/// from 1 Jun 2026 at 10:02 to 10:54", so two drafts of a day differ.
 String plannedDiveLabel(Dive dive, UnitFormatter units, AppLocalizations l10n) {
-  final when = units.formatDateTime(
-    dive.entryTime ?? dive.dateTime,
-    l10n: l10n,
-  );
+  var when = units.formatDateTime(dive.entryTime ?? dive.dateTime, l10n: l10n);
+  if (dive.isDraft) {
+    final exit = dive.exitTime;
+    when = exit == null
+        ? l10n.universalImport_fillDraft_windowOpen(when)
+        : l10n.universalImport_fillDraft_window(when, units.formatTime(exit));
+  }
   final name = dive.name?.trim();
   final site = dive.site?.name.trim();
   final label = (name != null && name.isNotEmpty) ? name : site;

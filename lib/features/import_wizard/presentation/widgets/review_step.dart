@@ -508,7 +508,7 @@ class _EntityTab extends ConsumerWidget {
     final plannedDives = offersFill
         ? ref
                   .watch(
-                    plannedFillCandidatesProvider(
+                    fillCandidatesProvider(
                       bundle.targetChoice?.chosenDiverId ?? notifier.diverId,
                     ),
                   )

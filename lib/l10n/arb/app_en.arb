@@ -20831,6 +20831,36 @@
   "universalImport_label_skip": "Skip",
   "universalImport_label_fillPlanned": "Fill planned dive",
   "universalImport_compare_fillPlannedSubtitle": "Attach this download to the dive you planned",
+  "universalImport_label_fillDraft": "Fill draft",
+  "@universalImport_label_fillDraft": {"description": "Import action: attach the download to a draft dive marked at the site"},
+  "universalImport_compare_fillDraftSubtitle": "Attach this download to the dive you marked at the site",
+  "universalImport_fillDraft_target": "Fills draft: {label}",
+  "@universalImport_fillDraft_target": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "universalImport_fillDraft_window": "Draft from {start} to {end}",
+  "@universalImport_fillDraft_window": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "universalImport_fillDraft_windowOpen": "Draft from {start}",
+  "@universalImport_fillDraft_windowOpen": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      }
+    }
+  },
   "universalImport_label_filledPlanned": "Filled planned dives",
   "universalImport_fillPlanned_target": "Fills planned dive: {label}",
   "@universalImport_fillPlanned_target": {

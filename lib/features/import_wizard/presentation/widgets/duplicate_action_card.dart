@@ -170,6 +170,7 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
           : widget.availableActions.difference({DuplicateAction.consolidate}),
       isPending: widget.isPending,
       showFillPlanned: widget.matchResult.isFill,
+      fillsDraft: widget.matchResult.fillTarget?.kind == FillTargetKind.draft,
       inBatchPartner: widget.inBatchPartner,
     );
   }
@@ -283,9 +284,18 @@ class _CollapsedHeader extends StatelessWidget {
                           children: [
                             Expanded(
                               child: Text(
-                                context.l10n.universalImport_fillPlanned_target(
-                                  plannedDiveLabel ?? matchResult.diveId,
-                                ),
+                                matchResult.fillTarget?.kind ==
+                                        FillTargetKind.draft
+                                    ? context.l10n
+                                          .universalImport_fillDraft_target(
+                                            plannedDiveLabel ??
+                                                matchResult.diveId,
+                                          )
+                                    : context.l10n
+                                          .universalImport_fillPlanned_target(
+                                            plannedDiveLabel ??
+                                                matchResult.diveId,
+                                          ),
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: colorScheme.tertiary,
                                 ),
@@ -345,7 +355,11 @@ class _CollapsedHeader extends StatelessWidget {
                 ),
                 if (isPending) NeedsDecisionPill(colorScheme: colorScheme),
                 if (selectedAction != null)
-                  _ActionBadge(action: selectedAction!),
+                  _ActionBadge(
+                    action: selectedAction!,
+                    fillsDraft:
+                        matchResult.fillTarget?.kind == FillTargetKind.draft,
+                  ),
               ],
             ),
           ],
@@ -358,7 +372,10 @@ class _CollapsedHeader extends StatelessWidget {
 class _ActionBadge extends StatelessWidget {
   final DuplicateAction action;
 
-  const _ActionBadge({required this.action});
+  /// A fill row whose target is a draft (issue #637) says so.
+  final bool fillsDraft;
+
+  const _ActionBadge({required this.action, this.fillsDraft = false});
 
   @override
   Widget build(BuildContext context) {
@@ -382,7 +399,9 @@ class _ActionBadge extends StatelessWidget {
         Colors.blue.shade700,
       ),
       DuplicateAction.fillPlanned => (
-        l10n.universalImport_label_fillPlanned,
+        fillsDraft
+            ? l10n.universalImport_label_fillDraft
+            : l10n.universalImport_label_fillPlanned,
         theme.colorScheme.tertiary,
       ),
     };

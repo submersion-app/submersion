@@ -72,12 +72,100 @@ void main() {
     ).thenAnswer((_) async => DuplicateResult.noMatch());
   });
 
+  group('draft pass (#637)', () {
+    Dive draft(String id, DateTime entry, DateTime exit) => Dive(
+      id: id,
+      diverId: diverId,
+      dateTime: entry,
+      entryTime: entry,
+      exitTime: exit,
+      isDraft: true,
+    );
+
+    test('a download overlapping a draft fills it as a draft', () async {
+      when(mockDiveRepo.getUnfilledDives(diverId: diverId)).thenAnswer(
+        (_) async => [
+          draft('d1', DateTime(2026, 6, 1, 10), DateTime(2026, 6, 1, 10, 50)),
+        ],
+      );
+      adapter.setDownloadedDives([download(DateTime(2026, 6, 1, 10, 2))]);
+
+      final result = await adapter.checkDuplicates(await adapter.buildBundle());
+
+      final match = result.groups[ImportEntityType.dives]!.matchResults![0]!;
+      expect(
+        match.fillTarget,
+        const FillTarget(diveId: 'd1', kind: FillTargetKind.draft),
+      );
+      expect(match.diveId, 'd1');
+    });
+
+    test('a plan still fills as a plan', () async {
+      when(
+        mockDiveRepo.getUnfilledDives(diverId: diverId),
+      ).thenAnswer((_) async => [planned('p1', DateTime(2026, 6, 1, 9))]);
+      adapter.setDownloadedDives([download(DateTime(2026, 6, 1, 14))]);
+
+      final result = await adapter.checkDuplicates(await adapter.buildBundle());
+
+      expect(
+        result.groups[ImportEntityType.dives]!.matchResults![0]!.fillTarget,
+        const FillTarget(diveId: 'p1', kind: FillTargetKind.plan),
+      );
+    });
+
+    test('a download fitting two drafts is left for the diver', () async {
+      when(mockDiveRepo.getUnfilledDives(diverId: diverId)).thenAnswer(
+        (_) async => [
+          draft('a', DateTime(2026, 6, 1, 9, 40), DateTime(2026, 6, 1, 10, 5)),
+          draft('b', DateTime(2026, 6, 1, 10, 20), DateTime(2026, 6, 1, 11)),
+        ],
+      );
+      adapter.setDownloadedDives([download(DateTime(2026, 6, 1, 10))]);
+
+      final result = await adapter.checkDuplicates(await adapter.buildBundle());
+
+      expect(result.groups[ImportEntityType.dives]!.duplicateIndices, isEmpty);
+    });
+
+    test('a real duplicate never becomes a draft fill', () async {
+      final dive = download(DateTime(2026, 6, 1, 10, 2));
+      when(mockDiveRepo.getUnfilledDives(diverId: diverId)).thenAnswer(
+        (_) async => [
+          draft('d1', DateTime(2026, 6, 1, 10), DateTime(2026, 6, 1, 10, 50)),
+        ],
+      );
+      when(
+        mockImportService.detectDuplicate(
+          dive,
+          diverId: anyNamed('diverId'),
+          computerId: anyNamed('computerId'),
+          sourceKeysCache: anyNamed('sourceKeysCache'),
+        ),
+      ).thenAnswer(
+        (_) async => const DuplicateResult(
+          matchingDiveId: 'existing-dive-1',
+          confidence: DuplicateConfidence.exact,
+          score: 1.0,
+          matchedExistingSource: true,
+        ),
+      );
+      adapter.setDownloadedDives([dive]);
+
+      final result = await adapter.checkDuplicates(await adapter.buildBundle());
+
+      final match = result.groups[ImportEntityType.dives]!.matchResults![0]!;
+      expect(match.fillTarget, isNull);
+      expect(match.diveId, 'existing-dive-1');
+    });
+  });
+
   group('planned pass', () {
     test(
       'an unmatched download on a planned day gets a plan fill target',
       () async {
         when(
-          mockDiveRepo.getPlannedDives(diverId: diverId),
+          mockDiveRepo.getUnfilledDives(diverId: diverId),
         ).thenAnswer((_) async => [planned('p1', DateTime(2026, 6, 1, 9))]);
         adapter.setDownloadedDives([download(DateTime(2026, 6, 1, 14))]);
         final bundle = await adapter.buildBundle();
@@ -96,7 +184,7 @@ void main() {
 
     test('a download two days later stays unmatched', () async {
       when(
-        mockDiveRepo.getPlannedDives(diverId: diverId),
+        mockDiveRepo.getUnfilledDives(diverId: diverId),
       ).thenAnswer((_) async => [planned('p1', DateTime(2026, 6, 1, 9))]);
       adapter.setDownloadedDives([download(DateTime(2026, 6, 3, 9))]);
       final bundle = await adapter.buildBundle();
@@ -108,7 +196,7 @@ void main() {
 
     test('a download the day after the plan is offered as a fill', () async {
       when(
-        mockDiveRepo.getPlannedDives(diverId: diverId),
+        mockDiveRepo.getUnfilledDives(diverId: diverId),
       ).thenAnswer((_) async => [planned('p1', DateTime(2026, 6, 1, 23))]);
       adapter.setDownloadedDives([download(DateTime(2026, 6, 2, 0, 30))]);
       final bundle = await adapter.buildBundle();
@@ -123,7 +211,7 @@ void main() {
     test('a fingerprint hit is never turned into a fill', () async {
       final dive = download(DateTime(2026, 6, 1, 14));
       when(
-        mockDiveRepo.getPlannedDives(diverId: diverId),
+        mockDiveRepo.getUnfilledDives(diverId: diverId),
       ).thenAnswer((_) async => [planned('p1', DateTime(2026, 6, 1, 9))]);
       when(
         mockImportService.detectDuplicate(
@@ -152,7 +240,7 @@ void main() {
     });
 
     test('two downloads on one day take two plans in time order', () async {
-      when(mockDiveRepo.getPlannedDives(diverId: diverId)).thenAnswer(
+      when(mockDiveRepo.getUnfilledDives(diverId: diverId)).thenAnswer(
         (_) async => [
           planned('pm', DateTime(2026, 6, 1, 13)),
           planned('am', DateTime(2026, 6, 1, 8)),

@@ -260,14 +260,14 @@ class ImportWizardState {
 ///
 /// Orchestrates review selections, duplicate actions, import progress,
 /// and results. Source-specific logic is delegated to an [ImportSourceAdapter].
-/// The unfilled planned dives a download may fill (issue #2002), keyed by
-/// the import's target profile (null = unscoped). Follows the dives tick so
-/// a plan created or promoted mid-wizard shows up.
-final plannedFillCandidatesProvider = FutureProvider.autoDispose
+/// The plans (issue #2002) and drafts (issue #637) a download may fill,
+/// keyed by the import's target profile (null = unscoped). Follows the dives
+/// tick so one created or filled mid-wizard shows up.
+final fillCandidatesProvider = FutureProvider.autoDispose
     .family<List<Dive>, String?>((ref, diverId) {
       final repository = ref.watch(diveRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchDivesChanges());
-      return repository.getPlannedDives(diverId: diverId);
+      return repository.getUnfilledDives(diverId: diverId);
     });
 
 class ImportWizardNotifier extends StateNotifier<ImportWizardState> {

@@ -743,15 +743,15 @@ class DiveComputerAdapter
       }
     }
 
-    // Planned pass (issue #2002): downloads that matched nothing may fill a
-    // planned dive of the target profile from the same local day or the day
-    // before (issue #4003). Runs after the fingerprint, fuzzy and contained
+    // Fill pass: downloads that matched nothing may fill a draft whose taps
+    // they overlap (issue #637), or a planned dive of the target profile from
+    // the same local day or the day before (issues #2002 and #4003). Runs after the fingerprint, fuzzy and contained
     // passes so a real duplicate never becomes a fill. An empty diver id means
     // an unscoped library, where every planned dive is a candidate.
-    final planned = await _diveRepository.getPlannedDives(
+    final unfilled = await _diveRepository.getUnfilledDives(
       diverId: targetDiverId.isEmpty ? null : targetDiverId,
     );
-    if (planned.isNotEmpty) {
+    if (unfilled.isNotEmpty) {
       final unmatched = [
         for (var i = 0; i < _downloadedDives.length; i++)
           if (!duplicateIndices.contains(i)) i,
@@ -766,7 +766,7 @@ class DiveComputerAdapter
               ),
             ),
         ],
-        targets: planned,
+        targets: unfilled,
       );
       for (final entry in pairs.entries) {
         final index = unmatched[entry.key];
@@ -775,9 +775,8 @@ class DiveComputerAdapter
           diveId: entry.value,
           score: 1.0,
           timeDifferenceMs: 0,
-          fillTarget: FillTarget(
-            diveId: entry.value,
-            kind: FillTargetKind.plan,
+          fillTarget: FillTarget.of(
+            unfilled.firstWhere((d) => d.id == entry.value),
           ),
         );
       }

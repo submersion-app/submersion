@@ -31,8 +31,10 @@ class PlannedDiveFillOutcome {
   });
 }
 
-/// Fills a planned dive from a dive computer download (issue #2002): the
-/// computer supplies the measured facts, the plan keeps the human ones.
+/// Fills a planned dive (issue #2002) or a draft (issue #637) from a dive
+/// computer download: the computer supplies the measured facts, the dive
+/// keeps the human ones, and a draft keeps its tap positions (updateDive
+/// leaves the position pair alone).
 /// The classification lives in `planned_dive_fill_fields.dart`.
 class PlannedDiveFillService {
   final DiveRepository _dives;
@@ -72,8 +74,9 @@ class PlannedDiveFillService {
     final db = DatabaseService.instance.database;
     return db.transaction(() async {
       final planned = await _dives.getDiveById(targetDiveId);
-      if (planned == null || !planned.isPlanned) {
-        throw StateError('Dive $targetDiveId is not a planned dive');
+      // A plan, or a draft marked at the site (issue #637).
+      if (planned == null || !(planned.isPlanned || planned.isDraft)) {
+        throw StateError('Dive $targetDiveId is neither a plan nor a draft');
       }
       final snapshot = await DiveMergeSnapshot.capture(db, [
         targetDiveId,
@@ -137,7 +140,7 @@ class PlannedDiveFillService {
       //    stays as planned, the computer's start having gone to entryTime,
       //    unless the dive happened on another day: a dive pushed back a day
       //    belongs on the day it was dived (issue #4003).
-      await _dives.convertPlanToActualDive(
+      await _dives.promoteToLoggedDive(
         targetDiveId,
         actualDateTime: _sameDay(planned.dateTime, dive.startTime)
             ? null

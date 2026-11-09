@@ -56557,6 +56557,36 @@ abstract class AppLocalizations {
   /// **'Attach this download to the dive you planned'**
   String get universalImport_compare_fillPlannedSubtitle;
 
+  /// Import action: attach the download to a draft dive marked at the site
+  ///
+  /// In en, this message translates to:
+  /// **'Fill draft'**
+  String get universalImport_label_fillDraft;
+
+  /// No description provided for @universalImport_compare_fillDraftSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach this download to the dive you marked at the site'**
+  String get universalImport_compare_fillDraftSubtitle;
+
+  /// No description provided for @universalImport_fillDraft_target.
+  ///
+  /// In en, this message translates to:
+  /// **'Fills draft: {label}'**
+  String universalImport_fillDraft_target(String label);
+
+  /// No description provided for @universalImport_fillDraft_window.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft from {start} to {end}'**
+  String universalImport_fillDraft_window(String start, String end);
+
+  /// No description provided for @universalImport_fillDraft_windowOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft from {start}'**
+  String universalImport_fillDraft_windowOpen(String start);
+
   /// No description provided for @universalImport_label_filledPlanned.
   ///
   /// In en, this message translates to:
