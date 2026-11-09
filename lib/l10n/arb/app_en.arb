@@ -25155,6 +25155,17 @@
   "diveLog_draft_surfaced": "Surfaced",
   "diveLog_draft_markedComplete": "Marked as complete",
   "diveLog_draft_markCompleteFailed": "Couldn't mark the dive as complete.",
+  "diveLog_draft_stale_title": "Did you surface?",
+  "diveLog_draft_stale_body": "You entered the water at {time} and the dive is still open.",
+  "@diveLog_draft_stale_body": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_draft_stale_stillIn": "Still in the water",
+  "diveLog_draft_stale_setTime": "Set surfacing time",
   "@diveLog_draft_inWaterChip": {"description": "List marker for a draft dive whose diver has entered the water and not yet surfaced"},
   "diveLog_planned_bannerTitle": "Planned dive",
   "diveLog_planned_bannerBody": "Awaiting dive computer data. Mark it as logged if you dived without one.",

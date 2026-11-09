@@ -39233,6 +39233,20 @@ class AppLocalizationsZh extends AppLocalizations {
       'Couldn\'t mark the dive as complete.';
 
   @override
+  String get diveLog_draft_stale_title => 'Did you surface?';
+
+  @override
+  String diveLog_draft_stale_body(String time) {
+    return 'You entered the water at $time and the dive is still open.';
+  }
+
+  @override
+  String get diveLog_draft_stale_stillIn => 'Still in the water';
+
+  @override
+  String get diveLog_draft_stale_setTime => 'Set surfacing time';
+
+  @override
   String get diveLog_planned_bannerTitle => '计划的潜水';
 
   @override

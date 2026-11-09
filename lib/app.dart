@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/services/storage/gc/storage_gc_coordinator.dart';
 import 'package:submersion/core/utils/system_sheet_lifecycle.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/stale_open_draft_prompt.dart';
 import 'package:submersion/features/documents/presentation/providers/equipment_file_conversion_provider.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -137,6 +138,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
 
   /// Lock screen Entered water and Surfaced taps (issue #637).
   late final StreamSubscription<void> _diveMarks;
+  final _staleDrafts = StaleOpenDraftPrompter();
 
   @override
   void initState() {
@@ -219,6 +221,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       DerivedMetricsScheduler.instance.scheduleStaleSweep();
       ChangeLogSettleScheduler.instance.start();
       _pruneChangeLog();
+      unawaited(_staleDrafts.check(ref, rootNavigatorKey.currentContext));
     });
   }
 
@@ -281,6 +284,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
         ref.read(appLockNotifierProvider.notifier).noteResumed();
         _runStorageCleanupAfter(_maybeSyncOnResume(), StorageGcTrigger.resume);
         _resumeMediaTransfers();
+        unawaited(_staleDrafts.check(ref, rootNavigatorKey.currentContext));
         // NFC may have been turned on in the system settings meanwhile, as
         // the passport screens tell the diver to do.
         ref.invalidate(nfcSupportProvider);

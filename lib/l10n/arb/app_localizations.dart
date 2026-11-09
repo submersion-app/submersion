@@ -65834,6 +65834,30 @@ abstract class AppLocalizations {
   /// **'Couldn\'t mark the dive as complete.'**
   String get diveLog_draft_markCompleteFailed;
 
+  /// No description provided for @diveLog_draft_stale_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Did you surface?'**
+  String get diveLog_draft_stale_title;
+
+  /// No description provided for @diveLog_draft_stale_body.
+  ///
+  /// In en, this message translates to:
+  /// **'You entered the water at {time} and the dive is still open.'**
+  String diveLog_draft_stale_body(String time);
+
+  /// No description provided for @diveLog_draft_stale_stillIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Still in the water'**
+  String get diveLog_draft_stale_stillIn;
+
+  /// No description provided for @diveLog_draft_stale_setTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Set surfacing time'**
+  String get diveLog_draft_stale_setTime;
+
   /// No description provided for @diveLog_planned_bannerTitle.
   ///
   /// In en, this message translates to:
