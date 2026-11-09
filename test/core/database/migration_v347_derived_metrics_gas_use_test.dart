@@ -15,7 +15,7 @@ void main() {
     expect(AppDatabase.migrationVersions, contains(347));
   });
 
-  test('the compatibility floor does not move for a local cache', () {
+  test('the compatibility floor does not move', () {
     expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(347));
   });
 
@@ -40,6 +40,37 @@ void main() {
       expect(byName[column]!.read<String>('type'), 'INTEGER');
       expect(byName[column]!.read<int>('notnull'), 0);
     }
+  });
+
+  test('a cylinder gains surface breathing minutes, empty', () async {
+    final nativeDb = NativeDatabase.memory(
+      setup: (rawDb) {
+        registerAppSqlFunctions(rawDb);
+        rawDb.execute('PRAGMA user_version = 346');
+        rawDb.execute('CREATE TABLE dives (id TEXT NOT NULL PRIMARY KEY)');
+        rawDb.execute('''
+          CREATE TABLE dive_tanks (
+            id TEXT NOT NULL PRIMARY KEY,
+            dive_id TEXT NOT NULL)
+        ''');
+        rawDb.execute("INSERT INTO dive_tanks VALUES ('t1', 'd1')");
+      },
+    );
+    final db = AppDatabase(nativeDb);
+    addTearDown(db.close);
+
+    final cols = await db.customSelect("PRAGMA table_info('dive_tanks')").get();
+    final column = cols.singleWhere(
+      (c) => c.read<String>('name') == 'surface_breathing_duration',
+    );
+    expect(column.read<String>('type'), 'INTEGER');
+    expect(column.read<int>('notnull'), 0);
+    final row = await db
+        .customSelect(
+          "SELECT surface_breathing_duration FROM dive_tanks WHERE id = 't1'",
+        )
+        .getSingle();
+    expect(row.data['surface_breathing_duration'], isNull);
   });
 
   /// The rung and the beforeOpen backstop share one idempotent helper, so

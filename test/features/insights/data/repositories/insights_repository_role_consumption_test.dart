@@ -58,6 +58,7 @@ void main() {
     double o2 = 21,
     int order = 0,
     String? computerId,
+    int? surfaceBreathingSeconds,
   }) => db
       .into(db.diveTanks)
       .insert(
@@ -72,6 +73,7 @@ void main() {
           hePercent: const Value(0.0),
           tankOrder: Value(order),
           computerId: Value(computerId),
+          surfaceBreathingDuration: Value(surfaceBreathingSeconds),
         ),
       );
 
@@ -177,6 +179,24 @@ void main() {
       closeTo(deco.sacRate!, deco.sacRate! * 0.02),
     );
     expect(trend.rmv[ConsumptionRoleGroup.deco]!.single.diveId, 'tech');
+  });
+
+  test('entered surface minutes reach a one-cylinder group (#2930)', () async {
+    // No profile: an hour at 20 m, plus ten minutes of the back gas breathed
+    // on the boat after the computer stopped.
+    await insertDive('boat');
+    await insertTank(
+      'boat',
+      'boat-back',
+      'backGas',
+      surfaceBreathingSeconds: 600,
+    );
+    final back = (await detailRows('boat')).single;
+
+    final trend = await repository.getRoleConsumptionPerDive();
+
+    final value = trend.rmv[ConsumptionRoleGroup.bottomGas]!.single.value;
+    expect(value, closeTo(back.rmv!, 1e-9));
   });
 
   test('a surface tail is left out of the last cylinder (#2930)', () async {

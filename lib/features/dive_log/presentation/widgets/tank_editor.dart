@@ -29,6 +29,7 @@ import 'package:submersion/features/tank_presets/presentation/providers/tank_pre
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/computer_recorded_tank.dart';
 import 'package:submersion/features/dive_log/domain/services/logged_tank_mod.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_surface_breathing_field.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/computer_mix_note.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/own_cylinder_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
@@ -154,6 +155,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   /// edits.
   String? _passportId;
 
+  /// Minutes breathed on the surface after the computer stopped (#2930).
+  Duration? _surfaceBreathing;
+
   /// The partner's passport id when this tank is a twin set (issue #4242).
   String? _twinPassportId;
 
@@ -253,6 +257,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     _material = widget.tank.material;
     _regulatorIds = widget.tank.regulatorIds;
     _passportId = widget.tank.passportId;
+    _surfaceBreathing = widget.tank.surfaceBreathingDuration;
     _twinPassportId = widget.tank.twinPassportId;
     // Initialize selected preset from tank's presetName
     // Check built-in presets first, async lookup for custom presets happens in build
@@ -485,6 +490,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       // Import-owned (issue #1496): carried so the edited tank still
       // reports what the source log recorded.
       usageDuration: widget.tank.usageDuration,
+      surfaceBreathingDuration: _surfaceBreathing,
     ).withRegulators(_regulatorIds);
   }
 
@@ -563,6 +569,19 @@ class _TankEditorState extends ConsumerState<TankEditor> {
 
               // Start/end pressure
               _buildPressureRow(units),
+
+              // Breathed after the computer stopped logging (issue #2930); a
+              // suit inflation bottle is not breathed.
+              if (_role.isBreathingGas) ...[
+                const SizedBox(height: 12),
+                TankSurfaceBreathingField(
+                  value: _surfaceBreathing,
+                  onChanged: (value) {
+                    _surfaceBreathing = value;
+                    _notifyChange();
+                  },
+                ),
+              ],
             ],
 
             // MOD display: a suit inflation bottle is not breathed, so it

@@ -413,6 +413,8 @@ class GasAnalysisService {
       double? sacRate;
       // The ambient pressure the rate was divided by (issue #771).
       double? rateAmbientBar;
+      // Surface minutes the diver entered that the rate counts (issue #2930).
+      var surfaceSeconds = 0;
 
       if (tsPressures != null && tsPressures.length >= 2) {
         // Enhanced calculation using time-series data
@@ -449,10 +451,15 @@ class GasAnalysisService {
         final effectiveAvgDepth = avgDepthDuringUse ?? dive.avgDepth!;
         final pressureUsed = tank.startPressure! - tank.endPressure!;
         if (pressureUsed > 0) {
-          final durationMin = usageSeconds / 60.0;
+          // The logged end pressure includes gas breathed at the surface after
+          // the computer stopped, so the minutes the diver entered for it
+          // count here, at 0 m (issue #2930).
+          final entered = tank.surfaceBreathingDuration?.inSeconds ?? 0;
+          final totalSeconds = usageSeconds + entered;
+          final durationMin = totalSeconds / 60.0;
           if (durationMin > 0) {
             final ambientPressureBar = environment.pressureAtDepth(
-              effectiveAvgDepth,
+              effectiveAvgDepth * usageSeconds / totalSeconds,
             );
             if (volume != null) {
               sacRate = _zCorrectedSacRate(
@@ -469,7 +476,10 @@ class GasAnalysisService {
               // Fallback: pressure-based SAC (bar/min) when no tank volume
               sacRate = pressureUsed / durationMin / ambientPressureBar;
             }
-            if (sacRate != null) rateAmbientBar = ambientPressureBar;
+            if (sacRate != null) {
+              rateAmbientBar = ambientPressureBar;
+              surfaceSeconds = entered;
+            }
           }
         }
       }
@@ -485,13 +495,14 @@ class GasAnalysisService {
           startPressure: tank.startPressure,
           endPressure: tank.endPressure,
           gasModel: gasModel,
-          usageDuration: Duration(seconds: usageSeconds),
+          usageDuration: Duration(seconds: usageSeconds + surfaceSeconds),
           avgDepthDuringUse: avgDepthDuringUse,
           hasTimeSeriesData: hasTsData,
           order: tank.order,
           usageWindows: usageWindows,
           usageFromRecordedDuration: usage.fromRecordedDuration,
           rateAmbientBar: rateAmbientBar,
+          surfaceSeconds: surfaceSeconds,
         ),
       );
     }

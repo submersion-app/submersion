@@ -613,6 +613,19 @@ extension DiveMigrations on AppDatabase {
     );
   }
 
+  /// Idempotent DDL for the v347 dive_tanks.surface_breathing_duration
+  /// column (issue #2930). Called from the v347 rung and re-asserted in
+  /// beforeOpen like the other column-assert helpers.
+  Future<void> _assertTankSurfaceBreathingColumn() async {
+    final cols = await customSelect("PRAGMA table_info('dive_tanks')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (names.contains('surface_breathing_duration')) return;
+    await customStatement(
+      'ALTER TABLE dive_tanks ADD COLUMN surface_breathing_duration INTEGER',
+    );
+  }
+
   /// Idempotent DDL for the v287 dive_tanks.passport_id column (issue
   /// #2650). Called from the v287 rung and re-asserted in beforeOpen like
   /// the other column-assert helpers. Its index is a performance index.

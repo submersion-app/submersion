@@ -34,7 +34,10 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  Future<void> insertDive({int? cachedWindowMinutes}) async {
+  Future<void> insertDive({
+    int? cachedWindowMinutes,
+    int? surfaceBreathingSeconds,
+  }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     await db
         .into(db.dives)
@@ -52,16 +55,17 @@ void main() {
     await db
         .into(db.diveTanks)
         .insert(
-          const DiveTanksCompanion(
-            id: Value('t1'),
-            diveId: Value('d1'),
-            startPressure: Value(200),
-            endPressure: Value(200 - dropBar),
-            volume: Value(volume),
-            tankRole: Value('backGas'),
-            o2Percent: Value(21.0),
-            hePercent: Value(0.0),
-            tankOrder: Value(0),
+          DiveTanksCompanion(
+            id: const Value('t1'),
+            diveId: const Value('d1'),
+            startPressure: const Value(200),
+            endPressure: const Value(200 - dropBar),
+            volume: const Value(volume),
+            tankRole: const Value('backGas'),
+            o2Percent: const Value(21.0),
+            hePercent: const Value(0.0),
+            tankOrder: const Value(0),
+            surfaceBreathingDuration: Value(surfaceBreathingSeconds),
           ),
         );
     if (cachedWindowMinutes != null) {
@@ -80,21 +84,23 @@ void main() {
     }
   }
 
-  domain.Dive entity({GasUse? storedGasUse}) => domain.Dive(
-    id: 'd1',
-    dateTime: DateTime.utc(2026),
-    runtime: const Duration(minutes: runtimeMinutes),
-    avgDepth: recordedAvgDepth,
-    tanks: const [
-      domain.DiveTank(
-        id: 't1',
-        volume: volume,
-        startPressure: 200,
-        endPressure: 200 - dropBar,
-      ),
-    ],
-    storedGasUse: storedGasUse,
-  );
+  domain.Dive entity({GasUse? storedGasUse, Duration? surfaceBreathing}) =>
+      domain.Dive(
+        id: 'd1',
+        dateTime: DateTime.utc(2026),
+        runtime: const Duration(minutes: runtimeMinutes),
+        avgDepth: recordedAvgDepth,
+        tanks: [
+          domain.DiveTank(
+            id: 't1',
+            volume: volume,
+            startPressure: 200,
+            endPressure: 200 - dropBar,
+            surfaceBreathingDuration: surfaceBreathing,
+          ),
+        ],
+        storedGasUse: storedGasUse,
+      );
 
   group('a dive with a stored window', () {
     final expectedSac =
@@ -130,6 +136,37 @@ void main() {
         ),
       ).sac!;
       expect(points.single.value, closeTo(sac, 1e-9));
+    });
+  });
+
+  group('minutes entered for breathing at the surface', () {
+    test('the charts and records agree with Dive.sac and rmvFor', () async {
+      await insertDive(
+        cachedWindowMinutes: windowMinutes,
+        surfaceBreathingSeconds: 600,
+      );
+      final dive = entity(
+        storedGasUse: const GasUse(
+          seconds: windowMinutes * 60,
+          avgDepth: windowAvgDepth,
+        ),
+        surfaceBreathing: const Duration(minutes: 10),
+      );
+
+      final sac = await repository.getSacPressurePerDive();
+      expect(sac.single.value, closeTo(dive.sac!, 1e-9));
+      final rmv = await repository.getSacVolumePerDive();
+      expect(rmv.single.value, closeTo(dive.rmvFor(GasModel.ideal)!, 1e-9));
+      final records = await repository.getSacPressureRecords();
+      expect(records.best!.value, closeTo(dive.sac!, 1e-9));
+    });
+
+    test('count without a stored window too', () async {
+      await insertDive(surfaceBreathingSeconds: 600);
+      final dive = entity(surfaceBreathing: const Duration(minutes: 10));
+      final sac = await repository.getSacPressurePerDive();
+      expect(sac.single.value, closeTo(dive.sac!, 1e-9));
+      expect(dive.sac, lessThan(entity().sac!));
     });
   });
 

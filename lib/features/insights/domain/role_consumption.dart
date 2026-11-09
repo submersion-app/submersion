@@ -243,6 +243,10 @@ double? _perCorrectedMinute(
 ) {
   final int seconds;
   final double? ambient;
+  // Minutes the diver entered for breathing these cylinders at the surface
+  // after the computer stopped (issue #2930), counted at 0 m as each row's
+  // rate counts them; the windows never hold them.
+  final surface = rows.map((r) => r.surfaceSeconds).sum;
   if (rows.any((r) => r.usageFromRecordedDuration)) {
     // An unrecorded cylinder alongside carries the whole dive, and one diver
     // cannot breathe for longer than the dive lasted.
@@ -250,19 +254,21 @@ double? _perCorrectedMinute(
         .expand((r) => r.usageWindows)
         .map((w) => w.end)
         .max;
-    seconds = math.min(_recordedSeconds(rows, tanks), diveSeconds);
+    seconds = math.min(_recordedSeconds(rows, tanks), diveSeconds) + surface;
     ambient = rows.first.rateAmbientBar;
   } else {
     final union = unionOfWindows(rows.expand((r) => r.usageWindows));
-    seconds = union.breathedSeconds;
+    final windowSeconds = union.breathedSeconds;
+    seconds = windowSeconds + surface;
     final depth = timeWeightedMeanAcross(
       profile,
       windows: union,
       time: (p) => p.timestamp,
       value: (p) => p.depth,
     );
-    ambient = depth != null
-        ? dive.environment.pressureAtDepth(depth)
+    // A row's own ambient already counts its surface minutes.
+    ambient = depth != null && seconds > 0
+        ? dive.environment.pressureAtDepth(depth * windowSeconds / seconds)
         : rows.first.rateAmbientBar;
   }
   if (seconds < _minimumSeconds || ambient == null || ambient <= 0) {

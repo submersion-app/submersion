@@ -10655,6 +10655,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tank_label_endPressure => 'לחץ סיום';
 
   @override
+  String get diveLog_tank_label_surfaceBreathing => 'נשימה על פני המים';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_helper =>
+      'דקות על מכל זה אחרי שהמחשב הפסיק לתעד, למשל חמצן על הסירה';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_unit => 'דקות';
+
+  @override
   String get diveLog_tank_label_he => 'He';
 
   @override
@@ -25586,6 +25596,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_supersedesRuleId => 'מחליף כלל מובנה';
+
+  @override
+  String get settings_conflict_field_surfaceBreathingDuration =>
+      'זמן נשימה על פני המים';
 
   @override
   String get settings_conflict_field_surfaceConditions => 'תנאים בפני המים';

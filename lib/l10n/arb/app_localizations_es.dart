@@ -10896,6 +10896,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_tank_label_endPressure => 'Presión final';
 
   @override
+  String get diveLog_tank_label_surfaceBreathing => 'Respirado en superficie';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_helper =>
+      'Minutos con esta botella tras detenerse el registro del ordenador, como oxígeno en el barco';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_unit => 'min';
+
+  @override
   String get diveLog_tank_label_he => 'He';
 
   @override
@@ -26263,6 +26273,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_conflict_field_supersedesRuleId =>
       'Sustituye a la regla integrada';
+
+  @override
+  String get settings_conflict_field_surfaceBreathingDuration =>
+      'Tiempo respirado en superficie';
 
   @override
   String get settings_conflict_field_surfaceConditions =>

@@ -1591,8 +1591,10 @@ class AppDatabase extends _$AppDatabase {
     // does not move. Numbered 346 so an open PR can take 345.
     346,
     // v347: dive_derived_metrics.gas_use_s and gas_use_avg_depth_m, a dive's
-    // underwater time and depth for SAC and RMV (issue #2930). A device-local
-    // cache the sweep refills, so the floor does not move.
+    // underwater time and depth for SAC and RMV, and where surface breathing
+    // stretched them (issue #2930): a device-local cache the sweep refills.
+    // Plus dive_tanks.surface_breathing_duration, a nullable synced column an
+    // older peer omits, with no backfill. The floor does not move.
     347,
   ];
 

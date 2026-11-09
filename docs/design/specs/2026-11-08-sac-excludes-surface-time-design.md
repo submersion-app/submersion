@@ -88,7 +88,7 @@ were breathed. Three signals, decided by the user on 2026-11-08:
    transmitter resolution and the temperature swing of a cylinder leaving the
    water, and below about four minutes of breathing on a 12 L cylinder.
 3. **Minutes the diver enters.** Each cylinder gains "Breathed at the surface"
-   (`dive_tanks.surface_breathing_s`, synced, nullable), for time after the
+   (`dive_tanks.surface_breathing_duration`, seconds, synced, nullable), for time after the
    computer stopped logging, which no recording shows. Those seconds count at
    0 m.
 

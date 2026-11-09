@@ -101,6 +101,12 @@ The rows, in order:
 > is left out of the dive's SAC and RMV. Anything at 1 m or shallower at the very
 > start or end of the profile counts as surface time; your runtime and profile
 > stay exactly as recorded.
+>
+> Surface time you spent breathing a cylinder still counts, at the surface: a
+> gas switch logged after you surfaced (oxygen on the boat), or a cylinder whose
+> pressure keeps falling by 5 bar or more on the surface (a surface swim on the
+> regulator). For time after your computer stopped logging, enter the minutes in
+> the cylinder's **Breathed at the surface** field.
 
 ### Automatic dive numbering
 

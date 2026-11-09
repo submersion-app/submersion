@@ -17311,6 +17311,24 @@ abstract class AppLocalizations {
   /// **'End Pressure'**
   String get diveLog_tank_label_endPressure;
 
+  /// No description provided for @diveLog_tank_label_surfaceBreathing.
+  ///
+  /// In en, this message translates to:
+  /// **'Breathed at the surface'**
+  String get diveLog_tank_label_surfaceBreathing;
+
+  /// No description provided for @diveLog_tank_surfaceBreathing_helper.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes on this cylinder after the computer stopped logging, such as oxygen on the boat'**
+  String get diveLog_tank_surfaceBreathing_helper;
+
+  /// No description provided for @diveLog_tank_surfaceBreathing_unit.
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get diveLog_tank_surfaceBreathing_unit;
+
   /// No description provided for @diveLog_tank_label_he.
   ///
   /// In en, this message translates to:
@@ -41873,6 +41891,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Replaces built-in rule'**
   String get settings_conflict_field_supersedesRuleId;
+
+  /// No description provided for @settings_conflict_field_surfaceBreathingDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Time breathed at the surface'**
+  String get settings_conflict_field_surfaceBreathingDuration;
 
   /// No description provided for @settings_conflict_field_surfaceConditions.
   ///

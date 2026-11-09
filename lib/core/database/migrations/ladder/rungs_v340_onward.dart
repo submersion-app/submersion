@@ -67,11 +67,14 @@ extension RungsFromV340 on AppDatabase {
     if (from < 346) await reportProgress();
 
     // v347: dive_derived_metrics.gas_use_s and gas_use_avg_depth_m, the
-    // underwater time and depth whole-dive SAC and RMV divide by (issue
-    // #2930). Nullable columns on a device-local cache, no backfill: the
-    // engine version bump makes the sweep rebuild every row. Re-asserted in
+    // underwater time and depth whole-dive SAC and RMV divide by, and where
+    // surface breathing stretched them (issue #2930). Nullable columns on a
+    // device-local cache, no backfill: the engine version bump makes the
+    // sweep rebuild every row. Plus dive_tanks.surface_breathing_duration,
+    // minutes the diver enters, synced and nullable. Re-asserted in
     // beforeOpen.
     if (from < 347) await _assertDerivedMetricsGasUseColumns();
+    if (from < 347) await _assertTankSurfaceBreathingColumn();
     if (from < 347) await reportProgress();
   }
 }

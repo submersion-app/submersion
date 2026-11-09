@@ -540,6 +540,9 @@ class DiveUncombineService {
                   usageDuration: sharedTankIds.contains(tank.id)
                       ? const Value(null)
                       : null,
+                  // Surface breathing comes after the dive, so it stays with
+                  // the last segment (#2930).
+                  surfaceBreathingDuration: isLast ? null : const Value(null),
                 ),
           );
       await _sync.markRecordPending(

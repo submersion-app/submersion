@@ -275,6 +275,12 @@ class DiveTanks extends Table {
   /// log recorded it (issue #1496). Null when the source recorded none,
   /// and on every row from before v259.
   IntColumn get usageDuration => integer().nullable()();
+
+  /// v347: seconds the diver breathed this cylinder at the surface after the
+  /// computer stopped logging, as they entered it (issue #2930): oxygen on
+  /// the boat after a deco dive. Whole-dive and per-cylinder SAC count it at
+  /// 0 m, since no recording shows it. Null when none was entered.
+  IntColumn get surfaceBreathingDuration => integer().nullable()();
   TextColumn get tankMaterial =>
       text().nullable()(); // aluminum, steel, carbonFiber
   TextColumn get tankName =>

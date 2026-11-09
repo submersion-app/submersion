@@ -268,6 +268,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'source_id': 'the data source this tank row came from',
     'source_tank_index': 'Which parsed tank index this row\'s computer-owned data (pressure series, serial, start and end pressure) comes from',
     'start_pressure': 'bar',
+    'surface_breathing_duration': 'seconds the diver breathed this cylinder at the surface after the computer stopped logging, as they entered it: oxygen on the boat after a deco dive',
     'tank_material': 'aluminum, steel, carbonFiber',
     'tank_name': 'user-friendly name like "Primary AL80"',
     'tank_role': 'backGas, stage, deco, bailout, etc.',

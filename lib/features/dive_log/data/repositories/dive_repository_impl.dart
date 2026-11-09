@@ -2487,6 +2487,9 @@ class DiveRepository {
                 ),
                 // What the source log recorded (issue #1496).
                 usageDuration: Value(tank.usageDuration?.inSeconds),
+                surfaceBreathingDuration: Value(
+                  tank.surfaceBreathingDuration?.inSeconds,
+                ),
               ),
             );
           }
@@ -2867,6 +2870,9 @@ class DiveRepository {
                       encodeSharedComputerIds(tank.sharedComputerIds),
                     ),
                     usageDuration: Value(tank.usageDuration?.inSeconds),
+                    surfaceBreathingDuration: Value(
+                      tank.surfaceBreathingDuration?.inSeconds,
+                    ),
                   ),
                 );
             await _syncRepository.markRecordPending(
@@ -5191,6 +5197,9 @@ class DiveRepository {
               usageDuration: t.usageDuration != null
                   ? Duration(seconds: t.usageDuration!)
                   : null,
+              surfaceBreathingDuration: t.surfaceBreathingDuration != null
+                  ? Duration(seconds: t.surfaceBreathingDuration!)
+                  : null,
             ),
           )
           .toList(),
@@ -5662,6 +5671,9 @@ class DiveRepository {
           sharedComputerIds: decodeSharedComputerIds(t.sharedComputerIds),
           usageDuration: t.usageDuration != null
               ? Duration(seconds: t.usageDuration!)
+              : null,
+          surfaceBreathingDuration: t.surfaceBreathingDuration != null
+              ? Duration(seconds: t.surfaceBreathingDuration!)
               : null,
         );
       }).toList(),

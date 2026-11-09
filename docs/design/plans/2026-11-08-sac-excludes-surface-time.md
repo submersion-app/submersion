@@ -196,7 +196,7 @@ Spec section: "Breathing at the surface". Each task is TDD and ends with
 
 ### Task S4: minutes the diver enters
 
-- `dive_tanks.surface_breathing_s` (v347 assert), `DiveTank.surfaceBreathing`
+- `dive_tanks.surface_breathing_duration` (v347 assert), `DiveTank.surfaceBreathingDuration`
   (Duration?), read and write mapping, copy flows.
 - `_consumptionBasis`, `cylinderUsage`, the role trend and `gasUseSecondsSql` /
   `gasUseAvgDepthSql` add the seconds and blend the depth.

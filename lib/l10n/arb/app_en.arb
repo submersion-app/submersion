@@ -6146,6 +6146,9 @@
   "diveLog_summary_stat_totalDives": "Total Dives",
   "diveLog_summary_title": "Dive Log Summary",
   "diveLog_tank_label_endPressure": "End Pressure",
+  "diveLog_tank_label_surfaceBreathing": "Breathed at the surface",
+  "diveLog_tank_surfaceBreathing_helper": "Minutes on this cylinder after the computer stopped logging, such as oxygen on the boat",
+  "diveLog_tank_surfaceBreathing_unit": "min",
   "diveLog_tank_label_he": "He",
   "diveLog_tank_label_material": "Material",
   "diveLog_tank_label_mnd": "MND",
@@ -15500,6 +15503,7 @@
   "@settings_conflict_field_supersedesRuleId": {
     "description": "Sync conflict field label: the built-in certification currency rule that a custom rule replaces."
   },
+  "settings_conflict_field_surfaceBreathingDuration": "Time breathed at the surface",
   "settings_conflict_field_surfaceConditions": "Surface conditions",
   "settings_conflict_field_surfaceSwimLimitM": "Longest surface swim",
   "settings_conflict_field_swimSpeedMps": "Swim speed",

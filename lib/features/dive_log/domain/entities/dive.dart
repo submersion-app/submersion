@@ -652,17 +652,28 @@ class Dive extends Equatable {
     final seconds = use == null
         ? runtime.inSeconds
         : math.min(use.seconds, runtime.inSeconds);
-    final minutes = seconds / 60;
-    if (minutes <= 0) return null;
+    // Minutes the diver entered for breathing a cylinder at the surface after
+    // the computer stopped (issue #2930): the logged end pressures include
+    // that gas, and those minutes count at 0 m.
+    final surfaceSeconds = surfaceBreathingSeconds;
+    final total = seconds + surfaceSeconds;
+    if (total <= 0) return null;
+    final depth = use?.avgDepth ?? recordedDepth;
     // Ambient pressure in bar, matching the 1 bar reference that gasVolume
     // returns volumes against.
     return (
-      minutes: minutes,
-      avgPressureBar: environment.pressureAtDepth(
-        use?.avgDepth ?? recordedDepth,
-      ),
+      minutes: total / 60,
+      avgPressureBar: environment.pressureAtDepth(depth * seconds / total),
     );
   }
+
+  /// Seconds the diver entered for breathing this dive's cylinders at the
+  /// surface after the computer stopped logging (issue #2930). A suit
+  /// inflation bottle is not breathed, so its entry counts for nothing.
+  int get surfaceBreathingSeconds => breathingTanks.fold(
+    0,
+    (total, t) => total + (t.surfaceBreathingDuration?.inSeconds ?? 0),
+  );
 
   /// The cylinders that hold breathing gas, in order: every one but a suit
   /// inflation bottle (issue #4243). Gas calculations start from these;
