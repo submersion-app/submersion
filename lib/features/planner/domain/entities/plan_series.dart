@@ -150,6 +150,19 @@ class PlanSeries extends Equatable {
     );
   }
 
+  /// This series with each dive that has been dived holding what the log
+  /// says it left behind, from [actuals] by plan id. A dive not in
+  /// [actuals] holds none: a download undone takes it back to its plan.
+  PlanSeries withActuals(Map<String, SeriesFollow> actuals) => copyWith(
+    dives: [
+      for (final dive in dives)
+        if (actuals[dive.state.id] case final actual?)
+          dive.copyWith(actual: actual)
+        else
+          dive.copyWith(clearActual: true),
+    ],
+  );
+
   @override
   List<Object?> get props => [
     dives,
