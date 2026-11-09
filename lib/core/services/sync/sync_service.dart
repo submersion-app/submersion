@@ -13,7 +13,6 @@ import 'package:submersion/core/database/last_service_date_repair.dart';
 import 'package:submersion/core/database/weather_fetched_at_repair.dart';
 import 'package:submersion/core/database/combined_dive_summary_repair.dart';
 import 'package:submersion/core/database/dive_water_temp_fill.dart';
-import 'package:submersion/core/database/snapshot_serial_heal.dart';
 import 'package:submersion/core/database/device_gear_heal.dart';
 import 'package:submersion/core/database/database.dart'
     show AppDatabase, SyncRecord, DeletionLogData;
@@ -1488,9 +1487,7 @@ class SyncService {
   /// item's last service date older than its newest service record when an
   /// older record was logged there (issue #4201). One below v349 publishes a
   /// downloaded dive with no water temperature, kept on its source row only
-  /// (issue #4333); that fill reads the same touched dives. One below the
-  /// #4368 fix publishes empty or decimal serial copies on downloaded
-  /// sources and dives; they follow their computer.
+  /// (issue #4333); that fill reads the same touched dives.
   Future<void> _repairLegacyPeerRows({Iterable<String>? touchedDiveIds}) async {
     try {
       final db = DatabaseService.instance.database;
@@ -1505,15 +1502,6 @@ class SyncService {
       }
       if (await repairLastServiceDates(db) > 0) {
         db.notifyUpdates({TableUpdate.onTable(db.equipment)});
-      }
-      // A peer below this version still sends empty or decimal serial
-      // copies, and a source relinked by the apply's own repair takes its
-      // computer's serial here (issue #4368).
-      if (await healDownloadedSnapshotSerials(db) > 0) {
-        db.notifyUpdates({
-          TableUpdate.onTable(db.diveDataSources),
-          TableUpdate.onTable(db.dives),
-        });
       }
     } catch (e, st) {
       // The applied rows are already in place; losing this repair costs only

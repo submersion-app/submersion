@@ -110,4 +110,23 @@ void main() {
     final source = (await serializer.fetchRecord('diveDataSources', 's1'))!;
     expect(source['computerSerial'], '8629AC48');
   });
+
+  test('resolving one conflicted row also relinks and heals', () async {
+    await seedDetachedSource();
+    final db = DatabaseService.instance.database;
+    await db.customStatement(
+      "INSERT INTO dive_data_sources (id, dive_id, computer_id, "
+      "computer_model, computer_serial, source_format, imported_at, "
+      "created_at) VALUES ('s2', 'd1', 'teric', 'Shearwater Teric', "
+      "'2250878024', 'dive_computer', 1, 1)",
+    );
+    await db.customStatement("DELETE FROM dive_data_sources WHERE id = 's1'");
+
+    await serializer.applyInDeferredFkTransaction(
+      () => serializer.repairAfterRowWrite('diveDataSources'),
+    );
+
+    final source = (await serializer.fetchRecord('diveDataSources', 's2'))!;
+    expect(source['computerSerial'], '8629AC48');
+  });
 }

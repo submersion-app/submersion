@@ -8,8 +8,8 @@ import 'package:submersion/core/services/sync/device_local_fields.dart';
 const _chunk = 500;
 
 /// [exported] plus every computer a row in [referencing] points at by its
-/// `computerId`, for an incremental changeset (issue #4368). A peer that
-/// applies a dive or data source without the computer it names has its
+/// `key` column, for an incremental changeset (issue #4368). A peer that
+/// applies a row without the computer it names has its
 /// foreign-key repair clear the link for good, and a computer older than
 /// the watermark, or one an earlier apply on the peer failed to keep, is
 /// otherwise not sent again until its own clock moves. Resending an
@@ -19,14 +19,14 @@ Future<List<Map<String, dynamic>>> withReferencedComputers(
   AppDatabase db,
   List<Map<String, dynamic>> exported, {
   required String? hlcSince,
-  required List<List<Map<String, dynamic>>> referencing,
+  required List<({List<Map<String, dynamic>> rows, String key})> referencing,
 }) async {
   if (hlcSince == null) return exported;
   final have = {for (final row in exported) row['id']};
   final missing = {
-    for (final rows in referencing)
+    for (final (:rows, :key) in referencing)
       for (final row in rows)
-        if (row['computerId'] case final String id when !have.contains(id)) id,
+        if (row[key] case final String id when !have.contains(id)) id,
   }.toList();
   if (missing.isEmpty) return exported;
   return [

@@ -16,6 +16,7 @@ import 'package:submersion/core/database/dive_course_links_schema.dart';
 import 'package:submersion/core/database/legacy_sample_staging.dart';
 import 'package:submersion/core/database/profile_series_pack.dart';
 import 'package:submersion/core/database/site_type_seed.dart';
+import 'package:submersion/core/database/snapshot_serial_heal.dart';
 import 'package:submersion/core/database/source_computer_relink.dart';
 import 'package:submersion/core/services/sync/referenced_computer_export.dart';
 import 'package:submersion/core/database/tag_scope_tables.dart';
@@ -2428,7 +2429,8 @@ class SyncDataSerializer {
       for (final type in {...pending.keys, ...byOwnClock.keys})
         type: {...?pending[type], ...?byOwnClock[type]},
     };
-    // Read ahead of the computers, which must cover what these reference.
+    // Read ahead of the computers, which must cover every row below that
+    // references one (issue #4368).
     final dives = await _safeExport('dives', () => _exportDives(hlcSince));
     final diveDataSources = await _safeExport(
       'diveDataSources',
@@ -2438,6 +2440,50 @@ class SyncDataSerializer {
         pendingChildren,
       ),
     );
+    final diveTanks = await _safeExport(
+      'diveTanks',
+      () async => _withPendingChildren(
+        'diveTanks',
+        await _exportDiveTanks(hlcSince),
+        pendingChildren,
+      ),
+    );
+    final qualityFindings = await _safeExport(
+      'qualityFindings',
+      () => _exportQualityFindings(hlcSince),
+    );
+    final transmitters = await _safeExport(
+      'transmitters',
+      () => _exportTransmitters(hlcSince),
+    );
+    final diveProfileEvents = await _safeExport(
+      'diveProfileEvents',
+      () async => _withPendingChildren(
+        'diveProfileEvents',
+        await _exportDiveProfileEvents(hlcSince),
+        pendingChildren,
+      ),
+    );
+    final gasSwitches = await _safeExport(
+      'gasSwitches',
+      () async => _withPendingChildren(
+        'gasSwitches',
+        await _exportGasSwitches(hlcSince),
+        pendingChildren,
+      ),
+    );
+    final diveComputerConnections = await _safeExport(
+      'diveComputerConnections',
+      () => _exportDiveComputerConnections(hlcSince),
+    );
+    final diveProfileSeries = await _safeExport(
+      'diveProfileSeries',
+      () => _exportDiveProfileSeries(hlcSince),
+    );
+    final tankPressureSeries = await _safeExport(
+      'tankPressureSeries',
+      () => _exportTankPressureSeries(hlcSince),
+    );
     return SyncData(
       divers: await _safeExport('divers', () => _exportDivers(hlcSince)),
       diverSettings: await _safeExport(
@@ -2445,14 +2491,7 @@ class SyncDataSerializer {
         () => _exportDiverSettings(hlcSince),
       ),
       dives: dives,
-      diveTanks: await _safeExport(
-        'diveTanks',
-        () async => _withPendingChildren(
-          'diveTanks',
-          await _exportDiveTanks(hlcSince),
-          pendingChildren,
-        ),
-      ),
+      diveTanks: diveTanks,
       diveEquipment: await _safeExport(
         'diveEquipment',
         () async => _withPendingChildren(
@@ -2501,10 +2540,7 @@ class SyncDataSerializer {
         'cylinderConfigItems',
         () => _exportCylinderConfigItems(hlcSince),
       ),
-      qualityFindings: await _safeExport(
-        'qualityFindings',
-        () => _exportQualityFindings(hlcSince),
-      ),
+      qualityFindings: qualityFindings,
       equipmentAttributes: await _safeExport(
         'equipmentAttributes',
         () => _exportEquipmentAttributes(hlcSince),
@@ -2816,13 +2852,21 @@ class SyncDataSerializer {
           _db,
           await _exportDiveComputers(hlcSince),
           hlcSince: hlcSince,
-          referencing: [dives, diveDataSources],
+          referencing: [
+            (rows: dives, key: 'computerId'),
+            (rows: diveDataSources, key: 'computerId'),
+            (rows: diveTanks, key: 'computerId'),
+            (rows: qualityFindings, key: 'computerId'),
+            (rows: transmitters, key: 'diveComputerId'),
+            (rows: diveProfileEvents, key: 'computerId'),
+            (rows: gasSwitches, key: 'computerId'),
+            (rows: diveComputerConnections, key: 'computerId'),
+            (rows: diveProfileSeries, key: 'computerId'),
+            (rows: tankPressureSeries, key: 'computerId'),
+          ],
         ),
       ),
-      transmitters: await _safeExport(
-        'transmitters',
-        () => _exportTransmitters(hlcSince),
-      ),
+      transmitters: transmitters,
       cylinderFills: await _safeExport(
         'cylinderFills',
         () => _exportCylinderFills(hlcSince),
@@ -2863,14 +2907,7 @@ class SyncDataSerializer {
           pendingChildren,
         ),
       ),
-      diveProfileEvents: await _safeExport(
-        'diveProfileEvents',
-        () async => _withPendingChildren(
-          'diveProfileEvents',
-          await _exportDiveProfileEvents(hlcSince),
-          pendingChildren,
-        ),
-      ),
+      diveProfileEvents: diveProfileEvents,
       diveSafetyReviews: await _safeExport(
         'diveSafetyReviews',
         () async => _withPendingChildren(
@@ -2903,14 +2940,7 @@ class SyncDataSerializer {
         'equipmentFindings',
         () => _exportEquipmentFindings(hlcSince),
       ),
-      gasSwitches: await _safeExport(
-        'gasSwitches',
-        () async => _withPendingChildren(
-          'gasSwitches',
-          await _exportGasSwitches(hlcSince),
-          pendingChildren,
-        ),
-      ),
+      gasSwitches: gasSwitches,
       diveCustomFields: await _safeExport(
         'diveCustomFields',
         () async => _withPendingChildren(
@@ -3040,10 +3070,7 @@ class SyncDataSerializer {
           pendingChildren,
         ),
       ),
-      diveComputerConnections: await _safeExport(
-        'diveComputerConnections',
-        () => _exportDiveComputerConnections(hlcSince),
-      ),
+      diveComputerConnections: diveComputerConnections,
       sharedLibraryMemberships: await _safeExport(
         'sharedLibraryMemberships',
         () => _exportSharedLibraryMemberships(hlcSince),
@@ -3080,14 +3107,8 @@ class SyncDataSerializer {
         'fieldPresets',
         () => _exportFieldPresets(hlcSince),
       ),
-      diveProfileSeries: await _safeExport(
-        'diveProfileSeries',
-        () => _exportDiveProfileSeries(hlcSince),
-      ),
-      tankPressureSeries: await _safeExport(
-        'tankPressureSeries',
-        () => _exportTankPressureSeries(hlcSince),
-      ),
+      diveProfileSeries: diveProfileSeries,
+      tankPressureSeries: tankPressureSeries,
     );
   }
 
@@ -3203,27 +3224,33 @@ class SyncDataSerializer {
     await alignLinkedRouteOwners();
     await seedRepresentativeCourseLinks();
     await anchorTankInspectionClocks();
-    await relinkClearedSourceComputers();
+    await alignDownloadedSourcesWithComputers();
   }
 
   /// The foreign-key repair above clears a data source's computer link when
-  /// an apply ends without that computer's row (issue #4368). Gives it back
-  /// where the source's own dive names the computer. Marks nothing pending:
-  /// every device derives the same link from the same synced rows.
-  /// Best-effort: a failure is logged and the apply goes on, since the next
-  /// apply or open repeats it.
-  Future<void> relinkClearedSourceComputers() async {
+  /// an apply ends without that computer's row, and a peer below the fix
+  /// still sends empty or decimal serial copies (issue #4368). Gives a
+  /// downloaded source back the link its own dive names, then brings the
+  /// serial copies on downloaded sources and dives in line with their
+  /// computer. Every apply path runs this, per-row conflict resolution
+  /// included. Marks nothing pending: every device derives the same values
+  /// from the same synced rows. Best-effort: a failure is logged and the
+  /// apply goes on, since the next apply or open repeats it.
+  Future<void> alignDownloadedSourcesWithComputers() async {
     try {
-      if (await relinkDiveAttributedSources(_db) > 0) {
+      final relinked = await relinkDiveAttributedSources(_db);
+      final healed = await healDownloadedSnapshotSerials(_db);
+      if (relinked + healed > 0) {
         _db.notifyUpdates({
           TableUpdate.onTable(_db.diveDataSources, kind: UpdateKind.update),
+          TableUpdate.onTable(_db.dives, kind: UpdateKind.update),
           TableUpdate.onTable(_db.diveProfileSeries, kind: UpdateKind.update),
           TableUpdate.onTable(_db.tankPressureSeries, kind: UpdateKind.update),
         });
       }
     } catch (e, stackTrace) {
       _log.warning(
-        'Relinking data sources to their computers failed (non-fatal)',
+        'Aligning downloaded sources with their computers failed (non-fatal)',
         error: e,
         stackTrace: stackTrace,
       );

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -82,6 +83,43 @@ void main() {
 
     expect(data.diveDataSources, isEmpty);
     expect(data.diveComputers.map((c) => c['id']), ['teric']);
+  });
+
+  test('a changed series or transmitter alone brings its computer', () async {
+    final watermark = await seedComputer();
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+    );
+    final newer = Hlc(
+      DateTime.now().millisecondsSinceEpoch + 60000,
+      0,
+      'me',
+    ).toString();
+    final db = DatabaseService.instance.database;
+    await db.customStatement(
+      'INSERT INTO dive_profile_series (id, dive_id, computer_id, '
+      'sample_count, start_timestamp, end_timestamp, max_depth, '
+      'first_depth, last_depth, codec_version, samples, created_at, '
+      'updated_at, hlc) VALUES '
+      "('p1', 'd1', 'teric', 0, 0, 0, 0, 0, 0, 1, x'', 1, 1, ?)",
+      [newer],
+    );
+
+    final seriesOnly = await changesetSince(watermark);
+    expect(seriesOnly.diveProfileSeries.map((r) => r['id']), ['p1']);
+    expect(seriesOnly.diveComputers.map((c) => c['id']), ['teric']);
+
+    await db.customStatement('DELETE FROM dive_profile_series');
+    await db.customStatement(
+      'INSERT INTO transmitters (id, dive_computer_id, label, tank_role, '
+      "created_at, updated_at, hlc) VALUES ('t1', 'teric', 'T1', 'back_gas', "
+      '1, 1, ?)',
+      [newer],
+    );
+
+    final transmitterOnly = await changesetSince(watermark);
+    expect(transmitterOnly.transmitters.map((r) => r['id']), ['t1']);
+    expect(transmitterOnly.diveComputers.map((c) => c['id']), ['teric']);
   });
 
   test('a changeset that references no computer carries none', () async {
