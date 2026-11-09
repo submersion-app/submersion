@@ -19,6 +19,7 @@ import 'package:submersion/core/database/database.dart'
         GasSwitchesCompanion,
         DiveProfileEvent;
 import 'package:submersion/core/database/computer_serial_identity.dart';
+import 'package:submersion/core/database/dive_water_temp_fill.dart';
 import 'package:submersion/core/database/imported_computer_identity.dart';
 import 'package:submersion/core/matching/match_scorer.dart';
 import 'package:submersion/core/profile/tank_pressure_glitches.dart';
@@ -2313,6 +2314,15 @@ class DiveComputerRepository {
           }
         });
         _log.info('Imported events for dive $diveId');
+      }
+
+      // The dive takes the water temperature its source rows measured when it
+      // holds none, so the query field, the dive table and the agent read it
+      // as the detail page does (issue #4333). Before the stamp below, so a
+      // matched dive syncs the filled value. Raw SQL, which Drift's streams
+      // do not see, and a new dive has no later write that would tell them.
+      if (await fillDiveWaterTempsFromSources(_db, diveIds: [diveId]) > 0) {
+        _db.notifyUpdates({TableUpdate.onTable(_db.dives)});
       }
 
       if (!isNewDive) {

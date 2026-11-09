@@ -89,7 +89,8 @@ class Dives extends Table {
   RealColumn get altitude => real().nullable()(); // meters above sea level
   // Surface pressure for altitude/weather corrections
   RealColumn get surfacePressure => real().nullable()(); // bar (default ~1.013)
-  // Surface interval before this dive
+  // Surface interval before this dive as the computer or diver gave it, NULL
+  // when neither did: the app then shows the gap from the previous dive's exit
   IntColumn get surfaceIntervalSeconds => integer().nullable()(); // seconds
   // Decompression gradient factors
   IntColumn get gradientFactorLow => integer().nullable()(); // 0-100
