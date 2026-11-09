@@ -105,7 +105,8 @@ class _MediaPeopleFilterPickerState
               pick: _Pick.buddy,
               id: id,
               label: l10n.media_people_removedBuddy,
-              icon: null,
+              // Not an initial: "R" would read as part of a name.
+              icon: Icons.person_remove_outlined,
             ),
       for (final b in [...first, ...rest])
         (pick: _Pick.buddy, id: b.id, label: b.name, icon: null),

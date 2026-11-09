@@ -22,15 +22,18 @@ String mediaPeopleSummary(
     for (final b in buddies ?? const <Buddy>[])
       if (picked.contains(b.id)) b.name,
   ]..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+  // Removed buddies all share one label, so it is named once and the
+  // rest of them counted, rather than read out as "Removed buddy, Removed
+  // buddy".
+  final removed = buddies == null ? 0 : picked.length - named.length;
   final names = [
     if (selection.includeMe) l10n.media_people_me,
     ...named,
-    if (buddies != null)
-      for (var i = named.length; i < picked.length; i++)
-        l10n.media_people_removedBuddy,
+    if (removed > 0) l10n.media_people_removedBuddy,
   ];
   final unnamed = buddies == null ? picked.length : 0;
-  final total = names.length + unnamed;
+  final total =
+      (selection.includeMe ? 1 : 0) + named.length + removed + unnamed;
 
   if (names.isEmpty) return l10n.media_library_filter_peopleCount(total);
   final shown = names.length == 1

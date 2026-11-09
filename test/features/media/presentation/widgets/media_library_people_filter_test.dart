@@ -126,6 +126,13 @@ void main() {
     expect(subtitle(tester), 'Bea');
   });
 
+  testWidgets('removed buddies are named once and counted', (tester) async {
+    container.read(mediaLibraryFilterProvider.notifier).state =
+        const MediaLibraryFilter(buddyIds: {'gone1', 'gone2', 'gone3'});
+    await openSheet(tester);
+    expect(subtitle(tester), 'Removed buddy +2');
+  });
+
   testWidgets('dismissing the picker keeps the draft', (tester) async {
     container.read(mediaLibraryFilterProvider.notifier).state =
         const MediaLibraryFilter(buddyIds: {'bea'});
