@@ -66,6 +66,9 @@ class _TransmitterApplyDialogState
             .add(offer.computer.computerId);
       }
       for (final entry in byKey.values) {
+        // A closed dialog reads no further files (the parse in flight cannot
+        // be interrupted, but the next key's is never started).
+        if (!mounted) return;
         for (final candidates in await matcher.resolve(entry.key)) {
           final id = candidates.computer.computerId;
           if (entry.computers.contains(id)) resolved[id] = candidates;
@@ -103,12 +106,28 @@ class _TransmitterApplyDialogState
     return byKey;
   }
 
+  /// The offers to show: every one while the files are read, then only the
+  /// computers with a slot that still has something to fill.
+  List<SlotOffer> get _shownOffers {
+    final resolved = _resolved;
+    if (resolved == null) return widget.slotOffers;
+    return [
+      for (final offer in widget.slotOffers)
+        if (resolved[offer.computer.computerId] case final candidates?
+            when candidates.tankIdsBySlot.keys.any(
+              (slot) => candidates.divesFor(slot) > 0,
+            ))
+          offer,
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final serial = widget.serialPreview;
     final slotDives = _slotDives;
     final canApply = serial.tanksUpdated > 0 || slotDives > 0;
+    final offers = _shownOffers;
     return AlertDialog(
       title: Text(l10n.transmitters_apply_title),
       content: SingleChildScrollView(
@@ -123,10 +142,13 @@ class _TransmitterApplyDialogState
                   serial.divesUpdated,
                 ),
               ),
-            if (widget.slotOffers.isNotEmpty) ...[
+            // Every slot already applied and no serial work either.
+            if (offers.isEmpty && serial.tanksUpdated == 0)
+              Text(l10n.transmitters_apply_nothing_to_fill),
+            if (offers.isNotEmpty) ...[
               if (serial.tanksUpdated > 0) const SizedBox(height: 16),
               Text(l10n.transmitters_apply_slot_intro),
-              for (final offer in widget.slotOffers) ...[
+              for (final offer in offers) ...[
                 const SizedBox(height: 16),
                 _slotRow(context, offer),
               ],

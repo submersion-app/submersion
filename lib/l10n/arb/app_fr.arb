@@ -16655,7 +16655,7 @@
   "transmitters_section_setUp": "Configurer",
   "transmitters_action_apply": "Appliquer aux plongées existantes",
   "transmitters_apply_title": "Appliquer aux plongées existantes ?",
-  "transmitters_apply_content": "{tanks} bouteilles sur {dives} plongées portent cet émetteur. Les champs vides de taille, matériau, nom et équipement seront remplis, et un rôle encore réglé sur Gaz fond ou lu dans le nom de l'émetteur sera remplacé.",
+  "transmitters_apply_content": "{tanks} bouteilles sur {dives} plongées portant cet émetteur ont besoin de sa configuration. Les champs vides de taille, matériau, nom et équipement seront remplis, et un rôle encore réglé sur Gaz fond ou lu dans le nom de l'émetteur sera remplacé.",
   "transmitters_apply_done": "{tanks} bouteilles mises à jour sur {dives} plongées",
   "transmitters_apply_slot_label": "Emplacement sur {computer}",
   "transmitters_apply_slot_none": "Ne pas associer par emplacement",

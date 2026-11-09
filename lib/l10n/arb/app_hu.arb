@@ -16655,7 +16655,7 @@
   "transmitters_section_setUp": "Beállítás",
   "transmitters_action_apply": "Alkalmazás meglévő merülésekre",
   "transmitters_apply_title": "Alkalmazod a meglévő merülésekre?",
-  "transmitters_apply_content": "{tanks} palack {dives} merülésben viseli ezt a jeladót. Az üres méret-, anyag-, név- és felszerelésmezők kitöltődnek, és a még Hátgázra állított vagy a jeladó nevéből kiolvasott szerep lecserélődik.",
+  "transmitters_apply_content": "{tanks} palacknak {dives} merülésben, amely ezt a jeladót viseli, szüksége van a beállítására. Az üres méret-, anyag-, név- és felszerelésmezők kitöltődnek, és a még Hátgázra állított vagy a jeladó nevéből kiolvasott szerep lecserélődik.",
   "transmitters_apply_done": "{tanks} palack frissítve {dives} merülésben",
   "transmitters_apply_slot_label": "Hely ({computer})",
   "transmitters_apply_slot_none": "Nincs hely szerinti párosítás",

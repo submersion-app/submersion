@@ -45,18 +45,26 @@ class _Repo extends TransmitterRepository {
 
 /// Offers [computers] and resolves to [resolved] once [gate] completes.
 class _Matcher extends TransmitterSlotMatcher {
-  _Matcher({this.computers = const [], this.resolved = const [], this.gate});
+  _Matcher({
+    this.computers = const [],
+    this.resolved = const [],
+    this.gate,
+    this.computersByKey,
+  });
 
   final List<SlotComputer> computers;
   final List<SlotCandidates> resolved;
   final Completer<void>? gate;
+  final Map<String, List<SlotComputer>>? computersByKey;
+  var resolves = 0;
 
   @override
   Future<List<SlotComputer>> computersWithCandidates(Transmitter t) async =>
-      computers;
+      computersByKey?[t.id] ?? computers;
 
   @override
   Future<List<SlotCandidates>> resolve(Transmitter t) async {
+    resolves++;
     await gate?.future;
     return resolved;
   }
@@ -99,6 +107,7 @@ void main() {
     required _Repo repo,
     required _Matcher matcher,
     bool settle = true,
+    List<Transmitter>? keys,
   }) async {
     tester.view.physicalSize = const Size(900, 1600);
     tester.view.devicePixelRatio = 1;
@@ -122,7 +131,7 @@ void main() {
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           transmittersForEquipmentProvider(
             'tx-gear',
-          ).overrideWith((ref) async => [key]),
+          ).overrideWith((ref) async => keys ?? [key]),
           transmitterRepositoryProvider.overrideWithValue(repo),
           transmitterSlotMatcherProvider.overrideWithValue(matcher),
         ],
@@ -162,6 +171,10 @@ void main() {
     await openApply(tester, repo: _Repo(someSerial), matcher: _Matcher());
 
     expect(find.textContaining('1 cylinders on 1 dives'), findsOneWidget);
+    expect(
+      find.textContaining('carrying this transmitter need its setup'),
+      findsOneWidget,
+    );
     expect(find.textContaining('Slot on'), findsNothing);
   });
 
@@ -293,5 +306,67 @@ void main() {
 
     expect(find.textContaining('1 cylinders on 1 dives'), findsOneWidget);
     expect(find.textContaining('Slot on'), findsNothing);
+  });
+
+  const nothingLeft = SlotCandidates(
+    computer: _perdix,
+    tankIdsBySlot: {},
+    diveIdByTank: {},
+  );
+
+  testWidgets('hides a computer with nothing left to fill', (tester) async {
+    await openApply(
+      tester,
+      repo: _Repo(someSerial),
+      matcher: _Matcher(computers: [_perdix], resolved: [nothingLeft]),
+    );
+
+    expect(find.textContaining('1 cylinders on 1 dives'), findsOneWidget);
+    expect(find.textContaining('Slot on'), findsNothing);
+    expect(find.textContaining('Cylinders imported from a file'), findsNothing);
+  });
+
+  testWidgets('says nothing needs the setup once every slot is applied', (
+    tester,
+  ) async {
+    await openApply(
+      tester,
+      repo: _Repo(noSerial),
+      matcher: _Matcher(computers: [_perdix], resolved: [nothingLeft]),
+    );
+
+    expect(find.text("No cylinder needs this transmitter's setup"), findsOne);
+    expect(find.textContaining('Slot on'), findsNothing);
+  });
+
+  testWidgets("closing the dialog stops reading the next key's files", (
+    tester,
+  ) async {
+    final gate = Completer<void>();
+    final second = key.copyWith(id: 'k2', transmitterSerial: 'B7');
+    final matcher = _Matcher(
+      computersByKey: {
+        'k1': [_perdix],
+        'k2': [const SlotComputer(computerId: 'c2', computerName: 'Teric')],
+      },
+      resolved: [_perdixSlots],
+      gate: gate,
+    );
+    await openApply(
+      tester,
+      repo: _Repo(someSerial),
+      matcher: matcher,
+      keys: [key, second],
+      settle: false,
+    );
+
+    await tester.tap(find.text('Cancel'));
+    // Closed and gone before the first key's files finish reading.
+    await tester.pumpAndSettle();
+    expect(find.text('Apply to existing dives?'), findsNothing);
+    gate.complete();
+    await tester.pumpAndSettle();
+
+    expect(matcher.resolves, 1);
   });
 }

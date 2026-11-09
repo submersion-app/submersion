@@ -16655,7 +16655,7 @@
   "transmitters_section_setUp": "إعداد",
   "transmitters_action_apply": "تطبيق على الغطسات الحالية",
   "transmitters_apply_title": "تطبيق على الغطسات الحالية؟",
-  "transmitters_apply_content": "{tanks} أسطوانة في {dives} غطسة تحمل جهاز الإرسال هذا. ستُملأ حقول الحجم والمادة والاسم والمعدات الفارغة، وسيُستبدل الدور الذي ما زال مضبوطًا على غاز الظهر أو المأخوذ من اسم جهاز الإرسال.",
+  "transmitters_apply_content": "{tanks} أسطوانة في {dives} غطسة تحمل جهاز الإرسال هذا تحتاج إلى إعداده. ستُملأ حقول الحجم والمادة والاسم والمعدات الفارغة، وسيُستبدل الدور الذي ما زال مضبوطًا على غاز الظهر أو المأخوذ من اسم جهاز الإرسال.",
   "transmitters_apply_done": "تم تحديث {tanks} أسطوانة في {dives} غطسة",
   "transmitters_apply_slot_label": "الفتحة على {computer}",
   "transmitters_apply_slot_none": "عدم المطابقة حسب الفتحة",

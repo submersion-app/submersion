@@ -16655,7 +16655,7 @@
   "transmitters_section_setUp": "הגדר",
   "transmitters_action_apply": "החלה על צלילות קיימות",
   "transmitters_apply_title": "להחיל על צלילות קיימות?",
-  "transmitters_apply_content": "{tanks} מיכלים ב-{dives} צלילות נושאים משדר זה. שדות ריקים של נפח, חומר, שם וציוד ימולאו, ותפקיד שעדיין מוגדר כגז גב או שנקרא משם המשדר יוחלף.",
+  "transmitters_apply_content": "{tanks} מיכלים ב-{dives} צלילות הנושאים משדר זה זקוקים להגדרות שלו. שדות ריקים של נפח, חומר, שם וציוד ימולאו, ותפקיד שעדיין מוגדר כגז גב או שנקרא משם המשדר יוחלף.",
   "transmitters_apply_done": "עודכנו {tanks} מיכלים ב-{dives} צלילות",
   "transmitters_apply_slot_label": "חריץ ב-{computer}",
   "transmitters_apply_slot_none": "ללא התאמה לפי חריץ",

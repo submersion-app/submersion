@@ -16809,7 +16809,7 @@
   "transmitters_section_setUp": "Einrichten",
   "transmitters_action_apply": "Auf vorhandene Tauchgänge anwenden",
   "transmitters_apply_title": "Auf vorhandene Tauchgänge anwenden?",
-  "transmitters_apply_content": "{tanks} Flaschen in {dives} Tauchgängen tragen diesen Sender. Leere Felder für Größe, Material, Name und Ausrüstung werden gefüllt, und eine noch auf Rückengas gesetzte oder aus dem Sendernamen gelesene Rolle wird ersetzt.",
+  "transmitters_apply_content": "{tanks} Flaschen in {dives} Tauchgängen mit diesem Sender brauchen seine Einrichtung. Leere Felder für Größe, Material, Name und Ausrüstung werden gefüllt, und eine noch auf Rückengas gesetzte oder aus dem Sendernamen gelesene Rolle wird ersetzt.",
   "transmitters_apply_done": "{tanks} Flaschen in {dives} Tauchgängen aktualisiert",
   "transmitters_apply_slot_label": "Steckplatz auf {computer}",
   "transmitters_apply_slot_none": "Nicht nach Steckplatz zuordnen",

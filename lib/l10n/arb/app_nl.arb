@@ -16655,7 +16655,7 @@
   "transmitters_section_setUp": "Instellen",
   "transmitters_action_apply": "Toepassen op bestaande duiken",
   "transmitters_apply_title": "Toepassen op bestaande duiken?",
-  "transmitters_apply_content": "{tanks} flessen in {dives} duiken dragen deze zender. Lege velden voor inhoud, materiaal, naam en uitrusting worden ingevuld, en een rol die nog op Ruggas staat of uit de zendernaam is afgeleid wordt vervangen.",
+  "transmitters_apply_content": "{tanks} flessen in {dives} duiken met deze zender hebben de instellingen ervan nodig. Lege velden voor inhoud, materiaal, naam en uitrusting worden ingevuld, en een rol die nog op Ruggas staat of uit de zendernaam is afgeleid wordt vervangen.",
   "transmitters_apply_done": "{tanks} flessen bijgewerkt in {dives} duiken",
   "transmitters_apply_slot_label": "Positie op {computer}",
   "transmitters_apply_slot_none": "Niet koppelen op positie",

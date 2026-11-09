@@ -224,7 +224,9 @@ void main() {
       await tester.tap(find.text('Apply to existing dives'));
       await tester.pumpAndSettle();
       expect(
-        find.textContaining('4 cylinders on 4 dives carry this transmitter'),
+        find.textContaining(
+          '4 cylinders on 4 dives carrying this transmitter need its setup',
+        ),
         findsOneWidget,
       );
       await tester.tap(find.widgetWithText(FilledButton, 'Apply'));

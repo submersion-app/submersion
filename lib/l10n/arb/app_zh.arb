@@ -16655,7 +16655,7 @@
   "transmitters_section_setUp": "设置",
   "transmitters_action_apply": "应用到现有潜水",
   "transmitters_apply_title": "应用到现有潜水？",
-  "transmitters_apply_content": "{dives} 次潜水中的 {tanks} 个气瓶带有此发射器。空白的容量、材质、名称和装备字段将被填充，仍为背气或根据发射器名称识别的用途将被替换。",
+  "transmitters_apply_content": "{dives} 次潜水中带有此发射器的 {tanks} 个气瓶需要其设置。空白的容量、材质、名称和装备字段将被填充，仍为背气或根据发射器名称识别的用途将被替换。",
   "transmitters_apply_done": "已更新 {dives} 次潜水中的 {tanks} 个气瓶",
   "transmitters_apply_slot_label": "{computer} 上的插槽",
   "transmitters_apply_slot_none": "不按插槽匹配",
