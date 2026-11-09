@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/info/settings_info.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// The decompression settings' "Ascent rate" section: header, explanation
 /// and [AscentRateThresholdsTile].
@@ -16,12 +19,28 @@ class AscentRateSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          context.l10n.settings_decompression_header_ascentRate,
-          style: theme.textTheme.titleSmall?.copyWith(
-            color: theme.colorScheme.primary,
-            fontWeight: FontWeight.bold,
-          ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Text(
+                context.l10n.settings_decompression_header_ascentRate,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            HeaderInfoButton(
+              title: context.l10n.settings_decompression_header_ascentRate,
+              height: 20,
+              content: (context) => settingsSectionInfo(
+                context.l10n,
+                infoUnits(context),
+                SettingsInfoSection.ascentRate,
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 4),
         Padding(

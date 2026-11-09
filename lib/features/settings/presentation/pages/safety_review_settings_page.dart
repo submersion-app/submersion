@@ -8,9 +8,13 @@ import 'package:submersion/features/dive_log/presentation/providers/safety_revie
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_sweep.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
+import 'package:submersion/features/safety/presentation/info/no_fly_info.dart';
+import 'package:submersion/features/settings/presentation/info/settings_info.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// Settings > Safety > Safety review: master toggle, per-rule visibility
 /// toggles, the no-fly preset, and the two sweeps over the whole logbook
@@ -84,11 +88,27 @@ class _SafetyReviewSettingsPageState
           const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-            child: Text(
-              l10n.safetySettings_rulesHeader,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-              ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.safetySettings_rulesHeader,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+                HeaderInfoButton(
+                  title: l10n.safetySettings_rulesHeader,
+                  height: 20,
+                  content: (context) => settingsSectionInfo(
+                    context.l10n,
+                    infoUnits(context),
+                    SettingsInfoSection.safetyReviewRules,
+                  ),
+                ),
+              ],
             ),
           ),
           for (final rule in SafetyRuleId.values)
@@ -104,11 +124,24 @@ class _SafetyReviewSettingsPageState
           const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-            child: Text(
-              l10n.safetySettings_noFlyHeader,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-              ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.safetySettings_noFlyHeader,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+                HeaderInfoButton(
+                  title: l10n.safetySettings_noFlyHeader,
+                  height: 20,
+                  content: (context) =>
+                      noFlyInfo(context.l10n, infoUnits(context)),
+                ),
+              ],
             ),
           ),
           Padding(

@@ -10,6 +10,7 @@ import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/features/settings/presentation/info/settings_info.dart';
 import 'package:submersion/features/settings/presentation/widgets/altitude_distance_unit_pickers.dart';
 import 'package:submersion/features/settings/presentation/widgets/notification_permission_card.dart';
 import 'package:submersion/features/settings/presentation/pages/data_section_content.dart';
@@ -36,6 +37,7 @@ import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -1418,6 +1420,11 @@ class _NotificationsSectionContent extends ConsumerWidget {
           buildSettingsSectionHeader(
             context,
             context.l10n.settings_notifications_header_serviceReminders,
+            info: (context) => settingsSectionInfo(
+              context.l10n,
+              infoUnits(context),
+              SettingsInfoSection.notifications,
+            ),
           ),
           const SizedBox(height: 8),
           Card(
@@ -1564,12 +1571,6 @@ class _NotificationsSectionContent extends ConsumerWidget {
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            buildSettingsInfoCard(
-              context,
-              context.l10n.settings_notifications_howItWorks_title,
-              context.l10n.settings_notifications_howItWorks_content,
             ),
           ],
         ],

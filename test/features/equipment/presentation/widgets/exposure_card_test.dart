@@ -8,6 +8,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_e
 import 'package:submersion/features/equipment/presentation/widgets/exposure_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -33,6 +34,27 @@ void main() {
     Intl.defaultLocale = 'en_US';
   });
   tearDown(() => Intl.defaultLocale = savedLocale);
+
+  testWidgets('the exposure card carries an info icon', (tester) async {
+    await tester.pumpWidget(
+      host(
+        EquipmentExposureTotals(
+          byUnit: const {
+            ExposureUnit.dives: 3,
+            ExposureUnit.hours: 3.25,
+            ExposureUnit.coldDives: 1,
+          },
+          diveCount: 3,
+          firstDive: DateTime(2026, 1, 10),
+          lastDive: DateTime(2026, 3, 10),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.byType(InfoButton), findsWidgets);
+  });
 
   testWidgets('shows one chip per non-zero unit and the dive footer', (
     tester,

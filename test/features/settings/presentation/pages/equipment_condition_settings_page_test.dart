@@ -7,6 +7,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_c
 import 'package:submersion/features/settings/presentation/pages/equipment_condition_settings_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -39,6 +40,27 @@ Widget _build(MockSettingsNotifier notifier) => ProviderScope(
 );
 
 void main() {
+  testWidgets('the section headers carry info icons', (tester) async {
+    // The desktop settings pane shows this page without pushing a route, so
+    // the arrow is how it returns to the Safety hub.
+    var backs = 0;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: EquipmentConditionSettingsPage(onBack: () => backs++),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(InfoButton), findsWidgets);
+  });
+
   testWidgets('with onBack the app bar back arrow calls it', (tester) async {
     // The desktop settings pane shows this page without pushing a route, so
     // the arrow is how it returns to the Safety hub.

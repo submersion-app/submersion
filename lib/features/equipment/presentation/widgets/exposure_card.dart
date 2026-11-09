@@ -5,9 +5,12 @@ import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_exposure_totals.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
+import 'package:submersion/features/equipment/presentation/info/equipment_info.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_exposure_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// What the item has been through: one chip per exposure unit with a
 /// non-zero total, and the dive count and date range they cover. Derived
@@ -34,9 +37,16 @@ class ExposureCard extends ConsumerWidget {
               children: [
                 Icon(Icons.waves, color: theme.colorScheme.primary),
                 const SizedBox(width: 8),
-                Text(
-                  l10n.equipmentCondition_exposure_title,
-                  style: theme.textTheme.titleMedium,
+                Expanded(
+                  child: Text(
+                    l10n.equipmentCondition_exposure_title,
+                    style: theme.textTheme.titleMedium,
+                  ),
+                ),
+                HeaderInfoButton(
+                  title: l10n.equipmentCondition_exposure_title,
+                  content: (context) =>
+                      equipmentExposureInfo(context.l10n, infoUnits(context)),
                 ),
               ],
             ),

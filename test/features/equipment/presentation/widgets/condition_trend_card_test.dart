@@ -13,6 +13,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
 import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -64,6 +65,12 @@ Widget host(
 );
 
 void main() {
+  testWidgets('the trend card carries an info icon', (tester) async {
+    await tester.pumpWidget(host(cellTrend));
+    await tester.pumpAndSettle();
+    expect(find.byType(InfoButton), findsWidgets);
+  });
+
   testWidgets('draws one secondary series per slot with a legend', (
     tester,
   ) async {

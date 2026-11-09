@@ -11,6 +11,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_c
 import 'package:submersion/features/equipment/presentation/widgets/condition_findings_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -108,6 +109,14 @@ void main() {
     Intl.defaultLocale = 'en_US';
   });
   tearDown(() => Intl.defaultLocale = savedIntlLocale);
+
+  testWidgets('the findings card carries an info icon', (tester) async {
+    await tester.pumpWidget(host(three));
+
+    await tester.pumpAndSettle();
+
+    expect(find.byType(InfoButton), findsWidgets);
+  });
 
   testWidgets('lists active findings and folds the dismissed away', (
     tester,
