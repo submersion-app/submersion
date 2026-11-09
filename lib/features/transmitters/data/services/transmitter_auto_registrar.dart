@@ -9,6 +9,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
+import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 import 'package:submersion/features/transmitters/data/services/transmitter_gear_linker.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -210,6 +211,27 @@ Future<void> registerTransmittersForDives(
     // Best-effort: the import has already persisted its dives.
     _log.warning(
       'Registering transmitters for imported dives failed',
+      error: e,
+      stackTrace: stackTrace,
+    );
+  }
+}
+
+/// Fills each transmitter the diver has already set up onto the tanks of
+/// [diveIds] that carry its serial (issue #4347), for the paths that write
+/// tanks without the download adapter's registry match (file import, dive
+/// merge). Fill-only, by the rules of "Apply to existing dives".
+/// Best-effort: a failure never fails the import or merge that called it.
+Future<void> applyTransmitterSetupToDives(
+  Iterable<String> diveIds, {
+  TransmitterRepository? repository,
+}) async {
+  if (DatabaseService.instance.databaseOrNull == null) return;
+  try {
+    await (repository ?? TransmitterRepository()).applyToDives(diveIds);
+  } catch (e, stackTrace) {
+    _log.warning(
+      'Applying transmitter setup to imported dives failed',
       error: e,
       stackTrace: stackTrace,
     );

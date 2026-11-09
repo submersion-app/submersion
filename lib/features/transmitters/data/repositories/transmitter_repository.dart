@@ -8,10 +8,13 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
-import 'package:submersion/features/dive_log/domain/services/ccr_bailout_timeline.dart';
+import 'package:submersion/features/dive_computer/data/services/transmitter_registry_matcher.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
-import 'package:submersion/features/transmitters/data/services/bailout_mix_fixer.dart';
+import 'package:submersion/features/transmitters/data/services/transmitter_tank_filler.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
+
+export 'package:submersion/features/transmitters/data/services/transmitter_tank_filler.dart'
+    show ApplyToExistingResult;
 
 /// Thrown when an entry would share a serial (per diver) or a
 /// (computer, channel) key with [existing].
@@ -24,19 +27,11 @@ class TransmitterConflictException implements Exception {
       'TransmitterConflictException: conflicts with ${existing.label}';
 }
 
-/// Outcome of [TransmitterRepository.applyToExistingDives].
-/// [mixesKept]: dives where a bailout entry changed the role but found no
-/// bailout mix to give the tank, so it kept the one it had (issue #3307).
-typedef ApplyToExistingResult = ({
-  int tanksUpdated,
-  int divesUpdated,
-  int mixesKept,
-});
-
 class TransmitterRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
+  final TransmitterTankFiller _filler = TransmitterTankFiller();
 
   static const String _entity = 'transmitters';
 
@@ -436,90 +431,73 @@ class TransmitterRepository {
     );
   }
 
-  /// Retroactive fill for the tanks that carry [t]'s key: empty size,
-  /// working pressure, material, preset, gear link and name are filled; the
-  /// role is replaced while it is still the uninformed backGas default, and
-  /// always while it is the computer's guess from the transmitter's name
-  /// (issue #2595), which also drops that source: the entry is the diver's
-  /// own configuration. A role the diver set is never replaced.
-  /// One transaction; a failure leaves no half-applied dive.
+  /// Retroactive fill for the tanks that carry [t]'s key, by the rules of
+  /// [TransmitterTankFiller].
   Future<ApplyToExistingResult> applyToExistingDives(Transmitter t) async {
     final candidates = await _tanksForEntry(t);
-    if (candidates.isEmpty) {
-      return (tanksUpdated: 0, divesUpdated: 0, mixesKept: 0);
-    }
-    final now = DateTime.now().millisecondsSinceEpoch;
-    final touchedDives = <String>{};
-    var tanks = 0;
-    final mixesKeptDives = <String>{};
-    final mixFixer = BailoutMixFixer();
-    await _db.transaction(() async {
-      for (final row in candidates) {
-        final hasVolume = row.volume != null && row.volume! > 0;
-        final nameDerived =
-            TankRoleSource.fromName(row.roleSource) ==
-            TankRoleSource.transmitterName;
-        // An open-circuit entry (bailout, deco, stage) also replaces the
-        // importer's 100% O2 default with that gas's own mix, before the role
-        // write below (#3307).
-        if (nameDerived && !isLoopTankRole(t.role.name)) {
-          if (!await mixFixer.fix(row)) mixesKeptDives.add(row.diveId);
-        }
-        final companion = DiveTanksCompanion(
-          volume: !hasVolume && t.volumeL != null
-              ? Value(t.volumeL)
-              : const Value.absent(),
-          workingPressure:
-              row.workingPressure == null && t.workingPressureBar != null
-              ? Value(t.workingPressureBar)
-              : const Value.absent(),
-          tankMaterial: row.tankMaterial == null && t.material != null
-              ? Value(t.material!.name)
-              : const Value.absent(),
-          presetName: row.presetName == null && t.presetName != null
-              ? Value(t.presetName)
-              : const Value.absent(),
-          equipmentId: row.equipmentId == null && t.equipmentId != null
-              ? Value(t.equipmentId)
-              : const Value.absent(),
-          tankName:
-              (row.tankName == null || row.tankName!.isEmpty) &&
-                  t.label.isNotEmpty
-              ? Value(t.label)
-              : const Value.absent(),
-          tankRole:
-              nameDerived ||
-                  (row.tankRole == TankRole.backGas.name &&
-                      t.role != TankRole.backGas)
-              ? Value(t.role.name)
-              : const Value.absent(),
-          roleSource: nameDerived ? const Value(null) : const Value.absent(),
-        );
-        // Every field absent means nothing to write for this row.
-        if (companion == const DiveTanksCompanion()) continue;
-        await (_db.update(
-          _db.diveTanks,
-        )..where((d) => d.id.equals(row.id))).write(companion);
-        await _syncRepository.markRecordPending(
-          entityType: 'diveTanks',
-          recordId: row.id,
-          localUpdatedAt: now,
-        );
-        touchedDives.add(row.diveId);
-        tanks++;
+    return _filler.fill([for (final row in candidates) (row, t)]);
+  }
+
+  /// Fills each set-up transmitter onto the tanks of [diveIds] that carry
+  /// its serial (issue #4347): the step a file import or a dive merge runs
+  /// on its own dives, so a serial the diver has already set up arrives
+  /// configured instead of waiting for "Apply to existing dives". Matched
+  /// on serial only, within each dive's own diver; a channel entry is left
+  /// to "Apply to existing dives", since a file's tank order need not be
+  /// the computer's channel. Fill-only, as [TransmitterTankFiller] is.
+  Future<ApplyToExistingResult> applyToDives(Iterable<String> diveIds) async {
+    final ids = diveIds.toSet().toList();
+    if (ids.isEmpty) return noTanksFilled;
+    final diverByTank = <String, String?>{};
+    for (var i = 0; i < ids.length; i += 500) {
+      final chunk = ids.sublist(i, (i + 500).clamp(0, ids.length));
+      final rows = await _db
+          .customSelect(
+            'SELECT dt.id AS id, d.diver_id AS diver_id '
+            'FROM dive_tanks dt JOIN dives d ON d.id = dt.dive_id '
+            'WHERE dt.transmitter_serial IS NOT NULL AND d.id IN '
+            '(${List.filled(chunk.length, '?').join(', ')})',
+            variables: [for (final id in chunk) Variable<String>(id)],
+            readsFrom: {_db.diveTanks, _db.dives},
+          )
+          .get();
+      for (final r in rows) {
+        diverByTank[r.read<String>('id')] = r.read<String?>('diver_id');
       }
-    });
-    if (tanks > 0) {
-      SyncEventBus.notifyLocalChange();
-      // The scan create/update queued ran on the roles before this apply,
-      // so a finding about a role it just fixed would stay open (#3307).
-      scheduleQualityScan(touchedDives);
     }
-    return (
-      tanksUpdated: tanks,
-      divesUpdated: touchedDives.length,
-      mixesKept: mixesKeptDives.length,
-    );
+    if (diverByTank.isEmpty) return noTanksFilled;
+
+    final matchers = <String?, TransmitterMatcher>{};
+    for (final diverId in diverByTank.values.toSet()) {
+      final entries = await getForDiver(diverId);
+      matchers[diverId] = TransmitterMatcher.fromEntries([
+        for (final e in entries)
+          if (e.diverId == diverId) e,
+      ]);
+    }
+
+    final tankIds = diverByTank.keys.toList();
+    final pairs = <(DiveTank, Transmitter)>[];
+    for (var i = 0; i < tankIds.length; i += 500) {
+      final chunk = tankIds.sublist(i, (i + 500).clamp(0, tankIds.length));
+      final rows =
+          await (_db.select(_db.diveTanks)
+                ..where((d) => d.id.isIn(chunk))
+                ..orderBy([
+                  (d) => OrderingTerm.asc(d.diveId),
+                  (d) => OrderingTerm.asc(d.tankOrder),
+                ]))
+              .get();
+      for (final row in rows) {
+        final entry = matchers[diverByTank[row.id]]?.match(
+          serial: row.transmitterSerial,
+          computerId: null,
+          index: row.tankOrder,
+        );
+        if (entry != null) pairs.add((row, entry));
+      }
+    }
+    return _filler.fill(pairs);
   }
 
   Future<List<DiveTank>> _tanksForEntry(Transmitter t) async {

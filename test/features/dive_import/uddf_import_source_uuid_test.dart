@@ -8,6 +8,7 @@
 // DiveDataSourcesCompanion) actually writes the value to the DB.
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
@@ -25,6 +26,8 @@ import 'package:submersion/features/divers/domain/entities/diver.dart'
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
+import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
+import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 
 import '../../helpers/test_database.dart';
@@ -212,6 +215,46 @@ void main() {
         db.diveEquipment,
       )..where((t) => t.equipmentId.equals(itemId))).get();
       expect(links, hasLength(1));
+    });
+
+    test('a serial the diver has already set up fills its tank on import, '
+        'keeping what the file reports (#4347)', () async {
+      final diverId = await createTestDiver();
+      await TransmitterRepository().create(
+        Transmitter(
+          id: 't2',
+          diverId: diverId,
+          transmitterSerial: '180777',
+          label: 'T2',
+          role: TankRole.sidemountLeft,
+          volumeL: 10,
+          workingPressureBar: 232,
+          material: TankMaterial.steel,
+          createdAt: DateTime.utc(2026, 11, 1),
+          updatedAt: DateTime.utc(2026, 11, 1),
+        ),
+      );
+      final uddf = buildMinimalUddf().replaceFirst(
+        '<tankvolume>12.0</tankvolume>',
+        '<tankvolume>12.0</tankvolume>\n'
+            '          <transmitterserial>180777</transmitterserial>',
+      );
+
+      final parsed = await exportService.importAllDataFromUddf(uddf);
+      await importer.import(
+        data: parsed,
+        selections: const UddfImportSelections(dives: {0}),
+        repositories: buildRepositories(),
+        diverId: diverId,
+      );
+
+      final tank = (await db.select(db.diveTanks).get()).single;
+      expect(tank.tankRole, 'sidemountLeft');
+      expect(tank.tankName, 'T2');
+      expect(tank.tankMaterial, 'steel');
+      expect(tank.volume, 12, reason: 'the file reported a size');
+      final rows = await db.select(db.transmitters).get();
+      expect(rows, hasLength(1), reason: 'no placeholder for a set-up serial');
     });
 
     test(

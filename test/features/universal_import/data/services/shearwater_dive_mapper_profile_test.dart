@@ -338,6 +338,54 @@ void main() {
         expect(result['surfacePressure'], 0.958);
       });
 
+      test('gives each tank the transmitter serial from the raw log '
+          '(#4347)', () {
+        final parsed = pigeon.ParsedDive(
+          fingerprint: '',
+          dateTimeYear: 2025,
+          dateTimeMonth: 1,
+          dateTimeDay: 1,
+          dateTimeHour: 0,
+          dateTimeMinute: 0,
+          dateTimeSecond: 0,
+          maxDepthMeters: 0,
+          avgDepthMeters: 0,
+          durationSeconds: 0,
+          samples: [],
+          tanks: [
+            pigeon.TankInfo(
+              index: 0,
+              gasMixIndex: 0,
+              startPressureBar: 190.1,
+              transmitterSerial: 76287,
+            ),
+            pigeon.TankInfo(
+              index: 1,
+              gasMixIndex: 0,
+              startPressureBar: 185.0,
+              transmitterSerial: 76290,
+            ),
+          ],
+          gasMixes: [],
+          events: [],
+        );
+
+        final result = ShearwaterDiveMapper.mergeWithParsedDive(
+          <String, dynamic>{
+            'tanks': [
+              {'name': 'T2', 'startPressure': 190.0},
+              {'name': 'T3', 'startPressure': 185.2},
+            ],
+            'profile': <Map<String, dynamic>>[],
+          },
+          parsed,
+        );
+
+        final tanks = result['tanks'] as List<Map<String, dynamic>>;
+        expect(tanks.map((t) => t['transmitterSerial']), ['76287', '76290']);
+        expect(tanks.map((t) => t['name']), ['T2', 'T3']);
+      });
+
       test('maps dive mode from parsed data', () {
         final baseMap = <String, dynamic>{'profile': <Map<String, dynamic>>[]};
         final parsed = pigeon.ParsedDive(

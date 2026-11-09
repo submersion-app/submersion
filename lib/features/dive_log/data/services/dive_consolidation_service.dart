@@ -26,6 +26,8 @@ import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dar
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
+import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
+import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
 
 /// Result of a successful consolidation: the target dive id plus the
 /// pre-consolidation snapshot needed to undo it.
@@ -426,6 +428,12 @@ class DiveConsolidationService {
               mergeInto,
               secRow.computerId,
               sharedByTargetTank,
+              now: now,
+            );
+            await _fillMissingSerial(
+              tank,
+              mergeInto,
+              snapshot.tankRows,
               now: now,
             );
           } else {
@@ -874,10 +882,55 @@ class DiveConsolidationService {
       await _diveRepo.bulkDeleteDives(secondaryDiveIds.toList());
     });
 
+    // A serial the fold just gave a cylinder may be one the diver has set
+    // up: fill that setup in, as a download would have (issue #4347).
+    await applyTransmitterSetupToDives([targetDiveId]);
+
     SyncEventBus.notifyLocalChange();
     return DiveConsolidationOutcome(
       targetDiveId: targetDiveId,
       snapshot: snapshot,
+    );
+  }
+
+  /// Gives target tank [targetTankId] the transmitter serial of [merged],
+  /// the secondary's tank folded into it, when the target has none (issue
+  /// #4347): a file import that knew the cylinder but not its transmitter.
+  /// A serial the target has is never replaced. Only when the pairing rests
+  /// on more than chance: a mix that more than one cylinder on either dive
+  /// breathes was paired by order, and a wrong serial would carry another
+  /// cylinder's setup.
+  Future<void> _fillMissingSerial(
+    DiveTank merged,
+    String targetTankId,
+    List<DiveTank> tankRows, {
+    required int now,
+  }) async {
+    final serial = normalizeTransmitterSerial(merged.transmitterSerial);
+    if (serial == null) return;
+    final target = tankRows.where((r) => r.id == targetTankId).firstOrNull;
+    if (target == null) return;
+    bool sameMix(DiveTank a, DiveTank b) =>
+        a.o2Percent == b.o2Percent && a.hePercent == b.hePercent;
+    int onDive(DiveTank tank) => tankRows
+        .where((r) => r.diveId == tank.diveId && sameMix(r, tank))
+        .length;
+    if (onDive(target) != 1 || onDive(merged) != 1) return;
+    // Read now, not from the snapshot: an earlier secondary in this fold
+    // may have filled it already.
+    final current = await (_db.select(
+      _db.diveTanks,
+    )..where((t) => t.id.equals(targetTankId))).getSingleOrNull();
+    if (current == null ||
+        normalizeTransmitterSerial(current.transmitterSerial) != null) {
+      return;
+    }
+    await (_db.update(_db.diveTanks)..where((t) => t.id.equals(targetTankId)))
+        .write(DiveTanksCompanion(transmitterSerial: Value(serial)));
+    await _sync.markRecordPending(
+      entityType: 'diveTanks',
+      recordId: targetTankId,
+      localUpdatedAt: now,
     );
   }
 

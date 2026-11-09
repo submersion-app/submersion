@@ -64,6 +64,7 @@ import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
+import 'package:submersion/features/dive_log/data/repositories/stored_tank_serial_fill.dart';
 
 /// A `dive_profile_series` row [DiveComputerRepository.findComputerDivesContainingTime]
 /// found, with the anchor needed to turn an absolute time into an offset on
@@ -2075,8 +2076,26 @@ class DiveComputerRepository {
           final matches = matchStoredTanks(existingTanks, [
             for (final tank in tanks) tank.index,
           ], computerId: computerId);
+          final serialNow = DateTime.now().millisecondsSinceEpoch;
           for (final MapEntry(key: index, value: row) in matches.entries) {
             tankIdsByIndex[index] = row.id;
+            // A cylinder a file import left without its transmitter takes
+            // this reading's, once the start pressures agree (#4347).
+            final reading = tanks.firstWhere((t) => t.index == index);
+            final serial = serialToFill(
+              row,
+              readingSerial: reading.transmitterSerial,
+              readingStartPressure: reading.startPressure,
+            );
+            if (serial != null) {
+              await writeStoredTankSerial(
+                _db,
+                _syncRepository,
+                row.id,
+                serial,
+                now: serialNow,
+              );
+            }
           }
           // Its gas switches go to its own cylinders only: on a dive other
           // computers recorded too, a stored cylinder of the same mix can be

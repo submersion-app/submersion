@@ -15,6 +15,7 @@ import 'package:submersion/features/universal_import/data/services/parsed_dive_p
 import 'package:submersion/features/universal_import/data/services/shearwater_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/shearwater_filename_parser.dart';
 import 'package:submersion/features/universal_import/data/services/shearwater_gf99_aligner.dart';
+import 'package:submersion/features/universal_import/data/services/shearwater_transmitter_serials.dart';
 import 'package:submersion/features/universal_import/data/services/shearwater_value_mapper.dart';
 
 /// Converts [ShearwaterRawDive] objects into `Map<String, dynamic>` entity maps
@@ -504,6 +505,13 @@ class ShearwaterDiveMapper {
         'scr' => DiveMode.scr,
         _ => DiveMode.oc,
       };
+    }
+
+    // The export names the tanks but not their transmitters; the raw log
+    // knows each transmitter's serial (#4347).
+    final metaTanks = merged['tanks'] as List<Map<String, dynamic>>?;
+    if (metaTanks != null && metaTanks.isNotEmpty) {
+      merged['tanks'] = withTransmitterSerials(metaTanks, parsed.tanks);
     }
 
     // Build profile samples with all available sensor data, then add the

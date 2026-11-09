@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_log/domain/services/transmitter_serial.
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
+import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
 
 /// Mode for importing dives.
 enum ImportMode {
@@ -1067,6 +1068,10 @@ class DiveImportService {
       otu: dive.otu,
       addMissingTanks: true,
     );
+    // The stored cylinders keep the diver's edits, so the registry match a
+    // new dive gets never reached them: a serial importProfile just gave one
+    // fills that transmitter's setup in, fill-only (issue #4347).
+    await applyTransmitterSetupToDives([existingDiveId]);
   }
 
   /// Attach [dive]'s download to the planned dive [plannedDiveId] (issue
