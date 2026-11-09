@@ -8036,9 +8036,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_diveMode_title => 'Duikmodus';
 
   @override
-  String get diveLog_editSighting_count => 'Aantal';
-
-  @override
   String get diveLog_editSighting_notes => 'Notities';
 
   @override
@@ -18978,10 +18975,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get marineLife_speciesDetail_topSitesTitle => 'Toplocaties';
 
   @override
-  String get marineLife_speciesDetail_totalSightingsLabel =>
-      'Totaal waarnemingen';
-
-  @override
   String get marineLife_speciesEdit_addTitle => 'Soort toevoegen';
 
   @override
@@ -19288,7 +19281,32 @@ class AppLocalizationsNl extends AppLocalizations {
   String get marineLife_speciesPage_sortTooltip => 'Sorteren';
 
   @override
-  String get marineLife_speciesPage_sort_mostSightings => 'Meeste waarnemingen';
+  String get marineLife_speciesPage_sort_mostDives => 'Meeste duiken';
+
+  @override
+  String get marineLife_abundance_label => 'Hoeveel';
+
+  @override
+  String get marineLife_abundance_seen => 'Gezien';
+
+  @override
+  String get marineLife_abundance_single => 'Eén';
+
+  @override
+  String get marineLife_abundance_few => 'Enkele';
+
+  @override
+  String get marineLife_abundance_many => 'Veel';
+
+  @override
+  String get marineLife_abundance_abundant => 'Talrijk';
+
+  @override
+  String get marineLife_abundance_exact => 'Exact';
+
+  @override
+  String get marineLife_abundance_ranges =>
+      'Enkele 2 tot 10, Veel 11 tot 100, Talrijk meer dan 100';
 
   @override
   String get marineLife_speciesPage_sort_recentlySeen => 'Recent gezien';

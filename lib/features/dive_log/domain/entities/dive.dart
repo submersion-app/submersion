@@ -17,6 +17,7 @@ import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
@@ -1338,6 +1339,11 @@ class MarineSighting extends Equatable {
   final String id;
   final String speciesId;
   final String speciesName;
+
+  /// Seen, a REEF group, or [SightingAbundance.exact] with [count].
+  final SightingAbundance abundance;
+
+  /// The exact number of animals for [SightingAbundance.exact]; 1 otherwise.
   final int count;
   final String notes;
 
@@ -1345,12 +1351,41 @@ class MarineSighting extends Equatable {
     required this.id,
     required this.speciesId,
     required this.speciesName,
+    this.abundance = SightingAbundance.seen,
     this.count = 1,
     this.notes = '',
   });
 
+  /// [abundance] and [count] together.
+  SightingAmount get amount => (abundance: abundance, count: count);
+
+  MarineSighting copyWith({
+    String? id,
+    String? speciesId,
+    String? speciesName,
+    SightingAbundance? abundance,
+    int? count,
+    String? notes,
+  }) {
+    return MarineSighting(
+      id: id ?? this.id,
+      speciesId: speciesId ?? this.speciesId,
+      speciesName: speciesName ?? this.speciesName,
+      abundance: abundance ?? this.abundance,
+      count: count ?? this.count,
+      notes: notes ?? this.notes,
+    );
+  }
+
   @override
-  List<Object?> get props => [id, speciesId, speciesName, count, notes];
+  List<Object?> get props => [
+    id,
+    speciesId,
+    speciesName,
+    abundance,
+    count,
+    notes,
+  ];
 }
 
 /// CO₂ scrubber information for rebreather dives (v1.5)

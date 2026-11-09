@@ -2105,7 +2105,9 @@ class InsightsRepository with InsightsChartDives {
     }
   }
 
-  /// Get most common sightings
+  /// Get most common sightings, ranked by the number of dives a species was
+  /// seen on. Not by a sum of counts: a sighting may be Seen or a REEF group
+  /// rather than an exact number (issue #4337).
   Future<List<RankingItem>> getMostCommonSightings({
     String? diverId,
     int limit = 10,
@@ -2123,7 +2125,7 @@ class InsightsRepository with InsightsChartDives {
           sp.id,
           sp.common_name,
           sp.category,
-          SUM(s.count) AS total_count
+          COUNT(DISTINCT s.dive_id) AS total_count
         FROM sightings s
         JOIN species sp ON sp.id = s.species_id
         JOIN dives d ON d.id = s.dive_id
@@ -2195,7 +2197,8 @@ class InsightsRepository with InsightsChartDives {
     }
   }
 
-  /// Get detailed statistics for a single species
+  /// Get detailed statistics for a single species. Sighting totals count
+  /// sightings and dives, never animals (issue #4337).
   Future<SpeciesInsights> getSpeciesInsights({
     required String speciesId,
     String? diverId,
@@ -2211,7 +2214,7 @@ class InsightsRepository with InsightsChartDives {
       // Aggregate stats: total sightings, dive count, depth range, date range
       final statsResult = await _db.customSelect('''
         SELECT
-          COALESCE(SUM(s.count), 0) AS total_sightings,
+          COUNT(DISTINCT s.dive_id) AS total_sightings,
           COUNT(DISTINCT s.dive_id) AS dive_count,
           MIN(d.max_depth) AS min_depth,
           MAX(d.max_depth) AS max_depth,
@@ -2234,7 +2237,7 @@ class InsightsRepository with InsightsChartDives {
         SELECT
           ds.id,
           ds.name,
-          SUM(s.count) AS sighting_count
+          COUNT(DISTINCT s.dive_id) AS sighting_count
         FROM sightings s
         JOIN dives d ON d.id = s.dive_id
         JOIN dive_sites ds ON ds.id = d.site_id

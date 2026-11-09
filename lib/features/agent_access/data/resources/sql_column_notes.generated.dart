@@ -636,6 +636,9 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'exposure_intervals': 'per-item overrides for the map units',
     'interval_days': 'Per-item overrides',
   },
+  'sightings': {
+    'abundance': 'NULL when count is exact, else seen, single, few, many or abundant with count 1',
+  },
   'site_features': {
     'bearing_deg': '0-359 compass degrees',
     'depth_meters': 'Stored meters',

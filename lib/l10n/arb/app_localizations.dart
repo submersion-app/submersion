@@ -12712,12 +12712,6 @@ abstract class AppLocalizations {
   /// **'Dive Mode'**
   String get diveLog_diveMode_title;
 
-  /// No description provided for @diveLog_editSighting_count.
-  ///
-  /// In en, this message translates to:
-  /// **'Count'**
-  String get diveLog_editSighting_count;
-
   /// No description provided for @diveLog_editSighting_notes.
   ///
   /// In en, this message translates to:
@@ -30605,12 +30599,6 @@ abstract class AppLocalizations {
   /// **'Top Sites'**
   String get marineLife_speciesDetail_topSitesTitle;
 
-  /// No description provided for @marineLife_speciesDetail_totalSightingsLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Total Sightings'**
-  String get marineLife_speciesDetail_totalSightingsLabel;
-
   /// No description provided for @marineLife_speciesEdit_addTitle.
   ///
   /// In en, this message translates to:
@@ -31049,11 +31037,59 @@ abstract class AppLocalizations {
   /// **'Sort'**
   String get marineLife_speciesPage_sortTooltip;
 
-  /// No description provided for @marineLife_speciesPage_sort_mostSightings.
+  /// No description provided for @marineLife_speciesPage_sort_mostDives.
   ///
   /// In en, this message translates to:
-  /// **'Most sightings'**
-  String get marineLife_speciesPage_sort_mostSightings;
+  /// **'Most dives'**
+  String get marineLife_speciesPage_sort_mostDives;
+
+  /// Label above the sighting abundance choices
+  ///
+  /// In en, this message translates to:
+  /// **'How many'**
+  String get marineLife_abundance_label;
+
+  /// Sighting abundance: the species was seen, with no number given
+  ///
+  /// In en, this message translates to:
+  /// **'Seen'**
+  String get marineLife_abundance_seen;
+
+  /// Sighting abundance, REEF survey group: one animal
+  ///
+  /// In en, this message translates to:
+  /// **'Single'**
+  String get marineLife_abundance_single;
+
+  /// Sighting abundance, REEF survey group: 2 to 10 animals
+  ///
+  /// In en, this message translates to:
+  /// **'Few'**
+  String get marineLife_abundance_few;
+
+  /// Sighting abundance, REEF survey group: 11 to 100 animals
+  ///
+  /// In en, this message translates to:
+  /// **'Many'**
+  String get marineLife_abundance_many;
+
+  /// Sighting abundance, REEF survey group: more than 100 animals
+  ///
+  /// In en, this message translates to:
+  /// **'Abundant'**
+  String get marineLife_abundance_abundant;
+
+  /// Sighting abundance: an exact number of animals, entered with a stepper
+  ///
+  /// In en, this message translates to:
+  /// **'Exact'**
+  String get marineLife_abundance_exact;
+
+  /// Helper line under the sighting abundance choices giving each REEF group's range
+  ///
+  /// In en, this message translates to:
+  /// **'Few 2 to 10, Many 11 to 100, Abundant over 100'**
+  String get marineLife_abundance_ranges;
 
   /// No description provided for @marineLife_speciesPage_sort_recentlySeen.
   ///

@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_source_export.
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart'
     show tankPressureRepositoryProvider;
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 
 /// Fetches the data source rows a UDDF export should carry for [diveIds].
 typedef UddfSourceFetch =
@@ -45,6 +46,7 @@ final uddfDiveChunksProvider = Provider<UddfDiveChunksFor>((ref) {
     diveRepository: ref.read(diveRepositoryProvider),
     tankPressureRepository: ref.read(tankPressureRepositoryProvider),
     fetchSources: (ids) => ref.read(uddfSourceFetchProvider)(ids, options),
+    speciesRepository: ref.read(speciesRepositoryProvider),
   );
 });
 

@@ -8202,9 +8202,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_diveMode_title => 'وضع الغوص';
 
   @override
-  String get diveLog_editSighting_count => 'العدد';
-
-  @override
   String get diveLog_editSighting_notes => 'ملاحظات';
 
   @override
@@ -19339,9 +19336,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get marineLife_speciesDetail_topSitesTitle => 'أفضل المواقع';
 
   @override
-  String get marineLife_speciesDetail_totalSightingsLabel => 'إجمالي المشاهدات';
-
-  @override
   String get marineLife_speciesEdit_addTitle => 'إضافة نوع';
 
   @override
@@ -19663,7 +19657,32 @@ class AppLocalizationsAr extends AppLocalizations {
   String get marineLife_speciesPage_sortTooltip => 'ترتيب';
 
   @override
-  String get marineLife_speciesPage_sort_mostSightings => 'الأكثر مشاهدة';
+  String get marineLife_speciesPage_sort_mostDives => 'الأكثر غطسات';
+
+  @override
+  String get marineLife_abundance_label => 'كم عددها';
+
+  @override
+  String get marineLife_abundance_seen => 'شوهد';
+
+  @override
+  String get marineLife_abundance_single => 'واحد';
+
+  @override
+  String get marineLife_abundance_few => 'قليل';
+
+  @override
+  String get marineLife_abundance_many => 'كثير';
+
+  @override
+  String get marineLife_abundance_abundant => 'وفير';
+
+  @override
+  String get marineLife_abundance_exact => 'عدد دقيق';
+
+  @override
+  String get marineLife_abundance_ranges =>
+      'قليل من 2 إلى 10، كثير من 11 إلى 100، وفير أكثر من 100';
 
   @override
   String get marineLife_speciesPage_sort_recentlySeen => 'شوهدت مؤخرًا';

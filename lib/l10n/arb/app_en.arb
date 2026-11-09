@@ -4763,7 +4763,6 @@
   "diveLog_diveMode_ocDescription": "Standard open circuit scuba with tanks",
   "diveLog_diveMode_scrDescription": "Semi-closed rebreather with variable ppO₂",
   "diveLog_diveMode_title": "Dive Mode",
-  "diveLog_editSighting_count": "Count",
   "diveLog_editSighting_notes": "Notes",
   "diveLog_editSighting_notesHint": "Size, behavior, location...",
   "diveLog_editSighting_remove": "Remove",
@@ -11420,7 +11419,6 @@
   "marineLife_speciesDetail_statsError": "Failed to load sighting statistics",
   "marineLife_speciesDetail_taxonomyClassLabel": "Class: {className}",
   "marineLife_speciesDetail_topSitesTitle": "Top Sites",
-  "marineLife_speciesDetail_totalSightingsLabel": "Total Sightings",
   "marineLife_speciesEdit_addTitle": "Add Species",
   "marineLife_speciesEdit_addedSnackbar": "Added \"{name}\"",
   "marineLife_speciesEdit_backTooltip": "Back",
@@ -11564,7 +11562,39 @@
   "marineLife_speciesPage_searchHint": "Search species you have seen",
   "marineLife_speciesPage_manageCatalogTooltip": "Manage catalog",
   "marineLife_speciesPage_sortTooltip": "Sort",
-  "marineLife_speciesPage_sort_mostSightings": "Most sightings",
+  "marineLife_speciesPage_sort_mostDives": "Most dives",
+  "marineLife_abundance_label": "How many",
+  "@marineLife_abundance_label": {
+    "description": "Label above the sighting abundance choices"
+  },
+  "marineLife_abundance_seen": "Seen",
+  "@marineLife_abundance_seen": {
+    "description": "Sighting abundance: the species was seen, with no number given"
+  },
+  "marineLife_abundance_single": "Single",
+  "@marineLife_abundance_single": {
+    "description": "Sighting abundance, REEF survey group: one animal"
+  },
+  "marineLife_abundance_few": "Few",
+  "@marineLife_abundance_few": {
+    "description": "Sighting abundance, REEF survey group: 2 to 10 animals"
+  },
+  "marineLife_abundance_many": "Many",
+  "@marineLife_abundance_many": {
+    "description": "Sighting abundance, REEF survey group: 11 to 100 animals"
+  },
+  "marineLife_abundance_abundant": "Abundant",
+  "@marineLife_abundance_abundant": {
+    "description": "Sighting abundance, REEF survey group: more than 100 animals"
+  },
+  "marineLife_abundance_exact": "Exact",
+  "@marineLife_abundance_exact": {
+    "description": "Sighting abundance: an exact number of animals, entered with a stepper"
+  },
+  "marineLife_abundance_ranges": "Few 2 to 10, Many 11 to 100, Abundant over 100",
+  "@marineLife_abundance_ranges": {
+    "description": "Helper line under the sighting abundance choices giving each REEF group's range"
+  },
   "marineLife_speciesPage_sort_recentlySeen": "Recently seen",
   "marineLife_speciesPage_sort_firstSeen": "First seen",
   "marineLife_speciesPage_sort_name": "Name",

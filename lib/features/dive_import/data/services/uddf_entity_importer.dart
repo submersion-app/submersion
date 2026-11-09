@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:drift/drift.dart' show Value;
+import 'package:submersion/core/services/export/uddf/uddf_sighting_amount.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/imported_computer_identity.dart';
 import 'package:submersion/core/domain/visibility/visibility_range.dart';
@@ -3760,10 +3761,12 @@ class UddfEntityImporter {
           taxonomyClass: text(entry['speciesTaxonomyClass']),
           description: text(entry['speciesDescription']),
         );
+        final amount = UddfSightingAmount.amountOf(entry);
         await repository.addSighting(
           diveId: diveId,
           speciesId: species.id,
-          count: entry['count'] is int ? entry['count'] as int : 1,
+          abundance: amount.abundance,
+          count: amount.count,
           notes: entry['notes'] is String ? entry['notes'] as String : '',
         );
       } catch (e) {
@@ -3781,13 +3784,15 @@ class UddfEntityImporter {
         if (sightingData['speciesRef'] case final String speciesRef
             when speciesRef.isNotEmpty)
           if (_sightingSpeciesName(sightingData) case final String name)
-            MarineSighting(
-              id: _uuid.v4(),
-              speciesId: speciesRef,
-              speciesName: name,
-              count: sightingData['count'] as int? ?? 1,
-              notes: sightingData['notes'] as String? ?? '',
-            ),
+            if (UddfSightingAmount.amountOf(sightingData) case final amount)
+              MarineSighting(
+                id: _uuid.v4(),
+                speciesId: speciesRef,
+                speciesName: name,
+                abundance: amount.abundance,
+                count: amount.count,
+                notes: sightingData['notes'] as String? ?? '',
+              ),
     ];
   }
 

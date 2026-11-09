@@ -63,5 +63,9 @@ extension BeforeOpenChildColumns on AppDatabase {
     // computer read selects the whole row, for the same reason as the tank
     // columns.
     await _assertDiveComputerAutoDownloadDisabledColumn();
+
+    // v350: sightings.abundance (issue #4337). Every sighting read selects
+    // the whole row, for the same reason as the tank columns.
+    await _assertSightingAbundanceColumn();
   }
 }

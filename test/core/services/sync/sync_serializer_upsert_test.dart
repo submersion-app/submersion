@@ -225,6 +225,54 @@ void main() {
     expect(restored.transmitterSerial, '180777');
   });
 
+  test('a sighting abundance survives fetch and upsert', () async {
+    // Issue #4337: the v350 column rides the generated toJson/fromJson like
+    // the tank serial above.
+    await db.customStatement('PRAGMA foreign_keys = OFF');
+    await db
+        .into(db.sightings)
+        .insert(
+          const SightingsCompanion(
+            id: Value('sighting-few'),
+            diveId: Value('d1'),
+            speciesId: Value('sp1'),
+            abundance: Value('few'),
+          ),
+        );
+
+    final row = await serializer.fetchRecord('sightings', 'sighting-few');
+    expect(row!['abundance'], 'few');
+
+    await (db.delete(
+      db.sightings,
+    )..where((t) => t.id.equals('sighting-few'))).go();
+    await serializer.upsertRecord('sightings', row);
+
+    final restored = await (db.select(
+      db.sightings,
+    )..where((t) => t.id.equals('sighting-few'))).getSingle();
+    expect(restored.abundance, 'few');
+  });
+
+  test('a sighting from a peer without abundance reads as exact', () async {
+    // A pre-v350 payload has no abundance key at all; null is Exact, so the
+    // sighting keeps the count it arrived with.
+    await db.customStatement('PRAGMA foreign_keys = OFF');
+    await serializer.upsertRecord('sightings', {
+      'id': 'sighting-old',
+      'diveId': 'd1',
+      'speciesId': 'sp1',
+      'count': 4,
+      'notes': '',
+    });
+
+    final restored = await (db.select(
+      db.sightings,
+    )..where((t) => t.id.equals('sighting-old'))).getSingle();
+    expect(restored.abundance, isNull);
+    expect(restored.count, 4);
+  });
+
   test('upsertRecords composite-key junctions apply without a PK id', () async {
     await db.customStatement('PRAGMA foreign_keys = OFF');
     // diveEquipment / equipmentSetItems are keyed by (a, b), not a surrogate id.
