@@ -5,7 +5,7 @@ import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/tags/presentation/tag_usage_messages.dart';
-import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_color_picker.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 

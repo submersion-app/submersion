@@ -11,7 +11,7 @@ import 'package:submersion/features/tags/presentation/providers/tag_providers.da
 import 'package:submersion/features/tags/presentation/tag_scope_labels.dart';
 import 'package:submersion/features/tags/presentation/tag_usage_messages.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
-import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_color_picker.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_merge_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';

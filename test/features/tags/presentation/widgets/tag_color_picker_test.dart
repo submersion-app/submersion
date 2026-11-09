@@ -1,144 +1,187 @@
+import 'dart:ui' show Tristate;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/features/tags/domain/entities/tag.dart';
-import 'package:submersion/features/tags/presentation/tag_chip_colors.dart';
+import 'package:submersion/features/tags/domain/tag_palette.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
-import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_color_picker.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
-/// The colour picker offers the colour a tag will actually display
-/// (issue #2269).
-///
-/// It used to paint a solid 28 dp dot of the stored hex, which is not a
-/// colour the diver ever sees on a tag: the chip is a pale tint of it. Every
-/// swatch is now the chip itself, drawn by the same colour function, so
-/// Settings and the rest of the app cannot disagree again.
+/// The tag colour picker: a preview chip over a grid of 60 palette dots, a
+/// dot for a colour off the palette, and a "+" for a custom one (issue
+/// #4384).
 void main() {
-  final theme = ThemeData(
-    colorScheme: const ColorScheme.light().copyWith(
-      surface: Colors.white,
-      onSurface: const Color(0xFF1C1B1F),
-    ),
-  );
+  final current = find.byKey(const ValueKey('tag-color-current'));
+  final custom = find.byKey(const ValueKey('tag-color-custom'));
+  Finder dot(String hex) => find.byKey(ValueKey('tag-color-$hex'));
 
-  Widget harness({
+  /// Pumps the picker under a parent that, like the dialogs, stores what the
+  /// picker reports and hands it back as [TagColorPicker.selectedColor].
+  Future<(ValueNotifier<String?>, List<String>)> pumpPicker(
+    WidgetTester tester, {
     String? selectedColor,
     TextEditingController? nameController,
-    void Function(String)? onColorSelected,
     TargetPlatform? platform,
-  }) => MaterialApp(
-    theme: platform == null ? theme : theme.copyWith(platform: platform),
-    home: Scaffold(
-      body: SingleChildScrollView(
-        child: SizedBox(
-          width: 400,
-          child: TagColorPicker(
-            selectedColor: selectedColor,
-            nameController: nameController,
-            onColorSelected: onColorSelected ?? (_) {},
+    double width = 400,
+  }) async {
+    final selection = ValueNotifier<String?>(selectedColor);
+    addTearDown(selection.dispose);
+    final reported = <String>[];
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(platform: platform),
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: Center(
+              child: SizedBox(
+                width: width,
+                child: ValueListenableBuilder<String?>(
+                  valueListenable: selection,
+                  builder: (context, value, _) => TagColorPicker(
+                    selectedColor: value,
+                    nameController: nameController,
+                    onColorSelected: (hex) {
+                      reported.add(hex);
+                      selection.value = hex;
+                    },
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       ),
-    ),
-  );
-
-  testWidgets('offers one chip per palette colour', (tester) async {
-    await tester.pumpWidget(harness());
-
-    expect(find.byType(TagChip), findsNWidgets(TagColors.predefined.length));
-  });
-
-  testWidgets('paints each swatch as the chip, not as the raw hex', (
-    tester,
-  ) async {
-    await tester.pumpWidget(harness());
-
-    final expected = tagChipColorsFor(
-      seed: TagColors.fromHex(TagColors.predefined.first),
-      surface: Colors.white,
     );
+    return (selection, reported);
+  }
 
-    final material = tester.widget<Material>(
-      find
-          .descendant(
-            of: find.byType(TagChip).first,
-            matching: find.byType(Material),
-          )
-          .first,
-    );
+  bool isSelected(WidgetTester tester, Finder finder) =>
+      tester.getSemantics(finder).flagsCollection.isSelected == Tristate.isTrue;
 
-    expect(material.color, expected.fill);
-    expect(
-      material.color,
-      isNot(TagColors.fromHex(TagColors.predefined.first)),
-      reason: 'a swatch showing the raw hex is the mismatch this fixes',
-    );
-  });
+  testWidgets('previews the tag by name in the chosen colour', (tester) async {
+    final name = TextEditingController(text: 'Night dive');
+    addTearDown(name.dispose);
+    await pumpPicker(tester, selectedColor: '#14B8A6', nameController: name);
 
-  testWidgets('shows the name being typed inside every swatch', (tester) async {
-    final controller = TextEditingController(text: 'Shore');
-    addTearDown(controller.dispose);
+    final chip = tester.widget<TagChip>(find.byType(TagChip));
+    expect(chip.color, const Color(0xFF14B8A6));
+    expect(find.text('Night dive'), findsOne);
 
-    await tester.pumpWidget(harness(nameController: controller));
-
-    expect(
-      find.text('Shore'),
-      findsNWidgets(TagColors.predefined.length),
-      reason: 'the swatch is a preview of this tag, not of a generic one',
-    );
-  });
-
-  testWidgets('follows the name as it is typed', (tester) async {
-    final controller = TextEditingController(text: 'Shore');
-    addTearDown(controller.dispose);
-
-    await tester.pumpWidget(harness(nameController: controller));
-    controller.text = 'Night';
+    name.text = 'Wreck';
     await tester.pump();
-
-    expect(find.text('Night'), findsNWidgets(TagColors.predefined.length));
-    expect(find.text('Shore'), findsNothing);
+    expect(find.text('Wreck'), findsOne);
   });
 
-  testWidgets('still offers every colour when no name has been typed', (
+  testWidgets('offers every palette colour and a custom one', (tester) async {
+    await pumpPicker(tester, selectedColor: '#EF4444');
+    for (final entry in tagPalette) {
+      expect(dot(entry.hex), findsOne, reason: entry.hex);
+    }
+    expect(custom, findsOne);
+    expect(current, findsNothing);
+  });
+
+  testWidgets('a tag with no colour has Blue chosen and no extra dot', (
     tester,
   ) async {
-    final controller = TextEditingController();
-    addTearDown(controller.dispose);
-
-    await tester.pumpWidget(harness(nameController: controller));
-
-    expect(find.byType(TagChip), findsNWidgets(TagColors.predefined.length));
+    await pumpPicker(tester);
+    expect(current, findsNothing);
+    expect(isSelected(tester, dot('#3B82F6')), isTrue);
+    expect(isSelected(tester, dot('#EF4444')), isFalse);
   });
 
-  testWidgets('reports the hex of the swatch that was tapped', (tester) async {
-    String? picked;
-    await tester.pumpWidget(harness(onColorSelected: (hex) => picked = hex));
-
-    await tester.tap(find.byType(TagChip).at(2));
-    await tester.pumpAndSettle();
-
-    expect(picked, TagColors.predefined[2]);
-  });
-
-  testWidgets('marks the chosen swatch as selected for assistive tech', (
+  testWidgets('a palette code in another casing selects its dot', (
     tester,
   ) async {
-    final chosen = TagColors.predefined[3];
-    await tester.pumpWidget(harness(selectedColor: chosen));
-
-    final semantics = tester
-        .widgetList<Semantics>(find.byType(Semantics))
-        .where((s) => s.properties.selected == true);
-
-    expect(semantics, hasLength(1));
+    await pumpPicker(tester, selectedColor: '#3b82f6');
+    expect(current, findsNothing);
+    expect(isSelected(tester, dot('#3B82F6')), isTrue);
   });
 
-  group('a swatch is a reachable tap target', () {
-    // The swatch is the control the diver taps to choose a colour, so it
-    // answers to the same floor as the chip's own close button: 48 dp where
-    // a finger points, 32 dp where a mouse does. The dots it replaced were
-    // 28 dp and the dense chip on its own is 29, so neither the old grid nor
-    // the new one cleared either floor until this was measured.
+  testWidgets('an unreadable code is drawn and chosen as Blue', (tester) async {
+    await pumpPicker(tester, selectedColor: 'red');
+    expect(current, findsNothing);
+    expect(isSelected(tester, dot('#3B82F6')), isTrue);
+  });
+
+  testWidgets('a colour off the palette keeps a dot of its own', (
+    tester,
+  ) async {
+    final (_, reported) = await pumpPicker(tester, selectedColor: 'FF0000');
+    expect(current, findsOne);
+    expect(isSelected(tester, current), isTrue);
+    expect(find.bySemanticsLabel('Current color, FF0000'), findsOne);
+
+    await tester.tap(dot('#EF4444'));
+    await tester.pump();
+    expect(reported, ['#EF4444']);
+    expect(isSelected(tester, dot('#EF4444')), isTrue);
+
+    // Still there, so the diver can go back to it.
+    await tester.tap(current);
+    await tester.pump();
+    expect(reported.last, 'FF0000');
+    expect(isSelected(tester, current), isTrue);
+  });
+
+  testWidgets('a newer colour off the palette replaces the extra dot', (
+    tester,
+  ) async {
+    final (selection, _) = await pumpPicker(tester, selectedColor: 'FF0000');
+    selection.value = '#123456';
+    await tester.pump();
+    expect(find.bySemanticsLabel('Current color, #123456'), findsOne);
+    expect(find.bySemanticsLabel('Current color, FF0000'), findsNothing);
+  });
+
+  testWidgets('names every dot for a screen reader', (tester) async {
+    await pumpPicker(tester, selectedColor: '#EF4444');
+    expect(find.bySemanticsLabel('Teal'), findsOne);
+    expect(find.bySemanticsLabel('Teal, light'), findsOne);
+    expect(find.bySemanticsLabel('Teal, dark'), findsOne);
+    expect(find.bySemanticsLabel('Custom color'), findsOne);
+  });
+
+  group('the + dot', () {
+    testWidgets('opens on the colour the tag is drawn in', (tester) async {
+      await pumpPicker(tester, selectedColor: 'FF0000');
+      await tester.tap(custom);
+      await tester.pumpAndSettle();
+      final field = tester.widget<TextField>(
+        find.byKey(const ValueKey('tag-color-hex')),
+      );
+      expect(field.controller!.text, '#FF0000');
+    });
+
+    testWidgets('reports the colour chosen there', (tester) async {
+      final (_, reported) = await pumpPicker(tester, selectedColor: '#EF4444');
+      await tester.tap(custom);
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const ValueKey('tag-color-hex')),
+        '#2E8B57',
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('tag-color-use')));
+      await tester.pumpAndSettle();
+      expect(reported, ['#2E8B57']);
+      expect(isSelected(tester, current), isTrue);
+    });
+
+    testWidgets('reports nothing when cancelled', (tester) async {
+      final (_, reported) = await pumpPicker(tester, selectedColor: '#EF4444');
+      await tester.tap(custom);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(reported, isEmpty);
+    });
+  });
+
+  group('a dot is a reachable tap target', () {
     for (final (platform, floor) in [
       (TargetPlatform.android, 48.0),
       (TargetPlatform.iOS, 48.0),
@@ -147,13 +190,28 @@ void main() {
       (TargetPlatform.linux, 32.0),
     ]) {
       testWidgets('$platform reaches $floor', (tester) async {
-        await tester.pumpWidget(harness(platform: platform));
-
-        final swatch = tester.getSize(find.byType(GestureDetector).first);
-
-        expect(swatch.height, greaterThanOrEqualTo(floor));
-        expect(swatch.width, greaterThanOrEqualTo(floor));
+        await pumpPicker(tester, platform: platform, selectedColor: 'FF0000');
+        for (final finder in [dot('#EF4444'), current, custom]) {
+          final size = tester.getSize(finder);
+          expect(size.height, greaterThanOrEqualTo(floor));
+          expect(size.width, greaterThanOrEqualTo(floor));
+        }
       });
     }
+  });
+
+  testWidgets('wraps to a narrow phone dialog without overflowing', (
+    tester,
+  ) async {
+    await pumpPicker(
+      tester,
+      platform: TargetPlatform.android,
+      width: 280,
+      selectedColor: '#EF4444',
+    );
+    expect(tester.takeException(), isNull);
+    final first = tester.getRect(dot(tagPalette.first.hex));
+    final last = tester.getRect(dot(tagPalette.last.hex));
+    expect(last.top, greaterThan(first.bottom));
   });
 }
