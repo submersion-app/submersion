@@ -45,11 +45,20 @@ class _FakeParser implements ImportParser {
 
 /// A `.db` parse with no native parser behind it, as on the web.
 class _ThrowingParser implements ImportParser {
+  _ThrowingParser([Object? error])
+    : error = error ?? PlatformException(code: 'channel-error');
+
+  final Object error;
+  var calls = 0;
+
   @override
   Future<ImportPayload> parse(
     Uint8List fileBytes, {
     ImportOptions? options,
-  }) async => throw PlatformException(code: 'channel-error');
+  }) async {
+    calls++;
+    throw error;
+  }
 
   @override
   List<ImportFormat> get supportedFormats => [ImportFormat.shearwaterDb];
@@ -416,17 +425,81 @@ void main() {
       fileFormat: 'shearwaterDb',
     );
     await tank('db-t0', 'db', start: 200, end: 100);
-    final files = DiveResyncOrchestrator(
-      db: db,
-      parserFor: (_) => _ThrowingParser(),
-    );
+    final parser = _ThrowingParser();
+    final files = DiveResyncOrchestrator(db: db, parserFor: (_) => parser);
 
     await TransmitterSlotBackfill(
       parseRaw: fakeParse,
       memo: memo,
       files: files,
     ).run({'petrel'});
+    expect(parser.calls, 1);
     expect(memo.done, isNot(contains('file:db')));
+  });
+
+  group('a file the parser fails on for another reason is not retried', () {
+    for (final (name, error) in [
+      ('a platform error', PlatformException(code: 'parse-failed')),
+      ('any other error', StateError('corrupt file')),
+    ]) {
+      test(name, () async {
+        await dive('db', 'petrel');
+        final fileId = await ImportedFileRepository().store(
+          bytes: Uint8List.fromList([1, 2, 3]),
+          fileName: 'cloud.db',
+        );
+        await source(
+          'db',
+          computerId: 'petrel',
+          fileId: fileId,
+          fileFormat: 'shearwaterDb',
+        );
+        await tank('db-t0', 'db', start: 200, end: 100);
+        final files = DiveResyncOrchestrator(
+          db: db,
+          parserFor: (_) => _ThrowingParser(error),
+        );
+
+        await TransmitterSlotBackfill(
+          parseRaw: fakeParse,
+          memo: memo,
+          files: files,
+        ).run({'petrel'});
+        expect(memo.done, contains('file:db'));
+      });
+    }
+  });
+
+  group('the raw pass', () {
+    Future<void> download() async {
+      await dive('bt', 'perdix');
+      await source('bt', computerId: 'perdix', raw: Uint8List(8));
+      await tank('bt-t', 'bt', serial: '180777', sourceIndex: 0);
+    }
+
+    RawDiveParseFn throwing(Object error) =>
+        (v, p, m, raw) async => throw error;
+
+    test('leaves a source for later when the parser is missing on this '
+        'platform', () async {
+      await download();
+      await backfill(
+        parse: throwing(PlatformException(code: 'channel-error')),
+      ).run({'perdix'});
+      expect(memo.done, isNot(contains('raw:src-bt')));
+    });
+
+    for (final (name, error) in [
+      ('a platform error', PlatformException(code: 'parse-failed')),
+      ('any other error', StateError('corrupt bytes')),
+    ]) {
+      test('marks a source it cannot parse for $name as done', () async {
+        await download();
+        await backfill(parse: throwing(error)).run({'perdix'});
+        expect(memo.done, contains('raw:src-bt'));
+        expect((await slots())['bt-t'], isNull);
+      });
+    }
   });
 
   test('a second run parses nothing again', () async {

@@ -83,13 +83,19 @@ class _FakeApplyRepository extends TransmitterRepository {
 
 /// Records the computers the Apply flow backfills, and writes nothing.
 class _FakeBackfill extends TransmitterSlotBackfill {
-  _FakeBackfill({this.pending = 1, this.dbComputers = const {}})
+  _FakeBackfill({this.pending = 1, this.dbComputers = const {}, this.error})
     : super(parseRaw: (v, p, m, raw) => throw UnimplementedError());
 
   final int pending;
   final Set<String> dbComputers;
+
+  /// Thrown by [run] when set, as a failed backfill would.
+  final Object? error;
   final runs = <Set<String>>[];
   final divers = <String?>[];
+
+  /// Holds [run] open until completed, so its progress dialog can be seen.
+  Completer<void>? gate;
 
   @override
   Future<Set<String>> dbImportComputers({String? diverId}) async {
@@ -111,6 +117,9 @@ class _FakeBackfill extends TransmitterSlotBackfill {
   }) async {
     runs.add(computerIds);
     divers.add(diverId);
+    onProgress?.call(1, 2);
+    await gate?.future;
+    if (error case final e?) throw e;
     return 0;
   }
 }
@@ -475,6 +484,63 @@ void main() {
       ]);
       expect(repo.serialLookupDivers.toSet(), {'diver-1'});
       expect(backfill.divers.toSet(), {'diver-1'});
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('a progress dialog shows while the slots are read, then the '
+        'Apply dialog', (tester) async {
+      final repo = _FakeApplyRepository(
+        preview: (tanksUpdated: 1, divesUpdated: 1, mixesKept: 0),
+      );
+      final backfill = _FakeBackfill()..gate = Completer<void>();
+      await pump(
+        tester,
+        [key(cylinder: 'cyl')],
+        repository: repo,
+        backfill: backfill,
+      );
+
+      await tester.tap(find.text('Apply to existing dives'));
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('Reading transmitter slots from your dives'), findsOne);
+      final bar = tester.widget<LinearProgressIndicator>(
+        find.byType(LinearProgressIndicator),
+      );
+      expect(bar.value, 0.5);
+
+      backfill.gate!.complete();
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Reading transmitter slots from your dives'),
+        findsNothing,
+      );
+      expect(find.text('Apply to existing dives?'), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('a failed backfill closes its dialog and still offers the '
+        'apply', (tester) async {
+      final repo = _FakeApplyRepository(
+        preview: (tanksUpdated: 1, divesUpdated: 1, mixesKept: 0),
+      );
+      final backfill = _FakeBackfill(error: StateError('database closed'));
+      await pump(
+        tester,
+        [key(cylinder: 'cyl')],
+        repository: repo,
+        backfill: backfill,
+      );
+
+      await tester.tap(find.text('Apply to existing dives'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Reading transmitter slots from your dives'),
+        findsNothing,
+      );
+      expect(find.text('Apply to existing dives?'), findsOneWidget);
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
     });
