@@ -655,9 +655,11 @@ class Dive extends Equatable {
     // Minutes the diver entered for breathing a cylinder at the surface after
     // the computer stopped (issue #2930): the logged end pressures include
     // that gas, and those minutes count at 0 m.
+    // A dive with no recorded time has no rate, as the statistics say: the
+    // entered minutes alone do not make one.
+    if (seconds <= 0) return null;
     final surfaceSeconds = surfaceBreathingSeconds;
     final total = seconds + surfaceSeconds;
-    if (total <= 0) return null;
     final depth = use?.avgDepth ?? recordedDepth;
     // Ambient pressure in bar, matching the 1 bar reference that gasVolume
     // returns volumes against.

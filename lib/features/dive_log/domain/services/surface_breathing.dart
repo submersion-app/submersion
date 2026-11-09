@@ -9,6 +9,7 @@
 /// the same inputs, so both stretch the window the same way.
 library;
 
+import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/features/dive_log/domain/services/gas_use_window.dart';
 
 /// A cylinder whose pressure moves less than this, in bar, on the surface was
@@ -75,8 +76,16 @@ SurfaceBreathing? surfaceBreathingOf({
   }
 
   for (final series in pressures) {
-    final ordered = [...series]
-      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    // A transmitter that loses its signal logs near-zero or stray readings,
+    // which would read as a cylinder emptied on the surface (issue #2441).
+    final ordered = [
+      for (final r in withoutPressureGlitches(
+        readingsInTimeOrder([
+          for (final s in series) (t: s.timestamp, bar: s.bar),
+        ]),
+      ))
+        if (r.bar >= kPressureGlitchNearZeroBar) (timestamp: r.t, bar: r.bar),
+    ];
     final trailing = _lowestAfter(ordered, underwater.endSeconds);
     if (trailing != null && trailing <= recordingEnd) stretchTo(trailing);
     final leading = _highestBefore(ordered, underwater.startSeconds);

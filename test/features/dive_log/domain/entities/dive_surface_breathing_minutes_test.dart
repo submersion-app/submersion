@@ -36,6 +36,12 @@ void main() {
     expect(d.sac, closeTo(100 / 50 / ambient, 1e-9));
   });
 
+  test('entered minutes alone give no rate to a dive with no runtime', () {
+    // The statistics leave a dive with no runtime out, so the dive does too.
+    final d = dive().copyWith(runtime: Duration.zero);
+    expect(d.sac, isNull);
+  });
+
   test('a dive with none entered is unchanged', () {
     final d = dive(
       tanks: const [DiveTank(id: 't', startPressure: 200, endPressure: 100)],

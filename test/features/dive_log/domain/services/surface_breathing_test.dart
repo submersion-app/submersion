@@ -65,6 +65,18 @@ void main() {
     expect(_of(pressures: [_series(bar)]), isNull);
   });
 
+  test('a transmitter dropout on the surface says nothing', () {
+    // The signal is lost two minutes after surfacing: near-zero readings,
+    // then the cylinder reads again where it was.
+    double bar(int t) => t > 34 * 60 && t < 37 * 60 ? 0 : 120;
+    expect(_of(pressures: [_series(bar)]), isNull);
+  });
+
+  test('a dropout that never recovers says nothing', () {
+    double bar(int t) => t > 38 * 60 ? 0.5 : 120;
+    expect(_of(pressures: [_series(bar)]), isNull);
+  });
+
   test('a rise on the surface says nothing', () {
     double bar(int t) => t <= 33 * 60 ? 120 : 126;
     expect(_of(pressures: [_series(bar)]), isNull);
