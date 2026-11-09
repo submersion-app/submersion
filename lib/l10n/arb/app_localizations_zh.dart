@@ -39174,6 +39174,34 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_draft_inWaterChip => 'In the water';
 
   @override
+  String get diveLog_draft_title => 'Draft dive';
+
+  @override
+  String diveLog_draft_bannerBody(int minutes) {
+    return 'About $minutes min from your taps. Download your dive computer to fill in depth and time.';
+  }
+
+  @override
+  String get diveLog_draft_bannerBodyOpen =>
+      'Tap Surfaced when you are out of the water.';
+
+  @override
+  String get diveLog_draft_downloadNow => 'Download now';
+
+  @override
+  String get diveLog_draft_markComplete => 'Mark as complete';
+
+  @override
+  String get diveLog_draft_surfaced => 'Surfaced';
+
+  @override
+  String get diveLog_draft_markedComplete => 'Marked as complete';
+
+  @override
+  String get diveLog_draft_markCompleteFailed =>
+      'Couldn\'t mark the dive as complete.';
+
+  @override
   String get diveLog_planned_bannerTitle => '计划的潜水';
 
   @override

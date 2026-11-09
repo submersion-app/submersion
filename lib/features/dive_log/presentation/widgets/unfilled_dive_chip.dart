@@ -22,6 +22,19 @@ UnfilledDiveState? unfilledDiveStateOf({
   return isPlanned ? UnfilledDiveState.planned : null;
 }
 
+/// The title an unfilled dive shows where a logged one shows "Dive #N", or
+/// null for a logged dive: a plan or draft has no number yet.
+String? unfilledDiveTitle(
+  BuildContext context, {
+  required bool isPlanned,
+  required bool isDraft,
+}) => switch (unfilledDiveStateOf(isPlanned: isPlanned, isDraft: isDraft)) {
+  null => null,
+  UnfilledDiveState.planned => context.l10n.diveLog_planned_bannerTitle,
+  UnfilledDiveState.inWater ||
+  UnfilledDiveState.awaitingDownload => context.l10n.diveLog_draft_title,
+};
+
 /// The icon that stands in for the number badge: an unfilled dive holds no
 /// number, and the list passes its position as a fallback that belongs to
 /// another dive.

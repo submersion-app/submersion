@@ -159,22 +159,34 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
   /// Promote a planned dive by hand (issue #2002): clears the flag and takes
   /// the next dive number through the one path that does both. Invalidates
   /// through the container so the list refreshes even if this page is gone.
+  /// Marks a plan as logged, or a draft as complete (issue #637): both go
+  /// through the one promotion that clears the flag and assigns the next
+  /// number.
   Future<void> _markAsLogged(Dive dive) async {
     // The button stays enabled while the promotion runs, and the same
     // action sits in the overflow menu, so a second call can arrive after
-    // the flag is already cleared. convertPlanToActualDive throws then,
-    // and nothing awaits this callback, so it must not escape.
+    // the flag is already cleared. The promotion throws then, and nothing
+    // awaits this callback, so it must not escape.
     if (_promoting) return;
     _promoting = true;
     final container = ProviderScope.containerOf(context, listen: false);
     final messenger = ScaffoldMessenger.of(context);
-    final failureMessage = context.l10n.diveLog_planned_markLoggedFailed;
-    final loggedMessage = context.l10n.diveLog_planned_markedLogged;
+    final l10n = context.l10n;
+    final failureMessage = dive.isDraft
+        ? l10n.diveLog_draft_markCompleteFailed
+        : l10n.diveLog_planned_markLoggedFailed;
+    final loggedMessage = dive.isDraft
+        ? l10n.diveLog_draft_markedComplete
+        : l10n.diveLog_planned_markedLogged;
     // Read now: a plan marked as logged gets its rules (#3513) even if the
     // diver leaves the page while it is converted.
     final rulesAfterCreate = captureRulesAfterCreate(context, ref);
     try {
-      await ref.read(diveRepositoryProvider).convertPlanToActualDive(dive.id);
+      if (dive.isDraft) {
+        await ref.read(diveDraftRepositoryProvider).markDraftComplete(dive.id);
+      } else {
+        await ref.read(diveRepositoryProvider).convertPlanToActualDive(dive.id);
+      }
     } catch (_) {
       _promoting = false;
       container.invalidate(diveProvider(dive.id));
@@ -190,9 +202,23 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     container.invalidate(diveNumberingInfoProvider);
     messenger.showSnackBar(SnackBar(content: Text(loggedMessage)));
     // A plan marked as logged is a dive logged by hand for the logbook
-    // rules (#3513).
+    // rules (#3513), and so is a draft marked complete.
     await rulesAfterCreate(subject: RuleSubject.dives, ids: [dive.id]);
   }
+
+  /// Closes an open draft now, from its banner (issue #637). The site
+  /// buttons on the GPS log record a position as well; this one has none.
+  Future<void> _surfaceDraft(Dive dive) async {
+    final container = ProviderScope.containerOf(context, listen: false);
+    await ref
+        .read(diveDraftRepositoryProvider)
+        .closeDraft(dive.id, exitTime: asWallClockUtc(DateTime.now()));
+    container.invalidate(diveProvider(dive.id));
+  }
+
+  /// A draft's "Download now": the dive computers list, where a download
+  /// fills it.
+  void _downloadForDraft() => context.push('/dive-computers');
 
   Future<void> _scanGalleryForDive(Dive dive) async {
     if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {

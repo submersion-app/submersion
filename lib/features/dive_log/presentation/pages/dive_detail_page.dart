@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/core/router/section_navigation.dart';
@@ -37,6 +38,7 @@ import 'package:submersion/features/dive_log/data/services/derived_metrics_sched
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_mirror_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_draft_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/dive_log/presentation/providers/annotation_focus_provider.dart';
@@ -54,7 +56,9 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/di
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_section_list.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_nav_buttons.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/mirror_dive_dialog.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/draft_dive_banner.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/planned_dive_banner.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/unfilled_dive_chip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/site_suggestion_card.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
@@ -455,6 +459,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
                   diveId: dive.id,
                   onMarkLogged: () => _markAsLogged(dive),
                 ),
+              if (dive.isDraft)
+                DraftDiveBanner(
+                  dive: dive,
+                  onMarkComplete: () => _markAsLogged(dive),
+                  onDownload: _downloadForDraft,
+                  onSurfaced: () => _surfaceDraft(dive),
+                ),
               SiteSuggestionCard(diveId: dive.id, currentSite: dive.site),
             ],
             // Fixed: Header
@@ -492,6 +503,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
             menu: _overflowMenu(dive, _headerMenuKey),
             onNavigate: _navigateToDive,
             onMarkLogged: () => _markAsLogged(dive),
+            onDownloadDraft: _downloadForDraft,
+            onSurfaceDraft: () => _surfaceDraft(dive),
           ),
           Expanded(child: body),
         ],
@@ -571,7 +584,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
         _resyncDive(dive);
       case 'logNearMiss':
         context.push('/incidents/new?diveId=$diveId');
-      case 'markLogged':
+      case 'markLogged' || 'markComplete':
         _markAsLogged(dive);
       case 'logForBuddy':
         _logForBuddy(dive);

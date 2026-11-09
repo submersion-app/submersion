@@ -41,6 +41,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/safety_finding
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
 import 'package:submersion/features/equipment/presentation/providers/dive_sensor_summary_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/unfilled_dive_chip.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/viewer_fullscreen_mode_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -489,16 +490,18 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                                 Flexible(
                                   child: Padding(
                                     padding: const EdgeInsets.only(right: 4),
-                                    // A planned entry has no number yet.
+                                    // A planned or draft entry has no
+                                    // number yet.
                                     child: Text(
-                                      dive.isPlanned
-                                          ? context
-                                                .l10n
-                                                .diveLog_planned_bannerTitle
-                                          : context.l10n
-                                                .diveLog_fullscreenProfile_title(
-                                                  dive.diveNumber ?? 0,
-                                                ),
+                                      unfilledDiveTitle(
+                                            context,
+                                            isPlanned: dive.isPlanned,
+                                            isDraft: dive.isDraft,
+                                          ) ??
+                                          context.l10n
+                                              .diveLog_fullscreenProfile_title(
+                                                dive.diveNumber ?? 0,
+                                              ),
                                       style: Theme.of(
                                         context,
                                       ).textTheme.titleSmall,

@@ -65732,6 +65732,54 @@ abstract class AppLocalizations {
   /// **'In the water'**
   String get diveLog_draft_inWaterChip;
 
+  /// Title for a draft dive, which has no number yet
+  ///
+  /// In en, this message translates to:
+  /// **'Draft dive'**
+  String get diveLog_draft_title;
+
+  /// Banner body on a draft dive: the estimated length from the Entered water and Surfaced taps
+  ///
+  /// In en, this message translates to:
+  /// **'About {minutes} min from your taps. Download your dive computer to fill in depth and time.'**
+  String diveLog_draft_bannerBody(int minutes);
+
+  /// No description provided for @diveLog_draft_bannerBodyOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Surfaced when you are out of the water.'**
+  String get diveLog_draft_bannerBodyOpen;
+
+  /// No description provided for @diveLog_draft_downloadNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Download now'**
+  String get diveLog_draft_downloadNow;
+
+  /// Action on a draft dive that will never be downloaded: keep it as a hand-added dive
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as complete'**
+  String get diveLog_draft_markComplete;
+
+  /// No description provided for @diveLog_draft_surfaced.
+  ///
+  /// In en, this message translates to:
+  /// **'Surfaced'**
+  String get diveLog_draft_surfaced;
+
+  /// No description provided for @diveLog_draft_markedComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked as complete'**
+  String get diveLog_draft_markedComplete;
+
+  /// No description provided for @diveLog_draft_markCompleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t mark the dive as complete.'**
+  String get diveLog_draft_markCompleteFailed;
+
   /// No description provided for @diveLog_planned_bannerTitle.
   ///
   /// In en, this message translates to:

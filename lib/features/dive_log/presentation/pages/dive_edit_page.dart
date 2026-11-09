@@ -570,6 +570,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// dive promotes it on save.
   bool _isPlanned = false;
 
+  /// A draft (issue #637) holds no number until a download fills it or the
+  /// diver marks it complete, and is never switched to a plan here.
+  bool get _isDraft => _existingDive?.isDraft ?? false;
+
   /// A dive holding downloaded data cannot be marked planned, so the switch
   /// is hidden once a primary data source exists.
   bool _hasPrimarySource = false;
@@ -1363,7 +1367,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           // the left column and the contextual ones fill the right on wide
           // windows. ResponsiveFormColumns owns the scroll view, so it
           // needs the bounded height Expanded provides.
-          if (!_hasPrimarySource && !widget.isBulk)
+          if (!_hasPrimarySource && !widget.isBulk && !_isDraft)
             SwitchListTile(
               key: const Key('dive_edit_planned_switch'),
               value: _isPlanned,
@@ -2874,7 +2878,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       runtimeController: _runtimeController,
       onRuntimeChanged: (_) => _followRuntime(),
       diveNumberController: _diveNumberController,
-      showDiveNumber: !_isPlanned,
+      showDiveNumber: !_isPlanned && !_isDraft,
       entryText: _formatEntryText(units),
       onEditEntry: _editEntry,
       exitText: _formatExitText(units),
@@ -6450,6 +6454,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         // leaves numbering to convertPlanToActualDive (issue #2002).
         diveNumber:
             _isPlanned ||
+                _isDraft ||
                 (_existingDive?.isPlanned ?? false) ||
                 _diveNumberController.text.isEmpty
             ? null

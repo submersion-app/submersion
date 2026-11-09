@@ -5,6 +5,7 @@ import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_nav_buttons.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/draft_dive_banner.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/planned_dive_banner.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/site_suggestion_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -17,6 +18,8 @@ class DiveDetailEmbeddedHeader extends ConsumerWidget {
     required this.menu,
     required this.onNavigate,
     required this.onMarkLogged,
+    this.onDownloadDraft,
+    this.onSurfaceDraft,
   });
 
   final Dive dive;
@@ -26,6 +29,11 @@ class DiveDetailEmbeddedHeader extends ConsumerWidget {
 
   final void Function(String neighborId) onNavigate;
   final VoidCallback onMarkLogged;
+
+  /// A draft's "Download now" and "Surfaced" (issue #637); "Mark as
+  /// complete" shares [onMarkLogged].
+  final VoidCallback? onDownloadDraft;
+  final VoidCallback? onSurfaceDraft;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -136,6 +144,13 @@ class DiveDetailEmbeddedHeader extends ConsumerWidget {
         ),
         if (dive.isPlanned)
           PlannedDiveBanner(diveId: dive.id, onMarkLogged: onMarkLogged),
+        if (dive.isDraft)
+          DraftDiveBanner(
+            dive: dive,
+            onMarkComplete: onMarkLogged,
+            onDownload: onDownloadDraft ?? () {},
+            onSurfaced: onSurfaceDraft,
+          ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: SiteSuggestionCard(diveId: dive.id, currentSite: dive.site),

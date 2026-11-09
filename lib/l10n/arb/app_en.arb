@@ -25119,6 +25119,24 @@
   "diveLog_draft_chip": "Waiting for download",
   "@diveLog_draft_chip": {"description": "List marker for a draft dive: marked at the site, waiting for its dive computer readings"},
   "diveLog_draft_inWaterChip": "In the water",
+  "diveLog_draft_title": "Draft dive",
+  "@diveLog_draft_title": {"description": "Title for a draft dive, which has no number yet"},
+  "diveLog_draft_bannerBody": "About {minutes} min from your taps. Download your dive computer to fill in depth and time.",
+  "@diveLog_draft_bannerBody": {
+    "description": "Banner body on a draft dive: the estimated length from the Entered water and Surfaced taps",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_draft_bannerBodyOpen": "Tap Surfaced when you are out of the water.",
+  "diveLog_draft_downloadNow": "Download now",
+  "diveLog_draft_markComplete": "Mark as complete",
+  "@diveLog_draft_markComplete": {"description": "Action on a draft dive that will never be downloaded: keep it as a hand-added dive"},
+  "diveLog_draft_surfaced": "Surfaced",
+  "diveLog_draft_markedComplete": "Marked as complete",
+  "diveLog_draft_markCompleteFailed": "Couldn't mark the dive as complete.",
   "@diveLog_draft_inWaterChip": {"description": "List marker for a draft dive whose diver has entered the water and not yet surfaced"},
   "diveLog_planned_bannerTitle": "Planned dive",
   "diveLog_planned_bannerBody": "Awaiting dive computer data. Mark it as logged if you dived without one.",

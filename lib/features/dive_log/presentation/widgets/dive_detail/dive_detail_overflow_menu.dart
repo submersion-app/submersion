@@ -130,6 +130,16 @@ class DiveDetailOverflowMenu extends ConsumerWidget {
                 contentPadding: EdgeInsets.zero,
               ),
             ),
+          // A draft that will never be downloaded (issue #637).
+          if (dive.isDraft)
+            PopupMenuItem(
+              value: 'markComplete',
+              child: ListTile(
+                leading: const Icon(Icons.task_alt),
+                title: Text(context.l10n.diveLog_draft_markComplete),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
           if (canLogForBuddy)
             PopupMenuItem(
               value: 'logForBuddy',
