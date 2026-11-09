@@ -19,6 +19,7 @@ import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.da
 import 'package:submersion/core/services/cloud_storage/encrypting_cloud_storage_provider.dart';
 import 'package:submersion/core/services/sync/crypto/encryption_key_store.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_copy_providers.dart';
+import 'package:submersion/features/backup/presentation/providers/extra_copy_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/account_group_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
@@ -251,6 +252,20 @@ void main() {
       expect(adapter.built, isEmpty);
     });
 
+    // Review of #4328: a roster change reloads the lookup, and the row may
+    // be the one just removed, so the last answer does not hold meanwhile.
+    test('nothing is copied while a roster change is re-checked', () async {
+      var lookups = 0;
+      final c = await container(
+        pinned,
+        rosterLookup: () =>
+            lookups++ == 0 ? Future.value(true) : Completer<bool>().future,
+      );
+      expect((await settledCopyProvider(c))?.providerName, 'copy:acct-b');
+      c.invalidate(copyRowOnRosterProvider('acct-b'));
+      expect(c.read(backupCopyProviderProvider), isNull);
+    });
+
     // As in the background: a database hiccup costs a copy nothing.
     test('an unreadable roster still copies', () async {
       final c = await container(
@@ -266,6 +281,82 @@ void main() {
         'backup_copy_account_kind': 's3',
       });
       expect(c.read(backupCopyProviderProvider), same(syncProvider));
+    });
+  });
+
+  group('extraCopyDestinationsProvider (#3782)', () {
+    const extras = {
+      'backup_cloud_enabled': true,
+      'backup_extra_copy_accounts':
+          '[{"id":"acct-b","kind":"s3"},{"id":"acct-c","kind":"s3"},'
+          '{"id":"acct-git","kind":"git"}]',
+    };
+
+    /// The destinations once each row's roster lookup has settled.
+    Future<List<(String, String?)>> settled(ProviderContainer c) async {
+      c.listen(extraCopyDestinationsProvider, (_, _) {});
+      for (final id in ['acct-b', 'acct-c', 'acct-git']) {
+        try {
+          await c.read(copyRowOnRosterProvider(id).future);
+        } on Object {
+          // An unreadable roster settles too.
+        }
+      }
+      return [
+        for (final d in c.read(extraCopyDestinationsProvider))
+          (d.accountId, d.provider?.providerName),
+      ];
+    }
+
+    // Review of #4328: nothing is sent while the copy is off, but pruning
+    // still deletes the old copies, so each account is still built.
+    test('still built while the copy is off', () async {
+      final c = await container({...extras, 'backup_cloud_enabled': false});
+      expect(await settled(c), [
+        ('acct-b', 'copy:acct-b'),
+        ('acct-c', 'copy:acct-c'),
+        ('acct-git', null),
+      ]);
+    });
+
+    test('one destination per extra account, in order', () async {
+      final c = await container(extras);
+      expect(await settled(c), [
+        ('acct-b', 'copy:acct-b'),
+        ('acct-c', 'copy:acct-c'),
+        // No adapter for Git in this registry: that account is missed.
+        ('acct-git', null),
+      ]);
+    });
+
+    test('a row gone from the roster gets no provider', () async {
+      final c = await container(extras, onRoster: false);
+      expect(await settled(c), [
+        ('acct-b', null),
+        ('acct-c', null),
+        ('acct-git', null),
+      ]);
+      expect(adapter.built, isEmpty);
+    });
+
+    test('nothing is copied while the roster lookup is pending', () async {
+      final c = await container(
+        extras,
+        rosterLookup: () => Completer<bool>().future,
+      );
+      expect(
+        c.read(extraCopyDestinationsProvider).map((d) => d.provider),
+        everyElement(isNull),
+      );
+    });
+
+    test('with sync encryption unlocked each provider is sealed', () async {
+      final c = await container(extras, unlocked: true);
+      await settled(c);
+      expect(
+        c.read(extraCopyDestinationsProvider).first.provider,
+        isA<EncryptingCloudStorageProvider>(),
+      );
     });
   });
 }

@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
+import 'package:submersion/features/backup/domain/entities/extra_cloud_copy.dart';
 
 /// Where a backup is stored
 enum BackupLocation { local, cloud, both }
@@ -32,6 +33,10 @@ class BackupRecord extends Equatable {
   /// made before accounts were noted, or with no cloud copy.
   final String? cloudAccountId;
 
+  /// The copies this backup also made in other accounts (issue #3782),
+  /// beside the main cloud copy. [location] says nothing about them.
+  final List<ExtraCloudCopy> extraCloudCopies;
+
   /// Set on a cloud row another device has pinned (issue #3503), from that
   /// device's marker in the folder. Display only: never stored, since the
   /// marker is the truth and another device can remove it at any time.
@@ -60,6 +65,7 @@ class BackupRecord extends Equatable {
     this.pinned = false,
     this.note,
     this.cloudAccountId,
+    this.extraCloudCopies = const [],
     this.pinnedOnAnotherDevice = false,
     this.cloudCopyListed = false,
   });
@@ -82,6 +88,7 @@ class BackupRecord extends Equatable {
     bool? pinned,
     String? note,
     String? cloudAccountId,
+    List<ExtraCloudCopy>? extraCloudCopies,
     bool? pinnedOnAnotherDevice,
     bool? cloudCopyListed,
   }) {
@@ -103,6 +110,7 @@ class BackupRecord extends Equatable {
       pinned: pinned ?? this.pinned,
       note: note ?? this.note,
       cloudAccountId: cloudAccountId ?? this.cloudAccountId,
+      extraCloudCopies: extraCloudCopies ?? this.extraCloudCopies,
       pinnedOnAnotherDevice:
           pinnedOnAnotherDevice ?? this.pinnedOnAnotherDevice,
       cloudCopyListed: cloudCopyListed ?? this.cloudCopyListed,
@@ -127,6 +135,7 @@ class BackupRecord extends Equatable {
     toSchemaVersion: toSchemaVersion,
     pinned: pinned,
     note: note,
+    extraCloudCopies: extraCloudCopies,
   );
 
   /// This record once its local copy is gone: kept in the cloud only.
@@ -147,6 +156,7 @@ class BackupRecord extends Equatable {
     pinned: pinned,
     note: note,
     cloudAccountId: cloudAccountId,
+    extraCloudCopies: extraCloudCopies,
   );
 
   /// Formatted file size for display (e.g., "2.3 MB")
@@ -177,6 +187,8 @@ class BackupRecord extends Equatable {
       'pinned': pinned,
       'note': note,
       'cloudAccountId': cloudAccountId,
+      if (extraCloudCopies.isNotEmpty)
+        'extraCloudCopies': [for (final c in extraCloudCopies) c.toJson()],
     };
   }
 
@@ -199,8 +211,16 @@ class BackupRecord extends Equatable {
       pinned: json['pinned'] as bool? ?? false,
       note: json['note'] as String?,
       cloudAccountId: json['cloudAccountId'] as String?,
+      extraCloudCopies: _parseExtraCopies(json['extraCloudCopies']),
     );
   }
+
+  /// Entries a newer or damaged history wrote that do not parse are skipped:
+  /// one bad copy must not lose the whole record.
+  static List<ExtraCloudCopy> _parseExtraCopies(Object? value) => [
+    if (value is List)
+      for (final entry in value) ?ExtraCloudCopy.fromJson(entry),
+  ];
 
   static BackupType _parseType(String? value) {
     if (value == null) return BackupType.manual;
@@ -226,6 +246,7 @@ class BackupRecord extends Equatable {
     pinned,
     note,
     cloudAccountId,
+    extraCloudCopies,
     pinnedOnAnotherDevice,
     cloudCopyListed,
   ];

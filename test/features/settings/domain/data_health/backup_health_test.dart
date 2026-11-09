@@ -15,6 +15,7 @@ void main() {
     bool lastCloudCopyMissing = false,
     bool lastCloudCopyNeedsSignIn = false,
     bool copyAccountNeedsSignIn = false,
+    bool lastExtraCopyMissing = false,
     bool hasCustomLocation = false,
     bool syncConfigured = false,
     bool noBackup = false,
@@ -29,6 +30,7 @@ void main() {
     lastCloudCopyMissing: lastCloudCopyMissing,
     lastCloudCopyNeedsSignIn: lastCloudCopyNeedsSignIn,
     copyAccountNeedsSignIn: copyAccountNeedsSignIn,
+    lastExtraCopyMissing: lastExtraCopyMissing,
     hasCustomLocation: hasCustomLocation,
     syncConfigured: syncConfigured,
   );
@@ -291,6 +293,42 @@ void main() {
         reason: HealthReason.syncAutoOff,
       );
       expect(pickHealth(DataFeature.sync, const [a, b]), a);
+    });
+  });
+
+  group('extra copies (#3782)', () {
+    test('a missed extra copy needs attention', () {
+      expectHealth(
+        evaluateBackupHealth(inputs(lastExtraCopyMissing: true), now),
+        HealthLevel.attention,
+        HealthReason.backupExtraCopyMissing,
+      );
+    });
+
+    test('a missed main copy keeps its own reason', () {
+      expectHealth(
+        evaluateBackupHealth(
+          inputs(lastCloudCopyMissing: true, lastExtraCopyMissing: true),
+          now,
+        ),
+        HealthLevel.attention,
+        HealthReason.backupCloudCopyMissing,
+      );
+    });
+
+    test('nothing is missing while the copy is off', () {
+      expectHealth(
+        evaluateBackupHealth(
+          inputs(
+            cloudBackupEnabled: false,
+            lastExtraCopyMissing: true,
+            syncConfigured: true,
+          ),
+          now,
+        ),
+        HealthLevel.healthy,
+        HealthReason.ok,
+      );
     });
   });
 }

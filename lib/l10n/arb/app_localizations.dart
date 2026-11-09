@@ -44142,6 +44142,12 @@ abstract class AppLocalizations {
   /// **'Last backup did not reach the cloud'**
   String get dataHealth_backup_cloudCopyMissing;
 
+  /// No description provided for @dataHealth_backup_extraCopyMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Last backup did not reach every account'**
+  String get dataHealth_backup_extraCopyMissing;
+
   /// No description provided for @dataHealth_backup_noOffDeviceCopy.
   ///
   /// In en, this message translates to:
@@ -93542,6 +93548,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The copy\'s account was removed'**
   String get settings_backups_copyAccountGone;
+
+  /// Backups page: an extra account each backup is also copied to, beside the main copy
+  ///
+  /// In en, this message translates to:
+  /// **'Also copy to {account}'**
+  String settings_backups_alsoCopyTo(String account);
+
+  /// Backups page: adds an extra account each backup is also copied to
+  ///
+  /// In en, this message translates to:
+  /// **'Copy to another account too'**
+  String get settings_backups_addCopyAccount;
+
+  /// Subtitle of an Also copy to row when the most recent backup's copy to that account failed
+  ///
+  /// In en, this message translates to:
+  /// **'The last backup did not reach this account'**
+  String get settings_backups_extraCopyMissed;
 
   /// Switch: run backups on a schedule
   ///

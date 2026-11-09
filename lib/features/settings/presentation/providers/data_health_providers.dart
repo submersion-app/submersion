@@ -54,6 +54,7 @@ final backupHealthProvider = Provider.autoDispose<FeatureHealth>((ref) {
       lastCloudCopyMissing: settings.lastCloudCopyMissing,
       lastCloudCopyNeedsSignIn: settings.lastCloudCopyNeedsSignIn,
       copyAccountNeedsSignIn: copyStatus == AccountStatus.needsSignIn,
+      lastExtraCopyMissing: settings.lastExtraCopyMissingIds.isNotEmpty,
       hasCustomLocation: settings.backupLocation != null,
       syncConfigured: ref.watch(isSyncEnabledProvider),
     ),

@@ -95,6 +95,23 @@ void main() {
     expect(await load(DateTime.utc(2026, 11, 21, 23).toLocal()), 'maldives');
   });
 
+  // The HealthKit import is handed this resolver too (issue #3022).
+  test('the shared import resolver places a dive the same way', () async {
+    final active = MockCurrentDiverIdNotifier();
+    await active.setCurrentDiver('eric');
+    final container = ProviderContainer(
+      overrides: [
+        currentDiverIdProvider.overrideWith((ref) => active),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'eric'),
+      ],
+    );
+    addTearDown(container.dispose);
+    final resolve = container.read(importTripResolverProvider);
+
+    expect(await resolve(DateTime.utc(2026, 11, 8, 9), 'eric'), 'maldives');
+    expect(await resolve(DateTime.utc(2026, 11, 8, 9), 'sam'), isNull);
+  });
+
   test('a download filed under the trip\'s owner finds it', () async {
     expect(
       await load(

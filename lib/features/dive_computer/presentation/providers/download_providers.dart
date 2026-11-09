@@ -50,9 +50,16 @@ final diveImportServiceProvider = Provider<DiveImportService>((ref) {
         loadTransmitterMatcher(ref, diverId: diverId),
     omitUnusedOcGasesForImports: (diverId) =>
         loadOmitUnusedOcGasesForDownloads(ref, diverId: diverId),
-    tripForImports: (diveStart, diverId) =>
-        loadTripIdForDownload(ref, diveStart, diverId: diverId),
+    tripForImports: ref.watch(importTripResolverProvider),
   );
+});
+
+/// The trip lookup a new imported dive is placed by (issue #3022), shared by
+/// the dive computer download and the HealthKit import so both place a dive
+/// the way [loadTripIdForDownload] does. Each call reads the trips afresh.
+final importTripResolverProvider = Provider<ImportTripResolver>((ref) {
+  return (diveStart, diverId) =>
+      loadTripIdForDownload(ref, diveStart, diverId: diverId);
 });
 
 /// The id of the trip whose dates cover a downloaded dive starting at

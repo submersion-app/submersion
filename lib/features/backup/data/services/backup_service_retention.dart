@@ -214,15 +214,20 @@ extension BackupServiceRetention on BackupService {
     }
 
     final here = await _cloudCopyCheck();
+    // Extra copies' deletes (issue #3782) are pushed once per account below.
+    final extraFlushes = Set<CloudStorageProvider>.identity();
     for (final r in _preferences.getHistory()) {
       final id = r.cloudFileId;
       if (id == null || !gone.contains(id) || !here(r)) continue;
       if (r.localPath != null) {
         await _preferences.updateRecord(r.withoutCloudCopy());
       } else {
+        // Its extra copies (issue #3782) go with the record.
+        await _deleteExtraCopies(r, deferFlushTo: extraFlushes);
         await _preferences.removeRecord(r.id);
       }
     }
+    await _flushExtraDeletes(extraFlushes);
     if (gone.isNotEmpty) {
       _log.info('Removed ${gone.length} backups across devices');
     }

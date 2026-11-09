@@ -27817,6 +27817,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'لم يصل آخر نسخ احتياطي إلى السحابة';
 
   @override
+  String get dataHealth_backup_extraCopyMissing =>
+      'لم يصل آخر نسخ احتياطي إلى كل الحسابات';
+
+  @override
   String get dataHealth_backup_noOffDeviceCopy =>
       'لا توجد نسخة خارج هذا الجهاز';
 
@@ -59929,6 +59933,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_backups_copyAccountGone => 'تمت إزالة حساب النسخة';
+
+  @override
+  String settings_backups_alsoCopyTo(String account) {
+    return 'نسخة أخرى في $account';
+  }
+
+  @override
+  String get settings_backups_addCopyAccount => 'نسخة في حساب آخر أيضًا';
+
+  @override
+  String get settings_backups_extraCopyMissed =>
+      'لم يصل آخر نسخ احتياطي إلى هذا الحساب';
 
   @override
   String get settings_backups_auto => 'النسخ الاحتياطي تلقائيًا';

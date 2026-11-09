@@ -27581,6 +27581,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'L\'ultimo backup non ha raggiunto il cloud';
 
   @override
+  String get dataHealth_backup_extraCopyMissing =>
+      'L\'ultimo backup non ha raggiunto tutti gli account';
+
+  @override
   String get dataHealth_backup_noOffDeviceCopy =>
       'Nessuna copia fuori da questo dispositivo';
 
@@ -59189,6 +59193,19 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_backups_copyAccountGone =>
       'L\'account della copia è stato rimosso';
+
+  @override
+  String settings_backups_alsoCopyTo(String account) {
+    return 'Anche una copia in $account';
+  }
+
+  @override
+  String get settings_backups_addCopyAccount =>
+      'Copia anche in un altro account';
+
+  @override
+  String get settings_backups_extraCopyMissed =>
+      'L\'ultimo backup non ha raggiunto questo account';
 
   @override
   String get settings_backups_auto => 'Esegui il backup automaticamente';

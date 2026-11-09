@@ -232,7 +232,7 @@ import 'package:submersion/features/dive_computer/presentation/providers/dive_co
 import 'package:submersion/features/dive_computer/presentation/pages/device_list_page.dart';
 import 'package:submersion/features/dive_computer/presentation/pages/dive_computer_item_redirect.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart'
-    show diveImportServiceProvider;
+    show diveImportServiceProvider, importTripResolverProvider;
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
 import 'package:submersion/features/import_wizard/data/adapters/divelogs_import_adapter.dart';
@@ -2321,6 +2321,7 @@ class _HealthKitImportWizardRoute extends ConsumerWidget {
         diverId: diverId,
         ref: ref,
         settings: settings,
+        tripForImports: ref.watch(importTripResolverProvider),
       ),
     );
   }
