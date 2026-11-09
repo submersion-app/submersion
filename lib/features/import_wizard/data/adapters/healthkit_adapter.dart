@@ -3,16 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart'
     show ImportTripResolver;
+import 'package:submersion/features/dive_computer/domain/services/fill_target_matcher.dart';
+import 'package:submersion/features/dive_import/data/services/apple_watch_computer.dart';
 import 'package:submersion/features/dive_import/data/services/health_dive_writer.dart';
+import 'package:submersion/features/dive_import/data/services/health_fill_service.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart'
     show DiveComputerRepository;
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
+import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/pre_dive/data/services/checklist_dive_linker.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
@@ -50,6 +55,8 @@ class HealthKitAdapter implements ImportSourceAdapter {
     required ImportedDiveConverter converter,
     required DiveRepository diveRepository,
     DiveComputerRepository? computerRepository,
+    HealthFillService? fillService,
+    DiveConsolidationService? consolidationService,
     required String diverId,
     WidgetRef? ref,
     UnitFormatterSettings settings = const AppSettings(),
@@ -61,6 +68,8 @@ class HealthKitAdapter implements ImportSourceAdapter {
        _converter = converter,
        _diveRepository = diveRepository,
        _computerRepository = computerRepository ?? DiveComputerRepository(),
+       _fillService = fillService,
+       _consolidationService = consolidationService,
        _diverId = diverId,
        _ref = ref,
        _settings = settings,
@@ -68,11 +77,15 @@ class HealthKitAdapter implements ImportSourceAdapter {
        _checklistLinker = checklistLinker,
        _tripForImports = tripForImports;
 
+  static final _log = LoggerService.forClass(HealthKitAdapter);
+
   final HealthImportService _healthService;
   final DiveMatcher _diveMatcher;
   final ImportedDiveConverter _converter;
   final DiveRepository _diveRepository;
   final DiveComputerRepository _computerRepository;
+  final HealthFillService? _fillService;
+  final DiveConsolidationService? _consolidationService;
   final String _diverId;
   final WidgetRef? _ref;
   final UnitFormatterSettings _settings;
@@ -141,6 +154,10 @@ class HealthKitAdapter implements ImportSourceAdapter {
   Set<DuplicateAction> get supportedDuplicateActions => const {
     DuplicateAction.skip,
     DuplicateAction.importAsNew,
+    // Fill a draft or plan, or join a downloaded dive (issue #637), as the
+    // automatic import does.
+    DuplicateAction.fillPlanned,
+    DuplicateAction.consolidate,
   };
 
   /// HealthKit only produces dives, so every tab gets the adapter-wide set.
@@ -220,9 +237,22 @@ class HealthKitAdapter implements ImportSourceAdapter {
         for (final saved in savedByWorkout[imported.sourceId] ?? const <Dive>[])
           saved.id,
     };
+    // Plans and drafts are fill targets, never fuzzy duplicates (#637).
     final unclaimedDives = existingDives
-        .where((dive) => !claimedIds.contains(dive.id))
+        .where(
+          (dive) =>
+              !claimedIds.contains(dive.id) && !dive.isPlanned && !dive.isDraft,
+        )
         .toList();
+    // Drafts first: a workout over a draft's taps fills it, ahead of any
+    // logged dive it also resembles.
+    final drafts = existingDives.where((dive) => dive.isDraft).toList();
+    final draftPairs = const FillTargetMatcher().pair(
+      incoming: [
+        for (final w in _parsedDives) (start: w.startTime, end: w.endTime),
+      ],
+      targets: drafts,
+    );
     final unclaimedByStart = DiveStartTimeIndex(
       unclaimedDives.map((dive) => dive.effectiveEntryTime),
     );
@@ -257,6 +287,18 @@ class HealthKitAdapter implements ImportSourceAdapter {
           // A re-read of a workout the log already holds: the wizard
           // defaults it to skip instead of asking about each one.
           matchedExistingSource: true,
+        );
+        continue;
+      }
+
+      final draftId = draftPairs[i];
+      if (draftId != null) {
+        duplicateIndices.add(i);
+        matchResults[i] = DiveMatchResult(
+          diveId: draftId,
+          score: 1,
+          timeDifferenceMs: 0,
+          fillTarget: FillTarget(diveId: draftId, kind: FillTargetKind.draft),
         );
         continue;
       }
@@ -297,9 +339,48 @@ class HealthKitAdapter implements ImportSourceAdapter {
       }
     }
 
+    // Plans last, for the workouts nothing else matched, over the batch.
+    final rest = [
+      for (var i = 0; i < _parsedDives.length; i++)
+        if (!duplicateIndices.contains(i)) i,
+    ];
+    final planPairs = const FillTargetMatcher().pair(
+      incoming: [
+        for (final i in rest)
+          (start: _parsedDives[i].startTime, end: _parsedDives[i].endTime),
+      ],
+      targets: existingDives
+          .where((dive) => dive.isPlanned && !dive.isDraft)
+          .toList(),
+    );
+    planPairs.forEach((k, planId) {
+      final i = rest[k];
+      duplicateIndices.add(i);
+      matchResults[i] = DiveMatchResult(
+        diveId: planId,
+        score: 1,
+        timeDifferenceMs: 0,
+        fillTarget: FillTarget(diveId: planId, kind: FillTargetKind.plan),
+      );
+    });
+
     _timeCorrections = Map.unmodifiable(timeCorrections);
+    // The diver's Apple Watch is this session's computer, so a match with a
+    // dive another computer recorded defaults to consolidate (#637).
+    String? watchId;
+    try {
+      watchId = (await appleWatchComputerFor(_computerRepository, _diverId)).id;
+    } catch (_) {
+      watchId = null;
+    }
     return ImportBundle(
-      source: bundle.source,
+      source: ImportSourceInfo(
+        type: bundle.source.type,
+        displayName: bundle.source.displayName,
+        metadata: bundle.source.metadata,
+        currentComputerId: watchId,
+        details: bundle.source.details,
+      ),
       groups: {
         ...bundle.groups,
         ImportEntityType.dives: EntityGroup(
@@ -356,6 +437,65 @@ class HealthKitAdapter implements ImportSourceAdapter {
       }
     }
 
+    // One writer for the run, shared with the automatic import (issue #637):
+    // its lookup cache collapses a batch of dives at the same location into
+    // a single elevation request.
+    final writer = HealthDiveWriter(
+      dives: _diveRepository,
+      computers: _computerRepository,
+      converter: _converter,
+      checklistLinker: _checklistLinker,
+      tripForImports: _tripForImports,
+    );
+
+    final importedDiveIds = <String>[];
+
+    // Fill a draft or plan, or join a downloaded dive (issue #637). A row
+    // whose fill or merge fails imports as new instead, so the workout is
+    // never lost.
+    final matches =
+        bundle.groups[ImportEntityType.dives]?.matchResults ?? const {};
+    var filled = 0;
+    var consolidated = 0;
+    for (final index in indicesToImport.toList()..sort()) {
+      final action = diveActions[index];
+      final match = matches[index];
+      if (index >= _parsedDives.length || match == null) continue;
+      final target = match.fillTarget;
+      try {
+        if (action == DuplicateAction.fillPlanned && target != null) {
+          final fillService =
+              _fillService ??
+              HealthFillService(dives: _diveRepository, writer: writer);
+          importedDiveIds.add(
+            await fillService.fill(
+              targetDiveId: target.diveId,
+              workout: _parsedDives[index],
+              diverId: _diverId,
+            ),
+          );
+          filled++;
+          indicesToImport.remove(index);
+        } else if (action == DuplicateAction.consolidate) {
+          final dive = await writer.importAsNew(
+            _parsedDives[index],
+            diverId: _diverId,
+          );
+          indicesToImport.remove(index);
+          await (_consolidationService ??
+                  DiveConsolidationService(_diveRepository))
+              .apply(targetDiveId: match.diveId, secondaryDiveIds: [dive.id]);
+          consolidated++;
+        }
+      } catch (e, stackTrace) {
+        _log.warning(
+          'Fill or merge of an Apple Health workout failed; importing as new',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+
     // Oldest first, so auto-numbering follows the order the dives happened
     // in rather than the order the review list happened to show them.
     final sortedIndices =
@@ -368,18 +508,6 @@ class HealthKitAdapter implements ImportSourceAdapter {
           });
     final total = sortedIndices.length;
     var imported = 0;
-    final importedDiveIds = <String>[];
-
-    // One writer for the run, shared with the automatic import (issue #637):
-    // its lookup cache collapses a batch of dives at the same location into
-    // a single elevation request.
-    final writer = HealthDiveWriter(
-      dives: _diveRepository,
-      computers: _computerRepository,
-      converter: _converter,
-      checklistLinker: _checklistLinker,
-      tripForImports: _tripForImports,
-    );
 
     for (var i = 0; i < sortedIndices.length; i++) {
       if (cancelToken?.isCancelled ?? false) break;
@@ -411,7 +539,8 @@ class HealthKitAdapter implements ImportSourceAdapter {
     );
     return UnifiedImportResult(
       importedCounts: {ImportEntityType.dives: imported},
-      consolidatedCount: 0,
+      consolidatedCount: consolidated,
+      filledCount: filled,
       timesCorrectedCount: timesCorrected,
       skippedCount: skipped,
       importedDiveIds: importedDiveIds,
@@ -472,6 +601,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
       durationDifferenceSeconds:
           (imported.durationSeconds - _diveSeconds(existing)).abs(),
       siteName: existing.site?.name,
+      matchedComputerId: existing.computerId,
       matchedExistingSource: matchedExistingSource,
     );
   }
