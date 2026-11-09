@@ -192,21 +192,23 @@ void main() {
     expect(_pin('Manta Point, 6 sightings'), findsNothing);
   });
 
-  testWidgets('the legend steps aside while a site card is open', (
-    tester,
-  ) async {
-    await _pump(tester);
-    expect(find.byType(SpeciesMapLegend), findsOneWidget);
+  for (final size in const [Size(1400, 900), Size(400, 800)]) {
+    testWidgets(
+      'an open site card leaves the legend and its GBIF credit in view '
+      'at ${size.width.toInt()} wide',
+      (tester) async {
+        await _pump(tester, size: size, publicOn: true, unplaced: 2);
 
-    await tester.tap(_pin('Blue Corner, 3 species'));
-    await _settleMap(tester);
-    expect(find.byType(SpeciesMapSiteCard), findsOneWidget);
-    expect(find.byType(SpeciesMapLegend), findsNothing);
+        await tester.tap(_pin('Blue Corner, 3 species'));
+        await _settleMap(tester);
 
-    await tester.tap(find.byIcon(Icons.close));
-    await _settleMap(tester);
-    expect(find.byType(SpeciesMapLegend), findsOneWidget);
-  });
+        final card = tester.getRect(find.byType(SpeciesMapSiteCard));
+        final legend = tester.getRect(find.byType(SpeciesMapLegend));
+        expect(legend.overlaps(card), isFalse);
+        expect(find.text('Records: GBIF.org').hitTestable(), findsOneWidget);
+      },
+    );
+  }
 
   testWidgets('?species= seeds species mode with logged and expected pins', (
     tester,

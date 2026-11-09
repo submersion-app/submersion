@@ -374,8 +374,6 @@ class _SpeciesMapPageState extends ConsumerState<SpeciesMapPage>
       });
     }
     final publicOn = ref.watch(speciesMapPublicLayerProvider);
-    final cardOpen =
-        ref.watch(mapListSelectionProvider(_sectionKey)).selectedId != null;
     final shownNotes = notes.whereType<String>().toList();
 
     return Stack(
@@ -435,45 +433,45 @@ class _SpeciesMapPageState extends ConsumerState<SpeciesMapPage>
             ],
           ),
         ),
-        if (shownNotes.isNotEmpty)
-          Positioned(
-            top: 8,
-            left: 8,
-            right: 64,
-            child: Align(
-              alignment: Alignment.topLeft,
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      for (final note in shownNotes)
-                        Text(
-                          note,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                    ],
+        // Notes and legend share the top-left corner: the site card opens at
+        // the bottom, so it never covers the legend or the GBIF credit.
+        Positioned(
+          top: 8,
+          left: 8,
+          right: 64,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (shownNotes.isNotEmpty) ...[
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        for (final note in shownNotes)
+                          Text(
+                            note,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                      ],
+                    ),
                   ),
                 ),
+                const SizedBox(height: 4),
+              ],
+              SpeciesMapLegend(
+                speciesMode: speciesId != null,
+                publicOn: publicOn,
               ),
-            ),
+            ],
           ),
-        // An open site card sits at the bottom and would cover the legend,
-        // so the legend steps aside until the card closes.
-        if (!cardOpen)
-          Positioned(
-            left: 8,
-            bottom: 28,
-            child: SpeciesMapLegend(
-              speciesMode: speciesId != null,
-              publicOn: publicOn,
-            ),
-          ),
+        ),
       ],
     );
   }

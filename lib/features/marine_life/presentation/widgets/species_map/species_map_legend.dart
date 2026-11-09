@@ -102,7 +102,11 @@ class SpeciesMapLegend extends StatelessWidget {
           children: [
             ExcludeSemantics(child: swatch),
             const SizedBox(width: 8),
-            Text(label, style: Theme.of(context).textTheme.bodySmall),
+            // Wraps rather than overflows in a narrow corner or a long
+            // translation.
+            Flexible(
+              child: Text(label, style: Theme.of(context).textTheme.bodySmall),
+            ),
           ],
         ),
       );
