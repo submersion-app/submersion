@@ -67266,6 +67266,12 @@ abstract class AppLocalizations {
   /// **'Wrong cylinder'**
   String get dataQuality_detector_tank_assignment;
 
+  /// No description provided for @dataQuality_detector_missing_gas_switch.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing gas switch'**
+  String get dataQuality_detector_missing_gas_switch;
+
   /// No description provided for @dataQuality_detector_source_conflict.
   ///
   /// In en, this message translates to:
@@ -67469,6 +67475,61 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This tank lost {drop} while the gas timeline says it was not in use'**
   String dataQuality_msg_tankInactive(String drop);
+
+  /// Missing gas switch finding: {switches} is a list of {count} dataQuality_msg_missingSwitchItem entries.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{No gas switch was recorded, but the cylinder pressures show this switch: {switches}.} other{No gas switch was recorded, but the cylinder pressures show these switches: {switches}.}}'**
+  String dataQuality_msg_missingSwitches(int count, String switches);
+
+  /// One switch in dataQuality_msg_missingSwitches; {time} is minutes:seconds from the start of the dive.
+  ///
+  /// In en, this message translates to:
+  /// **'cylinder {tankNumber} ({gas}) at {time}, {depth}'**
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  );
+
+  /// Joins the switches listed in dataQuality_msg_missingSwitches.
+  ///
+  /// In en, this message translates to:
+  /// **'; '**
+  String get dataQuality_msg_missingSwitchSeparator;
+
+  /// Missing gas switch finding when no switch can be offered: the pressures show the diver changing to cylinder {tankNumber} at {depth}, deeper than {mod}, the maximum operating depth (MOD) of its gas {gas}. The change is read from that cylinder starting to lose pressure, or from the other cylinder being left, so it may have no readings of its own.
+  ///
+  /// In en, this message translates to:
+  /// **'No gas switch was recorded. The cylinder pressures show a change to cylinder {tankNumber} ({gas}) at {depth}, deeper than its MOD of {mod}, so no switch to it is suggested.'**
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  );
+
+  /// A further sentence of the missing gas switch finding, after its switches or an earlier change: the pressures also show the diver changing to cylinder {tankNumber} at {depth}, deeper than {mod}, the maximum operating depth (MOD) of its gas {gas}.
+  ///
+  /// In en, this message translates to:
+  /// **'The cylinder pressures also show a change to cylinder {tankNumber} ({gas}) at {depth}, deeper than its MOD of {mod}, so no switch to it is suggested.'**
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  );
+
+  /// Missing gas switch finding on a dive with more than two cylinders: cylinder {tankNumber} started being breathed again at {time} (minutes:seconds from the start of the dive) after a pause, so another cylinder was breathed in between and no switch is suggested.
+  ///
+  /// In en, this message translates to:
+  /// **'No gas switch was recorded. Cylinder {tankNumber} ({gas}) was breathed again from {time} after a pause, so another cylinder was breathed in between, and with more than two cylinders the pressures cannot show which. Add the switches in the dive editor.'**
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  );
 
   /// No description provided for @dataQuality_detector_transmitter_role.
   ///
@@ -67758,6 +67819,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Move series to another tank'**
   String get dataQuality_repairLabel_reassignSeries;
+
+  /// Repair button that writes the suggested gas switches to the dive.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Add gas switch} other{Add {count} gas switches}}'**
+  String dataQuality_repairLabel_addGasSwitches(int count);
 
   /// No description provided for @dataQuality_repairLabel_setPrimary.
   ///

@@ -43212,6 +43212,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => 'أسطوانة خاطئة';
 
   @override
+  String get dataQuality_detector_missing_gas_switch => 'تبديل غاز مفقود';
+
+  @override
   String get dataQuality_detector_source_conflict => 'مصادر متعارضة';
 
   @override
@@ -43419,6 +43422,67 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String dataQuality_msg_tankInactive(String drop) {
     return 'فقدت هذه الأسطوانة $drop بينما يشير الخط الزمني للغاز إلى أنها لم تكن قيد الاستخدام';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'لم يُسجَّل أي تبديل للغاز، لكن ضغوط الأسطوانات تُظهر هذه التبديلات: $switches.',
+      many:
+          'لم يُسجَّل أي تبديل للغاز، لكن ضغوط الأسطوانات تُظهر هذه التبديلات: $switches.',
+      few:
+          'لم يُسجَّل أي تبديل للغاز، لكن ضغوط الأسطوانات تُظهر هذه التبديلات: $switches.',
+      two:
+          'لم يُسجَّل أي تبديل للغاز، لكن ضغوط الأسطوانات تُظهر هذين التبديلين: $switches.',
+      one:
+          'لم يُسجَّل أي تبديل للغاز، لكن ضغوط الأسطوانات تُظهر هذا التبديل: $switches.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return 'الأسطوانة $tankNumber ($gas) عند $time، $depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => '؛ ';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'لم يُسجَّل أي تبديل للغاز. تُظهر ضغوط الأسطوانات تبديلًا إلى الأسطوانة $tankNumber ($gas) عند $depth، أعمق من MOD الخاص بها البالغ $mod، لذا لا يُقترح التبديل إليها.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'تُظهر ضغوط الأسطوانات أيضًا تبديلًا إلى الأسطوانة $tankNumber ($gas) عند $depth، أعمق من MOD الخاص بها البالغ $mod، لذا لا يُقترح التبديل إليها.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'لم يُسجَّل أي تبديل للغاز. تُنفِّس من الأسطوانة $tankNumber ($gas) مجددًا بدءًا من $time بعد توقف، لذا تُنفِّس من أسطوانة أخرى في الأثناء، ومع أكثر من أسطوانتين لا تُظهر الضغوط أيّها. أضف التبديلات في محرر الغطسة.';
   }
 
   @override
@@ -43677,6 +43741,20 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_reassignSeries =>
       'نقل السلسلة إلى أسطوانة أخرى';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إضافة $count تبديل غاز',
+      many: 'إضافة $count تبديلًا للغاز',
+      few: 'إضافة $count تبديلات غاز',
+      two: 'إضافة تبديلَي غاز',
+      one: 'إضافة تبديل غاز',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary => 'جعل هذا المصدر أساسيًا';

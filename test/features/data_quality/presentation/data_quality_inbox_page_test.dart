@@ -2237,6 +2237,69 @@ void main() {
     },
   );
 
+  // Issue #165: the missing-switch card writes its switches and Undo takes
+  // exactly those back out.
+  testWidgets('Add gas switch writes the switch, Undo removes it', (
+    tester,
+  ) async {
+    await DiveRepository().createDive(
+      domain.Dive(
+        id: 'd1',
+        dateTime: DateTime.utc(2026, 6, 14, 9),
+        tanks: const [
+          domain.DiveTank(id: 'back', order: 0),
+          domain.DiveTank(id: 'deco', order: 1),
+        ],
+      ),
+    );
+    final prefs = await _prefs();
+    await tester.pumpWidget(
+      _scope(
+        prefs,
+        findings: [
+          _f(
+            id: 'r-missing-switch',
+            detectorId: 'missing_gas_switch',
+            category: QualityCategory.tank,
+            params: const {
+              'missingSwitches': [
+                {
+                  'tankId': 'deco',
+                  'tankPosition': 1,
+                  't': 1800,
+                  'depth': 21.0,
+                  'o2Percent': 50.0,
+                  'hePercent': 0.0,
+                },
+              ],
+              'deepStarts': [],
+            },
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Add gas switch'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Repair applied'), findsOneWidget);
+    final added = await tester.runAsync(
+      () => DiveRepository().getGasSwitchesForDive('d1'),
+    );
+    expect(
+      [for (final s in added!) (s.gasSwitch.tankId, s.gasSwitch.timestamp)],
+      [('deco', 1800)],
+    );
+
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle(const Duration(seconds: 6));
+    final after = await tester.runAsync(
+      () => DiveRepository().getGasSwitchesForDive('d1'),
+    );
+    expect(after, isEmpty);
+  });
+
   group('delete-duplicate repair', () {
     // The commonest duplicate: one dive downloaded twice from a single
     // computer, where the second copy is a fragment. Consolidation is

@@ -42652,6 +42652,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => 'Cilindro incorreto';
 
   @override
+  String get dataQuality_detector_missing_gas_switch => 'Troca de gás em falta';
+
+  @override
   String get dataQuality_detector_source_conflict => 'Fontes em conflito';
 
   @override
@@ -42847,6 +42850,61 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String dataQuality_msg_tankInactive(String drop) {
     return 'Este cilindro perdeu $drop enquanto a linha temporal de gás indica que não estava em uso';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Nenhuma troca de gás foi registrada, mas as pressões dos cilindros mostram estas trocas: $switches.',
+      one:
+          'Nenhuma troca de gás foi registrada, mas as pressões dos cilindros mostram esta troca: $switches.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return 'cilindro $tankNumber ($gas) aos $time, $depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => '; ';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'Nenhuma troca de gás foi registrada. As pressões dos cilindros mostram uma troca para o cilindro $tankNumber ($gas) a $depth, mais fundo que a sua MOD de $mod, por isso não é sugerida uma troca para ele.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'As pressões dos cilindros também mostram uma troca para o cilindro $tankNumber ($gas) a $depth, mais fundo que a sua MOD de $mod, por isso não é sugerida uma troca para ele.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'Nenhuma troca de gás foi registrada. O cilindro $tankNumber ($gas) voltou a ser respirado a partir de $time após uma pausa, então outro cilindro foi respirado nesse intervalo, e com mais de dois cilindros as pressões não mostram qual. Adicione as trocas no editor de mergulho.';
   }
 
   @override
@@ -43088,6 +43146,17 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_reassignSeries =>
       'Mover a série para outro cilindro';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Adicionar $count trocas de gás',
+      one: 'Adicionar troca de gás',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary =>

@@ -25820,6 +25820,7 @@
   "dataQuality_detector_pressure_anomaly": "Pressure anomaly",
   "dataQuality_detector_gas_mod": "Gas/MOD inconsistency",
   "dataQuality_detector_tank_assignment": "Wrong cylinder",
+  "dataQuality_detector_missing_gas_switch": "Missing gas switch",
   "dataQuality_detector_source_conflict": "Conflicting sources",
   "dataQuality_detector_shared_gear_overlap": "Shared gear on overlapping dives",
   "dataQuality_msg_clock_future": "Dive is dated in the future ({date})",
@@ -26114,6 +26115,91 @@
       }
     }
   },
+  "dataQuality_msg_missingSwitches": "{count, plural, one{No gas switch was recorded, but the cylinder pressures show this switch: {switches}.} other{No gas switch was recorded, but the cylinder pressures show these switches: {switches}.}}",
+  "@dataQuality_msg_missingSwitches": {
+    "description": "Missing gas switch finding: {switches} is a list of {count} dataQuality_msg_missingSwitchItem entries.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "switches": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_missingSwitchItem": "cylinder {tankNumber} ({gas}) at {time}, {depth}",
+  "@dataQuality_msg_missingSwitchItem": {
+    "description": "One switch in dataQuality_msg_missingSwitches; {time} is minutes:seconds from the start of the dive.",
+    "placeholders": {
+      "tankNumber": {
+        "type": "int"
+      },
+      "gas": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_missingSwitchSeparator": "; ",
+  "@dataQuality_msg_missingSwitchSeparator": {
+    "description": "Joins the switches listed in dataQuality_msg_missingSwitches."
+  },
+  "dataQuality_msg_missingSwitchDeep": "No gas switch was recorded. The cylinder pressures show a change to cylinder {tankNumber} ({gas}) at {depth}, deeper than its MOD of {mod}, so no switch to it is suggested.",
+  "@dataQuality_msg_missingSwitchDeep": {
+    "description": "Missing gas switch finding when no switch can be offered: the pressures show the diver changing to cylinder {tankNumber} at {depth}, deeper than {mod}, the maximum operating depth (MOD) of its gas {gas}. The change is read from that cylinder starting to lose pressure, or from the other cylinder being left, so it may have no readings of its own.",
+    "placeholders": {
+      "tankNumber": {
+        "type": "int"
+      },
+      "gas": {
+        "type": "String"
+      },
+      "depth": {
+        "type": "String"
+      },
+      "mod": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_missingSwitchDeepAlso": "The cylinder pressures also show a change to cylinder {tankNumber} ({gas}) at {depth}, deeper than its MOD of {mod}, so no switch to it is suggested.",
+  "@dataQuality_msg_missingSwitchDeepAlso": {
+    "description": "A further sentence of the missing gas switch finding, after its switches or an earlier change: the pressures also show the diver changing to cylinder {tankNumber} at {depth}, deeper than {mod}, the maximum operating depth (MOD) of its gas {gas}.",
+    "placeholders": {
+      "tankNumber": {
+        "type": "int"
+      },
+      "gas": {
+        "type": "String"
+      },
+      "depth": {
+        "type": "String"
+      },
+      "mod": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_msg_missingSwitchUnplaced": "No gas switch was recorded. Cylinder {tankNumber} ({gas}) was breathed again from {time} after a pause, so another cylinder was breathed in between, and with more than two cylinders the pressures cannot show which. Add the switches in the dive editor.",
+  "@dataQuality_msg_missingSwitchUnplaced": {
+    "description": "Missing gas switch finding on a dive with more than two cylinders: cylinder {tankNumber} started being breathed again at {time} (minutes:seconds from the start of the dive) after a pause, so another cylinder was breathed in between and no switch is suggested.",
+    "placeholders": {
+      "tankNumber": {
+        "type": "int"
+      },
+      "gas": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "dataQuality_detector_transmitter_role": "Transmitter role",
   "dataQuality_msg_transmitterRoleBailout": "Tank {tankNumber} is marked {role} from its transmitter's name, but it lost {ocDrop} after the switch to open circuit and almost none on the loop, so it looks like the bailout. A bailout that was never breathed, or one breathed without a gas switch on the computer, cannot be detected this way.",
   "@dataQuality_msg_transmitterRoleBailout": {
@@ -26351,6 +26437,15 @@
   "dataQuality_repairLabel_setFromSeries": "Use sensor values",
   "dataQuality_repairLabel_swapSeries": "Swap tank series",
   "dataQuality_repairLabel_reassignSeries": "Move series to another tank",
+  "dataQuality_repairLabel_addGasSwitches": "{count, plural, one{Add gas switch} other{Add {count} gas switches}}",
+  "@dataQuality_repairLabel_addGasSwitches": {
+    "description": "Repair button that writes the suggested gas switches to the dive.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "dataQuality_repairLabel_setPrimary": "Make this source primary",
   "dataQuality_repairLabel_split": "Split into separate dives",
   "dataQuality_repairLabel_setPrimaryNamed": "Make {source} the primary source",

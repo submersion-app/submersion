@@ -42793,6 +42793,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => 'Mauvais bloc';
 
   @override
+  String get dataQuality_detector_missing_gas_switch =>
+      'Changement de gaz manquant';
+
+  @override
   String get dataQuality_detector_source_conflict => 'Sources contradictoires';
 
   @override
@@ -42988,6 +42992,61 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String dataQuality_msg_tankInactive(String drop) {
     return 'Ce bloc a perdu $drop alors que la chronologie des gaz indique qu\'il n\'était pas utilisé';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Aucun changement de gaz n\'a été enregistré, mais les pressions des blocs montrent ces changements : $switches.',
+      one:
+          'Aucun changement de gaz n\'a été enregistré, mais les pressions des blocs montrent ce changement : $switches.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return 'bloc $tankNumber ($gas) à $time, $depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => ' ; ';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'Aucun changement de gaz n\'a été enregistré. Les pressions des blocs montrent un passage sur le bloc $tankNumber ($gas) à $depth, plus profond que sa MOD de $mod ; aucun changement vers ce bloc n\'est donc proposé.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'Les pressions des blocs montrent aussi un passage sur le bloc $tankNumber ($gas) à $depth, plus profond que sa MOD de $mod ; aucun changement vers ce bloc n\'est donc proposé.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'Aucun changement de gaz n\'a été enregistré. Le bloc $tankNumber ($gas) a de nouveau été respiré à partir de $time après une pause : un autre bloc a donc été respiré entre-temps, et avec plus de deux blocs, les pressions ne permettent pas de savoir lequel. Ajoutez les changements dans l\'éditeur de plongée.';
   }
 
   @override
@@ -43231,6 +43290,17 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_reassignSeries =>
       'Déplacer la série vers un autre bloc';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ajouter $count changements de gaz',
+      one: 'Ajouter le changement de gaz',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary =>

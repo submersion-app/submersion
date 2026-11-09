@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/utils/minutes_seconds.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart'
     show GasMix;
@@ -73,6 +74,7 @@ String detectorTitle(AppLocalizations l10n, String detectorId) =>
       'pressure_anomaly' => l10n.dataQuality_detector_pressure_anomaly,
       'gas_mod' => l10n.dataQuality_detector_gas_mod,
       'tank_assignment' => l10n.dataQuality_detector_tank_assignment,
+      'missing_gas_switch' => l10n.dataQuality_detector_missing_gas_switch,
       'transmitter_role' => l10n.dataQuality_detector_transmitter_role,
       'unknown_transmitter' => l10n.dataQuality_detector_unknown_transmitter,
       'transmitter_gear_serial_mismatch' =>
@@ -225,6 +227,8 @@ QualityFindingMessage buildFindingMessage(
       detail = l10n.dataQuality_msg_transmitterGearSerialMismatch(
         (p['serial'] as String?) ?? '',
       );
+    case 'missing_gas_switch':
+      detail = _missingSwitchDetail(l10n, p, fmt);
     case 'tank_assignment':
       detail = p.containsKey('inactiveDropBar')
           ? l10n.dataQuality_msg_tankInactive(
@@ -271,6 +275,75 @@ QualityFindingMessage buildFindingMessage(
 String qualityDurationLabel(AppLocalizations l10n, int seconds) => seconds < 120
     ? l10n.dataQuality_unit_seconds(seconds)
     : l10n.dataQuality_unit_minutes((seconds / 60).round());
+
+/// The missing-switch finding's text (issue #165): every switch it offers,
+/// or the restart that kept it from offering any, then every start it held
+/// back for being deeper than its gas's MOD.
+String _missingSwitchDetail(
+  AppLocalizations l10n,
+  Map<String, Object?> p,
+  QualityUnitFormatters fmt,
+) {
+  List<Map<String, Object?>> entries(String key) => [
+    if (p[key] case final List list)
+      for (final e in list)
+        if (e is Map) e.cast<String, Object?>(),
+  ];
+  // A stored value of the wrong type reads as missing, as the repair
+  // mapping skips such an entry, rather than failing the card.
+  num? n(Map<String, Object?> e, String k) => switch (e[k]) {
+    final num v => v,
+    _ => null,
+  };
+  double d(Map<String, Object?> e, String k) => n(e, k)?.toDouble() ?? 0;
+  int seconds(Map<String, Object?> e) => n(e, 't')?.toInt() ?? 0;
+  // Stored 0-based, as the transmitter role finding's is.
+  int number(Map<String, Object?> e) =>
+      (n(e, 'tankPosition')?.toInt() ?? 0) + 1;
+  String gas(Map<String, Object?> e) =>
+      qualityGasLabel(l10n, d(e, 'o2Percent'), n(e, 'hePercent')?.toDouble());
+
+  final switches = entries('missingSwitches');
+  final deep = entries('deepStarts');
+  final restart = switch (p['unplacedRestart']) {
+    final Map map => map.cast<String, Object?>(),
+    _ => null,
+  };
+  final sentences = <String>[
+    if (switches.isNotEmpty)
+      l10n.dataQuality_msg_missingSwitches(
+        switches.length,
+        switches
+            .map(
+              (e) => l10n.dataQuality_msg_missingSwitchItem(
+                number(e),
+                gas(e),
+                formatMinutesSeconds(seconds(e)),
+                fmt.depth(d(e, 'depth')),
+              ),
+            )
+            .join(l10n.dataQuality_msg_missingSwitchSeparator),
+      ),
+    if (restart != null)
+      l10n.dataQuality_msg_missingSwitchUnplaced(
+        number(restart),
+        gas(restart),
+        formatMinutesSeconds(seconds(restart)),
+      ),
+    // Every too-deep start, the first opening the message when nothing
+    // before it does.
+    for (final (i, e) in deep.indexed)
+      (i == 0 && switches.isEmpty && restart == null
+          ? l10n.dataQuality_msg_missingSwitchDeep
+          : l10n.dataQuality_msg_missingSwitchDeepAlso)(
+        number(e),
+        gas(e),
+        fmt.depth(d(e, 'depth')),
+        fmt.limitDepth(d(e, 'modMeters')),
+      ),
+  ];
+  return sentences.join(' ');
+}
 
 /// The mix a gas finding names. Air and oxygen are words and translate;
 /// nitrox and trimix keep their international notation (EAN32, Tx 18/45),

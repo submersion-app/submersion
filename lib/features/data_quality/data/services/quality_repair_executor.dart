@@ -1,4 +1,5 @@
-import 'package:drift/drift.dart' show Value, Variable;
+import 'package:drift/drift.dart'
+    show BooleanExpressionOperators, Value, Variable;
 
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -11,22 +12,29 @@ import 'package:submersion/features/data_quality/data/services/profile_repair_se
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
+import 'package:submersion/features/data_quality/domain/repairs/quality_repair_action.dart'
+    show SwitchToAdd;
 import 'package:submersion/features/data_quality/domain/repairs/repair_predicates.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/source_clock_repository.dart';
 import 'package:submersion/features/dive_log/data/services/source_timeline_shift.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_role_repair_repository.dart';
+import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
+import 'package:submersion/features/dive_log/data/services/diver_gas_switch_writer.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
+import 'package:uuid/uuid.dart';
+
+const _uuid = Uuid();
 
 typedef RepairUndo = Future<void> Function();
 
@@ -61,11 +69,13 @@ class QualityRepairExecutor {
     TankRoleRepairRepository? tankRoleRepository,
     TransmitterRepository? transmitterRepository,
     SourceClockRepository? sourceClockRepository,
+    DiverGasSwitchWriter? gasSwitchWriter,
     SourceTimelineShifter? sourceTimelineShifter,
     Future<void> Function(List<DocumentSnapshotEntry> snapshot)?
     restoreDocuments,
   }) : _diveRepo = diveRepository ?? DiveRepository(),
        _sourceClocks = sourceClockRepository ?? SourceClockRepository(),
+       _injectedSwitchWriter = gasSwitchWriter,
        _sourceTimelines = sourceTimelineShifter ?? SourceTimelineShifter(),
        _tankRoles = tankRoleRepository ?? TankRoleRepairRepository(),
        _transmitters = transmitterRepository ?? TransmitterRepository(),
@@ -79,6 +89,13 @@ class QualityRepairExecutor {
   _restoreDocuments;
   final DiveRepository _diveRepo;
   final SourceClockRepository _sourceClocks;
+  final DiverGasSwitchWriter? _injectedSwitchWriter;
+
+  /// Built on use, like [_db]: the writer reads the database when it is
+  /// made, and an executor must be buildable while it is migrating or not
+  /// yet open.
+  DiverGasSwitchWriter get _switchWriter =>
+      _injectedSwitchWriter ?? DiverGasSwitchWriter();
   final SourceTimelineShifter _sourceTimelines;
   final TankRoleRepairRepository _tankRoles;
   final TransmitterRepository _transmitters;
@@ -585,6 +602,79 @@ class QualityRepairExecutor {
         ),
       );
       SyncEventBus.notifyLocalChange();
+      _rescan([diveId]);
+    });
+  }
+
+  /// Write the gas switches a missing-switch finding offers (issue #165).
+  ///
+  /// The write goes through [DiverGasSwitchWriter], the dive editor's own
+  /// path: the switches are untagged so they apply to every computer on the
+  /// dive, the dive's switch list becomes the diver's (a re-parse or file
+  /// resync leaves it alone), and its stored safety review is dropped so it
+  /// is rebuilt from them. A dive that has gained a switch since the scan is
+  /// left alone, since the finding was written for a dive with none and
+  /// adding to the diver's own would mix two timelines; so is one that has
+  /// lost a cylinder a switch names, and one whose list the diver has since
+  /// emptied in the editor, which the detector skips. All are checked in the
+  /// transaction that writes. Undo deletes exactly the switches written here
+  /// and hands the list back to the dive's computers, unless a switch added
+  /// since (in the editor, or by a peer) is still there: that list is the
+  /// diver's, and a re-parse must leave it alone.
+  Future<RepairResult> addGasSwitches({
+    required String diveId,
+    required List<SwitchToAdd> switches,
+    required String findingId,
+  }) async {
+    if (switches.isEmpty) return const RepairResult.noChange();
+    final rows = [
+      for (final s in switches)
+        GasSwitch(
+          id: _uuid.v4(),
+          diveId: diveId,
+          timestamp: s.t,
+          tankId: s.tankId,
+          depth: s.depth,
+          createdAt: DateTime.now().toUtc(),
+        ),
+    ];
+    final written = await _db.transaction<bool>(() async {
+      final existing = await (_db.select(
+        _db.gasSwitches,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      if (existing.isNotEmpty) return false;
+      final tankIds = {
+        for (final row in await (_db.select(
+          _db.diveTanks,
+        )..where((t) => t.diveId.equals(diveId))).get())
+          row.id,
+      };
+      if (!switches.every((s) => tankIds.contains(s.tankId))) return false;
+      final dive = await (_db.select(
+        _db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingleOrNull();
+      if (dive == null || dive.gasSwitchesEdited) return false;
+      return _switchWriter.save(
+        diveId: diveId,
+        switches: rows,
+        loadedIds: const {},
+      );
+    });
+    if (!written) return const RepairResult.noChange();
+    await _finish(findingId, [diveId]);
+    return RepairResult.applied(() async {
+      final added = {for (final r in rows) r.id};
+      await _db.transaction(() async {
+        final later = await (_db.select(
+          _db.gasSwitches,
+        )..where((t) => t.diveId.equals(diveId) & t.id.isNotIn(added))).get();
+        await _switchWriter.save(
+          diveId: diveId,
+          switches: const [],
+          loadedIds: added,
+          edited: later.isNotEmpty,
+        );
+      });
       _rescan([diveId]);
     });
   }

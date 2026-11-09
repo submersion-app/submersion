@@ -42438,6 +42438,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => 'Rossz palack';
 
   @override
+  String get dataQuality_detector_missing_gas_switch => 'Hiányzó gázváltás';
+
+  @override
   String get dataQuality_detector_source_conflict => 'Ütköző források';
 
   @override
@@ -42632,6 +42635,61 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String dataQuality_msg_tankInactive(String drop) {
     return 'Ez a palack $drop nyomást veszített, miközben a gáz-idővonal szerint nem volt használatban';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Nem rögzült gázváltás, de a palacknyomások ezeket a váltásokat mutatják: $switches.',
+      one:
+          'Nem rögzült gázváltás, de a palacknyomások ezt a váltást mutatják: $switches.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return '$tankNumber. palack ($gas), $time, $depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => '; ';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'Nem rögzült gázváltás. A palacknyomások $depth mélységben váltást mutatnak a(z) $tankNumber. palackra ($gas), mélyebben a $mod MOD-jánál, ezért nem javaslunk rá váltást.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'A palacknyomások $depth mélységben a(z) $tankNumber. palackra ($gas) való váltást is mutatnak, mélyebben a $mod MOD-jánál, ezért nem javaslunk rá váltást.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'Nem rögzült gázváltás. A(z) $tankNumber. palackból ($gas) szünet után $time időponttól ismét lélegeztek, így közben egy másik palackból lélegeztek, és kettőnél több palacknál a nyomások nem mutatják meg, melyikből. Add hozzá a váltásokat a merülésszerkesztőben.';
   }
 
   @override
@@ -42874,6 +42932,17 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_reassignSeries =>
       'Sorozat áthelyezése másik palackra';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gázváltás hozzáadása',
+      one: 'Gázváltás hozzáadása',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary =>

@@ -40185,6 +40185,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => '气瓶错误';
 
   @override
+  String get dataQuality_detector_missing_gas_switch => '缺少换气记录';
+
+  @override
   String get dataQuality_detector_source_conflict => '来源冲突';
 
   @override
@@ -40372,6 +40375,58 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String dataQuality_msg_tankInactive(String drop) {
     return '该气瓶损失了 $drop，而气体时间线显示它未在使用';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '没有记录换气，但气瓶压力显示了以下换气：$switches。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return '气瓶 $tankNumber（$gas），$time，$depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => '；';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return '没有记录换气。气瓶压力显示在 $depth 处换到气瓶 $tankNumber（$gas），深于其 MOD $mod，因此不建议切换到该气瓶。';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return '气瓶压力还显示在 $depth 处换到气瓶 $tankNumber（$gas），深于其 MOD $mod，因此不建议切换到该气瓶。';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return '没有记录换气。气瓶 $tankNumber（$gas）在暂停后从 $time 起再次被呼吸，因此期间呼吸的是另一个气瓶；气瓶多于两个时，压力无法显示是哪一个。请在潜水编辑器中添加换气。';
   }
 
   @override
@@ -40603,6 +40658,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_reassignSeries => '将序列移到另一个气瓶';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '添加 $count 次换气',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary => '将此来源设为主要来源';

@@ -42703,6 +42703,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => 'Tanque incorrecto';
 
   @override
+  String get dataQuality_detector_missing_gas_switch =>
+      'Cambio de gas no registrado';
+
+  @override
   String get dataQuality_detector_source_conflict => 'Fuentes en conflicto';
 
   @override
@@ -42898,6 +42902,61 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String dataQuality_msg_tankInactive(String drop) {
     return 'Este tanque perdió $drop mientras la cronología de gas indica que no estaba en uso';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'No se registró ningún cambio de gas, pero las presiones de los tanques muestran estos cambios: $switches.',
+      one:
+          'No se registró ningún cambio de gas, pero las presiones de los tanques muestran este cambio: $switches.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return 'tanque $tankNumber ($gas) a los $time, $depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => '; ';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'No se registró ningún cambio de gas. Las presiones de los tanques muestran un cambio al tanque $tankNumber ($gas) a $depth, más profundo que su MOD de $mod, por lo que no se sugiere un cambio a él.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'Las presiones de los tanques también muestran un cambio al tanque $tankNumber ($gas) a $depth, más profundo que su MOD de $mod, por lo que no se sugiere un cambio a él.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'No se registró ningún cambio de gas. El tanque $tankNumber ($gas) se volvió a respirar desde $time tras una pausa, así que entretanto se respiró otro tanque, y con más de dos tanques las presiones no muestran cuál. Añade los cambios en el editor de inmersiones.';
   }
 
   @override
@@ -43139,6 +43198,17 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_reassignSeries =>
       'Mover la serie a otro tanque';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Añadir $count cambios de gas',
+      one: 'Añadir cambio de gas',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary =>
