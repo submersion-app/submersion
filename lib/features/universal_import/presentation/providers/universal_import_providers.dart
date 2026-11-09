@@ -225,8 +225,9 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     _deleteTempDirs(superseded);
   }
 
-  /// Completes once every temp-directory deletion [_deleteTempDirs] has
-  /// started is done.
+  /// Completes once every temp-directory deletion started before it was
+  /// read is done. A deletion started after that is not covered: read it
+  /// again, after the step whose cleanup is to be awaited.
   ///
   /// Nothing in the app waits on it: cleanup stays fire-and-forget. A test
   /// awaits it to see a deletion land, instead of sleeping and hoping the
