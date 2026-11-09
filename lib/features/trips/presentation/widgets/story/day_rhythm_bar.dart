@@ -133,9 +133,15 @@ class _DayRhythmBarState extends State<DayRhythmBar> {
                 nightColor: isDark
                     ? colorScheme.tertiary
                     : Color.lerp(colorScheme.tertiary, Colors.white, 0.45)!,
-                outlineColor: isDark
+                // A block can sit on any band. In light mode a day dive's
+                // dark fill needs a light edge on the night band, and a
+                // night dive's light fill a dark edge on the day band.
+                dayOutlineColor: isDark
                     ? Colors.black.withValues(alpha: 0.6)
                     : Colors.white.withValues(alpha: 0.85),
+                nightOutlineColor: isDark
+                    ? Colors.black.withValues(alpha: 0.6)
+                    : palette.night.withValues(alpha: 0.7),
               ),
             ),
           ),
@@ -199,7 +205,8 @@ class _RhythmPainter extends CustomPainter {
   final _SkyPalette palette;
   final Color dayColor;
   final Color nightColor;
-  final Color outlineColor;
+  final Color dayOutlineColor;
+  final Color nightOutlineColor;
 
   const _RhythmPainter({
     required this.blocks,
@@ -207,7 +214,8 @@ class _RhythmPainter extends CustomPainter {
     required this.palette,
     required this.dayColor,
     required this.nightColor,
-    required this.outlineColor,
+    required this.dayOutlineColor,
+    required this.nightOutlineColor,
   });
 
   @override
@@ -243,10 +251,12 @@ class _RhythmPainter extends CustomPainter {
     canvas.drawRect(track, sky);
 
     final blockHeight = (size.height - 4).clamp(0.0, double.infinity);
-    final outline = Paint()
+    Paint outline(Color color) => Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1
-      ..color = outlineColor;
+      ..color = color;
+    final dayOutline = outline(dayOutlineColor);
+    final nightOutline = outline(nightOutlineColor);
     for (final block in blocks) {
       final rect = RRect.fromRectAndRadius(
         Rect.fromLTWH(
@@ -262,7 +272,7 @@ class _RhythmPainter extends CustomPainter {
           rect,
           Paint()..color = block.isNight ? nightColor : dayColor,
         )
-        ..drawRRect(rect, outline);
+        ..drawRRect(rect, block.isNight ? nightOutline : dayOutline);
     }
     canvas.restore();
   }
@@ -274,5 +284,6 @@ class _RhythmPainter extends CustomPainter {
       oldDelegate.palette != palette ||
       oldDelegate.dayColor != dayColor ||
       oldDelegate.nightColor != nightColor ||
-      oldDelegate.outlineColor != outlineColor;
+      oldDelegate.dayOutlineColor != dayOutlineColor ||
+      oldDelegate.nightOutlineColor != nightOutlineColor;
 }

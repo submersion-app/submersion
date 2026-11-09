@@ -91,7 +91,11 @@ const double _secondsPerDay = 24 * 3600;
 DayDaylight computeDayDaylight(List<Dive> dives) {
   for (final dive in dives) {
     final location = dive.site?.location;
-    if (location == null || !_isUsable(location.latitude, location.longitude)) {
+    if (location == null ||
+        !TimeOfDayClassifier.hasUsableLocation(
+          location.latitude,
+          location.longitude,
+        )) {
       continue;
     }
     final entry = dive.entryTime ?? dive.dateTime;
@@ -101,7 +105,9 @@ DayDaylight computeDayDaylight(List<Dive> dives) {
       location.longitude,
     );
   }
-  return _fallbackDaylight(dives.isEmpty ? null : dives.first);
+  if (dives.isEmpty) return _fallbackDaylight(DateTime.utc(2000));
+  final entry = dives.first.entryTime ?? dives.first.dateTime;
+  return _fallbackDaylight(DateTime.utc(entry.year, entry.month, entry.day));
 }
 
 /// The gradient stops for [daylight]: the tone at 00:00, three stops per
@@ -149,12 +155,6 @@ List<SkyStop> skyStops(DayDaylight daylight) {
   return stops;
 }
 
-// 0,0 is the stand-in devices and logbooks write for "no fix", as in
-// TimeOfDayClassifier.classify.
-bool _isUsable(double latitude, double longitude) =>
-    !(latitude == 0 && longitude == 0) &&
-    SunCalculator.isValidCoordinate(latitude, longitude);
-
 DayDaylight _siteDaylight(DateTime day, double latitude, double longitude) {
   final toWallClock = SiteTimeZone.wallClockConverterFor(latitude, longitude);
   SunTimes? sunOn(int offsetDays) => SunCalculator.wallClockFor(
@@ -165,7 +165,7 @@ DayDaylight _siteDaylight(DateTime day, double latitude, double longitude) {
   );
 
   final today = sunOn(0);
-  if (today == null) return _fallbackDaylight(null, day: day);
+  if (today == null) return _fallbackDaylight(day);
 
   final all = <({bool isSunrise, DateTime at})>[
     for (final sun in [sunOn(-1), today, sunOn(1)])
@@ -199,17 +199,12 @@ DayDaylight _siteDaylight(DateTime day, double latitude, double longitude) {
   );
 }
 
-DayDaylight _fallbackDaylight(Dive? dive, {DateTime? day}) {
-  final entry = dive == null ? null : (dive.entryTime ?? dive.dateTime);
-  final date =
-      day ??
-      (entry == null
-          ? DateTime.utc(2000)
-          : DateTime.utc(entry.year, entry.month, entry.day));
+/// The 06:00 and 18:00 stand-ins on [day], as [TimeOfDayClassifier] uses.
+DayDaylight _fallbackDaylight(DateTime day) {
   SunEvent at(int hour, {required bool isSunrise}) => SunEvent(
     isSunrise: isSunrise,
     fraction: hour / 24,
-    wallClock: DateTime.utc(date.year, date.month, date.day, hour),
+    wallClock: DateTime.utc(day.year, day.month, day.day, hour),
   );
   return DayDaylight(
     basis: DaylightBasis.fallback,

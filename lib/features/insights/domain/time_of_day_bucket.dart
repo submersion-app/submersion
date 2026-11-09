@@ -114,6 +114,16 @@ class TimeOfDayClassifier {
         : TimeOfDayBucket.afternoon;
   }
 
+  /// Whether sun times can be computed for a site at [latitude],
+  /// [longitude]: both present, on the globe, and not 0,0, the stand-in
+  /// devices and logbooks write for "no fix" (see `ImportSiteLocation.fix`),
+  /// not a dive site in the Gulf of Guinea.
+  static bool hasUsableLocation(double? latitude, double? longitude) =>
+      latitude != null &&
+      longitude != null &&
+      !(latitude == 0 && longitude == 0) &&
+      SunCalculator.isValidCoordinate(latitude, longitude);
+
   /// Buckets a dive at the site at [latitude], [longitude].
   ///
   /// Falls back to [fallbackSunriseHour] and [fallbackSunsetHour] when the
@@ -125,12 +135,10 @@ class TimeOfDayClassifier {
     double? latitude,
     double? longitude,
   }) {
-    // 0,0 is the stand-in devices and logbooks write for "no fix" (see
-    // `ImportSiteLocation.fix`), not a dive site in the Gulf of Guinea.
+    // The null checks here also promote the pair for the code below.
     if (latitude == null ||
         longitude == null ||
-        (latitude == 0 && longitude == 0) ||
-        !SunCalculator.isValidCoordinate(latitude, longitude)) {
+        !hasUsableLocation(latitude, longitude)) {
       return (bucket: _fallback(entry, exit), basis: SunTimesBasis.noLocation);
     }
 

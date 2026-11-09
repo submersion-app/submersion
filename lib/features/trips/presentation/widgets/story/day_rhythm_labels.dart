@@ -13,8 +13,8 @@ typedef RhythmLabelSpec = ({
   double width,
 });
 
-/// A label that found room, with its left edge.
-typedef PlacedRhythmLabel = ({RhythmLabelSpec spec, double left});
+/// A label that found room: its position in the input, and its left edge.
+typedef PlacedRhythmLabel = ({int index, RhythmLabelSpec spec, double left});
 
 /// A label to draw under the day timeline.
 typedef RhythmLabel = ({
@@ -78,7 +78,7 @@ List<PlacedRhythmLabel> placeRhythmLabels(
 
   return [
     for (var i = 0; i < specs.length; i++)
-      if (lefts[i] case final left?) (spec: specs[i], left: left),
+      if (lefts[i] case final left?) (index: i, spec: specs[i], left: left),
   ];
 }
 
@@ -140,9 +140,9 @@ class DayRhythmLabelRow extends StatelessWidget {
                     left: p.left,
                     top: 0,
                     child: _label(
-                      labels[specs.indexOf(p.spec)],
+                      labels[p.index],
                       styleFor(p.spec.kind),
-                      measured[specs.indexOf(p.spec)].iconSize,
+                      measured[p.index].iconSize,
                     ),
                   ),
               ],
