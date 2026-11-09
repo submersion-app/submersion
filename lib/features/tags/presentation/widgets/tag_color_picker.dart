@@ -85,42 +85,94 @@ class _TagColorPickerState extends State<TagColorPicker> {
       onTap: () => widget.onColorSelected(entry.hex),
     );
 
+    Widget hueColumn(int hue) => Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final entry in tagPalette.where((e) => e.hue == hue))
+          paletteDot(entry),
+      ],
+    );
+
+    final currentDot = current == null
+        ? null
+        : _ColorDot(
+            key: const ValueKey('tag-color-current'),
+            color: drawnTagColor(current),
+            label: l10n.tags_color_current(current),
+            selected: onCurrent,
+            onTap: () => widget.onColorSelected(current),
+          );
+    final customDot = _ColorDot(
+      key: const ValueKey('tag-color-custom'),
+      label: l10n.tags_color_custom,
+      selected: false,
+      onTap: _pickCustom,
+    );
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _preview(),
         const SizedBox(height: 12),
-        Wrap(
-          spacing: 4,
-          runSpacing: 4,
-          children: [
-            if (current != null)
-              _ColorDot(
-                key: const ValueKey('tag-color-current'),
-                color: drawnTagColor(current),
-                label: l10n.tags_color_current(current),
-                selected: onCurrent,
-                onTap: () => widget.onColorSelected(current),
-              ),
-            for (var hue = 0; hue < tagLightShades.length; hue++)
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  for (final entry in tagPalette.where((e) => e.hue == hue))
-                    paletteDot(entry),
-                ],
-              ),
-            _ColorDot(
-              key: const ValueKey('tag-color-custom'),
-              label: l10n.tags_color_custom,
-              selected: false,
-              onTap: _pickCustom,
-            ),
-          ],
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final slot = tagTapTarget(Theme.of(context).platform);
+            final perBand = _huesPerBand(
+              width: constraints.maxWidth,
+              slot: slot,
+              lead: currentDot == null ? 0 : 1,
+            );
+            final hues = tagLightShades.length;
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: _gap,
+              children: [
+                for (var start = 0; start < hues; start += perBand)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: _gap,
+                    children: [
+                      // The current colour leads the first band; later bands
+                      // keep its slot empty so the hue columns line up.
+                      if (currentDot != null)
+                        start == 0 ? currentDot : SizedBox(width: slot),
+                      for (var hue = start; hue < start + perBand; hue++)
+                        hueColumn(hue),
+                      if (start + perBand >= hues) customDot,
+                    ],
+                  ),
+              ],
+            );
+          },
         ),
       ],
     );
+  }
+
+  /// Space between dots, across and down.
+  static const double _gap = 4;
+
+  /// How many hue columns go in each band: the most of 10, 5, 4, 2 or 1
+  /// (each divides the 20 hues, so every band is full) that fit beside the
+  /// [lead] slots and the "+" dot. Ten across on a desktop dialog, fewer on
+  /// a phone, and never a lopsided last band.
+  static int _huesPerBand({
+    required double width,
+    required double slot,
+    required int lead,
+  }) {
+    if (!width.isFinite) return 10;
+    final slots = ((width + _gap) / (slot + _gap)).floor();
+    return const [
+      10,
+      5,
+      4,
+      2,
+      1,
+    ].firstWhere((n) => n + lead + 1 <= slots, orElse: () => 1);
   }
 
   Widget _preview() {

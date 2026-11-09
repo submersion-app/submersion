@@ -200,6 +200,55 @@ void main() {
     }
   });
 
+  group('hues wrap in even bands', () {
+    // Column per hue, light shade on top: its dot gives the column's left
+    // edge and its band's top edge.
+    double left(WidgetTester tester, int hue) =>
+        tester.getRect(dot(tagPalette[hue * 3].hex)).left;
+    double top(WidgetTester tester, int hue) =>
+        tester.getRect(dot(tagPalette[hue * 3].hex)).top;
+
+    testWidgets('ten hues to a band on a wide desktop dialog', (tester) async {
+      await pumpPicker(
+        tester,
+        platform: TargetPlatform.macOS,
+        width: 870,
+        selectedColor: '#EF4444',
+      );
+      expect(top(tester, 9), top(tester, 0));
+      expect(top(tester, 10), greaterThan(top(tester, 9)));
+      expect(left(tester, 10), left(tester, 0));
+      expect(top(tester, 19), top(tester, 10));
+    });
+
+    testWidgets('a current colour leads the first band, columns aligned', (
+      tester,
+    ) async {
+      await pumpPicker(
+        tester,
+        platform: TargetPlatform.macOS,
+        width: 870,
+        selectedColor: 'FF0000',
+      );
+      final currentRect = tester.getRect(current);
+      expect(currentRect.top, top(tester, 0));
+      expect(left(tester, 0), greaterThan(currentRect.left));
+      expect(left(tester, 10), left(tester, 0));
+    });
+
+    testWidgets('the + dot ends the last band', (tester) async {
+      await pumpPicker(
+        tester,
+        platform: TargetPlatform.macOS,
+        width: 870,
+        selectedColor: '#EF4444',
+      );
+      final plus = tester.getRect(custom);
+      expect(plus.top, top(tester, 19));
+      expect(plus.left, greaterThan(left(tester, 19)));
+    });
+  });
+
   testWidgets('wraps to a narrow phone dialog without overflowing', (
     tester,
   ) async {
