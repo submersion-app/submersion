@@ -34919,6 +34919,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gpsLogger_surfaceOnStop_leaveOpen => 'Leave open';
 
   @override
+  String get gpsLogger_markNotification_title => 'Recording your GPS track';
+
+  @override
+  String get gpsLogger_markNotification_bodyEnter =>
+      'Tap Entered water when you go in.';
+
+  @override
+  String get gpsLogger_markNotification_bodySurface =>
+      'In the water. Tap Surfaced when you are out.';
+
+  @override
   String gpsLogger_stripStatus(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

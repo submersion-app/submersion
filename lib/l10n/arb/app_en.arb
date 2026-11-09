@@ -22202,6 +22202,9 @@
   },
   "gpsLogger_surfaceOnStop_surfaceNow": "Surface now",
   "gpsLogger_surfaceOnStop_leaveOpen": "Leave open",
+  "gpsLogger_markNotification_title": "Recording your GPS track",
+  "gpsLogger_markNotification_bodyEnter": "Tap Entered water when you go in.",
+  "gpsLogger_markNotification_bodySurface": "In the water. Tap Surfaced when you are out.",
   "gpsLogger_stripStatus": "Recording GPS track · {count, plural, one{{count} point} other{{count} points}}",
   "@gpsLogger_stripStatus": {
     "placeholders": {

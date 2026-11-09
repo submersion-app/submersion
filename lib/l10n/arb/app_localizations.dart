@@ -58421,6 +58421,24 @@ abstract class AppLocalizations {
   /// **'Leave open'**
   String get gpsLogger_surfaceOnStop_leaveOpen;
 
+  /// No description provided for @gpsLogger_markNotification_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording your GPS track'**
+  String get gpsLogger_markNotification_title;
+
+  /// No description provided for @gpsLogger_markNotification_bodyEnter.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Entered water when you go in.'**
+  String get gpsLogger_markNotification_bodyEnter;
+
+  /// No description provided for @gpsLogger_markNotification_bodySurface.
+  ///
+  /// In en, this message translates to:
+  /// **'In the water. Tap Surfaced when you are out.'**
+  String get gpsLogger_markNotification_bodySurface;
+
   /// No description provided for @gpsLogger_stripStatus.
   ///
   /// In en, this message translates to:

@@ -23,6 +23,7 @@ import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/core/theme/display_zoom.dart';
 import 'package:submersion/core/theme/display_zoom_shortcuts.dart';
 import 'package:submersion/core/router/app_router.dart';
+import 'package:submersion/features/gps_log/presentation/dive_mark_action_bridge.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_gc_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/display_zoom_menu_channel.dart';
 import 'package:submersion/features/settings/presentation/providers/display_zoom_provider.dart';
@@ -134,6 +135,9 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   late final NavigationReadyGateOwner<IncomingShare> _shares;
   late final AppLifecycleListener _lifecycleListener;
 
+  /// Lock screen Entered water and Surfaced taps (issue #637).
+  late final StreamSubscription<void> _diveMarks;
+
   @override
   void initState() {
     super.initState();
@@ -198,6 +202,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     if (hasDesktopWindow()) {
       ref.listenManual(agentAccessControllerProvider, (_, _) {});
     }
+    _diveMarks = startDiveMarkActionBridge(ref);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _runStorageCleanupAfter(_maybeSyncOnLaunch(), StorageGcTrigger.launch);
       _setNearbyForeground(true);
@@ -219,6 +224,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
 
   @override
   void dispose() {
+    unawaited(_diveMarks.cancel());
     ChangeLogSettleScheduler.instance.stop();
     _linkRouter.routeInformationProvider.removeListener(_updateNavigationReady);
     _shares.release();
