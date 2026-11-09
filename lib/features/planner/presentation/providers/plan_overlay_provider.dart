@@ -1,9 +1,8 @@
-import 'package:flutter/material.dart';
-
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
@@ -122,7 +121,7 @@ ChartSourceOverlay buildPlannedOverlay(
   return ChartSourceOverlay(
     sourceId: 'plan:${plan.id}',
     name: plan.name,
-    color: Colors.purple,
+    color: ProfileMetricColors.plannedProfile,
     // A plan is not another computer's reading of the same dive, so it keeps
     // its own identity colour rather than a tint of each metric's colour.
     tintByMetric: false,

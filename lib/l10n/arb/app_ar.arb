@@ -3031,6 +3031,7 @@
   "diveLog_legend_label_depth": "العمق",
   "diveLog_legend_label_events": "الأحداث",
   "diveLog_legend_label_annotations": "التعليقات",
+  "diveLog_legend_label_plan": "الخطة",
   "diveLog_legend_label_computedEvents": "الأحداث المحسوبة",
   "diveLog_legend_label_gasDensity": "كثافة الغاز",
   "diveLog_legend_label_lateGasSwitches": "تبديلات الغاز المتأخرة",

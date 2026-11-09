@@ -2930,6 +2930,7 @@
   "diveLog_legend_label_depth": "Profondità",
   "diveLog_legend_label_events": "Eventi",
   "diveLog_legend_label_annotations": "Annotazioni",
+  "diveLog_legend_label_plan": "Piano",
   "diveLog_legend_label_computedEvents": "Eventi calcolati",
   "diveLog_legend_label_gasDensity": "Densità del gas",
   "diveLog_legend_label_lateGasSwitches": "Cambi gas tardivi",

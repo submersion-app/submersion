@@ -14557,6 +14557,12 @@ abstract class AppLocalizations {
   /// **'Annotations'**
   String get diveLog_legend_label_annotations;
 
+  /// No description provided for @diveLog_legend_label_plan.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get diveLog_legend_label_plan;
+
   /// No description provided for @diveLog_legend_label_computedEvents.
   ///
   /// In en, this message translates to:
