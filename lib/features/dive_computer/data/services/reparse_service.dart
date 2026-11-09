@@ -31,6 +31,7 @@ import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_
     show TankPressureSample;
 import 'package:submersion/features/dive_log/domain/services/bottom_time_calculator.dart';
 import 'package:submersion/features/dive_log/domain/services/source_ownership.dart';
+import 'package:submersion/features/dive_log/domain/services/series_source_owner.dart';
 import 'package:submersion/features/dive_computer/data/services/parsed_tank_resolver.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_parser.dart';
@@ -234,6 +235,9 @@ class ReparseService {
           diveId: diveId,
           computerId: computerId,
           sourceId: sourceRow.id,
+          sources: [
+            for (final r in sourceRows) (id: r.id, computerId: r.computerId),
+          ],
           parsed: parsed,
           isPrimary: sourceRow.isPrimary,
           beneathEdit: beneathEdit,
@@ -764,17 +768,18 @@ class ReparseService {
   /// [timeOffset] shifts every re-inserted sample onto the dive's timeline;
   /// see the note at the call site (issue #1177).
   ///
-  /// Replaces only the series this source owns on its own computer strand:
-  /// those with its `source_id`, plus legacy rows that carry no source, the
-  /// pre-v154 rule every ownership write uses (see
-  /// `ProfileSeriesRepository.promoteOwnedBy`). A series another source
-  /// wrote is never touched. Matching on `computer_id` alone took every other
-  /// null-computer source's series with it, a file import's primary among
-  /// them (issue #4367).
+  /// Replaces only the series this source owns on its own computer strand,
+  /// read by [seriesSourceOwnerAmong] over [sources]: those with its
+  /// `source_id`, plus a row with no source when this is the one source on
+  /// its non-null computer or on the dive. A series another source wrote, or
+  /// one that could be either's, is never touched. Matching on `computer_id`
+  /// alone took every other null-computer source's series with it, a file
+  /// import's primary among them (issue #4367).
   Future<void> _replaceDiveProfiles({
     required String diveId,
     required String? computerId,
     required String sourceId,
+    required List<({String id, String? computerId})> sources,
     required pigeon.ParsedDive parsed,
     required bool isPrimary,
     required bool beneathEdit,
@@ -782,8 +787,15 @@ class ReparseService {
   }) async {
     final replaced = [
       for (final s in await _profileSeries.getIdentitiesForDive(diveId))
+        // The computer test spares a live edit: it names no computer.
         if (s.computerId == computerId &&
-            (s.sourceId == sourceId || s.sourceId == null))
+            (seriesSourceOwnerAmong(
+                      sourceId: s.sourceId,
+                      computerId: s.computerId,
+                      sources: sources,
+                    ) ==
+                    sourceId ||
+                (s.sourceId == null && sources.length == 1)))
           s,
     ];
     await _profileSeries.deleteByIds([for (final s in replaced) s.id]);

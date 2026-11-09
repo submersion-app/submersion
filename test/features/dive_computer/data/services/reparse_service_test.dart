@@ -5025,9 +5025,19 @@ void main() {
           libdivecomputerVersion: null,
         );
 
+        // The re-parse runs and writes its strand. The unattributed series
+        // on the shared null strand could be either source's, so it stays
+        // (seriesSourceOwner, issue #4367).
         final series = await profileSeries.getSeriesForDive('dive-1');
-        expect(series, hasLength(1));
-        expect(series.single.samples.map((s) => s.timestamp), [0, 60]);
+        expect(series, hasLength(2));
+        expect(
+          series
+              .singleWhere((s) => s.sourceId == 'src-download')
+              .samples
+              .map((s) => s.timestamp),
+          [0, 60],
+        );
+        expect(series.where((s) => s.id == 'stale'), hasLength(1));
       },
     );
 

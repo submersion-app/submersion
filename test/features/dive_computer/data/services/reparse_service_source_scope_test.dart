@@ -267,24 +267,40 @@ void main() {
       },
     );
 
-    test('on a shared null strand are the re-parsed source\'s, and the dive '
-        'keeps a primary', () async {
-      // The ownership rule every write uses: a row with no source belongs to
-      // whichever source shares its computer. A sibling without raw data can
-      // never be re-parsed, so it does not contend for it.
+    test('on a null strand are nobody\'s, so a re-parse keeps them', () async {
+      // seriesSourceOwner, the rule the timeline shift reads ownership by: a
+      // row with no source belongs to the one source on its computer, and a
+      // null computer names none. Two file imports carry no computer, and a
+      // guess between them would delete another recording.
       await insertDive();
       await insertSource(id: 'uddf', isPrimary: true, sourceFormat: 'uddf');
       await insertSource(id: 'comp-a', isPrimary: false, withRawData: true);
       final legacy = await insertSeries(isPrimary: true);
-      final uddf = await insertSeries(sourceId: 'uddf', isPrimary: false);
 
       await reparse('comp-a');
 
       final after = await seriesById();
-      expect(after.containsKey(legacy), isFalse);
-      expect(after[uddf], (sourceId: 'uddf', isPrimary: false));
+      expect(after[legacy], (sourceId: null, isPrimary: true));
       final fresh = after.values.where((v) => v.sourceId == 'comp-a');
-      expect(fresh.single.isPrimary, isTrue);
+      expect(fresh.single.isPrimary, isFalse);
+    });
+
+    test('on a computer two sources share are nobody\'s', () async {
+      await insertDive();
+      await insertComputer('comp-b');
+      await insertSource(id: 'primary', isPrimary: true, computerId: 'comp-b');
+      await insertSource(
+        id: 'second',
+        isPrimary: false,
+        computerId: 'comp-b',
+        sourceFormat: 'uddf',
+      );
+      final legacy = await insertSeries(computerId: 'comp-b', isPrimary: false);
+
+      await reparse('primary');
+
+      final after = await seriesById();
+      expect(after[legacy], (sourceId: null, isPrimary: false));
     });
   });
 
