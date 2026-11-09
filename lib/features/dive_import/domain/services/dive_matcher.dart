@@ -200,7 +200,7 @@ class DiveMatchResult {
   /// There is deliberately no way to clear the target here: an empty
   /// [diveId] already means "duplicate of another dive in this batch" to the
   /// comparison card, so a fill row that loses its target stops being a
-  /// match at all (see ImportWizardNotifier.setPlannedFillTarget).
+  /// match at all (see ImportWizardNotifier.setFillTarget).
   DiveMatchResult withFillTarget(FillTarget target) {
     return DiveMatchResult(
       diveId: target.diveId,

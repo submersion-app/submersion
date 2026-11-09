@@ -1,3 +1,5 @@
+import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart'
     show ImportTripResolver;
@@ -27,7 +29,9 @@ class HealthDiveWriter {
     ImportedDiveConverter converter = const ImportedDiveConverter(),
     ChecklistDiveLinker? checklistLinker,
     ImportTripResolver? tripForImports,
+    SyncRepository? sync,
   }) : _dives = dives,
+       _sync = sync ?? SyncRepository(),
        _computers = computers ?? DiveComputerRepository(),
        _converter = converter,
        _checklistLinker = checklistLinker ?? ChecklistDiveLinker(),
@@ -40,6 +44,7 @@ class HealthDiveWriter {
   final ImportedDiveConverter _converter;
   final ChecklistDiveLinker _checklistLinker;
   final ImportTripResolver? _tripForImports;
+  final SyncRepository _sync;
 
   /// One per writer: its lookup cache collapses a batch of dives at the same
   /// place into a single elevation request.
@@ -69,6 +74,14 @@ class HealthDiveWriter {
         ? converted
         : converted.copyWith(tripId: tripId);
     await _dives.createDive(dive);
+    // The dive takes the workout's id on every device, so a workout whose
+    // dive was deleted (or merged into another) can come back. Its old
+    // tombstone goes, as for any record revived under the same id, or sync
+    // would delete the dive again here and on every peer. With no database
+    // (a mocked repository) there is no tombstone, as for the linkers below.
+    if (DatabaseService.instance.databaseOrNull != null) {
+      await _sync.removeDeletion(entityType: 'dives', recordId: dive.id);
+    }
     // The diver's Apple Watch computer, before the gear linkers below, which
     // follow the dive's computer. Best effort, as the trip lookup is: a
     // failed lookup must not lose the dive.

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/unfilled_dive_chip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -12,13 +13,21 @@ import 'package:submersion/l10n/l10n_extension.dart';
 ///
 /// [unavailableIds] are plans another download in the same batch already
 /// fills. One plan can take only one download, so they are left out, except
-/// for [selectedId]: that is this row's own target.
+/// for [selectedId]: that is this row's own target. [leadingIds] come first,
+/// in their own order: the drafts a download fits (issue #637), so a diver
+/// choosing between them finds them at the top.
 Future<String?> showPlannedDivePicker(
   BuildContext context, {
   required List<Dive> plannedDives,
   String? selectedId,
   Set<String> unavailableIds = const {},
+  List<String> leadingIds = const [],
 }) {
+  final ordered = [
+    for (final id in leadingIds) ...plannedDives.where((d) => d.id == id),
+    for (final dive in plannedDives)
+      if (!leadingIds.contains(dive.id)) dive,
+  ];
   return showModalBottomSheet<String>(
     context: context,
     builder: (sheetContext) => Consumer(
@@ -36,11 +45,19 @@ Future<String?> showPlannedDivePicker(
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
-              for (final dive in plannedDives)
+              for (final dive in ordered)
                 if (dive.id == selectedId || !unavailableIds.contains(dive.id))
                   ListTile(
                     key: Key('planned_dive_picker_${dive.id}'),
-                    leading: const Icon(Icons.event_available_outlined),
+                    leading: Icon(
+                      unfilledDiveIcon(
+                        unfilledDiveStateOf(
+                              isPlanned: dive.isPlanned,
+                              isDraft: dive.isDraft,
+                            ) ??
+                            UnfilledDiveState.planned,
+                      ),
+                    ),
                     title: Text(plannedDiveLabel(dive, units, l10n)),
                     trailing: dive.id == selectedId
                         ? const Icon(Icons.check)

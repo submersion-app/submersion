@@ -26,6 +26,8 @@ void main() {
     WidgetTester tester, {
     String? selectedId,
     Set<String> unavailableIds = const {},
+    List<Dive>? dives,
+    List<String> leadingIds = const [],
   }) async {
     String? picked;
     var returned = false;
@@ -38,9 +40,10 @@ void main() {
             onPressed: () async {
               picked = await showPlannedDivePicker(
                 context,
-                plannedDives: plans,
+                plannedDives: dives ?? plans,
                 selectedId: selectedId,
                 unavailableIds: unavailableIds,
+                leadingIds: leadingIds,
               );
               returned = true;
             },
@@ -82,6 +85,33 @@ void main() {
     await open(tester, unavailableIds: {'p2'});
     expect(find.textContaining('Blue Hole'), findsOneWidget);
     expect(find.textContaining('Reef'), findsNothing);
+  });
+
+  testWidgets('the drafts a download could fill come first, with the draft '
+      'icon (issue #637)', (tester) async {
+    final draft = Dive(
+      id: 'd1',
+      name: 'Wreck',
+      dateTime: DateTime(2026, 6, 3, 9),
+      entryTime: DateTime(2026, 6, 3, 9),
+      isDraft: true,
+    );
+    await open(tester, dives: [...plans, draft], leadingIds: ['d1']);
+
+    final draftTop = tester
+        .getTopLeft(find.byKey(const Key('planned_dive_picker_d1')))
+        .dy;
+    final planTop = tester
+        .getTopLeft(find.byKey(const Key('planned_dive_picker_p1')))
+        .dy;
+    expect(draftTop, lessThan(planTop));
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('planned_dive_picker_d1')),
+        matching: find.byIcon(Icons.hourglass_top_outlined),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('this row keeps its own target in the list', (tester) async {

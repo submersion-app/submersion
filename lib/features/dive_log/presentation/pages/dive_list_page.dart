@@ -1149,7 +1149,7 @@ class DiveListTile extends ConsumerWidget {
       margin: margin,
       color: cardColor,
       clipBehavior: (shouldShowMap || shouldShowPhoto) ? Clip.antiAlias : null,
-      semanticsLabel: _diveSemanticsLabel(
+      semanticsLabel: diveTileSemanticsLabel(
         context,
         unfilledState,
         diveNumber,
@@ -1230,23 +1230,4 @@ class DiveListTile extends ConsumerWidget {
       _ => null,
     };
   }
-}
-
-/// The tile's screen-reader label: an unfilled dive's leaves the number out,
-/// since the list's fallback number belongs to another dive.
-String _diveSemanticsLabel(
-  BuildContext context,
-  UnfilledDiveState? state,
-  int diveNumber,
-  String? siteName,
-) {
-  final l10n = context.l10n;
-  final site = siteName ?? l10n.diveLog_listPage_unknownSite;
-  return switch (state) {
-    null => l10n.diveLog_listPage_semanticsDiveAtSite(diveNumber, site),
-    UnfilledDiveState.planned =>
-      l10n.diveLog_listPage_semanticsPlannedDiveAtSite(site),
-    UnfilledDiveState.inWater || UnfilledDiveState.awaitingDownload =>
-      l10n.diveLog_listPage_semanticsDraftDiveAtSite(site),
-  };
 }

@@ -313,20 +313,12 @@ class CompactDiveListTile extends ConsumerWidget {
         color: cardColor,
         child: Semantics(
           button: true,
-          label: switch (unfilledState) {
-            null => context.l10n.diveLog_listPage_semanticsDiveAtSite(
-              diveNumber,
-              siteName ?? context.l10n.diveLog_listPage_unknownSite,
-            ),
-            UnfilledDiveState.planned =>
-              context.l10n.diveLog_listPage_semanticsPlannedDiveAtSite(
-                siteName ?? context.l10n.diveLog_listPage_unknownSite,
-              ),
-            UnfilledDiveState.inWater || UnfilledDiveState.awaitingDownload =>
-              context.l10n.diveLog_listPage_semanticsDraftDiveAtSite(
-                siteName ?? context.l10n.diveLog_listPage_unknownSite,
-              ),
-          },
+          label: diveTileSemanticsLabel(
+            context,
+            unfilledState,
+            diveNumber,
+            siteName,
+          ),
           child: InkWell(
             onTap: onTap,
             onDoubleTap: onDoubleTap,

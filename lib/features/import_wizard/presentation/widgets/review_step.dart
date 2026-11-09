@@ -541,6 +541,10 @@ class _EntityTab extends ConsumerWidget {
         plannedDives: plannedDives,
         selectedId: current,
         unavailableIds: taken,
+        // A download that fits more than one draft (issue #637) lists those
+        // drafts first.
+        leadingIds:
+            group.matchResults?[index]?.fillCandidates ?? const <String>[],
       );
       if (picked == null) return;
       final target = plannedDives.where((d) => d.id == picked).firstOrNull;

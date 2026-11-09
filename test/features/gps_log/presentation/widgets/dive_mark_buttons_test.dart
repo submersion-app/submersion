@@ -31,6 +31,7 @@ class FakeDiveMarks implements DiveMarkService {
 
   @override
   Future<Dive?> surfaced({DateTime? at}) async {
+    if (fail) throw StateError('write failed');
     calls.add('surfaced');
     return null;
   }

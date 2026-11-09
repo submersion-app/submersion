@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart'
@@ -11,7 +10,6 @@ import 'package:submersion/features/dive_log/domain/entities/dive_data_source.da
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
-import 'package:submersion/features/dive_log/domain/services/merge_heart_rate.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_health_providers.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/source_name_labels.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
@@ -271,15 +269,10 @@ class DiveProfileChartHost extends ConsumerWidget {
         (dataSources.length == 1 ? sourceProfiles[dataSources.first.id] : null);
     // Heart rate from Apple Health fills a profile that has none (issue
     // #637); the length and order are unchanged.
-    final chartProfile = mergeHeartRate(
+    final chartProfile = withHealthHeartRate(
+      ref,
+      dive,
       resolvedActive?.points ?? dive.profile,
-      ref.watch(diveHealthRecordProvider(diveId)).value?.heartRateSamples ??
-          const [],
-      entryEpochSeconds:
-          fromWallClockUtc(
-            dive.entryTime ?? dive.dateTime,
-          ).millisecondsSinceEpoch ~/
-          1000,
     );
 
     keepProfileExtentsOnDrawnSeries(

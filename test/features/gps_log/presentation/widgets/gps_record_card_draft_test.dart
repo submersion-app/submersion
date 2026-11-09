@@ -44,9 +44,10 @@ void main() {
     WidgetTester tester, {
     required bool recording,
     Dive? open,
+    bool marksFail = false,
   }) async {
     final log = <String>[];
-    final marks = FakeDiveMarks();
+    final marks = FakeDiveMarks()..fail = marksFail;
     await pumpMarks(
       tester,
       harness([
@@ -81,6 +82,24 @@ void main() {
     expect(log.recorder, ['stop']);
   });
 
+  testWidgets('a Surface now that fails still stops the recording, and the '
+      'error is logged, never left unhandled', (tester) async {
+    final log = await pump(
+      tester,
+      recording: true,
+      open: openDraft,
+      marksFail: true,
+    );
+
+    await tester.tap(find.text('Stop logging'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Surface now'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(log.recorder, ['stop']);
+  });
+
   testWidgets('Leave open stops without closing the draft', (tester) async {
     final log = await pump(tester, recording: true, open: openDraft);
 
@@ -112,6 +131,17 @@ void main() {
 
     expect(find.text('Still in the water?'), findsNothing);
     expect(log.recorder, ['stop']);
+  });
+
+  testWidgets('an Entered water that fails while idle is logged, never '
+      'left unhandled', (tester) async {
+    final log = await pump(tester, recording: false, marksFail: true);
+
+    await tester.tap(find.text('Entered water'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(log.recorder, ['start']);
   });
 
   testWidgets('Entered water while idle starts the recording first', (

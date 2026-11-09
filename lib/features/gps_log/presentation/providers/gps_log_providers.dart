@@ -31,7 +31,8 @@ final gpsTrackRecorderProvider = Provider<GpsTrackRecorder>((ref) {
 });
 
 /// "Entered water" and "Surfaced" (issue #637), at the running recording's
-/// position. One instance, so "Surfaced" remembers who entered the water.
+/// position. One instance for the app, since it runs the marks one at a
+/// time: the buttons, the record card and the lock screen share its queue.
 // no-tick: builds the DiveMarkService SERVICE, not a query result. Its track
 // read runs fresh at each tap.
 final diveMarkServiceProvider = Provider<DiveMarkService>((ref) {

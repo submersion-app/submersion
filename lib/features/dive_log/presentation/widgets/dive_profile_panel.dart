@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
-import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
-import 'package:submersion/features/dive_log/domain/services/merge_heart_rate.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_health_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
@@ -263,18 +261,10 @@ class _DiveProfilePanelContentState
     // Heart rate from Apple Health fills a profile that has none (issue
     // #637); the length and order are unchanged, so the analysis stays
     // index-aligned.
-    final chartProfile = mergeHeartRate(
+    final chartProfile = withHealthHeartRate(
+      ref,
+      dive,
       activeSourceProfile?.points ?? dive.profile,
-      ref
-              .watch(diveHealthRecordProvider(widget.diveId))
-              .value
-              ?.heartRateSamples ??
-          const [],
-      entryEpochSeconds:
-          fromWallClockUtc(
-            dive.entryTime ?? dive.dateTime,
-          ).millisecondsSinceEpoch ~/
-          1000,
     );
     // AsyncValue.value, not the valueOrNull polyfill: it keeps the previous
     // value across a provider reload so the chart does not drop a series for

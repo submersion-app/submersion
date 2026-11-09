@@ -19,6 +19,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_annotat
 import 'package:submersion/features/dive_log/presentation/widgets/annotation_placement_banner.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_annotation_actions.dart';
 import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_health_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
@@ -364,7 +365,14 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
     // and photo pins scaled to it drift off the visible span (#1167).
     // activeSourceProfileProvider is the one rule for this, shared with the
     // detail page and the dive-list panel (#543).
-    final chartProfile = resolvedActive?.points ?? dive.profile;
+    //
+    // Heart rate from Apple Health fills a profile that has none (issue
+    // #637), as on the detail page.
+    final chartProfile = withHealthHeartRate(
+      ref,
+      dive,
+      resolvedActive?.points ?? dive.profile,
+    );
     final chartActions = annotationActions.onProfile(chartProfile);
 
     // Keep the range and playback extents on this page's own drawn series

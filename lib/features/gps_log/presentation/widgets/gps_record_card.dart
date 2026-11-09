@@ -4,9 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
 import 'package:submersion/core/services/location_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_draft_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/gps_log/data/services/dive_mark_service.dart';
 import 'package:submersion/features/gps_log/data/services/gps_track_recorder.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/dive_mark_buttons.dart';
@@ -22,6 +24,8 @@ bool get canRecordGpsTracks =>
 
 /// Starts and stops the surface GPS logger (discussion #289), with the live
 /// point count and last-fix age while a recording runs.
+final _log = LoggerService.forClass(DiveMarkService);
+
 class GpsRecordCard extends ConsumerWidget {
   const GpsRecordCard({super.key});
 
@@ -41,7 +45,13 @@ class GpsRecordCard extends ConsumerWidget {
   ) async {
     final marks = ref.read(diveMarkServiceProvider);
     await _start(context, ref);
-    await marks.enteredWater(diverId: diverId);
+    try {
+      await marks.enteredWater(diverId: diverId);
+    } catch (e, stackTrace) {
+      // Nothing awaits a button's callback, so a failed write is logged
+      // here rather than left unhandled.
+      _log.error('Failed to mark a dive', error: e, stackTrace: stackTrace);
+    }
     ref.invalidate(markingDraftProvider);
   }
 
@@ -60,7 +70,20 @@ class GpsRecordCard extends ConsumerWidget {
         entryTime: open.entryTime ?? open.dateTime,
       );
       if (surface == null) return;
-      if (surface) await marks.surfaced();
+      if (surface) {
+        try {
+          await marks.surfaced();
+        } catch (e, stackTrace) {
+          // The diver asked to stop: a failed Surfaced is logged and the
+          // recording stops anyway, leaving the dive open for the prompt
+          // or the detail page.
+          _log.error(
+            'Failed to mark a dive surfaced',
+            error: e,
+            stackTrace: stackTrace,
+          );
+        }
+      }
     }
     await recorder.stop();
   }

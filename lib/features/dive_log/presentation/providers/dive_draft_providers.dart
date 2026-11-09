@@ -25,12 +25,3 @@ final markingDraftProvider = FutureProvider.autoDispose<Dive?>((ref) {
   ref.invalidateSelfWhen(ref.watch(diveRepositoryProvider).watchDivesChanges());
   return ref.watch(diveDraftRepositoryProvider).openDraftFor(null);
 });
-
-/// The draft the diver with this id is in the water on, or null.
-final openDraftProvider = FutureProvider.autoDispose.family<Dive?, String>((
-  ref,
-  diverId,
-) {
-  ref.invalidateSelfWhen(ref.watch(diveRepositoryProvider).watchDivesChanges());
-  return ref.watch(diveDraftRepositoryProvider).openDraftFor(diverId);
-});

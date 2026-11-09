@@ -124,7 +124,7 @@ class DiveHealthMetricsService {
         if (!s.at.isAfter(exit)) s,
     ];
     final summary = ownHeartRate ? null : summarizeHeartRate(inDive);
-    final offsets = ownHeartRate
+    final series = ownHeartRate
         ? const <List<int>>[]
         : heartRateSeries(inDive, from: entry);
     final recovery = recoveryAfter(heartRate, exit);
@@ -133,8 +133,8 @@ class DiveHealthMetricsService {
     final read = DiveHealthRecord(
       id: existing?.id ?? '',
       diveId: diveId,
-      heartRateSamples: offsets.isNotEmpty
-          ? offsets
+      heartRateSamples: series.isNotEmpty
+          ? series
           : existing?.heartRateSamples ?? const [],
       avgHeartRate: summary?.average ?? existing?.avgHeartRate,
       maxHeartRate: summary?.maximum ?? existing?.maxHeartRate,

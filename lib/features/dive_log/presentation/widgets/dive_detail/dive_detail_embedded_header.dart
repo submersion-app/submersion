@@ -18,7 +18,7 @@ class DiveDetailEmbeddedHeader extends ConsumerWidget {
     required this.menu,
     required this.onNavigate,
     required this.onMarkLogged,
-    this.onDownloadDraft,
+    required this.onDownloadDraft,
     this.onSurfaceDraft,
   });
 
@@ -32,7 +32,7 @@ class DiveDetailEmbeddedHeader extends ConsumerWidget {
 
   /// A draft's "Download now" and "Surfaced" (issue #637); "Mark as
   /// complete" shares [onMarkLogged].
-  final VoidCallback? onDownloadDraft;
+  final VoidCallback onDownloadDraft;
   final VoidCallback? onSurfaceDraft;
 
   @override
@@ -148,7 +148,7 @@ class DiveDetailEmbeddedHeader extends ConsumerWidget {
           DraftDiveBanner(
             dive: dive,
             onMarkComplete: onMarkLogged,
-            onDownload: onDownloadDraft ?? () {},
+            onDownload: onDownloadDraft,
             onSurfaced: onSurfaceDraft,
           ),
         Padding(

@@ -151,7 +151,9 @@ Future<void> _importWatchDives(
     if (messengerState != null) {
       messengerState.showSnackBar(
         SnackBar(
-          content: Text('${message.title}. ${message.body}'),
+          // Two lines, not a sentence joined with ". ": the punctuation
+          // between them differs by locale.
+          content: Text('${message.title}\n${message.body}'),
           // A notice, not a question: it times out like any other.
           persist: false,
           action: route == null
