@@ -35,3 +35,68 @@ class InfoButton extends StatelessWidget {
     );
   }
 }
+
+/// An [InfoButton] for a header row, laid out [height] tall so the row keeps
+/// its height.
+///
+/// The 48 px button overflows the slot, so its splash and focus ring look as
+/// usual; taps land within the slot's 48 px width and [height], which is the
+/// title line the icon sits on.
+class HeaderInfoButton extends StatelessWidget {
+  const HeaderInfoButton({
+    super.key,
+    required this.title,
+    required this.content,
+    this.height = 24,
+  });
+
+  final String title;
+  final InfoContentBuilder content;
+
+  /// The height of the header's title line.
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 48,
+      height: height,
+      child: OverflowBox(
+        maxWidth: 48,
+        maxHeight: 48,
+        child: InfoButton(title: title, content: content),
+      ),
+    );
+  }
+}
+
+/// Puts an info icon in the top end corner of a block with no header of its
+/// own, such as a grid of stat tiles. Without [info] it returns [child].
+class InfoCorner extends StatelessWidget {
+  const InfoCorner({
+    super.key,
+    required this.title,
+    required this.child,
+    this.info,
+  });
+
+  final String title;
+  final Widget child;
+  final InfoContentBuilder? info;
+
+  @override
+  Widget build(BuildContext context) {
+    final builder = info;
+    if (builder == null) return child;
+    return Stack(
+      children: [
+        child,
+        PositionedDirectional(
+          top: 0,
+          end: 0,
+          child: HeaderInfoButton(title: title, content: builder),
+        ),
+      ],
+    );
+  }
+}

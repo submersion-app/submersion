@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 /// One folded section row in a detail page's list layout (Dive Details and
 /// Site Details).
@@ -21,6 +22,7 @@ class SectionFold extends StatelessWidget {
     required this.isExpanded,
     required this.onToggle,
     required this.contentBuilder,
+    this.info,
   });
 
   /// Section name shown on the header row.
@@ -42,6 +44,10 @@ class SectionFold extends StatelessWidget {
   /// cheap to open, and mounting every heat map and profile chart behind a
   /// closed header would cost the same as showing them.
   final WidgetBuilder contentBuilder;
+
+  /// What the section's info icon explains; null shows no icon. The icon
+  /// sits immediately before the expand arrow.
+  final InfoContentBuilder? info;
 
   @override
   Widget build(BuildContext context) {
@@ -73,6 +79,8 @@ class SectionFold extends StatelessWidget {
                       ),
                     ),
                   ),
+                  if (info case final builder?)
+                    HeaderInfoButton(title: title, content: builder),
                   AnimatedRotation(
                     turns: isExpanded ? 0.5 : 0,
                     duration: const Duration(milliseconds: 200),

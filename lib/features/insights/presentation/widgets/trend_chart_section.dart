@@ -9,6 +9,7 @@ import 'package:submersion/features/insights/presentation/widgets/dive_trend_cha
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_control_strip.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 /// One per-dive trend chart, its card and its controls.
 ///
@@ -32,7 +33,11 @@ class TrendChartSection extends ConsumerWidget {
     this.pointLabel,
     this.secondarySeries = const [],
     this.footer,
+    this.info,
   });
+
+  /// What the card's info icon explains; null shows no icon.
+  final InfoContentBuilder? info;
 
   /// Key into [trendChartSettingsProvider]. Use a [TrendChartIds] constant.
   final String chartId;
@@ -85,6 +90,7 @@ class TrendChartSection extends ConsumerWidget {
     return StatSectionCard(
       title: title,
       subtitle: subtitle,
+      info: info,
       child: pointsAsync.when(
         data: (points) {
           final fit = settings.showLinearFit ? linearFit(points) : null;
