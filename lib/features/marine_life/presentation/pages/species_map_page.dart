@@ -76,6 +76,18 @@ class _SpeciesMapPageState extends ConsumerState<SpeciesMapPage>
   void initState() {
     super.initState();
     _speciesId = widget.initialSpeciesId;
+    // The site selection outlives the page. A link to a species asks for that
+    // species' view, not the card left open on an earlier visit.
+    if (_speciesId != null) _deselectAfterFrame();
+  }
+
+  void _deselectAfterFrame() {
+    // A provider cannot change while the tree builds; clear it once the
+    // frame is done.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(mapListSelectionProvider(_sectionKey).notifier).deselect();
+    });
   }
 
   /// go_router keeps this State when only the query changes (a link to
@@ -85,12 +97,7 @@ class _SpeciesMapPageState extends ConsumerState<SpeciesMapPage>
     super.didUpdateWidget(oldWidget);
     if (widget.initialSpeciesId != oldWidget.initialSpeciesId) {
       _speciesId = widget.initialSpeciesId;
-      // A provider cannot change during this rebuild; clear the open card
-      // once the frame is done.
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        ref.read(mapListSelectionProvider(_sectionKey).notifier).deselect();
-      });
+      _deselectAfterFrame();
     }
   }
 

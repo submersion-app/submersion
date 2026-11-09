@@ -16,6 +16,8 @@ import 'package:submersion/features/marine_life/presentation/providers/species_p
 import 'package:submersion/features/marine_life/presentation/widgets/species_map/species_map_legend.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/species_map/species_map_list_pane.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/species_map/species_map_site_card.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/species_map/species_map_species_site_card.dart';
+import 'package:submersion/shared/providers/map_list_selection_provider.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -100,6 +102,7 @@ Future<void> _pump(
   GbifSpeciesMapService? service,
   Duration catalogDelay = Duration.zero,
   bool sitePinsFail = false,
+  String? leftOpenSiteId,
 }) async {
   tester.view.devicePixelRatio = 1.0;
   tester.view.physicalSize = size;
@@ -178,6 +181,12 @@ Future<void> _pump(
         speciesMapPublicTilesFailedProvider(
           'manta',
         ).overrideWith((ref) => tileFailed),
+        // A card left open on an earlier visit: the selection outlives the
+        // page.
+        if (leftOpenSiteId != null)
+          mapListSelectionProvider('speciesMap').overrideWith(
+            (ref) => MapListSelectionNotifier()..select(leftOpenSiteId),
+          ),
       ],
     ),
   );
@@ -233,6 +242,14 @@ void main() {
     await _settleMap(tester);
 
     expect(_pin('Manta Point, 6 sightings'), findsOneWidget);
+  });
+
+  testWidgets('a species link opens with no card from an earlier visit', (
+    tester,
+  ) async {
+    await _pump(tester, initialSpeciesId: 'manta', leftOpenSiteId: 's2');
+
+    expect(find.byType(SpeciesMapSpeciesSiteCard), findsNothing);
   });
 
   testWidgets('an unknown ?species= id opens places mode', (tester) async {
