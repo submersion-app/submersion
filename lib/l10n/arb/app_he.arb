@@ -383,6 +383,33 @@
   "trips_story_history_avgTemp": "ממוצע {value}",
   "trips_story_history_avgDepth": "עומק ממוצע {value}",
   "trips_story_rhythm_semantics": "זמני הצלילה ביום זה",
+  "trips_story_rhythm_semanticsSunriseSunset": "זמני הצלילה ביום זה. זריחה {sunrise}, שקיעה {sunset}.",
+  "@trips_story_rhythm_semanticsSunriseSunset": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      },
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunrise": "זמני הצלילה ביום זה. זריחה {sunrise}.",
+  "@trips_story_rhythm_semanticsSunrise": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunset": "זמני הצלילה ביום זה. שקיעה {sunset}.",
+  "@trips_story_rhythm_semanticsSunset": {
+    "placeholders": {
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
   "trips_story_dayMap_semantics": "מפת יום {number}",
   "@trips_story_dayMap_semantics": {
     "placeholders": {

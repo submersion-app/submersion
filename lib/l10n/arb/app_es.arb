@@ -383,6 +383,33 @@
   "trips_story_history_avgTemp": "media {value}",
   "trips_story_history_avgDepth": "prof. media {value}",
   "trips_story_rhythm_semantics": "Horarios de inmersión de este día",
+  "trips_story_rhythm_semanticsSunriseSunset": "Horarios de inmersión de este día. Salida del sol {sunrise}, puesta del sol {sunset}.",
+  "@trips_story_rhythm_semanticsSunriseSunset": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      },
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunrise": "Horarios de inmersión de este día. Salida del sol {sunrise}.",
+  "@trips_story_rhythm_semanticsSunrise": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunset": "Horarios de inmersión de este día. Puesta del sol {sunset}.",
+  "@trips_story_rhythm_semanticsSunset": {
+    "placeholders": {
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
   "trips_story_dayMap_semantics": "Mapa del día {number}",
   "@trips_story_dayMap_semantics": {
     "placeholders": {

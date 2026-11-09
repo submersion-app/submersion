@@ -383,6 +383,33 @@
   "trips_story_history_avgTemp": "平均 {value}",
   "trips_story_history_avgDepth": "平均深度 {value}",
   "trips_story_rhythm_semantics": "当天的潜水时间",
+  "trips_story_rhythm_semanticsSunriseSunset": "当天的潜水时间。日出 {sunrise}，日落 {sunset}。",
+  "@trips_story_rhythm_semanticsSunriseSunset": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      },
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunrise": "当天的潜水时间。日出 {sunrise}。",
+  "@trips_story_rhythm_semanticsSunrise": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunset": "当天的潜水时间。日落 {sunset}。",
+  "@trips_story_rhythm_semanticsSunset": {
+    "placeholders": {
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
   "trips_story_dayMap_semantics": "第 {number} 天地图",
   "@trips_story_dayMap_semantics": {
     "placeholders": {

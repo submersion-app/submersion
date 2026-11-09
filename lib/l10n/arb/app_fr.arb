@@ -383,6 +383,33 @@
   "trips_story_history_avgTemp": "moy. {value}",
   "trips_story_history_avgDepth": "prof. moy. {value}",
   "trips_story_rhythm_semantics": "Heures de plongée de cette journée",
+  "trips_story_rhythm_semanticsSunriseSunset": "Heures de plongée de cette journée. Lever du soleil {sunrise}, coucher du soleil {sunset}.",
+  "@trips_story_rhythm_semanticsSunriseSunset": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      },
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunrise": "Heures de plongée de cette journée. Lever du soleil {sunrise}.",
+  "@trips_story_rhythm_semanticsSunrise": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunset": "Heures de plongée de cette journée. Coucher du soleil {sunset}.",
+  "@trips_story_rhythm_semanticsSunset": {
+    "placeholders": {
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
   "trips_story_dayMap_semantics": "Carte du jour {number}",
   "@trips_story_dayMap_semantics": {
     "placeholders": {
