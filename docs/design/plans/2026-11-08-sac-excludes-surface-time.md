@@ -149,3 +149,57 @@ cache row, so every surface agrees.
 
 - [ ] `dart format .`, `flutter analyze` (whole repo), `test/architecture`, `test/shared`, `test/core/database`.
 - [ ] Before and after screenshots of the dive page's SAC on a dive with a surface tail.
+
+---
+
+## Follow-up: breathing at the surface
+
+Spec section: "Breathing at the surface". Each task is TDD and ends with
+`dart format`, `flutter analyze` and the tests named.
+
+### Task S1: surface breathing bounds (pure)
+
+- Create `lib/features/dive_log/domain/services/surface_breathing.dart`:
+  `const double kSurfaceBreathingMinDropBar = 5.0;`, class
+  `SurfaceBreathing { final int? from; final int? until; }` (value equality),
+  and `SurfaceBreathing? surfaceBreathingOf({required GasUseWindow underwater,
+  required int recordingStart, required int recordingEnd, required
+  Iterable<int> switchTimes, required Iterable<List<TankPressurePoint>>
+  pressures})`. Null when neither end moves.
+- `gasUseWindowOf` gains `SurfaceBreathing? surfaceBreathing`, stretching the
+  start to `from` and the end to `until`; a stretch to the whole recording is
+  null.
+- Tests: switch after the window closes stretches to the recording end; a
+  switch inside the window does nothing; a 6 bar trailing fall stretches to its
+  lowest point; a 3 bar fall does nothing; a rise does nothing; a leading fall
+  stretches back to the last highest sample.
+
+### Task S2: SAC by cylinder
+
+- `cylinderUsage` takes `Map<String, List<TankPressurePoint>>? pressures` and
+  computes the bounds from the breathing switches and the breathing cylinders'
+  series. `calculateCylinderSac` passes its resolved series.
+- Tests in `gas_analysis_service_gas_use_test.dart`: an oxygen switch logged
+  on the surface rates the oxygen over its surface minutes at about 1 bar; a
+  back gas whose pressure falls through the tail keeps that time.
+
+### Task S3: cache, entity and stamp
+
+- v347 assert adds `surface_breathed_from_s`, `surface_breathed_until_s`;
+  `DiveDerivedMetrics` carries them; `ensureCurrent` reads switches and
+  displayed pressures; `_stampSql` adds the switches; engine version 5.
+- `Dive.surfaceBreathing` (read-only, mirror field), filled by the detail and
+  list reads; `Dive.gasUse` passes it on.
+- Tests: repository stores the stretched window and bounds; a switch added
+  later makes the row stale; the detail read's `Dive.sac` equals the cylinder
+  row on a surface-oxygen dive.
+
+### Task S4: minutes the diver enters
+
+- `dive_tanks.surface_breathing_s` (v347 assert), `DiveTank.surfaceBreathing`
+  (Duration?), read and write mapping, copy flows.
+- `_consumptionBasis`, `cylinderUsage`, the role trend and `gasUseSecondsSql` /
+  `gasUseAvgDepthSql` add the seconds and blend the depth.
+- Tank editor: minutes field and helper line, ARB keys in every locale.
+- Tests: entity, cylinder row, SQL against `Dive.sac`, role group, migration,
+  editor round trip.
