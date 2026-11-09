@@ -16,7 +16,11 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_enum_
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_arrange_sheet.dart';
-import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_fold_keys.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_fold_summary.dart';
+import 'package:submersion/features/equipment/presentation/utils/picker_group_folds.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_type_fold_header.dart';
+import 'package:submersion/shared/widgets/collapsible_group_header.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_owner_chip.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_picker_filter_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
@@ -115,6 +119,46 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
   Map<String, EquipmentItem> _picked = const {};
 
   bool get _multiSelect => widget.onEquipmentConfirmed != null;
+
+  /// The open groups (issue #3364), worked out once when the picker first
+  /// has gear: closed except where the ticks are, or the only group. Never
+  /// saved; it lasts as long as the sheet.
+  Set<String>? _open;
+
+  /// Groups the diver closed while the filter was on, when every group
+  /// starts open. Dropped when the filter clears.
+  Set<String> _closedWhileFiltered = const {};
+  bool _wasFiltered = false;
+
+  bool _isOpen(String key, {required bool filtered}) => filtered
+      ? !_closedWhileFiltered.contains(key)
+      : (_open?.contains(key) ?? true);
+
+  void _toggleGroup(String key, {required bool filtered}) {
+    Set<String> flip(Set<String> keys) =>
+        keys.contains(key) ? ({...keys}..remove(key)) : {...keys, key};
+    setState(() {
+      if (filtered) {
+        _closedWhileFiltered = flip(_closedWhileFiltered);
+      } else {
+        _open = flip(_open ?? const {});
+      }
+    });
+  }
+
+  /// "2 of 8 selected" for a closed group holding ticks, so a tick is never
+  /// hidden without a trace.
+  String? _tickSummary(BuildContext context, List<EquipmentItem> items) {
+    if (!_multiSelect) return null;
+    final ticked = tickedIn(items.map((e) => e.id), _picked.keys.toSet());
+    return ticked == 0
+        ? null
+        : foldedSelectionSummary(
+            context.l10n,
+            selected: ticked,
+            total: items.length,
+          );
+  }
 
   void _toggle(EquipmentItem item, bool checked) {
     setState(() {
@@ -502,26 +546,70 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
                       ownerName: ownerName,
                     )
                   : [(ownerId: null, items: available)];
-              final rows = <_PickerRow>[
-                for (final (i, section) in sections.indexed) ...[
-                  if (section.ownerId != null &&
-                      (i == 0 || sections[i - 1].ownerId == null))
-                    _SectionRow(context.l10n.equipment_sharedWithMe),
-                  if (section.ownerId case final owner?)
-                    _SectionRow(
-                      context.l10n.equipment_picker_ownerHeader(
-                        ownerName(owner),
-                      ),
+              // Folding (issue #3364): each owner's shared gear is an outer
+              // group, types are groups of their own inside it or at the
+              // top level. While the filter is on, every group is open.
+              final filtered = filter.hasActiveFilters;
+              if (_wasFiltered && !filtered) _closedWhileFiltered = const {};
+              _wasFiltered = filtered;
+              final arranged = [
+                for (final section in sections)
+                  (
+                    section: section,
+                    ownerKey: section.ownerId == null
+                        ? null
+                        : ownerFoldKey(section.ownerId!),
+                    groups: arrangeEquipment(
+                      section.items,
+                      arrangement,
+                      typeLabel: (type) => type.localizedName(context.l10n),
                     ),
-                  for (final group in arrangeEquipment(
-                    section.items,
-                    arrangement,
-                    typeLabel: (type) => type.localizedName(context.l10n),
-                  )) ...[
-                    if (group.type != null) _HeaderRow(group.type!),
-                    for (final equipment in group.items)
-                      _ItemRow(equipment, showTypeLabel: group.type == null),
-                  ],
+                  ),
+              ];
+              if (_open == null && available.isNotEmpty) {
+                _open = initialOpenPickerGroups({
+                  for (final a in arranged) ...{
+                    ?a.ownerKey: a.section.items.map((e) => e.id),
+                    for (final group in a.groups)
+                      if (group.type case final type?)
+                        typeFoldKey(type, locationKey: a.ownerKey): group.items
+                            .map((e) => e.id),
+                  },
+                }, _picked.keys.toSet());
+              }
+              bool isOpen(String key) => _isOpen(key, filtered: filtered);
+              final rows = <_PickerRow>[
+                for (final (i, a) in arranged.indexed) ...[
+                  if (a.section.ownerId != null &&
+                      (i == 0 || arranged[i - 1].section.ownerId == null))
+                    _SectionRow(context.l10n.equipment_sharedWithMe),
+                  if (a.ownerKey case final owner?)
+                    _OwnerHeaderRow(
+                      foldKey: owner,
+                      title: context.l10n.equipment_picker_ownerHeader(
+                        ownerName(a.section.ownerId!),
+                      ),
+                      items: a.section.items,
+                      isOpen: isOpen(owner),
+                    ),
+                  if (a.ownerKey == null || isOpen(a.ownerKey!))
+                    for (final group in a.groups)
+                      if (group.type case final type?) ...[
+                        _HeaderRow(
+                          type,
+                          foldKey: typeFoldKey(type, locationKey: a.ownerKey),
+                          nested: a.ownerKey != null,
+                          items: group.items,
+                          isOpen: isOpen(
+                            typeFoldKey(type, locationKey: a.ownerKey),
+                          ),
+                        ),
+                        if (isOpen(typeFoldKey(type, locationKey: a.ownerKey)))
+                          for (final equipment in group.items)
+                            _ItemRow(equipment, showTypeLabel: false),
+                      ] else
+                        for (final equipment in group.items)
+                          _ItemRow(equipment, showTypeLabel: true),
                 ],
               ];
 
@@ -538,10 +626,40 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
                       ),
                     ),
                   ),
-                  _HeaderRow(:final type) => Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: EquipmentGroupHeader(type: type),
-                  ),
+                  _OwnerHeaderRow(
+                    :final foldKey,
+                    :final title,
+                    :final items,
+                    :final isOpen,
+                  ) =>
+                    CollapsibleGroupHeader(
+                      key: ValueKey('equipment-owner-fold-$foldKey'),
+                      label: title,
+                      countLabel: context.l10n.equipment_location_groupCount(
+                        items.length,
+                      ),
+                      isExpanded: isOpen,
+                      onTap: () => _toggleGroup(foldKey, filtered: filtered),
+                      summary: _tickSummary(context, items),
+                      titleWeight: FontWeight.w700,
+                      isHeading: true,
+                    ),
+                  _HeaderRow(
+                    :final type,
+                    :final foldKey,
+                    :final nested,
+                    :final items,
+                    :final isOpen,
+                  ) =>
+                    EquipmentTypeFoldHeader(
+                      foldKey: foldKey,
+                      type: type,
+                      count: items.length,
+                      isExpanded: isOpen,
+                      nested: nested,
+                      onTap: () => _toggleGroup(foldKey, filtered: filtered),
+                      summary: _tickSummary(context, items),
+                    ),
                   _ItemRow(:final item, :final showTypeLabel) => _itemTile(
                     context,
                     item,
@@ -654,10 +772,38 @@ class _SectionRow extends _PickerRow {
   final String title;
 }
 
+/// One owner's shared gear, folding as a group with its types inside
+/// (issue #3364).
+class _OwnerHeaderRow extends _PickerRow {
+  const _OwnerHeaderRow({
+    required this.foldKey,
+    required this.title,
+    required this.items,
+    required this.isOpen,
+  });
+
+  final String foldKey;
+  final String title;
+  final List<EquipmentItem> items;
+  final bool isOpen;
+}
+
 class _HeaderRow extends _PickerRow {
-  const _HeaderRow(this.type);
+  const _HeaderRow(
+    this.type, {
+    required this.foldKey,
+    required this.nested,
+    required this.items,
+    required this.isOpen,
+  });
 
   final EquipmentType type;
+  final String foldKey;
+
+  /// Inside an owner's group, so indented under it.
+  final bool nested;
+  final List<EquipmentItem> items;
+  final bool isOpen;
 }
 
 class _ItemRow extends _PickerRow {

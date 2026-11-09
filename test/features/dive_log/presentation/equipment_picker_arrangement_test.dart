@@ -9,11 +9,12 @@ import 'package:submersion/features/equipment/domain/models/equipment_arrangemen
 import 'package:submersion/features/equipment/domain/models/equipment_picker_filter.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_type_fold_header.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../helpers/mock_providers.dart';
+import '../../../helpers/folded_groups.dart';
 
 /// The Add Equipment picker carries the same arrangement as the gear lists
 /// it feeds, which #1576 asked for by name.
@@ -73,13 +74,16 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    await openFoldedGroups(tester);
   }
 
   testWidgets('groups available gear by type', (tester) async {
     await pumpPicker(tester);
 
     final headers = tester
-        .widgetList<EquipmentGroupHeader>(find.byType(EquipmentGroupHeader))
+        .widgetList<EquipmentTypeFoldHeader>(
+          find.byType(EquipmentTypeFoldHeader),
+        )
         .map((h) => h.type)
         .toList();
 
@@ -99,7 +103,9 @@ void main() {
     );
 
     final headers = tester
-        .widgetList<EquipmentGroupHeader>(find.byType(EquipmentGroupHeader))
+        .widgetList<EquipmentTypeFoldHeader>(
+          find.byType(EquipmentTypeFoldHeader),
+        )
         .map((h) => h.type)
         .toList();
 
@@ -118,7 +124,9 @@ void main() {
     expect(find.text('Faber'), findsNothing);
     expect(
       tester
-          .widgetList<EquipmentGroupHeader>(find.byType(EquipmentGroupHeader))
+          .widgetList<EquipmentTypeFoldHeader>(
+            find.byType(EquipmentTypeFoldHeader),
+          )
           .map((h) => h.type),
       isNot(contains(EquipmentType.tank)),
     );
@@ -157,7 +165,9 @@ void main() {
     expect(find.text('Faber'), findsNothing);
     expect(
       tester
-          .widgetList<EquipmentGroupHeader>(find.byType(EquipmentGroupHeader))
+          .widgetList<EquipmentTypeFoldHeader>(
+            find.byType(EquipmentTypeFoldHeader),
+          )
           .map((h) => h.type),
       [EquipmentType.regulator],
     );
