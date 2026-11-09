@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/domain/role_consumption.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
@@ -257,12 +258,14 @@ void main() {
       expect(volume.worst?.id, 'sampled');
     });
 
-    test('the tank role averages ignore a bottom-time dive', () async {
-      final byRole = await insights.getSacPressureByTankRole();
-      const expected = (60 / 60 + 60 / 40 + 60 / 20) / 3 / 2.5;
-      expect(byRole['backGas'], closeTo(expected, 0.05));
-      final volumes = await insights.getSacVolumeByTankRole();
-      expect(volumes, hasLength(1));
+    test('consumption by cylinder role ignores a bottom-time dive', () async {
+      final trend = await insights.getRoleConsumptionPerDive();
+      final volume = await insights.getSacVolumePerDive();
+      expect(
+        trend.rmv[ConsumptionRoleGroup.bottomGas]!.map((p) => p.diveId),
+        volume.map((p) => p.diveId),
+      );
+      expect(trend.sac[ConsumptionRoleGroup.bottomGas], hasLength(3));
     });
   });
 }

@@ -28969,16 +28969,29 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_gas_gasMix_title => '混合气分布';
 
   @override
-  String get insights_gas_sacByRole_empty => '无可用多气瓶数据';
+  String get insights_gas_roleUse_title => '按气瓶用途的耗气量';
 
   @override
-  String get insights_gas_sacByRole_error => '加载按用途分类的消耗失败';
+  String get insights_gas_roleUse_subtitle => '按各用途实际呼吸的时间计算';
 
   @override
-  String get insights_gas_sacByRole_subtitle => '按气瓶类型的平均耗气量';
+  String get insights_gas_roleUse_empty => '暂无按气瓶用途的数据';
 
   @override
-  String get insights_gas_sacByRole_title => '按气瓶用途的气体消耗';
+  String get insights_gas_roleUse_error => '无法加载按气瓶用途的耗气量';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => '底部气体';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水未计入：阶段瓶、减压瓶、备用瓶或应急瓶耗气，但没有换到该气瓶的记录',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => '循环呼吸器气体用量';
@@ -29561,9 +29574,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_focus_gas_trimix => '三混气';
 
   @override
-  String get insights_gas_tankRole_backGas => '主气';
-
-  @override
   String get insights_gas_tankRole_bailout => '应急';
 
   @override
@@ -29573,22 +29583,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_gas_tankRole_diluent => '稀释气';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'O₂ 供气';
-
-  @override
   String get insights_gas_tankRole_pony => '应急瓶';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => '左侧挂';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => '右侧挂';
-
-  @override
   String get insights_gas_tankRole_stage => '阶段瓶';
-
-  @override
-  String get insights_gas_tankRole_twinSet => '双瓶';
 
   @override
   String get insights_geographic_appBar_title => '地理';

@@ -10,6 +10,7 @@ abstract final class TrendChartIds {
   static const bottomTime = 'bottom-time';
   static const sac = 'sac';
   static const ccrGasUse = 'ccr-gas-use';
+  static const roleConsumption = 'role-consumption';
   static const weight = 'weight';
   static const waterTemp = 'water-temp';
   static const airTemp = 'air-temp';

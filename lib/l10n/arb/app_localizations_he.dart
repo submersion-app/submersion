@@ -29954,16 +29954,32 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_gas_gasMix_title => 'התפלגות תערובות גזים';
 
   @override
-  String get insights_gas_sacByRole_empty => 'אין נתוני ריבוי בלונים זמינים';
+  String get insights_gas_roleUse_title => 'צריכה לפי תפקיד המיכל';
 
   @override
-  String get insights_gas_sacByRole_error => 'שגיאה בטעינת צריכה לפי תפקיד';
+  String get insights_gas_roleUse_subtitle => 'כל תפקיד לאורך הזמן שנשמו ממנו';
 
   @override
-  String get insights_gas_sacByRole_subtitle => 'צריכה ממוצעת לפי סוג בלון';
+  String get insights_gas_roleUse_empty => 'אין עדיין ערכים לפי תפקיד מיכל';
 
   @override
-  String get insights_gas_sacByRole_title => 'צריכת גז לפי תפקיד בלון';
+  String get insights_gas_roleUse_error => 'טעינת הצריכה לפי תפקיד מיכל נכשלה';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => 'גז תחתית';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count צלילות לא נכללו: מיכל סטייג׳, דקו, פוני או חירום איבד גז בלי החלפת גז אליו',
+      one:
+          'צלילה אחת לא נכללה: מיכל סטייג׳, דקו, פוני או חירום איבד גז בלי החלפת גז אליו',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => 'צריכת גז במעגל סגור';
@@ -30578,9 +30594,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_focus_gas_trimix => 'טרימיקס';
 
   @override
-  String get insights_gas_tankRole_backGas => 'גז ראשי';
-
-  @override
   String get insights_gas_tankRole_bailout => 'חילוץ';
 
   @override
@@ -30590,22 +30603,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_gas_tankRole_diluent => 'מדלל';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'אספקת O₂';
-
-  @override
   String get insights_gas_tankRole_pony => 'פוני';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => 'סיידמאונט שמאל';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => 'סיידמאונט ימין';
-
-  @override
   String get insights_gas_tankRole_stage => 'סטייג\'';
-
-  @override
-  String get insights_gas_tankRole_twinSet => 'צמד בלונים';
 
   @override
   String get insights_geographic_appBar_title => 'גיאוגרפיה';

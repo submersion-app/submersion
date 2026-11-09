@@ -30829,20 +30829,35 @@ class AppLocalizationsFr extends AppLocalizations {
   String get insights_gas_gasMix_title => 'Distribution des mélanges gazeux';
 
   @override
-  String get insights_gas_sacByRole_empty =>
-      'Aucune donnée multi-blocs disponible';
+  String get insights_gas_roleUse_title => 'Consommation par rôle de bouteille';
 
   @override
-  String get insights_gas_sacByRole_error =>
-      'Échec du chargement de la consommation par rôle';
+  String get insights_gas_roleUse_subtitle =>
+      'Chaque rôle sur le temps où il a été respiré';
 
   @override
-  String get insights_gas_sacByRole_subtitle =>
-      'Consommation moyenne par type de bloc';
+  String get insights_gas_roleUse_empty =>
+      'Pas encore de valeurs par rôle de bouteille';
 
   @override
-  String get insights_gas_sacByRole_title =>
-      'Consommation de gaz par rôle du bloc';
+  String get insights_gas_roleUse_error =>
+      'Impossible de charger la consommation par rôle de bouteille';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => 'Gaz fond';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count plongées exclues : un relais, une bouteille de déco, un pony ou un bailout a perdu du gaz sans changement de gaz vers lui',
+      one:
+          '$count plongée exclue : un relais, une bouteille de déco, un pony ou un bailout a perdu du gaz sans changement de gaz vers lui',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => 'Consommation de gaz du recycleur';
@@ -31454,9 +31469,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get insights_focus_gas_trimix => 'Trimix';
 
   @override
-  String get insights_gas_tankRole_backGas => 'Gaz dorsal';
-
-  @override
   String get insights_gas_tankRole_bailout => 'Bailout';
 
   @override
@@ -31466,22 +31478,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get insights_gas_tankRole_diluent => 'Diluant';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'Alimentation O₂';
-
-  @override
   String get insights_gas_tankRole_pony => 'Pony';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => 'Sidemount G';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => 'Sidemount D';
-
-  @override
   String get insights_gas_tankRole_stage => 'Stage';
-
-  @override
-  String get insights_gas_tankRole_twinSet => 'Bi-bouteille';
 
   @override
   String get insights_geographic_appBar_title => 'Géographie';

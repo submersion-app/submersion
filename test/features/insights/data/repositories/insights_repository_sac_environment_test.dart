@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/domain/role_consumption.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -118,20 +119,19 @@ void main() {
     expect(records.best!.value, closeTo(rmv, 1e-9));
   });
 
-  test('the pressure by tank role reads the dive environment', () async {
+  test('consumption by cylinder role reads the dive environment', () async {
     await insertDive(altitude: 3000, waterType: 'fresh');
 
-    final byRole = await repository.getSacPressureByTankRole();
+    final trend = await repository.getRoleConsumptionPerDive();
 
-    expect(byRole['backGas'], closeTo(sac, 1e-9));
-  });
-
-  test('the volume by tank role reads the dive environment', () async {
-    await insertDive(altitude: 3000, waterType: 'fresh');
-
-    final byRole = await repository.getSacVolumeByTankRole();
-
-    expect(byRole['backGas'], closeTo(rmv, 1e-9));
+    expect(
+      trend.sac[ConsumptionRoleGroup.bottomGas]!.single.value,
+      closeTo(sac, 1e-9),
+    );
+    expect(
+      trend.rmv[ConsumptionRoleGroup.bottomGas]!.single.value,
+      closeTo(rmv, 1e-9),
+    );
   });
 
   test('a recorded surface pressure wins over the altitude', () async {

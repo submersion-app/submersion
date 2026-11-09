@@ -49197,29 +49197,41 @@ abstract class AppLocalizations {
   /// **'Gas Mix Distribution'**
   String get insights_gas_gasMix_title;
 
-  /// No description provided for @insights_gas_sacByRole_empty.
+  /// No description provided for @insights_gas_roleUse_title.
   ///
   /// In en, this message translates to:
-  /// **'No multi-tank data available'**
-  String get insights_gas_sacByRole_empty;
+  /// **'Consumption by cylinder role'**
+  String get insights_gas_roleUse_title;
 
-  /// No description provided for @insights_gas_sacByRole_error.
+  /// No description provided for @insights_gas_roleUse_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Failed to load consumption by role'**
-  String get insights_gas_sacByRole_error;
+  /// **'Each role over the time it was breathed'**
+  String get insights_gas_roleUse_subtitle;
 
-  /// No description provided for @insights_gas_sacByRole_subtitle.
+  /// No description provided for @insights_gas_roleUse_empty.
   ///
   /// In en, this message translates to:
-  /// **'Average consumption by tank type'**
-  String get insights_gas_sacByRole_subtitle;
+  /// **'No cylinder role rates yet'**
+  String get insights_gas_roleUse_empty;
 
-  /// No description provided for @insights_gas_sacByRole_title.
+  /// No description provided for @insights_gas_roleUse_error.
   ///
   /// In en, this message translates to:
-  /// **'Gas consumption by tank role'**
-  String get insights_gas_sacByRole_title;
+  /// **'Failed to load consumption by cylinder role'**
+  String get insights_gas_roleUse_error;
+
+  /// No description provided for @insights_gas_roleGroup_bottomGas.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom gas'**
+  String get insights_gas_roleGroup_bottomGas;
+
+  /// No description provided for @insights_gas_roleUse_leftOut.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} dive is left out: a stage, deco, pony or bailout cylinder lost gas with no gas switch onto it} other{{count} dives are left out: a stage, deco, pony or bailout cylinder lost gas with no gas switch onto it}}'**
+  String insights_gas_roleUse_leftOut(int count);
 
   /// No description provided for @insights_gas_ccrUse_title.
   ///
@@ -50142,12 +50154,6 @@ abstract class AppLocalizations {
   /// **'Trimix'**
   String get insights_focus_gas_trimix;
 
-  /// No description provided for @insights_gas_tankRole_backGas.
-  ///
-  /// In en, this message translates to:
-  /// **'Back Gas'**
-  String get insights_gas_tankRole_backGas;
-
   /// No description provided for @insights_gas_tankRole_bailout.
   ///
   /// In en, this message translates to:
@@ -50166,41 +50172,17 @@ abstract class AppLocalizations {
   /// **'Diluent'**
   String get insights_gas_tankRole_diluent;
 
-  /// No description provided for @insights_gas_tankRole_oxygenSupply.
-  ///
-  /// In en, this message translates to:
-  /// **'O₂ Supply'**
-  String get insights_gas_tankRole_oxygenSupply;
-
   /// No description provided for @insights_gas_tankRole_pony.
   ///
   /// In en, this message translates to:
   /// **'Pony'**
   String get insights_gas_tankRole_pony;
 
-  /// No description provided for @insights_gas_tankRole_sidemountLeft.
-  ///
-  /// In en, this message translates to:
-  /// **'Sidemount L'**
-  String get insights_gas_tankRole_sidemountLeft;
-
-  /// No description provided for @insights_gas_tankRole_sidemountRight.
-  ///
-  /// In en, this message translates to:
-  /// **'Sidemount R'**
-  String get insights_gas_tankRole_sidemountRight;
-
   /// No description provided for @insights_gas_tankRole_stage.
   ///
   /// In en, this message translates to:
   /// **'Stage'**
   String get insights_gas_tankRole_stage;
-
-  /// No description provided for @insights_gas_tankRole_twinSet.
-  ///
-  /// In en, this message translates to:
-  /// **'Twin Set'**
-  String get insights_gas_tankRole_twinSet;
 
   /// No description provided for @insights_geographic_appBar_title.
   ///

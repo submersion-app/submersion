@@ -34,6 +34,30 @@ extension TankUsageWindows on List<TankUsageWindow> {
   ];
 }
 
+/// [windows] as one breathing time, in time order: overlapping or touching
+/// windows merged, zero-length ones dropped. A sidemount pair on a shared
+/// window then counts its time once, while two stages breathed one after the
+/// other add theirs (issue #771).
+List<TankUsageWindow> unionOfWindows(Iterable<TankUsageWindow> windows) {
+  final sorted = [
+    for (final w in windows)
+      if (w.end > w.start) w,
+  ]..sort((a, b) => a.start.compareTo(b.start));
+  final merged = <TankUsageWindow>[];
+  for (final w in sorted) {
+    final last = merged.lastOrNull;
+    if (last != null && w.start <= last.end) {
+      merged[merged.length - 1] = (
+        start: last.start,
+        end: math.max(last.end, w.end),
+      );
+    } else {
+      merged.add(w);
+    }
+  }
+  return merged;
+}
+
 /// The switches of [gasSwitches] that say when a cylinder of [tanks] was
 /// breathed: those naming a current tank (a stale id a re-import left
 /// behind says nothing, #110) and, given [before], falling before it (the

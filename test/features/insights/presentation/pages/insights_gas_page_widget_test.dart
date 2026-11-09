@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/domain/ccr_gas_use_trend.dart';
+import 'package:submersion/features/insights/domain/role_consumption.dart';
+import 'package:submersion/features/insights/domain/role_consumption_trend.dart';
 import 'package:submersion/features/insights/domain/focus/focus_metric.dart';
 import 'package:submersion/features/insights/domain/focus/focus_selection.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
@@ -141,18 +143,30 @@ void main() {
     );
     expect(
       tester.getTopLeft(card).dy,
-      lessThan(tester.getTopLeft(find.text('Gas consumption by tank role')).dy),
+      lessThan(tester.getTopLeft(find.text('Consumption by cylinder role')).dy),
     );
   });
 
-  testWidgets('consumption by role labels a twin set (#3374)', (tester) async {
+  // A twin set is bottom gas, however it is worn (#3374, #771).
+  testWidgets('consumption by role names the bottom gas line', (tester) async {
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           ...overrides,
-          sacByTankRoleProvider.overrideWith(
-            (ref) async => const {'twinSet': 15.0, 'backGas': 14.0},
+          roleConsumptionTrendProvider.overrideWith(
+            (ref) async => RoleConsumptionTrend(
+              rmv: {
+                ConsumptionRoleGroup.bottomGas: [
+                  TrendDataPoint(date: DateTime.utc(2026, 1, 1), value: 15),
+                ],
+              },
+              sac: {
+                ConsumptionRoleGroup.bottomGas: [
+                  TrendDataPoint(date: DateTime.utc(2026, 1, 1), value: 1.2),
+                ],
+              },
+            ),
           ),
         ].cast(),
         child: const MaterialApp(
@@ -166,8 +180,8 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
 
-    expect(find.text('Twin Set'), findsOneWidget);
-    expect(find.text('twinSet'), findsNothing);
+    expect(find.text('Bottom gas'), findsOneWidget);
+    expect(find.text('Twin Set'), findsNothing);
   });
 
   // Issue #4082: the rebreather card follows the role breakdown.
@@ -200,7 +214,7 @@ void main() {
     double top(String title) => tester.getTopLeft(find.text(title)).dy;
     expect(
       top('Rebreather gas use'),
-      greaterThan(top('Gas consumption by tank role')),
+      greaterThan(top('Consumption by cylinder role')),
     );
     expect(top('Rebreather gas use'), lessThan(top('Gas consumption records')));
   });

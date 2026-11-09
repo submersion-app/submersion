@@ -30989,18 +30989,40 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_gas_gasMix_title => 'توزيع خليط الغاز';
 
   @override
-  String get insights_gas_sacByRole_empty =>
-      'لا توجد بيانات أسطوانات متعددة متاحة';
+  String get insights_gas_roleUse_title => 'الاستهلاك حسب دور الأسطوانة';
 
   @override
-  String get insights_gas_sacByRole_error => 'فشل تحميل الاستهلاك حسب الدور';
+  String get insights_gas_roleUse_subtitle =>
+      'كل دور خلال الوقت الذي تم التنفس منه';
 
   @override
-  String get insights_gas_sacByRole_subtitle =>
-      'متوسط الاستهلاك حسب نوع الأسطوانة';
+  String get insights_gas_roleUse_empty => 'لا توجد قيم حسب دور الأسطوانة بعد';
 
   @override
-  String get insights_gas_sacByRole_title => 'استهلاك الغاز حسب دور الأسطوانة';
+  String get insights_gas_roleUse_error =>
+      'تعذر تحميل الاستهلاك حسب دور الأسطوانة';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => 'غاز القاع';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count غطسة مستبعدة: أسطوانة مرحلية أو تخفيف ضغط أو احتياطية أو طوارئ فقدت غازًا دون تبديل غاز إليها',
+      many:
+          '$count غطسة مستبعدة: أسطوانة مرحلية أو تخفيف ضغط أو احتياطية أو طوارئ فقدت غازًا دون تبديل غاز إليها',
+      few:
+          '$count غطسات مستبعدة: أسطوانة مرحلية أو تخفيف ضغط أو احتياطية أو طوارئ فقدت غازًا دون تبديل غاز إليها',
+      two:
+          'غطستان مستبعدتان: أسطوانة مرحلية أو تخفيف ضغط أو احتياطية أو طوارئ فقدت غازًا دون تبديل غاز إليها',
+      one:
+          'غطسة واحدة مستبعدة: أسطوانة مرحلية أو تخفيف ضغط أو احتياطية أو طوارئ فقدت غازًا دون تبديل غاز إليها',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => 'استهلاك الغاز لجهاز إعادة التنفس';
@@ -31636,9 +31658,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_focus_gas_trimix => 'ترايمكس';
 
   @override
-  String get insights_gas_tankRole_backGas => 'غاز رئيسي';
-
-  @override
   String get insights_gas_tankRole_bailout => 'غاز الطوارئ';
 
   @override
@@ -31648,22 +31667,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_gas_tankRole_diluent => 'مخفف';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'إمداد O₂';
-
-  @override
   String get insights_gas_tankRole_pony => 'أسطوانة احتياطية';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => 'جانبي أيسر';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => 'جانبي أيمن';
-
-  @override
   String get insights_gas_tankRole_stage => 'أسطوانة مرحلية';
-
-  @override
-  String get insights_gas_tankRole_twinSet => 'طقم مزدوج';
 
   @override
   String get insights_geographic_appBar_title => 'جغرافي';

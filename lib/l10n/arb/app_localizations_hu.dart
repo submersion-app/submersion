@@ -30588,19 +30588,35 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_gas_gasMix_title => 'Gázkeverék megoszlás';
 
   @override
-  String get insights_gas_sacByRole_empty => 'Nincsenek többpalackos adatok';
+  String get insights_gas_roleUse_title => 'Fogyasztás palackszerep szerint';
 
   @override
-  String get insights_gas_sacByRole_error =>
-      'Nem sikerült a szerep szerinti fogyasztás betöltése';
+  String get insights_gas_roleUse_subtitle =>
+      'Minden szerep a belélegzés ideje alatt';
 
   @override
-  String get insights_gas_sacByRole_subtitle =>
-      'Átlagos felhasználás palack típus szerint';
+  String get insights_gas_roleUse_empty =>
+      'Még nincs érték palackszerep szerint';
 
   @override
-  String get insights_gas_sacByRole_title =>
-      'Gázfogyasztás palack szerep szerint';
+  String get insights_gas_roleUse_error =>
+      'Nem sikerült betölteni a palackszerep szerinti fogyasztást';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => 'Fenékgáz';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count merülés kimaradt: egy stage-, dekó-, póni- vagy bailout-palack gázt vesztett, de nem volt rá gázváltás',
+      one:
+          '$count merülés kimaradt: egy stage-, dekó-, póni- vagy bailout-palack gázt vesztett, de nem volt rá gázváltás',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => 'Rebreather gázfogyasztás';
@@ -31201,9 +31217,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_focus_gas_trimix => 'Trimix';
 
   @override
-  String get insights_gas_tankRole_backGas => 'Háttérgáz';
-
-  @override
   String get insights_gas_tankRole_bailout => 'Bailout';
 
   @override
@@ -31213,22 +31226,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_gas_tankRole_diluent => 'Hígító';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'O₂ ellátás';
-
-  @override
   String get insights_gas_tankRole_pony => 'Pony';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => 'Sidemount B';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => 'Sidemount J';
-
-  @override
   String get insights_gas_tankRole_stage => 'Stage';
-
-  @override
-  String get insights_gas_tankRole_twinSet => 'Ikerpalack';
 
   @override
   String get insights_geographic_appBar_title => 'Földrajzi';

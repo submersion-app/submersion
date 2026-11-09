@@ -30668,19 +30668,35 @@ class AppLocalizationsDe extends AppLocalizations {
   String get insights_gas_gasMix_title => 'Gasgemisch-Verteilung';
 
   @override
-  String get insights_gas_sacByRole_empty =>
-      'Keine Multi-Flaschen-Daten verfügbar';
+  String get insights_gas_roleUse_title => 'Verbrauch nach Flaschenrolle';
 
   @override
-  String get insights_gas_sacByRole_error =>
-      'Verbrauch nach Rolle konnte nicht geladen werden';
+  String get insights_gas_roleUse_subtitle =>
+      'Jede Rolle über die Zeit, in der sie geatmet wurde';
 
   @override
-  String get insights_gas_sacByRole_subtitle =>
-      'Durchschnittlicher Verbrauch nach Flaschentyp';
+  String get insights_gas_roleUse_empty =>
+      'Noch keine Werte nach Flaschenrolle';
 
   @override
-  String get insights_gas_sacByRole_title => 'Gasverbrauch nach Flaschenrolle';
+  String get insights_gas_roleUse_error =>
+      'Verbrauch nach Flaschenrolle konnte nicht geladen werden';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => 'Grundgas';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Tauchgänge ausgelassen: Eine Stage-, Deko-, Pony- oder Bailout-Flasche hat Gas verloren, ohne Gaswechsel auf sie',
+      one:
+          '$count Tauchgang ausgelassen: Eine Stage-, Deko-, Pony- oder Bailout-Flasche hat Gas verloren, ohne Gaswechsel auf sie',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => 'Gasverbrauch Rebreather';
@@ -31296,9 +31312,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get insights_focus_gas_trimix => 'Trimix';
 
   @override
-  String get insights_gas_tankRole_backGas => 'Rückengas';
-
-  @override
   String get insights_gas_tankRole_bailout => 'Bailout';
 
   @override
@@ -31308,22 +31321,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get insights_gas_tankRole_diluent => 'Diluent';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'O₂-Versorgung';
-
-  @override
   String get insights_gas_tankRole_pony => 'Pony';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => 'Sidemount L';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => 'Sidemount R';
-
-  @override
   String get insights_gas_tankRole_stage => 'Stage';
-
-  @override
-  String get insights_gas_tankRole_twinSet => 'Doppelgerät';
 
   @override
   String get insights_geographic_appBar_title => 'Geografie';
