@@ -14,6 +14,7 @@ import 'package:submersion/features/backup/data/repositories/backup_preferences.
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_copy_account.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
+import 'package:submersion/features/backup/domain/entities/extra_cloud_copy.dart';
 
 import '../../helpers/mock_channels.dart';
 import '../../support/fake_cloud_storage_provider.dart';
@@ -285,6 +286,59 @@ void main() {
       expect(BackupPreferences(prefs).getSettings().lastExtraCopyMissingIds, [
         'acct-x',
       ]);
+    });
+
+    // Review of #4328: which gap the notification names, decided from the
+    // record the backup wrote.
+    group('scheduledBackupCopyGaps', () {
+      BackupRecord made({
+        required BackupLocation location,
+        List<ExtraCloudCopy> extras = const [],
+      }) => BackupRecord(
+        id: 'r',
+        filename: 'submersion_backup_x.db',
+        timestamp: DateTime.utc(2026, 11, 8),
+        sizeBytes: 1,
+        location: location,
+        extraCloudCopies: extras,
+      );
+      const dropbox = [ExtraCloudCopy(accountId: 'db-row', fileId: 'f')];
+
+      test('only extra copies arrived: not every account, not device only', () {
+        final gaps = scheduledBackupCopyGaps(
+          cloudBackupEnabled: true,
+          record: made(location: BackupLocation.local, extras: dropbox),
+          missedExtraIds: const [],
+        );
+        expect(gaps, (cloudCopyMissing: false, extraCopyMissing: true));
+      });
+
+      test('nothing left the device: device only', () {
+        final gaps = scheduledBackupCopyGaps(
+          cloudBackupEnabled: true,
+          record: made(location: BackupLocation.local),
+          missedExtraIds: const ['db-row'],
+        );
+        expect(gaps.cloudCopyMissing, isTrue);
+      });
+
+      test('every copy arrived: no gap', () {
+        final gaps = scheduledBackupCopyGaps(
+          cloudBackupEnabled: true,
+          record: made(location: BackupLocation.both, extras: dropbox),
+          missedExtraIds: const [],
+        );
+        expect(gaps, (cloudCopyMissing: false, extraCopyMissing: false));
+      });
+
+      test('no copy asked for: no gap', () {
+        final gaps = scheduledBackupCopyGaps(
+          cloudBackupEnabled: false,
+          record: made(location: BackupLocation.local),
+          missedExtraIds: const [],
+        );
+        expect(gaps, (cloudCopyMissing: false, extraCopyMissing: false));
+      });
     });
 
     test('a failed backup reports the reason', () async {

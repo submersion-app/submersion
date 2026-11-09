@@ -396,13 +396,20 @@ class BackupService {
     );
     await _preferences.setLastCloudCopyNeedsSignIn(copy.needsSignIn);
     await _preferences.setLastExtraCopyMissingIds(extras.missed);
+    // An extra copy (issue #3782) puts the backup off the device too, when
+    // the main copy did not.
+    final reachedAccountId = location == BackupLocation.both
+        ? uploadAccountId
+        : extras.copies.firstOrNull?.accountId;
+    final offDevice =
+        location == BackupLocation.both || extras.copies.isNotEmpty;
     await _preferences.setLastBackupDestination(
-      location == BackupLocation.both
+      offDevice
           ? LastBackupDestination.cloud
           : toChosenFolder
           ? LastBackupDestination.folder
           : LastBackupDestination.device,
-      cloudAccountId: location == BackupLocation.both ? uploadAccountId : null,
+      cloudAccountId: offDevice ? reachedAccountId : null,
     );
 
     // Prune old backups
@@ -1334,8 +1341,10 @@ class BackupService {
   /// Checks each record's local file existence. Removes records where:
   /// - localPath is set but file no longer exists
   /// - AND there is no cloud backup (cloudFileId is null)
+  /// - AND there are no extra copies (issue #3782)
   ///
-  /// Records with no localPath (legacy) or with cloud backups are kept.
+  /// Records with no localPath (legacy), a cloud backup or an extra copy are
+  /// kept.
   Future<List<BackupRecord>> getValidatedBackupHistory() async {
     final history = _preferences.getHistory();
     final validRecords = <BackupRecord>[];

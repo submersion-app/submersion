@@ -107,10 +107,11 @@ Future<CloudStorageProvider?> resolveHeadlessBackupCopyProvider({
 }
 
 /// The accounts the scheduled backup also copies to (issue #3782), each
-/// built as [resolveHeadlessBackupCopyProvider] builds a chosen account.
-/// Empty while the copy is off; a row gone from the roster, or one that
-/// cannot be built here, comes with no provider so its copy is missed.
-/// [forAccount] and [accountOnRoster] are test seams.
+/// built as [resolveHeadlessBackupCopyProvider] builds a chosen account, and
+/// all at once. Built while the copy is off as well, so pruning still
+/// deletes old copies; nothing is sent then. A row gone from the roster, or
+/// one that cannot be built here, comes with no provider so its copy is
+/// missed. [forAccount] and [accountOnRoster] are test seams.
 Future<List<ExtraCopyDestination>> resolveHeadlessExtraCopyDestinations({
   required SharedPreferences prefs,
   EncryptionKeyStore? encryptionKeyStore,
@@ -119,22 +120,23 @@ Future<List<ExtraCopyDestination>> resolveHeadlessExtraCopyDestinations({
   forAccount,
   Future<bool> Function(String accountId)? accountOnRoster,
 }) async {
-  final settings = BackupPreferences(prefs).getSettings();
-  if (!settings.cloudBackupEnabled) return const [];
-  return [
-    for (final account in settings.extraCopyAccounts)
-      ExtraCopyDestination(
+  final accounts = BackupPreferences(prefs).getSettings().extraCopyAccounts;
+  // Never throws: each failure resolves to no provider.
+  final providers = await Future.wait([
+    for (final account in accounts)
+      _accountCopyProvider(
+        account.kind,
         account.accountId,
-        await _accountCopyProvider(
-          account.kind,
-          account.accountId,
-          prefs: prefs,
-          encryptionKeyStore: encryptionKeyStore,
-          instanceFor: instanceFor,
-          forAccount: forAccount,
-          accountOnRoster: accountOnRoster,
-        ),
+        prefs: prefs,
+        encryptionKeyStore: encryptionKeyStore,
+        instanceFor: instanceFor,
+        forAccount: forAccount,
+        accountOnRoster: accountOnRoster,
       ),
+  ]);
+  return [
+    for (final (i, account) in accounts.indexed)
+      ExtraCopyDestination(account.accountId, providers[i]),
   ];
 }
 

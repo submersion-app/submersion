@@ -76,8 +76,10 @@ builds a pinned one.
 ## Removing old backups
 
 When a record is removed, by pruning or by Delete, each of its extra copies
-whose account is still an extra destination with a provider is deleted there
-(and pushed, on a backend that defers deletes). A copy whose account is no
+whose account is still an extra destination with a provider, or is now where
+the main copy goes, is deleted there (and pushed, on a backend that defers
+deletes). The destinations are built while the copy is off too, so pruning
+then still deletes old copies. A copy whose account is no
 longer reachable is left where it is and forgotten, with a log line: the app
 cannot reach it, and keeping the record would keep a local file the diver
 asked to prune. Extra copies never count toward retention.

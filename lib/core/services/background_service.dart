@@ -302,6 +302,25 @@ typedef BackupNotifier =
       bool extraCopyMissing,
     });
 
+/// What a successful scheduled [record] is missing, for its notification.
+/// [cloudCopyMissing]: nothing left the device, though a copy was asked for.
+/// [extraCopyMissing]: a copy is off the device, but an account did not get
+/// one: an extra account in [missedExtraIds] (issue #3782), or the main
+/// copy's own account when only extra copies arrived.
+({bool cloudCopyMissing, bool extraCopyMissing}) scheduledBackupCopyGaps({
+  required bool cloudBackupEnabled,
+  required BackupRecord record,
+  required List<String> missedExtraIds,
+}) {
+  final mainMissing =
+      cloudBackupEnabled && record.location == BackupLocation.local;
+  return (
+    cloudCopyMissing: mainMissing && record.extraCloudCopies.isEmpty,
+    extraCopyMissing:
+        cloudBackupEnabled && (mainMissing || missedExtraIds.isNotEmpty),
+  );
+}
+
 /// Run the scheduled backup if one is due, then report the outcome.
 ///
 /// [notify] and [instanceFor] are seams for tests; production passes neither.
@@ -341,16 +360,14 @@ Future<void> runScheduledBackup({
     // The record's location is the only honest signal: the upload swallows
     // its own failures to protect the local artifact, so a cloud copy the
     // user asked for can be missing from an otherwise successful backup.
-    final cloudCopyMissing =
-        settings.cloudBackupEnabled && record.location == BackupLocation.local;
-    // An extra account the backup did not reach (issue #3782), told apart:
-    // the main copy may still be safe in the cloud. The backup has just
-    // written that list.
-    final extraCopyMissing =
-        settings.cloudBackupEnabled &&
-        BackupPreferences(
-          prefs,
-        ).getSettings().lastExtraCopyMissingIds.isNotEmpty;
+    // The backup has just written the extra accounts it missed.
+    final (:cloudCopyMissing, :extraCopyMissing) = scheduledBackupCopyGaps(
+      cloudBackupEnabled: settings.cloudBackupEnabled,
+      record: record,
+      missedExtraIds: BackupPreferences(
+        prefs,
+      ).getSettings().lastExtraCopyMissingIds,
+    );
     log.info(
       'Automatic backup completed: ${record.filename} '
       '(location: ${record.location.name})',

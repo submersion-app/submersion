@@ -24,6 +24,7 @@ import 'package:submersion/features/backup/data/services/backup_encryption_servi
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/data/services/extra_copy_destination.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
+import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/domain/entities/extra_cloud_copy.dart';
 
 import '../../../../helpers/mock_channels.dart';
@@ -213,6 +214,17 @@ void main() {
       ]);
       expect(record.location, BackupLocation.both);
       expect(preferences.getSettings().lastExtraCopyMissingIds, isEmpty);
+    });
+
+    // Review of #4328: a backup only extra copies reached is still off
+    // the device, and Settings > Data names where it went.
+    test('a backup only extra copies reached is a cloud backup', () async {
+      final record = await service(noMain: true).performBackup();
+
+      expect(record.location, BackupLocation.local);
+      final settings = preferences.getSettings();
+      expect(settings.lastBackupDestination, LastBackupDestination.cloud);
+      expect(settings.lastBackupCloudAccountId, 'git-row');
     });
 
     test('a failing extra does not stop the next one or the backup', () async {
@@ -434,6 +446,22 @@ void main() {
       expect(git.names, ['submersion_backup_a.db']);
       expect(dropbox.names, isEmpty);
       expect(preferences.getHistory(), isEmpty);
+    });
+
+    // Review of #4328: choosing an extra account as the main copy takes it
+    // off the extras; the copies already there go through the main copy's
+    // provider instead of being forgotten.
+    test('a copy in the account the main copy moved to is deleted', () async {
+      final record = await seed('submersion_backup_a.db', DateTime(2026, 1));
+
+      await service(
+        mainProvider: dropbox,
+        syncAccountId: 'db-row',
+        extras: [ExtraCopyDestination('git-row', git)],
+      ).deleteBackup(record);
+
+      expect(git.names, isEmpty);
+      expect(dropbox.names, isEmpty);
     });
 
     test('an account refusing the delete does not keep the record', () async {

@@ -33,13 +33,17 @@ class PreparedBackupFile {
   final bool isTemp;
 
   Future<void> discard() async {
-    if (!isTemp) return;
-    try {
-      final file = File(path);
-      if (await file.exists()) await file.delete();
-    } catch (_) {
-      // best-effort temp cleanup
-    }
+    if (isTemp) await _deleteTempQuietly(path);
+  }
+}
+
+/// Deletes the temp file at [path] if it is there; a failure is ignored.
+Future<void> _deleteTempQuietly(String path) async {
+  try {
+    final file = File(path);
+    if (await file.exists()) await file.delete();
+  } catch (_) {
+    // best-effort temp cleanup
   }
 }
 
@@ -73,7 +77,7 @@ extension _CopyOut on BackupService {
         // cleaned up. With no cloud copy to fall back to, this error, not
         // "not found", is the true cause.
         cloudHere = await _cloudCopyHere(record);
-        if (!cloudHere && !_extraCopyReachable(record)) rethrow;
+        if (!cloudHere && !await _extraCopyReachable(record)) rethrow;
         safFailure = (e, stack);
         _log.warning(
           'Reading the backup document failed, trying the cloud copy',

@@ -4,10 +4,12 @@ import 'package:submersion/features/backup/presentation/providers/backup_copy_pr
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 
 /// The accounts each backup is also copied to (issue #3782), with the
-/// provider each copy goes through. Empty while the copy is off. A row this
-/// device cannot reach (gone from the roster, still being looked up, or of a
-/// kind with no adapter) comes with no provider, so its copy is missed
-/// rather than sent anywhere else.
+/// provider each copy goes through. Built while the copy is off as well:
+/// nothing is sent then, but old copies are still deleted with their
+/// records, as the main copy's are. A row this device cannot reach (gone
+/// from the roster, still being looked up, or of a kind with no adapter)
+/// comes with no provider, so its copy is missed rather than sent anywhere
+/// else.
 final extraCopyDestinationsProvider = Provider<List<ExtraCopyDestination>>((
   ref,
 ) {
@@ -15,12 +17,9 @@ final extraCopyDestinationsProvider = Provider<List<ExtraCopyDestination>>((
   // and rebuilding the backup service for each would be wasted work.
   final key = ref.watch(
     backupSettingsProvider.select(
-      (s) => s.cloudBackupEnabled
-          ? [
-              for (final a in s.extraCopyAccounts)
-                '${a.kind.name}:${a.accountId}',
-            ].join(',')
-          : '',
+      (s) => [
+        for (final a in s.extraCopyAccounts) '${a.kind.name}:${a.accountId}',
+      ].join(','),
     ),
   );
   if (key.isEmpty) return const [];

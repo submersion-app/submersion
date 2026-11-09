@@ -71,7 +71,7 @@ extension _ExtraCopies on BackupService {
     try {
       await upload(framed.path, framed.name);
     } finally {
-      await _deleteQuietly(framed.path);
+      await _deleteTempQuietly(framed.path);
     }
   }
 
@@ -106,17 +106,8 @@ extension _ExtraCopies on BackupService {
         error: e,
         stackTrace: stack,
       );
-      if (framedPath != null) await _deleteQuietly(framedPath);
+      if (framedPath != null) await _deleteTempQuietly(framedPath);
       return null;
-    }
-  }
-
-  Future<void> _deleteQuietly(String path) async {
-    try {
-      final file = File(path);
-      if (await file.exists()) await file.delete();
-    } catch (_) {
-      // best-effort temp cleanup
     }
   }
 
@@ -129,10 +120,25 @@ extension _ExtraCopies on BackupService {
     return null;
   }
 
+  /// The provider that reaches an extra copy kept in [accountId]: its extra
+  /// destination, else the main copy's when the main copy now goes to that
+  /// account (chosen as the main copy since, which takes it off the extras,
+  /// or the sync account it follows); null when neither reaches it.
+  Future<CloudStorageProvider?> _copyProviderFor(String accountId) async {
+    final extra = _extraProviderFor(accountId);
+    if (extra != null) return extra;
+    final main = _cloudProvider;
+    if (main == null) return null;
+    return accountId == await _copyAccountIdOrNull() ? main : null;
+  }
+
   /// Whether any of [record]'s extra copies can be reached from here.
-  bool _extraCopyReachable(BackupRecord record) => record.extraCloudCopies.any(
-    (copy) => _extraProviderFor(copy.accountId) != null,
-  );
+  Future<bool> _extraCopyReachable(BackupRecord record) async {
+    for (final copy in record.extraCloudCopies) {
+      if (await _copyProviderFor(copy.accountId) != null) return true;
+    }
+    return false;
+  }
 
   /// Deletes [record]'s extra copies from every account still reachable,
   /// pushing each account's deletes once on a backend that defers them.
@@ -148,7 +154,7 @@ extension _ExtraCopies on BackupService {
   }) async {
     final touched = deferFlushTo ?? Set<CloudStorageProvider>.identity();
     for (final copy in record.extraCloudCopies) {
-      final provider = _extraProviderFor(copy.accountId);
+      final provider = await _copyProviderFor(copy.accountId);
       if (provider == null) {
         _log.warning(
           'Extra backup copy left in an account this device cannot reach: '
@@ -190,7 +196,7 @@ extension _ExtraCopies on BackupService {
   /// the order the copies were made; null when none can.
   Future<PreparedBackupFile?> _fetchFromExtra(BackupRecord record) async {
     for (final copy in record.extraCloudCopies) {
-      final provider = _extraProviderFor(copy.accountId);
+      final provider = await _copyProviderFor(copy.accountId);
       if (provider == null) continue;
       try {
         final fetched = await _fetchToTemp(
@@ -241,7 +247,7 @@ extension _ExtraCopies on BackupService {
         copies.add(copy);
         continue;
       }
-      final provider = _extraProviderFor(copy.accountId);
+      final provider = await _copyProviderFor(copy.accountId);
       String? fileId;
       if (provider != null) {
         try {
@@ -311,7 +317,8 @@ extension _ExtraCopies on BackupService {
   }) async {
     var residual = false;
     for (final copy in replaced) {
-      final provider = _extraProviderFor(copy.accountId)!;
+      // Reached when it was replaced, so reachable still.
+      final provider = (await _copyProviderFor(copy.accountId))!;
       touched.putIfAbsent(provider, () => {}).add(recordId);
       try {
         await provider.deleteFile(copy.fileId);

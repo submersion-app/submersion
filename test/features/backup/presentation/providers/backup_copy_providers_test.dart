@@ -308,9 +308,15 @@ void main() {
       ];
     }
 
-    test('empty while the copy is off', () async {
+    // Review of #4328: nothing is sent while the copy is off, but pruning
+    // still deletes the old copies, so each account is still built.
+    test('still built while the copy is off', () async {
       final c = await container({...extras, 'backup_cloud_enabled': false});
-      expect(await settled(c), isEmpty);
+      expect(await settled(c), [
+        ('acct-b', 'copy:acct-b'),
+        ('acct-c', 'copy:acct-c'),
+        ('acct-git', null),
+      ]);
     });
 
     test('one destination per extra account, in order', () async {

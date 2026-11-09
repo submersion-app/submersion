@@ -269,11 +269,15 @@ void main() {
       ]);
     });
 
-    test('none while the copy is off', () async {
+    // Review of #4328: nothing is sent while the copy is off, but pruning
+    // still deletes the old copies, so each account is still built.
+    test('still built while the copy is off', () async {
       final prefs = await prefsWith({...extras, 'backup_cloud_enabled': false});
 
-      expect(await resolveExtras(prefs), isEmpty);
-      expect(pinned, isEmpty);
+      expect(await resolveExtras(prefs), [
+        ('acct-git', 'copy:acct-git'),
+        ('acct-d', 'copy:acct-d'),
+      ]);
     });
   });
 }

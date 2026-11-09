@@ -47,9 +47,10 @@ class BackupSettings extends Equatable {
   /// made by a version that records it.
   final LastBackupDestination? lastBackupDestination;
 
-  /// The connected account the last backup's main copy reached, so
-  /// Settings > Data names the account the copy is in, not the one the copy
-  /// goes to today. Null for any other destination.
+  /// The connected account the last backup reached: its main copy's, else
+  /// its first extra copy's (issue #3782). Settings > Data names the account
+  /// the copy is in, not the one the copy goes to today. Null for any other
+  /// destination.
   final String? lastBackupCloudAccountId;
 
   /// The roster row the cloud copy goes to, with its kind; both null means
