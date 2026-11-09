@@ -8,6 +8,7 @@ import 'package:submersion/features/import_wizard/data/adapters/universal_adapte
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/platform/desktop_target_platform.dart';
 
 /// Wizard step that settles where an import's photos come from and go to.
 ///
@@ -41,14 +42,8 @@ class PhotoFolderStep extends ConsumerWidget {
 
   /// A recursive folder scan needs real filesystem paths, which Android's SAF
   /// does not reliably provide and iOS does not expose at all.
-  static bool get canPickFolder => switch (defaultTargetPlatform) {
-    TargetPlatform.macOS ||
-    TargetPlatform.windows ||
-    TargetPlatform.linux => true,
-    TargetPlatform.android ||
-    TargetPlatform.iOS ||
-    TargetPlatform.fuchsia => false,
-  };
+  static bool get canPickFolder =>
+      isDesktopTargetPlatform(defaultTargetPlatform);
 
   Future<void> _pick(WidgetRef ref) async {
     final path =

@@ -268,6 +268,43 @@ void main() {
     },
   );
 
+  group('surface_interval_s against the gap a read works out (#4333)', () {
+    // d1 starts at 1710408600000; this dive ended an hour before.
+    setUp(
+      () => db
+          .into(db.dives)
+          .insert(
+            DivesCompanion.insert(
+              id: 'd0',
+              diverId: const Value(kDiverA),
+              diveDateTime: 1710401400000,
+              exitTime: const Value(1710405000000),
+              createdAt: t,
+              updatedAt: t,
+            ),
+          ),
+    );
+
+    test('the worked-out gap can be stored as it reads', () async {
+      final plan = await preview([
+        update('dives', 'd1', fields: {'surface_interval_s': 3600}),
+      ]);
+
+      final change = plan.items.single.fields['surface_interval_s']!;
+      expect(change.oldValue, isNull);
+      expect(change.newValue, 3600);
+    });
+
+    test('clearing a gap the dive never stored changes nothing', () async {
+      final plan = await preview([
+        update('dives', 'd1', fields: {'surface_interval_s': null}),
+      ]);
+
+      expect(plan.items, isEmpty);
+      expect(plan.unchanged.single.id, 'd1');
+    });
+  });
+
   test('null is listed as a clear and an omitted key is not', () async {
     final plan = await preview([
       update('dives', 'd1', fields: {'boat_name': null}),

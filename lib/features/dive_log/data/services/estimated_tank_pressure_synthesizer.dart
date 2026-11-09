@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/services/tank_pressure_lookup.dart';
 
 /// Real per-tank pressures augmented with in-memory linear estimates, plus the
 /// set of tankIds that were synthesized (so the UI can label them "estimated").
@@ -21,12 +22,16 @@ class EstimatedTankPressures extends Equatable {
 /// is first breathed, drops linearly while breathed (windowed by gas switches),
 /// holds flat during gaps, and ends flat at endPressure. The total drop is
 /// distributed across active windows in proportion to their duration.
+///
+/// [onLoop] is as in [buildActiveTankIntervals]: false on a dive known to be
+/// off the loop, where a diluent tag does not take the start.
 EstimatedTankPressures synthesizeEstimatedTankPressures({
   required Map<String, List<TankPressurePoint>> existing,
   required List<DiveTank> tanks,
   required List<GasSwitchWithTank> gasSwitches,
   required int diveDurationSeconds,
   int firstSampleSeconds = 0,
+  bool onLoop = true,
 }) {
   final pressures = <String, List<TankPressurePoint>>{...existing};
   final estimated = <String>{};
@@ -39,10 +44,18 @@ EstimatedTankPressures synthesizeEstimatedTankPressures({
     gasSwitches: gasSwitches,
     diveDurationSeconds: diveDurationSeconds,
     firstSampleSeconds: firstSampleSeconds,
+    onLoop: onLoop,
   );
 
+  // A tank's measured series may still be keyed by an old tank id (#276);
+  // it is matched the way every reader matches it, so such a tank is not
+  // given an estimate beside its own transmitter line (#4291).
+  final measured = resolveTankPressureSeries(tanks, existing);
   for (final tank in tanks) {
-    if (existing[tank.id]?.isNotEmpty ?? false) continue;
+    if (measured[tank.id]?.isNotEmpty ?? false) continue;
+    // A suit inflation bottle is not breathed (issue #4243): an estimated
+    // line would draw it as if it were. Its logged pressures still show.
+    if (!tank.role.isBreathingGas) continue;
     final start = tank.startPressure;
     final end = tank.endPressure;
     if (start == null || end == null || start <= end) continue;

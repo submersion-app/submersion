@@ -613,6 +613,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_equipmentField_owner_short => 'Proprietario';
 
   @override
+  String get enum_equipmentField_location => 'Posizione';
+
+  @override
+  String get enum_equipmentField_location_short => 'Posizione';
+
+  @override
   String get equipment_set_noLongerShared => 'Non più condiviso';
 
   @override
@@ -1421,6 +1427,21 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get equipment_setEdit_figureSwitch_title =>
       'Mostra figura del subacqueo';
+
+  @override
+  String get equipment_setEdit_historyAsk =>
+      'Applicare le modifiche anche a quelle immersioni o solo da ora in poi?';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Questo set è su $count immersioni registrate.',
+      one: 'Questo set è su 1 immersione registrata.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get equipment_color_red => 'Rosso';
@@ -4646,6 +4667,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get certifications_list_section_expiringSoon => 'In scadenza';
 
   @override
+  String certifications_list_section_professional(String agency) {
+    return '$agency Professionale';
+  }
+
+  @override
   String get certifications_list_section_valid => 'Valide';
 
   @override
@@ -7401,6 +7427,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Queste registrazioni non si sovrappongono nel tempo, quindi l\'orologio di un computer è probabilmente sbagliato. L\'immersione mantiene l\'ora del computer principale.';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      'Questi profili di profondità coincidono in un momento diverso da quello indicato dagli orologi dei computer, quindi l\'orologio di un computer è probabilmente sbagliato. L\'immersione mantiene l\'ora del computer principale.';
+
+  @override
   String get diveLog_consolidate_clockNoteShort =>
       'L\'orologio di un computer è probabilmente sbagliato.';
 
@@ -7516,6 +7546,86 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_deco_semantics_required => 'Decompressione richiesta';
+
+  @override
+  String diveLog_deco_compartmentLeading(int number) {
+    return 'Principale: #$number';
+  }
+
+  @override
+  String diveLog_deco_compartmentOther(int number) {
+    return 'Compartimento: #$number';
+  }
+
+  @override
+  String get diveLog_deco_metricLoad => 'Carico';
+
+  @override
+  String get diveLog_deco_gasOngassing => 'Assorbimento';
+
+  @override
+  String get diveLog_deco_gasOffgassing => 'Rilascio';
+
+  @override
+  String get diveLog_deco_gasEquilibrium => 'Equilibrio';
+
+  @override
+  String get diveLog_deco_heatMapRows =>
+      'Righe: veloce (in alto) a lento (in basso)';
+
+  @override
+  String get diveLog_deco_surfaceLevel => 'Livello in superficie';
+
+  @override
+  String get diveLog_deco_mValue => 'Valore M';
+
+  @override
+  String diveLog_deco_tooltipCompartment(int number) {
+    return 'Compartimento $number';
+  }
+
+  @override
+  String diveLog_deco_tooltipLoaded(String percent) {
+    return '$percent% di carico';
+  }
+
+  @override
+  String diveLog_deco_tooltipHalfTime(String minutes) {
+    return 'Emitempo: $minutes min';
+  }
+
+  @override
+  String diveLog_deco_tooltipSurfaceLevel(String percent) {
+    return 'Livello in superficie: $percent%';
+  }
+
+  @override
+  String get diveLog_deco_info_title => 'Cosa significano questi valori?';
+
+  @override
+  String get diveLog_deco_info_body =>
+      'Carico: la pressione di gas inerte di un compartimento come percentuale del massimo che può contenere in superficie (il suo valore M, la linea rossa al 100%).\n\nLivello in superficie: il segno su ogni barra indica dove si stabilizza un compartimento completamente desaturato mentre respiri aria in superficie. Non è mai a 0%, perché il tuo corpo contiene sempre l\'azoto dell\'aria che respiri. Una barra al suo segno non ha più carico residuo dell\'immersione.\n\nAssorbimento e rilascio: il gas si muove sempre verso la pressione del gas che respiri. Dopo una decompressione con ossigeno o con una miscela ricca di elio, i compartimenti veloci possono contenere meno azoto dell\'aria in superficie. Tornando a respirare aria, assorbono di nuovo azoto fino a raggiungere il loro segno. È normale e non è un carico residuo dell\'immersione.\n\nElio: l\'aria non contiene elio. Dopo un\'immersione in trimix, un compartimento rilascia elio mentre può assorbire azoto nello stesso momento. Le frecce accanto a N₂ e He mostrano ogni gas separatamente; l\'indicazione accanto al numero del compartimento mostra la direzione complessiva di entrambi.';
+
+  @override
+  String diveLog_deco_barChartSemantics(int count, int number, String percent) {
+    return 'Grafico del carico tissutale. $count compartimenti, carico rispetto al valore M; compartimento principale $number al $percent%.';
+  }
+
+  @override
+  String get diveLog_deco_heatMapUndersaturated => 'Sottosaturo';
+
+  @override
+  String get diveLog_deco_heatMapSupersaturated => 'Sovrasaturo';
+
+  @override
+  String diveLog_deco_percentValue(String value) {
+    return '$value%';
+  }
+
+  @override
+  String diveLog_deco_minutesValue(String value) {
+    return '$value min';
+  }
 
   @override
   String get diveLog_deco_tissueFast => 'Veloce';
@@ -8628,6 +8738,18 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_edit_useSet => 'Usa set';
+
+  @override
+  String get diveLog_edit_removeSet => 'Rimuovi set';
+
+  @override
+  String get diveLog_bulkEdit_setsToRemove => 'Set da rimuovere';
+
+  @override
+  String get diveLog_bulkEdit_removeSetTitle => 'Rimuovi set di attrezzatura';
+
+  @override
+  String get diveLog_bulkEdit_equipmentSets => 'Set di attrezzatura';
 
   @override
   String get diveLog_edit_weightPreset_use => 'Usa preset';
@@ -10826,6 +10948,16 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String diveLog_cylinders_figureUsed(String pressure) {
     return 'Usato $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureNow(String pressure) {
+    return 'Ora $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureNowEstimated(String pressure) {
+    return 'Ora $pressure (stim.)';
   }
 
   @override
@@ -14192,6 +14324,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_tankRole_stage => 'Stage';
 
   @override
+  String get enum_tankRole_suitInflation => 'Gonfiaggio muta';
+
+  @override
   String get enum_tankRole_twinSet => 'Bibombola';
 
   @override
@@ -14486,6 +14621,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get passport_history_deleteConfirm => 'Eliminare questa ricarica?';
+
+  @override
+  String get passport_history_deleteFailed =>
+      'Impossibile eliminare la ricarica. Riprova.';
 
   @override
   String get passport_tag_title => 'Tag';
@@ -16716,6 +16855,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_location_activeFilter => 'Posizione';
+
+  @override
+  String equipment_location_tileSemantics(String name) {
+    return 'Posizione: $name';
+  }
 
   @override
   String get equipment_filter_section_location => 'Posizione';
@@ -19781,6 +19925,17 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_photoPicker_selectAllButton => 'Seleziona tutto';
 
   @override
+  String get media_photoPicker_albumFilter_all => 'Tutti gli album';
+
+  @override
+  String media_photoPicker_albumFilter_chip(String album, int count) {
+    return '$album ($count)';
+  }
+
+  @override
+  String get media_photoPicker_albumFilter_label => 'Filtra per album';
+
+  @override
   String media_photoPicker_selectedCount(int count) {
     return '$count selezionati';
   }
@@ -22452,6 +22607,26 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_appearance_mapBackgroundDiveCards_subtitleWithNote =>
       'Mostra la mappa del sito di immersione come sfondo sulle schede immersione (richiede la posizione del sito)';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards =>
+      'Foto di sfondo sulle schede immersione';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards_subtitle =>
+      'Mostra una delle foto dell\'immersione come sfondo delle schede (senza foto si usa la mappa o il colore)';
+
+  @override
+  String get settings_appearance_photoOverlayDark =>
+      'Opacità del velo sulla foto, tema scuro';
+
+  @override
+  String get settings_appearance_photoOverlayLight =>
+      'Opacità del velo sulla foto, tema chiaro';
+
+  @override
+  String get settings_appearance_photoOverlay_subtitle =>
+      'Più alto mantiene il testo leggibile, più basso mostra più foto';
 
   @override
   String get settings_appearance_mapBackgroundSiteCards =>
@@ -25940,6 +26115,18 @@ class AppLocalizationsIt extends AppLocalizations {
       'Mappa dietro le schede immersione';
 
   @override
+  String get settings_conflict_field_showPhotoBackgroundOnDiveCards =>
+      'Foto dietro le schede immersione';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayDark =>
+      'Velo sulla foto delle schede (tema scuro)';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayLight =>
+      'Velo sulla foto delle schede (tema chiaro)';
+
+  @override
   String get settings_conflict_field_showMapBackgroundOnSiteCards =>
       'Mappa dietro le schede sito';
 
@@ -27412,6 +27599,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'L\'ultimo backup non ha raggiunto il cloud';
 
   @override
+  String get dataHealth_backup_extraCopyMissing =>
+      'L\'ultimo backup non ha raggiunto tutti gli account';
+
+  @override
   String get dataHealth_backup_noOffDeviceCopy =>
       'Nessuna copia fuori da questo dispositivo';
 
@@ -27484,7 +27675,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'Correggi orari, collega compagni, ritipizza attrezzatura, qualità dati, editor tabellare';
+      'Correggi orari, collega compagni, ritipizza attrezzatura, qualità dati, editor tabellare, rianalizza immersioni';
 
   @override
   String get settings_agentAccess_title => 'Accesso agenti';
@@ -30591,19 +30782,35 @@ class AppLocalizationsIt extends AppLocalizations {
   String get insights_gas_gasMix_title => 'Distribuzione miscele gas';
 
   @override
-  String get insights_gas_sacByRole_empty =>
-      'Nessun dato multi-bombola disponibile';
+  String get insights_gas_roleUse_title => 'Consumo per ruolo della bombola';
 
   @override
-  String get insights_gas_sacByRole_error =>
-      'Impossibile caricare il consumo per ruolo';
+  String get insights_gas_roleUse_subtitle =>
+      'Ogni ruolo nel tempo in cui è stato respirato';
 
   @override
-  String get insights_gas_sacByRole_subtitle =>
-      'Consumo medio per tipo di bombola';
+  String get insights_gas_roleUse_empty =>
+      'Ancora nessun valore per ruolo della bombola';
 
   @override
-  String get insights_gas_sacByRole_title => 'Consumo di gas per ruolo bombola';
+  String get insights_gas_roleUse_error =>
+      'Impossibile caricare il consumo per ruolo della bombola';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => 'Gas di fondo';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count immersioni escluse: una bombola stage, deco, pony o bailout ha perso gas senza un cambio gas su di essa',
+      one:
+          '$count immersione esclusa: una bombola stage, deco, pony o bailout ha perso gas senza un cambio gas su di essa',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => 'Uso di gas del rebreather';
@@ -31217,9 +31424,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get insights_focus_gas_trimix => 'Trimix';
 
   @override
-  String get insights_gas_tankRole_backGas => 'Gas principale';
-
-  @override
   String get insights_gas_tankRole_bailout => 'Bailout';
 
   @override
@@ -31229,22 +31433,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get insights_gas_tankRole_diluent => 'Diluente';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'Riserva O₂';
-
-  @override
   String get insights_gas_tankRole_pony => 'Pony';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => 'Sidemount S';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => 'Sidemount D';
-
-  @override
   String get insights_gas_tankRole_stage => 'Stage';
-
-  @override
-  String get insights_gas_tankRole_twinSet => 'Bibombola';
 
   @override
   String get insights_geographic_appBar_title => 'Geografiche';
@@ -38149,25 +38341,6 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllProgress(int count) {
-    return 'Rianalisi di $count immersioni in corso...';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllSuccess(int count) {
-    return '$count immersioni rianalizzate con successo';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
-    return 'Rianalizzate $succeeded su $total immersioni. $failed non riuscite.';
-  }
-
-  @override
   String diveComputer_detail_reparseRawDataCount(int count) {
     return '$count immersioni con dati grezzi';
   }
@@ -38179,6 +38352,126 @@ class AppLocalizationsIt extends AppLocalizations {
   ) {
     return '$count immersioni con dati grezzi ($without senza)';
   }
+
+  @override
+  String get reparseBatch_progressTitle => 'Rianalisi delle immersioni';
+
+  @override
+  String reparseBatch_progressCount(int done, int total) {
+    return 'Rianalisi di $done immersioni su $total';
+  }
+
+  @override
+  String get reparseBatch_cancelling => 'Annullamento...';
+
+  @override
+  String get reparseBatch_resultTitle => 'Rianalisi completata';
+
+  @override
+  String get reparseBatch_resultCancelledTitle => 'Rianalisi annullata';
+
+  @override
+  String get reparseBatch_resultErrorTitle =>
+      'Rianalisi interrotta da un errore';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return 'Non elaborate: $count';
+  }
+
+  @override
+  String reparseBatch_resultSummary(int succeeded, int total) {
+    return 'Rianalizzate $succeeded immersioni su $total.';
+  }
+
+  @override
+  String reparseBatch_resultFailed(int count) {
+    return 'Non riuscite: $count';
+  }
+
+  @override
+  String reparseBatch_resultNotProcessed(int count) {
+    return 'Non elaborate (annullato): $count';
+  }
+
+  @override
+  String reparseBatch_resultSkipped(int count) {
+    return 'Saltate, senza dati grezzi: $count';
+  }
+
+  @override
+  String reparseBatch_resultProfilesPreserved(int count) {
+    return 'Immersioni combinate che hanno mantenuto il profilo: $count';
+  }
+
+  @override
+  String get reparseBatch_failedListHeader => 'Immersioni non riuscite';
+
+  @override
+  String reparseBatch_failedDiveTitle(int number) {
+    return 'Immersione n. $number';
+  }
+
+  @override
+  String get reparseBatch_failedDiveUnnumbered => 'Immersione senza numero';
+
+  @override
+  String get reparseBatch_missingDescriptors =>
+      'Dati del computer subacqueo mancanti';
+
+  @override
+  String get reparseBatch_confirmTitle => 'Rianalizza immersioni';
+
+  @override
+  String reparseBatch_confirmMessage(int count) {
+    return 'Riesegui il parser delle immersioni su $count immersioni con dati grezzi salvati. Questa azione aggiorna i dati di profilo e dei sensori, ma conserva note, siti, compagni e altre modifiche.';
+  }
+
+  @override
+  String reparseBatch_confirmSkipped(int count) {
+    return 'Immersioni selezionate senza dati grezzi (saltate): $count';
+  }
+
+  @override
+  String get reparseBatch_noneWithRawData =>
+      'Nessuna delle immersioni selezionate ha dati grezzi salvati da rianalizzare.';
+
+  @override
+  String get diveLog_selection_tooltip_reparse => 'Rianalizza';
+
+  @override
+  String get settings_reparseDives_title => 'Rianalizza immersioni';
+
+  @override
+  String get settings_reparseDives_subtitle =>
+      'Riesegui il parser su ogni immersione con dati grezzi salvati';
+
+  @override
+  String get settings_reparseDives_intro =>
+      'Usalo quando un aggiornamento dell\'app migliora la lettura dei dati del computer subacqueo. Note, siti, compagni e altre modifiche vengono conservati.';
+
+  @override
+  String settings_reparseDives_withRawData(int count) {
+    return 'Immersioni con dati grezzi: $count';
+  }
+
+  @override
+  String settings_reparseDives_withoutRawData(int count) {
+    return 'Immersioni senza dati grezzi (non rianalizzate): $count';
+  }
+
+  @override
+  String get settings_reparseDives_byComputer => 'Per computer subacqueo';
+
+  @override
+  String get settings_reparseDives_unknownComputer => 'Computer sconosciuto';
+
+  @override
+  String get settings_reparseDives_none =>
+      'Nessuna immersione ha dati grezzi salvati da rianalizzare.';
+
+  @override
+  String get settings_reparseDives_button => 'Rianalizza tutto';
 
   @override
   String get diveComputer_rawData_discardAction => 'Elimina';
@@ -39981,6 +40274,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get attrLabel_valve_type => 'Rubinetto';
 
   @override
+  String get attrLabel_cylinder_use => 'Uso della bombola';
+
+  @override
   String get attrLabel_tank_identifier => 'Identificativo';
 
   @override
@@ -40339,6 +40635,12 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => 'Convertibile';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => 'Gas respirabile';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => 'Gonfiaggio muta';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -40840,12 +41142,28 @@ class AppLocalizationsIt extends AppLocalizations {
       'Il tuo CNS% (orologio dell\'ossigeno) decade dopo l\'immersione con un\'emivita di 90 minuti -- torna praticamente a 0 dopo circa un giorno.\n\nL\'OTU giornaliero si azzera ogni notte a mezzanotte. L\'OTU settimanale è un totale mobile degli ultimi 7 giorni: le immersioni più vecchie escono automaticamente dal calcolo non appena restano fuori da questa finestra.';
 
   @override
+  String get safetyHub_tissueLoading_clear_title =>
+      'Nessun carico tissutale residuo';
+
+  @override
+  String get safetyHub_tissueLoading_clear_body =>
+      'Tutti i compartimenti sono tornati in equilibrio con l\'aria in superficie. Restano al loro livello normale (il segno su ogni barra), non a 0%.';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_title =>
+      'Carico tissutale non disponibile';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_body =>
+      'L\'ultima immersione non ha dati per calcolare il carico tissutale, per esempio un\'immersione senza profilo di profondità, in modalità profondimetro o con rebreather senza setpoint.';
+
+  @override
   String get safetyHub_tissueLoading_about_title =>
       'Informazioni sul carico tissutale';
 
   @override
   String get safetyHub_tissueLoading_about_body =>
-      'Il tuo corpo ha 16 compartimenti tissutali che assorbono e rilasciano azoto (e, nelle immersioni in trimix o con ricircolatore, anche elio) a velocità diverse. I tessuti veloci si saturano e desaturano rapidamente; quelli lenti impiegano molto più tempo per entrambi i processi.\n\nDopo un\'immersione con elio, azoto ed elio in uno stesso compartimento possono muoversi brevemente in direzioni opposte: mentre l\'elio sta ancora uscendo, lo stesso compartimento può contemporaneamente assorbire un po\' di azoto, finché entrambi i gas non raggiungono l\'equilibrio con l\'aria che respiri. Per questo un compartimento può mostrare brevemente \"Ongassing\" anche mentre il suo carico complessivo continua a scendere.';
+      'Il tuo corpo ha 16 compartimenti tissutali che assorbono e rilasciano azoto (e, nelle immersioni in trimix o con rebreather, anche elio) a velocità diverse. I tessuti veloci si saturano e desaturano rapidamente; quelli lenti impiegano molto più tempo in entrambi i casi.\n\nIl carico residuo è solo ciò che supera il livello normale in superficie. Anche completamente desaturate, le barre non scendono a 0%: ogni compartimento si stabilizza al segno che corrisponde all\'azoto dell\'aria che respiri. Per questo un compartimento veloce può risultare qui più alto che alla fine di un\'immersione con decompressione a ossigeno, senza che il carico sia aumentato.\n\nDopo un\'immersione con elio, un compartimento rilascia elio mentre assorbe azoto nello stesso momento, finché entrambi i gas sono in equilibrio con l\'aria che respiri.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -42404,6 +42722,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => 'Bombola errata';
 
   @override
+  String get dataQuality_detector_missing_gas_switch => 'Cambio gas mancante';
+
+  @override
   String get dataQuality_detector_source_conflict => 'Fonti in conflitto';
 
   @override
@@ -42445,6 +42766,11 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String dataQuality_msg_clock_overlap(int minutes) {
     return 'Si sovrappone a un\'altra immersione di $minutes min';
+  }
+
+  @override
+  String dataQuality_msg_clock_profileFit(int minutes) {
+    return 'Una fonte si trova a $minutes min da dove il suo profilo coincide con quello principale';
   }
 
   @override
@@ -42597,6 +42923,61 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Nessun cambio gas registrato, ma le pressioni delle bombole mostrano questi cambi: $switches.',
+      one:
+          'Nessun cambio gas registrato, ma le pressioni delle bombole mostrano questo cambio: $switches.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return 'bombola $tankNumber ($gas) a $time, $depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => '; ';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'Nessun cambio gas registrato. Le pressioni delle bombole mostrano un cambio sulla bombola $tankNumber ($gas) a $depth, più in profondità della sua MOD di $mod, quindi non viene suggerito un cambio su di essa.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'Le pressioni delle bombole mostrano anche un cambio sulla bombola $tankNumber ($gas) a $depth, più in profondità della sua MOD di $mod, quindi non viene suggerito un cambio su di essa.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'Nessun cambio gas registrato. La bombola $tankNumber ($gas) è stata respirata di nuovo da $time dopo una pausa, quindi nel frattempo è stata respirata un\'altra bombola, e con più di due bombole le pressioni non mostrano quale. Aggiungi i cambi nell\'editor dell\'immersione.';
+  }
+
+  @override
   String get dataQuality_detector_transmitter_role => 'Ruolo del trasmettitore';
 
   @override
@@ -42661,6 +43042,15 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_fixSourceClockAll =>
       'Correggi questo computer anche nelle altre immersioni con lo stesso scarto';
+
+  @override
+  String get dataQuality_repairLabel_alignSourceProfile =>
+      'Allinea questo computer in base al suo profilo';
+
+  @override
+  String dataQuality_repairLabel_alignSourceProfileNamed(String computer) {
+    return 'Allinea $computer in base al suo profilo';
+  }
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Consolida';
@@ -42827,6 +43217,17 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_reassignSeries =>
       'Sposta la serie su un\'altra bombola';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Aggiungi $count cambi gas',
+      one: 'Aggiungi cambio gas',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary =>
@@ -53728,6 +54129,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Una piccola icona che indica da dove proviene ogni elemento. I badge di problema sono sempre visibili.';
 
   @override
+  String get settings_media_tagBadges =>
+      'Mostra i badge dei tag sulle miniature';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      'Piccole icone per le foto con persone taggate, specie taggate o un momento nell\'immersione.';
+
+  @override
   String get settings_media_autoColorCorrection =>
       'Correzione automatica del colore';
 
@@ -53778,6 +54187,16 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => 'Nessun backup';
+
+  @override
+  String get media_tileMarker_people => 'Persone taggate';
+
+  @override
+  String get media_tileMarker_species => 'Specie taggate';
+
+  @override
+  String get media_tileMarker_timeInDive =>
+      'Posizionata sul profilo dell\'immersione';
 
   @override
   String get media_tile_infoMenuItem => 'Info media';
@@ -57904,6 +58323,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get rules_value_empty => '(vuoto)';
 
   @override
+  String rules_value_gearViaSet(String item, String set) {
+    return '$item ($set)';
+  }
+
+  @override
   String get rules_collection_diveTypes => 'tipi di immersione';
 
   @override
@@ -57917,6 +58341,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get rules_collection_courses => 'corsi';
+
+  @override
+  String get rules_collection_equipmentSets => 'set di attrezzatura';
 
   @override
   String get rules_collection_siteTags => 'tag del sito';
@@ -58784,6 +59211,19 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_backups_copyAccountGone =>
       'L\'account della copia è stato rimosso';
+
+  @override
+  String settings_backups_alsoCopyTo(String account) {
+    return 'Anche una copia in $account';
+  }
+
+  @override
+  String get settings_backups_addCopyAccount =>
+      'Copia anche in un altro account';
+
+  @override
+  String get settings_backups_extraCopyMissed =>
+      'L\'ultimo backup non ha raggiunto questo account';
 
   @override
   String get settings_backups_auto => 'Esegui il backup automaticamente';
@@ -60534,4 +60974,203 @@ class AppLocalizationsIt extends AppLocalizations {
   ) {
     return 'Marcatore $number: $time, $depth, $distance';
   }
+
+  @override
+  String get twinSet_title => 'Bibombola';
+
+  @override
+  String get twinSet_none => 'Non fa parte di una bibombola';
+
+  @override
+  String get twinSet_link => 'Collega a una bombola gemella';
+
+  @override
+  String twinSet_since(String date) {
+    return 'Dal $date';
+  }
+
+  @override
+  String get twinSet_replace => 'Sostituisci gemella';
+
+  @override
+  String get twinSet_unlink => 'Scollega';
+
+  @override
+  String get twinSet_history => 'Cronologia';
+
+  @override
+  String twinSet_historyRange(String partner, String from, String to) {
+    return '$partner, dal $from al $to';
+  }
+
+  @override
+  String get twinSet_deletePairing => 'Elimina abbinamento';
+
+  @override
+  String get twinSet_deletePairingConfirm =>
+      'Eliminare questo abbinamento dalla cronologia? Ricariche e immersioni non cambiano.';
+
+  @override
+  String get twinSet_pickerTitle => 'Bombola gemella';
+
+  @override
+  String get twinSet_pickerEmpty => 'Nessun\'altra bombola da abbinare.';
+
+  @override
+  String get twinSet_pairedOnHelp => 'Abbinate dal';
+
+  @override
+  String get twinSet_unpairedOnHelp => 'Scollegate il';
+
+  @override
+  String get twinSet_pressureMismatchTitle => 'Pressioni di esercizio diverse';
+
+  @override
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  ) {
+    return '$a ha una pressione di esercizio di $aPressure e $b di $bPressure. Una coppia con rubinetteria si ricarica a una sola pressione.';
+  }
+
+  @override
+  String get twinSet_continue => 'Continua';
+
+  @override
+  String get twinSet_replaceTitle => 'Sostituire la gemella?';
+
+  @override
+  String twinSet_replaceClash(String cylinder, String partner) {
+    return '$cylinder è abbinata a $partner.';
+  }
+
+  @override
+  String twinSet_replaceQuestion(String a, String b) {
+    return 'Abbinare invece $a a $b?';
+  }
+
+  @override
+  String twinSet_leftAlone(String name) {
+    return '$name resterà da sola.';
+  }
+
+  @override
+  String get twinSet_replaceConfirm => 'Sostituisci';
+
+  @override
+  String get twinSet_clashTitle => 'Abbinamento sovrapposto';
+
+  @override
+  String twinSet_clashBody(String pairs) {
+    return 'Si sovrappone all\'abbinamento di $pairs. Una bombola può far parte di una sola bibombola al giorno.';
+  }
+
+  @override
+  String twinSet_pairNames(String a, String b) {
+    return '$a e $b';
+  }
+
+  @override
+  String twinSet_endBeforeStart(String date) {
+    return 'La data di fine deve essere successiva al $date.';
+  }
+
+  @override
+  String get twinSet_saveFailed =>
+      'Impossibile salvare la modifica della bibombola.';
+
+  @override
+  String twinSet_with(String partner) {
+    return 'Bibombola con $partner';
+  }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return 'Entrambe le bombole della bibombola ($partner)';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner, $status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => 'Modifica ricarica';
+
+  @override
+  String get passport_logFill_overPressureTitle =>
+      'Oltre la pressione di esercizio';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure supera la pressione di esercizio di $name, $workingPressure.';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => 'Salva comunque';
+
+  @override
+  String get passport_logFill_back => 'Indietro';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return 'Applicare anche alla ricarica di $partner?';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => 'Sì';
+
+  @override
+  String get passport_logFill_onlyThisOne => 'Solo questa';
+
+  @override
+  String get passport_history_anotherCylinder => 'un\'altra bombola';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return 'Ricaricata insieme a $partner';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'Eliminare questa ricarica da entrambe le bombole o solo da questa?';
+
+  @override
+  String get passport_history_deleteBoth => 'Entrambe le bombole';
+
+  @override
+  String get passport_history_edit => 'Modifica ricarica';
+
+  @override
+  String get twinSet_choiceTitle => 'Usare la bibombola?';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'Bibombola ($a + $b, $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return 'Solo $a';
+  }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'Abbinate dal';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'Scollegate il';
+
+  @override
+  String get settings_conflict_field_filledTogetherId =>
+      'Ricarica della bibombola';
+
+  @override
+  String get settings_conflict_field_twinPassportId =>
+      'Passaporto della bombola gemella';
 }

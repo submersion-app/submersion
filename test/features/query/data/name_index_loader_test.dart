@@ -197,6 +197,21 @@ void main() {
     },
   );
 
+  test('the diver\'s equipment sets are named, another\'s are not', () async {
+    final now = DateTime(2025, 6, 1).millisecondsSinceEpoch;
+    await db.customStatement(
+      "INSERT INTO equipment_sets (id, diver_id, name, created_at, "
+      "updated_at) VALUES ('set-mine', 'me', 'Warm water', $now, $now), "
+      "('set-other', 'other', 'Cold water', $now, $now)",
+    );
+    final index = await NameIndexLoader(db).load(diverId: 'me', l10n: _en);
+    expect(index.labelOf(QuerySubject.equipmentSets, 'set-mine'), 'Warm water');
+    expect(index.labelOf(QuerySubject.equipmentSets, 'set-other'), isNull);
+    expect(index.refs(QuerySubject.equipmentSets).map((r) => r.id), [
+      'set-mine',
+    ]);
+  });
+
   test('another diver\'s private rows stay out of the index', () async {
     final now = DateTime(2025, 6, 1).millisecondsSinceEpoch;
     await db.customStatement(
@@ -330,6 +345,8 @@ void main() {
       'tags',
       'dive_types',
       'equipment',
+      // Rule actions name equipment sets (#4284).
+      'equipment_sets',
       'species',
       // Custom certification agency and level names (issue #690).
       'custom_certification_agencies',

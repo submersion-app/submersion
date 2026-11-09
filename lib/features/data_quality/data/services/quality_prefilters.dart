@@ -106,6 +106,7 @@ class QualityPrefilters {
       'pressure_anomaly': {...withPressures, ...withTanks},
       'gas_mod': withTanks.intersection(withProfiles),
       'tank_assignment': withPressures,
+      'missing_gas_switch': withPressures.intersection(withProfiles),
       'unknown_transmitter': withTransmitterSerials,
       'source_conflict': multiSource,
       'shared_gear_overlap': sharedGear,

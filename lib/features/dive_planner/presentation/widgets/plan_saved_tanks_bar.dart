@@ -45,9 +45,12 @@ class PlanSavedTanksBar extends ConsumerWidget {
     final configs =
         ref.watch(cylinderConfigsProvider).valueOrNull ??
         const <CylinderConfig>[];
+    // A plan holds breathing gas only, so a saved suit inflation bottle is
+    // not offered here (issue #4243).
     final items = [
       for (final config in configs)
-        for (final item in config.items) item,
+        for (final item in config.items)
+          if (item.tankRole.isBreathingGas) item,
     ];
     final units = ref.watch(unitFormatterProvider);
     final planTanks = ref.watch(

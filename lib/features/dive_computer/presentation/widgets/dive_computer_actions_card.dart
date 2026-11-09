@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/raw_dive_data_discard.dart';
+import 'package:submersion/features/dive_computer/presentation/widgets/reparse_batch_dialog.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+final _log = LoggerService.forClass(DiveComputerActionsCard);
 
 /// Download, view, re-import and re-parse, on a dive computer's Equipment
 /// page (issue #3676).
@@ -175,43 +178,27 @@ class _RawDataActions extends ConsumerWidget {
     }
   }
 
+  /// Runs through the shared progress and results dialog (issue #224),
+  /// re-parsing only this computer's sources on a dive combined with another
+  /// computer's.
   Future<void> _executeReparseAll(BuildContext context, WidgetRef ref) async {
-    final service = ref.read(reparseServiceProvider);
-    final l10n = context.l10n;
-
-    final counts = await service.getRawDataCounts(computer.id);
-    if (counts.withRawData == 0) return;
-
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            l10n.diveComputer_detail_reparseAllProgress(counts.withRawData),
-          ),
-        ),
+    final messenger = ScaffoldMessenger.of(context);
+    final failed = context.l10n.common_error_tryAgain;
+    final List<String> diveIds;
+    try {
+      diveIds = await ref
+          .read(reparseBatchServiceProvider)
+          .diveIdsForComputer(computer.id);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Could not list the dives to re-parse for ${computer.id}',
+        error: e,
+        stackTrace: stackTrace,
       );
+      messenger.showSnackBar(SnackBar(content: Text(failed)));
+      return;
     }
-
-    final result = await service.reparseAllForComputer(
-      computer.id,
-      parseFn: pigeon.DiveComputerHostApi().parseRawDiveData,
-    );
-
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            result.failed == 0
-                ? l10n.diveComputer_detail_reparseAllSuccess(result.succeeded)
-                : l10n.diveComputer_detail_reparseAllPartial(
-                    result.succeeded,
-                    result.succeeded + result.failed,
-                    result.failed,
-                  ),
-          ),
-        ),
-      );
-    }
+    if (diveIds.isEmpty || !context.mounted) return;
+    await runReparseBatch(context, ref, diveIds, computerId: computer.id);
   }
 }

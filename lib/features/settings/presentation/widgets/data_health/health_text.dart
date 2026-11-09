@@ -65,6 +65,8 @@ String healthReasonText(
     HealthReason.backupNever => l10n.dataHealth_backup_never,
     HealthReason.backupCloudCopyMissing ||
     HealthReason.backupCloudSignIn => l10n.dataHealth_backup_cloudCopyMissing,
+    HealthReason.backupExtraCopyMissing =>
+      l10n.dataHealth_backup_extraCopyMissing,
     HealthReason.backupNoOffDeviceCopy =>
       l10n.dataHealth_backup_noOffDeviceCopy,
     HealthReason.syncOff => l10n.dataHealth_sync_off,

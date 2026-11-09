@@ -8,14 +8,18 @@ import 'dart:math' as math;
 ///
 /// Both are null when there is nothing honest to draw, and the figure is an
 /// empty outline.
+///
+/// [now] is where the profile cursor's pressure sits (issue #4291), measured
+/// against the same full height; null when the cursor is off the chart.
 class TankFillLevels {
-  const TankFillLevels._({this.end, this.start});
+  const TankFillLevels._({this.end, this.start, this.now});
 
   /// The empty outline.
   static const none = TankFillLevels._();
 
   final double? end;
   final double? start;
+  final double? now;
 
   bool get hasFill => end != null && start != null;
 
@@ -29,7 +33,14 @@ class TankFillLevels {
   ///   end; neither has a used zone.
   /// - An overfill (start above rated) is drawn full to the top.
   /// - A negative reading is a sensor or entry error and counts as missing.
-  factory TankFillLevels.resolve({double? start, double? end, double? rated}) {
+  /// - The [now] pressure is placed whenever there is a full height, even on
+  ///   an outline, since the cursor's reading stands on its own.
+  factory TankFillLevels.resolve({
+    double? start,
+    double? end,
+    double? rated,
+    double? now,
+  }) {
     if (start != null && start < 0) start = null;
     if (end != null && end < 0) end = null;
     final full = rated != null && rated > 0
@@ -37,25 +48,37 @@ class TankFillLevels {
         : (start != null && start > 0 ? start : null);
     if (full == null) return none;
     double level(double pressure) => (pressure / full).clamp(0.0, 1.0);
+    final nowLevel = now != null && now >= 0 ? level(now) : null;
 
     if (start != null && end != null) {
-      if (end > start) return none;
-      return TankFillLevels._(end: level(end), start: level(start));
+      if (end > start) return TankFillLevels._(now: nowLevel);
+      return TankFillLevels._(
+        end: level(end),
+        start: level(start),
+        now: nowLevel,
+      );
     }
     final only = start ?? end;
-    if (only == null) return none;
-    return TankFillLevels._(end: level(only), start: level(only));
+    if (only == null) return TankFillLevels._(now: nowLevel);
+    return TankFillLevels._(
+      end: level(only),
+      start: level(only),
+      now: nowLevel,
+    );
   }
 
   @override
   bool operator ==(Object other) =>
-      other is TankFillLevels && other.end == end && other.start == start;
+      other is TankFillLevels &&
+      other.end == end &&
+      other.start == start &&
+      other.now == now;
 
   @override
-  int get hashCode => Object.hash(end, start);
+  int get hashCode => Object.hash(end, start, now);
 
   @override
-  String toString() => 'TankFillLevels(end: $end, start: $start)';
+  String toString() => 'TankFillLevels(end: $end, start: $start, now: $now)';
 }
 
 /// The top of each label beside a tank figure, given the [centres] they

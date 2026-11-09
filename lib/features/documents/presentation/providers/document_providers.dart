@@ -35,12 +35,20 @@ final allDocumentsProvider = FutureProvider<List<DocumentListEntry>>((
   ref,
 ) async {
   final repo = ref.watch(documentRepositoryProvider);
-  ref.invalidateSelfWhen(repo.watchChanges());
-  ref.invalidateSelfWhen(repo.watchOwnerChanges());
+  invalidateOnDocumentListChanges(ref);
   final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
   if (diverId == null) return const [];
   return repo.getAllForDiver(diverId);
 });
+
+/// Rebuilds [ref]'s provider whenever [allDocumentsProvider] would refresh,
+/// for a read of some of the same entries (Global Search's rows, issue
+/// #4247): a document, its pages, or the record it is filed under.
+void invalidateOnDocumentListChanges(Ref ref) {
+  final repo = ref.read(documentRepositoryProvider);
+  ref.invalidateSelfWhen(repo.watchChanges());
+  ref.invalidateSelfWhen(repo.watchOwnerChanges());
+}
 
 /// The Documents page's query (#3882): words and the document fields, from
 /// its search row.

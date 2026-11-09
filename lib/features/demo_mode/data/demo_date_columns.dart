@@ -29,6 +29,10 @@ const demoShiftedTimeColumns = {
   'nav_tracks.end_time',
   'tide_records.high_tide_time',
   'tide_records.low_tide_time',
+  // Twin set pairing days (issue #4242): UTC midnight of a calendar day. The
+  // shift is whole weeks, so they stay on midnight.
+  'cylinder_pairings.paired_on',
+  'cylinder_pairings.unpaired_on',
 };
 
 /// Date-like columns that are not instants, with the reason.

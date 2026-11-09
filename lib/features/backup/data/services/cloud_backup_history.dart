@@ -67,12 +67,27 @@ List<BackupRecord> mergeCloudBackups(
   Iterable<CloudFileInfo> cloudFiles, {
   String? accountId,
 }) {
-  final knownIds = {for (final r in history) ?r.cloudFileId};
+  // An id is unique only within one account on a path-based backend (Git,
+  // S3, WebDAV), so only a copy noted in the listed account accounts for a
+  // file; with that account or the copy's unknown, any id still does.
+  bool listedHere(String? copyAccountId) =>
+      accountId == null || copyAccountId == null || copyAccountId == accountId;
+  // Extra copies (issue #3782) count: once the main copy goes to an account
+  // that holds some, they are listed here too.
+  final knownIds = {
+    for (final r in history) ...[
+      if (listedHere(r.cloudAccountId)) ?r.cloudFileId,
+      for (final c in r.extraCloudCopies)
+        if (listedHere(c.accountId)) c.fileId,
+    ],
+  };
   // A name says "this backup" only within one account: a record whose copy
   // is noted in another account cannot account for a file listed here.
   final knownStems = {
     for (final r in history)
-      if (r.cloudAccountId == null || r.cloudAccountId == accountId)
+      if (r.cloudAccountId == null ||
+          r.cloudAccountId == accountId ||
+          r.extraCloudCopies.any((c) => c.accountId == accountId))
         p.basenameWithoutExtension(r.filename),
   };
 

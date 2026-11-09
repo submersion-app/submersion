@@ -190,13 +190,21 @@ class EquipmentRepository {
       _db.tableUpdates(TableUpdateQuery.onTable(_db.equipmentAttributes));
 
   /// Get all equipment
-  Future<List<EquipmentItem>> getAllEquipment({String? diverId}) async {
+  ///
+  /// [ids] narrows the read to those records (Global Search's few rows,
+  /// issue #4247), on the same terms.
+  Future<List<EquipmentItem>> getAllEquipment({
+    String? diverId,
+    List<String>? ids,
+  }) async {
+    if (ids != null && ids.isEmpty) return const [];
     try {
       final query = _db.select(_db.equipment)
         ..orderBy([
           (t) => OrderingTerm.asc(t.type),
           (t) => OrderingTerm.asc(t.name.collate(Collate.noCase)),
         ]);
+      if (ids != null) query.where((t) => t.id.isIn(ids));
 
       VisibilityFilter.applyToEquipment(_db, query, diverId);
 
@@ -777,6 +785,13 @@ class EquipmentRepository {
                       t.componentEquipmentId.equals(id),
                 ))
                 .get();
+        // Twin set pairings naming the item from either side (issue
+        // #4242): cascaded away by SQLite, so tombstoned here.
+        final pairingRows =
+            await (_db.select(_db.cylinderPairings)..where(
+                  (t) => t.cylinderAId.equals(id) | t.cylinderBId.equals(id),
+                ))
+                .get();
         // Gear check-ins are a synced root of their own, also cascaded
         // away by SQLite (condition phase 3a), so tombstoned here too.
         final observations = await (_db.select(
@@ -828,6 +843,12 @@ class EquipmentRepository {
           await _syncRepository.logDeletion(
             entityType: 'equipmentComponents',
             recordId: c.id,
+          );
+        }
+        for (final p in pairingRows) {
+          await _syncRepository.logDeletion(
+            entityType: 'cylinderPairings',
+            recordId: p.id,
           );
         }
         for (final o in observations) {

@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/card_photo_overlay_slider.dart';
 import 'package:submersion/features/settings/presentation/widgets/dive_details_appearance_tiles.dart';
 import 'package:submersion/features/settings/presentation/widgets/gradient_preset_picker.dart';
 import 'package:submersion/features/settings/presentation/widgets/viewer_fullscreen_mode_tile.dart';
@@ -359,6 +360,9 @@ class SectionAppearancePage extends ConsumerWidget {
           cardColorGradientStart: s.cardColorGradientStart,
           cardColorGradientEnd: s.cardColorGradientEnd,
           showMapBackgroundOnDiveCards: s.showMapBackgroundOnDiveCards,
+          showPhotoBackgroundOnDiveCards: s.showPhotoBackgroundOnDiveCards,
+          cardPhotoOverlayDark: s.cardPhotoOverlayDark,
+          cardPhotoOverlayLight: s.cardPhotoOverlayLight,
         ),
       ),
     );
@@ -424,6 +428,40 @@ class SectionAppearancePage extends ConsumerWidget {
               .setShowMapBackgroundOnDiveCards(value);
         },
       ),
+      SwitchListTile(
+        title: Text(context.l10n.settings_appearance_photoBackgroundDiveCards),
+        subtitle: Text(
+          context.l10n.settings_appearance_photoBackgroundDiveCards_subtitle,
+        ),
+        secondary: const Icon(Icons.photo),
+        value: settings.showPhotoBackgroundOnDiveCards,
+        onChanged: (value) {
+          ref
+              .read(settingsProvider.notifier)
+              .setShowPhotoBackgroundOnDiveCards(value);
+        },
+      ),
+      if (settings.showPhotoBackgroundOnDiveCards) ...[
+        CardPhotoOverlaySlider(
+          key: const ValueKey('card_photo_overlay_dark'),
+          icon: Icons.dark_mode_outlined,
+          label: context.l10n.settings_appearance_photoOverlayDark,
+          value: settings.cardPhotoOverlayDark,
+          onChanged: (value) => ref
+              .read(settingsProvider.notifier)
+              .setCardPhotoOverlayDark(value),
+        ),
+        CardPhotoOverlaySlider(
+          key: const ValueKey('card_photo_overlay_light'),
+          icon: Icons.light_mode_outlined,
+          label: context.l10n.settings_appearance_photoOverlayLight,
+          value: settings.cardPhotoOverlayLight,
+          onChanged: (value) => ref
+              .read(settingsProvider.notifier)
+              .setCardPhotoOverlayLight(value),
+          hint: context.l10n.settings_appearance_photoOverlay_subtitle,
+        ),
+      ],
     ];
   }
 

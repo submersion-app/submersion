@@ -42,6 +42,11 @@ class CylinderFill extends Equatable {
   final String? signedRecord;
   final FillSource source;
   final String notes;
+
+  /// The id the two fills of one twin set fill share (issue #4242), or null
+  /// for a fill of one cylinder. It ties the fills, not the cylinders, so a
+  /// later swap of partners leaves it alone.
+  final String? filledTogetherId;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -61,6 +66,7 @@ class CylinderFill extends Equatable {
     this.signedRecord,
     this.source = FillSource.manual,
     this.notes = '',
+    this.filledTogetherId,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -99,6 +105,8 @@ class CylinderFill extends Equatable {
     bool clearSignedRecord = false,
     FillSource? source,
     String? notes,
+    String? filledTogetherId,
+    bool clearFilledTogetherId = false,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => CylinderFill(
@@ -121,6 +129,9 @@ class CylinderFill extends Equatable {
         : (signedRecord ?? this.signedRecord),
     source: source ?? this.source,
     notes: notes ?? this.notes,
+    filledTogetherId: clearFilledTogetherId
+        ? null
+        : (filledTogetherId ?? this.filledTogetherId),
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -144,5 +155,6 @@ class CylinderFill extends Equatable {
     signedRecord,
     source,
     notes,
+    filledTogetherId,
   ];
 }

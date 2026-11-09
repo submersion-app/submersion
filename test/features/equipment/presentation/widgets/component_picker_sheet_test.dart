@@ -69,33 +69,36 @@ class _FakeComponentRepository extends EquipmentComponentRepository {
   }
 }
 
-/// How many logged dives carry the assembly, as the history dialog sees it.
-/// The real one logs and rethrows on a query failure.
-class _FakeEquipmentRepository extends EquipmentRepository {
+/// How many logged dives carry the assembly, as the history dialog reads it
+/// from the dive repository. The real one logs and rethrows on a failure.
+class _DiveCount {
   int diveCount = 0;
   Object? throwOnCount;
-
-  @override
-  Future<int> getDiveCountForEquipment(
-    String equipmentId, {
-    String? diverId,
-  }) async {
-    if (throwOnCount != null) throw throwOnCount!;
-    return diveCount;
-  }
 }
+
+/// Stands in for anything else that reads the equipment repository.
+class _FakeEquipmentRepository extends EquipmentRepository {}
 
 /// DiveRepository only has a factory, so a Fake stands in for it.
 class _FakeDiveRepository extends Fake implements DiveRepository {
-  final rewrites = <(String, List<GearHistoryRewrite>)>[];
+  final rewrites = <(String, List<GearHistoryRewrite>, bool)>[];
+  _DiveCount count = _DiveCount();
 
   @override
-  Future<int> rewriteAssemblyOnPastDives(
+  Future<int> countLoggedDivesWithAssembly(String assemblyId) async {
+    if (count.throwOnCount != null) throw count.throwOnCount!;
+    return count.diveCount;
+  }
+
+  @override
+  Future<List<String>> rewriteAssemblyOnDives(
     String assemblyId,
-    List<GearHistoryRewrite> rewrites_,
-  ) async {
-    rewrites.add((assemblyId, rewrites_));
-    return 1;
+    List<GearHistoryRewrite> rewrites_, {
+    required bool alsoLogged,
+    bool notify = true,
+  }) async {
+    rewrites.add((assemblyId, rewrites_, alsoLogged));
+    return const ['dive'];
   }
 }
 
@@ -128,15 +131,15 @@ void main() {
     Future<ComponentsIndex>? index,
     List<EquipmentItem>? gear,
     EquipmentComponent? replacing,
-    _FakeEquipmentRepository? equipment,
+    _DiveCount? count,
     _FakeDiveRepository? dives,
   }) => ProviderScope(
     overrides: [
       equipmentComponentRepositoryProvider.overrideWithValue(repo),
-      equipmentRepositoryProvider.overrideWithValue(
-        equipment ?? _FakeEquipmentRepository(),
+      equipmentRepositoryProvider.overrideWithValue(_FakeEquipmentRepository()),
+      diveRepositoryProvider.overrideWithValue(
+        (dives ?? _FakeDiveRepository())..count = count ?? _DiveCount(),
       ),
-      diveRepositoryProvider.overrideWithValue(dives ?? _FakeDiveRepository()),
       activeEquipmentProvider.overrideWith((ref) async => gear ?? active),
       settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
       equipmentComponentsIndexProvider.overrideWith(
@@ -215,11 +218,7 @@ void main() {
     final repo = _FakeComponentRepository();
     final dives = _FakeDiveRepository();
     await tester.pumpWidget(
-      build(
-        repo,
-        equipment: _FakeEquipmentRepository()..diveCount = 3,
-        dives: dives,
-      ),
+      build(repo, count: _DiveCount()..diveCount = 3, dives: dives),
     );
     await tester.pumpAndSettle();
     await tester.tap(find.text('Name hose'));
@@ -245,6 +244,7 @@ void main() {
         const GearPartAdded('fins'),
       ]),
     );
+    expect(dives.rewrites.single.$3, isTrue);
   });
 
   testWidgets('a failed dive count is reported, and adds nothing', (
@@ -254,8 +254,7 @@ void main() {
     await tester.pumpWidget(
       build(
         repo,
-        equipment: _FakeEquipmentRepository()
-          ..throwOnCount = StateError('no database'),
+        count: _DiveCount()..throwOnCount = StateError('no database'),
       ),
     );
     await tester.pumpAndSettle();
@@ -279,9 +278,7 @@ void main() {
     // The saved part stops being a candidate, so leaving it selected would
     // count a row the diver can no longer see or untick.
     final repo = _FakeComponentRepository()..throwCycleAfter = 1;
-    await tester.pumpWidget(
-      build(repo, equipment: _FakeEquipmentRepository()..diveCount = 0),
-    );
+    await tester.pumpWidget(build(repo, count: _DiveCount()..diveCount = 0));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Name hose'));
     await tester.pump();
@@ -304,11 +301,7 @@ void main() {
     final repo = _FakeComponentRepository()..throwCycleAfter = 1;
     final dives = _FakeDiveRepository();
     await tester.pumpWidget(
-      build(
-        repo,
-        equipment: _FakeEquipmentRepository()..diveCount = 2,
-        dives: dives,
-      ),
+      build(repo, count: _DiveCount()..diveCount = 2, dives: dives),
     );
     await tester.pumpAndSettle();
     await tester.tap(find.text('Name hose'));
@@ -327,15 +320,13 @@ void main() {
     );
   });
 
-  testWidgets('from now on adds without touching past dives', (tester) async {
+  testWidgets('from now on adds and rewrites planned dives only', (
+    tester,
+  ) async {
     final repo = _FakeComponentRepository();
     final dives = _FakeDiveRepository();
     await tester.pumpWidget(
-      build(
-        repo,
-        equipment: _FakeEquipmentRepository()..diveCount = 3,
-        dives: dives,
-      ),
+      build(repo, count: _DiveCount()..diveCount = 3, dives: dives),
     );
     await tester.pumpAndSettle();
     await tester.tap(find.text('Name hose'));
@@ -345,16 +336,16 @@ void main() {
     await tester.tap(find.text('From now on'));
     await tester.pumpAndSettle();
     expect(repo.added, [('reg', 'hose')]);
-    expect(dives.rewrites, isEmpty);
+    expect(dives.rewrites, hasLength(1));
+    expect(dives.rewrites.single.$2, const [GearPartAdded('hose')]);
+    expect(dives.rewrites.single.$3, isFalse);
   });
 
   testWidgets('cancelling the question keeps the sheet open, nothing added', (
     tester,
   ) async {
     final repo = _FakeComponentRepository();
-    await tester.pumpWidget(
-      build(repo, equipment: _FakeEquipmentRepository()..diveCount = 3),
-    );
+    await tester.pumpWidget(build(repo, count: _DiveCount()..diveCount = 3));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Name hose'));
     await tester.pump();
@@ -377,7 +368,7 @@ void main() {
       build(
         repo,
         replacing: row,
-        equipment: _FakeEquipmentRepository()..diveCount = 1,
+        count: _DiveCount()..diveCount = 1,
         dives: dives,
       ),
     );

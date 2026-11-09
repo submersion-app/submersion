@@ -37,6 +37,8 @@ Future<void> _pump(
   WidgetTester tester, {
   required List<EquipmentSet> sets,
   void Function(EquipmentSet, List<EquipmentItem>)? onSetSelected,
+  String? title,
+  bool pickEmptySets = false,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -54,6 +56,8 @@ Future<void> _pump(
           body: EquipmentSetPickerSheet(
             scrollController: ScrollController(),
             onSetSelected: onSetSelected ?? (_, _) {},
+            title: title,
+            pickEmptySets: pickEmptySets,
           ),
         ),
       ),
@@ -75,6 +79,18 @@ void main() {
     expect(find.text('Tropical'), findsOneWidget);
     expect(find.text('2 items: Apeks XTX50, Low Volume Mask'), findsOneWidget);
     expect(find.text('1 item: Apeks XTX50'), findsOneWidget);
+  });
+
+  testWidgets('a caller can retitle the sheet (#4284)', (tester) async {
+    await _pump(
+      tester,
+      sets: [
+        _set('s1', 'Tropical', [_regulator]),
+      ],
+      title: 'Remove Equipment Set',
+    );
+    expect(find.text('Remove Equipment Set'), findsOneWidget);
+    expect(find.text('Use Equipment Set'), findsNothing);
   });
 
   testWidgets('tapping a set returns its items', (tester) async {
@@ -157,6 +173,20 @@ void main() {
     expect(called, isFalse);
   });
 
+  // #4284: taking a set off dives goes by the gear it tagged, which a set
+  // emptied since still names, so the remove picker offers it.
+  testWidgets('a caller can let an empty set be picked', (tester) async {
+    EquipmentSet? picked;
+    await _pump(
+      tester,
+      sets: [_set('s1', 'Empty', const [])],
+      onSetSelected: (set, _) => picked = set,
+      pickEmptySets: true,
+    );
+    await tester.tap(find.text('Empty'));
+    expect(picked?.id, 's1');
+  });
+
   testWidgets('shows empty state when no sets exist', (tester) async {
     await _pump(tester, sets: const []);
     expect(find.text('No equipment sets yet'), findsOneWidget);
@@ -189,6 +219,46 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('Error loading items'), findsOneWidget);
+  });
+
+  // #4284: removal goes by the gear a set tagged, so it needs none of the
+  // set's items, and a set whose items fail to load can still come off.
+  testWidgets('a set whose items fail to load can be picked to remove', (
+    tester,
+  ) async {
+    final set = _set('s1', 'Broken', [_regulator]);
+    EquipmentSet? picked;
+    List<EquipmentItem>? items;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          equipmentSetsProvider.overrideWith((ref) async => [set]),
+          equipmentSetWithItemsProvider.overrideWith(
+            (ref, id) => Future<EquipmentSet?>.error(Exception('boom')),
+          ),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: EquipmentSetPickerSheet(
+              scrollController: ScrollController(),
+              pickEmptySets: true,
+              onSetSelected: (s, i) {
+                picked = s;
+                items = i;
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Broken'));
+
+    expect(picked?.id, 's1');
+    expect(items, isEmpty);
   });
 
   testWidgets('tile shows the loading state while items resolve', (

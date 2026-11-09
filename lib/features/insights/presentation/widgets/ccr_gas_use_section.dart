@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/insights/domain/ccr_gas_use_trend.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/trend_chart_settings_provider.dart';
 import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart.dart';
+import 'package:submersion/features/insights/presentation/widgets/rate_average_tile.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_chart_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -77,13 +77,13 @@ class CcrGasUseSection extends ConsumerWidget {
     final l10n = context.l10n;
     final tiles = [
       if (trend.o2Average case final average?)
-        _AverageTile(
+        RateAverageTile(
           color: _o2Color,
           value: format(average),
           label: l10n.insights_gas_ccrUse_o2Average,
         ),
       if (trend.diluentAverage case final average?)
-        _AverageTile(
+        RateAverageTile(
           color: _diluentColor,
           value: format(average),
           label: l10n.insights_gas_ccrUse_diluentAverage,
@@ -94,63 +94,6 @@ class CcrGasUseSection extends ConsumerWidget {
       child: Row(
         spacing: 8,
         children: [for (final tile in tiles) Expanded(child: tile)],
-      ),
-    );
-  }
-}
-
-class _AverageTile extends StatelessWidget {
-  const _AverageTile({
-    required this.color,
-    required this.value,
-    required this.label,
-  });
-
-  final Color color;
-  final String value;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Semantics(
-      label: statLabel(name: label, value: value),
-      child: ExcludeSemantics(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHigh,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            spacing: 8,
-            children: [
-              DecoratedBox(
-                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-                child: const SizedBox.square(dimension: 10),
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      value,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      label,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

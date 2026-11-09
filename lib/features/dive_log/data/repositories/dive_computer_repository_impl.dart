@@ -19,6 +19,7 @@ import 'package:submersion/core/database/database.dart'
         GasSwitchesCompanion,
         DiveProfileEvent;
 import 'package:submersion/core/database/computer_serial_identity.dart';
+import 'package:submersion/core/database/dive_water_temp_fill.dart';
 import 'package:submersion/core/database/imported_computer_identity.dart';
 import 'package:submersion/core/matching/match_scorer.dart';
 import 'package:submersion/core/profile/tank_pressure_glitches.dart';
@@ -1607,6 +1608,11 @@ class DiveComputerRepository {
     // #2517). Off for a second computer matched onto the dive, whose tanks
     // are the cylinders already stored rather than new ones.
     bool addMissingTanks = false,
+    // The trip whose dates cover the dive (issue #3022), resolved by the
+    // caller. Like the diluent above, only a brand-new dive row takes it: a
+    // dive matched to an existing row keeps the trip the diver gave it, or
+    // left it out of.
+    String? tripId,
   }) async {
     try {
       _log.info('Importing profile from computer $computerId');
@@ -1724,6 +1730,7 @@ class DiveComputerRepository {
                     ? Value(diluentHe ?? 0.0)
                     : const Value.absent(),
                 diveType: const Value(diveTypeId),
+                tripId: Value(tripId),
                 createdAt: Value(now),
                 updatedAt: Value(now),
                 entryLatitude: Value(entryLatitude),
@@ -2307,6 +2314,15 @@ class DiveComputerRepository {
           }
         });
         _log.info('Imported events for dive $diveId');
+      }
+
+      // The dive takes the water temperature its source rows measured when it
+      // holds none, so the query field, the dive table and the agent read it
+      // as the detail page does (issue #4333). Before the stamp below, so a
+      // matched dive syncs the filled value. Raw SQL, which Drift's streams
+      // do not see, and a new dive has no later write that would tell them.
+      if (await fillDiveWaterTempsFromSources(_db, diveIds: [diveId]) > 0) {
+        _db.notifyUpdates({TableUpdate.onTable(_db.dives)});
       }
 
       if (!isNewDive) {

@@ -211,6 +211,7 @@ class _Details extends ConsumerWidget {
     if (copyGoes) {
       await container.read(backupSettingsProvider.notifier).setNoCopy();
     }
+    await _dropExtraCopies(container);
     await service.signOut(group);
     _refreshWith(container);
   }
@@ -243,9 +244,18 @@ class _Details extends ConsumerWidget {
     if (copyGoes) {
       await container.read(backupSettingsProvider.notifier).setNoCopy();
     }
+    await _dropExtraCopies(container);
     await service.remove(group);
     _refreshWith(container);
     navigator.maybePop();
+  }
+
+  /// An account backups are also copied to (issue #3782) stops getting
+  /// copies; the main copy carries on wherever it goes.
+  Future<void> _dropExtraCopies(ProviderContainer container) async {
+    await container
+        .read(backupSettingsProvider.notifier)
+        .removeExtraCopyAccounts({for (final row in group.rows) row.id});
   }
 
   /// The backup copy goes with the account it uses: the sync account for a

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tissue_tooltip_text.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A tissue loading area chart that visualizes compartment loading curves
 /// for all 16 Buhlmann compartments as filled areas over time.
@@ -127,20 +129,7 @@ class _TissueAreaChartState extends State<TissueAreaChart> {
     widget.onCompartmentHoverChanged?.call(leadingCompIdx);
 
     final comp = status.compartments[leadingCompIdx];
-    final isOffgassing = status.isOffgassing(comp);
-    final gfAtDepth = comp.gradientFactor(ambient);
-
-    final lines = <String>[
-      'Compartment ${comp.compartmentNumber}',
-      '${comp.percentLoading.toStringAsFixed(1)}% loaded',
-      'GF: ${(gfAtDepth * 100).toStringAsFixed(0)}%',
-      'N\u2082: ${comp.currentPN2.toStringAsFixed(2)} bar',
-      if (comp.currentPHe > 0.001)
-        'He: ${comp.currentPHe.toStringAsFixed(2)} bar',
-      'Half-time: ${comp.halfTimeN2.toStringAsFixed(0)} min',
-      if (isOffgassing != null) isOffgassing ? 'Offgassing' : 'Ongassing',
-    ];
-    final message = lines.join('\n');
+    final message = tissueCompartmentTooltip(context.l10n, status, comp);
 
     // Position tooltip horizontally at the time index, above the chart
     final cellCenterX = (timeIdx + 0.5) / numTimePoints * box.size.width;

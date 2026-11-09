@@ -38,6 +38,10 @@ enum HealthReason {
 
   /// The cloud copy is missing, and signing in again would help (#3811).
   backupCloudSignIn,
+
+  /// The main copy arrived, but an extra account did not get its copy
+  /// (#3782).
+  backupExtraCopyMissing,
   backupNoOffDeviceCopy,
   syncCustomFolder,
   syncOff,

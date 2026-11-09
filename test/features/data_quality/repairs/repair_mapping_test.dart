@@ -57,6 +57,30 @@ void main() {
     });
   });
 
+  group('source placed away from where its profile fits (#4296)', () {
+    test('first offers to line the source up by the stored shift', () {
+      final actions = repairOptionsFor(
+        f(
+          detectorId: 'clock_offset',
+          params: {'sourceId': 's2', 'profileOffsetSeconds': 1160},
+        ),
+      );
+      final fix = actions.first as SourceProfileShiftRepair;
+      expect(fix.diveId, 'd1');
+      expect(fix.sourceId, 's2');
+      expect(fix.seconds, 1160);
+      expect(actions.last, isA<GoToDiveRepair>());
+      expect(actions.whereType<TimeShiftRepair>(), isEmpty);
+    });
+
+    test('a finding without its source id only navigates', () {
+      final actions = repairOptionsFor(
+        f(detectorId: 'clock_offset', params: {'profileOffsetSeconds': -600}),
+      );
+      expect(actions.single, isA<GoToDiveRepair>());
+    });
+  });
+
   test('duplicate maps to consolidate with the pair', () {
     final actions = repairOptionsFor(
       f(detectorId: 'duplicate', relatedDiveId: 'd2'),
@@ -225,6 +249,7 @@ void main() {
       'gas_mod',
       'tank_assignment',
       'source_conflict',
+      'missing_gas_switch',
     ]) {
       expect(
         repairOptionsFor(f(detectorId: id, relatedDiveId: 'd2')),
@@ -538,6 +563,80 @@ void main() {
 
     test('tank_assignment without ids gets navigation only', () {
       final actions = repairOptionsFor(f(detectorId: 'tank_assignment'));
+      expect(actions.single, isA<GoToDiveRepair>());
+    });
+  });
+
+  group('missing_gas_switch branches', () {
+    test('missed switches offer adding them, then navigation (#165)', () {
+      final actions = repairOptionsFor(
+        f(
+          detectorId: 'missing_gas_switch',
+          params: {
+            'missingSwitches': [
+              {'tankId': 'deco', 'tankPosition': 1, 't': 1800, 'depth': 21},
+              {'tankId': 'o2', 'tankPosition': 2, 't': 2400, 'depth': 6.0},
+            ],
+            'deepStarts': const [],
+          },
+        ),
+      );
+      final add = actions.first as AddGasSwitchesRepair;
+      expect(add.diveId, 'd1');
+      expect(add.switches, [
+        (tankId: 'deco', t: 1800, depth: 21.0),
+        (tankId: 'o2', t: 2400, depth: 6.0),
+      ]);
+      expect(actions.whereType<GoToDiveRepair>(), hasLength(1));
+    });
+
+    test('an entry missing a field is skipped, not guessed (#165)', () {
+      final actions = repairOptionsFor(
+        f(
+          detectorId: 'missing_gas_switch',
+          params: {
+            'missingSwitches': [
+              {'tankId': 'deco', 't': 1800},
+              {'t': 2400, 'depth': 6.0},
+              {'tankId': 'o2', 't': '2400', 'depth': 6.0},
+              'not a map',
+              {'tankId': 'o2', 't': 2400, 'depth': 6},
+            ],
+            'deepStarts': const [],
+          },
+        ),
+      );
+      final add = actions.first as AddGasSwitchesRepair;
+      expect(add.switches, [(tankId: 'o2', t: 2400, depth: 6.0)]);
+    });
+
+    test('only malformed entries leave navigation only (#165)', () {
+      final actions = repairOptionsFor(
+        f(
+          detectorId: 'missing_gas_switch',
+          params: {
+            'missingSwitches': [
+              {'tankId': 'deco', 't': 1800},
+            ],
+            'deepStarts': const [],
+          },
+        ),
+      );
+      expect(actions.single, isA<GoToDiveRepair>());
+    });
+
+    test('only too-deep starts get navigation only (#165)', () {
+      final actions = repairOptionsFor(
+        f(
+          detectorId: 'missing_gas_switch',
+          params: {
+            'missingSwitches': const [],
+            'deepStarts': [
+              {'tankId': 'deco', 'tankPosition': 1, 't': 1800, 'depth': 40},
+            ],
+          },
+        ),
+      );
       expect(actions.single, isA<GoToDiveRepair>());
     });
   });

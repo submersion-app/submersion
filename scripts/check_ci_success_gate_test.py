@@ -318,6 +318,18 @@ class FileTests(unittest.TestCase):
         ok, lines = guard.check_file(path)
         self.assertTrue(ok, "\n".join(lines))
 
+    def test_web_smoke_blocks_the_merge(self):
+        # The browser smoke was advisory until it passed reliably (#4186).
+        # An exemption would let it go red with the required check green,
+        # so it stays in the gate's needs and out of the exempt list.
+        path = os.path.join(
+            os.path.dirname(_HERE), ".github", "workflows", "ci.yaml"
+        )
+        with open(path) as fh:
+            needs = guard.gate_needs(fh.read())
+        self.assertIn("web-smoke", needs)
+        self.assertNotIn("web-smoke", guard.EXEMPT_JOBS)
+
 
 if __name__ == "__main__":
     unittest.main()

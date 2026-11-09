@@ -136,6 +136,7 @@ class _RecordingTransferService extends EquipmentTransferService {
 
 Future<List<Override>> _buildOverrides({
   required List<EquipmentItem> equipment,
+  EntityTableViewConfig<EquipmentField>? config,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -152,7 +153,7 @@ Future<List<Override>> _buildOverrides({
     fakeEquipmentQueryIds(),
     equipmentListViewModeProvider.overrideWith((ref) => ListViewMode.table),
     equipmentTableConfigProvider.overrideWith(
-      (ref) => _TestEquipTableConfigNotifier(_testConfig),
+      (ref) => _TestEquipTableConfigNotifier(config ?? _testConfig),
     ),
   ];
 }
@@ -1335,6 +1336,53 @@ void main() {
       expect(find.text('Wetsuit 5mm'), findsOneWidget);
     });
 
+    testWidgets('the Location column names each item\'s place (#3625)', (
+      tester,
+    ) async {
+      final equipment = [
+        _makeEquipment(id: 'e1', name: 'Primary Reg'),
+        _makeEquipment(id: 'e2', name: 'Travel BCD'),
+      ];
+      final overrides = await _buildOverrides(
+        equipment: equipment,
+        config: EntityTableViewConfig<EquipmentField>(
+          columns: [
+            EntityTableColumnConfig(
+              field: EquipmentField.itemName,
+              isPinned: true,
+            ),
+            EntityTableColumnConfig(field: EquipmentField.location),
+          ],
+        ),
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...overrides,
+            currentEquipmentLocationsProvider.overrideWith(
+              (ref) async => {
+                'e1': EquipmentLocation(
+                  id: 'shop',
+                  name: "Joe's Scuba",
+                  kind: EquipmentLocationKind.serviceShop,
+                  createdAt: DateTime(2026),
+                  updatedAt: DateTime(2026),
+                ),
+              },
+            ),
+          ],
+          child: const EquipmentListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Location'), findsOneWidget);
+      expect(find.text("Joe's Scuba"), findsOneWidget);
+      // Travel BCD has no recorded place.
+      expect(find.text('--'), findsOneWidget);
+    });
+
     testWidgets('shows empty state when no equipment', (tester) async {
       final overrides = await _buildOverrides(equipment: []);
 
@@ -1946,6 +1994,31 @@ void main() {
       await pumpList(tester, groupByLocation: false);
       expect(find.byType(EquipmentLocationGroupHeader), findsNothing);
       expect(find.byType(EquipmentGroupHeader), findsNWidgets(3));
+    });
+
+    Map<String, String?> tilePlaces(WidgetTester tester) => {
+      for (final tile in tester.widgetList<EquipmentListTile>(
+        find.byType(EquipmentListTile),
+      ))
+        tile.item.name: tile.location?.name,
+    };
+
+    testWidgets('ungrouped, each card names its place (#3625)', (tester) async {
+      await pumpList(tester, groupByLocation: false);
+      expect(tilePlaces(tester), {
+        'Alpha Reg': "Joe's Scuba",
+        'Bravo BCD': 'Garage',
+        'Charlie Reg': 'Garage',
+        'Delta Suit': null,
+      });
+      expect(find.text("Joe's Scuba"), findsOneWidget);
+      expect(find.text('Garage'), findsNWidgets(2));
+    });
+
+    testWidgets('grouped by place, the heading names it and the cards '
+        'leave it off (#3625)', (tester) async {
+      await pumpList(tester, groupByLocation: true);
+      expect(tilePlaces(tester).values, everyElement(isNull));
     });
   });
 

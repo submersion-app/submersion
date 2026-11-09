@@ -34,10 +34,15 @@ class DiverGasSwitchWriter {
   /// tombstoned, even when a removed cylinder already cascaded it away.
   /// Switches the editor did not load (another computer's) are never
   /// touched. Returns false, writing nothing, when nothing differs.
+  ///
+  /// [edited] is the ownership the dive's list is left with. The editor
+  /// leaves it the diver's; an undo that takes a dive back to the list its
+  /// computers logged passes false, so a re-parse may refresh it again.
   Future<bool> save({
     required String diveId,
     required List<GasSwitch> switches,
     required Set<String> loadedIds,
+    bool edited = true,
     DateTime? now,
   }) async {
     final at = (now ?? DateTime.now()).millisecondsSinceEpoch;
@@ -122,10 +127,7 @@ class DiverGasSwitchWriter {
       }
 
       await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
-        DivesCompanion(
-          updatedAt: Value(at),
-          gasSwitchesEdited: const Value(true),
-        ),
+        DivesCompanion(updatedAt: Value(at), gasSwitchesEdited: Value(edited)),
       );
       await _sync.markRecordPending(
         entityType: 'dives',

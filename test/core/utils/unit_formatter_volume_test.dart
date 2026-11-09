@@ -39,6 +39,21 @@ void main() {
       expect(metricFormatter.formatTankVolume(11.16, 207.0), '11.2 L');
     });
 
+    test('a small bottle keeps two decimals (#4243)', () {
+      // A drysuit's 0.85 L argon bottle is not a 0.8 L one.
+      expect(metricFormatter.formatTankVolume(0.85, 200.0), '0.85 L');
+      expect(metricFormatter.formatTankVolume(0.4, 200.0), '0.4 L');
+      expect(metricFormatter.formatTankVolume(2.94, 200.0), '2.94 L');
+      expect(metricFormatter.formatTankVolume(3.04, 200.0), '3 L');
+    });
+
+    test('tankVolumeLiterDecimals is two below 3 L, else one', () {
+      expect(UnitFormatter.tankVolumeLiterDecimals(0.85), 2);
+      expect(UnitFormatter.tankVolumeLiterDecimals(2.99), 2);
+      expect(UnitFormatter.tankVolumeLiterDecimals(3), 1);
+      expect(UnitFormatter.tankVolumeLiterDecimals(11.1), 1);
+    });
+
     test('imperial uses ratedCapacityCuft when provided', () {
       expect(
         imperialFormatter.formatTankVolume(

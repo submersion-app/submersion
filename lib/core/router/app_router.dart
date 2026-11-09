@@ -132,6 +132,7 @@ import 'package:submersion/features/settings/presentation/pages/connected_accoun
 import 'package:submersion/features/settings/presentation/pages/account_detail_page.dart';
 import 'package:submersion/features/settings/presentation/pages/lightroom_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/fix_dive_times_page.dart';
+import 'package:submersion/features/settings/presentation/pages/reparse_dives_page.dart';
 import 'package:submersion/features/settings/presentation/pages/link_buddy_names_page.dart';
 import 'package:submersion/features/settings/presentation/pages/retype_other_gear_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
@@ -231,7 +232,7 @@ import 'package:submersion/features/dive_computer/presentation/providers/dive_co
 import 'package:submersion/features/dive_computer/presentation/pages/device_list_page.dart';
 import 'package:submersion/features/dive_computer/presentation/pages/dive_computer_item_redirect.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart'
-    show diveImportServiceProvider;
+    show diveImportServiceProvider, importTripResolverProvider;
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
 import 'package:submersion/features/import_wizard/data/adapters/divelogs_import_adapter.dart';
@@ -1861,6 +1862,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => const FixDiveTimesPage(),
               ),
               GoRoute(
+                path: 'reparse-dives',
+                name: 'reparseDives',
+                builder: (context, state) => const ReparseDivesPage(),
+              ),
+              GoRoute(
                 path: 'link-buddy-names',
                 name: 'linkBuddyNames',
                 builder: (context, state) => const LinkBuddyNamesPage(),
@@ -2315,6 +2321,7 @@ class _HealthKitImportWizardRoute extends ConsumerWidget {
         diverId: diverId,
         ref: ref,
         settings: settings,
+        tripForImports: ref.watch(importTripResolverProvider),
       ),
     );
   }

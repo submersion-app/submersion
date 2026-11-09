@@ -712,15 +712,32 @@ class PlanEngine {
   /// The water and surface conditions [plan] is computed in. Shared with
   /// every caller that must charge gas at the same ambient pressure the
   /// deco schedule used (the DPV mission's per-diver gas, issue #2086).
+  /// Conditions are read as [environmentForConditions] describes.
+  static DiveEnvironment environmentFor(domain.DivePlan plan) =>
+      environmentForConditions(
+        altitude: plan.altitude,
+        waterType: plan.waterType,
+        salinityPpt: plan.salinityPpt,
+      );
+
+  /// [environmentFor] from a plan's raw conditions, for callers holding
+  /// planner state rather than a [domain.DivePlan].
   ///
-  /// Altitude <= 0 is treated as unset (legacy 1.0 bar surface), matching
-  /// the rest of the planner: a literal 0 must not switch to barometric
-  /// sea-level pressure and subtly change the deco math.
-  static DiveEnvironment environmentFor(domain.DivePlan plan) {
+  /// An unset or zero altitude keeps the legacy 1.0 bar surface: a literal 0
+  /// must not switch to barometric sea-level pressure and subtly change the
+  /// deco math. A negative altitude is a dive below sea level, which the
+  /// planner and the deco calculator both accept, so it takes its barometric
+  /// surface pressure like any other altitude (#4314). Null water type is
+  /// salt, the planner default; a custom salinity overrides either.
+  static DiveEnvironment environmentForConditions({
+    double? altitude,
+    WaterType? waterType,
+    double? salinityPpt,
+  }) {
     return DiveEnvironment.forConditions(
-      altitudeMeters: (plan.altitude ?? 0) > 0 ? plan.altitude : null,
-      waterType: plan.waterType ?? WaterType.salt,
-      salinityPpt: plan.salinityPpt,
+      altitudeMeters: altitude == 0 ? null : altitude,
+      waterType: waterType ?? WaterType.salt,
+      salinityPpt: salinityPpt,
     );
   }
 
@@ -2182,7 +2199,11 @@ class PlanEngine {
         }
       }
 
-      final end = segment.gasMix.end(deeperEnd, o2Narcotic: config.o2Narcotic);
+      final end = segment.gasMix.end(
+        deeperEnd,
+        o2Narcotic: config.o2Narcotic,
+        environment: environment,
+      );
       if (end > config.endLimitMeters) {
         issues.add(
           PlanIssue(
@@ -2193,7 +2214,11 @@ class PlanEngine {
                 '${config.endLimitMeters.toStringAsFixed(0)} m',
             atRuntime: onset(
               (d) =>
-                  segment.gasMix.end(d, o2Narcotic: config.o2Narcotic) >
+                  segment.gasMix.end(
+                    d,
+                    o2Narcotic: config.o2Narcotic,
+                    environment: environment,
+                  ) >
                   config.endLimitMeters,
             ),
             atDepth: deeperEnd,
@@ -2998,10 +3023,11 @@ class PlanEngine {
           // printed at 3 m on a 7/70 diluent), so the floor is 0 m.
           endMeters: math.max(
             0.0,
-            GasMix(
-              o2: fO2 * 100,
-              he: fHe * 100,
-            ).end(pDepth, o2Narcotic: config.o2Narcotic),
+            GasMix(o2: fO2 * 100, he: fHe * 100).end(
+              pDepth,
+              o2Narcotic: config.o2Narcotic,
+              environment: environment,
+            ),
           ),
           foldedTravel: foldedTravel,
         ),

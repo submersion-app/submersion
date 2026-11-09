@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
@@ -39,8 +40,9 @@ class LinkedPlanComparison {
 /// Recomputes the plan through the same PlanEngine the canvas uses so the
 /// result always reflects the plan's full computed schedule (segments + deco
 /// ascent), not just the stored bottom segments.
-final linkedPlanComparisonProvider =
-    FutureProvider.family<LinkedPlanComparison?, String>((ref, diveId) async {
+final linkedPlanComparisonProvider = FutureProvider.autoDispose
+    .family<LinkedPlanComparison?, String>((ref, diveId) async {
+      retainDiveData(ref);
       final repository = ref.watch(divePlanRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchPlanChanges());
 
@@ -94,8 +96,9 @@ Future<PlanOutcome?> _seriesOutcome(
 /// The planned profile for a dive with a linked plan, rendered as a chart
 /// overlay next to the actual logged profile ("plan vs actual"). Null when
 /// the dive has no linked plan.
-final plannedProfileOverlayProvider =
-    FutureProvider.family<ChartSourceOverlay?, String>((ref, diveId) async {
+final plannedProfileOverlayProvider = FutureProvider.autoDispose
+    .family<ChartSourceOverlay?, String>((ref, diveId) async {
+      retainDiveData(ref);
       final comparison = await ref.watch(
         linkedPlanComparisonProvider(diveId).future,
       );

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_consolidation_builder.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_alignment.dart';
@@ -446,6 +447,56 @@ void main() {
         expect(plan.tankMerges, isEmpty);
       },
     );
+
+    group('a suit inflation bottle (issue #4243)', () {
+      // Air in a suit bottle and air back gas with readings that agree: the
+      // gas mix alone cannot tell them apart.
+      const backGas = DiveTank(
+        id: 'p1',
+        gasMix: GasMix(o2: 21.0, he: 0.0),
+        startPressure: 200,
+      );
+      const suit = DiveTank(
+        id: 's1',
+        gasMix: GasMix(o2: 21.0, he: 0.0),
+        startPressure: 200,
+        role: TankRole.suitInflation,
+      );
+
+      Map<String, String> merges(DiveTank p, DiveTank s) => builder.build([
+        makeDive('p', entry: t, runtimeMin: 40, tanks: [p]),
+        makeDive(
+          's',
+          entry: t.add(const Duration(minutes: 10)),
+          runtimeMin: 30,
+          tanks: [s],
+        ),
+      ]).tankMerges;
+
+      test('never merges into breathing gas on its mix', () {
+        expect(merges(backGas, suit), isEmpty);
+        expect(
+          merges(suit.copyWith(id: 'p1'), backGas.copyWith(id: 's1')),
+          isEmpty,
+        );
+      });
+
+      test('merges with another suit bottle on its mix', () {
+        expect(merges(suit.copyWith(id: 'p1'), suit), {'s1': 'p1'});
+      });
+
+      test('still merges on a shared transmitter serial', () {
+        // One cylinder seen by two computers, one of which never learned
+        // its role: the transmitter is the identity.
+        expect(
+          merges(
+            backGas.copyWith(transmitterSerial: '180777'),
+            suit.copyWith(transmitterSerial: '180777'),
+          ),
+          {'s1': 'p1'},
+        );
+      });
+    });
 
     test('a zero sentinel serial on both sides is no identity at all', () {
       // "0" is libdivecomputer's "no transmitter"; two such tanks must fall
@@ -1050,6 +1101,166 @@ void main() {
         makeDive('b', entry: t.add(const Duration(minutes: 5)), serial: 'B'),
       ]);
       expect(plan.alignments, isEmpty);
+    });
+  });
+
+  group('an overlapping secondary whose clock is wrong (#4296)', () {
+    // 'b' is the same dive on a computer whose clock runs 20 minutes slow
+    // and which logged 40 s at the surface before the descent. Wrong by less
+    // than the dive lasted, so the two records still overlap in time.
+    List<Dive> slowClockPair({int clockMinutes = -20}) => [
+      makeDive(
+        'a',
+        entry: t,
+        runtimeMin: 48,
+        serial: 'A',
+        profile: reefProfile(),
+      ),
+      makeDive(
+        'b',
+        entry: t.add(Duration(minutes: clockMinutes)),
+        runtimeMin: 48,
+        serial: 'B',
+        profile: reefProfile(lead: 40),
+      ),
+    ];
+
+    test('is realigned without a mode instead of trusted', () {
+      final result = builder.classify(slowClockPair(), primaryDiveId: 'a');
+      expect(result, isA<ConsolidationReady>());
+      final ready = result as ConsolidationReady;
+      expect(ready.realignedIds, {'b'});
+      expect(ready.clockMismatchIds, {'b'});
+      // The fit the mismatch was judged by, kept for build to reuse.
+      expect(ready.overlapFits['b']!.offsetSeconds, -40);
+      expect(ready.overlapFits['b']!.isStrongMatch, isTrue);
+    });
+
+    test('is placed by its profile, not its clock, without a mode', () {
+      final plan = builder.build(slowClockPair(), primaryDiveId: 'a');
+      expect(plan.offsetsSeconds['b'], -40);
+      expect(plan.alignments['b']!.isStrongMatch, isTrue);
+      expect(plan.previewSeries['b']!.first.timestamp, -40);
+    });
+
+    test('follows best fit and align starts like a non-overlapping one', () {
+      final fit = builder.build(
+        slowClockPair(),
+        primaryDiveId: 'a',
+        alignment: ConsolidationAlignment.bestFit,
+      );
+      final starts = builder.build(
+        slowClockPair(),
+        primaryDiveId: 'a',
+        alignment: ConsolidationAlignment.starts,
+      );
+      expect(fit.offsetsSeconds['b'], -40);
+      expect(starts.offsetsSeconds['b'], 0);
+      expect(starts.alignments['b']!.isStrongMatch, isTrue);
+    });
+
+    test('a clock fast by under the runtime is caught too', () {
+      final plan = builder.build(
+        slowClockPair(clockMinutes: 30),
+        primaryDiveId: 'a',
+      );
+      expect(plan.offsetsSeconds['b'], -40);
+    });
+
+    test('a fit within the tolerance keeps the entry-time offset', () {
+      final result = builder.classify(
+        slowClockPair(clockMinutes: -4),
+        primaryDiveId: 'a',
+      );
+      expect((result as ConsolidationReady).realignedIds, isEmpty);
+      final plan = builder.build(
+        slowClockPair(clockMinutes: -4),
+        primaryDiveId: 'a',
+      );
+      expect(plan.offsetsSeconds['b'], -240);
+      expect(plan.alignments, isEmpty);
+      // Judged, and found to agree with the clock.
+      expect(result.overlapFits.keys, ['b']);
+    });
+
+    test('a weak fit keeps the entry-time offset', () {
+      // A flat 5 m trace looks nothing like the reef dive at any shift.
+      final dives = [
+        makeDive(
+          'a',
+          entry: t,
+          runtimeMin: 48,
+          serial: 'A',
+          profile: reefProfile(),
+        ),
+        makeDive(
+          'b',
+          entry: t.add(const Duration(minutes: -20)),
+          runtimeMin: 48,
+          serial: 'B',
+          profile: [
+            for (var s = 0; s <= 2880; s += 10)
+              DiveProfilePoint(timestamp: s, depth: 5),
+          ],
+        ),
+      ];
+      expect(
+        (builder.classify(dives, primaryDiveId: 'a') as ConsolidationReady)
+            .realignedIds,
+        isEmpty,
+      );
+      expect(
+        builder.build(dives, primaryDiveId: 'a').offsetsSeconds['b'],
+        -1200,
+      );
+    });
+
+    test('a record whose clock placement fits is trusted, even where its '
+        'trace also matches somewhere else', () {
+      // The primary was combined from two halves that look alike; 'b' logged
+      // only the second, and its clock places it there correctly. The search
+      // around lined-up starts finds the first half instead.
+      final dives = [
+        makeDive(
+          'a',
+          entry: t,
+          runtimeMin: 98,
+          serial: 'A',
+          profile: [
+            ...reefProfile(),
+            for (final p in reefProfile())
+              DiveProfilePoint(timestamp: p.timestamp + 3000, depth: p.depth),
+          ],
+        ),
+        makeDive(
+          'b',
+          entry: t.add(const Duration(seconds: 3000)),
+          runtimeMin: 48,
+          serial: 'B',
+          profile: reefProfile(),
+        ),
+      ];
+      final result = builder.classify(dives, primaryDiveId: 'a');
+      expect((result as ConsolidationReady).realignedIds, isEmpty);
+      expect(
+        builder.build(dives, primaryDiveId: 'a').offsetsSeconds['b'],
+        3000,
+      );
+    });
+
+    test('a non-overlapping secondary is realigned but no clock mismatch', () {
+      final result = builder.classify([
+        makeDive('a', entry: t, runtimeMin: 48, serial: 'A'),
+        makeDive(
+          'b',
+          entry: t.add(const Duration(minutes: 66)),
+          runtimeMin: 48,
+          serial: 'B',
+        ),
+      ], alignment: ConsolidationAlignment.bestFit);
+      final ready = result as ConsolidationReady;
+      expect(ready.realignedIds, {'b'});
+      expect(ready.clockMismatchIds, isEmpty);
     });
   });
 }

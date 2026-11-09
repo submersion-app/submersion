@@ -50,7 +50,10 @@ class _ThrowingCourseRepository extends CourseRepository {
   Stream<void> watchCoursesChanges() => const Stream<void>.empty();
 
   @override
-  Future<List<Course>> getAllCourses({String? diverId}) async {
+  Future<List<Course>> getAllCourses({
+    String? diverId,
+    List<String>? ids,
+  }) async {
     throw StateError('boom');
   }
 }

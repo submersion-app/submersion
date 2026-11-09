@@ -5,6 +5,7 @@ import 'package:submersion/core/buoyancy/twin_analyzer.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
@@ -37,11 +38,9 @@ class BuoyancyHistoryEntry {
 ///
 /// Cross-dive lookbacks use `ref.read` (not watch) so loading many dives does
 /// not wire this provider to every one of their change streams.
-final buoyancyHistoryProvider =
-    FutureProvider.family<List<BuoyancyHistoryEntry>, String>((
-      ref,
-      currentDiveId,
-    ) async {
+final buoyancyHistoryProvider = FutureProvider.autoDispose
+    .family<List<BuoyancyHistoryEntry>, String>((ref, currentDiveId) async {
+      retainDiveData(ref);
       final currentDive = await ref.watch(diveProvider(currentDiveId).future);
       final model = await ref.watch(weightCalibrationProvider.future);
       final observations = await ref.watch(weightObservationsProvider.future);

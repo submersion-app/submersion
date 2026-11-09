@@ -1320,6 +1320,9 @@ class SubsurfaceXmlParser implements ImportParser {
       'sidemount-right' => TankRole.sidemountRight,
       'pony' => TankRole.pony,
       'backgas' || 'back-gas' || 'back_gas' => TankRole.backGas,
+      // Subsurface's cylinder for gas that is not breathed: in practice a
+      // drysuit's argon bottle (issue #4243).
+      'not used' => TankRole.suitInflation,
       _ => null,
     };
   }

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_builders.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_service.dart';
@@ -191,6 +192,22 @@ void main() {
     test('a fractional mix names its exact percentages', () {
       expect(startId(const GasMix(o2: 32.1)), 'mix_32.1_0');
       expect(startId(const GasMix(o2: 18, he: 45.25)), 'mix_18_45.25');
+    });
+
+    test('a suit inflation bottle listed first is not the start (#4243)', () {
+      final dive = diveBreathing([const GasMix(o2: 32)]);
+      final withSuit = dive.copyWith(
+        tanks: [
+          const DiveTank(
+            id: 'suit',
+            gasMix: GasMix(o2: 21),
+            role: TankRole.suitInflation,
+          ),
+          ...dive.tanks,
+        ],
+      );
+
+      expect(UddfExportBuilders.startMixId(withSuit), 'mix_32_0');
     });
   });
 

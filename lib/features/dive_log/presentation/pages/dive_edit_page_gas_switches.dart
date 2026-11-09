@@ -4,10 +4,11 @@ part of 'dive_edit_page.dart';
 /// it, answers the editor and saves it. A part of the page, so the page
 /// itself grows by its five fields, one setState seam and four call sites.
 extension _GasSwitchEditing on _DiveEditPageState {
-  /// With one cylinder there is nothing to switch to; a gauge dive logs no
-  /// gas; a planned dive's switches belong to the plan.
+  /// With one breathing cylinder there is nothing to switch to (a suit
+  /// inflation bottle is not one, issue #4243); a gauge dive logs no gas; a
+  /// planned dive's switches belong to the plan.
   bool get _gasSwitchesVisible => gasSwitchesEditable(
-    tankCount: _tanks.length,
+    breathingTankCount: breathingTanks(_tanks).length,
     mode: _diveMode,
     isPlanned: _isPlanned,
   );
@@ -94,9 +95,18 @@ extension _GasSwitchEditing on _DiveEditPageState {
     UnitFormatter units,
   ) async {
     final diveId = widget.diveId;
+    // Awaited, not read as a value: the breath starts above keep the family
+    // loaded while this section shows, but a pick made before it finishes
+    // loading still gets the recorded pressures.
     final recorded = diveId == null
         ? null
-        : ref.read(tankPressuresProvider(diveId)).value;
+        : await ref
+              .read(tankPressuresProvider(diveId).future)
+              .then<Map<String, List<TankPressurePoint>>?>(
+                (value) => value,
+                onError: (Object _) => null,
+              );
+    if (!mounted) return;
     final seconds = await showGasSwitchTimeSheet(
       context,
       profile: profile,
@@ -159,21 +169,9 @@ extension _GasSwitchEditing on _DiveEditPageState {
     });
   }
 
-  /// The cylinder breathed at [timestamp] in the editor's own list: the last
-  /// switch at or before it, else the starting cylinder.
-  String? _gasSwitchActiveTankIdAt(int timestamp) {
-    GasSwitch? active;
-    for (final s in _gasSwitches) {
-      if (s.timestamp <= timestamp &&
-          (active == null || s.timestamp >= active.timestamp)) {
-        active = s;
-      }
-    }
-    return active?.tankId ?? _gasSwitchStartingTank?.id;
-  }
-
   /// A new row a minute after the last switch (at the start with none),
-  /// within the dive, onto the first cylinder not breathed at that moment.
+  /// within the dive, onto the first breathing cylinder not breathed at that
+  /// moment (see [newGasSwitchTank]); none without a breathing cylinder.
   void _addGasSwitch() {
     var timestamp = 0;
     for (final s in _gasSwitches) {
@@ -181,11 +179,13 @@ extension _GasSwitchEditing on _DiveEditPageState {
     }
     final max = _gasSwitchMaxTimestamp;
     if (max != null && timestamp > max) timestamp = max;
-    final activeId = _gasSwitchActiveTankIdAt(timestamp);
-    final tank = _tanks.firstWhere(
-      (t) => t.id != activeId,
-      orElse: () => _tanks.first,
+    final tank = newGasSwitchTank(
+      tanks: _tanks,
+      switches: _gasSwitches,
+      timestamp: timestamp,
+      startingTankId: _gasSwitchStartingTank?.id,
     );
+    if (tank == null) return;
     final added = GasSwitch(
       id: _uuid.v4(),
       diveId: widget.diveId ?? '',

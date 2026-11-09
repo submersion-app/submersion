@@ -157,6 +157,47 @@ void main() {
       expect(doc['excluded_from_gas_stats'], isTrue);
     });
 
+    group('surface_interval_s (#4333)', () {
+      const hour = 3600000;
+
+      /// An earlier dive of diver A that ended an hour before a1 starts.
+      Future<void> earlierDive() => db
+          .into(db.dives)
+          .insert(
+            DivesCompanion.insert(
+              id: 'a0',
+              diveDateTime: t - 2 * hour,
+              entryTime: const Value(t - 2 * hour),
+              exitTime: const Value(t - hour),
+              createdAt: t,
+              updatedAt: t,
+              diverId: const Value(kDiverA),
+            ),
+          );
+
+      test('a dive with none stored reads the gap the app shows', () async {
+        await earlierDive();
+
+        expect((await h.one('dives', 'a1'))!['surface_interval_s'], 3600);
+        // The profile path loads each dive on its own; it fills it too.
+        final withProfile = await h.one('dives', 'a1', include: ['profile']);
+        expect(withProfile!['surface_interval_s'], 3600);
+      });
+
+      test('a stored interval wins over the gap', () async {
+        await earlierDive();
+        await (db.update(db.dives)..where((d) => d.id.equals('a1'))).write(
+          const DivesCompanion(surfaceIntervalSeconds: Value(900)),
+        );
+
+        expect((await h.one('dives', 'a1'))!['surface_interval_s'], 900);
+      });
+
+      test('the first dive has none', () async {
+        expect((await h.one('dives', 'a1'))!['surface_interval_s'], isNull);
+      });
+    });
+
     test('ids of linked courses and roles are in the document', () async {
       final doc = (await h.one('dives', 'a1'))!;
       expect(doc['course_ids'], isEmpty);

@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_playback_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
+import 'package:submersion/features/dive_log/presentation/utils/profile_time_domain.dart';
 
 /// Keep the playback and range extents on the series the chart draws.
 ///
@@ -41,10 +42,21 @@ void keepProfileExtentsOnDrawnSeries(
 }) {
   if (chartProfile.isEmpty) return;
   final maxTimestamp = chartProfile.last.timestamp;
-  if (ref.read(playbackProvider(diveId)).maxTimestamp == maxTimestamp &&
-      ref.read(rangeSelectionProvider(diveId)).maxTimestamp == maxTimestamp) {
-    return;
+  // A series placed before the primary started begins below 0 (#4296).
+  final minTimestamp = profileTimeDomain(chartProfile).min;
+  bool playbackCurrent() {
+    final playback = ref.read(playbackProvider(diveId));
+    return playback.maxTimestamp == maxTimestamp &&
+        playback.minTimestamp == minTimestamp;
   }
+
+  bool rangeCurrent() {
+    final range = ref.read(rangeSelectionProvider(diveId));
+    return range.maxTimestamp == maxTimestamp &&
+        range.minTimestamp == minTimestamp;
+  }
+
+  if (playbackCurrent() && rangeCurrent()) return;
   WidgetsBinding.instance.addPostFrameCallback((_) {
     // riverpod's own liveness check: a ConsumerWidget's ref throws a
     // StateError, in release as well as debug, once its element is gone.
@@ -56,13 +68,15 @@ void keepProfileExtentsOnDrawnSeries(
     if (!context.mounted) return;
     // Re-read rather than trusting the build-time snapshot: the rest of the
     // frame may have moved either extent already.
-    if (ref.read(playbackProvider(diveId)).maxTimestamp != maxTimestamp) {
-      ref.read(playbackProvider(diveId).notifier).initialize(maxTimestamp);
+    if (!playbackCurrent()) {
+      ref
+          .read(playbackProvider(diveId).notifier)
+          .initialize(maxTimestamp, startSeconds: minTimestamp);
     }
-    if (ref.read(rangeSelectionProvider(diveId)).maxTimestamp != maxTimestamp) {
+    if (!rangeCurrent()) {
       ref
           .read(rangeSelectionProvider(diveId).notifier)
-          .initialize(maxTimestamp);
+          .initialize(maxTimestamp, startSeconds: minTimestamp);
     }
   });
 }

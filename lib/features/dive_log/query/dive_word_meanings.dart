@@ -3,6 +3,7 @@ import 'package:intl/date_symbols.dart';
 
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/text/ascii_digits.dart';
+import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 // Words a diver types that stand for a value rather than for text (#3457):
@@ -242,17 +243,21 @@ List<TextSearchExpansion> diveWordExpansions({
     sql: '{r}.is_favorite IN ({values})',
     values: diveFavouriteTerms,
   ),
-  const TextSearchExpansion(
+  TextSearchExpansion(
     sql:
+        // A suit inflation bottle is not the dive's gas (issue #4243): an
+        // air argon bottle must not make a trimix dive an air dive.
         'EXISTS (SELECT 1 FROM dive_tanks tgm WHERE tgm.dive_id = {r}.id '
+        "AND ${breathingTankSql('tgm')} "
         "AND CASE WHEN tgm.he_percent > 0 THEN 'trimix' "
         "WHEN tgm.o2_percent > 22 THEN 'nitrox' "
         "WHEN tgm.o2_percent >= 20 THEN 'air' END IN ({values}))",
     values: diveGasTerms,
   ),
-  const TextSearchExpansion(
+  TextSearchExpansion(
     sql:
         'EXISTS (SELECT 1 FROM dive_tanks tge WHERE tge.dive_id = {r}.id '
+        "AND ${breathingTankSql('tge')} "
         "AND tge.he_percent = 0 AND printf('%d', ROUND(tge.o2_percent)) "
         'IN ({values}))',
     values: diveEanTerms,

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/data_quality/data/services/quality_context_builder.dart';
+import 'package:submersion/features/data_quality/domain/detectors/clock_offset_detector.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
@@ -57,6 +58,109 @@ void main() {
     await diveRepo.createDive(dive);
     return id;
   }
+
+  group("each source's own samples (#4296)", () {
+    Future<void> seedSource(String id, {required bool isPrimary}) => db
+        .into(db.diveDataSources)
+        .insert(
+          DiveDataSourcesCompanion.insert(
+            id: id,
+            diveId: 'd5',
+            importedAt: DateTime.utc(2026, 7, 1),
+            createdAt: DateTime.utc(2026, 7, 1),
+          ).copyWith(isPrimary: Value(isPrimary)),
+        );
+
+    test("carries a non-primary source's samples where the dive places "
+        'them', () async {
+      await seedDive(id: 'd5', entry: DateTime.utc(2026, 7, 1, 10));
+      await seedSource('src-p', isPrimary: true);
+      await seedSource('src-s', isPrimary: false);
+      await profileSeries.insertSeries(
+        diveId: 'd5',
+        sourceId: 'src-p',
+        samples: const [
+          ProfileSample(timestamp: 0, depth: 0),
+          ProfileSample(timestamp: 10, depth: 5),
+        ],
+      );
+      await profileSeries.insertSeries(
+        diveId: 'd5',
+        sourceId: 'src-s',
+        isPrimary: false,
+        samples: const [
+          ProfileSample(timestamp: -1200, depth: 0),
+          ProfileSample(timestamp: -1190, depth: double.nan),
+          ProfileSample(timestamp: -1180, depth: 4),
+        ],
+      );
+      // Names no source and no computer: nobody's to check.
+      await profileSeries.insertSeries(
+        diveId: 'd5',
+        isPrimary: false,
+        samples: const [ProfileSample(timestamp: 0, depth: 3)],
+      );
+
+      final ctx = (await builder.buildAll(['d5'])).single;
+      expect(ctx.sourceSamples.keys, ['src-s']);
+      expect(ctx.sourceSamples['src-s']!.map((q) => q.t), [-1200, -1180]);
+    });
+
+    test('a combined dive carries none of its halves: each one is part of '
+        'the primary trace, not placed against it', () async {
+      // A Combine keeps every half's series primary and no source flagged
+      // primary. Two halves that look alike would otherwise read the second
+      // as the first one misplaced, and its repair would collapse them.
+      List<ProfileSample> half(int start) => [
+        for (var t = 0; t <= 2400; t += 10)
+          ProfileSample(
+            timestamp: start + t,
+            depth: t < 120
+                ? t / 6
+                : t < 1200
+                ? 20 - (t - 120) / 135
+                : t < 2280
+                ? 12 - (t - 1200) / 216
+                : 7 - (t - 2280) / 120 * 7,
+          ),
+      ];
+      await seedDive(id: 'd5', entry: DateTime.utc(2026, 7, 1, 10));
+      await seedSource('src-h1', isPrimary: false);
+      await seedSource('src-h2', isPrimary: false);
+      await profileSeries.insertSeries(
+        diveId: 'd5',
+        sourceId: 'src-h1',
+        samples: half(0),
+      );
+      await profileSeries.insertSeries(
+        diveId: 'd5',
+        sourceId: 'src-h2',
+        samples: half(3000),
+      );
+
+      final ctx = (await builder.buildAll(['d5'])).single;
+      expect(ctx.sourceSamples, isEmpty);
+      expect(
+        const ClockOffsetDetector()
+            .detect(ctx)
+            .where((f) => f.params.containsKey('profileOffsetSeconds')),
+        isEmpty,
+      );
+    });
+
+    test('a dive with one source carries none', () async {
+      await seedDive(id: 'd5', entry: DateTime.utc(2026, 7, 1, 10));
+      await seedSource('src-p', isPrimary: true);
+      await profileSeries.insertSeries(
+        diveId: 'd5',
+        sourceId: 'src-p',
+        samples: const [ProfileSample(timestamp: 0, depth: 0)],
+      );
+
+      final ctx = (await builder.buildAll(['d5'])).single;
+      expect(ctx.sourceSamples, isEmpty);
+    });
+  });
 
   test('builds context with sanitized sorted samples', () async {
     final entry = DateTime.utc(2026, 7, 1, 10);

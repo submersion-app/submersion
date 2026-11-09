@@ -1,0 +1,226 @@
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_count.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/courses/domain/entities/course.dart';
+import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
+import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_count.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/global_search/presentation/providers/global_search_providers.dart';
+import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
+import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
+import 'package:submersion/features/marine_life/domain/entities/seen_species.dart';
+import 'package:submersion/features/marine_life/domain/entities/species.dart';
+import 'package:submersion/features/marine_life/presentation/providers/seen_species_providers.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/providers/tag_link_providers.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+
+// The records behind a Global Search section's rows (issue #4247), each
+// keyed by [globalSearchIdsKey] of the ids it shows. A section shows a
+// handful, so each reads its list's own repository method narrowed to
+// those ids, on the list's terms (diver, visibility, enrichment), and
+// refreshes on the list's own ticks; reading the list's provider instead
+// would load every record, and every aggregate, to draw five.
+//
+// autoDispose: the rows' ids change with every keystroke, and a family
+// entry left behind for each would hold its records and its subscriptions.
+// For the same reason each one reads its repository and subscribes before
+// its first await: an entry can be disposed while it waits, and a disposed
+// ref cannot be used.
+
+final globalSearchSitesProvider = FutureProvider.autoDispose
+    .family<List<SiteWithDiveCount>, String>((ref, key) async {
+      final repository = ref.watch(siteRepositoryProvider);
+      invalidateOnSiteListChanges(ref);
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      return repository.getSitesWithDiveCounts(
+        diverId: diverId,
+        ids: globalSearchIdsOf(key),
+      );
+    });
+
+final globalSearchTripsProvider = FutureProvider.autoDispose
+    .family<List<TripWithStats>, String>((ref, key) async {
+      final repository = ref.watch(tripRepositoryProvider);
+      invalidateOnTripListChanges(ref);
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      return repository.getAllTripsWithStats(
+        diverId: diverId,
+        ids: globalSearchIdsOf(key),
+      );
+    });
+
+final globalSearchEquipmentProvider = FutureProvider.autoDispose
+    .family<List<EquipmentItem>, String>((ref, key) async {
+      final repository = ref.watch(equipmentRepositoryProvider);
+      invalidateOnEquipmentListChanges(ref);
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      return repository.getAllEquipment(
+        diverId: diverId,
+        ids: globalSearchIdsOf(key),
+      );
+    });
+
+final globalSearchEquipmentSetsProvider = FutureProvider.autoDispose
+    .family<List<EquipmentSet>, String>((ref, key) async {
+      final repository = ref.watch(equipmentSetRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchSetChanges());
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      return repository.getAllSets(
+        diverId: diverId,
+        ids: globalSearchIdsOf(key),
+      );
+    });
+
+final globalSearchBuddiesProvider = FutureProvider.autoDispose
+    .family<List<BuddyWithDiveCount>, String>((ref, key) async {
+      final repository = ref.watch(buddyRepositoryProvider);
+      invalidateOnBuddyDiveChanges(ref, repository);
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      return repository.getAllBuddiesWithDiveCount(
+        diverId: diverId,
+        ids: globalSearchIdsOf(key),
+      );
+    });
+
+final globalSearchDiveCentersProvider = FutureProvider.autoDispose
+    .family<List<DiveCenter>, String>((ref, key) async {
+      final repository = ref.watch(diveCenterRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchDiveCentersChanges());
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      return repository.getAllDiveCenters(
+        diverId: diverId,
+        ids: globalSearchIdsOf(key),
+      );
+    });
+
+/// Each shown center's dive count, as [diveCenterDiveCountsProvider] counts
+/// it; a center with none is absent.
+final globalSearchDiveCenterCountsProvider = FutureProvider.autoDispose
+    .family<Map<String, int>, String>((ref, key) {
+      ref.invalidateSelfWhen(
+        ref.read(diveRepositoryProvider).watchDivesChanges(),
+      );
+      return ref
+          .watch(diveCenterRepositoryProvider)
+          .getDiveCountsByCenter(centerIds: globalSearchIdsOf(key));
+    });
+
+/// Without card images, as the Certifications list reads them (issue
+/// #3848): a row draws no card, and a scan can run to megabytes.
+final globalSearchCertificationsProvider = FutureProvider.autoDispose
+    .family<List<Certification>, String>((ref, key) async {
+      final repository = ref.watch(certificationRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchCertificationRowChanges());
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      return repository.getCertificationMetadata(
+        diverId: diverId,
+        ids: globalSearchIdsOf(key),
+      );
+    });
+
+final globalSearchCoursesProvider = FutureProvider.autoDispose
+    .family<List<Course>, String>((ref, key) async {
+      final repository = ref.watch(courseRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchCoursesChanges());
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      return repository.getAllCourses(
+        diverId: diverId,
+        ids: globalSearchIdsOf(key),
+      );
+    });
+
+final globalSearchSpeciesProvider = FutureProvider.autoDispose
+    .family<List<Species>, String>((ref, key) {
+      final repository = ref.watch(speciesRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchSpeciesChanges());
+      return repository.getAllSpecies(ids: globalSearchIdsOf(key));
+    });
+
+/// The shown species the diver has logged, by id, as [seenSpeciesProvider]
+/// counts them.
+final globalSearchSeenSpeciesProvider = FutureProvider.autoDispose
+    .family<Map<String, SeenSpecies>, String>((ref, key) async {
+      final diverId = ref.watch(currentDiverIdProvider);
+      invalidateOnSeenSpeciesChanges(ref);
+      final seen = await ref
+          .watch(seenSpeciesRepositoryProvider)
+          .getSeenSpecies(diverId: diverId, speciesIds: globalSearchIdsOf(key));
+      return {for (final entry in seen) entry.species.id: entry};
+    });
+
+/// The shown species' covers, as [speciesCoverMediaProvider] picks them.
+final globalSearchSpeciesCoversProvider = FutureProvider.autoDispose
+    .family<Map<String, MediaItem>, String>((ref, key) {
+      final diverId = ref.watch(currentDiverIdProvider);
+      invalidateOnSpeciesCoverChanges(ref);
+      return ref
+          .watch(mediaSpeciesRepositoryProvider)
+          .getCoverMediaBySpecies(
+            diverId: diverId,
+            speciesIds: globalSearchIdsOf(key),
+          );
+    });
+
+final globalSearchDocumentsProvider = FutureProvider.autoDispose
+    .family<List<DocumentListEntry>, String>((ref, key) async {
+      final repository = ref.watch(documentRepositoryProvider);
+      invalidateOnDocumentListChanges(ref);
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      if (diverId == null) return const [];
+      return repository.getAllForDiver(diverId, ids: globalSearchIdsOf(key));
+    });
+
+/// The shown documents' tags, as [tagsByItemProvider] reads them.
+final globalSearchDocumentTagsProvider = FutureProvider.autoDispose
+    .family<Map<String, List<Tag>>, String>((ref, key) {
+      final repository = ref.watch(
+        tagLinkRepositoryProvider(TagScope.documents),
+      );
+      ref.invalidateSelfWhen(repository.watchChanges());
+      return repository.getTagsByItem(itemIds: globalSearchIdsOf(key));
+    });
+
+/// The shown plans, and the rest of each one's saved series, which its row
+/// counts.
+final globalSearchDivePlansProvider = FutureProvider.autoDispose
+    .family<List<DivePlanSummary>, String>((ref, key) {
+      final repository = ref.watch(divePlanRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchPlanSummaryChanges());
+      return repository.getAllPlanSummaries(ids: globalSearchIdsOf(key));
+    });
+
+final globalSearchGpsTracksProvider = FutureProvider.autoDispose
+    .family<List<GpsTrack>, String>((ref, key) {
+      final repository = ref.watch(gpsTrackRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchTracksChanges());
+      return repository.getCompletedTracks(ids: globalSearchIdsOf(key));
+    });
+
+final globalSearchUnderwaterRoutesProvider = FutureProvider.autoDispose
+    .family<List<NavTrack>, String>((ref, key) async {
+      final repository = ref.watch(navTrackRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchChanges());
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      return repository.getAll(diverId: diverId, ids: globalSearchIdsOf(key));
+    });

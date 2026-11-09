@@ -284,6 +284,22 @@ final demoGear = <DemoGear>[
     },
     uses: {KitUse.temperate, KitUse.cold},
   ),
+  // A second HP100, linked with the first as a twin set (issue #4242) so the
+  // Twin set card, its history and twin fills have something to show.
+  const DemoGear(
+    'tank-12-b',
+    'Steel HP100 (2)',
+    EquipmentType.tank,
+    brand: 'Faber',
+    model: 'HP100 3442 psi',
+    bought: StoryMilestone.ownRegulator,
+    boughtOffset: 1,
+    attributes: {
+      'volume_l': 12.9,
+      'working_pressure_bar': 237.3,
+      'tank_material': 'steel',
+    },
+  ),
   const DemoGear(
     'light-primary',
     'Dive light',

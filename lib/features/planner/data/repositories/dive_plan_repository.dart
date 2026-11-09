@@ -645,7 +645,13 @@ class DivePlanRepository {
     );
   }
 
-  Future<List<domain.DivePlanSummary>> getAllPlanSummaries() async {
+  /// Every saved plan's summary, newest first, or only those of [ids] and
+  /// the rest of each one's saved series when named (Global Search's few
+  /// rows, issue #4247): a series shows as one row holding all its dives.
+  Future<List<domain.DivePlanSummary>> getAllPlanSummaries({
+    List<String>? ids,
+  }) async {
+    if (ids != null && ids.isEmpty) return const [];
     final dives = _db.dives;
     // Whether the linked dive is still in the log. Read as an expression:
     // the joined row's own `id` column would be ambiguous with the plan's.
@@ -666,6 +672,18 @@ class DivePlanRepository {
             dives.diveDateTime,
           ])
           ..orderBy([OrderingTerm.desc(_db.divePlans.updatedAt)]);
+    if (ids != null) {
+      // The shown plans' series, asked in the same statement.
+      final shownSeries = _db.selectOnly(_db.divePlans)
+        ..addColumns([_db.divePlans.seriesId])
+        ..where(
+          _db.divePlans.id.isIn(ids) & _db.divePlans.seriesId.isNotNull(),
+        );
+      query.where(
+        _db.divePlans.id.isIn(ids) |
+            _db.divePlans.seriesId.isInQuery(shownSeries),
+      );
+    }
     final rows = await query.get();
     return rows.map((row) {
       final r = row.readTable(_db.divePlans);
@@ -1050,7 +1068,9 @@ class DivePlanRepository {
               workingPressure: t.workingPressure,
               startPressure: t.startPressure,
               gasMix: GasMix(o2: t.gasO2, he: t.gasHe),
-              role: TankRole.values.byName(t.role),
+              // Tolerant: a role a later build adds must not crash a
+              // synced plan's load (issue #4243).
+              role: TankRole.fromName(t.role),
               material: t.material != null
                   ? TankMaterial.values.byName(t.material!)
                   : null,

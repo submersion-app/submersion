@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
+import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart'
+    show ImportTripResolver;
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_altitude_enricher.dart';
@@ -53,6 +56,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
     UnitFormatterSettings settings = const AppSettings(),
     String displayName = 'HealthKit Import',
     ChecklistDiveLinker? checklistLinker,
+    ImportTripResolver? tripForImports,
   }) : _healthService = healthService,
        _diveMatcher = diveMatcher,
        _converter = converter,
@@ -61,7 +65,10 @@ class HealthKitAdapter implements ImportSourceAdapter {
        _ref = ref,
        _settings = settings,
        _displayName = displayName,
-       _checklistLinker = checklistLinker;
+       _checklistLinker = checklistLinker,
+       _tripForImports = tripForImports;
+
+  static final _log = LoggerService.forClass(HealthKitAdapter);
 
   final HealthImportService _healthService;
   final DiveMatcher _diveMatcher;
@@ -72,6 +79,10 @@ class HealthKitAdapter implements ImportSourceAdapter {
   final UnitFormatterSettings _settings;
   final String _displayName;
   final ChecklistDiveLinker? _checklistLinker;
+
+  /// Finds the trip whose dates cover a new dive (issue #3022); null places
+  /// no dive.
+  final ImportTripResolver? _tripForImports;
 
   List<ImportedDive> _parsedDives = [];
 
@@ -375,11 +386,15 @@ class HealthKitAdapter implements ImportSourceAdapter {
       final diveNumber =
           (retainSourceDiveNumbers ? importedDive.diveNumber : null) ??
           await _diveRepository.getNextDiveNumber(diverId: _diverId);
-      final dive = _converter.convert(
+      final converted = _converter.convert(
         importedDive,
         diverId: _diverId,
         diveNumber: diveNumber,
       );
+      final tripId = await _tripFor(importedDive.startTime);
+      final dive = tripId == null
+          ? converted
+          : converted.copyWith(tripId: tripId);
       await _diveRepository.createDive(dive);
       await DiveEquipmentDefaulter().applyForImportedDive(dive);
       await checklistLinker.applyForImportedDive(dive);
@@ -424,6 +439,25 @@ class HealthKitAdapter implements ImportSourceAdapter {
   // ---------------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------------
+
+  /// The trip a new dive starting at [start] joins, the same one a dive
+  /// computer download would place it in (issue #3022), or null when no
+  /// resolver is configured, no trip covers the dive, or the lookup fails: an
+  /// import must never fail because the trips could not be read.
+  Future<String?> _tripFor(DateTime start) async {
+    final resolver = _tripForImports;
+    if (resolver == null) return null;
+    try {
+      return await resolver(start, _diverId);
+    } catch (e, st) {
+      _log.warning(
+        'Trips unavailable, importing the dive without one',
+        error: e,
+        stackTrace: st,
+      );
+      return null;
+    }
+  }
 
   /// Move the saved dives [checkDuplicates] found to their wall clock and
   /// return how many moved. Taken before the write, so a second run of the

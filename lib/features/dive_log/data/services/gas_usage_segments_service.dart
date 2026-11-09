@@ -3,6 +3,7 @@ import 'package:collection/collection.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/services/breathing_gas_switches.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 
 /// One contiguous period during a dive when a single gas mix was breathed.
@@ -62,6 +63,11 @@ List<GasUsageSegment> buildGasUsageSegments({
   GasMix? loopGas,
   bool onLoop = true,
 }) {
+  // A suit inflation bottle is not breathed (issue #4243): it never takes
+  // the start, and a switch to it counts against the breathing cylinder on
+  // its mix.
+  gasSwitches = breathingGasSwitches(gasSwitches, tanks);
+  tanks = breathingTanks(tanks);
   if (tanks.isEmpty || diveDurationSeconds <= 0) {
     return const <GasUsageSegment>[];
   }
@@ -198,17 +204,26 @@ List<GasUsageSegment> _mergeAdjacentSameGas(List<GasUsageSegment> segments) {
 /// initial-gas declaration and owns the window from t=0, otherwise that window
 /// goes to the starting tank), but keys by tankId with no gas-mix merging.
 ///
+/// [onLoop] is as in [buildGasUsageSegments]: pass the same value, or the
+/// cylinder these intervals start on can differ from the gas the strip names.
+///
 /// Returns an empty map when there are no tanks or the dive has no duration.
 Map<String, List<({int start, int end})>> buildActiveTankIntervals({
   required List<DiveTank> tanks,
   required List<GasSwitchWithTank> gasSwitches,
   required int diveDurationSeconds,
   int firstSampleSeconds = 0,
+  bool onLoop = true,
 }) {
   final result = <String, List<({int start, int end})>>{};
+  // A suit inflation bottle is not breathed (issue #4243): it never takes
+  // the start, and a switch to it counts against the breathing cylinder on
+  // its mix.
+  gasSwitches = breathingGasSwitches(gasSwitches, tanks);
+  tanks = breathingTanks(tanks);
   if (tanks.isEmpty || diveDurationSeconds <= 0) return result;
 
-  final startingTank = _startingTankOf(tanks);
+  final startingTank = _startingTankOf(tanks, onLoop: onLoop);
 
   final inBounds =
       ([...gasSwitches]..sort((a, b) => a.timestamp.compareTo(b.timestamp)))

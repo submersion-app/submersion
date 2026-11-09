@@ -605,6 +605,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_equipmentField_owner_short => 'בעלים';
 
   @override
+  String get enum_equipmentField_location => 'מיקום';
+
+  @override
+  String get enum_equipmentField_location_short => 'מיקום';
+
+  @override
   String get equipment_set_noLongerShared => 'כבר לא משותף';
 
   @override
@@ -1397,6 +1403,21 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_title => 'הצגת דמות הצולל';
+
+  @override
+  String get equipment_setEdit_historyAsk =>
+      'להחיל את השינויים גם על הצלילות האלה, או רק מעכשיו?';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הסט הזה נמצא ב-$count צלילות רשומות.',
+      one: 'הסט הזה נמצא בצלילה רשומה אחת.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get equipment_color_red => 'אדום';
@@ -4546,6 +4567,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_list_section_expiringSoon => 'תוקף פג בקרוב';
 
   @override
+  String certifications_list_section_professional(String agency) {
+    return '$agency מקצועי';
+  }
+
+  @override
   String get certifications_list_section_valid => 'בתוקף';
 
   @override
@@ -7247,6 +7273,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'הרשומות האלה לא חופפות בזמן, כך שכנראה השעון של אחד המחשבים שגוי. הצלילה שומרת על השעה של המחשב הראשי.';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      'פרופילי העומק האלה תואמים בזמן שונה ממה שהשעונים של המחשבים מראים, כך שכנראה השעון של אחד המחשבים שגוי. הצלילה שומרת על השעה של המחשב הראשי.';
+
+  @override
   String get diveLog_consolidate_clockNoteShort =>
       'כנראה השעון של אחד המחשבים שגוי.';
 
@@ -7357,6 +7387,86 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_deco_semantics_required => 'דקומפרסיה נדרשת';
+
+  @override
+  String diveLog_deco_compartmentLeading(int number) {
+    return 'מוביל: #$number';
+  }
+
+  @override
+  String diveLog_deco_compartmentOther(int number) {
+    return 'תא: #$number';
+  }
+
+  @override
+  String get diveLog_deco_metricLoad => 'עומס';
+
+  @override
+  String get diveLog_deco_gasOngassing => 'ספיגה';
+
+  @override
+  String get diveLog_deco_gasOffgassing => 'שחרור';
+
+  @override
+  String get diveLog_deco_gasEquilibrium => 'שיווי משקל';
+
+  @override
+  String get diveLog_deco_heatMapRows =>
+      'שורות: מהירים (למעלה) עד איטיים (למטה)';
+
+  @override
+  String get diveLog_deco_surfaceLevel => 'רמת פני המים';
+
+  @override
+  String get diveLog_deco_mValue => 'ערך M';
+
+  @override
+  String diveLog_deco_tooltipCompartment(int number) {
+    return 'תא $number';
+  }
+
+  @override
+  String diveLog_deco_tooltipLoaded(String percent) {
+    return 'עומס $percent%';
+  }
+
+  @override
+  String diveLog_deco_tooltipHalfTime(String minutes) {
+    return 'זמן מחצית: $minutes דק\'';
+  }
+
+  @override
+  String diveLog_deco_tooltipSurfaceLevel(String percent) {
+    return 'רמת פני המים: $percent%';
+  }
+
+  @override
+  String get diveLog_deco_info_title => 'מה המשמעות של הערכים האלה?';
+
+  @override
+  String get diveLog_deco_info_body =>
+      'עומס: לחץ הגז האינרטי בתא כאחוז מהמקסימום שהוא רשאי להכיל על פני המים (ערך ה-M שלו, הקו האדום ב-100%).\n\nרמת פני המים: הסימון על כל עמודה מראה היכן מתייצב תא שהתרוקן לגמרי בזמן שאתה נושם אוויר על פני המים. הוא אף פעם לא ב-0%, כי הגוף שלך תמיד מכיל את החנקן שבאוויר שאתה נושם. עמודה שעומדת על הסימון שלה כבר לא נושאת עומס שנותר מהצלילה.\n\nספיגה ושחרור: גז נע תמיד לכיוון הלחץ של הגז שאתה נושם. אחרי דקומפרסיה בחמצן או בתערובת עשירה בהליום, התאים המהירים עשויים להכיל פחות חנקן מהאוויר על פני המים. כשחוזרים לנשום אוויר, הם סופגים שוב חנקן עד שהם מגיעים לסימון שלהם. זה תקין ואינו עומס שנותר מהצלילה.\n\nהליום: אוויר אינו מכיל הליום. אחרי צלילת טרימיקס, תא משחרר הליום ובאותו זמן יכול לספוג חנקן. החיצים ליד N₂ ו-He מציגים כל גז בנפרד; הציון ליד מספר התא מציג את הכיוון הכולל של שניהם.';
+
+  @override
+  String diveLog_deco_barChartSemantics(int count, int number, String percent) {
+    return 'תרשים רוויית רקמות. $count תאים, עומס ביחס לערך M; תא מוביל $number ב-$percent%.';
+  }
+
+  @override
+  String get diveLog_deco_heatMapUndersaturated => 'תת-רווי';
+
+  @override
+  String get diveLog_deco_heatMapSupersaturated => 'על-רווי';
+
+  @override
+  String diveLog_deco_percentValue(String value) {
+    return '$value%';
+  }
+
+  @override
+  String diveLog_deco_minutesValue(String value) {
+    return '$value דק\'';
+  }
 
   @override
   String get diveLog_deco_tissueFast => 'מהירה';
@@ -8450,6 +8560,18 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_edit_useSet => 'שימוש בסט';
+
+  @override
+  String get diveLog_edit_removeSet => 'הסרת סט';
+
+  @override
+  String get diveLog_bulkEdit_setsToRemove => 'סטים להסרה';
+
+  @override
+  String get diveLog_bulkEdit_removeSetTitle => 'הסרת סט ציוד';
+
+  @override
+  String get diveLog_bulkEdit_equipmentSets => 'סטים של ציוד';
 
   @override
   String get diveLog_edit_weightPreset_use => 'שימוש בקבוע מראש';
@@ -10583,6 +10705,16 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String diveLog_cylinders_figureUsed(String pressure) {
     return 'נוצל $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureNow(String pressure) {
+    return 'עכשיו $pressure';
+  }
+
+  @override
+  String diveLog_cylinders_figureNowEstimated(String pressure) {
+    return 'עכשיו $pressure (משוער)';
   }
 
   @override
@@ -13883,6 +14015,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_tankRole_stage => 'סטייג\'';
 
   @override
+  String get enum_tankRole_suitInflation => 'ניפוח חליפה';
+
+  @override
   String get enum_tankRole_twinSet => 'צמד בלונים';
 
   @override
@@ -14177,6 +14312,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get passport_history_deleteConfirm => 'למחוק את רשומת המילוי הזו?';
+
+  @override
+  String get passport_history_deleteFailed =>
+      'לא ניתן היה למחוק את המילוי. נסו שוב.';
 
   @override
   String get passport_tag_title => 'תג';
@@ -16372,6 +16511,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_location_activeFilter => 'מיקום';
+
+  @override
+  String equipment_location_tileSemantics(String name) {
+    return 'מיקום: $name';
+  }
 
   @override
   String get equipment_filter_section_location => 'מיקום';
@@ -19341,6 +19485,17 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_photoPicker_selectAllButton => 'בחר הכל';
 
   @override
+  String get media_photoPicker_albumFilter_all => 'כל האלבומים';
+
+  @override
+  String media_photoPicker_albumFilter_chip(String album, int count) {
+    return '$album ($count)';
+  }
+
+  @override
+  String get media_photoPicker_albumFilter_label => 'סינון לפי אלבום';
+
+  @override
   String media_photoPicker_selectedCount(int count) {
     return '$count נבחרו';
   }
@@ -21956,6 +22111,26 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_appearance_mapBackgroundDiveCards_subtitleWithNote =>
       'הצג מפת אתר צלילה כרקע בכרטיסי צלילה (דורש מיקום אתר)';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards =>
+      'רקע תמונה בכרטיסי צלילה';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards_subtitle =>
+      'הצגת אחת מתמונות הצלילה כרקע בכרטיסי הצלילה (ללא תמונות מוצגים המפה או הצבע)';
+
+  @override
+  String get settings_appearance_photoOverlayDark =>
+      'אטימות השכבה מעל התמונה, ערכת נושא כהה';
+
+  @override
+  String get settings_appearance_photoOverlayLight =>
+      'אטימות השכבה מעל התמונה, ערכת נושא בהירה';
+
+  @override
+  String get settings_appearance_photoOverlay_subtitle =>
+      'ערך גבוה שומר על קריאות הטקסט, ערך נמוך מציג יותר מהתמונה';
 
   @override
   String get settings_appearance_mapBackgroundSiteCards =>
@@ -25276,6 +25451,18 @@ class AppLocalizationsHe extends AppLocalizations {
       'מפה מאחורי כרטיסי הצלילה';
 
   @override
+  String get settings_conflict_field_showPhotoBackgroundOnDiveCards =>
+      'תמונה מאחורי כרטיסי צלילה';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayDark =>
+      'שכבה מעל תמונת כרטיס הצלילה (כהה)';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayLight =>
+      'שכבה מעל תמונת כרטיס הצלילה (בהירה)';
+
+  @override
   String get settings_conflict_field_showMapBackgroundOnSiteCards =>
       'מפה מאחורי כרטיסי האתרים';
 
@@ -26711,6 +26898,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dataHealth_backup_cloudCopyMissing => 'הגיבוי האחרון לא הגיע לענן';
 
   @override
+  String get dataHealth_backup_extraCopyMissing =>
+      'הגיבוי האחרון לא הגיע לכל החשבונות';
+
+  @override
   String get dataHealth_backup_noOffDeviceCopy => 'אין עותק מחוץ למכשיר הזה';
 
   @override
@@ -26779,7 +26970,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'תיקון זמני צלילה, קישור שותפים, סיווג ציוד מחדש, איכות נתונים, עורך הטבלה';
+      'תיקון זמני צלילה, קישור שותפים, סיווג ציוד מחדש, איכות נתונים, עורך הטבלה, ניתוח צלילות מחדש';
 
   @override
   String get settings_agentAccess_title => 'גישת סוכנים';
@@ -29799,16 +29990,32 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_gas_gasMix_title => 'התפלגות תערובות גזים';
 
   @override
-  String get insights_gas_sacByRole_empty => 'אין נתוני ריבוי בלונים זמינים';
+  String get insights_gas_roleUse_title => 'צריכה לפי תפקיד המיכל';
 
   @override
-  String get insights_gas_sacByRole_error => 'שגיאה בטעינת צריכה לפי תפקיד';
+  String get insights_gas_roleUse_subtitle => 'כל תפקיד לאורך הזמן שנשמו ממנו';
 
   @override
-  String get insights_gas_sacByRole_subtitle => 'צריכה ממוצעת לפי סוג בלון';
+  String get insights_gas_roleUse_empty => 'אין עדיין ערכים לפי תפקיד מיכל';
 
   @override
-  String get insights_gas_sacByRole_title => 'צריכת גז לפי תפקיד בלון';
+  String get insights_gas_roleUse_error => 'טעינת הצריכה לפי תפקיד מיכל נכשלה';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => 'גז תחתית';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count צלילות לא נכללו: מיכל סטייג׳, דקו, פוני או חירום איבד גז בלי החלפת גז אליו',
+      one:
+          'צלילה אחת לא נכללה: מיכל סטייג׳, דקו, פוני או חירום איבד גז בלי החלפת גז אליו',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => 'צריכת גז במעגל סגור';
@@ -30423,9 +30630,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_focus_gas_trimix => 'טרימיקס';
 
   @override
-  String get insights_gas_tankRole_backGas => 'גז ראשי';
-
-  @override
   String get insights_gas_tankRole_bailout => 'חילוץ';
 
   @override
@@ -30435,22 +30639,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_gas_tankRole_diluent => 'מדלל';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'אספקת O₂';
-
-  @override
   String get insights_gas_tankRole_pony => 'פוני';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => 'סיידמאונט שמאל';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => 'סיידמאונט ימין';
-
-  @override
   String get insights_gas_tankRole_stage => 'סטייג\'';
-
-  @override
-  String get insights_gas_tankRole_twinSet => 'צמד בלונים';
 
   @override
   String get insights_geographic_appBar_title => 'גיאוגרפיה';
@@ -37205,25 +37397,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllProgress(int count) {
-    return 'מנתח מחדש $count צלילות...';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllSuccess(int count) {
-    return 'נותחו מחדש $count צלילות בהצלחה';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
-    return 'נותחו מחדש $succeeded מתוך $total צלילות. $failed נכשלו.';
-  }
-
-  @override
   String diveComputer_detail_reparseRawDataCount(int count) {
     return '$count צלילות עם נתונים גולמיים';
   }
@@ -37235,6 +37408,124 @@ class AppLocalizationsHe extends AppLocalizations {
   ) {
     return '$count צלילות עם נתונים גולמיים ($without ללא)';
   }
+
+  @override
+  String get reparseBatch_progressTitle => 'מנתח צלילות מחדש';
+
+  @override
+  String reparseBatch_progressCount(int done, int total) {
+    return 'מנתח מחדש $done מתוך $total צלילות';
+  }
+
+  @override
+  String get reparseBatch_cancelling => 'מבטל...';
+
+  @override
+  String get reparseBatch_resultTitle => 'הניתוח מחדש הסתיים';
+
+  @override
+  String get reparseBatch_resultCancelledTitle => 'הניתוח מחדש בוטל';
+
+  @override
+  String get reparseBatch_resultErrorTitle => 'הניתוח מחדש נעצר בגלל שגיאה';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return 'לא עובדו: $count';
+  }
+
+  @override
+  String reparseBatch_resultSummary(int succeeded, int total) {
+    return 'נותחו מחדש $succeeded מתוך $total צלילות.';
+  }
+
+  @override
+  String reparseBatch_resultFailed(int count) {
+    return 'נכשלו: $count';
+  }
+
+  @override
+  String reparseBatch_resultNotProcessed(int count) {
+    return 'לא עובדו (בוטל): $count';
+  }
+
+  @override
+  String reparseBatch_resultSkipped(int count) {
+    return 'דולגו, אין נתונים גולמיים: $count';
+  }
+
+  @override
+  String reparseBatch_resultProfilesPreserved(int count) {
+    return 'צלילות משולבות ששמרו על הפרופיל שלהן: $count';
+  }
+
+  @override
+  String get reparseBatch_failedListHeader => 'צלילות שנכשלו';
+
+  @override
+  String reparseBatch_failedDiveTitle(int number) {
+    return 'צלילה מס\' $number';
+  }
+
+  @override
+  String get reparseBatch_failedDiveUnnumbered => 'צלילה ללא מספר';
+
+  @override
+  String get reparseBatch_missingDescriptors => 'חסרים פרטי מחשב הצלילה';
+
+  @override
+  String get reparseBatch_confirmTitle => 'נתח צלילות מחדש';
+
+  @override
+  String reparseBatch_confirmMessage(int count) {
+    return 'הפעל את מנתח הצלילות מחדש על $count צלילות שיש להן נתונים גולמיים שמורים. פעולה זו מעדכנת את נתוני הפרופיל והחיישנים אך שומרת על ההערות, האתרים, השותפים ושאר העריכות.';
+  }
+
+  @override
+  String reparseBatch_confirmSkipped(int count) {
+    return 'צלילות נבחרות ללא נתונים גולמיים (ידולגו): $count';
+  }
+
+  @override
+  String get reparseBatch_noneWithRawData =>
+      'לאף אחת מהצלילות שנבחרו אין נתונים גולמיים שמורים לניתוח מחדש.';
+
+  @override
+  String get diveLog_selection_tooltip_reparse => 'נתח מחדש';
+
+  @override
+  String get settings_reparseDives_title => 'נתח צלילות מחדש';
+
+  @override
+  String get settings_reparseDives_subtitle =>
+      'הפעל את מנתח הצלילות מחדש על כל צלילה שיש לה נתונים גולמיים שמורים';
+
+  @override
+  String get settings_reparseDives_intro =>
+      'השתמש בזה אחרי שעדכון של האפליקציה משפר את קריאת נתוני מחשב הצלילה. ההערות, האתרים, השותפים ושאר העריכות נשמרים.';
+
+  @override
+  String settings_reparseDives_withRawData(int count) {
+    return 'צלילות עם נתונים גולמיים: $count';
+  }
+
+  @override
+  String settings_reparseDives_withoutRawData(int count) {
+    return 'צלילות ללא נתונים גולמיים (לא ינותחו מחדש): $count';
+  }
+
+  @override
+  String get settings_reparseDives_byComputer => 'לפי מחשב צלילה';
+
+  @override
+  String get settings_reparseDives_unknownComputer => 'מחשב לא ידוע';
+
+  @override
+  String get settings_reparseDives_none =>
+      'לאף צלילה אין נתונים גולמיים שמורים לניתוח מחדש.';
+
+  @override
+  String get settings_reparseDives_button => 'נתח הכול מחדש';
 
   @override
   String get diveComputer_rawData_discardAction => 'מחק';
@@ -38980,6 +39271,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_valve_type => 'שסתום';
 
   @override
+  String get attrLabel_cylinder_use => 'שימוש בבלון';
+
+  @override
   String get attrLabel_tank_identifier => 'מזהה';
 
   @override
@@ -39335,6 +39629,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => 'הפיך';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => 'גז נשימה';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => 'ניפוח חליפה';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -39831,11 +40131,26 @@ class AppLocalizationsHe extends AppLocalizations {
       'אחוז ה-CNS שלך (שעון החמצן) דועך לאחר הצלילה עם מחצית חיים של 90 דקות -- הוא חוזר כמעט לגמרי ל-0 אחרי כיום אחד בערך.\n\nה-OTU היומי מתאפס בכל לילה בחצות. ה-OTU השבועי הוא סכום מתגלגל של 7 הימים האחרונים: צלילות ישנות יותר נופלות אוטומטית מהחישוב ברגע שהן יוצאות מחלון הזמן הזה.';
 
   @override
+  String get safetyHub_tissueLoading_clear_title => 'אין עומס שארי ברקמות';
+
+  @override
+  String get safetyHub_tissueLoading_clear_body =>
+      'כל התאים חזרו לשיווי משקל עם האוויר על פני המים. הם נשארים ברמה הרגילה שלהם (הסימון על כל עמודה), ולא ב-0%.';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_title =>
+      'רוויית הרקמות אינה זמינה';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_body =>
+      'לצלילה האחרונה אין נתונים לחישוב רוויית הרקמות, למשל צלילה ללא פרופיל עומק, במצב מד עומק או במחזר ללא נקודת כיוון.';
+
+  @override
   String get safetyHub_tissueLoading_about_title => 'אודות רוויית הרקמות';
 
   @override
   String get safetyHub_tissueLoading_about_body =>
-      'לגוף שלך יש 16 תאי רקמה הסופגים ומשחררים חנקן (ובצלילות טרימיקס או רה-ברית\'ר, גם הליום) במהירויות שונות. רקמות מהירות נרוות ומתרוקנות במהירות; רקמות איטיות לוקחות הרבה יותר זמן לשני התהליכים.\n\nלאחר צלילה עם הליום, חנקן והליום באותו תא רקמה יכולים לנוע לרגע בכיוונים מנוגדים: בעוד ההליום עדיין משתחרר, אותו תא עשוי לספוג במקביל מעט חנקן, עד ששני הגזים מגיעים לשיווי משקל עם האוויר שאתה נושם. זו הסיבה שתא רקמה עשוי להציג לרגע \"Ongassing\" גם כאשר העומס הכולל שלו ממשיך לרדת.';
+      'בגוף שלך יש 16 תאי רקמה שסופגים ומשחררים חנקן (ובצלילות טרימיקס או מחזר גם הליום) במהירויות שונות. רקמות מהירות נרוות ומתרוקנות במהירות; רקמות איטיות צריכות הרבה יותר זמן לשני התהליכים.\n\nעומס שארי הוא רק מה שנמצא מעל הרמה הרגילה על פני המים. גם אחרי התרוקנות מלאה העמודות לא יורדות ל-0%: כל תא מתייצב על הסימון שמתאים לחנקן שבאוויר שאתה נושם. לכן תא מהיר יכול להראות כאן ערך גבוה יותר מאשר בסוף צלילה עם דקומפרסיה בחמצן, בלי שהעומס גדל.\n\nאחרי צלילה עם הליום, תא משחרר הליום ובאותו זמן סופג חנקן, עד ששני הגזים בשיווי משקל עם האוויר שאתה נושם.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -41358,6 +41673,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => 'בלון שגוי';
 
   @override
+  String get dataQuality_detector_missing_gas_switch => 'החלפת גז חסרה';
+
+  @override
   String get dataQuality_detector_source_conflict => 'מקורות סותרים';
 
   @override
@@ -41401,6 +41719,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String dataQuality_msg_clock_overlap(int minutes) {
     return 'חופפת לצלילה אחרת ב-$minutes דק׳';
+  }
+
+  @override
+  String dataQuality_msg_clock_profileFit(int minutes) {
+    return 'מקור ממוקם $minutes דק׳ מהמקום שבו הפרופיל שלו תואם לראשי';
   }
 
   @override
@@ -41551,6 +41874,61 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'לא נרשמה החלפת גז, אך לחצי הבלונים מראים את ההחלפות האלה: $switches.',
+      one:
+          'לא נרשמה החלפת גז, אך לחצי הבלונים מראים את ההחלפה הזאת: $switches.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return 'בלון $tankNumber ($gas) ב-$time, $depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => '; ';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'לא נרשמה החלפת גז. לחצי הבלונים מראים החלפה לבלון $tankNumber ($gas) ב-$depth, עמוק מה-MOD שלו של $mod, ולכן לא מוצעת החלפה אליו.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'לחצי הבלונים מראים גם החלפה לבלון $tankNumber ($gas) ב-$depth, עמוק מה-MOD שלו של $mod, ולכן לא מוצעת החלפה אליו.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'לא נרשמה החלפת גז. מבלון $tankNumber ($gas) נשמו שוב החל מ-$time אחרי הפסקה, כך שבינתיים נשמו מבלון אחר, ועם יותר משני בלונים הלחצים לא מראים מאיזה. הוסף את ההחלפות בעורך הצלילה.';
+  }
+
+  @override
   String get dataQuality_detector_transmitter_role => 'תפקיד המשדר';
 
   @override
@@ -41613,6 +41991,15 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_fixSourceClockAll =>
       'לתקן את המחשב הזה גם בצלילות אחרות עם אותה סטייה';
+
+  @override
+  String get dataQuality_repairLabel_alignSourceProfile =>
+      'יישור המחשב הזה לפי הפרופיל שלו';
+
+  @override
+  String dataQuality_repairLabel_alignSourceProfileNamed(String computer) {
+    return 'יישור $computer לפי הפרופיל שלו';
+  }
 
   @override
   String get dataQuality_repairLabel_consolidate => 'איחוד';
@@ -41773,6 +42160,17 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_reassignSeries => 'העברת הסדרה לבלון אחר';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הוספת $count החלפות גז',
+      one: 'הוספת החלפת גז',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary => 'הגדרת מקור זה כראשי';
@@ -52596,6 +52994,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'סמל קטן שמראה מאיפה כל פריט מוגש. תגי בעיה מוצגים תמיד.';
 
   @override
+  String get settings_media_tagBadges => 'הצג תגי תיוג על התמונות הממוזערות';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      'סמלים קטנים לתמונות עם אנשים מתויגים, מינים מתויגים או זמן בצלילה.';
+
+  @override
   String get settings_media_autoColorCorrection => 'תיקון צבע אוטומטי';
 
   @override
@@ -52643,6 +53048,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => 'לא מגובה';
+
+  @override
+  String get media_tileMarker_people => 'אנשים מתויגים';
+
+  @override
+  String get media_tileMarker_species => 'מינים מתויגים';
+
+  @override
+  String get media_tileMarker_timeInDive => 'ממוקמת על פרופיל הצלילה';
 
   @override
   String get media_tile_infoMenuItem => 'פרטי מדיה';
@@ -56683,6 +57097,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get rules_value_empty => '(ריק)';
 
   @override
+  String rules_value_gearViaSet(String item, String set) {
+    return '$item ($set)';
+  }
+
+  @override
   String get rules_collection_diveTypes => 'סוגי צלילה';
 
   @override
@@ -56696,6 +57115,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get rules_collection_courses => 'קורסים';
+
+  @override
+  String get rules_collection_equipmentSets => 'סטים של ציוד';
 
   @override
   String get rules_collection_siteTags => 'תגיות אתר';
@@ -57547,6 +57969,18 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_backups_copyAccountGone => 'החשבון של העותק הוסר';
+
+  @override
+  String settings_backups_alsoCopyTo(String account) {
+    return 'גם עותק ב-$account';
+  }
+
+  @override
+  String get settings_backups_addCopyAccount => 'העתקה גם לחשבון נוסף';
+
+  @override
+  String get settings_backups_extraCopyMissed =>
+      'הגיבוי האחרון לא הגיע לחשבון הזה';
 
   @override
   String get settings_backups_auto => 'גיבוי אוטומטי';
@@ -59267,4 +59701,199 @@ class AppLocalizationsHe extends AppLocalizations {
   ) {
     return 'סמן $number: $time, $depth, $distance';
   }
+
+  @override
+  String get twinSet_title => 'צמד בלונים';
+
+  @override
+  String get twinSet_none => 'לא חלק מצמד בלונים';
+
+  @override
+  String get twinSet_link => 'קישור לבלון שותף בצמד';
+
+  @override
+  String twinSet_since(String date) {
+    return 'מאז $date';
+  }
+
+  @override
+  String get twinSet_replace => 'החלפת שותף';
+
+  @override
+  String get twinSet_unlink => 'ניתוק';
+
+  @override
+  String get twinSet_history => 'היסטוריה';
+
+  @override
+  String twinSet_historyRange(String partner, String from, String to) {
+    return '$partner, מ-$from עד $to';
+  }
+
+  @override
+  String get twinSet_deletePairing => 'מחיקת הצימוד';
+
+  @override
+  String get twinSet_deletePairingConfirm =>
+      'למחוק את הצימוד הזה מההיסטוריה? מילויים וצלילות לא ישתנו.';
+
+  @override
+  String get twinSet_pickerTitle => 'בלון שותף';
+
+  @override
+  String get twinSet_pickerEmpty => 'אין בלונים אחרים לצימוד.';
+
+  @override
+  String get twinSet_pairedOnHelp => 'בצימוד מאז';
+
+  @override
+  String get twinSet_unpairedOnHelp => 'נותקו בתאריך';
+
+  @override
+  String get twinSet_pressureMismatchTitle => 'לחצי עבודה שונים';
+
+  @override
+  String twinSet_pressureMismatchBody(
+    String a,
+    String aPressure,
+    String b,
+    String bPressure,
+  ) {
+    return 'לחץ העבודה של $a הוא $aPressure ושל $b הוא $bPressure. צמד מחובר במניפולד מתמלא ללחץ אחד.';
+  }
+
+  @override
+  String get twinSet_continue => 'המשך';
+
+  @override
+  String get twinSet_replaceTitle => 'להחליף שותף?';
+
+  @override
+  String twinSet_replaceClash(String cylinder, String partner) {
+    return '$cylinder בצימוד עם $partner.';
+  }
+
+  @override
+  String twinSet_replaceQuestion(String a, String b) {
+    return 'לצמד במקום זאת את $a עם $b?';
+  }
+
+  @override
+  String twinSet_leftAlone(String name) {
+    return '$name יישאר לבד.';
+  }
+
+  @override
+  String get twinSet_replaceConfirm => 'החלפה';
+
+  @override
+  String get twinSet_clashTitle => 'צימוד חופף';
+
+  @override
+  String twinSet_clashBody(String pairs) {
+    return 'זה חופף לצימוד של $pairs. בלון יכול להיות בצמד אחד בלבד בכל יום.';
+  }
+
+  @override
+  String twinSet_pairNames(String a, String b) {
+    return '$a ו-$b';
+  }
+
+  @override
+  String twinSet_endBeforeStart(String date) {
+    return 'תאריך הסיום חייב להיות אחרי $date.';
+  }
+
+  @override
+  String get twinSet_saveFailed => 'לא ניתן לשמור את השינוי בצמד.';
+
+  @override
+  String twinSet_with(String partner) {
+    return 'צמד עם $partner';
+  }
+
+  @override
+  String passport_logFill_twinSwitch(String partner) {
+    return 'שני הבלונים בצמד ($partner)';
+  }
+
+  @override
+  String twinSet_partnerStatus(String partner, String status) {
+    return '$partner, $status';
+  }
+
+  @override
+  String get passport_logFill_editTitle => 'עריכת מילוי';
+
+  @override
+  String get passport_logFill_overPressureTitle => 'מעל לחץ העבודה';
+
+  @override
+  String passport_logFill_overPressureBody(
+    String pressure,
+    String name,
+    String workingPressure,
+  ) {
+    return '$pressure גבוה מלחץ העבודה של $name, $workingPressure.';
+  }
+
+  @override
+  String get passport_logFill_saveAnyway => 'לשמור בכל זאת';
+
+  @override
+  String get passport_logFill_back => 'חזרה';
+
+  @override
+  String passport_logFill_applyToTied(String partner) {
+    return 'להחיל גם על המילוי של $partner?';
+  }
+
+  @override
+  String get passport_logFill_applyBoth => 'כן';
+
+  @override
+  String get passport_logFill_onlyThisOne => 'רק זה';
+
+  @override
+  String get passport_history_anotherCylinder => 'בלון אחר';
+
+  @override
+  String passport_history_filledWith(String partner) {
+    return 'מולא יחד עם $partner';
+  }
+
+  @override
+  String get passport_history_deleteTiedBody =>
+      'למחוק את המילוי הזה משני הבלונים, או רק מזה?';
+
+  @override
+  String get passport_history_deleteBoth => 'שני הבלונים';
+
+  @override
+  String get passport_history_edit => 'עריכת מילוי';
+
+  @override
+  String get twinSet_choiceTitle => 'להשתמש בצמד?';
+
+  @override
+  String twinSet_choicePair(String a, String b, String volume) {
+    return 'צמד ($a + $b, $volume)';
+  }
+
+  @override
+  String twinSet_choiceSingle(String a) {
+    return 'רק $a';
+  }
+
+  @override
+  String get settings_conflict_field_pairedOn => 'בצימוד מאז';
+
+  @override
+  String get settings_conflict_field_unpairedOn => 'נותקו בתאריך';
+
+  @override
+  String get settings_conflict_field_filledTogetherId => 'מילוי צמד';
+
+  @override
+  String get settings_conflict_field_twinPassportId => 'דרכון הבלון השותף';
 }

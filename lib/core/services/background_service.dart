@@ -279,6 +279,11 @@ Future<BackupService> buildScheduledBackupService({
       encryptionKeyStore: encryptionKeyStore,
       instanceFor: instanceFor,
     ),
+    extraCopies: await resolveHeadlessExtraCopyDestinations(
+      prefs: prefs,
+      encryptionKeyStore: encryptionKeyStore,
+      instanceFor: instanceFor,
+    ),
     encryptionKeyStore: encryptionKeyStore,
     syncPreferences: SyncPreferences(prefs),
     backupEncryptionKeyStore: BackupEncryptionKeyStore(),
@@ -294,7 +299,27 @@ typedef BackupNotifier =
       required bool success,
       String? error,
       bool cloudCopyMissing,
+      bool extraCopyMissing,
     });
+
+/// What a successful scheduled [record] is missing, for its notification.
+/// [cloudCopyMissing]: nothing left the device, though a copy was asked for.
+/// [extraCopyMissing]: a copy is off the device, but an account did not get
+/// one: an extra account in [missedExtraIds] (issue #3782), or the main
+/// copy's own account when only extra copies arrived.
+({bool cloudCopyMissing, bool extraCopyMissing}) scheduledBackupCopyGaps({
+  required bool cloudBackupEnabled,
+  required BackupRecord record,
+  required List<String> missedExtraIds,
+}) {
+  final mainMissing =
+      cloudBackupEnabled && record.location == BackupLocation.local;
+  return (
+    cloudCopyMissing: mainMissing && record.extraCloudCopies.isEmpty,
+    extraCopyMissing:
+        cloudBackupEnabled && (mainMissing || missedExtraIds.isNotEmpty),
+  );
+}
 
 /// Run the scheduled backup if one is due, then report the outcome.
 ///
@@ -335,13 +360,23 @@ Future<void> runScheduledBackup({
     // The record's location is the only honest signal: the upload swallows
     // its own failures to protect the local artifact, so a cloud copy the
     // user asked for can be missing from an otherwise successful backup.
-    final cloudCopyMissing =
-        settings.cloudBackupEnabled && record.location == BackupLocation.local;
+    // The backup has just written the extra accounts it missed.
+    final (:cloudCopyMissing, :extraCopyMissing) = scheduledBackupCopyGaps(
+      cloudBackupEnabled: settings.cloudBackupEnabled,
+      record: record,
+      missedExtraIds: BackupPreferences(
+        prefs,
+      ).getSettings().lastExtraCopyMissingIds,
+    );
     log.info(
       'Automatic backup completed: ${record.filename} '
       '(location: ${record.location.name})',
     );
-    await notifier(success: true, cloudCopyMissing: cloudCopyMissing);
+    await notifier(
+      success: true,
+      cloudCopyMissing: cloudCopyMissing,
+      extraCopyMissing: extraCopyMissing,
+    );
   } catch (e, stack) {
     log.error('Automatic backup failed', error: e, stackTrace: stack);
     // Persisted for Settings > Data health, which runs in the foreground

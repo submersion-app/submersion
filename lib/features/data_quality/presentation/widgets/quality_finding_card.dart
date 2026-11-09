@@ -99,6 +99,10 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
                 source,
                 _offsetLabel(suggestedOffset),
               ),
+      SourceProfileShiftRepair() =>
+        source == null
+            ? l10n.dataQuality_repairLabel_alignSourceProfile
+            : l10n.dataQuality_repairLabel_alignSourceProfileNamed(source),
       ConsolidateDuplicateRepair() => l10n.dataQuality_repairLabel_consolidate,
       DeleteDuplicateRepair() => l10n.dataQuality_repairLabel_deleteDuplicate,
       CombineSplitRepair() => l10n.dataQuality_repairLabel_combine,
@@ -125,6 +129,8 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
       SwapPressureSeriesRepair() => l10n.dataQuality_repairLabel_swapSeries,
       ReassignPressureSeriesRepair() =>
         l10n.dataQuality_repairLabel_reassignSeries,
+      AddGasSwitchesRepair(:final switches) =>
+        l10n.dataQuality_repairLabel_addGasSwitches(switches.length),
       CompareSourcesRepair() => l10n.dataQuality_repairLabel_compare,
       GoToDiveRepair() => l10n.dataQuality_action_goToDive,
       SetUpTransmitterRepair() =>

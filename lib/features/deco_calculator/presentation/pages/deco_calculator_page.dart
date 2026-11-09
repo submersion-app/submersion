@@ -128,6 +128,18 @@ class DecoCalculatorPage extends ConsumerWidget {
       planNotifier.updateTank(firstTank.id, firstTank.copyWith(gasMix: gasMix));
     }
 
+    // Carry the calculator's environment so the planner's deco is computed
+    // in the conditions the diver just looked at (#4314). A blank altitude
+    // is sea level in the calculator, so it clears any altitude the plan
+    // had. A chosen water type replaces the plan's water (and any custom
+    // salinity); Standard (EN13319) has no planner preset, so it leaves the
+    // plan's water as it was.
+    planNotifier.updateAltitude(ref.read(calcAltitudeProvider));
+    final waterType = ref.read(calcWaterTypeProvider);
+    if (waterType != null) {
+      planNotifier.updateWaterType(waterType);
+    }
+
     // Add the simple plan with calculator values
     planNotifier.addSimplePlan(maxDepth: depth, bottomTimeMinutes: time);
 

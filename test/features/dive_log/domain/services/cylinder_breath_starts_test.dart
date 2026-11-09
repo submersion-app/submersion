@@ -194,4 +194,115 @@ void main() {
       expect(cylinderBreathStarts(const [(t: 0, bar: 200.0)]), isEmpty);
     });
   });
+
+  // Issue #165: a cylinder that starts again was left for another one when
+  // its breathing before stopped.
+  group('cylinderBreathTurns', () {
+    test('a first start after a hold has no earlier breathing', () {
+      final turns = cylinderBreathTurns(
+        _series(2400, (t) => t < 1200 ? 200 : 200 - (t - 1200) * _rate),
+      ).starts;
+
+      expect(turns.single.previousEnd, isNull);
+    });
+
+    test('each later turn ends where the one before stopped', () {
+      final turns = cylinderBreathTurns(
+        _series(
+          480 + 960 * 3,
+          _turns(lead: 480, turn: 480, rest: 480, count: 3),
+        ),
+      ).starts;
+
+      expect(turns, hasLength(3));
+      expect(turns[0].previousEnd, isNull);
+      // The first turn stops at 960 and the second at 1920.
+      expect(turns[1].previousEnd, inInclusiveRange(930, 962));
+      expect(turns[2].previousEnd, inInclusiveRange(1890, 1922));
+    });
+
+    test('breathing from the first reading counts as earlier breathing', () {
+      // The dive began on this cylinder: breathed to 10:00, then held.
+      final turns = cylinderBreathTurns(
+        _series(3000, (t) {
+          if (t <= 600) return 200 - t * _rate;
+          if (t <= 1500) return 200 - 600 * _rate;
+          return 200 - 600 * _rate - (t - 1500) * _rate;
+        }),
+      ).starts;
+
+      expect(turns.single.t, inInclusiveRange(1502, 1530));
+      expect(turns.single.previousEnd, inInclusiveRange(570, 602));
+    });
+
+    test('a dip between turns is not breathing', () {
+      final turns = cylinderBreathTurns(
+        _series(3000, (t) {
+          final base = _turns(lead: 480, turn: 480, rest: 1200, count: 2)(t);
+          // A hose filling at 20:00 that recovers.
+          return t > 1200 && t < 1240 ? base - 8 : base;
+        }),
+      ).starts;
+
+      expect(turns, hasLength(2));
+      expect(turns[1].previousEnd, inInclusiveRange(930, 962));
+    });
+
+    test('a cylinder left for good is held from where it stopped', () {
+      // Breathed from 20:00 to 30:00, then held to the end of the readings.
+      final turns = cylinderBreathTurns(
+        _series(3000, (t) {
+          if (t <= 1200) return 200;
+          if (t <= 1800) return 200 - (t - 1200) * _rate;
+          return 200 - 600 * _rate;
+        }),
+      );
+
+      expect(turns.starts, hasLength(1));
+      expect(turns.heldFrom, inInclusiveRange(1770, 1802));
+    });
+
+    test('one breathed from its first reading and left is held too', () {
+      final turns = cylinderBreathTurns(
+        _series(3000, (t) => t <= 600 ? 200 - t * _rate : 200 - 600 * _rate),
+      );
+
+      expect(turns.starts, isEmpty);
+      expect(turns.heldFrom, inInclusiveRange(570, 602));
+    });
+
+    test('one breathed to the end of its readings is not held', () {
+      expect(
+        cylinderBreathTurns(
+          _series(2400, (t) => t < 1200 ? 200 : 200 - (t - 1200) * _rate),
+        ).heldFrom,
+        isNull,
+      );
+    });
+
+    test('a hold too short to judge is not held', () {
+      // Breathing stops 60 s before the readings do.
+      expect(
+        cylinderBreathTurns(
+          _series(1860, (t) {
+            if (t <= 1200) return 200;
+            if (t <= 1800) return 200 - (t - 1200) * _rate;
+            return 200 - 600 * _rate;
+          }),
+        ).heldFrom,
+        isNull,
+      );
+    });
+
+    test('its starts are the ones cylinderBreathStarts gives', () {
+      final readings = _series(
+        480 + 960 * 3,
+        _turns(lead: 480, turn: 480, rest: 480, count: 3),
+      );
+
+      expect([
+        for (final turn in cylinderBreathTurns(readings).starts) turn.t,
+      ], cylinderBreathStarts(readings));
+    });
+  });
 }

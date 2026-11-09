@@ -3,6 +3,8 @@
 
 Values follow simple formulas so the Dart tests can state expectations
 without re-implementing the encoder. Two constituents only: M2 and K1.
+Files are packed as the bundled grid is; decoded_sha256.json holds the
+digest of each file's decoded bytes.
 
   coastal: latMin 10, lonMin -180, 0.5 degree, 5 rows x 720 cols, tiles 4x4
     present cells: (0,0) (0,1) (0,3) (1,1) (1,2) (3,0) (3,1) (3,2) (3,3)
@@ -21,6 +23,8 @@ Usage (from the repo root, in a venv with numpy):
     python3 scripts/tide/write_fes_grid_test_fixtures.py
 """
 
+import hashlib
+import json
 import sys
 from pathlib import Path
 
@@ -60,6 +64,12 @@ def main() -> None:
         present[r, c] = True
 
     tiles = []
+    digests = {}
+
+    def write_packed(relative, decoded, coastal):
+        digests[relative] = hashlib.sha256(decoded).hexdigest()
+        (ROOT / relative).write_bytes(fmt.pack_checked(decoded, coastal))
+
     for tile_row in range((ROWS + TILE - 1) // TILE):
         for tile_col in range(COLS // TILE):
             rs = slice(tile_row * TILE, min((tile_row + 1) * TILE, ROWS))
@@ -68,7 +78,8 @@ def main() -> None:
                 continue
             data = fmt.encode_tile(tile_row, tile_col, present[rs, cs],
                                    amp_mm[rs, cs], ph_cd[rs, cs])
-            (ROOT / "coastal" / f"tile_{tile_row}_{tile_col}.bin").write_bytes(data)
+            write_packed(f"coastal/tile_{tile_row}_{tile_col}.bin", data,
+                         coastal=True)
             tiles.append([tile_row, tile_col])
 
     g_amp = np.zeros((5, 72, 2))
@@ -79,7 +90,8 @@ def main() -> None:
             g_ph[r, c] = [90.0, 0.0]
     g_amp[0, 0] = np.nan
     g_amp_mm, g_ph_cd = fmt.quantize(g_amp, g_ph)
-    (ROOT / "global.bin").write_bytes(fmt.encode_global(g_amp_mm, g_ph_cd))
+    write_packed("global.bin", fmt.encode_global(g_amp_mm, g_ph_cd),
+                 coastal=False)
 
     fmt.write_manifest(
         ROOT,
@@ -94,6 +106,8 @@ def main() -> None:
                  "rows": 5, "cols": 72},
         constituents=NAMES,
     )
+    (ROOT / "decoded_sha256.json").write_text(
+        json.dumps(digests, indent=1, sort_keys=True) + "\n")
     print(f"Wrote {len(tiles)} tiles and global.bin to {ROOT}")
 
 

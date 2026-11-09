@@ -51,6 +51,30 @@ void main() {
       'DiveTime': 1800,
     };
 
+    test('a header start time is a reported one', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-08-20T15:27:23.140+02:00'),
+        samples: const [],
+      );
+
+      expect(result.dive.startTimeReported, isTrue);
+    });
+
+    // With neither a header time nor a timed sample the dive is filed at the
+    // moment of the import, which places it nowhere by date (issue #3022).
+    test('a dive with no time at all is not marked as reported', () {
+      final result = SuuntoDiveParser.parse(
+        header: const {
+          'ActivityType': 51,
+          'Device': {'Name': 'Porvoo'},
+          'DiveTime': 1800,
+        },
+        samples: const [],
+      );
+
+      expect(result.dive.startTimeReported, isFalse);
+    });
+
     test('keeps the local wall clock for a positive UTC offset', () {
       final result = SuuntoDiveParser.parse(
         header: headerAt('2026-08-20T15:27:23.140+02:00'),

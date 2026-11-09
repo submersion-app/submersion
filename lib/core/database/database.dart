@@ -266,6 +266,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     DiveCenterGearNotes,
     // Cylinder fill history (v228, issue #2334)
     CylinderFills,
+    // Twin set pairings (v345, issue #4242)
+    CylinderPairings,
     // Trip cylinder slots and their ledger (v232, issue #2325)
     TripCylinders,
     TripCylinderEvents,
@@ -313,7 +315,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 346;
+  static const int currentSchemaVersion = 349;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1578,11 +1580,27 @@ class AppDatabase extends _$AppDatabase {
     // from (issue #4231). A nullable column an older peer omits, so the floor
     // does not move.
     344,
+    // v345: cylinder_pairings, twin set pairings of two cylinders, plus
+    // cylinder_fills.filled_together_id and dive_tanks.twin_passport_id
+    // (issue #4242). A new synced table and nullable columns an older peer
+    // omits, with no backfill, so the floor does not move.
+    345,
     // v346: equipment.last_service_date moves forward to the item's newest
     // service record where logging an older record had moved it back (issue
     // #4201). Data only, a value every reader already holds, so the floor
     // does not move. Numbered 346 so an open PR can take 345.
     346,
+    // v347: diver_settings.show_photo_background_on_dive_cards, whether a
+    // dive card shows one of the dive's photos behind its text, and the
+    // overlay opacity over it per theme. Additive and defaulted; the floor
+    // does not move.
+    347,
+    // v349: an empty dives.water_temp takes the temperature its source rows
+    // measured, which a download kept on the source row only (issue #4333).
+    // Data only, filling a column every reader already holds, so the floor
+    // does not move. Numbered 349 so open PR #4327, which claimed 347, can
+    // take 348.
+    349,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

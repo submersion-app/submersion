@@ -21,7 +21,9 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
-  test('the rewritten dives are rescanned', () async {
+  /// bill's dive b1 carries reg; anna's a1, ten minutes later, carries
+  /// octo, so octo on b1 is shared gear on overlapping dives.
+  Future<void> seed() async {
     final db = DatabaseService.instance.database;
     final ten = DateTime.utc(2026, 5, 1, 10).millisecondsSinceEpoch;
     for (final id in ['bill', 'anna']) {
@@ -78,13 +80,45 @@ void main() {
         .insert(
           DiveEquipmentCompanion.insert(diveId: 'a1', equipmentId: 'octo'),
         );
+  }
 
-    final touched = await DiveRepository().rewriteAssemblyOnPastDives('reg', [
+  test('the rewritten dives are rescanned', () async {
+    await seed();
+    final touched = await DiveRepository().rewriteAssemblyOnDives('reg', [
       const GearPartAdded('octo'),
-    ]);
-    expect(touched, 1);
+    ], alsoLogged: true);
+    expect(touched, hasLength(1));
     await QualityScanScheduler.instance.idle;
 
+    final findings = await QualityFindingsRepository().getFindings(
+      diveId: 'b1',
+    );
+    expect(
+      findings.map((f) => (f.detectorId, f.params['equipmentId'])),
+      contains(('shared_gear_overlap', 'octo')),
+    );
+  });
+
+  test('a quiet rewrite hands its dives to the caller (issue #4283)', () async {
+    // An agent apply rewrites inside its own transaction and rescans in
+    // afterApply, once the rows are committed.
+    await seed();
+    final deferred = await DiveRepository().rewriteAssemblyOnDives(
+      'reg',
+      [const GearPartAdded('octo')],
+      alsoLogged: true,
+      notify: false,
+    );
+    expect(deferred, ['b1']);
+    await QualityScanScheduler.instance.idle;
+    expect(
+      await QualityFindingsRepository().getFindings(diveId: 'b1'),
+      isEmpty,
+    );
+
+    // The caller's rescan of those dives finds what the rewrite caused.
+    scheduleQualityScan(deferred);
+    await QualityScanScheduler.instance.idle;
     final findings = await QualityFindingsRepository().getFindings(
       diveId: 'b1',
     );

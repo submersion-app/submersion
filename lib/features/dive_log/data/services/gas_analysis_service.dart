@@ -9,10 +9,12 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/services/ccr_cylinder_use.dart';
+import 'package:submersion/features/dive_log/domain/services/cylinder_usage.dart';
 import 'package:submersion/features/dive_log/domain/services/deco_stop_windows.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_pressure_lookup.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_usage_range.dart';
+import 'package:submersion/features/dive_log/domain/services/breathing_gas_switches.dart';
 
 part 'gas_analysis_service_ccr.dart';
 part 'gas_analysis_service_phases.dart';
@@ -47,7 +49,8 @@ class GasAnalysisService {
   ///
   /// Segments are divided at each gas/tank switch event, with the time before
   /// the first switch on the cylinder the dive started on.
-  /// Returns null if no gas switches recorded.
+  /// Returns null if no gas switches recorded, or when no cylinder holds
+  /// breathing gas (a suit inflation bottle alone, issue #4243).
   List<SacSegment>? calculateGasSwitchSegments({
     required List<DiveProfilePoint> profile,
     required List<DiveTank> tanks,
@@ -56,15 +59,23 @@ class GasAnalysisService {
     DiveEnvironment environment = DiveEnvironment.standard,
     bool onLoop = false,
   }) {
-    if (profile.isEmpty || gasSwitches.isEmpty) return null;
+    final breathing = breathingTanks(tanks);
+    if (profile.isEmpty || gasSwitches.isEmpty || breathing.isEmpty) {
+      return null;
+    }
 
     final resolvedPressures = resolveTankPressureSeries(tanks, tankPressures);
     final segments = <SacSegment>[];
     final diveEndTimestamp = profile.last.timestamp;
 
-    // Sort gas switches by timestamp
-    final sortedSwitches = List<GasSwitchWithTank>.from(gasSwitches)
-      ..sort((a, b) => a.gasSwitch.timestamp.compareTo(b.gasSwitch.timestamp));
+    // Sort gas switches by timestamp. A switch to a suit inflation bottle
+    // counts against the breathing cylinder on its mix (issue #4243).
+    final sortedSwitches = List<GasSwitchWithTank>.from(
+      breathingGasSwitches(gasSwitches, tanks),
+    )..sort((a, b) => a.gasSwitch.timestamp.compareTo(b.gasSwitch.timestamp));
+    // Every switch may have named a bottle no breathing cylinder shares a
+    // mix with, leaving none to segment at.
+    if (sortedSwitches.isEmpty) return null;
 
     void addStretch({
       required int startTime,
@@ -150,7 +161,7 @@ class GasAnalysisService {
       // Find the tank for this segment
       final tank = tanks.firstWhere(
         (t) => t.id == currentSwitch.gasSwitch.tankId,
-        orElse: () => tanks.first,
+        orElse: () => breathing.first,
       );
 
       addStretch(
@@ -190,6 +201,12 @@ class GasAnalysisService {
     bool onLoop = false,
   }) {
     if (profile.length < 10) return null;
+    // A switch to a suit inflation bottle counts against the breathing
+    // cylinder on its mix (issue #4243), once for every segment below, so
+    // the proration fallback reads the same switches the windows do.
+    if (gasSwitches != null) {
+      gasSwitches = breathingGasSwitches(gasSwitches, tanks);
+    }
 
     final resolvedPressures = resolveTankPressureSeries(tanks, tankPressures);
 
@@ -341,6 +358,11 @@ class GasAnalysisService {
   }) {
     final results = <CylinderSac>[];
     final environment = dive.environment;
+    // A switch to a suit inflation bottle counts against the breathing
+    // cylinder on its mix (issue #4243).
+    if (gasSwitches != null) {
+      gasSwitches = breathingGasSwitches(gasSwitches, dive.tanks);
+    }
 
     // Resolve each tank's time-series pressure, tolerating series that were
     // re-keyed under a stale tank id (see [resolveTankPressureSeries]).
@@ -362,49 +384,24 @@ class GasAnalysisService {
       );
     }
 
-    // Only a switch that says when a cylinder was breathed overrides a
-    // recorded duration: not a stale id (#110), nor one after the dive.
-    final hasGasSwitches = knownGasSwitches(
-      dive.tanks,
-      gasSwitches,
-      before: diveEnd,
-    ).isNotEmpty;
-
     for (final tank in dive.tanks) {
+      // A suit inflation bottle is not breathed, so it has no SAC (#4243).
+      if (!tank.role.isBreathingGas) continue;
       // Its own size, else its matched partner's (issue #3109).
       final volume = consumptionVolume(tank, dive.tanks);
-      // How long the source log says this tank was breathed (issue #1496).
-      // Gas switches say when, which is more, so they win; without them
-      // this is the only thing that tells two same-role tanks apart.
-      final recordedSeconds = hasGasSwitches
-          ? null
-          : tank.usageDuration?.inSeconds;
-      final hasRecordedUsage = recordedSeconds != null && recordedSeconds > 0;
-
-      // Determine when this tank was in use. A recorded duration says how
-      // long but not when, so its depth window is the whole dive.
-      final usageWindows = hasRecordedUsage
-          ? [(start: 0, end: diveEnd > 0 ? diveEnd : recordedSeconds)]
-          : tankUsageWindows(
-              tank: tank,
-              gasSwitches: gasSwitches,
-              diveStart: 0,
-              diveEnd: diveEnd,
-              tanks: dive.tanks,
-            );
-
-      if (usageWindows.isEmpty) continue;
-      final usageSeconds = hasRecordedUsage
-          ? recordedSeconds
-          : usageWindows.breathedSeconds;
-
-      // Calculate average depth during usage
-      final avgDepthDuringUse = timeWeightedMeanAcross(
-        profile,
-        windows: usageWindows,
-        time: (p) => p.timestamp,
-        value: (p) => p.depth,
+      // When, how long and how deep this tank was breathed: shared with the
+      // Insights role rates so the two agree (issue #4315).
+      final usage = cylinderUsage(
+        tank: tank,
+        tanks: dive.tanks,
+        profile: profile,
+        gasSwitches: gasSwitches,
+        diveEnd: diveEnd,
       );
+      if (usage == null) continue;
+      final usageWindows = usage.windows;
+      final usageSeconds = usage.seconds;
+      final avgDepthDuringUse = usage.avgDepth;
 
       // Check if we have time-series pressure data for this tank (matched by
       // id, or adopted from a re-keyed/orphaned series).
@@ -413,21 +410,27 @@ class GasAnalysisService {
 
       // Calculate SAC rate
       double? sacRate;
+      // The ambient pressure the rate was divided by (issue #771).
+      double? rateAmbientBar;
 
       if (tsPressures != null && tsPressures.length >= 2) {
         // Enhanced calculation using time-series data
+        final seriesDepth = avgDepthDuringUse ?? dive.avgDepth ?? 10.0;
         sacRate = _calculateSacFromTimeSeries(
           pressurePoints: tsPressures,
           // A cylinder holds its pressure between breathing periods, so the
           // drop from the first to the last is the gas breathed in them all.
           startTime: usageWindows.first.start,
           endTime: usageWindows.last.end,
-          avgDepth: avgDepthDuringUse ?? dive.avgDepth ?? 10.0,
+          avgDepth: seriesDepth,
           environment: environment,
           tankVolume: volume,
           gasMix: tank.gasMix,
           breathingSeconds: usageSeconds,
         );
+        if (sacRate != null) {
+          rateAmbientBar = environment.pressureAtDepth(seriesDepth);
+        }
       }
       // A series that shows no drop over the window (a flat or lost
       // transmitter) falls back to the logged pressures (issue #3373).
@@ -465,6 +468,7 @@ class GasAnalysisService {
               // Fallback: pressure-based SAC (bar/min) when no tank volume
               sacRate = pressureUsed / durationMin / ambientPressureBar;
             }
+            if (sacRate != null) rateAmbientBar = ambientPressureBar;
           }
         }
       }
@@ -484,6 +488,9 @@ class GasAnalysisService {
           avgDepthDuringUse: avgDepthDuringUse,
           hasTimeSeriesData: hasTsData,
           order: tank.order,
+          usageWindows: usageWindows,
+          usageFromRecordedDuration: usage.fromRecordedDuration,
+          rateAmbientBar: rateAmbientBar,
         ),
       );
     }

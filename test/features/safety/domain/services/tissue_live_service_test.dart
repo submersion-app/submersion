@@ -3,8 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
+import 'package:submersion/core/deco/entities/gas_exchange.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/features/safety/domain/entities/tissue_load_state.dart';
 import 'package:submersion/features/safety/domain/services/tissue_live_service.dart';
 
 void main() {
@@ -296,6 +298,155 @@ void main() {
         TissueLiveService.hasResidualLoad(projectAt(DiveEnvironment.standard)),
         isFalse,
       );
+    });
+  });
+
+  group('classify (issue #4228)', () {
+    DecoStatus statusAfter(List<TissueCompartment> end, Duration elapsed) =>
+        TissueLiveService.currentStatus(
+          endOfDiveCompartments: end,
+          lastDiveEnd: diveEnd,
+          now: diveEnd.add(elapsed),
+          gfLow: 0.3,
+          gfHigh: 0.7,
+        );
+
+    test('loaded right after a dive', () {
+      expect(
+        TissueLiveService.classify(
+          statusAfter(loadedCompartments(), Duration.zero),
+        ),
+        TissueLoadState.loaded,
+      );
+    });
+
+    test('settling while gas still moves with nothing above the surface '
+        'level', () {
+      final algorithm = BuhlmannAlgorithm();
+      algorithm.calculateSegment(
+        depthMeters: 6,
+        durationSeconds: 20 * 60,
+        fN2: 0.0,
+        fHe: 0.0,
+      );
+      expect(
+        TissueLiveService.classify(
+          statusAfter(algorithm.compartments, Duration.zero),
+        ),
+        TissueLoadState.settling,
+      );
+    });
+
+    test('settled once every gas is at the inspired pressure', () {
+      expect(
+        TissueLiveService.classify(
+          statusAfter(loadedCompartments(), const Duration(days: 4)),
+        ),
+        TissueLoadState.settled,
+      );
+    });
+  });
+
+  group('isAtSurfaceEquilibrium (issue #4228)', () {
+    DecoStatus statusAfter(List<TissueCompartment> end, Duration elapsed) =>
+        TissueLiveService.currentStatus(
+          endOfDiveCompartments: end,
+          lastDiveEnd: diveEnd,
+          now: diveEnd.add(elapsed),
+          gfLow: 0.3,
+          gfHigh: 0.7,
+        );
+
+    test('true once a loaded dive has fully off-gassed', () {
+      final status = statusAfter(loadedCompartments(), const Duration(days: 4));
+
+      expect(TissueLiveService.hasResidualLoad(status), isFalse);
+      expect(TissueLiveService.isAtSurfaceEquilibrium(status), isTrue);
+    });
+
+    test('false for a status without compartments', () {
+      const empty = DecoStatus(
+        compartments: [],
+        ndlSeconds: 0,
+        ceilingMeters: 0,
+        ttsSeconds: 0,
+        gfLow: 0.3,
+        gfHigh: 0.7,
+        decoStops: [],
+        currentDepthMeters: 0,
+        ambientPressureBar: 1.0,
+        inspiredN2Bar: inspiredSurfaceN2Bar,
+        inspiredHeBar: 0.0,
+      );
+
+      expect(TissueLiveService.isAtSurfaceEquilibrium(empty), isFalse);
+    });
+
+    test('false while loaded, like hasResidualLoad', () {
+      final status = statusAfter(loadedCompartments(), Duration.zero);
+
+      expect(TissueLiveService.isAtSurfaceEquilibrium(status), isFalse);
+    });
+
+    test('false right after oxygen deco although nothing sits above the '
+        'surface level', () {
+      // Surface-saturated, then 20 minutes on pure oxygen at 6 m: the fast
+      // compartments end up far BELOW the surface N2 level and take
+      // nitrogen back up once on air. hasResidualLoad only looks above the
+      // surface level, so it reads clear; the compartments are not settled.
+      final algorithm = BuhlmannAlgorithm();
+      algorithm.calculateSegment(
+        depthMeters: 6,
+        durationSeconds: 20 * 60,
+        fN2: 0.0,
+        fHe: 0.0,
+      );
+      final status = statusAfter(algorithm.compartments, Duration.zero);
+
+      expect(TissueLiveService.hasResidualLoad(status), isFalse);
+      expect(TissueLiveService.isAtSurfaceEquilibrium(status), isFalse);
+    });
+
+    test('false while helium is still leaving', () {
+      // Total tension at the surface level, but split between helium on its
+      // way out and nitrogen on its way in.
+      final compartments = [
+        for (final comp in BuhlmannAlgorithm().compartments)
+          comp.copyWith(currentPN2: comp.currentPN2 - 0.2, currentPHe: 0.2),
+      ];
+      final status = statusAfter(compartments, Duration.zero);
+
+      expect(TissueLiveService.hasResidualLoad(status), isFalse);
+      expect(TissueLiveService.isAtSurfaceEquilibrium(status), isFalse);
+    });
+
+    test('false when each gas is inside the tolerance but their sum is '
+        'residual load', () {
+      // N2 and He each 0.008 bar above the inspired pressure: both badges
+      // read equilibrium, but the total is 0.016 bar above the surface
+      // level, which hasResidualLoad counts as loaded.
+      final settled = statusAfter(
+        loadedCompartments(),
+        const Duration(days: 10),
+      );
+      final inspiredN2 = settled.inspiredN2Bar!;
+      final compartments = [
+        for (final comp in settled.compartments)
+          comp.copyWith(currentPN2: inspiredN2 + 0.008, currentPHe: 0.008),
+      ];
+      final status = statusAfter(compartments, Duration.zero);
+
+      expect(
+        status.compartments.every(
+          (comp) =>
+              status.n2Exchange(comp) == GasExchange.equilibrium &&
+              status.heExchange(comp) == GasExchange.equilibrium,
+        ),
+        isTrue,
+      );
+      expect(TissueLiveService.hasResidualLoad(status), isTrue);
+      expect(TissueLiveService.isAtSurfaceEquilibrium(status), isFalse);
+      expect(TissueLiveService.classify(status), TissueLoadState.loaded);
     });
   });
 }

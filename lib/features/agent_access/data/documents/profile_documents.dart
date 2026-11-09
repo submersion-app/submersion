@@ -76,6 +76,8 @@ const kSettingUnitKeys = <String, String>{
 
 /// Real columns that carry no unit to name, or already name it.
 const kUnitlessSettings = <String>{
+  'card_photo_overlay_dark',
+  'card_photo_overlay_light',
   'cold_water_threshold_c',
   'deep_dive_threshold_m',
   'high_o2_threshold_percent',

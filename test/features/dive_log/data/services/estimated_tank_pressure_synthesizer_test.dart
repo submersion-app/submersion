@@ -35,6 +35,24 @@ GasSwitchWithTank _switch({required String tankId, required int timestamp}) =>
 
 void main() {
   group('synthesizeEstimatedTankPressures', () {
+    test('a measured series under an old tank id is not estimated over', () {
+      // A reparse gave the tank a fresh id; its transmitter series kept the
+      // old one (#276). That series is the tank's, so no estimate joins it.
+      final measured = [
+        const TankPressurePoint(tankId: 'old', timestamp: 0, pressure: 200),
+        const TankPressurePoint(tankId: 'old', timestamp: 600, pressure: 50),
+      ];
+      final result = synthesizeEstimatedTankPressures(
+        existing: {'old': measured},
+        tanks: [_tank(id: 'new', start: 200, end: 50)],
+        gasSwitches: const [],
+        diveDurationSeconds: 600,
+      );
+
+      expect(result.estimatedTankIds, isEmpty);
+      expect(result.pressures.keys, ['old']);
+    });
+
     test('single tank, no switches -> straight two-point line', () {
       final result = synthesizeEstimatedTankPressures(
         existing: const {},

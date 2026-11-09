@@ -127,6 +127,9 @@ bool? _serialIdentity(DiveTank earlier, DiveTank later) {
 }
 
 bool _continues(DiveTank earlier, DiveTank later) {
+  // A suit inflation bottle is only ever the same cylinder as another suit
+  // bottle: an air bottle must not fold into air back gas (issue #4243).
+  if (earlier.role.isBreathingGas != later.role.isBreathingGas) return false;
   final bySerial = _serialIdentity(earlier, later);
   if (bySerial == false) return false;
   if (!_didNotRise(earlier, later)) return false;
@@ -179,6 +182,10 @@ DiveTank _fold(DiveTank earlier, DiveTank later) => earlier
       sourceTankIndex: earlier.sourceTankIndex ?? later.sourceTankIndex,
       tripCylinderId: earlier.tripCylinderId ?? later.tripCylinderId,
       passportId: earlier.passportId ?? later.passportId,
+      // The twin cylinder goes with the cylinder it was picked with.
+      twinPassportId: earlier.passportId != null
+          ? earlier.twinPassportId
+          : later.twinPassportId,
       equipmentId: earlier.equipmentId ?? later.equipmentId,
       decoSwitchDepth: earlier.decoSwitchDepth ?? later.decoSwitchDepth,
       // The folded pressure drop spans both halves, so the time breathed is

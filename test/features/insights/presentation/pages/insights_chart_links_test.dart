@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/domain/calendar_day_matrix.dart';
 import 'package:submersion/features/insights/domain/conditions/conditions_row.dart';
+import 'package:submersion/features/insights/domain/role_consumption_trend.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_conditions_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_gas_page.dart';
@@ -439,7 +440,9 @@ void main() {
         tankConfigurationStatsProvider.overrideWith(
           (ref) async => TankConfigurationStats.empty,
         ),
-        sacByTankRoleProvider.overrideWith((ref) async => const {}),
+        roleConsumptionTrendProvider.overrideWith(
+          (ref) async => const RoleConsumptionTrend(),
+        ),
       ]);
 
       await tester.tap(find.text('Nitrox'));

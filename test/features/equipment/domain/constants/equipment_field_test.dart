@@ -98,9 +98,10 @@ void main() {
     });
 
     test('is appended last, so saved layouts keep their order', () {
-      // Owner (issue #2046) was appended after it; see its own test.
+      // Owner (issue #2046) and location (issue #3625) were appended after
+      // it; see their own tests.
       const values = EquipmentField.values;
-      expect(values[values.length - 2], EquipmentField.tags);
+      expect(values[values.length - 3], EquipmentField.tags);
       expect(EquipmentField.tags.categoryName, 'other');
       expect(EquipmentField.tags.sortable, isFalse);
       expect(EquipmentField.tags.isRightAligned, isFalse);

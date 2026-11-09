@@ -330,4 +330,86 @@ void main() {
       expect(windows.within(600, 1200), isEmpty);
     });
   });
+
+  // A suit inflation bottle is not breathing gas (issue #4243).
+  group('suit inflation bottle', () {
+    const suit = DiveTank(
+      id: 'suit',
+      volume: 0.85,
+      role: TankRole.suitInflation,
+    );
+    const left = DiveTank(id: 'left', role: TankRole.sidemountLeft);
+    const right = DiveTank(id: 'right', role: TankRole.sidemountRight);
+
+    test('has no usage window, even as a dive\'s only cylinder', () {
+      for (final tanks in [
+        const [suit],
+        const [suit, back],
+      ]) {
+        expect(
+          tankUsageWindows(
+            tank: suit,
+            gasSwitches: const [],
+            diveStart: 0,
+            diveEnd: 2400,
+            tanks: tanks,
+          ),
+          isEmpty,
+        );
+      }
+    });
+
+    test('leaves the back gas breathed for the whole dive', () {
+      expect(
+        tankUsageWindows(
+          tank: back,
+          gasSwitches: const [],
+          diveStart: 0,
+          diveEnd: 2400,
+          tanks: const [suit, back],
+        ),
+        [(start: 0, end: 2400)],
+      );
+    });
+
+    test('is never the starting cylinder, listed first on sidemount', () {
+      expect(
+        startingTankOf(
+          tanks: const [suit, left, right],
+          switches: const [],
+          diveStart: 0,
+        ),
+        left,
+      );
+      expect(
+        startingTankOf(tanks: const [suit], switches: const [], diveStart: 0),
+        isNull,
+      );
+    });
+
+    test('a switch to it counts against the breathing cylinder on its mix', () {
+      // Air suit bottle, air back gas, EAN50 deco: back to air at 30 min.
+      expect(
+        activeTankAt(
+          tanks: const [back, deco, suit],
+          gasSwitches: [switchTo('deco', 600), switchTo('suit', 1800)],
+          timestamp: 2000,
+          diveStart: 0,
+        ),
+        back,
+      );
+    });
+
+    test('a dive with only a suit bottle has no active cylinder', () {
+      expect(
+        activeTankAt(
+          tanks: const [suit],
+          gasSwitches: const [],
+          timestamp: 60,
+          diveStart: 0,
+        ),
+        isNull,
+      );
+    });
+  });
 }

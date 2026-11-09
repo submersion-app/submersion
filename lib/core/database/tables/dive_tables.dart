@@ -89,7 +89,8 @@ class Dives extends Table {
   RealColumn get altitude => real().nullable()(); // meters above sea level
   // Surface pressure for altitude/weather corrections
   RealColumn get surfacePressure => real().nullable()(); // bar (default ~1.013)
-  // Surface interval before this dive
+  // Surface interval before this dive as the computer or diver gave it, NULL
+  // when neither did: the app then shows the gap from the previous dive's exit
   IntColumn get surfaceIntervalSeconds => integer().nullable()(); // seconds
   // Decompression gradient factors
   IntColumn get gradientFactorLow => integer().nullable()(); // 0-100
@@ -349,6 +350,12 @@ class DiveTanks extends Table {
   /// cylinder that has one. An identity, not a link: a rental's id has no
   /// equipment row. User-authored; downloads and re-parses never write it.
   TextColumn get passportId => text().nullable()();
+
+  /// v345: the passport id of the second cylinder of a twin set tank (issue
+  /// #4242), set when the diver picked a linked cylinder as its twin set.
+  /// [passportId] is the cylinder picked; this one is its partner, so both
+  /// passports count the dive. An identity, not a link, like [passportId].
+  TextColumn get twinPassportId => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

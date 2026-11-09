@@ -13,10 +13,21 @@ class EquipmentSetPickerSheet extends ConsumerWidget {
   final void Function(EquipmentSet set, List<EquipmentItem> items)
   onSetSelected;
 
+  /// The sheet's heading; "Use Equipment Set" when null. Picking a set to
+  /// take off dives says so instead (#4284).
+  final String? title;
+
+  /// Whether a set with nothing to apply (no members, or only wishlist
+  /// ones) can be picked. Off when applying a set; taking one off dives
+  /// turns it on, since the gear the set tagged there remains (#4284).
+  final bool pickEmptySets;
+
   const EquipmentSetPickerSheet({
     super.key,
     required this.scrollController,
     required this.onSetSelected,
+    this.title,
+    this.pickEmptySets = false,
   });
 
   @override
@@ -31,7 +42,7 @@ class EquipmentSetPickerSheet extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                context.l10n.diveLog_equipmentSetPicker_title,
+                title ?? context.l10n.diveLog_equipmentSetPicker_title,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               IconButton(
@@ -80,6 +91,7 @@ class EquipmentSetPickerSheet extends ConsumerWidget {
                   final set = sets[index];
                   return _EquipmentSetTile(
                     set: set,
+                    pickEmpty: pickEmptySets,
                     onTap: (items) => onSetSelected(set, items),
                   );
                 },
@@ -103,9 +115,14 @@ class EquipmentSetPickerSheet extends ConsumerWidget {
 /// Individual equipment set tile that loads its items
 class _EquipmentSetTile extends ConsumerWidget {
   final EquipmentSet set;
+  final bool pickEmpty;
   final void Function(List<EquipmentItem> items) onTap;
 
-  const _EquipmentSetTile({required this.set, required this.onTap});
+  const _EquipmentSetTile({
+    required this.set,
+    required this.pickEmpty,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -153,7 +170,7 @@ class _EquipmentSetTile extends ConsumerWidget {
               const Icon(Icons.chevron_right),
             ],
           ),
-          onTap: items.isEmpty ? null : () => onTap(items),
+          onTap: items.isEmpty && !pickEmpty ? null : () => onTap(items),
         );
       },
       loading: () => ListTile(
@@ -169,6 +186,8 @@ class _EquipmentSetTile extends ConsumerWidget {
         ),
         title: Text(set.name),
         subtitle: Text(context.l10n.diveLog_equipmentSetPicker_loading),
+        // Taking a set off needs none of its items (see the error tile).
+        onTap: pickEmpty ? () => onTap(const []) : null,
       ),
       error: (_, _) => ListTile(
         leading: CircleAvatar(
@@ -180,6 +199,9 @@ class _EquipmentSetTile extends ConsumerWidget {
         ),
         title: Text(set.name),
         subtitle: Text(context.l10n.diveLog_equipmentSetPicker_errorItems),
+        // Taking a set off dives goes by the gear it tagged there, so a set
+        // whose items failed to load can still be picked for that (#4284).
+        onTap: pickEmpty ? () => onTap(const []) : null,
       ),
     );
   }

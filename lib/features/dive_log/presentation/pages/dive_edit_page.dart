@@ -21,7 +21,6 @@ import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_color.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
@@ -38,6 +37,7 @@ import 'package:submersion/features/dive_log/domain/services/gas_switch_editing.
 import 'package:submersion/features/dive_log/domain/services/profile_depth_at.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_usage_range.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
+import 'package:submersion/features/dive_log/presentation/helpers/linked_dive_times.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/seeded_dive_times.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
@@ -59,6 +59,7 @@ import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/features/equipment/presentation/widgets/assembly_chips.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_arrange_sheet.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/bulk_equipment_sets.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_gear_tree_view.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
@@ -143,6 +144,12 @@ import 'package:submersion/features/dive_log/presentation/widgets/pickers/edit_s
 import 'package:submersion/features/dive_log/presentation/widgets/dive_bulk_membership_labels.dart';
 import 'package:submersion/shared/bulk_edit/bulk_change_summary.dart';
 import 'package:submersion/shared/bulk_edit/bulk_membership_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/bulk_gear_actions.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/bulk_gear_rows.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/utils/entry_exit_autofill.dart';
@@ -190,9 +197,11 @@ import 'package:submersion/features/dive_log/presentation/providers/shared_gear_
 import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
+import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 
 part 'dive_edit_page_annotations.dart';
 part 'dive_edit_page_gas_switches.dart';
+part 'dive_edit_page_linked_times.dart';
 
 const _createNewDiveCenterSentinel = '__create_new_dive_center__';
 const _createNewTripSentinel = '__create_new_trip__';
@@ -327,9 +336,30 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   TimeOfDay? _exitTime;
 
   /// What the time inputs were filled with and the exact values they round;
-  /// null for a new dive. The save reads it so an unrelated edit does not
-  /// write whole minutes over stored seconds (issue #3901).
+  /// null for a new dive until an entry or runtime edit moves its exit. The
+  /// save reads it so an unrelated edit does not write whole minutes over
+  /// stored seconds (issue #3901), and a linked edit re-seeds it so the exit
+  /// it moves keeps its seconds (issue #241).
   SeededDiveTimes? _seededTimes;
+
+  /// The times as they last settled (seeded, or after an entry or exit
+  /// edit), with the runtime shown then. Each runtime keystroke links
+  /// from here, so a digit passed on the way to a value, or left by
+  /// backspacing, never moves the exit for good, and a blank, zero or
+  /// unchanged runtime puts the exact times back (issues #241, #3901).
+  ({
+    DateTime? exit,
+    DateTime? exitDate,
+    TimeOfDay? exitTime,
+    SeededDiveTimes? seeded,
+    bool settled,
+    int? runtimeMinutes,
+  })?
+  _runtimeEditBase;
+
+  // The one setState seam for the linked time edits in
+  // dive_edit_page_linked_times.dart.
+  void _updateTimes(VoidCallback mutate) => setState(mutate);
   final _diveNumberController = TextEditingController();
   final _durationController = TextEditingController();
   final _runtimeController = TextEditingController();
@@ -832,6 +862,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 // A tag that described nothing still named the cylinder
                 // (issue #2650).
                 passportId: existing.passportId,
+                twinPassportId: existing.twinPassportId,
               ),
             ];
           }
@@ -920,6 +951,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           order: 0,
           presetName: describesCylinder ? t.presetName : base?.presetName,
           passportId: t.passportId,
+          twinPassportId: t.twinPassportId,
         ),
         ..._tanks.skip(1),
       ];
@@ -1000,6 +1032,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     _waterTempController.text = dive.waterTemp != null
         ? _seedDecimal(units.convertTemperature(dive.waterTemp!), 0)
         : '';
+    _settleTimes();
   }
 
   /// Seeds the depth fields, which a saved profile edit recomputes. Call
@@ -1432,13 +1465,34 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   // shown across the selected dives (existing + picker-added), their per-item
   // dive counts, and the resulting add/remove delta.
   Map<String, int> _equipmentCounts = {};
-  List<BulkMembershipItem> _equipmentMembers = [];
+
+  /// The gear listed in the bulk equipment editor, in no particular order:
+  /// it renders through the diver's gear arrangement (#2274), so it is kept
+  /// as whole items: the arrangement orders them by type and then by the
+  /// diver's chosen item field (name, or one of the gear's dates).
+  List<EquipmentItem> _bulkGear = [];
   MembershipDelta _equipmentDelta = MembershipDelta.empty;
 
   /// The last "Use Set" instruction to the equipment editor: every item of the
   /// set goes on all the selected dives (#1754). The serial makes each
   /// application a fresh request, even for the same set.
   ({int serial, Set<String> ids})? _equipmentEnsureOn;
+
+  /// Which set "Use Set" switched each equipment row on with, so those adds
+  /// carry the set (#4284).
+  Map<String, String> _equipmentSetOf = const {};
+
+  /// Sets staged to come off every selected dive with what they brought.
+  List<BulkStagedSet> _equipmentSetRemovals = const [];
+
+  /// The gear rows already on every selected dive.
+  Set<String> get _equipmentOnEveryDive {
+    final total = widget.bulkDiveIds?.length ?? 0;
+    return {
+      for (final e in _equipmentCounts.entries)
+        if (total > 0 && e.value >= total) e.key,
+    };
+  }
 
   Map<String, int> _tagCounts = {};
   List<BulkMembershipItem> _tagMembers = [];
@@ -1894,6 +1948,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     // Only an assembly or a part gets a chip row, as on the equipment list;
     // plain gear keeps the status line as its whole subtitle.
     final componentIndex = ref.watch(equipmentComponentsIndexProvider).value;
+    final gearRows = _bulkGearRows(ref.watch(equipmentArrangementProvider));
     return FormSection(
       label: context.l10n.diveLog_bulkEdit_groupCollections,
       expanded: true,
@@ -1930,14 +1985,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           title: l10n.diveLog_edit_section_equipment,
           total: total,
           labels: labels,
-          items: _equipmentMembers,
+          items: gearRows.items,
           counts: _equipmentCounts,
           onAdd: _bulkAddEquipment,
-          secondaryAction: TextButton.icon(
-            onPressed: _bulkUseEquipmentSet,
-            icon: const Icon(Icons.folder_special, size: 18),
-            label: Text(l10n.diveLog_edit_useSet),
-          ),
+          secondaryAction: BulkGearActions(onUseSet: _bulkUseEquipmentSet),
+          headerBuilder: (item) => switch (gearRows.headings[item.id]) {
+            final type? => EquipmentGroupHeader(type: type),
+            null => null,
+          },
           onChanged: (d) => setState(() => _equipmentDelta = d),
           ensureOn: _equipmentEnsureOn,
           // Assembly and part-of chips, as on the equipment list (#1487). They
@@ -1949,6 +2004,16 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       componentIndex.parentIdsOf(item.id).isNotEmpty)
               ? AssemblyChips(itemId: item.id)
               : null,
+        ),
+        BulkEquipmentSetRemovals(
+          sets: _equipmentSetRemovals,
+          onPick: _bulkRemoveEquipmentSet,
+          onUnstage: (id) => setState(
+            () => _equipmentSetRemovals = [
+              for (final s in _equipmentSetRemovals)
+                if (s.id != id) s,
+            ],
+          ),
         ),
         BulkMembershipEditor(
           title: l10n.diveLog_edit_group_buddies,
@@ -2075,14 +2140,26 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     ]) {
       if (ids.isNotEmpty) ops.add(DiveCoursesOp(mode: mode, courseIds: ids));
     }
-    if (_equipmentDelta.addIds.isNotEmpty) {
+    // Sets come off before any gear goes on, so a set removed and another
+    // added in one edit cannot take gear the two share (#4284).
+    if (_equipmentSetRemovals.isNotEmpty) {
       ops.add(
-        EquipmentOp(
-          mode: BulkCollectionMode.add,
-          equipmentIds: _equipmentDelta.addIds,
+        EquipmentSetsOp(
+          mode: BulkCollectionMode.remove,
+          setIds: [for (final s in _equipmentSetRemovals) s.id],
         ),
       );
     }
+    ops.addAll(
+      equipmentAddOps(
+        equipmentAddIds(
+          _equipmentDelta,
+          _equipmentSetOf,
+          onEveryDive: _equipmentOnEveryDive,
+        ),
+        _equipmentSetOf,
+      ),
+    );
     if (_equipmentDelta.removeIds.isNotEmpty) {
       ops.add(
         EquipmentOp(
@@ -2585,12 +2662,26 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       (
         title: l10n.diveLog_edit_section_equipment,
         delta: _equipmentDelta,
-        members: _equipmentMembers,
+        // Only names the ids; the summary sorts them A to Z itself.
+        members: [
+          for (final e in _bulkGear)
+            BulkMembershipItem(id: e.id, label: e.name),
+        ],
       ),
       (
         title: l10n.diveLog_edit_group_buddies,
         delta: _buddyDelta,
         members: _buddyMembers,
+      ),
+      (
+        title: l10n.diveLog_bulkEdit_equipmentSets,
+        delta: MembershipDelta(const [], [
+          for (final s in _equipmentSetRemovals) s.id,
+        ]),
+        members: [
+          for (final s in _equipmentSetRemovals)
+            BulkMembershipItem(id: s.id, label: s.name),
+        ],
       ),
     ]);
 
@@ -2781,6 +2872,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       avgDepthController: _avgDepthController,
       bottomTimeController: _durationController,
       runtimeController: _runtimeController,
+      onRuntimeChanged: (_) => _followRuntime(),
       diveNumberController: _diveNumberController,
       showDiveNumber: !_isPlanned,
       entryText: _formatEntryText(units),
@@ -2890,18 +2982,6 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   String? _formatExitText(UnitFormatter units) {
     if (_exitDate == null || _exitTime == null) return null;
     return '${units.formatDate(_exitDate!)}, ${_exitTime!.format(context)}';
-  }
-
-  Future<void> _editEntry() async {
-    await _selectEntryDate();
-    if (!mounted) return;
-    await _selectEntryTime();
-  }
-
-  Future<void> _editExit() async {
-    await _selectExitDate();
-    if (!mounted) return;
-    await _selectExitTime();
   }
 
   Widget? _surfaceIntervalRow() {
@@ -3802,6 +3882,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             // A diluent's MOD follows the Dil MOD limit on a rebreather
             // dive only (issue #3752).
             diveMode: _diveMode,
+            // A linked cylinder offers the twin set it was in that day
+            // (issue #4242).
+            diveDate: _entryDate,
             onChanged: (updatedTank) {
               final before = _tanks[i];
               setState(() {
@@ -3844,7 +3927,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   String _gasGearSummary() {
     final l10n = context.l10n;
-    final mix = _tanks.isNotEmpty ? _tanks.first.gasMix.name : null;
+    // The dive's gas, never a suit inflation bottle's (issue #4243).
+    final mix = breathingTanks(_tanks).firstOrNull?.gasMix.name;
     return [
       l10n.diveLog_edit_summary_tanks(_tanks.length),
       ?mix,
@@ -4128,6 +4212,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     setState(() {
       _runtimeController.text = _seedInt(calculatedRuntime.inMinutes);
     });
+    _followRuntime();
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -4693,18 +4778,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final buddyMap = {for (final b in allBuddies) b.id: b};
     // The count queries group by id with no ORDER BY, so sort each member list
     // by label to keep the bulk editor's row order stable across loads/devices.
+    // Gear needs no sort here: it renders through the gear arrangement, whose
+    // comparisons all end in a total tie-break.
     int byLabel(BulkMembershipItem a, BulkMembershipItem b) =>
         a.label.toLowerCase().compareTo(b.label.toLowerCase());
     setState(() {
       _equipmentCounts = equipCounts;
-      _equipmentMembers = [
-        for (final e in equip)
-          BulkMembershipItem(
-            id: e.id,
-            label: e.name,
-            icon: equipmentTypeIcon(e.type),
-          ),
-      ]..sort(byLabel);
+      _bulkGear = equip;
       _tagCounts = tagCounts;
       _tagMembers = [
         for (final id in tagCounts.keys)
@@ -4765,6 +4845,17 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     });
   }
 
+  /// The bulk equipment rows in the diver's gear arrangement, headings
+  /// included, as the single-dive gear list shows them (#2274).
+  BulkGearRows _bulkGearRows(EquipmentArrangement arrangement) {
+    final l10n = context.l10n;
+    return arrangeBulkGearRows(
+      _bulkGear,
+      arrangement,
+      typeLabel: (type) => type.localizedName(l10n),
+    );
+  }
+
   void _bulkAddEquipment() {
     showModalBottomSheet(
       context: context,
@@ -4777,24 +4868,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         expand: false,
         builder: (context, scrollController) => EquipmentPickerSheet(
           scrollController: scrollController,
-          selectedEquipmentIds: _equipmentMembers.map((e) => e.id).toSet(),
+          selectedEquipmentIds: _bulkGear.map((e) => e.id).toSet(),
           hideSpare: true,
           hideAssemblyParts: true,
           offerLeftKit: true,
           onEquipmentConfirmed: (items) {
-            setState(() {
-              final existing = _equipmentMembers.map((e) => e.id).toSet();
-              _equipmentMembers = [
-                ..._equipmentMembers,
-                for (final item in items)
-                  if (!existing.contains(item.id))
-                    BulkMembershipItem(
-                      id: item.id,
-                      label: item.name,
-                      icon: equipmentTypeIcon(item.type),
-                    ),
-              ];
-            });
+            setState(() => _bulkGear = withBulkGear(_bulkGear, items));
             Navigator.of(context).pop();
           },
         ),
@@ -4802,43 +4881,83 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     );
   }
 
-  void _bulkUseEquipmentSet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, scrollController) => EquipmentSetPickerSheet(
-          scrollController: scrollController,
-          onSetSelected: (set, items) {
-            setState(() {
-              final existing = _equipmentMembers.map((e) => e.id).toSet();
-              _equipmentMembers = [
-                ..._equipmentMembers,
-                for (final item in items)
-                  if (!existing.contains(item.id))
-                    BulkMembershipItem(
-                      id: item.id,
-                      label: item.name,
-                      icon: equipmentTypeIcon(item.type),
-                    ),
-              ];
-              // Rows already listed keep whatever the user set them to, so
-              // appending alone would let an unchecked row remove a set item
-              // from every dive (#1754). Switch the whole set on.
-              _equipmentEnsureOn = (
-                serial: (_equipmentEnsureOn?.serial ?? 0) + 1,
-                ids: {for (final item in items) item.id},
-              );
-            });
-            Navigator.of(context).pop();
-          },
-        ),
-      ),
+  Future<void> _bulkUseEquipmentSet() async {
+    // The sheet closes on the tap, as before; the members are filtered once
+    // it has, so a second tap cannot land while the filter is running.
+    final picked =
+        await showModalBottomSheet<
+          ({EquipmentSet set, List<EquipmentItem> items})
+        >(
+          context: context,
+          isScrollControlled: true,
+          useSafeArea: true,
+          builder: (context) => DraggableScrollableSheet(
+            initialChildSize: 0.7,
+            minChildSize: 0.5,
+            maxChildSize: 0.95,
+            expand: false,
+            builder: (context, scrollController) => EquipmentSetPickerSheet(
+              scrollController: scrollController,
+              onSetSelected: (set, items) =>
+                  Navigator.of(context).pop((set: set, items: items)),
+            ),
+          ),
+        );
+    if (picked == null || !mounted) return;
+    final set = picked.set;
+    final items = await _bulkUsableSetItems(picked.items);
+    if (!mounted) return;
+    setState(() {
+      _bulkGear = withBulkGear(_bulkGear, items);
+      // Rows already listed keep whatever the user set them to, so
+      // appending alone would let an unchecked row remove a set item
+      // from every dive (#1754). Switch the whole set on.
+      _equipmentEnsureOn = (
+        serial: (_equipmentEnsureOn?.serial ?? 0) + 1,
+        ids: {for (final item in items) item.id},
+      );
+      // An item the diver switched off since an earlier set put it
+      // on is this set's now, not the earlier one's.
+      final on = equipmentSwitchedOn(
+        _equipmentDelta,
+        onEveryDive: _equipmentOnEveryDive,
+      );
+      _equipmentSetOf = withSetItems(_equipmentSetOf, set.id, [
+        for (final item in items) item.id,
+      ], isOn: on.contains);
+    });
+  }
+
+  /// The members of a set bulk "Use Set" applies: one another profile owns
+  /// and has not shared with the diver stays in the set but is not applied
+  /// (#2046), as when the set is used on one dive. An unreadable diver
+  /// applies every member, as before sharing.
+  Future<List<EquipmentItem>> _bulkUsableSetItems(
+    List<EquipmentItem> items,
+  ) async {
+    if (items.isEmpty) return items;
+    String? diverId;
+    try {
+      diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    } catch (_) {
+      diverId = null;
+    }
+    if (diverId == null) return items;
+    final usable = await EquipmentRepository().usableSetMemberIds([
+      for (final i in items) i.id,
+    ], diverId);
+    return usableSetItems(items, usable.toSet());
+  }
+
+  /// Stages a set to come off every selected dive with the gear it brought
+  /// (#4284). Nothing is written until the edit is applied.
+  Future<void> _bulkRemoveEquipmentSet() async {
+    final set = await pickEquipmentSetToRemove(context);
+    if (set == null || !mounted) return;
+    // A staged removal is an unsaved change: leaving warns about it.
+    _markDirty();
+    setState(
+      () => _equipmentSetRemovals = withStagedSet(_equipmentSetRemovals, set),
     );
   }
 

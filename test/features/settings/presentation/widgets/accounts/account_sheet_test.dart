@@ -67,6 +67,7 @@ void main() {
     ],
     Set<AccountKind>? allowedKinds,
     String? Function(AccountGroup)? consequenceOf,
+    Set<String> excludedKeys = const {},
   }) async {
     AccountGroup? result;
     var done = false;
@@ -93,6 +94,7 @@ void main() {
                     context,
                     allowedKinds: allowedKinds,
                     consequenceOf: consequenceOf,
+                    excludedKeys: excludedKeys,
                   );
                   done = true;
                 },
@@ -140,6 +142,32 @@ void main() {
     await open(tester);
     // Listed once, as the diver's account, not again under Add.
     expect(find.text('Google Drive'), findsOneWidget);
+  });
+
+  // Issue #3782: the extra backup copy's picker leaves out the accounts
+  // that already get a copy, without offering their kind again.
+  testWidgets('excludedKeys hides the account but not as a new kind', (
+    tester,
+  ) async {
+    final dropbox = _group('db', AccountKind.dropbox, 'Dropbox (diver)');
+    await pumpSheet(
+      tester,
+      groups: [_drive, dropbox],
+      excludedKeys: {_drive.key},
+    );
+    await open(tester);
+    expect(find.text('Dropbox (diver)'), findsOneWidget);
+    // Neither listed as the diver's account nor offered to add again.
+    expect(find.text('Google Drive'), findsNothing);
+  });
+
+  testWidgets('with every account excluded, no empty account section', (
+    tester,
+  ) async {
+    await pumpSheet(tester, groups: [_drive], excludedKeys: {_drive.key});
+    await open(tester);
+    expect(find.text('Your accounts'), findsNothing);
+    expect(find.text('Add an account'), findsOneWidget);
   });
 
   testWidgets('a Git repository can be added again, like an own server', (

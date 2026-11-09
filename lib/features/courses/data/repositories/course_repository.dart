@@ -28,13 +28,21 @@ class CourseRepository {
       CourseCertificationLinks(_db, _syncRepository);
 
   /// Get all courses ordered by start date (newest first)
-  Future<List<domain.Course>> getAllCourses({String? diverId}) async {
+  ///
+  /// [ids] narrows the read to those records (Global Search's few rows,
+  /// issue #4247), on the same terms.
+  Future<List<domain.Course>> getAllCourses({
+    String? diverId,
+    List<String>? ids,
+  }) async {
+    if (ids != null && ids.isEmpty) return const [];
     try {
       final query = _db.select(_db.courses)
         ..orderBy([
           (t) => OrderingTerm.desc(t.startDate),
           (t) => OrderingTerm.asc(t.name),
         ]);
+      if (ids != null) query.where((t) => t.id.isIn(ids));
 
       if (diverId != null) {
         query.where((t) => t.diverId.equals(diverId));

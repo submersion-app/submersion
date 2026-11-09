@@ -95,6 +95,12 @@ class DownloadedDive {
   /// Start time of the dive
   final DateTime startTime;
 
+  /// Whether the source reported [startTime]. False when it reported none
+  /// and [startTime] is the moment of the download, a stand-in the diver can
+  /// see and correct; nothing is placed by it, such as the trip whose dates
+  /// cover it (issue #3022).
+  final bool startTimeReported;
+
   /// Total dive duration in seconds
   final int durationSeconds;
 
@@ -198,6 +204,7 @@ class DownloadedDive {
   const DownloadedDive({
     this.diveNumber,
     required this.startTime,
+    this.startTimeReported = true,
     required this.durationSeconds,
     required this.maxDepth,
     this.avgDepth,
