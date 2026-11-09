@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v348: diver_settings.equipment_collapsed_groups, the Equipment
+/// Schema v350: diver_settings.equipment_collapsed_groups, the Equipment
 /// page's folded group keys (issue #4184). Nullable, no backfill: null
 /// means every group open.
 void main() {
@@ -25,21 +25,21 @@ void main() {
     },
   );
 
-  test('v348 is in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(348));
-    expect(AppDatabase.migrationVersions, contains(348));
+  test('v350 is in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(350));
+    expect(AppDatabase.migrationVersions, contains(350));
     expect(
-      AppDatabase.migrationStepCount(347),
-      AppDatabase.migrationStepCount(348) + 1,
+      AppDatabase.migrationStepCount(349),
+      AppDatabase.migrationStepCount(350) + 1,
     );
   });
 
   test('the new column is additive and kept the floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(348));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(350));
   });
 
-  test('upgrading from v347 adds a null column', () async {
-    final db = AppDatabase(dbAt(347));
+  test('upgrading from v349 adds a null column', () async {
+    final db = AppDatabase(dbAt(349));
     addTearDown(db.close);
     final row = await db
         .customSelect(
@@ -50,7 +50,7 @@ void main() {
   });
 
   test('a database already carrying the column keeps its value', () async {
-    final db = AppDatabase(dbAt(347, stored: '["loc:a"]'));
+    final db = AppDatabase(dbAt(349, stored: '["loc:a"]'));
     addTearDown(db.close);
     final row = await db
         .customSelect(

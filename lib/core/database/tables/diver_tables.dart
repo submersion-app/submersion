@@ -416,7 +416,7 @@ class DiverSettings extends Table {
   /// the app-wide `equipment_group_by_location` key. Null falls back to it.
   BoolColumn get equipmentGroupByLocation => boolean().nullable()();
 
-  /// v348: the Equipment page's folded group keys, a JSON list (issue
+  /// v350: the Equipment page's folded group keys, a JSON list (issue
   /// #4184). Null or empty means every group open.
   TextColumn get equipmentCollapsedGroups => text().nullable()();
 

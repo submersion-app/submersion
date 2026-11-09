@@ -72,10 +72,18 @@ extension RungsFromV340 on AppDatabase {
     if (from < 347) await _assertDiveCardPhotoBackgroundColumn();
     if (from < 347) await reportProgress();
 
-    // v348: diver_settings.equipment_collapsed_groups, the Equipment page's
+    // v349: an empty dives.water_temp takes the temperature the dive's source
+    // rows measured; a download kept it on the source row only (issue #4333).
+    // Data only, so the compatibility floor does not move. It fills empty
+    // columns and rewrites none, so changeLogRewrittenColumns needs no entry.
+    // Numbered 349 so open PR #4327, which claimed 347, can take 348.
+    if (from < 349) await fillDiveWaterTempsFromSources(this);
+    if (from < 349) await reportProgress();
+
+    // v350: diver_settings.equipment_collapsed_groups, the Equipment page's
     // folded group keys (issue #4184). Nullable, no backfill. Re-asserted in
     // beforeOpen.
-    if (from < 348) await _assertEquipmentCollapsedGroupsColumn();
-    if (from < 348) await reportProgress();
+    if (from < 350) await _assertEquipmentCollapsedGroupsColumn();
+    if (from < 350) await reportProgress();
   }
 }
