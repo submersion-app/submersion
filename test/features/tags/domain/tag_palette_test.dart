@@ -51,8 +51,8 @@ void main() {
   });
 
   group('tagPaletteEntryFor', () {
-    final blue = (hue: 10, shade: TagShade.base, hex: '#3B82F6');
-    final red = (hue: 0, shade: TagShade.base, hex: '#EF4444');
+    const blue = (hue: 10, shade: TagShade.base, hex: '#3B82F6');
+    const red = (hue: 0, shade: TagShade.base, hex: '#EF4444');
 
     test('finds Blue for a tag with no colour or one drawn as Blue', () {
       expect(tagPaletteEntryFor(null), blue);

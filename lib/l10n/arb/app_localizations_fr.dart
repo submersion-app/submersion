@@ -33013,6 +33013,40 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tags_manage_colorLabel => 'Couleur';
 
   @override
+  String tags_color_shadeLight(String color) {
+    return '$color, clair';
+  }
+
+  @override
+  String tags_color_shadeDark(String color) {
+    return '$color, foncé';
+  }
+
+  @override
+  String tags_color_current(String code) {
+    return 'Couleur actuelle, $code';
+  }
+
+  @override
+  String get tags_color_custom => 'Couleur personnalisée';
+
+  @override
+  String get tags_color_hexLabel => 'Code hexadécimal';
+
+  @override
+  String get tags_color_hexError =>
+      'Saisissez six caractères 0-9 ou A-F, par exemple #2E8B57';
+
+  @override
+  String get tags_color_use => 'Utiliser';
+
+  @override
+  String get tags_color_hueLabel => 'Teinte';
+
+  @override
+  String get tags_color_squareLabel => 'Saturation et luminosité';
+
+  @override
   String get tags_manage_narrowDialog_confirm => 'Retirer';
 
   @override

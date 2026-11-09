@@ -33210,6 +33210,39 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tags_manage_colorLabel => 'اللون';
 
   @override
+  String tags_color_shadeLight(String color) {
+    return '$color، فاتح';
+  }
+
+  @override
+  String tags_color_shadeDark(String color) {
+    return '$color، داكن';
+  }
+
+  @override
+  String tags_color_current(String code) {
+    return 'اللون الحالي، $code';
+  }
+
+  @override
+  String get tags_color_custom => 'لون مخصص';
+
+  @override
+  String get tags_color_hexLabel => 'الرمز الست عشري';
+
+  @override
+  String get tags_color_hexError => 'أدخل ستة أحرف من 0-9 أو A-F، مثل #2E8B57';
+
+  @override
+  String get tags_color_use => 'استخدام';
+
+  @override
+  String get tags_color_hueLabel => 'تدرج اللون';
+
+  @override
+  String get tags_color_squareLabel => 'التشبع والسطوع';
+
+  @override
   String get tags_manage_narrowDialog_confirm => 'إزالة';
 
   @override

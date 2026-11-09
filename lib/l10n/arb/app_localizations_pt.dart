@@ -32891,6 +32891,40 @@ class AppLocalizationsPt extends AppLocalizations {
   String get tags_manage_colorLabel => 'Cor';
 
   @override
+  String tags_color_shadeLight(String color) {
+    return '$color, claro';
+  }
+
+  @override
+  String tags_color_shadeDark(String color) {
+    return '$color, escuro';
+  }
+
+  @override
+  String tags_color_current(String code) {
+    return 'Cor atual, $code';
+  }
+
+  @override
+  String get tags_color_custom => 'Cor personalizada';
+
+  @override
+  String get tags_color_hexLabel => 'Código hexadecimal';
+
+  @override
+  String get tags_color_hexError =>
+      'Insira seis caracteres 0-9 ou A-F, como #2E8B57';
+
+  @override
+  String get tags_color_use => 'Usar';
+
+  @override
+  String get tags_color_hueLabel => 'Matiz';
+
+  @override
+  String get tags_color_squareLabel => 'Saturação e brilho';
+
+  @override
   String get tags_manage_narrowDialog_confirm => 'Remover';
 
   @override

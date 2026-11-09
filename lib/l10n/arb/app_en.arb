@@ -19146,6 +19146,39 @@
   "tags_manage_editTitle": "Edit Tag",
   "tags_manage_nameLabel": "Tag Name",
   "tags_manage_colorLabel": "Color",
+  "tags_color_shadeLight": "{color}, light",
+  "@tags_color_shadeLight": {
+    "description": "The light shade of a tag colour, read by screen readers. {color} is the hue name.",
+    "placeholders": {
+      "color": {
+        "type": "String"
+      }
+    }
+  },
+  "tags_color_shadeDark": "{color}, dark",
+  "@tags_color_shadeDark": {
+    "description": "The dark shade of a tag colour, read by screen readers. {color} is the hue name.",
+    "placeholders": {
+      "color": {
+        "type": "String"
+      }
+    }
+  },
+  "tags_color_current": "Current color, {code}",
+  "@tags_color_current": {
+    "description": "The tag colour picker's dot for a colour off the palette. {code} is the stored colour code.",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "tags_color_custom": "Custom color",
+  "tags_color_hexLabel": "Hex code",
+  "tags_color_hexError": "Enter six digits 0-9 or A-F, like #2E8B57",
+  "tags_color_use": "Use",
+  "tags_color_hueLabel": "Hue",
+  "tags_color_squareLabel": "Saturation and brightness",
   "tags_manage_narrowDialog_confirm": "Remove",
   "tags_manage_narrowDialog_dives": "{count, plural, =1{This tag is on 1 dive. Turning off \"Use for dives\" removes it from that dive.} other{This tag is on {count} dives. Turning off \"Use for dives\" removes it from those dives.}}",
   "@tags_manage_narrowDialog_dives": {
