@@ -741,6 +741,33 @@ void main() {
       expect(captured.map((m) => m.diveId), [null, null]);
     });
 
+    test(
+      'files tab stamps equipment and check-in on an equipment session',
+      () async {
+        // Gear photos (issue #3355): an equipment session owns every file,
+        // like a site session, and stamps the check-in it was opened from.
+        final notifier = container.read(filesTabNotifierProvider.notifier);
+        final a = _ef('/a.jpg');
+        notifier.setFiles([
+          a,
+        ], match: MatchedSelection(matched: const {}, unmatched: [a]));
+        final captured = <MediaItem>[];
+        when(mockRepo.createMedia(any)).thenAnswer((invocation) async {
+          captured.add(invocation.positionalArguments.first as MediaItem);
+          return _saved('saved-1');
+        });
+
+        await notifier.commit(
+          target: const EquipmentAttachTarget('reg-1', observationId: 'obs-1'),
+        );
+
+        expect(captured.single.equipmentId, 'reg-1');
+        expect(captured.single.observationId, 'obs-1');
+        expect(captured.single.diveId, isNull);
+        expect(captured.single.siteId, isNull);
+      },
+    );
+
     test('persists files the dive matcher rejected', () async {
       // The exact state from the issue: auto-match ran, matched no dive, and
       // parked everything in `unmatched`. Under the dive-keyed commit this

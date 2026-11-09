@@ -60796,4 +60796,7 @@ class AppLocalizationsNl extends AppLocalizations {
     );
     return 'Delete this check-in? Its $_temp0 will be removed from Submersion. The files themselves are not touched.';
   }
+
+  @override
+  String get media_import_review_linkToGear => 'Link to gear';
 }

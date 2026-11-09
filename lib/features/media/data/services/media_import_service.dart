@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:submersion/core/constants/app_directories.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/equipment/data/repositories/gear_photo_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/cloud_identifier_source.dart';
 import 'package:submersion/features/media/data/services/enrichment_service.dart';
@@ -64,7 +65,9 @@ class MediaImportService {
     this.onMediaCreated,
     LinkedGalleryAssets linkedGalleryAssets = const LinkedGalleryAssets(),
     CloudIdentifierSource? cloudIdentifiers,
+    GearPhotoRepository? gearPhotos,
   }) : _mediaRepository = mediaRepository,
+       _gearPhotos = gearPhotos,
        _enrichmentService = enrichmentService,
        _documentsDirectory =
            documentsDirectory ?? getApplicationDocumentsDirectory,
@@ -72,6 +75,9 @@ class MediaImportService {
        _cloudIdentifiers = cloudIdentifiers;
 
   final Future<Directory> Function() _documentsDirectory;
+
+  /// Gear photo dedupe reads (issue #3355); the default reads the database.
+  final GearPhotoRepository? _gearPhotos;
 
   /// Decides which picked gallery assets are already linked. The default
   /// consults nothing on this device and only recognises assets by the
@@ -341,6 +347,64 @@ class MediaImportService {
       '${failures.length} failed, $skippedCount skipped',
     );
 
+    return ImportResult(
+      imported: imported,
+      failures: failures,
+      skippedDuplicates: skippedCount,
+    );
+  }
+
+  /// Links [selectedAssets] to gear item [equipmentId] (issue #3355), and to
+  /// check-in [observationId] when the photos back one up. Like a site
+  /// attachment: no dive window, no enrichment, and picks already linked to
+  /// the item are skipped.
+  Future<ImportResult> importPhotosForEquipment({
+    required List<AssetInfo> selectedAssets,
+    required String equipmentId,
+    String? observationId,
+  }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.mediaImport);
+    final gearPhotos = _gearPhotos ?? GearPhotoRepository();
+    final imported = <MediaItem>[];
+    final failures = <String, String>{};
+
+    bool hasPath(AssetInfo a) => a.filePath != null && a.filePath!.isNotEmpty;
+    final gallery = selectedAssets.where((a) => !hasPath(a)).toList();
+    final newGalleryIds = gallery.isEmpty
+        ? const <String>{}
+        : await _unlinkedGalleryIds(
+            gallery,
+            await gearPhotos.galleryLinksFor(equipmentId),
+          );
+    final existingPaths = selectedAssets.any(hasPath)
+        ? await gearPhotos.linkedLocalPathsFor(equipmentId)
+        : const <String>{};
+    final newAssets = selectedAssets.where((a) {
+      if (hasPath(a)) return !existingPaths.contains(a.filePath);
+      return newGalleryIds.contains(a.id);
+    }).toList();
+    final skippedCount = selectedAssets.length - newAssets.length;
+
+    final cloudIds = await _cloudIdsFor(newAssets);
+    for (final asset in newAssets) {
+      try {
+        final saved = await _mediaRepository.createMedia(
+          _createMediaItemFromAsset(
+            asset,
+            cloudAssetId: cloudIds[asset.id],
+          ).copyWith(equipmentId: equipmentId, observationId: observationId),
+        );
+        imported.add(saved);
+        onMediaCreated?.call(saved.id);
+      } catch (e, stackTrace) {
+        _log.error(
+          'Failed to import asset ${asset.id} for equipment',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        failures[asset.id] = e.toString();
+      }
+    }
     return ImportResult(
       imported: imported,
       failures: failures,

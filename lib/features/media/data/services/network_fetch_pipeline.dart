@@ -53,15 +53,24 @@ class ResolvedNetworkMedia {
 /// neither link has no business in the library, and one with both would
 /// belong to a dive the site never named, so the constructor refuses both.
 class NetworkInsertRequest {
-  NetworkInsertRequest({required this.media, this.diveId, this.siteId})
-    : assert(
-        (diveId == null) != (siteId == null),
-        'exactly one of diveId / siteId',
-      );
+  NetworkInsertRequest({
+    required this.media,
+    this.diveId,
+    this.siteId,
+    this.equipmentId,
+    this.observationId,
+  }) : assert(
+         [diveId, siteId, equipmentId].where((id) => id != null).length == 1,
+         'exactly one of diveId / siteId / equipmentId',
+       );
 
   final ResolvedNetworkMedia media;
   final String? diveId;
   final String? siteId;
+
+  /// A gear photo's item and check-in (issue #3355).
+  final String? equipmentId;
+  final String? observationId;
 }
 
 /// Metadata fetch and row insert for HTTP(S) media, as two separate calls.
@@ -164,6 +173,8 @@ class NetworkFetchPipeline {
               url: Value(result?.url ?? media.uri.toString()),
               diveId: Value(request.diveId),
               siteId: Value(request.siteId),
+              equipmentId: Value(request.equipmentId),
+              observationId: Value(request.observationId),
               latitude: Value(entry?.latitude ?? result?.lat),
               longitude: Value(entry?.longitude ?? result?.lon),
               takenAt: Value(media.takenAt?.millisecondsSinceEpoch),

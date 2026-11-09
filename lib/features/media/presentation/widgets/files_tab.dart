@@ -66,13 +66,15 @@ class FilesTab extends ConsumerWidget {
   /// dive in the log and either finds nothing (the issue #1098 symptom: no
   /// group, therefore no commit button, therefore no way to save) or routes
   /// the photo to some dive the user never mentioned.
-  bool get _isSiteSession => target is SiteAttachTarget;
+  /// A site or gear session (issue #3355): every file is the owner's, so the
+  /// tab leaves dive mode.
+  bool get _isSiteSession => target?.ownsEveryFile ?? false;
 
   /// The dive files may be manually assigned to, or null when there isn't
   /// one to offer.
   String? get _assignableDiveId => switch (target) {
     DiveAttachTarget(:final diveId) => diveId,
-    SiteAttachTarget() || null => null,
+    SiteAttachTarget() || EquipmentAttachTarget() || null => null,
   };
 
   // coverage:ignore-start

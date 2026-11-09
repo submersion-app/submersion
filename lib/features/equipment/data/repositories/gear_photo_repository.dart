@@ -138,7 +138,7 @@ class GearPhotoRepository {
     for (final item in await _photosOf(
       (t) => t.equipmentId.equals(equipmentId),
     ))
-      if (item.filePath case final path? when path.isNotEmpty) path,
+      if (item.localPath case final path? when path.isNotEmpty) path,
   };
 
   /// The item's cover photo, or null when none is chosen, the chosen row is

@@ -96275,6 +96275,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete this check-in? Its {count, plural, =1{photo} other{{count} photos}} will be removed from Submersion. The files themselves are not touched.'**
   String equipment_photos_deleteCheckInWithPhotos(int count);
+
+  /// No description provided for @media_import_review_linkToGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to gear'**
+  String get media_import_review_linkToGear;
 }
 
 class _AppLocalizationsDelegate

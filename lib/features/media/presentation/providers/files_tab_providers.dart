@@ -303,6 +303,17 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
         for (final file in state.files) {
           created.add(await _persistOne(file, siteId: siteId));
         }
+      // Gear photos (issue #3355): owned outright, like a site's.
+      case EquipmentAttachTarget(:final equipmentId, :final observationId):
+        for (final file in state.files) {
+          created.add(
+            await _persistOne(
+              file,
+              equipmentId: equipmentId,
+              observationId: observationId,
+            ),
+          );
+        }
       case DiveAttachTarget() || null:
         for (final entry in state.match.matched.entries) {
           for (final file in entry.value) {
@@ -334,15 +345,17 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
     ExtractedFile file, {
     String? diveId,
     String? siteId,
+    String? equipmentId,
+    String? observationId,
   }) async {
     // Asserted, not just documented: neither mistake announces itself. Both
     // set puts the photo in a dive's grid and a site's; neither set writes an
     // ownerless row that shows up in no grid at all, which reads to the user
     // exactly like the import having silently failed.
     assert(
-      (diveId == null) != (siteId == null),
+      [diveId, siteId, equipmentId].where((id) => id != null).length == 1,
       'a Files-tab row belongs to exactly one owner, got '
-      'diveId=$diveId siteId=$siteId',
+      'diveId=$diveId siteId=$siteId equipmentId=$equipmentId',
     );
     // [ExtractedFile.file] is a dart:io File, so its path is always a
     // filesystem path; the factory decides per platform whether that path
@@ -355,6 +368,8 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
       id: '',
       diveId: diveId,
       siteId: siteId,
+      equipmentId: equipmentId,
+      observationId: observationId,
       mediaType: file.metadata.mimeType.startsWith('video/')
           ? MediaType.video
           : MediaType.photo,

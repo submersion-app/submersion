@@ -79,6 +79,7 @@ class MediaImportView extends ConsumerWidget {
     final byId = {for (final a in assets) a.id: a};
     final byDive = <String, List<AssetInfo>>{};
     final bySite = <String, List<AssetInfo>>{};
+    final byEquipment = <EquipmentAttachTarget, List<AssetInfo>>{};
     for (final MapEntry(:key, :value) in targets.entries) {
       final asset = byId[key];
       if (asset == null) continue;
@@ -87,6 +88,8 @@ class MediaImportView extends ConsumerWidget {
           byDive.putIfAbsent(diveId, () => []).add(asset);
         case SiteAttachTarget(:final siteId):
           bySite.putIfAbsent(siteId, () => []).add(asset);
+        case EquipmentAttachTarget():
+          byEquipment.putIfAbsent(value, () => []).add(asset);
       }
     }
 
@@ -129,6 +132,20 @@ class MediaImportView extends ConsumerWidget {
         final result = await service.importPhotosForSite(
           selectedAssets: value,
           siteId: key,
+        );
+        linked += result.imported.length;
+        importedIds.addAll(result.imported.map((m) => m.id));
+        failures.addAll(result.failures);
+      } catch (e) {
+        failGroup(value, e);
+      }
+    }
+    for (final MapEntry(:key, :value) in byEquipment.entries) {
+      try {
+        final result = await service.importPhotosForEquipment(
+          selectedAssets: value,
+          equipmentId: key.equipmentId,
+          observationId: key.observationId,
         );
         linked += result.imported.length;
         importedIds.addAll(result.imported.map((m) => m.id));

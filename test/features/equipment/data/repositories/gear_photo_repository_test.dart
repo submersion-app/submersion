@@ -128,6 +128,26 @@ void main() {
     );
   });
 
+  test('linkedLocalPathsFor returns the item\'s local file paths', () async {
+    final item = await createItem('Reg');
+    final at = DateTime.utc(2026, 11, 3);
+    await media.createMedia(
+      MediaItem(
+        id: '',
+        equipmentId: item.id,
+        localPath: '/Users/me/Pictures/label.jpg',
+        mediaType: MediaType.photo,
+        takenAt: at,
+        createdAt: at,
+        updatedAt: at,
+      ),
+    );
+
+    expect(await repository.linkedLocalPathsFor(item.id), {
+      '/Users/me/Pictures/label.jpg',
+    });
+  });
+
   test('setCover stamps updatedAt and marks equipment pending', () async {
     final item = await createItem('Reg');
     final photo = await addMedia(equipmentId: item.id);

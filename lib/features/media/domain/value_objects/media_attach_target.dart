@@ -20,6 +20,10 @@ import 'package:equatable/equatable.dart';
 sealed class MediaAttachTarget extends Equatable {
   const MediaAttachTarget();
 
+  /// Whether the session owns every picked file outright, with no dive
+  /// matching: a site or a gear item. Only a dive session matches by date.
+  bool get ownsEveryFile => this is! DiveAttachTarget;
+
   @override
   bool get stringify => true;
 }
@@ -47,4 +51,17 @@ final class SiteAttachTarget extends MediaAttachTarget {
 
   @override
   List<Object?> get props => [siteId];
+}
+
+/// Media picked in this session are photos of one gear item (issue #3355),
+/// backing up check-in [observationId] when it is set. Like a site, a gear
+/// item has no time window, so nothing is matched to dives.
+final class EquipmentAttachTarget extends MediaAttachTarget {
+  const EquipmentAttachTarget(this.equipmentId, {this.observationId});
+
+  final String equipmentId;
+  final String? observationId;
+
+  @override
+  List<Object?> get props => [equipmentId, observationId];
 }

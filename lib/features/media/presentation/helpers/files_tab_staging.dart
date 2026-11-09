@@ -58,7 +58,7 @@ Future<void> stageFilesForReview(
     notifier.setExtractionProgress(done: i + 1, total: paths.length);
   }
 
-  if (target is SiteAttachTarget) {
+  if (target?.ownsEveryFile ?? false) {
     // The empty selection also keeps any dive grouping from an earlier
     // session on this (non-autoDispose) notifier out of the review pane.
     notifier.setFiles(extracted, match: MatchedSelection.empty());

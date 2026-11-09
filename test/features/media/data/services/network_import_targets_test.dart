@@ -81,6 +81,16 @@ void main() {
     expect(requests.single.diveId, isNull);
   });
 
+  test('requestsForTarget attaches everything to the gear item', () {
+    final requests = requestsForTarget([
+      a,
+    ], const EquipmentAttachTarget('reg-1', observationId: 'obs-1'));
+    expect(requests.single.equipmentId, 'reg-1');
+    expect(requests.single.observationId, 'obs-1');
+    expect(requests.single.diveId, isNull);
+    expect(requests.single.siteId, isNull);
+  });
+
   test('candidatesFor keys on the uri and carries takenAt and error', () {
     final candidates = candidatesFor([a, broken]);
     expect(candidates[0].key, 'https://e.com/a.jpg');
