@@ -50,15 +50,25 @@ class HealthSettingsNotifier extends StateNotifier<HealthSettings> {
       _set(autoImport: state.autoImportDiverId, metrics: null);
 
   /// Turns off a switch whose diver no longer exists (deleted, or merged
-  /// into another profile), so nothing is written for them.
+  /// into another profile), so nothing is written for them. The lookups
+  /// await the database, so the switches are read again after them: one
+  /// turned on or off meanwhile keeps that change, and only a switch still
+  /// bound to the missing diver is cleared.
   Future<void> verifyBoundDivers() async {
     final autoImport = state.autoImportDiverId;
     final metrics = state.metricsDiverId;
+    final autoImportGone =
+        autoImport != null && !await _diverExists(autoImport);
+    final metricsGone = metrics != null && !await _diverExists(metrics);
+    if (!autoImportGone && !metricsGone) return;
+    final now = state;
     await _set(
-      autoImport: autoImport != null && await _diverExists(autoImport)
-          ? autoImport
-          : null,
-      metrics: metrics != null && await _diverExists(metrics) ? metrics : null,
+      autoImport: autoImportGone && now.autoImportDiverId == autoImport
+          ? null
+          : now.autoImportDiverId,
+      metrics: metricsGone && now.metricsDiverId == metrics
+          ? null
+          : now.metricsDiverId,
     );
   }
 

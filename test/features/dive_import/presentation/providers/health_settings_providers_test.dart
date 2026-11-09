@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/features/dive_import/presentation/providers/health_settings_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// The Apple Health switches (issue #637) live on this device and belong to
 /// the diver who turned them on: nothing from Health is written to another
@@ -51,6 +54,27 @@ void main() {
     expect(n.state.metricsDiverId, isNull);
     expect(notifier().state.autoImportDiverId, isNull);
   });
+
+  test(
+    'a switch turned on while the bound divers are checked stays on',
+    () async {
+      await notifier().enableAutoImport('a');
+      final lookup = Completer<bool>();
+      final n = HealthSettingsNotifier(
+        prefs,
+        diverExists: (_) => lookup.future,
+      );
+
+      final verifying = n.verifyBoundDivers();
+      await n.enableMetrics('b');
+      lookup.complete(true);
+      await verifying;
+
+      expect(n.state.autoImportDiverId, 'a');
+      expect(n.state.metricsDiverId, 'b');
+      expect(prefs.getString(SettingsKeys.healthMetricsDiver), 'b');
+    },
+  );
 
   test('a deleted bound diver turns the switches off', () async {
     final n = notifier();
