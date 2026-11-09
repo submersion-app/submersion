@@ -96,7 +96,15 @@ void main() {
     await tester.tap(peopleRow);
     await tester.pumpAndSettle();
     for (final key in keys) {
-      await tester.tap(find.byKey(ValueKey('media_people_pick_$key')));
+      await tester.tap(
+        find.byKey(
+          ValueKey(
+            key == 'none' || key == 'me'
+                ? 'media_people_pick_$key'
+                : 'media_people_pick_buddy_$key',
+          ),
+        ),
+      );
       await tester.pumpAndSettle();
     }
     await tester.tap(find.text('Done'));

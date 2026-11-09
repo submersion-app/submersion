@@ -21,7 +21,13 @@ void main() {
   final cal = buddy('cal', 'Cal');
   final zoe = buddy('zoe', 'Zoe');
 
-  Finder row(String key) => find.byKey(ValueKey('media_people_pick_$key'));
+  Finder buddyRow(String id) =>
+      find.byKey(ValueKey('media_people_pick_buddy_$id'));
+
+  /// The pinned rows by name (`none`, `me`), any other key a buddy id.
+  Finder row(String key) => key == 'none' || key == 'me'
+      ? find.byKey(ValueKey('media_people_pick_$key'))
+      : buddyRow(key);
   bool ticked(WidgetTester tester, String key) =>
       tester.widget<CheckboxListTile>(row(key)).value ?? false;
 
@@ -220,12 +226,18 @@ void main() {
   testWidgets('a buddy whose id reads "me" is still a buddy', (tester) async {
     final result = await open(
       tester,
-      buddies: () => [buddy('me', 'Mel')],
-      tagged: {'me'},
+      buddies: () => [buddy('me', 'Mel'), buddy('none', 'Nell')],
+      tagged: {'me', 'none'},
     );
-    await tester.enterText(find.byType(TextField), 'mel');
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Mel'));
+    // Each pinned row and each buddy row is its own row, never a pair
+    // sharing one key.
+    expect(row('me'), findsOneWidget);
+    expect(row('none'), findsOneWidget);
+    expect(buddyRow('me'), findsOneWidget);
+    expect(buddyRow('none'), findsOneWidget);
+    expect(find.byType(CheckboxListTile), findsNWidgets(4));
+
+    await tester.tap(buddyRow('me'));
     await tester.pumpAndSettle();
     await done(tester);
     expect(await result, const MediaPeopleSelection(buddyIds: {'me'}));

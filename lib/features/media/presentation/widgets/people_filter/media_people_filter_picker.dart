@@ -174,7 +174,13 @@ class _MediaPeopleFilterPickerState
                       itemBuilder: (context, i) {
                         final row = rows[i];
                         return CheckboxListTile(
-                          key: ValueKey('media_people_pick_${row.id}'),
+                          // Buddy ids are arbitrary and could read "me" or
+                          // "none", so buddy keys carry their own prefix.
+                          key: ValueKey(
+                            row.pick == _Pick.buddy
+                                ? 'media_people_pick_buddy_${row.id}'
+                                : 'media_people_pick_${row.id}',
+                          ),
                           // An avatar on every row, as in the tagging
                           // picker, so the names line up under Me.
                           secondary: CircleAvatar(
