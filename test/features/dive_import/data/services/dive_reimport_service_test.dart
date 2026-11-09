@@ -817,8 +817,9 @@ void main() {
       // downloaded computer on serial alone, so a file source row routinely
       // carries a physical computer's id while its rawData stays null --
       // invisible to sourceOwnsProfileStrand's contention check. If resync
-      // stamps that computer on the profile, the next reparse of the
-      // computer's own download deletes the file strand too (#478).
+      // stamped that computer on the profile, the file strand would sit on
+      // the computer's own strand, which a delete by computer takes whole
+      // (#478).
       final diveId = await seedDive(notes: '', buddy: '');
       await seedComputer('computer-perdix');
       await seedSource(diveId, id: 'src-file', computerId: 'computer-perdix');

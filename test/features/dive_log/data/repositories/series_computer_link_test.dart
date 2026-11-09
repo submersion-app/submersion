@@ -192,8 +192,8 @@ void main() {
       // the old computer was deleted: the computer's own samples demoted and
       // stripped of their computer by clearComputer, and the manual edit
       // primary with a null computer of its own. Stamping the edit hands it
-      // to the next reparse, whose first act is deleteByComputer, and a
-      // series is deleted whole.
+      // to the next reparse, which replaces what its source owns on the
+      // computer's strand, and a series is deleted whole.
       await insertComputerDataSource('d-mine');
       final original = await profileSeries.insertSeries(
         diveId: 'd-mine',

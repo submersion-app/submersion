@@ -859,10 +859,10 @@ class ReparseService {
     String sourceId,
     List<({String id, String? computerId})> sources,
   ) async {
-    final edits = await _profileSeries.liveEditIds(diveId);
-    if (edits.isEmpty) return const {};
+    final series = await _profileSeries.getIdentitiesForDive(diveId);
+    final edits = ProfileSeriesRepository.liveEditIdsOf(series);
     return {
-      for (final s in await _profileSeries.getIdentitiesForDive(diveId))
+      for (final s in series)
         if (edits.contains(s.id) &&
             _ownsSeries(
               s,

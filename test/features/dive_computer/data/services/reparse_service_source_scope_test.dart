@@ -262,6 +262,22 @@ void main() {
       expect(fresh.single.value.isPrimary, isFalse);
     });
 
+    test("keeps the edit's depths on the dive row", () async {
+      // The edit stays live, so the summary reads from it rather than from
+      // the recording (issue #3931), as it does for a source with a computer.
+      await insertDive();
+      await insertSource(id: 'comp-a', isPrimary: true, withRawData: true);
+      await insertSeries(sourceId: 'comp-a', isPrimary: true, depth: 25.0);
+      await insertSeries(sourceId: 'comp-a', isPrimary: false, now: 500);
+
+      await reparse('comp-a');
+
+      final dive = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals('dive-1'))).getSingle();
+      expect(dive.maxDepth, 25.0);
+    });
+
     test('of a non-primary source is kept too', () async {
       await insertDive();
       await insertSource(id: 'uddf', isPrimary: true, sourceFormat: 'uddf');

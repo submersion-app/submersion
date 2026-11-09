@@ -733,8 +733,15 @@ class ProfileSeriesRepository {
   /// that outlives its row, and a resync deletes what this does not name. The
   /// price is that a merge's surface fill can read as an edit here, which
   /// only makes a dive's depths come from the samples it shows.
-  Future<Set<String>> liveEditIds(String diveId) async {
-    final series = await getIdentitiesForDive(diveId);
+  Future<Set<String>> liveEditIds(String diveId) async =>
+      liveEditIdsOf(await getIdentitiesForDive(diveId));
+
+  /// [liveEditIds] over [series] already read by [getIdentitiesForDive], for
+  /// a caller that needs the identities as well (a re-parse, issue #4367).
+  static Set<String> liveEditIdsOf(
+    List<({String id, String? computerId, String? sourceId, bool isPrimary})>
+    series,
+  ) {
     return {
       for (final live in series)
         if (live.isPrimary &&
@@ -927,17 +934,15 @@ class ProfileSeriesRepository {
         t.computerId.isNull(),
   );
 
-  /// Deletes the series [computerId] contributed to [diveId]; a null
-  /// [computerId] matches the null-computer (manual or file) series only.
-  /// One tombstone per series. Returns the deleted ids.
-  Future<List<String>> deleteByComputer(String diveId, String? computerId) =>
-      _delete(
-        (t) =>
-            t.diveId.equals(diveId) &
-            (computerId == null
-                ? t.computerId.isNull()
-                : t.computerId.equals(computerId)),
-      );
+  /// Deletes the series [computerId] contributed to [diveId], one tombstone
+  /// per series. Returns the deleted ids.
+  ///
+  /// No null computer: the null strand holds every file import's series and
+  /// the diver's edits, whatever source wrote them, and deleting it whole is
+  /// how a re-parse took another source's profile (issue #4367). Scope a
+  /// delete there by source, as [deleteOwnedBy] and [deleteByIds] do.
+  Future<List<String>> deleteByComputer(String diveId, String computerId) =>
+      _delete((t) => t.diveId.equals(diveId) & t.computerId.equals(computerId));
 
   /// Deletes exactly [ids], one tombstone each. Empty input is a no-op.
   Future<List<String>> deleteByIds(List<String> ids) =>
