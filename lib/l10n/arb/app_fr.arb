@@ -2625,7 +2625,6 @@
   "diveLog_diveMode_ocDescription": "Plongée en circuit ouvert standard avec blocs",
   "diveLog_diveMode_scrDescription": "Recycleur semi-fermé avec ppO₂ variable",
   "diveLog_diveMode_title": "Mode de plongée",
-  "diveLog_editSighting_count": "Nombre",
   "diveLog_editSighting_notes": "Notes",
   "diveLog_editSighting_notesHint": "Taille, comportement, emplacement...",
   "diveLog_editSighting_remove": "Retirer",

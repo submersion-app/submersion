@@ -2625,7 +2625,6 @@
   "diveLog_diveMode_ocDescription": "Scuba standard a circuito aperto con bombole",
   "diveLog_diveMode_scrDescription": "Rebreather semi-chiuso con ppO2 variabile",
   "diveLog_diveMode_title": "Modalità immersione",
-  "diveLog_editSighting_count": "Quantità",
   "diveLog_editSighting_notes": "Note",
   "diveLog_editSighting_notesHint": "Dimensione, comportamento, posizione...",
   "diveLog_editSighting_remove": "Rimuovi",

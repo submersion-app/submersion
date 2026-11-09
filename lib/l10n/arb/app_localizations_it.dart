@@ -8082,9 +8082,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_diveMode_title => 'Modalità immersione';
 
   @override
-  String get diveLog_editSighting_count => 'Quantità';
-
-  @override
   String get diveLog_editSighting_notes => 'Note';
 
   @override

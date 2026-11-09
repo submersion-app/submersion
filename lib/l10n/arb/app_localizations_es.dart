@@ -8086,9 +8086,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_diveMode_title => 'Modo de buceo';
 
   @override
-  String get diveLog_editSighting_count => 'Cantidad';
-
-  @override
   String get diveLog_editSighting_notes => 'Notas';
 
   @override

@@ -12712,12 +12712,6 @@ abstract class AppLocalizations {
   /// **'Dive Mode'**
   String get diveLog_diveMode_title;
 
-  /// No description provided for @diveLog_editSighting_count.
-  ///
-  /// In en, this message translates to:
-  /// **'Count'**
-  String get diveLog_editSighting_count;
-
   /// No description provided for @diveLog_editSighting_notes.
   ///
   /// In en, this message translates to:

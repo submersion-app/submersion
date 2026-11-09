@@ -8103,9 +8103,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_diveMode_title => 'Mode de plongée';
 
   @override
-  String get diveLog_editSighting_count => 'Nombre';
-
-  @override
   String get diveLog_editSighting_notes => 'Notes';
 
   @override

@@ -8062,9 +8062,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_diveMode_title => 'Merülési mód';
 
   @override
-  String get diveLog_editSighting_count => 'Darab';
-
-  @override
   String get diveLog_editSighting_notes => 'Jegyzetek';
 
   @override

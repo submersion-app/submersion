@@ -2726,7 +2726,6 @@
   "diveLog_diveMode_ocDescription": "Mergulho padrão em circuito aberto com cilindros",
   "diveLog_diveMode_scrDescription": "Rebreather semi-fechado com ppO₂ variável",
   "diveLog_diveMode_title": "Modo de Mergulho",
-  "diveLog_editSighting_count": "Quantidade",
   "diveLog_editSighting_notes": "Anotações",
   "diveLog_editSighting_notesHint": "Tamanho, comportamento, localização...",
   "diveLog_editSighting_remove": "Remover",

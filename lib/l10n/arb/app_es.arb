@@ -2726,7 +2726,6 @@
   "diveLog_diveMode_ocDescription": "Buceo estándar de circuito abierto con tanques",
   "diveLog_diveMode_scrDescription": "Rebreather semicerrado con ppO₂ variable",
   "diveLog_diveMode_title": "Modo de buceo",
-  "diveLog_editSighting_count": "Cantidad",
   "diveLog_editSighting_notes": "Notas",
   "diveLog_editSighting_notesHint": "Tamaño, comportamiento, ubicación...",
   "diveLog_editSighting_remove": "Quitar",

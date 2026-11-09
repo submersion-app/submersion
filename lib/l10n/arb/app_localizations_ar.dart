@@ -8202,9 +8202,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_diveMode_title => 'وضع الغوص';
 
   @override
-  String get diveLog_editSighting_count => 'العدد';
-
-  @override
   String get diveLog_editSighting_notes => 'ملاحظات';
 
   @override

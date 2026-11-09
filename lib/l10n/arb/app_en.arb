@@ -4763,7 +4763,6 @@
   "diveLog_diveMode_ocDescription": "Standard open circuit scuba with tanks",
   "diveLog_diveMode_scrDescription": "Semi-closed rebreather with variable ppO₂",
   "diveLog_diveMode_title": "Dive Mode",
-  "diveLog_editSighting_count": "Count",
   "diveLog_editSighting_notes": "Notes",
   "diveLog_editSighting_notesHint": "Size, behavior, location...",
   "diveLog_editSighting_remove": "Remove",

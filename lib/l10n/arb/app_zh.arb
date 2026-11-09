@@ -2827,7 +2827,6 @@
   "diveLog_diveMode_ocDescription": "标准开放式气瓶水肺潜水",
   "diveLog_diveMode_scrDescription": "半密闭循环呼吸器，可变氧分压",
   "diveLog_diveMode_title": "潜水模式",
-  "diveLog_editSighting_count": "数量",
   "diveLog_editSighting_notes": "备注",
   "diveLog_editSighting_notesHint": "大小、行为、位置...",
   "diveLog_editSighting_remove": "移除",

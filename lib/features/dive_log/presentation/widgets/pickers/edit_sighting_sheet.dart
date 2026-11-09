@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/dive_log/presentation/widgets/pickers/sighting_abundance_picker.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -22,13 +24,13 @@ class EditSightingSheet extends StatefulWidget {
 }
 
 class _EditSightingSheetState extends State<EditSightingSheet> {
-  late int _count;
+  late SightingAmount _amount;
   late TextEditingController _notesController;
 
   @override
   void initState() {
     super.initState();
-    _count = widget.sighting.count;
+    _amount = widget.sighting.amount;
     _notesController = TextEditingController(text: widget.sighting.notes);
   }
 
@@ -109,40 +111,9 @@ class _EditSightingSheetState extends State<EditSightingSheet> {
             ],
           ),
           const SizedBox(height: 24),
-          Text(
-            context.l10n.diveLog_editSighting_count,
-            style: Theme.of(context).textTheme.labelLarge,
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton.filled(
-                icon: const Icon(Icons.remove),
-                onPressed: _count > 1 ? () => setState(() => _count--) : null,
-              ),
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 24),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  '$_count',
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-              ),
-              IconButton.filled(
-                icon: const Icon(Icons.add),
-                onPressed: () => setState(() => _count++),
-              ),
-            ],
+          SightingAbundancePicker(
+            value: _amount,
+            onChanged: (v) => setState(() => _amount = v),
           ),
           const SizedBox(height: 24),
           TextField(
@@ -159,7 +130,8 @@ class _EditSightingSheetState extends State<EditSightingSheet> {
             onPressed: () {
               widget.onSave(
                 widget.sighting.copyWith(
-                  count: _count,
+                  abundance: _amount.abundance,
+                  count: _amount.count,
                   notes: _notesController.text,
                 ),
               );

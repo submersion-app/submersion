@@ -6204,7 +6204,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         expand: false,
         builder: (context, scrollController) => SpeciesPickerSheet(
           scrollController: scrollController,
-          onSpeciesSelected: (species, count, notes) {
+          onSpeciesSelected: (species, amount, notes) {
             setState(() {
               _markDirty();
               _sightings.add(
@@ -6214,7 +6214,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   speciesId: species.id,
                   speciesName: species.commonName,
                   speciesCategory: species.category,
-                  count: count,
+                  abundance: amount.abundance,
+                  count: amount.count,
                   notes: notes,
                 ),
               );
@@ -6671,6 +6672,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             await speciesRepository.addSighting(
               diveId: savedDiveId,
               speciesId: sighting.speciesId,
+              abundance: sighting.abundance,
               count: sighting.count,
               notes: sighting.notes,
             );

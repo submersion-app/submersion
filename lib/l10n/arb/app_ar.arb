@@ -2726,7 +2726,6 @@
   "diveLog_diveMode_ocDescription": "غوص دائرة مفتوحة قياسي مع أسطوانات",
   "diveLog_diveMode_scrDescription": "جهاز إعادة تنفس شبه مغلق بضغط ppO₂ متغير",
   "diveLog_diveMode_title": "وضع الغوص",
-  "diveLog_editSighting_count": "العدد",
   "diveLog_editSighting_notes": "ملاحظات",
   "diveLog_editSighting_notesHint": "الحجم، السلوك، الموقع...",
   "diveLog_editSighting_remove": "إزالة",

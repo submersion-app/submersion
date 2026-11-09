@@ -2752,7 +2752,6 @@
   "diveLog_diveMode_ocDescription": "Standard-Gerätetauchen mit offenem Kreislauf und Flaschen",
   "diveLog_diveMode_scrDescription": "Halbgeschlossener Rebreather mit variablem ppO₂",
   "diveLog_diveMode_title": "Tauchmodus",
-  "diveLog_editSighting_count": "Anzahl",
   "diveLog_editSighting_notes": "Notizen",
   "diveLog_editSighting_notesHint": "Größe, Verhalten, Fundort...",
   "diveLog_editSighting_remove": "Entfernen",

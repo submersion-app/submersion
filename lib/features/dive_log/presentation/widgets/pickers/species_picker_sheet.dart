@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pickers/sighting_abundance_picker.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/domain/entities/species_lookup.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
@@ -15,13 +17,21 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Species picker bottom sheet with search
 class SpeciesPickerSheet extends ConsumerStatefulWidget {
   final ScrollController scrollController;
-  final void Function(Species species, int count, String notes)
+
+  /// Called with the picked species, how many animals the diver recorded
+  /// (Seen unless they chose otherwise) and the notes.
+  final void Function(Species species, SightingAmount amount, String notes)
   onSpeciesSelected;
+
+  /// Whether the details dialog asks "How many". Photo tagging turns it
+  /// off: a tag only needs the species.
+  final bool showAbundance;
 
   const SpeciesPickerSheet({
     super.key,
     required this.scrollController,
     required this.onSpeciesSelected,
+    this.showAbundance = true,
   });
 
   @override
@@ -291,7 +301,9 @@ class _SpeciesPickerSheetState extends ConsumerState<SpeciesPickerSheet> {
   }
 
   void _showSightingDetails(Species species) {
-    int count = 1;
+    // Seen by default: the dialog shows no number the diver did not pick
+    // (issue #4337).
+    SightingAmount amount = (abundance: SightingAbundance.seen, count: 1);
     final notesController = TextEditingController();
 
     showDialog(
@@ -302,40 +314,13 @@ class _SpeciesPickerSheetState extends ConsumerState<SpeciesPickerSheet> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.remove_circle_outline),
-                    tooltip: context.l10n.diveLog_sighting_decreaseCount,
-                    onPressed: count > 1
-                        ? () => setDialogState(() => count--)
-                        : null,
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '$count',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.add_circle_outline),
-                    tooltip: context.l10n.diveLog_sighting_increaseCount,
-                    onPressed: () => setDialogState(() => count++),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
+              if (widget.showAbundance) ...[
+                SightingAbundancePicker(
+                  value: amount,
+                  onChanged: (v) => setDialogState(() => amount = v),
+                ),
+                const SizedBox(height: 16),
+              ],
               TextField(
                 controller: notesController,
                 decoration: InputDecoration(
@@ -355,7 +340,7 @@ class _SpeciesPickerSheetState extends ConsumerState<SpeciesPickerSheet> {
             FilledButton(
               onPressed: () {
                 Navigator.of(dialogContext).pop();
-                widget.onSpeciesSelected(species, count, notesController.text);
+                widget.onSpeciesSelected(species, amount, notesController.text);
               },
               child: Text(context.l10n.diveLog_sighting_add),
             ),

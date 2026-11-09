@@ -8036,9 +8036,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_diveMode_title => 'Duikmodus';
 
   @override
-  String get diveLog_editSighting_count => 'Aantal';
-
-  @override
   String get diveLog_editSighting_notes => 'Notities';
 
   @override
