@@ -6,32 +6,21 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
-/// The outermost fold keys the Equipment list shows right now (issue #4184):
-/// the places when it groups by location, the types otherwise. The list
-/// publishes them after each build; Collapse all and the overflow menu read
-/// them.
-final equipmentOuterGroupKeysProvider = StateProvider<List<String>>(
-  (ref) => const [],
-);
-
 /// The Equipment list's folded group keys (issue #4184), see
 /// `equipment_fold_keys.dart`.
 ///
 /// Normally the active diver's saved folds, and every change is saved. While
 /// a filter is on, every group shows open: the state starts empty, changes
-/// stay in memory ([EquipmentFoldsNotifier.isSessionOnly]), and they are
-/// dropped when the filter clears, which brings the saved folds back
-/// untouched.
+/// stay in memory, and they are dropped when the filter clears, which brings
+/// the saved folds back untouched.
 final equipmentFoldsProvider =
     NotifierProvider<EquipmentFoldsNotifier, List<String>>(
       EquipmentFoldsNotifier.new,
     );
 
 class EquipmentFoldsNotifier extends Notifier<List<String>> {
-  bool _sessionOnly = false;
-
   /// Whether folds are memory-only because a filter is on.
-  bool get isSessionOnly => _sessionOnly;
+  bool _sessionOnly = false;
 
   @override
   List<String> build() {
@@ -51,20 +40,18 @@ class EquipmentFoldsNotifier extends Notifier<List<String>> {
   /// Folds [key] if it is open, opens it if it is folded.
   void toggle(String key) {
     final fold = !state.contains(key);
+    // Against the saved keys, so a key already as wanted is left alone.
     _apply(
-      (keys) => switch ((fold, keys.contains(key))) {
-        (true, false) || (false, true) => toggleFoldKey(keys, key),
-        _ => keys,
-      },
+      (keys) => fold != keys.contains(key) ? toggleFoldKey(keys, key) : keys,
     );
   }
 
   /// Opens every group.
   void expandAll() => _apply((_) => const []);
 
-  /// Folds every outermost group on screen, keeping the inner folds.
-  void collapseAll() {
-    final outer = ref.read(equipmentOuterGroupKeysProvider);
+  /// Folds [outer], the outermost groups on screen (the places when the
+  /// list groups by location, the types otherwise), keeping the inner folds.
+  void collapseAll(List<String> outer) {
     _apply((keys) {
       var next = keys;
       for (final key in outer) {

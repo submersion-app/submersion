@@ -26,31 +26,28 @@ mixin _PickerFolds on ConsumerState<EquipmentPickerSheet> {
       ? !_closedWhileFiltered.contains(key)
       : (_open?.contains(key) ?? true);
 
-  void _toggleGroup(String key, {required bool filtered}) {
-    Set<String> flip(Set<String> keys) =>
-        keys.contains(key) ? ({...keys}..remove(key)) : {...keys, key};
-    setState(() {
-      if (filtered) {
-        _closedWhileFiltered = flip(_closedWhileFiltered);
-      } else {
-        _open = flip(_open ?? _shownGroups);
-      }
-    });
-  }
+  void _toggleGroup(String key, {required bool filtered}) => setState(() {
+    if (filtered) {
+      _closedWhileFiltered = toggleOpenKey(_closedWhileFiltered, key);
+    } else {
+      _open = toggleOpenKey(_open ?? _shownGroups, key);
+    }
+  });
 
   /// "2 of 8 selected" for a closed group holding ticks, so a tick is never
-  /// hidden without a trace.
-  String? _tickSummary(BuildContext context, List<EquipmentItem> items) {
-    if (!_multiSelect) return null;
-    final ticked = tickedIn(items.map((e) => e.id), _picked.keys.toSet());
-    return ticked == 0
-        ? null
-        : foldedSelectionSummary(
-            context.l10n,
-            selected: ticked,
-            total: items.length,
-          );
-  }
+  /// hidden without a trace. Worked out only for a closed group, the only
+  /// one that shows it.
+  String? _tickSummary(
+    BuildContext context,
+    List<EquipmentItem> items, {
+    required bool isOpen,
+  }) => isOpen || !_multiSelect
+      ? null
+      : foldedTickSummary(
+          context.l10n,
+          items.map((e) => e.id),
+          _picked.keys.toSet(),
+        );
 
   /// The picker's rows: section labels, foldable owner and type headings,
   /// and the items of every open group.
@@ -158,7 +155,7 @@ mixin _PickerFolds on ConsumerState<EquipmentPickerSheet> {
         countLabel: context.l10n.equipment_location_groupCount(items.length),
         isExpanded: isOpen,
         onTap: () => _toggleGroup(foldKey, filtered: filtered),
-        summary: _tickSummary(context, items),
+        summary: _tickSummary(context, items, isOpen: isOpen),
         titleWeight: FontWeight.w700,
         isHeading: true,
       ),
@@ -176,7 +173,7 @@ mixin _PickerFolds on ConsumerState<EquipmentPickerSheet> {
         isExpanded: isOpen,
         nested: nested,
         onTap: () => _toggleGroup(foldKey, filtered: filtered),
-        summary: _tickSummary(context, items),
+        summary: _tickSummary(context, items, isOpen: isOpen),
       ),
     _ => throw ArgumentError.value(row, 'row', 'not a group heading'),
   };

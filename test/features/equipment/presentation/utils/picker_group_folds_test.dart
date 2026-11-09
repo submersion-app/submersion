@@ -41,9 +41,11 @@ void main() {
     );
   });
 
-  test('tickedIn counts only ticked ids', () {
-    expect(tickedIn(['a', 'b', 'c'], {'b', 'c', 'z'}), 2);
-    expect(tickedIn(['a'], const {}), 0);
+  test('toggleOpenKey opens a closed group and closes an open one', () {
+    final open = {'a'};
+    expect(toggleOpenKey(open, 'b'), {'a', 'b'});
+    expect(toggleOpenKey(open, 'a'), isEmpty);
+    expect(open, {'a'}, reason: 'never mutates its argument');
   });
 
   test('one group inside an owner opens with its owner', () {

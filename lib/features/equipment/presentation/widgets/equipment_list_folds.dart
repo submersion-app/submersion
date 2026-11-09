@@ -37,9 +37,12 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
   /// walks, so a range across a folded group skips the items inside it.
   List<String> _visibleItemIds = const [];
 
-  /// The outermost fold keys last published to
-  /// [equipmentOuterGroupKeysProvider], so it is written only on change.
-  List<String> _publishedOuterKeys = const [];
+  /// The outermost fold keys on screen this build: the places when the list
+  /// groups by location, the types otherwise. What Collapse all folds, and
+  /// empty whenever the body shows no headings (empty, loading, error,
+  /// table), so the menu never offers to fold groups that are gone, such as
+  /// the previous diver's places. Read when the menu opens.
+  List<String> _outerKeys = const [];
 
   /// The rows for this build, with the folds hiding [_revealTarget] opened.
   ///
@@ -96,18 +99,74 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
     return layout;
   }
 
-  /// Tells Collapse all and the menu which outermost groups are on screen,
-  /// after the frame and only on change. Every other body (empty, loading,
-  /// error, table) publishes none, so the menu never offers to fold groups
-  /// that are gone, such as the previous diver's places.
-  void _publishOuterKeys(List<String> keys) {
-    if (listEquals(keys, _publishedOuterKeys)) return;
-    _publishedOuterKeys = keys;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      ref.read(equipmentOuterGroupKeysProvider.notifier).state = keys;
-    });
-  }
+  bool get _isSelectionMode;
+  Set<String> get _selectedIds;
+
+  /// A folded group's "N of M selected" in selection mode, or null.
+  String? _selectionSummary(BuildContext context, List<EquipmentItem> items) =>
+      _isSelectionMode
+      ? foldedTickSummary(context.l10n, items.map((e) => e.id), _selectedIds)
+      : null;
+
+  /// A place's heading (issue #4184), with a divider above every place but
+  /// the first. Its summary shows only while folded, so it is worked out
+  /// only then.
+  Widget _locationHeading(
+    BuildContext context,
+    EquipmentLocationHeadingRow row,
+    Set<String> folds,
+  ) => KeyboardListItem(
+    navigationKey: equipmentGroupNavKey(row.foldKey),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (!row.isFirst) const Divider(height: 1),
+        EquipmentLocationGroupHeader(
+          location: row.location,
+          count: row.items.length,
+          isExpanded: row.isExpanded,
+          onTap: () => _toggleFold(row.foldKey, folds),
+          summary: row.isExpanded
+              ? null
+              : (_selectionSummary(context, row.items) ??
+                    foldedLocationSummary(context.l10n, row.typeCounts)),
+        ),
+      ],
+    ),
+  );
+
+  /// A type's heading (issue #4184), indented under its place. Folded, it
+  /// says how many items inside need service, from [urgency].
+  Widget _typeHeading(
+    BuildContext context,
+    EquipmentTypeHeadingRow row,
+    Set<String> folds,
+    Map<String, ServiceClockStatus> urgency,
+  ) => KeyboardListItem(
+    navigationKey: equipmentGroupNavKey(row.foldKey),
+    child: EquipmentTypeFoldHeader(
+      foldKey: row.foldKey,
+      type: row.type,
+      count: row.items.length,
+      isExpanded: row.isExpanded,
+      nested: row.parentKey != null,
+      onTap: () => _toggleFold(row.foldKey, folds),
+      summary: row.isExpanded
+          ? null
+          : (_selectionSummary(context, row.items) ??
+                foldedTypeSummary(
+                  context.l10n,
+                  serviceDueCount: row.items
+                      .where(
+                        (e) =>
+                            (urgency[e.id]?.severity ??
+                                ServiceClockSeverity.ok) !=
+                            ServiceClockSeverity.ok,
+                      )
+                      .length,
+                )),
+    ),
+  );
 
   /// Whether the group [foldKey] shows its rows: not folded, or folded but
   /// opened for an outside selection.
@@ -137,7 +196,7 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
   /// Expand all and Collapse all (issue #4184), offered while the list shows
   /// headings. Read as the menu opens, like the view mode.
   List<PopupMenuEntry<String>> _foldMenuEntries(BuildContext context) {
-    if (ref.read(equipmentOuterGroupKeysProvider).isEmpty) return const [];
+    if (_outerKeys.isEmpty) return const [];
     PopupMenuItem<String> entry(String value, IconData icon, String label) =>
         PopupMenuItem<String>(
           value: value,
@@ -175,7 +234,7 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
         return true;
       case _collapseAllValue:
         _endReveal();
-        folds.collapseAll();
+        folds.collapseAll(_outerKeys);
         return true;
     }
     return false;

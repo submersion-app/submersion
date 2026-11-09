@@ -12,7 +12,6 @@ void main() {
 
     test('type keys, nested and outermost', () {
       expect(typeFoldKey(EquipmentType.bcd), 'type:bcd');
-      expect(typeFoldKey(null), 'type:none');
       expect(
         typeFoldKey(EquipmentType.secondStage, parentKey: 'loc:abc'),
         'loc:abc/type:secondStage',

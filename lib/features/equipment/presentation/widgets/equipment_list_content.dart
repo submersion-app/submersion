@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -155,7 +154,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent>
   }
 
   /// Convenience mirrors of the controller, so the widget tree reads clearly.
+  @override
   bool get _isSelectionMode => _selection.value.isActive;
+  @override
   Set<String> get _selectedIds => _selection.value.checkedIds;
 
   final ScrollController _scrollController = ScrollController();
@@ -302,10 +303,13 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent>
 
     // The estimate lands near the row, but real rows and headings are not
     // all the estimated height, and the extent of rows not yet built is only
-    // a guess; once the row is built, scroll it fully into view.
+    // a guess; once the row is built, scroll it fully into view. Not once a
+    // newer selection has scrolled the list since: that scroll settles its
+    // own row.
     void settle() {
       final listContext = _listViewKey.currentContext;
       if (!mounted || listContext == null) return;
+      if (_lastScrolledToId != targetId) return;
       KeyboardListNavigator.keepRowVisible(listContext, targetId);
     }
 
@@ -313,6 +317,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent>
       _scrollController.jumpTo(clampedOffset);
       WidgetsBinding.instance.addPostFrameCallback((_) => settle());
     } else {
+      final from = _scrollController.offset;
       unawaited(
         _scrollController
             .animateTo(
@@ -320,7 +325,22 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent>
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
             )
-            .then((_) => settle()),
+            .then((_) {
+              // The animation also ends when the diver takes hold of the
+              // list or another scroll replaces it. Stopped short of where it
+              // was headed, it settles nothing, or it would pull the list
+              // back from where the diver put it.
+              if (!mounted || !_scrollController.hasClients) return;
+              final position = _scrollController.position;
+              final to = clampedOffset.clamp(
+                position.minScrollExtent,
+                position.maxScrollExtent,
+              );
+              final arrived = to >= from
+                  ? position.pixels >= to - 1
+                  : position.pixels <= to + 1;
+              if (arrived) settle();
+            }),
       );
     }
     _lastScrolledToId = targetId;
@@ -382,7 +402,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent>
     // Table mode uses a dedicated scaffold with column configuration support.
     if (viewMode == ListViewMode.table) {
       // Table mode is flat: no groups to fold.
-      _publishOuterKeys(const []);
+      _outerKeys = const [];
       final sortedAsync = equipmentAsync.whenData(
         (equipment) => applyEquipmentSorting(
           equipment,
@@ -475,11 +495,11 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent>
                 locationSections: locationSections,
               ),
         loading: () {
-          _publishOuterKeys(const []);
+          _outerKeys = const [];
           return const Center(child: CircularProgressIndicator());
         },
         error: (error, stack) {
-          _publishOuterKeys(const []);
+          _outerKeys = const [];
           return _buildErrorState(context, error);
         },
       );
@@ -1269,7 +1289,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent>
       folds: folds,
     );
     final rows = layout.rows;
-    _publishOuterKeys(layout.outerKeys);
+    _outerKeys = layout.outerKeys;
 
     // A folded type group says how much in it needs service. The urgency
     // map evaluates every clock, so it is only watched while one is folded.
@@ -1280,17 +1300,6 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent>
         ? (ref.watch(equipmentServiceUrgencyProvider).value ??
               const <String, ServiceClockStatus>{})
         : const <String, ServiceClockStatus>{};
-    String? selectionSummary(List<EquipmentItem> items) {
-      if (!_isSelectionMode) return null;
-      final checked = items.where((e) => _selectedIds.contains(e.id)).length;
-      return checked == 0
-          ? null
-          : foldedSelectionSummary(
-              context.l10n,
-              selected: checked,
-              total: items.length,
-            );
-    }
 
     // Scroll to selected item when data is available but we haven't
     // scrolled yet (e.g., navigated from dive detail or set detail), or when
@@ -1387,63 +1396,10 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent>
           itemBuilder: (context, index) {
             final EquipmentItem item;
             switch (rows[index]) {
-              case EquipmentLocationHeadingRow(
-                :final location,
-                :final foldKey,
-                :final typeCounts,
-                :final items,
-                :final isExpanded,
-                :final isFirst,
-              ):
-                return KeyboardListItem(
-                  navigationKey: equipmentGroupNavKey(foldKey),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      if (!isFirst) const Divider(height: 1),
-                      EquipmentLocationGroupHeader(
-                        location: location,
-                        count: items.length,
-                        isExpanded: isExpanded,
-                        onTap: () => _toggleFold(foldKey, folds),
-                        summary:
-                            selectionSummary(items) ??
-                            foldedLocationSummary(context.l10n, typeCounts),
-                      ),
-                    ],
-                  ),
-                );
-              case EquipmentTypeHeadingRow(
-                :final type,
-                :final foldKey,
-                :final parentKey,
-                :final items,
-                :final isExpanded,
-              ):
-                return KeyboardListItem(
-                  navigationKey: equipmentGroupNavKey(foldKey),
-                  child: EquipmentTypeFoldHeader(
-                    foldKey: foldKey,
-                    type: type,
-                    count: items.length,
-                    isExpanded: isExpanded,
-                    nested: parentKey != null,
-                    onTap: () => _toggleFold(foldKey, folds),
-                    summary:
-                        selectionSummary(items) ??
-                        foldedTypeSummary(
-                          context.l10n,
-                          serviceDueCount: items
-                              .where(
-                                (e) =>
-                                    (urgency[e.id]?.severity ??
-                                        ServiceClockSeverity.ok) !=
-                                    ServiceClockSeverity.ok,
-                              )
-                              .length,
-                        ),
-                  ),
-                );
+              case final EquipmentLocationHeadingRow row:
+                return _locationHeading(context, row, folds);
+              case final EquipmentTypeHeadingRow row:
+                return _typeHeading(context, row, folds, urgency);
               case EquipmentItemRow(item: final rowItem):
                 item = rowItem;
             }
@@ -1491,7 +1447,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent>
     WidgetRef ref, {
     required bool tagsEmptied,
   }) {
-    _publishOuterKeys(const []);
+    _outerKeys = const [];
     final filter = ref.watch(effectiveEquipmentFilterProvider);
 
     // The default view is the diver's choice (#2628) and can hide all they

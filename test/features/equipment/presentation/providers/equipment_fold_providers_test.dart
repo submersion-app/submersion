@@ -61,10 +61,6 @@ void main() {
   test('reads saved folds', () {
     container = build(saved: '["loc:a"]');
     expect(container.read(equipmentFoldsProvider), ['loc:a']);
-    expect(
-      container.read(equipmentFoldsProvider.notifier).isSessionOnly,
-      isFalse,
-    );
   });
 
   test('nothing saved reads as every group open', () {
@@ -85,7 +81,6 @@ void main() {
         const EquipmentFilterState(type: EquipmentType.bcd);
     final notifier = container.read(equipmentFoldsProvider.notifier);
     expect(container.read(equipmentFoldsProvider), isEmpty);
-    expect(notifier.isSessionOnly, isTrue);
 
     notifier.toggle('loc:b');
     expect(container.read(equipmentFoldsProvider), ['loc:b']);
@@ -99,11 +94,10 @@ void main() {
 
   test('collapseAll folds outer keys only, keeping inner folds', () {
     container = build(saved: '["loc:a/type:bcd"]');
-    container.read(equipmentOuterGroupKeysProvider.notifier).state = const [
+    container.read(equipmentFoldsProvider.notifier).collapseAll(const [
       'loc:a',
       'loc:b',
-    ];
-    container.read(equipmentFoldsProvider.notifier).collapseAll();
+    ]);
     expect(
       container.read(equipmentFoldsProvider),
       unorderedEquals(['loc:a/type:bcd', 'loc:a', 'loc:b']),
@@ -152,9 +146,8 @@ void main() {
     );
     addTearDown(c.dispose);
     c.listen(equipmentFoldsProvider, (_, _) {});
-    c.read(equipmentOuterGroupKeysProvider.notifier).state = const ['loc:a'];
 
-    c.read(equipmentFoldsProvider.notifier).collapseAll();
+    c.read(equipmentFoldsProvider.notifier).collapseAll(const ['loc:a']);
 
     expect(
       late.state.listArrangements.equipmentCollapsedGroups,

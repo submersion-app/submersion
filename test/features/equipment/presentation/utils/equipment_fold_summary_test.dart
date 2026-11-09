@@ -49,11 +49,16 @@ void main() {
     expect(foldedTypeSummary(l10n, serviceDueCount: 3), '3 service due');
   });
 
-  test('selection summary', () {
+  test('tick summary counts the ticked items of the group', () {
     expect(
-      foldedSelectionSummary(l10n, selected: 2, total: 8),
-      '2 of 8 selected',
+      foldedTickSummary(l10n, ['a', 'b', 'c'], {'b', 'c', 'z'}),
+      '2 of 3 selected',
     );
+  });
+
+  test('tick summary is null when nothing in the group is ticked', () {
+    expect(foldedTickSummary(l10n, ['a', 'b'], {'z'}), isNull);
+    expect(foldedTickSummary(l10n, const [], const {}), isNull);
   });
 
   test('every locale renders the new strings with their numbers', () {

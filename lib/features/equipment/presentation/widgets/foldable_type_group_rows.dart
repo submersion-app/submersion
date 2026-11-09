@@ -50,12 +50,12 @@ mixin FoldableTypeGroupsState<T extends StatefulWidget> on State<T> {
 
   /// Folds or opens one group. A tap before the open set is worked out is
   /// the diver's own choice, so the initial rule no longer applies.
-  void toggleTypeGroup(String foldKey) => setState(() {
-    final open = openTypeGroups ?? _shownTypeGroups;
-    openTypeGroups = open.contains(foldKey)
-        ? ({...open}..remove(foldKey))
-        : {...open, foldKey};
-  });
+  void toggleTypeGroup(String foldKey) => setState(
+    () => openTypeGroups = toggleOpenKey(
+      openTypeGroups ?? _shownTypeGroups,
+      foldKey,
+    ),
+  );
 }
 
 /// The rows of a checkbox list of gear whose type groups fold (issue
@@ -84,14 +84,9 @@ List<Widget> foldableTypeGroupRows(
           count: items.length,
           isExpanded: isOpen(typeFoldKey(type)),
           onTap: () => onToggle(typeFoldKey(type)),
-          summary: switch (tickedIn(items.map((e) => e.id), ticked)) {
-            0 => null,
-            final selected => foldedSelectionSummary(
-              l10n,
-              selected: selected,
-              total: items.length,
-            ),
-          },
+          summary: isOpen(typeFoldKey(type))
+              ? null
+              : foldedTickSummary(l10n, items.map((e) => e.id), ticked),
         ),
         if (isOpen(typeFoldKey(type)))
           for (final item in items) rowBuilder(item),

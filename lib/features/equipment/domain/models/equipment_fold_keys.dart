@@ -9,8 +9,10 @@ import 'package:submersion/core/constants/enums.dart';
 //
 // - a place: `loc:<locationId>`, or `loc:none` for gear with no location;
 // - a type inside a place: `loc:<locationId>/type:<typeName>`;
-// - a type when the page does not group by location: `type:<typeName>`,
-//   or `type:none` for the ungrouped bucket.
+// - a type when the page does not group by location: `type:<typeName>`.
+//
+// Gear listed with no type heading (type grouping off) has no fold of its
+// own, so it has no key.
 //
 // A place's fold and the folds of the types inside it are independent:
 // unfolding a place brings its type groups back exactly as they were.
@@ -25,9 +27,9 @@ String locationFoldKey(String? locationId) => 'loc:${locationId ?? 'none'}';
 
 /// The key of a type's group, nested under [parentKey] when the type sits
 /// inside another group (a place on the Equipment list, an owner's shared
-/// gear in a picker). A null [type] is the ungrouped bucket.
-String typeFoldKey(EquipmentType? type, {String? parentKey}) {
-  final own = 'type:${type?.name ?? 'none'}';
+/// gear in a picker).
+String typeFoldKey(EquipmentType type, {String? parentKey}) {
+  final own = 'type:${type.name}';
   return parentKey == null ? own : '$parentKey/$own';
 }
 

@@ -31,6 +31,7 @@ Set<String> initialOpenPickerGroups(
   };
 }
 
-/// How many of [itemIds] are ticked.
-int tickedIn(Iterable<String> itemIds, Set<String> ticked) =>
-    itemIds.where(ticked.contains).length;
+/// [open] with [key] closed if it is open, opened if it is closed. Never
+/// mutates [open].
+Set<String> toggleOpenKey(Set<String> open, String key) =>
+    open.contains(key) ? ({...open}..remove(key)) : {...open, key};

@@ -60,13 +60,9 @@ class EquipmentTypeHeadingRow extends EquipmentListRow {
 }
 
 class EquipmentItemRow extends EquipmentListRow {
-  const EquipmentItemRow({required this.item, required this.headerKey});
+  const EquipmentItemRow({required this.item});
 
   final EquipmentItem item;
-
-  /// The fold key of the innermost heading this row sits under, null when
-  /// it sits under none.
-  final String? headerKey;
 }
 
 /// The rows of one build, plus what the page needs to fold, reveal and
@@ -118,7 +114,7 @@ EquipmentRowLayout layoutEquipmentRows({
     if (type == null) {
       for (final item in group.items) {
         foldKeysByItem[item.id] = [?locationKey];
-        rows.add(EquipmentItemRow(item: item, headerKey: locationKey));
+        rows.add(EquipmentItemRow(item: item));
         navStops.addRow(
           item.id,
           header: locationKey == null
@@ -150,7 +146,7 @@ EquipmentRowLayout layoutEquipmentRows({
     );
     if (!isExpanded) return;
     for (final item in group.items) {
-      rows.add(EquipmentItemRow(item: item, headerKey: key));
+      rows.add(EquipmentItemRow(item: item));
       navStops.addRow(item.id, header: equipmentGroupNavKey(key));
     }
   }

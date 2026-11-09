@@ -37,10 +37,22 @@ String? foldedTypeSummary(
     ? null
     : l10n.equipment_group_foldedServiceDue(serviceDueCount);
 
-/// A folded group's line in selection mode, so a ticked item is never hidden
-/// without a trace (issue #3364): "2 of 8 selected".
-String foldedSelectionSummary(
-  AppLocalizations l10n, {
-  required int selected,
-  required int total,
-}) => l10n.equipment_group_foldedSelected(selected, total);
+/// A folded group's line while items are ticked, so a ticked item is never
+/// hidden without a trace (issue #3364): "2 of 8 selected", counting the
+/// [ticked] ids among the group's [itemIds]. Null when none of them is
+/// ticked.
+String? foldedTickSummary(
+  AppLocalizations l10n,
+  Iterable<String> itemIds,
+  Set<String> ticked,
+) {
+  var total = 0;
+  var selected = 0;
+  for (final id in itemIds) {
+    total++;
+    if (ticked.contains(id)) selected++;
+  }
+  return selected == 0
+      ? null
+      : l10n.equipment_group_foldedSelected(selected, total);
+}
