@@ -59640,6 +59640,54 @@ abstract class AppLocalizations {
   /// **'Import Dives from Apple Watch via HealthKit'**
   String get settings_dataSources_appleHealth_importAction;
 
+  /// No description provided for @healthAutoImport_newDive_title.
+  ///
+  /// In en, this message translates to:
+  /// **'New dive from your Apple Watch'**
+  String get healthAutoImport_newDive_title;
+
+  /// No description provided for @healthAutoImport_newDives_title.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} new dives from your Apple Watch'**
+  String healthAutoImport_newDives_title(int count);
+
+  /// No description provided for @healthAutoImport_newDive_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Add details?'**
+  String get healthAutoImport_newDive_body;
+
+  /// No description provided for @healthAutoImport_addDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Add details'**
+  String get healthAutoImport_addDetails;
+
+  /// No description provided for @healthAutoImport_review_title.
+  ///
+  /// In en, this message translates to:
+  /// **'An Apple Watch dive needs a look'**
+  String get healthAutoImport_review_title;
+
+  /// No description provided for @healthAutoImport_review_body.
+  ///
+  /// In en, this message translates to:
+  /// **'It could belong to more than one dive. Choose in the Apple Health import.'**
+  String get healthAutoImport_review_body;
+
+  /// No description provided for @healthAutoImport_planReview_body.
+  ///
+  /// In en, this message translates to:
+  /// **'This dive may be one you planned. Review it to fill the plan.'**
+  String get healthAutoImport_planReview_body;
+
+  /// No description provided for @healthAutoImport_review.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get healthAutoImport_review;
+
   /// No description provided for @settings_appleHealth_autoImport_title.
   ///
   /// In en, this message translates to:

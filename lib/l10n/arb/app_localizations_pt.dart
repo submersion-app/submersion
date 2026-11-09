@@ -37857,6 +37857,35 @@ class AppLocalizationsPt extends AppLocalizations {
       'Importar mergulhos do Apple Watch via HealthKit';
 
   @override
+  String get healthAutoImport_newDive_title => 'New dive from your Apple Watch';
+
+  @override
+  String healthAutoImport_newDives_title(int count) {
+    return '$count new dives from your Apple Watch';
+  }
+
+  @override
+  String get healthAutoImport_newDive_body => 'Add details?';
+
+  @override
+  String get healthAutoImport_addDetails => 'Add details';
+
+  @override
+  String get healthAutoImport_review_title =>
+      'An Apple Watch dive needs a look';
+
+  @override
+  String get healthAutoImport_review_body =>
+      'It could belong to more than one dive. Choose in the Apple Health import.';
+
+  @override
+  String get healthAutoImport_planReview_body =>
+      'This dive may be one you planned. Review it to fill the plan.';
+
+  @override
+  String get healthAutoImport_review => 'Review';
+
+  @override
   String get settings_appleHealth_autoImport_title =>
       'Import Apple Watch dives automatically';
 

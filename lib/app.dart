@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/services/storage/gc/storage_gc_coordinator.dart';
 import 'package:submersion/core/utils/system_sheet_lifecycle.dart';
+import 'package:submersion/features/dive_import/presentation/health_auto_import_feedback.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/stale_open_draft_prompt.dart';
 import 'package:submersion/features/documents/presentation/providers/equipment_file_conversion_provider.dart';
@@ -139,6 +140,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   /// Lock screen Entered water and Surfaced taps (issue #637).
   late final StreamSubscription<void> _diveMarks;
   final _staleDrafts = StaleOpenDraftPrompter();
+  final _healthImports = HealthAutoImportThrottle();
 
   @override
   void initState() {
@@ -222,8 +224,17 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       ChangeLogSettleScheduler.instance.start();
       _pruneChangeLog();
       unawaited(_staleDrafts.check(ref, rootNavigatorKey.currentContext));
+      unawaited(_runHealthImport());
     });
   }
+
+  /// Apple Watch dives imported without the wizard (issue #637).
+  Future<void> _runHealthImport() => runHealthAutoImport(
+    ref,
+    throttle: _healthImports,
+    messenger: _scaffoldMessengerKey,
+    open: _linkRouter.go,
+  );
 
   @override
   void dispose() {
@@ -285,6 +296,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
         _runStorageCleanupAfter(_maybeSyncOnResume(), StorageGcTrigger.resume);
         _resumeMediaTransfers();
         unawaited(_staleDrafts.check(ref, rootNavigatorKey.currentContext));
+        unawaited(_runHealthImport());
         // NFC may have been turned on in the system settings meanwhile, as
         // the passport screens tell the diver to do.
         ref.invalidate(nfcSupportProvider);

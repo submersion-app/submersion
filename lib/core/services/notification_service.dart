@@ -26,6 +26,11 @@ int _stableNotificationId(String key) {
   return hash & 0x7FFFFFFF; // positive, within int32
 }
 
+/// Payloads of the automatic Apple Health import's message (issue #637).
+const String kWatchDivePayloadPrefix = 'dive:';
+const String kWatchDivesPayload = 'dives';
+const String kHealthReviewPayload = 'healthReview';
+
 /// The payload prefix of a document reminder: `document:<id>`.
 const String _documentPayloadPrefix = 'document:';
 
@@ -35,6 +40,14 @@ const String _documentPayloadPrefix = 'document:';
 String? notificationPayloadRoute(String payload) {
   // The dive mark notification (issue #637) opens the GPS log.
   if (payload == kDiveMarkPayload) return kTracksLocation;
+  // An automatic Apple Health import (issue #637): the new dive, the list
+  // for several, or the Health import for a workout that waits.
+  if (payload.startsWith(kWatchDivePayloadPrefix)) {
+    final id = payload.substring(kWatchDivePayloadPrefix.length);
+    return id.isEmpty ? null : '/dives/$id';
+  }
+  if (payload == kWatchDivesPayload) return '/dives';
+  if (payload == kHealthReviewPayload) return '/settings/wearable-import';
   if (payload.startsWith(_documentPayloadPrefix)) {
     final id = payload.substring(_documentPayloadPrefix.length);
     return id.isEmpty ? null : '/documents/$id';
@@ -399,6 +412,32 @@ class NotificationService {
         actionLabel: actionLabel,
       ),
       payload: kDiveMarkPayload,
+    );
+  }
+
+  /// Tells the diver what an automatic Apple Health import did, when the
+  /// app cannot show it in a SnackBar (issue #637).
+  Future<void> showWatchDiveMessage({
+    required String title,
+    required String body,
+    required String payload,
+  }) async {
+    if (!_isMobilePlatform) return;
+    await _plugin.show(
+      id: _stableNotificationId('watch-dives'),
+      title: title,
+      body: body,
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'watch_dives',
+          'Apple Watch Dives',
+          channelDescription: 'Dives imported from Apple Health',
+          importance: Importance.defaultImportance,
+          priority: Priority.defaultPriority,
+        ),
+        iOS: DarwinNotificationDetails(presentAlert: true, presentSound: false),
+      ),
+      payload: payload,
     );
   }
 
