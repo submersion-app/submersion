@@ -1,0 +1,283 @@
+import 'package:collection/collection.dart';
+import 'package:drift/drift.dart';
+import 'package:flutter/services.dart';
+
+import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/dive_computer/data/services/parsed_tank_resolver.dart';
+import 'package:submersion/features/dive_computer/data/services/reparse_batch_service.dart';
+import 'package:submersion/features/dive_import/data/services/dive_resync_orchestrator.dart';
+import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
+import 'package:submersion/features/transmitters/data/services/transmitter_slot_backfill_memo.dart';
+import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/models/import_payload.dart';
+
+export 'package:submersion/features/dive_computer/data/services/reparse_batch_service.dart'
+    show RawDiveParseFn;
+
+/// Fills `dive_tanks.transmitter_slot` for dives stored before slots were
+/// kept (issue #4347): downloads from their raw bytes, Shearwater Cloud
+/// imports from the original file the app stored. Writes only the slot, and
+/// for a file import a serial the row lacks, staged for sync.
+class TransmitterSlotBackfill {
+  TransmitterSlotBackfill({
+    required RawDiveParseFn parseRaw,
+    DiveResyncOrchestrator? files,
+    TransmitterSlotBackfillMemo? memo,
+    AppDatabase? db,
+  }) : _parseRaw = parseRaw,
+       _files = files,
+       _memo = memo ?? SharedPrefsSlotBackfillMemo(),
+       _database = db;
+
+  static final _log = LoggerService.forClass(TransmitterSlotBackfill);
+  static const _fileFormats = [ImportFormat.uddf, ImportFormat.shearwaterDb];
+
+  final RawDiveParseFn _parseRaw;
+  final DiveResyncOrchestrator? _files;
+  final TransmitterSlotBackfillMemo _memo;
+  final AppDatabase? _database;
+
+  AppDatabase get _db => _database ?? DatabaseService.instance.database;
+
+  /// Backfills the dives on [computerIds]. Returns the tanks written.
+  Future<int> run(
+    Set<String> computerIds, {
+    void Function(int done, int total)? onProgress,
+  }) async {
+    if (computerIds.isEmpty) return 0;
+    final done = await _memo.load();
+    final sources = [
+      for (final id in await _rawSourceIds(computerIds))
+        if (!done.contains('raw:$id')) id,
+    ];
+    final dives = [
+      for (final id in await _fileDiveIds(computerIds))
+        if (!done.contains('file:$id')) id,
+    ];
+    final total = sources.length + dives.length;
+    if (total == 0) return 0;
+    final sync = SyncRepository(database: _db);
+    final finished = <String>[];
+    var written = 0;
+    var step = 0;
+
+    var parserMissing = false;
+    for (final id in sources) {
+      if (!parserMissing) {
+        try {
+          written += await _fromRaw(id, sync);
+          finished.add('raw:$id');
+        } on MissingPluginException {
+          parserMissing = true;
+        } on PlatformException catch (e) {
+          if (e.code == 'UNSUPPORTED' || e.code == 'channel-error') {
+            parserMissing = true;
+          } else {
+            finished.add('raw:$id');
+          }
+        } catch (e, stackTrace) {
+          _log.warning(
+            'Slot backfill could not parse source $id',
+            error: e,
+            stackTrace: stackTrace,
+          );
+          finished.add('raw:$id');
+        }
+      }
+      onProgress?.call(++step, total);
+    }
+
+    final files = _files ?? DiveResyncOrchestrator(db: _db);
+    final payloads = <String, ImportPayload>{};
+    for (final id in dives) {
+      try {
+        written += await _fromFile(id, files, payloads, sync);
+        finished.add('file:$id');
+      } on MissingPluginException {
+        // A `.db` file needs the native parser; leave it for a device that
+        // has one.
+      } catch (e, stackTrace) {
+        _log.warning(
+          'Slot backfill could not read the file of dive $id',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        finished.add('file:$id');
+      }
+      onProgress?.call(++step, total);
+    }
+
+    await _memo.add(finished);
+    if (written > 0) SyncEventBus.notifyLocalChange();
+    return written;
+  }
+
+  /// Sources with raw bytes on [computerIds] whose dive has a tank with a
+  /// serial and no slot.
+  Future<List<String>> _rawSourceIds(Set<String> computerIds) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT DISTINCT s.id AS id FROM dive_data_sources s '
+          'JOIN dive_tanks dt ON dt.dive_id = s.dive_id '
+          'WHERE s.raw_data IS NOT NULL '
+          'AND s.computer_id IN (${_marks(computerIds.length)}) '
+          'AND (dt.computer_id IS NULL OR dt.computer_id = s.computer_id) '
+          'AND dt.transmitter_serial IS NOT NULL '
+          'AND dt.transmitter_slot IS NULL',
+          variables: [for (final c in computerIds) Variable<String>(c)],
+          readsFrom: {_db.diveDataSources, _db.diveTanks},
+        )
+        .get();
+    return [for (final r in rows) r.read<String>('id')];
+  }
+
+  /// Dives on [computerIds] whose primary source is a stored UDDF or
+  /// Shearwater Cloud file and that have a slot-less tank with a series.
+  Future<List<String>> _fileDiveIds(Set<String> computerIds) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT DISTINCT d.id AS id FROM dives d '
+          'JOIN dive_data_sources s ON s.dive_id = d.id AND s.is_primary = 1 '
+          'JOIN dive_tanks dt ON dt.dive_id = d.id '
+          'WHERE s.imported_file_id IS NOT NULL '
+          'AND s.source_file_format IN (${_marks(_fileFormats.length)}) '
+          'AND COALESCE(dt.computer_id, d.computer_id) '
+          'IN (${_marks(computerIds.length)}) '
+          'AND dt.transmitter_slot IS NULL '
+          'AND EXISTS (SELECT 1 FROM tank_pressure_series ps '
+          'WHERE ps.tank_id = dt.id)',
+          variables: [
+            for (final f in _fileFormats) Variable<String>(f.name),
+            for (final c in computerIds) Variable<String>(c),
+          ],
+          readsFrom: {
+            _db.dives,
+            _db.diveDataSources,
+            _db.diveTanks,
+            _db.tankPressureSeries,
+          },
+        )
+        .get();
+    return [for (final r in rows) r.read<String>('id')];
+  }
+
+  Future<int> _fromRaw(String sourceId, SyncRepository sync) async {
+    final source = await (_db.select(
+      _db.diveDataSources,
+    )..where((s) => s.id.equals(sourceId))).getSingleOrNull();
+    final vendor = source?.descriptorVendor;
+    final product = source?.descriptorProduct;
+    final model = source?.descriptorModel;
+    final raw = source?.rawData;
+    if (source == null ||
+        vendor == null ||
+        product == null ||
+        model == null ||
+        raw == null) {
+      return 0;
+    }
+    final parsed = resolveParsedTanks(
+      await _parseRaw(vendor, product, model, raw),
+      vendor: vendor,
+    );
+    final rows =
+        await (_db.select(_db.diveTanks)..where(
+              (t) =>
+                  t.diveId.equals(source.diveId) &
+                  t.transmitterSlot.isNull() &
+                  t.transmitterSerial.isNotNull(),
+            ))
+            .get();
+    var written = 0;
+    for (final row in rows) {
+      if (row.computerId != null && row.computerId != source.computerId) {
+        continue;
+      }
+      final index = row.sourceTankIndex ?? row.tankOrder;
+      final tank = parsed.firstWhereOrNull((t) => t.index == index);
+      final slot = tank?.transmitterSlot;
+      if (slot == null ||
+          normalizeTransmitterSerial(tank!.transmitterSerial) !=
+              normalizeTransmitterSerial(row.transmitterSerial)) {
+        continue;
+      }
+      await _write(row.id, sync, slot: slot);
+      written++;
+    }
+    return written;
+  }
+
+  Future<int> _fromFile(
+    String diveId,
+    DiveResyncOrchestrator files,
+    Map<String, ImportPayload> payloads,
+    SyncRepository sync,
+  ) async {
+    final found = await files.sourceEntryFor(diveId, payloads: payloads);
+    final tanksData =
+        (found.entry?['tanks'] as List?)?.cast<Map<String, dynamic>>() ??
+        const <Map<String, dynamic>>[];
+    // Tanks a file import wrote share tank_order 0, so the order they were
+    // written in pairs them with the file's (as DiveReimportService does).
+    final rows =
+        await (_db.select(_db.diveTanks)
+              ..where((t) => t.diveId.equals(diveId))
+              ..orderBy([
+                (t) => OrderingTerm.asc(t.tankOrder),
+                (t) => OrderingTerm.asc(_db.diveTanks.rowId),
+              ]))
+            .get();
+    if (tanksData.isEmpty || rows.length != tanksData.length) return 0;
+    var written = 0;
+    for (var i = 0; i < rows.length; i++) {
+      final row = rows[i];
+      final slot = tanksData[i]['transmitterSlot'] as int?;
+      final serial = normalizeTransmitterSerial(
+        tanksData[i]['transmitterSerial'] as String?,
+      );
+      final fillsSlot = row.transmitterSlot == null && slot != null;
+      final fillsSerial =
+          normalizeTransmitterSerial(row.transmitterSerial) == null &&
+          serial != null;
+      if (!fillsSlot && !fillsSerial) continue;
+      await _write(
+        row.id,
+        sync,
+        slot: fillsSlot ? slot : null,
+        serial: fillsSerial ? serial : null,
+      );
+      written++;
+    }
+    return written;
+  }
+
+  Future<void> _write(
+    String tankId,
+    SyncRepository sync, {
+    int? slot,
+    String? serial,
+  }) async {
+    await (_db.update(_db.diveTanks)..where((t) => t.id.equals(tankId))).write(
+      DiveTanksCompanion(
+        transmitterSlot: slot != null ? Value(slot) : const Value.absent(),
+        transmitterSerial: serial != null
+            ? Value(serial)
+            : const Value.absent(),
+        // A fresh clock, so a peer's older copy cannot take the value back
+        // (#2644).
+        hlc: Value(await sync.issueRowClock()),
+      ),
+    );
+    await sync.markRecordPending(
+      entityType: 'diveTanks',
+      recordId: tankId,
+      localUpdatedAt: DateTime.now().millisecondsSinceEpoch,
+    );
+  }
+
+  static String _marks(int n) => List.filled(n, '?').join(', ');
+}

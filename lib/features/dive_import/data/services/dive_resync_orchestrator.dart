@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_import/domain/dive_resync_failure.dart'
 import 'package:submersion/features/dive_import/domain/resyncable_import_formats.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/source_diver.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/parser_registry.dart';
@@ -64,12 +65,35 @@ class DiveResyncOrchestrator {
 
   Future<DiveResyncOutcome> resync(String diveId) async {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.diveComputerDownload);
+    final found = await sourceEntryFor(diveId);
+    final best = found.entry;
+    if (best == null) return DiveResyncOutcome.failure(found.failure);
+
+    final result = await _writer.applyReimport(
+      diveId: diveId,
+      diveData: best,
+      now: DateTime.now(),
+    );
+    if (!result.updated) {
+      return DiveResyncOutcome.failure(result.skippedReason);
+    }
+    return DiveResyncOutcome.success(profilePreserved: result.profilePreserved);
+  }
+
+  /// The parsed entry for [diveId] in the file its primary source was
+  /// imported from, or why there is none. [payloads] caches each stored
+  /// file's parse by file id, so a caller walking many dives of one logbook
+  /// (the transmitter slot backfill, issue #4347) parses it once.
+  Future<({Map<String, dynamic>? entry, DiveResyncFailure? failure})>
+  sourceEntryFor(String diveId, {Map<String, ImportPayload>? payloads}) async {
+    ({Map<String, dynamic>? entry, DiveResyncFailure? failure}) fail(
+      DiveResyncFailure reason,
+    ) => (entry: null, failure: reason);
+
     final dive = await (db.select(
       db.dives,
     )..where((t) => t.id.equals(diveId))).getSingleOrNull();
-    if (dive == null) {
-      return const DiveResyncOutcome.failure(DiveResyncFailure.diveMissing);
-    }
+    if (dive == null) return fail(DiveResyncFailure.diveMissing);
 
     final source =
         await (db.select(db.diveDataSources)
@@ -79,24 +103,21 @@ class DiveResyncOrchestrator {
             .getSingleOrNull();
     final storedFileId = source?.importedFileId;
     if (source == null || storedFileId == null) {
-      return const DiveResyncOutcome.failure(DiveResyncFailure.noStoredFile);
+      return fail(DiveResyncFailure.noStoredFile);
     }
 
     final format = ImportFormat.values.asNameMap()[source.sourceFileFormat];
     if (format == null || !resyncableImportFormats.contains(format)) {
-      return const DiveResyncOutcome.failure(
-        DiveResyncFailure.unsupportedFormat,
-      );
+      return fail(DiveResyncFailure.unsupportedFormat);
     }
 
-    final bytes = await importedFiles.read(storedFileId);
-    if (bytes == null) {
-      return const DiveResyncOutcome.failure(
-        DiveResyncFailure.storedFileMissing,
-      );
+    var payload = payloads?[storedFileId];
+    if (payload == null) {
+      final bytes = await importedFiles.read(storedFileId);
+      if (bytes == null) return fail(DiveResyncFailure.storedFileMissing);
+      payload = await parserFor(format).parse(bytes);
+      payloads?[storedFileId] = payload;
     }
-
-    final payload = await parserFor(format).parse(bytes);
     final storedDiverKey = source.sourceDiverKey;
     final candidates = [
       for (final candidate in payload.entitiesOf(ImportEntityType.dives))
@@ -104,7 +125,6 @@ class DiveResyncOrchestrator {
             candidate[SourceDiver.mapKey] == storedDiverKey)
           candidate,
     ];
-
     // Scoring quirk worth knowing before touching thresholds: maxDepth
     // carries 30% of the weight, so a parser fix to a depth bug (the classic
     // ft/m conversion) can itself push the score under the 0.70 threshold and
@@ -146,22 +166,14 @@ class DiveResyncOrchestrator {
     }
 
     if (best == null || !_matcher.isProbableDuplicate(bestScore)) {
-      return const DiveResyncOutcome.failure(DiveResyncFailure.noMatchingDive);
+      return fail(DiveResyncFailure.noMatchingDive);
     }
     // With a stored key every candidate is already the same diver's, so the
     // set can only exceed one entry for a source that predates the key.
     if (matchingDivers.length > 1) {
-      return const DiveResyncOutcome.failure(DiveResyncFailure.ambiguousDiver);
+      return fail(DiveResyncFailure.ambiguousDiver);
     }
 
-    final result = await _writer.applyReimport(
-      diveId: diveId,
-      diveData: best,
-      now: DateTime.now(),
-    );
-    if (!result.updated) {
-      return DiveResyncOutcome.failure(result.skippedReason);
-    }
-    return DiveResyncOutcome.success(profilePreserved: result.profilePreserved);
+    return (entry: best, failure: null);
   }
 }
