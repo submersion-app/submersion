@@ -10,6 +10,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/gps_log/data/services/dive_mark_service.dart';
 import 'package:submersion/features/gps_log/data/services/gps_track_recorder.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
+import 'package:submersion/features/notifications/presentation/providers/draft_reminder_settings_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -63,6 +64,12 @@ final _log = LoggerService.forClass(DiveMarkService);
 /// mark service, and the notification follows the recording and the open
 /// draft. Cancel the returned subscription on dispose.
 StreamSubscription<void> startDiveMarkActionBridge(WidgetRef ref) {
+  // The drafts these marks make get their download reminders (issue #637).
+  ref.listenManual<AsyncValue<void>>(
+    draftReminderSyncProvider,
+    (_, _) {},
+    fireImmediately: true,
+  );
   ref.listenManual<DiveMarkAction?>(diveMarkNotificationActionProvider, (
     _,
     action,

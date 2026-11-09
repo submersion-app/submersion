@@ -78,6 +78,8 @@ class SettingsKeys {
   static const String healthMetricsDiver = 'health_metrics_diver';
   static const String healthImportWatermark = 'health_import_watermark_ms';
   static const String healthReviewAnnounced = 'health_review_announced';
+  // Device-local: remind about drafts left waiting for a download.
+  static const String draftDownloadReminder = 'draft_download_reminder';
   static const String depthUnit = 'depth_unit';
   static const String temperatureUnit = 'temperature_unit';
   static const String pressureUnit = 'pressure_unit';

@@ -8,7 +8,10 @@ import 'package:submersion/features/equipment/data/services/loaded_service_clock
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_draft_repository.dart';
 import 'package:submersion/features/notifications/data/repositories/scheduled_notification_repository.dart';
+import 'package:submersion/features/notifications/domain/draft_reminder_plan.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
@@ -29,6 +32,9 @@ class NotificationScheduler {
   final TripRepository _tripRepository;
   final ScheduledNotificationRepository _scheduledNotificationRepository;
   final DocumentRepository _documentRepository;
+  final DiveDraftRepository _drafts;
+  final Future<bool> Function() _draftRemindersOn;
+  final DateTime Function() _clock;
   final _log = LoggerService.forClass(NotificationScheduler);
 
   NotificationScheduler({
@@ -40,7 +46,13 @@ class NotificationScheduler {
     TripRepository? tripRepository,
     ScheduledNotificationRepository? scheduledNotificationRepository,
     DocumentRepository? documentRepository,
+    DiveDraftRepository? draftRepository,
+    Future<bool> Function()? draftRemindersOn,
+    DateTime Function()? clock,
   }) : _documentRepository = documentRepository ?? DocumentRepository(),
+       _drafts = draftRepository ?? DiveDraftRepository(),
+       _draftRemindersOn = draftRemindersOn ?? _draftRemindersSwitch,
+       _clock = clock ?? DateTime.now,
        _notificationService =
            notificationService ?? NotificationService.instance,
        _equipmentRepository = equipmentRepository ?? EquipmentRepository(),
@@ -104,6 +116,8 @@ class NotificationScheduler {
     );
 
     await _scheduleDocumentReminders(settings: settings, diverId: diverId);
+
+    await updateDraftReminders(settings: settings, diverId: diverId);
 
     _log.info('Notification scheduling complete');
   }
@@ -467,6 +481,61 @@ class NotificationScheduler {
         stage: r.stage,
         scheduledDate: r.fireAt,
       );
+    }
+  }
+
+  /// Reminders for [diverId]'s drafts out of the water and waiting for a
+  /// download (issue #637): one per draft, three days after its exit at the
+  /// reminder time, while that is still ahead. A pending reminder whose
+  /// draft was filled, completed or deleted is cancelled. With no diver (a
+  /// background refresh) the reminders are left as they are.
+  Future<void> updateDraftReminders({
+    required AppSettings settings,
+    String? diverId,
+  }) async {
+    if (DemoModeGate.instance.isActive || diverId == null) return;
+    final now = _clock();
+    final due = <String, DateTime>{};
+    if (settings.notificationsEnabled && await _draftRemindersOn()) {
+      for (final draft in await _drafts.getDrafts(diverId: diverId)) {
+        final exit = draft.exitTime;
+        if (exit == null) continue;
+        final at = draftReminderAt(
+          exitWallClock: exit,
+          reminderTime: settings.reminderTime,
+        );
+        if (at.isAfter(now)) due[draft.id] = at;
+      }
+    }
+    for (final id in await _notificationService.pendingDraftReminderIds()) {
+      if (!due.containsKey(id)) {
+        await _notificationService.cancelDraftReminder(id);
+      }
+    }
+    if (due.isEmpty) return;
+    final l10n = l10nForLocaleTag(settings.locale);
+    for (final MapEntry(key: diveId, value: at) in due.entries) {
+      await _notificationService.scheduleDraftReminder(
+        diveId: diveId,
+        at: at,
+        title: l10n.notifications_draftReminder_title,
+        body: l10n.notifications_draftReminder_body,
+      );
+    }
+  }
+
+  /// The device-local "remind me about drafts" switch, off unless set. A
+  /// store that cannot be read (no preferences plugin, as in a background
+  /// isolate that never registered one) reads as off, so the other reminders
+  /// still schedule.
+  static Future<bool> _draftRemindersSwitch() async {
+    try {
+      return (await SharedPreferences.getInstance()).getBool(
+            SettingsKeys.draftDownloadReminder,
+          ) ??
+          false;
+    } catch (_) {
+      return false;
     }
   }
 }

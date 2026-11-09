@@ -15928,6 +15928,8 @@
       }
     }
   },
+  "notifications_draftReminder_body": "Download your dive computer to fill in the draft.",
+  "notifications_draftReminder_title": "A dive is waiting for your dive computer",
   "notifications_document_expiresToday_body": "Renew it before your next dive.",
   "settings_conflict_field_pageOrder": "Page order",
   "settings_conflict_field_cardSide": "Card side",
@@ -16642,6 +16644,8 @@
   "settings_notifications_disabled_subtitleUnrequested": "Service reminders need permission to send notifications",
   "settings_notifications_disabled_subtitle": "Enable in system settings to receive reminders",
   "settings_notifications_disabled_title": "Notifications Disabled",
+  "settings_notifications_draftReminder": "Remind me about draft dives",
+  "settings_notifications_draftReminder_subtitle": "Three days after a draft dive's exit, if it is still waiting for a download",
   "settings_notifications_enableServiceReminders": "Enable Service Reminders",
   "settings_notifications_enableServiceReminders_subtitle": "Get notified when equipment service is due",
   "settings_notifications_header_reminderSchedule": "Reminder Schedule",

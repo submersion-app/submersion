@@ -570,6 +570,64 @@ class NotificationService {
     };
   }
 
+  /// One-shot reminder for a draft dive left waiting for its download
+  /// (issue #637). The id is stable per dive, so rescheduling replaces it;
+  /// the payload opens the dive.
+  Future<int> scheduleDraftReminder({
+    required String diveId,
+    required DateTime at,
+    required String title,
+    required String body,
+  }) async {
+    if (!_isMobilePlatform) return 0;
+    final notificationId = _draftReminderId(diveId);
+    const details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'draft_reminders',
+        'Draft Dive Reminders',
+        channelDescription:
+            'Reminders about draft dives waiting for a dive computer download',
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
+        category: AndroidNotificationCategory.reminder,
+      ),
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
+    );
+    await _plugin.zonedSchedule(
+      id: notificationId,
+      title: title,
+      body: body,
+      scheduledDate: tz.TZDateTime.from(at, tz.local),
+      notificationDetails: details,
+      payload: '$kWatchDivePayloadPrefix$diveId',
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+    );
+    return notificationId;
+  }
+
+  Future<void> cancelDraftReminder(String diveId) =>
+      cancelNotification(_draftReminderId(diveId));
+
+  /// The dives with a draft reminder pending in the OS, read from the
+  /// payloads. Only reminders are scheduled with a dive payload; a watch
+  /// dive message is shown at once.
+  Future<Set<String>> pendingDraftReminderIds() async {
+    if (!_isMobilePlatform) return const {};
+    final pending = await _plugin.pendingNotificationRequests();
+    return {
+      for (final p in pending)
+        if (p.payload case final payload?
+            when payload.startsWith(kWatchDivePayloadPrefix))
+          payload.substring(kWatchDivePayloadPrefix.length),
+    };
+  }
+
+  int _draftReminderId(String diveId) => _stableNotificationId('draft#$diveId');
+
   int _documentReminderId(String documentId, DocumentReminderStage stage) =>
       _stableNotificationId('document#$documentId#${stage.name}');
 

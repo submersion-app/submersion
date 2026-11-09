@@ -27243,6 +27243,14 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get notifications_draftReminder_body =>
+      'Download your dive computer to fill in the draft.';
+
+  @override
+  String get notifications_draftReminder_title =>
+      'A dive is waiting for your dive computer';
+
+  @override
   String get notifications_document_expiresToday_body =>
       'Renouvelez-le avant votre prochaine plongée.';
 
@@ -29036,6 +29044,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_notifications_disabled_title =>
       'Notifications désactivées';
+
+  @override
+  String get settings_notifications_draftReminder =>
+      'Remind me about draft dives';
+
+  @override
+  String get settings_notifications_draftReminder_subtitle =>
+      'Three days after a draft dive\'s exit, if it is still waiting for a download';
 
   @override
   String get settings_notifications_enableServiceReminders =>

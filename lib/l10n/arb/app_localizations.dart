@@ -43392,6 +43392,18 @@ abstract class AppLocalizations {
   /// **'{title} expires today'**
   String notifications_document_expiresToday_title(String title);
 
+  /// No description provided for @notifications_draftReminder_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Download your dive computer to fill in the draft.'**
+  String get notifications_draftReminder_body;
+
+  /// No description provided for @notifications_draftReminder_title.
+  ///
+  /// In en, this message translates to:
+  /// **'A dive is waiting for your dive computer'**
+  String get notifications_draftReminder_title;
+
   /// No description provided for @notifications_document_expiresToday_body.
   ///
   /// In en, this message translates to:
@@ -46291,6 +46303,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Notifications Disabled'**
   String get settings_notifications_disabled_title;
+
+  /// No description provided for @settings_notifications_draftReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me about draft dives'**
+  String get settings_notifications_draftReminder;
+
+  /// No description provided for @settings_notifications_draftReminder_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Three days after a draft dive\'s exit, if it is still waiting for a download'**
+  String get settings_notifications_draftReminder_subtitle;
 
   /// No description provided for @settings_notifications_enableServiceReminders.
   ///
