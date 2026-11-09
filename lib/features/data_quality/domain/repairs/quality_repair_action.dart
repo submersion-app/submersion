@@ -110,6 +110,13 @@ class SplitSourceRepair extends QualityRepairAction {
   final String sourceId;
 }
 
+/// Removes the source from the dive with what it owns (issue #4393).
+class RemoveSourceRepair extends QualityRepairAction {
+  const RemoveSourceRepair({required this.diveId, required this.sourceId});
+  final String diveId;
+  final String sourceId;
+}
+
 class DespikeRepair extends QualityRepairAction {
   const DespikeRepair(this.diveId);
   final String diveId;
@@ -525,6 +532,7 @@ List<QualityRepairAction> repairOptionsFor(QualityFinding f) {
         return [
           SetPrimarySourceRepair(diveId: diveId, sourceId: sourceId),
           SplitSourceRepair(diveId: diveId, sourceId: sourceId),
+          RemoveSourceRepair(diveId: diveId, sourceId: sourceId),
           CompareSourcesRepair(diveId),
         ];
       }

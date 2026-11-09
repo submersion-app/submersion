@@ -11316,6 +11316,31 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_sources_splitFailed => 'A szétválasztás sikertelen';
 
   @override
+  String get diveLog_sources_menu_remove => 'Forrás eltávolítása';
+
+  @override
+  String get diveLog_sources_removeDialog_title => 'Eltávolítod ezt a forrást?';
+
+  @override
+  String diveLog_sources_removeDialog_body(String source) {
+    return 'A(z) $source mérései törlődnek erről a merülésről: a profil, a nyomások és a csak általa rögzített palackok. A naplóbejegyzés megmarad.';
+  }
+
+  @override
+  String get diveLog_sources_removeDialog_bodyUnnamed =>
+      'Ennek a forrásnak a mérései törlődnek erről a merülésről: a profil, a nyomások és a csak általa rögzített palackok. A naplóbejegyzés megmarad.';
+
+  @override
+  String get diveLog_sources_removeDialog_confirm => 'Eltávolítás';
+
+  @override
+  String get diveLog_sources_removeDone => 'Forrás eltávolítva';
+
+  @override
+  String get diveLog_sources_removeFailed =>
+      'A forrást nem sikerült eltávolítani';
+
+  @override
   String get diveLog_sources_menu_separate =>
       'Összevont merülések szétválasztása';
 
@@ -43143,6 +43168,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String dataQuality_repairLabel_splitNamed(String source) {
     return '$source leválasztása külön merülésként';
+  }
+
+  @override
+  String get dataQuality_repairLabel_removeSource => 'Forrás eltávolítása';
+
+  @override
+  String dataQuality_repairLabel_removeSourceNamed(String source) {
+    return '$source eltávolítása';
   }
 
   @override

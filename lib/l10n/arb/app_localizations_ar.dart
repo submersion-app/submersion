@@ -11489,6 +11489,30 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_sources_splitFailed => 'فشل الفصل';
 
   @override
+  String get diveLog_sources_menu_remove => 'إزالة المصدر';
+
+  @override
+  String get diveLog_sources_removeDialog_title => 'إزالة هذا المصدر؟';
+
+  @override
+  String diveLog_sources_removeDialog_body(String source) {
+    return 'ستُزال قراءات $source من هذه الغطسة: ملفها الشخصي والضغوط والأسطوانات التي سجلها وحده. يبقى إدخال السجل.';
+  }
+
+  @override
+  String get diveLog_sources_removeDialog_bodyUnnamed =>
+      'ستُزال قراءات هذا المصدر من هذه الغطسة: ملفه الشخصي والضغوط والأسطوانات التي سجلها وحده. يبقى إدخال السجل.';
+
+  @override
+  String get diveLog_sources_removeDialog_confirm => 'إزالة';
+
+  @override
+  String get diveLog_sources_removeDone => 'تمت إزالة المصدر';
+
+  @override
+  String get diveLog_sources_removeFailed => 'تعذّرت إزالة المصدر';
+
+  @override
   String get diveLog_sources_menu_separate => 'فصل الغوصات المدمجة';
 
   @override
@@ -43967,6 +43991,14 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String dataQuality_repairLabel_splitNamed(String source) {
     return 'فصل $source في غوصة مستقلة';
+  }
+
+  @override
+  String get dataQuality_repairLabel_removeSource => 'إزالة المصدر';
+
+  @override
+  String dataQuality_repairLabel_removeSourceNamed(String source) {
+    return 'إزالة $source';
   }
 
   @override

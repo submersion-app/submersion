@@ -10775,6 +10775,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_sources_splitFailed => '拆分失败';
 
   @override
+  String get diveLog_sources_menu_remove => '移除数据源';
+
+  @override
+  String get diveLog_sources_removeDialog_title => '移除此数据源？';
+
+  @override
+  String diveLog_sources_removeDialog_body(String source) {
+    return '$source 的读数将从此潜水中移除：包括其潜水曲线、压力以及仅由它记录的气瓶。日志条目会保留。';
+  }
+
+  @override
+  String get diveLog_sources_removeDialog_bodyUnnamed =>
+      '此数据源的读数将从此潜水中移除：包括其潜水曲线、压力以及仅由它记录的气瓶。日志条目会保留。';
+
+  @override
+  String get diveLog_sources_removeDialog_confirm => '移除';
+
+  @override
+  String get diveLog_sources_removeDone => '已移除数据源';
+
+  @override
+  String get diveLog_sources_removeFailed => '无法移除数据源';
+
+  @override
   String get diveLog_sources_menu_separate => '拆分合并的潜水';
 
   @override
@@ -40845,6 +40869,14 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String dataQuality_repairLabel_splitNamed(String source) {
     return '将 $source 拆分为单独的潜水';
+  }
+
+  @override
+  String get dataQuality_repairLabel_removeSource => '移除数据源';
+
+  @override
+  String dataQuality_repairLabel_removeSourceNamed(String source) {
+    return '移除 $source';
   }
 
   @override

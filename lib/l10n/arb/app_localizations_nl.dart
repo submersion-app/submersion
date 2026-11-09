@@ -11270,6 +11270,31 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_sources_splitFailed => 'Splitsen mislukt';
 
   @override
+  String get diveLog_sources_menu_remove => 'Bron verwijderen';
+
+  @override
+  String get diveLog_sources_removeDialog_title => 'Deze bron verwijderen?';
+
+  @override
+  String diveLog_sources_removeDialog_body(String source) {
+    return 'De metingen van $source worden van deze duik verwijderd: het profiel, de drukken en de flessen die alleen deze bron vastlegde. De logboekregel blijft.';
+  }
+
+  @override
+  String get diveLog_sources_removeDialog_bodyUnnamed =>
+      'De metingen van deze bron worden van deze duik verwijderd: het profiel, de drukken en de flessen die alleen deze bron vastlegde. De logboekregel blijft.';
+
+  @override
+  String get diveLog_sources_removeDialog_confirm => 'Verwijderen';
+
+  @override
+  String get diveLog_sources_removeDone => 'Bron verwijderd';
+
+  @override
+  String get diveLog_sources_removeFailed =>
+      'De bron kon niet worden verwijderd';
+
+  @override
   String get diveLog_sources_menu_separate => 'Samengevoegde duiken scheiden';
 
   @override
@@ -43095,6 +43120,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String dataQuality_repairLabel_splitNamed(String source) {
     return '$source afsplitsen als eigen duik';
+  }
+
+  @override
+  String get dataQuality_repairLabel_removeSource => 'Bron verwijderen';
+
+  @override
+  String dataQuality_repairLabel_removeSourceNamed(String source) {
+    return '$source verwijderen';
   }
 
   @override

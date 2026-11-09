@@ -11342,6 +11342,30 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_sources_splitFailed => 'Error al separar';
 
   @override
+  String get diveLog_sources_menu_remove => 'Eliminar fuente';
+
+  @override
+  String get diveLog_sources_removeDialog_title => '¿Eliminar esta fuente?';
+
+  @override
+  String diveLog_sources_removeDialog_body(String source) {
+    return 'Las lecturas de $source se eliminarán de esta inmersión: su perfil, las presiones y las botellas que solo registró esa fuente. La entrada del registro se conserva.';
+  }
+
+  @override
+  String get diveLog_sources_removeDialog_bodyUnnamed =>
+      'Las lecturas de esta fuente se eliminarán de esta inmersión: su perfil, las presiones y las botellas que solo registró esa fuente. La entrada del registro se conserva.';
+
+  @override
+  String get diveLog_sources_removeDialog_confirm => 'Eliminar';
+
+  @override
+  String get diveLog_sources_removeDone => 'Fuente eliminada';
+
+  @override
+  String get diveLog_sources_removeFailed => 'No se pudo eliminar la fuente';
+
+  @override
   String get diveLog_sources_menu_separate => 'Separar inmersiones combinadas';
 
   @override
@@ -43409,6 +43433,14 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String dataQuality_repairLabel_splitNamed(String source) {
     return 'Separar $source en una inmersión propia';
+  }
+
+  @override
+  String get dataQuality_repairLabel_removeSource => 'Eliminar fuente';
+
+  @override
+  String dataQuality_repairLabel_removeSourceNamed(String source) {
+    return 'Eliminar $source';
   }
 
   @override

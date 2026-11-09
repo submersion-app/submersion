@@ -11380,6 +11380,31 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_sources_splitFailed => 'Échec de la scission';
 
   @override
+  String get diveLog_sources_menu_remove => 'Supprimer la source';
+
+  @override
+  String get diveLog_sources_removeDialog_title => 'Supprimer cette source ?';
+
+  @override
+  String diveLog_sources_removeDialog_body(String source) {
+    return 'Les relevés de $source seront supprimés de cette plongée : son profil, ses pressions et les blocs qu\'elle seule a enregistrés. L\'entrée du carnet reste.';
+  }
+
+  @override
+  String get diveLog_sources_removeDialog_bodyUnnamed =>
+      'Les relevés de cette source seront supprimés de cette plongée : son profil, ses pressions et les blocs qu\'elle seule a enregistrés. L\'entrée du carnet reste.';
+
+  @override
+  String get diveLog_sources_removeDialog_confirm => 'Supprimer';
+
+  @override
+  String get diveLog_sources_removeDone => 'Source supprimée';
+
+  @override
+  String get diveLog_sources_removeFailed =>
+      'Impossible de supprimer la source';
+
+  @override
   String get diveLog_sources_menu_separate => 'Séparer les plongées combinées';
 
   @override
@@ -43501,6 +43526,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String dataQuality_repairLabel_splitNamed(String source) {
     return 'Séparer $source en une plongée distincte';
+  }
+
+  @override
+  String get dataQuality_repairLabel_removeSource => 'Supprimer la source';
+
+  @override
+  String dataQuality_repairLabel_removeSourceNamed(String source) {
+    return 'Supprimer $source';
   }
 
   @override

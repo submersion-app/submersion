@@ -11163,6 +11163,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_sources_splitFailed => 'Split failed';
 
   @override
+  String get diveLog_sources_menu_remove => 'Remove source';
+
+  @override
+  String get diveLog_sources_removeDialog_title => 'Remove this source?';
+
+  @override
+  String diveLog_sources_removeDialog_body(String source) {
+    return 'The readings from $source will be removed from this dive: its profile, pressures and the cylinders only it recorded. The logbook entry stays.';
+  }
+
+  @override
+  String get diveLog_sources_removeDialog_bodyUnnamed =>
+      'This source\'s readings will be removed from this dive: its profile, pressures and the cylinders only it recorded. The logbook entry stays.';
+
+  @override
+  String get diveLog_sources_removeDialog_confirm => 'Remove';
+
+  @override
+  String get diveLog_sources_removeDone => 'Source removed';
+
+  @override
+  String get diveLog_sources_removeFailed => 'Could not remove the source';
+
+  @override
   String get diveLog_sources_menu_separate => 'Separate combined dives';
 
   @override
@@ -42659,6 +42683,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String dataQuality_repairLabel_splitNamed(String source) {
     return 'Split $source into its own dive';
+  }
+
+  @override
+  String get dataQuality_repairLabel_removeSource => 'Remove source';
+
+  @override
+  String dataQuality_repairLabel_removeSourceNamed(String source) {
+    return 'Remove $source';
   }
 
   @override

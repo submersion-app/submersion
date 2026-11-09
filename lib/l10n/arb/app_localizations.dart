@@ -18022,6 +18022,48 @@ abstract class AppLocalizations {
   /// **'Split failed'**
   String get diveLog_sources_splitFailed;
 
+  /// Menu item on a dive's data source that removes it and its readings from the dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove source'**
+  String get diveLog_sources_menu_remove;
+
+  /// Title of the dialog confirming removal of a data source from a dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this source?'**
+  String get diveLog_sources_removeDialog_title;
+
+  /// Body of the dialog confirming removal of a named data source from a dive.
+  ///
+  /// In en, this message translates to:
+  /// **'The readings from {source} will be removed from this dive: its profile, pressures and the cylinders only it recorded. The logbook entry stays.'**
+  String diveLog_sources_removeDialog_body(String source);
+
+  /// Body of the dialog confirming removal of a data source that has no name.
+  ///
+  /// In en, this message translates to:
+  /// **'This source\'s readings will be removed from this dive: its profile, pressures and the cylinders only it recorded. The logbook entry stays.'**
+  String get diveLog_sources_removeDialog_bodyUnnamed;
+
+  /// Confirm button of the dialog that removes a data source from a dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get diveLog_sources_removeDialog_confirm;
+
+  /// Snackbar shown after a data source was removed from a dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Source removed'**
+  String get diveLog_sources_removeDone;
+
+  /// Snackbar shown when removing a data source from a dive failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not remove the source'**
+  String get diveLog_sources_removeFailed;
+
   /// No description provided for @diveLog_sources_menu_separate.
   ///
   /// In en, this message translates to:
@@ -68068,6 +68110,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Split {source} into its own dive'**
   String dataQuality_repairLabel_splitNamed(String source);
+
+  /// Repair button that removes the disagreeing data source from the dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove source'**
+  String get dataQuality_repairLabel_removeSource;
+
+  /// Repair button naming the data source that is removed from the dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {source}'**
+  String dataQuality_repairLabel_removeSourceNamed(String source);
 
   /// No description provided for @dataQuality_setPrimary_title.
   ///

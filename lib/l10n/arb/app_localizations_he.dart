@@ -11092,6 +11092,30 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_sources_splitFailed => 'הפיצול נכשל';
 
   @override
+  String get diveLog_sources_menu_remove => 'הסרת מקור';
+
+  @override
+  String get diveLog_sources_removeDialog_title => 'להסיר את המקור הזה?';
+
+  @override
+  String diveLog_sources_removeDialog_body(String source) {
+    return 'הקריאות מ-$source יוסרו מהצלילה הזו: הפרופיל, הלחצים והמכלים שרק הוא תיעד. רשומת היומן נשארת.';
+  }
+
+  @override
+  String get diveLog_sources_removeDialog_bodyUnnamed =>
+      'הקריאות של המקור הזה יוסרו מהצלילה: הפרופיל, הלחצים והמכלים שרק הוא תיעד. רשומת היומן נשארת.';
+
+  @override
+  String get diveLog_sources_removeDialog_confirm => 'הסרה';
+
+  @override
+  String get diveLog_sources_removeDone => 'המקור הוסר';
+
+  @override
+  String get diveLog_sources_removeFailed => 'לא ניתן היה להסיר את המקור';
+
+  @override
   String get diveLog_sources_menu_separate => 'הפרדת צלילות ממוזגות';
 
   @override
@@ -42327,6 +42351,14 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String dataQuality_repairLabel_splitNamed(String source) {
     return 'פיצול $source לצלילה נפרדת';
+  }
+
+  @override
+  String get dataQuality_repairLabel_removeSource => 'הסרת מקור';
+
+  @override
+  String dataQuality_repairLabel_removeSourceNamed(String source) {
+    return 'הסרת $source';
   }
 
   @override

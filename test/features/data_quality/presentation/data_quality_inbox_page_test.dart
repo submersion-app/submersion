@@ -1935,6 +1935,55 @@ void main() {
       expect(await dcIsPrimary(), isTrue);
       await tester.pumpAndSettle(const Duration(seconds: 6));
     });
+
+    Future<bool> dcPresent() async =>
+        (await DiveRepository().getDataSources('d1')).any((s) => s.id == 'dc');
+
+    testWidgets('remove source asks first and changes nothing on cancel '
+        '(#4393)', (tester) async {
+      await seedSources();
+      final prefs = await _prefs();
+      await tester.pumpWidget(_scope(prefs, findings: [conflict()]));
+      await tester.pumpAndSettle();
+
+      // Every action after the first shows on the expanded card.
+      await tester.tap(
+        find.text('Sources disagree on dive duration: 23 min vs. 68 min'),
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Remove Suunto EON Core'));
+      await tester.tap(find.text('Remove Suunto EON Core'));
+      await tester.pumpAndSettle();
+      expect(find.text('Remove this source?'), findsOneWidget);
+
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(await dcPresent(), isTrue);
+    });
+
+    testWidgets('remove source removes it once confirmed (#4393)', (
+      tester,
+    ) async {
+      await seedSources();
+      final prefs = await _prefs();
+      await tester.pumpWidget(_scope(prefs, findings: [conflict()]));
+      await tester.pumpAndSettle();
+
+      // Every action after the first shows on the expanded card.
+      await tester.tap(
+        find.text('Sources disagree on dive duration: 23 min vs. 68 min'),
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Remove Suunto EON Core'));
+      await tester.tap(find.text('Remove Suunto EON Core'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Remove'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Source removed'), findsOneWidget);
+      expect(await dcPresent(), isFalse);
+      await tester.pumpAndSettle(const Duration(seconds: 11));
+    });
   });
 
   testWidgets('the logbook shift moves this dive alone, forward to the '

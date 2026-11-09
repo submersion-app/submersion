@@ -23,6 +23,7 @@ import 'package:submersion/features/buddies/presentation/providers/buddy_provide
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/change_log/data/services/change_log_operation_undo.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
@@ -40,6 +41,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_mirror_
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/dive_log/presentation/providers/annotation_focus_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/remove_source_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_annotation_actions.dart';
 import 'package:submersion/features/dive_log/presentation/providers/annotation_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
@@ -264,6 +266,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
   late final DiveDetailActions _sectionActions = DiveDetailActions(
     setPrimarySource: _setPrimarySource,
     splitSource: _confirmAndSplit,
+    removeSource: _confirmAndRemoveSource,
     separateSegments: _confirmAndSeparate,
     scanGallery: _scanGalleryForDive,
     addPhotos: _addPhotos,

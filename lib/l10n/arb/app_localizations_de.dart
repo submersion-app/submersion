@@ -11334,6 +11334,31 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_sources_splitFailed => 'Aufteilen fehlgeschlagen';
 
   @override
+  String get diveLog_sources_menu_remove => 'Quelle entfernen';
+
+  @override
+  String get diveLog_sources_removeDialog_title => 'Diese Quelle entfernen?';
+
+  @override
+  String diveLog_sources_removeDialog_body(String source) {
+    return 'Die Messwerte von $source werden aus diesem Tauchgang entfernt: Profil, Drücke und die Flaschen, die nur diese Quelle aufgezeichnet hat. Der Logbucheintrag bleibt.';
+  }
+
+  @override
+  String get diveLog_sources_removeDialog_bodyUnnamed =>
+      'Die Messwerte dieser Quelle werden aus diesem Tauchgang entfernt: Profil, Drücke und die Flaschen, die nur diese Quelle aufgezeichnet hat. Der Logbucheintrag bleibt.';
+
+  @override
+  String get diveLog_sources_removeDialog_confirm => 'Entfernen';
+
+  @override
+  String get diveLog_sources_removeDone => 'Quelle entfernt';
+
+  @override
+  String get diveLog_sources_removeFailed =>
+      'Die Quelle konnte nicht entfernt werden';
+
+  @override
   String get diveLog_sources_menu_separate => 'Kombinierte Tauchgänge trennen';
 
   @override
@@ -43296,6 +43321,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String dataQuality_repairLabel_splitNamed(String source) {
     return '$source als eigenen Tauchgang abtrennen';
+  }
+
+  @override
+  String get dataQuality_repairLabel_removeSource => 'Quelle entfernen';
+
+  @override
+  String dataQuality_repairLabel_removeSourceNamed(String source) {
+    return '$source entfernen';
   }
 
   @override

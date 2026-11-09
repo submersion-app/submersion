@@ -651,6 +651,19 @@ void main() {
       expect(actions.whereType<CompareSourcesRepair>(), hasLength(1));
     });
 
+    test('offers to remove the disagreeing source (issue #4393)', () {
+      final actions = repairOptionsFor(
+        f(detectorId: 'source_conflict', params: {'sourceId': 's1'}),
+      );
+      final remove = actions.whereType<RemoveSourceRepair>().single;
+      expect(remove.sourceId, 's1');
+      expect(remove.diveId, 'd1');
+      expect(
+        actions.indexOf(remove),
+        actions.indexOf(actions.whereType<SplitSourceRepair>().single) + 1,
+      );
+    });
+
     test('without a source id gets navigation only', () {
       final actions = repairOptionsFor(f(detectorId: 'source_conflict'));
       expect(actions.single, isA<GoToDiveRepair>());

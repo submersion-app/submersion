@@ -354,6 +354,50 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     }
   }
 
+  /// Confirms and runs Remove source (issue #4393). The removal is one change
+  /// log operation, so the snackbar's Undo reverts it whole.
+  Future<void> _confirmAndRemoveSource(Dive dive, String sourceId) async {
+    final l10n = context.l10n;
+    if (!await confirmRemoveSource(context, source: null) || !mounted) return;
+    final container = ProviderScope.containerOf(context, listen: false);
+    final messenger = ScaffoldMessenger.of(context);
+    void refresh() {
+      scheduleQualityScan([dive.id]);
+      scheduleSensorSummaryRefresh([dive.id], force: true);
+      scheduleDerivedMetricsRefresh([dive.id], force: true);
+      _refreshDive(container, dive.id);
+      container.invalidate(paginatedDiveListProvider);
+      container.invalidate(divesProvider);
+    }
+
+    try {
+      final removal = await ref
+          .read(diveSourceRemovalServiceProvider)
+          .remove(diveId: dive.id, sourceId: sourceId);
+      refresh();
+      final operationId = removal.operationId;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.diveLog_sources_removeDone),
+          duration: const Duration(seconds: 10),
+          persist: false,
+          action: operationId == null
+              ? null
+              : SnackBarAction(
+                  label: l10n.dataQuality_action_undo,
+                  onPressed: () => unawaited(
+                    undoChangeLogOperation(operationId).then((_) => refresh()),
+                  ),
+                ),
+        ),
+      );
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.diveLog_sources_removeFailed)),
+      );
+    }
+  }
+
   /// Confirms and runs "Separate combined dives": the inverse of Combine,
   /// and the only recovery path once the merge undo snackbar has dismissed.
   Future<void> _confirmAndSeparate(Dive dive, int segmentCount) async {

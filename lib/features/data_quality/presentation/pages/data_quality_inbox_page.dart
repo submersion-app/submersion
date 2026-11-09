@@ -16,6 +16,7 @@ import 'package:submersion/features/data_quality/domain/entities/quality_finding
 import 'package:submersion/features/data_quality/domain/repairs/quality_repair_action.dart';
 import 'package:submersion/features/data_quality/data/services/profile_repair_service.dart';
 import 'package:submersion/features/data_quality/domain/services/finding_ownership.dart';
+import 'package:submersion/features/data_quality/presentation/pages/data_quality_inbox_actions.dart';
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
 import 'package:submersion/features/data_quality/presentation/providers/quality_inbox_providers.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/delete_duplicate_dialog.dart';
@@ -365,6 +366,15 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
             SnackBar(content: Text(l10n.diveLog_sources_splitFailed)),
           );
         }
+      case RemoveSourceRepair(:final diveId, :final sourceId):
+        await runRemoveSource(
+          context,
+          ref,
+          finding: f,
+          diveId: diveId,
+          sourceId: sourceId,
+          sourceName: sourceName,
+        );
       case DespikeRepair(:final diveId):
         await withUndo(
           () => executor.applyProfileRepair(

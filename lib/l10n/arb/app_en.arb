@@ -6315,6 +6315,39 @@
   "diveLog_sources_splitDialog_confirm": "Split",
   "diveLog_sources_splitDone": "Dive split",
   "diveLog_sources_splitFailed": "Split failed",
+  "diveLog_sources_menu_remove": "Remove source",
+  "@diveLog_sources_menu_remove": {
+    "description": "Menu item on a dive's data source that removes it and its readings from the dive."
+  },
+  "diveLog_sources_removeDialog_title": "Remove this source?",
+  "@diveLog_sources_removeDialog_title": {
+    "description": "Title of the dialog confirming removal of a data source from a dive."
+  },
+  "diveLog_sources_removeDialog_body": "The readings from {source} will be removed from this dive: its profile, pressures and the cylinders only it recorded. The logbook entry stays.",
+  "@diveLog_sources_removeDialog_body": {
+    "description": "Body of the dialog confirming removal of a named data source from a dive.",
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_sources_removeDialog_bodyUnnamed": "This source's readings will be removed from this dive: its profile, pressures and the cylinders only it recorded. The logbook entry stays.",
+  "@diveLog_sources_removeDialog_bodyUnnamed": {
+    "description": "Body of the dialog confirming removal of a data source that has no name."
+  },
+  "diveLog_sources_removeDialog_confirm": "Remove",
+  "@diveLog_sources_removeDialog_confirm": {
+    "description": "Confirm button of the dialog that removes a data source from a dive."
+  },
+  "diveLog_sources_removeDone": "Source removed",
+  "@diveLog_sources_removeDone": {
+    "description": "Snackbar shown after a data source was removed from a dive."
+  },
+  "diveLog_sources_removeFailed": "Could not remove the source",
+  "@diveLog_sources_removeFailed": {
+    "description": "Snackbar shown when removing a data source from a dive failed."
+  },
   "diveLog_sources_menu_separate": "Separate combined dives",
   "diveLog_sources_separateDialog_title": "Separate combined dives?",
   "diveLog_sources_separateDialog_body": "This dive was combined from {count} dives. Each one's profile, events, tanks and gas switches move back to its own dive. The rest of the logbook entry, including buddies, tags, equipment, media, notes and the dive number, stays on this dive.",
@@ -26613,6 +26646,19 @@
   "dataQuality_repairLabel_splitNamed": "Split {source} into its own dive",
   "@dataQuality_repairLabel_splitNamed": {
     "description": "Repair button naming the data source that is split off into a dive of its own.",
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_repairLabel_removeSource": "Remove source",
+  "@dataQuality_repairLabel_removeSource": {
+    "description": "Repair button that removes the disagreeing data source from the dive."
+  },
+  "dataQuality_repairLabel_removeSourceNamed": "Remove {source}",
+  "@dataQuality_repairLabel_removeSourceNamed": {
+    "description": "Repair button naming the data source that is removed from the dive.",
     "placeholders": {
       "source": {
         "type": "String"
