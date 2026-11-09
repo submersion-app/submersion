@@ -49,7 +49,7 @@ extension TableBackstopsFromV217 on AppDatabase {
     await _assertCertificationsBuddyIndex();
     // v247 backstop: the Explore derived metrics (local, idempotent).
     await _assertDerivedMetricsTable();
-    // v347 backstop: its gas-use window columns (local, idempotent).
+    // v348 backstop: its gas-use window columns (local, idempotent).
     await _assertDerivedMetricsGasUseColumns();
 
     // v248 backstop: trip_equipment and its item index (idempotent).

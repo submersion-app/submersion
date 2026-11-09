@@ -17,7 +17,7 @@ extension BeforeOpenChildColumns on AppDatabase {
     // v259: dive_tanks.usage_duration (issue #1496).
     await _assertTankUsageDurationColumn();
 
-    // v347: dive_tanks.surface_breathing_duration (issue #2930).
+    // v348: dive_tanks.surface_breathing_duration (issue #2930).
     await _assertTankSurfaceBreathingColumn();
 
     // v287: dive_tanks.passport_id (issue #2650).

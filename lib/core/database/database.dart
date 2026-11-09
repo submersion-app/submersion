@@ -315,7 +315,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 347;
+  static const int currentSchemaVersion = 348;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1590,12 +1590,17 @@ class AppDatabase extends _$AppDatabase {
     // #4201). Data only, a value every reader already holds, so the floor
     // does not move. Numbered 346 so an open PR can take 345.
     346,
-    // v347: dive_derived_metrics.gas_use_s and gas_use_avg_depth_m, a dive's
+    // v347: diver_settings.show_photo_background_on_dive_cards, whether a
+    // dive card shows one of the dive's photos behind its text, and the
+    // overlay opacity over it per theme. Additive and defaulted; the floor
+    // does not move.
+    347,
+    // v348: dive_derived_metrics.gas_use_s and gas_use_avg_depth_m, a dive's
     // underwater time and depth for SAC and RMV, and where surface breathing
     // stretched them (issue #2930): a device-local cache the sweep refills.
     // Plus dive_tanks.surface_breathing_duration, a nullable synced column an
     // older peer omits, with no backfill. The floor does not move.
-    347,
+    348,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

@@ -35949,6 +35949,36 @@ abstract class AppLocalizations {
   /// **'Show dive site map as background on dive cards (requires site location)'**
   String get settings_appearance_mapBackgroundDiveCards_subtitleWithNote;
 
+  /// No description provided for @settings_appearance_photoBackgroundDiveCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo background on dive cards'**
+  String get settings_appearance_photoBackgroundDiveCards;
+
+  /// No description provided for @settings_appearance_photoBackgroundDiveCards_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show one of the dive\'s photos as background on dive cards (falls back to the map or colour when a dive has no photos)'**
+  String get settings_appearance_photoBackgroundDiveCards_subtitle;
+
+  /// No description provided for @settings_appearance_photoOverlayDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo overlay opacity, dark theme'**
+  String get settings_appearance_photoOverlayDark;
+
+  /// No description provided for @settings_appearance_photoOverlayLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo overlay opacity, light theme'**
+  String get settings_appearance_photoOverlayLight;
+
+  /// No description provided for @settings_appearance_photoOverlay_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Higher keeps the text readable, lower shows more of the photo'**
+  String get settings_appearance_photoOverlay_subtitle;
+
   /// No description provided for @settings_appearance_mapBackgroundSiteCards.
   ///
   /// In en, this message translates to:
@@ -41597,6 +41627,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Map behind dive cards'**
   String get settings_conflict_field_showMapBackgroundOnDiveCards;
+
+  /// No description provided for @settings_conflict_field_showPhotoBackgroundOnDiveCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo behind dive cards'**
+  String get settings_conflict_field_showPhotoBackgroundOnDiveCards;
+
+  /// No description provided for @settings_conflict_field_cardPhotoOverlayDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive card photo overlay (dark theme)'**
+  String get settings_conflict_field_cardPhotoOverlayDark;
+
+  /// No description provided for @settings_conflict_field_cardPhotoOverlayLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive card photo overlay (light theme)'**
+  String get settings_conflict_field_cardPhotoOverlayLight;
 
   /// No description provided for @settings_conflict_field_showMapBackgroundOnSiteCards.
   ///

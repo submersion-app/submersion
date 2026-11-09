@@ -21484,6 +21484,22 @@ class AppLocalizationsZh extends AppLocalizations {
       '在潜水卡片上显示潜水点地图作为背景（需要潜水点位置信息）';
 
   @override
+  String get settings_appearance_photoBackgroundDiveCards => '潜水卡片照片背景';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards_subtitle =>
+      '在潜水卡片上以该次潜水的一张照片作为背景（没有照片时使用地图或颜色）';
+
+  @override
+  String get settings_appearance_photoOverlayDark => '照片遮罩不透明度（深色主题）';
+
+  @override
+  String get settings_appearance_photoOverlayLight => '照片遮罩不透明度（浅色主题）';
+
+  @override
+  String get settings_appearance_photoOverlay_subtitle => '数值越高文字越清晰，越低照片显示越多';
+
+  @override
   String get settings_appearance_mapBackgroundSiteCards => '潜水点卡片地图背景';
 
   @override
@@ -24627,6 +24643,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_showMapBackgroundOnDiveCards => '潜水卡片背景地图';
+
+  @override
+  String get settings_conflict_field_showPhotoBackgroundOnDiveCards =>
+      '潜水卡片背景照片';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayDark => '潜水卡片照片遮罩（深色主题）';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayLight => '潜水卡片照片遮罩（浅色主题）';
 
   @override
   String get settings_conflict_field_showMapBackgroundOnSiteCards =>

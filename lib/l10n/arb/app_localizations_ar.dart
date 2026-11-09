@@ -22942,6 +22942,26 @@ class AppLocalizationsAr extends AppLocalizations {
       'عرض خريطة موقع الغوص كخلفية على بطاقات الغوص (يتطلب موقع الموقع)';
 
   @override
+  String get settings_appearance_photoBackgroundDiveCards =>
+      'خلفية صورة على بطاقات الغوص';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards_subtitle =>
+      'عرض إحدى صور الغوصة كخلفية لبطاقات الغوص (بدون صور تُستخدم الخريطة أو اللون)';
+
+  @override
+  String get settings_appearance_photoOverlayDark =>
+      'عتامة الطبقة فوق الصورة، السمة الداكنة';
+
+  @override
+  String get settings_appearance_photoOverlayLight =>
+      'عتامة الطبقة فوق الصورة، السمة الفاتحة';
+
+  @override
+  String get settings_appearance_photoOverlay_subtitle =>
+      'القيمة الأعلى تبقي النص مقروءًا، والأقل تُظهر المزيد من الصورة';
+
+  @override
   String get settings_appearance_mapBackgroundSiteCards =>
       'خلفية خريطة على بطاقات المواقع';
 
@@ -26341,6 +26361,18 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_showMapBackgroundOnDiveCards =>
       'خريطة خلف بطاقات الغوص';
+
+  @override
+  String get settings_conflict_field_showPhotoBackgroundOnDiveCards =>
+      'صورة خلف بطاقات الغوص';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayDark =>
+      'طبقة فوق صورة بطاقة الغوص (داكنة)';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayLight =>
+      'طبقة فوق صورة بطاقة الغوص (فاتحة)';
 
   @override
   String get settings_conflict_field_showMapBackgroundOnSiteCards =>

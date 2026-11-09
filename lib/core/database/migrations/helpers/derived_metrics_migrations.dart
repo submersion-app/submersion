@@ -9,9 +9,9 @@ extension DerivedMetricsMigrations on AppDatabase {
     await Migrator(this).createTable(diveDerivedMetricsRows);
   }
 
-  /// v347: the gas-use window columns, and where surface breathing stretched
+  /// v348: the gas-use window columns, and where surface breathing stretched
   /// the window (issue #2930). Idempotent; called from
-  /// the v347 rung and the beforeOpen backstop. A table [createTable] just
+  /// the v348 rung and the beforeOpen backstop. A table [createTable] just
   /// made already has them.
   Future<void> _assertDerivedMetricsGasUseColumns() async {
     if (!await _tableExists('dive_derived_metrics')) return;

@@ -613,8 +613,8 @@ extension DiveMigrations on AppDatabase {
     );
   }
 
-  /// Idempotent DDL for the v347 dive_tanks.surface_breathing_duration
-  /// column (issue #2930). Called from the v347 rung and re-asserted in
+  /// Idempotent DDL for the v348 dive_tanks.surface_breathing_duration
+  /// column (issue #2930). Called from the v348 rung and re-asserted in
   /// beforeOpen like the other column-assert helpers.
   Future<void> _assertTankSurfaceBreathingColumn() async {
     final cols = await customSelect("PRAGMA table_info('dive_tanks')").get();

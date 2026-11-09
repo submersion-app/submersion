@@ -22545,6 +22545,26 @@ class AppLocalizationsHu extends AppLocalizations {
       'Merülőhely térkép megjelenítés háttérként a merülési kártyákon (merülőhely szükséges)';
 
   @override
+  String get settings_appearance_photoBackgroundDiveCards =>
+      'Fotóháttér a merüléskártyákon';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards_subtitle =>
+      'A merülés egyik fotójának megjelenítése háttérként a merüléskártyákon (fotó nélkül a térkép vagy a szín látszik)';
+
+  @override
+  String get settings_appearance_photoOverlayDark =>
+      'Fotó fedőréteg átlátszatlansága, sötét téma';
+
+  @override
+  String get settings_appearance_photoOverlayLight =>
+      'Fotó fedőréteg átlátszatlansága, világos téma';
+
+  @override
+  String get settings_appearance_photoOverlay_subtitle =>
+      'Magasabb érték olvashatóbb szöveget, alacsonyabb több fotót ad';
+
+  @override
   String get settings_appearance_mapBackgroundSiteCards =>
       'Térkép háttér a merülőhely kártyákon';
 
@@ -25972,6 +25992,18 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_showMapBackgroundOnDiveCards =>
       'Térkép a merüléskártyák mögött';
+
+  @override
+  String get settings_conflict_field_showPhotoBackgroundOnDiveCards =>
+      'Fotó a merüléskártyák mögött';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayDark =>
+      'Merüléskártya fotó fedőréteg (sötét téma)';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayLight =>
+      'Merüléskártya fotó fedőréteg (világos téma)';
 
   @override
   String get settings_conflict_field_showMapBackgroundOnSiteCards =>

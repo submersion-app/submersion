@@ -4,19 +4,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// v347 adds `dive_derived_metrics.gas_use_s` and `gas_use_avg_depth_m`
+/// v348 adds `dive_derived_metrics.gas_use_s` and `gas_use_avg_depth_m`
 /// (issue #2930): how long a dive was underwater with surface runs at the
 /// ends left out, and the mean depth over that time, which whole-dive SAC and
 /// RMV divide by. Nullable on a device-local cache with no backfill: the
 /// derived metrics engine version bump makes the sweep rebuild every row.
 void main() {
-  test('v347 is in the migration ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(347));
-    expect(AppDatabase.migrationVersions, contains(347));
+  test('v348 is in the migration ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(348));
+    expect(AppDatabase.migrationVersions, contains(348));
   });
 
   test('the compatibility floor does not move', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(347));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(348));
   });
 
   test('a fresh database has both columns, nullable', () async {
@@ -46,7 +46,7 @@ void main() {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
         registerAppSqlFunctions(rawDb);
-        rawDb.execute('PRAGMA user_version = 346');
+        rawDb.execute('PRAGMA user_version = 347');
         rawDb.execute('CREATE TABLE dives (id TEXT NOT NULL PRIMARY KEY)');
         rawDb.execute('''
           CREATE TABLE dive_tanks (
@@ -79,7 +79,7 @@ void main() {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
         registerAppSqlFunctions(rawDb);
-        rawDb.execute('PRAGMA user_version = 346');
+        rawDb.execute('PRAGMA user_version = 347');
         rawDb.execute('''
           CREATE TABLE dives (id TEXT NOT NULL PRIMARY KEY)
         ''');

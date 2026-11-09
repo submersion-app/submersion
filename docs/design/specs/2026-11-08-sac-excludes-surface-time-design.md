@@ -111,7 +111,7 @@ Where each piece lives:
 - **Cache:** the sweep reads the gas switches and the displayed pressure
   series, stores the stretched window in `gas_use_s` / `gas_use_avg_depth_m`,
   and stores the bounds in `surface_breathed_from_s` /
-  `surface_breathed_until_s` (same v347 step, device-local). Its stamp gains
+  `surface_breathed_until_s` (same v348 step, device-local). Its stamp gains
   the dive's gas switches, which never re-stamp the dive. Engine version 4 to 5.
 - **Dive entity:** reads fill `Dive.surfaceBreathing` from the cache, and
   `Dive.gasUse` passes it to `gasUseWindowOf` on the profile. `_consumptionBasis`

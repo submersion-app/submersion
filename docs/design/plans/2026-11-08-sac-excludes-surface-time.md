@@ -22,7 +22,7 @@ cache row, so every surface agrees.
 - Rate time = `min(window seconds, measured runtime seconds)`; rate depth = window avg depth.
 - No window (nothing trimmed, nothing underwater, fewer than 2 samples) means today's numbers, unchanged.
 - Runtime, bottom time, avg depth as stored and displayed, and the profile never change.
-- Schema version 347 (main is at 346; open PR #4222's 343 claim is already stale).
+- Schema version 348 (renumbered from 347 when #4222 shipped 347 first).
 - `DerivedMetricsService.version` 3 to 4.
 - No em-dashes; no AI attribution anywhere.
 
@@ -86,7 +86,7 @@ cache row, so every surface agrees.
 - [ ] **Step 4:** pass; also run `test/features/dive_log/domain/services/dive_mirror_fields_test.dart` and `test/features/dive_computer/domain/services/planned_dive_fill_fields_test.dart`.
 - [ ] **Step 5:** Commit `feat(dive-log): leave surface time out of a dive's SAC and RMV`.
 
-### Task 3: The cache carries the window (schema v347)
+### Task 3: The cache carries the window (schema v348)
 
 **Files:**
 - Modify: `lib/features/dive_log/domain/entities/derived_metrics.dart` (`gasUseSeconds`, `gasUseAvgDepthMeters`, ctor, copyWith)
@@ -94,10 +94,10 @@ cache row, so every surface agrees.
 - Modify: `lib/core/database/tables/dive_derived_metrics_tables.dart` (`IntColumn gasUseS`, `RealColumn gasUseAvgDepthM`, nullable)
 - Modify: `lib/features/dive_log/data/repositories/derived_metrics_repository.dart` (`getMetrics`, `saveMetrics`)
 - Modify: `lib/core/database/migrations/helpers/derived_metrics_migrations.dart` (`_assertDerivedMetricsGasUseColumns` via `_addColumnIfMissing`, guarded on the table)
-- Modify: `lib/core/database/migrations/ladder/rungs_v340_onward.dart` (v347 entry), `before_open_table_backstops.dart` (call after `_assertDerivedMetricsTable`), `database.dart` (`currentSchemaVersion = 347`, `migrationVersions`)
-- Test: `test/core/database/migration_v347_derived_metrics_gas_use_test.dart`, `test/features/dive_log/domain/services/derived_metrics_service_test.dart`, `test/features/dive_log/data/repositories/derived_metrics_repository_test.dart`
+- Modify: `lib/core/database/migrations/ladder/rungs_v340_onward.dart` (v348 entry), `before_open_table_backstops.dart` (call after `_assertDerivedMetricsTable`), `database.dart` (`currentSchemaVersion = 348`, `migrationVersions`)
+- Test: `test/core/database/migration_v348_derived_metrics_gas_use_test.dart`, `test/features/dive_log/domain/services/derived_metrics_service_test.dart`, `test/features/dive_log/data/repositories/derived_metrics_repository_test.dart`
 
-- [ ] **Step 1: Failing tests:** service computes `gasUseSeconds`/`gasUseAvgDepthMeters` for a trailing-tail profile, null for none, present on a CCR dive and a no-pressure dive; repository round-trips both; migration test in the v344 test's shape (ladder contains 347, floor does not move, fresh DB columns nullable, a v346 table upgrades with nulls).
+- [ ] **Step 1: Failing tests:** service computes `gasUseSeconds`/`gasUseAvgDepthMeters` for a trailing-tail profile, null for none, present on a CCR dive and a no-pressure dive; repository round-trips both; migration test in the v344 test's shape (ladder contains 348, floor does not move, fresh DB columns nullable, a v347 table upgrades with nulls).
 - [ ] **Step 2:** run, fails.
 - [ ] **Step 3:** implement; run `dart run build_runner build --delete-conflicting-outputs` (unfiltered, in the background).
 - [ ] **Step 4:** pass; also `test/core/database` and any test that pins `DerivedMetricsService.version` (grep for `version, 3`).
@@ -185,7 +185,7 @@ Spec section: "Breathing at the surface". Each task is TDD and ends with
 
 ### Task S3: cache, entity and stamp
 
-- v347 assert adds `surface_breathed_from_s`, `surface_breathed_until_s`;
+- v348 assert adds `surface_breathed_from_s`, `surface_breathed_until_s`;
   `DiveDerivedMetrics` carries them; `ensureCurrent` reads switches and
   displayed pressures; `_stampSql` adds the switches; engine version 5.
 - `Dive.surfaceBreathing` (read-only, mirror field), filled by the detail and
@@ -196,7 +196,7 @@ Spec section: "Breathing at the surface". Each task is TDD and ends with
 
 ### Task S4: minutes the diver enters
 
-- `dive_tanks.surface_breathing_duration` (v347 assert), `DiveTank.surfaceBreathingDuration`
+- `dive_tanks.surface_breathing_duration` (v348 assert), `DiveTank.surfaceBreathingDuration`
   (Duration?), read and write mapping, copy flows.
 - `_consumptionBasis`, `cylinderUsage`, the role trend and `gasUseSecondsSql` /
   `gasUseAvgDepthSql` add the seconds and blend the depth.
