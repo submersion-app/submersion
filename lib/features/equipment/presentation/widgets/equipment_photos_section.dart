@@ -81,9 +81,23 @@ class _EquipmentPhotosSectionState
     if (ids.length != 1) return BulkActionOutcome.cancelled;
     final id = ids.single;
     final isCover = widget.equipment.coverMediaId == id;
-    await ref
-        .read(gearPhotoRepositoryProvider)
-        .setCover(_equipmentId, isCover ? null : id);
+    try {
+      await ref
+          .read(gearPhotoRepositoryProvider)
+          .setCover(_equipmentId, isCover ? null : id);
+    } catch (_) {
+      // A concurrent sync can delete the item mid-tap: say the cover did
+      // not change rather than failing silently.
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.common_error_tryAgain),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+      return BulkActionOutcome.failed;
+    }
     ref.invalidate(equipmentCoverProvider(_equipmentId));
     return BulkActionOutcome.completed;
   }

@@ -444,6 +444,25 @@ void main() {
       );
     });
 
+    testWidgets('dismissing the sheet on a new check-in unlinks its photos', (
+      tester,
+    ) async {
+      await pumpAndOpen(tester, withDive: dive, extra: realUnlink());
+      await tester.tap(find.text('Add check-in'));
+      await tester.pumpAndSettle();
+      final photo = await addPhoto(tester, draftId(tester));
+
+      // Tap the barrier above the sheet, the way a diver swipes it away.
+      await tester.tapAt(const Offset(10, 10));
+      await settle(tester);
+
+      expect(find.byType(CheckInPhotosRow), findsNothing);
+      expect(
+        await tester.runAsync(() => MediaRepository().getMediaById(photo.id)),
+        isNull,
+      );
+    });
+
     testWidgets('cancel on an existing check-in keeps its photos', (
       tester,
     ) async {

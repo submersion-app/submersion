@@ -22,7 +22,13 @@ sealed class MediaAttachTarget extends Equatable {
 
   /// Whether the session owns every picked file outright, with no dive
   /// matching: a site or a gear item. Only a dive session matches by date.
-  bool get ownsEveryFile => this is! DiveAttachTarget;
+  ///
+  /// An exhaustive switch, like every other decision on the target, so a new
+  /// target type is a compile error here rather than a silent default.
+  bool get ownsEveryFile => switch (this) {
+    DiveAttachTarget() => false,
+    SiteAttachTarget() || EquipmentAttachTarget() => true,
+  };
 
   @override
   bool get stringify => true;
