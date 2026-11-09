@@ -28969,16 +28969,29 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_gas_gasMix_title => '混合气分布';
 
   @override
-  String get insights_gas_sacByRole_empty => '无可用多气瓶数据';
+  String get insights_gas_roleUse_title => '按气瓶用途的耗气量';
 
   @override
-  String get insights_gas_sacByRole_error => '加载按用途分类的消耗失败';
+  String get insights_gas_roleUse_subtitle => '按各用途实际呼吸的时间计算';
 
   @override
-  String get insights_gas_sacByRole_subtitle => '按气瓶类型的平均耗气量';
+  String get insights_gas_roleUse_empty => '暂无按气瓶用途的数据';
 
   @override
-  String get insights_gas_sacByRole_title => '按气瓶用途的气体消耗';
+  String get insights_gas_roleUse_error => '无法加载按气瓶用途的耗气量';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => '底部气体';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水未计入：阶段瓶、减压瓶、备用瓶或应急瓶耗气，但没有换到该气瓶的记录',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => '循环呼吸器气体用量';
@@ -29561,9 +29574,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_focus_gas_trimix => '三混气';
 
   @override
-  String get insights_gas_tankRole_backGas => '主气';
-
-  @override
   String get insights_gas_tankRole_bailout => '应急';
 
   @override
@@ -29573,22 +29583,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_gas_tankRole_diluent => '稀释气';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'O₂ 供气';
-
-  @override
   String get insights_gas_tankRole_pony => '应急瓶';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => '左侧挂';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => '右侧挂';
-
-  @override
   String get insights_gas_tankRole_stage => '阶段瓶';
-
-  @override
-  String get insights_gas_tankRole_twinSet => '双瓶';
 
   @override
   String get insights_geographic_appBar_title => '地理';
@@ -40185,6 +40183,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => '气瓶错误';
 
   @override
+  String get dataQuality_detector_missing_gas_switch => '缺少换气记录';
+
+  @override
   String get dataQuality_detector_source_conflict => '来源冲突';
 
   @override
@@ -40372,6 +40373,58 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String dataQuality_msg_tankInactive(String drop) {
     return '该气瓶损失了 $drop，而气体时间线显示它未在使用';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '没有记录换气，但气瓶压力显示了以下换气：$switches。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return '气瓶 $tankNumber（$gas），$time，$depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => '；';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return '没有记录换气。气瓶压力显示在 $depth 处换到气瓶 $tankNumber（$gas），深于其 MOD $mod，因此不建议切换到该气瓶。';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return '气瓶压力还显示在 $depth 处换到气瓶 $tankNumber（$gas），深于其 MOD $mod，因此不建议切换到该气瓶。';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return '没有记录换气。气瓶 $tankNumber（$gas）在暂停后从 $time 起再次被呼吸，因此期间呼吸的是另一个气瓶；气瓶多于两个时，压力无法显示是哪一个。请在潜水编辑器中添加换气。';
   }
 
   @override
@@ -40603,6 +40656,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_reassignSeries => '将序列移到另一个气瓶';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '添加 $count 次换气',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary => '将此来源设为主要来源';
@@ -50668,6 +50731,13 @@ class AppLocalizationsZh extends AppLocalizations {
       '一个小图标，显示每个项目的来源。问题徽章始终显示。';
 
   @override
+  String get settings_media_tagBadges => '在缩略图上显示标记徽章';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      '为标记了人物、标记了物种或在潜水中有时间点的照片显示小图标。';
+
+  @override
   String get settings_media_autoColorCorrection => '自动色彩校正';
 
   @override
@@ -50713,6 +50783,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => '未备份';
+
+  @override
+  String get media_tileMarker_people => '已标记人物';
+
+  @override
+  String get media_tileMarker_species => '已标记物种';
+
+  @override
+  String get media_tileMarker_timeInDive => '已放置在潜水轮廓上';
 
   @override
   String get media_tile_infoMenuItem => '媒体信息';

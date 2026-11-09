@@ -1607,6 +1607,11 @@ class DiveComputerRepository {
     // #2517). Off for a second computer matched onto the dive, whose tanks
     // are the cylinders already stored rather than new ones.
     bool addMissingTanks = false,
+    // The trip whose dates cover the dive (issue #3022), resolved by the
+    // caller. Like the diluent above, only a brand-new dive row takes it: a
+    // dive matched to an existing row keeps the trip the diver gave it, or
+    // left it out of.
+    String? tripId,
   }) async {
     try {
       _log.info('Importing profile from computer $computerId');
@@ -1724,6 +1729,7 @@ class DiveComputerRepository {
                     ? Value(diluentHe ?? 0.0)
                     : const Value.absent(),
                 diveType: const Value(diveTypeId),
+                tripId: Value(tripId),
                 createdAt: Value(now),
                 updatedAt: Value(now),
                 entryLatitude: Value(entryLatitude),

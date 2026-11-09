@@ -26,6 +26,7 @@ import 'package:submersion/features/tank_presets/domain/entities/tank_preset_ent
 import 'package:submersion/features/tank_presets/domain/services/default_tank_preset_resolver.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
@@ -49,8 +50,40 @@ final diveImportServiceProvider = Provider<DiveImportService>((ref) {
         loadTransmitterMatcher(ref, diverId: diverId),
     omitUnusedOcGasesForImports: (diverId) =>
         loadOmitUnusedOcGasesForDownloads(ref, diverId: diverId),
+    tripForImports: (diveStart, diverId) =>
+        loadTripIdForDownload(ref, diveStart, diverId: diverId),
   );
 });
+
+/// The id of the trip whose dates cover a downloaded dive starting at
+/// [diveStart] (issue #3022), as a dive imported from a file joins one
+/// (#2743), or null when none does.
+///
+/// Looked up among the trips the diver the download is filed under can see:
+/// [diverId], or the active diver for null, empty or the active diver's own
+/// id, read the same way as [loadDefaultTankPresetForDownloads]. The day is
+/// compared, not the instant, by `TripRepository.findTripForDate`, and when
+/// trips overlap the one that started last wins, the trip the dive editor
+/// would suggest.
+///
+/// The day is read from the UTC components of [diveStart], as
+/// `tripForDiveDate` does for a file import: the dive row stores the
+/// instant and shows those components, so a start that arrives local-flagged
+/// still joins the trip of the day the logbook shows it on.
+@visibleForTesting
+Future<String?> loadTripIdForDownload(
+  Ref ref,
+  DateTime diveStart, {
+  String? diverId,
+}) async {
+  final owner = _isOtherDiver(ref, diverId)
+      ? diverId
+      : await ref.read(validatedCurrentDiverIdProvider.future);
+  final trip = await ref
+      .read(tripRepositoryProvider)
+      .findTripForDate(diveStart.toUtc(), diverId: owner);
+  return trip?.id;
+}
 
 const _loaderLog = LoggerService('DefaultTankPresetForDownloads');
 

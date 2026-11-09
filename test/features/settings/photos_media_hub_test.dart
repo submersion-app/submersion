@@ -12,6 +12,7 @@ import 'package:submersion/features/media/data/media_cache_settings.dart';
 import 'package:submersion/features/settings/presentation/pages/connected_accounts_page.dart';
 import 'package:submersion/features/media_store/presentation/widgets/photos_advanced_section.dart';
 import 'package:submersion/features/settings/presentation/widgets/media_cache_settings_card.dart';
+import 'package:submersion/features/settings/presentation/providers/media_badge_settings_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/media_cache_settings_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -144,6 +145,54 @@ void main() {
     await tester.pump();
     expect(notifier.state.autoColorCorrection, isTrue);
     expect(tester.widget<SwitchListTile>(tile).value, isTrue);
+  });
+
+  testWidgets('the tag badges switch is on and turns off (issue #4218)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          settingsProvider.overrideWith((ref) => _ColorSettingsNotifier()),
+          mediaCacheSettingsProvider.overrideWith(
+            (ref) => MediaCacheSettingsNotifier(
+              prefs,
+              applyMemoryCap: appliedMemoryBytes.add,
+              onEmptyDiskCache: () => emptyDiskCache(),
+            ),
+          ),
+          accountProviderRegistryProvider.overrideWithValue(
+            AccountProviderRegistry(const []),
+          ),
+          mediaTagBadgesProvider.overrideWith(
+            (ref) => MediaTagBadgesNotifier(prefs),
+          ),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: PhotosAdvancedSection(attached: false),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final tile = find.widgetWithText(
+      SwitchListTile,
+      'Show tag badges on thumbnails',
+    );
+    await tester.scrollUntilVisible(tile, 200);
+    expect(tester.widget<SwitchListTile>(tile).value, isTrue);
+    await tester.tap(tile);
+    await tester.pump();
+    expect(tester.widget<SwitchListTile>(tile).value, isFalse);
+    expect(prefs.getBool(SettingsKeys.mediaTagBadges), isFalse);
   });
 
   testWidgets('connected accounts page lists an account with status', (

@@ -101,6 +101,15 @@ class _PhotosAdvancedSectionState extends ConsumerState<PhotosAdvancedSection> {
               .read(mediaProvenanceBadgesProvider.notifier)
               .setEnabled(value),
         ),
+        // Device-local, like the source badges above (issue #4218).
+        SwitchListTile(
+          secondary: const Icon(Icons.label_outline),
+          title: Text(l10n.settings_media_tagBadges),
+          subtitle: Text(l10n.settings_media_tagBadgesSubtitle),
+          value: ref.watch(mediaTagBadgesProvider),
+          onChanged: (value) =>
+              ref.read(mediaTagBadgesProvider.notifier).setEnabled(value),
+        ),
         // Display-only, per diver and synced (issue #3520).
         SwitchListTile(
           secondary: const Icon(Icons.palette_outlined),

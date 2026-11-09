@@ -30989,18 +30989,40 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_gas_gasMix_title => 'توزيع خليط الغاز';
 
   @override
-  String get insights_gas_sacByRole_empty =>
-      'لا توجد بيانات أسطوانات متعددة متاحة';
+  String get insights_gas_roleUse_title => 'الاستهلاك حسب دور الأسطوانة';
 
   @override
-  String get insights_gas_sacByRole_error => 'فشل تحميل الاستهلاك حسب الدور';
+  String get insights_gas_roleUse_subtitle =>
+      'كل دور خلال الوقت الذي تم التنفس منه';
 
   @override
-  String get insights_gas_sacByRole_subtitle =>
-      'متوسط الاستهلاك حسب نوع الأسطوانة';
+  String get insights_gas_roleUse_empty => 'لا توجد قيم حسب دور الأسطوانة بعد';
 
   @override
-  String get insights_gas_sacByRole_title => 'استهلاك الغاز حسب دور الأسطوانة';
+  String get insights_gas_roleUse_error =>
+      'تعذر تحميل الاستهلاك حسب دور الأسطوانة';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => 'غاز القاع';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count غطسة مستبعدة: أسطوانة مرحلية أو تخفيف ضغط أو احتياطية أو طوارئ فقدت غازًا دون تبديل غاز إليها',
+      many:
+          '$count غطسة مستبعدة: أسطوانة مرحلية أو تخفيف ضغط أو احتياطية أو طوارئ فقدت غازًا دون تبديل غاز إليها',
+      few:
+          '$count غطسات مستبعدة: أسطوانة مرحلية أو تخفيف ضغط أو احتياطية أو طوارئ فقدت غازًا دون تبديل غاز إليها',
+      two:
+          'غطستان مستبعدتان: أسطوانة مرحلية أو تخفيف ضغط أو احتياطية أو طوارئ فقدت غازًا دون تبديل غاز إليها',
+      one:
+          'غطسة واحدة مستبعدة: أسطوانة مرحلية أو تخفيف ضغط أو احتياطية أو طوارئ فقدت غازًا دون تبديل غاز إليها',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => 'استهلاك الغاز لجهاز إعادة التنفس';
@@ -31636,9 +31658,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_focus_gas_trimix => 'ترايمكس';
 
   @override
-  String get insights_gas_tankRole_backGas => 'غاز رئيسي';
-
-  @override
   String get insights_gas_tankRole_bailout => 'غاز الطوارئ';
 
   @override
@@ -31648,22 +31667,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_gas_tankRole_diluent => 'مخفف';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'إمداد O₂';
-
-  @override
   String get insights_gas_tankRole_pony => 'أسطوانة احتياطية';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => 'جانبي أيسر';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => 'جانبي أيمن';
-
-  @override
   String get insights_gas_tankRole_stage => 'أسطوانة مرحلية';
-
-  @override
-  String get insights_gas_tankRole_twinSet => 'طقم مزدوج';
 
   @override
   String get insights_geographic_appBar_title => 'جغرافي';
@@ -43212,6 +43219,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => 'أسطوانة خاطئة';
 
   @override
+  String get dataQuality_detector_missing_gas_switch => 'تبديل غاز مفقود';
+
+  @override
   String get dataQuality_detector_source_conflict => 'مصادر متعارضة';
 
   @override
@@ -43419,6 +43429,67 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String dataQuality_msg_tankInactive(String drop) {
     return 'فقدت هذه الأسطوانة $drop بينما يشير الخط الزمني للغاز إلى أنها لم تكن قيد الاستخدام';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'لم يُسجَّل أي تبديل للغاز، لكن ضغوط الأسطوانات تُظهر هذه التبديلات: $switches.',
+      many:
+          'لم يُسجَّل أي تبديل للغاز، لكن ضغوط الأسطوانات تُظهر هذه التبديلات: $switches.',
+      few:
+          'لم يُسجَّل أي تبديل للغاز، لكن ضغوط الأسطوانات تُظهر هذه التبديلات: $switches.',
+      two:
+          'لم يُسجَّل أي تبديل للغاز، لكن ضغوط الأسطوانات تُظهر هذين التبديلين: $switches.',
+      one:
+          'لم يُسجَّل أي تبديل للغاز، لكن ضغوط الأسطوانات تُظهر هذا التبديل: $switches.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return 'الأسطوانة $tankNumber ($gas) عند $time، $depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => '؛ ';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'لم يُسجَّل أي تبديل للغاز. تُظهر ضغوط الأسطوانات تبديلًا إلى الأسطوانة $tankNumber ($gas) عند $depth، أعمق من MOD الخاص بها البالغ $mod، لذا لا يُقترح التبديل إليها.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'تُظهر ضغوط الأسطوانات أيضًا تبديلًا إلى الأسطوانة $tankNumber ($gas) عند $depth، أعمق من MOD الخاص بها البالغ $mod، لذا لا يُقترح التبديل إليها.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'لم يُسجَّل أي تبديل للغاز. تُنفِّس من الأسطوانة $tankNumber ($gas) مجددًا بدءًا من $time بعد توقف، لذا تُنفِّس من أسطوانة أخرى في الأثناء، ومع أكثر من أسطوانتين لا تُظهر الضغوط أيّها. أضف التبديلات في محرر الغطسة.';
   }
 
   @override
@@ -43677,6 +43748,20 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_reassignSeries =>
       'نقل السلسلة إلى أسطوانة أخرى';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إضافة $count تبديل غاز',
+      many: 'إضافة $count تبديلًا للغاز',
+      few: 'إضافة $count تبديلات غاز',
+      two: 'إضافة تبديلَي غاز',
+      one: 'إضافة تبديل غاز',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary => 'جعل هذا المصدر أساسيًا';
@@ -54725,6 +54810,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'رمز صغير يوضح مصدر كل عنصر. تظهر شارات المشكلات دائما.';
 
   @override
+  String get settings_media_tagBadges => 'إظهار شارات الوسوم على الصور المصغرة';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      'رموز صغيرة للصور التي تحتوي على أشخاص موسومين أو أنواع موسومة أو وقت ضمن الغوصة.';
+
+  @override
   String get settings_media_autoColorCorrection => 'تصحيح الألوان التلقائي';
 
   @override
@@ -54774,6 +54866,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => 'لا يوجد نسخ احتياطي';
+
+  @override
+  String get media_tileMarker_people => 'أشخاص موسومون';
+
+  @override
+  String get media_tileMarker_species => 'أنواع موسومة';
+
+  @override
+  String get media_tileMarker_timeInDive => 'موضوعة على ملف الغوصة';
 
   @override
   String get media_tile_infoMenuItem => 'معلومات الوسائط';

@@ -1,8 +1,10 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/domain/role_consumption.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -123,19 +125,39 @@ void main() {
     );
   });
 
-  test('SAC by role has no suit inflation bucket', () async {
+  test('consumption by cylinder role leaves the bottle out', () async {
     await insertDive('r');
     await insertSuit('r');
     await insertTank('r', 1, 'backGas', o2: 32);
+    final withSuit = await repository.getRoleConsumptionPerDive();
 
-    expect(
-      (await repository.getSacPressureByTankRole()).keys,
-      isNot(contains('suitInflation')),
-    );
-    expect(
-      (await repository.getSacVolumeByTankRole()).keys,
-      isNot(contains('suitInflation')),
-    );
+    await (db.delete(db.diveTanks)..where((t) => t.id.equals('r-0'))).go();
+    // A fresh repository: the per-dive memo would keep the first figures.
+    final without = await InsightsRepository().getRoleConsumptionPerDive();
+
+    expect(withSuit.leftOutDives, 0);
+    expect(withSuit.rmv.keys, [ConsumptionRoleGroup.bottomGas]);
+    expect(withSuit.sac.keys, [ConsumptionRoleGroup.bottomGas]);
+    for (final lane in [
+      (withSuit.rmv, without.rmv),
+      (withSuit.sac, without.sac),
+    ]) {
+      expect(
+        lane.$1[ConsumptionRoleGroup.bottomGas]!.single.value,
+        closeTo(lane.$2[ConsumptionRoleGroup.bottomGas]!.single.value, 1e-9),
+      );
+    }
+  });
+
+  test('a dive whose only cylinder is the bottle is in no role line', () async {
+    await insertDive('alone');
+    await insertSuit('alone');
+
+    final trend = await repository.getRoleConsumptionPerDive();
+
+    expect(trend.rmv, isEmpty);
+    expect(trend.sac, isEmpty);
+    expect(trend.leftOutDives, 0);
   });
 
   test('an air argon bottle does not make a nitrox dive an air dive', () async {
@@ -182,11 +204,18 @@ void main() {
             ),
           );
 
-      final byRole = await repository.getSacPressureByTankRole();
+      // Ideal gas, so the hand arithmetic below is exact; the real gas
+      // default rates the same drop a little lower.
+      final byRole = (await InsightsRepository(
+        gasModel: GasModel.ideal,
+      ).getRoleConsumptionPerDive()).sac;
 
-      expect(byRole.keys, ['backGas']);
+      expect(byRole.keys, [ConsumptionRoleGroup.bottomGas]);
       // 126 bar / 30 min / about 3 bar at 20 m; the whole dive would be 1.0.
-      expect(byRole['backGas'], closeTo(1.4, 0.05));
+      expect(
+        byRole[ConsumptionRoleGroup.bottomGas]!.single.value,
+        closeTo(1.4, 0.05),
+      );
     },
   );
 }

@@ -30,6 +30,7 @@ void main() {
     List<BulkMembershipItem> rows = items,
     bool absentStartsChecked = true,
     Widget? Function(BulkMembershipItem item)? detailBuilder,
+    Widget? Function(BulkMembershipItem item)? headerBuilder,
   }) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -45,6 +46,7 @@ void main() {
             ensureOn: ensureOn,
             absentStartsChecked: absentStartsChecked,
             detailBuilder: detailBuilder,
+            headerBuilder: headerBuilder,
           ),
         ),
       ),
@@ -83,6 +85,76 @@ void main() {
     expect(
       tester.getSize(find.text('Camera')).height,
       tester.getSize(find.text('Regulator')).height,
+    );
+  });
+
+  // The bulk gear list groups its rows under type headings (#2274). The
+  // caller orders the rows and names the heading that starts each group.
+  testWidgets('a heading renders above the row that starts its group', (
+    tester,
+  ) async {
+    await pumpEditor(
+      tester,
+      headerBuilder: (item) => item.id == 'b' ? const Text('Suits') : null,
+    );
+
+    final heading = find.text('Suits');
+    expect(heading, findsOneWidget);
+    expect(
+      tester.getTopLeft(heading).dy,
+      greaterThanOrEqualTo(tester.getBottomLeft(find.text('on all 3')).dy),
+    );
+    expect(
+      tester.getBottomLeft(heading).dy,
+      lessThanOrEqualTo(tester.getTopLeft(find.text('Wetsuit')).dy),
+    );
+  });
+
+  // A sorted list reorders its rows whenever the sort setting changes or an
+  // item is added in the middle (#2274). Each row's choice follows the item,
+  // not its position.
+  testWidgets('reordering the rows keeps each row its choice', (tester) async {
+    MembershipDelta? last;
+    await pumpEditor(tester, onChanged: (d) => last = d);
+    await tester.tap(find.byKey(const ValueKey('membership-toggle-a')));
+    await tester.pump();
+
+    await pumpEditor(
+      tester,
+      onChanged: (d) => last = d,
+      rows: items.reversed.toList(),
+    );
+
+    expect(last!.removeIds, ['a']);
+    final regulatorRow = find.ancestor(
+      of: find.text('Regulator'),
+      matching: find.byType(ListTile),
+    );
+    expect(
+      find.descendant(
+        of: regulatorRow,
+        matching: find.text('removing from all'),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  // The choices live in a map by id, but a checkbox also carries state of its
+  // own: its check animation, focus and hover. When the rows reorder, each
+  // checkbox must stay with its item. Matched by position instead, the row
+  // that moved into a slot would animate from the old occupant's mark, and
+  // focus would land on a different item.
+  testWidgets('a reordered row keeps its own checkbox', (tester) async {
+    await pumpEditor(tester);
+    final before = tester.state(
+      find.byKey(const ValueKey('membership-toggle-a')),
+    );
+
+    await pumpEditor(tester, rows: items.reversed.toList());
+
+    expect(
+      tester.state(find.byKey(const ValueKey('membership-toggle-a'))),
+      same(before),
     );
   });
 

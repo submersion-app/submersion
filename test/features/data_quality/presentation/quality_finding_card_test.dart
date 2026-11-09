@@ -219,6 +219,67 @@ void main() {
     });
   });
 
+  group('missing gas switch (#165)', () {
+    Map<String, Object?> start(String tankId, int t) => {
+      'tankId': tankId,
+      'tankPosition': 1,
+      't': t,
+      'depth': 21.0,
+      'o2Percent': 50.0,
+      'hePercent': 0.0,
+    };
+
+    testWidgets('one switch: the button adds it', (tester) async {
+      final repaired = <QualityRepairAction>[];
+      await pumpCard(
+        tester,
+        finding: _finding(
+          detectorId: 'missing_gas_switch',
+          params: {
+            'missingSwitches': [start('deco', 1800)],
+            'deepStarts': const [],
+          },
+        ),
+        onRepair: repaired.add,
+      );
+      expect(find.text('Add gas switch'), findsOneWidget);
+      await tester.tap(find.text('Add gas switch'));
+      await tester.pumpAndSettle();
+      final add = repaired.single as AddGasSwitchesRepair;
+      expect(add.switches.single, (tankId: 'deco', t: 1800, depth: 21.0));
+    });
+
+    testWidgets('several switches: the button counts them', (tester) async {
+      await pumpCard(
+        tester,
+        finding: _finding(
+          detectorId: 'missing_gas_switch',
+          params: {
+            'missingSwitches': [start('deco', 1800), start('back', 2400)],
+            'deepStarts': const [],
+          },
+        ),
+      );
+      expect(find.text('Add 2 gas switches'), findsOneWidget);
+    });
+
+    testWidgets('only too-deep starts: no button', (tester) async {
+      await pumpCard(
+        tester,
+        finding: _finding(
+          detectorId: 'missing_gas_switch',
+          params: {
+            'missingSwitches': const [],
+            'deepStarts': [
+              {...start('deco', 600), 'depth': 40.0, 'modMeters': 22.0},
+            ],
+          },
+        ),
+      );
+      expect(find.byType(FilledButton), findsNothing);
+    });
+  });
+
   group('source placed away from its profile fit (#4296)', () {
     final finding = _finding(
       detectorId: 'clock_offset',

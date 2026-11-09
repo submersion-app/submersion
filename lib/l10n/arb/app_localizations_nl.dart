@@ -30524,18 +30524,34 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_gas_gasMix_title => 'Gasmengselverdeling';
 
   @override
-  String get insights_gas_sacByRole_empty =>
-      'Geen multi-flesgegevens beschikbaar';
+  String get insights_gas_roleUse_title => 'Verbruik per flesrol';
 
   @override
-  String get insights_gas_sacByRole_error => 'Kan verbruik per rol niet laden';
+  String get insights_gas_roleUse_subtitle =>
+      'Elke rol over de tijd dat eruit geademd werd';
 
   @override
-  String get insights_gas_sacByRole_subtitle =>
-      'Gemiddeld verbruik per flestype';
+  String get insights_gas_roleUse_empty => 'Nog geen waarden per flesrol';
 
   @override
-  String get insights_gas_sacByRole_title => 'Gasverbruik per flesrol';
+  String get insights_gas_roleUse_error =>
+      'Verbruik per flesrol kon niet worden geladen';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => 'Bodemgas';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count duiken weggelaten: een stage-, deco-, pony- of bailoutfles verloor gas zonder gaswissel ernaar',
+      one:
+          '$count duik weggelaten: een stage-, deco-, pony- of bailoutfles verloor gas zonder gaswissel ernaar',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => 'Gasverbruik rebreather';
@@ -31142,9 +31158,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_focus_gas_trimix => 'Trimix';
 
   @override
-  String get insights_gas_tankRole_backGas => 'Achtergas';
-
-  @override
   String get insights_gas_tankRole_bailout => 'Bailout';
 
   @override
@@ -31154,22 +31167,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_gas_tankRole_diluent => 'Diluent';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'O₂-toevoer';
-
-  @override
   String get insights_gas_tankRole_pony => 'Ponyfles';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => 'Sidemount L';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => 'Sidemount R';
-
-  @override
   String get insights_gas_tankRole_stage => 'Stagefles';
-
-  @override
-  String get insights_gas_tankRole_twinSet => 'Dubbelset';
 
   @override
   String get insights_geographic_appBar_title => 'Geografisch';
@@ -42390,6 +42391,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => 'Verkeerde fles';
 
   @override
+  String get dataQuality_detector_missing_gas_switch => 'Ontbrekende gaswissel';
+
+  @override
   String get dataQuality_detector_source_conflict => 'Tegenstrijdige bronnen';
 
   @override
@@ -42583,6 +42587,61 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String dataQuality_msg_tankInactive(String drop) {
     return 'Deze fles verloor $drop terwijl de gastijdlijn aangeeft dat ze niet in gebruik was';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Er is geen gaswissel vastgelegd, maar de flesdrukken tonen deze wissels: $switches.',
+      one:
+          'Er is geen gaswissel vastgelegd, maar de flesdrukken tonen deze wissel: $switches.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return 'fles $tankNumber ($gas) op $time, $depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => '; ';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'Er is geen gaswissel vastgelegd. De flesdrukken tonen op $depth een wissel naar fles $tankNumber ($gas), dieper dan haar MOD van $mod, dus er wordt geen wissel naar deze fles voorgesteld.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'De flesdrukken tonen ook op $depth een wissel naar fles $tankNumber ($gas), dieper dan haar MOD van $mod, dus er wordt geen wissel naar deze fles voorgesteld.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'Er is geen gaswissel vastgelegd. Fles $tankNumber ($gas) werd vanaf $time na een pauze opnieuw geademd, dus in de tussentijd werd een andere fles geademd, en met meer dan twee flessen tonen de drukken niet welke. Voeg de wissels toe in de duikeditor.';
   }
 
   @override
@@ -42824,6 +42883,17 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_reassignSeries =>
       'Reeks naar een andere fles verplaatsen';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gaswissels toevoegen',
+      one: 'Gaswissel toevoegen',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary =>
@@ -53676,6 +53746,13 @@ class AppLocalizationsNl extends AppLocalizations {
       'Een klein pictogram dat laat zien waar elk item vandaan komt. Probleembadges blijven altijd zichtbaar.';
 
   @override
+  String get settings_media_tagBadges => 'Labelbadges op miniaturen tonen';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      'Kleine pictogrammen voor foto\'s met getagde personen, getagde soorten of een tijdstip in de duik.';
+
+  @override
   String get settings_media_autoColorCorrection =>
       'Automatische kleurcorrectie';
 
@@ -53725,6 +53802,15 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => 'Geen back-up';
+
+  @override
+  String get media_tileMarker_people => 'Personen getagd';
+
+  @override
+  String get media_tileMarker_species => 'Soorten getagd';
+
+  @override
+  String get media_tileMarker_timeInDive => 'Op het duikprofiel geplaatst';
 
   @override
   String get media_tile_infoMenuItem => 'Media-info';

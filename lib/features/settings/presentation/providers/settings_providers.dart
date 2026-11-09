@@ -86,6 +86,10 @@ class SettingsKeys {
   /// thumbnail. Health badges are not covered by it.
   static const String mediaProvenanceBadges = 'media_provenance_badges';
 
+  /// Device-local: whether library thumbnails draw the people, species and
+  /// time-in-dive markers (issue #4218).
+  static const String mediaTagBadges = 'media_tag_badges';
+
   /// Device-local: whether the fullscreen viewers fill the window or take
   /// the desktop window into OS fullscreen.
   static const String viewerFullscreenMode = 'viewer_fullscreen_mode';

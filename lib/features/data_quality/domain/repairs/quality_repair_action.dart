@@ -238,6 +238,35 @@ class UseAsBailoutRepair extends QualityRepairAction {
   final String ocTankId;
 }
 
+/// A gas switch a repair writes: the cylinder switched to, the second from
+/// the start of the dive, and the depth there in meters.
+typedef SwitchToAdd = ({String tankId, int t, double depth});
+
+/// Write the gas switches a dive's cylinder pressures show although no
+/// computer logged one (issue #165). Each one was checked against its gas's
+/// MOD by the detector; undo deletes exactly these switches.
+class AddGasSwitchesRepair extends QualityRepairAction {
+  const AddGasSwitchesRepair({required this.diveId, required this.switches});
+  final String diveId;
+  final List<SwitchToAdd> switches;
+}
+
+/// The switches a missing-switch finding offers to add, from its stored
+/// params. An entry missing a field is skipped rather than guessed.
+List<SwitchToAdd> _switchesToAdd(Object? raw) => [
+  if (raw is List)
+    for (final entry in raw)
+      if (entry is Map &&
+          entry['tankId'] is String &&
+          entry['t'] is num &&
+          entry['depth'] is num)
+        (
+          tankId: entry['tankId'] as String,
+          t: (entry['t'] as num).toInt(),
+          depth: (entry['depth'] as num).toDouble(),
+        ),
+];
+
 double? _num(Map<String, Object?> p, String k) => (p[k] as num?)?.toDouble();
 
 /// Pure mapping from a finding to its offered repairs (spec's repair table).
@@ -461,6 +490,14 @@ List<QualityRepairAction> repairOptionsFor(QualityFinding f) {
       final serial = p['serial'] as String?;
       return [
         if (serial != null) SetUpTransmitterRepair(serial),
+        GoToDiveRepair(diveId),
+      ];
+
+    case 'missing_gas_switch':
+      final switches = _switchesToAdd(p['missingSwitches']);
+      return [
+        if (switches.isNotEmpty)
+          AddGasSwitchesRepair(diveId: diveId, switches: switches),
         GoToDiveRepair(diveId),
       ];
 

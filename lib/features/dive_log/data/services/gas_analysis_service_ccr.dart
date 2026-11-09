@@ -39,6 +39,13 @@ extension _CcrCylinderSac on GasAnalysisService {
               time: (p) => p.timestamp,
               value: (p) => p.depth,
             );
+      final bailoutDepth = avgDepthOnBailout ?? dive.avgDepth;
+      final sacRate = _bailoutSacRate(
+        cylinder: cylinder,
+        tankVolume: volume,
+        avgDepth: bailoutDepth,
+        environment: dive.environment,
+      );
       results.add(
         CylinderSac(
           tankId: tank.id,
@@ -46,12 +53,7 @@ extension _CcrCylinderSac on GasAnalysisService {
           gasMix: tank.gasMix,
           role: tank.role,
           tankVolume: volume,
-          sacRate: _bailoutSacRate(
-            cylinder: cylinder,
-            tankVolume: volume,
-            avgDepth: avgDepthOnBailout ?? dive.avgDepth,
-            environment: dive.environment,
-          ),
+          sacRate: sacRate,
           loopRate: cylinder.loopRate,
           startPressure: start,
           endPressure: end,
@@ -64,6 +66,11 @@ extension _CcrCylinderSac on GasAnalysisService {
           avgDepthDuringUse: avgDepthOnBailout,
           hasTimeSeriesData: series != null,
           order: tank.order,
+          usageWindows: windows,
+          // The ambient pressure [_bailoutSacRate] divided by (issue #771).
+          rateAmbientBar: sacRate == null || bailoutDepth == null
+              ? null
+              : dive.environment.pressureAtDepth(bailoutDepth),
         ),
       );
     }

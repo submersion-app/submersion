@@ -16,6 +16,11 @@ typedef CylinderUsage = ({
   /// recorded for it.
   int seconds,
 
+  /// Whether [seconds] is a duration the source log recorded rather than the
+  /// windows' total: the windows are then the whole dive, which says nothing
+  /// about when it was breathed (issue #771).
+  bool fromRecordedDuration,
+
   /// The time-weighted mean depth over [windows], in meters; null when the
   /// profile has no samples in them.
   double? avgDepth,
@@ -82,6 +87,7 @@ CylinderUsage? cylinderUsage({
   return (
     windows: windows,
     seconds: hasRecordedUsage ? recordedSeconds : windows.breathedSeconds,
+    fromRecordedDuration: hasRecordedUsage,
     avgDepth: timeWeightedMeanAcross(
       profile,
       windows: windows,

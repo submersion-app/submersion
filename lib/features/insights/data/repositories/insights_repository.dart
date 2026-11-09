@@ -9,6 +9,7 @@ import 'package:submersion/core/database/dive_source_stamp.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/domain/visibility/visibility_range.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
+import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
@@ -20,14 +21,15 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
+import 'package:submersion/features/dive_log/data/services/gas_analysis_service.dart';
 import 'package:submersion/features/dive_log/data/sql/dive_weight_sql.dart';
 import 'package:submersion/features/dive_log/data/sql/gas_use_sql.dart';
 import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show DiveProfilePoint;
 import 'package:submersion/features/dive_log/domain/services/ccr_cylinder_use.dart';
-import 'package:submersion/features/dive_log/domain/services/cylinder_usage.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
@@ -45,6 +47,8 @@ import 'package:submersion/features/insights/domain/conditions/conditions_row.da
 import 'package:submersion/features/insights/domain/entities/species_insights.dart';
 import 'package:submersion/features/insights/domain/focus/focus_factor_row.dart';
 import 'package:submersion/features/insights/domain/logbook_dive_counts.dart';
+import 'package:submersion/features/insights/domain/role_consumption.dart';
+import 'package:submersion/features/insights/domain/role_consumption_trend.dart';
 import 'package:submersion/features/insights/domain/suit_thickness_stats.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 import 'package:submersion/features/insights/domain/time_of_day_bucket.dart';
@@ -61,8 +65,8 @@ part 'insights_repository_chart_dives.dart';
 part 'insights_repository_conditions.dart';
 part 'insights_repository_focus.dart';
 part 'insights_repository_focus_series.dart';
+part 'insights_repository_role_consumption.dart';
 part 'insights_repository_tank_configuration.dart';
-part 'insights_repository_tank_role_sac.dart';
 part 'insights_repository_time_of_day.dart';
 part 'insights_repository_twin_set_candidates.dart';
 
@@ -190,6 +194,16 @@ class InsightsRepository with InsightsChartDives {
   /// only a filtered [watchInsightsChanges] needs.
   late final _diveRepository = DiveRepository();
   late final _tankPressureRepository = TankPressureRepository();
+
+  /// Each dive's consumption by cylinder role with the version it was worked
+  /// out from (see [InsightsRepositoryRoleConsumption]), so a later read
+  /// works out only the dives that changed.
+  final _roleConsumptionMemo =
+      <String, ({String version, DiveRoleConsumption use})>{};
+
+  /// The latest refresh of [_roleConsumptionMemo], which the next one waits
+  /// for, so two reads at once never work out the same dives side by side.
+  Future<void> _roleConsumptionRefresh = Future<void>.value();
 
   /// How many dives' packed series the profile aggregates read at once.
   ///
@@ -757,122 +771,6 @@ class InsightsRepository with InsightsChartDives {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get SAC pressure records',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
-  }
-
-  /// Get volume-based average SAC by tank role (back gas, stage, deco, etc.)
-  ///
-  /// Returns a map of tank role to average SAC in L/min.
-  /// Requires tank volume data.
-  ///
-  /// Each cylinder is rated over its own breathing time and depth, as the
-  /// dive's Cylinders card rates it (issue #4315; see [_tankRoleCylinders]),
-  /// then averaged with the others of its role.
-  ///
-  /// Each cylinder stands for its own role, so an SCR dive keeps its rows
-  /// here (issue #3673). A CCR dive does not: this divides by depth, which
-  /// means nothing for a loop, and its rates are in [getCcrGasUsePerDive]
-  /// (issue #4082). The planner's default SAC reads the backmount rows, which
-  /// a CCR dive's cylinders must not feed. [roleKey] maps a stored role name
-  /// to the key its cylinders average under, so a caller can fold roles into
-  /// one group (back gas and twin set as one backmount rate, issue #3374) and
-  /// still get an average over cylinders, not over averages. The identity by
-  /// default.
-  Future<Map<String, double>> getSacVolumeByTankRole({
-    String? diverId,
-    DiveFilterState filter = const DiveFilterState(),
-    String Function(String role)? roleKey,
-  }) async {
-    try {
-      final Map<String, List<double>> sacsByRole = {};
-
-      for (final c in await _tankRoleCylinders(
-        diverId: diverId,
-        filter: filter,
-      )) {
-        final vol = c.volume;
-        if (vol == null) continue;
-        final used =
-            gasVolume(
-              tankSizeLiters: vol,
-              pressureBar: c.startPressure,
-              o2Percent: c.o2Percent,
-              hePercent: c.hePercent,
-              model: gasModel,
-            ) -
-            gasVolume(
-              tankSizeLiters: vol,
-              pressureBar: c.endPressure,
-              o2Percent: c.o2Percent,
-              hePercent: c.hePercent,
-              model: gasModel,
-            );
-        if (used <= 0) continue;
-
-        final sac = used / c.minutes / c.ambientBar;
-        if (sac > 0) {
-          final key = roleKey == null ? c.role : roleKey(c.role);
-          sacsByRole.putIfAbsent(key, () => []).add(sac);
-        }
-      }
-
-      return {
-        for (final entry in sacsByRole.entries)
-          entry.key: entry.value.reduce((a, b) => a + b) / entry.value.length,
-      };
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to get SAC in volume by tank role',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
-  }
-
-  /// Get pressure-based average SAC by tank role (back gas, stage, deco, etc.)
-  ///
-  /// Returns a map of tank role to average SAC in bar/min, lowest first.
-  /// Does not require tank volume.
-  ///
-  /// Each cylinder is rated over its own breathing time and depth, as in
-  /// [getSacVolumeByTankRole] (issue #4315).
-  ///
-  /// Each cylinder stands for its own role, so an SCR dive keeps its rows
-  /// here (issue #3673). A CCR dive does not: this divides by depth, which
-  /// means nothing for a loop, and its rates are in [getCcrGasUsePerDive]
-  /// (issue #4082). The planner's default SAC reads the backmount rows, which
-  /// a CCR dive's cylinders must not feed.
-  Future<Map<String, double>> getSacPressureByTankRole({
-    String? diverId,
-    DiveFilterState filter = const DiveFilterState(),
-  }) async {
-    try {
-      final Map<String, List<double>> sacsByRole = {};
-      for (final c in await _tankRoleCylinders(
-        diverId: diverId,
-        filter: filter,
-      )) {
-        sacsByRole
-            .putIfAbsent(c.role, () => [])
-            .add((c.startPressure - c.endPressure) / c.minutes / c.ambientBar);
-      }
-
-      final averages = [
-        for (final entry in sacsByRole.entries)
-          (
-            role: entry.key,
-            sac: entry.value.reduce((a, b) => a + b) / entry.value.length,
-          ),
-      ]..sort((a, b) => a.sac.compareTo(b.sac));
-      return {for (final a in averages) a.role: a.sac};
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to get SAC in pressure by tank role',
         error: e,
         stackTrace: stackTrace,
       );

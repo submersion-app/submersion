@@ -30214,18 +30214,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insights_gas_gasMix_title => 'Gas Mix Distribution';
 
   @override
-  String get insights_gas_sacByRole_empty => 'No multi-tank data available';
+  String get insights_gas_roleUse_title => 'Consumption by cylinder role';
 
   @override
-  String get insights_gas_sacByRole_error =>
-      'Failed to load consumption by role';
+  String get insights_gas_roleUse_subtitle =>
+      'Each role over the time it was breathed';
 
   @override
-  String get insights_gas_sacByRole_subtitle =>
-      'Average consumption by tank type';
+  String get insights_gas_roleUse_empty => 'No cylinder role rates yet';
 
   @override
-  String get insights_gas_sacByRole_title => 'Gas consumption by tank role';
+  String get insights_gas_roleUse_error =>
+      'Failed to load consumption by cylinder role';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => 'Bottom gas';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count dives are left out: a stage, deco, pony or bailout cylinder lost gas with no gas switch onto it',
+      one:
+          '$count dive is left out: a stage, deco, pony or bailout cylinder lost gas with no gas switch onto it',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => 'Rebreather gas use';
@@ -30831,9 +30847,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insights_focus_gas_trimix => 'Trimix';
 
   @override
-  String get insights_gas_tankRole_backGas => 'Back Gas';
-
-  @override
   String get insights_gas_tankRole_bailout => 'Bailout';
 
   @override
@@ -30843,22 +30856,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insights_gas_tankRole_diluent => 'Diluent';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'O₂ Supply';
-
-  @override
   String get insights_gas_tankRole_pony => 'Pony';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => 'Sidemount L';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => 'Sidemount R';
-
-  @override
   String get insights_gas_tankRole_stage => 'Stage';
-
-  @override
-  String get insights_gas_tankRole_twinSet => 'Twin Set';
 
   @override
   String get insights_geographic_appBar_title => 'Geographic';
@@ -41965,6 +41966,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => 'Wrong cylinder';
 
   @override
+  String get dataQuality_detector_missing_gas_switch => 'Missing gas switch';
+
+  @override
   String get dataQuality_detector_source_conflict => 'Conflicting sources';
 
   @override
@@ -42159,6 +42163,61 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String dataQuality_msg_tankInactive(String drop) {
     return 'This tank lost $drop while the gas timeline says it was not in use';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'No gas switch was recorded, but the cylinder pressures show these switches: $switches.',
+      one:
+          'No gas switch was recorded, but the cylinder pressures show this switch: $switches.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return 'cylinder $tankNumber ($gas) at $time, $depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => '; ';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'No gas switch was recorded. The cylinder pressures show a change to cylinder $tankNumber ($gas) at $depth, deeper than its MOD of $mod, so no switch to it is suggested.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'The cylinder pressures also show a change to cylinder $tankNumber ($gas) at $depth, deeper than its MOD of $mod, so no switch to it is suggested.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'No gas switch was recorded. Cylinder $tankNumber ($gas) was breathed again from $time after a pause, so another cylinder was breathed in between, and with more than two cylinders the pressures cannot show which. Add the switches in the dive editor.';
   }
 
   @override
@@ -42396,6 +42455,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_reassignSeries =>
       'Move series to another tank';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Add $count gas switches',
+      one: 'Add gas switch',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary => 'Make this source primary';
@@ -53175,6 +53245,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'A small glyph showing where each item is served from. Problem badges always show.';
 
   @override
+  String get settings_media_tagBadges => 'Show tag badges on thumbnails';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      'Small icons for photos with people tagged, species tagged, or a time in the dive.';
+
+  @override
   String get settings_media_autoColorCorrection => 'Automatic color correction';
 
   @override
@@ -53222,6 +53299,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => 'Not backed up';
+
+  @override
+  String get media_tileMarker_people => 'People tagged';
+
+  @override
+  String get media_tileMarker_species => 'Species tagged';
+
+  @override
+  String get media_tileMarker_timeInDive => 'Placed on the dive profile';
 
   @override
   String get media_tile_infoMenuItem => 'Media info';

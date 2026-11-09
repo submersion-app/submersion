@@ -29954,16 +29954,32 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_gas_gasMix_title => 'התפלגות תערובות גזים';
 
   @override
-  String get insights_gas_sacByRole_empty => 'אין נתוני ריבוי בלונים זמינים';
+  String get insights_gas_roleUse_title => 'צריכה לפי תפקיד המיכל';
 
   @override
-  String get insights_gas_sacByRole_error => 'שגיאה בטעינת צריכה לפי תפקיד';
+  String get insights_gas_roleUse_subtitle => 'כל תפקיד לאורך הזמן שנשמו ממנו';
 
   @override
-  String get insights_gas_sacByRole_subtitle => 'צריכה ממוצעת לפי סוג בלון';
+  String get insights_gas_roleUse_empty => 'אין עדיין ערכים לפי תפקיד מיכל';
 
   @override
-  String get insights_gas_sacByRole_title => 'צריכת גז לפי תפקיד בלון';
+  String get insights_gas_roleUse_error => 'טעינת הצריכה לפי תפקיד מיכל נכשלה';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => 'גז תחתית';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count צלילות לא נכללו: מיכל סטייג׳, דקו, פוני או חירום איבד גז בלי החלפת גז אליו',
+      one:
+          'צלילה אחת לא נכללה: מיכל סטייג׳, דקו, פוני או חירום איבד גז בלי החלפת גז אליו',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => 'צריכת גז במעגל סגור';
@@ -30578,9 +30594,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_focus_gas_trimix => 'טרימיקס';
 
   @override
-  String get insights_gas_tankRole_backGas => 'גז ראשי';
-
-  @override
   String get insights_gas_tankRole_bailout => 'חילוץ';
 
   @override
@@ -30590,22 +30603,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_gas_tankRole_diluent => 'מדלל';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'אספקת O₂';
-
-  @override
   String get insights_gas_tankRole_pony => 'פוני';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => 'סיידמאונט שמאל';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => 'סיידמאונט ימין';
-
-  @override
   String get insights_gas_tankRole_stage => 'סטייג\'';
-
-  @override
-  String get insights_gas_tankRole_twinSet => 'צמד בלונים';
 
   @override
   String get insights_geographic_appBar_title => 'גיאוגרפיה';
@@ -41636,6 +41637,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => 'בלון שגוי';
 
   @override
+  String get dataQuality_detector_missing_gas_switch => 'החלפת גז חסרה';
+
+  @override
   String get dataQuality_detector_source_conflict => 'מקורות סותרים';
 
   @override
@@ -41831,6 +41835,61 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String dataQuality_msg_tankInactive(String drop) {
     return 'בלון זה איבד $drop בעוד ציר הזמן של הגז מציין שהוא לא היה בשימוש';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'לא נרשמה החלפת גז, אך לחצי הבלונים מראים את ההחלפות האלה: $switches.',
+      one:
+          'לא נרשמה החלפת גז, אך לחצי הבלונים מראים את ההחלפה הזאת: $switches.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return 'בלון $tankNumber ($gas) ב-$time, $depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => '; ';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'לא נרשמה החלפת גז. לחצי הבלונים מראים החלפה לבלון $tankNumber ($gas) ב-$depth, עמוק מה-MOD שלו של $mod, ולכן לא מוצעת החלפה אליו.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'לחצי הבלונים מראים גם החלפה לבלון $tankNumber ($gas) ב-$depth, עמוק מה-MOD שלו של $mod, ולכן לא מוצעת החלפה אליו.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'לא נרשמה החלפת גז. מבלון $tankNumber ($gas) נשמו שוב החל מ-$time אחרי הפסקה, כך שבינתיים נשמו מבלון אחר, ועם יותר משני בלונים הלחצים לא מראים מאיזה. הוסף את ההחלפות בעורך הצלילה.';
   }
 
   @override
@@ -42065,6 +42124,17 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dataQuality_repairLabel_reassignSeries => 'העברת הסדרה לבלון אחר';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הוספת $count החלפות גז',
+      one: 'הוספת החלפת גז',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary => 'הגדרת מקור זה כראשי';
@@ -52888,6 +52958,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'סמל קטן שמראה מאיפה כל פריט מוגש. תגי בעיה מוצגים תמיד.';
 
   @override
+  String get settings_media_tagBadges => 'הצג תגי תיוג על התמונות הממוזערות';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      'סמלים קטנים לתמונות עם אנשים מתויגים, מינים מתויגים או זמן בצלילה.';
+
+  @override
   String get settings_media_autoColorCorrection => 'תיקון צבע אוטומטי';
 
   @override
@@ -52935,6 +53012,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => 'לא מגובה';
+
+  @override
+  String get media_tileMarker_people => 'אנשים מתויגים';
+
+  @override
+  String get media_tileMarker_species => 'מינים מתויגים';
+
+  @override
+  String get media_tileMarker_timeInDive => 'ממוקמת על פרופיל הצלילה';
 
   @override
   String get media_tile_infoMenuItem => 'פרטי מדיה';

@@ -50,12 +50,14 @@ DownloadedDive parsedDiveToDownloaded(
     vendor: vendor,
   );
   final diluent = resolveDiluentGas(tanks);
+  final reportedStart = parsedDiveStartTime(parsed);
 
   return DownloadedDive(
     // A dive with no clock files at the moment it was downloaded, where the
     // diver can see it and correct it, rather than at the start of the
     // logbook.
-    startTime: parsedDiveStartTime(parsed) ?? asWallClockUtc(now()),
+    startTime: reportedStart ?? asWallClockUtc(now()),
+    startTimeReported: reportedStart != null,
     durationSeconds: parsed.durationSeconds,
     maxDepth: parsed.maxDepthMeters,
     // libdivecomputer zero-initializes this field; `0.0` means "not reported".

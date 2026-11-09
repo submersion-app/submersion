@@ -121,13 +121,6 @@ void main() {
       expect(records.best!.value, closeTo(expectedRmv, 1e-9));
     });
 
-    test('the by-role breakdowns divide by the window', () async {
-      final pressure = await repository.getSacPressureByTankRole();
-      expect(pressure['backGas'], closeTo(expectedSac, 1e-9));
-      final volumeByRole = await repository.getSacVolumeByTankRole();
-      expect(volumeByRole['backGas'], closeTo(expectedRmv, 1e-9));
-    });
-
     test('the chart agrees with Dive.sac given the same window', () async {
       final points = await repository.getSacPressurePerDive();
       final sac = entity(

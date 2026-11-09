@@ -30746,19 +30746,35 @@ class AppLocalizationsIt extends AppLocalizations {
   String get insights_gas_gasMix_title => 'Distribuzione miscele gas';
 
   @override
-  String get insights_gas_sacByRole_empty =>
-      'Nessun dato multi-bombola disponibile';
+  String get insights_gas_roleUse_title => 'Consumo per ruolo della bombola';
 
   @override
-  String get insights_gas_sacByRole_error =>
-      'Impossibile caricare il consumo per ruolo';
+  String get insights_gas_roleUse_subtitle =>
+      'Ogni ruolo nel tempo in cui è stato respirato';
 
   @override
-  String get insights_gas_sacByRole_subtitle =>
-      'Consumo medio per tipo di bombola';
+  String get insights_gas_roleUse_empty =>
+      'Ancora nessun valore per ruolo della bombola';
 
   @override
-  String get insights_gas_sacByRole_title => 'Consumo di gas per ruolo bombola';
+  String get insights_gas_roleUse_error =>
+      'Impossibile caricare il consumo per ruolo della bombola';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => 'Gas di fondo';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count immersioni escluse: una bombola stage, deco, pony o bailout ha perso gas senza un cambio gas su di essa',
+      one:
+          '$count immersione esclusa: una bombola stage, deco, pony o bailout ha perso gas senza un cambio gas su di essa',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => 'Uso di gas del rebreather';
@@ -31372,9 +31388,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get insights_focus_gas_trimix => 'Trimix';
 
   @override
-  String get insights_gas_tankRole_backGas => 'Gas principale';
-
-  @override
   String get insights_gas_tankRole_bailout => 'Bailout';
 
   @override
@@ -31384,22 +31397,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get insights_gas_tankRole_diluent => 'Diluente';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'Riserva O₂';
-
-  @override
   String get insights_gas_tankRole_pony => 'Pony';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => 'Sidemount S';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => 'Sidemount D';
-
-  @override
   String get insights_gas_tankRole_stage => 'Stage';
-
-  @override
-  String get insights_gas_tankRole_twinSet => 'Bibombola';
 
   @override
   String get insights_geographic_appBar_title => 'Geografiche';
@@ -42685,6 +42686,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => 'Bombola errata';
 
   @override
+  String get dataQuality_detector_missing_gas_switch => 'Cambio gas mancante';
+
+  @override
   String get dataQuality_detector_source_conflict => 'Fonti in conflitto';
 
   @override
@@ -42880,6 +42884,61 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String dataQuality_msg_tankInactive(String drop) {
     return 'Questa bombola ha perso $drop mentre la cronologia dei gas la indica come non in uso';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Nessun cambio gas registrato, ma le pressioni delle bombole mostrano questi cambi: $switches.',
+      one:
+          'Nessun cambio gas registrato, ma le pressioni delle bombole mostrano questo cambio: $switches.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return 'bombola $tankNumber ($gas) a $time, $depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => '; ';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'Nessun cambio gas registrato. Le pressioni delle bombole mostrano un cambio sulla bombola $tankNumber ($gas) a $depth, più in profondità della sua MOD di $mod, quindi non viene suggerito un cambio su di essa.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'Le pressioni delle bombole mostrano anche un cambio sulla bombola $tankNumber ($gas) a $depth, più in profondità della sua MOD di $mod, quindi non viene suggerito un cambio su di essa.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'Nessun cambio gas registrato. La bombola $tankNumber ($gas) è stata respirata di nuovo da $time dopo una pausa, quindi nel frattempo è stata respirata un\'altra bombola, e con più di due bombole le pressioni non mostrano quale. Aggiungi i cambi nell\'editor dell\'immersione.';
   }
 
   @override
@@ -43122,6 +43181,17 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_reassignSeries =>
       'Sposta la serie su un\'altra bombola';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Aggiungi $count cambi gas',
+      one: 'Aggiungi cambio gas',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary =>
@@ -54023,6 +54093,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Una piccola icona che indica da dove proviene ogni elemento. I badge di problema sono sempre visibili.';
 
   @override
+  String get settings_media_tagBadges =>
+      'Mostra i badge dei tag sulle miniature';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      'Piccole icone per le foto con persone taggate, specie taggate o un momento nell\'immersione.';
+
+  @override
   String get settings_media_autoColorCorrection =>
       'Correzione automatica del colore';
 
@@ -54073,6 +54151,16 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => 'Nessun backup';
+
+  @override
+  String get media_tileMarker_people => 'Persone taggate';
+
+  @override
+  String get media_tileMarker_species => 'Specie taggate';
+
+  @override
+  String get media_tileMarker_timeInDive =>
+      'Posizionata sul profilo dell\'immersione';
 
   @override
   String get media_tile_infoMenuItem => 'Info media';

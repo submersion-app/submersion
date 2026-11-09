@@ -30588,19 +30588,35 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_gas_gasMix_title => 'Gázkeverék megoszlás';
 
   @override
-  String get insights_gas_sacByRole_empty => 'Nincsenek többpalackos adatok';
+  String get insights_gas_roleUse_title => 'Fogyasztás palackszerep szerint';
 
   @override
-  String get insights_gas_sacByRole_error =>
-      'Nem sikerült a szerep szerinti fogyasztás betöltése';
+  String get insights_gas_roleUse_subtitle =>
+      'Minden szerep a belélegzés ideje alatt';
 
   @override
-  String get insights_gas_sacByRole_subtitle =>
-      'Átlagos felhasználás palack típus szerint';
+  String get insights_gas_roleUse_empty =>
+      'Még nincs érték palackszerep szerint';
 
   @override
-  String get insights_gas_sacByRole_title =>
-      'Gázfogyasztás palack szerep szerint';
+  String get insights_gas_roleUse_error =>
+      'Nem sikerült betölteni a palackszerep szerinti fogyasztást';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => 'Fenékgáz';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count merülés kimaradt: egy stage-, dekó-, póni- vagy bailout-palack gázt vesztett, de nem volt rá gázváltás',
+      one:
+          '$count merülés kimaradt: egy stage-, dekó-, póni- vagy bailout-palack gázt vesztett, de nem volt rá gázváltás',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => 'Rebreather gázfogyasztás';
@@ -31201,9 +31217,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_focus_gas_trimix => 'Trimix';
 
   @override
-  String get insights_gas_tankRole_backGas => 'Háttérgáz';
-
-  @override
   String get insights_gas_tankRole_bailout => 'Bailout';
 
   @override
@@ -31213,22 +31226,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_gas_tankRole_diluent => 'Hígító';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'O₂ ellátás';
-
-  @override
   String get insights_gas_tankRole_pony => 'Pony';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => 'Sidemount B';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => 'Sidemount J';
-
-  @override
   String get insights_gas_tankRole_stage => 'Stage';
-
-  @override
-  String get insights_gas_tankRole_twinSet => 'Ikerpalack';
 
   @override
   String get insights_geographic_appBar_title => 'Földrajzi';
@@ -42438,6 +42439,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => 'Rossz palack';
 
   @override
+  String get dataQuality_detector_missing_gas_switch => 'Hiányzó gázváltás';
+
+  @override
   String get dataQuality_detector_source_conflict => 'Ütköző források';
 
   @override
@@ -42632,6 +42636,61 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String dataQuality_msg_tankInactive(String drop) {
     return 'Ez a palack $drop nyomást veszített, miközben a gáz-idővonal szerint nem volt használatban';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Nem rögzült gázváltás, de a palacknyomások ezeket a váltásokat mutatják: $switches.',
+      one:
+          'Nem rögzült gázváltás, de a palacknyomások ezt a váltást mutatják: $switches.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return '$tankNumber. palack ($gas), $time, $depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => '; ';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'Nem rögzült gázváltás. A palacknyomások $depth mélységben váltást mutatnak a(z) $tankNumber. palackra ($gas), mélyebben a $mod MOD-jánál, ezért nem javaslunk rá váltást.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'A palacknyomások $depth mélységben a(z) $tankNumber. palackra ($gas) való váltást is mutatnak, mélyebben a $mod MOD-jánál, ezért nem javaslunk rá váltást.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'Nem rögzült gázváltás. A(z) $tankNumber. palackból ($gas) szünet után $time időponttól ismét lélegeztek, így közben egy másik palackból lélegeztek, és kettőnél több palacknál a nyomások nem mutatják meg, melyikből. Add hozzá a váltásokat a merülésszerkesztőben.';
   }
 
   @override
@@ -42874,6 +42933,17 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_reassignSeries =>
       'Sorozat áthelyezése másik palackra';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gázváltás hozzáadása',
+      one: 'Gázváltás hozzáadása',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary =>
@@ -53730,6 +53800,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Kis ikon, amely megmutatja, honnan érkezik az egyes elemek tartalma. A problémajelvények mindig láthatók.';
 
   @override
+  String get settings_media_tagBadges =>
+      'Címkejelvények megjelenítése a bélyegképeken';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      'Kis ikonok a megjelölt személyeket, megjelölt fajokat vagy merülésbeli időpontot tartalmazó fotókhoz.';
+
+  @override
   String get settings_media_autoColorCorrection => 'Automatikus színkorrekció';
 
   @override
@@ -53779,6 +53857,15 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => 'Nincs mentve';
+
+  @override
+  String get media_tileMarker_people => 'Személyek megjelölve';
+
+  @override
+  String get media_tileMarker_species => 'Fajok megjelölve';
+
+  @override
+  String get media_tileMarker_timeInDive => 'A merülési profilon elhelyezve';
 
   @override
   String get media_tile_infoMenuItem => 'Média infó';
