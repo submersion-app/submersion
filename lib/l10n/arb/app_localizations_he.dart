@@ -20393,6 +20393,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_library_empty => 'אין מדיה עדיין';
 
   @override
+  String get media_library_emptyFiltered => 'אין מדיה שתואמת למסננים אלה';
+
+  @override
   String get media_library_filter_all => 'הכול';
 
   @override
@@ -20423,6 +20426,42 @@ class AppLocalizationsHe extends AppLocalizations {
   String media_library_filter_missingCount(int count) {
     return 'קבצים חסרים ($count)';
   }
+
+  @override
+  String get media_library_filter_noPeople => 'אף אחד לא מתויג';
+
+  @override
+  String media_library_filter_peopleTwo(String first, String second) {
+    return '$first, $second';
+  }
+
+  @override
+  String media_library_filter_peopleAndMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String media_library_filter_peopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count אנשים',
+      one: 'אדם אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_library_filter_peopleSearchHint => 'חיפוש אנשים';
+
+  @override
+  String get media_library_filter_peopleNoMatch => 'אין אנשים תואמים';
+
+  @override
+  String get media_library_filter_peopleClear => 'ניקוי אנשים';
+
+  @override
+  String get media_library_filter_notPlacedInDive => 'לא ממוקם בצלילה';
 
   @override
   String get media_library_filter_clear => 'ניקוי מסננים';

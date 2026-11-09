@@ -21157,6 +21157,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_library_empty => 'لا توجد وسائط بعد';
 
   @override
+  String get media_library_emptyFiltered =>
+      'لا توجد وسائط تطابق عوامل التصفية هذه';
+
+  @override
   String get media_library_filter_all => 'الكل';
 
   @override
@@ -21187,6 +21191,45 @@ class AppLocalizationsAr extends AppLocalizations {
   String media_library_filter_missingCount(int count) {
     return 'ملفات مفقودة ($count)';
   }
+
+  @override
+  String get media_library_filter_noPeople => 'بلا أشخاص موسومين';
+
+  @override
+  String media_library_filter_peopleTwo(String first, String second) {
+    return '$first، $second';
+  }
+
+  @override
+  String media_library_filter_peopleAndMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String media_library_filter_peopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count شخص',
+      many: '$count شخصًا',
+      few: '$count أشخاص',
+      two: 'شخصان',
+      one: 'شخص واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_library_filter_peopleSearchHint => 'البحث عن أشخاص';
+
+  @override
+  String get media_library_filter_peopleNoMatch => 'لا يوجد أشخاص مطابقون';
+
+  @override
+  String get media_library_filter_peopleClear => 'مسح الأشخاص';
+
+  @override
+  String get media_library_filter_notPlacedInDive => 'غير محدد في الغطسة';
 
   @override
   String get media_library_filter_clear => 'مسح عوامل التصفية';

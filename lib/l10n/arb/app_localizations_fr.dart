@@ -20916,6 +20916,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_library_empty => 'Aucun média pour le moment';
 
   @override
+  String get media_library_emptyFiltered =>
+      'Aucun média ne correspond à ces filtres';
+
+  @override
   String get media_library_filter_all => 'Tous';
 
   @override
@@ -20946,6 +20950,45 @@ class AppLocalizationsFr extends AppLocalizations {
   String media_library_filter_missingCount(int count) {
     return 'Fichiers manquants ($count)';
   }
+
+  @override
+  String get media_library_filter_noPeople => 'Aucune personne identifiée';
+
+  @override
+  String media_library_filter_peopleTwo(String first, String second) {
+    return '$first, $second';
+  }
+
+  @override
+  String media_library_filter_peopleAndMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String media_library_filter_peopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count personnes',
+      one: '$count personne',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_library_filter_peopleSearchHint =>
+      'Rechercher des personnes';
+
+  @override
+  String get media_library_filter_peopleNoMatch =>
+      'Aucune personne ne correspond';
+
+  @override
+  String get media_library_filter_peopleClear => 'Effacer les personnes';
+
+  @override
+  String get media_library_filter_notPlacedInDive =>
+      'Non placé dans la plongée';
 
   @override
   String get media_library_filter_clear => 'Effacer les filtres';

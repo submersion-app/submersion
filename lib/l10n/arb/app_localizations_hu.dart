@@ -20785,6 +20785,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_library_empty => 'Még nincs média';
 
   @override
+  String get media_library_emptyFiltered => 'Nincs a szűrőknek megfelelő média';
+
+  @override
   String get media_library_filter_all => 'Összes';
 
   @override
@@ -20815,6 +20818,43 @@ class AppLocalizationsHu extends AppLocalizations {
   String media_library_filter_missingCount(int count) {
     return 'Hiányzó fájlok ($count)';
   }
+
+  @override
+  String get media_library_filter_noPeople => 'Nincs megjelölt személy';
+
+  @override
+  String media_library_filter_peopleTwo(String first, String second) {
+    return '$first, $second';
+  }
+
+  @override
+  String media_library_filter_peopleAndMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String media_library_filter_peopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count személy',
+      one: '$count személy',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_library_filter_peopleSearchHint => 'Személyek keresése';
+
+  @override
+  String get media_library_filter_peopleNoMatch => 'Nincs egyező személy';
+
+  @override
+  String get media_library_filter_peopleClear => 'Személyek törlése';
+
+  @override
+  String get media_library_filter_notPlacedInDive =>
+      'Nincs elhelyezve a merülésben';
 
   @override
   String get media_library_filter_clear => 'Szűrők törlése';

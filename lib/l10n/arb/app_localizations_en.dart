@@ -20542,6 +20542,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_library_empty => 'No media yet';
 
   @override
+  String get media_library_emptyFiltered => 'No media matches these filters';
+
+  @override
   String get media_library_filter_all => 'All';
 
   @override
@@ -20572,6 +20575,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String media_library_filter_missingCount(int count) {
     return 'Missing files ($count)';
   }
+
+  @override
+  String get media_library_filter_noPeople => 'No one tagged';
+
+  @override
+  String media_library_filter_peopleTwo(String first, String second) {
+    return '$first, $second';
+  }
+
+  @override
+  String media_library_filter_peopleAndMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String media_library_filter_peopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count people',
+      one: '$count person',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_library_filter_peopleSearchHint => 'Search people';
+
+  @override
+  String get media_library_filter_peopleNoMatch => 'No people match';
+
+  @override
+  String get media_library_filter_peopleClear => 'Clear people';
+
+  @override
+  String get media_library_filter_notPlacedInDive => 'Not placed in the dive';
 
   @override
   String get media_library_filter_clear => 'Clear filters';
