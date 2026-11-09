@@ -312,13 +312,11 @@ PlanCanvasSeries buildBailoutCanvasSeries(BailoutOutcome bailout) {
     ));
   }
 
-  // In dive order, the deeper first where two start together. The first
-  // stretch's gas is the one the dive starts on, not a switch into it.
-  stretches.sort(
-    (a, b) => a.startSeconds != b.startSeconds
-        ? a.startSeconds.compareTo(b.startSeconds)
-        : b.startDepthMeters.compareTo(a.startDepthMeters),
-  );
+  // In dive order. Two stretches start together only at one point, a stop
+  // and the travel leaving it, both on the gas for that depth, so their
+  // order cannot move a flag. The first stretch's gas is the one the dive
+  // starts on, not a switch into it.
+  stretches.sort((a, b) => a.startSeconds.compareTo(b.startSeconds));
   final gasSwitches = <CanvasMarker>[
     for (final change in planGasChanges(stretches))
       CanvasMarker(
