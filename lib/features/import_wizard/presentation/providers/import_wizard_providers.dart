@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:submersion/features/dive_import/data/services/dive_health_metrics_service.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
+import 'package:submersion/features/dive_import/presentation/health_auto_import_feedback.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -278,6 +280,7 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
     RuleEngine? ruleEngine,
     GpsTrackMatchService? gpsTrackMatchService,
     DiveEquipmentDefaulter? equipmentDefaulter,
+    DiveHealthMetricsService? healthMetrics,
     ImportJobNotifier? job,
     bool continuesWithoutWizard = false,
   }) : _tagRepository = tagRepository,
@@ -285,6 +288,7 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
        _ruleEngine = ruleEngine,
        _gpsTrackMatchService = gpsTrackMatchService,
        _equipmentDefaulter = equipmentDefaulter,
+       _healthMetrics = healthMetrics,
        _job = job,
        _continuesWithoutWizard = continuesWithoutWizard,
        super(const ImportWizardState());
@@ -303,6 +307,11 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   /// geofenced set follows the new position. Null in tests that do not
   /// need it.
   final DiveEquipmentDefaulter? _equipmentDefaulter;
+
+  /// Reads heart rate and recovery from Apple Health onto the new dives
+  /// (issue #637). Null where Health is not available, and in tests that do
+  /// not need it.
+  final DiveHealthMetricsService? _healthMetrics;
   String? _diverId;
 
   /// The app-wide job an import runs as (see [importJobProvider]): it owns
@@ -1255,6 +1264,11 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
               sourceLabel: _adapter.displayName,
               isCancelled: () => token.isCancelled,
             );
+
+      // Heart rate and recovery from Apple Health for the recent dives, the
+      // new ones included (issue #637). In the background: Health reads must
+      // not hold the summary, and they never throw.
+      if (!token.isCancelled) unawaited(refreshDiveHealth(_healthMetrics));
 
       // Once the wizard is gone the job reports the outcome instead.
       if (!mounted) return;

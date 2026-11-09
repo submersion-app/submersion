@@ -5,7 +5,9 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/dive_import/data/services/health_auto_import_service.dart';
+import 'package:submersion/features/dive_import/data/services/dive_health_metrics_service.dart';
 import 'package:submersion/features/dive_import/data/services/health_dive_writer.dart';
+import 'package:submersion/features/dive_import/presentation/providers/dive_health_metrics_providers.dart';
 import 'package:submersion/features/dive_import/presentation/providers/dive_import_providers.dart';
 import 'package:submersion/features/dive_import/presentation/providers/health_settings_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
@@ -111,7 +113,9 @@ final _log = LoggerService.forClass(HealthAutoImportService);
 
 /// Runs the import if it is due, then tells the diver: a SnackBar through
 /// [messenger] when the app is on screen, else a notification. [open]
-/// follows the message's route.
+/// follows the message's route. Then reads heart rate and recovery for the
+/// recent dives, the new ones included; a failure in either step leaves the
+/// other to run.
 Future<void> runHealthAutoImport(
   WidgetRef ref, {
   required HealthAutoImportThrottle throttle,
@@ -119,9 +123,23 @@ Future<void> runHealthAutoImport(
   required void Function(String route) open,
 }) async {
   final service = ref.read(healthAutoImportServiceProvider);
-  if (service == null || !throttle.take()) return;
+  final metrics = ref.read(diveHealthMetricsServiceProvider);
+  if ((service == null && metrics == null) || !throttle.take()) return;
+  if (service != null) {
+    await _importWatchDives(ref, service, messenger: messenger, open: open);
+  }
+  await refreshDiveHealth(metrics);
+}
+
+Future<void> _importWatchDives(
+  WidgetRef ref,
+  HealthAutoImportService service, {
+  required GlobalKey<ScaffoldMessengerState> messenger,
+  required void Function(String route) open,
+}) async {
   try {
     final result = await service.run();
+    if (result.isEmpty) return;
     final messengerState = messenger.currentState;
     final context = messenger.currentContext;
     final l10n = context != null && context.mounted
@@ -154,6 +172,21 @@ Future<void> runHealthAutoImport(
   } catch (e, stackTrace) {
     _log.error(
       'Automatic Apple Health import failed',
+      error: e,
+      stackTrace: stackTrace,
+    );
+  }
+}
+
+/// Reads Apple Health onto the bound diver's recent dives (issue #637), if
+/// [metrics] is there. Never throws: the dives are saved either way.
+Future<void> refreshDiveHealth(DiveHealthMetricsService? metrics) async {
+  if (metrics == null) return;
+  try {
+    await metrics.refreshPending();
+  } catch (e, stackTrace) {
+    _log.error(
+      'Reading Apple Health onto dives failed',
       error: e,
       stackTrace: stackTrace,
     );
