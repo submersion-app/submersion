@@ -30,7 +30,7 @@ void main() {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(350));
     expect(AppDatabase.migrationVersions, contains(350));
     expect(
-      AppDatabase.migrationStepCount(347),
+      AppDatabase.migrationStepCount(349),
       AppDatabase.migrationStepCount(350) + 1,
     );
   });
