@@ -1,6 +1,10 @@
+import 'dart:math' as math;
+
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/core/profile/surfacing_pressure.dart';
+import 'package:submersion/core/profile/tank_pressure_glitches.dart';
+import 'package:submersion/features/data_quality/domain/detectors/cylinder_left_check.dart';
 import 'package:submersion/features/data_quality/domain/entities/dive_quality_context.dart';
 import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -63,11 +67,15 @@ const MissedSwitches _none = (
 /// A start follows a hold, so a start on the cylinder in use means the
 /// diver left it for another one when its breathing before stopped: on a
 /// two-cylinder dive, the other one, and the return is a switch too. With
-/// more cylinders the pressures cannot say which, and no switch is offered.
+/// more cylinders the pressures cannot say which, and no switch is offered,
+/// though every start deeper than its gas's MOD is still named.
 /// A cylinder that held from its first reading was never breathed before,
 /// so its start on the first cylinder adds nothing. On a two-cylinder dive
 /// the cylinder in use last, left for good while the diver stayed in the
-/// water for a hold's length, hands over to the other one as well.
+/// water for a hold's length, hands over to the other one as well. Both of
+/// these read a pause in the cylinder's fall as the diver leaving it, so
+/// both need [cylinderLeftBetween] to agree: a large cylinder breathed at a
+/// shallow stop can fall too slowly to read as falling.
 MissedSwitches missedGasSwitches(DiveQualityContext ctx) {
   if (ctx.gasSwitches.isNotEmpty) return _none;
   if (ctx.dive.gasSwitchesEdited) return _none;
@@ -75,11 +83,14 @@ MissedSwitches missedGasSwitches(DiveQualityContext ctx) {
   if (ctx.primarySamples.isEmpty) return _none;
 
   final ordered = [...ctx.tanks]..sort((a, b) => a.order.compareTo(b.order));
-  final breathed = [
+  // Every cylinder the diver could breathe from, with readings or not: the
+  // two-cylinder rules below count the dive's cylinders, not its
+  // transmitters.
+  final openCircuit = [
     for (final tank in ordered)
       if (hasBreathingStarts(tank)) tank,
   ];
-  if (breathed.length < 2) return _none;
+  if (openCircuit.length < 2) return _none;
 
   final positionById = {
     for (var i = 0; i < ordered.length; i++) ordered[i].id: i,
@@ -87,18 +98,40 @@ MissedSwitches missedGasSwitches(DiveQualityContext ctx) {
   final firstSampleT = ctx.primarySamples.first.t;
   final lastSampleT = ctx.primarySamples.last.t;
   bool inProfile(int t) => t >= firstSampleT && t <= lastSampleT;
-  final turnsById = {
-    for (final tank in breathed)
-      tank.id: cylinderBreathTurns([
+  final readingsById = {
+    for (final tank in openCircuit)
+      tank.id: <PressureReading>[
         for (final p in ctx.pressuresByTankId[tank.id] ?? const [])
           (t: p.t, bar: p.bar),
-      ]),
+      ],
   };
+  final turnsById = {
+    for (final MapEntry(:key, :value) in readingsById.entries)
+      key: cylinderBreathTurns(value),
+  };
+  // Whether the pause in [tankId]'s fall from [from] to [to] was the diver
+  // leaving it, not breathing it more slowly.
+  final cleanedById = <String, List<PressureReading>>{};
+  bool wasLeft(String tankId, int from, int to) {
+    final series = cleanedById.putIfAbsent(
+      tankId,
+      () => withoutPressureGlitches(readingsInTimeOrder(readingsById[tankId]!)),
+    );
+    return series.isNotEmpty &&
+        cylinderLeftBetween(
+          series: series,
+          samples: ctx.primarySamples,
+          from: from,
+          to: math.min(to, series.last.t),
+          environment: ctx.dive.environment,
+        );
+  }
+
   // Ties go to dive order, so two cylinders starting on one second give the
   // same suggestion on every scan (List.sort is not stable).
   final turns =
       <({DiveTank tank, int t, int? previousEnd})>[
-        for (final tank in breathed)
+        for (final tank in openCircuit)
           for (final turn in turnsById[tank.id]!.starts)
             if (inProfile(turn.t))
               (tank: tank, t: turn.t, previousEnd: turn.previousEnd),
@@ -113,7 +146,7 @@ MissedSwitches missedGasSwitches(DiveQualityContext ctx) {
     tankId: tank.id,
     tankPosition: positionById[tank.id]!,
     t: t,
-    depth: _depthAt(ctx.primarySamples, t),
+    depth: qualityDepthAt(ctx.primarySamples, t),
     o2Percent: tank.gasMix.o2,
     hePercent: tank.gasMix.he,
   );
@@ -126,6 +159,18 @@ MissedSwitches missedGasSwitches(DiveQualityContext ctx) {
     diveStart: firstSampleT,
   )!.id;
 
+  // [missed] as a start deeper than its gas's MOD, or null when it is not.
+  DeepStart? tooDeep(MissedSwitch missed, DiveTank tank) {
+    final mod = maxOperatingDepthMeters(
+      tank.gasMix.o2 / 100.0,
+      maxPpO2: ctx.ppO2MaxBar,
+      environment: ctx.dive.environment,
+    );
+    return missed.depth > mod + QualityThresholds.modToleranceMeters
+        ? (start: missed, modMeters: mod)
+        : null;
+  }
+
   // Offers a switch to [tank] at [t], unless it lies outside the profile,
   // shares the last switch's second (the switch editor allows one a
   // second) or lies deeper than the gas's MOD. [reported] says whether a
@@ -134,13 +179,8 @@ MissedSwitches missedGasSwitches(DiveQualityContext ctx) {
     if (!inProfile(t)) return;
     if (addable.isNotEmpty && addable.last.t == t) return;
     final missed = startOf(tank, t);
-    final mod = maxOperatingDepthMeters(
-      tank.gasMix.o2 / 100.0,
-      maxPpO2: ctx.ppO2MaxBar,
-      environment: ctx.dive.environment,
-    );
-    if (missed.depth > mod + QualityThresholds.modToleranceMeters) {
-      if (reported) deep.add((start: missed, modMeters: mod));
+    if (tooDeep(missed, tank) case final start?) {
+      if (reported) deep.add(start);
       return;
     }
     addable.add(missed);
@@ -151,7 +191,7 @@ MissedSwitches missedGasSwitches(DiveQualityContext ctx) {
   // for the other one. A too-deep start of that one at the same moment is
   // already named; naming the inferred switch too would say it twice.
   void handOver(int left) {
-    final other = breathed.firstWhere((c) => c.id != inUse);
+    final other = openCircuit.firstWhere((c) => c.id != inUse);
     offer(
       other,
       left,
@@ -163,14 +203,20 @@ MissedSwitches missedGasSwitches(DiveQualityContext ctx) {
     );
   }
 
-  for (final turn in turns) {
+  for (final (i, turn) in turns.indexed) {
     if (turn.tank.id == inUse) {
       final left = turn.previousEnd;
-      if (left == null) continue;
-      if (breathed.length != 2) {
+      if (left == null || !wasLeft(inUse, left, turn.t)) continue;
+      if (openCircuit.length != 2) {
+        // Which cylinder is in use is unknown from here, but a later start
+        // deeper than its gas's MOD is still one to name.
         return (
           addable: const <MissedSwitch>[],
-          deep: deep,
+          deep: [
+            ...deep,
+            for (final later in turns.skip(i + 1))
+              ?tooDeep(startOf(later.tank, later.t), later.tank),
+          ],
           unplaced: startOf(turn.tank, turn.t),
         );
       }
@@ -181,41 +227,19 @@ MissedSwitches missedGasSwitches(DiveQualityContext ctx) {
   }
 
   final heldFrom = turnsById[inUse]?.heldFrom;
-  final inWaterEnd = lastTimeBelowSurfaceThreshold(
-    ctx.primarySamples.map((s) => (t: s.t, depth: s.depth)),
-  );
-  if (breathed.length == 2 &&
+  if (openCircuit.length == 2 &&
       heldFrom != null &&
-      (addable.isEmpty || heldFrom > addable.last.t) &&
-      inWaterEnd != null &&
-      inWaterEnd - heldFrom >= kBreathHoldSeconds) {
-    handOver(heldFrom);
-  }
-  return (addable: addable, deep: deep, unplaced: null);
-}
-
-/// The depth at [t], interpolated linearly between the bracketing samples
-/// as the switch editor's profile lookup does (`profileDepthAt`). [t] lies
-/// within the profile; [samples] is in time order.
-double _depthAt(List<QualitySample> samples, int t) {
-  if (t <= samples.first.t) return samples.first.depth;
-  if (t >= samples.last.t) return samples.last.depth;
-  // The last sample at or before t; the one after it is strictly later.
-  var lo = 0;
-  var hi = samples.length - 1;
-  while (lo < hi) {
-    final mid = (lo + hi + 1) >> 1;
-    if (samples[mid].t <= t) {
-      lo = mid;
-    } else {
-      hi = mid - 1;
+      (addable.isEmpty || heldFrom > addable.last.t)) {
+    final inWaterEnd = lastTimeBelowSurfaceThreshold(
+      ctx.primarySamples.map((s) => (t: s.t, depth: s.depth)),
+    );
+    if (inWaterEnd != null &&
+        inWaterEnd - heldFrom >= kBreathHoldSeconds &&
+        wasLeft(inUse, heldFrom, inWaterEnd)) {
+      handOver(heldFrom);
     }
   }
-  final a = samples[lo];
-  final b = samples[lo + 1];
-  final span = b.t - a.t;
-  if (span <= 0) return b.depth;
-  return a.depth + (b.depth - a.depth) * (t - a.t) / span;
+  return (addable: addable, deep: deep, unplaced: null);
 }
 
 /// [missed] as a JSON-safe map for a finding's params.

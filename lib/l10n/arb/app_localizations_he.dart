@@ -41842,7 +41842,7 @@ class AppLocalizationsHe extends AppLocalizations {
     String depth,
     String mod,
   ) {
-    return 'לא נרשמה החלפת גז. בלון $tankNumber ($gas) איבד לחץ ב-$depth, עמוק מה-MOD שלו של $mod, ולכן לא מוצעת החלפה אליו.';
+    return 'לא נרשמה החלפת גז. לחצי הבלונים מראים החלפה לבלון $tankNumber ($gas) ב-$depth, עמוק מה-MOD שלו של $mod, ולכן לא מוצעת החלפה אליו.';
   }
 
   @override
@@ -41852,7 +41852,7 @@ class AppLocalizationsHe extends AppLocalizations {
     String depth,
     String mod,
   ) {
-    return 'גם בלון $tankNumber ($gas) איבד לחץ ב-$depth, עמוק מה-MOD שלו של $mod, ולכן לא מוצעת החלפה אליו.';
+    return 'לחצי הבלונים מראים גם החלפה לבלון $tankNumber ($gas) ב-$depth, עמוק מה-MOD שלו של $mod, ולכן לא מוצעת החלפה אליו.';
   }
 
   @override

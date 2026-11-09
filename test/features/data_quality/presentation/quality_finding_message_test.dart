@@ -438,9 +438,9 @@ void main() {
       });
       expect(
         detail,
-        'No gas switch was recorded. Cylinder 2 (EAN50) lost pressure at '
-        'D40.0, deeper than its MOD of L22.0, so no switch to it is '
-        'suggested.',
+        'No gas switch was recorded. The cylinder pressures show a change to '
+        'cylinder 2 (EAN50) at D40.0, deeper than its MOD of L22.0, so no '
+        'switch to it is suggested.',
       );
     });
 
@@ -452,12 +452,13 @@ void main() {
           start(number: 3, t: 900, depth: 30, o2: 100, mod: 6),
         ],
       });
-      expect(detail, contains('Cylinder 2 (EAN50) lost pressure at D40.0'));
+      expect(detail, contains('a change to cylinder 2 (EAN50) at D40.0'));
       expect(
         detail,
         endsWith(
-          ' Cylinder 3 (Oxygen) also lost pressure at D30.0, deeper than its '
-          'MOD of L6.0, so no switch to it is suggested.',
+          ' The cylinder pressures also show a change to cylinder 3 (Oxygen) '
+          'at D30.0, deeper than its MOD of L6.0, so no switch to it is '
+          'suggested.',
         ),
       );
     });
@@ -487,10 +488,21 @@ void main() {
       expect(
         detail,
         endsWith(
-          ' Cylinder 3 (Oxygen) also lost pressure at D30.0, deeper than its '
-          'MOD of L6.0, so no switch to it is suggested.',
+          ' The cylinder pressures also show a change to cylinder 3 (Oxygen) '
+          'at D30.0, deeper than its MOD of L6.0, so no switch to it is '
+          'suggested.',
         ),
       );
+    });
+
+    test('a wrongly typed stored value reads as a default, not a crash', () {
+      final detail = detailFor('missing_gas_switch', {
+        'missingSwitches': [
+          {...start(number: 2, t: 1800, depth: 21), 't': '30:00', 'depth': 'x'},
+        ],
+        'deepStarts': const [],
+      });
+      expect(detail, contains('cylinder 2 (EAN50) at 0:00, D0.0'));
     });
 
     test('switches and a too-deep start read as two sentences', () {
@@ -503,8 +515,9 @@ void main() {
       expect(
         detail,
         endsWith(
-          ' Cylinder 2 (EAN50) also lost pressure at D40.0, deeper than its '
-          'MOD of L22.0, so no switch to it is suggested.',
+          ' The cylinder pressures also show a change to cylinder 2 (EAN50) '
+          'at D40.0, deeper than its MOD of L22.0, so no switch to it is '
+          'suggested.',
         ),
       );
     });

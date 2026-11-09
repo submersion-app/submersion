@@ -42891,7 +42891,7 @@ class AppLocalizationsIt extends AppLocalizations {
     String depth,
     String mod,
   ) {
-    return 'Nessun cambio gas registrato. La bombola $tankNumber ($gas) ha perso pressione a $depth, più in profondità della sua MOD di $mod, quindi non viene suggerito un cambio su di essa.';
+    return 'Nessun cambio gas registrato. Le pressioni delle bombole mostrano un cambio sulla bombola $tankNumber ($gas) a $depth, più in profondità della sua MOD di $mod, quindi non viene suggerito un cambio su di essa.';
   }
 
   @override
@@ -42901,7 +42901,7 @@ class AppLocalizationsIt extends AppLocalizations {
     String depth,
     String mod,
   ) {
-    return 'Anche la bombola $tankNumber ($gas) ha perso pressione a $depth, più in profondità della sua MOD di $mod, quindi non viene suggerito un cambio su di essa.';
+    return 'Le pressioni delle bombole mostrano anche un cambio sulla bombola $tankNumber ($gas) a $depth, più in profondità della sua MOD di $mod, quindi non viene suggerito un cambio su di essa.';
   }
 
   @override

@@ -40381,7 +40381,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String depth,
     String mod,
   ) {
-    return '没有记录换气。气瓶 $tankNumber（$gas）在 $depth 处压力下降，深于其 MOD $mod，因此不建议切换到该气瓶。';
+    return '没有记录换气。气瓶压力显示在 $depth 处换到气瓶 $tankNumber（$gas），深于其 MOD $mod，因此不建议切换到该气瓶。';
   }
 
   @override
@@ -40391,7 +40391,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String depth,
     String mod,
   ) {
-    return '气瓶 $tankNumber（$gas）也在 $depth 处压力下降，深于其 MOD $mod，因此不建议切换到该气瓶。';
+    return '气瓶压力还显示在 $depth 处换到气瓶 $tankNumber（$gas），深于其 MOD $mod，因此不建议切换到该气瓶。';
   }
 
   @override

@@ -43433,7 +43433,7 @@ class AppLocalizationsAr extends AppLocalizations {
     String depth,
     String mod,
   ) {
-    return 'لم يُسجَّل أي تبديل للغاز. فقدت الأسطوانة $tankNumber ($gas) ضغطًا عند $depth، أعمق من MOD الخاص بها البالغ $mod، لذا لا يُقترح التبديل إليها.';
+    return 'لم يُسجَّل أي تبديل للغاز. تُظهر ضغوط الأسطوانات تبديلًا إلى الأسطوانة $tankNumber ($gas) عند $depth، أعمق من MOD الخاص بها البالغ $mod، لذا لا يُقترح التبديل إليها.';
   }
 
   @override
@@ -43443,7 +43443,7 @@ class AppLocalizationsAr extends AppLocalizations {
     String depth,
     String mod,
   ) {
-    return 'فقدت الأسطوانة $tankNumber ($gas) أيضًا ضغطًا عند $depth، أعمق من MOD الخاص بها البالغ $mod، لذا لا يُقترح التبديل إليها.';
+    return 'تُظهر ضغوط الأسطوانات أيضًا تبديلًا إلى الأسطوانة $tankNumber ($gas) عند $depth، أعمق من MOD الخاص بها البالغ $mod، لذا لا يُقترح التبديل إليها.';
   }
 
   @override

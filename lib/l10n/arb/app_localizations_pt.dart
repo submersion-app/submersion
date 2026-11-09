@@ -42857,7 +42857,7 @@ class AppLocalizationsPt extends AppLocalizations {
     String depth,
     String mod,
   ) {
-    return 'Nenhuma troca de gás foi registrada. O cilindro $tankNumber ($gas) perdeu pressão a $depth, mais fundo que a sua MOD de $mod, por isso não é sugerida uma troca para ele.';
+    return 'Nenhuma troca de gás foi registrada. As pressões dos cilindros mostram uma troca para o cilindro $tankNumber ($gas) a $depth, mais fundo que a sua MOD de $mod, por isso não é sugerida uma troca para ele.';
   }
 
   @override
@@ -42867,7 +42867,7 @@ class AppLocalizationsPt extends AppLocalizations {
     String depth,
     String mod,
   ) {
-    return 'O cilindro $tankNumber ($gas) também perdeu pressão a $depth, mais fundo que a sua MOD de $mod, por isso não é sugerida uma troca para ele.';
+    return 'As pressões dos cilindros também mostram uma troca para o cilindro $tankNumber ($gas) a $depth, mais fundo que a sua MOD de $mod, por isso não é sugerida uma troca para ele.';
   }
 
   @override

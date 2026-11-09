@@ -42999,7 +42999,7 @@ class AppLocalizationsFr extends AppLocalizations {
     String depth,
     String mod,
   ) {
-    return 'Aucun changement de gaz n\'a été enregistré. Le bloc $tankNumber ($gas) a perdu de la pression à $depth, plus profond que sa MOD de $mod ; aucun changement vers ce bloc n\'est donc proposé.';
+    return 'Aucun changement de gaz n\'a été enregistré. Les pressions des blocs montrent un passage sur le bloc $tankNumber ($gas) à $depth, plus profond que sa MOD de $mod ; aucun changement vers ce bloc n\'est donc proposé.';
   }
 
   @override
@@ -43009,7 +43009,7 @@ class AppLocalizationsFr extends AppLocalizations {
     String depth,
     String mod,
   ) {
-    return 'Le bloc $tankNumber ($gas) a aussi perdu de la pression à $depth, plus profond que sa MOD de $mod ; aucun changement vers ce bloc n\'est donc proposé.';
+    return 'Les pressions des blocs montrent aussi un passage sur le bloc $tankNumber ($gas) à $depth, plus profond que sa MOD de $mod ; aucun changement vers ce bloc n\'est donc proposé.';
   }
 
   @override

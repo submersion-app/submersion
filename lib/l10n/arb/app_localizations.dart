@@ -67463,10 +67463,10 @@ abstract class AppLocalizations {
   /// **'; '**
   String get dataQuality_msg_missingSwitchSeparator;
 
-  /// Missing gas switch finding when no switch can be offered: cylinder {tankNumber} started losing pressure at {depth}, deeper than {mod}, the maximum operating depth (MOD) of its gas {gas}.
+  /// Missing gas switch finding when no switch can be offered: the pressures show the diver changing to cylinder {tankNumber} at {depth}, deeper than {mod}, the maximum operating depth (MOD) of its gas {gas}. The change is read from that cylinder starting to lose pressure, or from the other cylinder being left, so it may have no readings of its own.
   ///
   /// In en, this message translates to:
-  /// **'No gas switch was recorded. Cylinder {tankNumber} ({gas}) lost pressure at {depth}, deeper than its MOD of {mod}, so no switch to it is suggested.'**
+  /// **'No gas switch was recorded. The cylinder pressures show a change to cylinder {tankNumber} ({gas}) at {depth}, deeper than its MOD of {mod}, so no switch to it is suggested.'**
   String dataQuality_msg_missingSwitchDeep(
     int tankNumber,
     String gas,
@@ -67474,10 +67474,10 @@ abstract class AppLocalizations {
     String mod,
   );
 
-  /// A further sentence of the missing gas switch finding, after its switches or an earlier start: cylinder {tankNumber} started losing pressure at {depth}, deeper than {mod}, the maximum operating depth (MOD) of its gas {gas}.
+  /// A further sentence of the missing gas switch finding, after its switches or an earlier change: the pressures also show the diver changing to cylinder {tankNumber} at {depth}, deeper than {mod}, the maximum operating depth (MOD) of its gas {gas}.
   ///
   /// In en, this message translates to:
-  /// **'Cylinder {tankNumber} ({gas}) also lost pressure at {depth}, deeper than its MOD of {mod}, so no switch to it is suggested.'**
+  /// **'The cylinder pressures also show a change to cylinder {tankNumber} ({gas}) at {depth}, deeper than its MOD of {mod}, so no switch to it is suggested.'**
   String dataQuality_msg_missingSwitchDeepAlso(
     int tankNumber,
     String gas,

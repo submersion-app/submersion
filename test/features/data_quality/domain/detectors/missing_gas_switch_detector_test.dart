@@ -298,6 +298,52 @@ void main() {
     expect(missingSwitchFinding(det.detect(ctx)), isNull);
   });
 
+  // A 15 L back gas loses 3 bar a minute at 30 m, and only 1.2 at a 5 m
+  // stop: too slow to read as falling, though the diver is still on it.
+  List<QualityPressureSample> backGas(int end, bool Function(int t) deep) {
+    final out = <QualityPressureSample>[];
+    var bar = 200.0;
+    for (var t = 0; t <= end; t += 10) {
+      if (t > 0) bar -= (deep(t) ? 3.0 : 1.2) * 10 / 60;
+      out.add(QualityPressureSample(t: t, bar: bar));
+    }
+    return out;
+  }
+
+  DiveQualityContext withPony({
+    required List<QualitySample> samples,
+    required List<QualityPressureSample> back,
+  }) => makeContext(
+    dive: makeTestDive(
+      tanks: [
+        tank(id: 'back', order: 0),
+        tank(id: 'pony', order: 1, role: TankRole.pony),
+      ],
+    ),
+    samples: samples,
+    pressures: {'back': back},
+  );
+
+  test('a slow safety stop on back gas hands over to nothing', () {
+    final ctx = withPony(
+      samples: profile(2800, (t) => t < 2400 ? 30 : (t < 2760 ? 5 : 0)),
+      back: backGas(2760, (t) => t <= 2400),
+    );
+
+    expect(missingSwitchFinding(det.detect(ctx)), isNull);
+  });
+
+  test('a slow shallow stretch on back gas is no restart', () {
+    // 30 m, then 5 m from 20:00 to 30:00, then 30 m again until 45:00.
+    bool deep(int t) => t <= 1200 || (t > 1800 && t <= 2700);
+    final ctx = withPony(
+      samples: profile(2800, (t) => t <= 2700 ? (deep(t) ? 30 : 5) : 0),
+      back: backGas(2700, deep),
+    );
+
+    expect(missingSwitchFinding(det.detect(ctx)), isNull);
+  });
+
   test('a transmitter that stops reporting hands over to nothing', () {
     // The back gas readings end mid-fall at 30:00; nothing shows it held.
     final ctx = makeContext(
@@ -372,6 +418,32 @@ void main() {
     expect(restart['tankId'], 'deco');
     expect(restart['tankPosition'], 1);
     expect(restart['t'] as int, closeTo(1800, 30));
+  });
+
+  test('a too-deep start after an unplaced restart is still named', () {
+    // As above, then the O2 starts losing pressure at 20 m from 40:00.
+    bool onDeco(int t) => (t > 600 && t <= 1200) || (t > 1800 && t <= 2400);
+    final ctx = makeContext(
+      dive: makeTestDive(
+        tanks: [
+          tank(id: 'back', order: 0),
+          tank(id: 'deco', order: 1, o2: 50, role: TankRole.deco),
+          tank(id: 'o2', order: 2, o2: 100, role: TankRole.deco),
+        ],
+      ),
+      samples: profile(3000, (t) => t < 2400 ? 6 : 20),
+      pressures: {
+        'deco': pressure(end: 3000, startBar: 200, falling: onDeco),
+        'o2': pressure(end: 3000, startBar: 200, falling: (t) => t > 2400),
+      },
+    );
+
+    final finding = missingSwitchFinding(det.detect(ctx));
+    expect(finding!.params['missingSwitches'], isEmpty);
+    expect((finding.params['unplacedRestart'] as Map)['tankId'], 'deco');
+    final deep = (finding.params['deepStarts'] as List).single as Map;
+    expect(deep['tankId'], 'o2');
+    expect(deep['depth'], 20);
   });
 
   test('a dive starts on its back gas even when a bottle is listed first', () {

@@ -42798,7 +42798,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String depth,
     String mod,
   ) {
-    return 'Es wurde kein Gaswechsel aufgezeichnet. Flasche $tankNumber ($gas) verlor bei $depth Druck, tiefer als ihre MOD von $mod, daher wird kein Wechsel darauf vorgeschlagen.';
+    return 'Es wurde kein Gaswechsel aufgezeichnet. Die Flaschendrücke zeigen bei $depth einen Wechsel auf Flasche $tankNumber ($gas), tiefer als ihre MOD von $mod, daher wird kein Wechsel darauf vorgeschlagen.';
   }
 
   @override
@@ -42808,7 +42808,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String depth,
     String mod,
   ) {
-    return 'Flasche $tankNumber ($gas) verlor außerdem bei $depth Druck, tiefer als ihre MOD von $mod, daher wird kein Wechsel darauf vorgeschlagen.';
+    return 'Die Flaschendrücke zeigen außerdem bei $depth einen Wechsel auf Flasche $tankNumber ($gas), tiefer als ihre MOD von $mod, daher wird kein Wechsel darauf vorgeschlagen.';
   }
 
   @override

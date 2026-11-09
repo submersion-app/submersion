@@ -42170,7 +42170,7 @@ class AppLocalizationsEn extends AppLocalizations {
     String depth,
     String mod,
   ) {
-    return 'No gas switch was recorded. Cylinder $tankNumber ($gas) lost pressure at $depth, deeper than its MOD of $mod, so no switch to it is suggested.';
+    return 'No gas switch was recorded. The cylinder pressures show a change to cylinder $tankNumber ($gas) at $depth, deeper than its MOD of $mod, so no switch to it is suggested.';
   }
 
   @override
@@ -42180,7 +42180,7 @@ class AppLocalizationsEn extends AppLocalizations {
     String depth,
     String mod,
   ) {
-    return 'Cylinder $tankNumber ($gas) also lost pressure at $depth, deeper than its MOD of $mod, so no switch to it is suggested.';
+    return 'The cylinder pressures also show a change to cylinder $tankNumber ($gas) at $depth, deeper than its MOD of $mod, so no switch to it is suggested.';
   }
 
   @override

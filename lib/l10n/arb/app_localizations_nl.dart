@@ -42594,7 +42594,7 @@ class AppLocalizationsNl extends AppLocalizations {
     String depth,
     String mod,
   ) {
-    return 'Er is geen gaswissel vastgelegd. Fles $tankNumber ($gas) verloor druk op $depth, dieper dan haar MOD van $mod, dus er wordt geen wissel naar deze fles voorgesteld.';
+    return 'Er is geen gaswissel vastgelegd. De flesdrukken tonen op $depth een wissel naar fles $tankNumber ($gas), dieper dan haar MOD van $mod, dus er wordt geen wissel naar deze fles voorgesteld.';
   }
 
   @override
@@ -42604,7 +42604,7 @@ class AppLocalizationsNl extends AppLocalizations {
     String depth,
     String mod,
   ) {
-    return 'Fles $tankNumber ($gas) verloor ook druk op $depth, dieper dan haar MOD van $mod, dus er wordt geen wissel naar deze fles voorgesteld.';
+    return 'De flesdrukken tonen ook op $depth een wissel naar fles $tankNumber ($gas), dieper dan haar MOD van $mod, dus er wordt geen wissel naar deze fles voorgesteld.';
   }
 
   @override

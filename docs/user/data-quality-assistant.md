@@ -86,7 +86,7 @@ at 12:31", not "profile problem".
 |-------|-------|
 | **Gas/MOD inconsistency** | ppO<sub>2</sub> reaching 1.6 bar (warning) or 1.8 bar (critical) and sustained, a hypoxic mix shown in use at the surface, or a gas switch deeper than that gas's MOD |
 | **Wrong cylinder** | A cylinder losing most of its pressure while the gas timeline says it was not in use, or two cylinders carrying a near-identical pressure series |
-| **Missing gas switch** | An open-circuit dive with two or more cylinders and no gas switch recorded, where the transmitter pressures show the diver changing cylinders: one starting to be breathed, or, on a two-cylinder dive, one being left for the other. A change deeper than the gas's MOD is named but never suggested, and a dive whose switch list you emptied yourself in the dive editor is left alone |
+| **Missing gas switch** | An open-circuit dive with two or more cylinders and no gas switch recorded, where the transmitter pressures show the diver changing cylinders: one starting to be breathed, or, on a two-cylinder dive, one being left for the other. A cylinder whose pressure only falls more slowly at a shallow stop still counts as breathed: the check allows for the diver using less gas when shallower. A change deeper than the gas's MOD is named but never suggested, and a dive whose switch list you emptied yourself in the dive editor is left alone |
 
 ### Multiple sources
 

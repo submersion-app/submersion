@@ -42643,7 +42643,7 @@ class AppLocalizationsHu extends AppLocalizations {
     String depth,
     String mod,
   ) {
-    return 'Nem rögzült gázváltás. A(z) $tankNumber. palack ($gas) $depth mélységben vesztett nyomást, mélyebben a $mod MOD-jánál, ezért nem javaslunk rá váltást.';
+    return 'Nem rögzült gázváltás. A palacknyomások $depth mélységben váltást mutatnak a(z) $tankNumber. palackra ($gas), mélyebben a $mod MOD-jánál, ezért nem javaslunk rá váltást.';
   }
 
   @override
@@ -42653,7 +42653,7 @@ class AppLocalizationsHu extends AppLocalizations {
     String depth,
     String mod,
   ) {
-    return 'A(z) $tankNumber. palack ($gas) is vesztett nyomást $depth mélységben, mélyebben a $mod MOD-jánál, ezért nem javaslunk rá váltást.';
+    return 'A palacknyomások $depth mélységben a(z) $tankNumber. palackra ($gas) való váltást is mutatnak, mélyebben a $mod MOD-jánál, ezért nem javaslunk rá váltást.';
   }
 
   @override

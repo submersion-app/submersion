@@ -289,15 +289,19 @@ String _missingSwitchDetail(
       for (final e in list)
         if (e is Map) e.cast<String, Object?>(),
   ];
-  double d(Map<String, Object?> e, String k) => (e[k] as num?)?.toDouble() ?? 0;
+  // A stored value of the wrong type reads as missing, as the repair
+  // mapping skips such an entry, rather than failing the card.
+  num? n(Map<String, Object?> e, String k) => switch (e[k]) {
+    final num v => v,
+    _ => null,
+  };
+  double d(Map<String, Object?> e, String k) => n(e, k)?.toDouble() ?? 0;
+  int seconds(Map<String, Object?> e) => n(e, 't')?.toInt() ?? 0;
   // Stored 0-based, as the transmitter role finding's is.
   int number(Map<String, Object?> e) =>
-      ((e['tankPosition'] as num?)?.toInt() ?? 0) + 1;
-  String gas(Map<String, Object?> e) => qualityGasLabel(
-    l10n,
-    d(e, 'o2Percent'),
-    (e['hePercent'] as num?)?.toDouble(),
-  );
+      (n(e, 'tankPosition')?.toInt() ?? 0) + 1;
+  String gas(Map<String, Object?> e) =>
+      qualityGasLabel(l10n, d(e, 'o2Percent'), n(e, 'hePercent')?.toDouble());
 
   final switches = entries('missingSwitches');
   final deep = entries('deepStarts');
@@ -314,7 +318,7 @@ String _missingSwitchDetail(
               (e) => l10n.dataQuality_msg_missingSwitchItem(
                 number(e),
                 gas(e),
-                formatMinutesSeconds((e['t'] as num?)?.toInt() ?? 0),
+                formatMinutesSeconds(seconds(e)),
                 fmt.depth(d(e, 'depth')),
               ),
             )
@@ -324,7 +328,7 @@ String _missingSwitchDetail(
       l10n.dataQuality_msg_missingSwitchUnplaced(
         number(restart),
         gas(restart),
-        formatMinutesSeconds((restart['t'] as num?)?.toInt() ?? 0),
+        formatMinutesSeconds(seconds(restart)),
       ),
     // Every too-deep start, the first opening the message when nothing
     // before it does.
