@@ -6,7 +6,25 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/trips/domain/services/day_daylight.dart';
 import 'package:submersion/features/trips/domain/services/day_rhythm_layout.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/day_rhythm_labels.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+/// The day timeline's label for assistive technology: the dive times,
+/// followed by whichever of the formatted [sunrise] and [sunset] are real.
+@visibleForTesting
+String dayRhythmSemanticsLabel(
+  AppLocalizations l10n, {
+  String? sunrise,
+  String? sunset,
+}) => switch ((sunrise, sunset)) {
+  (final rise?, final set?) => l10n.trips_story_rhythm_semanticsSunriseSunset(
+    rise,
+    set,
+  ),
+  (final rise?, null) => l10n.trips_story_rhythm_semanticsSunrise(rise),
+  (null, final set?) => l10n.trips_story_rhythm_semanticsSunset(set),
+  (null, null) => l10n.trips_story_rhythm_semantics,
+};
 
 /// One day's dives plotted as blocks on a 24h axis, over a sky that shows
 /// night, sunrise, day and sunset at the day's dive site (issue #4375).
@@ -99,21 +117,11 @@ class _DayRhythmBarState extends State<DayRhythmBar> {
       ],
     ];
 
-    final l10n = context.l10n;
-    final semanticsLabel = switch ((sunrise, sunset)) {
-      (final rise?, final set?) =>
-        l10n.trips_story_rhythm_semanticsSunriseSunset(
-          time(rise.wallClock),
-          time(set.wallClock),
-        ),
-      (final rise?, null) => l10n.trips_story_rhythm_semanticsSunrise(
-        time(rise.wallClock),
-      ),
-      (null, final set?) => l10n.trips_story_rhythm_semanticsSunset(
-        time(set.wallClock),
-      ),
-      (null, null) => l10n.trips_story_rhythm_semantics,
-    };
+    final semanticsLabel = dayRhythmSemanticsLabel(
+      context.l10n,
+      sunrise: sunrise == null ? null : time(sunrise.wallClock),
+      sunset: sunset == null ? null : time(sunset.wallClock),
+    );
 
     return Semantics(
       label: semanticsLabel,
@@ -228,14 +236,12 @@ class _RhythmPainter extends CustomPainter {
       ..clipRRect(trackRRect);
 
     // The gradient spans every stop, including those before 00:00 or after
-    // 24:00, and the clip cuts it off at the bar's ends.
+    // 24:00, and the clip cuts it off at the bar's ends. skyStops always
+    // runs from at most 0 to at least 1, so the span is never empty.
     final first = stops.first.fraction;
     final span = stops.last.fraction - first;
-    final sky = Paint();
-    if (span <= 0) {
-      sky.color = palette.of(stops.first.tone);
-    } else {
-      sky.shader =
+    final sky = Paint()
+      ..shader =
           LinearGradient(
             colors: [for (final stop in stops) palette.of(stop.tone)],
             stops: [for (final stop in stops) (stop.fraction - first) / span],
@@ -247,7 +253,6 @@ class _RhythmPainter extends CustomPainter {
               size.height,
             ),
           );
-    }
     canvas.drawRect(track, sky);
 
     final blockHeight = (size.height - 4).clamp(0.0, double.infinity);

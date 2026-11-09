@@ -40,6 +40,15 @@ void main() {
     expect(daylight.events.map((e) => e.isSunrise), [true, false]);
   });
 
+  test('is a value: the same dives give an equal daylight', () {
+    final dives = [diveAt(DateTime.utc(2025, 3, 1, 9), site: bonaire)];
+    expect(computeDayDaylight(dives), computeDayDaylight(dives));
+    expect(
+      computeDayDaylight(dives).sunrise,
+      computeDayDaylight(dives).sunrise,
+    );
+  });
+
   test('falls back to 06:00 and 18:00 without a placed site', () {
     final daylight = computeDayDaylight([diveAt(DateTime.utc(2025, 3, 1, 9))]);
     expect(daylight.basis, DaylightBasis.fallback);

@@ -176,4 +176,83 @@ void main() {
     final night = painter.nightOutlineColor as Color;
     expect(night.computeLuminance(), lessThan(day.computeLuminance()));
   });
+
+  testWidgets(
+    'speaks only the sunrise when only the sunrise lands on the day',
+    (tester) async {
+      // Tromso, 26 July 2026: the sun rises at about 01:18 after the midnight
+      // sun, and that day's sunset falls after midnight on the 27th.
+      const tromso = DiveSite(
+        id: 'tromso',
+        name: 'Tromso',
+        location: GeoPoint(69.65, 18.96),
+      );
+      final entry = DateTime.utc(2026, 7, 26, 10);
+      await tester.pumpWidget(
+        _host([Dive(id: 't', dateTime: entry, entryTime: entry, site: tromso)]),
+      );
+      expect(
+        find.bySemanticsLabel(
+          RegExp(r'^Dive times during this day\. Sunrise 01:\d\d\.$'),
+        ),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets('chooses the semantics label by which sun times are real', (
+    tester,
+  ) async {
+    late AppLocalizations l10n;
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Builder(
+          builder: (context) {
+            l10n = AppLocalizations.of(context);
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    expect(
+      dayRhythmSemanticsLabel(l10n, sunrise: '06:12', sunset: '18:47'),
+      'Dive times during this day. Sunrise 06:12, sunset 18:47.',
+    );
+    expect(
+      dayRhythmSemanticsLabel(l10n, sunrise: '06:12'),
+      'Dive times during this day. Sunrise 06:12.',
+    );
+    expect(
+      dayRhythmSemanticsLabel(l10n, sunset: '18:47'),
+      'Dive times during this day. Sunset 18:47.',
+    );
+    expect(dayRhythmSemanticsLabel(l10n), 'Dive times during this day');
+  });
+
+  testWidgets('uses the dark sky and outlines in dark mode', (tester) async {
+    final dives = [_placed(DateTime.utc(2025, 3, 1, 9))];
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(brightness: Brightness.dark),
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: SizedBox(
+            width: 600,
+            child: DayRhythmBar(dives: dives, units: _units24),
+          ),
+        ),
+      ),
+    );
+    final painter = _painter(tester);
+    final colorScheme = ThemeData(brightness: Brightness.dark).colorScheme;
+    expect(painter.nightColor, colorScheme.tertiary);
+    expect(painter.dayOutlineColor, Colors.black.withValues(alpha: 0.6));
+    expect(painter.nightOutlineColor, painter.dayOutlineColor);
+    expect(tester.takeException(), isNull);
+  });
 }
