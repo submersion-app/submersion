@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/presentation/info/insights_card_info.dart';
 import 'package:submersion/features/insights/presentation/providers/equipment_condition_insights_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
@@ -18,6 +19,9 @@ import 'package:submersion/features/insights/presentation/widgets/stat_section_c
 import 'package:submersion/features/insights/presentation/widgets/insights_filtered_scaffold.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_chart_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_content.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 class InsightsEquipmentPage extends ConsumerWidget {
   final bool embedded;
@@ -73,6 +77,11 @@ class InsightsEquipmentPage extends ConsumerWidget {
     );
     return StatSectionCard(
       title: l10n.insights_equipment_exposure_title,
+      info: (context) => exposureInfo(
+        context.l10n,
+        infoUnits(context),
+        unit: ref.read(exposureRankingUnitProvider),
+      ),
       subtitle: l10n.insights_equipment_exposure_subtitle,
       trailing: DropdownButton<ExposureUnit>(
         key: const ValueKey('exposure-unit'),
@@ -120,6 +129,13 @@ class InsightsEquipmentPage extends ConsumerWidget {
       context,
       ref.watch(findingsByRuleProvider(Localizations.localeOf(context))),
       title: l10n.insights_equipment_findings_title,
+      info: (context) => insightsCardInfo(
+        context.l10n,
+        infoUnits(context),
+        title: context.l10n.insights_equipment_findings_title,
+        summary: context.l10n.info_insights_conditionFindings_summary,
+        terms: const [DiveTerm.conditionRules],
+      ),
       // A finding is the gear's state now, not a set of dives, so the
       // filter that narrows the other cards cannot narrow this one.
       subtitle: ref.watch(insightsFilterProvider).hasActiveFilters
@@ -138,6 +154,13 @@ class InsightsEquipmentPage extends ConsumerWidget {
       context,
       ref.watch(issueTagRankingProvider(Localizations.localeOf(context))),
       title: l10n.insights_equipment_issues_title,
+      info: (context) => insightsCardInfo(
+        context.l10n,
+        infoUnits(context),
+        title: context.l10n.insights_equipment_issues_title,
+        summary: context.l10n.info_insights_reportedIssues_summary,
+        terms: const [],
+      ),
       subtitle: l10n.insights_equipment_issues_subtitle,
       countLabel: l10n.insights_equipment_countLabel_reports,
       empty: l10n.insights_equipment_issues_empty,
@@ -155,10 +178,12 @@ class InsightsEquipmentPage extends ConsumerWidget {
     required String empty,
     required String error,
     required IconData icon,
+    InfoContentBuilder? info,
   }) {
     return StatSectionCard(
       title: title,
       subtitle: subtitle,
+      info: info,
       child: rankingAsync.when(
         data: (data) => data.isEmpty
             ? StatEmptyState(icon: icon, message: empty)
@@ -228,6 +253,7 @@ class InsightsEquipmentPage extends ConsumerWidget {
       chartId: TrendChartIds.weight,
       onDiveSelected: (diveId) => context.push('/dives/$diveId'),
       title: context.l10n.insights_equipment_weightTrend_title,
+      infoSummary: context.l10n.info_insights_weightTrend_summary,
       subtitle: context.l10n.insights_equipment_weightTrend_subtitle,
       pointsAsync: ref.watch(weightTrendProvider),
       errorMessage: context.l10n.insights_equipment_weightTrend_error,

@@ -61753,6 +61753,126 @@ class AppLocalizationsDe extends AppLocalizations {
       'Zeit vom letzten Tauchgang, bis das Richtlinienintervall von DAN und UHMS für das Fliegen verstrichen ist. Das Intervall hängt davon ab, ob die Tauchgänge einzeln, wiederholt oder mit Dekompression waren, und von der Voreinstellung in den Einstellungen.';
 
   @override
+  String get info_term_perYearRate_label => 'Rate pro Jahr';
+
+  @override
+  String get info_term_perYearRate_body =>
+      'Die Steigung der Gesamttrendlinie, ausgedrückt als Änderung über ein Jahr.';
+
+  @override
+  String get info_term_loggedBeforeMeasurement_label =>
+      'Vor der Messung erfasst';
+
+  @override
+  String get info_term_loggedBeforeMeasurement_body =>
+      'Sicht, die als Wort wie gut oder schlecht erfasst wurde, bevor die App sie als Entfernung speicherte. Diese Tauchgänge behalten ihr ursprüngliches Wort.';
+
+  @override
+  String get info_term_spansBands_label => 'Über mehrere Bereiche';
+
+  @override
+  String get info_term_spansBands_body =>
+      'Eine als Spanne erfasste Sicht, die mehr als einen Bereich überdeckt und daher eigens gezählt wird.';
+
+  @override
+  String get info_term_dawnDusk_label => 'Morgen- und Abenddämmerung';
+
+  @override
+  String get info_term_dawnDusk_body =>
+      'Ein Dämmerungstauchgang am Morgen beginnt vor und endet nach Sonnenaufgang, am Abend ebenso um den Sonnenuntergang. Nacht heißt, der ganze Tauchgang war im Dunkeln.';
+
+  @override
+  String get info_term_calendarShading_label => 'Schattierung';
+
+  @override
+  String get info_term_calendarShading_body =>
+      'Jedes Feld ist ein Tag im Jahr, ein dunkleres Feld bedeutet mehr Tauchgänge an diesem Tag über alle Jahre im Zeitraum.';
+
+  @override
+  String get info_term_saltWaterHours_label => 'Salzwasserstunden';
+
+  @override
+  String get info_term_saltWaterHours_body =>
+      'Zeit unter Wasser in Salz- oder Brackwasser, das Metallteile und Dichtungen schneller verschleißt als Süßwasser.';
+
+  @override
+  String get info_term_coldDives_label => 'Kalte Tauchgänge';
+
+  @override
+  String get info_term_coldDives_body =>
+      'Tauchgänge, deren tiefste Wassertemperatur unter der Kaltwasserschwelle in den Einstellungen zum Ausrüstungszustand lag.';
+
+  @override
+  String get info_term_deepCycles_label => 'Tiefe Tauchgänge';
+
+  @override
+  String get info_term_deepCycles_body =>
+      'Tauchgänge, die die Tiefenschwelle in den Einstellungen zum Ausrüstungszustand erreichten, jeder ein voller Druckzyklus für die Ausrüstung.';
+
+  @override
+  String get info_term_conditionRules_label => 'Zustandsregeln';
+
+  @override
+  String get info_term_conditionRules_body =>
+      'Prüfungen, die die App über geloggte Tauchgänge und Probleme laufen lässt, etwa sinkende O2-Zellwerte oder ein wiederkehrendes Problem. Jede lässt sich in den Einstellungen abschalten.';
+
+  @override
+  String get info_term_standout_label => 'Sticht hervor';
+
+  @override
+  String get info_term_standout_body =>
+      'Ein Faktor, dessen Anteil unter den Fokustauchgängen deutlich von seinem Anteil unter den übrigen abweicht. Der Punkt in der Tabelle markiert ihn.';
+
+  @override
+  String get info_term_avgMaxDepth_label => 'Ø Tiefe';
+
+  @override
+  String get info_term_avgMaxDepth_body =>
+      'Der Durchschnitt der Maximaltiefen aller Tauchgänge, nicht die mittlere Tiefe innerhalb der Tauchgänge.';
+
+  @override
+  String get info_term_diveTypeCounting_label => 'Tauchgangsarten';
+
+  @override
+  String get info_term_diveTypeCounting_body =>
+      'Ein Tauchgang mit mehreren Arten zählt unter jeder einmal, daher können die Balken zusammen mehr als die Zahl der Tauchgänge ergeben.';
+
+  @override
+  String get info_term_gasMixCounting_label => 'Mehrere Gemische';
+
+  @override
+  String get info_term_gasMixCounting_body =>
+      'Ein Tauchgang mit mehr als einem Gemisch zählt unter jedem einmal, daher können die Balken zusammen mehr als die Zahl der Tauchgänge ergeben.';
+
+  @override
+  String get info_term_cylinderRole_label => 'Flaschenrolle';
+
+  @override
+  String get info_term_cylinderRole_body =>
+      'Wofür eine Flasche im Tauchgang diente: Grundgas, Stage, Deko, Pony oder Bailout. Der Verbrauch wird danach gruppiert.';
+
+  @override
+  String get info_term_colourBy_label => 'Färben nach';
+
+  @override
+  String get info_term_colourBy_body =>
+      'Art färbt jeden Punkt nach seinem Typ, Gruppen färben die Grüppchen, die zusammen tauchen, und Aktualität blendet Verbindungen aus, die lange nicht getaucht wurden.';
+
+  @override
+  String get info_term_weightedEdges_label => 'Gewichtete Verbindungen';
+
+  @override
+  String get info_term_weightedEdges_body =>
+      'Eine dickere Linie bedeutet mehr gemeinsame Tauchgänge der beiden verbundenen Punkte.';
+
+  @override
+  String get info_term_hops_label => 'Schritte';
+
+  @override
+  String get info_term_hops_body =>
+      'Wie viele Verbindungen vom gewählten Punkt aus die Ansicht reicht. Ein Schritt zeigt nur die direkten Verbindungen.';
+
+  @override
   String get info_diveLog_profile_summary =>
       'Tiefe über die Zeit für den ganzen Tauchgang, mit jeder eingeschalteten Überlagerung auf derselben Zeitachse.';
 
@@ -61851,4 +61971,160 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get info_safety_noFly_summary =>
       'Wann das Richtlinienintervall für das Fliegen nach den letzten Tauchgängen endet.';
+
+  @override
+  String get info_insights_trendControls_howToUse =>
+      'Die Zeitraumtaste wählt den Zeitraum, die Gruppierungstaste zeigt jeden Tauchgang, jede Woche oder jeden Monat. Gleitender Durchschnitt und Gesamttrend schalten ihre Linien ein und aus, lange Lücken lassen sich im Menü ausblenden.';
+
+  @override
+  String get info_insights_sacTrend_summary =>
+      'Gasverbrauch pro Tauchgang im Zeitverlauf, ein Punkt je Tauchgang oder Gruppe, in der oben gewählten Spur.';
+
+  @override
+  String get info_insights_roleUse_summary =>
+      'Gasverbrauch im Zeitverlauf je Flaschenart, damit Grundgas und Stages nicht vermischt werden.';
+
+  @override
+  String get info_insights_ccrUse_summary =>
+      'Sauerstoff und Diluent je Rebreather-Tauchgang, als Volumen pro Minute bei Oberflächendruck.';
+
+  @override
+  String get info_insights_depthTrend_summary =>
+      'Die Maximaltiefe jedes Tauchgangs im Zeitverlauf.';
+
+  @override
+  String get info_insights_runtimeTrend_summary =>
+      'Wie lange jeder Tauchgang vom Abtauchen bis zum Auftauchen dauerte, im Zeitverlauf.';
+
+  @override
+  String get info_insights_bottomTimeTrend_summary =>
+      'Die Grundzeit jedes Tauchgangs im Zeitverlauf, ohne den letzten Aufstieg und die Stopps, die die Laufzeit enthält.';
+
+  @override
+  String get info_insights_waterTempTrend_summary =>
+      'Die je Tauchgang geloggte Wassertemperatur im Zeitverlauf.';
+
+  @override
+  String get info_insights_airTempTrend_summary =>
+      'Die je Tauchgang geloggte Lufttemperatur im Zeitverlauf.';
+
+  @override
+  String get info_insights_weightTrend_summary =>
+      'Das je Tauchgang getragene Blei im Zeitverlauf.';
+
+  @override
+  String get info_insights_gasMix_summary =>
+      'Wie viele Tauchgänge jedes Gasgemisch nutzten.';
+
+  @override
+  String get info_insights_tankConfig_summary =>
+      'Wie die Flaschen je Tauchgang konfiguriert waren, gezählt nach den geloggten Flaschenrollen.';
+
+  @override
+  String get info_insights_sacRecords_summary =>
+      'Die Tauchgänge mit dem niedrigsten und höchsten Gasverbrauch im Zeitraum.';
+
+  @override
+  String get info_insights_ascentDescent_summary =>
+      'Durchschnittliche Geschwindigkeit beim Ab- und Auftauchen, aus den Profilen ermittelt.';
+
+  @override
+  String get info_insights_timeAtDepth_summary =>
+      'Wie sich die gesamte Zeit unter Wasser auf Tiefenbereiche verteilt.';
+
+  @override
+  String get info_insights_decoObligation_summary =>
+      'Wie viele Tauchgänge Dekostopps brauchten, nach Lesart des Modells für jedes Profil.';
+
+  @override
+  String get info_insights_cumulative_summary =>
+      'Die laufende Summe der geloggten Tauchgänge im Zeitverlauf.';
+
+  @override
+  String get info_insights_visibility_summary =>
+      'Tauchgänge nach geloggter Sicht gruppiert, in den Bereichen der Sichtskala aus den Einstellungen.';
+
+  @override
+  String get info_insights_waterType_summary =>
+      'Tauchgänge in Salz-, Süß- und Brackwasser.';
+
+  @override
+  String get info_insights_seasonalTemp_summary =>
+      'Die niedrigste, mittlere und höchste geloggte Wassertemperatur je Monat des Jahres.';
+
+  @override
+  String get info_insights_waterTempBands_summary =>
+      'Tauchgänge nach Wassertemperatur gruppiert, mit mittlerem Gasverbrauch und mittlerer Tiefe je Bereich.';
+
+  @override
+  String get info_insights_siteType_summary =>
+      'Tauchgänge nach geloggter Platzart, etwa Riff, Wrack oder Höhle.';
+
+  @override
+  String get info_insights_altitude_summary =>
+      'Tauchgänge nach Höhe des Tauchplatzes gruppiert.';
+
+  @override
+  String get info_insights_surfacePressure_summary =>
+      'Tauchgänge nach dem an der Oberfläche erfassten Luftdruck gruppiert.';
+
+  @override
+  String get info_insights_timeOfDay_summary =>
+      'Wann die Tauchgänge relativ zu Sonnenauf- und -untergang am jeweiligen Platz stattfanden.';
+
+  @override
+  String get info_insights_calendarDays_summary =>
+      'An welchen Tagen des Jahres getaucht wurde, über alle Jahre im Zeitraum.';
+
+  @override
+  String get info_insights_surfaceIntervals_summary =>
+      'Die mittlere, kürzeste und längste Oberflächenpause zwischen einem Tauchgang und dem davor.';
+
+  @override
+  String get info_insights_exposure_summary =>
+      'Ausrüstung nach Nutzung und Verschleiß sortiert, in der im Menü gewählten Einheit.';
+
+  @override
+  String get info_insights_conditionFindings_summary =>
+      'Muster in geloggten Tauchgängen und Problemen, die auf Ausrüstung mit Pflegebedarf hinweisen.';
+
+  @override
+  String get info_insights_reportedIssues_summary =>
+      'Die bei Tauchgängen geloggten Probleme, nach Stichwort gruppiert und gezählt.';
+
+  @override
+  String get info_insights_focus_summary =>
+      'Die vom Satz oben gewählten Tauchgänge im Vergleich mit allen übrigen im Zeitraum.';
+
+  @override
+  String get info_insights_focus_howToUse =>
+      'Die unterstrichenen Wörter im Satz antippen, um Messgröße, Richtung und Anzahl der Tauchgänge zu ändern. Ein Schwellenmodus vergleicht stattdessen alle Tauchgänge über oder unter einem Wert.';
+
+  @override
+  String get info_insights_standouts_summary =>
+      'Die Faktoren, die unter den Fokustauchgängen deutlich häufiger oder seltener sind als bei den übrigen.';
+
+  @override
+  String get info_insights_comparison_summary =>
+      'Alle Faktoren nebeneinander: ihr Anteil unter den Fokustauchgängen und unter den übrigen.';
+
+  @override
+  String get info_insights_overviewStats_summary =>
+      'Summen und Durchschnitte für alle Tauchgänge im Zeitraum.';
+
+  @override
+  String get info_insights_distributions_summary =>
+      'Wie sich die Tauchgänge auf Tiefenbereiche und Tauchgangsarten verteilen.';
+
+  @override
+  String get info_insights_observations_summary =>
+      'Kurze Hinweise, die die App im Logbuch gefunden hat, etwa ein neuer tiefster Tauchgang oder ein veränderter Gasverbrauch.';
+
+  @override
+  String get info_connections_display_summary =>
+      'Jeder Punkt ist ein Buddy, Platz, Trip oder Ausrüstungsteil, jede Linie verbindet zwei mit gemeinsamen Tauchgängen.';
+
+  @override
+  String get info_connections_display_howToUse =>
+      'Einen Punkt antippen, um ihn und seine Verbindungen hervorzuheben. Das Panel wählt Farben, Linienstil und Reichweite der Ansicht.';
 }

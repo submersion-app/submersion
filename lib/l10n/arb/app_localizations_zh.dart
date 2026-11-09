@@ -58069,6 +58069,116 @@ class AppLocalizationsZh extends AppLocalizations {
       '从最后一次潜水到 DAN 与 UHMS 飞行指南间隔结束的时间。间隔取决于潜水是单次、重复还是需要减压，以及设置中的预设。';
 
   @override
+  String get info_term_perYearRate_label => '年变化率';
+
+  @override
+  String get info_term_perYearRate_body => '总体趋势线的斜率，以一年内的变化量表示。';
+
+  @override
+  String get info_term_loggedBeforeMeasurement_label => '测量前记录';
+
+  @override
+  String get info_term_loggedBeforeMeasurement_body =>
+      '在应用以距离记录能见度之前，用词语（如好或差）记录的能见度。这些潜水保留原来的词语。';
+
+  @override
+  String get info_term_spansBands_label => '跨多个区间';
+
+  @override
+  String get info_term_spansBands_body => '以跨越多个区间的范围记录的能见度，因此单独计数。';
+
+  @override
+  String get info_term_dawnDusk_label => '黎明与黄昏';
+
+  @override
+  String get info_term_dawnDusk_body =>
+      '黎明潜水在日出前开始、日出后结束，黄昏潜水在日落前后同理。夜间表示整次潜水都在黑暗中。';
+
+  @override
+  String get info_term_calendarShading_label => '着色';
+
+  @override
+  String get info_term_calendarShading_body =>
+      '每个方块代表一年中的一天，颜色越深表示范围内各年在这一天的潜水越多。';
+
+  @override
+  String get info_term_saltWaterHours_label => '海水使用时数';
+
+  @override
+  String get info_term_saltWaterHours_body => '在海水或半咸水中的水下时间，比淡水更快磨损金属部件和密封件。';
+
+  @override
+  String get info_term_coldDives_label => '冷水潜水';
+
+  @override
+  String get info_term_coldDives_body => '最低水温低于装备状态设置中冷水阈值的潜水。';
+
+  @override
+  String get info_term_deepCycles_label => '深潜';
+
+  @override
+  String get info_term_deepCycles_body => '达到装备状态设置中深潜阈值的潜水，每次都是装备的一个完整压力循环。';
+
+  @override
+  String get info_term_conditionRules_label => '状态规则';
+
+  @override
+  String get info_term_conditionRules_body =>
+      '应用对记录的潜水和问题执行的检查，例如氧传感器读数随时间下降或问题反复出现。每项检查都可在设置中关闭。';
+
+  @override
+  String get info_term_standout_label => '突出项';
+
+  @override
+  String get info_term_standout_body => '在关注潜水中所占比例与其他潜水明显不同的因素。表格中的圆点标出它。';
+
+  @override
+  String get info_term_avgMaxDepth_label => '平均深度';
+
+  @override
+  String get info_term_avgMaxDepth_body => '每次潜水最大深度的平均值，而不是潜水中的平均深度。';
+
+  @override
+  String get info_term_diveTypeCounting_label => '潜水类型';
+
+  @override
+  String get info_term_diveTypeCounting_body =>
+      '具有多种类型的潜水在每种类型下各计一次，因此条柱总和可能超过潜水次数。';
+
+  @override
+  String get info_term_gasMixCounting_label => '多种混合气';
+
+  @override
+  String get info_term_gasMixCounting_body =>
+      '使用了多种混合气的潜水在每种气体下各计一次，因此条柱总和可能超过潜水次数。';
+
+  @override
+  String get info_term_cylinderRole_label => '气瓶用途';
+
+  @override
+  String get info_term_cylinderRole_body =>
+      '气瓶在潜水中的用途：底部气、阶段气、减压气、备用小气瓶或应急气。耗气量按此分组。';
+
+  @override
+  String get info_term_colourBy_label => '着色依据';
+
+  @override
+  String get info_term_colourBy_body =>
+      '类型按每个点的种类着色，分组为一起潜水的群体着色，新近程度会淡化近期没有潜水的连线。';
+
+  @override
+  String get info_term_weightedEdges_label => '加权连线';
+
+  @override
+  String get info_term_weightedEdges_body => '连线越粗，表示它连接的两点共同参与的潜水越多。';
+
+  @override
+  String get info_term_hops_label => '跳数';
+
+  @override
+  String get info_term_hops_body => '视图从所选点向外延伸的连线层数。一跳只显示其直接连接。';
+
+  @override
   String get info_diveLog_profile_summary =>
       '整次潜水的深度随时间变化，每个已开启的叠加层都绘制在同一时间轴上。';
 
@@ -58157,4 +58267,132 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get info_safety_noFly_summary => '最近几次潜水后的飞行指南间隔何时结束。';
+
+  @override
+  String get info_insights_trendControls_howToUse =>
+      '范围按钮选择时间段，分组按钮按每次潜水、每周或每月显示。滚动平均和总体趋势用于开关各自的线，长时间空档可从菜单中折叠。';
+
+  @override
+  String get info_insights_sacTrend_summary =>
+      '每次潜水的耗气随时间的变化，每次潜水或每组一个点，按上方所选通道显示。';
+
+  @override
+  String get info_insights_roleUse_summary => '按气瓶类型显示随时间的耗气，避免底部气与阶段气混在一起。';
+
+  @override
+  String get info_insights_ccrUse_summary =>
+      '每次循环呼吸器潜水使用的氧气和稀释气，以水面压力下每分钟体积表示。';
+
+  @override
+  String get info_insights_depthTrend_summary => '每次潜水的最大深度随时间的变化。';
+
+  @override
+  String get info_insights_runtimeTrend_summary => '每次潜水从离开水面到出水的时长随时间的变化。';
+
+  @override
+  String get info_insights_bottomTimeTrend_summary =>
+      '每次潜水的水底时间随时间的变化，不含总潜水时间包括的最后上升和停留。';
+
+  @override
+  String get info_insights_waterTempTrend_summary => '每次潜水记录的水温随时间的变化。';
+
+  @override
+  String get info_insights_airTempTrend_summary => '每次潜水记录的气温随时间的变化。';
+
+  @override
+  String get info_insights_weightTrend_summary => '每次潜水携带的配重随时间的变化。';
+
+  @override
+  String get info_insights_gasMix_summary => '使用每种混合气的潜水次数。';
+
+  @override
+  String get info_insights_tankConfig_summary => '每次潜水的气瓶配置，依据记录的气瓶用途统计。';
+
+  @override
+  String get info_insights_sacRecords_summary => '范围内耗气最低和最高的潜水。';
+
+  @override
+  String get info_insights_ascentDescent_summary => '根据潜水曲线计算的平均下潜和上升速度。';
+
+  @override
+  String get info_insights_timeAtDepth_summary => '水下总时间在各深度区间的分布。';
+
+  @override
+  String get info_insights_decoObligation_summary =>
+      '根据模型对每条潜水曲线的判断，需要减压停留的潜水次数。';
+
+  @override
+  String get info_insights_cumulative_summary => '随时间累计记录的潜水总数。';
+
+  @override
+  String get info_insights_visibility_summary => '按记录的能见度分组的潜水，区间来自设置中的能见度刻度。';
+
+  @override
+  String get info_insights_waterType_summary => '在海水、淡水和半咸水中的潜水。';
+
+  @override
+  String get info_insights_seasonalTemp_summary => '一年中每个月记录的最低、平均和最高水温。';
+
+  @override
+  String get info_insights_waterTempBands_summary =>
+      '按水温分组的潜水，并给出每个区间的平均耗气和深度。';
+
+  @override
+  String get info_insights_siteType_summary => '按记录的潜点类型统计的潜水，例如礁石、沉船或洞穴。';
+
+  @override
+  String get info_insights_altitude_summary => '按潜点海拔分组的潜水。';
+
+  @override
+  String get info_insights_surfacePressure_summary => '按水面记录气压分组的潜水。';
+
+  @override
+  String get info_insights_timeOfDay_summary => '潜水相对于各潜点日出和日落的时间分布。';
+
+  @override
+  String get info_insights_calendarDays_summary => '范围内各年中，一年里哪些日子有过潜水。';
+
+  @override
+  String get info_insights_surfaceIntervals_summary =>
+      '每次潜水与前一次潜水之间水面休息的平均、最短和最长时间。';
+
+  @override
+  String get info_insights_exposure_summary => '按使用和磨损程度排列的装备，单位由菜单选择。';
+
+  @override
+  String get info_insights_conditionFindings_summary => '记录的潜水和问题中提示装备需要关注的规律。';
+
+  @override
+  String get info_insights_reportedIssues_summary => '记录在潜水上的问题，按标签分组并计数。';
+
+  @override
+  String get info_insights_focus_summary => '上方语句选出的潜水，与范围内其他所有潜水的比较。';
+
+  @override
+  String get info_insights_focus_howToUse =>
+      '点击语句中带下划线的词可更改度量、方向和潜水数量。阈值模式则比较高于或低于某个数值的每次潜水。';
+
+  @override
+  String get info_insights_standouts_summary => '在关注潜水中明显比其他潜水更常见或更少见的因素。';
+
+  @override
+  String get info_insights_comparison_summary => '所有因素并列：它们在关注潜水和其他潜水中的占比。';
+
+  @override
+  String get info_insights_overviewStats_summary => '范围内所有潜水的总计和平均值。';
+
+  @override
+  String get info_insights_distributions_summary => '潜水在各深度区间和潜水类型中的分布。';
+
+  @override
+  String get info_insights_observations_summary =>
+      '应用在日志中发现的简短提示，例如新的最深潜水或耗气变化。';
+
+  @override
+  String get info_connections_display_summary =>
+      '每个点是潜伴、潜点、行程或装备，每条线连接共同参与潜水的两者。';
+
+  @override
+  String get info_connections_display_howToUse =>
+      '点击一个点可聚焦该点及其连线。面板用于选择颜色、线型和视图范围。';
 }

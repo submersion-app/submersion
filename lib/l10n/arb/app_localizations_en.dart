@@ -60912,6 +60912,126 @@ class AppLocalizationsEn extends AppLocalizations {
       'Time from the last dive until the DAN and UHMS guideline interval for flying has passed. The interval depends on whether the dives were single, repetitive or needed decompression, and on the preset in settings.';
 
   @override
+  String get info_term_perYearRate_label => 'Rate per year';
+
+  @override
+  String get info_term_perYearRate_body =>
+      'The slope of the overall trend line, expressed as the change over one year.';
+
+  @override
+  String get info_term_loggedBeforeMeasurement_label =>
+      'Logged before measurement';
+
+  @override
+  String get info_term_loggedBeforeMeasurement_body =>
+      'Visibility logged as a word, such as good or poor, before the app recorded it as a distance. Those dives keep their original word.';
+
+  @override
+  String get info_term_spansBands_label => 'Spans bands';
+
+  @override
+  String get info_term_spansBands_body =>
+      'A visibility logged as a range that crosses more than one band, so it is counted on its own.';
+
+  @override
+  String get info_term_dawnDusk_label => 'Dawn and dusk';
+
+  @override
+  String get info_term_dawnDusk_body =>
+      'A dawn dive starts before sunrise and ends after it, and a dusk dive does the same around sunset. Night means the whole dive was in darkness.';
+
+  @override
+  String get info_term_calendarShading_label => 'Shading';
+
+  @override
+  String get info_term_calendarShading_body =>
+      'Each square is one day of the year, and a darker square means more dives on that day across all the years in range.';
+
+  @override
+  String get info_term_saltWaterHours_label => 'Salt-water hours';
+
+  @override
+  String get info_term_saltWaterHours_body =>
+      'Time underwater in salt or brackish water, which wears metal parts and seals faster than fresh water.';
+
+  @override
+  String get info_term_coldDives_label => 'Cold dives';
+
+  @override
+  String get info_term_coldDives_body =>
+      'Dives whose lowest water temperature was below the cold-water threshold in the equipment condition settings.';
+
+  @override
+  String get info_term_deepCycles_label => 'Deep dives';
+
+  @override
+  String get info_term_deepCycles_body =>
+      'Dives that reached the deep-dive threshold in the equipment condition settings, each one a full pressure cycle for the gear.';
+
+  @override
+  String get info_term_conditionRules_label => 'Condition rules';
+
+  @override
+  String get info_term_conditionRules_body =>
+      'Checks the app runs over logged dives and issues, such as oxygen cells reading lower over time or a problem that keeps coming back. Each can be turned off in settings.';
+
+  @override
+  String get info_term_standout_label => 'Stands out';
+
+  @override
+  String get info_term_standout_body =>
+      'A factor whose share among the focus dives differs clearly from its share among the other dives. The dot in the table marks it.';
+
+  @override
+  String get info_term_avgMaxDepth_label => 'Avg Depth';
+
+  @override
+  String get info_term_avgMaxDepth_body =>
+      'The average of each dive\'s maximum depth, not the mean depth within dives.';
+
+  @override
+  String get info_term_diveTypeCounting_label => 'Dive types';
+
+  @override
+  String get info_term_diveTypeCounting_body =>
+      'A dive with several types counts once under each, so the bars can add up to more than the number of dives.';
+
+  @override
+  String get info_term_gasMixCounting_label => 'Several mixes';
+
+  @override
+  String get info_term_gasMixCounting_body =>
+      'A dive that breathed more than one mix counts once under each, so the bars can add up to more than the number of dives.';
+
+  @override
+  String get info_term_cylinderRole_label => 'Cylinder role';
+
+  @override
+  String get info_term_cylinderRole_body =>
+      'What a cylinder was for on the dive: bottom gas, stage, deco, pony or bailout. Consumption is grouped by it.';
+
+  @override
+  String get info_term_colourBy_label => 'Colour by';
+
+  @override
+  String get info_term_colourBy_body =>
+      'Kind colours each point by what it is, groups colours the clusters that dive together, and recency fades links that have not been dived lately.';
+
+  @override
+  String get info_term_weightedEdges_label => 'Weighted links';
+
+  @override
+  String get info_term_weightedEdges_body =>
+      'A thicker line means more dives shared by the two points it joins.';
+
+  @override
+  String get info_term_hops_label => 'Hops';
+
+  @override
+  String get info_term_hops_body =>
+      'How many links away from the chosen point the view reaches. One hop shows its direct connections only.';
+
+  @override
   String get info_diveLog_profile_summary =>
       'Depth over time for the whole dive, with each overlay that is switched on drawn on the same time axis.';
 
@@ -61010,4 +61130,160 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get info_safety_noFly_summary =>
       'When the guideline interval for flying ends after the most recent dives.';
+
+  @override
+  String get info_insights_trendControls_howToUse =>
+      'The range button picks the period, and the grouping button shows each dive, each week or each month. Rolling average and overall trend switch their lines on and off, and long gaps can be collapsed from the menu.';
+
+  @override
+  String get info_insights_sacTrend_summary =>
+      'Gas use per dive over time, one point per dive or per group, on the lane chosen above.';
+
+  @override
+  String get info_insights_roleUse_summary =>
+      'Gas use over time for each kind of cylinder, so bottom gas and stages are not mixed together.';
+
+  @override
+  String get info_insights_ccrUse_summary =>
+      'Oxygen and diluent used per rebreather dive, as volume per minute at surface pressure.';
+
+  @override
+  String get info_insights_depthTrend_summary =>
+      'The maximum depth of each dive over time.';
+
+  @override
+  String get info_insights_runtimeTrend_summary =>
+      'How long each dive lasted from leaving the surface to surfacing, over time.';
+
+  @override
+  String get info_insights_bottomTimeTrend_summary =>
+      'Each dive\'s bottom time over time, which leaves out the final ascent and stops that runtime includes.';
+
+  @override
+  String get info_insights_waterTempTrend_summary =>
+      'The water temperature logged on each dive over time.';
+
+  @override
+  String get info_insights_airTempTrend_summary =>
+      'The air temperature logged on each dive over time.';
+
+  @override
+  String get info_insights_weightTrend_summary =>
+      'The lead carried on each dive over time.';
+
+  @override
+  String get info_insights_gasMix_summary =>
+      'How many dives breathed each gas mix.';
+
+  @override
+  String get info_insights_tankConfig_summary =>
+      'How the cylinders were set up on each dive, counted from the cylinders\' logged roles.';
+
+  @override
+  String get info_insights_sacRecords_summary =>
+      'The dives with the lowest and highest gas use in the range.';
+
+  @override
+  String get info_insights_ascentDescent_summary =>
+      'Average speed going down and coming up, worked out from the profiles.';
+
+  @override
+  String get info_insights_timeAtDepth_summary =>
+      'How the total time underwater divides across depth bands.';
+
+  @override
+  String get info_insights_decoObligation_summary =>
+      'How many dives needed decompression stops, by the model\'s reading of each profile.';
+
+  @override
+  String get info_insights_cumulative_summary =>
+      'The running total of dives logged over time.';
+
+  @override
+  String get info_insights_visibility_summary =>
+      'Dives grouped by the visibility logged, in the bands of the visibility scale in settings.';
+
+  @override
+  String get info_insights_waterType_summary =>
+      'Dives in salt, fresh and brackish water.';
+
+  @override
+  String get info_insights_seasonalTemp_summary =>
+      'The lowest, average and highest water temperature logged in each month of the year.';
+
+  @override
+  String get info_insights_waterTempBands_summary =>
+      'Dives grouped by water temperature, with the average gas use and depth for each band.';
+
+  @override
+  String get info_insights_siteType_summary =>
+      'Dives by the kind of site logged, such as reef, wreck or cave.';
+
+  @override
+  String get info_insights_altitude_summary =>
+      'Dives grouped by the altitude of the site.';
+
+  @override
+  String get info_insights_surfacePressure_summary =>
+      'Dives grouped by the air pressure recorded at the surface.';
+
+  @override
+  String get info_insights_timeOfDay_summary =>
+      'When dives happened relative to sunrise and sunset at each site.';
+
+  @override
+  String get info_insights_calendarDays_summary =>
+      'Which days of the year have had dives, across every year in range.';
+
+  @override
+  String get info_insights_surfaceIntervals_summary =>
+      'The average, shortest and longest time on the surface between one dive and the one before it.';
+
+  @override
+  String get info_insights_exposure_summary =>
+      'Gear ranked by how much use and wear it has seen, in the unit chosen from the menu.';
+
+  @override
+  String get info_insights_conditionFindings_summary =>
+      'Patterns in the logged dives and issues that point to gear needing attention.';
+
+  @override
+  String get info_insights_reportedIssues_summary =>
+      'The problems logged against dives, grouped by their tag and counted.';
+
+  @override
+  String get info_insights_focus_summary =>
+      'The dives picked by the sentence above, compared with all the other dives in range.';
+
+  @override
+  String get info_insights_focus_howToUse =>
+      'Tap the underlined words in the sentence to change the measure, the direction and the number of dives. A threshold mode compares every dive above or below a value instead.';
+
+  @override
+  String get info_insights_standouts_summary =>
+      'The factors that are clearly more or less common among the focus dives than among the rest.';
+
+  @override
+  String get info_insights_comparison_summary =>
+      'Every factor side by side: its share among the focus dives and among the other dives.';
+
+  @override
+  String get info_insights_overviewStats_summary =>
+      'Totals and averages for every dive in range.';
+
+  @override
+  String get info_insights_distributions_summary =>
+      'How dives spread across depth bands and dive types.';
+
+  @override
+  String get info_insights_observations_summary =>
+      'Short notes the app found in the logbook, such as a new deepest dive or a change in gas use.';
+
+  @override
+  String get info_connections_display_summary =>
+      'Each point is a buddy, site, trip or piece of gear, and each line joins two that share dives.';
+
+  @override
+  String get info_connections_display_howToUse =>
+      'Tap a point to focus on it and its links. The panel chooses the colours, the line style and how far the view reaches.';
 }

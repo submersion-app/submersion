@@ -7,11 +7,14 @@ import 'package:submersion/core/theme/foreground_on.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/insights/domain/calendar_day_matrix.dart';
 import 'package:submersion/features/insights/presentation/formatters/distribution_labels.dart';
+import 'package:submersion/features/insights/presentation/info/insights_card_info.dart';
 import 'package:submersion/features/insights/presentation/insights_dive_filters.dart';
 import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// Fill of a calendar cell holding [count] dives when the busiest date holds
 /// [maxCount]. Zero is a neutral surface, never the primary hue, so a date
@@ -65,6 +68,13 @@ class CalendarDayMatrixCard extends ConsumerWidget {
 
     return StatSectionCard(
       title: l10n.insights_timePatterns_calendarDays_title,
+      info: (context) => insightsCardInfo(
+        context.l10n,
+        infoUnits(context),
+        title: context.l10n.insights_timePatterns_calendarDays_title,
+        summary: context.l10n.info_insights_calendarDays_summary,
+        terms: const [DiveTerm.calendarShading],
+      ),
       subtitle: l10n.insights_timePatterns_calendarDays_subtitle,
       child: matrixAsync.when(
         data: (matrix) => matrix.isEmpty

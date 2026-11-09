@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/insights/presentation/info/insights_card_info.dart';
 import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/chart_row_link.dart';
@@ -10,6 +11,8 @@ import 'package:submersion/features/insights/presentation/widgets/insights_filte
 import 'package:submersion/features/insights/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// Opens one group of the deco card's dives under the row name given.
 typedef _OpenDeco =
@@ -60,6 +63,13 @@ class InsightsProfilePage extends ConsumerWidget {
 
     return StatSectionCard(
       title: context.l10n.insights_profile_ascentDescent_title,
+      info: (context) => insightsCardInfo(
+        context.l10n,
+        infoUnits(context),
+        title: context.l10n.insights_profile_ascentDescent_title,
+        summary: context.l10n.info_insights_ascentDescent_summary,
+        terms: const [DiveTerm.ascentRate, DiveTerm.descentRate],
+      ),
       subtitle: context.l10n.insights_profile_ascentDescent_subtitle,
       child: ratesAsync.when(
         data: (data) {
@@ -157,6 +167,13 @@ class InsightsProfilePage extends ConsumerWidget {
 
     return StatSectionCard(
       title: context.l10n.insights_profile_timeAtDepth_title,
+      info: (context) => insightsCardInfo(
+        context.l10n,
+        infoUnits(context),
+        title: context.l10n.insights_profile_timeAtDepth_title,
+        summary: context.l10n.info_insights_timeAtDepth_summary,
+        terms: const [],
+      ),
       subtitle: context.l10n.insights_profile_timeAtDepth_subtitle,
       child: depthRangesAsync.when(
         data: (data) {
@@ -212,6 +229,13 @@ class InsightsProfilePage extends ConsumerWidget {
 
     return StatSectionCard(
       title: context.l10n.insights_profile_deco_title,
+      info: (context) => insightsCardInfo(
+        context.l10n,
+        infoUnits(context),
+        title: context.l10n.insights_profile_deco_title,
+        summary: context.l10n.info_insights_decoObligation_summary,
+        terms: const [DiveTerm.decoStatus, DiveTerm.decoStops],
+      ),
       subtitle: context.l10n.insights_profile_deco_subtitle,
       child: decoAsync.when(
         data: (data) {

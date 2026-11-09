@@ -13,6 +13,7 @@ import 'package:submersion/features/insights/presentation/widgets/dive_trend_cha
 import 'package:submersion/features/insights/presentation/widgets/focus/focus_dive_list.dart';
 import 'package:submersion/features/insights/presentation/widgets/focus/focus_sentence.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -350,5 +351,9 @@ void main() {
     await pump(tester, selection: const FocusSelection(count: 12));
     expect(find.textContaining('12 of 12 dives'), findsOneWidget);
     expect(find.textContaining('so all of them are shown'), findsNothing);
+  });
+  testWidgets('the focus results carry info icons', (tester) async {
+    await pump(tester);
+    expect(find.byType(InfoButton), findsWidgets);
   });
 }

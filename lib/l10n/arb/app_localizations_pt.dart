@@ -61863,6 +61863,126 @@ class AppLocalizationsPt extends AppLocalizations {
       'Tempo desde o último mergulho até passar o intervalo das diretrizes da DAN e da UHMS para voar. O intervalo depende de os mergulhos terem sido únicos, repetitivos ou com descompressão, e da predefinição nas definições.';
 
   @override
+  String get info_term_perYearRate_label => 'Ritmo anual';
+
+  @override
+  String get info_term_perYearRate_body =>
+      'A inclinação da linha de tendência geral, expressa como a variação num ano.';
+
+  @override
+  String get info_term_loggedBeforeMeasurement_label =>
+      'Registado antes da medição';
+
+  @override
+  String get info_term_loggedBeforeMeasurement_body =>
+      'Visibilidade registada com uma palavra, como boa ou má, antes de a aplicação a guardar como distância. Esses mergulhos mantêm a palavra original.';
+
+  @override
+  String get info_term_spansBands_label => 'Abrange várias faixas';
+
+  @override
+  String get info_term_spansBands_body =>
+      'Uma visibilidade registada como intervalo que cruza mais de uma faixa, por isso contada à parte.';
+
+  @override
+  String get info_term_dawnDusk_label => 'Amanhecer e anoitecer';
+
+  @override
+  String get info_term_dawnDusk_body =>
+      'Um mergulho ao amanhecer começa antes do nascer do sol e termina depois, e um ao anoitecer faz o mesmo em torno do pôr do sol. Noite significa que todo o mergulho foi no escuro.';
+
+  @override
+  String get info_term_calendarShading_label => 'Sombreado';
+
+  @override
+  String get info_term_calendarShading_body =>
+      'Cada quadrado é um dia do ano, e um mais escuro significa mais mergulhos nesse dia em todos os anos do intervalo.';
+
+  @override
+  String get info_term_saltWaterHours_label => 'Horas em água salgada';
+
+  @override
+  String get info_term_saltWaterHours_body =>
+      'Tempo debaixo de água em água salgada ou salobra, que desgasta mais depressa peças metálicas e vedantes do que a água doce.';
+
+  @override
+  String get info_term_coldDives_label => 'Mergulhos frios';
+
+  @override
+  String get info_term_coldDives_body =>
+      'Mergulhos cuja temperatura mínima da água ficou abaixo do limiar de água fria nas definições do estado do equipamento.';
+
+  @override
+  String get info_term_deepCycles_label => 'Mergulhos profundos';
+
+  @override
+  String get info_term_deepCycles_body =>
+      'Mergulhos que atingiram o limiar de mergulho profundo nas definições do estado do equipamento, cada um um ciclo de pressão completo.';
+
+  @override
+  String get info_term_conditionRules_label => 'Regras de estado';
+
+  @override
+  String get info_term_conditionRules_body =>
+      'Verificações que a aplicação faz sobre mergulhos e problemas registados, como células de oxigénio a ler menos com o tempo ou um problema que se repete. Cada uma pode ser desligada nas definições.';
+
+  @override
+  String get info_term_standout_label => 'Destaca-se';
+
+  @override
+  String get info_term_standout_body =>
+      'Um fator cuja proporção entre os mergulhos em foco difere claramente da dos restantes. O ponto na tabela assinala-o.';
+
+  @override
+  String get info_term_avgMaxDepth_label => 'Profundidade média';
+
+  @override
+  String get info_term_avgMaxDepth_body =>
+      'A média da profundidade máxima de cada mergulho, não a profundidade média dentro dos mergulhos.';
+
+  @override
+  String get info_term_diveTypeCounting_label => 'Tipos de mergulho';
+
+  @override
+  String get info_term_diveTypeCounting_body =>
+      'Um mergulho com vários tipos conta uma vez em cada um, por isso as barras podem somar mais do que o número de mergulhos.';
+
+  @override
+  String get info_term_gasMixCounting_label => 'Várias misturas';
+
+  @override
+  String get info_term_gasMixCounting_body =>
+      'Um mergulho em que se respirou mais de uma mistura conta uma vez em cada uma, por isso as barras podem somar mais do que o número de mergulhos.';
+
+  @override
+  String get info_term_cylinderRole_label => 'Função da garrafa';
+
+  @override
+  String get info_term_cylinderRole_body =>
+      'Para que serviu uma garrafa no mergulho: gás de fundo, stage, descompressão, pony ou bailout. O consumo é agrupado por isso.';
+
+  @override
+  String get info_term_colourBy_label => 'Colorir por';
+
+  @override
+  String get info_term_colourBy_body =>
+      'Tipo colore cada ponto conforme o que é, grupos colore os conjuntos que mergulham juntos e recência esbate as ligações sem mergulhos recentes.';
+
+  @override
+  String get info_term_weightedEdges_label => 'Ligações ponderadas';
+
+  @override
+  String get info_term_weightedEdges_body =>
+      'Uma linha mais grossa significa mais mergulhos partilhados pelos dois pontos que une.';
+
+  @override
+  String get info_term_hops_label => 'Saltos';
+
+  @override
+  String get info_term_hops_body =>
+      'Quantas ligações a partir do ponto escolhido a vista alcança. Um salto mostra só as ligações diretas.';
+
+  @override
   String get info_diveLog_profile_summary =>
       'Profundidade ao longo do tempo para todo o mergulho, com cada camada ativa desenhada no mesmo eixo do tempo.';
 
@@ -61961,4 +62081,160 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get info_safety_noFly_summary =>
       'Quando termina o intervalo das diretrizes para voar após os mergulhos mais recentes.';
+
+  @override
+  String get info_insights_trendControls_howToUse =>
+      'O botão de intervalo escolhe o período e o de agrupamento mostra cada mergulho, semana ou mês. Média móvel e tendência geral ligam e desligam as suas linhas, e os intervalos longos recolhem-se no menu.';
+
+  @override
+  String get info_insights_sacTrend_summary =>
+      'Consumo de gás por mergulho ao longo do tempo, um ponto por mergulho ou grupo, na via escolhida acima.';
+
+  @override
+  String get info_insights_roleUse_summary =>
+      'Consumo de gás ao longo do tempo para cada tipo de garrafa, para não misturar gás de fundo e stages.';
+
+  @override
+  String get info_insights_ccrUse_summary =>
+      'Oxigénio e diluente usados por mergulho com rebreather, como volume por minuto à pressão de superfície.';
+
+  @override
+  String get info_insights_depthTrend_summary =>
+      'A profundidade máxima de cada mergulho ao longo do tempo.';
+
+  @override
+  String get info_insights_runtimeTrend_summary =>
+      'Quanto durou cada mergulho desde deixar a superfície até voltar, ao longo do tempo.';
+
+  @override
+  String get info_insights_bottomTimeTrend_summary =>
+      'O tempo de fundo de cada mergulho ao longo do tempo, sem a subida final e as paragens que o tempo total inclui.';
+
+  @override
+  String get info_insights_waterTempTrend_summary =>
+      'A temperatura da água registada em cada mergulho ao longo do tempo.';
+
+  @override
+  String get info_insights_airTempTrend_summary =>
+      'A temperatura do ar registada em cada mergulho ao longo do tempo.';
+
+  @override
+  String get info_insights_weightTrend_summary =>
+      'O lastro levado em cada mergulho ao longo do tempo.';
+
+  @override
+  String get info_insights_gasMix_summary =>
+      'Quantos mergulhos respiraram cada mistura de gás.';
+
+  @override
+  String get info_insights_tankConfig_summary =>
+      'Como as garrafas estavam configuradas em cada mergulho, contado a partir das funções registadas.';
+
+  @override
+  String get info_insights_sacRecords_summary =>
+      'Os mergulhos com o consumo de gás mais baixo e mais alto do intervalo.';
+
+  @override
+  String get info_insights_ascentDescent_summary =>
+      'Velocidade média a descer e a subir, calculada a partir dos perfis.';
+
+  @override
+  String get info_insights_timeAtDepth_summary =>
+      'Como o tempo total debaixo de água se divide por faixas de profundidade.';
+
+  @override
+  String get info_insights_decoObligation_summary =>
+      'Quantos mergulhos precisaram de paragens de descompressão, segundo a leitura do modelo de cada perfil.';
+
+  @override
+  String get info_insights_cumulative_summary =>
+      'O total acumulado de mergulhos registados ao longo do tempo.';
+
+  @override
+  String get info_insights_visibility_summary =>
+      'Mergulhos agrupados pela visibilidade registada, nas faixas da escala de visibilidade das definições.';
+
+  @override
+  String get info_insights_waterType_summary =>
+      'Mergulhos em água salgada, doce e salobra.';
+
+  @override
+  String get info_insights_seasonalTemp_summary =>
+      'A temperatura da água mínima, média e máxima registada em cada mês do ano.';
+
+  @override
+  String get info_insights_waterTempBands_summary =>
+      'Mergulhos agrupados por temperatura da água, com o consumo e a profundidade médios de cada faixa.';
+
+  @override
+  String get info_insights_siteType_summary =>
+      'Mergulhos pelo tipo de local registado, como recife, naufrágio ou gruta.';
+
+  @override
+  String get info_insights_altitude_summary =>
+      'Mergulhos agrupados pela altitude do local.';
+
+  @override
+  String get info_insights_surfacePressure_summary =>
+      'Mergulhos agrupados pela pressão atmosférica registada à superfície.';
+
+  @override
+  String get info_insights_timeOfDay_summary =>
+      'Quando os mergulhos aconteceram face ao nascer e pôr do sol em cada local.';
+
+  @override
+  String get info_insights_calendarDays_summary =>
+      'Que dias do ano tiveram mergulhos, em todos os anos do intervalo.';
+
+  @override
+  String get info_insights_surfaceIntervals_summary =>
+      'O tempo à superfície médio, mais curto e mais longo entre um mergulho e o anterior.';
+
+  @override
+  String get info_insights_exposure_summary =>
+      'Equipamento ordenado pelo uso e desgaste, na unidade escolhida no menu.';
+
+  @override
+  String get info_insights_conditionFindings_summary =>
+      'Padrões nos mergulhos e problemas registados que apontam para equipamento a precisar de atenção.';
+
+  @override
+  String get info_insights_reportedIssues_summary =>
+      'Os problemas registados nos mergulhos, agrupados por etiqueta e contados.';
+
+  @override
+  String get info_insights_focus_summary =>
+      'Os mergulhos escolhidos pela frase acima, comparados com todos os outros do intervalo.';
+
+  @override
+  String get info_insights_focus_howToUse =>
+      'Toque nas palavras sublinhadas da frase para mudar a medida, o sentido e o número de mergulhos. Um modo de limiar compara em vez disso cada mergulho acima ou abaixo de um valor.';
+
+  @override
+  String get info_insights_standouts_summary =>
+      'Os fatores claramente mais ou menos comuns entre os mergulhos em foco do que entre os restantes.';
+
+  @override
+  String get info_insights_comparison_summary =>
+      'Todos os fatores lado a lado: a sua proporção entre os mergulhos em foco e entre os restantes.';
+
+  @override
+  String get info_insights_overviewStats_summary =>
+      'Totais e médias de todos os mergulhos do intervalo.';
+
+  @override
+  String get info_insights_distributions_summary =>
+      'Como os mergulhos se distribuem por faixas de profundidade e tipos de mergulho.';
+
+  @override
+  String get info_insights_observations_summary =>
+      'Notas curtas que a aplicação encontrou no registo, como um novo mergulho mais fundo ou uma mudança no consumo.';
+
+  @override
+  String get info_connections_display_summary =>
+      'Cada ponto é um companheiro, local, viagem ou equipamento, e cada linha une dois que partilham mergulhos.';
+
+  @override
+  String get info_connections_display_howToUse =>
+      'Toque num ponto para o destacar com as suas ligações. O painel escolhe as cores, o estilo das linhas e o alcance da vista.';
 }

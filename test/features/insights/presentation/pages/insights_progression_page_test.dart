@@ -11,6 +11,7 @@ import 'package:submersion/features/insights/presentation/widgets/stat_charts.da
 import 'package:submersion/features/insights/presentation/widgets/trend_chart_section.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_control_strip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -267,5 +268,11 @@ void main() {
 
       expect(find.text('Could not load suit thickness data'), findsOneWidget);
     });
+  });
+  testWidgets('every trend chart and the cumulative count carry an info icon', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+    expect(find.byType(InfoButton), findsNWidgets(4));
   });
 }

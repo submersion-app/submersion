@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/features/insights/presentation/info/trend_chart_info.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
 import 'package:submersion/features/insights/domain/trend_range.dart';
@@ -8,8 +9,10 @@ import 'package:submersion/features/insights/presentation/providers/trend_chart_
 import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_control_strip.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
-import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// One per-dive trend chart, its card and its controls.
 ///
@@ -33,11 +36,16 @@ class TrendChartSection extends ConsumerWidget {
     this.pointLabel,
     this.secondarySeries = const [],
     this.footer,
-    this.info,
+    this.infoSummary,
+    this.infoTerms = const [],
   });
 
-  /// What the card's info icon explains; null shows no icon.
-  final InfoContentBuilder? info;
+  /// What the chart shows, for its info icon; null shows no icon. The sheet
+  /// adds the overlays the controls have on and how the controls work.
+  final String? infoSummary;
+
+  /// Terms the chart's own values use, listed before the overlays.
+  final List<DiveTerm> infoTerms;
 
   /// Key into [trendChartSettingsProvider]. Use a [TrendChartIds] constant.
   final String chartId;
@@ -90,7 +98,17 @@ class TrendChartSection extends ConsumerWidget {
     return StatSectionCard(
       title: title,
       subtitle: subtitle,
-      info: info,
+      info: infoSummary == null
+          ? null
+          : (context) => trendChartInfo(
+              context.l10n,
+              infoUnits(context),
+              title: title,
+              summary: infoSummary!,
+              metricTerms: infoTerms,
+              settings: ref.read(trendChartSettingsProvider(chartId)),
+              gaps: ref.read(trendGapThresholdProvider),
+            ),
       child: pointsAsync.when(
         data: (points) {
           final fit = settings.showLinearFit ? linearFit(points) : null;

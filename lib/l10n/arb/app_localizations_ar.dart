@@ -62729,6 +62729,125 @@ class AppLocalizationsAr extends AppLocalizations {
       'الوقت من آخر غطسة حتى تنقضي الفترة الإرشادية للطيران وفق DAN وUHMS. تعتمد الفترة على كون الغطسات مفردة أو متكررة أو احتاجت إلى إزالة ضغط، وعلى الإعداد المسبق في الإعدادات.';
 
   @override
+  String get info_term_perYearRate_label => 'المعدل السنوي';
+
+  @override
+  String get info_term_perYearRate_body =>
+      'ميل خط الاتجاه العام، معبرًا عنه بالتغير خلال سنة واحدة.';
+
+  @override
+  String get info_term_loggedBeforeMeasurement_label => 'سُجل قبل القياس';
+
+  @override
+  String get info_term_loggedBeforeMeasurement_body =>
+      'رؤية سُجلت بكلمة، مثل جيدة أو ضعيفة، قبل أن يسجلها التطبيق كمسافة. تحتفظ تلك الغطسات بكلمتها الأصلية.';
+
+  @override
+  String get info_term_spansBands_label => 'يمتد عبر نطاقات';
+
+  @override
+  String get info_term_spansBands_body =>
+      'رؤية سُجلت كمدى يمتد عبر أكثر من نطاق، لذا تُحتسب وحدها.';
+
+  @override
+  String get info_term_dawnDusk_label => 'الفجر والغسق';
+
+  @override
+  String get info_term_dawnDusk_body =>
+      'غطسة الفجر تبدأ قبل الشروق وتنتهي بعده، وغطسة الغسق تفعل الشيء نفسه حول الغروب. الليل يعني أن الغطسة كلها كانت في الظلام.';
+
+  @override
+  String get info_term_calendarShading_label => 'التظليل';
+
+  @override
+  String get info_term_calendarShading_body =>
+      'كل مربع يمثل يومًا من السنة، والمربع الأغمق يعني غطسات أكثر في ذلك اليوم عبر كل السنوات في النطاق.';
+
+  @override
+  String get info_term_saltWaterHours_label => 'ساعات الماء المالح';
+
+  @override
+  String get info_term_saltWaterHours_body =>
+      'الوقت تحت الماء في المياه المالحة أو قليلة الملوحة، التي تبلي القطع المعدنية والحشوات أسرع من المياه العذبة.';
+
+  @override
+  String get info_term_coldDives_label => 'الغطسات الباردة';
+
+  @override
+  String get info_term_coldDives_body =>
+      'الغطسات التي كانت أدنى حرارة ماء فيها تحت عتبة الماء البارد في إعدادات حالة المعدات.';
+
+  @override
+  String get info_term_deepCycles_label => 'الغطسات العميقة';
+
+  @override
+  String get info_term_deepCycles_body =>
+      'الغطسات التي بلغت عتبة الغوص العميق في إعدادات حالة المعدات، وكل منها دورة ضغط كاملة للمعدات.';
+
+  @override
+  String get info_term_conditionRules_label => 'قواعد الحالة';
+
+  @override
+  String get info_term_conditionRules_body =>
+      'فحوص يجريها التطبيق على الغطسات والمشكلات المسجلة، مثل انخفاض قراءة خلايا الأكسجين مع الوقت أو مشكلة تتكرر. ويمكن إيقاف كل منها في الإعدادات.';
+
+  @override
+  String get info_term_standout_label => 'بارز';
+
+  @override
+  String get info_term_standout_body =>
+      'عامل تختلف نسبته بين غطسات التركيز بوضوح عن نسبته بين الغطسات الأخرى. تشير إليه النقطة في الجدول.';
+
+  @override
+  String get info_term_avgMaxDepth_label => 'متوسط العمق';
+
+  @override
+  String get info_term_avgMaxDepth_body =>
+      'متوسط أقصى عمق لكل غطسة، وليس متوسط العمق داخل الغطسات.';
+
+  @override
+  String get info_term_diveTypeCounting_label => 'أنواع الغطس';
+
+  @override
+  String get info_term_diveTypeCounting_body =>
+      'تُحتسب الغطسة ذات الأنواع المتعددة مرة تحت كل نوع، لذا قد يزيد مجموع الأعمدة على عدد الغطسات.';
+
+  @override
+  String get info_term_gasMixCounting_label => 'خلائط متعددة';
+
+  @override
+  String get info_term_gasMixCounting_body =>
+      'تُحتسب الغطسة التي استُنشق فيها أكثر من خليط مرة تحت كل خليط، لذا قد يزيد مجموع الأعمدة على عدد الغطسات.';
+
+  @override
+  String get info_term_cylinderRole_label => 'دور الأسطوانة';
+
+  @override
+  String get info_term_cylinderRole_body =>
+      'الغرض من الأسطوانة في الغطسة: غاز القاع أو مرحلي أو إزالة الضغط أو احتياطي صغير أو طوارئ. يُجمع الاستهلاك حسبه.';
+
+  @override
+  String get info_term_colourBy_label => 'التلوين حسب';
+
+  @override
+  String get info_term_colourBy_body =>
+      'النوع يلوّن كل نقطة حسب ماهيتها، والمجموعات تلوّن التجمعات التي تغوص معًا، والحداثة تبهت الروابط التي لم يُغص بها مؤخرًا.';
+
+  @override
+  String get info_term_weightedEdges_label => 'روابط موزونة';
+
+  @override
+  String get info_term_weightedEdges_body =>
+      'الخط الأسمك يعني غطسات مشتركة أكثر بين النقطتين اللتين يربطهما.';
+
+  @override
+  String get info_term_hops_label => 'القفزات';
+
+  @override
+  String get info_term_hops_body =>
+      'عدد الروابط بعيدًا عن النقطة المختارة التي يصل إليها العرض. قفزة واحدة تعرض اتصالاتها المباشرة فقط.';
+
+  @override
   String get info_diveLog_profile_summary =>
       'العمق عبر الزمن للغطسة كلها، مع رسم كل طبقة مفعّلة على محور الزمن نفسه.';
 
@@ -62827,4 +62946,159 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get info_safety_noFly_summary =>
       'متى تنتهي الفترة الإرشادية للطيران بعد أحدث الغطسات.';
+
+  @override
+  String get info_insights_trendControls_howToUse =>
+      'يختار زر النطاق الفترة، ويعرض زر التجميع كل غطسة أو كل أسبوع أو كل شهر. يشغّل المتوسط المتحرك والاتجاه العام خطيهما ويطفئانهما، ويمكن طي الفجوات الطويلة من القائمة.';
+
+  @override
+  String get info_insights_sacTrend_summary =>
+      'استهلاك الغاز لكل غطسة عبر الزمن، نقطة لكل غطسة أو مجموعة، على المسار المختار أعلاه.';
+
+  @override
+  String get info_insights_roleUse_summary =>
+      'استهلاك الغاز عبر الزمن لكل نوع من الأسطوانات، كي لا يختلط غاز القاع بالمراحل.';
+
+  @override
+  String get info_insights_ccrUse_summary =>
+      'الأكسجين والغاز المخفف المستخدمان في كل غطسة بجهاز إعادة التنفس، كحجم في الدقيقة عند ضغط السطح.';
+
+  @override
+  String get info_insights_depthTrend_summary => 'أقصى عمق لكل غطسة عبر الزمن.';
+
+  @override
+  String get info_insights_runtimeTrend_summary =>
+      'مدة كل غطسة من مغادرة السطح حتى العودة إليه، عبر الزمن.';
+
+  @override
+  String get info_insights_bottomTimeTrend_summary =>
+      'وقت القاع لكل غطسة عبر الزمن، وهو يستثني الصعود النهائي والتوقفات التي يشملها زمن الغطسة.';
+
+  @override
+  String get info_insights_waterTempTrend_summary =>
+      'حرارة الماء المسجلة في كل غطسة عبر الزمن.';
+
+  @override
+  String get info_insights_airTempTrend_summary =>
+      'حرارة الهواء المسجلة في كل غطسة عبر الزمن.';
+
+  @override
+  String get info_insights_weightTrend_summary =>
+      'الرصاص المحمول في كل غطسة عبر الزمن.';
+
+  @override
+  String get info_insights_gasMix_summary =>
+      'عدد الغطسات التي استُنشق فيها كل خليط غاز.';
+
+  @override
+  String get info_insights_tankConfig_summary =>
+      'كيف رُكّبت الأسطوانات في كل غطسة، محسوبة من الأدوار المسجلة للأسطوانات.';
+
+  @override
+  String get info_insights_sacRecords_summary =>
+      'الغطسات ذات أدنى وأعلى استهلاك للغاز في النطاق.';
+
+  @override
+  String get info_insights_ascentDescent_summary =>
+      'متوسط السرعة في النزول والصعود، محسوبًا من المخططات.';
+
+  @override
+  String get info_insights_timeAtDepth_summary =>
+      'كيف يتوزع إجمالي الوقت تحت الماء على نطاقات العمق.';
+
+  @override
+  String get info_insights_decoObligation_summary =>
+      'عدد الغطسات التي احتاجت توقفات إزالة الضغط، وفق قراءة النموذج لكل مخطط.';
+
+  @override
+  String get info_insights_cumulative_summary =>
+      'المجموع التراكمي للغطسات المسجلة عبر الزمن.';
+
+  @override
+  String get info_insights_visibility_summary =>
+      'الغطسات مجمعة حسب الرؤية المسجلة، في نطاقات مقياس الرؤية في الإعدادات.';
+
+  @override
+  String get info_insights_waterType_summary =>
+      'الغطسات في المياه المالحة والعذبة وقليلة الملوحة.';
+
+  @override
+  String get info_insights_seasonalTemp_summary =>
+      'أدنى ومتوسط وأعلى حرارة ماء مسجلة في كل شهر من السنة.';
+
+  @override
+  String get info_insights_waterTempBands_summary =>
+      'الغطسات مجمعة حسب حرارة الماء، مع متوسط استهلاك الغاز والعمق لكل نطاق.';
+
+  @override
+  String get info_insights_siteType_summary =>
+      'الغطسات حسب نوع الموقع المسجل، مثل الشعاب أو الحطام أو الكهف.';
+
+  @override
+  String get info_insights_altitude_summary =>
+      'الغطسات مجمعة حسب ارتفاع الموقع.';
+
+  @override
+  String get info_insights_surfacePressure_summary =>
+      'الغطسات مجمعة حسب ضغط الهواء المسجل عند السطح.';
+
+  @override
+  String get info_insights_timeOfDay_summary =>
+      'متى جرت الغطسات بالنسبة للشروق والغروب في كل موقع.';
+
+  @override
+  String get info_insights_calendarDays_summary =>
+      'أي أيام السنة شهدت غطسات، عبر كل السنوات في النطاق.';
+
+  @override
+  String get info_insights_surfaceIntervals_summary =>
+      'متوسط وأقصر وأطول وقت على السطح بين غطسة والغطسة التي سبقتها.';
+
+  @override
+  String get info_insights_exposure_summary =>
+      'ترتيب المعدات حسب مقدار الاستخدام والتآكل، بالوحدة المختارة من القائمة.';
+
+  @override
+  String get info_insights_conditionFindings_summary =>
+      'أنماط في الغطسات والمشكلات المسجلة تشير إلى معدات تحتاج إلى عناية.';
+
+  @override
+  String get info_insights_reportedIssues_summary =>
+      'المشكلات المسجلة على الغطسات، مجمعة حسب وسمها ومعدودة.';
+
+  @override
+  String get info_insights_focus_summary =>
+      'الغطسات التي اختارتها الجملة أعلاه، مقارنة بكل الغطسات الأخرى في النطاق.';
+
+  @override
+  String get info_insights_focus_howToUse =>
+      'اضغط على الكلمات المسطرة في الجملة لتغيير المقياس والاتجاه وعدد الغطسات. ويقارن وضع العتبة بدلًا من ذلك كل غطسة فوق قيمة أو تحتها.';
+
+  @override
+  String get info_insights_standouts_summary =>
+      'العوامل الأكثر أو الأقل شيوعًا بوضوح بين غطسات التركيز مقارنة ببقية الغطسات.';
+
+  @override
+  String get info_insights_comparison_summary =>
+      'كل العوامل جنبًا إلى جنب: نسبتها بين غطسات التركيز وبين الغطسات الأخرى.';
+
+  @override
+  String get info_insights_overviewStats_summary =>
+      'المجاميع والمتوسطات لكل الغطسات في النطاق.';
+
+  @override
+  String get info_insights_distributions_summary =>
+      'كيف تتوزع الغطسات على نطاقات العمق وأنواع الغطس.';
+
+  @override
+  String get info_insights_observations_summary =>
+      'ملاحظات قصيرة وجدها التطبيق في السجل، مثل أعمق غطسة جديدة أو تغير في استهلاك الغاز.';
+
+  @override
+  String get info_connections_display_summary =>
+      'كل نقطة رفيق أو موقع أو رحلة أو قطعة معدات، وكل خط يربط اثنين يشتركان في غطسات.';
+
+  @override
+  String get info_connections_display_howToUse =>
+      'اضغط على نقطة للتركيز عليها وعلى روابطها. تختار اللوحة الألوان ونمط الخطوط ومدى وصول العرض.';
 }

@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/insights/domain/conditions/conditions_stats.dart';
+import 'package:submersion/features/insights/presentation/info/insights_card_info.dart';
 import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/presentation/providers/conditions_stats_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/trend_chart_settings_provider.dart';
@@ -14,6 +15,8 @@ import 'package:submersion/features/insights/presentation/widgets/conditions/con
 import 'package:submersion/features/insights/presentation/widgets/conditions/conditions_category_card.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_chart_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// The Surface & weather group of the Conditions tab (issue #3118): air
 /// temperature, cloud, precipitation, wind, humidity and surface pressure.
@@ -71,6 +74,7 @@ class SurfaceWeatherGroup extends ConsumerWidget {
             chartId: TrendChartIds.airTemp,
             onDiveSelected: (diveId) => context.push('/dives/$diveId'),
             title: l10n.insights_conditions_airTempTrend_title,
+            infoSummary: l10n.info_insights_airTempTrend_summary,
             subtitle: l10n.insights_conditions_airTempTrend_subtitle,
             pointsAsync: AsyncData(stats.airTempTrend),
             errorMessage: l10n.insights_conditions_airTempTrend_error,
@@ -146,6 +150,13 @@ class SurfaceWeatherGroup extends ConsumerWidget {
       ),
       ConditionsBandCard(
         title: l10n.insights_conditions_surfacePressure_title,
+        info: (context) => insightsCardInfo(
+          context.l10n,
+          infoUnits(context),
+          title: context.l10n.insights_conditions_surfacePressure_title,
+          summary: context.l10n.info_insights_surfacePressure_summary,
+          terms: const [DiveTerm.surfacePressure],
+        ),
         subtitle: l10n.insights_conditions_surfacePressure_subtitle,
         stat: stats.surfacePressure,
         totalDives: total,

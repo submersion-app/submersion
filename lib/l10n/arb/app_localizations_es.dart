@@ -61923,6 +61923,126 @@ class AppLocalizationsEs extends AppLocalizations {
       'Tiempo desde la última inmersión hasta que pasa el intervalo de las directrices de DAN y UHMS para volar. El intervalo depende de si las inmersiones fueron únicas, repetitivas o con descompresión, y del preajuste en ajustes.';
 
   @override
+  String get info_term_perYearRate_label => 'Ritmo anual';
+
+  @override
+  String get info_term_perYearRate_body =>
+      'La pendiente de la línea de tendencia general, expresada como el cambio en un año.';
+
+  @override
+  String get info_term_loggedBeforeMeasurement_label =>
+      'Registrado antes de la medición';
+
+  @override
+  String get info_term_loggedBeforeMeasurement_body =>
+      'Visibilidad registrada con una palabra, como buena o mala, antes de que la aplicación la guardara como distancia. Esas inmersiones conservan su palabra original.';
+
+  @override
+  String get info_term_spansBands_label => 'Abarca varias franjas';
+
+  @override
+  String get info_term_spansBands_body =>
+      'Una visibilidad registrada como rango que cruza más de una franja, por lo que se cuenta aparte.';
+
+  @override
+  String get info_term_dawnDusk_label => 'Amanecer y anochecer';
+
+  @override
+  String get info_term_dawnDusk_body =>
+      'Una inmersión al amanecer empieza antes de salir el sol y termina después, y una al anochecer hace lo mismo en torno a la puesta. Noche significa que toda la inmersión fue a oscuras.';
+
+  @override
+  String get info_term_calendarShading_label => 'Sombreado';
+
+  @override
+  String get info_term_calendarShading_body =>
+      'Cada casilla es un día del año, y una más oscura significa más inmersiones ese día en todos los años del rango.';
+
+  @override
+  String get info_term_saltWaterHours_label => 'Horas en agua salada';
+
+  @override
+  String get info_term_saltWaterHours_body =>
+      'Tiempo bajo el agua en agua salada o salobre, que desgasta antes las piezas metálicas y las juntas que el agua dulce.';
+
+  @override
+  String get info_term_coldDives_label => 'Inmersiones frías';
+
+  @override
+  String get info_term_coldDives_body =>
+      'Inmersiones cuya temperatura mínima del agua quedó por debajo del umbral de agua fría de los ajustes de estado del equipo.';
+
+  @override
+  String get info_term_deepCycles_label => 'Inmersiones profundas';
+
+  @override
+  String get info_term_deepCycles_body =>
+      'Inmersiones que alcanzaron el umbral de inmersión profunda de los ajustes de estado del equipo, cada una un ciclo de presión completo para el equipo.';
+
+  @override
+  String get info_term_conditionRules_label => 'Reglas de estado';
+
+  @override
+  String get info_term_conditionRules_body =>
+      'Comprobaciones que la aplicación aplica a inmersiones y problemas registrados, como células de oxígeno que leen menos con el tiempo o un fallo que se repite. Cada una se puede desactivar en ajustes.';
+
+  @override
+  String get info_term_standout_label => 'Destaca';
+
+  @override
+  String get info_term_standout_body =>
+      'Un factor cuya proporción entre las inmersiones de enfoque difiere claramente de la del resto. El punto de la tabla lo marca.';
+
+  @override
+  String get info_term_avgMaxDepth_label => 'Profundidad media';
+
+  @override
+  String get info_term_avgMaxDepth_body =>
+      'La media de la profundidad máxima de cada inmersión, no la profundidad media dentro de las inmersiones.';
+
+  @override
+  String get info_term_diveTypeCounting_label => 'Tipos de inmersión';
+
+  @override
+  String get info_term_diveTypeCounting_body =>
+      'Una inmersión con varios tipos cuenta una vez en cada uno, así que las barras pueden sumar más que el número de inmersiones.';
+
+  @override
+  String get info_term_gasMixCounting_label => 'Varias mezclas';
+
+  @override
+  String get info_term_gasMixCounting_body =>
+      'Una inmersión en la que se respiró más de una mezcla cuenta una vez en cada una, así que las barras pueden sumar más que el número de inmersiones.';
+
+  @override
+  String get info_term_cylinderRole_label => 'Función de la botella';
+
+  @override
+  String get info_term_cylinderRole_body =>
+      'Para qué sirvió una botella en la inmersión: gas de fondo, stage, descompresión, pony o bailout. El consumo se agrupa según ello.';
+
+  @override
+  String get info_term_colourBy_label => 'Colorear por';
+
+  @override
+  String get info_term_colourBy_body =>
+      'Tipo colorea cada punto según lo que es, grupos colorea los conjuntos que bucean juntos y reciente atenúa los vínculos sin inmersiones recientes.';
+
+  @override
+  String get info_term_weightedEdges_label => 'Vínculos ponderados';
+
+  @override
+  String get info_term_weightedEdges_body =>
+      'Una línea más gruesa significa más inmersiones compartidas por los dos puntos que une.';
+
+  @override
+  String get info_term_hops_label => 'Saltos';
+
+  @override
+  String get info_term_hops_body =>
+      'Cuántos vínculos desde el punto elegido abarca la vista. Un salto muestra solo sus conexiones directas.';
+
+  @override
   String get info_diveLog_profile_summary =>
       'Profundidad en el tiempo de toda la inmersión, con cada capa activada dibujada sobre el mismo eje temporal.';
 
@@ -62021,4 +62141,160 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get info_safety_noFly_summary =>
       'Cuándo termina el intervalo recomendado para volar tras las inmersiones más recientes.';
+
+  @override
+  String get info_insights_trendControls_howToUse =>
+      'El botón de rango elige el periodo y el de agrupación muestra cada inmersión, cada semana o cada mes. Media móvil y tendencia general activan y desactivan sus líneas, y los huecos largos se pueden contraer desde el menú.';
+
+  @override
+  String get info_insights_sacTrend_summary =>
+      'Consumo de gas por inmersión a lo largo del tiempo, un punto por inmersión o grupo, en el carril elegido arriba.';
+
+  @override
+  String get info_insights_roleUse_summary =>
+      'Consumo de gas en el tiempo para cada tipo de botella, para no mezclar gas de fondo y stages.';
+
+  @override
+  String get info_insights_ccrUse_summary =>
+      'Oxígeno y diluyente usados por inmersión con reciclador, como volumen por minuto a presión de superficie.';
+
+  @override
+  String get info_insights_depthTrend_summary =>
+      'La profundidad máxima de cada inmersión a lo largo del tiempo.';
+
+  @override
+  String get info_insights_runtimeTrend_summary =>
+      'Cuánto duró cada inmersión desde dejar la superficie hasta volver a ella, a lo largo del tiempo.';
+
+  @override
+  String get info_insights_bottomTimeTrend_summary =>
+      'El tiempo de fondo de cada inmersión en el tiempo, que deja fuera el ascenso final y las paradas que incluye el tiempo total.';
+
+  @override
+  String get info_insights_waterTempTrend_summary =>
+      'La temperatura del agua registrada en cada inmersión a lo largo del tiempo.';
+
+  @override
+  String get info_insights_airTempTrend_summary =>
+      'La temperatura del aire registrada en cada inmersión a lo largo del tiempo.';
+
+  @override
+  String get info_insights_weightTrend_summary =>
+      'El lastre llevado en cada inmersión a lo largo del tiempo.';
+
+  @override
+  String get info_insights_gasMix_summary =>
+      'Cuántas inmersiones respiraron cada mezcla de gas.';
+
+  @override
+  String get info_insights_tankConfig_summary =>
+      'Cómo se configuraron las botellas en cada inmersión, contado a partir de las funciones registradas.';
+
+  @override
+  String get info_insights_sacRecords_summary =>
+      'Las inmersiones con el consumo de gas más bajo y más alto del rango.';
+
+  @override
+  String get info_insights_ascentDescent_summary =>
+      'Velocidad media al bajar y al subir, calculada a partir de los perfiles.';
+
+  @override
+  String get info_insights_timeAtDepth_summary =>
+      'Cómo se reparte el tiempo total bajo el agua entre franjas de profundidad.';
+
+  @override
+  String get info_insights_decoObligation_summary =>
+      'Cuántas inmersiones necesitaron paradas de descompresión, según la lectura del modelo de cada perfil.';
+
+  @override
+  String get info_insights_cumulative_summary =>
+      'El total acumulado de inmersiones registradas a lo largo del tiempo.';
+
+  @override
+  String get info_insights_visibility_summary =>
+      'Inmersiones agrupadas por la visibilidad registrada, en las franjas de la escala de visibilidad de ajustes.';
+
+  @override
+  String get info_insights_waterType_summary =>
+      'Inmersiones en agua salada, dulce y salobre.';
+
+  @override
+  String get info_insights_seasonalTemp_summary =>
+      'La temperatura del agua mínima, media y máxima registrada en cada mes del año.';
+
+  @override
+  String get info_insights_waterTempBands_summary =>
+      'Inmersiones agrupadas por temperatura del agua, con el consumo y la profundidad medios de cada franja.';
+
+  @override
+  String get info_insights_siteType_summary =>
+      'Inmersiones por el tipo de punto registrado, como arrecife, pecio o cueva.';
+
+  @override
+  String get info_insights_altitude_summary =>
+      'Inmersiones agrupadas por la altitud del punto.';
+
+  @override
+  String get info_insights_surfacePressure_summary =>
+      'Inmersiones agrupadas por la presión atmosférica registrada en superficie.';
+
+  @override
+  String get info_insights_timeOfDay_summary =>
+      'Cuándo ocurrieron las inmersiones respecto a la salida y la puesta del sol en cada punto.';
+
+  @override
+  String get info_insights_calendarDays_summary =>
+      'Qué días del año han tenido inmersiones, en todos los años del rango.';
+
+  @override
+  String get info_insights_surfaceIntervals_summary =>
+      'El tiempo en superficie medio, más corto y más largo entre una inmersión y la anterior.';
+
+  @override
+  String get info_insights_exposure_summary =>
+      'Equipo ordenado por cuánto uso y desgaste ha tenido, en la unidad elegida en el menú.';
+
+  @override
+  String get info_insights_conditionFindings_summary =>
+      'Patrones en las inmersiones y problemas registrados que apuntan a equipo que requiere atención.';
+
+  @override
+  String get info_insights_reportedIssues_summary =>
+      'Los problemas registrados en las inmersiones, agrupados por etiqueta y contados.';
+
+  @override
+  String get info_insights_focus_summary =>
+      'Las inmersiones que elige la frase de arriba, comparadas con todas las demás del rango.';
+
+  @override
+  String get info_insights_focus_howToUse =>
+      'Toca las palabras subrayadas de la frase para cambiar la medida, el sentido y el número de inmersiones. Un modo de umbral compara en cambio cada inmersión por encima o por debajo de un valor.';
+
+  @override
+  String get info_insights_standouts_summary =>
+      'Los factores claramente más o menos comunes entre las inmersiones de enfoque que entre el resto.';
+
+  @override
+  String get info_insights_comparison_summary =>
+      'Todos los factores juntos: su proporción entre las inmersiones de enfoque y entre las demás.';
+
+  @override
+  String get info_insights_overviewStats_summary =>
+      'Totales y medias de todas las inmersiones del rango.';
+
+  @override
+  String get info_insights_distributions_summary =>
+      'Cómo se reparten las inmersiones entre franjas de profundidad y tipos de inmersión.';
+
+  @override
+  String get info_insights_observations_summary =>
+      'Notas breves que la aplicación encontró en el registro, como una nueva inmersión más profunda o un cambio en el consumo.';
+
+  @override
+  String get info_connections_display_summary =>
+      'Cada punto es un compañero, punto de buceo, viaje o pieza de equipo, y cada línea une dos que comparten inmersiones.';
+
+  @override
+  String get info_connections_display_howToUse =>
+      'Toca un punto para centrarte en él y sus vínculos. El panel elige los colores, el estilo de línea y el alcance de la vista.';
 }

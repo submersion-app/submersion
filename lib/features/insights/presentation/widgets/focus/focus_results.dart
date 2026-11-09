@@ -7,6 +7,7 @@ import 'package:submersion/features/insights/domain/focus/focus_group.dart';
 import 'package:submersion/features/insights/domain/focus/focus_selection.dart';
 import 'package:submersion/features/insights/presentation/formatters/focus_labels.dart';
 import 'package:submersion/features/insights/presentation/formatters/focus_metric_units.dart';
+import 'package:submersion/features/insights/presentation/info/insights_card_info.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_focus_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart.dart';
 import 'package:submersion/features/insights/presentation/widgets/focus/focus_dive_list.dart';
@@ -16,6 +17,7 @@ import 'package:submersion/features/insights/presentation/widgets/stat_section_c
 import 'package:submersion/features/insights/presentation/widgets/trend_reference_line.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// Everything under the sentence: summary, what stands out, chart, full
 /// comparison and the dives, in that order, so the finding leads and the
@@ -118,6 +120,11 @@ class _FocusResultsState extends ConsumerState<FocusResults> {
                       StatSectionCard(
                         title: l10n.insights_focus_chart_title(
                           focusMetricLabel(selection.metric, l10n),
+                        ),
+                        info: (context) => focusInfo(
+                          context.l10n,
+                          infoUnits(context),
+                          metric: selection.metric,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,

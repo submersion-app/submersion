@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/insights/presentation/info/insights_card_info.dart';
 import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/domain/focus/focus_metric.dart';
 import 'package:submersion/features/insights/domain/focus/focus_selection.dart';
@@ -20,6 +21,8 @@ import 'package:submersion/features/insights/presentation/widgets/insights_filte
 import 'package:submersion/features/insights/presentation/widgets/horizontal_category_bar_chart.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_chart_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 class InsightsGasPage extends ConsumerWidget {
   final bool embedded;
@@ -110,6 +113,8 @@ class InsightsGasPage extends ConsumerWidget {
       chartId: TrendChartIds.sac,
       onDiveSelected: (diveId) => context.push('/dives/$diveId'),
       title: context.l10n.insights_gas_sacTrend_title,
+      infoSummary: context.l10n.info_insights_sacTrend_summary,
+      infoTerms: gasLaneTerms(isRmv: isRmv),
       subtitle: context.l10n.insights_gas_sacTrend_subtitle,
       pointsAsync: ref.watch(sacTrendProvider),
       errorMessage: context.l10n.insights_gas_sacTrend_error,
@@ -126,6 +131,17 @@ class InsightsGasPage extends ConsumerWidget {
 
     return StatSectionCard(
       title: context.l10n.insights_gas_gasMix_title,
+      info: (context) => insightsCardInfo(
+        context.l10n,
+        infoUnits(context),
+        title: context.l10n.insights_gas_gasMix_title,
+        summary: context.l10n.info_insights_gasMix_summary,
+        terms: const [
+          DiveTerm.nitrox,
+          DiveTerm.trimix,
+          DiveTerm.gasMixCounting,
+        ],
+      ),
       subtitle: context.l10n.insights_gas_gasMix_subtitle,
       child: gasMixAsync.when(
         // Bars rather than a pie (issue #3048): a dive breathing more than
@@ -173,6 +189,13 @@ class InsightsGasPage extends ConsumerWidget {
 
     return StatSectionCard(
       title: context.l10n.insights_gas_sacRecords_title,
+      info: (context) => insightsCardInfo(
+        context.l10n,
+        infoUnits(context),
+        title: context.l10n.insights_gas_sacRecords_title,
+        summary: context.l10n.info_insights_sacRecords_summary,
+        terms: gasLaneTerms(isRmv: isRmv),
+      ),
       subtitle: context.l10n.insights_gas_sacRecords_subtitle,
       // Only with records to rank: with none, Dive focus would open empty.
       trailing: hasRecords

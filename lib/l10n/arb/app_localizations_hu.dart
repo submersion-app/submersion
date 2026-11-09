@@ -61536,6 +61536,125 @@ class AppLocalizationsHu extends AppLocalizations {
       'Az utolsó merüléstől addig eltelt idő, amíg a DAN és UHMS repülésre vonatkozó irányelve szerinti intervallum le nem telik. Az intervallum attól függ, hogy egyszeri, ismételt vagy dekompressziós merülések voltak-e, és a beállításokban választott előbeállítástól.';
 
   @override
+  String get info_term_perYearRate_label => 'Éves ütem';
+
+  @override
+  String get info_term_perYearRate_body =>
+      'Az általános trendvonal meredeksége egy évre vetített változásként.';
+
+  @override
+  String get info_term_loggedBeforeMeasurement_label => 'Mérés előtt rögzítve';
+
+  @override
+  String get info_term_loggedBeforeMeasurement_body =>
+      'Szóval rögzített látótávolság, például jó vagy gyenge, mielőtt az alkalmazás távolságként mentette volna. Ezek a merülések megtartják az eredeti szót.';
+
+  @override
+  String get info_term_spansBands_label => 'Több sávon át';
+
+  @override
+  String get info_term_spansBands_body =>
+      'Tartományként rögzített látótávolság, amely egynél több sávot fed le, ezért külön számít.';
+
+  @override
+  String get info_term_dawnDusk_label => 'Hajnal és alkony';
+
+  @override
+  String get info_term_dawnDusk_body =>
+      'A hajnali merülés napkelte előtt kezdődik és utána ér véget, az alkonyi ugyanígy a napnyugta körül. Az éjszaka azt jelenti, hogy az egész merülés sötétben zajlott.';
+
+  @override
+  String get info_term_calendarShading_label => 'Árnyalás';
+
+  @override
+  String get info_term_calendarShading_body =>
+      'Minden négyzet az év egy napja, a sötétebb négyzet több merülést jelent azon a napon a tartomány összes évében.';
+
+  @override
+  String get info_term_saltWaterHours_label => 'Sós vízi órák';
+
+  @override
+  String get info_term_saltWaterHours_body =>
+      'Sós vagy brakkvízben töltött idő, amely gyorsabban koptatja a fémalkatrészeket és tömítéseket, mint az édesvíz.';
+
+  @override
+  String get info_term_coldDives_label => 'Hideg merülések';
+
+  @override
+  String get info_term_coldDives_body =>
+      'Merülések, ahol a legalacsonyabb vízhőmérséklet a felszerelésállapot-beállítások hidegvízi küszöbe alatt volt.';
+
+  @override
+  String get info_term_deepCycles_label => 'Mély merülések';
+
+  @override
+  String get info_term_deepCycles_body =>
+      'Merülések, amelyek elérték a felszerelésállapot-beállítások mélymerülési küszöbét, mindegyik teljes nyomásciklus a felszerelésnek.';
+
+  @override
+  String get info_term_conditionRules_label => 'Állapotszabályok';
+
+  @override
+  String get info_term_conditionRules_body =>
+      'Ellenőrzések, amelyeket az alkalmazás a naplózott merüléseken és problémákon futtat, például idővel gyengülő oxigéncellák vagy visszatérő hiba. Mindegyik kikapcsolható a beállításokban.';
+
+  @override
+  String get info_term_standout_label => 'Kiemelkedik';
+
+  @override
+  String get info_term_standout_body =>
+      'Olyan tényező, amelynek aránya a fókuszmerülések között jól láthatóan eltér a többi merülésétől. A táblázatban pont jelöli.';
+
+  @override
+  String get info_term_avgMaxDepth_label => 'Átl. mélység';
+
+  @override
+  String get info_term_avgMaxDepth_body =>
+      'A merülések legnagyobb mélységének átlaga, nem a merüléseken belüli átlagmélység.';
+
+  @override
+  String get info_term_diveTypeCounting_label => 'Merüléstípusok';
+
+  @override
+  String get info_term_diveTypeCounting_body =>
+      'A több típusú merülés mindegyik alatt egyszer számít, ezért az oszlopok összege több lehet a merülések számánál.';
+
+  @override
+  String get info_term_gasMixCounting_label => 'Több keverék';
+
+  @override
+  String get info_term_gasMixCounting_body =>
+      'Az egynél több keveréket használó merülés mindegyik alatt egyszer számít, ezért az oszlopok összege több lehet a merülések számánál.';
+
+  @override
+  String get info_term_cylinderRole_label => 'Palack szerepe';
+
+  @override
+  String get info_term_cylinderRole_body =>
+      'Mire szolgált a palack a merülésen: fenékgáz, stage, deko, pony vagy bailout. A fogyasztás e szerint csoportosul.';
+
+  @override
+  String get info_term_colourBy_label => 'Színezés';
+
+  @override
+  String get info_term_colourBy_body =>
+      'A típus minden pontot aszerint színez, mi az, a csoportok az együtt merülő csoportokat, a frissesség pedig halványítja a régóta nem használt kapcsolatokat.';
+
+  @override
+  String get info_term_weightedEdges_label => 'Súlyozott kapcsolatok';
+
+  @override
+  String get info_term_weightedEdges_body =>
+      'A vastagabb vonal több közös merülést jelent az általa összekötött két pont között.';
+
+  @override
+  String get info_term_hops_label => 'Lépések';
+
+  @override
+  String get info_term_hops_body =>
+      'Hány kapcsolatnyira terjed a nézet a kiválasztott ponttól. Egy lépés csak a közvetlen kapcsolatait mutatja.';
+
+  @override
   String get info_diveLog_profile_summary =>
       'A mélység az idő függvényében az egész merülésre, minden bekapcsolt réteggel ugyanazon az időtengelyen.';
 
@@ -61634,4 +61753,160 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get info_safety_noFly_summary =>
       'Mikor ér véget a repülésre vonatkozó irányelv szerinti intervallum a legutóbbi merülések után.';
+
+  @override
+  String get info_insights_trendControls_howToUse =>
+      'A tartomány gomb választja az időszakot, a csoportosítás gomb merülésenként, hetente vagy havonta mutat. A mozgóátlag és az általános trend ki- és bekapcsolja a vonalát, a hosszú szünetek a menüből összecsukhatók.';
+
+  @override
+  String get info_insights_sacTrend_summary =>
+      'Merülésenkénti gázfogyasztás az időben, merülésenként vagy csoportonként egy pont, a fent választott sávon.';
+
+  @override
+  String get info_insights_roleUse_summary =>
+      'Gázfogyasztás az időben palacktípusonként, hogy a fenékgáz és a stage ne keveredjen.';
+
+  @override
+  String get info_insights_ccrUse_summary =>
+      'Rebreatheres merülésenként felhasznált oxigén és hígítógáz, percenkénti térfogatként felszíni nyomáson.';
+
+  @override
+  String get info_insights_depthTrend_summary =>
+      'Az egyes merülések legnagyobb mélysége az időben.';
+
+  @override
+  String get info_insights_runtimeTrend_summary =>
+      'Mennyi ideig tartott az egyes merülések a lemerüléstől a felszínre érkezésig, az időben.';
+
+  @override
+  String get info_insights_bottomTimeTrend_summary =>
+      'Az egyes merülések fenékideje az időben, az utolsó emelkedés és a megállók nélkül, amelyeket a teljes idő tartalmaz.';
+
+  @override
+  String get info_insights_waterTempTrend_summary =>
+      'Az egyes merüléseken rögzített vízhőmérséklet az időben.';
+
+  @override
+  String get info_insights_airTempTrend_summary =>
+      'Az egyes merüléseken rögzített léghőmérséklet az időben.';
+
+  @override
+  String get info_insights_weightTrend_summary =>
+      'Az egyes merüléseken vitt ólom az időben.';
+
+  @override
+  String get info_insights_gasMix_summary =>
+      'Hány merülésen használták az egyes gázkeverékeket.';
+
+  @override
+  String get info_insights_tankConfig_summary =>
+      'Hogyan voltak a palackok összeállítva az egyes merüléseken, a naplózott szerepeik alapján.';
+
+  @override
+  String get info_insights_sacRecords_summary =>
+      'A tartomány legkisebb és legnagyobb gázfogyasztású merülései.';
+
+  @override
+  String get info_insights_ascentDescent_summary =>
+      'Átlagsebesség lefelé és felfelé, a profilokból számítva.';
+
+  @override
+  String get info_insights_timeAtDepth_summary =>
+      'Hogyan oszlik meg a víz alatt töltött teljes idő a mélységsávok között.';
+
+  @override
+  String get info_insights_decoObligation_summary =>
+      'Hány merüléshez kellett dekómegálló, a modell profilonkénti értékelése szerint.';
+
+  @override
+  String get info_insights_cumulative_summary =>
+      'A naplózott merülések göngyölített összege az időben.';
+
+  @override
+  String get info_insights_visibility_summary =>
+      'Merülések a rögzített látótávolság szerint csoportosítva, a beállítások látótávolság-skálájának sávjaiban.';
+
+  @override
+  String get info_insights_waterType_summary =>
+      'Merülések sós, édes és brakkvízben.';
+
+  @override
+  String get info_insights_seasonalTemp_summary =>
+      'Az év egyes hónapjaiban rögzített legalacsonyabb, átlagos és legmagasabb vízhőmérséklet.';
+
+  @override
+  String get info_insights_waterTempBands_summary =>
+      'Merülések vízhőmérséklet szerint csoportosítva, sávonkénti átlagos gázfogyasztással és mélységgel.';
+
+  @override
+  String get info_insights_siteType_summary =>
+      'Merülések a rögzített helytípus szerint, például zátony, roncs vagy barlang.';
+
+  @override
+  String get info_insights_altitude_summary =>
+      'Merülések a hely magassága szerint csoportosítva.';
+
+  @override
+  String get info_insights_surfacePressure_summary =>
+      'Merülések a felszínen mért légnyomás szerint csoportosítva.';
+
+  @override
+  String get info_insights_timeOfDay_summary =>
+      'Mikor történtek a merülések a helyi napkeltéhez és napnyugtához képest.';
+
+  @override
+  String get info_insights_calendarDays_summary =>
+      'Az év mely napjain volt merülés, a tartomány összes évében.';
+
+  @override
+  String get info_insights_surfaceIntervals_summary =>
+      'Az átlagos, legrövidebb és leghosszabb felszíni idő egy merülés és az azt megelőző között.';
+
+  @override
+  String get info_insights_exposure_summary =>
+      'A felszerelés használat és kopás szerint rangsorolva, a menüben választott egységben.';
+
+  @override
+  String get info_insights_conditionFindings_summary =>
+      'Minták a naplózott merülésekben és problémákban, amelyek figyelmet igénylő felszerelésre utalnak.';
+
+  @override
+  String get info_insights_reportedIssues_summary =>
+      'A merülésekhez naplózott problémák címke szerint csoportosítva és megszámolva.';
+
+  @override
+  String get info_insights_focus_summary =>
+      'A fenti mondattal kiválasztott merülések összevetve a tartomány összes többi merülésével.';
+
+  @override
+  String get info_insights_focus_howToUse =>
+      'A mondat aláhúzott szavaira koppintva módosítható a mérték, az irány és a merülések száma. Küszöb módban minden, egy érték fölötti vagy alatti merülés kerül összevetésre.';
+
+  @override
+  String get info_insights_standouts_summary =>
+      'Azok a tényezők, amelyek a fókuszmerüléseknél jól láthatóan gyakoribbak vagy ritkábbak, mint a többinél.';
+
+  @override
+  String get info_insights_comparison_summary =>
+      'Minden tényező egymás mellett: aránya a fókuszmerüléseknél és a többinél.';
+
+  @override
+  String get info_insights_overviewStats_summary =>
+      'Összesítések és átlagok a tartomány összes merülésére.';
+
+  @override
+  String get info_insights_distributions_summary =>
+      'Hogyan oszlanak meg a merülések a mélységsávok és merüléstípusok között.';
+
+  @override
+  String get info_insights_observations_summary =>
+      'Rövid megjegyzések, amelyeket az alkalmazás a naplóban talált, például új legmélyebb merülés vagy változó gázfogyasztás.';
+
+  @override
+  String get info_connections_display_summary =>
+      'Minden pont egy társ, hely, túra vagy felszerelés, minden vonal két közös merülésű elemet köt össze.';
+
+  @override
+  String get info_connections_display_howToUse =>
+      'Egy pontra koppintva az kerül fókuszba a kapcsolataival. A panelen választhatók a színek, a vonalstílus és a nézet hatóköre.';
 }

@@ -9,6 +9,7 @@ import 'package:submersion/features/insights/presentation/widgets/dive_trend_cha
 import 'package:submersion/features/insights/presentation/widgets/rate_average_tile.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_chart_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
 
 /// The Gas page's Rebreather gas use card: O2 and diluent averages over one
 /// chart carrying both lines, per minute on the loop (issue #4082).
@@ -42,6 +43,8 @@ class CcrGasUseSection extends ConsumerWidget {
         chartId: TrendChartIds.ccrGasUse,
         onDiveSelected: (diveId) => context.push('/dives/$diveId'),
         title: l10n.insights_gas_ccrUse_title,
+        infoSummary: l10n.info_insights_ccrUse_summary,
+        infoTerms: const [DiveTerm.rmv, DiveTerm.diluent],
         subtitle: l10n.insights_gas_ccrUse_subtitle,
         header: _averages(context, trend, units.formatRmv),
         pointsAsync: AsyncData(diluentOnly ? trend.diluent : trend.o2),
