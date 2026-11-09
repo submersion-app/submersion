@@ -33126,6 +33126,42 @@ abstract class AppLocalizations {
   /// **'No one tagged'**
   String get media_library_filter_noPeople;
 
+  /// People row in the library filter: two people picked, e.g. Me, Alex
+  ///
+  /// In en, this message translates to:
+  /// **'{first}, {second}'**
+  String media_library_filter_peopleTwo(String first, String second);
+
+  /// People row in the library filter: the first names picked, then how many more, e.g. Me, Alex +3
+  ///
+  /// In en, this message translates to:
+  /// **'{names} +{count}'**
+  String media_library_filter_peopleAndMore(String names, int count);
+
+  /// People row in the library filter while buddy names are still loading: how many people are picked
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} person} other{{count} people}}'**
+  String media_library_filter_peopleCount(int count);
+
+  /// Search field hint in the library filter's People picker
+  ///
+  /// In en, this message translates to:
+  /// **'Search people'**
+  String get media_library_filter_peopleSearchHint;
+
+  /// People picker in the library filter: nothing matches the search
+  ///
+  /// In en, this message translates to:
+  /// **'No people match'**
+  String get media_library_filter_peopleNoMatch;
+
+  /// Tooltip on the button that clears the people picked in the library filter
+  ///
+  /// In en, this message translates to:
+  /// **'Clear people'**
+  String get media_library_filter_peopleClear;
+
   /// Library filter switch: dive items with no time in the dive profile, so the profile chart draws no marker for them
   ///
   /// In en, this message translates to:

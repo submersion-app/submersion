@@ -19810,6 +19810,35 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_library_filter_noPeople => '未标记人物';
 
   @override
+  String media_library_filter_peopleTwo(String first, String second) {
+    return '$first、$second';
+  }
+
+  @override
+  String media_library_filter_peopleAndMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String media_library_filter_peopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 人',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_library_filter_peopleSearchHint => '搜索人物';
+
+  @override
+  String get media_library_filter_peopleNoMatch => '没有匹配的人物';
+
+  @override
+  String get media_library_filter_peopleClear => '清除人物';
+
+  @override
   String get media_library_filter_notPlacedInDive => '未定位到潜水时间点';
 
   @override

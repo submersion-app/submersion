@@ -20699,6 +20699,36 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_library_filter_noPeople => 'Niemand getagd';
 
   @override
+  String media_library_filter_peopleTwo(String first, String second) {
+    return '$first, $second';
+  }
+
+  @override
+  String media_library_filter_peopleAndMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String media_library_filter_peopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count personen',
+      one: '$count persoon',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_library_filter_peopleSearchHint => 'Personen zoeken';
+
+  @override
+  String get media_library_filter_peopleNoMatch => 'Geen personen gevonden';
+
+  @override
+  String get media_library_filter_peopleClear => 'Personen wissen';
+
+  @override
   String get media_library_filter_notPlacedInDive =>
       'Niet in de duik geplaatst';
 

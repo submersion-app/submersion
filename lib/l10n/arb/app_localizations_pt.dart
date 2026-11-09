@@ -20835,6 +20835,36 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_library_filter_noPeople => 'Ninguém marcado';
 
   @override
+  String media_library_filter_peopleTwo(String first, String second) {
+    return '$first, $second';
+  }
+
+  @override
+  String media_library_filter_peopleAndMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String media_library_filter_peopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pessoas',
+      one: '$count pessoa',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_library_filter_peopleSearchHint => 'Pesquisar pessoas';
+
+  @override
+  String get media_library_filter_peopleNoMatch => 'Nenhuma pessoa corresponde';
+
+  @override
+  String get media_library_filter_peopleClear => 'Limpar pessoas';
+
+  @override
   String get media_library_filter_notPlacedInDive =>
       'Não posicionado no mergulho';
 

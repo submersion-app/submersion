@@ -20373,6 +20373,36 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_library_filter_noPeople => 'אף אחד לא מתויג';
 
   @override
+  String media_library_filter_peopleTwo(String first, String second) {
+    return '$first, $second';
+  }
+
+  @override
+  String media_library_filter_peopleAndMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String media_library_filter_peopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count אנשים',
+      one: 'אדם אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_library_filter_peopleSearchHint => 'חיפוש אנשים';
+
+  @override
+  String get media_library_filter_peopleNoMatch => 'אין אנשים תואמים';
+
+  @override
+  String get media_library_filter_peopleClear => 'ניקוי אנשים';
+
+  @override
   String get media_library_filter_notPlacedInDive => 'לא ממוקם בצלילה';
 
   @override

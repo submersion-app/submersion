@@ -12863,6 +12863,51 @@
   "@media_library_filter_noPeople": {
     "description": "Library filter chip in the People section: items with no buddy or Me tag at all"
   },
+  "media_library_filter_peopleTwo": "{first}, {second}",
+  "@media_library_filter_peopleTwo": {
+    "description": "People row in the library filter: two people picked, e.g. Me, Alex",
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
+  },
+  "media_library_filter_peopleAndMore": "{names} +{count}",
+  "@media_library_filter_peopleAndMore": {
+    "description": "People row in the library filter: the first names picked, then how many more, e.g. Me, Alex +3",
+    "placeholders": {
+      "names": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_library_filter_peopleCount": "{count, plural, =1{{count} person} other{{count} people}}",
+  "@media_library_filter_peopleCount": {
+    "description": "People row in the library filter while buddy names are still loading: how many people are picked",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_library_filter_peopleSearchHint": "Search people",
+  "@media_library_filter_peopleSearchHint": {
+    "description": "Search field hint in the library filter's People picker"
+  },
+  "media_library_filter_peopleNoMatch": "No people match",
+  "@media_library_filter_peopleNoMatch": {
+    "description": "People picker in the library filter: nothing matches the search"
+  },
+  "media_library_filter_peopleClear": "Clear people",
+  "@media_library_filter_peopleClear": {
+    "description": "Tooltip on the button that clears the people picked in the library filter"
+  },
   "media_library_filter_notPlacedInDive": "Not placed in the dive",
   "@media_library_filter_notPlacedInDive": {
     "description": "Library filter switch: dive items with no time in the dive profile, so the profile chart draws no marker for them"
