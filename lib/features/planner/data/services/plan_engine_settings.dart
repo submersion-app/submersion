@@ -1,7 +1,6 @@
-import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart'
-    show AppSettings;
+    show AppSettings, plannerAirBreakPolicyOf;
 
 /// The [PlanEngineConfig] a diver's [settings] give: the planner's deco,
 /// gas and rate settings, without the plan's own overrides, which
@@ -11,8 +10,6 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 /// anything planning for another diver, such as an agent naming one, reads
 /// that diver's settings and calls this, so both resolve them the same way.
 PlanEngineConfig planEngineConfigFromSettings(AppSettings settings) {
-  final airBreakO2 = settings.plannerAirBreakO2Seconds;
-  final airBreak = settings.plannerAirBreakBreakSeconds;
   return PlanEngineConfig(
     ppO2Working: settings.ppO2MaxWorking,
     ppO2Deco: settings.ppO2MaxDeco,
@@ -51,10 +48,7 @@ PlanEngineConfig planEngineConfigFromSettings(AppSettings settings) {
     deviationTimeMinutes: settings.plannerDeviationTimeMinutes,
     turnPressureRule: settings.plannerTurnPressureRule,
     turnPressureFraction: settings.plannerTurnPressureFraction,
-    // Either both air-break columns are set or neither is, as the policy.
-    airBreakPolicy: airBreakO2 == null || airBreak == null
-        ? null
-        : AirBreakPolicy(o2Seconds: airBreakO2, breakSeconds: airBreak),
+    airBreakPolicy: plannerAirBreakPolicyOf(settings),
     gfLow: settings.gfLow,
     gfHigh: settings.gfHigh,
     reservePressure: settings.plannerReservePressure,

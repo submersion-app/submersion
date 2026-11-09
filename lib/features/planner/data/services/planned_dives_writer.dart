@@ -12,6 +12,16 @@ import 'package:submersion/features/planner/domain/services/plan_series_calculat
     show SeriesDiveResult;
 import 'package:submersion/features/planner/presentation/providers/planned_log_entry.dart';
 
+/// The name the log entry of the dive at [index] of [series], computed as
+/// [result], takes: in a series each dive's own, or none, so a dived one
+/// goes by its number; a single plan's only name is its own. Shared by the
+/// writer and the planner's check of whether its entries are up to date.
+String? plannedEntryName(
+  PlanSeries series,
+  int index,
+  SeriesDiveResult result,
+) => series.isSeries ? series.dives[index].name : result.state.name;
+
 /// What "Create / Update planned dives" does with one dive of a plan
 /// (issue #3565).
 enum PlannedDiveAction {
@@ -182,9 +192,9 @@ class PlannedDivesWriter {
       final entry = entries[dive.state.id];
       await add(id, entry == null ? diverId : entry.diverId);
       // A single plan whose dived link moves gets a new entry for [diverId].
-      if (entry != null && !entry.isPlanned && !series.isSeries) {
-        await add(id, diverId);
-      }
+      // Read for any dived dive: a dive removed while these lookups run can
+      // leave a series a single plan by the time it is decided on.
+      if (entry != null && !entry.isPlanned) await add(id, diverId);
     }
     return PlannedDivesLookups(
       entries: entries,
@@ -227,26 +237,39 @@ class PlannedDivesWriter {
     return PlannedDivesPlan(
       steps: [
         for (var i = 0; i < series.dives.length; i++)
-          () {
-            final dive = series.dives[i];
-            final result = results[i];
-            final entry = entries[dive.state.id];
-            final owner = entry == null ? lookups.diverId : entry.diverId;
-            return PlannedDiveStep(
-              index: i,
-              planId: dive.state.id,
-              action: entry == null
-                  ? PlannedDiveAction.create
-                  : entry.isPlanned
-                  ? PlannedDiveAction.update
-                  : PlannedDiveAction.skipDived,
-              entry: entry,
-              result: result,
-              name: series.isSeries ? dive.name : result.state.name,
-              site: lookups.sites[(result.state.siteId, owner)],
-            );
-          }(),
+          _step(
+            series,
+            i,
+            results[i],
+            entries[series.dives[i].state.id],
+            lookups,
+          ),
       ],
+    );
+  }
+
+  /// What writing does with the dive at [index] of [series], computed as
+  /// [result], whose entry in the log is [entry].
+  PlannedDiveStep _step(
+    PlanSeries series,
+    int index,
+    SeriesDiveResult result,
+    Dive? entry,
+    PlannedDivesLookups lookups,
+  ) {
+    final owner = entry == null ? lookups.diverId : entry.diverId;
+    return PlannedDiveStep(
+      index: index,
+      planId: series.dives[index].state.id,
+      action: entry == null
+          ? PlannedDiveAction.create
+          : entry.isPlanned
+          ? PlannedDiveAction.update
+          : PlannedDiveAction.skipDived,
+      entry: entry,
+      result: result,
+      name: plannedEntryName(series, index, result),
+      site: lookups.sites[(result.state.siteId, owner)],
     );
   }
 
@@ -254,34 +277,43 @@ class PlannedDivesWriter {
   /// [updateDive], which write a dive row as the caller's log does. A write
   /// that fails part way stops there and is returned, not thrown, so the
   /// caller can still link what was written.
+  ///
+  /// [plan] must be one [decide] let through ([PlannedDivesPlan.writable]);
+  /// any other is an [ArgumentError], in release builds too.
   Future<PlannedDivesWritten> write(
     PlannedDivesPlan plan, {
     required PlanEngineConfig config,
     required Future<Dive> Function(Dive dive) addDive,
     required Future<void> Function(Dive dive) updateDive,
   }) async {
-    assert(plan.writable, 'write() needs a plan decide() let through');
+    if (!plan.writable) {
+      throw ArgumentError.value(
+        plan,
+        'plan',
+        'needs a plan decide() let through',
+      );
+    }
     var created = 0;
     var updated = 0;
     var skipped = 0;
     final links = <String, String>{};
+    // Built only for a dive written: a dived one's entry is never used.
+    PlannedLogEntry entryOf(PlannedDiveStep step) =>
+        PlannedLogEntry.of(step.result, name: step.name, config: config);
     try {
       for (final step in plan.steps) {
         final result = step.result;
-        final entry = PlannedLogEntry.of(
-          result,
-          name: step.name,
-          config: config,
-        );
         switch (step.action) {
           case PlannedDiveAction.skipDived:
             skipped++;
           case PlannedDiveAction.create:
+            final entry = entryOf(step);
             final added = await addDive(entry.newDive(result.state, step.site));
             links[step.planId] = added.id;
             created++;
             await _writeGasSwitches(added.id, result);
           case PlannedDiveAction.update:
+            final entry = entryOf(step);
             final existing = step.entry!;
             await updateDive(entry.update(existing, result.state, step.site));
             await _dives.replacePlannedProfile(

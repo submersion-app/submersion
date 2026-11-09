@@ -16,6 +16,7 @@ import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/plan_series_calculator.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_store.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -255,6 +256,18 @@ void main() {
       expect(unfollowed.results[0].state.initialCns ?? 0, 0);
     });
 
+    test('a series with no dives is refused', () async {
+      await expectLater(
+        computeStoredSeries(
+          const StoredSeries(id: 'empty', name: 'Empty', dives: []),
+          config: config,
+          dives: dives,
+          followOf: noFollow,
+        ),
+        throwsArgumentError,
+      );
+    });
+
     test('a plan in no series computes on its own', () async {
       final plan = await plans.savePlan(
         divePlanFromState(seriesDiveState(id: 'solo')),
@@ -325,5 +338,35 @@ void main() {
 
       expect(computed.results.map(_shown), inPlanner.map(_shown));
     });
+
+    test(
+      'a dived plan in no series computes as the planner opens it',
+      () async {
+        final dived = await c
+            .read(diveRepositoryProvider)
+            .createDive(loggedDive('dived', nine));
+        final plans = c.read(divePlanRepositoryProvider);
+        // No surface interval and no start: the planner computes the plan as
+        // it stands, not timed by when its dive was dived.
+        final saved = await plans.savePlan(
+          divePlanFromState(seriesDiveState(id: 'solo')),
+        );
+        await plans.linkPlanToDive(saved.id, dived.id);
+
+        c.read(divePlanNotifierProvider.notifier).newPlan();
+        await openSavedPlan(c, saved.id);
+        final inPlanner = c.read(planSeriesResultsProvider);
+        expect(inPlanner.single.actual?.followed.id, dived.id);
+
+        final computed = await computeStoredPlan(
+          (await plans.getPlan(saved.id))!,
+          config: c.read(planEngineConfigProvider),
+          dives: c.read(diveRepositoryProvider),
+          followOf: (id) => c.awaitFuture(seriesFollowProvider(id).future),
+        );
+
+        expect(computed.results.map(_shown), inPlanner.map(_shown));
+      },
+    );
   });
 }

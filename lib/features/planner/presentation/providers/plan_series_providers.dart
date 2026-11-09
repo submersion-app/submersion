@@ -88,7 +88,7 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
     if (index < 0) {
       _earlier = const [];
       _removed = const {};
-      state = _withActuals(PlanSeries.single(next));
+      state = PlanSeries.single(next).withActuals(_actuals);
       return;
     }
     final before = state.dives[index].state;
@@ -216,7 +216,7 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
     if (actuals != null) _actuals = actuals;
     _earlier = const [];
     if (!justSaved) _removed = const {};
-    state = _withActuals(series);
+    state = series.withActuals(_actuals);
     _loadSelected();
   }
 
@@ -228,21 +228,11 @@ class PlanSeriesNotifier extends StateNotifier<PlanSeries> {
   /// back to its plan.
   void setActuals(Map<String, SeriesFollow> actuals) {
     _actuals = actuals;
-    final next = _withActuals(state);
+    final next = state.withActuals(_actuals);
     if (next == state) return;
     state = next;
     _loadSelected();
   }
-
-  PlanSeries _withActuals(PlanSeries series) => series.copyWith(
-    dives: [
-      for (final dive in series.dives)
-        if (_actuals[dive.state.id] case final actual?)
-          dive.copyWith(actual: actual)
-        else
-          dive.copyWith(clearActual: true),
-    ],
-  );
 
   /// Takes on links the repository already holds, by plan id, written from
   /// outside the series (issue #3565): not an edit, so nothing is marked

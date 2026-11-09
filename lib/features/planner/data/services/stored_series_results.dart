@@ -47,6 +47,9 @@ Future<Map<String, SeriesFollow>> readSeriesActuals(
 ///
 /// What opening it in the planner shows, without the planner: the series as
 /// the planner holds it, and each dive's result in order.
+///
+/// [stored] must have a dive: a series with none is not opened as one (see
+/// `openSavedPlan`), so it throws an [ArgumentError].
 Future<({PlanSeries series, List<SeriesDiveResult> results})>
 computeStoredSeries(
   StoredSeries stored, {
@@ -54,9 +57,16 @@ computeStoredSeries(
   required DiveRepository dives,
   required SeriesFollowReader followOf,
 }) async {
+  if (stored.dives.isEmpty) {
+    throw ArgumentError.value(stored.id, 'stored', 'has no dives to compute');
+  }
+  // Neither read waits on the other, so both run at once. Future.wait
+  // observes both and rethrows the first error as it was thrown.
   final followedId = stored.followedDiveId;
-  final follow = followedId == null ? null : await followOf(followedId);
-  final actuals = await readSeriesActuals(
+  final followRead = followedId == null
+      ? Future<SeriesFollow?>.value()
+      : followOf(followedId);
+  final actualsRead = readSeriesActuals(
     [
       for (final dive in stored.dives)
         if (dive.plan.linkedDiveId case final id?) (dive.plan.id, id),
@@ -64,12 +74,13 @@ computeStoredSeries(
     dives,
     followOf,
   );
-  final opened = seriesFromStored(
+  await Future.wait<Object?>([followRead, actualsRead]);
+  final follow = await followRead;
+  final series = seriesFromStored(
     stored,
     follow: follow == null ? null : withOwnPressures(follow, stored),
     selectedIndex: 0,
-  );
-  final series = _withActuals(opened, actuals);
+  ).withActuals(await actualsRead);
   return (
     series: series,
     results: computeSeries(series.dives, config: config, follow: series.follow),
@@ -89,22 +100,25 @@ Future<({PlanSeries series, List<SeriesDiveResult> results})> computeStoredPlan(
     dives,
     followOf,
   );
-  final series = _withActuals(
-    PlanSeries.single(stateFromDivePlan(plan).copyWith(isDirty: false)),
-    actuals,
+  final series = PlanSeries.single(
+    stateFromDivePlan(plan).copyWith(isDirty: false),
+  ).withActuals(actuals);
+  // The planner computes a plan in no series as it stands, dived or not
+  // (`planSeriesResultsProvider`): only a series times a dived dive by when
+  // it was dived. So it is computed as planned, then takes what happened.
+  final dive = series.dives.single;
+  final planned = computeSeries([
+    dive.copyWith(clearActual: true),
+  ], config: config).single;
+  return (
+    series: series,
+    results: [
+      SeriesDiveResult(
+        state: planned.state,
+        outcome: planned.outcome,
+        seriesIssues: planned.seriesIssues,
+        actual: dive.actual,
+      ),
+    ],
   );
-  return (series: series, results: computeSeries(series.dives, config: config));
 }
-
-/// [series] with each dive that has been dived holding what it left behind,
-/// as the planner's series takes them.
-PlanSeries _withActuals(PlanSeries series, Map<String, SeriesFollow> actuals) =>
-    series.copyWith(
-      dives: [
-        for (final dive in series.dives)
-          if (actuals[dive.state.id] case final actual?)
-            dive.copyWith(actual: actual)
-          else
-            dive,
-      ],
-    );

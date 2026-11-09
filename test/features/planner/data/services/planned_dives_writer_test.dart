@@ -253,6 +253,89 @@ void main() {
     expect(await siteFor(other.id), isNull);
   });
 
+  group('a dived link moved to a new entry', () {
+    late Diver owner;
+    late DiveSite site;
+    late Dive dived;
+
+    /// [owner]'s private site, and a dive of another diver's that the plan
+    /// is linked to and has been dived.
+    setUp(() async {
+      final now = DateTime.now();
+      owner = await DiverRepository().createDiver(
+        Diver(id: 'owner', name: 'owner', createdAt: now, updatedAt: now),
+      );
+      final other = await DiverRepository().createDiver(
+        Diver(id: 'other', name: 'other', createdAt: now, updatedAt: now),
+      );
+      site = await SiteRepository().createSite(
+        DiveSite(id: '', name: 'Blue Hole', diverId: owner.id),
+      );
+      dived = await dives.createDive(
+        loggedDive('dived', nine).copyWith(diverId: other.id),
+      );
+    });
+
+    PlanSeriesDive linkedDive() => PlanSeriesDive(
+      state: seriesDiveState(
+        id: 'a',
+      ).copyWith(siteId: site.id, linkedDiveId: dived.id),
+    );
+
+    test('takes the site as the new entry\'s diver sees it', () async {
+      final single = PlanSeries(dives: [linkedDive()]);
+
+      final moved = writer.decide(
+        single,
+        resultsOf(single),
+        await writer.lookUp(single, diverId: owner.id),
+        moveDivedLink: true,
+      );
+
+      expect(moved.steps.single.action, PlannedDiveAction.create);
+      expect(moved.steps.single.site?.id, site.id);
+    });
+
+    test('still does when a dive is removed while the lookups run', () async {
+      final series = PlanSeries(dives: [linkedDive(), twoDives().dives[1]]);
+      final lookups = await writer.lookUp(series, diverId: owner.id);
+      final single = PlanSeries(dives: [series.dives[0]]);
+
+      final moved = writer.decide(
+        single,
+        resultsOf(single),
+        lookups,
+        moveDivedLink: true,
+      );
+
+      expect(moved.steps.single.site?.id, site.id);
+    });
+  });
+
+  test('a plan decide() did not let through is refused', () async {
+    final single = PlanSeries.single(
+      seriesDiveState(id: 'a').copyWith(segments: const []),
+    );
+    final blocked = writer.decide(
+      single,
+      resultsOf(single),
+      await writer.lookUp(single, diverId: null),
+    );
+    expect(blocked.writable, isFalse);
+
+    await expectLater(writeAll(blocked), throwsArgumentError);
+  });
+
+  test('results that do not match the dives are refused', () async {
+    final series = twoDives();
+    final lookups = await writer.lookUp(series, diverId: null);
+
+    expect(
+      () => writer.decide(series, resultsOf(series).sublist(0, 1), lookups),
+      throwsArgumentError,
+    );
+  });
+
   test('a write that fails part way returns what it wrote', () async {
     final series = twoDives();
     await saveRows(series);

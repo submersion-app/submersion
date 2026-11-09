@@ -278,8 +278,9 @@ class DivePlanWrites extends WritableEntry {
     await _save(
       current,
       update.values,
-      // No diver owns a saved plan, so the planner computes it with the
-      // active diver's settings, and so does this.
+      // A plan in a series belongs to the series' diver, whose settings it
+      // is computed with. A plan on its own has no owner, so the planner
+      // computes it with the active diver's settings, and so does this.
       ownerId: ownerId ?? await _r.activeDiverId?.call(),
     );
   }
