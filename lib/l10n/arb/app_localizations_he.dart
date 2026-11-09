@@ -19991,6 +19991,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_photoViewer_videoFileNotFound => 'קובץ הסרטון לא נמצא';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      'כדי להפעיל את הסרטון הזה נדרש חלון דפדפן רגיל. חלונות פרטיים אינם יכולים להזרים מ-Google Drive או מ-WebDAV.';
+
+  @override
   String get media_photoViewer_videoNotLinked => 'הסרטון אינו מקושר לספרייה';
 
   @override

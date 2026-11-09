@@ -5795,6 +5795,7 @@
   "media_photoViewer_shareTooltip": "שתף תמונה",
   "media_photoViewer_toggleOverlayLabel": "החלף שכבת-על של תמונה",
   "media_photoViewer_videoFileNotFound": "קובץ הסרטון לא נמצא",
+  "media_photoViewer_videoNeedsNormalWindow": "כדי להפעיל את הסרטון הזה נדרש חלון דפדפן רגיל. חלונות פרטיים אינם יכולים להזרים מ-Google Drive או מ-WebDAV.",
   "media_photoViewer_videoNotLinked": "הסרטון אינו מקושר לספרייה",
   "media_photoViewer_writeDiveDataTooltip": "כתוב נתוני צלילה לתמונה",
   "media_quickSiteDialog_cancelButton": "ביטול",

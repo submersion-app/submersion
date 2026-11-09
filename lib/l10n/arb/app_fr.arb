@@ -5795,6 +5795,7 @@
   "media_photoViewer_shareTooltip": "Partager la photo",
   "media_photoViewer_toggleOverlayLabel": "Basculer la superposition photo",
   "media_photoViewer_videoFileNotFound": "Fichier vidéo introuvable",
+  "media_photoViewer_videoNeedsNormalWindow": "La lecture de cette vidéo nécessite une fenêtre de navigateur normale. Les fenêtres privées ne peuvent pas diffuser depuis Google Drive ou WebDAV.",
   "media_photoViewer_videoNotLinked": "Vidéo non liée à la bibliothèque",
   "media_photoViewer_writeDiveDataTooltip": "Écrire les données de plongée sur la photo",
   "media_quickSiteDialog_cancelButton": "Annuler",

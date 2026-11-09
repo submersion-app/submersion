@@ -19433,6 +19433,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_photoViewer_videoFileNotFound => '视频文件未找到';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      '播放此视频需要普通浏览器窗口。隐私窗口无法从 Google Drive 或 WebDAV 进行串流。';
+
+  @override
   String get media_photoViewer_videoNotLinked => '视频未关联到图库';
 
   @override

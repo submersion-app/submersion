@@ -20440,6 +20440,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Arquivo de vídeo não encontrado';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      'Para reproduzir este vídeo é preciso uma janela normal do navegador. Janelas privadas não conseguem transmitir do Google Drive ou do WebDAV.';
+
+  @override
   String get media_photoViewer_videoNotLinked =>
       'Vídeo não vinculado a biblioteca';
 

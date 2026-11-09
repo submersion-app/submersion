@@ -20755,6 +20755,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_photoViewer_videoFileNotFound => 'ملف الفيديو غير موجود';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      'يتطلب تشغيل هذا الفيديو نافذة متصفح عادية. لا يمكن للنوافذ الخاصة البث من Google Drive أو WebDAV.';
+
+  @override
   String get media_photoViewer_videoNotLinked => 'الفيديو غير مرتبط بالمكتبة';
 
   @override

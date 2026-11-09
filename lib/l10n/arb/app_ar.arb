@@ -5896,6 +5896,7 @@
   "media_photoViewer_shareTooltip": "مشاركة الصورة",
   "media_photoViewer_toggleOverlayLabel": "تبديل طبقة الصورة",
   "media_photoViewer_videoFileNotFound": "ملف الفيديو غير موجود",
+  "media_photoViewer_videoNeedsNormalWindow": "يتطلب تشغيل هذا الفيديو نافذة متصفح عادية. لا يمكن للنوافذ الخاصة البث من Google Drive أو WebDAV.",
   "media_photoViewer_videoNotLinked": "الفيديو غير مرتبط بالمكتبة",
   "media_photoViewer_writeDiveDataTooltip": "كتابة بيانات الغوصة على الصورة",
   "media_quickSiteDialog_cancelButton": "إلغاء",

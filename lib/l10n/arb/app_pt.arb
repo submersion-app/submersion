@@ -5896,6 +5896,7 @@
   "media_photoViewer_shareTooltip": "Compartilhar foto",
   "media_photoViewer_toggleOverlayLabel": "Alternar sobreposição da foto",
   "media_photoViewer_videoFileNotFound": "Arquivo de vídeo não encontrado",
+  "media_photoViewer_videoNeedsNormalWindow": "Para reproduzir este vídeo é preciso uma janela normal do navegador. Janelas privadas não conseguem transmitir do Google Drive ou do WebDAV.",
   "media_photoViewer_videoNotLinked": "Vídeo não vinculado a biblioteca",
   "media_photoViewer_writeDiveDataTooltip": "Gravar dados do mergulho na foto",
   "media_quickSiteDialog_cancelButton": "Cancelar",

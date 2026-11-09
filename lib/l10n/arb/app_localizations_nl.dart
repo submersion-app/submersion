@@ -20310,6 +20310,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Videobestand niet gevonden';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      'Voor het afspelen van deze video is een normaal browservenster nodig. Privévensters kunnen niet streamen vanuit Google Drive of WebDAV.';
+
+  @override
   String get media_photoViewer_videoNotLinked =>
       'Video niet gekoppeld aan bibliotheek';
 
