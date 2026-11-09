@@ -640,9 +640,9 @@ void main() {
         expect(notifier.state.unmatchedPhotoCount, 0);
         expect(notifier.state.zipTempDirPaths, isEmpty);
 
-        // The superseded temp dir is deleted (fire-and-forget). Allow the
-        // microtask/IO to settle before asserting.
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        // The superseded temp dir is deleted fire-and-forget; the test waits
+        // for that deletion itself rather than guessing how long it takes.
+        await notifier.pendingTempCleanup;
         expect(Directory(tempDir).existsSync(), isFalse);
       },
     );
@@ -659,8 +659,30 @@ void main() {
       notifier.reset();
 
       expect(notifier.state.zipTempDirPaths, isEmpty);
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await notifier.pendingTempCleanup;
       expect(Directory(tempDir).existsSync(), isFalse);
+    });
+
+    test('one wait covers every cleanup started, even while one is still '
+        'running', () async {
+      Future<String> expandZip(String name) async {
+        final zipPath = p.join(tmp.path, name);
+        await File(
+          zipPath,
+        ).writeAsBytes(buildZip({'$name.zxu': zxuBytes('20240612093000')}));
+        await notifier.loadFilesFromPaths([zipPath]);
+        return notifier.state.zipTempDirPaths.single;
+      }
+
+      final first = await expandZip('first.zip');
+      // The second archive supersedes the first, starting its cleanup; reset
+      // then starts another before anything awaits the first.
+      final second = await expandZip('second.zip');
+      notifier.reset();
+
+      await notifier.pendingTempCleanup;
+      expect(Directory(first).existsSync(), isFalse);
+      expect(Directory(second).existsSync(), isFalse);
     });
   });
 }

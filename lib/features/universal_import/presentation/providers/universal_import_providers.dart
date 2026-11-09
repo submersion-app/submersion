@@ -225,10 +225,24 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     _deleteTempDirs(superseded);
   }
 
+  /// Every temp-directory deletion [_deleteTempDirs] has started, chained in
+  /// order, so it completes once the last of them has.
+  ///
+  /// Nothing in the app waits on it: cleanup stays fire-and-forget. A test
+  /// awaits it to see a deletion land, instead of sleeping and hoping the
+  /// recursive delete was quick enough (issue #4343).
+  @visibleForTesting
+  Future<void> get pendingTempCleanup => _pendingTempCleanup;
+  Future<void> _pendingTempCleanup = Future<void>.value();
+
   /// Best-effort, fire-and-forget deletion of extracted-ZIP temp directories.
   void _deleteTempDirs(List<String> paths) {
     if (paths.isEmpty) return;
-    unawaited(() async {
+    final previous = _pendingTempCleanup;
+    _pendingTempCleanup = () async {
+      // Runs after any cleanup still in flight, so [pendingTempCleanup]
+      // covers both. Neither can fail: each delete swallows its own error.
+      await previous;
       for (final path in paths) {
         try {
           final dir = Directory(path);
@@ -237,7 +251,8 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
           // Temp cleanup is best-effort; the OS reclaims systemTemp anyway.
         }
       }
-    }());
+    }();
+    unawaited(_pendingTempCleanup);
   }
 
   /// Single-file load by path (used when a ZIP expands to exactly one
