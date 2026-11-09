@@ -1725,17 +1725,17 @@ class InsightsRepository with InsightsChartDives {
   /// A buddy excluded from the rankings is left out here rather than dropped
   /// by the caller, so the [limit] is filled by buddies who rank (issue
   /// #3624).
+  ///
+  /// A null [limit] returns every row.
   Future<List<RankingItem>> getTopBuddies({
     String? diverId,
-    int limit = 10,
+    int? limit = 10,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
-      final params = diverId != null
-          ? [diverId, ...df.params, limit]
-          : [...df.params, limit];
+      final params = [?diverId, ...df.params, ?limit];
 
       final results = await _db.customSelect('''
         SELECT
@@ -1748,7 +1748,7 @@ class InsightsRepository with InsightsChartDives {
         WHERE b.excluded_from_rankings = 0 $diverFilter ${df.clause}
         GROUP BY b.id
         ORDER BY dive_count DESC
-        LIMIT ?
+        ${limit == null ? '' : 'LIMIT ?'}
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
@@ -1839,17 +1839,17 @@ class InsightsRepository with InsightsChartDives {
   }
 
   /// Get top dive centers by dive count
+  ///
+  /// A null [limit] returns every row.
   Future<List<RankingItem>> getTopDiveCenters({
     String? diverId,
-    int limit = 10,
+    int? limit = 10,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
-      final params = diverId != null
-          ? [diverId, ...df.params, limit]
-          : [...df.params, limit];
+      final params = [?diverId, ...df.params, ?limit];
 
       final results = await _db.customSelect('''
         WITH dc_clean AS (
@@ -1884,7 +1884,7 @@ class InsightsRepository with InsightsChartDives {
         WHERE 1=1 $diverFilter ${df.clause}
         GROUP BY dc.id
         ORDER BY dive_count DESC
-        LIMIT ?
+        ${limit == null ? '' : 'LIMIT ?'}
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
@@ -1919,17 +1919,17 @@ class InsightsRepository with InsightsChartDives {
   /// Like every Insights card, the count leaves out planned dives and dives
   /// excluded from statistics (DiveStatsScope), and so does the dive list a
   /// row opens.
+  ///
+  /// A null [limit] returns every row.
   Future<List<RankingItem>> getCountriesVisited({
     String? diverId,
-    int limit = 10,
+    int? limit = 10,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
-      final params = diverId != null
-          ? [diverId, ...df.params, limit]
-          : [...df.params, limit];
+      final params = [?diverId, ...df.params, ?limit];
 
       final results = await _db.customSelect('''
         SELECT
@@ -1940,7 +1940,7 @@ class InsightsRepository with InsightsChartDives {
         WHERE TRIM(ds.country, $dartWhitespaceSqlChars) != '' $diverFilter ${df.clause}
         GROUP BY unicode_lower(TRIM(ds.country, $dartWhitespaceSqlChars))
         ORDER BY dive_count DESC
-        LIMIT ?
+        ${limit == null ? '' : 'LIMIT ?'}
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
@@ -1964,17 +1964,17 @@ class InsightsRepository with InsightsChartDives {
   /// Get regions explored with dive counts, one row per region and
   /// country. Grouped like [getCountriesVisited]; a blank country reads as
   /// none, the same way `site.country :none` does.
+  ///
+  /// A null [limit] returns every row.
   Future<List<RankingItem>> getRegionsExplored({
     String? diverId,
-    int limit = 10,
+    int? limit = 10,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
-      final params = diverId != null
-          ? [diverId, ...df.params, limit]
-          : [...df.params, limit];
+      final params = [?diverId, ...df.params, ?limit];
 
       final results = await _db.customSelect('''
         SELECT
@@ -1987,7 +1987,7 @@ class InsightsRepository with InsightsChartDives {
         GROUP BY unicode_lower(TRIM(ds.region, $dartWhitespaceSqlChars)),
           unicode_lower(NULLIF(TRIM(ds.country, $dartWhitespaceSqlChars), ''))
         ORDER BY dive_count DESC
-        LIMIT ?
+        ${limit == null ? '' : 'LIMIT ?'}
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
@@ -2013,9 +2013,11 @@ class InsightsRepository with InsightsChartDives {
   /// the side trips are left out of the ranking so no dive counts twice
   /// (issue #3658). With [diverId], only trips the profile can see rank, and
   /// a side trip of a parent it cannot see ranks as itself (issue #3933).
+  ///
+  /// A null [limit] returns every row.
   Future<List<RankingItem>> getDivesPerTrip({
     String? diverId,
-    int limit = 10,
+    int? limit = 10,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
@@ -2025,9 +2027,7 @@ class InsightsRepository with InsightsChartDives {
       );
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
-      final params = diverId != null
-          ? [diverId, ...df.params, limit]
-          : [...df.params, limit];
+      final params = [?diverId, ...df.params, ?limit];
 
       final results = await _db
           .customSelect(
@@ -2042,7 +2042,7 @@ class InsightsRepository with InsightsChartDives {
         ${topLevel.whereClause} $diverFilter ${df.clause}
         GROUP BY t.id
         ORDER BY dive_count DESC
-        LIMIT ?
+        ${limit == null ? '' : 'LIMIT ?'}
         ''',
             variables: [
               ...topLevel.variables,
@@ -2102,17 +2102,17 @@ class InsightsRepository with InsightsChartDives {
   }
 
   /// Get most common sightings
+  ///
+  /// A null [limit] returns every row.
   Future<List<RankingItem>> getMostCommonSightings({
     String? diverId,
-    int limit = 10,
+    int? limit = 10,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
-      final params = diverId != null
-          ? [diverId, ...df.params, limit]
-          : [...df.params, limit];
+      final params = [?diverId, ...df.params, ?limit];
 
       final results = await _db.customSelect('''
         SELECT
@@ -2126,7 +2126,7 @@ class InsightsRepository with InsightsChartDives {
         WHERE 1=1 $diverFilter ${df.clause}
         GROUP BY sp.id
         ORDER BY total_count DESC
-        LIMIT ?
+        ${limit == null ? '' : 'LIMIT ?'}
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
@@ -2148,17 +2148,17 @@ class InsightsRepository with InsightsChartDives {
   }
 
   /// Get best sites for marine life (most species variety)
+  ///
+  /// A null [limit] returns every row.
   Future<List<RankingItem>> getBestSitesForMarineLife({
     String? diverId,
-    int limit = 10,
+    int? limit = 10,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
-      final params = diverId != null
-          ? [diverId, ...df.params, limit]
-          : [...df.params, limit];
+      final params = [?diverId, ...df.params, ?limit];
 
       final results = await _db.customSelect('''
         SELECT
@@ -2171,7 +2171,7 @@ class InsightsRepository with InsightsChartDives {
         WHERE 1=1 $diverFilter ${df.clause}
         GROUP BY ds.id
         ORDER BY species_count DESC
-        LIMIT ?
+        ${limit == null ? '' : 'LIMIT ?'}
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {

@@ -5,8 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
+import 'package:submersion/features/insights/presentation/widgets/expandable_ranking_list.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_filtered_scaffold.dart';
-import 'package:submersion/features/insights/presentation/widgets/ranking_list.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -118,10 +118,9 @@ class InsightsSocialPage extends ConsumerWidget {
       title: context.l10n.insights_social_topBuddies_title,
       subtitle: context.l10n.insights_social_topBuddies_subtitle,
       child: topBuddiesAsync.when(
-        data: (data) => RankingList(
+        data: (data) => ExpandableRankingList(
           items: data,
           countLabel: context.l10n.insights_ranking_countLabel_dives,
-          maxItems: 5,
           onItemTap: (item) => context.push('/buddies/${item.id}'),
         ),
         loading: () => const SizedBox(
@@ -143,10 +142,9 @@ class InsightsSocialPage extends ConsumerWidget {
       title: context.l10n.insights_social_topDiveCenters_title,
       subtitle: context.l10n.insights_social_topDiveCenters_subtitle,
       child: topCentersAsync.when(
-        data: (data) => RankingList(
+        data: (data) => ExpandableRankingList(
           items: data,
           countLabel: context.l10n.insights_ranking_countLabel_dives,
-          maxItems: 5,
           onItemTap: (item) => context.push('/dive-centers/${item.id}'),
         ),
         loading: () => const SizedBox(
