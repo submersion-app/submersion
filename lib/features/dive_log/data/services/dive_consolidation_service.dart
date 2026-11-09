@@ -868,6 +868,10 @@ class DiveConsolidationService {
         now: now,
       );
 
+      // Apple Health readings (issue #637) move to the target when it has
+      // none, so a watch dive joining a download keeps its heart rate.
+      await _moveHealthRecord(secondaryDiveIds, targetDiveId, now);
+
       // Delete secondaries through the tombstone-logging path (this is the
       // fix for mergeDives' raw delete, which never logged deletions and
       // let sync resurrect the folded dive).
@@ -907,6 +911,40 @@ class DiveConsolidationService {
     await _sync.markRecordPending(
       entityType: 'diveTanks',
       recordId: tankId,
+      localUpdatedAt: now,
+    );
+  }
+
+  /// Moves the newest Apple Health record among [secondaryDiveIds] to
+  /// [targetDiveId] when the target has none (issue #637). The rest go with
+  /// their dives.
+  Future<void> _moveHealthRecord(
+    List<String> secondaryDiveIds,
+    String targetDiveId,
+    int now,
+  ) async {
+    final held = await (_db.select(
+      _db.diveHealthRecords,
+    )..where((t) => t.diveId.equals(targetDiveId))).get();
+    if (held.isNotEmpty) return;
+    final moving =
+        await (_db.select(_db.diveHealthRecords)
+              ..where((t) => t.diveId.isIn(secondaryDiveIds))
+              ..orderBy([(t) => OrderingTerm.desc(t.fetchedAt)])
+              ..limit(1))
+            .getSingleOrNull();
+    if (moving == null) return;
+    await (_db.update(
+      _db.diveHealthRecords,
+    )..where((t) => t.id.equals(moving.id))).write(
+      DiveHealthRecordsCompanion(
+        diveId: Value(targetDiveId),
+        updatedAt: Value(now),
+      ),
+    );
+    await _sync.markRecordPending(
+      entityType: 'diveHealthRecords',
+      recordId: moving.id,
       localUpdatedAt: now,
     );
   }
@@ -1120,6 +1158,10 @@ class DiveConsolidationService {
           (t) => t.diveId.equals(mergedId),
         );
         batch.deleteWhere(_db.tideRecords, (t) => t.diveId.equals(mergedId));
+        batch.deleteWhere(
+          _db.diveHealthRecords,
+          (t) => t.diveId.equals(mergedId),
+        );
       });
 
       // Re-insert dives with ORIGINAL ids; newer HLC beats the tombstones.
@@ -1178,6 +1220,13 @@ class DiveConsolidationService {
         for (final r in snapshot.tideRows) {
           batch.insert(
             _db.tideRecords,
+            r.toCompanion(false),
+            mode: InsertMode.insertOrReplace,
+          );
+        }
+        for (final r in snapshot.healthRows) {
+          batch.insert(
+            _db.diveHealthRecords,
             r.toCompanion(false),
             mode: InsertMode.insertOrReplace,
           );

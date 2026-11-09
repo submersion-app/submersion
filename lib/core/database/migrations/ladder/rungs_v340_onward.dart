@@ -84,6 +84,8 @@ extension RungsFromV340 on AppDatabase {
     // readings (issue #637). Defaulted, no backfill, so the compatibility
     // floor does not move. Numbered 350 so open PR #4327 can take 348.
     if (from < 350) await _assertDiveIsDraftColumn();
+    // v350 too: dive_health_records, Apple Health readings per dive.
+    if (from < 350) await _assertDiveHealthRecordsTable();
     if (from < 350) await reportProgress();
   }
 }

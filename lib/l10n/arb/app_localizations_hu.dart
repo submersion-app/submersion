@@ -24318,6 +24318,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'Importált merülések címkézése';
 
   @override
+  String get settings_conflict_field_avgHeartRate => 'Average heart rate';
+
+  @override
   String get settings_conflict_field_downloadsFollowComputerOwner =>
       'Letöltések hozzáadása a komputer tulajdonosához';
 
@@ -25209,6 +25212,22 @@ class AppLocalizationsHu extends AppLocalizations {
       'Iránykorrekció fokban';
 
   @override
+  String get settings_conflict_field_heartRateAtExit =>
+      'Heart rate at surfacing';
+
+  @override
+  String get settings_conflict_field_heartRateExitPlus15 =>
+      'Heart rate 15 min after surfacing';
+
+  @override
+  String get settings_conflict_field_heartRateExitPlus5 =>
+      'Heart rate 5 min after surfacing';
+
+  @override
+  String get settings_conflict_field_heartRateSamples =>
+      'Heart rate from Apple Health';
+
+  @override
   String get settings_conflict_field_scaleFactor =>
       'A nyomvonal méretezési tényezője';
 
@@ -25453,6 +25472,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'Legnagyobb lemerülési sebesség';
 
   @override
+  String get settings_conflict_field_maxHeartRate => 'Maximum heart rate';
+
+  @override
   String get settings_conflict_field_maxSpeed => 'Végsebesség';
 
   @override
@@ -25520,6 +25542,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_overdueServices => 'Esedékes szervizek';
+
+  @override
+  String get settings_conflict_field_overnightHrvMs =>
+      'Overnight heart rate variability';
 
   @override
   String get settings_conflict_field_params => 'Részletek';
@@ -26050,6 +26076,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_size => 'Méret';
 
   @override
+  String get settings_conflict_field_sleepBeforeMinutes =>
+      'Sleep the night before';
+
+  @override
   String get settings_conflict_field_sortOrder => 'Sorrend';
 
   @override
@@ -26119,6 +26149,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_settingOverrides =>
       'Csak erre a merülésre vonatkozó beállítások';
+
+  @override
+  String get settings_conflict_field_settled =>
+      'Apple Health readings complete';
 
   @override
   String get settings_conflict_field_startTime => 'Kezdés ideje';

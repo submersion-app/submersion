@@ -131,6 +131,12 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'via_equipment_id': 'Provenance: the immediate parent assembly this row was attached through, null for a top-level row',
     'via_set_id': 'The equipment set that was applied, carried by every row of the expanded subtree',
   },
+  'dive_health_records': {
+    'heart_rate_at_exit': 'Recovery: the heart rate at the exit, and five and fifteen minutes on',
+    'heart_rate_samples': 'JSON `[[offsetSeconds, bpm], ...]` from the dive\'s entry',
+    'overnight_hrv_ms': 'The night before the dive: mean heart rate variability (SDNN, ms) and minutes asleep',
+    'settled': 'True once every reading the dive can have is in (the recovery window has passed), so no later refresh asks Health again',
+  },
   'dive_plan_equipment': {
     'updated_at': 'The sync merge\'s age signal for this link',
     'via_equipment_id': 'Provenance: the immediate parent assembly this row was attached through, null for a top-level row',

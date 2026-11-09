@@ -209,6 +209,7 @@ class SyncRepository {
     'weightPresetEntries': (table: 'weight_preset_entries', pk: 'id'),
     'diveCenterGearNotes': (table: 'dive_center_gear_notes', pk: 'id'),
     'tideRecords': (table: 'tide_records', pk: 'id'),
+    'diveHealthRecords': (table: 'dive_health_records', pk: 'id'),
     'sightings': (table: 'sightings', pk: 'id'),
     'diveCustomFields': (table: 'dive_custom_fields', pk: 'id'),
     'diveDataSources': (table: 'dive_data_sources', pk: 'id'),

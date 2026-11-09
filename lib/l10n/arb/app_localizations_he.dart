@@ -23846,6 +23846,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_autoTagImports => 'תיוג צלילות מיובאות';
 
   @override
+  String get settings_conflict_field_avgHeartRate => 'Average heart rate';
+
+  @override
   String get settings_conflict_field_downloadsFollowComputerOwner =>
       'הוספת הורדות לבעלים של המחשב';
 
@@ -24700,6 +24703,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_headingOffsetDeg => 'תיקון כיוון במעלות';
 
   @override
+  String get settings_conflict_field_heartRateAtExit =>
+      'Heart rate at surfacing';
+
+  @override
+  String get settings_conflict_field_heartRateExitPlus15 =>
+      'Heart rate 15 min after surfacing';
+
+  @override
+  String get settings_conflict_field_heartRateExitPlus5 =>
+      'Heart rate 5 min after surfacing';
+
+  @override
+  String get settings_conflict_field_heartRateSamples =>
+      'Heart rate from Apple Health';
+
+  @override
   String get settings_conflict_field_scaleFactor => 'מקדם קנה המידה של המסלול';
 
   @override
@@ -24938,6 +24957,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_maxDescentRate => 'קצב ירידה מרבי';
 
   @override
+  String get settings_conflict_field_maxHeartRate => 'Maximum heart rate';
+
+  @override
   String get settings_conflict_field_maxSpeed => 'מהירות מרבית';
 
   @override
@@ -25004,6 +25026,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_overdueServices => 'טיפולים שעבר מועדם';
+
+  @override
+  String get settings_conflict_field_overnightHrvMs =>
+      'Overnight heart rate variability';
 
   @override
   String get settings_conflict_field_params => 'פרטים';
@@ -25513,6 +25539,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_size => 'מידה';
 
   @override
+  String get settings_conflict_field_sleepBeforeMinutes =>
+      'Sleep the night before';
+
+  @override
   String get settings_conflict_field_sortOrder => 'סדר מיון';
 
   @override
@@ -25581,6 +25611,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_settingOverrides =>
       'הגדרות לצלילה זו בלבד';
+
+  @override
+  String get settings_conflict_field_settled =>
+      'Apple Health readings complete';
 
   @override
   String get settings_conflict_field_startTime => 'שעת התחלה';

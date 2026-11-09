@@ -153,6 +153,8 @@ final exempt = <String, String>{
     'lib/features/tides/data/repositories/tide_record_repository.dart:createFromStatus',
     'lib/features/tides/data/repositories/tide_record_repository.dart:deleteTideRecordForDive',
     'lib/features/tides/data/repositories/tide_record_repository.dart:saveTideRecord',
+    // Apple Health readings on a dive (issue #637).
+    'lib/features/dive_log/data/repositories/dive_health_record_repository.dart:upsert',
     'lib/features/trips/data/repositories/trip_day_weather_repository.dart:upsert',
   ])
     method:

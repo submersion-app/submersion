@@ -38622,6 +38622,12 @@ abstract class AppLocalizations {
   /// **'Tag imported dives'**
   String get settings_conflict_field_autoTagImports;
 
+  /// No description provided for @settings_conflict_field_avgHeartRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Average heart rate'**
+  String get settings_conflict_field_avgHeartRate;
+
   /// Label for the downloads-follow-computer-owner setting in a sync conflict
   ///
   /// In en, this message translates to:
@@ -40182,6 +40188,30 @@ abstract class AppLocalizations {
   /// **'Heading correction in degrees'**
   String get settings_conflict_field_headingOffsetDeg;
 
+  /// No description provided for @settings_conflict_field_heartRateAtExit.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart rate at surfacing'**
+  String get settings_conflict_field_heartRateAtExit;
+
+  /// No description provided for @settings_conflict_field_heartRateExitPlus15.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart rate 15 min after surfacing'**
+  String get settings_conflict_field_heartRateExitPlus15;
+
+  /// No description provided for @settings_conflict_field_heartRateExitPlus5.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart rate 5 min after surfacing'**
+  String get settings_conflict_field_heartRateExitPlus5;
+
+  /// No description provided for @settings_conflict_field_heartRateSamples.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart rate from Apple Health'**
+  String get settings_conflict_field_heartRateSamples;
+
   /// No description provided for @settings_conflict_field_scaleFactor.
   ///
   /// In en, this message translates to:
@@ -40644,6 +40674,12 @@ abstract class AppLocalizations {
   /// **'Maximum descent rate'**
   String get settings_conflict_field_maxDescentRate;
 
+  /// No description provided for @settings_conflict_field_maxHeartRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum heart rate'**
+  String get settings_conflict_field_maxHeartRate;
+
   /// No description provided for @settings_conflict_field_maxSpeed.
   ///
   /// In en, this message translates to:
@@ -40775,6 +40811,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Overdue services'**
   String get settings_conflict_field_overdueServices;
+
+  /// No description provided for @settings_conflict_field_overnightHrvMs.
+  ///
+  /// In en, this message translates to:
+  /// **'Overnight heart rate variability'**
+  String get settings_conflict_field_overnightHrvMs;
 
   /// No description provided for @settings_conflict_field_params.
   ///
@@ -41718,6 +41760,12 @@ abstract class AppLocalizations {
   /// **'Size'**
   String get settings_conflict_field_size;
 
+  /// No description provided for @settings_conflict_field_sleepBeforeMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep the night before'**
+  String get settings_conflict_field_sleepBeforeMinutes;
+
   /// No description provided for @settings_conflict_field_sortOrder.
   ///
   /// In en, this message translates to:
@@ -41849,6 +41897,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settings for this dive only'**
   String get settings_conflict_field_settingOverrides;
+
+  /// No description provided for @settings_conflict_field_settled.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple Health readings complete'**
+  String get settings_conflict_field_settled;
 
   /// No description provided for @settings_conflict_field_startTime.
   ///

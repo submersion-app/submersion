@@ -345,6 +345,43 @@ final Map<String, ConflictField> diveLogFields = {
     (l) => l.settings_conflict_field_isDraft,
     FieldKind.boolean,
   ),
+  // Apple Health readings on a dive (dive_health_records, issue #637).
+  'avgHeartRate': ConflictField(
+    (l) => l.settings_conflict_field_avgHeartRate,
+    FieldKind.number,
+  ),
+  'heartRateAtExit': ConflictField(
+    (l) => l.settings_conflict_field_heartRateAtExit,
+    FieldKind.number,
+  ),
+  'heartRateExitPlus15': ConflictField(
+    (l) => l.settings_conflict_field_heartRateExitPlus15,
+    FieldKind.number,
+  ),
+  'heartRateExitPlus5': ConflictField(
+    (l) => l.settings_conflict_field_heartRateExitPlus5,
+    FieldKind.number,
+  ),
+  'heartRateSamples': ConflictField(
+    (l) => l.settings_conflict_field_heartRateSamples,
+    FieldKind.opaque,
+  ),
+  'maxHeartRate': ConflictField(
+    (l) => l.settings_conflict_field_maxHeartRate,
+    FieldKind.number,
+  ),
+  'overnightHrvMs': ConflictField(
+    (l) => l.settings_conflict_field_overnightHrvMs,
+    FieldKind.number,
+  ),
+  'settled': ConflictField(
+    (l) => l.settings_conflict_field_settled,
+    FieldKind.boolean,
+  ),
+  'sleepBeforeMinutes': ConflictField(
+    (l) => l.settings_conflict_field_sleepBeforeMinutes,
+    FieldKind.durationMinutes,
+  ),
   'isPrimary': ConflictField(
     (l) => l.settings_conflict_field_isPrimary,
     FieldKind.boolean,

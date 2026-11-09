@@ -24399,6 +24399,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'Etiquetar inmersiones importadas';
 
   @override
+  String get settings_conflict_field_avgHeartRate => 'Average heart rate';
+
+  @override
   String get settings_conflict_field_downloadsFollowComputerOwner =>
       'Añadir las descargas al propietario del ordenador';
 
@@ -25311,6 +25314,22 @@ class AppLocalizationsEs extends AppLocalizations {
       'Corrección de rumbo en grados';
 
   @override
+  String get settings_conflict_field_heartRateAtExit =>
+      'Heart rate at surfacing';
+
+  @override
+  String get settings_conflict_field_heartRateExitPlus15 =>
+      'Heart rate 15 min after surfacing';
+
+  @override
+  String get settings_conflict_field_heartRateExitPlus5 =>
+      'Heart rate 5 min after surfacing';
+
+  @override
+  String get settings_conflict_field_heartRateSamples =>
+      'Heart rate from Apple Health';
+
+  @override
   String get settings_conflict_field_scaleFactor =>
       'Factor de escala del track';
 
@@ -25565,6 +25584,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'Velocidad de descenso máxima';
 
   @override
+  String get settings_conflict_field_maxHeartRate => 'Maximum heart rate';
+
+  @override
   String get settings_conflict_field_maxSpeed => 'Velocidad máxima';
 
   @override
@@ -25634,6 +25656,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_conflict_field_overdueServices =>
       'Mantenimientos vencidos';
+
+  @override
+  String get settings_conflict_field_overnightHrvMs =>
+      'Overnight heart rate variability';
 
   @override
   String get settings_conflict_field_params => 'Detalles';
@@ -26177,6 +26203,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_field_size => 'Talla';
 
   @override
+  String get settings_conflict_field_sleepBeforeMinutes =>
+      'Sleep the night before';
+
+  @override
   String get settings_conflict_field_sortOrder => 'Orden';
 
   @override
@@ -26251,6 +26281,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_conflict_field_settingOverrides =>
       'Ajustes solo para esta inmersión';
+
+  @override
+  String get settings_conflict_field_settled =>
+      'Apple Health readings complete';
 
   @override
   String get settings_conflict_field_startTime => 'Hora de inicio';

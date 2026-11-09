@@ -674,6 +674,35 @@ class DiveMergeService {
         );
       }
 
+      // 11b. Apple Health readings (issue #637): the first dive's that has
+      // any, so a watch dive merged after a downloaded one keeps its own.
+      final sourceOrder = [for (final d in result.sortedSources) d.id];
+      final health = [...snapshot.healthRows]
+        ..sort(
+          (a, b) => sourceOrder
+              .indexOf(a.diveId)
+              .compareTo(sourceOrder.indexOf(b.diveId)),
+        );
+      if (health.isNotEmpty) {
+        final healthId = _uuid.v4();
+        await _db
+            .into(_db.diveHealthRecords)
+            .insert(
+              health.first
+                  .toCompanion(false)
+                  .copyWith(
+                    id: Value(healthId),
+                    diveId: Value(mergedId),
+                    updatedAt: Value(now),
+                  ),
+            );
+        await _sync.markRecordPending(
+          entityType: 'diveHealthRecords',
+          recordId: healthId,
+          localUpdatedAt: now,
+        );
+      }
+
       // 12. Re-point media BEFORE deleting sources (FK is setNull).
       for (final mediaId in snapshot.mediaDiveIds.keys) {
         await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
@@ -761,6 +790,10 @@ class DiveMergeService {
           (t) => t.diveId.equals(mergedId),
         );
         batch.deleteWhere(_db.tideRecords, (t) => t.diveId.equals(mergedId));
+        batch.deleteWhere(
+          _db.diveHealthRecords,
+          (t) => t.diveId.equals(mergedId),
+        );
       });
       // cascadeMedia: false - this undo re-points the merged dive's media
       // back to the restored sources below; the cascade would delete (and
@@ -823,6 +856,13 @@ class DiveMergeService {
         for (final r in snapshot.tideRows) {
           batch.insert(
             _db.tideRecords,
+            r.toCompanion(false),
+            mode: InsertMode.insertOrReplace,
+          );
+        }
+        for (final r in snapshot.healthRows) {
+          batch.insert(
+            _db.diveHealthRecords,
             r.toCompanion(false),
             mode: InsertMode.insertOrReplace,
           );

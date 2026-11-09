@@ -24030,6 +24030,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_autoTagImports => 'Tag imported dives';
 
   @override
+  String get settings_conflict_field_avgHeartRate => 'Average heart rate';
+
+  @override
   String get settings_conflict_field_downloadsFollowComputerOwner =>
       'Add downloads to the computer\'s owner';
 
@@ -24903,6 +24906,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'Heading correction in degrees';
 
   @override
+  String get settings_conflict_field_heartRateAtExit =>
+      'Heart rate at surfacing';
+
+  @override
+  String get settings_conflict_field_heartRateExitPlus15 =>
+      'Heart rate 15 min after surfacing';
+
+  @override
+  String get settings_conflict_field_heartRateExitPlus5 =>
+      'Heart rate 5 min after surfacing';
+
+  @override
+  String get settings_conflict_field_heartRateSamples =>
+      'Heart rate from Apple Health';
+
+  @override
   String get settings_conflict_field_scaleFactor => 'Track scale factor';
 
   @override
@@ -25143,6 +25162,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_maxDescentRate => 'Maximum descent rate';
 
   @override
+  String get settings_conflict_field_maxHeartRate => 'Maximum heart rate';
+
+  @override
   String get settings_conflict_field_maxSpeed => 'Top speed';
 
   @override
@@ -25209,6 +25231,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_field_overdueServices => 'Overdue services';
+
+  @override
+  String get settings_conflict_field_overnightHrvMs =>
+      'Overnight heart rate variability';
 
   @override
   String get settings_conflict_field_params => 'Details';
@@ -25728,6 +25754,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_size => 'Size';
 
   @override
+  String get settings_conflict_field_sleepBeforeMinutes =>
+      'Sleep the night before';
+
+  @override
   String get settings_conflict_field_sortOrder => 'Sort order';
 
   @override
@@ -25798,6 +25828,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_field_settingOverrides =>
       'Settings for this dive only';
+
+  @override
+  String get settings_conflict_field_settled =>
+      'Apple Health readings complete';
 
   @override
   String get settings_conflict_field_startTime => 'Start time';

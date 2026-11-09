@@ -23134,6 +23134,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_autoTagImports => '为导入的潜水添加标签';
 
   @override
+  String get settings_conflict_field_avgHeartRate => 'Average heart rate';
+
+  @override
   String get settings_conflict_field_downloadsFollowComputerOwner =>
       '将下载的记录添加到电脑所属的潜水员';
 
@@ -23919,6 +23922,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_headingOffsetDeg => '航向修正（度）';
 
   @override
+  String get settings_conflict_field_heartRateAtExit =>
+      'Heart rate at surfacing';
+
+  @override
+  String get settings_conflict_field_heartRateExitPlus15 =>
+      'Heart rate 15 min after surfacing';
+
+  @override
+  String get settings_conflict_field_heartRateExitPlus5 =>
+      'Heart rate 5 min after surfacing';
+
+  @override
+  String get settings_conflict_field_heartRateSamples =>
+      'Heart rate from Apple Health';
+
+  @override
   String get settings_conflict_field_scaleFactor => '轨迹缩放系数';
 
   @override
@@ -24151,6 +24170,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_maxDescentRate => '最大下潜速度';
 
   @override
+  String get settings_conflict_field_maxHeartRate => 'Maximum heart rate';
+
+  @override
   String get settings_conflict_field_maxSpeed => '最高速度';
 
   @override
@@ -24215,6 +24237,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_overdueServices => '逾期保养';
+
+  @override
+  String get settings_conflict_field_overnightHrvMs =>
+      'Overnight heart rate variability';
 
   @override
   String get settings_conflict_field_params => '详情';
@@ -24692,6 +24718,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_size => '尺码';
 
   @override
+  String get settings_conflict_field_sleepBeforeMinutes =>
+      'Sleep the night before';
+
+  @override
   String get settings_conflict_field_sortOrder => '排序';
 
   @override
@@ -24756,6 +24786,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_settingOverrides => '仅适用于本次潜水的设置';
+
+  @override
+  String get settings_conflict_field_settled =>
+      'Apple Health readings complete';
 
   @override
   String get settings_conflict_field_startTime => '开始时间';

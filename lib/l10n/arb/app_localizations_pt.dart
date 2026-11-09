@@ -24394,6 +24394,9 @@ class AppLocalizationsPt extends AppLocalizations {
       'Etiquetar mergulhos importados';
 
   @override
+  String get settings_conflict_field_avgHeartRate => 'Average heart rate';
+
+  @override
   String get settings_conflict_field_downloadsFollowComputerOwner =>
       'Adicionar downloads ao dono do computador';
 
@@ -25297,6 +25300,22 @@ class AppLocalizationsPt extends AppLocalizations {
       'Correção de rumo em graus';
 
   @override
+  String get settings_conflict_field_heartRateAtExit =>
+      'Heart rate at surfacing';
+
+  @override
+  String get settings_conflict_field_heartRateExitPlus15 =>
+      'Heart rate 15 min after surfacing';
+
+  @override
+  String get settings_conflict_field_heartRateExitPlus5 =>
+      'Heart rate 5 min after surfacing';
+
+  @override
+  String get settings_conflict_field_heartRateSamples =>
+      'Heart rate from Apple Health';
+
+  @override
   String get settings_conflict_field_scaleFactor => 'Fator de escala da trilha';
 
   @override
@@ -25547,6 +25566,9 @@ class AppLocalizationsPt extends AppLocalizations {
       'Velocidade de descida máxima';
 
   @override
+  String get settings_conflict_field_maxHeartRate => 'Maximum heart rate';
+
+  @override
   String get settings_conflict_field_maxSpeed => 'Velocidade máxima';
 
   @override
@@ -25615,6 +25637,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_conflict_field_overdueServices => 'Manutenções atrasadas';
+
+  @override
+  String get settings_conflict_field_overnightHrvMs =>
+      'Overnight heart rate variability';
 
   @override
   String get settings_conflict_field_params => 'Detalhes';
@@ -26155,6 +26181,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_field_size => 'Tamanho';
 
   @override
+  String get settings_conflict_field_sleepBeforeMinutes =>
+      'Sleep the night before';
+
+  @override
   String get settings_conflict_field_sortOrder => 'Ordem';
 
   @override
@@ -26229,6 +26259,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_conflict_field_settingOverrides =>
       'Definições apenas para este mergulho';
+
+  @override
+  String get settings_conflict_field_settled =>
+      'Apple Health readings complete';
 
   @override
   String get settings_conflict_field_startTime => 'Hora de início';

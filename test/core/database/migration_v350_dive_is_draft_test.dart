@@ -57,4 +57,30 @@ void main() {
         .getSingle();
     expect(row.read<int>('is_draft'), 0);
   });
+
+  /// v350 also creates dive_health_records, Apple Health readings per dive.
+  test('an upgraded database has the health records table', () async {
+    final nativeDb = NativeDatabase.memory(
+      setup: (rawDb) {
+        rawDb.execute('PRAGMA user_version = 349');
+        rawDb.execute('''
+          CREATE TABLE dives (
+            id TEXT NOT NULL PRIMARY KEY,
+            dive_date_time INTEGER NOT NULL,
+            notes TEXT NOT NULL DEFAULT '',
+            created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL)
+        ''');
+      },
+    );
+    final db = AppDatabase(nativeDb);
+    addTearDown(db.close);
+
+    final cols = await db
+        .customSelect("PRAGMA table_info('dive_health_records')")
+        .get();
+    expect(
+      cols.map((c) => c.read<String>('name')),
+      containsAll(['dive_id', 'heart_rate_samples', 'settled', 'hlc']),
+    );
+  });
 }
