@@ -12,6 +12,7 @@ import 'package:submersion/core/database/computer_tissue_scalar_move.dart';
 import 'package:submersion/core/database/last_service_date_repair.dart';
 import 'package:submersion/core/database/weather_fetched_at_repair.dart';
 import 'package:submersion/core/database/combined_dive_summary_repair.dart';
+import 'package:submersion/core/database/dive_water_temp_fill.dart';
 import 'package:submersion/core/database/device_gear_heal.dart';
 import 'package:submersion/core/database/database.dart'
     show AppDatabase, SyncRecord, DeletionLogData;
@@ -1456,7 +1457,7 @@ class SyncService {
           localLastSync,
         );
         await _repairLegacyPeerRows(
-          combinedDiveIds: {
+          touchedDiveIds: {
             for (final dive in remotePayload.data.dives) ?dive['id'] as String?,
             for (final source in remotePayload.data.diveDataSources)
               ?source['diveId'] as String?,
@@ -1472,8 +1473,9 @@ class SyncService {
   /// reads only rows still in the old shape, so it is a cheap no-op once every
   /// peer is current, and each leaves the sync stamp alone, as its rung does:
   /// the sending peer makes the same change when it upgrades. A combined dive
-  /// keeps its shape once repaired, so that repair reads only
-  /// [combinedDiveIds], the dives a payload touched; null, for a base file or
+  /// keeps its shape once repaired, and a dive with no temperature on any
+  /// source stays empty once filled, so those two read only
+  /// [touchedDiveIds], the dives a payload touched; null, for a base file or
   /// an adopted library, sweeps them all.
   ///
   /// A peer below v318 still publishes the CNS, OTU and deco model inside a
@@ -1483,17 +1485,21 @@ class SyncService {
   /// below v340 publishes a combined dive with its first segment's water
   /// temperature, CNS and OTU (issue #4136). One below v346 publishes an
   /// item's last service date older than its newest service record when an
-  /// older record was logged there (issue #4201).
-  Future<void> _repairLegacyPeerRows({
-    Iterable<String>? combinedDiveIds,
-  }) async {
+  /// older record was logged there (issue #4201). One below v349 publishes a
+  /// downloaded dive with no water temperature, kept on its source row only
+  /// (issue #4333); that fill reads the same touched dives.
+  Future<void> _repairLegacyPeerRows({Iterable<String>? touchedDiveIds}) async {
     try {
       final db = DatabaseService.instance.database;
       await repairWeatherFetchedAtSeconds(db);
-      await repairCombinedDiveSummaries(db, diveIds: combinedDiveIds);
+      await repairCombinedDiveSummaries(db, diveIds: touchedDiveIds);
       await moveComputerTissueScalars(db);
       // Raw SQL, which Drift's streams do not see; tell open screens, as the
       // base-file path runs this after its apply has committed.
+      if (await fillDiveWaterTempsFromSources(db, diveIds: touchedDiveIds) >
+          0) {
+        db.notifyUpdates({TableUpdate.onTable(db.dives)});
+      }
       if (await repairLastServiceDates(db) > 0) {
         db.notifyUpdates({TableUpdate.onTable(db.equipment)});
       }

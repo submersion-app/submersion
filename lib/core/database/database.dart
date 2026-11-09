@@ -315,7 +315,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 347;
+  static const int currentSchemaVersion = 349;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1595,6 +1595,12 @@ class AppDatabase extends _$AppDatabase {
     // overlay opacity over it per theme. Additive and defaulted; the floor
     // does not move.
     347,
+    // v349: an empty dives.water_temp takes the temperature its source rows
+    // measured, which a download kept on the source row only (issue #4333).
+    // Data only, filling a column every reader already holds, so the floor
+    // does not move. Numbered 349 so open PR #4327, which claimed 347, can
+    // take 348.
+    349,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
