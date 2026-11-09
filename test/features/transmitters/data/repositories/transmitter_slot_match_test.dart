@@ -179,14 +179,14 @@ void main() {
       await db
           .into(db.diveTanks)
           .insert(
-            DiveTanksCompanion(
-              id: const Value('both-t2'),
-              diveId: const Value('both'),
-              transmitterSlot: const Value(1),
-              tankOrder: const Value(1),
-              tankRole: const Value('backGas'),
-              o2Percent: const Value(21),
-              hePercent: const Value(0),
+            const DiveTanksCompanion(
+              id: Value('both-t2'),
+              diveId: Value('both'),
+              transmitterSlot: Value(1),
+              tankOrder: Value(1),
+              tankRole: Value('backGas'),
+              o2Percent: Value(21),
+              hePercent: Value(0),
             ),
           );
       await TankPressureRepository().insertTankPressures('both', {
