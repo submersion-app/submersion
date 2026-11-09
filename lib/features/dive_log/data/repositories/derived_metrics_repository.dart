@@ -200,10 +200,13 @@ class DerivedMetricsRepository {
   }
 
   /// [diveSourceStampSql] plus the dive's effective water type, which the SAC
-  /// metrics read (issue #3958), and its gas switches, which say whether a
-  /// cylinder was breathed on the surface (issue #2930). Neither a site's
-  /// water nor a synced switch re-stamps the dive. Terms of this cache alone,
-  /// because no other cache built on the source stamp reads them.
+  /// metrics read (issue #3958), and its gas switches and primary computer,
+  /// which say whether a cylinder was breathed on the surface (issue #2930):
+  /// the pressure series read are the primary computer's. Neither a site's
+  /// water, a synced switch nor a synced source flag re-stamps the dive.
+  /// The primary term is the source row's local rowid, which differs for
+  /// each source of a dive. Terms of this cache alone, because no other
+  /// cache built on the source stamp reads them.
   static final String _stampSql = () {
     final whens = [
       for (final type in WaterType.values)
@@ -213,13 +216,16 @@ class DerivedMetricsRepository {
         '(CASE ${diveEffectiveWaterTypeSql('d')} $whens ELSE 0 END) + '
         'COALESCE((SELECT COUNT(*) + SUM(stamp_g.timestamp) + '
         'SUM(COALESCE(CAST(substr(stamp_g.hlc, 1, 15) AS INTEGER), 0)) '
-        'FROM gas_switches stamp_g WHERE stamp_g.dive_id = d.id), 0))';
+        'FROM gas_switches stamp_g WHERE stamp_g.dive_id = d.id), 0) + '
+        'COALESCE((SELECT SUM(stamp_s.rowid) FROM dive_data_sources stamp_s '
+        'WHERE stamp_s.dive_id = d.id AND stamp_s.is_primary = 1), 0))';
   }();
 
   Set<ResultSetImplementation<dynamic, dynamic>> get _stampTables => {
     ...diveSourceStampTables(_db),
     _db.diveSites,
     _db.gasSwitches,
+    _db.diveDataSources,
   };
 
   /// [_stampSql] for one dive, or null when [diveId] does not exist.

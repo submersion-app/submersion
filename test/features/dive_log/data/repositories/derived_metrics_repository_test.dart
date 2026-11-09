@@ -618,6 +618,34 @@ void main() {
     expect(await r.staleDiveIds(), ['d1']);
   });
 
+  test('a new primary computer makes the row stale (#2930)', () async {
+    // The pressure series that say a cylinder was breathed on the surface
+    // are the primary computer's, and a synced source flag never re-stamps
+    // its dive.
+    await insertDive('d1', updatedAt: now);
+    for (final (id, primary) in [('a', true), ('b', false)]) {
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion.insert(
+              id: id,
+              diveId: 'd1',
+              importedAt: DateTime(2026, 6, 1),
+              createdAt: DateTime(2026, 6, 1),
+            ).copyWith(isPrimary: Value(primary)),
+          );
+    }
+    final r = repo();
+    await r.ensureCurrent('d1');
+    expect(await r.staleDiveIds(), isEmpty);
+
+    for (final (id, primary) in [('a', false), ('b', true)]) {
+      await (db.update(db.diveDataSources)..where((s) => s.id.equals(id)))
+          .write(DiveDataSourcesCompanion(isPrimary: Value(primary)));
+    }
+    expect(await r.staleDiveIds(), ['d1']);
+  });
+
   test('a synced tank row change makes the row stale', () async {
     // A tank's volume and identity live on dive_tanks, whose own clock is
     // the only thing a synced copy of it moves.

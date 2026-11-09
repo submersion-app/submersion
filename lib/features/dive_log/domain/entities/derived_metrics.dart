@@ -133,6 +133,8 @@ class DiveDerivedMetrics {
     this.sacBuckets = const [],
   });
 
+  /// Keeps [surfaceBreathing] as it is: [withGasUse] sets it together with
+  /// the window it stretched, so the two never disagree.
   DiveDerivedMetrics copyWith({
     String? diveId,
     int? engineVersion,
