@@ -4,11 +4,13 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/names/name_index.dart';
+import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/marine_life/presentation/species_name_lookup.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
+import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Loads the one [NameIndex] Explore and the typed language share (#2365):
@@ -40,11 +42,14 @@ class NameIndexLoader {
     QuerySubject.certifications,
   ];
 
-  /// The columns read beside the name, for alternates and places.
+  /// The columns read beside the name, for alternates, places and the
+  /// built-in flag that decides a translated name.
   static const _extra = {
     QuerySubject.sites: ['country', 'region', 'island', 'city'],
     QuerySubject.species: ['scientific_name', 'is_built_in'],
     QuerySubject.equipment: ['brand', 'model'],
+    QuerySubject.diveTypes: ['is_built_in'],
+    QuerySubject.siteTypes: ['is_built_in'],
   };
 
   /// The place columns in rank order: country 0, region 1, island 2, city 3.
@@ -274,6 +279,25 @@ class NameIndexLoader {
             ),
   ];
 
+  /// A built-in dive or site type's name in the diver's language; null for
+  /// any other row. Built-ins are stored in English because exports carry
+  /// the stored name (#643), and a built-in's name cannot be edited, so the
+  /// flag alone decides, as `DiveTypeDisplay.localizedName` does.
+  static String? _builtInTypeName(
+    QuerySubject subject,
+    QueryRow row,
+    String id,
+    AppLocalizations l10n,
+  ) {
+    String? builtIn(String? Function(AppLocalizations, String) name) =>
+        (row.read<int?>('is_built_in') ?? 0) == 1 ? name(l10n, id) : null;
+    return switch (subject) {
+      QuerySubject.diveTypes => builtIn(builtInDiveTypeName),
+      QuerySubject.siteTypes => builtIn(builtInSiteTypeName),
+      _ => null,
+    };
+  }
+
   /// One row's entries: its registry name (the primary, when it has one)
   /// and the alternate labels a sentence may use for it. A row with no name
   /// still keeps its alternates, so an item saved without a name is found by
@@ -284,6 +308,11 @@ class NameIndexLoader {
   /// localized name is its rank-0 label (an alternate, the stored name then
   /// ranking 1), and where the two agree (English) the stored name itself is
   /// rank 0.
+  ///
+  /// A built-in dive or site type is the other way round (#4338): its
+  /// translated name is the primary, so pickers, rule summaries and printed
+  /// queries read it in the diver's language, and the stored English name is
+  /// a rank-1 alternate that typed English still resolves through.
   static Iterable<NameEntry> _rowEntries(
     QuerySubject subject,
     QueryRow row,
@@ -291,6 +320,26 @@ class NameIndexLoader {
   ) sync* {
     final id = row.read<String>('id');
     final label = row.read<String?>('label') ?? '';
+    final typeName = _builtInTypeName(subject, row, id, l10n);
+    if (typeName != null && typeName != label) {
+      yield NameEntry(
+        subject: subject,
+        label: typeName,
+        ids: [id],
+        target: rowTargetFor(subject),
+        primary: true,
+      );
+      if (label.isNotEmpty) {
+        yield NameEntry(
+          subject: subject,
+          label: label,
+          ids: [id],
+          target: rowTargetFor(subject),
+          rank: 1,
+        );
+      }
+      return;
+    }
     final species = subject == QuerySubject.species;
     final builtIn = species && (row.read<int?>('is_built_in') ?? 0) == 1;
     // A renamed built-in resolves to its own label (#3669), so the catalog
