@@ -72,12 +72,20 @@ extension RungsFromV340 on AppDatabase {
     if (from < 347) await _assertDiveCardPhotoBackgroundColumn();
     if (from < 347) await reportProgress();
 
+    // v349: an empty dives.water_temp takes the temperature the dive's source
+    // rows measured; a download kept it on the source row only (issue #4333).
+    // Data only, so the compatibility floor does not move. It fills empty
+    // columns and rewrites none, so changeLogRewrittenColumns needs no entry.
+    // Numbered 349 so open PR #4327, which claimed 347, can take 348.
+    if (from < 349) await fillDiveWaterTempsFromSources(this);
+    if (from < 349) await reportProgress();
+
     // v350: sightings.abundance, whether a sighting was only seen, sorted
     // into a REEF group, or counted exactly (issue #4337). A nullable
     // column with no backfill: null means the count is exact, so every
     // existing sighting reads as before. Raises the sync floor (see
     // minimumCompatibleSchemaVersion). Re-asserted in beforeOpen. Numbered
-    // 350 because open branches claim 348 and 349.
+    // 350: main holds 349 and open PR #4327 is to take 348.
     if (from < 350) await _assertSightingAbundanceColumn();
     if (from < 350) await reportProgress();
   }

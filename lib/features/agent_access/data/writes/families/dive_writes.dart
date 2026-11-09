@@ -96,6 +96,11 @@ class DiveWrites extends WritableEntry {
       max: 86400,
       nullable: true,
     ),
+    'surface_interval_s': const FieldCodec.integer(
+      min: 0,
+      max: _maxSurfaceIntervalSeconds,
+      nullable: true,
+    ),
     for (final key in measuredVisibilityKeys)
       key: const FieldCodec.number(min: 0, max: 200, nullable: true),
   };
@@ -120,8 +125,11 @@ class DiveWrites extends WritableEntry {
       'day on one, stretches the trip to cover it. A dive with an exit_time '
       'has the runtime its timestamps give: setting exit_time sets runtime_s, '
       'and a runtime_s that disagrees with the exit is refused. bottom_time_s '
-      'stands alone. A dive holds one visibility: a band (visibility), a '
-      'measurement (visibility_m) or a range (visibility_min_m, '
+      'stands alone. surface_interval_s reads as the stored interval, else '
+      'the gap from the previous dive\'s exit, as the app shows it; a write '
+      'stores it, and null clears it back to that gap. A dive holds one '
+      'visibility: a band (visibility), a measurement (visibility_m) or a '
+      'range (visibility_min_m, '
       'visibility_max_m, either end open), and setting one clears the '
       'others. A create without dive_number takes the next free number.';
 
@@ -219,10 +227,11 @@ class DiveWrites extends WritableEntry {
     return {?(await _row(id))?.diveType};
   }
 
-  /// A read fills an empty water temperature from the profile, and reports
-  /// a runtime measured from the exit or the profile, so a plan must compare
-  /// with what the columns hold: clearing a value only a sample shows would
-  /// change nothing.
+  /// A read fills an empty water temperature from the profile, an empty
+  /// surface interval from the previous dive (#4333), and reports a runtime
+  /// measured from the exit or the profile, so a plan must compare with what
+  /// the columns hold: clearing a value only a read works out would change
+  /// nothing.
   @override
   Future<Map<String, Object?>> stored(
     String id,
@@ -233,6 +242,7 @@ class DiveWrites extends WritableEntry {
       ...document,
       'water_temp_c': row?.waterTemp,
       'runtime_s': row?.runtime,
+      'surface_interval_s': row?.surfaceIntervalSeconds,
       'buddy_roles': await buddyRolesOf(_r, id),
     };
   }
@@ -417,6 +427,7 @@ class DiveWrites extends WritableEntry {
         exitTime: v['exit_time'] as DateTime?,
         runtime: _seconds(v['runtime_s']),
         bottomTime: _seconds(v['bottom_time_s']),
+        surfaceInterval: _seconds(v['surface_interval_s']),
         visibilityMeters: v['visibility_m'] as double?,
         visibilityMinMeters: v['visibility_min_m'] as double?,
         visibilityMaxMeters: v['visibility_max_m'] as double?,
@@ -553,6 +564,7 @@ class DiveWrites extends WritableEntry {
           ? Value(runtimeFromExit)
           : field('runtime_s'),
       bottomTime: field('bottom_time_s'),
+      surfaceIntervalSeconds: field('surface_interval_s'),
       visibilityMeters: field('visibility_m'),
       visibilityMinMeters: field('visibility_min_m'),
       visibilityMaxMeters: field('visibility_max_m'),
@@ -717,6 +729,9 @@ class DiveWrites extends WritableEntry {
     return roles.firstWhere((role) => role.id == DiveRole.buddyId);
   }
 }
+
+/// A year: a gap longer than that is no surface interval anyone plans from.
+const _maxSurfaceIntervalSeconds = 366 * 86400;
 
 /// Foreign keys to a dive whose rows [DiveWrites.deleteReach] sorts itself:
 /// these go with the dive or stay, record by record.

@@ -431,7 +431,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'setpoint_high': '~1.2-1.3 bar for bottom',
     'setpoint_low': 'CCR Setpoints - in bar',
     'site_suggestion_dismissed_at': 'When the diver dismissed the site suggestion for this dive (photo GPS or dive-computer GPS)',
-    'surface_interval_seconds': 'Surface interval before this dive',
+    'surface_interval_seconds': 'Surface interval before this dive as the computer or diver gave it, NULL when neither did: the app then shows the gap from the previous dive\'s exit',
     'surface_pressure': 'Surface pressure for altitude/weather corrections',
     'swell_height': 'meters',
     'trip_id': 'Trip reference',

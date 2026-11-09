@@ -17,6 +17,7 @@ import 'package:submersion/features/planner/domain/services/air_break_runs.dart'
 import 'package:submersion/features/planner/domain/services/bailout_chart_support.dart';
 import 'package:submersion/features/planner/domain/services/diluent_switch_time.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
+import 'package:submersion/features/planner/domain/services/plan_gas_switches.dart';
 import 'package:submersion/features/planner/domain/services/same_mix_share.dart';
 import 'package:submersion/features/planner/domain/services/segment_rate_split.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
@@ -120,6 +121,13 @@ class BailoutOutcome {
   /// flat-hold-then-climb steps every other stop shows.
   final List<PlanStop> ocStops;
 
+  /// The worst-case point's OC ascent travel, stretch by stretch, from where
+  /// each starts: to the first stop, between stops and to the surface, split
+  /// wherever the gas changes. [worstCaseRows] folds the travel between
+  /// stops into the stop it leads to, so the chart reads its gas switches
+  /// from this and [ocStops] instead (issue #4078).
+  final List<PlanBreathingStretch> ocTravel;
+
   /// Null when a carried bailout gas is eligible at every sampled instant.
   /// When set, the figures above were worked out on a gas past its MOD: they
   /// have to answer something, but none of them may be shown as a bailout
@@ -137,6 +145,7 @@ class BailoutOutcome {
     required this.bailoutTankUsages,
     required this.ceilingTrace,
     required this.ocStops,
+    this.ocTravel = const [],
     this.gasGap,
   });
 
@@ -466,6 +475,12 @@ class BailoutSolver {
       ccrRows: ccrRows,
       worstCaseRows: [...ccrRows, ...ocSchedule.rows],
       ocStops: unfoldedOcStops(
+        worst,
+        bailoutPlan: bailoutPlan,
+        policy: policy,
+        bailoutTanks: bailoutTanks,
+      ),
+      ocTravel: ocTravelStretches(
         worst,
         bailoutPlan: bailoutPlan,
         policy: policy,
