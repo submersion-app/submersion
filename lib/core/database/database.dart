@@ -315,7 +315,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 347;
+  static const int currentSchemaVersion = 350;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -469,7 +469,18 @@ class AppDatabase extends _$AppDatabase {
   /// before the update: withCurrentWireKeys points a tripId-shaped row at
   /// its trip's default checklist, and the serializer creates that
   /// checklist when this device does not hold it yet.
-  static const int minimumCompatibleSchemaVersion = 336;
+  ///
+  /// Raised 336 -> 350 by sighting abundance (#4337): v350 adds the synced
+  /// column sightings.abundance, where null means the count is exact and
+  /// `seen` or a REEF group means it is not. A peer below 350 stores a Seen
+  /// or group sighting as its count alone (1). Once that peer upgrades, the
+  /// new column is null there, and its next edit of the sighting publishes
+  /// an explicit null, which the merge applies as a real value (only an
+  /// omitted key is refilled from the local row), turning the sighting into
+  /// an exact 1 on every device. Peers below 350 are held until they
+  /// update. Their own payloads still arrive here and decode cleanly: a
+  /// missing abundance is null, an exact count.
+  static const int minimumCompatibleSchemaVersion = 350;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1595,6 +1606,10 @@ class AppDatabase extends _$AppDatabase {
     // overlay opacity over it per theme. Additive and defaulted; the floor
     // does not move.
     347,
+    // v350: sightings.abundance, Seen, a REEF group, or (null) an exact
+    // count (issue #4337). Nullable, no backfill; raises the sync floor to
+    // 350. Numbered 350 because open branches claim 348 and 349.
+    350,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

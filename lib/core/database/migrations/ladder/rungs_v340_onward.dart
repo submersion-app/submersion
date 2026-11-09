@@ -71,5 +71,14 @@ extension RungsFromV340 on AppDatabase {
     // in beforeOpen.
     if (from < 347) await _assertDiveCardPhotoBackgroundColumn();
     if (from < 347) await reportProgress();
+
+    // v350: sightings.abundance, whether a sighting was only seen, sorted
+    // into a REEF group, or counted exactly (issue #4337). A nullable
+    // column with no backfill: null means the count is exact, so every
+    // existing sighting reads as before. Raises the sync floor (see
+    // minimumCompatibleSchemaVersion). Re-asserted in beforeOpen. Numbered
+    // 350 because open branches claim 348 and 349.
+    if (from < 350) await _assertSightingAbundanceColumn();
+    if (from < 350) await reportProgress();
   }
 }
