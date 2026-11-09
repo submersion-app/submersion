@@ -259,6 +259,34 @@ void main() {
     });
   });
 
+  test('a printed line of no time is not a gas the dive breathes', () {
+    // The leg to the first stop split at EAN40's switch depth a hair above
+    // EAN80's, leaving a line that rounds to no time on EAN40.
+    final result = switches([
+      _row(30, 600, 600, .21, tankId: 'p-air', gasSwitch: true),
+      _row(
+        21,
+        0,
+        600,
+        .40,
+        tankId: 'p-40',
+        gasSwitch: true,
+        kind: PlanScheduleRowKind.ascent,
+      ),
+      _row(
+        9,
+        40,
+        640,
+        .80,
+        tankId: 'p-80',
+        gasSwitch: true,
+        kind: PlanScheduleRowKind.ascent,
+      ),
+    ]);
+
+    expect(result, [(at: 600, tank: 'e-80', depth: 21.0)]);
+  });
+
   group('planGasChanges (issue #4078)', () {
     test('a change of cylinder holding the same mix is not a switch', () {
       final stretches = planBreathingStretches(

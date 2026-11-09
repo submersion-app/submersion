@@ -279,17 +279,10 @@ PlanCanvasSeries buildBailoutCanvasSeries(BailoutOutcome bailout) {
     legStartDepth = row.depthMeters;
   }
 
-  // The OC ascent's printed travel lines (the leg up to the first stop and
-  // the leg to the surface, split wherever the gas changes) carry a bailout
-  // gas picked up between stops. The stops carry the rest: travel between
-  // them has no line (#3138), and is still on the gas it left.
-  var ocDepth = legStartDepth;
-  for (final row in bailout.worstCaseRows.skip(ccrRows.length)) {
-    if (row.kind != PlanScheduleRowKind.stop) {
-      stretches.add(stretchOf(row, ocDepth));
-    }
-    ocDepth = row.depthMeters;
-  }
+  // The OC ascent's travel, to each stop and the surface, carries a bailout
+  // gas picked up between them, where it is crossed. The table folds the
+  // travel between stops into the stop (#3138), so it is not read from there.
+  stretches.addAll(bailout.ocTravel);
 
   for (final stop in bailout.ocStops) {
     profile.add(

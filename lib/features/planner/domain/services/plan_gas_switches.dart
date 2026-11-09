@@ -97,7 +97,7 @@ typedef PlanBreathingStretch = ({
 /// A folded leg is on the gas of its own cylinder in [planTanks], which is
 /// not always the line's: a leg into a switch stop is still on the gas it
 /// left. A leg whose cylinder is not among [planTanks] has no gas to name,
-/// and a leg of no time is never breathed, so both are left out.
+/// and a leg or line of no time is never breathed, so both are left out.
 List<PlanBreathingStretch> planBreathingStretches(
   List<PlanScheduleRow> schedule, {
   required List<DiveTank> planTanks,
@@ -125,13 +125,18 @@ List<PlanBreathingStretch> planBreathingStretches(
       time += leg.seconds;
       depth = leg.toDepthMeters;
     }
-    stretches.add((
-      startSeconds: row.startRuntimeSeconds,
-      startDepthMeters: depth,
-      tankId: row.tankId,
-      fO2: row.gasFO2,
-      fHe: row.gasFHe,
-    ));
+    // The same holds for a printed line: the leg to the first stop is split
+    // at each switch depth into lines of whole seconds, and one can round to
+    // none.
+    if (row.durationSeconds > 0) {
+      stretches.add((
+        startSeconds: row.startRuntimeSeconds,
+        startDepthMeters: depth,
+        tankId: row.tankId,
+        fO2: row.gasFO2,
+        fHe: row.gasFHe,
+      ));
+    }
     time = row.runtimeSeconds;
     depth = row.depthMeters;
   }
