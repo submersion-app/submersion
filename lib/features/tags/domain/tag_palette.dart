@@ -105,8 +105,15 @@ String tagHexOf(Color color) {
 
 /// The palette colour a tag storing [stored] is drawn as, or null when it
 /// is drawn in a colour off the palette.
+///
+/// A translucent colour (an imported eight-digit code) is off the palette
+/// whatever its RGB: it is drawn see-through, so no opaque swatch is the
+/// colour the diver sees. A missing or unreadable value is drawn as the
+/// opaque fallback Blue and still matches it.
 TagPaletteEntry? tagPaletteEntryFor(String? stored) {
-  final hex = tagHexOf(drawnTagColor(stored));
+  final drawn = drawnTagColor(stored);
+  if (drawn.a < 1) return null;
+  final hex = tagHexOf(drawn);
   for (final entry in tagPalette) {
     if (entry.hex == hex) return entry;
   }

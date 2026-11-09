@@ -127,6 +127,15 @@ void main() {
     expect(isSelected(tester, current), isTrue);
   });
 
+  testWidgets('a translucent import keeps its own dot, not the opaque one', (
+    tester,
+  ) async {
+    await pumpPicker(tester, selectedColor: '80EF4444');
+    expect(current, findsOne);
+    expect(isSelected(tester, current), isTrue);
+    expect(isSelected(tester, dot('#EF4444')), isFalse);
+  });
+
   testWidgets('a newer colour off the palette replaces the extra dot', (
     tester,
   ) async {

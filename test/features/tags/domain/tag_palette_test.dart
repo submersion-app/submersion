@@ -66,6 +66,12 @@ void main() {
       expect(tagPaletteEntryFor('ef4444'), red);
     });
 
+    test('a translucent import is off the palette, whatever its RGB', () {
+      // Drawn see-through, so no opaque swatch is the colour it shows.
+      expect(drawnTagColor('80EF4444').a, lessThan(1));
+      expect(tagPaletteEntryFor('80EF4444'), isNull);
+    });
+
     test('finds nothing for a colour off the palette', () {
       expect(tagPaletteEntryFor('FF0000'), isNull);
       expect(tagPaletteEntryFor('#123456'), isNull);
