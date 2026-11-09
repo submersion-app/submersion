@@ -130,6 +130,7 @@ import 'package:submersion/features/documents/domain/entities/document.dart';
 
 part 'dive_repository_gear_preview.dart';
 part 'dive_repository_gear_sets.dart';
+part 'dive_repository_surface_intervals.dart';
 
 /// A dive that a conditions fetch can still do something for: its site carries
 /// coordinates and at least one weather column is empty.

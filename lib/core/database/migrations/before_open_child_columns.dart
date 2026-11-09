@@ -20,7 +20,7 @@ extension BeforeOpenChildColumns on AppDatabase {
     // v287: dive_tanks.passport_id (issue #2650).
     await _assertTankPassportIdColumn();
 
-    // v348: dive_tanks.transmitter_slot (issue #4347).
+    // v351: dive_tanks.transmitter_slot (issue #4347).
     await _assertTankTransmitterSlotColumn();
 
     // v270: the weight name columns (issue #956), defaulted to ''.

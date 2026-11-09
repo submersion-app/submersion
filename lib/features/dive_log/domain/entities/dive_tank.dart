@@ -57,7 +57,7 @@ class DiveTank extends Equatable {
 
   /// The physical transmitter slot this tank's pressures came from, 0 based
   /// (Shearwater T1 = 0 to T4 = 3), as the computer or its own logbook export
-  /// reported it (v348, issue #4347). Computer-owned like
+  /// reported it (v351, issue #4347). Computer-owned like
   /// [transmitterSerial]: user edits never rewrite it.
   final int? transmitterSlot;
 

@@ -25,7 +25,7 @@ the exact slot tank ids it showed to the write.
   T4 = 3, null for unknown. In C (`dc_tank_t`, `libdc_tank_t`, JNI): slot + 1,
   0 = unknown, so a zero-initialised struct means unknown.
 - Shearwater parser indices 4 and 5 (HP CCR sensors) report unknown.
-- Schema: `currentSchemaVersion` 347 to 348; `minimumCompatibleSchemaVersion`
+- Schema: `currentSchemaVersion` 347 to 348 (renumbered 351 when main took 349; open PRs claim 348 and 350); `minimumCompatibleSchemaVersion`
   does not move. No rung or table code in `database.dart` beyond the
   `migrationVersions` entry.
 - `transmitter_slot` is computer-owned: the tank editor and `updateDive`'s

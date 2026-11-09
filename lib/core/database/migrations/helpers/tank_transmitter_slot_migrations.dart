@@ -2,9 +2,9 @@ part of '../app_database_migrations.dart';
 
 /// The physical transmitter slot of a tank (issue #4347).
 extension TankTransmitterSlotMigrations on AppDatabase {
-  /// Idempotent DDL for the v348 `dive_tanks.transmitter_slot` column. No
+  /// Idempotent DDL for the v351 `dive_tanks.transmitter_slot` column. No
   /// backfill: the app fills it at runtime from stored raw bytes and import
-  /// files. Skipped on a fixture without the table. Called from the v348 rung
+  /// files. Skipped on a fixture without the table. Called from the v351 rung
   /// and re-asserted in beforeOpen, since every tank read selects the whole
   /// row.
   Future<void> _assertTankTransmitterSlotColumn() async {
@@ -17,7 +17,7 @@ extension TankTransmitterSlotMigrations on AppDatabase {
     );
   }
 
-  /// Test hook: re-assert the v348 column on demand so tests can prove the
+  /// Test hook: re-assert the v351 column on demand so tests can prove the
   /// backstop is idempotent.
   Future<void> assertTankTransmitterSlotColumnForTest() =>
       _assertTankTransmitterSlotColumn();

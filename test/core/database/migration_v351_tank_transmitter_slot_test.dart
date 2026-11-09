@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v348: `dive_tanks.transmitter_slot`, the physical transmitter slot
+/// Schema v351: `dive_tanks.transmitter_slot`, the physical transmitter slot
 /// a tank's pressures came from (issue #4347). A nullable column only; the
 /// app fills it from downloads, imports and a runtime backfill, never from a
 /// rung.
@@ -24,14 +24,14 @@ void main() {
           .map((c) => c.read<String>('name'))
           .toList();
 
-  test('v348 is in the ladder and keeps the floor', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(348));
-    expect(AppDatabase.migrationVersions, contains(348));
+  test('v351 is in the ladder and keeps the floor', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(351));
+    expect(AppDatabase.migrationVersions, contains(351));
     expect(
-      AppDatabase.migrationStepCount(347),
-      AppDatabase.migrationStepCount(348) + 1,
+      AppDatabase.migrationStepCount(349),
+      AppDatabase.migrationStepCount(351) + 1,
     );
-    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(348));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(351));
   });
 
   test('upgrading from v347 adds an empty transmitter_slot', () async {
