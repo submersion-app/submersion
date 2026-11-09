@@ -19881,6 +19881,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_library_unlinkedHeader => '未关联';
 
   @override
+  String get media_library_sectionSitePictures => '潜点图片';
+
+  @override
+  String get media_library_sectionEquipmentPictures => '装备图片';
+
+  @override
   String get media_library_diveHeaderHint => '打开此潜水';
 
   @override
@@ -56054,6 +56060,29 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_library_filter_tags => '标签';
+
+  @override
+  String get media_library_filter_attachedTo => '关联到';
+
+  @override
+  String get media_library_filter_attachedDive => '潜水';
+
+  @override
+  String get media_library_filter_attachedSite => '潜点';
+
+  @override
+  String get media_library_filter_attachedEquipment => '装备';
+
+  @override
+  String get media_library_filter_attachedUnlinked => '未关联';
+
+  @override
+  String media_library_filter_attachedToChip(String kinds) {
+    return '关联到：$kinds';
+  }
+
+  @override
+  String get media_library_filter_listSeparator => '、';
 
   @override
   String media_bulkTags_confirmAdding(int count) {

@@ -21211,6 +21211,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_library_unlinkedHeader => 'غير مرتبطة';
 
   @override
+  String get media_library_sectionSitePictures => 'صور الموقع';
+
+  @override
+  String get media_library_sectionEquipmentPictures => 'صور المعدات';
+
+  @override
   String get media_library_diveHeaderHint => 'فتح هذه الغطسة';
 
   @override
@@ -60546,6 +60552,29 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_library_filter_tags => 'الوسوم';
+
+  @override
+  String get media_library_filter_attachedTo => 'مرفقة بـ';
+
+  @override
+  String get media_library_filter_attachedDive => 'غوصة';
+
+  @override
+  String get media_library_filter_attachedSite => 'الموقع';
+
+  @override
+  String get media_library_filter_attachedEquipment => 'المعدات';
+
+  @override
+  String get media_library_filter_attachedUnlinked => 'غير مرتبطة';
+
+  @override
+  String media_library_filter_attachedToChip(String kinds) {
+    return 'مرفقة بـ: $kinds';
+  }
+
+  @override
+  String get media_library_filter_listSeparator => '، ';
 
   @override
   String media_bulkTags_confirmAdding(int count) {

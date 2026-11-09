@@ -20901,6 +20901,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_library_unlinkedHeader => 'Sin vincular';
 
   @override
+  String get media_library_sectionSitePictures => 'Imágenes del sitio';
+
+  @override
+  String get media_library_sectionEquipmentPictures => 'Imágenes del equipo';
+
+  @override
   String get media_library_diveHeaderHint => 'Abrir esta inmersión';
 
   @override
@@ -59761,6 +59767,29 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get media_library_filter_tags => 'Etiquetas';
+
+  @override
+  String get media_library_filter_attachedTo => 'Vinculado a';
+
+  @override
+  String get media_library_filter_attachedDive => 'Inmersión';
+
+  @override
+  String get media_library_filter_attachedSite => 'Sitio';
+
+  @override
+  String get media_library_filter_attachedEquipment => 'Equipo';
+
+  @override
+  String get media_library_filter_attachedUnlinked => 'Sin vincular';
+
+  @override
+  String media_library_filter_attachedToChip(String kinds) {
+    return 'Vinculado a: $kinds';
+  }
+
+  @override
+  String get media_library_filter_listSeparator => ', ';
 
   @override
   String media_bulkTags_confirmAdding(int count) {

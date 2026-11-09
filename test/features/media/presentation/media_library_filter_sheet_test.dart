@@ -102,6 +102,46 @@ void main() {
     );
   });
 
+  group('Attached to (issue #4224)', () {
+    FilterChip chip(WidgetTester tester, String kind) =>
+        tester.widget<FilterChip>(
+          find.byKey(ValueKey('media_filter_attached_$kind')),
+        );
+
+    testWidgets('opens on the current selection and applies a change', (
+      tester,
+    ) async {
+      container.read(mediaLibraryFilterProvider.notifier).state =
+          const MediaLibraryFilter(attachedTo: {MediaAttachmentKind.dive});
+      await openSheet(tester);
+
+      expect(chip(tester, 'dive').selected, isTrue);
+      expect(chip(tester, 'site').selected, isFalse);
+
+      await tester.tap(
+        find.byKey(const ValueKey('media_filter_attached_site')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      expect(container.read(mediaLibraryFilterProvider).attachedTo, {
+        MediaAttachmentKind.dive,
+        MediaAttachmentKind.site,
+      });
+    });
+
+    testWidgets('Clear all clears it', (tester) async {
+      container.read(mediaLibraryFilterProvider.notifier).state =
+          const MediaLibraryFilter(attachedTo: {MediaAttachmentKind.site});
+      await openSheet(tester);
+
+      await tester.tap(find.text('Clear All'));
+      await tester.pumpAndSettle();
+      expect(chip(tester, 'site').selected, isFalse);
+    });
+  });
+
   testWidgets('dismissing without Apply leaves the filter untouched', (
     tester,
   ) async {
@@ -126,7 +166,8 @@ void main() {
   ) async {
     await openSheet(tester);
 
-    await tester.tap(find.text('Site'));
+    // The picker row, not the Attached to section's Site chip.
+    await tester.tap(find.widgetWithText(ListTile, 'Site'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Blue Hole'));
     await tester.pumpAndSettle();

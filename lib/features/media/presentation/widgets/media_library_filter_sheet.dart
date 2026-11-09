@@ -15,6 +15,7 @@ import 'package:submersion/features/media/domain/entities/media_source_type.dart
 import 'package:submersion/features/media/presentation/helpers/media_source_labels.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_smart_album_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/media_library_attachment_filter_section.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_filter_labels.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
@@ -63,6 +64,7 @@ class _MediaLibraryFilterSheetState
   Set<String> _tagIds = const {};
   Set<String> _buddyIds = const {};
   bool _includeMe = false;
+  Set<MediaAttachmentKind> _attachedTo = const {};
 
   @override
   void initState() {
@@ -79,6 +81,7 @@ class _MediaLibraryFilterSheetState
     _tagIds = filter.tagIds;
     _buddyIds = filter.buddyIds;
     _includeMe = filter.includeMe;
+    _attachedTo = filter.attachedTo;
   }
 
   void _clearAll() {
@@ -94,6 +97,7 @@ class _MediaLibraryFilterSheetState
       _tagIds = const {};
       _buddyIds = const {};
       _includeMe = false;
+      _attachedTo = const {};
     });
   }
 
@@ -114,6 +118,7 @@ class _MediaLibraryFilterSheetState
       tagIds: _tagIds,
       buddyIds: _buddyIds,
       includeMe: _includeMe,
+      attachedTo: _attachedTo,
     );
     Navigator.of(context).pop();
   }
@@ -328,6 +333,7 @@ class _MediaLibraryFilterSheetState
                     _tagIds = album.filter.tagIds;
                     _buddyIds = album.filter.buddyIds;
                     _includeMe = album.filter.includeMe;
+                    _attachedTo = album.filter.attachedTo;
                   });
                 },
               ),
@@ -473,6 +479,11 @@ class _MediaLibraryFilterSheetState
                                 setState(() => _mediaType = MediaType.video),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 16),
+                      MediaLibraryAttachmentFilterSection(
+                        selected: _attachedTo,
+                        onChanged: (next) => setState(() => _attachedTo = next),
                       ),
                       const Divider(height: 32),
                       ListTile(

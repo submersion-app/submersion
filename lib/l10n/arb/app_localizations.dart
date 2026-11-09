@@ -33222,6 +33222,18 @@ abstract class AppLocalizations {
   /// **'Unlinked'**
   String get media_library_unlinkedHeader;
 
+  /// By-dive view section heading above the groups of media attached to a site but to no dive
+  ///
+  /// In en, this message translates to:
+  /// **'Site pictures'**
+  String get media_library_sectionSitePictures;
+
+  /// By-dive view section heading above the groups of media attached to an equipment item but to no dive or site
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment pictures'**
+  String get media_library_sectionEquipmentPictures;
+
   /// Accessibility hint for the by-dive group header, which opens the dive
   ///
   /// In en, this message translates to:
@@ -94154,6 +94166,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tags'**
   String get media_library_filter_tags;
+
+  /// Title of the library filter section that narrows media by what each item is attached to
+  ///
+  /// In en, this message translates to:
+  /// **'Attached to'**
+  String get media_library_filter_attachedTo;
+
+  /// Attached to filter choice: media attached to a dive
+  ///
+  /// In en, this message translates to:
+  /// **'Dive'**
+  String get media_library_filter_attachedDive;
+
+  /// Attached to filter choice: media attached to a dive site and to no dive, such as a site map
+  ///
+  /// In en, this message translates to:
+  /// **'Site'**
+  String get media_library_filter_attachedSite;
+
+  /// Attached to filter choice: media attached to an equipment item and to no dive or site
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get media_library_filter_attachedEquipment;
+
+  /// Attached to filter choice: media attached to nothing
+  ///
+  /// In en, this message translates to:
+  /// **'Unlinked'**
+  String get media_library_filter_attachedUnlinked;
+
+  /// Active filter chip for the Attached to facet; kinds is the picked choices joined by the list separator
+  ///
+  /// In en, this message translates to:
+  /// **'Attached to: {kinds}'**
+  String media_library_filter_attachedToChip(String kinds);
+
+  /// Joins several Attached to choices in the active filter chip, e.g. 'Site, Equipment'. Include any trailing space your language uses.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get media_library_filter_listSeparator;
 
   /// No description provided for @media_bulkTags_confirmAdding.
   ///
