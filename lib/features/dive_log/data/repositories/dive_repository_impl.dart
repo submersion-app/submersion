@@ -5759,6 +5759,34 @@ class DiveRepository {
   // ============================================================================
 
   /// Get all planned dives (not yet executed)
+  /// The plans and drafts a download may fill (issue #637): every dive of
+  /// [diverId] still waiting for its dive computer readings, newest first,
+  /// scoped as [getPlannedDives] is. The fill pass reads its targets only
+  /// through this.
+  Future<List<domain.Dive>> getUnfilledDives({String? diverId}) async {
+    try {
+      final query = _db.select(_db.dives)
+        ..where((t) => t.isPlanned.equals(true) | t.isDraft.equals(true))
+        ..orderBy([
+          (t) => OrderingTerm.desc(coalesce([t.entryTime, t.diveDateTime])),
+        ]);
+
+      if (diverId != null) {
+        query.where((t) => t.diverId.equals(diverId));
+      }
+
+      final rows = await query.get();
+      return await Future.wait(rows.map(_mapRowToDive));
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get unfilled dives',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   Future<List<domain.Dive>> getPlannedDives({String? diverId}) async {
     try {
       final query = _db.select(_db.dives)
@@ -5818,31 +5846,7 @@ class DiveRepository {
         throw Exception('Dive is not a planned dive: $planId');
       }
 
-      // Get next dive number for the actual dive
-      final diveNumber = await getNextDiveNumber(diverId: plannedDive.diverId);
-
-      // Update the dive to mark it as actual
-      final now = DateTime.now().millisecondsSinceEpoch;
-      await (_db.update(_db.dives)..where((t) => t.id.equals(planId))).write(
-        DivesCompanion(
-          isPlanned: const Value(false),
-          diveDateTime: actualDateTime != null
-              ? Value(actualDateTime.millisecondsSinceEpoch)
-              : const Value.absent(),
-          entryTime: actualDateTime != null
-              ? Value(actualDateTime.millisecondsSinceEpoch)
-              : const Value.absent(),
-          diveNumber: Value(diveNumber),
-          updatedAt: Value(now),
-        ),
-      );
-      await _syncRepository.markRecordPending(
-        entityType: 'dives',
-        recordId: planId,
-        localUpdatedAt: now,
-      );
-      SyncEventBus.notifyLocalChange();
-
+      await _promote(plannedDive, actualDateTime: actualDateTime);
       _log.info('Converted planned dive to actual: $planId');
       return planId;
     } catch (e, stackTrace) {
@@ -5853,6 +5857,47 @@ class DiveRepository {
       );
       rethrow;
     }
+  }
+
+  /// Makes the plan or draft [diveId] an ordinary logged dive (issue #637):
+  /// clears both flags and gives it the next free number of its diver, as
+  /// [convertPlanToActualDive] does for a plan. [actualDateTime], when given,
+  /// becomes its start. Throws a [StateError] for a dive that is neither.
+  Future<String> promoteToLoggedDive(
+    String diveId, {
+    DateTime? actualDateTime,
+  }) async {
+    final dive = await getDiveById(diveId);
+    if (dive == null || !(dive.isPlanned || dive.isDraft)) {
+      throw StateError('Dive $diveId is neither a plan nor a draft');
+    }
+    await _promote(dive, actualDateTime: actualDateTime);
+    return diveId;
+  }
+
+  Future<void> _promote(domain.Dive dive, {DateTime? actualDateTime}) async {
+    final diveNumber = await getNextDiveNumber(diverId: dive.diverId);
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(_db.dives)..where((t) => t.id.equals(dive.id))).write(
+      DivesCompanion(
+        isPlanned: const Value(false),
+        isDraft: const Value(false),
+        diveDateTime: actualDateTime != null
+            ? Value(actualDateTime.millisecondsSinceEpoch)
+            : const Value.absent(),
+        entryTime: actualDateTime != null
+            ? Value(actualDateTime.millisecondsSinceEpoch)
+            : const Value.absent(),
+        diveNumber: Value(diveNumber),
+        updatedAt: Value(now),
+      ),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'dives',
+      recordId: dive.id,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
   }
 
   /// Delete a planned dive
