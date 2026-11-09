@@ -200,6 +200,20 @@ void main() {
     expect(_pin('Blue Corner, 3 species'), findsNothing);
   });
 
+  testWidgets('a new ?species= on the open page switches to that species', (
+    tester,
+  ) async {
+    await _pump(tester);
+    expect(_pin('Blue Corner, 3 species'), findsOneWidget);
+
+    GoRouter.of(
+      tester.element(find.byType(SpeciesMapPage)),
+    ).go('/species/map?species=manta');
+    await _settleMap(tester);
+
+    expect(_pin('Manta Point, 6 sightings'), findsOneWidget);
+  });
+
   testWidgets('an unknown ?species= id opens places mode', (tester) async {
     await _pump(tester, initialSpeciesId: 'no-such-species');
 

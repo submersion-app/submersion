@@ -78,6 +78,22 @@ class _SpeciesMapPageState extends ConsumerState<SpeciesMapPage>
     _speciesId = widget.initialSpeciesId;
   }
 
+  /// go_router keeps this State when only the query changes (a link to
+  /// another species while the map is open), so a new seed is a new pick.
+  @override
+  void didUpdateWidget(SpeciesMapPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialSpeciesId != oldWidget.initialSpeciesId) {
+      _speciesId = widget.initialSpeciesId;
+      // A provider cannot change during this rebuild; clear the open card
+      // once the frame is done.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ref.read(mapListSelectionProvider(_sectionKey).notifier).deselect();
+      });
+    }
+  }
+
   @override
   void dispose() {
     _camera.dispose();
