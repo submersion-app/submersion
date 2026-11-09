@@ -18072,5 +18072,9 @@
   "settings_conflict_field_pairedOn": "Pareados desde",
   "settings_conflict_field_unpairedOn": "Desvinculados em",
   "settings_conflict_field_filledTogetherId": "Carga do bi-cilindro",
-  "settings_conflict_field_twinPassportId": "Passaporte do cilindro parceiro"
+  "settings_conflict_field_twinPassportId": "Passaporte do cilindro parceiro",
+  "info_button_semantics": "Sobre {title}",
+  "info_sheet_background": "Contexto",
+  "info_sheet_howToUse": "Como usar",
+  "info_sheet_close": "Fechar"
 }

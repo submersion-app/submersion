@@ -96311,6 +96311,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Twin set partner passport'**
   String get settings_conflict_field_twinPassportId;
+
+  /// No description provided for @info_button_semantics.
+  ///
+  /// In en, this message translates to:
+  /// **'About {title}'**
+  String info_button_semantics(String title);
+
+  /// No description provided for @info_sheet_background.
+  ///
+  /// In en, this message translates to:
+  /// **'Background'**
+  String get info_sheet_background;
+
+  /// No description provided for @info_sheet_howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'How to use'**
+  String get info_sheet_howToUse;
+
+  /// No description provided for @info_sheet_close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get info_sheet_close;
 }
 
 class _AppLocalizationsDelegate

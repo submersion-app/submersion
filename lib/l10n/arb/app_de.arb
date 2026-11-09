@@ -18197,5 +18197,9 @@
   "settings_conflict_field_pairedOn": "Gepaart seit",
   "settings_conflict_field_unpairedOn": "Getrennt am",
   "settings_conflict_field_filledTogetherId": "Füllung des Doppelgeräts",
-  "settings_conflict_field_twinPassportId": "Pass der Partnerflasche"
+  "settings_conflict_field_twinPassportId": "Pass der Partnerflasche",
+  "info_button_semantics": "Über {title}",
+  "info_sheet_background": "Hintergrund",
+  "info_sheet_howToUse": "Bedienung",
+  "info_sheet_close": "Schließen"
 }

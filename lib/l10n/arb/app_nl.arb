@@ -18072,5 +18072,9 @@
   "settings_conflict_field_pairedOn": "Gekoppeld sinds",
   "settings_conflict_field_unpairedOn": "Ontkoppeld op",
   "settings_conflict_field_filledTogetherId": "Vulling van de dubbelset",
-  "settings_conflict_field_twinPassportId": "Paspoort van de partnerfles"
+  "settings_conflict_field_twinPassportId": "Paspoort van de partnerfles",
+  "info_button_semantics": "Over {title}",
+  "info_sheet_background": "Achtergrond",
+  "info_sheet_howToUse": "Gebruik",
+  "info_sheet_close": "Sluiten"
 }

@@ -60837,4 +60837,18 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_twinPassportId =>
       'Paspoort van de partnerfles';
+
+  @override
+  String info_button_semantics(String title) {
+    return 'Over $title';
+  }
+
+  @override
+  String get info_sheet_background => 'Achtergrond';
+
+  @override
+  String get info_sheet_howToUse => 'Gebruik';
+
+  @override
+  String get info_sheet_close => 'Sluiten';
 }

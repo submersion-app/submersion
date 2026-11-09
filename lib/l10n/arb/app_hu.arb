@@ -18072,5 +18072,9 @@
   "settings_conflict_field_pairedOn": "Párosítva ekkortól",
   "settings_conflict_field_unpairedOn": "Szétválasztva ekkor",
   "settings_conflict_field_filledTogetherId": "Ikerpalack-töltés",
-  "settings_conflict_field_twinPassportId": "Társpalack útlevele"
+  "settings_conflict_field_twinPassportId": "Társpalack útlevele",
+  "info_button_semantics": "Tudnivalók: {title}",
+  "info_sheet_background": "Háttér",
+  "info_sheet_howToUse": "Használat",
+  "info_sheet_close": "Bezárás"
 }

@@ -61260,4 +61260,18 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_conflict_field_twinPassportId =>
       'Pasaporte de la botella pareja';
+
+  @override
+  String info_button_semantics(String title) {
+    return 'Acerca de $title';
+  }
+
+  @override
+  String get info_sheet_background => 'Contexto';
+
+  @override
+  String get info_sheet_howToUse => 'Cómo se usa';
+
+  @override
+  String get info_sheet_close => 'Cerrar';
 }

@@ -57464,4 +57464,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_twinPassportId => '双瓶搭档护照';
+
+  @override
+  String info_button_semantics(String title) {
+    return '关于$title';
+  }
+
+  @override
+  String get info_sheet_background => '背景';
+
+  @override
+  String get info_sheet_howToUse => '使用方法';
+
+  @override
+  String get info_sheet_close => '关闭';
 }

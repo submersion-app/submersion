@@ -18072,5 +18072,9 @@
   "settings_conflict_field_pairedOn": "Associées depuis",
   "settings_conflict_field_unpairedOn": "Dissociées le",
   "settings_conflict_field_filledTogetherId": "Gonflage du bi-bouteille",
-  "settings_conflict_field_twinPassportId": "Passeport de la bouteille partenaire"
+  "settings_conflict_field_twinPassportId": "Passeport de la bouteille partenaire",
+  "info_button_semantics": "À propos de {title}",
+  "info_sheet_background": "Contexte",
+  "info_sheet_howToUse": "Utilisation",
+  "info_sheet_close": "Fermer"
 }

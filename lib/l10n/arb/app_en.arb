@@ -35731,5 +35731,10 @@
   "settings_conflict_field_pairedOn": "Paired since",
   "settings_conflict_field_unpairedOn": "Unlinked on",
   "settings_conflict_field_filledTogetherId": "Twin set fill",
-  "settings_conflict_field_twinPassportId": "Twin set partner passport"
+  "settings_conflict_field_twinPassportId": "Twin set partner passport",
+  "info_button_semantics": "About {title}",
+  "@info_button_semantics": {"placeholders": {"title": {"type": "String"}}},
+  "info_sheet_background": "Background",
+  "info_sheet_howToUse": "How to use",
+  "info_sheet_close": "Close"
 }

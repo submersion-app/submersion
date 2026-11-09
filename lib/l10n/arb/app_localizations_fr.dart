@@ -61360,4 +61360,18 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_conflict_field_twinPassportId =>
       'Passeport de la bouteille partenaire';
+
+  @override
+  String info_button_semantics(String title) {
+    return 'À propos de $title';
+  }
+
+  @override
+  String get info_sheet_background => 'Contexte';
+
+  @override
+  String get info_sheet_howToUse => 'Utilisation';
+
+  @override
+  String get info_sheet_close => 'Fermer';
 }

@@ -61225,4 +61225,18 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_conflict_field_twinPassportId =>
       'Passaporto della bombola gemella';
+
+  @override
+  String info_button_semantics(String title) {
+    return 'Informazioni su $title';
+  }
+
+  @override
+  String get info_sheet_background => 'Contesto';
+
+  @override
+  String get info_sheet_howToUse => 'Come si usa';
+
+  @override
+  String get info_sheet_close => 'Chiudi';
 }

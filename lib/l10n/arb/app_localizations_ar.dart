@@ -62071,4 +62071,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_twinPassportId => 'جواز الأسطوانة الشريكة';
+
+  @override
+  String info_button_semantics(String title) {
+    return 'حول $title';
+  }
+
+  @override
+  String get info_sheet_background => 'خلفية';
+
+  @override
+  String get info_sheet_howToUse => 'طريقة الاستخدام';
+
+  @override
+  String get info_sheet_close => 'إغلاق';
 }

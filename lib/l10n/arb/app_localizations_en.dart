@@ -60254,4 +60254,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_field_twinPassportId =>
       'Twin set partner passport';
+
+  @override
+  String info_button_semantics(String title) {
+    return 'About $title';
+  }
+
+  @override
+  String get info_sheet_background => 'Background';
+
+  @override
+  String get info_sheet_howToUse => 'How to use';
+
+  @override
+  String get info_sheet_close => 'Close';
 }

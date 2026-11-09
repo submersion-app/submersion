@@ -18072,5 +18072,9 @@
   "settings_conflict_field_pairedOn": "مربوطة منذ",
   "settings_conflict_field_unpairedOn": "فك الربط في",
   "settings_conflict_field_filledTogetherId": "تعبئة الطقم المزدوج",
-  "settings_conflict_field_twinPassportId": "جواز الأسطوانة الشريكة"
+  "settings_conflict_field_twinPassportId": "جواز الأسطوانة الشريكة",
+  "info_button_semantics": "حول {title}",
+  "info_sheet_background": "خلفية",
+  "info_sheet_howToUse": "طريقة الاستخدام",
+  "info_sheet_close": "إغلاق"
 }

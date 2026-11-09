@@ -61200,4 +61200,18 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_conflict_field_twinPassportId =>
       'Passaporte do cilindro parceiro';
+
+  @override
+  String info_button_semantics(String title) {
+    return 'Sobre $title';
+  }
+
+  @override
+  String get info_sheet_background => 'Contexto';
+
+  @override
+  String get info_sheet_howToUse => 'Como usar';
+
+  @override
+  String get info_sheet_close => 'Fechar';
 }

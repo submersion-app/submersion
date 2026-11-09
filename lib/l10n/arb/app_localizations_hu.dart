@@ -60874,4 +60874,18 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_twinPassportId => 'Társpalack útlevele';
+
+  @override
+  String info_button_semantics(String title) {
+    return 'Tudnivalók: $title';
+  }
+
+  @override
+  String get info_sheet_background => 'Háttér';
+
+  @override
+  String get info_sheet_howToUse => 'Használat';
+
+  @override
+  String get info_sheet_close => 'Bezárás';
 }

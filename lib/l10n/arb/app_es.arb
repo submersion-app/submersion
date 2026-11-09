@@ -18072,5 +18072,9 @@
   "settings_conflict_field_pairedOn": "Emparejadas desde",
   "settings_conflict_field_unpairedOn": "Desvinculadas el",
   "settings_conflict_field_filledTogetherId": "Carga de la bibotella",
-  "settings_conflict_field_twinPassportId": "Pasaporte de la botella pareja"
+  "settings_conflict_field_twinPassportId": "Pasaporte de la botella pareja",
+  "info_button_semantics": "Acerca de {title}",
+  "info_sheet_background": "Contexto",
+  "info_sheet_howToUse": "Cómo se usa",
+  "info_sheet_close": "Cerrar"
 }

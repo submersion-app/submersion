@@ -61092,4 +61092,18 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_twinPassportId =>
       'Pass der Partnerflasche';
+
+  @override
+  String info_button_semantics(String title) {
+    return 'Über $title';
+  }
+
+  @override
+  String get info_sheet_background => 'Hintergrund';
+
+  @override
+  String get info_sheet_howToUse => 'Bedienung';
+
+  @override
+  String get info_sheet_close => 'Schließen';
 }

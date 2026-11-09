@@ -59943,4 +59943,18 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_twinPassportId => 'דרכון הבלון השותף';
+
+  @override
+  String info_button_semantics(String title) {
+    return 'אודות $title';
+  }
+
+  @override
+  String get info_sheet_background => 'רקע';
+
+  @override
+  String get info_sheet_howToUse => 'אופן השימוש';
+
+  @override
+  String get info_sheet_close => 'סגירה';
 }

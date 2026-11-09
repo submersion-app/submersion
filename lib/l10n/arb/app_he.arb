@@ -18072,5 +18072,9 @@
   "settings_conflict_field_pairedOn": "בצימוד מאז",
   "settings_conflict_field_unpairedOn": "נותקו בתאריך",
   "settings_conflict_field_filledTogetherId": "מילוי צמד",
-  "settings_conflict_field_twinPassportId": "דרכון הבלון השותף"
+  "settings_conflict_field_twinPassportId": "דרכון הבלון השותף",
+  "info_button_semantics": "אודות {title}",
+  "info_sheet_background": "רקע",
+  "info_sheet_howToUse": "אופן השימוש",
+  "info_sheet_close": "סגירה"
 }
