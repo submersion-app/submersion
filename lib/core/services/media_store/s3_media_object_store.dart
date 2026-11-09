@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_api_client.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
+import 'package:submersion/core/services/media_store/media_streaming.dart';
 
 /// S3-backed media object store.
 ///
@@ -15,14 +16,16 @@ import 'package:submersion/core/services/media_store/media_object_store.dart';
 /// multipart with per-part resume state (design spec section 8.2), and
 /// downloads above [downloadChunkBytes] stream Range chunks to disk so
 /// memory stays bounded for arbitrarily large media.
-class S3MediaObjectStore implements MediaObjectStore {
+class S3MediaObjectStore implements MediaObjectStore, DirectLinkStore {
   S3MediaObjectStore({
     required S3ApiClient client,
     required String keyPrefix,
     this.partSizeBytes = 8 * 1024 * 1024,
     this.downloadChunkBytes = 8 * 1024 * 1024,
+    DateTime Function()? now,
   }) : _client = client,
-       _keyPrefix = keyPrefix;
+       _keyPrefix = keyPrefix,
+       _now = now ?? DateTime.now;
 
   final S3ApiClient _client;
   final String _keyPrefix;
@@ -33,7 +36,20 @@ class S3MediaObjectStore implements MediaObjectStore {
   /// Range-GET chunk size, and the whole-body/chunked download threshold.
   final int downloadChunkBytes;
 
+  final DateTime Function() _now;
+
   String _wire(String key) => '$_keyPrefix$key';
+
+  /// A presigned link a browser's video player streams from (issue
+  /// #4162). Signed locally: no request reaches the store.
+  @override
+  Future<DirectLink> directLink(String key) async {
+    final issuedAt = _now();
+    return DirectLink(
+      url: _client.presignGet(_wire(key), expiresIn: kS3PresignLifetime),
+      expiresAt: issuedAt.add(kS3PresignLifetime),
+    );
+  }
 
   @override
   Future<StoreObjectInfo?> head(String key) async {

@@ -137,6 +137,60 @@ class SigV4Signer {
   /// [payloadHash], when given, is [hexSha256] of [payload], already computed:
   /// hashing a large body takes long enough that a caller on the UI isolate
   /// does it elsewhere. Everything else here is a handful of short HMACs.
+  /// A presigned URL (SigV4 query-string authentication) for one request
+  /// with no headers but `host` and an unsigned payload: what a browser's
+  /// video element can fetch on its own (issue #4162).
+  ///
+  /// [canonicalUri] must already be SigV4-encoded, as for [sign].
+  static Uri presign({
+    required String method,
+    required String scheme,
+    required String host,
+    required String canonicalUri,
+    required String accessKeyId,
+    required String secretAccessKey,
+    required String region,
+    required DateTime requestTime,
+    required Duration expiresIn,
+    String service = 's3',
+  }) {
+    final amzDate = amzDateFormat(requestTime);
+    final dateStamp = dateStampFormat(requestTime);
+    final credentialScope = '$dateStamp/$region/$service/aws4_request';
+    final queryParams = <String, String>{
+      'X-Amz-Algorithm': 'AWS4-HMAC-SHA256',
+      'X-Amz-Credential': '$accessKeyId/$credentialScope',
+      'X-Amz-Date': amzDate,
+      'X-Amz-Expires': '${expiresIn.inSeconds}',
+      'X-Amz-SignedHeaders': 'host',
+    };
+    final canonical = canonicalRequest(
+      method: method,
+      canonicalUri: canonicalUri,
+      queryParams: queryParams,
+      headers: {'host': host},
+      payloadHash: 'UNSIGNED-PAYLOAD',
+    );
+    final sts = stringToSign(
+      amzDate: amzDate,
+      credentialScope: credentialScope,
+      canonicalRequestStr: canonical,
+    );
+    final signingKey = deriveSigningKey(
+      secretAccessKey: secretAccessKey,
+      dateStamp: dateStamp,
+      region: region,
+      service: service,
+    );
+    final signature = hexEncode(hmacSha256(signingKey, utf8.encode(sts)));
+    // Assembled by hand so the wire query is the canonical one, byte for
+    // byte; Uri's own encoder differs from SigV4's in places.
+    return Uri.parse(
+      '$scheme://$host$canonicalUri?'
+      '${canonicalQueryString({...queryParams, 'X-Amz-Signature': signature})}',
+    );
+  }
+
   static Map<String, String> sign({
     required String method,
     required String host,

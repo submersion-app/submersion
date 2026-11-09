@@ -497,6 +497,25 @@ class S3ApiClient {
   }
 
   /// Closes the underlying HTTP client (including an injected one).
+  /// A presigned GET URL for [key] (already prefixed, as every key here is),
+  /// valid for [expiresIn]: the link a browser's video player streams from
+  /// (issue #4162). Same addressing and effective region as a signed
+  /// request, so path-style endpoints and a corrected region carry over.
+  Uri presignGet(String key, {required Duration expiresIn}) {
+    final target = _target(key);
+    return SigV4Signer.presign(
+      method: 'GET',
+      scheme: target.scheme,
+      host: target.port == null ? target.host : '${target.host}:${target.port}',
+      canonicalUri: target.path,
+      accessKeyId: _config.accessKeyId,
+      secretAccessKey: _config.secretAccessKey,
+      region: _region,
+      requestTime: _now(),
+      expiresIn: expiresIn,
+    );
+  }
+
   void close() => _http.close();
 
   /// Scheme/host/port/path for [key], honoring path-style vs virtual-hosted
