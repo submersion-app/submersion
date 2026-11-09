@@ -15948,6 +15948,7 @@
   "diveLog_detail_errorLoadingSignature": "Fehler beim Laden der Unterschrift: {error}",
   "diveLog_profilePanel_selectDive": "Wählen Sie einen Tauchgang, um sein Profil anzuzeigen",
   "diveLog_profilePanel_noProfileData": "Keine Profildaten für diesen Tauchgang",
+  "diveLog_estimatedProfile_caption": "Geschätzt aus maximaler Tiefe und Zeit, kein aufgezeichnetes Profil",
   "settings_export_progress_divesCsv": "Tauchgänge werden nach CSV exportiert...",
   "settings_export_progress_sitesCsv": "Tauchplätze werden nach CSV exportiert...",
   "settings_export_progress_equipmentCsv": "Ausrüstung wird nach CSV exportiert...",

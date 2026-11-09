@@ -53067,6 +53067,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Keine Profildaten für diesen Tauchgang';
 
   @override
+  String get diveLog_estimatedProfile_caption =>
+      'Geschätzt aus maximaler Tiefe und Zeit, kein aufgezeichnetes Profil';
+
+  @override
   String get settings_export_progress_divesCsv =>
       'Tauchgänge werden nach CSV exportiert...';
 

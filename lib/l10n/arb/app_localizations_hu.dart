@@ -52899,6 +52899,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ehhez a merüléshez nincs profiladat';
 
   @override
+  String get diveLog_estimatedProfile_caption =>
+      'Becslés a maximális mélység és az idő alapján, nem rögzített profil';
+
+  @override
   String get settings_export_progress_divesCsv =>
       'Merülések exportálása CSV-be...';
 

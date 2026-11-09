@@ -15794,6 +15794,7 @@
   "diveLog_detail_errorLoadingSignature": "Errore nel caricamento della firma: {error}",
   "diveLog_profilePanel_selectDive": "Seleziona un’immersione per vederne il profilo",
   "diveLog_profilePanel_noProfileData": "Nessun dato di profilo per questa immersione",
+  "diveLog_estimatedProfile_caption": "Stimato da profondità massima e tempo, non è un profilo registrato",
   "settings_export_progress_divesCsv": "Esportazione delle immersioni in CSV...",
   "settings_export_progress_sitesCsv": "Esportazione dei siti in CSV...",
   "settings_export_progress_equipmentCsv": "Esportazione dell’attrezzatura in CSV...",

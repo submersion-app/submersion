@@ -83895,6 +83895,12 @@ abstract class AppLocalizations {
   /// **'No profile data for this dive'**
   String get diveLog_profilePanel_noProfileData;
 
+  /// Caption under the dashed outline drawn for a dive with no recorded profile
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated from max depth and time, not a recorded profile'**
+  String get diveLog_estimatedProfile_caption;
+
   /// No description provided for @settings_export_progress_divesCsv.
   ///
   /// In en, this message translates to:

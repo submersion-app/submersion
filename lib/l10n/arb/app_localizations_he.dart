@@ -52093,6 +52093,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_profilePanel_noProfileData => 'אין נתוני פרופיל לצלילה זו';
 
   @override
+  String get diveLog_estimatedProfile_caption =>
+      'הערכה לפי עומק מרבי וזמן, לא פרופיל מוקלט';
+
+  @override
   String get settings_export_progress_divesCsv => 'מייצא צלילות ל-CSV...';
 
   @override

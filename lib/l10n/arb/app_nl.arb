@@ -15794,6 +15794,7 @@
   "diveLog_detail_errorLoadingSignature": "Fout bij het laden van de handtekening: {error}",
   "diveLog_profilePanel_selectDive": "Selecteer een duik om het profiel te bekijken",
   "diveLog_profilePanel_noProfileData": "Geen profielgegevens voor deze duik",
+  "diveLog_estimatedProfile_caption": "Geschat op basis van maximale diepte en tijd, geen opgenomen profiel",
   "settings_export_progress_divesCsv": "Duiken exporteren naar CSV...",
   "settings_export_progress_sitesCsv": "Duikstekken exporteren naar CSV...",
   "settings_export_progress_equipmentCsv": "Uitrusting exporteren naar CSV...",

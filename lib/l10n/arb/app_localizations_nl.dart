@@ -52851,6 +52851,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen profielgegevens voor deze duik';
 
   @override
+  String get diveLog_estimatedProfile_caption =>
+      'Geschat op basis van maximale diepte en tijd, geen opgenomen profiel';
+
+  @override
   String get settings_export_progress_divesCsv =>
       'Duiken exporteren naar CSV...';
 
