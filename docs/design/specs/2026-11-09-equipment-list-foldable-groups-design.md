@@ -1,7 +1,8 @@
 # Equipment list: foldable groups
 
-Issue: #4184 (closes). Part of #3364 (the list page row of its surface table; the
-pickers, component sheet and set edit stay open there).
+Issues: #4184 and #3364 (closes both). The list page closes #4184; the list
+page plus the three picker surfaces close #3364. The pickers were added to
+this PR after the list design was approved (see "Pickers" below).
 
 ## Why
 
@@ -26,8 +27,6 @@ not want to see.
 
 ## Non-goals
 
-- The equipment picker, the add-component sheet and the equipment set edit page
-  (the rest of #3364). They keep today's behaviour.
 - Table mode, which stays flat.
 - Changing how groups are ordered or what the rows show.
 
@@ -156,6 +155,37 @@ not want to see.
 8. Turning "Group by location" on or off keeps the saved keys; each layout simply
    reads the keys that apply to it.
 
+## Pickers (#3364 surfaces 2 to 4)
+
+Added on request after the list design was approved, and approved in chat.
+
+Surfaces: the equipment picker sheet (every caller), the add-component sheet,
+and the equipment set edit page.
+
+- Type groups use the same shared collapsible header as the list page. The
+  add-component sheet's and set edit page's per-type Cards are replaced by it.
+- Initial state, worked out once when the surface first has data: every group
+  closed except groups holding a ticked item (the set editor's current members
+  count as ticked) and the only group when there is just one (a caller that
+  filters the picker to one type gets one open group). Recomputing it on every
+  tick would make a ticked group impossible to fold.
+- Folds are not saved. They live as long as the sheet or page is open. (my
+  call: a picker is a short visit; the list page's synced folds are the wrong
+  memory for it.)
+- A folded header holding ticked items says "N of M selected".
+- While the picker's filter is active (`EquipmentPickerFilter.hasActiveFilters`)
+  every group renders open; folds made then are dropped when it clears.
+- Picker only (#3364 item 10): each owner section (one per owner under the
+  "Shared with me" label) becomes an outer collapsible group with its types
+  nested under it, like location over type on the list page. The "Shared with
+  me" label stays a plain label above the first owner. The diver's own types
+  stay top level.
+- No size threshold (my call: #3364's open question; one rule is easier to
+  predict). No Expand all / Collapse all in the pickers (my call: no overflow
+  menu, and a sheet is short-lived).
+- Keys: `type:<typeName>` for a type group, `owner:<diverId>` for an owner
+  section, `owner:<diverId>/type:<typeName>` for a type inside it.
+
 ## Testing
 
 - Pure helpers (key building, folded summary, row flattening with folds,
@@ -177,5 +207,5 @@ not want to see.
 ## Delivery
 
 One PR, first of three (then #4185 hidden sections, then the Locker view).
-Description: `Closes #4184` and `Part of #3364`. Before and after screenshots,
+Description: `Closes #4184, closes #3364`. Before and after screenshots,
 light and dark, phone and desktop widths.

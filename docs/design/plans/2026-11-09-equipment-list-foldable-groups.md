@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Every group header on the equipment list page folds its group, location headers read as the strong level, and folds are saved per diver and synced.
+**Goal:** Every group header on the equipment list page folds its group, location headers read as the strong level, and folds are saved per diver and synced; the equipment picker, add-component sheet and set edit page fold their type groups too (unsaved, starting closed except where the ticks are).
 
 **Architecture:** Folded group keys are stored as a JSON list in a new nullable `diver_settings` column inside the existing `ListArrangements` bundle (list arrangement sync fact group). A Riverpod notifier exposes the effective folded keys (saved ones, or session-only ones while a filter is active). A pure layout function turns arranged groups plus folded keys into flat rows and keyboard stops, replacing the show-more cap. A shared collapsible header, lifted from the dive site list, draws both header levels.
 
@@ -342,10 +342,72 @@ Entries `fold_expand_all` and `fold_collapse_all`, labels `equipment_list_expand
 
 ---
 
-### Task 8: Verify and prepare the PR
+### Task 8: Picker fold helper
+
+**Files:**
+- Create: `lib/features/equipment/presentation/utils/picker_group_folds.dart`
+- Test: `test/features/equipment/presentation/utils/picker_group_folds_test.dart`
+
+**Interfaces:**
+- Consumes: `typeFoldKey` (Task 1).
+- Produces:
+  - `String ownerFoldKey(String diverId) => 'owner:$diverId';`
+  - `Set<String> initialOpenPickerGroups(Map<String, Iterable<String>> itemIdsByGroup, Set<String> ticked)`: keys of groups holding a ticked id; every key when there is exactly one group.
+  - `int tickedIn(Iterable<String> itemIds, Set<String> ticked)`.
+
+Type keys inside an owner section use `typeFoldKey(type, locationKey: ownerFoldKey(id))`; the parameter name is historical, the grammar is the same nesting.
+
+- [ ] **Step 1: Failing tests**: `opens only groups holding a tick`; `a single group starts open even with nothing ticked`; `no groups gives no keys`; `owner key and nested type key` (`owner:d2/type:bcd`); `tickedIn counts only ticked ids`.
+- [ ] **Step 2: Run, FAIL**: `flutter test test/features/equipment/presentation/utils/picker_group_folds_test.dart`
+- [ ] **Step 3: Implement**
+- [ ] **Step 4: Run, PASS**
+- [ ] **Step 5: Commit** `feat(equipment): fold rules for equipment pickers`
+
+---
+
+### Task 9: Fold the equipment picker
+
+**Files:**
+- Modify: `lib/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart` (rows built around :505; `_SectionRow` / `_HeaderRow` / `_ItemRow` at the bottom)
+- Test: `test/features/dive_log/presentation/equipment_picker_arrangement_test.dart` (existing; add a `foldable groups (#3364)` group) or a new `test/features/dive_log/presentation/widgets/pickers/equipment_picker_folds_test.dart`
+
+**Interfaces:**
+- Consumes: Task 8; `CollapsibleGroupHeader` (Task 4); `foldedSelectionSummary` (Task 5).
+
+Widget state `Set<String>? _open` (null until the first data build, then `initialOpenPickerGroups` over every type group and owner group, with `_picked.keys` as the ticks, single-select pickers use the caller's `selectedEquipmentIds`). Header rows become `CollapsibleGroupHeader` (type: w600, indent 16 at top level, 40 inside an owner; owner: the existing `equipment_picker_ownerHeader` label, w700, `isHeading: true`). A closed group emits only its header. While `filter.hasActiveFilters`, render every group open and keep toggles in a separate in-memory set that is cleared when the filter clears. Closed headers with ticks show `foldedSelectionSummary`. The "Shared with me" `_SectionRow` stays a plain label.
+
+- [ ] **Step 1: Failing widget tests**: `groups start closed except the one holding a tick`; `a caller type filter gives one open group`; `tapping a header opens and closes it`; `closed header shows N of M selected`; `an active filter opens every group`; `owner sections fold with their types inside` (two divers, one shared item).
+- [ ] **Step 2: Run, FAIL**
+- [ ] **Step 3: Implement**
+- [ ] **Step 4: Run the file plus `flutter test test/features/dive_log/presentation test/features/equipment`, PASS** (many callers' tests pump the picker; a test that taps an item in a now-closed group must open its group first, and that change is part of this task)
+- [ ] **Step 5: Commit** `feat(equipment): fold type groups in the equipment picker (#3364)`
+
+---
+
+### Task 10: Fold the add-component sheet and the set edit page
+
+**Files:**
+- Modify: `lib/features/equipment/presentation/widgets/component_picker_sheet.dart` (per-type `Card` around :284)
+- Modify: `lib/features/equipment/presentation/pages/equipment_set_edit_page.dart` (per-type `Card` around :514)
+- Test: the existing tests for both (`grep -rln "ComponentPickerSheet\|EquipmentSetEditPage" test`), each gaining a `foldable groups (#3364)` group
+
+**Interfaces:**
+- Consumes: Task 8; `CollapsibleGroupHeader`; `foldedSelectionSummary`.
+
+Both replace the per-type `Card` + label with a `CollapsibleGroupHeader` followed by the group's rows when open, each holding `Set<String>? _open` initialised once from `initialOpenPickerGroups` (component sheet: `_selected`, empty at open, so a single type starts open and several start closed; set edit: `_selectedEquipmentIds` after the set loads). No filters on either surface.
+
+- [ ] **Step 1: Failing widget tests**: component sheet `several types start closed`, `one type starts open`, `ticking then folding shows 1 of N selected`; set edit `groups holding members start open, others closed`, `folding keeps the ticks` (save still includes a member of a folded group).
+- [ ] **Step 2: Run, FAIL**
+- [ ] **Step 3: Implement**
+- [ ] **Step 4: Run both files plus `flutter test test/features/equipment`, PASS**
+- [ ] **Step 5: Commit** `feat(equipment): fold type groups in the component sheet and set editor (#3364)`
+
+---
+
+### Task 11: Verify and prepare the PR
 
 - [ ] **Step 1:** `dart format .` then `flutter analyze` (whole repo). Expected: no issues.
-- [ ] **Step 2:** `flutter test test/architecture test/shared test/core/database test/core/services/sync test/features/equipment test/features/dive_sites test/features/settings test/l10n`. Expected: all pass. Re-run under `TZ=Australia/Sydney` if anything date-related fails only in CI.
-- [ ] **Step 3:** Run the app (macOS dev build with its own `SUBMERSION_DB_PATH`), group by location, and confirm by eye: bold location headers, indented type headers, folding, folded summaries, Expand all and Collapse all, light and dark, phone and desktop widths.
+- [ ] **Step 2:** `flutter test test/architecture test/shared test/core/database test/core/services/sync test/features/equipment test/features/dive_sites test/features/settings test/features/dive_log test/l10n`. Expected: all pass. Re-run under `TZ=Australia/Sydney` if anything date-related fails only in CI.
+- [ ] **Step 3:** Run the app (macOS dev build with its own `SUBMERSION_DB_PATH`), group by location, and confirm by eye: bold location headers, indented type headers, folding, folded summaries, Expand all and Collapse all, and the three pickers starting folded, light and dark, phone and desktop widths.
 - [ ] **Step 4:** Capture before (from main) and after screenshots per the global PR screenshot rules, upload through the project's current secret gist.
-- [ ] **Step 5:** Open the PR with `Closes #4184` and `Part of #3364` in the body, screenshots embedded, no attribution lines.
+- [ ] **Step 5:** Open the PR with `Closes #4184, closes #3364` in the body, screenshots embedded, no attribution lines.
