@@ -4,8 +4,11 @@ import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
 import 'package:submersion/features/gas_calculators/domain/icd_calculator.dart';
+import 'package:submersion/features/gas_calculators/presentation/info/calculator_info.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/icd_calculator_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// ICD (isobaric counterdiffusion) calculator (issue #3121).
 ///
@@ -36,6 +39,7 @@ class IcdCalculator extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _buildGasCard(
+                showInfo: true,
                 context,
                 textTheme: textTheme,
                 colorScheme: colorScheme,
@@ -78,12 +82,6 @@ class IcdCalculator extends ConsumerWidget {
                 warningsEnabled: warningsEnabled,
                 suggestions: suggestions,
               ),
-              const SizedBox(height: 16),
-              _buildInfoCard(
-                context,
-                textTheme: textTheme,
-                colorScheme: colorScheme,
-              ),
             ],
           ),
         ),
@@ -103,6 +101,7 @@ class IcdCalculator extends ConsumerWidget {
     required GasMix gas,
     required ValueChanged<double> onO2Changed,
     required ValueChanged<double> onHeChanged,
+    bool showInfo = false,
   }) {
     final heMax = 100.0 - gas.o2;
     return Card(
@@ -111,11 +110,24 @@ class IcdCalculator extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                if (showInfo)
+                  HeaderInfoButton(
+                    title: context.l10n.gasCalculators_tab_icd,
+                    content: (context) =>
+                        calculatorInfo(context.l10n, infoUnits(context), 'icd'),
+                  ),
+              ],
             ),
             const SizedBox(height: 16),
             _buildSliderSection(
@@ -364,48 +376,6 @@ class IcdCalculator extends ConsumerWidget {
           child: Text(context.l10n.gasCalculators_icd_applyButton),
         ),
       ],
-    );
-  }
-
-  // ===========================================================================
-  // Info card
-  // ===========================================================================
-
-  Widget _buildInfoCard(
-    BuildContext context, {
-    required TextTheme textTheme,
-    required ColorScheme colorScheme,
-  }) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.info_outline, size: 20, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    context.l10n.gasCalculators_icd_infoTitle,
-                    style: textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              context.l10n.gasCalculators_icd_infoContent,
-              style: textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 

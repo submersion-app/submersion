@@ -60096,8 +60096,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get info_term_gasDensity_label => 'צפיפות הגז';
 
   @override
-  String get info_term_gasDensity_body =>
-      'כמה כבד גז הנשימה בעומק, בגרם לליטר, וזה קובע כמה קשה לנשום אותו. מחקרים שפורסמו מציינים 5.2 גרם לליטר כמקסימום מומלץ ו-6.2 גרם לליטר כגבול עליון.';
+  String info_term_gasDensity_body(String warn, String critical) {
+    return 'כמה כבד גז הנשימה בעומק, בגרם לליטר, וזה קובע כמה קשה לנשום אותו. מחקרים שפורסמו מציינים $warn גרם לליטר כמקסימום מומלץ ו-$critical גרם לליטר כגבול עליון.';
+  }
 
   @override
   String get info_term_sac_label => 'SAC (צריכת אוויר בפני המים)';
@@ -60803,6 +60804,34 @@ class AppLocalizationsHe extends AppLocalizations {
       'בפועל מריץ מחדש את הצלילה שנרשמה דרך המודל, ומה אם מריץ אותה עם השינויים שהוספו במעבדת הצלילה.';
 
   @override
+  String get info_term_cellGain_label => 'תפוקת התא (מיליוולט לבר)';
+
+  @override
+  String get info_term_cellGain_body =>
+      'קריאת המיליוולט של כל תא חמצן מחולקת ב-ppO2 שהוא מודד. היא נשארת יציבה כל עוד התא תקין ויורדת כשהוא מזדקן.';
+
+  @override
+  String get info_term_transmitterDropouts_label => 'ניתוקי משדר';
+
+  @override
+  String get info_term_transmitterDropouts_body =>
+      'החלק מכל צלילה ללא קריאת לחץ מהמשדר.';
+
+  @override
+  String get info_term_o2Narcotic_label => 'חמצן נספר כנרקוטי';
+
+  @override
+  String get info_term_o2Narcotic_body =>
+      'כשמופעל, חמצן נספר כנרקוטי כמו חנקן ב-END וב-MND. זה מעמיק את ה-END ומרדד את ה-MND.';
+
+  @override
+  String get info_term_ascentGasSet_label => 'גזים לעלייה';
+
+  @override
+  String get info_term_ascentGasSet_body =>
+      'לאילו מיכלים נישאים העלייה המדומה רשאית לעבור: כל גז שנישא, או רק מיכלי במה ודקומפרסיה.';
+
+  @override
   String get info_diveLog_profile_summary =>
       'עומק לאורך זמן לכל הצלילה, כשכל שכבה מופעלת מצוירת על אותו ציר זמן.';
 
@@ -61179,4 +61208,176 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get info_diveLab_interventions_summary =>
       'שינויים לניסוי על הצלילה הזו, שכל אחד מהם מורץ מחדש דרך אותו מודל מהרגע שבו הוא חל.';
+
+  @override
+  String get info_calculators_mod_summary =>
+      'העומק העמוק ביותר שבו התערובת שנבחרה נשארת בגבול ה-ppO2 שלה, עם ה-EAD וה-END שם.';
+
+  @override
+  String get info_calculators_mod_background =>
+      'Rec משתמש בבר אחד לכל 10 מ\', כמו יומן הצלילות. OC Tec ו-CCR Tec לוקחים את לחץ פני המים מסוג המים, ולכן לאותה תערובת עשוי להיות שם MOD רדוד מעט יותר.';
+
+  @override
+  String get info_calculators_mod_howToUse =>
+      'בחרו מצב, ואז קבעו את החמצן ואת ה-ppO2 לעבודה. אפשר להוסיף עומק יעד כדי לבדוק עומק מתוכנן מול התערובת. גבול ה-END והאם חמצן נספר כנרקוטי מגיעים מפרופיל הצולל.';
+
+  @override
+  String get info_calculators_bestMix_summary =>
+      'התערובת העשירה ביותר לעומק יעד שמשאירה את ה-ppO2 בגבולו ואת ה-END בגבול הנרקוזה.';
+
+  @override
+  String get info_calculators_bestMix_howToUse =>
+      'קבעו את עומק היעד ואת המצב. ב-CCR בחרו אם התערובת היא גז מדלל או גז חילוץ.';
+
+  @override
+  String get info_calculators_consumption_summary =>
+      'כמה גז צלילה מתוכננת מנצלת בעומק, זמן וקצב נשימה נתונים.';
+
+  @override
+  String get info_calculators_consumption_howToUse =>
+      'הזינו את העומק, הזמן, קצב הנשימה והמיכל.';
+
+  @override
+  String get info_calculators_rockBottom_summary =>
+      'רזרבת הגז המינימלית לכך ששני צוללים יעלו יחד על אספקה אחת מהנקודה העמוקה ביותר.';
+
+  @override
+  String get info_calculators_rockBottom_background =>
+      'החישוב משתמש בקצב נשימה בלחץ, בדרך כלל פי שניים עד שלושה מהרגיל, וסופר את שני הצוללים על מיכל אחד. עצירת הביטחון נכללת כשהאפשרות מופעלת.';
+
+  @override
+  String get info_calculators_rockBottom_howToUse =>
+      'קבעו את העומק, קצב הנשימה בלחץ, קצב העלייה והמיכל.';
+
+  @override
+  String get info_calculators_mnd_summary =>
+      'העומק העמוק ביותר שבו גז נשאר בגבול ה-END, וה-END של גז בעומק נתון.';
+
+  @override
+  String get info_calculators_mnd_howToUse =>
+      'הזינו את הגז, גבול ה-END והאם חמצן נספר כנרקוטי.';
+
+  @override
+  String get info_calculators_icd_summary =>
+      'האם החלפה בין שני גזים עומדת בכלל החמישיות לדיפוזיה נגדית.';
+
+  @override
+  String get info_calculators_icd_background =>
+      'הליום מתפזר מהר יותר מחנקן, ולכן מעבר לגז עשיר יותר בחנקן יכול להעלות את סך הגז האינרטי ברקמות. הארגונים חלוקים בשאלה עד כמה זה משנה בגזים סטנדרטיים.';
+
+  @override
+  String get info_calculators_icd_howToUse =>
+      'הזינו את הגז הנוכחי ואת הגז שעוברים אליו.';
+
+  @override
+  String get info_calculators_density_summary =>
+      'כמה צפוף גז בעומק, והעומק שבו אוויר היה צפוף באותה מידה.';
+
+  @override
+  String get info_calculators_density_background =>
+      'ב-CCR זו צפיפות גז הלולאה: חמצן בנקודת הכיוון והשאר מחולק ביחס הגז המדלל. גז קר יותר צפוף יותר, והחישוב מניח גז אידיאלי.';
+
+  @override
+  String get info_calculators_density_howToUse =>
+      'הזינו את התערובת, העומק וטמפרטורת המים, ועברו בין OC ל-CCR.';
+
+  @override
+  String get info_calculators_blender_summary =>
+      'ערבול בלחצים חלקיים: גזי המילוי שמוסיפים לפי הסדר כדי להגיע לתערובת היעד.';
+
+  @override
+  String get info_calculators_blender_background =>
+      'כל גז מוסף עד הלחץ המוצג והמיכל מושאר להתייצב לפני הבא. גזי המילוי וסדרם ניתנים להגדרה, כך שהגז האחרון יכול להיות EAN32 במקום אוויר.';
+
+  @override
+  String get info_calculators_blender_howToUse =>
+      'הזינו מה כבר נמצא במיכל ואת תערובת היעד. השלב האחרון בכל ערבול הוא ניתוח התערובת המוגמרת.';
+
+  @override
+  String get info_decoCalculator_summary =>
+      'צלילה ברמה אחת שמורצת דרך מודל Buhlmann ZHL-16C, ומציגה את גבולות הגז, העצירות ועומס הרקמות.';
+
+  @override
+  String get info_decoCalculator_howToUse =>
+      'קבעו את העומק, הזמן, הגז ותנאי המים. גבולות הגז, העצירות ותרשים הרקמות מתעדכנים עם כל שינוי.';
+
+  @override
+  String get info_surfaceIntervalTool_summary =>
+      'האם צלילה שנייה נכנסת לגבולות ללא עצירות אחרי מרווח שטח, לפי עומס הרקמות שנותר מהצלילה הראשונה.';
+
+  @override
+  String get info_surfaceIntervalTool_background =>
+      '16 התאים של המודל משחררים גז במהלך המרווח, המהירים תוך דקות והאיטיים במשך שעות. התא המוביל הוא העמוס ביותר ובדרך כלל קובע את ה-NDL.';
+
+  @override
+  String get info_surfaceIntervalTool_howToUse =>
+      'קבעו את הצלילה הראשונה, השנייה ומרווח השטח. התוצאה מציגה את המרווח המינימלי ואת ה-NDL לצלילה השנייה.';
+
+  @override
+  String get info_equipment_trend_summary =>
+      'נקודה לכל צלילה, כך ששינוי איטי בפריט הזה נראה כמגמה לאורך חייו.';
+
+  @override
+  String get info_equipment_findings_summary =>
+      'דפוסים בצלילות ובבעיות שדווחו לפריט הזה, שכללי המצב סימנו.';
+
+  @override
+  String get info_equipment_exposure_summary =>
+      'כמה שימוש עבר הפריט הזה, נספר בכל יחידה ששעוני השירות שלו משתמשים בה.';
+
+  @override
+  String get info_site_altitude_summary =>
+      'גובה האתר מעל פני הים ולחץ האוויר שם, שממנו מודל הדקומפרסיה מתחיל.';
+
+  @override
+  String get info_trips_scrubberMargin_summary =>
+      'כמה זמן מדורג של מסנן ה-CO2 נותר לצלילות המחזור המתוכננות בטיול.';
+
+  @override
+  String get info_settings_gradientFactors_summary =>
+      'עד כמה מודל הדקומפרסיה של האפליקציה שמרני.';
+
+  @override
+  String get info_settings_gradientFactors_background =>
+      'מקדמי שיפוע מצמצמים את ערכי ה-M של Buhlmann ZHL-16C, שיטה שתיאר אריק בייקר. כל נתון דקומפרסיה שהאפליקציה מחשבת משתמש בהם.';
+
+  @override
+  String get info_settings_oxygenToxicity_summary =>
+      'גבולות ה-ppO2 ושיטת ה-CNS המשמשים לנתוני החמצן בכל האפליקציה.';
+
+  @override
+  String get info_settings_dataSources_summary =>
+      'האם NDL, עצירות דקומפרסיה, TTS, GTR ו-CNS מגיעים ממחשב הצלילה או מהחישוב של האפליקציה.';
+
+  @override
+  String get info_settings_narcosis_summary =>
+      'גבול ה-END ואופן חישוב ה-END וה-MND בכל האפליקציה.';
+
+  @override
+  String get info_settings_icd_summary =>
+      'הבדיקה שהאפליקציה מריצה על החלפות גז לדיפוזיה נגדית בין הליום לחנקן.';
+
+  @override
+  String get info_settings_ascent_summary =>
+      'לאילו גזים העלייה המדומה רשאית לעבור כשהאפליקציה מחשבת TTS, תקרה ועצירות.';
+
+  @override
+  String get info_settings_safetyRules_summary =>
+      'הכללים שמולם נבדקת כל צלילה אחרי שנרשמה. כלל כבוי לעולם אינו מדווח.';
+
+  @override
+  String get info_settings_conditionThresholds_summary =>
+      'הקווים שגורמים לצלילה להיספר כקרה, עמוקה או עתירת חמצן לשעוני השירות.';
+
+  @override
+  String get info_settings_sensorSummaries_summary =>
+      'הנתונים לכל צלילה שהאפליקציה שומרת לתאי חמצן, משדרים ומסנני CO2.';
+
+  @override
+  String get info_settings_conditionRules_summary =>
+      'הבדיקות שמאחורי ממצאי מצב הציוד. כלל כבוי לעולם אינו מדווח.';
+
+  @override
+  String get info_settings_notifications_summary =>
+      'התזכורות מתוזמנות כשהאפליקציה נפתחת ומתעדכנות ברקע. לכל פריט ציוד אפשר לקבוע תזכורות משלו במסך העריכה שלו.';
 }

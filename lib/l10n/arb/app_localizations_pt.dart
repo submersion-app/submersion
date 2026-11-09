@@ -61355,8 +61355,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get info_term_gasDensity_label => 'Densidade do gás';
 
   @override
-  String get info_term_gasDensity_body =>
-      'Quão pesado é o gás respirado em profundidade, em gramas por litro, o que define o esforço para o respirar. A investigação publicada indica 5,2 g/L como máximo recomendado e 6,2 g/L como limite superior.';
+  String info_term_gasDensity_body(String warn, String critical) {
+    return 'Quão pesado é o gás respirado em profundidade, em gramas por litro, o que define o esforço para o respirar. A investigação publicada indica $warn g/L como máximo recomendado e $critical g/L como limite superior.';
+  }
 
   @override
   String get info_term_sac_label => 'SAC (consumo de ar à superfície)';
@@ -62026,7 +62027,7 @@ class AppLocalizationsPt extends AppLocalizations {
       'A parte do gás inicial que o plano usa antes de voltar. Um terço é a regra comum em grutas e noutros ambientes fechados.';
 
   @override
-  String get info_term_dpv_label => 'DPV (scooter)';
+  String get info_term_dpv_label => 'DPV (propulsor)';
 
   @override
   String get info_term_dpv_body =>
@@ -62066,6 +62067,34 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get info_term_whatIf_body =>
       'Real repete o mergulho registado no modelo, e e se repete-o com as alterações acrescentadas no Laboratório de mergulho.';
+
+  @override
+  String get info_term_cellGain_label => 'Saída da célula (mV por bar)';
+
+  @override
+  String get info_term_cellGain_body =>
+      'A leitura em milivolts de cada célula de oxigénio dividida pela ppO2 que mede. Mantém-se estável enquanto a célula está boa e desce à medida que envelhece.';
+
+  @override
+  String get info_term_transmitterDropouts_label => 'Falhas do transmissor';
+
+  @override
+  String get info_term_transmitterDropouts_body =>
+      'A parte de cada mergulho sem leitura de pressão do transmissor.';
+
+  @override
+  String get info_term_o2Narcotic_label => 'Oxigénio contado como narcótico';
+
+  @override
+  String get info_term_o2Narcotic_body =>
+      'Quando ligado, o oxigénio conta como narcótico tal como o azoto na END e na MND. Isso torna a END mais funda e a MND mais rasa.';
+
+  @override
+  String get info_term_ascentGasSet_label => 'Gases para a subida';
+
+  @override
+  String get info_term_ascentGasSet_body =>
+      'Para que garrafas levadas a subida simulada pode trocar: todos os gases levados, ou só stages e garrafas de descompressão.';
 
   @override
   String get info_diveLog_profile_summary =>
@@ -62446,4 +62475,176 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get info_diveLab_interventions_summary =>
       'Alterações a experimentar neste mergulho, cada uma repetida pelo mesmo modelo a partir do momento em que se aplica.';
+
+  @override
+  String get info_calculators_mod_summary =>
+      'A profundidade máxima em que a mistura escolhida fica dentro do limite de ppO2, com a EAD e a END nesse ponto.';
+
+  @override
+  String get info_calculators_mod_background =>
+      'Rec usa 1 bar por cada 10 m, como o registo. OC Tec e CCR Tec tiram a pressão de superfície do tipo de água, por isso a mesma mistura pode mostrar aí uma MOD um pouco menor.';
+
+  @override
+  String get info_calculators_mod_howToUse =>
+      'Escolha um modo e depois defina o oxigénio e a ppO2 de trabalho. Pode juntar uma profundidade-alvo para verificar uma profundidade prevista com a mistura. O limite de END e se o oxigénio conta como narcótico vêm do perfil do mergulhador.';
+
+  @override
+  String get info_calculators_bestMix_summary =>
+      'A mistura mais rica para uma profundidade-alvo que mantém a ppO2 no seu limite e a END no limite de narcose.';
+
+  @override
+  String get info_calculators_bestMix_howToUse =>
+      'Defina a profundidade-alvo e o modo. Em CCR, escolha se a mistura é diluente ou gás de bailout.';
+
+  @override
+  String get info_calculators_consumption_summary =>
+      'Quanto gás um mergulho previsto usa a uma dada profundidade, tempo e ritmo respiratório.';
+
+  @override
+  String get info_calculators_consumption_howToUse =>
+      'Introduza a profundidade, o tempo, o ritmo respiratório e a garrafa.';
+
+  @override
+  String get info_calculators_rockBottom_summary =>
+      'A reserva mínima de gás para dois mergulhadores subirem juntos com um só fornecimento a partir do ponto mais fundo.';
+
+  @override
+  String get info_calculators_rockBottom_background =>
+      'Usa um ritmo respiratório sob stress, normalmente duas a três vezes o normal, e conta os dois mergulhadores numa garrafa. A paragem de segurança é incluída quando essa opção está ligada.';
+
+  @override
+  String get info_calculators_rockBottom_howToUse =>
+      'Defina a profundidade, o ritmo respiratório sob stress, a velocidade de subida e a garrafa.';
+
+  @override
+  String get info_calculators_mnd_summary =>
+      'A profundidade máxima em que um gás fica dentro do limite de END, e a END de um gás a uma dada profundidade.';
+
+  @override
+  String get info_calculators_mnd_howToUse =>
+      'Introduza o gás, o limite de END e se o oxigénio conta como narcótico.';
+
+  @override
+  String get info_calculators_icd_summary =>
+      'Se uma troca entre dois gases cumpre a regra dos quintos para a contradifusão.';
+
+  @override
+  String get info_calculators_icd_background =>
+      'O hélio difunde-se mais depressa do que o azoto, por isso trocar para um gás mais rico em azoto pode subir o gás inerte total nos tecidos. As agências divergem sobre quanto isso importa com gases padrão.';
+
+  @override
+  String get info_calculators_icd_howToUse =>
+      'Introduza o gás atual e o gás para o qual se troca.';
+
+  @override
+  String get info_calculators_density_summary =>
+      'Quão denso é um gás em profundidade e a que profundidade o ar seria igualmente denso.';
+
+  @override
+  String get info_calculators_density_background =>
+      'Em CCR é a densidade do gás do circuito: oxigénio no setpoint e o resto na proporção do diluente. O gás mais frio é mais denso e o cálculo assume um gás ideal.';
+
+  @override
+  String get info_calculators_density_howToUse =>
+      'Introduza a mistura, a profundidade e a temperatura da água, e alterne entre OC e CCR.';
+
+  @override
+  String get info_calculators_blender_summary =>
+      'Uma mistura por pressões parciais: os gases de enchimento a adicionar, por ordem, para chegar à mistura-alvo.';
+
+  @override
+  String get info_calculators_blender_background =>
+      'Cada gás é adicionado até à pressão indicada e a garrafa estabiliza antes do seguinte. Os gases de enchimento e a sua ordem são configuráveis, por isso o último pode ser EAN32 em vez de ar.';
+
+  @override
+  String get info_calculators_blender_howToUse =>
+      'Introduza o que já está na garrafa e a mistura-alvo. O último passo de cada mistura é analisar a mistura final.';
+
+  @override
+  String get info_decoCalculator_summary =>
+      'Um mergulho de um só nível calculado com o modelo Buhlmann ZHL-16C, com limites do gás, paragens e carga tecidular.';
+
+  @override
+  String get info_decoCalculator_howToUse =>
+      'Defina a profundidade, o tempo, o gás e as condições da água. Os limites do gás, as paragens e o gráfico de tecidos atualizam a cada alteração.';
+
+  @override
+  String get info_surfaceIntervalTool_summary =>
+      'Se um segundo mergulho cabe nos limites sem paragens após um intervalo de superfície, a partir da carga tecidular herdada do primeiro.';
+
+  @override
+  String get info_surfaceIntervalTool_background =>
+      'Os 16 compartimentos do modelo libertam gás durante o intervalo, os rápidos em minutos e os lentos em horas. O compartimento dominante é o mais carregado e normalmente define o NDL.';
+
+  @override
+  String get info_surfaceIntervalTool_howToUse =>
+      'Defina o primeiro mergulho, o segundo e o intervalo de superfície. O resultado mostra o intervalo mínimo e o NDL do segundo mergulho.';
+
+  @override
+  String get info_equipment_trend_summary =>
+      'Um ponto por mergulho, para que uma mudança lenta neste equipamento apareça como tendência ao longo da sua vida.';
+
+  @override
+  String get info_equipment_findings_summary =>
+      'Padrões nos mergulhos e problemas registados deste equipamento assinalados pelas regras de estado.';
+
+  @override
+  String get info_equipment_exposure_summary =>
+      'Quanto uso este equipamento teve, contado em cada unidade usada pelos seus relógios de manutenção.';
+
+  @override
+  String get info_site_altitude_summary =>
+      'A altura do local acima do nível do mar e a pressão atmosférica aí, de onde o modelo de descompressão parte.';
+
+  @override
+  String get info_trips_scrubberMargin_summary =>
+      'Quanto tempo nominal do filtro resta para os mergulhos com rebreather previstos na viagem.';
+
+  @override
+  String get info_settings_gradientFactors_summary =>
+      'Quão conservador é o modelo de descompressão da aplicação.';
+
+  @override
+  String get info_settings_gradientFactors_background =>
+      'Os fatores de gradiente reduzem os valores M do Buhlmann ZHL-16C, um método descrito por Erik Baker. Todos os valores de descompressão que a aplicação calcula os usam.';
+
+  @override
+  String get info_settings_oxygenToxicity_summary =>
+      'Os limites de ppO2 e o método de CNS usados nos valores de oxigénio em toda a aplicação.';
+
+  @override
+  String get info_settings_dataSources_summary =>
+      'Se o NDL, as paragens, o TTS, o GTR e o CNS vêm do computador de mergulho ou do cálculo da aplicação.';
+
+  @override
+  String get info_settings_narcosis_summary =>
+      'O limite de END e como a END e a MND são calculadas em toda a aplicação.';
+
+  @override
+  String get info_settings_icd_summary =>
+      'A verificação que a aplicação faz nas trocas de gás para a contradifusão entre hélio e azoto.';
+
+  @override
+  String get info_settings_ascent_summary =>
+      'Para que gases a subida simulada pode trocar quando a aplicação calcula o TTS, o teto e as paragens.';
+
+  @override
+  String get info_settings_safetyRules_summary =>
+      'As regras com que cada mergulho é verificado depois de registado. Uma regra desligada nunca é assinalada.';
+
+  @override
+  String get info_settings_conditionThresholds_summary =>
+      'Os limiares que fazem um mergulho contar como frio, fundo ou de oxigénio elevado para os relógios de manutenção.';
+
+  @override
+  String get info_settings_sensorSummaries_summary =>
+      'Os valores por mergulho que a aplicação guarda para células de oxigénio, transmissores e filtros.';
+
+  @override
+  String get info_settings_conditionRules_summary =>
+      'As verificações por trás das ocorrências do estado do equipamento. Uma regra desligada nunca é assinalada.';
+
+  @override
+  String get info_settings_notifications_summary =>
+      'Os lembretes são agendados quando a aplicação abre e atualizados em segundo plano. Cada equipamento pode ter lembretes próprios no seu ecrã de edição.';
 }

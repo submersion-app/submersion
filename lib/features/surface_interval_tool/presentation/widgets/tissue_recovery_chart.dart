@@ -2,8 +2,11 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/features/surface_interval_tool/presentation/info/surface_interval_info.dart';
 import 'package:submersion/features/surface_interval_tool/presentation/providers/surface_interval_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// Interactive chart showing tissue saturation recovery over time.
 /// Displays 16 tissue compartments as colored lines decreasing toward
@@ -68,11 +71,18 @@ class TissueRecoveryChart extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  context.l10n.surfaceInterval_tissueRecovery_title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
+                Expanded(
+                  child: Text(
+                    context.l10n.surfaceInterval_tissueRecovery_title,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
+                ),
+                HeaderInfoButton(
+                  title: context.l10n.surfaceInterval_title,
+                  content: (context) =>
+                      surfaceIntervalInfo(context.l10n, infoUnits(context)),
                 ),
               ],
             ),

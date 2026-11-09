@@ -5,11 +5,14 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_axis.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
+import 'package:submersion/features/gas_calculators/presentation/info/calculator_info.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/density_calculator_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/density/density_slider.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/gas_temperature_segmented_button.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/unit_slider.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// Slider and toggle bounds. The O2 floor reaches hypoxic trimix; the
 /// setpoint range covers the low and high setpoints in common use.
@@ -46,11 +49,26 @@ class DensityInputCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              l10n.gasCalculators_density_inputParameters,
-              style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.gasCalculators_density_inputParameters,
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                HeaderInfoButton(
+                  title: context.l10n.gasCalculators_tab_density,
+                  content: (context) => calculatorInfo(
+                    context.l10n,
+                    infoUnits(context),
+                    'density',
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             _Labelled(

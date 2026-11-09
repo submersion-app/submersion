@@ -7,9 +7,12 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_consumption.dart'
     show roundUpTo;
 import 'package:submersion/features/gas_calculators/domain/tank_spec.dart';
+import 'package:submersion/features/gas_calculators/presentation/info/calculator_info.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/gas_calculators_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/unit_slider.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// Rock Bottom calculator.
 ///
@@ -70,13 +73,28 @@ class RockBottomCalculator extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        context
-                            .l10n
-                            .gasCalculators_rockBottom_emergencyScenario,
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              context
+                                  .l10n
+                                  .gasCalculators_rockBottom_emergencyScenario,
+                              style: textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          HeaderInfoButton(
+                            title: context.l10n.gasCalculators_tab_rockBottom,
+                            content: (context) => calculatorInfo(
+                              context.l10n,
+                              infoUnits(context),
+                              'rock-bottom',
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 16),
 
@@ -421,42 +439,6 @@ class RockBottomCalculator extends ConsumerWidget {
                         '${displayVolume.toStringAsFixed(0)} $volumeSymbol = '
                         '${displayPressure.toStringAsFixed(0)} $pressureSymbol',
                         isHighlight: true,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Info card
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.info_outline,
-                            size: 20,
-                            color: colorScheme.primary,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            context.l10n.gasCalculators_rockBottom_aboutTitle,
-                            style: textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        context.l10n.gasCalculators_rockBottom_aboutDescription,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
                       ),
                     ],
                   ),

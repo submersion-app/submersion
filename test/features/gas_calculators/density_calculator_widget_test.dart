@@ -9,6 +9,8 @@ import 'package:submersion/features/gas_calculators/presentation/providers/densi
 import 'package:submersion/features/gas_calculators/presentation/widgets/density_calculator.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_sheet.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
@@ -247,12 +249,19 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('the info card states the limits from the constants', (
+  testWidgets('the info sheet states the limits from the constants', (
     tester,
   ) async {
     await _pump(tester);
+    await tester.tap(find.byType(InfoButton).first);
+    await tester.pumpAndSettle();
+    final sheet = find.byType(InfoSheetBody);
     expect(
-      find.textContaining('at or below 5.2 g/L; 6.2 g/L is the hard ceiling'),
+      find.descendant(of: sheet, matching: find.textContaining('5.2 g/L')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: sheet, matching: find.textContaining('6.2 g/L')),
       findsOneWidget,
     );
   });
@@ -333,5 +342,13 @@ void main() {
 
     expect(ref.read(densityO2Provider), 100);
     expect(ref.read(densityHeProvider), 0);
+  });
+  testWidgets('Density explains itself through a header info icon', (
+    tester,
+  ) async {
+    await _pump(tester);
+    await tester.pumpAndSettle();
+    expect(find.byType(InfoButton), findsWidgets);
+    expect(find.text('About Gas Density'), findsNothing);
   });
 }

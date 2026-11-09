@@ -96573,8 +96573,8 @@ abstract class AppLocalizations {
   /// No description provided for @info_term_gasDensity_body.
   ///
   /// In en, this message translates to:
-  /// **'How heavy the breathing gas is at depth, in grams per litre, which sets how hard it is to breathe. Published research names 5.2 g/L as a recommended maximum and 6.2 g/L as an upper limit.'**
-  String get info_term_gasDensity_body;
+  /// **'How heavy the breathing gas is at depth, in grams per litre, which sets how hard it is to breathe. Published research names {warn} g/L as a recommended maximum and {critical} g/L as an upper limit.'**
+  String info_term_gasDensity_body(String warn, String critical);
 
   /// No description provided for @info_term_sac_label.
   ///
@@ -97776,6 +97776,54 @@ abstract class AppLocalizations {
   /// **'Actual replays the logged dive through the model, and what if replays it with the changes added in the Dive Lab.'**
   String get info_term_whatIf_body;
 
+  /// No description provided for @info_term_cellGain_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell output (mV per bar)'**
+  String get info_term_cellGain_label;
+
+  /// No description provided for @info_term_cellGain_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Each oxygen cell\'s millivolt reading divided by the ppO2 it measures. It stays steady while a cell is healthy and falls as the cell ages.'**
+  String get info_term_cellGain_body;
+
+  /// No description provided for @info_term_transmitterDropouts_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Transmitter dropouts'**
+  String get info_term_transmitterDropouts_label;
+
+  /// No description provided for @info_term_transmitterDropouts_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The share of each dive with no pressure reading from the transmitter.'**
+  String get info_term_transmitterDropouts_body;
+
+  /// No description provided for @info_term_o2Narcotic_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Oxygen counted as narcotic'**
+  String get info_term_o2Narcotic_label;
+
+  /// No description provided for @info_term_o2Narcotic_body.
+  ///
+  /// In en, this message translates to:
+  /// **'When on, oxygen counts as narcotic like nitrogen in END and MND. This makes END deeper and MND shallower.'**
+  String get info_term_o2Narcotic_body;
+
+  /// No description provided for @info_term_ascentGasSet_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Gases for the ascent'**
+  String get info_term_ascentGasSet_label;
+
+  /// No description provided for @info_term_ascentGasSet_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Which carried cylinders the simulated ascent may switch to: every gas carried, or only stage and deco cylinders.'**
+  String get info_term_ascentGasSet_body;
+
   /// No description provided for @info_diveLog_profile_summary.
   ///
   /// In en, this message translates to:
@@ -98345,6 +98393,264 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Changes to try against this dive, each replayed through the same model from the moment it applies.'**
   String get info_diveLab_interventions_summary;
+
+  /// No description provided for @info_calculators_mod_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'The deepest depth where the chosen mix stays within its ppO2 limit, with the EAD and END there.'**
+  String get info_calculators_mod_summary;
+
+  /// No description provided for @info_calculators_mod_background.
+  ///
+  /// In en, this message translates to:
+  /// **'Rec uses 1 bar per 10 m, like the dive log. OC Tec and CCR Tec take the surface pressure from the water type, so the same mix can show a slightly shallower MOD there.'**
+  String get info_calculators_mod_background;
+
+  /// No description provided for @info_calculators_mod_howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a mode, then set the oxygen and the working ppO2. A target depth can be added to check a planned depth against the mix. The END limit and whether oxygen counts as narcotic come from the diver profile.'**
+  String get info_calculators_mod_howToUse;
+
+  /// No description provided for @info_calculators_bestMix_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'The richest mix for a target depth that keeps ppO2 within its limit and END within the narcosis limit.'**
+  String get info_calculators_bestMix_summary;
+
+  /// No description provided for @info_calculators_bestMix_howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the target depth and the mode. On CCR, choose whether the mix is a diluent or a bailout gas.'**
+  String get info_calculators_bestMix_howToUse;
+
+  /// No description provided for @info_calculators_consumption_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'How much gas a planned dive uses at a given depth, time and breathing rate.'**
+  String get info_calculators_consumption_summary;
+
+  /// No description provided for @info_calculators_consumption_howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the depth, the time, the breathing rate and the cylinder.'**
+  String get info_calculators_consumption_howToUse;
+
+  /// No description provided for @info_calculators_rockBottom_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'The minimum gas reserve for two divers to ascend together on one supply from the deepest point.'**
+  String get info_calculators_rockBottom_summary;
+
+  /// No description provided for @info_calculators_rockBottom_background.
+  ///
+  /// In en, this message translates to:
+  /// **'It uses a stressed breathing rate, commonly two to three times normal, and counts both divers on one cylinder. The safety stop is included when that option is on.'**
+  String get info_calculators_rockBottom_background;
+
+  /// No description provided for @info_calculators_rockBottom_howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the depth, the stressed breathing rate, the ascent rate and the cylinder.'**
+  String get info_calculators_rockBottom_howToUse;
+
+  /// No description provided for @info_calculators_mnd_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'The deepest depth a gas stays within the END limit, and the END of a gas at a given depth.'**
+  String get info_calculators_mnd_summary;
+
+  /// No description provided for @info_calculators_mnd_howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the gas, the END limit and whether oxygen counts as narcotic.'**
+  String get info_calculators_mnd_howToUse;
+
+  /// No description provided for @info_calculators_icd_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Whether a switch between two gases passes the rule of fifths for counterdiffusion.'**
+  String get info_calculators_icd_summary;
+
+  /// No description provided for @info_calculators_icd_background.
+  ///
+  /// In en, this message translates to:
+  /// **'Helium diffuses faster than nitrogen, so a switch to a more nitrogen-rich gas can raise total inert gas in tissue. Agencies differ on how much this matters for standard gases.'**
+  String get info_calculators_icd_background;
+
+  /// No description provided for @info_calculators_icd_howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the current gas and the gas switched to.'**
+  String get info_calculators_icd_howToUse;
+
+  /// No description provided for @info_calculators_density_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'How dense a gas is at depth, and the depth at which air would be as dense.'**
+  String get info_calculators_density_summary;
+
+  /// No description provided for @info_calculators_density_background.
+  ///
+  /// In en, this message translates to:
+  /// **'On CCR the density is that of the loop gas: oxygen at the setpoint, the rest split in the diluent\'s ratio. Colder gas is denser, and the calculation assumes an ideal gas.'**
+  String get info_calculators_density_background;
+
+  /// No description provided for @info_calculators_density_howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the mix, the depth and the water temperature, and switch between OC and CCR.'**
+  String get info_calculators_density_howToUse;
+
+  /// No description provided for @info_calculators_blender_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'A partial-pressure blend: the fill gases to add, in order, to reach the target mix.'**
+  String get info_calculators_blender_summary;
+
+  /// No description provided for @info_calculators_blender_background.
+  ///
+  /// In en, this message translates to:
+  /// **'Each gas is added up to the pressure shown and the cylinder is left to settle before the next. Fill gases and their order are configurable, so the last gas can be EAN32 instead of air.'**
+  String get info_calculators_blender_background;
+
+  /// No description provided for @info_calculators_blender_howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter what is already in the cylinder and the target mix. The last step of every blend is analysing the finished mix.'**
+  String get info_calculators_blender_howToUse;
+
+  /// No description provided for @info_decoCalculator_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'A single-level dive run through the Buhlmann ZHL-16C model, showing its gas limits, stops and tissue loading.'**
+  String get info_decoCalculator_summary;
+
+  /// No description provided for @info_decoCalculator_howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the depth, the time, the gas and the water conditions. The gas limits, the stops and the tissue chart update as each value changes.'**
+  String get info_decoCalculator_howToUse;
+
+  /// No description provided for @info_surfaceIntervalTool_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Whether a second dive fits within no-stop limits after a surface interval, from the tissue loading carried over from the first dive.'**
+  String get info_surfaceIntervalTool_summary;
+
+  /// No description provided for @info_surfaceIntervalTool_background.
+  ///
+  /// In en, this message translates to:
+  /// **'The model\'s 16 compartments release gas during the interval, fast ones within minutes and slow ones over hours. The leading compartment is the most loaded one and usually sets the NDL.'**
+  String get info_surfaceIntervalTool_background;
+
+  /// No description provided for @info_surfaceIntervalTool_howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the first dive, the second dive and the surface interval. The result shows the minimum interval and the NDL for the second dive.'**
+  String get info_surfaceIntervalTool_howToUse;
+
+  /// No description provided for @info_equipment_trend_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'One point per dive, so a slow change in this item shows as a trend over its life.'**
+  String get info_equipment_trend_summary;
+
+  /// No description provided for @info_equipment_findings_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Patterns in this item\'s dives and reported issues that the condition rules flagged.'**
+  String get info_equipment_findings_summary;
+
+  /// No description provided for @info_equipment_exposure_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'How much use this item has seen, counted in each of the units its service clocks use.'**
+  String get info_equipment_exposure_summary;
+
+  /// No description provided for @info_site_altitude_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'The site\'s height above sea level and the air pressure there, which the decompression model starts from.'**
+  String get info_site_altitude_summary;
+
+  /// No description provided for @info_trips_scrubberMargin_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'How much rated scrubber time is left for the trip\'s planned rebreather dives.'**
+  String get info_trips_scrubberMargin_summary;
+
+  /// No description provided for @info_settings_gradientFactors_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'How conservative the app\'s decompression model is.'**
+  String get info_settings_gradientFactors_summary;
+
+  /// No description provided for @info_settings_gradientFactors_background.
+  ///
+  /// In en, this message translates to:
+  /// **'Gradient factors scale back the Buhlmann ZHL-16C M-values, a method described by Erik Baker. Every deco figure the app calculates uses them.'**
+  String get info_settings_gradientFactors_background;
+
+  /// No description provided for @info_settings_oxygenToxicity_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'The ppO2 limits and the CNS method used for oxygen figures across the app.'**
+  String get info_settings_oxygenToxicity_summary;
+
+  /// No description provided for @info_settings_dataSources_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Whether NDL, deco stops, TTS, GTR and CNS come from the dive computer or from the app\'s own calculation.'**
+  String get info_settings_dataSources_summary;
+
+  /// No description provided for @info_settings_narcosis_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'The END limit and how END and MND are worked out across the app.'**
+  String get info_settings_narcosis_summary;
+
+  /// No description provided for @info_settings_icd_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'The check the app runs on gas switches for counterdiffusion between helium and nitrogen.'**
+  String get info_settings_icd_summary;
+
+  /// No description provided for @info_settings_ascent_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Which gases the simulated ascent may switch to when the app works out TTS, the ceiling and stops.'**
+  String get info_settings_ascent_summary;
+
+  /// No description provided for @info_settings_safetyRules_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'The rules each dive is checked against after it is logged. A rule that is off is never reported.'**
+  String get info_settings_safetyRules_summary;
+
+  /// No description provided for @info_settings_conditionThresholds_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'The lines that make a dive count as cold, deep or high-oxygen for service clocks.'**
+  String get info_settings_conditionThresholds_summary;
+
+  /// No description provided for @info_settings_sensorSummaries_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'The per-dive figures the app keeps for oxygen cells, transmitters and scrubbers.'**
+  String get info_settings_sensorSummaries_summary;
+
+  /// No description provided for @info_settings_conditionRules_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'The checks behind the equipment condition findings. A rule that is off is never reported.'**
+  String get info_settings_conditionRules_summary;
+
+  /// No description provided for @info_settings_notifications_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders are scheduled when the app opens and refreshed in the background. Each equipment item can set its own reminders in its edit screen.'**
+  String get info_settings_notifications_summary;
 }
 
 class _AppLocalizationsDelegate

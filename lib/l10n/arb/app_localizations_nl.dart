@@ -60992,8 +60992,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get info_term_gasDensity_label => 'Gasdichtheid';
 
   @override
-  String get info_term_gasDensity_body =>
-      'Hoe zwaar het ademgas op diepte is, in gram per liter, wat bepaalt hoe zwaar het ademen gaat. Gepubliceerd onderzoek noemt 5,2 g/L als aanbevolen maximum en 6,2 g/L als bovengrens.';
+  String info_term_gasDensity_body(String warn, String critical) {
+    return 'Hoe zwaar het ademgas op diepte is, in gram per liter, wat bepaalt hoe zwaar het ademen gaat. Gepubliceerd onderzoek noemt $warn g/L als aanbevolen maximum en $critical g/L als bovengrens.';
+  }
 
   @override
   String get info_term_sac_label => 'SAC (luchtverbruik aan de oppervlakte)';
@@ -61385,7 +61386,7 @@ class AppLocalizationsNl extends AppLocalizations {
       'Het diepste punt van de opstijging waarop het volgende gas binnen zijn ppO2-grens valt, dus zijn MOD. De kaart vergelijkt het met de diepte waarop de wissel is gelogd.';
 
   @override
-  String get info_term_extraDeco_label => 'Extra deco';
+  String get info_term_extraDeco_label => 'Extra decompressie';
 
   @override
   String get info_term_extraDeco_body =>
@@ -61660,7 +61661,7 @@ class AppLocalizationsNl extends AppLocalizations {
       'Het deel van het startgas dat het plan gebruikt voordat het omkeert. Een derde is de gangbare regel in grotten en andere overheadduiken.';
 
   @override
-  String get info_term_dpv_label => 'DPV (scooter)';
+  String get info_term_dpv_label => 'DPV (onderwaterscooter)';
 
   @override
   String get info_term_dpv_body =>
@@ -61700,6 +61701,34 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get info_term_whatIf_body =>
       'Werkelijk speelt de gelogde duik opnieuw af door het model, en wat als doet dat met de in het Duiklab toegevoegde wijzigingen.';
+
+  @override
+  String get info_term_cellGain_label => 'Celsignaal (mV per bar)';
+
+  @override
+  String get info_term_cellGain_body =>
+      'De millivoltwaarde van elke zuurstofcel gedeeld door de gemeten ppO2. Die blijft stabiel zolang de cel gezond is en daalt naarmate de cel ouder wordt.';
+
+  @override
+  String get info_term_transmitterDropouts_label => 'Zenderuitval';
+
+  @override
+  String get info_term_transmitterDropouts_body =>
+      'Het deel van elke duik zonder drukwaarde van de zender.';
+
+  @override
+  String get info_term_o2Narcotic_label => 'Zuurstof als narcotisch meetellen';
+
+  @override
+  String get info_term_o2Narcotic_body =>
+      'Indien aan telt zuurstof in END en MND als narcotisch, net als stikstof. Daardoor wordt END dieper en MND ondieper.';
+
+  @override
+  String get info_term_ascentGasSet_label => 'Gassen voor de opstijging';
+
+  @override
+  String get info_term_ascentGasSet_body =>
+      'Naar welke meegenomen flessen de gesimuleerde opstijging mag wisselen: elk meegenomen gas, of alleen stage- en decoflessen.';
 
   @override
   String get info_diveLog_profile_summary =>
@@ -62080,4 +62109,176 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get info_diveLab_interventions_summary =>
       'Wijzigingen om op deze duik uit te proberen, elk door hetzelfde model afgespeeld vanaf het moment dat ze gelden.';
+
+  @override
+  String get info_calculators_mod_summary =>
+      'De grootste diepte waarop het gekozen mengsel binnen zijn ppO2-grens blijft, met de EAD en END daar.';
+
+  @override
+  String get info_calculators_mod_background =>
+      'Rec rekent met 1 bar per 10 m, zoals het logboek. OC Tec en CCR Tec halen de oppervlaktedruk uit het watertype, dus hetzelfde mengsel kan daar een iets ondiepere MOD tonen.';
+
+  @override
+  String get info_calculators_mod_howToUse =>
+      'Kies een modus en stel dan zuurstof en werk-ppO2 in. Een doeldiepte kan worden toegevoegd om een geplande diepte aan het mengsel te toetsen. De END-grens en of zuurstof narcotisch telt, komen uit het duikersprofiel.';
+
+  @override
+  String get info_calculators_bestMix_summary =>
+      'Het rijkste mengsel voor een doeldiepte dat de ppO2 binnen zijn grens en de END binnen de narcosegrens houdt.';
+
+  @override
+  String get info_calculators_bestMix_howToUse =>
+      'Stel de doeldiepte en de modus in. Kies bij CCR of het mengsel diluent of bailoutgas is.';
+
+  @override
+  String get info_calculators_consumption_summary =>
+      'Hoeveel gas een geplande duik gebruikt bij een gegeven diepte, tijd en ademfrequentie.';
+
+  @override
+  String get info_calculators_consumption_howToUse =>
+      'Vul de diepte, de tijd, de ademfrequentie en de fles in.';
+
+  @override
+  String get info_calculators_rockBottom_summary =>
+      'De minimale gasreserve om twee duikers samen op één voorraad vanaf het diepste punt te laten opstijgen.';
+
+  @override
+  String get info_calculators_rockBottom_background =>
+      'Er wordt gerekend met een stressademfrequentie, meestal twee tot drie keer normaal, en beide duikers op één fles. De veiligheidsstop telt mee als die optie aan staat.';
+
+  @override
+  String get info_calculators_rockBottom_howToUse =>
+      'Stel de diepte, de stressademfrequentie, de opstijgsnelheid en de fles in.';
+
+  @override
+  String get info_calculators_mnd_summary =>
+      'De grootste diepte waarop een gas binnen de END-grens blijft, en de END van een gas op een gegeven diepte.';
+
+  @override
+  String get info_calculators_mnd_howToUse =>
+      'Vul het gas, de END-grens en of zuurstof narcotisch telt in.';
+
+  @override
+  String get info_calculators_icd_summary =>
+      'Of een wissel tussen twee gassen voldoet aan de vijfderegel voor tegendiffusie.';
+
+  @override
+  String get info_calculators_icd_background =>
+      'Helium diffundeert sneller dan stikstof, dus een wissel naar een stikstofrijker gas kan het totale inerte gas in weefsels verhogen. Organisaties verschillen over hoe zwaar dat weegt bij standaardgassen.';
+
+  @override
+  String get info_calculators_icd_howToUse =>
+      'Vul het huidige gas en het gas na de wissel in.';
+
+  @override
+  String get info_calculators_density_summary =>
+      'Hoe dicht een gas op diepte is en op welke diepte lucht even dicht zou zijn.';
+
+  @override
+  String get info_calculators_density_background =>
+      'Bij CCR is het de dichtheid van het lusgas: zuurstof op het setpoint, de rest in de verhouding van het diluent. Kouder gas is dichter, en de berekening gaat uit van een ideaal gas.';
+
+  @override
+  String get info_calculators_density_howToUse =>
+      'Vul het mengsel, de diepte en de watertemperatuur in en wissel tussen OC en CCR.';
+
+  @override
+  String get info_calculators_blender_summary =>
+      'Een partiaaldrukmenging: de vulgassen die in volgorde worden toegevoegd om het doelmengsel te halen.';
+
+  @override
+  String get info_calculators_blender_background =>
+      'Elk gas wordt tot de getoonde druk toegevoegd en de fles laat men stabiliseren voor het volgende. Vulgassen en volgorde zijn instelbaar, dus het laatste gas kan EAN32 zijn in plaats van lucht.';
+
+  @override
+  String get info_calculators_blender_howToUse =>
+      'Vul in wat al in de fles zit en het doelmengsel. De laatste stap van elke menging is het analyseren van het eindmengsel.';
+
+  @override
+  String get info_decoCalculator_summary =>
+      'Een duik op één niveau door het Buhlmann-model ZHL-16C gerekend, met gasgrenzen, stops en weefselbelasting.';
+
+  @override
+  String get info_decoCalculator_howToUse =>
+      'Stel de diepte, de tijd, het gas en de wateromstandigheden in. Gasgrenzen, stops en weefselgrafiek werken bij elke wijziging bij.';
+
+  @override
+  String get info_surfaceIntervalTool_summary =>
+      'Of een tweede duik na een oppervlakte-interval binnen de nultijd past, op basis van de weefselbelasting uit de eerste duik.';
+
+  @override
+  String get info_surfaceIntervalTool_background =>
+      'De 16 compartimenten van het model geven tijdens het interval gas af, snelle binnen minuten en trage over uren. Het leidende compartiment is het zwaarst belaste en bepaalt meestal de nultijd.';
+
+  @override
+  String get info_surfaceIntervalTool_howToUse =>
+      'Stel de eerste duik, de tweede duik en het oppervlakte-interval in. Het resultaat toont het minimale interval en de nultijd van de tweede duik.';
+
+  @override
+  String get info_equipment_trend_summary =>
+      'Eén punt per duik, zodat een langzame verandering van dit item als trend over zijn levensduur zichtbaar wordt.';
+
+  @override
+  String get info_equipment_findings_summary =>
+      'Patronen in de duiken en gemelde problemen van dit item die de staatregels hebben gesignaleerd.';
+
+  @override
+  String get info_equipment_exposure_summary =>
+      'Hoeveel dit item is gebruikt, geteld in elke eenheid die zijn onderhoudsklokken gebruiken.';
+
+  @override
+  String get info_site_altitude_summary =>
+      'De hoogte van de locatie boven zeeniveau en de luchtdruk daar, waarmee het decompressiemodel begint.';
+
+  @override
+  String get info_trips_scrubberMargin_summary =>
+      'Hoeveel nominale kalktijd er over is voor de geplande rebreatherduiken van de reis.';
+
+  @override
+  String get info_settings_gradientFactors_summary =>
+      'Hoe conservatief het decompressiemodel van de app rekent.';
+
+  @override
+  String get info_settings_gradientFactors_background =>
+      'Gradiëntfactoren verkleinen de M-waarden van Buhlmann ZHL-16C, een methode beschreven door Erik Baker. Elk decogetal dat de app berekent gebruikt ze.';
+
+  @override
+  String get info_settings_oxygenToxicity_summary =>
+      'De ppO2-grenzen en de CNS-methode die de app overal voor zuurstofwaarden gebruikt.';
+
+  @override
+  String get info_settings_dataSources_summary =>
+      'Of nultijd, decostops, TTS, GTR en CNS van de duikcomputer of uit de eigen berekening van de app komen.';
+
+  @override
+  String get info_settings_narcosis_summary =>
+      'De END-grens en hoe END en MND in de app worden berekend.';
+
+  @override
+  String get info_settings_icd_summary =>
+      'De controle die de app bij gaswissels uitvoert op tegendiffusie tussen helium en stikstof.';
+
+  @override
+  String get info_settings_ascent_summary =>
+      'Naar welke gassen de gesimuleerde opstijging mag wisselen als de app TTS, plafond en stops berekent.';
+
+  @override
+  String get info_settings_safetyRules_summary =>
+      'De regels waaraan elke duik na het loggen wordt getoetst. Een uitgeschakelde regel wordt nooit gemeld.';
+
+  @override
+  String get info_settings_conditionThresholds_summary =>
+      'De grenzen waardoor een duik voor onderhoudsklokken als koud, diep of zuurstofrijk telt.';
+
+  @override
+  String get info_settings_sensorSummaries_summary =>
+      'De waarden per duik die de app bijhoudt voor zuurstofcellen, zenders en kalk.';
+
+  @override
+  String get info_settings_conditionRules_summary =>
+      'De controles achter de bevindingen over uitrustingsstaat. Een uitgeschakelde regel wordt nooit gemeld.';
+
+  @override
+  String get info_settings_notifications_summary =>
+      'Herinneringen worden ingepland bij het openen van de app en op de achtergrond vernieuwd. Elk uitrustingsitem kan eigen herinneringen hebben in zijn bewerkscherm.';
 }

@@ -8,6 +8,7 @@ import 'package:submersion/features/gas_calculators/presentation/providers/gas_c
 import 'package:submersion/features/gas_calculators/presentation/widgets/gas_consumption_calculator.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
@@ -127,5 +128,12 @@ void main() {
 
     expect(find.textContaining('-'), findsNothing);
     expect(find.textContaining('0 L (0 bar)'), findsOneWidget);
+  });
+  testWidgets('Consumption explains itself through a header info icon', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_host(settings: _imperial));
+    await tester.pumpAndSettle();
+    expect(find.byType(InfoButton), findsWidgets);
   });
 }

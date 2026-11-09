@@ -61029,8 +61029,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get info_term_gasDensity_label => 'Gázsűrűség';
 
   @override
-  String get info_term_gasDensity_body =>
-      'Milyen nehéz a légzőgáz a mélyben, gramm per literben, ami a légzés nehézségét határozza meg. A publikált kutatás 5,2 g/l-t ajánlott maximumként, 6,2 g/l-t felső határként említ.';
+  String info_term_gasDensity_body(String warn, String critical) {
+    return 'Milyen nehéz a légzőgáz a mélyben, gramm per literben, ami a légzés nehézségét határozza meg. A publikált kutatás $warn g/l-t ajánlott maximumként, $critical g/l-t felső határként említ.';
+  }
 
   @override
   String get info_term_sac_label => 'SAC (felszíni levegőfogyasztás)';
@@ -61381,11 +61382,11 @@ class AppLocalizationsHu extends AppLocalizations {
       'Megnövelt oxigénarányú gáz belélegzésével töltött idő, amely gyorsabban koptatja az oxigénkompatibilis alkatrészeket.';
 
   @override
-  String get info_term_decoStatus_label => 'DEKO és DEKÓMENTES';
+  String get info_term_decoStatus_label => 'DEKÓ és DEKÓMENTES';
 
   @override
   String get info_term_decoStatus_body =>
-      'A DEKÓMENTES azt jelenti, hogy abban a pillanatban a közvetlen emelkedés belefér a modellbe. A DEKO azt jelenti, hogy a felszínre érés előtt legalább egy megálló kell.';
+      'A DEKÓMENTES azt jelenti, hogy abban a pillanatban a közvetlen emelkedés belefér a modellbe. A DEKÓ azt jelenti, hogy a felszínre érés előtt legalább egy megálló kell.';
 
   @override
   String get info_term_cnsStartAdded_label => 'Kezdet és ez a merülés';
@@ -61423,7 +61424,7 @@ class AppLocalizationsHu extends AppLocalizations {
       'Az emelkedés legmélyebb pontja, ahol a következő gáz a ppO2-határán belül van, vagyis a MOD-ja. A kártya ezt veti össze azzal a mélységgel, ahol a váltás naplózva lett.';
 
   @override
-  String get info_term_extraDeco_label => 'Többlet deko';
+  String get info_term_extraDeco_label => 'Többlet dekó';
 
   @override
   String get info_term_extraDeco_body =>
@@ -61631,7 +61632,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get info_term_cylinderRole_body =>
-      'Mire szolgált a palack a merülésen: fenékgáz, stage, deko, pony vagy bailout. A fogyasztás e szerint csoportosul.';
+      'Mire szolgált a palack a merülésen: fenékgáz, stage, dekó, pony vagy bailout. A fogyasztás e szerint csoportosul.';
 
   @override
   String get info_term_colourBy_label => 'Színezés';
@@ -61739,12 +61740,40 @@ class AppLocalizationsHu extends AppLocalizations {
       'A tényleges a naplózott merülést játssza újra a modellel, a mi lenne, ha pedig a Merülési laborban hozzáadott változásokkal.';
 
   @override
+  String get info_term_cellGain_label => 'Cellajel (mV/bar)';
+
+  @override
+  String get info_term_cellGain_body =>
+      'Az egyes oxigéncellák millivoltos jele osztva a mért ppO2-vel. Ép cellánál stabil marad, és a cella öregedésével csökken.';
+
+  @override
+  String get info_term_transmitterDropouts_label => 'Jeladó-kiesések';
+
+  @override
+  String get info_term_transmitterDropouts_body =>
+      'Az egyes merülések azon része, amikor nem jött nyomásadat a jeladótól.';
+
+  @override
+  String get info_term_o2Narcotic_label => 'Oxigén narkotikusként számolva';
+
+  @override
+  String get info_term_o2Narcotic_body =>
+      'Bekapcsolva az oxigén a nitrogénhez hasonlóan narkotikusnak számít az END-ben és MND-ben. Így az END mélyebb, az MND sekélyebb lesz.';
+
+  @override
+  String get info_term_ascentGasSet_label => 'Gázok az emelkedéshez';
+
+  @override
+  String get info_term_ascentGasSet_body =>
+      'Mely vitt palackokra válthat a szimulált emelkedés: minden vitt gázra, vagy csak a stage- és dekópalackokra.';
+
+  @override
   String get info_diveLog_profile_summary =>
       'A mélység az idő függvényében az egész merülésre, minden bekapcsolt réteggel ugyanazon az időtengelyen.';
 
   @override
   String get info_diveLog_profile_background =>
-      'A deko- és oxigénrétegek a Buhlmann ZHL-16C modellből származnak a beállításokban megadott gradiensfaktorokkal, valamint a NOAA oxigéntáblázataiból.';
+      'A dekó- és oxigénrétegek a Buhlmann ZHL-16C modellből származnak a beállításokban megadott gradiensfaktorokkal, valamint a NOAA oxigéntáblázataiból.';
 
   @override
   String get info_diveLog_profile_howToUse =>
@@ -62117,4 +62146,176 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get info_diveLab_interventions_summary =>
       'Kipróbálható változtatások erre a merülésre, mindegyik ugyanazzal a modellel újrajátszva attól a ponttól, ahol érvényes.';
+
+  @override
+  String get info_calculators_mod_summary =>
+      'Az a legnagyobb mélység, ahol a választott keverék a ppO2-határán belül marad, az ottani EAD-vel és END-del.';
+
+  @override
+  String get info_calculators_mod_background =>
+      'A Rec 10 méterenként 1 bárral számol, mint a napló. Az OC Tec és a CCR Tec a víz típusából veszi a felszíni nyomást, így ugyanaz a keverék ott kissé sekélyebb MOD-ot mutathat.';
+
+  @override
+  String get info_calculators_mod_howToUse =>
+      'Válasszon módot, majd adja meg az oxigént és a munka-ppO2-t. Célmélység is felvehető, hogy egy tervezett mélységet a keverékhez mérjen. Az END-határ és az oxigén narkotikus volta a búvárprofilból jön.';
+
+  @override
+  String get info_calculators_bestMix_summary =>
+      'A leggazdagabb keverék egy célmélységhez, amely a ppO2-t a határán, az END-et a narkózishatáron belül tartja.';
+
+  @override
+  String get info_calculators_bestMix_howToUse =>
+      'Adja meg a célmélységet és a módot. CCR-nél válassza ki, hogy a keverék hígítógáz vagy bailout-gáz.';
+
+  @override
+  String get info_calculators_consumption_summary =>
+      'Mennyi gázt használ egy tervezett merülés adott mélységben, időtartammal és légzési ütemmel.';
+
+  @override
+  String get info_calculators_consumption_howToUse =>
+      'Adja meg a mélységet, az időt, a légzési ütemet és a palackot.';
+
+  @override
+  String get info_calculators_rockBottom_summary =>
+      'A minimális gáztartalék ahhoz, hogy két búvár egy forrásról együtt emelkedjen fel a legmélyebb pontról.';
+
+  @override
+  String get info_calculators_rockBottom_background =>
+      'Stresszes légzési ütemmel számol, általában a normál két-háromszorosával, és mindkét búvárt egy palackra veszi. A biztonsági megálló benne van, ha az opció be van kapcsolva.';
+
+  @override
+  String get info_calculators_rockBottom_howToUse =>
+      'Adja meg a mélységet, a stresszes légzési ütemet, az emelkedési sebességet és a palackot.';
+
+  @override
+  String get info_calculators_mnd_summary =>
+      'Az a legnagyobb mélység, ahol egy gáz az END-határon belül marad, és egy gáz END-je adott mélységben.';
+
+  @override
+  String get info_calculators_mnd_howToUse =>
+      'Adja meg a gázt, az END-határt, és hogy az oxigén narkotikusnak számít-e.';
+
+  @override
+  String get info_calculators_icd_summary =>
+      'Megfelel-e két gáz közötti váltás az ellendiffúzió ötödszabályának.';
+
+  @override
+  String get info_calculators_icd_background =>
+      'A hélium gyorsabban diffundál, mint a nitrogén, így egy nitrogénben gazdagabb gázra váltás növelheti a szövetek teljes inertgáz-tartalmát. A szervezetek nem értenek egyet abban, mennyire számít ez szabványos gázoknál.';
+
+  @override
+  String get info_calculators_icd_howToUse =>
+      'Adja meg a jelenlegi gázt és azt, amelyre vált.';
+
+  @override
+  String get info_calculators_density_summary =>
+      'Milyen sűrű egy gáz a mélyben, és milyen mélységben lenne ugyanilyen sűrű a levegő.';
+
+  @override
+  String get info_calculators_density_background =>
+      'CCR-nél a hurokgáz sűrűsége: oxigén a setpointon, a többi a hígítógáz arányában. A hidegebb gáz sűrűbb, a számítás ideális gázt feltételez.';
+
+  @override
+  String get info_calculators_density_howToUse =>
+      'Adja meg a keveréket, a mélységet és a vízhőmérsékletet, és váltson OC és CCR között.';
+
+  @override
+  String get info_calculators_blender_summary =>
+      'Parciális nyomásos keverés: a töltőgázok, amelyeket sorban hozzá kell adni a célkeverékhez.';
+
+  @override
+  String get info_calculators_blender_background =>
+      'Minden gázt a kijelzett nyomásig kell tölteni, és a palack a következő előtt pihen. A töltőgázok és sorrendjük beállítható, így az utolsó gáz lehet EAN32 a levegő helyett.';
+
+  @override
+  String get info_calculators_blender_howToUse =>
+      'Adja meg, mi van már a palackban, és a célkeveréket. Minden keverés utolsó lépése a kész keverék elemzése.';
+
+  @override
+  String get info_decoCalculator_summary =>
+      'Egyszintű merülés a Buhlmann ZHL-16C modellel számolva, gázhatárokkal, megállókkal és szöveti terheléssel.';
+
+  @override
+  String get info_decoCalculator_howToUse =>
+      'Adja meg a mélységet, az időt, a gázt és a vízviszonyokat. A gázhatárok, a megállók és a szövetdiagram minden változáskor frissülnek.';
+
+  @override
+  String get info_surfaceIntervalTool_summary =>
+      'Belefér-e egy második merülés a dekompressziómentes határba egy felszíni idő után, az első merülésből áthozott szöveti terhelés alapján.';
+
+  @override
+  String get info_surfaceIntervalTool_background =>
+      'A modell 16 kompartmentje a szünetben gázt ad le, a gyorsak percek, a lassúak órák alatt. A vezető kompartment a legterheltebb, és általában ez szabja meg az NDL-t.';
+
+  @override
+  String get info_surfaceIntervalTool_howToUse =>
+      'Adja meg az első és a második merülést és a felszíni időt. Az eredmény mutatja a minimális szünetet és a második merülés NDL-jét.';
+
+  @override
+  String get info_equipment_trend_summary =>
+      'Merülésenként egy pont, így a tétel lassú változása trendként látszik az élettartama során.';
+
+  @override
+  String get info_equipment_findings_summary =>
+      'Minták a tétel merüléseiben és jelentett problémáiban, amelyeket az állapotszabályok jeleztek.';
+
+  @override
+  String get info_equipment_exposure_summary =>
+      'Mennyit használták ezt a tételt, a szervizórái által használt minden egységben számolva.';
+
+  @override
+  String get info_site_altitude_summary =>
+      'A hely tengerszint feletti magassága és az ottani légnyomás, amelyből a dekompressziós modell indul.';
+
+  @override
+  String get info_trips_scrubberMargin_summary =>
+      'Mennyi névleges mészidő marad az út tervezett rebreatheres merüléseire.';
+
+  @override
+  String get info_settings_gradientFactors_summary =>
+      'Mennyire óvatos az alkalmazás dekompressziós modellje.';
+
+  @override
+  String get info_settings_gradientFactors_background =>
+      'A gradiensfaktorok szűkítik a Buhlmann ZHL-16C M-értékeit, ezt a módszert Erik Baker írta le. Az alkalmazás minden számított dekóadata ezeket használja.';
+
+  @override
+  String get info_settings_oxygenToxicity_summary =>
+      'A ppO2-határok és a CNS-módszer, amelyet az alkalmazás minden oxigénadata használ.';
+
+  @override
+  String get info_settings_dataSources_summary =>
+      'Hogy az NDL, a dekómegállók, a TTS, a GTR és a CNS a búvárkomputertől vagy az alkalmazás saját számításából jön-e.';
+
+  @override
+  String get info_settings_narcosis_summary =>
+      'Az END-határ, és ahogy az alkalmazás az END-et és az MND-t számolja.';
+
+  @override
+  String get info_settings_icd_summary =>
+      'Az ellenőrzés, amelyet az alkalmazás a gázváltásokon végez a hélium és a nitrogén ellendiffúziójára.';
+
+  @override
+  String get info_settings_ascent_summary =>
+      'Mely gázokra válthat a szimulált emelkedés, amikor az alkalmazás a TTS-t, a plafont és a megállókat számolja.';
+
+  @override
+  String get info_settings_safetyRules_summary =>
+      'A szabályok, amelyekkel minden merülést rögzítés után ellenőriz az alkalmazás. A kikapcsolt szabály soha nem jelez.';
+
+  @override
+  String get info_settings_conditionThresholds_summary =>
+      'A határok, amelyek alapján egy merülés hidegnek, mélynek vagy magas oxigéntartalmúnak számít a szervizórák szerint.';
+
+  @override
+  String get info_settings_sensorSummaries_summary =>
+      'A merülésenkénti adatok, amelyeket az alkalmazás az oxigéncellákhoz, jeladókhoz és mésztartályokhoz tárol.';
+
+  @override
+  String get info_settings_conditionRules_summary =>
+      'A felszerelésállapot-megállapítások mögötti ellenőrzések. A kikapcsolt szabály soha nem jelez.';
+
+  @override
+  String get info_settings_notifications_summary =>
+      'Az emlékeztetők az alkalmazás megnyitásakor ütemeződnek, és a háttérben frissülnek. Minden felszerelés saját emlékeztetőket kaphat a szerkesztőképernyőjén.';
 }

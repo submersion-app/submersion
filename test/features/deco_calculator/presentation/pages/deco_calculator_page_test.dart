@@ -10,6 +10,7 @@ import 'package:submersion/features/planner/domain/services/dive_plan_state_mapp
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 class _FixedSettings extends StateNotifier<AppSettings>
     implements SettingsNotifier {
@@ -170,4 +171,12 @@ void main() {
       );
     });
   });
+  testWidgets(
+    'the deco calculator explains itself through a header info icon',
+    (tester) async {
+      await pumpCalculator(tester);
+      await tester.pumpAndSettle();
+      expect(find.byType(InfoButton), findsWidgets);
+    },
+  );
 }

@@ -61515,8 +61515,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get info_term_gasDensity_label => 'Densité du gaz';
 
   @override
-  String get info_term_gasDensity_body =>
-      'Le poids du gaz respiré en profondeur, en grammes par litre, qui fixe l\'effort pour le respirer. La recherche publiée cite 5,2 g/L comme maximum recommandé et 6,2 g/L comme limite haute.';
+  String info_term_gasDensity_body(String warn, String critical) {
+    return 'Le poids du gaz respiré en profondeur, en grammes par litre, qui fixe l\'effort pour le respirer. La recherche publiée cite $warn g/L comme maximum recommandé et $critical g/L comme limite haute.';
+  }
 
   @override
   String get info_term_sac_label => 'SAC (consommation en surface)';
@@ -62185,7 +62186,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'La part du gaz de départ que le plan utilise avant de faire demi-tour. Un tiers est la règle courante en grotte et autres milieux fermés.';
 
   @override
-  String get info_term_dpv_label => 'DPV (scooter)';
+  String get info_term_dpv_label => 'DPV (propulseur)';
 
   @override
   String get info_term_dpv_body =>
@@ -62225,6 +62226,34 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get info_term_whatIf_body =>
       'Réel rejoue la plongée enregistrée dans le modèle, et et si la rejoue avec les changements ajoutés dans le labo de plongée.';
+
+  @override
+  String get info_term_cellGain_label => 'Signal de cellule (mV par bar)';
+
+  @override
+  String get info_term_cellGain_body =>
+      'Le signal en millivolts de chaque cellule à oxygène divisé par la ppO2 mesurée. Il reste stable tant que la cellule est saine et baisse avec son vieillissement.';
+
+  @override
+  String get info_term_transmitterDropouts_label => 'Coupures de l\'émetteur';
+
+  @override
+  String get info_term_transmitterDropouts_body =>
+      'La part de chaque plongée sans valeur de pression de l\'émetteur.';
+
+  @override
+  String get info_term_o2Narcotic_label => 'Oxygène compté comme narcotique';
+
+  @override
+  String get info_term_o2Narcotic_body =>
+      'Activé, l\'oxygène compte comme narcotique, comme l\'azote, dans l\'END et la MND. L\'END devient plus profonde et la MND moins profonde.';
+
+  @override
+  String get info_term_ascentGasSet_label => 'Gaz pour la remontée';
+
+  @override
+  String get info_term_ascentGasSet_body =>
+      'Sur quels blocs emportés la remontée simulée peut basculer : tous les gaz emportés, ou seulement les relais et blocs de déco.';
 
   @override
   String get info_diveLog_profile_summary =>
@@ -62605,4 +62634,176 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get info_diveLab_interventions_summary =>
       'Changements à essayer sur cette plongée, chacun rejoué dans le même modèle à partir du moment où il s\'applique.';
+
+  @override
+  String get info_calculators_mod_summary =>
+      'La profondeur maximale où le mélange choisi reste dans sa limite de ppO2, avec l\'EAD et l\'END à cette profondeur.';
+
+  @override
+  String get info_calculators_mod_background =>
+      'Rec utilise 1 bar par 10 m, comme le carnet. OC Tec et CCR Tec prennent la pression de surface du type d\'eau, donc le même mélange peut y afficher une MOD un peu moins profonde.';
+
+  @override
+  String get info_calculators_mod_howToUse =>
+      'Choisissez un mode, puis réglez l\'oxygène et la ppO2 de travail. Une profondeur cible peut être ajoutée pour vérifier une profondeur prévue avec le mélange. La limite d\'END et le caractère narcotique de l\'oxygène viennent du profil du plongeur.';
+
+  @override
+  String get info_calculators_bestMix_summary =>
+      'Le mélange le plus riche pour une profondeur cible qui garde la ppO2 dans sa limite et l\'END dans la limite de narcose.';
+
+  @override
+  String get info_calculators_bestMix_howToUse =>
+      'Réglez la profondeur cible et le mode. En CCR, choisissez si le mélange est un diluant ou un gaz de bailout.';
+
+  @override
+  String get info_calculators_consumption_summary =>
+      'La quantité de gaz qu\'une plongée prévue utilise à une profondeur, une durée et un rythme respiratoire donnés.';
+
+  @override
+  String get info_calculators_consumption_howToUse =>
+      'Saisissez la profondeur, la durée, le rythme respiratoire et le bloc.';
+
+  @override
+  String get info_calculators_rockBottom_summary =>
+      'La réserve minimale de gaz pour que deux plongeurs remontent ensemble sur une seule réserve depuis le point le plus profond.';
+
+  @override
+  String get info_calculators_rockBottom_background =>
+      'Le calcul utilise un rythme respiratoire de stress, en général deux à trois fois le normal, et compte les deux plongeurs sur un seul bloc. Le palier de sécurité est inclus si l\'option est activée.';
+
+  @override
+  String get info_calculators_rockBottom_howToUse =>
+      'Réglez la profondeur, le rythme respiratoire de stress, la vitesse de remontée et le bloc.';
+
+  @override
+  String get info_calculators_mnd_summary =>
+      'La profondeur maximale où un gaz reste dans la limite d\'END, et l\'END d\'un gaz à une profondeur donnée.';
+
+  @override
+  String get info_calculators_mnd_howToUse =>
+      'Saisissez le gaz, la limite d\'END et si l\'oxygène compte comme narcotique.';
+
+  @override
+  String get info_calculators_icd_summary =>
+      'Si un changement entre deux gaz respecte la règle des cinquièmes pour la contre-diffusion.';
+
+  @override
+  String get info_calculators_icd_background =>
+      'L\'hélium diffuse plus vite que l\'azote, donc passer à un gaz plus riche en azote peut augmenter le gaz inerte total dans les tissus. Les organismes divergent sur l\'importance de ce point avec des gaz standards.';
+
+  @override
+  String get info_calculators_icd_howToUse =>
+      'Saisissez le gaz actuel et le gaz de destination.';
+
+  @override
+  String get info_calculators_density_summary =>
+      'La densité d\'un gaz en profondeur et la profondeur où l\'air serait aussi dense.';
+
+  @override
+  String get info_calculators_density_background =>
+      'En CCR, c\'est la densité du gaz de la boucle : oxygène au setpoint, le reste dans la proportion du diluant. Un gaz plus froid est plus dense, et le calcul suppose un gaz parfait.';
+
+  @override
+  String get info_calculators_density_howToUse =>
+      'Saisissez le mélange, la profondeur et la température de l\'eau, et basculez entre OC et CCR.';
+
+  @override
+  String get info_calculators_blender_summary =>
+      'Un mélange par pressions partielles : les gaz de remplissage à ajouter, dans l\'ordre, pour obtenir le mélange cible.';
+
+  @override
+  String get info_calculators_blender_background =>
+      'Chaque gaz est ajouté jusqu\'à la pression indiquée et le bloc se stabilise avant le suivant. Les gaz de remplissage et leur ordre sont réglables, donc le dernier gaz peut être de l\'EAN32 au lieu de l\'air.';
+
+  @override
+  String get info_calculators_blender_howToUse =>
+      'Saisissez ce qui est déjà dans le bloc et le mélange cible. La dernière étape de tout mélange est l\'analyse du mélange obtenu.';
+
+  @override
+  String get info_decoCalculator_summary =>
+      'Une plongée à un seul palier passée dans le modèle Buhlmann ZHL-16C, avec ses limites de gaz, ses paliers et la charge tissulaire.';
+
+  @override
+  String get info_decoCalculator_howToUse =>
+      'Réglez la profondeur, la durée, le gaz et les conditions de l\'eau. Les limites du gaz, les paliers et le graphique des tissus se mettent à jour à chaque changement.';
+
+  @override
+  String get info_surfaceIntervalTool_summary =>
+      'Si une deuxième plongée tient dans les limites sans palier après un intervalle de surface, d\'après la charge tissulaire héritée de la première.';
+
+  @override
+  String get info_surfaceIntervalTool_background =>
+      'Les 16 compartiments du modèle libèrent du gaz pendant l\'intervalle, les rapides en quelques minutes et les lents sur des heures. Le compartiment directeur est le plus chargé et fixe en général la NDL.';
+
+  @override
+  String get info_surfaceIntervalTool_howToUse =>
+      'Réglez la première plongée, la deuxième et l\'intervalle de surface. Le résultat montre l\'intervalle minimum et la NDL de la deuxième plongée.';
+
+  @override
+  String get info_equipment_trend_summary =>
+      'Un point par plongée, pour qu\'un changement lent de cet équipement apparaisse comme une tendance sur sa durée de vie.';
+
+  @override
+  String get info_equipment_findings_summary =>
+      'Tendances dans les plongées et problèmes signalés de cet équipement relevées par les règles d\'état.';
+
+  @override
+  String get info_equipment_exposure_summary =>
+      'L\'usage de cet équipement, compté dans chaque unité utilisée par ses compteurs d\'entretien.';
+
+  @override
+  String get info_site_altitude_summary =>
+      'L\'altitude du site et la pression atmosphérique sur place, point de départ du modèle de décompression.';
+
+  @override
+  String get info_trips_scrubberMargin_summary =>
+      'Combien de temps nominal de chaux reste pour les plongées en recycleur prévues du voyage.';
+
+  @override
+  String get info_settings_gradientFactors_summary =>
+      'Le niveau de prudence du modèle de décompression de l\'application.';
+
+  @override
+  String get info_settings_gradientFactors_background =>
+      'Les facteurs de gradient réduisent les valeurs M de Buhlmann ZHL-16C, une méthode décrite par Erik Baker. Chaque valeur de déco calculée par l\'application les utilise.';
+
+  @override
+  String get info_settings_oxygenToxicity_summary =>
+      'Les limites de ppO2 et la méthode CNS utilisées pour les valeurs d\'oxygène dans toute l\'application.';
+
+  @override
+  String get info_settings_dataSources_summary =>
+      'Si la NDL, les paliers, le TTS, le GTR et le CNS viennent de l\'ordinateur de plongée ou du calcul de l\'application.';
+
+  @override
+  String get info_settings_narcosis_summary =>
+      'La limite d\'END et la façon de calculer l\'END et la MND dans l\'application.';
+
+  @override
+  String get info_settings_icd_summary =>
+      'La vérification que l\'application applique aux changements de gaz pour la contre-diffusion entre hélium et azote.';
+
+  @override
+  String get info_settings_ascent_summary =>
+      'Sur quels gaz la remontée simulée peut basculer quand l\'application calcule le TTS, le plafond et les paliers.';
+
+  @override
+  String get info_settings_safetyRules_summary =>
+      'Les règles appliquées à chaque plongée une fois enregistrée. Une règle désactivée n\'est jamais signalée.';
+
+  @override
+  String get info_settings_conditionThresholds_summary =>
+      'Les seuils qui font compter une plongée comme froide, profonde ou à oxygène élevé pour les compteurs d\'entretien.';
+
+  @override
+  String get info_settings_sensorSummaries_summary =>
+      'Les valeurs par plongée que l\'application conserve pour les cellules O2, les émetteurs et la chaux.';
+
+  @override
+  String get info_settings_conditionRules_summary =>
+      'Les vérifications derrière les constats d\'état du matériel. Une règle désactivée n\'est jamais signalée.';
+
+  @override
+  String get info_settings_notifications_summary =>
+      'Les rappels sont planifiés à l\'ouverture de l\'application et actualisés en arrière-plan. Chaque équipement peut avoir ses propres rappels dans son écran d\'édition.';
 }

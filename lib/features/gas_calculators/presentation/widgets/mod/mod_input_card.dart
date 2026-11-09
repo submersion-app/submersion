@@ -8,6 +8,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_limits.dart';
 import 'package:submersion/features/gas_calculators/domain/mod_calculator_preferences.dart';
+import 'package:submersion/features/gas_calculators/presentation/info/calculator_info.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/mod_calculator_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/density/density_slider.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/gas_temperature_segmented_button.dart';
@@ -15,6 +16,8 @@ import 'package:submersion/features/gas_calculators/presentation/widgets/mod/mod
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/unit_slider.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// Mode, mix, CCR setpoint, target depth and, in the Tec modes, the water
 /// type and the minimum ppO2.
@@ -59,11 +62,23 @@ class ModInputCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              l10n.gasCalculators_mod_inputParameters,
-              style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.gasCalculators_mod_inputParameters,
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                HeaderInfoButton(
+                  title: context.l10n.gasCalculators_tab_mod,
+                  content: (context) =>
+                      calculatorInfo(context.l10n, infoUnits(context), 'mod'),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             _Labelled(

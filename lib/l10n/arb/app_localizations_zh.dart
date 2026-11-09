@@ -57609,8 +57609,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get info_term_gasDensity_label => '气体密度';
 
   @override
-  String get info_term_gasDensity_body =>
-      '呼吸气体在深处的密度，单位为克每升，它决定呼吸的费力程度。已发表的研究以 5.2 g/L 为建议上限，6.2 g/L 为最高限值。';
+  String info_term_gasDensity_body(String warn, String critical) {
+    return '呼吸气体在深处的密度，单位为克每升，它决定呼吸的费力程度。已发表的研究以 $warn g/L 为建议上限，$critical g/L 为最高限值。';
+  }
 
   @override
   String get info_term_sac_label => 'SAC（水面耗气率）';
@@ -58254,6 +58255,32 @@ class AppLocalizationsZh extends AppLocalizations {
   String get info_term_whatIf_body => '实际是用模型重放记录的潜水，假设是在潜水实验室加入变更后再重放。';
 
   @override
+  String get info_term_cellGain_label => '传感器输出（每 bar 毫伏）';
+
+  @override
+  String get info_term_cellGain_body =>
+      '每个氧传感器的毫伏读数除以其测得的 ppO2。传感器正常时保持稳定，随老化而下降。';
+
+  @override
+  String get info_term_transmitterDropouts_label => '发射器信号中断';
+
+  @override
+  String get info_term_transmitterDropouts_body => '每次潜水中没有收到发射器压力读数的时间占比。';
+
+  @override
+  String get info_term_o2Narcotic_label => '氧计为致醉气体';
+
+  @override
+  String get info_term_o2Narcotic_body =>
+      '开启后，计算 END 和 MND 时氧与氮一样计为致醉气体。这会使 END 更深、MND 更浅。';
+
+  @override
+  String get info_term_ascentGasSet_label => '上升用气体';
+
+  @override
+  String get info_term_ascentGasSet_body => '模拟上升可切换的携带气瓶：所有携带的气体，或仅阶段气瓶和减压气瓶。';
+
+  @override
   String get info_diveLog_profile_summary =>
       '整次潜水的深度随时间变化，每个已开启的叠加层都绘制在同一时间轴上。';
 
@@ -58571,4 +58598,157 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get info_diveLab_interventions_summary =>
       '可在本次潜水上尝试的变更，每项都从其生效时刻起用同一模型重放。';
+
+  @override
+  String get info_calculators_mod_summary =>
+      '所选混合气保持在 ppO2 限值内的最大深度，以及该深度的 EAD 和 END。';
+
+  @override
+  String get info_calculators_mod_background =>
+      'Rec 按每 10 米 1 bar 计算，与潜水日志相同。OC Tec 和 CCR Tec 根据水体类型取水面压力，因此同一混合气在那里显示的 MOD 可能略浅。';
+
+  @override
+  String get info_calculators_mod_howToUse =>
+      '先选择模式，再设置氧含量和工作 ppO2。可添加目标深度，以检查计划深度是否适合该混合气。END 限值以及氧是否计为致醉来自潜水员档案。';
+
+  @override
+  String get info_calculators_bestMix_summary =>
+      '针对目标深度、使 ppO2 不超限且 END 不超过致醉限值的最富混合气。';
+
+  @override
+  String get info_calculators_bestMix_howToUse =>
+      '设置目标深度和模式。CCR 模式下选择该混合气用作稀释气还是应急气。';
+
+  @override
+  String get info_calculators_consumption_summary => '计划潜水在给定深度、时间和呼吸速率下的耗气量。';
+
+  @override
+  String get info_calculators_consumption_howToUse => '输入深度、时间、呼吸速率和气瓶。';
+
+  @override
+  String get info_calculators_rockBottom_summary =>
+      '两名潜水员从最深点共用一个气源一起上升所需的最低气体储备。';
+
+  @override
+  String get info_calculators_rockBottom_background =>
+      '按应激呼吸速率计算（通常为正常的两到三倍），并按两名潜水员共用一个气瓶计算。开启该选项时包含安全停留。';
+
+  @override
+  String get info_calculators_rockBottom_howToUse => '设置深度、应激呼吸速率、上升速度和气瓶。';
+
+  @override
+  String get info_calculators_mnd_summary =>
+      '气体保持在 END 限值内的最大深度，以及气体在给定深度的 END。';
+
+  @override
+  String get info_calculators_mnd_howToUse => '输入气体、END 限值以及氧是否计为致醉。';
+
+  @override
+  String get info_calculators_icd_summary => '两种气体之间的切换是否符合逆向扩散的五分之一规则。';
+
+  @override
+  String get info_calculators_icd_background =>
+      '氦的扩散速度快于氮，因此切换到含氮更多的气体可能增加组织中惰性气体总量。对于标准气体这一点有多重要，各培训机构看法不一。';
+
+  @override
+  String get info_calculators_icd_howToUse => '输入当前气体和要切换的气体。';
+
+  @override
+  String get info_calculators_density_summary => '气体在深处的密度，以及空气达到同样密度的深度。';
+
+  @override
+  String get info_calculators_density_background =>
+      'CCR 模式下为回路气体的密度：氧处于设定点，其余按稀释气比例分配。气体越冷密度越大，计算假定为理想气体。';
+
+  @override
+  String get info_calculators_density_howToUse =>
+      '输入混合气、深度和水温，并在 OC 与 CCR 间切换。';
+
+  @override
+  String get info_calculators_blender_summary => '分压混气：按顺序加入以达到目标混合气的充填气体。';
+
+  @override
+  String get info_calculators_blender_background =>
+      '每种气体加至显示的压力，静置稳定后再加下一种。充填气体及其顺序可配置，因此最后一种可以是 EAN32 而不是空气。';
+
+  @override
+  String get info_calculators_blender_howToUse =>
+      '输入气瓶中已有的气体和目标混合气。每次混气的最后一步都是分析最终混合气。';
+
+  @override
+  String get info_decoCalculator_summary =>
+      '以 Buhlmann ZHL-16C 模型计算的单一深度潜水，显示其气体限值、停留和组织负荷。';
+
+  @override
+  String get info_decoCalculator_howToUse =>
+      '设置深度、时间、气体和水况。每次修改后，气体限值、停留和组织图都会更新。';
+
+  @override
+  String get info_surfaceIntervalTool_summary =>
+      '根据第一次潜水遗留的组织负荷，判断水面休息后的第二次潜水能否保持在免减压限值内。';
+
+  @override
+  String get info_surfaceIntervalTool_background =>
+      '水面休息期间模型的 16 个舱室持续排气，快舱室几分钟内、慢舱室需数小时。主导舱室是负荷最高的舱室，通常决定 NDL。';
+
+  @override
+  String get info_surfaceIntervalTool_howToUse =>
+      '设置第一次潜水、第二次潜水和水面休息时间。结果显示最短休息时间和第二次潜水的 NDL。';
+
+  @override
+  String get info_equipment_trend_summary => '每次潜水一个点，因此该装备的缓慢变化会在其使用期内呈现为趋势。';
+
+  @override
+  String get info_equipment_findings_summary => '状态规则在该装备的潜水和已报告问题中标记出的规律。';
+
+  @override
+  String get info_equipment_exposure_summary => '该装备的使用量，按其保养计时使用的各种单位统计。';
+
+  @override
+  String get info_site_altitude_summary => '潜点的海拔高度及当地气压，减压模型以此为起点。';
+
+  @override
+  String get info_trips_scrubberMargin_summary => '本次行程计划的循环呼吸器潜水还剩多少吸收罐额定时间。';
+
+  @override
+  String get info_settings_gradientFactors_summary => '应用减压模型的保守程度。';
+
+  @override
+  String get info_settings_gradientFactors_background =>
+      '梯度因子缩小 Buhlmann ZHL-16C 的 M 值，这一方法由 Erik Baker 提出。应用计算的所有减压数据都使用它们。';
+
+  @override
+  String get info_settings_oxygenToxicity_summary =>
+      '应用中所有氧相关数值使用的 ppO2 限值和 CNS 计算方法。';
+
+  @override
+  String get info_settings_dataSources_summary =>
+      'NDL、减压停留、TTS、GTR 和 CNS 是取自潜水电脑，还是来自应用自身的计算。';
+
+  @override
+  String get info_settings_narcosis_summary => 'END 限值，以及应用中 END 和 MND 的计算方式。';
+
+  @override
+  String get info_settings_icd_summary => '应用对换气进行的氦氮逆向扩散检查。';
+
+  @override
+  String get info_settings_ascent_summary => '应用计算 TTS、上限深度和停留时，模拟上升可以切换到哪些气体。';
+
+  @override
+  String get info_settings_safetyRules_summary => '每次潜水记录后用于检查的规则。关闭的规则不会被报告。';
+
+  @override
+  String get info_settings_conditionThresholds_summary =>
+      '让潜水在保养计时中计为冷水、深潜或高氧潜水的阈值。';
+
+  @override
+  String get info_settings_sensorSummaries_summary =>
+      '应用为氧传感器、发射器和吸收罐保存的每次潜水数据。';
+
+  @override
+  String get info_settings_conditionRules_summary => '装备状态发现背后的检查。关闭的规则不会被报告。';
+
+  @override
+  String get info_settings_notifications_summary =>
+      '提醒在应用打开时安排，并在后台刷新。每件装备都可在其编辑界面设置自己的提醒。';
 }

@@ -1,3 +1,5 @@
+import 'package:submersion/core/deco/gas_density.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_content.dart';
@@ -128,6 +130,10 @@ enum DiveTerm {
   minGasMargin,
   gasOutTime,
   whatIf,
+  cellGain,
+  transmitterDropouts,
+  o2Narcotic,
+  ascentGasSet,
 }
 
 /// The term's name and short definition, with any depth figure in the
@@ -277,6 +283,10 @@ String _label(AppLocalizations l10n, DiveTerm term) {
     DiveTerm.minGasMargin => l10n.info_term_minGasMargin_label,
     DiveTerm.gasOutTime => l10n.info_term_gasOutTime_label,
     DiveTerm.whatIf => l10n.info_term_whatIf_label,
+    DiveTerm.cellGain => l10n.info_term_cellGain_label,
+    DiveTerm.transmitterDropouts => l10n.info_term_transmitterDropouts_label,
+    DiveTerm.o2Narcotic => l10n.info_term_o2Narcotic_label,
+    DiveTerm.ascentGasSet => l10n.info_term_ascentGasSet_label,
   };
 }
 
@@ -303,7 +313,10 @@ String _body(AppLocalizations l10n, UnitFormatter units, DiveTerm term) {
     DiveTerm.end => l10n.info_term_end_body,
     DiveTerm.ead => l10n.info_term_ead_body,
     DiveTerm.eadd => l10n.info_term_eadd_body,
-    DiveTerm.gasDensity => l10n.info_term_gasDensity_body,
+    DiveTerm.gasDensity => l10n.info_term_gasDensity_body(
+      formatFixedForDisplay(gasDensityWarnGPerL, 1),
+      formatFixedForDisplay(gasDensityCriticalGPerL, 1),
+    ),
     DiveTerm.sac => l10n.info_term_sac_body,
     DiveTerm.rmv => l10n.info_term_rmv_body,
     DiveTerm.ascentRate => l10n.info_term_ascentRate_body(
@@ -412,5 +425,9 @@ String _body(AppLocalizations l10n, UnitFormatter units, DiveTerm term) {
     DiveTerm.minGasMargin => l10n.info_term_minGasMargin_body,
     DiveTerm.gasOutTime => l10n.info_term_gasOutTime_body,
     DiveTerm.whatIf => l10n.info_term_whatIf_body,
+    DiveTerm.cellGain => l10n.info_term_cellGain_body,
+    DiveTerm.transmitterDropouts => l10n.info_term_transmitterDropouts_body,
+    DiveTerm.o2Narcotic => l10n.info_term_o2Narcotic_body,
+    DiveTerm.ascentGasSet => l10n.info_term_ascentGasSet_body,
   };
 }
