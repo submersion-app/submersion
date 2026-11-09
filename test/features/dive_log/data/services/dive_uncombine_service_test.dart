@@ -816,6 +816,50 @@ void main() {
       }
     });
 
+    test('surface minutes on a cylinder both breathed go to the last dive '
+        'alone (#2930)', () async {
+      // Breathing at the surface comes after the combined dive ends, which
+      // is the last segment's end. The kept first dive must not keep them
+      // too, or the same minutes count on two dives.
+      await seedDive(
+        'a',
+        entry: DateTime.utc(2026, 7, 1, 9),
+        startPressure: 205,
+        endPressure: 150,
+        pressures: const [
+          TankPressureSample(timestamp: 60, pressure: 205),
+          TankPressureSample(timestamp: 1700, pressure: 150),
+        ],
+      );
+      await seedDive(
+        'b',
+        entry: DateTime.utc(2026, 7, 1, 10),
+        runtimeMin: 20,
+        startPressure: 150,
+        endPressure: 90,
+        pressures: const [
+          TankPressureSample(timestamp: 60, pressure: 150),
+          TankPressureSample(timestamp: 1100, pressure: 90),
+        ],
+      );
+      final mergedId = (await merge.apply(['a', 'b'])).mergedDive.id;
+      await (db.update(
+        db.diveTanks,
+      )..where((t) => t.diveId.equals(mergedId))).write(
+        const DiveTanksCompanion(surfaceBreathingDuration: Value(600)),
+      );
+
+      final restoredId = (await service.separate(diveId: mergedId)).single;
+
+      Future<int?> minutesOn(String diveId) async =>
+          (await (db.select(
+                db.diveTanks,
+              )..where((t) => t.diveId.equals(diveId))).getSingle())
+              .surfaceBreathingDuration;
+      expect(await minutesOn(restoredId), 600);
+      expect(await minutesOn(mergedId), isNull);
+    });
+
     test('a cylinder only later segments breathed still drops the summed '
         'usage on the kept dive (#1496)', () async {
       // The first dive's cylinder ends at 100 bar and the second's starts

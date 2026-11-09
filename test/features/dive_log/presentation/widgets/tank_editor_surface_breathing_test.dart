@@ -103,6 +103,29 @@ void main() {
     await pump(tester, const DiveTank(id: 't', role: TankRole.suitInflation));
     expect(field(), findsNothing);
   });
+
+  testWidgets('a suit inflation bottle saves no hidden minutes', (
+    tester,
+  ) async {
+    // Minutes left from when the cylinder had a breathing role are hidden
+    // with the field, so a save must not keep them where no one can clear
+    // them.
+    final changes = await pump(
+      tester,
+      const DiveTank(
+        id: 't',
+        startPressure: 200,
+        endPressure: 150,
+        role: TankRole.suitInflation,
+        surfaceBreathingDuration: Duration(minutes: 10),
+      ),
+    );
+    await tester.enterText(
+      find.widgetWithText(TextField, 'End Pressure'),
+      '140',
+    );
+    expect(changes.last.surfaceBreathingDuration, isNull);
+  });
 }
 
 class _Presets extends StateNotifier<AsyncValue<List<TankPresetEntity>>>

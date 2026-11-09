@@ -36,6 +36,12 @@ class _TankSurfaceBreathingFieldState extends State<TankSurfaceBreathingField> {
   static String _textOf(Duration? value) =>
       value == null ? '' : formatDecimalForInput(value.inSeconds / 60);
 
+  /// [minutes] as a duration, null when it holds no whole second.
+  static Duration? _durationOf(double minutes) {
+    final seconds = (minutes * 60).round();
+    return seconds > 0 ? Duration(seconds: seconds) : null;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -76,9 +82,7 @@ class _TankSurfaceBreathingFieldState extends State<TankSurfaceBreathingField> {
       ),
       onChanged: (read) => switch (read) {
         NumberBlank() => _report(null),
-        NumberValue(:final value) => _report(
-          value > 0 ? Duration(seconds: (value * 60).round()) : null,
-        ),
+        NumberValue(:final value) => _report(_durationOf(value)),
         // Keep the last readable value while the diver is mid-edit.
         NumberInvalid() => null,
       },

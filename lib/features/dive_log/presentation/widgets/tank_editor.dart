@@ -490,7 +490,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       // Import-owned (issue #1496): carried so the edited tank still
       // reports what the source log recorded.
       usageDuration: widget.tank.usageDuration,
-      surfaceBreathingDuration: _surfaceBreathing,
+      // Only a breathing cylinder shows the field, so only one keeps it.
+      surfaceBreathingDuration: _role.isBreathingGas ? _surfaceBreathing : null,
     ).withRegulators(_regulatorIds);
   }
 

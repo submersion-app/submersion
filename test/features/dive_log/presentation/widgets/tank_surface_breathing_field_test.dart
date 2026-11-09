@@ -46,6 +46,12 @@ void main() {
     expect(reported.last, isNull);
   });
 
+  testWidgets('minutes that round to no second report none', (tester) async {
+    final reported = await pump(tester, null);
+    await tester.enterText(find.byType(TextField), '0.005');
+    expect(reported.last, isNull);
+  });
+
   testWidgets('follows a new value from its host', (tester) async {
     await pump(tester, const Duration(minutes: 5));
     await pump(tester, const Duration(minutes: 8));

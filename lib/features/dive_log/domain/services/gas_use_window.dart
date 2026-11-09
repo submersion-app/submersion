@@ -5,7 +5,8 @@
 /// recording can end with minutes at the surface, and some start before the
 /// descent. Counting those minutes as breathing time at depth makes the rate
 /// read too low. Pure: the dive entity runs it on its profile and the derived
-/// metrics engine on its decoded samples, so both report the same window.
+/// metrics repository on the same merged profile, so both report the same
+/// window.
 library;
 
 import 'dart:math' as math;

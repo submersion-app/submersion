@@ -2827,6 +2827,11 @@ class DiveRepository {
                 // edit writes it (issue #2650).
                 passportId: Value(tank.passportId),
                 twinPassportId: Value(tank.twinPassportId),
+                // Minutes the diver entered for breathing at the surface
+                // (issue #2930): user-authored, so an edit writes them.
+                surfaceBreathingDuration: Value(
+                  tank.surfaceBreathingDuration?.inSeconds,
+                ),
               ),
             );
             // Log as pending update (assuming sync handles updates)

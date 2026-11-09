@@ -4,7 +4,7 @@ import 'package:submersion/core/utils/time_weighted_mean.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/services/breathing_gas_switches.dart';
-import 'package:submersion/features/dive_log/domain/services/dive_surface_breathing.dart';
+import 'package:submersion/features/dive_log/domain/services/gas_use_window.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_usage_range.dart';
 
 /// When, for how long and how deep one open-circuit cylinder was breathed.
@@ -36,18 +36,19 @@ typedef CylinderUsage = ({
 /// the whole dive, since a duration says how long but not when.
 ///
 /// Surface runs at the ends of the recording are not breathing time (issue
-/// #2930): every window lies inside the dive's gas-use window, as the dive's
-/// own SAC does, and never past [diveEnd]. Surface time a switch logged on
-/// the surface or a pressure still falling there says a cylinder was breathed
-/// in stays in (see `diveSurfaceBreathing`), so [tankPressures] are the
-/// dive's series as the dive page reads them.
+/// #2930): every window lies inside [gasUse], the dive's gas-use window, as
+/// the dive's own SAC does, and never past [diveEnd]. [gasUse] is the same
+/// for every cylinder of a dive, so the caller works it out once with
+/// `diveGasUseWindow`, which keeps surface time a switch logged on the
+/// surface or a pressure still falling there says a cylinder was breathed in.
+/// Null when there is no surface time to leave out.
 CylinderUsage? cylinderUsage({
   required DiveTank tank,
   required List<DiveTank> tanks,
   required List<DiveProfilePoint> profile,
   required List<GasSwitchWithTank>? gasSwitches,
   required int diveEnd,
-  Map<String, List<TankPressurePoint>>? tankPressures,
+  required GasUseWindow? gasUse,
 }) {
   // Only a switch that says when a cylinder was breathed overrides a
   // recorded duration: not a stale id (#110), nor one after the dive, nor one
@@ -63,17 +64,6 @@ CylinderUsage? cylinderUsage({
   final recordedSeconds = hasGasSwitches ? null : tank.usageDuration?.inSeconds;
   final hasRecordedUsage = recordedSeconds != null && recordedSeconds > 0;
 
-  // Stretched over surface time a switch or a falling pressure says a
-  // cylinder was breathed in.
-  final gasUse = diveGasUseWindow(
-    profile: profile,
-    tanks: tanks,
-    switches: [
-      for (final sw in gasSwitches ?? const <GasSwitchWithTank>[])
-        (tankId: sw.gasSwitch.tankId, timestamp: sw.gasSwitch.timestamp),
-    ],
-    tankPressures: tankPressures,
-  ).window;
   final start = gasUse?.startSeconds ?? 0;
   // A zero end says nothing about when the dive ended, so the window's own
   // end stands in rather than ending the cylinder before it starts. A

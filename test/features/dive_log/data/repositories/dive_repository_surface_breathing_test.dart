@@ -146,4 +146,53 @@ void main() {
     final listed = (await repository.getAllDives()).single;
     expect(listed.sac, closeTo(detail.sac!, 1e-9));
   });
+
+  test('entered minutes survive a save, an edit and a clear', () async {
+    // The editor writes an existing cylinder in place, so the minutes must
+    // reach that update as well as a new dive's insert.
+    await createDive(const [
+      domain.DiveTank(
+        id: 'back',
+        volume: 12,
+        startPressure: 200,
+        endPressure: 110,
+        role: TankRole.backGas,
+        surfaceBreathingDuration: Duration(minutes: 10),
+      ),
+    ]);
+    Future<Duration?> stored() async => (await repository.getDiveById(
+      'd',
+    ))!.tanks.single.surfaceBreathingDuration;
+    expect(await stored(), const Duration(minutes: 10));
+
+    final dive = (await repository.getDiveById('d'))!;
+    await repository.updateDive(
+      dive.copyWith(
+        tanks: [
+          dive.tanks.single.copyWith(
+            surfaceBreathingDuration: const Duration(minutes: 15),
+          ),
+        ],
+      ),
+    );
+    expect(await stored(), const Duration(minutes: 15));
+    expect(
+      (await repository.getAllDives())
+          .single
+          .tanks
+          .single
+          .surfaceBreathingDuration,
+      const Duration(minutes: 15),
+    );
+
+    final edited = (await repository.getDiveById('d'))!;
+    await repository.updateDive(
+      edited.copyWith(
+        tanks: [
+          edited.tanks.single.copyWith(clearSurfaceBreathingDuration: true),
+        ],
+      ),
+    );
+    expect(await stored(), isNull);
+  });
 }

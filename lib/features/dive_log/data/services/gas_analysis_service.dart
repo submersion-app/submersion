@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/data/services/profile_analysis_serv
 import 'package:submersion/features/dive_log/domain/services/ccr_cylinder_use.dart';
 import 'package:submersion/features/dive_log/domain/services/cylinder_usage.dart';
 import 'package:submersion/features/dive_log/domain/services/deco_stop_windows.dart';
+import 'package:submersion/features/dive_log/domain/services/dive_surface_breathing.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_pressure_lookup.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_usage_range.dart';
@@ -384,6 +385,19 @@ class GasAnalysisService {
       );
     }
 
+    // The dive's gas-use window, stretched over surface time a switch or a
+    // falling pressure says a cylinder was breathed in (issue #2930). The
+    // same for every cylinder, so worked out once.
+    final gasUse = diveGasUseWindow(
+      profile: profile,
+      tanks: dive.tanks,
+      switches: [
+        for (final sw in gasSwitches ?? const <GasSwitchWithTank>[])
+          (tankId: sw.gasSwitch.tankId, timestamp: sw.gasSwitch.timestamp),
+      ],
+      tankPressures: tankPressures,
+    ).window;
+
     for (final tank in dive.tanks) {
       // A suit inflation bottle is not breathed, so it has no SAC (#4243).
       if (!tank.role.isBreathingGas) continue;
@@ -397,7 +411,7 @@ class GasAnalysisService {
         profile: profile,
         gasSwitches: gasSwitches,
         diveEnd: diveEnd,
-        tankPressures: tankPressures,
+        gasUse: gasUse,
       );
       if (usage == null) continue;
       final usageWindows = usage.windows;

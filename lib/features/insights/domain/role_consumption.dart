@@ -260,8 +260,14 @@ double? _perCorrectedMinute(
     final diveSeconds = unionOfWindows(
       rows.expand((r) => r.usageWindows),
     ).breathedSeconds;
-    seconds = math.min(_recordedSeconds(rows, tanks), diveSeconds) + surface;
-    ambient = rows.first.rateAmbientBar;
+    final recorded = math.min(_recordedSeconds(rows, tanks), diveSeconds);
+    seconds = recorded + surface;
+    // The first row's ambient blends only its own surface minutes, so the
+    // group's are blended here from the depth that row was breathed at.
+    final depth = rows.first.avgDepthDuringUse ?? dive.avgDepth;
+    ambient = surface > 0 && depth != null
+        ? dive.environment.pressureAtDepth(depth * recorded / seconds)
+        : rows.first.rateAmbientBar;
   } else {
     final union = unionOfWindows(rows.expand((r) => r.usageWindows));
     final windowSeconds = union.breathedSeconds;
