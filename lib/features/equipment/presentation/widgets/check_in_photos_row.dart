@@ -28,6 +28,34 @@ class CheckInPhotosRow extends ConsumerWidget {
 
   static const double _thumb = 56;
 
+  Future<void> _confirmRemove(
+    BuildContext context,
+    WidgetRef ref,
+    String mediaId,
+  ) async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.equipment_photos_removeConfirmTitle(1)),
+        content: Text(l10n.equipment_photos_removeConfirmContent),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.media_diveMediaSection_cancelButton),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l10n.equipment_photos_remove),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await ref.read(mediaUnlinkServiceProvider).unlinkFromEquipment([mediaId]);
+    ref.invalidate(observationPhotosProvider(observationId));
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
@@ -36,6 +64,9 @@ class CheckInPhotosRow extends ConsumerWidget {
     final photos =
         ref.watch(observationPhotosProvider(observationId)).value ?? const [];
     final colorScheme = Theme.of(context).colorScheme;
+    // Nothing to show and no way to add: a browser editing a check-in with
+    // no photos.
+    if (photos.isEmpty && !canAttach) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,24 +97,34 @@ class CheckInPhotosRow extends ConsumerWidget {
                         semanticsLabel: l10n.equipment_photos_photoLabel,
                       ),
                     ),
+                    // A small corner badge, so most of the tile still opens
+                    // the photo; removing asks first, as everywhere else.
                     if (canAttach)
                       Positioned(
-                        top: -6,
-                        right: -6,
-                        child: IconButton(
-                          key: ValueKey('remove_checkin_photo_${photo.id}'),
-                          visualDensity: VisualDensity.compact,
-                          iconSize: 16,
-                          tooltip: l10n.equipment_photos_remove,
-                          icon: Icon(Icons.cancel, color: colorScheme.error),
-                          onPressed: () async {
-                            await ref
-                                .read(mediaUnlinkServiceProvider)
-                                .unlinkFromEquipment([photo.id]);
-                            ref.invalidate(
-                              observationPhotosProvider(observationId),
-                            );
-                          },
+                        top: 2,
+                        right: 2,
+                        child: Tooltip(
+                          message: l10n.equipment_photos_remove,
+                          child: InkWell(
+                            key: ValueKey('remove_checkin_photo_${photo.id}'),
+                            customBorder: const CircleBorder(),
+                            onTap: () => _confirmRemove(context, ref, photo.id),
+                            child: Container(
+                              width: 22,
+                              height: 22,
+                              decoration: BoxDecoration(
+                                color: colorScheme.surface.withValues(
+                                  alpha: 0.85,
+                                ),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.close,
+                                size: 14,
+                                color: colorScheme.error,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                   ],

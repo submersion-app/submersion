@@ -97,9 +97,14 @@ Future<void> confirmDeleteObservation(
   if (confirmed != true || !context.mounted) return;
   await ref.read(equipmentObservationRepositoryProvider).delete(observation.id);
   if (photos.isNotEmpty) {
-    await ref.read(mediaUnlinkServiceProvider).unlinkFromEquipment([
-      for (final m in photos) m.id,
-    ]);
+    try {
+      await ref.read(mediaUnlinkServiceProvider).unlinkFromEquipment([
+        for (final m in photos) m.id,
+      ]);
+    } catch (_) {
+      // The check-in is gone; its photos now count as identification
+      // photos on the gear page, where they can be removed by hand.
+    }
   }
   scheduleConditionFindingsRefresh([observation.equipmentId]);
 }
@@ -146,7 +151,11 @@ class _ObservationSheetState extends ConsumerState<_ObservationSheet> {
 
   @override
   void dispose() {
-    if (_draft case final draft?) _discardUnsavedPhotos(draft);
+    // A Save still in flight may yet create the check-in, so its photos
+    // stay.
+    if (!_saving) {
+      if (_draft case final draft?) _discardUnsavedPhotos(draft);
+    }
     _draft?.note.dispose();
     super.dispose();
   }

@@ -102,6 +102,8 @@ class EquipmentFileConverter {
         .get();
     var converted = 0;
     var remaining = 0;
+    // Gear photos (issue #3355) are neither converted nor left over.
+    var gearPhotos = 0;
     // Rebuilt from the rows still linked, so a deleted file's id drops out.
     final tooLarge = <String>[];
     for (final r in rows) {
@@ -118,7 +120,10 @@ class EquipmentFileConverter {
         // A gear photo (issue #3355) is the Photos card's, never paperwork:
         // judged by its media type, not by a file name that may mislead.
         // Not a leftover either, so it does not count as remaining.
-        if (item.isGearPhoto) continue;
+        if (item.isGearPhoto) {
+          gearPhotos++;
+          continue;
+        }
         final outcome = diverId != null && _acceptedKind(_fileName(item))
             ? await _convert(item, diverId, startedOn)
             : _Outcome.left;
@@ -128,7 +133,7 @@ class EquipmentFileConverter {
             // and skip list stay as they were for the next run there.
             return EquipmentFileConversionResult(
               converted,
-              rows.length - converted,
+              rows.length - converted - gearPhotos,
             );
           case _Outcome.converted:
             converted++;
@@ -154,7 +159,10 @@ class EquipmentFileConverter {
       return true;
     });
     if (kept == null) {
-      return EquipmentFileConversionResult(converted, rows.length - converted);
+      return EquipmentFileConversionResult(
+        converted,
+        rows.length - converted - gearPhotos,
+      );
     }
     if (converted > 0) SyncEventBus.notifyLocalChange();
     return EquipmentFileConversionResult(converted, remaining);

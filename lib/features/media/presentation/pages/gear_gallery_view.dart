@@ -252,7 +252,14 @@ class _GroupSection extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(vertical: 12),
             child: Row(
               children: [
-                Flexible(child: Text(group.name, style: textTheme.titleSmall)),
+                Flexible(
+                  child: Text(
+                    group.name.isEmpty
+                        ? l10n.media_library_untitledEquipment
+                        : group.name,
+                    style: textTheme.titleSmall,
+                  ),
+                ),
                 const SizedBox(width: 8),
                 Text(
                   l10n.media_gearGallery_count(group.items.length),

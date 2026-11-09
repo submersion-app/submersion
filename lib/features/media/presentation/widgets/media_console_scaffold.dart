@@ -25,8 +25,7 @@ enum MediaConsoleSection { library, gear, sources, transfers, importMedia }
 
 /// The sections a device with [caps] offers: a browser can neither watch
 /// folders nor import files, so it shows the library, the Gear gallery
-/// (issue #3355, which only shows and removes) and the transfers (issue
-/// #4121).
+/// (issue #3355, read-only there) and the transfers (issue #4121).
 List<MediaConsoleSection> mediaConsoleSectionsFor(DeviceCapabilities caps) =>
     caps.mediaAttach
     ? MediaConsoleSection.values

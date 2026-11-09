@@ -3,9 +3,11 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/gear_photo_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/media_unlink_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -33,6 +35,14 @@ void main() {
     EquipmentItem(id: '', name: name, type: EquipmentType.regulator),
   );
 
+  Future<String> checkIn(String equipmentId, String id) async =>
+      (await EquipmentObservationRepository().create(
+        id: id,
+        equipmentId: equipmentId,
+        observedAt: DateTime.utc(2026, 11, 3),
+        status: ObservationStatus.ok,
+      )).id;
+
   Future<MediaItem> addMedia({
     required String equipmentId,
     String? observationId,
@@ -59,13 +69,47 @@ void main() {
   test('identificationPhotos excludes check-in photos and documents', () async {
     final item = await createItem('Reg');
     final idPhoto = await addMedia(equipmentId: item.id);
-    await addMedia(equipmentId: item.id, observationId: 'obs-1');
+    await addMedia(
+      equipmentId: item.id,
+      observationId: await checkIn(item.id, 'obs-1'),
+    );
     await addMedia(equipmentId: item.id, type: MediaType.document);
 
     final photos = await repository.identificationPhotos(item.id);
 
     expect(photos.map((m) => m.id), [idPhoto.id]);
   });
+
+  test(
+    'a photo naming a check-in that does not exist is an identification photo',
+    () async {
+      // A draft's photos outliving an app kill, or a check-in deleted on a
+      // peer, must not vanish from the gear page (issue #3355).
+      final item = await createItem('Reg');
+      final checkIn = await EquipmentObservationRepository().create(
+        equipmentId: item.id,
+        observedAt: DateTime.utc(2026, 11, 3),
+        status: ObservationStatus.ok,
+      );
+      final orphan = await addMedia(
+        equipmentId: item.id,
+        observationId: 'gone',
+      );
+      final backed = await addMedia(
+        equipmentId: item.id,
+        observationId: checkIn.id,
+      );
+
+      final ids = (await repository.identificationPhotos(
+        item.id,
+      )).map((m) => m.id);
+      expect(ids, contains(orphan.id));
+      expect(ids, isNot(contains(backed.id)));
+
+      await repository.setCover(item.id, orphan.id);
+      expect((await repository.coverFor(item.id))?.id, orphan.id);
+    },
+  );
 
   test('photosForObservation returns only that check-in\'s rows', () async {
     final item = await createItem('Reg');
@@ -80,8 +124,14 @@ void main() {
 
   test('photosByObservation keys every check-in photo of an item', () async {
     final item = await createItem('Reg');
-    final a = await addMedia(equipmentId: item.id, observationId: 'obs-1');
-    final b = await addMedia(equipmentId: item.id, observationId: 'obs-2');
+    final a = await addMedia(
+      equipmentId: item.id,
+      observationId: await checkIn(item.id, 'obs-1'),
+    );
+    final b = await addMedia(
+      equipmentId: item.id,
+      observationId: await checkIn(item.id, 'obs-2'),
+    );
     await addMedia(equipmentId: item.id);
 
     final map = await repository.photosByObservation(item.id);
@@ -216,6 +266,24 @@ void main() {
       expect(read.diveId, dive.id);
     },
   );
+
+  test('a deleted item\'s photo a dive keeps loses its check-in too', () async {
+    final item = await createItem('Reg');
+    final dive = await DiveRepository().createDive(
+      Dive(id: '', diveNumber: 1, dateTime: DateTime.utc(2026, 11, 3)),
+    );
+    final kept = await addMedia(
+      equipmentId: item.id,
+      observationId: await checkIn(item.id, 'obs-1'),
+      diveId: dive.id,
+    );
+
+    await media.unlinkMediaFromDeletedEquipment([kept.id]);
+
+    final read = await media.getMediaById(kept.id);
+    expect(read!.equipmentId, isNull);
+    expect(read.observationId, isNull);
+  });
 
   test('coverFor is null when the id dangles or names another item', () async {
     final reg = await createItem('Reg');

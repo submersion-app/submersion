@@ -66,12 +66,31 @@ class GearPhotoRepository {
   }
 
   /// The item's identification photos: gear photos backing no check-in.
-  Future<List<MediaItem>> identificationPhotos(String equipmentId) async => [
-    for (final item in await _photosOf(
-      (t) => t.equipmentId.equals(equipmentId),
-    ))
-      if (item.observationId == null) item,
-  ];
+  Future<List<MediaItem>> identificationPhotos(String equipmentId) async {
+    final photos = await _photosOf((t) => t.equipmentId.equals(equipmentId));
+    final living = await _existingCheckIns(photos);
+    return [
+      for (final item in photos)
+        if (!living.contains(item.observationId)) item,
+    ];
+  }
+
+  /// The check-in ids among [photos] that name a check-in this device has.
+  ///
+  /// An id with no check-in counts as none, so the photo shows as an
+  /// identification photo instead of vanishing from the gear page: a draft
+  /// whose app was killed before Save, a check-in deleted on a peer, or one
+  /// that has not arrived yet (sync applies media before check-ins).
+  Future<Set<String>> _existingCheckIns(Iterable<MediaItem> photos) async {
+    final ids = {for (final m in photos) ?m.observationId};
+    if (ids.isEmpty) return const {};
+    final rows =
+        await (_db.selectOnly(_db.equipmentObservations)
+              ..addColumns([_db.equipmentObservations.id])
+              ..where(_db.equipmentObservations.id.isIn(ids)))
+            .get();
+    return {for (final r in rows) r.read(_db.equipmentObservations.id)!};
+  }
 
   /// The photos that back up one check-in.
   Future<List<MediaItem>> photosForObservation(String observationId) =>
@@ -85,10 +104,13 @@ class GearPhotoRepository {
   Future<Map<String, List<MediaItem>>> photosByObservation(
     String equipmentId,
   ) async {
-    final byObservation = <String, List<MediaItem>>{};
-    for (final item in await _photosOf(
+    final photos = await _photosOf(
       (t) => t.equipmentId.equals(equipmentId) & t.observationId.isNotNull(),
-    )) {
+    );
+    final living = await _existingCheckIns(photos);
+    final byObservation = <String, List<MediaItem>>{};
+    for (final item in photos) {
+      if (!living.contains(item.observationId)) continue;
       (byObservation[item.observationId!] ??= []).add(item);
     }
     return byObservation;
@@ -158,7 +180,7 @@ class GearPhotoRepository {
     final belongs =
         media.isGearPhoto &&
         media.equipmentId == equipmentId &&
-        media.observationId == null;
+        (await _existingCheckIns([media])).isEmpty;
     return belongs ? media : null;
   }
 

@@ -2237,8 +2237,17 @@ class MediaRepository {
   /// row sync-pending. The dive and site twins hand-roll the same block and
   /// explain it as avoiding retain_in_library, but [_unlinkColumns] does not
   /// touch that column, so there is nothing here to avoid.
+  ///
+  /// The check-in link goes too (issue #3355): the item's check-ins go with
+  /// it, so a surviving row backs up none of them.
   Future<void> unlinkMediaFromDeletedEquipment(List<String> mediaIds) =>
-      _unlinkColumns(mediaIds, const MediaCompanion(equipmentId: Value(null)));
+      _unlinkColumns(
+        mediaIds,
+        const MediaCompanion(
+          equipmentId: Value(null),
+          observationId: Value(null),
+        ),
+      );
 
   /// Stage B of the repair apply (Media section Phase 3): commits every
   /// prepared write in one transaction with per-row HLC marking. Stage A
