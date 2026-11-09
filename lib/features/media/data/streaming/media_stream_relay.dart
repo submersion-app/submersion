@@ -107,6 +107,12 @@ class MediaStreamRelay {
         start: start,
         endInclusive: end,
       );
+      if (body.isEmpty) {
+        // Nothing where the size said there was more: answering an empty
+        // 206 would leave the worker asking for the same range forever.
+        _log.warning('Stream read of ${entry.key} at $start returned nothing');
+        return const RelayAnswer(status: 502);
+      }
       final last = start + body.length - 1;
       return RelayAnswer(
         status: 206,

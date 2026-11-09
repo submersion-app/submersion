@@ -35,6 +35,9 @@ class VideoPlaybackOpener {
   /// Where the last reopen resumed; null when none is pending proof.
   Duration? _resumedAt;
 
+  /// Set by [dispose]: an address that arrives afterwards is let go at once.
+  bool _disposed = false;
+
   /// An initialised player, or the last candidate's error.
   Future<VideoPlayerController> open() async {
     switch (playback) {
@@ -67,21 +70,26 @@ class VideoPlaybackOpener {
     }
   }
 
-  /// A new player for the candidate [failed] was playing, at its position
-  /// and play state; null when this failure is the second in a row or the
-  /// video is not streamed. The caller releases [failed].
+  /// A new player for what [failed] was playing, at its position and play
+  /// state: the same candidate from a fresh address, or, when it failed
+  /// again before playing past the last resume point (it will not decode),
+  /// the next candidate. Null when there is none left or the video is not
+  /// streamed. The caller releases [failed].
   Future<VideoPlayerController?> reopenAfterError(
     VideoPlayerController failed,
   ) async {
-    final candidate = _candidate;
-    if (candidate == null) return null;
+    final current = _candidate;
+    if (current == null) return null;
     final position = failed.value.position;
     final resumedAt = _resumedAt;
-    if (resumedAt != null && position <= resumedAt) return null;
+    final candidate = resumedAt != null && position <= resumedAt
+        ? _after(current)
+        : current;
+    if (candidate == null) return null;
     final wasPlaying = failed.value.isPlaying;
     final stale = _url;
     final controller = await _openCandidate(candidate);
-    if (stale != null) _close(candidate, stale);
+    if (stale != null) _close(current, stale);
     await controller.seekTo(position);
     if (wasPlaying) await controller.play();
     _resumedAt = position;
@@ -90,6 +98,7 @@ class VideoPlaybackOpener {
 
   /// Lets go of every address still open (relay tickets).
   void dispose() {
+    _disposed = true;
     for (final (candidate, url) in List.of(_open)) {
       _close(candidate, url);
     }
@@ -99,6 +108,10 @@ class VideoPlaybackOpener {
     StreamCandidate candidate,
   ) async {
     final url = await candidate.open();
+    if (_disposed) {
+      candidate.close(url);
+      throw StateError('the opener was disposed');
+    }
     _open.add((candidate, url));
     final controller = _network(url);
     try {
@@ -111,6 +124,16 @@ class VideoPlaybackOpener {
     _candidate = candidate;
     _url = url;
     return controller;
+  }
+
+  /// The candidate after [candidate], or null when it is the last.
+  StreamCandidate? _after(StreamCandidate candidate) {
+    final playback = this.playback;
+    if (playback is! StreamPlayback) return null;
+    final index = playback.candidates.indexOf(candidate);
+    return index >= 0 && index + 1 < playback.candidates.length
+        ? playback.candidates[index + 1]
+        : null;
   }
 
   void _close(StreamCandidate candidate, Uri url) {

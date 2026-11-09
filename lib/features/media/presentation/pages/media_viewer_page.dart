@@ -1393,6 +1393,9 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
     _error = null;
     _opener?.dispose();
     _opener = null;
+    // A reopen still in flight belongs to the load just ended (its
+    // generation check drops it); the next load must hear its own errors.
+    _recovering = false;
     if (controller == null) return;
     controller.removeListener(_onControllerValue);
     widget.onControllerChanged(widget.item.id, null);
@@ -1499,11 +1502,12 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
         stackTrace: stackTrace,
       );
     }
-    _recovering = false;
     if (!mounted || generation != _loadGeneration) {
+      // A newer load owns the flag now; this reopen only cleans up.
       if (next != null) _releaseController(next, mediaId);
       return;
     }
+    _recovering = false;
     widget.onControllerChanged(mediaId, null);
     _releaseController(failed, mediaId);
     final reopened = next;

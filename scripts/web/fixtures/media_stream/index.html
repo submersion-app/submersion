@@ -33,8 +33,21 @@ function parseRange(header, total) {
   return {start, end: Math.min(asked, start + CHUNK - 1, total - 1)};
 }
 
+// How many times the worker asked about each ticket.
+window.asks = {};
+
 async function answer(ticket, range) {
-  if (ticket !== 't1') return {status: 404, headers: {}, body: null};
+  window.asks[ticket] = (window.asks[ticket] || 0) + 1;
+  if (ticket === 'empty' && window.asks[ticket] > 1) {
+    // A store that ran dry: a 206 naming no bytes at all.
+    const start = Number(/^bytes=(\d+)-/.exec(range)[1]);
+    return {
+      status: 206,
+      headers: {'Content-Range': 'bytes ' + start + '-' + (start - 1) + '/' + (await sampleBytes()).length},
+      body: new ArrayBuffer(0),
+    };
+  }
+  if (ticket !== 't1' && ticket !== 'empty') return {status: 404, headers: {}, body: null};
   const bytes = await sampleBytes();
   const total = bytes.length;
   const wanted = parseRange(range, total);

@@ -111,6 +111,44 @@ def test_answers_the_whole_requested_range(page, site):
     assert got == [206, "bytes 100-%d/%d" % (total - 1, total), str(total - 100), total - 100]
 
 
+def test_an_empty_piece_ends_the_stream(page, site):
+    # A page that answers with no bytes must not keep the worker asking
+    # for the same range forever.
+    _open(page, site + "/index.html")
+    outcome = page.evaluate(
+        """async () => {
+          try {
+            const r = await fetch('media-stream/empty', {headers: {Range: 'bytes=0-'}});
+            await Promise.race([
+              r.arrayBuffer(),
+              new Promise((_, reject) => setTimeout(() => reject(new Error('hung')), 10000)),
+            ]);
+            return 'completed';
+          } catch (e) {
+            return e.message === 'hung' ? 'hung' : 'failed';
+          }
+        }"""
+    )
+    assert outcome == "failed"
+    assert page.evaluate("window.asks['empty']") <= 3
+
+
+def test_a_page_can_ask_the_worker_to_take_control(page, site):
+    # After a hard reload the page is not controlled; the app asks the
+    # active worker to claim it rather than wait for a reload.
+    _open(page, site + "/index.html")
+    reply = page.evaluate(
+        """async () => {
+          const registration = await navigator.serviceWorker.ready;
+          const channel = new MessageChannel();
+          const answered = new Promise((resolve) => { channel.port1.onmessage = (m) => resolve(m.data); });
+          registration.active.postMessage({type: 'media-stream-claim'}, [channel.port2]);
+          return Promise.race([answered, new Promise((r) => setTimeout(() => r('no answer'), 5000))]);
+        }"""
+    )
+    assert reply == "claimed"
+
+
 def test_unknown_ticket_answers_404(page, site):
     _open(page, site + "/index.html")
     assert page.evaluate("fetch('media-stream/nope').then(r => r.status)") == 404

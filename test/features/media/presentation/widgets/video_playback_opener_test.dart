@@ -207,4 +207,43 @@ void main() {
     expect(controller.dataSource, endsWith('/videos/clip.mp4'));
     expect(await opener.reopenAfterError(controller), isNull);
   });
+
+  test('a second error in a row moves on to the rendition', () async {
+    // The original's metadata parses but it will not decode: reopening it
+    // fails again where it was, so the rendition plays from there.
+    final original = _Candidate('original', ServedTier.original);
+    final rendition = _Candidate('rendition', ServedTier.rendition);
+    final opener = openerFor([original, rendition]);
+    final first = await opener.open();
+    await first.seekTo(const Duration(seconds: 12));
+    final again = await opener.reopenAfterError(first);
+    final next = await opener.reopenAfterError(again!);
+    expect(next, isNotNull);
+    expect(next!.dataSource, 'https://store.test/rendition/1');
+    expect(platform.seeks[platform.idOf(next)], const Duration(seconds: 12));
+    expect(original.closed, original.opened);
+  });
+
+  test('an address opened after dispose is released at once', () async {
+    final gate = Completer<void>();
+    final closed = <Uri>[];
+    final opener = VideoPlaybackOpener(
+      StreamPlayback([
+        StreamCandidate(
+          tier: ServedTier.original,
+          open: () async {
+            await gate.future;
+            return Uri.parse('https://store.test/late');
+          },
+          close: closed.add,
+        ),
+      ]),
+      release: release,
+    );
+    final opening = opener.open();
+    opener.dispose();
+    gate.complete();
+    await expectLater(opening, throwsA(isA<StateError>()));
+    expect(closed, [Uri.parse('https://store.test/late')]);
+  });
 }

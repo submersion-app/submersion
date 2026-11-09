@@ -47,4 +47,44 @@ void main() {
   test('outside a browser there is no worker host', () async {
     expect(await startMediaStreamWorker(), isNull);
   });
+
+  test(
+    'a worker that did not start is asked again on the next video',
+    () async {
+      // A page that was not controlled in time (a hard reload) must not be
+      // told it needs a normal window for the rest of its life.
+      var starts = 0;
+      final host = _FakeHost(Uri.parse('https://app.test/'));
+      final container = ProviderContainer(
+        overrides: [
+          mediaStreamWorkerHostProvider.overrideWith((ref) async {
+            starts++;
+            return starts == 1 ? null : host;
+          }),
+        ],
+      );
+      addTearDown(container.dispose);
+      expect(await container.read(mediaStreamRelayProvider.future), isNull);
+      await Future<void>.delayed(Duration.zero);
+      expect(await container.read(mediaStreamRelayProvider.future), isNotNull);
+      expect(starts, 2);
+    },
+  );
+
+  test('a started relay is kept while nothing watches it', () async {
+    var starts = 0;
+    final container = ProviderContainer(
+      overrides: [
+        mediaStreamWorkerHostProvider.overrideWith((ref) async {
+          starts++;
+          return _FakeHost(Uri.parse('https://app.test/'));
+        }),
+      ],
+    );
+    addTearDown(container.dispose);
+    final first = await container.read(mediaStreamRelayProvider.future);
+    await Future<void>.delayed(Duration.zero);
+    expect(await container.read(mediaStreamRelayProvider.future), same(first));
+    expect(starts, 1);
+  });
 }

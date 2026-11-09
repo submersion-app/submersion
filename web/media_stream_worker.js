@@ -25,6 +25,16 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
+// A page loaded with a hard reload is not controlled even though this
+// worker is active; the app asks it to claim the page, and hears back.
+self.addEventListener('message', (event) => {
+  const data = event.data;
+  if (!data || data.type !== 'media-stream-claim') return;
+  event.waitUntil(self.clients.claim().then(() => {
+    if (event.ports[0]) event.ports[0].postMessage('claimed');
+  }));
+});
+
 function streamPrefix() {
   return new URL(self.registration.scope).pathname + 'media-stream/';
 }
@@ -82,16 +92,34 @@ function header(headers, name) {
 // the worker fills by asking the page for each following chunk: WebKit
 // takes a shorter 206 as the end of the file and never asks again.
 async function relay(event, ticket, range) {
+  // Kept alive until the stream below ends: once the response is handed
+  // over the fetch event is done, and an idle worker may be stopped with
+  // the stream still being read.
+  let streamDone;
+  event.waitUntil(new Promise((resolve) => { streamDone = resolve; }));
+  try {
+    return await answerRelay(event, ticket, range, () => streamDone());
+  } catch (error) {
+    streamDone();
+    throw error;
+  }
+}
+
+async function answerRelay(event, ticket, range, finished) {
   const client = await self.clients.get(event.clientId);
   if (!client) {
+    finished();
     return new Response(null, {status: 503, statusText: 'No page to answer'});
   }
   const first = await ask(client, ticket, range);
   if (!first) {
+    finished();
     return new Response(null, {status: 504, statusText: 'The page did not answer'});
   }
   const piece = first.status === 206 ? parseContentRange(header(first.headers, 'Content-Range')) : null;
-  if (!piece) {
+  if (!piece || piece.end < piece.start) {
+    finished();
+    if (piece) return new Response(null, {status: 502, statusText: 'The page sent no bytes'});
     return new Response(first.body, {status: first.status, headers: first.headers || {}});
   }
   const asked = askedEnd(range);
@@ -106,23 +134,40 @@ async function relay(event, ticket, range) {
 
   let next = piece.end + 1;
   let firstBody = first.body;
+  // Set when the player lets go (a seek aborts its request): a piece
+  // still on its way is dropped, and nothing more is asked for.
+  let cancelled = false;
   const body = new ReadableStream({
     async pull(controller) {
       if (firstBody) {
         controller.enqueue(new Uint8Array(firstBody));
         firstBody = null;
-        if (next > end) controller.close();
+        if (next > end) {
+          controller.close();
+          finished();
+        }
         return;
       }
       const more = await ask(client, ticket, 'bytes=' + next + '-' + end);
+      if (cancelled) return;
       const got = more && more.status === 206 ? parseContentRange(header(more.headers, 'Content-Range')) : null;
-      if (!got || got.start !== next || !more.body) {
+      // A piece that does not start where the last ended, or names no
+      // bytes, would leave this asking for the same range forever.
+      if (!got || got.start !== next || got.end < got.start || !more.body) {
         controller.error(new Error('The page stopped answering the stream'));
+        finished();
         return;
       }
       controller.enqueue(new Uint8Array(more.body));
       next = got.end + 1;
-      if (next > end) controller.close();
+      if (next > end) {
+        controller.close();
+        finished();
+      }
+    },
+    cancel() {
+      cancelled = true;
+      finished();
     },
   });
   return new Response(body, {status: 206, headers: headers});

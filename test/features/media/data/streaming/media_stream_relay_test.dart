@@ -15,6 +15,10 @@ class _RangeStore implements MediaObjectStore, RangeReadStore {
   int reads = 0;
   bool failReads = false;
 
+  /// Reads return nothing, as a server ignoring Range does for an object
+  /// shorter than its listed size.
+  bool emptyReads = false;
+
   @override
   Future<StoreObjectInfo?> head(String key) async {
     heads++;
@@ -38,6 +42,7 @@ class _RangeStore implements MediaObjectStore, RangeReadStore {
         kind: MediaStoreErrorKind.transient,
       );
     }
+    if (emptyReads) return Uint8List(0);
     final end = endInclusive < total ? endInclusive : total - 1;
     return Uint8List.fromList([for (var i = start; i <= end; i++) i % 251]);
   }
@@ -122,6 +127,13 @@ void main() {
 
   test('answers 502 when the store read throws', () async {
     store.failReads = true;
+    expect((await relay.answer(ticket, 'bytes=0-')).status, 502);
+  });
+
+  test('answers 502 when the store returns no bytes', () async {
+    // An empty 206 would leave the worker asking for the same range again
+    // and again.
+    store.emptyReads = true;
     expect((await relay.answer(ticket, 'bytes=0-')).status, 502);
   });
 

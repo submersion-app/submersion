@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/media_store/media_streaming.dart';
 import 'package:submersion/features/media/data/resolvers/media_store_resolver.dart';
+import 'package:submersion/features/media/data/streaming/media_stream_relay.dart';
 import 'package:submersion/features/media/data/streaming/video_playback_plan.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/media_stream_providers.dart';
@@ -84,4 +87,30 @@ void main() {
     final plan = await container.read(videoPlaybackProvider(_video).future);
     expect((plan as NoPlayback).reason, NoPlaybackReason.notFound);
   });
+
+  test(
+    'in a browser an S3 video does not wait for the stream worker',
+    () async {
+      // A worker that never starts (an uncontrolled page) must not hold up
+      // stores that never use it.
+      final store = _LinkStore();
+      final container = containerWith([
+        deviceCapabilitiesProvider.overrideWithValue(DeviceCapabilities.web),
+        mediaStreamRelayProvider.overrideWith(
+          (ref) => Completer<MediaStreamRelay?>().future,
+        ),
+        mediaStoreRuntimeProvider.overrideWith(
+          (ref) async => MediaStoreRuntime(
+            storeId: 's1',
+            store: store,
+            resolver: MediaStoreResolver.inMemory(store: store),
+          ),
+        ),
+      ]);
+      final plan = await container
+          .read(videoPlaybackProvider(_video).future)
+          .timeout(const Duration(seconds: 5));
+      expect(plan, isA<StreamPlayback>());
+    },
+  );
 }

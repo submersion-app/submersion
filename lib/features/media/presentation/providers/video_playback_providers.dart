@@ -1,5 +1,6 @@
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/media_store/media_streaming.dart';
 import 'package:submersion/features/media/data/streaming/video_playback_plan.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/media_stream_providers.dart';
@@ -24,8 +25,13 @@ final videoPlaybackProvider = FutureProvider.family<VideoPlayback, MediaItem>(
       }
       final runtime = await ref.watch(mediaStoreRuntimeProvider.future);
       if (runtime == null) return const NoPlayback(NoPlaybackReason.notFound);
-      final relay = await ref.watch(mediaStreamRelayProvider.future);
-      return planStoreVideo(item, store: runtime.store, relay: relay);
+      final store = runtime.store;
+      // Only a store read a range at a time streams through the worker; an
+      // S3 or Dropbox video never waits on it starting.
+      final relay = store is RangeReadStore && store is! DirectLinkStore
+          ? await ref.watch(mediaStreamRelayProvider.future)
+          : null;
+      return planStoreVideo(item, store: store, relay: relay);
     } finally {
       resolving.close();
     }

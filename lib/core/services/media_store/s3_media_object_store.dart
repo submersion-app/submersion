@@ -3,8 +3,10 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_api_client.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/media_store/media_streaming.dart';
 
@@ -38,6 +40,11 @@ class S3MediaObjectStore implements MediaObjectStore, DirectLinkStore {
 
   final DateTime Function() _now;
 
+  static const _log = LoggerService(
+    'S3MediaObjectStore',
+    category: LogCategory.media,
+  );
+
   String _wire(String key) => '$_keyPrefix$key';
 
   /// A presigned link a browser's video player streams from (issue
@@ -45,10 +52,17 @@ class S3MediaObjectStore implements MediaObjectStore, DirectLinkStore {
   @override
   Future<DirectLink> directLink(String key) async {
     final issuedAt = _now();
-    return DirectLink(
-      url: _client.presignGet(_wire(key), expiresIn: kS3PresignLifetime),
-      expiresAt: issuedAt.add(kS3PresignLifetime),
+    final url = _client.presignGet(_wire(key), expiresIn: kS3PresignLifetime);
+    // A link that will not play gives the player only a bare error (a wrong
+    // region, a clock far off), so say where it was signed for. Never the
+    // signature or the key id.
+    final scope = url.queryParameters['X-Amz-Credential']?.split('/');
+    _log.info(
+      'Video link for ${url.host}${url.hasPort ? ':${url.port}' : ''}'
+      '${url.path} signed for region '
+      '${scope != null && scope.length > 2 ? scope[2] : 'unknown'}',
     );
+    return DirectLink(url: url, expiresAt: issuedAt.add(kS3PresignLifetime));
   }
 
   @override

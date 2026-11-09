@@ -2,6 +2,8 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/services/cloud_storage/webdav/chunked_upload.dart';
@@ -291,4 +293,41 @@ void main() {
       );
     });
   });
+
+  test(
+    'readRange stops reading a whole-file answer once it has the range',
+    () async {
+      // A server that ignores Range sends the whole video for every piece;
+      // only the bytes up to the range's end may be read.
+      var served = 0;
+      Stream<List<int>> body() async* {
+        for (var i = 0; i < 100; i++) {
+          served++;
+          yield List<int>.filled(10, i);
+        }
+      }
+
+      final streamingStore = WebDavMediaObjectStore(
+        client: WebDavClient(
+          WebDavConfig(
+            serverUrl: 'https://dav.test/dav',
+            username: 'alice',
+            password: 'secret',
+            folder: kDefaultWebDavMediaFolder,
+          ),
+          httpClient: MockClient.streaming(
+            (request, _) async => http.StreamedResponse(body(), 200),
+          ),
+          backoff: (_) => Duration.zero,
+        ),
+      );
+      final bytes = await streamingStore.readRange(
+        'smv1/objects/ab/abc.mp4',
+        start: 12,
+        endInclusive: 24,
+      );
+      expect(bytes, [1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2]);
+      expect(served, lessThan(10));
+    },
+  );
 }

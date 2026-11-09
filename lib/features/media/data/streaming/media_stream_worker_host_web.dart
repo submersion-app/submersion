@@ -12,26 +12,35 @@ import 'package:submersion/features/media/data/streaming/media_stream_worker_hos
 
 const _log = LoggerService('MediaStreamWorker', category: LogCategory.media);
 
-/// How long a fresh registration may take to control the page.
+/// How long the worker may take to become ready and control the page.
 const _controlTimeout = Duration(seconds: 10);
 
+/// The start in progress, or the worker that started. A start that failed
+/// is not kept, so the next video tries again.
 Future<MediaStreamWorkerHost?>? _started;
 
-/// Browser variant: registers the stream worker once per page and resolves
-/// when it controls the page, or to null when the browser offers no service
-/// workers or registration fails.
-Future<MediaStreamWorkerHost?> startMediaStreamWorker() =>
-    _started ??= _start();
+/// Browser variant: registers the stream worker and resolves when it
+/// controls the page, or to null when the browser offers no service workers
+/// or the worker did not start in time.
+Future<MediaStreamWorkerHost?> startMediaStreamWorker() {
+  final started = _started;
+  if (started != null) return started;
+  final starting = _started = _start();
+  starting.then((host) {
+    if (host == null && identical(_started, starting)) _started = null;
+  });
+  return starting;
+}
 
 Future<MediaStreamWorkerHost?> _start() async {
+  if (!(web.window.navigator as JSObject).has('serviceWorker')) {
+    _log.info(
+      'No service workers in this browser; Drive and WebDAV videos '
+      'cannot stream',
+    );
+    return null;
+  }
   try {
-    if (!(web.window.navigator as JSObject).has('serviceWorker')) {
-      _log.info(
-        'No service workers in this browser; Drive and WebDAV videos '
-        'cannot stream',
-      );
-      return null;
-    }
     final container = web.window.navigator.serviceWorker;
     final base = Uri.parse(web.document.baseURI);
     await container
@@ -40,7 +49,8 @@ Future<MediaStreamWorkerHost?> _start() async {
           web.RegistrationOptions(scope: base.toString()),
         )
         .toDart;
-    await container.ready.toDart;
+    // Never resolves for a page outside the worker's scope.
+    final registration = await container.ready.toDart.timeout(_controlTimeout);
     if (container.controller == null) {
       final controlled = Completer<void>();
       void onChange(web.Event _) {
@@ -48,6 +58,9 @@ Future<MediaStreamWorkerHost?> _start() async {
       }
 
       container.addEventListener('controllerchange', onChange.toJS);
+      // A hard reload leaves the page uncontrolled with the worker already
+      // active, so no activation will claim it: ask the worker to.
+      registration.active?.postMessage({'type': 'media-stream-claim'}.jsify());
       await controlled.future.timeout(_controlTimeout);
     }
     final host = _WebHost(base);
