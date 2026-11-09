@@ -6,9 +6,9 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// "Entered water", or "Surfaced" while the current diver has a draft open
-/// (issue #637), on the GPS log's recording card and strip. Nothing shows
-/// without a current diver.
+/// "Entered water", or "Surfaced" while a dive is open on this device
+/// (issue #637), on the GPS log's recording card and strip. Surfaced acts on
+/// that dive whoever's it is; Entered water needs a current diver.
 class DiveMarkButtons extends ConsumerWidget {
   const DiveMarkButtons({super.key, this.compact = false, this.foreground});
 
@@ -21,18 +21,18 @@ class DiveMarkButtons extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final diverId = ref.watch(currentDiverIdProvider);
-    if (diverId == null) return const SizedBox.shrink();
-    final open = ref.watch(openDraftProvider(diverId)).value;
+    final open = ref.watch(markingDraftProvider).value;
+    if (diverId == null && open == null) return const SizedBox.shrink();
     final l10n = context.l10n;
 
     Future<void> mark() async {
       final marks = ref.read(diveMarkServiceProvider);
       if (open == null) {
-        await marks.enteredWater(diverId: diverId);
+        await marks.enteredWater(diverId: diverId!);
       } else {
         await marks.surfaced();
       }
-      ref.invalidate(openDraftProvider(diverId));
+      ref.invalidate(markingDraftProvider);
     }
 
     final label = Text(

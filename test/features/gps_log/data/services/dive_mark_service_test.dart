@@ -16,14 +16,10 @@ void main() {
   late DiveRepository dives;
   late DiveDraftRepository drafts;
   var points = <GpsTrackPoint>[];
-  var currentDiver = 'a';
   final created = DateTime.utc(2026, 7, 1).millisecondsSinceEpoch;
 
-  DiveMarkService service() => DiveMarkService(
-    drafts: drafts,
-    currentDiverId: () => currentDiver,
-    recordedPoints: () async => points,
-  );
+  DiveMarkService service() =>
+      DiveMarkService(drafts: drafts, recordedPoints: () async => points);
 
   /// A track point at wall-clock [t], flagged UTC as dive times are.
   GpsTrackPoint point(DateTime t, double lat) => GpsTrackPoint(
@@ -37,7 +33,6 @@ void main() {
     dives = DiveRepository();
     drafts = DiveDraftRepository(dives: dives);
     points = [];
-    currentDiver = 'a';
     for (final id in ['a', 'b']) {
       await db
           .into(db.divers)
@@ -103,7 +98,7 @@ void main() {
       diverId: 'a',
       at: DateTime.utc(2026, 7, 17, 10),
     );
-    currentDiver = 'b';
+    // The app switches to diver b.
 
     final closed = await marks.surfaced(at: DateTime.utc(2026, 7, 17, 10, 50));
 
@@ -126,6 +121,50 @@ void main() {
       expect(closed?.id, draft.id);
     },
   );
+
+  test('after a restart and a diver switch, Surfaced still closes the dive '
+      'that is open', () async {
+    final draft = await service().enteredWater(
+      diverId: 'a',
+      at: DateTime.utc(2026, 7, 17, 10),
+    );
+    // The app switches to diver b.
+
+    final closed = await service().surfaced(
+      at: DateTime.utc(2026, 7, 17, 10, 50),
+    );
+
+    expect(closed?.id, draft.id);
+    expect(await drafts.openDraftFor('a'), isNull);
+  });
+
+  test(
+    'Entered water while another diver is in the water starts nothing new',
+    () async {
+      final draft = await service().enteredWater(
+        diverId: 'a',
+        at: DateTime.utc(2026, 7, 17, 10),
+      );
+      // The app switches to diver b.
+
+      final again = await service().enteredWater(
+        diverId: 'b',
+        at: DateTime.utc(2026, 7, 17, 10, 5),
+      );
+
+      expect(again.id, draft.id);
+      expect(await drafts.openDraftFor('b'), isNull);
+    },
+  );
+
+  test('the open dive on this device is any diver\'s', () async {
+    final draft = await service().enteredWater(
+      diverId: 'b',
+      at: DateTime.utc(2026, 7, 17, 10),
+    );
+
+    expect((await drafts.openDraftFor(null))?.id, draft.id);
+  });
 
   test('Surfaced with no open draft does nothing', () async {
     expect(

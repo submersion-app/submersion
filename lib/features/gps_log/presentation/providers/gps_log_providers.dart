@@ -6,7 +6,6 @@ import 'package:submersion/features/gps_log/data/services/dive_mark_service.dart
 import 'package:submersion/features/gps_log/data/services/gps_track_match_service.dart';
 import 'package:submersion/features/gps_log/data/services/gps_track_recorder.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
 final gpsTrackRepositoryProvider = Provider<GpsTrackRepository>(
   (ref) => GpsTrackRepository(),
@@ -40,7 +39,6 @@ final diveMarkServiceProvider = Provider<DiveMarkService>((ref) {
   final tracks = ref.watch(gpsTrackRepositoryProvider);
   return DiveMarkService(
     drafts: ref.watch(diveDraftRepositoryProvider),
-    currentDiverId: () => ref.read(currentDiverIdProvider),
     recordedPoints: () async {
       final trackId = recorder.state.trackId;
       return trackId == null ? const [] : tracks.getBufferPoints(trackId);

@@ -5,7 +5,6 @@ import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_draft_providers.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// How long a draft may stay open before the app asks whether the diver
@@ -43,13 +42,12 @@ class StaleOpenDraftPrompter {
   /// True the first time [draft] comes up this session.
   bool shouldAsk(Dive draft) => _asked.add(draft.id);
 
-  /// Shows the prompt over [context] (the root navigator's) when the
-  /// current diver has a draft open for [kStaleOpenDraftAfter].
+  /// Shows the prompt over [context] (the root navigator's) when a dive has
+  /// been open on this device for [kStaleOpenDraftAfter], whoever's it is:
+  /// the one Surfaced would close.
   Future<void> check(WidgetRef ref, BuildContext? context) async {
-    final diverId = ref.read(currentDiverIdProvider);
-    if (diverId == null) return;
     final drafts = ref.read(diveDraftRepositoryProvider);
-    final draft = await drafts.openDraftFor(diverId);
+    final draft = await drafts.openDraftFor(null);
     if (draft == null ||
         !isStaleOpenDraft(draft, asWallClockUtc(DateTime.now())) ||
         context == null ||

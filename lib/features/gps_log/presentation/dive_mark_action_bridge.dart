@@ -16,17 +16,14 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The step the lock screen notification offers (issue #637): none while
-/// nothing records, Surfaced while the current diver has a draft open,
-/// else Entered water.
+/// nothing records, Surfaced while a dive is open on this device (whoever's
+/// it is, the one Surfaced closes), else Entered water.
 final diveMarkNotificationActionProvider = Provider<DiveMarkAction?>((ref) {
   final recording =
       ref.watch(gpsRecorderStateProvider).value?.status ==
       GpsRecorderStatus.recording;
   if (!recording) return null;
-  final diverId = ref.watch(currentDiverIdProvider);
-  final open = diverId == null
-      ? null
-      : ref.watch(openDraftProvider(diverId)).value;
+  final open = ref.watch(markingDraftProvider).value;
   return nextDiveMarkAction(draftOpen: open != null);
 });
 

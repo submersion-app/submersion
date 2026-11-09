@@ -54,7 +54,7 @@ void main() {
               ),
             ),
           ),
-          openDraftProvider('a').overrideWith((ref) async => open),
+          markingDraftProvider.overrideWith((ref) async => open),
         ],
       );
       addTearDown(c.dispose);
@@ -64,7 +64,7 @@ void main() {
     Future<DiveMarkAction?> settle(ProviderContainer c) async {
       c.listen(diveMarkNotificationActionProvider, (_, _) {});
       await c.read(gpsRecorderStateProvider.future);
-      await c.read(openDraftProvider('a').future);
+      await c.read(markingDraftProvider.future);
       return c.read(diveMarkNotificationActionProvider);
     }
 

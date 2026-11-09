@@ -18,6 +18,14 @@ final draftDivesProvider = FutureProvider.autoDispose<List<Dive>>((ref) {
   return ref.watch(diveDraftRepositoryProvider).getDrafts(diverId: diverId);
 });
 
+/// The dive open on this device, whoever's it is (issue #637): the one the
+/// marks act on, so the buttons and the lock screen offer Surfaced for it
+/// even after a diver switch.
+final markingDraftProvider = FutureProvider.autoDispose<Dive?>((ref) {
+  ref.invalidateSelfWhen(ref.watch(diveRepositoryProvider).watchDivesChanges());
+  return ref.watch(diveDraftRepositoryProvider).openDraftFor(null);
+});
+
 /// The draft the diver with this id is in the water on, or null.
 final openDraftProvider = FutureProvider.autoDispose.family<Dive?, String>((
   ref,

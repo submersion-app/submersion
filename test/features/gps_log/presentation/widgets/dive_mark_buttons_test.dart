@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_draft_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_draft_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -31,6 +32,16 @@ class FakeDiveMarks implements DiveMarkService {
   }
 }
 
+/// The device's drafts, as far as the marks read them.
+class FakeDrafts extends Fake implements DiveDraftRepository {
+  FakeDrafts(this.open);
+
+  final Dive? open;
+
+  @override
+  Future<Dive?> openDraftFor(String? diverId) async => open;
+}
+
 final openDraft = Dive(
   id: 'draft',
   dateTime: DateTime(2026, 7, 17, 10),
@@ -44,7 +55,8 @@ Future<List<dynamic>> markOverrides(FakeDiveMarks marks, {Dive? open}) async =>
     [
       ...await getBaseOverrides(),
       diveMarkServiceProvider.overrideWithValue(marks),
-      openDraftProvider('a').overrideWith((ref) async => open),
+      markingDraftProvider.overrideWith((ref) async => open),
+      diveDraftRepositoryProvider.overrideWithValue(FakeDrafts(open)),
     ];
 
 Widget harness(List<dynamic> overrides, Widget child) => ProviderScope(
@@ -99,6 +111,23 @@ void main() {
     );
 
     expect(find.text('Entered water'), findsNothing);
+    await tester.tap(find.text('Surfaced'));
+    await tester.pumpAndSettle();
+    expect(marks.calls, ['surfaced']);
+  });
+
+  testWidgets('after a switch to another diver it still offers Surfaced for '
+      'the dive that is open', (tester) async {
+    final marks = FakeDiveMarks();
+    await pumpMarks(
+      tester,
+      harness(
+        await markOverrides(marks, open: openDraft),
+        const DiveMarkButtons(),
+      ),
+      diverId: 'b',
+    );
+
     await tester.tap(find.text('Surfaced'));
     await tester.pumpAndSettle();
     expect(marks.calls, ['surfaced']);

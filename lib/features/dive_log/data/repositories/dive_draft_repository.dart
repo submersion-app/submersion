@@ -127,8 +127,9 @@ class DiveDraftRepository {
   }
 
   /// The draft [diverId] is in the water on: no exit yet, newest entry
-  /// first. Null when there is none.
-  Future<Dive?> openDraftFor(String diverId) async {
+  /// first. Null when there is none. With no diver, the newest open draft
+  /// on this device, whoever's it is: the dive the marks act on.
+  Future<Dive?> openDraftFor(String? diverId) async {
     final drafts = await getDrafts(diverId: diverId);
     for (final draft in drafts) {
       if (draft.exitTime == null) return draft;

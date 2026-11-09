@@ -11,31 +11,24 @@ import 'package:submersion/features/gps_log/domain/gps_track_matcher.dart';
 class DiveMarkService {
   DiveMarkService({
     required DiveDraftRepository drafts,
-    required String? Function() currentDiverId,
     required Future<List<GpsTrackPoint>> Function() recordedPoints,
     DateTime Function()? clock,
   }) : _drafts = drafts,
-       _currentDiverId = currentDiverId,
        _recordedPoints = recordedPoints,
        _clock = clock ?? DateTime.now;
 
   final DiveDraftRepository _drafts;
-  final String? Function() _currentDiverId;
 
   /// The running recording's points so far, empty when nothing records.
   final Future<List<GpsTrackPoint>> Function() _recordedPoints;
   final DateTime Function() _clock;
 
-  /// The diver who last tapped "Entered water" here, so "Surfaced" closes
-  /// their draft even if the app switched to another diver meanwhile.
-  String? _enteredDiverId;
-
   /// Marks [diverId] in the water at [at] (now by default), wall clock
-  /// flagged UTC. A second tap while that diver is already in the water
-  /// keeps the open draft rather than making another.
+  /// flagged UTC. While a dive is open on this device, whoever's it is, the
+  /// tap keeps it rather than making another: the buttons then offer
+  /// Surfaced, so this is a late or repeated tap.
   Future<Dive> enteredWater({required String diverId, DateTime? at}) async {
-    _enteredDiverId = diverId;
-    final open = await _drafts.openDraftFor(diverId);
+    final open = await _drafts.openDraftFor(null);
     if (open != null) return open;
     final when = at ?? asWallClockUtc(_clock());
     return _drafts.createDraft(
@@ -45,13 +38,11 @@ class DiveMarkService {
     );
   }
 
-  /// Closes the open draft at [at] (now by default): the draft of the diver
-  /// who entered the water from here, else the current diver's. Null when
-  /// there is no open draft.
+  /// Closes the dive open on this device at [at] (now by default), whoever's
+  /// it is, so a diver switch or a restart between the taps cannot strand
+  /// it. Null when no dive is open.
   Future<Dive?> surfaced({DateTime? at}) async {
-    final diverId = _enteredDiverId ?? _currentDiverId();
-    if (diverId == null) return null;
-    final open = await _drafts.openDraftFor(diverId);
+    final open = await _drafts.openDraftFor(null);
     if (open == null) return null;
     final when = at ?? asWallClockUtc(_clock());
     await _drafts.closeDraft(
@@ -59,7 +50,6 @@ class DiveMarkService {
       exitTime: when,
       exitLocation: await _positionAt(when),
     );
-    _enteredDiverId = null;
     return open.copyWith(exitTime: when);
   }
 

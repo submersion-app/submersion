@@ -42,7 +42,7 @@ class GpsRecordCard extends ConsumerWidget {
     final marks = ref.read(diveMarkServiceProvider);
     await _start(context, ref);
     await marks.enteredWater(diverId: diverId);
-    ref.invalidate(openDraftProvider(diverId));
+    ref.invalidate(markingDraftProvider);
   }
 
   /// Stops the recording, first asking about a draft still open: the app
@@ -50,10 +50,9 @@ class GpsRecordCard extends ConsumerWidget {
   Future<void> _stop(BuildContext context, WidgetRef ref) async {
     final recorder = ref.read(gpsTrackRecorderProvider);
     final marks = ref.read(diveMarkServiceProvider);
-    final diverId = ref.read(currentDiverIdProvider);
-    final open = diverId == null
-        ? null
-        : await ref.read(openDraftProvider(diverId).future);
+    // Read from the repository, not a provider's future with no listener:
+    // the dive open on this device, the one Surfaced would close.
+    final open = await ref.read(diveDraftRepositoryProvider).openDraftFor(null);
     if (open != null) {
       if (!context.mounted) return;
       final surface = await showSurfaceOnStopDialog(
