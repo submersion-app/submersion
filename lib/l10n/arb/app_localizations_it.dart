@@ -8221,6 +8221,17 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_gasSwitches_fillDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Completa $count cambi dalle pressioni delle bombole',
+      one: 'Completa 1 cambio dalle pressioni delle bombole',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'Acquisizione posizione...';
 
   @override
@@ -9216,6 +9227,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_legend_label_annotations => 'Annotazioni';
 
   @override
+  String get diveLog_legend_label_plan => 'Piano';
+
+  @override
   String get diveLog_legend_label_computedEvents => 'Eventi calcolati';
 
   @override
@@ -9478,6 +9492,40 @@ class AppLocalizationsIt extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'A $count delle $total immersioni selezionate mancano le condizioni.',
+      one:
+          'A $count delle $total immersioni selezionate mancano le condizioni.',
+    );
+    return '$_temp0 Vengono compilati solo i campi vuoti: nulla di quanto hai già inserito verrà modificato.';
+  }
+
+  @override
+  String diveLog_fetchConditions_skippedNoLocation(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count immersioni non hanno né coordinate del sito né posizione GPS e verranno saltate.',
+      one:
+          '$count immersione non ha né coordinate del sito né posizione GPS e verrà saltata.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_fetchConditions_noneNeededSelected =>
+      'A nessuna delle immersioni selezionate mancano le condizioni.';
+
+  @override
+  String get diveLog_fetchConditions_noneLocatedSelected =>
+      'Le immersioni selezionate prive di condizioni non hanno né coordinate del sito né posizione GPS.';
 
   @override
   String diveLog_fetchConditions_summaryCancelled(int count) {
@@ -38453,6 +38501,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get reparseBatch_noneWithRawData =>
       'Nessuna delle immersioni selezionate ha dati grezzi salvati da rianalizzare.';
+
+  @override
+  String get diveLog_selection_tooltip_fetchConditions =>
+      'Recupera le condizioni';
 
   @override
   String get diveLog_selection_tooltip_reparse => 'Rianalizza';

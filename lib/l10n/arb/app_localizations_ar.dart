@@ -8341,6 +8341,20 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_gasSwitches_fillDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ملء $count تبديل من ضغوط الأسطوانات',
+      many: 'ملء $count تبديلًا من ضغوط الأسطوانات',
+      few: 'ملء $count تبديلات من ضغوط الأسطوانات',
+      two: 'ملء تبديلين من ضغوط الأسطوانات',
+      one: 'ملء تبديل واحد من ضغوط الأسطوانات',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'جارٍ تحديد الموقع...';
 
   @override
@@ -9336,6 +9350,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_legend_label_annotations => 'التعليقات';
 
   @override
+  String get diveLog_legend_label_plan => 'الخطة';
+
+  @override
   String get diveLog_legend_label_computedEvents => 'الأحداث المحسوبة';
 
   @override
@@ -9611,6 +9628,42 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تنقص الظروف في $count من الغطسات المحددة وعددها $total.',
+      many: 'تنقص الظروف في $count من الغطسات المحددة وعددها $total.',
+      few: 'تنقص الظروف في $count من الغطسات المحددة وعددها $total.',
+      two: 'تنقص الظروف في غطستين من الغطسات المحددة وعددها $total.',
+      one: 'تنقص الظروف في غطسة واحدة من الغطسات المحددة وعددها $total.',
+    );
+    return '$_temp0 تُملأ الحقول الفارغة فقط، ولن يتغير أي شيء أدخلته من قبل.';
+  }
+
+  @override
+  String diveLog_fetchConditions_skippedNoLocation(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ليس لـ $count غطسة إحداثيات موقع غوص ولا موضع GPS، وسيتم تخطيها.',
+      many: 'ليس لـ $count غطسة إحداثيات موقع غوص ولا موضع GPS، وسيتم تخطيها.',
+      few: 'ليس لـ $count غطسات إحداثيات موقع غوص ولا موضع GPS، وسيتم تخطيها.',
+      two: 'ليس لغطستين إحداثيات موقع غوص ولا موضع GPS، وسيتم تخطيهما.',
+      one: 'ليس لغطسة واحدة إحداثيات موقع غوص ولا موضع GPS، وسيتم تخطيها.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_fetchConditions_noneNeededSelected =>
+      'لا تنقص الظروف في أي من الغطسات المحددة.';
+
+  @override
+  String get diveLog_fetchConditions_noneLocatedSelected =>
+      'الغطسات المحددة التي تنقصها الظروف ليس لها إحداثيات موقع غوص ولا موضع GPS.';
 
   @override
   String diveLog_fetchConditions_summaryCancelled(int count) {
@@ -38921,6 +38974,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get reparseBatch_noneWithRawData =>
       'لا توجد بيانات أولية مخزنة لإعادة التحليل في أي من الغطسات المحددة.';
+
+  @override
+  String get diveLog_selection_tooltip_fetchConditions => 'جلب الظروف';
 
   @override
   String get diveLog_selection_tooltip_reparse => 'إعادة التحليل';

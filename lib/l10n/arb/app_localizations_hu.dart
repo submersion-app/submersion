@@ -8200,6 +8200,17 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_gasSwitches_fillDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count váltás kitöltése a palacknyomásokból',
+      one: '1 váltás kitöltése a palacknyomásokból',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'Helymeghatározás...';
 
   @override
@@ -9195,6 +9206,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_legend_label_annotations => 'Jelölések';
 
   @override
+  String get diveLog_legend_label_plan => 'Terv';
+
+  @override
   String get diveLog_legend_label_computedEvents => 'Számított események';
 
   @override
@@ -9455,6 +9469,40 @@ class AppLocalizationsHu extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'A kiválasztott $total merülésből $count esetében hiányoznak a körülmények.',
+      one:
+          'A kiválasztott $total merülésből $count esetében hiányoznak a körülmények.',
+    );
+    return '$_temp0 Csak az üres mezők töltődnek ki, a már megadott adatok nem változnak.';
+  }
+
+  @override
+  String diveLog_fetchConditions_skippedNoLocation(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count merülésnek nincs helyszínkoordinátája vagy GPS-pozíciója, ezért kimaradnak.',
+      one:
+          '$count merülésnek nincs helyszínkoordinátája vagy GPS-pozíciója, ezért kimarad.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_fetchConditions_noneNeededSelected =>
+      'A kiválasztott merülések egyikéből sem hiányoznak a körülmények.';
+
+  @override
+  String get diveLog_fetchConditions_noneLocatedSelected =>
+      'A kiválasztott, körülmények nélküli merüléseknek nincs helyszínkoordinátája vagy GPS-pozíciója.';
 
   @override
   String diveLog_fetchConditions_summaryCancelled(int count) {
@@ -38240,6 +38288,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get reparseBatch_noneWithRawData =>
       'A kijelölt merülések egyikéhez sincs újraelemezhető nyers adat.';
+
+  @override
+  String get diveLog_selection_tooltip_fetchConditions =>
+      'Körülmények lekérése';
 
   @override
   String get diveLog_selection_tooltip_reparse => 'Újraelemzés';

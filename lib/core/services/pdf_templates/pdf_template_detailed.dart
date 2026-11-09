@@ -815,8 +815,8 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     // Issue #4337: an exact count reads "x3" (a deliberate 1 too), a REEF
     // group its name in parentheses, and a sighting only Seen the name alone.
     final amount = sightingAmountLabel(l10n, sighting.amount);
-    // A built-in species prints in the logbook's language, as the dive page
-    // shows it.
+    // The stored name is the catalog's English one; the report names the
+    // species in its own language, as the app does (issue #4339).
     final name = localizedSpeciesName(
       l10n,
       sighting.speciesId,

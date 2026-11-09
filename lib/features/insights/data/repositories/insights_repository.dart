@@ -2136,7 +2136,7 @@ class InsightsRepository with InsightsChartDives {
           id: row.read<String>('id'),
           name: row.read<String>('common_name'),
           count: row.read<int>('total_count'),
-          subtitle: row.read<String?>('category'),
+          kind: row.read<String?>('category'),
         );
       }).toList();
     } catch (e, stackTrace) {

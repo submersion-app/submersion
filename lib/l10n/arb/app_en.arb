@@ -4838,6 +4838,15 @@
       }
     }
   },
+  "diveLog_edit_gasSwitches_fillDetected": "{count, plural, one{Fill in 1 switch from the cylinder pressures} other{Fill in {count} switches from the cylinder pressures}}",
+  "@diveLog_edit_gasSwitches_fillDetected": {
+    "description": "Gas switch editor: action that adds the switches the recorded cylinder pressures show, and re-points a starting switch on the same gas to the cylinder breathed first. count is how many rows it adds or changes",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_edit_gettingLocation": "Getting location...",
   "diveLog_edit_group_buddies": "Buddies",
   "@diveLog_edit_group_buddies": {
@@ -5356,6 +5365,7 @@
   "diveLog_legend_label_depth": "Depth",
   "diveLog_legend_label_events": "Events",
   "diveLog_legend_label_annotations": "Annotations",
+  "diveLog_legend_label_plan": "Plan",
   "diveLog_legend_label_computedEvents": "Computed events",
   "diveLog_legend_label_gasDensity": "Gas Density",
   "diveLog_legend_label_lateGasSwitches": "Late gas switches",
@@ -5482,6 +5492,14 @@
       }
     }
   },
+  "diveLog_fetchConditions_confirmBodySelected": "{count, plural, =1{{count} of {total} selected dives is missing conditions.} other{{count} of {total} selected dives are missing conditions.}} Only empty fields are filled, so nothing you have already entered will change.",
+  "@diveLog_fetchConditions_confirmBodySelected": {"description": "Confirm text for fetching conditions on selected dives (issue #4329): how many of the checked dives can be filled", "placeholders": {"count": {"type": "int"}, "total": {"type": "int"}}},
+  "diveLog_fetchConditions_skippedNoLocation": "{count, plural, =1{{count} dive has no site location or GPS fix and will be skipped.} other{{count} dives have no site location or GPS fix and will be skipped.}}",
+  "@diveLog_fetchConditions_skippedNoLocation": {"description": "Added to the confirm text when some checked dives have no location to fetch conditions for (issue #4329)", "placeholders": {"count": {"type": "int"}}},
+  "diveLog_fetchConditions_noneNeededSelected": "None of the selected dives are missing conditions.",
+  "@diveLog_fetchConditions_noneNeededSelected": {"description": "Snackbar when no checked dive is missing conditions (issue #4329)"},
+  "diveLog_fetchConditions_noneLocatedSelected": "The selected dives that are missing conditions have no site location or GPS fix.",
+  "@diveLog_fetchConditions_noneLocatedSelected": {"description": "Snackbar when the checked dives missing conditions all lack a location (issue #4329)"},
   "diveLog_fetchConditions_summaryCancelled": "{count, plural, =1{Stopped early; 1 dive was processed.} other{Stopped early; {count} dives were processed.}}",
   "@diveLog_fetchConditions_summaryCancelled": {
     "placeholders": {
@@ -23001,6 +23019,8 @@
   "@reparseBatch_confirmSkipped": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
   "reparseBatch_noneWithRawData": "None of the selected dives have stored raw data to re-parse.",
   "@reparseBatch_noneWithRawData": {"description": "Bulk re-parse (issue #224)"},
+  "diveLog_selection_tooltip_fetchConditions": "Fetch Conditions",
+  "@diveLog_selection_tooltip_fetchConditions": {"description": "Selection bar action that fetches conditions for the checked dives (issue #4329)"},
   "diveLog_selection_tooltip_reparse": "Re-parse",
   "@diveLog_selection_tooltip_reparse": {"description": "Bulk re-parse (issue #224)"},
   "settings_reparseDives_title": "Re-parse dives",

@@ -4,6 +4,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/theme/feature_accent_colors.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_type_badge.dart';
 import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_count.dart';
@@ -393,6 +394,128 @@ void main() {
       expect(find.text('Night'), findsOneWidget);
       expect(find.text('To try'), findsNothing);
       expect(find.text('+2'), findsOneWidget);
+    });
+  });
+
+  group('site type badges match the dive card (issue #4353)', () {
+    final now = DateTime(2026);
+    SiteTypeEntity siteType(String id, String name) => SiteTypeEntity(
+      id: id,
+      name: name,
+      isBuiltIn: true,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    final typed = SiteWithDiveCount(
+      site: const DiveSite(
+        id: 'site-4',
+        name: 'Coral garden',
+        minDepth: 5,
+        maxDepth: 50,
+        waterType: WaterType.salt,
+      ),
+      diveCount: 3,
+      featureTypes: const ['mooring'],
+      siteTypes: [siteType('reef', 'Reef'), siteType('wall', 'Wall')],
+    );
+
+    Future<void> pumpTyped(WidgetTester tester) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: await _overrides(),
+          locale: const Locale('en'),
+          child: SiteListTile(entry: typed, onTap: () {}),
+        ),
+      );
+      await tester.pump();
+    }
+
+    testWidgets('site types render as dense dive type badges', (tester) async {
+      await pumpTyped(tester);
+
+      for (final name in ['Reef', 'Wall']) {
+        final badge = find.widgetWithText(DiveTypeBadge, name);
+        expect(badge, findsOneWidget, reason: '$name is a dive type badge');
+        expect(tester.widget<DiveTypeBadge>(badge).dense, isTrue);
+      }
+    });
+
+    testWidgets('site type badges sit right-aligned on the stat line', (
+      tester,
+    ) async {
+      await pumpTyped(tester);
+
+      final stat = tester.getRect(find.text('5-50m'));
+      final lastBadge = tester.getRect(
+        find.widgetWithText(DiveTypeBadge, 'Wall'),
+      );
+      final chevron = tester.getRect(find.byIcon(Icons.chevron_right));
+
+      expect(
+        lastBadge.center.dy,
+        moreOrLessEquals(stat.center.dy, epsilon: 1),
+        reason: 'the badges share the stat line, as on a dive card',
+      );
+      expect(
+        lastBadge.right,
+        moreOrLessEquals(chevron.right, epsilon: 0.5),
+        reason: 'the badges are right-aligned to the content edge',
+      );
+    });
+
+    testWidgets('badges stay on the first stat line when the stats wrap', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(300, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await pumpTyped(tester);
+
+      final firstStat = tester.getRect(find.text('5-50m'));
+      final secondStat = tester.getRect(find.text('3 dives'));
+      expect(
+        secondStat.top,
+        greaterThan(firstStat.bottom),
+        reason: 'the narrow card wraps the stats onto two lines',
+      );
+      final badge = tester.getRect(find.byType(DiveTypeBadge).first);
+      expect(
+        badge.center.dy,
+        moreOrLessEquals(firstStat.center.dy, epsilon: 2),
+        reason: 'the badges sit on the first stat line, not between lines',
+      );
+    });
+
+    testWidgets('identity chips use the muted outline, not the accent', (
+      tester,
+    ) async {
+      await pumpTyped(tester);
+
+      final colorScheme = Theme.of(
+        tester.element(find.text('Mooring')),
+      ).colorScheme;
+      for (final label in ['Salt Water', 'Mooring']) {
+        final chip = tester.widget<Container>(
+          find
+              .ancestor(
+                of: find.text(label),
+                matching: find.byWidgetPredicate(
+                  (w) =>
+                      w is Container &&
+                      w.decoration is BoxDecoration &&
+                      (w.decoration! as BoxDecoration).border != null,
+                ),
+              )
+              .first,
+        );
+        final border = (chip.decoration! as BoxDecoration).border! as Border;
+        expect(
+          border.top.color,
+          colorScheme.outlineVariant,
+          reason: '$label chip outline is muted',
+        );
+      }
     });
   });
 }

@@ -34,7 +34,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/dive_scrubber_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
-import 'package:submersion/features/weather/presentation/widgets/fetch_all_conditions_flow.dart';
+import 'package:submersion/features/weather/presentation/widgets/fetch_conditions_flow.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
@@ -133,7 +133,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
   Future<void> _fetchAllConditions() async {
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
     if (!mounted) return;
-    await showFetchAllConditionsFlow(
+    await showFetchConditionsFlow(
       context: context,
       service: ref.read(bulkConditionsServiceProvider),
       diverId: diverId,

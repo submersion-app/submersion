@@ -8220,6 +8220,17 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_gasSwitches_fillDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Preencher $count trocas a partir das pressões dos cilindros',
+      one: 'Preencher $count troca a partir das pressões dos cilindros',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'Obtendo localização...';
 
   @override
@@ -9216,6 +9227,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_legend_label_annotations => 'Marcações';
 
   @override
+  String get diveLog_legend_label_plan => 'Plano';
+
+  @override
   String get diveLog_legend_label_computedEvents => 'Eventos calculados';
 
   @override
@@ -9475,6 +9489,38 @@ class AppLocalizationsPt extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dos $total mergulhos selecionados estão sem condições.',
+      one: '$count dos $total mergulhos selecionados está sem condições.',
+    );
+    return '$_temp0 Apenas os campos vazios são preenchidos, por isso nada do que já introduziu será alterado.';
+  }
+
+  @override
+  String diveLog_fetchConditions_skippedNoLocation(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count mergulhos não têm coordenadas do local nem posição GPS e serão ignorados.',
+      one:
+          '$count mergulho não tem coordenadas do local nem posição GPS e será ignorado.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_fetchConditions_noneNeededSelected =>
+      'Nenhum dos mergulhos selecionados está sem condições.';
+
+  @override
+  String get diveLog_fetchConditions_noneLocatedSelected =>
+      'Os mergulhos selecionados sem condições não têm coordenadas do local nem posição GPS.';
 
   @override
   String diveLog_fetchConditions_summaryCancelled(int count) {
@@ -38422,6 +38468,9 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get reparseBatch_noneWithRawData =>
       'Nenhum dos mergulhos selecionados tem dados brutos armazenados para reanalisar.';
+
+  @override
+  String get diveLog_selection_tooltip_fetchConditions => 'Obter condições';
 
   @override
   String get diveLog_selection_tooltip_reparse => 'Reanalisar';

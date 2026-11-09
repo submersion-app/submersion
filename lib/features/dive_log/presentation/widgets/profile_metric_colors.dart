@@ -24,6 +24,9 @@ abstract final class ProfileMetricColors {
   /// metric colour. Too pale for small text on a light surface, so a
   /// marker's words use the surface's own text colour.
   static const Color annotation = Color(0xFFF9A825); // Yellow 800
+  /// A linked plan's profile (#4215): one colour for every trace it draws,
+  /// since a plan is not another computer's reading of the same dive.
+  static const Color plannedProfile = Colors.purple;
   static const Color maxDepth = Color(0xFF880E4F); // Pink 900
   /// Must stay equal to the first entry of the tank palette in
   /// [ProfileMarker.getColor], which is what the chart actually draws these
