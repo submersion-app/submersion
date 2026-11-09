@@ -374,6 +374,8 @@ class _SpeciesMapPageState extends ConsumerState<SpeciesMapPage>
       });
     }
     final publicOn = ref.watch(speciesMapPublicLayerProvider);
+    final cardOpen =
+        ref.watch(mapListSelectionProvider(_sectionKey)).selectedId != null;
     final shownNotes = notes.whereType<String>().toList();
 
     return Stack(
@@ -461,14 +463,17 @@ class _SpeciesMapPageState extends ConsumerState<SpeciesMapPage>
               ),
             ),
           ),
-        Positioned(
-          left: 8,
-          bottom: 28,
-          child: SpeciesMapLegend(
-            speciesMode: speciesId != null,
-            publicOn: publicOn,
+        // An open site card sits at the bottom and would cover the legend,
+        // so the legend steps aside until the card closes.
+        if (!cardOpen)
+          Positioned(
+            left: 8,
+            bottom: 28,
+            child: SpeciesMapLegend(
+              speciesMode: speciesId != null,
+              publicOn: publicOn,
+            ),
           ),
-        ),
       ],
     );
   }

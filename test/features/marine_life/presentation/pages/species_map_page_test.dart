@@ -12,7 +12,9 @@ import 'package:submersion/features/marine_life/presentation/providers/seen_spec
 import 'package:submersion/features/marine_life/presentation/providers/species_map_prefs_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_map_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/species_map/species_map_legend.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/species_map/species_map_list_pane.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/species_map/species_map_site_card.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -188,6 +190,22 @@ void main() {
 
     expect(_pin('Blue Corner, 3 species'), findsOneWidget);
     expect(_pin('Manta Point, 6 sightings'), findsNothing);
+  });
+
+  testWidgets('the legend steps aside while a site card is open', (
+    tester,
+  ) async {
+    await _pump(tester);
+    expect(find.byType(SpeciesMapLegend), findsOneWidget);
+
+    await tester.tap(_pin('Blue Corner, 3 species'));
+    await _settleMap(tester);
+    expect(find.byType(SpeciesMapSiteCard), findsOneWidget);
+    expect(find.byType(SpeciesMapLegend), findsNothing);
+
+    await tester.tap(find.byIcon(Icons.close));
+    await _settleMap(tester);
+    expect(find.byType(SpeciesMapLegend), findsOneWidget);
   });
 
   testWidgets('?species= seeds species mode with logged and expected pins', (
