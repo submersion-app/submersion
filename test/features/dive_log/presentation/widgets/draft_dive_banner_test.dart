@@ -62,6 +62,14 @@ void main() {
     expect(calls, ['surfaced']);
   });
 
+  testWidgets('an open draft cannot be marked complete before it surfaces', (
+    tester,
+  ) async {
+    await pump(tester, open);
+
+    expect(find.text('Mark as complete'), findsNothing);
+  });
+
   testWidgets('a closed draft does not offer Surfaced', (tester) async {
     await pump(tester, closed);
 

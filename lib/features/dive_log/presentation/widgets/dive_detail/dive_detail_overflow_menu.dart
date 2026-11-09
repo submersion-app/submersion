@@ -140,8 +140,9 @@ class DiveDetailOverflowMenu extends ConsumerWidget {
                 contentPadding: EdgeInsets.zero,
               ),
             ),
-          // A draft that will never be downloaded (issue #637).
-          if (dive.isDraft)
+          // A draft that will never be downloaded (issue #637), once it is
+          // out of the water.
+          if (dive.isDraft && dive.exitTime != null)
             PopupMenuItem(
               value: 'markComplete',
               child: ListTile(

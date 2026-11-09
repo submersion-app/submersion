@@ -85,10 +85,14 @@ class DraftDiveBanner extends StatelessWidget {
                   onPressed: onDownload,
                   child: Text(l10n.diveLog_draft_downloadNow),
                 ),
-                TextButton(
-                  onPressed: onMarkComplete,
-                  child: Text(l10n.diveLog_draft_markComplete),
-                ),
+                // Only once out of the water: completing an open draft would
+                // log a dive with no end, and no-fly would count it from the
+                // entry (issue #637).
+                if (!open)
+                  TextButton(
+                    onPressed: onMarkComplete,
+                    child: Text(l10n.diveLog_draft_markComplete),
+                  ),
               ],
             ),
           ],
