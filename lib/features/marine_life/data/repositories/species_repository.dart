@@ -769,9 +769,14 @@ class SpeciesRepository {
   // ===========================================================================
 
   /// Get species spotted at a site (derived from actual dive sightings)
+  ///
+  /// [excludeDiveId] leaves one dive's sightings out of the counts: the dive
+  /// editor suggests what *other* dives at the site saw (issue #4383), and a
+  /// saved dive's own sightings would otherwise count toward its suggestions.
   Future<List<domain.SiteSpeciesSummary>> getSpeciesSpottedAtSite(
-    String siteId,
-  ) async {
+    String siteId, {
+    String? excludeDiveId,
+  }) async {
     final results = await _db
         .customSelect(
           '''
@@ -785,10 +790,14 @@ class SpeciesRepository {
       JOIN species sp ON s.species_id = sp.id
       JOIN dives d ON s.dive_id = d.id
       WHERE d.site_id = ?${DiveStatsScope.and(alias: 'd')}
+        ${excludeDiveId == null ? '' : 'AND d.id <> ?'}
       GROUP BY sp.id
       ORDER BY sighting_count DESC, sp.common_name ASC
     ''',
-          variables: [Variable.withString(siteId)],
+          variables: [
+            Variable.withString(siteId),
+            if (excludeDiveId != null) Variable.withString(excludeDiveId),
+          ],
         )
         .get();
 

@@ -13192,6 +13192,42 @@ abstract class AppLocalizations {
   /// **'No species logged'**
   String get diveLog_edit_noMarineLife;
 
+  /// Heading over the one-tap species chips in the dive editor, offered because other dives at the dive's site logged them or the site's expected list names them
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested for {siteName}'**
+  String diveLog_edit_suggestions_title(String siteName);
+
+  /// Screen reader label of a suggested species chip in the dive editor; tapping it adds the species to the dive
+  ///
+  /// In en, this message translates to:
+  /// **'Add {species}'**
+  String diveLog_edit_suggestions_add(String species);
+
+  /// Tooltip of a suggested species chip: how many other dives at this site logged the species
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Seen on {count} other dive here} other{Seen on {count} other dives here}}'**
+  String diveLog_edit_suggestions_seenOnDives(int count);
+
+  /// Tooltip of a suggested species chip for a species named on the site's expected species list but never logged there
+  ///
+  /// In en, this message translates to:
+  /// **'On this site\'s expected species list'**
+  String get diveLog_edit_suggestions_expected;
+
+  /// Chip that expands the suggested species list to show every suggestion; count is the total
+  ///
+  /// In en, this message translates to:
+  /// **'Show all ({count})'**
+  String diveLog_edit_suggestions_showAll(int count);
+
+  /// Chip that collapses the expanded suggested species list back to the first few
+  ///
+  /// In en, this message translates to:
+  /// **'Show fewer'**
+  String get diveLog_edit_suggestions_showFewer;
+
   /// No description provided for @diveLog_edit_notSpecified.
   ///
   /// In en, this message translates to:

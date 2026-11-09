@@ -160,6 +160,8 @@ import 'package:submersion/features/dive_log/presentation/utils/water_type_autof
 import 'package:submersion/features/dive_log/presentation/utils/dive_type_autofill.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/species_picker_sheet.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/site_species_suggestion_chips.dart';
+import 'package:submersion/features/marine_life/domain/site_species_suggestions.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/ccr_settings_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_selector.dart';
@@ -6215,9 +6217,38 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               );
             }),
           ],
+          // Bulk edit spans dives that may be at different sites, so there
+          // is no one site to suggest from.
+          if (!widget.isBulk && _selectedSite != null)
+            SiteSpeciesSuggestionChips(
+              siteId: _selectedSite!.id,
+              siteName: _selectedSite!.name,
+              excludeDiveId: widget.diveId,
+              loggedSpeciesIds: {for (final s in _sightings) s.speciesId},
+              onAdd: _addSuggestedSighting,
+            ),
         ],
       ),
     );
+  }
+
+  /// A suggestion chip's tap (issue #4383): the species goes on as a single
+  /// animal with no notes, which its row then edits like any other sighting.
+  void _addSuggestedSighting(SiteSpeciesSuggestion suggestion) {
+    setState(() {
+      _markDirty();
+      _sightings.add(
+        Sighting(
+          id: DateTime.now().microsecondsSinceEpoch.toString(),
+          diveId: widget.diveId ?? '',
+          speciesId: suggestion.speciesId,
+          speciesName: suggestion.speciesName,
+          speciesCategory: suggestion.category,
+          count: 1,
+          notes: '',
+        ),
+      );
+    });
   }
 
   void _showSpeciesPicker() {

@@ -8192,6 +8192,39 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_noMarineLife => 'לא נרשמו מינים';
 
   @override
+  String diveLog_edit_suggestions_title(String siteName) {
+    return 'הצעות עבור $siteName';
+  }
+
+  @override
+  String diveLog_edit_suggestions_add(String species) {
+    return 'הוספת $species';
+  }
+
+  @override
+  String diveLog_edit_suggestions_seenOnDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'נצפה ב-$count צלילות נוספות כאן',
+      one: 'נצפה בצלילה אחת נוספת כאן',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_suggestions_expected =>
+      'ברשימת המינים הצפויים באתר זה';
+
+  @override
+  String diveLog_edit_suggestions_showAll(int count) {
+    return 'הצג הכול ($count)';
+  }
+
+  @override
+  String get diveLog_edit_suggestions_showFewer => 'הצג פחות';
+
+  @override
   String get diveLog_edit_notSpecified => 'לא צוין';
 
   @override

@@ -74,8 +74,9 @@ class MockSpeciesRepository extends Mock implements SpeciesRepository {
 
   @override
   Future<List<marine.SiteSpeciesSummary>> getSpeciesSpottedAtSite(
-    String siteId,
-  ) async => [];
+    String siteId, {
+    String? excludeDiveId,
+  }) async => [];
 }
 
 void main() {

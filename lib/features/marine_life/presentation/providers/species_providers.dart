@@ -292,6 +292,33 @@ final siteExpectedSpeciesProvider =
       return repository.getExpectedSpeciesForSite(siteId);
     });
 
+/// What the dive editor suggests for a site (issue #4383): the species other
+/// dives there logged, with [excludeDiveId]'s own sightings left out, and the
+/// site's expected list. Merged and ordered by `buildSiteSpeciesSuggestions`,
+/// which needs the diver's language for alphabetical order.
+final siteSpeciesSuggestionSourcesProvider = FutureProvider.autoDispose
+    .family<
+      ({List<SiteSpeciesSummary> spotted, List<SiteSpeciesEntry> expected}),
+      ({String siteId, String? excludeDiveId})
+    >((ref, key) async {
+      final repository = ref.watch(speciesRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchSpeciesChanges());
+      ref.invalidateSelfWhen(repository.watchSiteSpeciesChanges());
+      // Sightings are dive detail: a merge or a sync that applies remote
+      // sightings writes them without touching the species table.
+      ref.invalidateSelfWhen(
+        ref.read(diveRepositoryProvider).watchDiveDetailChanges(),
+      );
+      final (spotted, expected) = await (
+        repository.getSpeciesSpottedAtSite(
+          key.siteId,
+          excludeDiveId: key.excludeDiveId,
+        ),
+        repository.getExpectedSpeciesForSite(key.siteId),
+      ).wait;
+      return (spotted: spotted, expected: expected);
+    });
+
 /// Notifier for managing expected species at a site
 class SiteExpectedSpeciesNotifier
     extends StateNotifier<List<SiteSpeciesEntry>> {

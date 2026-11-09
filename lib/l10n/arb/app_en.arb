@@ -4930,6 +4930,50 @@
   "diveLog_edit_nearbySitesFirst": "Nearby sites first",
   "diveLog_edit_noEquipmentSelected": "No equipment selected",
   "diveLog_edit_noMarineLife": "No species logged",
+  "diveLog_edit_suggestions_title": "Suggested for {siteName}",
+  "@diveLog_edit_suggestions_title": {
+    "description": "Heading over the one-tap species chips in the dive editor, offered because other dives at the dive's site logged them or the site's expected list names them",
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_edit_suggestions_add": "Add {species}",
+  "@diveLog_edit_suggestions_add": {
+    "description": "Screen reader label of a suggested species chip in the dive editor; tapping it adds the species to the dive",
+    "placeholders": {
+      "species": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_edit_suggestions_seenOnDives": "{count, plural, one{Seen on {count} other dive here} other{Seen on {count} other dives here}}",
+  "@diveLog_edit_suggestions_seenOnDives": {
+    "description": "Tooltip of a suggested species chip: how many other dives at this site logged the species",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_edit_suggestions_expected": "On this site's expected species list",
+  "@diveLog_edit_suggestions_expected": {
+    "description": "Tooltip of a suggested species chip for a species named on the site's expected species list but never logged there"
+  },
+  "diveLog_edit_suggestions_showAll": "Show all ({count})",
+  "@diveLog_edit_suggestions_showAll": {
+    "description": "Chip that expands the suggested species list to show every suggestion; count is the total",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_edit_suggestions_showFewer": "Show fewer",
+  "@diveLog_edit_suggestions_showFewer": {
+    "description": "Chip that collapses the expanded suggested species list back to the first few"
+  },
   "diveLog_edit_notSpecified": "Not specified",
   "diveLog_edit_notesHint": "Add notes about this dive...",
   "diveLog_edit_overline_gasSwitches": "Gas switches",
