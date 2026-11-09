@@ -30,6 +30,7 @@ Future<BulkActionOutcome> showFetchConditionsFlow({
 
   final int candidates;
   final int unlocated;
+  final int? selected;
   try {
     // Independent reads, so they run together. Future.wait rather than a
     // record's `.wait`: it rethrows the original error, which the snackbar
@@ -38,11 +39,16 @@ Future<BulkActionOutcome> showFetchConditionsFlow({
       service.countCandidates(diverId: diverId, diveIds: diveIds),
       // Only a selection says what it will skip: across the whole logbook
       // the menu entry has always meant "whatever can be filled".
-      if (diveIds != null)
+      if (diveIds != null) ...[
         service.countWithoutLocation(diverId: diverId, diveIds: diveIds),
+        // Planned dives are never fetched for, so "3 of 5 selected" would
+        // leave two checked dives unexplained. The share is of logged dives.
+        service.countLogged(diveIds),
+      ],
     ]);
     candidates = counts.first;
-    unlocated = counts.length > 1 ? counts[1] : 0;
+    unlocated = diveIds == null ? 0 : counts[1];
+    selected = diveIds == null ? null : counts[2];
   } catch (e) {
     if (context.mounted) {
       messenger.showSnackBar(SnackBar(content: Text('$e')));
@@ -64,7 +70,6 @@ Future<BulkActionOutcome> showFetchConditionsFlow({
     return BulkActionOutcome.cancelled;
   }
 
-  final selected = diveIds?.length;
   final body = selected != null && candidates < selected
       ? l10n.diveLog_fetchConditions_confirmBodySelected(candidates, selected)
       : l10n.diveLog_fetchConditions_confirmBody(candidates);

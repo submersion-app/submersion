@@ -493,6 +493,38 @@ void main() {
       expect(requests, isEmpty);
     });
 
+    testWidgets('planned dives in a selection are left out of its count', (
+      tester,
+    ) async {
+      await insertSite('s1', 12.5, -68.25);
+      await insertDive('d1', 's1', DateTime.utc(2024, 6, 15, 9));
+      await insertDive('d2', 's1', DateTime.utc(2024, 6, 16, 9));
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion.insert(
+              id: 'planned',
+              diveDateTime: now,
+              createdAt: now,
+              updatedAt: now,
+              siteId: const Value('s1'),
+              isPlanned: const Value(true),
+            ),
+          );
+
+      final (:widget, :requests) = harness(diveIds: {'d1', 'd2', 'planned'});
+      await tester.pumpWidget(widget);
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining('2 dives are missing conditions.'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('of 3 selected'), findsNothing);
+    });
+
     testWidgets('uses the plain count when every selected dive qualifies', (
       tester,
     ) async {

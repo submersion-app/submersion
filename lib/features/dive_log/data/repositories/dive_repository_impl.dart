@@ -1214,6 +1214,31 @@ class DiveRepository {
     }
   }
 
+  /// How many of [diveIds] are logged dives: neither planned nor gone. A
+  /// selection's conditions fetch states its share against this, since
+  /// planned dives are never fetched for.
+  Future<int> countLoggedDives(Set<String> diveIds) async {
+    try {
+      var total = 0;
+      for (final chunk in seriesIdChunks(diveIds.toList())) {
+        final countExpr = _db.dives.id.count();
+        final query = _db.selectOnly(_db.dives)
+          ..addColumns([countExpr])
+          ..where(_db.dives.id.isIn(chunk) & _db.dives.isPlanned.equals(false));
+        final row = await query.getSingle();
+        total += row.read(countExpr) ?? 0;
+      }
+      return total;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to count logged dives',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Dives a conditions fetch can still fill something in for: the dive has a
   /// location and at least one empty weather column, restricted to [diveIds]
   /// when given. Newest first.

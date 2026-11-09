@@ -89,6 +89,11 @@ class BulkConditionsService {
         diveIds: diveIds,
       );
 
+  /// How many of [diveIds] are logged dives, which is what a selection's
+  /// confirm text counts against: planned dives are never fetched for.
+  Future<int> countLogged(Set<String> diveIds) =>
+      _diveRepository.countLoggedDives(diveIds);
+
   /// Fetches and fills conditions for every dive that still has a gap, or
   /// only for those among [diveIds] when given.
   ///

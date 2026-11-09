@@ -402,6 +402,32 @@ void main() {
       );
       expect(await repository.countDivesMissingConditionsWithoutLocation(), 0);
     });
+
+    test(
+      'countLoggedDives counts only the logged dives among the ids',
+      () async {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        await db
+            .into(db.dives)
+            .insert(
+              DivesCompanion.insert(
+                id: 'planned',
+                diveDateTime: now,
+                createdAt: now,
+                updatedAt: now,
+                isPlanned: const Value(true),
+              ),
+            );
+        await insertDive('a');
+        await insertDive('b');
+
+        expect(
+          await repository.countLoggedDives({'a', 'b', 'planned', 'gone'}),
+          2,
+        );
+        expect(await repository.countLoggedDives({}), 0);
+      },
+    );
   });
 
   group('DiveRepository.countDivesMissingConditionsWithoutLocation', () {

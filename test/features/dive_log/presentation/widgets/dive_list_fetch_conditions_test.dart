@@ -67,6 +67,9 @@ class _RecordingService extends BulkConditionsService {
   }) async => 0;
 
   @override
+  Future<int> countLogged(Set<String> diveIds) async => diveIds.length;
+
+  @override
   Future<BulkConditionsResult> run({
     String? diverId,
     Set<String>? diveIds,
