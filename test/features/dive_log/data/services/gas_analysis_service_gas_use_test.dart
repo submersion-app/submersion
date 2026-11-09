@@ -50,6 +50,28 @@ void main() {
     expect(rows.single.sacRate, isNotNull);
   });
 
+  test('a runtime shortened by hand is measured from the window start', () {
+    // Three minutes at the surface before the descent, 30 at 18 m, then the
+    // tail. The diver set the runtime to the 30 underwater minutes, and the
+    // dive's SAC divides by min(window, runtime), so the cylinder must too.
+    final leading = [
+      for (var t = 0; t <= 43 * 60; t += 10)
+        DiveProfilePoint(
+          timestamp: t,
+          depth: t < 3 * 60 || t >= 33 * 60 ? 0.3 : 18,
+        ),
+    ];
+    final d = dive(leading).copyWith(runtime: const Duration(minutes: 30));
+    final rows = service.calculateCylinderSac(dive: d, profile: leading);
+    final use = d.gasUse!;
+    expect(use.seconds, greaterThan(30 * 60));
+    expect(rows.single.usageDuration, const Duration(minutes: 30));
+    // The row's depth is the mean over the 30 minutes it covers, which the
+    // role figures recompute from its windows; the dive's own SAC keeps the
+    // whole window's depth, so the two differ by that mean alone.
+    expect(rows.single.sacRate, closeTo(d.sac!, d.sac! * 0.005));
+  });
+
   test('a dive with no surface tail is unchanged', () {
     final noTail = [
       for (final p in profile)

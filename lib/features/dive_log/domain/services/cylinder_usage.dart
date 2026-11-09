@@ -66,12 +66,14 @@ CylinderUsage? cylinderUsage({
   );
   final start = gasUse?.startSeconds ?? 0;
   // A zero end says nothing about when the dive ended, so the window's own
-  // end stands in rather than ending the cylinder before it starts.
+  // end stands in rather than ending the cylinder before it starts. A
+  // runtime shorter than the window is a length, as the dive's own SAC
+  // reads it (min of the two), so it counts from the window's start.
   final end = gasUse == null
       ? diveEnd
       : diveEnd <= 0
       ? gasUse.endSeconds
-      : math.min(gasUse.endSeconds, diveEnd);
+      : math.min(gasUse.endSeconds, gasUse.startSeconds + diveEnd);
 
   final windows = hasRecordedUsage
       ? [(start: start, end: end > 0 ? end : recordedSeconds)]
