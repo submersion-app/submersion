@@ -14,12 +14,14 @@ import 'package:submersion/features/equipment/data/services/sensor_summary_sched
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/check_in_photos_row.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_observation_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/media_unlink_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -88,6 +90,11 @@ void main() {
     domain.Dive? withDive,
     List<Override> extra = const [],
   }) async {
+    // The editor's photos row (issue #3355) makes it taller than the default
+    // 800x600 window, which would leave Save off screen.
+    tester.view.physicalSize = const Size(800, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -348,6 +355,121 @@ void main() {
     expect(await tester.runAsync(() => media.getMediaById(photo.id)), isNull);
   });
 
+  group('check-in photos (issue #3355)', () {
+    Future<MediaItem> addPhoto(
+      WidgetTester tester,
+      String observationId,
+    ) async => (await tester.runAsync(
+      () => MediaRepository().createMedia(
+        MediaItem(
+          id: '',
+          equipmentId: 'reg',
+          observationId: observationId,
+          filePath: '/photos/${DateTime.now().microsecondsSinceEpoch}.jpg',
+          mediaType: MediaType.photo,
+          takenAt: DateTime.utc(2026),
+          createdAt: DateTime.utc(2026),
+          updatedAt: DateTime.utc(2026),
+        ),
+      ),
+    ))!;
+
+    List<Override> realUnlink() {
+      final media = MediaRepository();
+      return [
+        mediaUnlinkServiceProvider.overrideWithValue(
+          MediaUnlinkService(
+            repository: media,
+            deleteMedia: media.deleteMultipleMedia,
+          ),
+        ),
+      ];
+    }
+
+    String draftId(WidgetTester tester) => tester
+        .widget<CheckInPhotosRow>(find.byType(CheckInPhotosRow))
+        .observationId;
+
+    Future<void> settle(WidgetTester tester) async {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 400)),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('editor lists the check-in\'s photos', (tester) async {
+      final observation = (await tester.runAsync(
+        () => repo.create(
+          equipmentId: 'reg',
+          diveId: 'd1',
+          observedAt: DateTime.utc(2026),
+          status: ObservationStatus.ok,
+        ),
+      ))!;
+      await addPhoto(tester, observation.id);
+      await pumpAndOpen(tester, withDive: dive);
+
+      await tester.tap(find.byIcon(Icons.edit_outlined));
+      await settle(tester);
+
+      expect(draftId(tester), observation.id);
+      expect(find.byType(MediaThumbnailTile), findsOneWidget);
+    });
+
+    testWidgets('save of a new check-in uses the draft id', (tester) async {
+      await pumpAndOpen(tester, withDive: dive);
+      await tester.tap(find.text('Add check-in'));
+      await tester.pumpAndSettle();
+      final id = draftId(tester);
+      await addPhoto(tester, id);
+
+      await tester.tap(find.text('Save'));
+      await settle(tester);
+
+      expect((await tester.runAsync(() => repo.getById(id)))?.id, id);
+    });
+
+    testWidgets('cancel on a new check-in unlinks its photos', (tester) async {
+      await pumpAndOpen(tester, withDive: dive, extra: realUnlink());
+      await tester.tap(find.text('Add check-in'));
+      await tester.pumpAndSettle();
+      final photo = await addPhoto(tester, draftId(tester));
+
+      await tester.tap(find.text('Cancel'));
+      await settle(tester);
+
+      expect(
+        await tester.runAsync(() => MediaRepository().getMediaById(photo.id)),
+        isNull,
+      );
+    });
+
+    testWidgets('cancel on an existing check-in keeps its photos', (
+      tester,
+    ) async {
+      final observation = (await tester.runAsync(
+        () => repo.create(
+          equipmentId: 'reg',
+          diveId: 'd1',
+          observedAt: DateTime.utc(2026),
+          status: ObservationStatus.ok,
+        ),
+      ))!;
+      final photo = await addPhoto(tester, observation.id);
+      await pumpAndOpen(tester, withDive: dive, extra: realUnlink());
+      await tester.tap(find.byIcon(Icons.edit_outlined));
+      await settle(tester);
+
+      await tester.tap(find.text('Cancel'));
+      await settle(tester);
+
+      expect(
+        await tester.runAsync(() => MediaRepository().getMediaById(photo.id)),
+        isNotNull,
+      );
+    });
+  });
+
   testWidgets('without a dive the editor offers a bench default', (
     tester,
   ) async {
@@ -421,6 +543,7 @@ class _FailingRepository extends EquipmentObservationRepository {
 
   @override
   Future<EquipmentObservation> create({
+    String? id,
     required String equipmentId,
     String? diveId,
     String? diverId,

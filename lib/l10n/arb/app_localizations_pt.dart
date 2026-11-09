@@ -61205,4 +61205,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_photos_coverLabel => 'Cover photo';
+
+  @override
+  String get equipment_photos_checkInPhotos => 'Photos';
 }

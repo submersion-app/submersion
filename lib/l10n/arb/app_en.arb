@@ -35725,5 +35725,6 @@
   "@equipment_photos_removeConfirmTitle": {"placeholders": {"count": {"type": "int"}}},
   "equipment_photos_removeConfirmContent": "The photos are removed from Submersion. The files themselves are not touched.",
   "equipment_photos_photoLabel": "Gear photo",
-  "equipment_photos_coverLabel": "Cover photo"
+  "equipment_photos_coverLabel": "Cover photo",
+  "equipment_photos_checkInPhotos": "Photos"
 }

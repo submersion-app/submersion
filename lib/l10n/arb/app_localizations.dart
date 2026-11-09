@@ -96341,6 +96341,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cover photo'**
   String get equipment_photos_coverLabel;
+
+  /// No description provided for @equipment_photos_checkInPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get equipment_photos_checkInPhotos;
 }
 
 class _AppLocalizationsDelegate
