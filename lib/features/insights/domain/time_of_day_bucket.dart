@@ -124,6 +124,17 @@ class TimeOfDayClassifier {
       !(latitude == 0 && longitude == 0) &&
       SunCalculator.isValidCoordinate(latitude, longitude);
 
+  /// The wall clock of the site at [latitude], [longitude], resolved once
+  /// per site for this instance (see `SiteTimeZone.wallClockConverterFor`).
+  /// Callers laying out the same dives' sky share it to skip a second lookup.
+  DateTime Function(DateTime instant) siteClockFor(
+    double latitude,
+    double longitude,
+  ) => _siteClocks.putIfAbsent((
+    latitude,
+    longitude,
+  ), () => SiteTimeZone.wallClockConverterFor(latitude, longitude));
+
   /// Buckets a dive at the site at [latitude], [longitude].
   ///
   /// Falls back to [fallbackSunriseHour] and [fallbackSunsetHour] when the
@@ -142,10 +153,7 @@ class TimeOfDayClassifier {
       return (bucket: _fallback(entry, exit), basis: SunTimesBasis.noLocation);
     }
 
-    final toWallClock = _siteClocks.putIfAbsent((
-      latitude,
-      longitude,
-    ), () => SiteTimeZone.wallClockConverterFor(latitude, longitude));
+    final toWallClock = siteClockFor(latitude, longitude);
     final sun = SunCalculator.wallClockFor(
       entry,
       latitude,

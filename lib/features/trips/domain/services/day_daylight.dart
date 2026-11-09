@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:equatable/equatable.dart';
 
-import 'package:submersion/core/util/site_time_zone.dart';
 import 'package:submersion/core/util/sun_times.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/insights/domain/time_of_day_bucket.dart';
@@ -88,7 +87,13 @@ const double _secondsPerDay = 24 * 3600;
 /// day is that dive's wall-clock date. The events come from the day before,
 /// the day itself and the day after, so a sunset that runs past midnight is
 /// drawn on the day it actually falls on.
-DayDaylight computeDayDaylight(List<Dive> dives) {
+///
+/// Pass the [classifier] that colours the same dives' blocks to reuse its
+/// site clocks rather than resolving the time zone again.
+DayDaylight computeDayDaylight(
+  List<Dive> dives, {
+  TimeOfDayClassifier? classifier,
+}) {
   for (final dive in dives) {
     final location = dive.site?.location;
     if (location == null ||
@@ -103,6 +108,10 @@ DayDaylight computeDayDaylight(List<Dive> dives) {
       DateTime.utc(entry.year, entry.month, entry.day),
       location.latitude,
       location.longitude,
+      (classifier ?? TimeOfDayClassifier()).siteClockFor(
+        location.latitude,
+        location.longitude,
+      ),
     );
   }
   if (dives.isEmpty) return _fallbackDaylight(DateTime.utc(2000));
@@ -155,8 +164,12 @@ List<SkyStop> skyStops(DayDaylight daylight) {
   return stops;
 }
 
-DayDaylight _siteDaylight(DateTime day, double latitude, double longitude) {
-  final toWallClock = SiteTimeZone.wallClockConverterFor(latitude, longitude);
+DayDaylight _siteDaylight(
+  DateTime day,
+  double latitude,
+  double longitude,
+  DateTime Function(DateTime instant) toWallClock,
+) {
   SunTimes? sunOn(int offsetDays) => SunCalculator.wallClockFor(
     DateTime.utc(day.year, day.month, day.day + offsetDays),
     latitude,

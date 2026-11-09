@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/insights/domain/time_of_day_bucket.dart';
 import 'package:submersion/features/trips/domain/services/day_daylight.dart';
 import 'package:submersion/features/trips/domain/services/day_rhythm_layout.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/day_rhythm_labels.dart';
@@ -73,8 +74,10 @@ class _DayRhythmBarState extends State<DayRhythmBar> {
   }
 
   void _layOut() {
-    _blocks = computeRhythmBlocks(widget.dives);
-    _daylight = computeDayDaylight(widget.dives);
+    // One classifier, so the blocks and the sky share each site's clock.
+    final classifier = TimeOfDayClassifier();
+    _blocks = computeRhythmBlocks(widget.dives, classifier: classifier);
+    _daylight = computeDayDaylight(widget.dives, classifier: classifier);
     _stops = skyStops(_daylight);
   }
 

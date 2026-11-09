@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
+import 'package:submersion/core/util/site_time_zone.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -254,5 +255,40 @@ void main() {
     expect(painter.dayOutlineColor, Colors.black.withValues(alpha: 0.6));
     expect(painter.nightOutlineColor, painter.dayOutlineColor);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('resolves a site time zone once for the blocks and the sky', (
+    tester,
+  ) async {
+    // Resolving a coordinate to its zone is the expensive step; the night
+    // tint and the sky share one lookup per site.
+    var lookups = 0;
+    final previousOverride = SiteTimeZone.debugZoneIdOverride;
+    SiteTimeZone.debugZoneIdOverride = (latitude, longitude) {
+      lookups++;
+      return 'America/Kralendijk';
+    };
+    addTearDown(() => SiteTimeZone.debugZoneIdOverride = previousOverride);
+
+    await tester.pumpWidget(
+      _host([
+        _placed(DateTime.utc(2025, 3, 1, 9)),
+        _placed(DateTime.utc(2025, 3, 1, 14)),
+      ]),
+    );
+    expect(lookups, 1);
+  });
+
+  testWidgets('formats fallback hour ticks in the 12-hour setting', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _host([
+        Dive(id: 'd1', dateTime: DateTime.utc(2025, 3, 1, 9)),
+      ], units: _units12),
+    );
+    expect(find.text('6:00 AM'), findsOneWidget);
+    expect(find.text('12:00 PM'), findsOneWidget);
+    expect(find.text('6:00 PM'), findsOneWidget);
   });
 }
