@@ -12529,7 +12529,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_detail_sightingPhotos.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 photo} other{{count} photos}}'**
+  /// **'{count, plural, =1{{count} photo} other{{count} photos}}'**
   String diveLog_detail_sightingPhotos(int count);
 
   /// No description provided for @diveLog_detail_section_notes.
@@ -96321,7 +96321,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_photos_removeConfirmTitle.
   ///
   /// In en, this message translates to:
-  /// **'Remove {count, plural, =1{1 photo} other{{count} photos}}?'**
+  /// **'Remove {count, plural, =1{{count} photo} other{{count} photos}}?'**
   String equipment_photos_removeConfirmTitle(int count);
 
   /// No description provided for @equipment_photos_removeConfirmContent.
@@ -96363,7 +96363,7 @@ abstract class AppLocalizations {
   /// No description provided for @media_gearGallery_count.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 photo} other{{count} photos}}'**
+  /// **'{count, plural, =1{{count} photo} other{{count} photos}}'**
   String media_gearGallery_count(int count);
 
   /// No description provided for @media_gearGallery_empty.

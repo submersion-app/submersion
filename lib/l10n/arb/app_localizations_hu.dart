@@ -60828,81 +60828,81 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count photos',
-      one: 'photo',
+      other: 'A(z) $count fotója',
+      one: 'A fotója',
     );
-    return 'Delete this check-in? Its $_temp0 will be removed from Submersion. The files themselves are not touched.';
+    return 'Törli ezt az ellenőrzést? $_temp0 törlődik a Submersionből. Maguk a fájlok érintetlenek maradnak.';
   }
 
   @override
-  String get media_import_review_linkToGear => 'Link to gear';
+  String get media_import_review_linkToGear => 'Csatolás felszereléshez';
 
   @override
-  String get equipment_photos_title => 'Photos';
+  String get equipment_photos_title => 'Fotók';
 
   @override
-  String get equipment_photos_add => 'Add photos';
+  String get equipment_photos_add => 'Fotók hozzáadása';
 
   @override
   String get equipment_photos_empty =>
-      'Add photos of this item, its serial number label or markings, for reference.';
+      'Adjon hozzá fotókat erről a felszerelésről, a sorozatszám-címkéjéről vagy a jelöléseiről, referenciaként.';
 
   @override
-  String get equipment_photos_setCover => 'Use as cover photo';
+  String get equipment_photos_setCover => 'Használat borítófotóként';
 
   @override
-  String get equipment_photos_clearCover => 'Remove cover photo';
+  String get equipment_photos_clearCover => 'Borítófotó eltávolítása';
 
   @override
-  String get equipment_photos_remove => 'Remove';
+  String get equipment_photos_remove => 'Eltávolítás';
 
   @override
   String equipment_photos_removeConfirmTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count photos',
-      one: '1 photo',
+      other: '$count fotót',
+      one: '$count fotót',
     );
-    return 'Remove $_temp0?';
+    return 'Eltávolítja a kijelölt $_temp0?';
   }
 
   @override
   String get equipment_photos_removeConfirmContent =>
-      'The photos are removed from Submersion. The files themselves are not touched.';
+      'A fotók törlődnek a Submersionből. Maguk a fájlok érintetlenek maradnak.';
 
   @override
-  String get equipment_photos_photoLabel => 'Gear photo';
+  String get equipment_photos_photoLabel => 'Felszerelésfotó';
 
   @override
-  String get equipment_photos_coverLabel => 'Cover photo';
+  String get equipment_photos_coverLabel => 'Borítófotó';
 
   @override
-  String get equipment_photos_checkInPhotos => 'Photos';
+  String get equipment_photos_checkInPhotos => 'Fotók';
 
   @override
   String equipment_photos_checkInCaption(String title, String date) {
-    return 'Check-in: $title, $date';
+    return 'Ellenőrzés: $title, $date';
   }
 
   @override
-  String get media_gearGallery_tab => 'Gear';
+  String get media_gearGallery_tab => 'Felszerelés';
 
   @override
   String media_gearGallery_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count photos',
-      one: '1 photo',
+      other: '$count fotó',
+      one: '$count fotó',
     );
     return '$_temp0';
   }
 
   @override
   String get media_gearGallery_empty =>
-      'Photos you add to your gear and its check-ins show up here.';
+      'A felszereléséhez és az ellenőrzéseihez hozzáadott fotók itt jelennek meg.';
 
   @override
-  String get media_gearGallery_checkInBadge => 'Check-in photo';
+  String get media_gearGallery_checkInBadge => 'Ellenőrzési fotó';
 }

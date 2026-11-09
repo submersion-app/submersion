@@ -62021,81 +62021,90 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count photos',
-      one: 'photo',
+      other: 'ستُزال صوره الـ$count',
+      many: 'ستُزال صوره الـ$count',
+      few: 'ستُزال صوره الـ$count',
+      two: 'ستُزال صورتاه',
+      one: 'ستُزال صورته',
     );
-    return 'Delete this check-in? Its $_temp0 will be removed from Submersion. The files themselves are not touched.';
+    return 'هل تريد حذف هذا الفحص؟ $_temp0 من Submersion. لن تُمس الملفات نفسها.';
   }
 
   @override
-  String get media_import_review_linkToGear => 'Link to gear';
+  String get media_import_review_linkToGear => 'ربط بمعدات';
 
   @override
-  String get equipment_photos_title => 'Photos';
+  String get equipment_photos_title => 'الصور';
 
   @override
-  String get equipment_photos_add => 'Add photos';
+  String get equipment_photos_add => 'إضافة صور';
 
   @override
   String get equipment_photos_empty =>
-      'Add photos of this item, its serial number label or markings, for reference.';
+      'أضف صورًا لهذه القطعة أو لملصق رقمها التسلسلي أو لعلاماتها، للرجوع إليها.';
 
   @override
-  String get equipment_photos_setCover => 'Use as cover photo';
+  String get equipment_photos_setCover => 'استخدام كصورة غلاف';
 
   @override
-  String get equipment_photos_clearCover => 'Remove cover photo';
+  String get equipment_photos_clearCover => 'إزالة صورة الغلاف';
 
   @override
-  String get equipment_photos_remove => 'Remove';
+  String get equipment_photos_remove => 'إزالة';
 
   @override
   String equipment_photos_removeConfirmTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count photos',
-      one: '1 photo',
+      other: '$count صورة',
+      many: '$count صورة',
+      few: '$count صور',
+      two: 'صورتين',
+      one: '$count صورة',
     );
-    return 'Remove $_temp0?';
+    return 'إزالة $_temp0؟';
   }
 
   @override
   String get equipment_photos_removeConfirmContent =>
-      'The photos are removed from Submersion. The files themselves are not touched.';
+      'تُزال الصور من Submersion. لن تُمس الملفات نفسها.';
 
   @override
-  String get equipment_photos_photoLabel => 'Gear photo';
+  String get equipment_photos_photoLabel => 'صورة معدات';
 
   @override
-  String get equipment_photos_coverLabel => 'Cover photo';
+  String get equipment_photos_coverLabel => 'صورة الغلاف';
 
   @override
-  String get equipment_photos_checkInPhotos => 'Photos';
+  String get equipment_photos_checkInPhotos => 'الصور';
 
   @override
   String equipment_photos_checkInCaption(String title, String date) {
-    return 'Check-in: $title, $date';
+    return 'الفحص: $title، $date';
   }
 
   @override
-  String get media_gearGallery_tab => 'Gear';
+  String get media_gearGallery_tab => 'المعدات';
 
   @override
   String media_gearGallery_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count photos',
-      one: '1 photo',
+      other: '$count صورة',
+      many: '$count صورة',
+      few: '$count صور',
+      two: 'صورتان',
+      one: '$count صورة',
     );
     return '$_temp0';
   }
 
   @override
   String get media_gearGallery_empty =>
-      'Photos you add to your gear and its check-ins show up here.';
+      'الصور التي تضيفها إلى معداتك وفحوصاتها تظهر هنا.';
 
   @override
-  String get media_gearGallery_checkInBadge => 'Check-in photo';
+  String get media_gearGallery_checkInBadge => 'صورة فحص';
 }

@@ -4725,7 +4725,7 @@
   "diveLog_detail_profileRevision_editType_trimEndZeros": "Trim end zeros",
   "diveLog_detail_section_equipment": "Equipment",
   "diveLog_detail_section_marineLife": "Species",
-  "diveLog_detail_sightingPhotos": "{count, plural, =1{1 photo} other{{count} photos}}",
+  "diveLog_detail_sightingPhotos": "{count, plural, =1{{count} photo} other{{count} photos}}",
   "@diveLog_detail_sightingPhotos": {
     "placeholders": {
       "count": {
@@ -35721,7 +35721,7 @@
   "equipment_photos_setCover": "Use as cover photo",
   "equipment_photos_clearCover": "Remove cover photo",
   "equipment_photos_remove": "Remove",
-  "equipment_photos_removeConfirmTitle": "Remove {count, plural, =1{1 photo} other{{count} photos}}?",
+  "equipment_photos_removeConfirmTitle": "Remove {count, plural, =1{{count} photo} other{{count} photos}}?",
   "@equipment_photos_removeConfirmTitle": {"placeholders": {"count": {"type": "int"}}},
   "equipment_photos_removeConfirmContent": "The photos are removed from Submersion. The files themselves are not touched.",
   "equipment_photos_photoLabel": "Gear photo",
@@ -35730,7 +35730,7 @@
   "equipment_photos_checkInCaption": "Check-in: {title}, {date}",
   "@equipment_photos_checkInCaption": {"placeholders": {"title": {"type": "String"}, "date": {"type": "String"}}},
   "media_gearGallery_tab": "Gear",
-  "media_gearGallery_count": "{count, plural, =1{1 photo} other{{count} photos}}",
+  "media_gearGallery_count": "{count, plural, =1{{count} photo} other{{count} photos}}",
   "@media_gearGallery_count": {"placeholders": {"count": {"type": "int"}}},
   "media_gearGallery_empty": "Photos you add to your gear and its check-ins show up here.",
   "media_gearGallery_checkInBadge": "Check-in photo"
