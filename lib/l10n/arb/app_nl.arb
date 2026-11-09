@@ -7277,6 +7277,7 @@
   "settings_conflict_field_certificationListGroupBy": "Brevetten: groepering",
   "settings_conflict_field_equipmentArrangement": "Ordening van uitrusting",
   "settings_conflict_field_equipmentGroupByLocation": "Uitrusting gegroepeerd op locatie",
+  "settings_conflict_field_equipmentCollapsedGroups": "Ingeklapte uitrustingsgroepen",
   "settings_conflict_field_listArrangementHlc": "Log van lijstordening",
   "settings_conflict_sortValue": "{field}, {direction}",
   "settings_conflict_field_avgSpeed": "Gemiddelde snelheid",

@@ -24518,6 +24518,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Équipement regroupé par emplacement';
 
   @override
+  String get settings_conflict_field_equipmentCollapsedGroups =>
+      'Groupes d\'équipement repliés';
+
+  @override
   String get settings_conflict_field_listArrangementHlc =>
       'Journal de l\'organisation des listes';
 

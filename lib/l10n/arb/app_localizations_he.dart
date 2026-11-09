@@ -23896,6 +23896,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'ציוד מקובץ לפי מיקום';
 
   @override
+  String get settings_conflict_field_equipmentCollapsedGroups =>
+      'קבוצות ציוד מקופלות';
+
+  @override
   String get settings_conflict_field_listArrangementHlc => 'יומן סידור הרשימות';
 
   @override

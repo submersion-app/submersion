@@ -317,6 +317,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'dive_list_view_mode': 'Dive list view mode',
     'downloads_follow_computer_owner': 'Whether a dive computer download defaults to the computer\'s owner when that is another profile',
     'equipment_arrangement': 'the gear arrangement as JSON, moved here from the app-wide `equipment_arrangement` settings key',
+    'equipment_collapsed_groups': 'the Equipment page\'s folded group keys, a JSON list',
     'equipment_default_statuses': 'the statuses the Equipment list\'s default view shows, a JSON array of EquipmentStatus names',
     'equipment_group_by_location': 'the Equipment page\'s group-by-location switch, moved here from the app-wide `equipment_group_by_location` key',
     'first_day_of_week': 'the day a week starts on, a FirstDayOfWeek name',

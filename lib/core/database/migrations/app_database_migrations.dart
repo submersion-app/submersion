@@ -79,6 +79,7 @@ part 'helpers/dive_lab_migrations.dart';
 part 'helpers/diver_migrations.dart';
 part 'helpers/document_migrations.dart';
 part 'helpers/equipment_migrations.dart';
+part 'helpers/equipment_collapsed_groups_migrations.dart';
 part 'helpers/equipment_condition_migrations.dart';
 part 'helpers/equipment_location_migrations.dart';
 part 'helpers/first_day_of_week_migrations.dart';

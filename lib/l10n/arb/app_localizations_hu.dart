@@ -24373,6 +24373,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Felszerelés hely szerint csoportosítva';
 
   @override
+  String get settings_conflict_field_equipmentCollapsedGroups =>
+      'Összecsukott felszereléscsoportok';
+
+  @override
   String get settings_conflict_field_listArrangementHlc =>
       'Listaelrendezési napló';
 

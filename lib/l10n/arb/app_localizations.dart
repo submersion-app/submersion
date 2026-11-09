@@ -38712,6 +38712,12 @@ abstract class AppLocalizations {
   /// **'Equipment grouped by location'**
   String get settings_conflict_field_equipmentGroupByLocation;
 
+  /// Label for the Equipment page's saved folded groups in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment folded groups'**
+  String get settings_conflict_field_equipmentCollapsedGroups;
+
   /// Label for a saved list arrangement in a sync conflict
   ///
   /// In en, this message translates to:

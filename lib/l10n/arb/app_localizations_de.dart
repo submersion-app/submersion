@@ -24423,6 +24423,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ausrüstung nach Ort gruppiert';
 
   @override
+  String get settings_conflict_field_equipmentCollapsedGroups =>
+      'Eingeklappte Ausrüstungsgruppen';
+
+  @override
   String get settings_conflict_field_listArrangementHlc =>
       'Protokoll der Listenanordnung';
 

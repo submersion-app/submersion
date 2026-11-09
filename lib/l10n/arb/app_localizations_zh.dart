@@ -23180,6 +23180,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_equipmentGroupByLocation => '装备按位置分组';
 
   @override
+  String get settings_conflict_field_equipmentCollapsedGroups => '已折叠的装备分组';
+
+  @override
   String get settings_conflict_field_listArrangementHlc => '列表排列记录';
 
   @override

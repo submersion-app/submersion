@@ -24780,6 +24780,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'المعدات مجمعة حسب الموقع';
 
   @override
+  String get settings_conflict_field_equipmentCollapsedGroups =>
+      'مجموعات المعدات المطوية';
+
+  @override
   String get settings_conflict_field_listArrangementHlc => 'سجل ترتيب القوائم';
 
   @override

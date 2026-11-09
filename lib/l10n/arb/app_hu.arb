@@ -7176,6 +7176,7 @@
   "settings_conflict_field_certificationListGroupBy": "Képesítések: csoportosítás",
   "settings_conflict_field_equipmentArrangement": "Felszerelés elrendezése",
   "settings_conflict_field_equipmentGroupByLocation": "Felszerelés hely szerint csoportosítva",
+  "settings_conflict_field_equipmentCollapsedGroups": "Összecsukott felszereléscsoportok",
   "settings_conflict_field_listArrangementHlc": "Listaelrendezési napló",
   "settings_conflict_sortValue": "{field}, {direction}",
   "settings_conflict_field_avgSpeed": "Átlagsebesség",

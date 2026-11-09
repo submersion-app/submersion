@@ -24082,6 +24082,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Equipment grouped by location';
 
   @override
+  String get settings_conflict_field_equipmentCollapsedGroups =>
+      'Equipment folded groups';
+
+  @override
   String get settings_conflict_field_listArrangementHlc =>
       'List arrangement record';
 

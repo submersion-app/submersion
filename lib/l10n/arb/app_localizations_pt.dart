@@ -24450,6 +24450,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Equipamentos agrupados por local';
 
   @override
+  String get settings_conflict_field_equipmentCollapsedGroups =>
+      'Grupos de equipamentos recolhidos';
+
+  @override
   String get settings_conflict_field_listArrangementHlc =>
       'Registro de organização das listas';
 

@@ -7277,6 +7277,7 @@
   "settings_conflict_field_certificationListGroupBy": "Certificações: agrupamento",
   "settings_conflict_field_equipmentArrangement": "Organização do equipamento",
   "settings_conflict_field_equipmentGroupByLocation": "Equipamentos agrupados por local",
+  "settings_conflict_field_equipmentCollapsedGroups": "Grupos de equipamentos recolhidos",
   "settings_conflict_field_listArrangementHlc": "Registro de organização das listas",
   "settings_conflict_sortValue": "{field}, {direction}",
   "settings_conflict_field_avgSpeed": "Velocidade média",

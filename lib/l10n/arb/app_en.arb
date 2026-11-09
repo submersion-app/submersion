@@ -14958,6 +14958,10 @@
   "@settings_conflict_field_equipmentGroupByLocation": {
     "description": "Label for a saved list arrangement in a sync conflict"
   },
+  "settings_conflict_field_equipmentCollapsedGroups": "Equipment folded groups",
+  "@settings_conflict_field_equipmentCollapsedGroups": {
+    "description": "Label for the Equipment page's saved folded groups in a sync conflict"
+  },
   "settings_conflict_field_listArrangementHlc": "List arrangement record",
   "@settings_conflict_field_listArrangementHlc": {
     "description": "Label for a saved list arrangement in a sync conflict"

@@ -7176,6 +7176,7 @@
   "settings_conflict_field_certificationListGroupBy": "Brevetti: raggruppamento",
   "settings_conflict_field_equipmentArrangement": "Disposizione dell'attrezzatura",
   "settings_conflict_field_equipmentGroupByLocation": "Attrezzatura raggruppata per posizione",
+  "settings_conflict_field_equipmentCollapsedGroups": "Gruppi di attrezzatura compressi",
   "settings_conflict_field_listArrangementHlc": "Registro della disposizione degli elenchi",
   "settings_conflict_sortValue": "{field}, {direction}",
   "settings_conflict_field_avgSpeed": "Velocità media",

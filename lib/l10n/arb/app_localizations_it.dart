@@ -24456,6 +24456,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Attrezzatura raggruppata per posizione';
 
   @override
+  String get settings_conflict_field_equipmentCollapsedGroups =>
+      'Gruppi di attrezzatura compressi';
+
+  @override
   String get settings_conflict_field_listArrangementHlc =>
       'Registro della disposizione degli elenchi';
 

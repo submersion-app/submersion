@@ -71,5 +71,11 @@ extension RungsFromV340 on AppDatabase {
     // in beforeOpen.
     if (from < 347) await _assertDiveCardPhotoBackgroundColumn();
     if (from < 347) await reportProgress();
+
+    // v348: diver_settings.equipment_collapsed_groups, the Equipment page's
+    // folded group keys (issue #4184). Nullable, no backfill. Re-asserted in
+    // beforeOpen.
+    if (from < 348) await _assertEquipmentCollapsedGroupsColumn();
+    if (from < 348) await reportProgress();
   }
 }

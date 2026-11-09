@@ -24453,6 +24453,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Equipo agrupado por ubicación';
 
   @override
+  String get settings_conflict_field_equipmentCollapsedGroups =>
+      'Grupos de equipo plegados';
+
+  @override
   String get settings_conflict_field_listArrangementHlc =>
       'Registro de organización de listas';
 

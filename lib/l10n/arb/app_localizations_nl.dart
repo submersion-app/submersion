@@ -24300,6 +24300,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Uitrusting gegroepeerd op locatie';
 
   @override
+  String get settings_conflict_field_equipmentCollapsedGroups =>
+      'Ingeklapte uitrustingsgroepen';
+
+  @override
   String get settings_conflict_field_listArrangementHlc =>
       'Log van lijstordening';
 
