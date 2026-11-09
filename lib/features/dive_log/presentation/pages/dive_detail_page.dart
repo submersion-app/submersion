@@ -13,6 +13,7 @@ import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
@@ -100,6 +101,8 @@ import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.d
 
 part 'dive_detail_page_actions.dart';
 part 'dive_detail_page_exports.dart';
+
+final _log = LoggerService.forClass(DiveDetailPage);
 
 class DiveDetailPage extends ConsumerStatefulWidget {
   final String diveId;

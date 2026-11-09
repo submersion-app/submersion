@@ -5761,11 +5761,6 @@ class DiveRepository {
   // Planned Dive Operations (v1.5)
   // ============================================================================
 
-  /// Get all planned dives (not yet executed)
-  /// The plans and drafts a download may fill (issue #637): every dive of
-  /// [diverId] still waiting for its dive computer readings, newest first,
-  /// scoped as [getPlannedDives] is. The fill pass reads its targets only
-  /// through this.
   /// The drafts (issue #637) of [diverId], every diver's when null, newest
   /// entry first. Only `is_draft` rows, read without their samples: the
   /// draft listings (the Home card, the reminders, the conditions fill, the
@@ -5787,6 +5782,10 @@ class DiveRepository {
     return [for (final id in ids) ?byId[id]];
   }
 
+  /// The plans and drafts a download may fill (issue #637): every dive of
+  /// [diverId] still waiting for its dive computer readings, newest first,
+  /// scoped as [getPlannedDives] is. The fill pass reads its targets only
+  /// through this.
   Future<List<domain.Dive>> getUnfilledDives({String? diverId}) async {
     try {
       final query = _db.select(_db.dives)
@@ -5811,6 +5810,7 @@ class DiveRepository {
     }
   }
 
+  /// Get all planned dives (not yet executed)
   Future<List<domain.Dive>> getPlannedDives({String? diverId}) async {
     try {
       final query = _db.select(_db.dives)

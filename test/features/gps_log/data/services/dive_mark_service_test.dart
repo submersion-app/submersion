@@ -64,6 +64,19 @@ void main() {
     expect(stored.entryLocation, const GeoPoint(27.91, 34.3));
   });
 
+  test('two quick Entered water taps make one draft', () async {
+    final marks = service();
+    final tap = DateTime.utc(2026, 7, 17, 10);
+
+    final both = await Future.wait([
+      marks.enteredWater(diverId: 'a', at: tap),
+      marks.enteredWater(diverId: 'a', at: tap.add(const Duration(seconds: 1))),
+    ]);
+
+    expect(both[0].id, both[1].id);
+    expect(await drafts.getDrafts(diverId: 'a'), hasLength(1));
+  });
+
   test('with no fix yet the draft has no position', () async {
     final draft = await service().enteredWater(
       diverId: 'a',

@@ -12,13 +12,18 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive_health_record.dart'
     as domain;
 
+/// The id of [diveId]'s first health record: the same on every device, so
+/// two devices that both read Health for one synced dive write one row
+/// rather than two (as a draft's tide record does).
+String diveHealthRecordId(String diveId) =>
+    const Uuid().v5(Namespace.url.value, 'submersion:divehealth:$diveId');
+
 /// Apple Health readings per dive (issue #637), one record per dive. A
 /// write marks the record itself pending, never its dive: the dive did not
 /// change.
 class DiveHealthRecordRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _sync = SyncRepository();
-  final _uuid = const Uuid();
 
   SimpleSelectStatement<$DiveHealthRecordsTable, DiveHealthRecord> _query(
     String diveId,
@@ -42,7 +47,9 @@ class DiveHealthRecordRepository {
   /// Writes [record] as the dive's record, replacing the one it has.
   Future<void> upsert(domain.DiveHealthRecord record) async {
     final existing = await _query(record.diveId).getSingleOrNull();
-    final id = existing?.id ?? (record.id.isEmpty ? _uuid.v4() : record.id);
+    final id =
+        existing?.id ??
+        (record.id.isEmpty ? diveHealthRecordId(record.diveId) : record.id);
     final now = DateTime.now().millisecondsSinceEpoch;
     await _db
         .into(_db.diveHealthRecords)

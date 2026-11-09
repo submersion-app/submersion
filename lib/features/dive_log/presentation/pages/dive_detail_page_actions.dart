@@ -233,9 +233,21 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
   /// buttons on the GPS log record a position as well; this one has none.
   Future<void> _surfaceDraft(Dive dive) async {
     final container = ProviderScope.containerOf(context, listen: false);
-    await ref
-        .read(diveDraftRepositoryProvider)
-        .closeDraft(dive.id, exitTime: asWallClockUtc(DateTime.now()));
+    try {
+      await ref
+          .read(diveDraftRepositoryProvider)
+          .closeDraft(dive.id, exitTime: asWallClockUtc(DateTime.now()));
+    } catch (e, stackTrace) {
+      // Filled or closed on another device meanwhile (closeDraft throws on
+      // a dive that is no longer a draft), or a failed write. Nothing awaits
+      // this callback, so it must not escape; the reload shows the dive as
+      // it now is.
+      _log.error(
+        'Failed to mark a draft surfaced',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
     container.invalidate(diveProvider(dive.id));
   }
 

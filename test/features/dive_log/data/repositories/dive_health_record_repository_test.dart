@@ -96,6 +96,15 @@ void main() {
     expect((await records.forDive(d.id))!.settled, isTrue);
   });
 
+  test('a dive\'s first record takes the id every device gives it, so two '
+      'devices reading Health for one synced dive write one row', () async {
+    final d = await dive();
+
+    await records.upsert(record(d.id));
+
+    expect((await records.forDive(d.id))!.id, diveHealthRecordId(d.id));
+  });
+
   test('deleting the dive deletes its record', () async {
     final d = await dive();
     await records.upsert(record(d.id));

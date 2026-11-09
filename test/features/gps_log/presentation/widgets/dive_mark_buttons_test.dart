@@ -19,8 +19,12 @@ import '../../../../helpers/mock_providers.dart';
 class FakeDiveMarks implements DiveMarkService {
   final calls = <String>[];
 
+  /// Makes every mark fail, as a full disk would.
+  bool fail = false;
+
   @override
   Future<Dive> enteredWater({required String diverId, DateTime? at}) async {
+    if (fail) throw StateError('write failed');
     calls.add('entered:$diverId');
     return Dive(id: 'draft', dateTime: DateTime(2026, 7, 17, 10));
   }
@@ -98,6 +102,21 @@ void main() {
     await tester.tap(find.text('Entered water'));
     await tester.pumpAndSettle();
     expect(marks.calls, ['entered:a']);
+  });
+
+  testWidgets('a mark that fails is logged, never left unhandled', (
+    tester,
+  ) async {
+    final marks = FakeDiveMarks()..fail = true;
+    await pumpMarks(
+      tester,
+      harness(await markOverrides(marks), const DiveMarkButtons()),
+    );
+
+    await tester.tap(find.text('Entered water'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('with an open draft it offers Surfaced', (tester) async {
