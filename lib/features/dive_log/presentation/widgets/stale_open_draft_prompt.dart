@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -36,6 +38,8 @@ DateTime surfacingTimeFor({
 
 /// Asks about the current diver's stale open draft at launch and resume,
 /// once per draft per app session. The app never invents an exit time.
+final _log = LoggerService.forClass(StaleOpenDraftPrompter);
+
 class StaleOpenDraftPrompter {
   final _asked = <String>{};
 
@@ -46,8 +50,21 @@ class StaleOpenDraftPrompter {
   /// been open on this device for [kStaleOpenDraftAfter], whoever's it is:
   /// the one Surfaced would close.
   Future<void> check(WidgetRef ref, BuildContext? context) async {
+    // No diver yet means no dives yet, and no database read at launch.
+    if (ref.read(currentDiverIdProvider) == null) return;
     final drafts = ref.read(diveDraftRepositoryProvider);
-    final draft = await drafts.openDraftFor(null);
+    final Dive? draft;
+    try {
+      draft = await drafts.openDraftFor(null);
+    } catch (e, stackTrace) {
+      // A launch-time check never takes the app down.
+      _log.error(
+        'Failed to read the open dive',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return;
+    }
     if (draft == null ||
         !isStaleOpenDraft(draft, asWallClockUtc(DateTime.now())) ||
         context == null ||
@@ -55,10 +72,11 @@ class StaleOpenDraftPrompter {
         !shouldAsk(draft)) {
       return;
     }
+    final draftId = draft.id;
     await showStaleOpenDraftPrompt(
       context,
       draft,
-      onSurfaced: (at) => drafts.closeDraft(draft.id, exitTime: at),
+      onSurfaced: (at) => drafts.closeDraft(draftId, exitTime: at),
     );
   }
 }
