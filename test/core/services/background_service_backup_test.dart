@@ -6,12 +6,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/background_service.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
+import 'package:submersion/features/backup/domain/entities/backup_copy_account.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
+import 'package:submersion/features/backup/domain/entities/extra_cloud_copy.dart';
 
 import '../../helpers/mock_channels.dart';
 import '../../support/fake_cloud_storage_provider.dart';
@@ -89,7 +92,12 @@ class _FolderFailingCloud extends FakeCloudStorageProvider {
 }
 
 /// One recorded call to the notification seam.
-typedef _Notification = ({bool success, String? error, bool cloudCopyMissing});
+typedef _Notification = ({
+  bool success,
+  String? error,
+  bool cloudCopyMissing,
+  bool extraCopyMissing,
+});
 
 /// Per-file temp root, so the backup service's fixed `Submersion/Backups`
 /// subtree does not collide with the other suites that mock path_provider the
@@ -136,11 +144,13 @@ void main() {
     required bool success,
     String? error,
     bool cloudCopyMissing = false,
+    bool extraCopyMissing = false,
   }) async {
     notifications.add((
       success: success,
       error: error,
       cloudCopyMissing: cloudCopyMissing,
+      extraCopyMissing: extraCopyMissing,
     ));
   }
 
@@ -252,6 +262,83 @@ void main() {
             'the local backup succeeded, but claiming plain success would tell '
             'the user their off-device copy is safe when it is not',
       );
+    });
+
+    // Issue #3782: an extra account the backup did not reach is a missing
+    // copy too. Lightroom holds no files, so no provider can be built for it
+    // here, deterministically.
+    test('a missed extra copy is reported apart from the main copy', () async {
+      final prefs = await seedPrefs();
+      await BackupPreferences(prefs).setExtraCopyAccounts(const [
+        BackupCopyAccount(
+          accountId: 'acct-x',
+          kind: AccountKind.adobeLightroom,
+        ),
+      ]);
+
+      await run(prefs);
+
+      expect(await uploadedBackups(), hasLength(1));
+      expect(notifications.single.success, isTrue);
+      // The main copy uploaded: saying "device only" would be false.
+      expect(notifications.single.cloudCopyMissing, isFalse);
+      expect(notifications.single.extraCopyMissing, isTrue);
+      expect(BackupPreferences(prefs).getSettings().lastExtraCopyMissingIds, [
+        'acct-x',
+      ]);
+    });
+
+    // Review of #4328: which gap the notification names, decided from the
+    // record the backup wrote.
+    group('scheduledBackupCopyGaps', () {
+      BackupRecord made({
+        required BackupLocation location,
+        List<ExtraCloudCopy> extras = const [],
+      }) => BackupRecord(
+        id: 'r',
+        filename: 'submersion_backup_x.db',
+        timestamp: DateTime.utc(2026, 11, 8),
+        sizeBytes: 1,
+        location: location,
+        extraCloudCopies: extras,
+      );
+      const dropbox = [ExtraCloudCopy(accountId: 'db-row', fileId: 'f')];
+
+      test('only extra copies arrived: not every account, not device only', () {
+        final gaps = scheduledBackupCopyGaps(
+          cloudBackupEnabled: true,
+          record: made(location: BackupLocation.local, extras: dropbox),
+          missedExtraIds: const [],
+        );
+        expect(gaps, (cloudCopyMissing: false, extraCopyMissing: true));
+      });
+
+      test('nothing left the device: device only', () {
+        final gaps = scheduledBackupCopyGaps(
+          cloudBackupEnabled: true,
+          record: made(location: BackupLocation.local),
+          missedExtraIds: const ['db-row'],
+        );
+        expect(gaps.cloudCopyMissing, isTrue);
+      });
+
+      test('every copy arrived: no gap', () {
+        final gaps = scheduledBackupCopyGaps(
+          cloudBackupEnabled: true,
+          record: made(location: BackupLocation.both, extras: dropbox),
+          missedExtraIds: const [],
+        );
+        expect(gaps, (cloudCopyMissing: false, extraCopyMissing: false));
+      });
+
+      test('no copy asked for: no gap', () {
+        final gaps = scheduledBackupCopyGaps(
+          cloudBackupEnabled: false,
+          record: made(location: BackupLocation.local),
+          missedExtraIds: const [],
+        );
+        expect(gaps, (cloudCopyMissing: false, extraCopyMissing: false));
+      });
     });
 
     test('a failed backup reports the reason', () async {

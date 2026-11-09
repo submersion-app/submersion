@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/backup/domain/entities/backup_copy_account.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 
 void main() {
@@ -125,6 +126,61 @@ void main() {
 
       expect(prefs.getSettings().backupLocation, '/desktop/dir');
       expect(prefs.getBackupLocationBookmark(), isNull);
+    });
+  });
+
+  group('extra copy accounts (#3782)', () {
+    const git = BackupCopyAccount(accountId: 'git-row', kind: AccountKind.git);
+    const dropbox = BackupCopyAccount(
+      accountId: 'db-row',
+      kind: AccountKind.dropbox,
+    );
+
+    test('addExtraCopyAccount appends once, in order', () async {
+      await notifier.addExtraCopyAccount(_row('git-row', AccountKind.git));
+      await notifier.addExtraCopyAccount(_row('db-row', AccountKind.dropbox));
+      await notifier.addExtraCopyAccount(_row('git-row', AccountKind.git));
+
+      expect(notifier.state.extraCopyAccounts, [git, dropbox]);
+      expect(prefs.getSettings().extraCopyAccounts, [git, dropbox]);
+    });
+
+    test('removeExtraCopyAccount drops it', () async {
+      await notifier.addExtraCopyAccount(_row('git-row', AccountKind.git));
+      await notifier.addExtraCopyAccount(_row('db-row', AccountKind.dropbox));
+      await notifier.removeExtraCopyAccount('git-row');
+
+      expect(notifier.state.extraCopyAccounts, [dropbox]);
+      expect(prefs.getSettings().extraCopyAccounts, [dropbox]);
+    });
+
+    test('removing an account forgets its missed copy', () async {
+      await notifier.addExtraCopyAccount(_row('git-row', AccountKind.git));
+      await notifier.addExtraCopyAccount(_row('db-row', AccountKind.dropbox));
+      await prefs.setLastExtraCopyMissingIds(['git-row', 'db-row']);
+
+      await notifier.removeExtraCopyAccounts({'git-row'});
+
+      expect(notifier.state.extraCopyAccounts, [dropbox]);
+      expect(notifier.state.lastExtraCopyMissingIds, ['db-row']);
+    });
+
+    test('setCopyTo removes the row from the extras', () async {
+      await notifier.addExtraCopyAccount(_row('git-row', AccountKind.git));
+      await notifier.addExtraCopyAccount(_row('db-row', AccountKind.dropbox));
+      await notifier.setCopyTo(_row('git-row', AccountKind.git));
+
+      expect(notifier.state.copyAccountId, 'git-row');
+      expect(notifier.state.extraCopyAccounts, [dropbox]);
+    });
+
+    test('setCopyTo forgets the missed copy of the row it takes', () async {
+      await notifier.addExtraCopyAccount(_row('git-row', AccountKind.git));
+      await prefs.setLastExtraCopyMissingIds(['git-row', 'db-row']);
+
+      await notifier.setCopyTo(_row('git-row', AccountKind.git));
+
+      expect(notifier.state.lastExtraCopyMissingIds, ['db-row']);
     });
   });
 

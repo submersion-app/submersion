@@ -92,6 +92,53 @@ void main() {
 
       expect((await usage.load()).usagesOf(account), isEmpty);
     });
+
+    test('an extra copy account is used for backup copies (#3782)', () async {
+      final account = await accounts.create(
+        kind: AccountKind.dropbox,
+        label: 'Dropbox',
+      );
+      final usage = await withBackupPrefs({
+        'backup_cloud_enabled': true,
+        'backup_extra_copy_accounts':
+            '[{"id":"${account.id}","kind":"dropbox"}]',
+      });
+
+      expect((await usage.load()).usagesOf(account), const [
+        AccountUsage(AccountUsageKind.backupCopy),
+      ]);
+    });
+
+    test('the main and an extra copy count once', () async {
+      final account = await accounts.create(
+        kind: AccountKind.dropbox,
+        label: 'Dropbox',
+      );
+      final usage = await withBackupPrefs({
+        'backup_cloud_enabled': true,
+        'backup_copy_account_id': account.id,
+        'backup_copy_account_kind': 'dropbox',
+        'backup_extra_copy_accounts':
+            '[{"id":"${account.id}","kind":"dropbox"}]',
+      });
+
+      expect((await usage.load()).usagesOf(account), const [
+        AccountUsage(AccountUsageKind.backupCopy),
+      ]);
+    });
+
+    test('an extra copy with the copy off uses nothing', () async {
+      final account = await accounts.create(
+        kind: AccountKind.dropbox,
+        label: 'Dropbox',
+      );
+      final usage = await withBackupPrefs({
+        'backup_extra_copy_accounts':
+            '[{"id":"${account.id}","kind":"dropbox"}]',
+      });
+
+      expect((await usage.load()).usagesOf(account), isEmpty);
+    });
   });
 
   test('an account nothing on this device uses has no usages', () async {

@@ -27369,6 +27369,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Laatste back-up heeft de cloud niet bereikt';
 
   @override
+  String get dataHealth_backup_extraCopyMissing =>
+      'Laatste back-up heeft niet elk account bereikt';
+
+  @override
   String get dataHealth_backup_noOffDeviceCopy =>
       'Geen kopie buiten dit apparaat';
 
@@ -58793,6 +58797,19 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_backups_copyAccountGone =>
       'Het account van de kopie is verwijderd';
+
+  @override
+  String settings_backups_alsoCopyTo(String account) {
+    return 'Ook een kopie in $account';
+  }
+
+  @override
+  String get settings_backups_addCopyAccount =>
+      'Ook naar een ander account kopiëren';
+
+  @override
+  String get settings_backups_extraCopyMissed =>
+      'De laatste back-up heeft dit account niet bereikt';
 
   @override
   String get settings_backups_auto => 'Automatisch back-uppen';

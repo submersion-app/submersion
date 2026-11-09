@@ -7,6 +7,7 @@ import 'package:submersion/features/backup/presentation/widgets/backup_advanced_
 import 'package:submersion/features/backup/presentation/widgets/backup_auto_row.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_copy_row.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_download_tile.dart';
+import 'package:submersion/features/backup/presentation/widgets/backup_extra_copy_rows.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_history_section.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_status_line.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -45,6 +46,7 @@ class BackupSettingsPage extends ConsumerWidget {
           BackupStatusLine(),
           BackupAutoRow(),
           BackupCopyRow(),
+          BackupExtraCopyRows(),
           BackupNowTile(),
           RestoreFromFileTile(),
           Divider(),

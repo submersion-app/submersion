@@ -70,7 +70,7 @@ class BackupHistorySection extends ConsumerWidget {
                   BackupHistoryTile(
                     record: record,
                     origin: origins.originOf(record.filename),
-                    leadingIcon: _locationIcon(record.location),
+                    leadingIcon: _locationIcon(record),
                     onPinToggle: () => _togglePin(context, ref, record),
                     onRestore: () => _restore(context, ref, record),
                     onShare: busy
@@ -181,7 +181,11 @@ class BackupHistorySection extends ConsumerWidget {
   }
 }
 
-IconData _locationIcon(BackupLocation location) => switch (location) {
+/// [BackupRecord.location] covers the main copy only; extra copies (issue
+/// #3782) put a backup off this device too.
+IconData _locationIcon(BackupRecord record) => switch (record.location) {
+  BackupLocation.local when record.extraCloudCopies.isNotEmpty =>
+    Icons.cloud_done,
   BackupLocation.local => Icons.phone_android,
   BackupLocation.cloud => Icons.cloud,
   BackupLocation.both => Icons.cloud_done,
