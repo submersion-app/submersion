@@ -58385,6 +58385,42 @@ abstract class AppLocalizations {
   /// **'Stop logging'**
   String get gpsLogger_stopButton;
 
+  /// Button while recording a GPS track: marks the moment the diver goes into the water, starting a draft dive
+  ///
+  /// In en, this message translates to:
+  /// **'Entered water'**
+  String get gpsLogger_enteredWater;
+
+  /// Button while a draft dive is open: marks the moment the diver surfaces
+  ///
+  /// In en, this message translates to:
+  /// **'Surfaced'**
+  String get gpsLogger_surfaced;
+
+  /// No description provided for @gpsLogger_surfaceOnStop_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Still in the water?'**
+  String get gpsLogger_surfaceOnStop_title;
+
+  /// No description provided for @gpsLogger_surfaceOnStop_body.
+  ///
+  /// In en, this message translates to:
+  /// **'You entered the water at {time}. Mark the dive surfaced now, or leave it open and tap Surfaced later.'**
+  String gpsLogger_surfaceOnStop_body(String time);
+
+  /// No description provided for @gpsLogger_surfaceOnStop_surfaceNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface now'**
+  String get gpsLogger_surfaceOnStop_surfaceNow;
+
+  /// No description provided for @gpsLogger_surfaceOnStop_leaveOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave open'**
+  String get gpsLogger_surfaceOnStop_leaveOpen;
+
   /// No description provided for @gpsLogger_stripStatus.
   ///
   /// In en, this message translates to:

@@ -22187,6 +22187,21 @@
   "gpsLogger_reviewSites": "Review site matches",
   "gpsLogger_startButton": "Start logging",
   "gpsLogger_stopButton": "Stop logging",
+  "gpsLogger_enteredWater": "Entered water",
+  "@gpsLogger_enteredWater": {"description": "Button while recording a GPS track: marks the moment the diver goes into the water, starting a draft dive"},
+  "gpsLogger_surfaced": "Surfaced",
+  "@gpsLogger_surfaced": {"description": "Button while a draft dive is open: marks the moment the diver surfaces"},
+  "gpsLogger_surfaceOnStop_title": "Still in the water?",
+  "gpsLogger_surfaceOnStop_body": "You entered the water at {time}. Mark the dive surfaced now, or leave it open and tap Surfaced later.",
+  "@gpsLogger_surfaceOnStop_body": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "gpsLogger_surfaceOnStop_surfaceNow": "Surface now",
+  "gpsLogger_surfaceOnStop_leaveOpen": "Leave open",
   "gpsLogger_stripStatus": "Recording GPS track · {count, plural, one{{count} point} other{{count} points}}",
   "@gpsLogger_stripStatus": {
     "placeholders": {

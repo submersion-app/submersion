@@ -34899,6 +34899,26 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gpsLogger_stopButton => '停止记录';
 
   @override
+  String get gpsLogger_enteredWater => 'Entered water';
+
+  @override
+  String get gpsLogger_surfaced => 'Surfaced';
+
+  @override
+  String get gpsLogger_surfaceOnStop_title => 'Still in the water?';
+
+  @override
+  String gpsLogger_surfaceOnStop_body(String time) {
+    return 'You entered the water at $time. Mark the dive surfaced now, or leave it open and tap Surfaced later.';
+  }
+
+  @override
+  String get gpsLogger_surfaceOnStop_surfaceNow => 'Surface now';
+
+  @override
+  String get gpsLogger_surfaceOnStop_leaveOpen => 'Leave open';
+
+  @override
   String gpsLogger_stripStatus(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
