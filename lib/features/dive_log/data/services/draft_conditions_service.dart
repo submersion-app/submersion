@@ -1,3 +1,5 @@
+import 'package:uuid/uuid.dart';
+
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
@@ -9,6 +11,11 @@ import 'package:submersion/features/weather/data/services/weather_service.dart';
 
 /// Records [dive]'s tide at the position [at].
 typedef DraftTideRecorder = Future<void> Function(Dive dive, GeoPoint at);
+
+/// The id of a draft's tide record: the same on every device, so two
+/// devices that both fill a synced draft write one row rather than two.
+String draftTideRecordId(String diveId) =>
+    const Uuid().v5(Namespace.url.value, 'submersion:drafttide:$diveId');
 
 /// Weather and tide for drafts (issue #637), from where the diver went in:
 /// a draft has no site yet, only the position the phone recorded. Fills only

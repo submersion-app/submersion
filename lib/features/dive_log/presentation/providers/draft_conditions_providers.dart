@@ -27,6 +27,7 @@ final draftConditionsServiceProvider = Provider<DraftConditionsService>((ref) {
         entryWallClock: dive.entryTime ?? dive.dateTime,
         location: at,
         waterType: dive.waterType,
+        id: draftTideRecordId(dive.id),
       );
     },
     hasTide: tides.hasTideRecord,
