@@ -36428,6 +36428,23 @@ class AppLocalizationsAr extends AppLocalizations {
       'هذه الصيغة غير مدعومة بعد. يرجى التصدير كـ UDDF أو CSV.';
 
   @override
+  String universalImport_fillDraft_ambiguous(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تناسب $count مسودة. اختر المسودة التي تكملها.',
+      many: 'تناسب $count مسودة. اختر المسودة التي تكملها.',
+      few: 'تناسب $count مسودات. اختر المسودة التي تكملها.',
+      two: 'تناسب مسودتين. اختر المسودة التي تكملها.',
+      one: 'غوصة أخرى تناسب هذه المسودة أيضاً. اختر المسودة التي تكملها.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_fillDraft_choose => 'اختيار المسودة';
+
+  @override
   String get universalImport_error_duplicateCheckFailed =>
       'تعذّر تشغيل كشف التكرارات، لذلك لم يُوسم أي عنصر في هذه القائمة بأنه موجود مسبقًا في سجلك. راجع القائمة قبل الاستيراد.';
 

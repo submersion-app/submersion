@@ -169,6 +169,12 @@ class DiveMatchResult {
   /// otherwise unmatched downloads.
   final FillTarget? fillTarget;
 
+  /// The drafts this download could fill when it fits more than one, or one
+  /// that another download fits too (issue #637). None is chosen: the row
+  /// waits for the diver, who picks one, imports as new or skips. [diveId]
+  /// is the first, for the comparison card. Empty for every other match.
+  final List<String> fillCandidates;
+
   const DiveMatchResult({
     required this.diveId,
     required this.score,
@@ -180,6 +186,7 @@ class DiveMatchResult {
     this.matchedExistingSource = false,
     this.inBatchIndex,
     this.fillTarget,
+    this.fillCandidates = const [],
   });
 
   /// True when this row fills a plan or draft rather than matching a logged

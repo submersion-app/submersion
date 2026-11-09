@@ -36041,6 +36041,22 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ce format n\'est pas encore pris en charge. Veuillez exporter en UDDF ou CSV.';
 
   @override
+  String universalImport_fillDraft_ambiguous(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Correspond à $count brouillons. Choisissez celui qu\'elle complète.',
+      one:
+          'Une autre plongée correspond aussi à ce brouillon. Choisissez le brouillon qu\'elle complète.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_fillDraft_choose => 'Choisir le brouillon';
+
+  @override
   String get universalImport_error_duplicateCheckFailed =>
       'La détection des doublons n\'a pas pu s\'exécuter : rien dans cette liste n\'est signalé comme déjà présent dans votre carnet. Vérifiez-la avant d\'importer.';
 

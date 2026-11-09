@@ -264,7 +264,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
     // Drafts first: a workout over a draft's taps fills it, ahead of any
     // logged dive it also resembles.
     final drafts = existingDives.where((dive) => dive.isDraft).toList();
-    final draftPairs = const FillTargetMatcher().pair(
+    final draftPairing = const FillTargetMatcher().match(
       incoming: [
         for (final w in _parsedDives) (start: w.startTime, end: w.endTime),
       ],
@@ -312,7 +312,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
         continue;
       }
 
-      final draftId = draftPairs[i];
+      final draftId = draftPairing.pairs[i];
       if (draftId != null) {
         duplicateIndices.add(i);
         matchResults[i] = DiveMatchResult(
@@ -320,6 +320,18 @@ class HealthKitAdapter implements ImportSourceAdapter {
           score: 1,
           timeDifferenceMs: 0,
           fillTarget: FillTarget(diveId: draftId, kind: FillTargetKind.draft),
+        );
+        continue;
+      }
+      // More than one draft could take it: the row waits for the diver.
+      final draftChoices = draftPairing.ambiguous[i];
+      if (draftChoices != null) {
+        duplicateIndices.add(i);
+        matchResults[i] = DiveMatchResult(
+          diveId: draftChoices.first,
+          score: 1,
+          timeDifferenceMs: 0,
+          fillCandidates: draftChoices,
         );
         continue;
       }

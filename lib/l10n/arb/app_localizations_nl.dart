@@ -35688,6 +35688,22 @@ class AppLocalizationsNl extends AppLocalizations {
       'Dit formaat wordt nog niet ondersteund. Exporteer als UDDF of CSV.';
 
   @override
+  String universalImport_fillDraft_ambiguous(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Past bij $count concepten. Kies het concept dat deze duik invult.',
+      one:
+          'Een andere duik past ook bij dit concept. Kies het concept dat deze duik invult.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_fillDraft_choose => 'Concept kiezen';
+
+  @override
   String get universalImport_error_duplicateCheckFailed =>
       'Duplicaatdetectie kon niet worden uitgevoerd, dus niets in deze lijst is gemarkeerd als al aanwezig in je logboek. Controleer de lijst voordat je importeert.';
 

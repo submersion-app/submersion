@@ -18142,5 +18142,7 @@
   "diveLog_draft_stale_stillIn": "Sigo en el agua",
   "diveLog_draft_stale_setTime": "Fijar hora de salida",
   "diveLog_detail_menu_addHeartRate": "Agregar frecuencia cardíaca de Apple Health",
-  "diveLog_listPage_semanticsDraftDiveAtSite": "Borrador de inmersión en {siteName}"
+  "diveLog_listPage_semanticsDraftDiveAtSite": "Borrador de inmersión en {siteName}",
+  "universalImport_fillDraft_ambiguous": "{count, plural, =1{Otra inmersión también encaja con este borrador. Elige el borrador que completa.} other{Encaja con {count} borradores. Elige el que completa.}}",
+  "universalImport_fillDraft_choose": "Elegir borrador"
 }

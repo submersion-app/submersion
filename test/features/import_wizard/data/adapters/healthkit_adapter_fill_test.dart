@@ -167,6 +167,29 @@ void main() {
     );
   });
 
+  test(
+    'a workout over two drafts\' taps offers both and fills neither',
+    () async {
+      final a = adapter([
+        for (final (id, offset) in [('d1', 0), ('d2', 4)])
+          Dive(
+            id: id,
+            diverId: diverId,
+            dateTime: ten.add(Duration(minutes: offset)),
+            entryTime: ten.add(Duration(minutes: offset)),
+            exitTime: ten.add(Duration(minutes: 48 + offset)),
+            isDraft: true,
+          ),
+      ]);
+
+      final bundle = await a.checkDuplicates(await a.buildBundle());
+
+      final match = bundle.groups[ImportEntityType.dives]!.matchResults![0]!;
+      expect(match.fillTarget, isNull);
+      expect(match.fillCandidates, unorderedEquals(['d1', 'd2']));
+    },
+  );
+
   test('a workout on a plan\'s day is matched to fill the plan, and the '
       'plan is never a fuzzy duplicate', () async {
     final a = adapter([

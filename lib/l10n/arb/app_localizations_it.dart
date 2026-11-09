@@ -35946,6 +35946,21 @@ class AppLocalizationsIt extends AppLocalizations {
       'Questo formato non è ancora supportato. Esporta come UDDF o CSV.';
 
   @override
+  String universalImport_fillDraft_ambiguous(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Corrisponde a $count bozze. Scegli quella che completa.',
+      one:
+          'Anche un\'altra immersione corrisponde a questa bozza. Scegli la bozza che completa.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_fillDraft_choose => 'Scegli bozza';
+
+  @override
   String get universalImport_error_duplicateCheckFailed =>
       'Non è stato possibile eseguire il rilevamento dei duplicati, quindi nulla in questo elenco è contrassegnato come già presente nel tuo registro. Controllalo prima di importare.';
 

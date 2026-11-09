@@ -18142,5 +18142,7 @@
   "diveLog_draft_stale_stillIn": "仍在水中",
   "diveLog_draft_stale_setTime": "设置出水时间",
   "diveLog_detail_menu_addHeartRate": "从 Apple Health 添加心率",
-  "diveLog_listPage_semanticsDraftDiveAtSite": "{siteName} 的潜水草稿"
+  "diveLog_listPage_semanticsDraftDiveAtSite": "{siteName} 的潜水草稿",
+  "universalImport_fillDraft_ambiguous": "{count, plural, =1{另一次潜水也符合此草稿。请选择它要填充的草稿。} other{符合 {count} 个草稿。请选择它要填充的草稿。}}",
+  "universalImport_fillDraft_choose": "选择草稿"
 }

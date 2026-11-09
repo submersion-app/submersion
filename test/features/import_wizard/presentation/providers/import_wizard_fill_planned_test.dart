@@ -58,6 +58,14 @@ const _plannedMatch = DiveMatchResult(
   fillTarget: FillTarget(diveId: 'p1', kind: FillTargetKind.plan),
 );
 
+/// A download that fits two drafts (issue #637): no target is chosen.
+const _ambiguousMatch = DiveMatchResult(
+  diveId: 'd1',
+  score: 1,
+  timeDifferenceMs: 0,
+  fillCandidates: ['d1', 'd2'],
+);
+
 const _fuzzyMatch = DiveMatchResult(
   diveId: 'existing',
   score: 0.85,
@@ -101,6 +109,35 @@ void main() {
       state().duplicateActions[ImportEntityType.dives]!.containsKey(1),
       isFalse,
     );
+  });
+
+  test('a download that fits two drafts waits for the diver, filling '
+      'neither', () {
+    notifier.setBundle(_bundle({0: _ambiguousMatch}));
+
+    expect(state().pendingFor(ImportEntityType.dives), {0});
+    expect(
+      state().duplicateActions[ImportEntityType.dives]?.containsKey(0) ?? false,
+      isFalse,
+    );
+  });
+
+  test('choosing one of the drafts fills it', () {
+    notifier.setBundle(_bundle({0: _ambiguousMatch}));
+
+    notifier.setFillTarget(
+      0,
+      const FillTarget(diveId: 'd2', kind: FillTargetKind.draft),
+    );
+
+    final match =
+        state().bundle!.groups[ImportEntityType.dives]!.matchResults![0]!;
+    expect(match.fillTarget?.diveId, 'd2');
+    expect(
+      state().duplicateActions[ImportEntityType.dives]![0],
+      DuplicateAction.fillPlanned,
+    );
+    expect(state().pendingFor(ImportEntityType.dives), isEmpty);
   });
 
   test('applyBulkAction never applies fillPlanned', () {

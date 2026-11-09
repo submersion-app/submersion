@@ -18142,5 +18142,7 @@
   "diveLog_draft_stale_stillIn": "Ancora in acqua",
   "diveLog_draft_stale_setTime": "Imposta l'ora di emersione",
   "diveLog_detail_menu_addHeartRate": "Aggiungi frequenza cardiaca da Apple Health",
-  "diveLog_listPage_semanticsDraftDiveAtSite": "Bozza di immersione a {siteName}"
+  "diveLog_listPage_semanticsDraftDiveAtSite": "Bozza di immersione a {siteName}",
+  "universalImport_fillDraft_ambiguous": "{count, plural, =1{Anche un'altra immersione corrisponde a questa bozza. Scegli la bozza che completa.} other{Corrisponde a {count} bozze. Scegli quella che completa.}}",
+  "universalImport_fillDraft_choose": "Scegli bozza"
 }

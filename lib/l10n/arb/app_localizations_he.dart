@@ -35059,6 +35059,20 @@ class AppLocalizationsHe extends AppLocalizations {
       'פורמט זה אינו נתמך עדיין. נא לייצא כ-UDDF או CSV.';
 
   @override
+  String universalImport_fillDraft_ambiguous(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'מתאימה ל-$count טיוטות. בחרו את זו שהיא ממלאת.',
+      one: 'גם צלילה אחרת מתאימה לטיוטה הזו. בחרו את הטיוטה שהיא ממלאת.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_fillDraft_choose => 'בחירת טיוטה';
+
+  @override
   String get universalImport_error_duplicateCheckFailed =>
       'לא ניתן היה להריץ זיהוי כפילויות, ולכן שום פריט ברשימה הזו אינו מסומן כקיים כבר ביומן. בדוק את הרשימה לפני הייבוא.';
 

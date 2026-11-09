@@ -35337,6 +35337,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'This format is not yet supported. Please export as UDDF or CSV.';
 
   @override
+  String universalImport_fillDraft_ambiguous(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Fits $count drafts. Choose the one it fills.',
+      one: 'Another dive fits this draft too. Choose the draft it fills.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_fillDraft_choose => 'Choose draft';
+
+  @override
   String get universalImport_error_duplicateCheckFailed =>
       'Duplicate detection could not run, so nothing in this list is marked as already in your logbook. Check it before importing.';
 

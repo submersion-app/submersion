@@ -100,6 +100,33 @@ void main() {
       expect(match.diveId, 'd1');
     });
 
+    test(
+      'a download that fits two drafts offers both and fills neither',
+      () async {
+        when(mockDiveRepo.getUnfilledDives(diverId: diverId)).thenAnswer(
+          (_) async => [
+            draft('d1', DateTime(2026, 6, 1, 10), DateTime(2026, 6, 1, 10, 50)),
+            draft(
+              'd2',
+              DateTime(2026, 6, 1, 10, 4),
+              DateTime(2026, 6, 1, 10, 52),
+            ),
+          ],
+        );
+        adapter.setDownloadedDives([download(DateTime(2026, 6, 1, 10, 2))]);
+
+        final result = await adapter.checkDuplicates(
+          await adapter.buildBundle(),
+        );
+
+        final group = result.groups[ImportEntityType.dives]!;
+        final match = group.matchResults![0]!;
+        expect(match.fillTarget, isNull);
+        expect(match.fillCandidates, unorderedEquals(['d1', 'd2']));
+        expect(group.duplicateIndices, contains(0));
+      },
+    );
+
     test('a plan still fills as a plan', () async {
       when(
         mockDiveRepo.getUnfilledDives(diverId: diverId),
@@ -114,19 +141,30 @@ void main() {
       );
     });
 
-    test('a download fitting two drafts is left for the diver', () async {
-      when(mockDiveRepo.getUnfilledDives(diverId: diverId)).thenAnswer(
-        (_) async => [
-          draft('a', DateTime(2026, 6, 1, 9, 40), DateTime(2026, 6, 1, 10, 5)),
-          draft('b', DateTime(2026, 6, 1, 10, 20), DateTime(2026, 6, 1, 11)),
-        ],
-      );
-      adapter.setDownloadedDives([download(DateTime(2026, 6, 1, 10))]);
+    test(
+      'a download fitting two drafts is left for the diver to choose',
+      () async {
+        when(mockDiveRepo.getUnfilledDives(diverId: diverId)).thenAnswer(
+          (_) async => [
+            draft(
+              'a',
+              DateTime(2026, 6, 1, 9, 40),
+              DateTime(2026, 6, 1, 10, 5),
+            ),
+            draft('b', DateTime(2026, 6, 1, 10, 20), DateTime(2026, 6, 1, 11)),
+          ],
+        );
+        adapter.setDownloadedDives([download(DateTime(2026, 6, 1, 10))]);
 
-      final result = await adapter.checkDuplicates(await adapter.buildBundle());
+        final result = await adapter.checkDuplicates(
+          await adapter.buildBundle(),
+        );
 
-      expect(result.groups[ImportEntityType.dives]!.duplicateIndices, isEmpty);
-    });
+        final match = result.groups[ImportEntityType.dives]!.matchResults![0]!;
+        expect(match.isFill, isFalse);
+        expect(match.fillCandidates, unorderedEquals(['a', 'b']));
+      },
+    );
 
     test('a real duplicate never becomes a draft fill', () async {
       final dive = download(DateTime(2026, 6, 1, 10, 2));

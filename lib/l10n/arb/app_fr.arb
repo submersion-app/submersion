@@ -18142,5 +18142,7 @@
   "diveLog_draft_stale_stillIn": "Toujours dans l'eau",
   "diveLog_draft_stale_setTime": "Définir l'heure de sortie",
   "diveLog_detail_menu_addHeartRate": "Ajouter la fréquence cardiaque depuis Apple Health",
-  "diveLog_listPage_semanticsDraftDiveAtSite": "Brouillon de plongée à {siteName}"
+  "diveLog_listPage_semanticsDraftDiveAtSite": "Brouillon de plongée à {siteName}",
+  "universalImport_fillDraft_ambiguous": "{count, plural, =1{Une autre plongée correspond aussi à ce brouillon. Choisissez le brouillon qu'elle complète.} other{Correspond à {count} brouillons. Choisissez celui qu'elle complète.}}",
+  "universalImport_fillDraft_choose": "Choisir le brouillon"
 }

@@ -35920,6 +35920,21 @@ class AppLocalizationsPt extends AppLocalizations {
       'Este formato ainda não é suportado. Exporte como UDDF ou CSV.';
 
   @override
+  String universalImport_fillDraft_ambiguous(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Corresponde a $count rascunhos. Escolha o que ele preenche.',
+      one:
+          'Outro mergulho também corresponde a este rascunho. Escolha o rascunho que ele preenche.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_fillDraft_choose => 'Escolher rascunho';
+
+  @override
   String get universalImport_error_duplicateCheckFailed =>
       'A deteção de duplicados não pôde ser executada, por isso nada nesta lista está assinalado como já existente no seu registo. Verifique-a antes de importar.';
 

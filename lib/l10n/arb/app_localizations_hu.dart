@@ -35749,6 +35749,21 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ez a formátum még nem támogatott. Exportálj UDDF vagy CSV formátumban.';
 
   @override
+  String universalImport_fillDraft_ambiguous(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vázlathoz illik. Válaszd ki, melyiket tölti ki.',
+      one:
+          'Egy másik merülés is illik ehhez a vázlathoz. Válaszd ki a vázlatot, amelyet kitölt.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_fillDraft_choose => 'Vázlat kiválasztása';
+
+  @override
   String get universalImport_error_duplicateCheckFailed =>
       'A duplikátumkeresés nem futott le, ezért ebben a listában semmi nincs megjelölve úgy, hogy már szerepel a naplóban. Importálás előtt ellenőrizd a listát.';
 

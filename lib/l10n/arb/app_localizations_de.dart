@@ -35862,6 +35862,21 @@ class AppLocalizationsDe extends AppLocalizations {
       'Dieses Format wird noch nicht unterstützt. Bitte exportieren Sie als UDDF oder CSV.';
 
   @override
+  String universalImport_fillDraft_ambiguous(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Passt zu $count Entwürfen. Wähle den, den er ausfüllt.',
+      one:
+          'Auch ein anderer Tauchgang passt zu diesem Entwurf. Wähle den Entwurf, den er ausfüllt.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_fillDraft_choose => 'Entwurf wählen';
+
+  @override
   String get universalImport_error_duplicateCheckFailed =>
       'Die Duplikaterkennung konnte nicht ausgeführt werden. Daher ist in dieser Liste nichts als bereits im Logbuch vorhanden markiert. Prüfen Sie sie vor dem Import.';
 

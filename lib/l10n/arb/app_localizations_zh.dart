@@ -33798,6 +33798,20 @@ class AppLocalizationsZh extends AppLocalizations {
       '暂不支持此格式。请导出为 UDDF 或 CSV。';
 
   @override
+  String universalImport_fillDraft_ambiguous(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '符合 $count 个草稿。请选择它要填充的草稿。',
+      one: '另一次潜水也符合此草稿。请选择它要填充的草稿。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_fillDraft_choose => '选择草稿';
+
+  @override
   String get universalImport_error_duplicateCheckFailed =>
       '重复检测未能运行，因此此列表中没有任何条目被标记为日志中已存在。导入前请先核对列表。';
 

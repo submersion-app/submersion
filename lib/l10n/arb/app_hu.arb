@@ -18142,5 +18142,7 @@
   "diveLog_draft_stale_stillIn": "Még a vízben vagyok",
   "diveLog_draft_stale_setTime": "Felszínre érés idejének megadása",
   "diveLog_detail_menu_addHeartRate": "Szívfrekvencia hozzáadása az Apple Healthből",
-  "diveLog_listPage_semanticsDraftDiveAtSite": "Merülésvázlat itt: {siteName}"
+  "diveLog_listPage_semanticsDraftDiveAtSite": "Merülésvázlat itt: {siteName}",
+  "universalImport_fillDraft_ambiguous": "{count, plural, =1{Egy másik merülés is illik ehhez a vázlathoz. Válaszd ki a vázlatot, amelyet kitölt.} other{{count} vázlathoz illik. Válaszd ki, melyiket tölti ki.}}",
+  "universalImport_fillDraft_choose": "Vázlat kiválasztása"
 }

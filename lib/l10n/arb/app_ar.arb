@@ -18142,5 +18142,7 @@
   "diveLog_draft_stale_stillIn": "ما زلت في الماء",
   "diveLog_draft_stale_setTime": "تعيين وقت الصعود",
   "diveLog_detail_menu_addHeartRate": "إضافة معدل ضربات القلب من Apple Health",
-  "diveLog_listPage_semanticsDraftDiveAtSite": "مسودة غوصة في {siteName}"
+  "diveLog_listPage_semanticsDraftDiveAtSite": "مسودة غوصة في {siteName}",
+  "universalImport_fillDraft_ambiguous": "{count, plural, =1{غوصة أخرى تناسب هذه المسودة أيضاً. اختر المسودة التي تكملها.} two{تناسب مسودتين. اختر المسودة التي تكملها.} few{تناسب {count} مسودات. اختر المسودة التي تكملها.} many{تناسب {count} مسودة. اختر المسودة التي تكملها.} other{تناسب {count} مسودة. اختر المسودة التي تكملها.}}",
+  "universalImport_fillDraft_choose": "اختيار المسودة"
 }

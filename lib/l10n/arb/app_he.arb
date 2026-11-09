@@ -18142,5 +18142,7 @@
   "diveLog_draft_stale_stillIn": "עדיין במים",
   "diveLog_draft_stale_setTime": "קביעת שעת היציאה",
   "diveLog_detail_menu_addHeartRate": "הוספת קצב לב מ-Apple Health",
-  "diveLog_listPage_semanticsDraftDiveAtSite": "טיוטת צלילה ב-{siteName}"
+  "diveLog_listPage_semanticsDraftDiveAtSite": "טיוטת צלילה ב-{siteName}",
+  "universalImport_fillDraft_ambiguous": "{count, plural, =1{גם צלילה אחרת מתאימה לטיוטה הזו. בחרו את הטיוטה שהיא ממלאת.} other{מתאימה ל-{count} טיוטות. בחרו את זו שהיא ממלאת.}}",
+  "universalImport_fillDraft_choose": "בחירת טיוטה"
 }

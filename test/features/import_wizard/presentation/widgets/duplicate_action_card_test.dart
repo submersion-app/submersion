@@ -134,6 +134,41 @@ class _RebuildableCardHostState extends State<_RebuildableCardHost> {
 // ---------------------------------------------------------------------------
 
 void main() {
+  group('DuplicateActionCard - a download that fits two drafts (#637)', () {
+    testWidgets('asks which draft it fills, and offers no merge', (
+      tester,
+    ) async {
+      var chose = 0;
+      await tester.pumpWidget(
+        _buildCard(
+          card: DuplicateActionCard(
+            item: _testItem,
+            matchResult: const DiveMatchResult(
+              diveId: 'd1',
+              score: 1,
+              timeDifferenceMs: 0,
+              fillCandidates: ['d1', 'd2'],
+            ),
+            selectedAction: null,
+            availableActions: DuplicateAction.values.toSet(),
+            onActionChanged: (_) {},
+            existingDiveId: 'd1',
+            isPending: true,
+            onChangeFillTarget: () => chose++,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(
+        find.text('Fits 2 drafts. Choose the one it fills.'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Choose draft'));
+      expect(chose, 1);
+    });
+  });
+
   group('DuplicateActionCard - collapsed state', () {
     testWidgets('renders item title and subtitle', (tester) async {
       tester.view.physicalSize = const Size(800, 600);

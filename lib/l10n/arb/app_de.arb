@@ -18267,5 +18267,7 @@
   "diveLog_draft_stale_stillIn": "Noch im Wasser",
   "diveLog_draft_stale_setTime": "Auftauchzeit festlegen",
   "diveLog_detail_menu_addHeartRate": "Herzfrequenz aus Apple Health hinzufügen",
-  "diveLog_listPage_semanticsDraftDiveAtSite": "Tauchgang-Entwurf bei {siteName}"
+  "diveLog_listPage_semanticsDraftDiveAtSite": "Tauchgang-Entwurf bei {siteName}",
+  "universalImport_fillDraft_ambiguous": "{count, plural, =1{Auch ein anderer Tauchgang passt zu diesem Entwurf. Wähle den Entwurf, den er ausfüllt.} other{Passt zu {count} Entwürfen. Wähle den, den er ausfüllt.}}",
+  "universalImport_fillDraft_choose": "Entwurf wählen"
 }

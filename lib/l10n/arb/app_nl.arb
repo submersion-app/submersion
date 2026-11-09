@@ -18142,5 +18142,7 @@
   "diveLog_draft_stale_stillIn": "Nog in het water",
   "diveLog_draft_stale_setTime": "Tijd van bovenkomen instellen",
   "diveLog_detail_menu_addHeartRate": "Hartslag uit Apple Health toevoegen",
-  "diveLog_listPage_semanticsDraftDiveAtSite": "Conceptduik bij {siteName}"
+  "diveLog_listPage_semanticsDraftDiveAtSite": "Conceptduik bij {siteName}",
+  "universalImport_fillDraft_ambiguous": "{count, plural, =1{Een andere duik past ook bij dit concept. Kies het concept dat deze duik invult.} other{Past bij {count} concepten. Kies het concept dat deze duik invult.}}",
+  "universalImport_fillDraft_choose": "Concept kiezen"
 }

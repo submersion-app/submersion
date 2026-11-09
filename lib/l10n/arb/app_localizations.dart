@@ -56539,6 +56539,18 @@ abstract class AppLocalizations {
   /// **'This format is not yet supported. Please export as UDDF or CSV.'**
   String get universalImport_error_unsupportedFormat;
 
+  /// No description provided for @universalImport_fillDraft_ambiguous.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Another dive fits this draft too. Choose the draft it fills.} other{Fits {count} drafts. Choose the one it fills.}}'**
+  String universalImport_fillDraft_ambiguous(int count);
+
+  /// No description provided for @universalImport_fillDraft_choose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose draft'**
+  String get universalImport_fillDraft_choose;
+
   /// Warning on the review step when duplicate detection failed and the incoming rows were left unmarked
   ///
   /// In en, this message translates to:

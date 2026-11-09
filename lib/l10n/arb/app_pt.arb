@@ -18142,5 +18142,7 @@
   "diveLog_draft_stale_stillIn": "Ainda na água",
   "diveLog_draft_stale_setTime": "Definir hora de saída",
   "diveLog_detail_menu_addHeartRate": "Adicionar frequência cardíaca do Apple Health",
-  "diveLog_listPage_semanticsDraftDiveAtSite": "Rascunho de mergulho em {siteName}"
+  "diveLog_listPage_semanticsDraftDiveAtSite": "Rascunho de mergulho em {siteName}",
+  "universalImport_fillDraft_ambiguous": "{count, plural, =1{Outro mergulho também corresponde a este rascunho. Escolha o rascunho que ele preenche.} other{Corresponde a {count} rascunhos. Escolha o que ele preenche.}}",
+  "universalImport_fillDraft_choose": "Escolher rascunho"
 }

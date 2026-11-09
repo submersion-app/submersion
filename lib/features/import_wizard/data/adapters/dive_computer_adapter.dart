@@ -756,7 +756,7 @@ class DiveComputerAdapter
         for (var i = 0; i < _downloadedDives.length; i++)
           if (!duplicateIndices.contains(i)) i,
       ];
-      final pairs = const FillTargetMatcher().pair(
+      final pairing = const FillTargetMatcher().match(
         incoming: [
           for (final i in unmatched)
             (
@@ -768,7 +768,7 @@ class DiveComputerAdapter
         ],
         targets: unfilled,
       );
-      for (final entry in pairs.entries) {
+      for (final entry in pairing.pairs.entries) {
         final index = unmatched[entry.key];
         duplicateIndices.add(index);
         matchResults[index] = DiveMatchResult(
@@ -778,6 +778,17 @@ class DiveComputerAdapter
           fillTarget: FillTarget.of(
             unfilled.firstWhere((d) => d.id == entry.value),
           ),
+        );
+      }
+      // More than one draft could take it: the row waits for the diver.
+      for (final entry in pairing.ambiguous.entries) {
+        final index = unmatched[entry.key];
+        duplicateIndices.add(index);
+        matchResults[index] = DiveMatchResult(
+          diveId: entry.value.first,
+          score: 1.0,
+          timeDifferenceMs: 0,
+          fillCandidates: entry.value,
         );
       }
     }
