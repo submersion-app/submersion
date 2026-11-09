@@ -3,7 +3,7 @@ import 'package:submersion/features/marine_life/domain/entities/seen_species.dar
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 
 /// Sort orders offered by the Species page.
-enum SeenSpeciesSort { mostSightings, recentlySeen, firstSeen, name }
+enum SeenSpeciesSort { mostDives, recentlySeen, firstSeen, name }
 
 /// Resolves the name a species is displayed under.
 ///
@@ -66,10 +66,10 @@ Comparator<SeenSpecies> _comparator(
   SpeciesNameOf nameOf,
 ) {
   switch (sort) {
-    case SeenSpeciesSort.mostSightings:
+    case SeenSpeciesSort.mostDives:
+      // Dives, not the sighting total: a total no longer counts animals
+      // (issue #4337), and one sighting per dive makes the two equal.
       return (a, b) {
-        final bySightings = b.totalSightings.compareTo(a.totalSightings);
-        if (bySightings != 0) return bySightings;
         final byDives = b.diveCount.compareTo(a.diveCount);
         if (byDives != 0) return byDives;
         return _byName(a, b, nameOf);

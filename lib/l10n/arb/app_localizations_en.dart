@@ -8028,9 +8028,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_diveMode_title => 'Dive Mode';
 
   @override
-  String get diveLog_editSighting_count => 'Count';
-
-  @override
   String get diveLog_editSighting_notes => 'Notes';
 
   @override
@@ -8163,6 +8160,17 @@ class AppLocalizationsEn extends AppLocalizations {
       locale: localeName,
       other: '$count gas switches removed with their tank',
       one: '$count gas switch removed with its tank',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_gasSwitches_fillDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Fill in $count switches from the cylinder pressures',
+      one: 'Fill in 1 switch from the cylinder pressures',
     );
     return '$_temp0';
   }
@@ -9141,6 +9149,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_legend_label_annotations => 'Annotations';
 
   @override
+  String get diveLog_legend_label_plan => 'Plan';
+
+  @override
   String get diveLog_legend_label_computedEvents => 'Computed events';
 
   @override
@@ -9398,6 +9409,37 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count of $total selected dives are missing conditions.',
+      one: '$count of $total selected dives is missing conditions.',
+    );
+    return '$_temp0 Only empty fields are filled, so nothing you have already entered will change.';
+  }
+
+  @override
+  String diveLog_fetchConditions_skippedNoLocation(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count dives have no site location or GPS fix and will be skipped.',
+      one: '$count dive has no site location or GPS fix and will be skipped.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_fetchConditions_noneNeededSelected =>
+      'None of the selected dives are missing conditions.';
+
+  @override
+  String get diveLog_fetchConditions_noneLocatedSelected =>
+      'The selected dives that are missing conditions have no site location or GPS fix.';
 
   @override
   String diveLog_fetchConditions_summaryCancelled(int count) {
@@ -10793,6 +10835,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_tank_label_endPressure => 'End Pressure';
+
+  @override
+  String get diveLog_tank_label_surfaceBreathing => 'Breathed at the surface';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_helper =>
+      'Minutes on this cylinder after the computer stopped logging, such as oxygen on the boat';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_unit => 'min';
 
   @override
   String get diveLog_tank_label_he => 'He';
@@ -18831,9 +18883,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get marineLife_speciesDetail_topSitesTitle => 'Top Sites';
 
   @override
-  String get marineLife_speciesDetail_totalSightingsLabel => 'Total Sightings';
-
-  @override
   String get marineLife_speciesEdit_addTitle => 'Add Species';
 
   @override
@@ -19138,7 +19187,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get marineLife_speciesPage_sortTooltip => 'Sort';
 
   @override
-  String get marineLife_speciesPage_sort_mostSightings => 'Most sightings';
+  String get marineLife_speciesPage_sort_mostDives => 'Most dives';
+
+  @override
+  String get marineLife_abundance_label => 'How many';
+
+  @override
+  String get marineLife_abundance_seen => 'Seen';
+
+  @override
+  String get marineLife_abundance_single => 'Single';
+
+  @override
+  String get marineLife_abundance_few => 'Few';
+
+  @override
+  String get marineLife_abundance_many => 'Many';
+
+  @override
+  String get marineLife_abundance_abundant => 'Abundant';
+
+  @override
+  String get marineLife_abundance_exact => 'Exact';
+
+  @override
+  String get marineLife_abundance_ranges =>
+      'Few 2 to 10, Many 11 to 100, Abundant over 100';
 
   @override
   String get marineLife_speciesPage_sort_recentlySeen => 'Recently seen';
@@ -20166,6 +20240,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_photoViewer_videoFileNotFound => 'Video file not found';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      'Playing this video needs a normal browser window. Private windows cannot stream from Google Drive or WebDAV.';
+
+  @override
   String get media_photoViewer_videoNotLinked => 'Video not linked to library';
 
   @override
@@ -20555,6 +20633,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_library_empty => 'No media yet';
 
   @override
+  String get media_library_emptyFiltered => 'No media matches these filters';
+
+  @override
   String get media_library_filter_all => 'All';
 
   @override
@@ -20585,6 +20666,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String media_library_filter_missingCount(int count) {
     return 'Missing files ($count)';
   }
+
+  @override
+  String get media_library_filter_noPeople => 'No one tagged';
+
+  @override
+  String media_library_filter_peopleTwo(String first, String second) {
+    return '$first, $second';
+  }
+
+  @override
+  String media_library_filter_peopleAndMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String media_library_filter_peopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count people',
+      one: '$count person',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_library_filter_peopleSearchHint => 'Search people';
+
+  @override
+  String get media_library_filter_peopleNoMatch => 'No people match';
+
+  @override
+  String get media_library_filter_peopleClear => 'Clear people';
+
+  @override
+  String get media_library_filter_notPlacedInDive => 'Not placed in the dive';
 
   @override
   String get media_library_filter_clear => 'Clear filters';
@@ -25950,6 +26067,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_field_supersedesRuleId =>
       'Replaces built-in rule';
+
+  @override
+  String get settings_conflict_field_surfaceBreathingDuration =>
+      'Time breathed at the surface';
 
   @override
   String get settings_conflict_field_surfaceConditions => 'Surface conditions';
@@ -38024,6 +38145,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get reparseBatch_noneWithRawData =>
       'None of the selected dives have stored raw data to re-parse.';
+
+  @override
+  String get diveLog_selection_tooltip_fetchConditions => 'Fetch Conditions';
 
   @override
   String get diveLog_selection_tooltip_reparse => 'Re-parse';
@@ -52675,6 +52799,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'No profile data for this dive';
 
   @override
+  String get diveLog_estimatedProfile_caption =>
+      'Estimated from max depth and time, not a recorded profile';
+
+  @override
   String get settings_export_progress_divesCsv => 'Exporting dives to CSV...';
 
   @override
@@ -55380,7 +55508,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks cylinders on $dives dives carry this transmitter. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas or read from the transmitter\'s name will be replaced.';
+    return '$tanks cylinders on $dives dives carrying this transmitter need its setup. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas or read from the transmitter\'s name will be replaced.';
   }
 
   @override
@@ -55389,8 +55517,43 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing =>
-      'No cylinders carry this transmitter';
+  String transmitters_apply_slot_label(String computer) {
+    return 'Slot on $computer';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'Don\'t match by slot';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives dives',
+      one: '$dives dive',
+    );
+    return 'T$slot: $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading => 'Reading imported files';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'Cylinders imported from a file carry no serial. They can be filled by the slot this transmitter sat in on the dive computer.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'Dives filled by serial: $serialDives, by slot: $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'No cylinder needs this transmitter\'s setup';
+
+  @override
+  String get transmitters_apply_slot_read_failed =>
+      'The imported files could not be read, so cylinders cannot be matched by slot';
 
   @override
   String transmitters_channel(String computer, int channel) {

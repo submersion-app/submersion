@@ -114,6 +114,34 @@ double? referenceBarsPerBar(
   return isMatchedPair(tank, reference) ? 1 : null;
 }
 
+/// The surface seconds the diver entered on [tanks] that a rate counts
+/// (issue #2930): those of each cylinder [contributes] says adds gas to the
+/// rate, except where a matched partner in [tanks] entered more (on a tie,
+/// the one with the lower id counts). A matched pair is breathed as one
+/// timeline, so its shared surface time counts once, at its longer entry.
+/// [secondsOf] defaults to the cylinder's own entry. `gas_use_sql.dart`
+/// mirrors it; partners share a consumption volume, so they count alike.
+int enteredSurfaceSeconds(
+  List<DiveTank> tanks, {
+  required bool Function(DiveTank tank) contributes,
+  int Function(DiveTank tank)? secondsOf,
+}) {
+  int seconds(DiveTank t) =>
+      secondsOf?.call(t) ?? t.surfaceBreathingDuration?.inSeconds ?? 0;
+  var total = 0;
+  for (final tank in tanks) {
+    final own = seconds(tank);
+    if (own <= 0 || !contributes(tank)) continue;
+    final outdone = tanks.any((p) {
+      if (p.id == tank.id || !isMatchedPair(p, tank)) return false;
+      final theirs = seconds(p);
+      return theirs > own || (theirs == own && p.id.compareTo(tank.id) < 0);
+    });
+    if (!outdone) total += own;
+  }
+  return total;
+}
+
 /// Two logged mixes within this many percentage points of O2 and of He
 /// are the same gas, the tolerance consolidation and the sequential tank
 /// merge use. `multi_cylinder_sac_sql.dart` mirrors it.

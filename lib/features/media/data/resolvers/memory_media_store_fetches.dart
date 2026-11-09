@@ -15,9 +15,10 @@ import 'package:submersion/features/media/domain/value_objects/media_source_data
 /// into page memory, kept in [MediaBytesMemory] and served as [BytesData].
 ///
 /// Thumbnails serve for every row. An original or a rendition serves only
-/// for a photo, the one kind a page shows from bytes: a video or a
-/// document needs a file to play or render, so its full bytes are never
-/// downloaded here and the row keeps its thumbnail.
+/// for a photo, the one kind a page shows from bytes. A document needs a
+/// file to render, so it keeps its thumbnail. A video is never downloaded
+/// here either: the viewer streams it to the player from a signed link or
+/// through the media stream worker (`planStoreVideo`, issue #4162).
 class MemoryMediaStoreFetches implements MediaStoreFetches {
   MemoryMediaStoreFetches({
     required MediaObjectStore store,

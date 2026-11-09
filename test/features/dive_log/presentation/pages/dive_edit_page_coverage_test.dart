@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart' hide Visibility;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -180,6 +181,7 @@ void main() {
     await speciesRepository.addSighting(
       diveId: created.id,
       speciesId: ray.id,
+      abundance: SightingAbundance.exact,
       count: 2,
       notes: 'pair',
     );

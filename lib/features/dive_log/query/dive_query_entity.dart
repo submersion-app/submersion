@@ -6,6 +6,7 @@ import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/sql/dive_weight_sql.dart';
+import 'package:submersion/features/dive_log/data/sql/gas_use_sql.dart';
 import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
 import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dart';
 import 'package:submersion/features/dive_log/query/dive_child_query_entities.dart';
@@ -224,8 +225,9 @@ String _derived(String column) =>
 
 /// SAC in bar per minute at the surface, by the formula the Insights SAC
 /// chart plots (`InsightsRepository.getSacPressurePerDive`): every breathed
-/// cylinder's drop in bar of the back gas (issue #3109) over the runtime,
-/// normalised by the average depth, so a search and the chart agree. Empty
+/// cylinder's drop in bar of the back gas (issue #3109) over the time
+/// underwater, normalised by the depth over it (issue #2930), so a search and
+/// the chart agree. Empty
 /// with no back-gas pressures, no drop to count (#3974), no runtime or no
 /// average depth, and on a CCR or SCR dive (issue #3673).
 final String kDiveSacSql =
@@ -513,8 +515,14 @@ final QueryEntity diveQueryEntity = QueryEntity(
       kDiveSacSql,
       dimension: FieldDimension.pressureRate,
       sanity: (min: 0, max: 20),
-      // dive_sites: a dive with no water of its own reads its site's.
-      tables: ['dive_tanks', 'dive_sites', ..._measuredRuntimeTables],
+      // dive_sites: a dive with no water of its own reads its site's;
+      // gasUseTables: the stored gas-use window (#2930).
+      tables: [
+        'dive_tanks',
+        'dive_sites',
+        ..._measuredRuntimeTables,
+        ...gasUseTables,
+      ],
     ),
     QueryField(
       key: 'sacTrend',

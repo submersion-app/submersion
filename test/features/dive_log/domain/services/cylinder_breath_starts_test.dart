@@ -235,6 +235,50 @@ void main() {
       expect(turns.single.previousEnd, inInclusiveRange(570, 602));
     });
 
+    test('a cylinder breathed from its first reading is from the start', () {
+      // The cylinder a sidemount dive began on (issue #4335).
+      final turns = cylinderBreathTurns(
+        _series(3000, (t) {
+          if (t <= 900) return 200 - t * _rate;
+          return 200 - 900 * _rate;
+        }),
+      );
+
+      expect(turns.fromStart, isTrue);
+      expect(turns.starts, isEmpty);
+    });
+
+    test('a cylinder held at first is not from the start', () {
+      final turns = cylinderBreathTurns(
+        _series(3000, (t) => t < 900 ? 200 : 200 - (t - 900) * _rate),
+      );
+
+      expect(turns.fromStart, isFalse);
+      expect(turns.starts, hasLength(1));
+    });
+
+    test('a hose filling at the start is not breathing from the start', () {
+      // Opening the valve drops the reading 3 bar, then it holds.
+      final turns = cylinderBreathTurns(
+        _series(3000, (t) => t < 20 ? 200 : 197),
+      );
+
+      expect(turns.fromStart, isFalse);
+    });
+
+    test('a 565 bar first reading does not hide the start', () {
+      final series = _series(3000, (t) {
+        if (t <= 900) return 200 - t * _rate;
+        return 200 - 900 * _rate;
+      });
+      final turns = cylinderBreathTurns([
+        (t: 0, bar: 564.7),
+        ...series.skip(1),
+      ]);
+
+      expect(turns.fromStart, isTrue);
+    });
+
     test('a dip between turns is not breathing', () {
       final turns = cylinderBreathTurns(
         _series(3000, (t) {
@@ -303,6 +347,64 @@ void main() {
       expect([
         for (final turn in cylinderBreathTurns(readings).starts) turn.t,
       ], cylinderBreathStarts(readings));
+    });
+  });
+
+  group('cylinderBreathedFromStart', () {
+    // Breathed from the first reading to 15:00, then held.
+    final falling = _series(
+      2400,
+      (t) => t <= 900 ? 200 - t * _rate : 200 - 900 * _rate,
+    );
+    // Held to 15:00, then breathed.
+    final held = _series(2400, (t) => t < 900 ? 200 : 200 - (t - 900) * _rate);
+
+    String? startOf(
+      Map<String, List<PressureReading>> readingsById, {
+      List<String> ids = const ['a', 'b'],
+    }) => cylinderBreathedFromStart(
+      cylinderIds: ids,
+      turnsById: {
+        for (final MapEntry(:key, :value) in readingsById.entries)
+          key: cylinderBreathTurns(value),
+      },
+      diveStart: 0,
+    );
+
+    test('names the one cylinder breathed from the start', () {
+      expect(startOf({'a': held, 'b': falling}), 'b');
+    });
+
+    test('two cylinders both falling from the start name none', () {
+      expect(startOf({'a': falling, 'b': falling}), isNull);
+    });
+
+    test('a transmitter that paired late says nothing about the start', () {
+      final late = [for (final r in falling) (t: r.t + 600, bar: r.bar)];
+      expect(startOf({'b': late}), isNull);
+    });
+
+    test('a transmitter logging zeros until it paired was not read from '
+        'the start', () {
+      // Ten minutes of 0 bar before the transmitter paired: a lead-in the
+      // glitch scan drops, so it says nothing about the start (#4335).
+      final pairedLate = [
+        for (var t = 0; t < 600; t += 2) (t: t, bar: 0.0),
+        for (final r in held) (t: r.t + 600, bar: r.bar),
+      ];
+      expect(startOf({'a': pairedLate}), isNull);
+    });
+
+    test('a lone cylinder held at the start puts the diver on the other', () {
+      expect(startOf({'a': held}), 'b');
+    });
+
+    test('with three cylinders a lone held one names none', () {
+      expect(startOf({'a': held}, ids: const ['a', 'b', 'c']), isNull);
+    });
+
+    test('both held at the start name none', () {
+      expect(startOf({'a': held, 'b': held}), isNull);
     });
   });
 }

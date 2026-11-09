@@ -38,12 +38,15 @@ class _Harness {
   final removed = <String>[];
   final settled = <String>[];
   var added = 0;
+  var filled = 0;
 }
 
 Future<_Harness> _pump(
   WidgetTester tester, {
   required List<GasSwitch> switches,
   int? maxTimestamp = 1800,
+  int minTimestamp = 0,
+  int fillCount = 0,
   int removedWithTankCount = 0,
   bool imperial = false,
   Map<String, List<int>> breathStarts = const {},
@@ -72,6 +75,9 @@ Future<_Harness> _pump(
               tanks: tanks,
               units: units,
               maxTimestamp: maxTimestamp,
+              minTimestamp: minTimestamp,
+              detectedEditCount: fillCount,
+              onFillDetected: () => h.filled++,
               startingTank: _back,
               removedWithTankCount: removedWithTankCount,
               breathStarts: breathStarts,
@@ -191,6 +197,39 @@ void main() {
     },
   );
 
+  testWidgets('a time before the start the profile reaches passes', (
+    tester,
+  ) async {
+    // Issue #4335: a switch logged 1:43 before the primary computer
+    // started, on a dive whose profile starts there too (#4296).
+    final h = await _pump(
+      tester,
+      switches: [_sw('gs-1', -103, 'deco')],
+      minTimestamp: -103,
+    );
+
+    expect(find.text('-1:43'), findsOneWidget);
+    expect(h.formKey.currentState!.validate(), isTrue);
+
+    await tester.enterText(_timeField('gs-1'), '-1:00');
+    expect(h.changes.last.updated.timestamp, -60);
+    expect(h.formKey.currentState!.validate(), isTrue);
+
+    await tester.enterText(_timeField('gs-1'), '-1:44');
+    expect(h.formKey.currentState!.validate(), isFalse);
+    await tester.pump();
+    expect(find.text('Must be within the dive'), findsOneWidget);
+  });
+
+  testWidgets('a time before 0 fails when the profile starts at 0', (
+    tester,
+  ) async {
+    final h = await _pump(tester, switches: [_sw('gs-1', 600, 'deco')]);
+
+    await tester.enterText(_timeField('gs-1'), '-0:10');
+    expect(h.formKey.currentState!.validate(), isFalse);
+  });
+
   testWidgets('two switches at one time fail validation', (tester) async {
     final h = await _pump(
       tester,
@@ -252,6 +291,27 @@ void main() {
 
     expect(h.removed, ['gs-1']);
     expect(h.added, 1);
+  });
+
+  testWidgets('switches the pressures show are offered in one tap', (
+    tester,
+  ) async {
+    final h = await _pump(
+      tester,
+      switches: [_sw('gs-1', 0, 'back')],
+      fillCount: 3,
+    );
+
+    await tester.tap(
+      find.text('Fill in 3 switches from the cylinder pressures'),
+    );
+    expect(h.filled, 1);
+  });
+
+  testWidgets('nothing to fill in offers nothing', (tester) async {
+    await _pump(tester, switches: [_sw('gs-1', 0, 'back')]);
+
+    expect(find.textContaining('from the cylinder pressures'), findsNothing);
   });
 
   testWidgets('the removed-with-tank notice shows for a positive count', (

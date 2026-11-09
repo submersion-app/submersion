@@ -6,6 +6,11 @@ import 'package:submersion/features/settings/presentation/conflicts/conflict_fie
 /// reviewed column list; the coverage guard in
 /// test/features/settings/presentation/conflicts/ keeps it complete.
 final Map<String, ConflictField> diveLogFields = {
+  'abundance': ConflictField(
+    (l) => l.marineLife_abundance_label,
+    FieldKind.enumValue,
+    enumLabel: sightingAbundanceLabeler,
+  ),
   'airTemp': ConflictField(
     (l) => DiveField.airTemp.localizedDisplayName(l),
     FieldKind.temperature,
@@ -619,6 +624,10 @@ final Map<String, ConflictField> diveLogFields = {
   ),
   'startTimestamp': ConflictField(
     (l) => l.settings_conflict_field_startTimestamp,
+    FieldKind.durationSeconds,
+  ),
+  'surfaceBreathingDuration': ConflictField(
+    (l) => l.settings_conflict_field_surfaceBreathingDuration,
     FieldKind.durationSeconds,
   ),
   'surfaceConditions': ConflictField(

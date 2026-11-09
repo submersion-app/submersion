@@ -30,11 +30,11 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_annotat
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_annotation_actions.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/planned_profile_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_highlight.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
 import 'package:submersion/features/equipment/presentation/providers/dive_sensor_summary_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
-import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Resolves computerId -> display name for a dive's data sources via the
@@ -307,9 +307,7 @@ class DiveProfileChartHost extends ConsumerWidget {
     final sourceById = {for (final s in dataSources) s.id: s};
     // Plan-vs-actual: the planned profile this dive was converted from,
     // ghosted next to the actual logged profile.
-    final plannedOverlay = ref.watch(
-      plannedProfileOverlayProvider(diveId).select((a) => a.value),
-    );
+    final planned = watchPlannedProfileForChart(context, ref, diveId);
     final overlays = <ChartSourceOverlay>[
       for (final id in overlayIds)
         if (id != activeSource?.id &&
@@ -336,7 +334,7 @@ class DiveProfileChartHost extends ConsumerWidget {
               )).select((a) => a.value),
             ),
           ),
-      ?plannedOverlay,
+      ?planned.overlay,
     ];
 
     final trackingIndex = ref.watch(profileTrackingIndexProvider(diveId));
@@ -392,6 +390,7 @@ class DiveProfileChartHost extends ConsumerWidget {
         exportKey: exportKey,
         profile: chartProfile,
         overlays: overlays.isEmpty ? null : overlays,
+        hasPlannedProfile: planned.available,
         activeComputerId: activeProfile?.computerId,
         diveDuration: dive.effectiveRuntime,
         maxDepth: dive.maxDepth,

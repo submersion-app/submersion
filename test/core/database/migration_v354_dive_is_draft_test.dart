@@ -4,13 +4,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// v350 adds `dives.is_draft` (issue #637): a dive marked at the site, with
+/// v354 adds `dives.is_draft` (issue #637): a dive marked at the site, with
 /// entry and exit times but no dive computer readings yet. NOT NULL with a
 /// false default, so every existing dive stays an ordinary logged dive.
 void main() {
-  test('v350 is in the migration ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(350));
-    expect(AppDatabase.migrationVersions, contains(350));
+  test('v354 is in the migration ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(354));
+    expect(AppDatabase.migrationVersions, contains(354));
   });
 
   test(
@@ -35,7 +35,7 @@ void main() {
   test('an existing dive upgrades to not a draft', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
-        rawDb.execute('PRAGMA user_version = 349');
+        rawDb.execute('PRAGMA user_version = 350');
         rawDb.execute('''
           CREATE TABLE dives (
             id TEXT NOT NULL PRIMARY KEY,
@@ -58,11 +58,11 @@ void main() {
     expect(row.read<int>('is_draft'), 0);
   });
 
-  /// v350 also creates dive_health_records, Apple Health readings per dive.
+  /// v354 also creates dive_health_records, Apple Health readings per dive.
   test('an upgraded database has the health records table', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
-        rawDb.execute('PRAGMA user_version = 349');
+        rawDb.execute('PRAGMA user_version = 350');
         rawDb.execute('''
           CREATE TABLE dives (
             id TEXT NOT NULL PRIMARY KEY,

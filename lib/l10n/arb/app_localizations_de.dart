@@ -8154,9 +8154,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_diveMode_title => 'Tauchmodus';
 
   @override
-  String get diveLog_editSighting_count => 'Anzahl';
-
-  @override
   String get diveLog_editSighting_notes => 'Notizen';
 
   @override
@@ -8291,6 +8288,17 @@ class AppLocalizationsDe extends AppLocalizations {
       locale: localeName,
       other: '$count Gaswechsel mit ihrer Flasche entfernt',
       one: '$count Gaswechsel mit seiner Flasche entfernt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_gasSwitches_fillDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Wechsel aus den Flaschendrücken übernehmen',
+      one: '1 Wechsel aus den Flaschendrücken übernehmen',
     );
     return '$_temp0';
   }
@@ -9284,6 +9292,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_legend_label_annotations => 'Anmerkungen';
 
   @override
+  String get diveLog_legend_label_plan => 'Plan';
+
+  @override
   String get diveLog_legend_label_computedEvents => 'Berechnete Ereignisse';
 
   @override
@@ -9544,6 +9555,40 @@ class AppLocalizationsDe extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Bei $count von $total ausgewählten Tauchgängen fehlen die Bedingungen.',
+      one:
+          'Bei $count von $total ausgewählten Tauchgängen fehlen die Bedingungen.',
+    );
+    return '$_temp0 Es werden nur leere Felder gefüllt; bereits eingetragene Werte bleiben unverändert.';
+  }
+
+  @override
+  String diveLog_fetchConditions_skippedNoLocation(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Tauchgänge haben weder Tauchplatzkoordinaten noch eine GPS-Position und werden übersprungen.',
+      one:
+          '$count Tauchgang hat weder Tauchplatzkoordinaten noch eine GPS-Position und wird übersprungen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_fetchConditions_noneNeededSelected =>
+      'Bei keinem der ausgewählten Tauchgänge fehlen Bedingungen.';
+
+  @override
+  String get diveLog_fetchConditions_noneLocatedSelected =>
+      'Die ausgewählten Tauchgänge ohne Bedingungen haben weder Tauchplatzkoordinaten noch eine GPS-Position.';
 
   @override
   String diveLog_fetchConditions_summaryCancelled(int count) {
@@ -10961,6 +11006,16 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_tank_label_endPressure => 'Enddruck';
+
+  @override
+  String get diveLog_tank_label_surfaceBreathing => 'An der Oberfläche geatmet';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_helper =>
+      'Minuten an dieser Flasche, nachdem der Computer die Aufzeichnung beendet hat, etwa Sauerstoff auf dem Boot';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_unit => 'Min.';
 
   @override
   String get diveLog_tank_label_he => 'He';
@@ -19093,10 +19148,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get marineLife_speciesDetail_topSitesTitle => 'Häufigste Tauchplätze';
 
   @override
-  String get marineLife_speciesDetail_totalSightingsLabel =>
-      'Sichtungen gesamt';
-
-  @override
   String get marineLife_speciesEdit_addTitle => 'Art hinzufügen';
 
   @override
@@ -19407,7 +19458,32 @@ class AppLocalizationsDe extends AppLocalizations {
   String get marineLife_speciesPage_sortTooltip => 'Sortieren';
 
   @override
-  String get marineLife_speciesPage_sort_mostSightings => 'Meiste Sichtungen';
+  String get marineLife_speciesPage_sort_mostDives => 'Meiste Tauchgänge';
+
+  @override
+  String get marineLife_abundance_label => 'Wie viele';
+
+  @override
+  String get marineLife_abundance_seen => 'Gesehen';
+
+  @override
+  String get marineLife_abundance_single => 'Einzeln';
+
+  @override
+  String get marineLife_abundance_few => 'Wenige';
+
+  @override
+  String get marineLife_abundance_many => 'Viele';
+
+  @override
+  String get marineLife_abundance_abundant => 'Massenhaft';
+
+  @override
+  String get marineLife_abundance_exact => 'Genau';
+
+  @override
+  String get marineLife_abundance_ranges =>
+      'Wenige 2 bis 10, Viele 11 bis 100, Massenhaft über 100';
 
   @override
   String get marineLife_speciesPage_sort_recentlySeen => 'Zuletzt gesehen';
@@ -20447,6 +20523,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_photoViewer_videoFileNotFound => 'Videodatei nicht gefunden';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      'Für dieses Video ist ein normales Browserfenster nötig. Private Fenster können nicht von Google Drive oder WebDAV streamen.';
+
+  @override
   String get media_photoViewer_videoNotLinked =>
       'Video nicht mit Bibliothek verknüpft';
 
@@ -20846,6 +20926,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_library_empty => 'Noch keine Medien';
 
   @override
+  String get media_library_emptyFiltered =>
+      'Keine Medien entsprechen diesen Filtern';
+
+  @override
   String get media_library_filter_all => 'Alle';
 
   @override
@@ -20876,6 +20960,43 @@ class AppLocalizationsDe extends AppLocalizations {
   String media_library_filter_missingCount(int count) {
     return 'Fehlende Dateien ($count)';
   }
+
+  @override
+  String get media_library_filter_noPeople => 'Niemand markiert';
+
+  @override
+  String media_library_filter_peopleTwo(String first, String second) {
+    return '$first, $second';
+  }
+
+  @override
+  String media_library_filter_peopleAndMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String media_library_filter_peopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Personen',
+      one: '$count Person',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_library_filter_peopleSearchHint => 'Personen suchen';
+
+  @override
+  String get media_library_filter_peopleNoMatch => 'Keine passenden Personen';
+
+  @override
+  String get media_library_filter_peopleClear => 'Personenauswahl aufheben';
+
+  @override
+  String get media_library_filter_notPlacedInDive =>
+      'Nicht im Tauchgang platziert';
 
   @override
   String get media_library_filter_clear => 'Filter zurücksetzen';
@@ -26348,6 +26469,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_supersedesRuleId =>
       'Ersetzt integrierte Regel';
+
+  @override
+  String get settings_conflict_field_surfaceBreathingDuration =>
+      'An der Oberfläche geatmete Zeit';
 
   @override
   String get settings_conflict_field_surfaceConditions =>
@@ -38596,6 +38721,9 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get reparseBatch_noneWithRawData =>
       'Keiner der ausgewählten Tauchgänge hat gespeicherte Rohdaten zum Neu-Auswerten.';
+
+  @override
+  String get diveLog_selection_tooltip_fetchConditions => 'Bedingungen abrufen';
 
   @override
   String get diveLog_selection_tooltip_reparse => 'Neu auswerten';
@@ -53375,6 +53503,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Keine Profildaten für diesen Tauchgang';
 
   @override
+  String get diveLog_estimatedProfile_caption =>
+      'Geschätzt aus maximaler Tiefe und Zeit, kein aufgezeichnetes Profil';
+
+  @override
   String get settings_export_progress_divesCsv =>
       'Tauchgänge werden nach CSV exportiert...';
 
@@ -56150,7 +56282,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks Flaschen in $dives Tauchgängen tragen diesen Sender. Leere Felder für Größe, Material, Name und Ausrüstung werden gefüllt, und eine noch auf Rückengas gesetzte oder aus dem Sendernamen gelesene Rolle wird ersetzt.';
+    return '$tanks Flaschen in $dives Tauchgängen mit diesem Sender brauchen seine Einrichtung. Leere Felder für Größe, Material, Name und Ausrüstung werden gefüllt, und eine noch auf Rückengas gesetzte oder aus dem Sendernamen gelesene Rolle wird ersetzt.';
   }
 
   @override
@@ -56159,7 +56291,44 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing => 'Keine Flasche trägt diesen Sender';
+  String transmitters_apply_slot_label(String computer) {
+    return 'Steckplatz auf $computer';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'Nicht nach Steckplatz zuordnen';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives Tauchgänge',
+      one: '$dives Tauchgang',
+    );
+    return 'T$slot: $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading =>
+      'Importierte Dateien werden gelesen';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'Aus einer Datei importierte Flaschen haben keine Seriennummer. Sie lassen sich über den Steckplatz füllen, den dieser Sender am Tauchcomputer belegte.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'Über Seriennummer gefüllte Tauchgänge: $serialDives, über Steckplatz: $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'Keine Flasche braucht die Einrichtung dieses Senders';
+
+  @override
+  String get transmitters_apply_slot_read_failed =>
+      'Die importierten Dateien konnten nicht gelesen werden, daher können Flaschen nicht nach Steckplatz zugeordnet werden';
 
   @override
   String transmitters_channel(String computer, int channel) {

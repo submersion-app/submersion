@@ -4,10 +4,13 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/testing.dart';
 import 'package:http/http.dart' as http;
+import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_api_client.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
+import 'package:submersion/core/services/media_store/media_streaming.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/media_store/s3_media_object_store.dart';
 
 import '../../../helpers/fake_s3_server.dart';
@@ -409,5 +412,60 @@ void main() {
         ),
       ),
     );
+  });
+
+  group('directLink', () {
+    test('directLink presigns the prefixed key for six hours', () async {
+      final at = DateTime.utc(2026, 6, 9, 12);
+      final store = S3MediaObjectStore(
+        client: S3ApiClient(
+          S3Config(
+            endpoint: 'http://localhost:9000',
+            bucket: 'test-bucket',
+            accessKeyId: 'AK',
+            secretAccessKey: 'SK',
+          ),
+          httpClient: MockClient((_) async => http.Response('', 200)),
+          now: () => at,
+        ),
+        keyPrefix: 'submersion-media/',
+        now: () => at,
+      );
+      final link = await store.directLink('smv1/objects/ab/abc.mp4');
+      expect(
+        link.url.path,
+        '/test-bucket/submersion-media/smv1/objects/ab/abc.mp4',
+      );
+      expect(link.url.queryParameters['X-Amz-Expires'], '21600');
+      expect(link.expiresAt, at.add(kS3PresignLifetime));
+      expect(kS3PresignLifetime, const Duration(hours: 6));
+    });
+  });
+
+  test('directLink logs where it signed for, never the signature', () async {
+    // A presigned link that will not play gives the player only a bare
+    // error, so the log names the host and region it was signed for.
+    final logged = <LogEntry>[];
+    final subscription = LoggerService.logStream.listen(logged.add);
+    addTearDown(subscription.cancel);
+    final store = S3MediaObjectStore(
+      client: S3ApiClient(
+        S3Config(
+          endpoint: 'http://localhost:9000',
+          bucket: 'test-bucket',
+          accessKeyId: 'AKSECRETID',
+          secretAccessKey: 'SK',
+        ),
+        httpClient: MockClient((_) async => http.Response('', 200)),
+      ),
+      keyPrefix: 'submersion-media/',
+    );
+    await store.directLink('smv1/objects/ab/abc.mp4');
+    await Future<void>.delayed(Duration.zero);
+    final line = logged.map((e) => e.message).join('\n');
+    expect(line, contains('localhost:9000'));
+    expect(line, contains('us-east-1'));
+    expect(line, isNot(contains('X-Amz-Signature')));
+    expect(line, isNot(contains('AKSECRETID')));
   });
 }

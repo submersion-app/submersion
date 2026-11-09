@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/edit_sighting_sheet.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
@@ -11,6 +12,7 @@ const _sighting = Sighting(
   speciesId: 'sp1',
   speciesName: 'Eagle Ray',
   speciesCategory: SpeciesCategory.ray,
+  abundance: SightingAbundance.exact,
   count: 2,
   notes: 'pair near the wall',
 );
@@ -41,8 +43,34 @@ void main() {
   testWidgets('renders species name, count and notes', (tester) async {
     await _pump(tester, onSave: (_) {}, onDelete: () {});
     expect(find.text('Eagle Ray'), findsOneWidget);
+    expect(
+      tester
+          .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Exact'))
+          .selected,
+      isTrue,
+    );
     expect(find.text('2'), findsOneWidget);
     expect(find.text('pair near the wall'), findsOneWidget);
+  });
+
+  testWidgets('saving untouched keeps the exact count', (tester) async {
+    Sighting? saved;
+    await _pump(tester, onSave: (s) => saved = s, onDelete: () {});
+
+    await tester.tap(find.text('Save Changes'));
+    await tester.pump();
+    expect(saved?.amount, (abundance: SightingAbundance.exact, count: 2));
+  });
+
+  testWidgets('a REEF group saves with count 1', (tester) async {
+    Sighting? saved;
+    await _pump(tester, onSave: (s) => saved = s, onDelete: () {});
+
+    await tester.tap(find.text('Many'));
+    await tester.pump();
+    await tester.tap(find.text('Save Changes'));
+    await tester.pump();
+    expect(saved?.amount, (abundance: SightingAbundance.many, count: 1));
   });
 
   testWidgets('count buttons adjust and save returns updated sighting', (
@@ -51,21 +79,50 @@ void main() {
     Sighting? saved;
     await _pump(tester, onSave: (s) => saved = s, onDelete: () {});
 
-    await tester.tap(find.byIcon(Icons.add));
+    await tester.tap(find.byIcon(Icons.add_circle_outline));
     await tester.pump();
     expect(find.text('3'), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.remove));
+    await tester.tap(find.byIcon(Icons.remove_circle_outline));
     await tester.pump();
-    await tester.tap(find.byIcon(Icons.remove));
+    await tester.tap(find.byIcon(Icons.remove_circle_outline));
     await tester.pump();
     expect(find.text('1'), findsOneWidget);
 
     await tester.enterText(find.byType(TextField), 'single ray');
     await tester.tap(find.text('Save Changes'));
     await tester.pump();
-    expect(saved?.count, 1);
+    expect(saved?.amount, (abundance: SightingAbundance.exact, count: 1));
     expect(saved?.notes, 'single ray');
+  });
+
+  testWidgets('fits a small phone with the keyboard up', (tester) async {
+    // The "How many" chips and stepper made the sheet taller; it scrolls
+    // rather than overflowing (an overflow fails the test).
+    tester.view.physicalSize = const Size(375, 667);
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.viewInsets = const FakeViewPadding(bottom: 260);
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.bottomCenter,
+            child: EditSightingSheet(
+              sighting: _sighting,
+              onSave: (_) {},
+              onDelete: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Save Changes'), findsOneWidget);
   });
 
   testWidgets('delete asks for confirmation before firing onDelete', (

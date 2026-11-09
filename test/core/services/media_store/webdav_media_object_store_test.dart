@@ -2,6 +2,8 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/services/cloud_storage/webdav/chunked_upload.dart';
@@ -251,4 +253,108 @@ void main() {
       expect(keys, ['smv1/objects/ab/abcd.jpg']);
     },
   );
+
+  group('readRange', () {
+    const key = 'smv1/objects/ab/abc.mp4';
+    Future<void> putVideo() async {
+      final src = File(p.join(tmp.path, 'v.mp4'))
+        ..writeAsBytesSync(List<int>.generate(100, (i) => i));
+      await store.putFile(key, src, contentType: 'video/mp4');
+    }
+
+    test('sends the Range header and returns the 206 body', () async {
+      await putVideo();
+      server.honorsRange = true;
+      final bytes = await store.readRange(key, start: 10, endInclusive: 19);
+      expect(bytes, List<int>.generate(10, (i) => 10 + i));
+      expect(
+        server.captured.last.headers['range'] ??
+            server.captured.last.headers['Range'],
+        'bytes=10-19',
+      );
+    });
+
+    test('slices a 200 answer to the requested range', () async {
+      await putVideo();
+      final bytes = await store.readRange(key, start: 95, endInclusive: 120);
+      expect(bytes, [95, 96, 97, 98, 99]);
+    });
+
+    test('missing key throws notFound', () async {
+      await expectLater(
+        store.readRange('smv1/objects/zz/none.mp4', start: 0, endInclusive: 9),
+        throwsA(
+          isA<MediaStoreException>().having(
+            (e) => e.kind,
+            'kind',
+            MediaStoreErrorKind.notFound,
+          ),
+        ),
+      );
+    });
+  });
+
+  test(
+    'readRange stops reading a whole-file answer once it has the range',
+    () async {
+      // A server that ignores Range sends the whole video for every piece;
+      // only the bytes up to the range's end may be read.
+      var served = 0;
+      Stream<List<int>> body() async* {
+        for (var i = 0; i < 100; i++) {
+          served++;
+          yield List<int>.filled(10, i);
+        }
+      }
+
+      final streamingStore = WebDavMediaObjectStore(
+        client: WebDavClient(
+          WebDavConfig(
+            serverUrl: 'https://dav.test/dav',
+            username: 'alice',
+            password: 'secret',
+            folder: kDefaultWebDavMediaFolder,
+          ),
+          httpClient: MockClient.streaming(
+            (request, _) async => http.StreamedResponse(body(), 200),
+          ),
+          backoff: (_) => Duration.zero,
+        ),
+      );
+      final bytes = await streamingStore.readRange(
+        'smv1/objects/ab/abc.mp4',
+        start: 12,
+        endInclusive: 24,
+      );
+      expect(bytes, [1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2]);
+      expect(served, lessThan(10));
+    },
+  );
+
+  test('readRange cuts a 206 that runs past the range', () async {
+    final overServing = WebDavMediaObjectStore(
+      client: WebDavClient(
+        WebDavConfig(
+          serverUrl: 'https://dav.test/dav',
+          username: 'alice',
+          password: 'secret',
+          folder: kDefaultWebDavMediaFolder,
+        ),
+        httpClient: MockClient(
+          (request) async => http.Response.bytes(
+            List<int>.generate(50, (i) => 10 + i),
+            206,
+            headers: {'content-range': 'bytes 10-59/100'},
+          ),
+        ),
+        backoff: (_) => Duration.zero,
+      ),
+    );
+    final bytes = await overServing.readRange(
+      'smv1/objects/ab/abc.mp4',
+      start: 10,
+      endInclusive: 19,
+    );
+    expect(bytes, List<int>.generate(10, (i) => 10 + i));
+  });
 }

@@ -37,7 +37,7 @@ class SpeciesPage extends ConsumerStatefulWidget {
 
 class _SpeciesPageState extends ConsumerState<SpeciesPage> {
   SpeciesCategory? _category;
-  SeenSpeciesSort _sort = SeenSpeciesSort.mostSightings;
+  SeenSpeciesSort _sort = SeenSpeciesSort.mostDives;
 
   @override
   void dispose() {
@@ -184,8 +184,7 @@ class _SpeciesPageState extends ConsumerState<SpeciesPage> {
 
   String _sortLabel(AppLocalizations l10n, SeenSpeciesSort sort) =>
       switch (sort) {
-        SeenSpeciesSort.mostSightings =>
-          l10n.marineLife_speciesPage_sort_mostSightings,
+        SeenSpeciesSort.mostDives => l10n.marineLife_speciesPage_sort_mostDives,
         SeenSpeciesSort.recentlySeen =>
           l10n.marineLife_speciesPage_sort_recentlySeen,
         SeenSpeciesSort.firstSeen => l10n.marineLife_speciesPage_sort_firstSeen,

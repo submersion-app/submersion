@@ -180,7 +180,7 @@ class Dives extends Table {
   BoolColumn get isPlanned =>
       boolean().withDefault(const Constant(false))(); // True for planned dives
 
-  // Draft dive flag (v350, issue #637): marked at the site, waiting for its
+  // Draft dive flag (v354, issue #637): marked at the site, waiting for its
   // dive computer readings. A draft really happened, so unlike a plan it
   // counts for no-fly and surface interval; it stays out of totals and has
   // no dive number until it is filled.
@@ -282,6 +282,12 @@ class DiveTanks extends Table {
   /// log recorded it (issue #1496). Null when the source recorded none,
   /// and on every row from before v259.
   IntColumn get usageDuration => integer().nullable()();
+
+  /// v348: seconds the diver breathed this cylinder at the surface after the
+  /// computer stopped logging, as they entered it (issue #2930): oxygen on
+  /// the boat after a deco dive. Whole-dive and per-cylinder SAC count it at
+  /// 0 m, since no recording shows it. Null when none was entered.
+  IntColumn get surfaceBreathingDuration => integer().nullable()();
   TextColumn get tankMaterial =>
       text().nullable()(); // aluminum, steel, carbonFiber
   TextColumn get tankName =>

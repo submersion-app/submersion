@@ -41,6 +41,8 @@ const Set<String> kUnmirroredDiveFields = {
   'tanks',
   'profile',
   'profileSpan',
+  'storedGasUse',
+  'surfaceBreathing',
   'gear',
   'notes',
   'photoIds',

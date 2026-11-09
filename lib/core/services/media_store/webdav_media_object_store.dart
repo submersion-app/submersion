@@ -5,6 +5,7 @@ import 'package:submersion/core/services/cloud_storage/webdav/chunked_upload.dar
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_client.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_errors.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
+import 'package:submersion/core/services/media_store/media_streaming.dart';
 
 /// Retry classification for WebDAV failures in the media queue.
 MediaStoreErrorKind mediaStoreKindFor(WebDavErrorCode code) => switch (code) {
@@ -28,7 +29,7 @@ MediaStoreErrorKind mediaStoreKindFor(WebDavErrorCode code) => switch (code) {
 /// live under the configured folder. WebDAV needs real collections, so
 /// parents are created on demand (the client caches them), and listing
 /// walks with Depth 1 because `Depth: infinity` is often disabled.
-class WebDavMediaObjectStore implements MediaObjectStore {
+class WebDavMediaObjectStore implements MediaObjectStore, RangeReadStore {
   WebDavMediaObjectStore({required WebDavClient client}) : _client = client;
 
   final WebDavClient _client;
@@ -112,6 +113,38 @@ class WebDavMediaObjectStore implements MediaObjectStore {
   @override
   Future<Uint8List> getBytes(String key) =>
       _guard(() => _client.getBytes(_path(key)));
+
+  /// One byte range of [key], for the media stream relay (issue #4162).
+  @override
+  Future<Uint8List> readRange(
+    String key, {
+    required int start,
+    required int endInclusive,
+  }) => _guard(() async {
+    final response = await _client.request(
+      'GET',
+      _client.uriFor(_path(key)),
+      headers: {'Range': 'bytes=$start-$endInclusive'},
+    );
+    // A server that ignores Range sends the whole object (200): read only
+    // as far as the range's end, and stop the rest coming (a video is large
+    // and this runs once per piece the player asks for). A 206 starts at
+    // [start], so it needs no more than the range's length.
+    final needed = response.statusCode == 200
+        ? endInclusive + 1
+        : endInclusive - start + 1;
+    final read = BytesBuilder(copy: false);
+    await for (final chunk in response.stream) {
+      read.add(chunk);
+      if (read.length >= needed) break;
+    }
+    return rangeOfAnswer(
+      response.statusCode,
+      read.takeBytes(),
+      start: start,
+      endInclusive: endInclusive,
+    );
+  });
 
   @override
   Future<void> delete(String key) => _guard(() => _client.delete(_path(key)));

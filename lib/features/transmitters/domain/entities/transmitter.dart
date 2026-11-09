@@ -136,6 +136,41 @@ class Transmitter extends Equatable {
     updatedAt: updatedAt ?? this.updatedAt,
   );
 
+  /// This key with a transmitter's cylinder setup, marked configured: what
+  /// saving one key writes onto the transmitter's other keys. A setup value
+  /// left empty clears the key's own.
+  Transmitter withSetup({
+    required TankRole role,
+    String? cylinderId,
+    double? volumeL,
+    double? workingPressureBar,
+    TankMaterial? material,
+    String? presetName,
+  }) => copyWith(
+    role: role,
+    equipmentId: cylinderId,
+    clearEquipmentId: cylinderId == null,
+    volumeL: volumeL,
+    clearVolumeL: volumeL == null,
+    workingPressureBar: workingPressureBar,
+    clearWorkingPressureBar: workingPressureBar == null,
+    material: material,
+    clearMaterial: material == null,
+    presetName: presetName,
+    clearPresetName: presetName == null,
+    isConfigured: true,
+  );
+
+  /// [withSetup] with [source]'s setup.
+  Transmitter withSetupOf(Transmitter source) => withSetup(
+    role: source.role,
+    cylinderId: source.equipmentId,
+    volumeL: source.volumeL,
+    workingPressureBar: source.workingPressureBar,
+    material: source.material,
+    presetName: source.presetName,
+  );
+
   /// Timestamps are excluded: they churn on every write and would defeat
   /// Riverpod's equality-based rebuild suppression. Mirrors CylinderConfig.
   @override

@@ -346,6 +346,18 @@ final profileSeriesHistoryProvider =
       return repository.getProfileHistory(diveId);
     });
 
+/// Whether a dive has any stored profile series, readable or not (#4112).
+///
+/// A dive read with an unreadable series has an empty profile, just like one
+/// logged without samples; only the second may be drawn as an estimate. Null
+/// (loading or failed) means draw nothing.
+final diveHasProfileSeriesProvider = FutureProvider.autoDispose
+    .family<bool, String>((ref, diveId) async {
+      final repository = ref.watch(diveRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchAnalysisInputChanges());
+      return repository.hasProfileSeries(diveId);
+    });
+
 /// Batch profile cache for mini charts in the dive list.
 ///
 /// Stores downsampled (~20 points) profiles keyed by dive ID. Populated in
@@ -361,12 +373,38 @@ final batchProfileCacheProvider =
 /// snapshot back would drop the newer page's entries and blank those cards'
 /// mini charts (#3506). Existing entries keep their list instances, which is
 /// what lets a card watching only its own entry skip the rebuild.
+///
+/// An empty answer (a dive without samples, #4112) only fills a dive with no
+/// entry yet. Asked again on every list load, it would otherwise write a
+/// fresh map that runs every card's selector for no change; and the list and
+/// the dashboard can ask for the same dive at once, so an older empty answer
+/// landing after a newer profile must not replace it.
+///
+/// A dive in [requested] that the answer leaves out (its series is
+/// unreadable, or the read failed) is unknown again: an empty entry for it
+/// is dropped, so its card stops drawing an estimate for a dive that may
+/// well have samples. An entry with samples stays.
 void mergeIntoBatchProfileCache(
   StateController<Map<String, List<domain.DiveProfilePoint>>> cache,
-  Map<String, List<domain.DiveProfilePoint>> profiles,
-) {
-  if (profiles.isEmpty) return;
-  cache.state = {...cache.state, ...profiles};
+  Map<String, List<domain.DiveProfilePoint>> profiles, {
+  Iterable<String> requested = const [],
+}) {
+  final current = cache.state;
+  final changed = {
+    for (final entry in profiles.entries)
+      if (entry.value.isNotEmpty || !current.containsKey(entry.key))
+        entry.key: entry.value,
+  };
+  final forgotten = {
+    for (final id in requested)
+      if (!profiles.containsKey(id) && (current[id]?.isEmpty ?? false)) id,
+  };
+  if (changed.isEmpty && forgotten.isEmpty) return;
+  cache.state = {
+    for (final entry in current.entries)
+      if (!forgotten.contains(entry.key)) entry.key: entry.value,
+    ...changed,
+  };
 }
 
 /// Statistics provider (filtered by current diver).

@@ -194,6 +194,10 @@ DiveTank _fold(DiveTank earlier, DiveTank later) => earlier
       usageDuration: _sumOrNull(earlier.usageDuration, later.usageDuration),
       clearUsageDuration:
           earlier.usageDuration == null || later.usageDuration == null,
+      // Breathed on the surface after the dive, which ends with the later
+      // half (#2930).
+      surfaceBreathingDuration:
+          later.surfaceBreathingDuration ?? earlier.surfaceBreathingDuration,
     )
     // The regulators travel as one list (issue #3375): the earlier half's when
     // it names any, otherwise the later half's, never a mix of the two.

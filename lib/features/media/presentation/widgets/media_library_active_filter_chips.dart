@@ -128,6 +128,16 @@ class MediaLibraryActiveFilterChips extends ConsumerWidget {
       );
     }
 
+    // No one tagged (issue #4148), which the sheet keeps apart from people.
+    if (filter.noPeople) {
+      chips.add(
+        chip(
+          l10n.media_library_filter_noPeople,
+          () => _update(ref, (f) => f.copyWith(noPeople: false)),
+        ),
+      );
+    }
+
     // People (issue #1745): Me, then one chip per selected buddy.
     if (filter.includeMe) {
       chips.add(
@@ -186,6 +196,15 @@ class MediaLibraryActiveFilterChips extends ConsumerWidget {
         chip(
           l10n.media_library_filter_missing,
           () => _update(ref, (f) => f.copyWith(health: null)),
+        ),
+      );
+    }
+
+    if (filter.notPlacedInDive) {
+      chips.add(
+        chip(
+          l10n.media_library_filter_notPlacedInDive,
+          () => _update(ref, (f) => f.copyWith(notPlacedInDive: false)),
         ),
       );
     }

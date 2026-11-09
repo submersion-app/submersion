@@ -49,6 +49,8 @@ extension TableBackstopsFromV217 on AppDatabase {
     await _assertCertificationsBuddyIndex();
     // v247 backstop: the Explore derived metrics (local, idempotent).
     await _assertDerivedMetricsTable();
+    // v348 backstop: its gas-use window columns (local, idempotent).
+    await _assertDerivedMetricsGasUseColumns();
 
     // v248 backstop: trip_equipment and its item index (idempotent).
     await _assertTripEquipmentSchema();
@@ -138,7 +140,7 @@ extension TableBackstopsFromV217 on AppDatabase {
     // v341 backstop: the dive_plan_series table (issue #3565; idempotent).
     await _assertDivePlanSeriesTable();
 
-    // v350 backstop: the dive_health_records table (issue #637; idempotent).
+    // v354 backstop: the dive_health_records table (issue #637; idempotent).
     await _assertDiveHealthRecordsTable();
 
     // v345 backstop: twin set pairings and their two columns (issue #4242;

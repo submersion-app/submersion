@@ -171,20 +171,16 @@ class SigV4Signer {
       payloadHash: hash,
     );
 
-    final credentialScope = '$dateStamp/$region/$service/aws4_request';
-    final sts = stringToSign(
+    final credentialScope = _credentialScope(dateStamp, region, service);
+    final signature = _signatureOf(
+      canonical: canonical,
       amzDate: amzDate,
-      credentialScope: credentialScope,
-      canonicalRequestStr: canonical,
-    );
-
-    final signingKey = deriveSigningKey(
-      secretAccessKey: secretAccessKey,
       dateStamp: dateStamp,
+      credentialScope: credentialScope,
+      secretAccessKey: secretAccessKey,
       region: region,
       service: service,
     );
-    final signature = hexEncode(hmacSha256(signingKey, utf8.encode(sts)));
 
     final signedHeaderNames = (headers.keys.toList()..sort()).join(';');
     headers['authorization'] =
@@ -193,5 +189,86 @@ class SigV4Signer {
         'SignedHeaders=$signedHeaderNames,'
         'Signature=$signature';
     return headers;
+  }
+
+  /// A presigned URL (SigV4 query-string authentication) for one request
+  /// with no headers but `host` and an unsigned payload: what a browser's
+  /// video element can fetch on its own (issue #4162).
+  ///
+  /// [canonicalUri] must already be SigV4-encoded, as for [sign].
+  static Uri presign({
+    required String method,
+    required String scheme,
+    required String host,
+    required String canonicalUri,
+    required String accessKeyId,
+    required String secretAccessKey,
+    required String region,
+    required DateTime requestTime,
+    required Duration expiresIn,
+    String service = 's3',
+  }) {
+    final amzDate = amzDateFormat(requestTime);
+    final dateStamp = dateStampFormat(requestTime);
+    final credentialScope = _credentialScope(dateStamp, region, service);
+    final queryParams = <String, String>{
+      'X-Amz-Algorithm': 'AWS4-HMAC-SHA256',
+      'X-Amz-Credential': '$accessKeyId/$credentialScope',
+      'X-Amz-Date': amzDate,
+      'X-Amz-Expires': '${expiresIn.inSeconds}',
+      'X-Amz-SignedHeaders': 'host',
+    };
+    final signature = _signatureOf(
+      canonical: canonicalRequest(
+        method: method,
+        canonicalUri: canonicalUri,
+        queryParams: queryParams,
+        headers: {'host': host},
+        payloadHash: 'UNSIGNED-PAYLOAD',
+      ),
+      amzDate: amzDate,
+      dateStamp: dateStamp,
+      credentialScope: credentialScope,
+      secretAccessKey: secretAccessKey,
+      region: region,
+      service: service,
+    );
+    // Assembled by hand so the wire query is the canonical one, byte for
+    // byte; Uri's own encoder differs from SigV4's in places.
+    return Uri.parse(
+      '$scheme://$host$canonicalUri?'
+      '${canonicalQueryString({...queryParams, 'X-Amz-Signature': signature})}',
+    );
+  }
+
+  static String _credentialScope(
+    String dateStamp,
+    String region,
+    String service,
+  ) => '$dateStamp/$region/$service/aws4_request';
+
+  /// The signature of [canonical], the step every SigV4 signing ends with,
+  /// header-signed or presigned alike.
+  static String _signatureOf({
+    required String canonical,
+    required String amzDate,
+    required String dateStamp,
+    required String credentialScope,
+    required String secretAccessKey,
+    required String region,
+    required String service,
+  }) {
+    final sts = stringToSign(
+      amzDate: amzDate,
+      credentialScope: credentialScope,
+      canonicalRequestStr: canonical,
+    );
+    final signingKey = deriveSigningKey(
+      secretAccessKey: secretAccessKey,
+      dateStamp: dateStamp,
+      region: region,
+      service: service,
+    );
+    return hexEncode(hmacSha256(signingKey, utf8.encode(sts)));
   }
 }
