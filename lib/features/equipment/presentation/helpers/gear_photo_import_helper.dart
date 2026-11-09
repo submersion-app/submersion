@@ -82,8 +82,17 @@ class GearPhotoImportHelper {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
+            // Re-picked photos already on the item are skipped; say so
+            // rather than reporting a bare "0 imported".
             content: Text(
-              context.l10n.media_import_importedPhotos(result.imported.length),
+              result.skippedDuplicates > 0
+                  ? context.l10n.media_import_importedAndSkipped(
+                      result.imported.length,
+                      result.skippedDuplicates,
+                    )
+                  : context.l10n.media_import_importedPhotos(
+                      result.imported.length,
+                    ),
             ),
           ),
         );

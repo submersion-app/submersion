@@ -20,6 +20,24 @@ AssetInfo _asset(String id) => AssetInfo(
   height: 1080,
 );
 
+class _LinkedA1 extends GearPhotoRepository {
+  @override
+  Future<List<MediaItem>> galleryLinksFor(String equipmentId) async => [
+    MediaItem(
+      id: 'm-a1',
+      equipmentId: equipmentId,
+      platformAssetId: 'a1',
+      mediaType: MediaType.photo,
+      takenAt: DateTime.utc(2026),
+      createdAt: DateTime.utc(2026),
+      updatedAt: DateTime.utc(2026),
+    ),
+  ];
+
+  @override
+  Future<Set<String>> linkedLocalPathsFor(String equipmentId) async => {};
+}
+
 class _NoLinks extends GearPhotoRepository {
   @override
   Future<List<MediaItem>> galleryLinksFor(String equipmentId) async => [];
@@ -95,6 +113,20 @@ void main() {
       expect(m.equipmentId, 'reg-1');
       expect(m.observationId, 'obs-1');
     }
+  });
+
+  testWidgets('a re-picked photo is reported as already linked', (
+    tester,
+  ) async {
+    service = MediaImportService(
+      mediaRepository: repository,
+      enrichmentService: MockEnrichmentService(),
+      gearPhotos: _LinkedA1(),
+    );
+    await runLink(tester, selected: [_asset('a1')]);
+
+    expect(find.textContaining('1 already linked'), findsOneWidget);
+    verifyNever(repository.createMedia(any));
   });
 
   testWidgets('an empty selection links nothing', (tester) async {

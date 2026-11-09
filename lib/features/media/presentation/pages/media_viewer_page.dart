@@ -51,6 +51,7 @@ import 'package:submersion/features/media/presentation/widgets/people_tags/peopl
 import 'package:submersion/features/media/presentation/widgets/people_tags/people_tag_viewer_mixin.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/video_people_layer.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/video_tag_marks.dart';
+import 'package:submersion/features/media/presentation/widgets/media_viewer_caption.dart';
 import 'package:submersion/features/media/presentation/widgets/media_viewer_toolbar.dart';
 import 'package:submersion/features/media/presentation/widgets/video_color_filter.dart';
 import 'package:submersion/features/media/presentation/helpers/color_pick_white.dart';
@@ -739,7 +740,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                             kMediaViewerToolbarHeight +
                             4,
                         right: 12,
-                        child: _ViewerCaption(text: caption),
+                        child: MediaViewerCaption(text: caption),
                       ),
 
                     // Tag mode keeps the photo clear below the toolbar.
@@ -2054,27 +2055,4 @@ class _MetadataChip extends StatelessWidget {
         ? tappable
         : Tooltip(message: tooltip!, child: tappable);
   }
-}
-
-/// The viewer's source line, a small dark pill readable over any photo.
-class _ViewerCaption extends StatelessWidget {
-  const _ViewerCaption({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    key: const ValueKey('viewer_caption'),
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-    decoration: BoxDecoration(
-      color: Colors.black.withValues(alpha: 0.55),
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: Text(
-      text,
-      style: Theme.of(
-        context,
-      ).textTheme.labelMedium?.copyWith(color: Colors.white),
-    ),
-  );
 }

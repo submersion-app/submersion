@@ -9,6 +9,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_observat
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/gear_photo_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/observation_tag_display.dart';
+import 'package:submersion/features/equipment/presentation/widgets/gear_photo_remove_dialog.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_launcher.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
@@ -57,16 +58,21 @@ class _GearGalleryViewState extends ConsumerState<GearGalleryView> {
     final l10n = context.l10n;
     final units = ref.read(unitFormatterProvider);
     final repository = ref.read(equipmentObservationRepositoryProvider);
-    final checkIns = <String, EquipmentObservation>{};
-    for (final id in {for (final m in group.items) ?m.observationId}) {
+    Future<EquipmentObservation?> read(String id) async {
       try {
-        if (await repository.getById(id) case final observation?) {
-          checkIns[id] = observation;
-        }
+        return await repository.getById(id);
       } catch (_) {
         // A check-in that cannot be read only loses its caption.
+        return null;
       }
     }
+
+    // Read together, not one after another, before the viewer opens.
+    final found = await Future.wait([
+      for (final id in {for (final m in group.items) ?m.observationId})
+        read(id),
+    ]);
+    final checkIns = {for (final o in found.nonNulls) o.id: o};
     if (!mounted) return;
     openMediaViewer(
       context,
@@ -86,24 +92,8 @@ class _GearGalleryViewState extends ConsumerState<GearGalleryView> {
     final ids = _selection.value.checkedIds.toList();
     if (ids.isEmpty) return BulkActionOutcome.cancelled;
     final l10n = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.equipment_photos_removeConfirmTitle(ids.length)),
-        content: Text(l10n.equipment_photos_removeConfirmContent),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l10n.media_diveMediaSection_cancelButton),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(l10n.equipment_photos_remove),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return BulkActionOutcome.cancelled;
+    final confirmed = await confirmRemoveGearPhotos(context, ids.length);
+    if (!confirmed || !mounted) return BulkActionOutcome.cancelled;
     try {
       await ref.read(mediaUnlinkServiceProvider).unlinkFromEquipment(ids);
       ref.invalidate(gearGalleryProvider);

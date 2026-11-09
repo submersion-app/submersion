@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_photo_import_helper.dart';
 import 'package:submersion/features/equipment/presentation/providers/gear_photo_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/gear_photo_remove_dialog.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_launcher.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
@@ -52,24 +53,8 @@ class _EquipmentPhotosSectionState
     final ids = _selection.value.checkedIds.toList();
     if (ids.isEmpty) return BulkActionOutcome.cancelled;
     final l10n = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.equipment_photos_removeConfirmTitle(ids.length)),
-        content: Text(l10n.equipment_photos_removeConfirmContent),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l10n.media_diveMediaSection_cancelButton),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(l10n.equipment_photos_remove),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !context.mounted) {
+    final confirmed = await confirmRemoveGearPhotos(context, ids.length);
+    if (!confirmed || !context.mounted) {
       return BulkActionOutcome.cancelled;
     }
     try {

@@ -52,7 +52,7 @@ class FilesTab extends ConsumerWidget {
   /// photo the date matcher rejected had no route into the database.
   ///
   /// A [SiteAttachTarget] switches the tab out of dive mode entirely; see
-  /// [_isSiteSession]. Null when the picker was opened with no owning entity
+  /// [_ownsEveryFile]. Null when the picker was opened with no owning entity
   /// (the library importer), where the matcher is the only thing that can
   /// assign one.
   final MediaAttachTarget? target;
@@ -68,7 +68,7 @@ class FilesTab extends ConsumerWidget {
   /// the photo to some dive the user never mentioned.
   /// A site or gear session (issue #3355): every file is the owner's, so the
   /// tab leaves dive mode.
-  bool get _isSiteSession => target?.ownsEveryFile ?? false;
+  bool get _ownsEveryFile => target?.ownsEveryFile ?? false;
 
   /// The dive files may be manually assigned to, or null when there isn't
   /// one to offer.
@@ -161,7 +161,7 @@ class FilesTab extends ConsumerWidget {
           ),
           // Dives are not this session's business when a site is the target,
           // so the option is hidden rather than shown-and-ignored.
-          if (!_isSiteSession)
+          if (!_ownsEveryFile)
             Row(
               children: [
                 Checkbox(
@@ -197,7 +197,7 @@ class FilesTab extends ConsumerWidget {
                 : FileReviewPane(
                     state: state,
                     assignableDiveId: _assignableDiveId,
-                    flat: _isSiteSession,
+                    flat: _ownsEveryFile,
                   ),
           ),
           // Rendered for anything staged, disabled when nothing is
@@ -226,13 +226,13 @@ class FilesTab extends ConsumerWidget {
   }
 
   /// How many staged files [FilesTabNotifier.commit] would actually persist.
-  int _committableCount(FilesTabState state) => _isSiteSession
+  int _committableCount(FilesTabState state) => _ownsEveryFile
       ? state.files.length
       : state.match.totalFiles - state.match.unmatched.length;
 
   String _commitLabel(BuildContext context, FilesTabState state) {
     final count = _committableCount(state);
-    return _isSiteSession
+    return _ownsEveryFile
         ? context.l10n.media_photoPicker_files_attachToSiteButton(count)
         : context.l10n.media_photoPicker_files_linkButton(count);
   }
@@ -268,7 +268,7 @@ class FilesTab extends ConsumerWidget {
     messenger.showSnackBar(
       SnackBar(
         content: Text(
-          _isSiteSession
+          _ownsEveryFile
               ? l10n.media_photoPicker_files_attachedToSiteCount(created.length)
               : l10n.media_photoPicker_files_linkedCount(created.length),
         ),
@@ -280,7 +280,7 @@ class FilesTab extends ConsumerWidget {
         ),
       ),
     );
-    if (!_isSiteSession) {
+    if (!_ownsEveryFile) {
       await offerSiteReviewAfterImport(
         context,
         ref,

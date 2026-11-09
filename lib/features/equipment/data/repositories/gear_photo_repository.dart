@@ -8,6 +8,7 @@ import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_row_mapper.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 
 /// One gear item's photos in the Gear gallery, newest first.
 class GearPhotoGroup {
@@ -44,6 +45,13 @@ class GearPhotoRepository {
   /// the media rows themselves and the equipment rows the gallery names and
   /// the cover lives on.
   Stream<void> watchGearPhotoChanges() => _db
+      .tableUpdates(TableUpdateQuery.onAllTables([_db.media]))
+      .debounce(MediaRepository.changeTickDebounce);
+
+  /// [watchGearPhotoChanges] plus the equipment rows, for the readers that
+  /// also read an item: the gallery's names and the cover. The photo lists
+  /// do not, so an unrelated gear edit does not re-read them.
+  Stream<void> watchGearItemPhotoChanges() => _db
       .tableUpdates(TableUpdateQuery.onAllTables([_db.media, _db.equipment]))
       .debounce(MediaRepository.changeTickDebounce);
 
@@ -118,18 +126,40 @@ class GearPhotoRepository {
 
   /// Every item holding at least one gear photo, for the gallery's
   /// visibility check.
-  Future<Set<String>> equipmentIdsWithPhotos() async => {
-    for (final item in await _photosOf((t) => t.equipmentId.isNotNull()))
-      item.equipmentId!,
-  };
+  Future<Set<String>> equipmentIdsWithPhotos() async {
+    final m = _db.media;
+    // The SQL form of [MediaItem.isGearPhoto]: ids only, no row to hydrate.
+    final rows =
+        await (_db.selectOnly(m, distinct: true)
+              ..addColumns([m.equipmentId])
+              ..where(
+                m.equipmentId.isNotNull() &
+                    m.fileType.isNotIn([
+                      ...kSignatureFileTypes,
+                      mediaTypeToDbString(MediaType.document),
+                    ]) &
+                    m.sourceType.equals(MediaSourceType.signature.name).not(),
+              ))
+            .get();
+    return {for (final r in rows) r.read(m.equipmentId)!};
+  }
 
   /// The Gear gallery: photos of every item in [equipmentIds], grouped by
   /// item, the item with the newest photo first. The caller passes the ids
   /// the viewing diver may see.
   Future<List<GearPhotoGroup>> gearGallery(Set<String> equipmentIds) async {
     if (equipmentIds.isEmpty) return const [];
-    final photos = await _photosOf((t) => t.equipmentId.isIn(equipmentIds));
-    if (photos.isEmpty) return const [];
+    final rows = await _photosOf((t) => t.equipmentId.isIn(equipmentIds));
+    if (rows.isEmpty) return const [];
+    // A check-in id with no check-in counts as none here too, so the badge
+    // agrees with the gear page.
+    final living = await _existingCheckIns(rows);
+    final photos = [
+      for (final m in rows)
+        m.observationId == null || living.contains(m.observationId)
+            ? m
+            : m.copyWith(observationId: null),
+    ];
     final byItem = <String, List<MediaItem>>{};
     for (final item in photos) {
       (byItem[item.equipmentId!] ??= []).add(item);

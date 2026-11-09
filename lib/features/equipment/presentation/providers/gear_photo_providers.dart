@@ -43,7 +43,7 @@ final equipmentCoverProvider = FutureProvider.family<MediaItem?, String>((
   equipmentId,
 ) async {
   final repository = ref.watch(gearPhotoRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchGearPhotoChanges());
+  ref.invalidateSelfWhen(repository.watchGearItemPhotoChanges());
   return repository.coverFor(equipmentId);
 });
 
@@ -52,7 +52,7 @@ final equipmentCoverProvider = FutureProvider.family<MediaItem?, String>((
 final gearGalleryProvider = FutureProvider<List<GearPhotoGroup>>((ref) async {
   final repository = ref.watch(gearPhotoRepositoryProvider);
   final equipment = ref.watch(equipmentRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchGearPhotoChanges());
+  ref.invalidateSelfWhen(repository.watchGearItemPhotoChanges());
   final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
   final ids = await repository.equipmentIdsWithPhotos();
   final visible = diverId == null

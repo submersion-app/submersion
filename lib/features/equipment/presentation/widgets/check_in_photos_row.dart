@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_photo_import_helper.dart';
 import 'package:submersion/features/equipment/presentation/providers/gear_photo_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/gear_photo_remove_dialog.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_launcher.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
@@ -33,25 +34,8 @@ class CheckInPhotosRow extends ConsumerWidget {
     WidgetRef ref,
     String mediaId,
   ) async {
-    final l10n = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.equipment_photos_removeConfirmTitle(1)),
-        content: Text(l10n.equipment_photos_removeConfirmContent),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l10n.media_diveMediaSection_cancelButton),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(l10n.equipment_photos_remove),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
+    // The sheet may close while the dialog is up, taking this row's ref.
+    if (!await confirmRemoveGearPhotos(context, 1) || !context.mounted) return;
     await ref.read(mediaUnlinkServiceProvider).unlinkFromEquipment([mediaId]);
     ref.invalidate(observationPhotosProvider(observationId));
   }

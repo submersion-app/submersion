@@ -150,7 +150,7 @@ void main() {
       await addMedia(equipmentId: reg.id, takenAt: DateTime.utc(2026, 10, 1));
       await addMedia(
         equipmentId: suit.id,
-        observationId: 'obs-9',
+        observationId: await checkIn(suit.id, 'obs-9'),
         takenAt: DateTime.utc(2026, 11, 1),
       );
       await addMedia(equipmentId: suit.id, type: MediaType.document);
@@ -161,6 +161,11 @@ void main() {
       expect(groups.map((g) => g.name), ['Suit', 'Reg']);
       expect(groups.first.items, hasLength(1));
       expect(groups.first.items.single.isCheckInPhoto, isTrue);
+
+      // A check-in id with no check-in is no check-in in the gallery either.
+      await addMedia(equipmentId: reg.id, observationId: 'gone');
+      final again = await repository.gearGallery({reg.id});
+      expect(again.single.items.every((m) => !m.isCheckInPhoto), isTrue);
     },
   );
 

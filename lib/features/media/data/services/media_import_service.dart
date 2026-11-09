@@ -292,65 +292,12 @@ class MediaImportService {
     required String siteId,
   }) async {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.mediaImport);
-    final List<MediaItem> imported = [];
-    final Map<String, String> failures = {};
-
-    _log.info(
-      'Starting import of ${selectedAssets.length} assets for site $siteId',
-    );
-
-    // Same two-key dedupe as the dive import: gallery picks are checked
-    // against the site's linked rows, desktop picks on the path.
-    bool hasPath(AssetInfo a) => a.filePath != null && a.filePath!.isNotEmpty;
-    final anyPaths = selectedAssets.any(hasPath);
-    final gallery = selectedAssets.where((a) => !hasPath(a)).toList();
-
-    final newGalleryIds = gallery.isEmpty
-        ? const <String>{}
-        : await _unlinkedGalleryIds(
-            gallery,
-            await _mediaRepository.getGalleryLinksForSite(siteId),
-          );
-    final existingPaths = anyPaths
-        ? await _mediaRepository.getLinkedLocalPathsForSite(siteId)
-        : const <String>{};
-
-    final newAssets = selectedAssets.where((a) {
-      if (hasPath(a)) return !existingPaths.contains(a.filePath);
-      return newGalleryIds.contains(a.id);
-    }).toList();
-    final skippedCount = selectedAssets.length - newAssets.length;
-
-    final cloudIds = await _cloudIdsFor(newAssets);
-    for (final asset in newAssets) {
-      try {
-        final mediaItem = _createMediaItemFromAsset(
-          asset,
-          siteId: siteId,
-          cloudAssetId: cloudIds[asset.id],
-        );
-        final saved = await _mediaRepository.createMedia(mediaItem);
-        imported.add(saved);
-        onMediaCreated?.call(saved.id);
-      } catch (e, stackTrace) {
-        _log.error(
-          'Failed to import asset ${asset.id} for site',
-          error: e,
-          stackTrace: stackTrace,
-        );
-        failures[asset.id] = e.toString();
-      }
-    }
-
-    _log.info(
-      'Site import complete: ${imported.length} succeeded, '
-      '${failures.length} failed, $skippedCount skipped',
-    );
-
-    return ImportResult(
-      imported: imported,
-      failures: failures,
-      skippedDuplicates: skippedCount,
+    return _importOwned(
+      selectedAssets: selectedAssets,
+      owner: 'site $siteId',
+      galleryLinks: () => _mediaRepository.getGalleryLinksForSite(siteId),
+      localPaths: () => _mediaRepository.getLinkedLocalPathsForSite(siteId),
+      link: (item) => item.copyWith(siteId: siteId),
     );
   }
 
@@ -365,19 +312,38 @@ class MediaImportService {
   }) async {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.mediaImport);
     final gearPhotos = _gearPhotos ?? GearPhotoRepository();
-    final imported = <MediaItem>[];
-    final failures = <String, String>{};
+    return _importOwned(
+      selectedAssets: selectedAssets,
+      owner: 'equipment $equipmentId',
+      galleryLinks: () => gearPhotos.galleryLinksFor(equipmentId),
+      localPaths: () => gearPhotos.linkedLocalPathsFor(equipmentId),
+      link: (item) =>
+          item.copyWith(equipmentId: equipmentId, observationId: observationId),
+    );
+  }
+
+  /// The shared body of an import owned outright by one entity (a site or a
+  /// gear item): the dive import's two-key dedupe (gallery picks against the
+  /// owner's linked rows, desktop picks on the path), then one linked row per
+  /// new asset, with no dive window and no enrichment.
+  Future<ImportResult> _importOwned({
+    required List<AssetInfo> selectedAssets,
+    required String owner,
+    required Future<List<MediaItem>> Function() galleryLinks,
+    required Future<Set<String>> Function() localPaths,
+    required MediaItem Function(MediaItem) link,
+  }) async {
+    final List<MediaItem> imported = [];
+    final Map<String, String> failures = {};
+    _log.info('Starting import of ${selectedAssets.length} assets for $owner');
 
     bool hasPath(AssetInfo a) => a.filePath != null && a.filePath!.isNotEmpty;
     final gallery = selectedAssets.where((a) => !hasPath(a)).toList();
     final newGalleryIds = gallery.isEmpty
         ? const <String>{}
-        : await _unlinkedGalleryIds(
-            gallery,
-            await gearPhotos.galleryLinksFor(equipmentId),
-          );
+        : await _unlinkedGalleryIds(gallery, await galleryLinks());
     final existingPaths = selectedAssets.any(hasPath)
-        ? await gearPhotos.linkedLocalPathsFor(equipmentId)
+        ? await localPaths()
         : const <String>{};
     final newAssets = selectedAssets.where((a) {
       if (hasPath(a)) return !existingPaths.contains(a.filePath);
@@ -389,22 +355,26 @@ class MediaImportService {
     for (final asset in newAssets) {
       try {
         final saved = await _mediaRepository.createMedia(
-          _createMediaItemFromAsset(
-            asset,
-            cloudAssetId: cloudIds[asset.id],
-          ).copyWith(equipmentId: equipmentId, observationId: observationId),
+          link(
+            _createMediaItemFromAsset(asset, cloudAssetId: cloudIds[asset.id]),
+          ),
         );
         imported.add(saved);
         onMediaCreated?.call(saved.id);
       } catch (e, stackTrace) {
         _log.error(
-          'Failed to import asset ${asset.id} for equipment',
+          'Failed to import asset ${asset.id} for $owner',
           error: e,
           stackTrace: stackTrace,
         );
         failures[asset.id] = e.toString();
       }
     }
+
+    _log.info(
+      'Import for $owner complete: ${imported.length} succeeded, '
+      '${failures.length} failed, $skippedCount skipped',
+    );
     return ImportResult(
       imported: imported,
       failures: failures,
@@ -433,7 +403,6 @@ class MediaImportService {
   MediaItem _createMediaItemFromAsset(
     AssetInfo asset, {
     String? diveId,
-    String? siteId,
     String? cloudAssetId,
   }) {
     final now = DateTime.now();
@@ -453,7 +422,6 @@ class MediaImportService {
     return MediaItem(
       id: '',
       diveId: diveId,
-      siteId: siteId,
       // Deliberately null for a localFile row. The desktop picker's asset id
       // is a synthetic in-memory key, and several features gate purely on
       // `platformAssetId != null` -- MediaItem.isGalleryPhoto,
