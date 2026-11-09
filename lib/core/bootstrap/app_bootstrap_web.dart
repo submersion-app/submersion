@@ -14,6 +14,7 @@ import 'package:submersion/core/services/log_environment.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/web_library_paths.dart';
 import 'package:submersion/features/demo_mode/data/demo_paths.dart';
+import 'package:submersion/features/media/data/streaming/media_stream_worker_host.dart';
 
 /// Starts the app in a browser.
 ///
@@ -49,6 +50,11 @@ Future<void> bootstrapWeb({
   // so crashes are diagnosable from the user-shared log (issue #318).
   installGlobalErrorHandlers();
   registerBundledLicenses();
+
+  // Store videos from Google Drive and WebDAV stream through this worker
+  // (issue #4162). Started now, not awaited, so it controls the page by
+  // the time a video opens; the viewer waits for it if not.
+  unawaited(startMediaStreamWorker());
 
   final prefs = await loadPreferences();
   applyStartupPreferences(prefs);

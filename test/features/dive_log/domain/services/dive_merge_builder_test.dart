@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/domain/visibility/visibility_range.dart';
 import 'package:submersion/core/presentation/widgets/dive_sparkline.dart';
@@ -538,6 +539,7 @@ void main() {
               id: 's1',
               speciesId: 'turtle',
               speciesName: 'Green Turtle',
+              abundance: SightingAbundance.exact,
               count: 2,
               notes: 'near reef',
             ),
@@ -547,6 +549,7 @@ void main() {
               id: 's2',
               speciesId: 'turtle',
               speciesName: 'Green Turtle',
+              abundance: SightingAbundance.exact,
               count: 1,
             ),
             const MarineSighting(
@@ -561,9 +564,54 @@ void main() {
       final turtle = result.mergedSightings.firstWhere(
         (s) => s.speciesId == 'turtle',
       );
-      expect(turtle.count, 3);
+      expect(turtle.amount, (abundance: SightingAbundance.exact, count: 3));
       expect(turtle.notes, 'near reef');
       expect(turtle.id, isNot('s1'));
+    });
+
+    test('sightings merge an exact count and a group to the larger group', () {
+      // Issue #4337: "x3" and "Many" have no sum; Many wins, and a Seen
+      // sighting gives way to whatever the other dive recorded.
+      final a = dive('a', entry: DateTime.utc(2026, 7, 1, 9));
+      final b = dive('b', entry: DateTime.utc(2026, 7, 1, 10));
+      final result = builder.build(
+        [a, b],
+        sightingsByDive: {
+          'a': [
+            const MarineSighting(
+              id: 's1',
+              speciesId: 'jack',
+              speciesName: 'Jack',
+              abundance: SightingAbundance.exact,
+              count: 3,
+            ),
+            const MarineSighting(
+              id: 's2',
+              speciesId: 'ray',
+              speciesName: 'Eagle Ray',
+            ),
+          ],
+          'b': [
+            const MarineSighting(
+              id: 's3',
+              speciesId: 'jack',
+              speciesName: 'Jack',
+              abundance: SightingAbundance.many,
+            ),
+            const MarineSighting(
+              id: 's4',
+              speciesId: 'ray',
+              speciesName: 'Eagle Ray',
+              abundance: SightingAbundance.exact,
+              count: 2,
+            ),
+          ],
+        },
+      );
+      SightingAmount amountOf(String id) =>
+          result.mergedSightings.firstWhere((s) => s.speciesId == id).amount;
+      expect(amountOf('jack'), (abundance: SightingAbundance.many, count: 1));
+      expect(amountOf('ray'), (abundance: SightingAbundance.exact, count: 2));
     });
   });
 

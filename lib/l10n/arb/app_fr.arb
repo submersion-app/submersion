@@ -383,6 +383,33 @@
   "trips_story_history_avgTemp": "moy. {value}",
   "trips_story_history_avgDepth": "prof. moy. {value}",
   "trips_story_rhythm_semantics": "Heures de plongée de cette journée",
+  "trips_story_rhythm_semanticsSunriseSunset": "Heures de plongée de cette journée. Lever du soleil {sunrise}, coucher du soleil {sunset}.",
+  "@trips_story_rhythm_semanticsSunriseSunset": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      },
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunrise": "Heures de plongée de cette journée. Lever du soleil {sunrise}.",
+  "@trips_story_rhythm_semanticsSunrise": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunset": "Heures de plongée de cette journée. Coucher du soleil {sunset}.",
+  "@trips_story_rhythm_semanticsSunset": {
+    "placeholders": {
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
   "trips_story_dayMap_semantics": "Carte du jour {number}",
   "@trips_story_dayMap_semantics": {
     "placeholders": {
@@ -2625,7 +2652,6 @@
   "diveLog_diveMode_ocDescription": "Plongée en circuit ouvert standard avec blocs",
   "diveLog_diveMode_scrDescription": "Recycleur semi-fermé avec ppO₂ variable",
   "diveLog_diveMode_title": "Mode de plongée",
-  "diveLog_editSighting_count": "Nombre",
   "diveLog_editSighting_notes": "Notes",
   "diveLog_editSighting_notesHint": "Taille, comportement, emplacement...",
   "diveLog_editSighting_remove": "Retirer",
@@ -3356,6 +3382,9 @@
   "diveLog_summary_stat_totalDives": "Total plongées",
   "diveLog_summary_title": "Résumé du carnet de plongée",
   "diveLog_tank_label_endPressure": "Pression finale",
+  "diveLog_tank_label_surfaceBreathing": "Respiré en surface",
+  "diveLog_tank_surfaceBreathing_helper": "Minutes sur ce bloc après l'arrêt de l'enregistrement de l'ordinateur, comme l'oxygène sur le bateau",
+  "diveLog_tank_surfaceBreathing_unit": "min",
   "diveLog_tank_label_he": "He",
   "diveLog_tank_label_material": "Matériau",
   "diveLog_tank_label_mnd": "MND",
@@ -4881,6 +4910,12 @@
   "equipment_location_deleteMoveConfirm": "Supprimer cette entrée de l'historique ? L'emplacement de l'élément est recalculé à partir des déplacements restants.",
   "equipment_location_bulkAction": "Déplacer vers un emplacement",
   "equipment_location_groupCount": "{count, plural, one{{count} élément} other{{count} éléments}}",
+  "equipment_group_foldedTypeCount": "{type} {count}",
+  "equipment_group_foldedServiceDue": "{count, plural, one{{count} entretien à faire} other{{count} entretiens à faire}}",
+  "equipment_group_foldedMoreTypes": "{count, plural, one{et {count} autre} other{et {count} autres}}",
+  "equipment_group_foldedSelected": "{selected} sur {total} sélectionnés",
+  "equipment_list_expandAllGroups": "Tout déplier",
+  "equipment_list_collapseAllGroups": "Tout replier",
   "equipment_location_activeFilter": "Emplacement",
   "equipment_location_tileSemantics": "Emplacement : {name}",
   "equipment_filter_section_location": "Emplacement",
@@ -5508,7 +5543,6 @@
   "marineLife_speciesDetail_sitesLabel": "Sites",
   "marineLife_speciesDetail_taxonomyClassLabel": "Classe : {className}",
   "marineLife_speciesDetail_topSitesTitle": "Meilleurs sites",
-  "marineLife_speciesDetail_totalSightingsLabel": "Total des observations",
   "marineLife_speciesEdit_addTitle": "Ajouter une espèce",
   "marineLife_speciesEdit_addedSnackbar": "\"{name}\" ajoutée",
   "marineLife_speciesEdit_backTooltip": "Retour",
@@ -5582,7 +5616,15 @@
   "marineLife_speciesPage_searchHint": "Rechercher les espèces observées",
   "marineLife_speciesPage_manageCatalogTooltip": "Gérer le catalogue",
   "marineLife_speciesPage_sortTooltip": "Trier",
-  "marineLife_speciesPage_sort_mostSightings": "Plus d'observations",
+  "marineLife_speciesPage_sort_mostDives": "Plus de plongées",
+  "marineLife_abundance_label": "Combien",
+  "marineLife_abundance_seen": "Vu",
+  "marineLife_abundance_single": "Un seul",
+  "marineLife_abundance_few": "Quelques-uns",
+  "marineLife_abundance_many": "Nombreux",
+  "marineLife_abundance_abundant": "Abondants",
+  "marineLife_abundance_exact": "Exact",
+  "marineLife_abundance_ranges": "Quelques-uns de 2 à 10, Nombreux de 11 à 100, Abondants plus de 100",
   "marineLife_speciesPage_sort_recentlySeen": "Vues récemment",
   "marineLife_speciesPage_sort_firstSeen": "Première observation",
   "marineLife_speciesPage_sort_name": "Nom",
@@ -5801,6 +5843,7 @@
   "media_photoViewer_shareTooltip": "Partager la photo",
   "media_photoViewer_toggleOverlayLabel": "Basculer la superposition photo",
   "media_photoViewer_videoFileNotFound": "Fichier vidéo introuvable",
+  "media_photoViewer_videoNeedsNormalWindow": "La lecture de cette vidéo nécessite une fenêtre de navigateur normale. Les fenêtres privées ne peuvent pas diffuser depuis Google Drive ou WebDAV.",
   "media_photoViewer_videoNotLinked": "Vidéo non liée à la bibliothèque",
   "media_photoViewer_writeDiveDataTooltip": "Écrire les données de plongée sur la photo",
   "media_quickSiteDialog_cancelButton": "Annuler",
@@ -5854,6 +5897,7 @@
   "media_console_library": "Bibliothèque",
   "media_console_transfers": "Transferts",
   "media_library_empty": "Aucun média pour le moment",
+  "media_library_emptyFiltered": "Aucun média ne correspond à ces filtres",
   "media_library_filter_all": "Tous",
   "media_library_filter_photos": "Photos",
   "media_library_filter_videos": "Vidéos",
@@ -5933,6 +5977,14 @@
   "media_library_filter_dates": "Dates",
   "media_library_filter_missing": "Fichiers manquants",
   "media_library_filter_missingCount": "Fichiers manquants ({count})",
+  "media_library_filter_noPeople": "Aucune personne identifiée",
+  "media_library_filter_peopleTwo": "{first}, {second}",
+  "media_library_filter_peopleAndMore": "{names} +{count}",
+  "media_library_filter_peopleCount": "{count, plural, =1{{count} personne} other{{count} personnes}}",
+  "media_library_filter_peopleSearchHint": "Rechercher des personnes",
+  "media_library_filter_peopleNoMatch": "Aucune personne ne correspond",
+  "media_library_filter_peopleClear": "Effacer les personnes",
+  "media_library_filter_notPlacedInDive": "Non placé dans la plongée",
   "media_library_filter_clear": "Effacer les filtres",
   "media_library_filter_any": "Indifférent",
   "media_library_filter_title": "Filtrer les médias",
@@ -7188,6 +7240,7 @@
   "settings_conflict_field_certificationListGroupBy": "Certifications: regroupement",
   "settings_conflict_field_equipmentArrangement": "Organisation de l'équipement",
   "settings_conflict_field_equipmentGroupByLocation": "Équipement regroupé par emplacement",
+  "settings_conflict_field_equipmentCollapsedGroups": "Groupes d'équipement repliés",
   "settings_conflict_field_listArrangementHlc": "Journal de l'organisation des listes",
   "settings_conflict_sortValue": "{field}, {direction}",
   "settings_conflict_field_avgSpeed": "Vitesse moyenne",
@@ -7722,6 +7775,7 @@
   "settings_conflict_field_summaryRuntimeSeconds": "Durée prévue",
   "settings_conflict_field_summaryTtsSeconds": "Temps de remontée prévu",
   "settings_conflict_field_supersedesRuleId": "Remplace la règle intégrée",
+  "settings_conflict_field_surfaceBreathingDuration": "Temps respiré en surface",
   "settings_conflict_field_surfaceConditions": "Conditions en surface",
   "settings_conflict_field_surfaceSwimLimitM": "Nage en surface la plus longue",
   "settings_conflict_field_swimSpeedMps": "Vitesse de nage",
@@ -15807,6 +15861,7 @@
   "diveLog_detail_errorLoadingSignature": "Erreur lors du chargement de la signature : {error}",
   "diveLog_profilePanel_selectDive": "Sélectionnez une plongée pour voir son profil",
   "diveLog_profilePanel_noProfileData": "Aucune donnée de profil pour cette plongée",
+  "diveLog_estimatedProfile_caption": "Estimé à partir de la profondeur maximale et de la durée, pas un profil enregistré",
   "settings_export_progress_divesCsv": "Export des plongées vers CSV...",
   "settings_export_progress_sitesCsv": "Export des sites vers CSV...",
   "settings_export_progress_equipmentCsv": "Export de l’équipement vers CSV...",
@@ -16668,9 +16723,16 @@
   "transmitters_section_setUp": "Configurer",
   "transmitters_action_apply": "Appliquer aux plongées existantes",
   "transmitters_apply_title": "Appliquer aux plongées existantes ?",
-  "transmitters_apply_content": "{tanks} bouteilles sur {dives} plongées portent cet émetteur. Les champs vides de taille, matériau, nom et équipement seront remplis, et un rôle encore réglé sur Gaz fond ou lu dans le nom de l'émetteur sera remplacé.",
+  "transmitters_apply_content": "{tanks} bouteilles sur {dives} plongées portant cet émetteur ont besoin de sa configuration. Les champs vides de taille, matériau, nom et équipement seront remplis, et un rôle encore réglé sur Gaz fond ou lu dans le nom de l'émetteur sera remplacé.",
   "transmitters_apply_done": "{tanks} bouteilles mises à jour sur {dives} plongées",
-  "transmitters_apply_nothing": "Aucune bouteille ne porte cet émetteur",
+  "transmitters_apply_slot_label": "Emplacement sur {computer}",
+  "transmitters_apply_slot_none": "Ne pas associer par emplacement",
+  "transmitters_apply_slot_option": "T{slot} : {dives, plural, one{{dives} plongée} other{{dives} plongées}}",
+  "transmitters_apply_slot_reading": "Lecture des fichiers importés",
+  "transmitters_apply_slot_intro": "Les bouteilles importées d'un fichier n'ont pas de numéro de série. Elles peuvent être remplies selon l'emplacement qu'occupait cet émetteur sur l'ordinateur de plongée.",
+  "transmitters_apply_summary": "Plongées remplies par numéro de série : {serialDives}, par emplacement : {slotDives}",
+  "transmitters_apply_nothing_to_fill": "Aucune bouteille n'a besoin de la configuration de cet émetteur",
+  "transmitters_apply_slot_read_failed": "Les fichiers importés n'ont pas pu être lus, les bouteilles ne peuvent donc pas être associées par emplacement",
   "transmitters_channel": "{computer}, canal {channel}",
   "transmitters_serial": "Émetteur {serial}",
   "transmitters_edit_title": "Modifier l'émetteur",

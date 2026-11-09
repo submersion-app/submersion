@@ -4,6 +4,7 @@ import 'package:submersion/core/models/sort_state_codec.dart';
 import 'package:submersion/features/certifications/presentation/utils/certification_grouping.dart';
 import 'package:submersion/features/dive_sites/domain/utils/site_grouping.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_fold_keys.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/settings/domain/list_arrangements.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -72,6 +73,20 @@ extension ListArrangementWrites on SettingsNotifier {
       updateListArrangements(
         (a) => a.copyWith(equipmentGroupByLocation: value),
       );
+
+  /// Applies [change] to the Equipment page's saved folded keys (issue
+  /// #4184). The change runs against the diver's saved keys once their
+  /// settings have loaded, so a fold tapped during the load adds to them
+  /// rather than replacing them.
+  Future<void> updateEquipmentCollapsedGroups(
+    List<String> Function(List<String> current) change,
+  ) => updateListArrangements(
+    (a) => a.copyWith(
+      equipmentCollapsedGroups: encodeFoldKeys(
+        change(decodeFoldKeys(a.equipmentCollapsedGroups)),
+      ),
+    ),
+  );
 
   /// Applies [change] to the diver's gear arrangement and saves it.
   ///

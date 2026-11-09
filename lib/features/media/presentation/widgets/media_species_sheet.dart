@@ -137,7 +137,9 @@ class MediaSpeciesSheet extends ConsumerWidget {
         expand: false,
         builder: (_, controller) => SpeciesPickerSheet(
           scrollController: controller,
-          onSpeciesSelected: (species, count, notes) async {
+          // A tag needs only the species; a sighting it creates is Seen.
+          showAbundance: false,
+          onSpeciesSelected: (species, _, _) async {
             Navigator.of(sheetContext).pop();
             try {
               await ref

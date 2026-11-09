@@ -416,6 +416,10 @@ class DiverSettings extends Table {
   /// the app-wide `equipment_group_by_location` key. Null falls back to it.
   BoolColumn get equipmentGroupByLocation => boolean().nullable()();
 
+  /// v351: the Equipment page's folded group keys, a JSON list (issue
+  /// #4184). Null or empty means every group open.
+  TextColumn get equipmentCollapsedGroups => text().nullable()();
+
   /// v323: the clock the arrangement columns above, the list view modes and
   /// [groupTripsInDiveList] sync under (`SyncFactGroups`), so a sort tap
   /// never restamps [hlc] and republishes the diver's other settings.

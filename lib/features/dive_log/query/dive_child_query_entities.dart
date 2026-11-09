@@ -119,7 +119,15 @@ final sightingQueryEntity = QueryEntity(
   subject: QuerySubject.sightings,
   table: 'sightings',
   fields: [
-    _num('sightings', 'count', '{r}.count', dimension: FieldDimension.count),
+    // Only an exact count is a number: a Seen or REEF-group sighting
+    // (abundance not null) stores count 1, which must not match `= 1` or
+    // fall short of `> 10` (issue #4337).
+    _num(
+      'sightings',
+      'count',
+      'CASE WHEN {r}.abundance IS NULL THEN {r}.count END',
+      dimension: FieldDimension.count,
+    ),
     _text('sightings', 'notes', 'notes'),
   ],
   relations: const [

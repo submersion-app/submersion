@@ -24,6 +24,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/folded_groups.dart';
 
 class _PresetListNotifier
     extends StateNotifier<AsyncValue<List<TankPresetEntity>>>
@@ -181,6 +182,7 @@ void main() {
   Future<void> pick(WidgetTester tester, EquipmentItem item) async {
     await tester.tap(pickerButton);
     await tester.pumpAndSettle();
+    await openFoldedGroups(tester);
     await tester.tap(find.text(item.name));
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 300)),
@@ -316,6 +318,8 @@ void main() {
     );
     await tester.tap(pickerButton);
     await tester.pumpAndSettle();
+    // The owner's shared gear is a folded group of its own (#3364).
+    await openFoldedGroups(tester);
 
     Finder tileOf(String name) =>
         find.ancestor(of: find.text(name), matching: find.byType(ListTile));

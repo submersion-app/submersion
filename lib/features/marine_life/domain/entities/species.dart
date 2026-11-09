@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 
 /// Marine species entity
 class Species extends Equatable {
@@ -135,6 +136,13 @@ class Sighting extends Equatable {
   final String speciesId;
   final String speciesName; // Denormalized for easy display
   final SpeciesCategory? speciesCategory;
+
+  /// How many animals the sighting records: Seen (the default for a new
+  /// sighting), a REEF group, or [SightingAbundance.exact] with the number
+  /// in [count].
+  final SightingAbundance abundance;
+
+  /// The exact number of animals for [SightingAbundance.exact]; 1 otherwise.
   final int count;
   final String notes;
 
@@ -144,9 +152,13 @@ class Sighting extends Equatable {
     required this.speciesId,
     required this.speciesName,
     this.speciesCategory,
+    this.abundance = SightingAbundance.seen,
     this.count = 1,
     this.notes = '',
   });
+
+  /// [abundance] and [count] together.
+  SightingAmount get amount => (abundance: abundance, count: count);
 
   Sighting copyWith({
     String? id,
@@ -154,6 +166,7 @@ class Sighting extends Equatable {
     String? speciesId,
     String? speciesName,
     SpeciesCategory? speciesCategory,
+    SightingAbundance? abundance,
     int? count,
     String? notes,
   }) {
@@ -163,6 +176,7 @@ class Sighting extends Equatable {
       speciesId: speciesId ?? this.speciesId,
       speciesName: speciesName ?? this.speciesName,
       speciesCategory: speciesCategory ?? this.speciesCategory,
+      abundance: abundance ?? this.abundance,
       count: count ?? this.count,
       notes: notes ?? this.notes,
     );
@@ -175,6 +189,7 @@ class Sighting extends Equatable {
     speciesId,
     speciesName,
     speciesCategory,
+    abundance,
     count,
     notes,
   ];

@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/domain/entities/species_insights.dart';
 
@@ -136,7 +137,8 @@ void main() {
       );
 
       expect(stats.isEmpty, false);
-      expect(stats.totalSightings, 5);
+      // Sightings, not animals (issue #4337): two dives, two sightings.
+      expect(stats.totalSightings, 2);
       expect(stats.diveCount, 2);
       expect(stats.siteCount, 2);
       expect(stats.minDepthMeters, 15.0);
@@ -157,7 +159,7 @@ void main() {
       await insertTestDive(id: 'dive-b', siteId: 'site-beta');
       await insertTestDive(id: 'dive-c', siteId: 'site-alpha');
 
-      // site-alpha: 5 sightings total, site-beta: 1
+      // site-alpha: seen on 2 dives, site-beta: 1 (counts are not summed)
       await speciesRepository.addSighting(
         diveId: 'dive-a',
         speciesId: species.id,
@@ -180,7 +182,7 @@ void main() {
 
       expect(stats.topSites.length, 2);
       expect(stats.topSites[0].name, 'Site site-alpha');
-      expect(stats.topSites[0].count, 5);
+      expect(stats.topSites[0].count, 2);
       expect(stats.topSites[1].name, 'Site site-beta');
       expect(stats.topSites[1].count, 1);
     });
@@ -206,19 +208,83 @@ void main() {
         count: 7,
       );
 
-      // Without filter: total = 11
+      // Without filter: two sightings
       final allStats = await statsRepository.getSpeciesInsights(
         speciesId: species.id,
       );
-      expect(allStats.totalSightings, 11);
+      expect(allStats.totalSightings, 2);
 
       // With filter: only Alice's dives
       final aliceStats = await statsRepository.getSpeciesInsights(
         speciesId: species.id,
         diverId: 'diver-alice',
       );
-      expect(aliceStats.totalSightings, 4);
+      expect(aliceStats.totalSightings, 1);
       expect(aliceStats.diveCount, 1);
+    });
+  });
+
+  group('abundance does not inflate totals (issue #4337)', () {
+    test('an exact 40 and a Few rank as two dives, not 41', () async {
+      final jack = await speciesRepository.createSpecies(
+        commonName: 'Test Jack',
+        category: SpeciesCategory.fish,
+      );
+      final grouper = await speciesRepository.createSpecies(
+        commonName: 'Test Grouper',
+        category: SpeciesCategory.fish,
+      );
+      await insertTestDive(id: 'dive-x', siteId: 'site-x');
+      await insertTestDive(id: 'dive-y', siteId: 'site-x');
+      await insertTestDive(id: 'dive-z', siteId: 'site-x');
+
+      await speciesRepository.addSighting(
+        diveId: 'dive-x',
+        speciesId: jack.id,
+        abundance: SightingAbundance.exact,
+        count: 40,
+      );
+      await speciesRepository.addSighting(
+        diveId: 'dive-y',
+        speciesId: jack.id,
+        abundance: SightingAbundance.few,
+      );
+      for (final dive in ['dive-x', 'dive-y', 'dive-z']) {
+        await speciesRepository.addSighting(
+          diveId: dive,
+          speciesId: grouper.id,
+        );
+      }
+
+      final ranking = await statsRepository.getMostCommonSightings();
+      expect(ranking.map((r) => (r.name, r.count)), [
+        ('Test Grouper', 3),
+        ('Test Jack', 2),
+      ]);
+
+      final stats = await statsRepository.getSpeciesInsights(
+        speciesId: jack.id,
+      );
+      expect(stats.totalSightings, 2);
+      expect(stats.topSites.single.count, 2);
+    });
+
+    test('two rows of one species on one dive count once', () async {
+      final ray = await speciesRepository.createSpecies(
+        commonName: 'Test Ray',
+        category: SpeciesCategory.ray,
+      );
+      await insertTestDive(id: 'dive-r', siteId: 'site-r');
+      for (var i = 0; i < 2; i++) {
+        await speciesRepository.addSighting(
+          diveId: 'dive-r',
+          speciesId: ray.id,
+        );
+      }
+
+      final stats = await statsRepository.getSpeciesInsights(speciesId: ray.id);
+      expect(stats.totalSightings, 1);
+      expect(stats.diveCount, 1);
     });
   });
 
@@ -235,14 +301,13 @@ void main() {
       await speciesRepository.addSighting(
         diveId: 'dive-1',
         speciesId: species.id,
-        count: 2,
       );
 
       final items = await statsRepository.getMostCommonSightings();
 
       expect(items, hasLength(1));
       expect(items.single.name, 'Test Perch');
-      expect(items.single.count, 2);
+      expect(items.single.count, 1, reason: 'one dive (issue #4337)');
       expect(items.single.kind, 'fish');
       expect(items.single.subtitle, isNull);
     });

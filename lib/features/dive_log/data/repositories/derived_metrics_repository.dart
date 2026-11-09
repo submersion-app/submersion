@@ -6,14 +6,33 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_source_stamp.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_worker.dart';
 import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
 import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart'
+    as domain
+    show DiveTank;
+import 'package:submersion/features/dive_log/domain/services/dive_surface_breathing.dart';
+import 'package:submersion/features/dive_log/domain/services/gas_use_window.dart';
 import 'package:submersion/features/dive_log/domain/services/derived_metrics_service.dart';
 
 typedef DerivedMetricsRunner =
     Future<DiveDerivedMetrics> Function(DerivedMetricsWorkInput input);
+
+/// A dive's merged profile, every recording the dive page shows.
+typedef MergedProfileReader =
+    Future<List<DiveProfilePoint>> Function(String diveId);
+
+/// One repository for every read: a sweep reads thousands of dives, and
+/// each [DiveRepository] builds its own media and deletion collaborators.
+final DiveRepository _mergedProfileSource = DiveRepository();
+
+Future<List<DiveProfilePoint>> _readMergedProfile(String diveId) =>
+    _mergedProfileSource.getMergedProfile(diveId);
 
 Future<DiveDerivedMetrics> _computeOnIsolate(DerivedMetricsWorkInput input) =>
     compute(computeDerivedMetricsFromBlobs, input);
@@ -29,11 +48,19 @@ class DerivedMetricsRepository {
   DerivedMetricsRepository({
     AppDatabase? database,
     DerivedMetricsRunner? runner,
-  }) : _dbOverride = database,
-       _runner = runner ?? _computeOnIsolate;
+    MergedProfileReader? mergedProfile,
+  }) : assert(
+         database == null || mergedProfile != null,
+         'The default merged profile reads DatabaseService.instance, so a '
+         'repository bound to another database must say how to read it.',
+       ),
+       _dbOverride = database,
+       _runner = runner ?? _computeOnIsolate,
+       _mergedProfile = mergedProfile ?? _readMergedProfile;
 
   final AppDatabase? _dbOverride;
   final DerivedMetricsRunner _runner;
+  final MergedProfileReader _mergedProfile;
 
   AppDatabase get _db => _dbOverride ?? DatabaseService.instance.database;
 
@@ -114,8 +141,42 @@ class DerivedMetricsRepository {
       ),
     );
 
-    await saveMetrics(metrics);
-    return metrics;
+    // The gas-use window comes from the merged profile, the samples the dive
+    // page computes its own SAC from, so a dive logged by two computers
+    // reports one number everywhere (issue #2930). Every mode gets one: a
+    // gauge dive with logged pressures still shows a SAC. It stretches over
+    // surface time a switch or a falling pressure says a cylinder was
+    // breathed in, from the switches and series the dive page reads.
+    final merged = await _mergedProfile(diveId);
+    final switchRows = await (_db.select(
+      _db.gasSwitches,
+    )..where((t) => t.diveId.equals(diveId))).get();
+    final pressures = await TankPressureRepository(
+      database: _dbOverride,
+    ).getDisplayedTankPressuresForDives([diveId]);
+    final gasUse = diveGasUseWindow(
+      profile: merged,
+      tanks: [
+        for (final t in tankRows)
+          domain.DiveTank(
+            id: t.id,
+            role: TankRole.fromName(t.tankRole),
+            order: t.tankOrder,
+          ),
+      ],
+      switches: [
+        for (final sw in switchRows)
+          (tankId: sw.tankId, timestamp: sw.timestamp),
+      ],
+      tankPressures: pressures[diveId],
+    );
+    final withGasUse = metrics.withGasUse(
+      gasUse.window,
+      breathing: gasUse.breathing,
+    );
+
+    await saveMetrics(withGasUse);
+    return withGasUse;
   }
 
   /// A tank can carry one series per computer that logged it. Pick the
@@ -139,21 +200,32 @@ class DerivedMetricsRepository {
   }
 
   /// [diveSourceStampSql] plus the dive's effective water type, which the SAC
-  /// metrics read (issue #3958). A site's water never re-stamps the dives that
-  /// take it. A term of this cache alone, because no other cache built on the
-  /// source stamp reads water.
+  /// metrics read (issue #3958), and its gas switches and primary computer,
+  /// which say whether a cylinder was breathed on the surface (issue #2930):
+  /// the pressure series read are the primary computer's. Neither a site's
+  /// water, a synced switch nor a synced source flag re-stamps the dive.
+  /// The primary term is the source row's local rowid, which differs for
+  /// each source of a dive. Terms of this cache alone, because no other
+  /// cache built on the source stamp reads them.
   static final String _stampSql = () {
     final whens = [
       for (final type in WaterType.values)
         "WHEN '${type.name}' THEN ${type.index + 1}",
     ].join(' ');
     return '(${diveSourceStampSql()} + '
-        '(CASE ${diveEffectiveWaterTypeSql('d')} $whens ELSE 0 END))';
+        '(CASE ${diveEffectiveWaterTypeSql('d')} $whens ELSE 0 END) + '
+        'COALESCE((SELECT COUNT(*) + SUM(stamp_g.timestamp) + '
+        'SUM(COALESCE(CAST(substr(stamp_g.hlc, 1, 15) AS INTEGER), 0)) '
+        'FROM gas_switches stamp_g WHERE stamp_g.dive_id = d.id), 0) + '
+        'COALESCE((SELECT SUM(stamp_s.rowid) FROM dive_data_sources stamp_s '
+        'WHERE stamp_s.dive_id = d.id AND stamp_s.is_primary = 1), 0))';
   }();
 
   Set<ResultSetImplementation<dynamic, dynamic>> get _stampTables => {
     ...diveSourceStampTables(_db),
     _db.diveSites,
+    _db.gasSwitches,
+    _db.diveDataSources,
   };
 
   /// [_stampSql] for one dive, or null when [diveId] does not exist.
@@ -190,6 +262,15 @@ class DerivedMetricsRepository {
       sacSlopeBarPerMinPerMin: row.sacSlopeBarMinPerMin,
       sacChangePercent: row.sacChangePct,
       runtimeSeconds: row.runtimeS,
+      gasUseSeconds: row.gasUseS,
+      gasUseAvgDepthMeters: row.gasUseAvgDepthM,
+      surfaceBreathing:
+          row.surfaceBreathedFromS == null && row.surfaceBreathedUntilS == null
+          ? null
+          : SurfaceBreathing(
+              from: row.surfaceBreathedFromS,
+              until: row.surfaceBreathedUntilS,
+            ),
       unsupportedReason: row.unsupportedReason == null
           ? null
           : UnsupportedReason.values.firstWhere(
@@ -221,6 +302,10 @@ class DerivedMetricsRepository {
             sacTrend: Value(m.sacTrend?.name),
             sacChangePct: Value(m.sacChangePercent),
             runtimeS: Value(m.runtimeSeconds),
+            gasUseS: Value(m.gasUseSeconds),
+            gasUseAvgDepthM: Value(m.gasUseAvgDepthMeters),
+            surfaceBreathedFromS: Value(m.surfaceBreathing?.from),
+            surfaceBreathedUntilS: Value(m.surfaceBreathing?.until),
             unsupportedReason: Value(m.unsupportedReason?.name),
           ),
         );

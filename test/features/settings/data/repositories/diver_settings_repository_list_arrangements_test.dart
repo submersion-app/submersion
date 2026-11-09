@@ -50,6 +50,7 @@ void main() {
       certificationGroupBy: 'agency',
       equipmentArrangement: '{"typeOrder":"headToToe"}',
       equipmentGroupByLocation: true,
+      equipmentCollapsedGroups: '["loc:a","loc:a/type:bcd"]',
     );
 
     test('new settings hold no saved arrangement', () async {

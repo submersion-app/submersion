@@ -101,6 +101,7 @@ void main() {
           'diveListSort',
           'equipmentArrangement',
           'equipmentGroupByLocation',
+          'equipmentCollapsedGroups',
           'diveListViewMode',
           'courseListViewMode',
           'groupTripsInDiveList',

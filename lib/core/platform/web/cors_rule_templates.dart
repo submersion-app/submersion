@@ -87,7 +87,7 @@ String _nginx(String origin, bool writes) =>
 location /remote.php/dav {
     add_header Access-Control-Allow-Origin "$origin" always;
     add_header Access-Control-Allow-Methods "${_davMethods(writes).join(', ')}" always;
-    add_header Access-Control-Allow-Headers "Authorization, Content-Type, Depth, Destination, Overwrite, If-Match, If-None-Match" always;
+    add_header Access-Control-Allow-Headers "Authorization, Content-Type, Depth, Destination, Overwrite, If-Match, If-None-Match, Range" always;
     add_header Access-Control-Expose-Headers "ETag" always;
     if (\$request_method = OPTIONS) {
         return 204;
@@ -100,7 +100,7 @@ String _apache(String origin, bool writes) =>
 <Location "/">
     Header always set Access-Control-Allow-Origin "$origin"
     Header always set Access-Control-Allow-Methods "${_davMethods(writes).join(', ')}"
-    Header always set Access-Control-Allow-Headers "Authorization, Content-Type, Depth, Destination, Overwrite, If-Match, If-None-Match"
+    Header always set Access-Control-Allow-Headers "Authorization, Content-Type, Depth, Destination, Overwrite, If-Match, If-None-Match, Range"
     Header always set Access-Control-Expose-Headers "ETag"
     RewriteEngine On
     RewriteCond %{REQUEST_METHOD} OPTIONS

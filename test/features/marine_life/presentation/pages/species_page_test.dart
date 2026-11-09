@@ -28,7 +28,7 @@ final _whaleShark = SeenSpecies(
     isBuiltIn: true,
   ),
   totalSightings: 5,
-  diveCount: 3,
+  diveCount: 4,
   siteCount: 2,
   firstSeen: DateTime(2023, 5, 1),
   lastSeen: DateTime(2024, 1, 15),
@@ -108,7 +108,7 @@ void main() {
     expect(find.text('2 species · 8 sightings'), findsOneWidget);
   });
 
-  testWidgets('sorts by most sightings by default', (tester) async {
+  testWidgets('sorts by most dives by default', (tester) async {
     await _pumpPage(tester, [_turtle, _whaleShark]);
 
     expect(

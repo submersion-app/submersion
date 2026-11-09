@@ -305,4 +305,25 @@ void main() {
       );
     });
   });
+
+  group('getTemporaryLink', () {
+    test('getTemporaryLink posts the path and returns the link', () async {
+      late http.Request seen;
+      final mock = MockClient((request) async {
+        seen = request;
+        return json({
+          'metadata': fileEntry('a.mp4'),
+          'link': 'https://dl.dropboxusercontent.com/apitl/1/abc',
+        });
+      });
+      final link = await client(mock).getTemporaryLink('/media/a.mp4');
+      expect(
+        seen.url.toString(),
+        'https://api.dropboxapi.com/2/files/get_temporary_link',
+      );
+      expect(seen.method, 'POST');
+      expect(jsonDecode(seen.body), {'path': '/media/a.mp4'});
+      expect(link, 'https://dl.dropboxusercontent.com/apitl/1/abc');
+    });
+  });
 }

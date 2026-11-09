@@ -496,13 +496,34 @@ class S3ApiClient {
     return (bytes: response.bodyBytes, totalLength: total);
   }
 
+  /// A presigned GET URL for [key] (already prefixed, as every key here is),
+  /// valid for [expiresIn]: the link a browser's video player streams from
+  /// (issue #4162). Same addressing and effective region as a signed
+  /// request, so path-style endpoints and a corrected region carry over.
+  Uri presignGet(String key, {required Duration expiresIn}) {
+    final target = _target(key);
+    return SigV4Signer.presign(
+      method: 'GET',
+      scheme: target.scheme,
+      host: target.authority,
+      canonicalUri: target.path,
+      accessKeyId: _config.accessKeyId,
+      secretAccessKey: _config.secretAccessKey,
+      region: _region,
+      requestTime: _now(),
+      expiresIn: expiresIn,
+    );
+  }
+
   /// Closes the underlying HTTP client (including an injected one).
   void close() => _http.close();
 
-  /// Scheme/host/port/path for [key], honoring path-style vs virtual-hosted
-  /// addressing. The path comes back already SigV4-encoded so the signed
-  /// bytes and the wire bytes cannot diverge.
-  ({String scheme, String host, int? port, String path}) _target(String key) {
+  /// Scheme, authority (host, and port when the endpoint names one) and path
+  /// for [key], honoring path-style vs virtual-hosted addressing. The
+  /// authority is the one signed and sent alike, and the path comes back
+  /// already SigV4-encoded, so the signed bytes and the wire bytes cannot
+  /// diverge.
+  ({String scheme, String authority, String path}) _target(String key) {
     // effectivePathStyle, not the raw flag: a dotted bucket over HTTPS is
     // forced path-style to dodge the wildcard-cert TLS failure (issue #335).
     final pathStyle = _config.effectivePathStyle;
@@ -525,7 +546,11 @@ class S3ApiClient {
     final path = pathStyle
         ? '/${_config.bucket}${encodedKey.isEmpty ? '/' : '/$encodedKey'}'
         : '/$encodedKey';
-    return (scheme: scheme, host: host, port: port, path: path);
+    return (
+      scheme: scheme,
+      authority: port == null ? host : '$host:$port',
+      path: path,
+    );
   }
 
   /// Sends [method] with up to [_maxAttempts] attempts, backing off between
@@ -704,9 +729,7 @@ class S3ApiClient {
     Map<String, String> extraHeaders = const {},
   }) async {
     final target = _target(key);
-    final authority = target.port == null
-        ? target.host
-        : '${target.host}:${target.port}';
+    final authority = target.authority;
     final canonicalQuery = SigV4Signer.canonicalQueryString(queryParams);
     final uri = Uri.parse(
       '${target.scheme}://$authority${target.path}'

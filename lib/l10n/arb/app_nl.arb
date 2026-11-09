@@ -383,6 +383,33 @@
   "trips_story_history_avgTemp": "gem. {value}",
   "trips_story_history_avgDepth": "gem. diepte {value}",
   "trips_story_rhythm_semantics": "Duiktijden van deze dag",
+  "trips_story_rhythm_semanticsSunriseSunset": "Duiktijden van deze dag. Zonsopkomst {sunrise}, zonsondergang {sunset}.",
+  "@trips_story_rhythm_semanticsSunriseSunset": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      },
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunrise": "Duiktijden van deze dag. Zonsopkomst {sunrise}.",
+  "@trips_story_rhythm_semanticsSunrise": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunset": "Duiktijden van deze dag. Zonsondergang {sunset}.",
+  "@trips_story_rhythm_semanticsSunset": {
+    "placeholders": {
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
   "trips_story_dayMap_semantics": "Kaart van dag {number}",
   "@trips_story_dayMap_semantics": {
     "placeholders": {
@@ -2726,7 +2753,6 @@
   "diveLog_diveMode_ocDescription": "Standaard open circuit duiken met flessen",
   "diveLog_diveMode_scrDescription": "Semi-gesloten rebreather met variabele ppO₂",
   "diveLog_diveMode_title": "Duikmodus",
-  "diveLog_editSighting_count": "Aantal",
   "diveLog_editSighting_notes": "Notities",
   "diveLog_editSighting_notesHint": "Grootte, gedrag, locatie...",
   "diveLog_editSighting_remove": "Verwijderen",
@@ -3457,6 +3483,9 @@
   "diveLog_summary_stat_totalDives": "Totaal duiken",
   "diveLog_summary_title": "Duiklogoverzicht",
   "diveLog_tank_label_endPressure": "Einddruk",
+  "diveLog_tank_label_surfaceBreathing": "Aan de oppervlakte geademd",
+  "diveLog_tank_surfaceBreathing_helper": "Minuten op deze fles nadat de computer stopte met loggen, zoals zuurstof op de boot",
+  "diveLog_tank_surfaceBreathing_unit": "min",
   "diveLog_tank_label_he": "He",
   "diveLog_tank_label_material": "Materiaal",
   "diveLog_tank_label_mnd": "MND",
@@ -4982,6 +5011,12 @@
   "equipment_location_deleteMoveConfirm": "Dit item uit de geschiedenis verwijderen? De locatie van het item wordt opnieuw bepaald uit de resterende verplaatsingen.",
   "equipment_location_bulkAction": "Naar locatie verplaatsen",
   "equipment_location_groupCount": "{count, plural, one{{count} item} other{{count} items}}",
+  "equipment_group_foldedTypeCount": "{type} {count}",
+  "equipment_group_foldedServiceDue": "{count, plural, one{{count} onderhoudsbeurt nodig} other{{count} onderhoudsbeurten nodig}}",
+  "equipment_group_foldedMoreTypes": "{count, plural, one{en nog {count}} other{en nog {count}}}",
+  "equipment_group_foldedSelected": "{selected} van {total} geselecteerd",
+  "equipment_list_expandAllGroups": "Alles uitklappen",
+  "equipment_list_collapseAllGroups": "Alles inklappen",
   "equipment_location_activeFilter": "Locatie",
   "equipment_location_tileSemantics": "Locatie: {name}",
   "equipment_filter_section_location": "Locatie",
@@ -5609,7 +5644,6 @@
   "marineLife_speciesDetail_sitesLabel": "Duikstekken",
   "marineLife_speciesDetail_taxonomyClassLabel": "Klasse: {className}",
   "marineLife_speciesDetail_topSitesTitle": "Toplocaties",
-  "marineLife_speciesDetail_totalSightingsLabel": "Totaal waarnemingen",
   "marineLife_speciesEdit_addTitle": "Soort toevoegen",
   "marineLife_speciesEdit_addedSnackbar": "\"{name}\" toegevoegd",
   "marineLife_speciesEdit_backTooltip": "Terug",
@@ -5683,7 +5717,15 @@
   "marineLife_speciesPage_searchHint": "Zoek soorten die je hebt gezien",
   "marineLife_speciesPage_manageCatalogTooltip": "Catalogus beheren",
   "marineLife_speciesPage_sortTooltip": "Sorteren",
-  "marineLife_speciesPage_sort_mostSightings": "Meeste waarnemingen",
+  "marineLife_speciesPage_sort_mostDives": "Meeste duiken",
+  "marineLife_abundance_label": "Hoeveel",
+  "marineLife_abundance_seen": "Gezien",
+  "marineLife_abundance_single": "Eén",
+  "marineLife_abundance_few": "Enkele",
+  "marineLife_abundance_many": "Veel",
+  "marineLife_abundance_abundant": "Talrijk",
+  "marineLife_abundance_exact": "Exact",
+  "marineLife_abundance_ranges": "Enkele 2 tot 10, Veel 11 tot 100, Talrijk meer dan 100",
   "marineLife_speciesPage_sort_recentlySeen": "Recent gezien",
   "marineLife_speciesPage_sort_firstSeen": "Eerst gezien",
   "marineLife_speciesPage_sort_name": "Naam",
@@ -5902,6 +5944,7 @@
   "media_photoViewer_shareTooltip": "Foto delen",
   "media_photoViewer_toggleOverlayLabel": "Foto-overlay aan/uit",
   "media_photoViewer_videoFileNotFound": "Videobestand niet gevonden",
+  "media_photoViewer_videoNeedsNormalWindow": "Voor het afspelen van deze video is een normaal browservenster nodig. Privévensters kunnen niet streamen vanuit Google Drive of WebDAV.",
   "media_photoViewer_videoNotLinked": "Video niet gekoppeld aan bibliotheek",
   "media_photoViewer_writeDiveDataTooltip": "Duikgegevens naar foto schrijven",
   "media_quickSiteDialog_cancelButton": "Annuleren",
@@ -5955,6 +5998,7 @@
   "media_console_library": "Bibliotheek",
   "media_console_transfers": "Overdrachten",
   "media_library_empty": "Nog geen media",
+  "media_library_emptyFiltered": "Geen media komen overeen met deze filters",
   "media_library_filter_all": "Alles",
   "media_library_filter_photos": "Foto's",
   "media_library_filter_videos": "Video's",
@@ -6034,6 +6078,14 @@
   "media_library_filter_dates": "Datums",
   "media_library_filter_missing": "Ontbrekende bestanden",
   "media_library_filter_missingCount": "Ontbrekende bestanden ({count})",
+  "media_library_filter_noPeople": "Niemand getagd",
+  "media_library_filter_peopleTwo": "{first}, {second}",
+  "media_library_filter_peopleAndMore": "{names} +{count}",
+  "media_library_filter_peopleCount": "{count, plural, =1{{count} persoon} other{{count} personen}}",
+  "media_library_filter_peopleSearchHint": "Personen zoeken",
+  "media_library_filter_peopleNoMatch": "Geen personen gevonden",
+  "media_library_filter_peopleClear": "Personen wissen",
+  "media_library_filter_notPlacedInDive": "Niet in de duik geplaatst",
   "media_library_filter_clear": "Filters wissen",
   "media_library_filter_any": "Alle",
   "media_library_filter_title": "Media filteren",
@@ -7289,6 +7341,7 @@
   "settings_conflict_field_certificationListGroupBy": "Brevetten: groepering",
   "settings_conflict_field_equipmentArrangement": "Ordening van uitrusting",
   "settings_conflict_field_equipmentGroupByLocation": "Uitrusting gegroepeerd op locatie",
+  "settings_conflict_field_equipmentCollapsedGroups": "Ingeklapte uitrustingsgroepen",
   "settings_conflict_field_listArrangementHlc": "Log van lijstordening",
   "settings_conflict_sortValue": "{field}, {direction}",
   "settings_conflict_field_avgSpeed": "Gemiddelde snelheid",
@@ -7823,6 +7876,7 @@
   "settings_conflict_field_summaryRuntimeSeconds": "Geplande duiktijd",
   "settings_conflict_field_summaryTtsSeconds": "Geplande tijd tot de oppervlakte",
   "settings_conflict_field_supersedesRuleId": "Vervangt ingebouwde regel",
+  "settings_conflict_field_surfaceBreathingDuration": "Aan de oppervlakte geademde tijd",
   "settings_conflict_field_surfaceConditions": "Omstandigheden aan de oppervlakte",
   "settings_conflict_field_surfaceSwimLimitM": "Langste zwemstuk aan de oppervlakte",
   "settings_conflict_field_swimSpeedMps": "Zwemsnelheid",
@@ -15807,6 +15861,7 @@
   "diveLog_detail_errorLoadingSignature": "Fout bij het laden van de handtekening: {error}",
   "diveLog_profilePanel_selectDive": "Selecteer een duik om het profiel te bekijken",
   "diveLog_profilePanel_noProfileData": "Geen profielgegevens voor deze duik",
+  "diveLog_estimatedProfile_caption": "Geschat op basis van maximale diepte en tijd, geen opgenomen profiel",
   "settings_export_progress_divesCsv": "Duiken exporteren naar CSV...",
   "settings_export_progress_sitesCsv": "Duikstekken exporteren naar CSV...",
   "settings_export_progress_equipmentCsv": "Uitrusting exporteren naar CSV...",
@@ -16668,9 +16723,16 @@
   "transmitters_section_setUp": "Instellen",
   "transmitters_action_apply": "Toepassen op bestaande duiken",
   "transmitters_apply_title": "Toepassen op bestaande duiken?",
-  "transmitters_apply_content": "{tanks} flessen in {dives} duiken dragen deze zender. Lege velden voor inhoud, materiaal, naam en uitrusting worden ingevuld, en een rol die nog op Ruggas staat of uit de zendernaam is afgeleid wordt vervangen.",
+  "transmitters_apply_content": "{tanks} flessen in {dives} duiken met deze zender hebben de instellingen ervan nodig. Lege velden voor inhoud, materiaal, naam en uitrusting worden ingevuld, en een rol die nog op Ruggas staat of uit de zendernaam is afgeleid wordt vervangen.",
   "transmitters_apply_done": "{tanks} flessen bijgewerkt in {dives} duiken",
-  "transmitters_apply_nothing": "Geen enkele fles draagt deze zender",
+  "transmitters_apply_slot_label": "Positie op {computer}",
+  "transmitters_apply_slot_none": "Niet koppelen op positie",
+  "transmitters_apply_slot_option": "T{slot}: {dives, plural, one{{dives} duik} other{{dives} duiken}}",
+  "transmitters_apply_slot_reading": "Geïmporteerde bestanden lezen",
+  "transmitters_apply_slot_intro": "Flessen die uit een bestand zijn geïmporteerd hebben geen serienummer. Ze kunnen worden ingevuld op basis van de positie die deze zender op de duikcomputer innam.",
+  "transmitters_apply_summary": "Duiken ingevuld via serienummer: {serialDives}, via positie: {slotDives}",
+  "transmitters_apply_nothing_to_fill": "Geen enkele fles heeft de instellingen van deze zender nodig",
+  "transmitters_apply_slot_read_failed": "De geïmporteerde bestanden konden niet worden gelezen, dus flessen kunnen niet op slot worden gekoppeld",
   "transmitters_channel": "{computer}, kanaal {channel}",
   "transmitters_serial": "Zender {serial}",
   "transmitters_edit_title": "Zender bewerken",

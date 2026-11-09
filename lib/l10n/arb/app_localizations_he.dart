@@ -1900,6 +1900,24 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_story_rhythm_semantics => 'זמני הצלילה ביום זה';
 
   @override
+  String trips_story_rhythm_semanticsSunriseSunset(
+    String sunrise,
+    String sunset,
+  ) {
+    return 'זמני הצלילה ביום זה. זריחה $sunrise, שקיעה $sunset.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunrise(String sunrise) {
+    return 'זמני הצלילה ביום זה. זריחה $sunrise.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunset(String sunset) {
+    return 'זמני הצלילה ביום זה. שקיעה $sunset.';
+  }
+
+  @override
   String trips_story_dayMap_semantics(int number) {
     return 'מפת יום $number';
   }
@@ -7914,9 +7932,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_diveMode_title => 'מצב צלילה';
 
   @override
-  String get diveLog_editSighting_count => 'כמות';
-
-  @override
   String get diveLog_editSighting_notes => 'הערות';
 
   @override
@@ -10730,6 +10745,16 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_tank_label_endPressure => 'לחץ סיום';
+
+  @override
+  String get diveLog_tank_label_surfaceBreathing => 'נשימה על פני המים';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_helper =>
+      'דקות על מכל זה אחרי שהמחשב הפסיק לתעד, למשל חמצן על הסירה';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_unit => 'דקות';
 
   @override
   String get diveLog_tank_label_he => 'He';
@@ -16587,6 +16612,44 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String equipment_group_foldedTypeCount(int count, String type) {
+    return '$type $count';
+  }
+
+  @override
+  String equipment_group_foldedServiceDue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count טיפולים נדרשים',
+      one: 'טיפול אחד נדרש',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedMoreTypes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ועוד $count',
+      one: 'ועוד אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedSelected(int selected, int total) {
+    return '$selected מתוך $total נבחרו';
+  }
+
+  @override
+  String get equipment_list_expandAllGroups => 'הרחב הכול';
+
+  @override
+  String get equipment_list_collapseAllGroups => 'כווץ הכול';
+
+  @override
   String get equipment_location_activeFilter => 'מיקום';
 
   @override
@@ -18705,9 +18768,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get marineLife_speciesDetail_topSitesTitle => 'אתרים מובילים';
 
   @override
-  String get marineLife_speciesDetail_totalSightingsLabel => 'סה\"כ תצפיות';
-
-  @override
   String get marineLife_speciesEdit_addTitle => 'הוסף מין';
 
   @override
@@ -19007,7 +19067,32 @@ class AppLocalizationsHe extends AppLocalizations {
   String get marineLife_speciesPage_sortTooltip => 'מיון';
 
   @override
-  String get marineLife_speciesPage_sort_mostSightings => 'הכי הרבה תצפיות';
+  String get marineLife_speciesPage_sort_mostDives => 'הכי הרבה צלילות';
+
+  @override
+  String get marineLife_abundance_label => 'כמה';
+
+  @override
+  String get marineLife_abundance_seen => 'נצפה';
+
+  @override
+  String get marineLife_abundance_single => 'יחיד';
+
+  @override
+  String get marineLife_abundance_few => 'מעטים';
+
+  @override
+  String get marineLife_abundance_many => 'רבים';
+
+  @override
+  String get marineLife_abundance_abundant => 'בשפע';
+
+  @override
+  String get marineLife_abundance_exact => 'מדויק';
+
+  @override
+  String get marineLife_abundance_ranges =>
+      'מעטים 2 עד 10, רבים 11 עד 100, בשפע מעל 100';
 
   @override
   String get marineLife_speciesPage_sort_recentlySeen => 'נראו לאחרונה';
@@ -20024,6 +20109,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_photoViewer_videoFileNotFound => 'קובץ הסרטון לא נמצא';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      'כדי להפעיל את הסרטון הזה נדרש חלון דפדפן רגיל. חלונות פרטיים אינם יכולים להזרים מ-Google Drive או מ-WebDAV.';
+
+  @override
   String get media_photoViewer_videoNotLinked => 'הסרטון אינו מקושר לספרייה';
 
   @override
@@ -20412,6 +20501,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_library_empty => 'אין מדיה עדיין';
 
   @override
+  String get media_library_emptyFiltered => 'אין מדיה שתואמת למסננים אלה';
+
+  @override
   String get media_library_filter_all => 'הכול';
 
   @override
@@ -20442,6 +20534,42 @@ class AppLocalizationsHe extends AppLocalizations {
   String media_library_filter_missingCount(int count) {
     return 'קבצים חסרים ($count)';
   }
+
+  @override
+  String get media_library_filter_noPeople => 'אף אחד לא מתויג';
+
+  @override
+  String media_library_filter_peopleTwo(String first, String second) {
+    return '$first, $second';
+  }
+
+  @override
+  String media_library_filter_peopleAndMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String media_library_filter_peopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count אנשים',
+      one: 'אדם אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_library_filter_peopleSearchHint => 'חיפוש אנשים';
+
+  @override
+  String get media_library_filter_peopleNoMatch => 'אין אנשים תואמים';
+
+  @override
+  String get media_library_filter_peopleClear => 'ניקוי אנשים';
+
+  @override
+  String get media_library_filter_notPlacedInDive => 'לא ממוקם בצלילה';
 
   @override
   String get media_library_filter_clear => 'ניקוי מסננים';
@@ -23973,6 +24101,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'ציוד מקובץ לפי מיקום';
 
   @override
+  String get settings_conflict_field_equipmentCollapsedGroups =>
+      'קבוצות ציוד מקופלות';
+
+  @override
   String get settings_conflict_field_listArrangementHlc => 'יומן סידור הרשימות';
 
   @override
@@ -25695,6 +25827,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_supersedesRuleId => 'מחליף כלל מובנה';
+
+  @override
+  String get settings_conflict_field_surfaceBreathingDuration =>
+      'זמן נשימה על פני המים';
 
   @override
   String get settings_conflict_field_surfaceConditions => 'תנאים בפני המים';
@@ -52173,6 +52309,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_profilePanel_noProfileData => 'אין נתוני פרופיל לצלילה זו';
 
   @override
+  String get diveLog_estimatedProfile_caption =>
+      'הערכה לפי עומק מרבי וזמן, לא פרופיל מוקלט';
+
+  @override
   String get settings_export_progress_divesCsv => 'מייצא צלילות ל-CSV...';
 
   @override
@@ -54855,7 +54995,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks מיכלים ב-$dives צלילות נושאים משדר זה. שדות ריקים של נפח, חומר, שם וציוד ימולאו, ותפקיד שעדיין מוגדר כגז גב או שנקרא משם המשדר יוחלף.';
+    return '$tanks מיכלים ב-$dives צלילות הנושאים משדר זה זקוקים להגדרות שלו. שדות ריקים של נפח, חומר, שם וציוד ימולאו, ותפקיד שעדיין מוגדר כגז גב או שנקרא משם המשדר יוחלף.';
   }
 
   @override
@@ -54864,7 +55004,43 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing => 'אף מיכל אינו נושא משדר זה';
+  String transmitters_apply_slot_label(String computer) {
+    return 'חריץ ב-$computer';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'ללא התאמה לפי חריץ';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives צלילות',
+      one: 'צלילה אחת',
+    );
+    return 'T$slot: $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading => 'קריאת קבצים מיובאים';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'למיכלים שיובאו מקובץ אין מספר סידורי. אפשר למלא אותם לפי החריץ שבו ישב משדר זה במחשב הצלילה.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'צלילות שמולאו לפי מספר סידורי: $serialDives, לפי חריץ: $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'אף מיכל אינו צריך את הגדרות המשדר הזה';
+
+  @override
+  String get transmitters_apply_slot_read_failed =>
+      'לא ניתן היה לקרוא את הקבצים המיובאים, ולכן לא ניתן להתאים מיכלים לפי חריץ';
 
   @override
   String transmitters_channel(String computer, int channel) {

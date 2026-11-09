@@ -1923,6 +1923,24 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_story_rhythm_semantics => 'Horários de mergulho deste dia';
 
   @override
+  String trips_story_rhythm_semanticsSunriseSunset(
+    String sunrise,
+    String sunset,
+  ) {
+    return 'Horários de mergulho deste dia. Nascer do sol $sunrise, pôr do sol $sunset.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunrise(String sunrise) {
+    return 'Horários de mergulho deste dia. Nascer do sol $sunrise.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunset(String sunset) {
+    return 'Horários de mergulho deste dia. Pôr do sol $sunset.';
+  }
+
+  @override
   String trips_story_dayMap_semantics(int number) {
     return 'Mapa do dia $number';
   }
@@ -8082,9 +8100,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_diveMode_title => 'Modo de Mergulho';
 
   @override
-  String get diveLog_editSighting_count => 'Quantidade';
-
-  @override
   String get diveLog_editSighting_notes => 'Anotações';
 
   @override
@@ -10970,6 +10985,16 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_tank_label_endPressure => 'Pressão Final';
+
+  @override
+  String get diveLog_tank_label_surfaceBreathing => 'Respirado à superfície';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_helper =>
+      'Minutos nesta garrafa depois de o computador parar de registar, como oxigénio no barco';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_unit => 'min';
 
   @override
   String get diveLog_tank_label_he => 'He';
@@ -16929,6 +16954,44 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String equipment_group_foldedTypeCount(int count, String type) {
+    return '$type $count';
+  }
+
+  @override
+  String equipment_group_foldedServiceDue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count manutenções pendentes',
+      one: '$count manutenção pendente',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedMoreTypes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'e mais $count',
+      one: 'e mais $count',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedSelected(int selected, int total) {
+    return '$selected de $total selecionados';
+  }
+
+  @override
+  String get equipment_list_expandAllGroups => 'Expandir tudo';
+
+  @override
+  String get equipment_list_collapseAllGroups => 'Recolher tudo';
+
+  @override
   String get equipment_location_activeFilter => 'Localização';
 
   @override
@@ -19122,10 +19185,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get marineLife_speciesDetail_topSitesTitle => 'Principais Pontos';
 
   @override
-  String get marineLife_speciesDetail_totalSightingsLabel =>
-      'Total de Avistamentos';
-
-  @override
   String get marineLife_speciesEdit_addTitle => 'Adicionar Espécie';
 
   @override
@@ -19435,7 +19494,32 @@ class AppLocalizationsPt extends AppLocalizations {
   String get marineLife_speciesPage_sortTooltip => 'Ordenar';
 
   @override
-  String get marineLife_speciesPage_sort_mostSightings => 'Mais avistamentos';
+  String get marineLife_speciesPage_sort_mostDives => 'Mais mergulhos';
+
+  @override
+  String get marineLife_abundance_label => 'Quantos';
+
+  @override
+  String get marineLife_abundance_seen => 'Visto';
+
+  @override
+  String get marineLife_abundance_single => 'Um só';
+
+  @override
+  String get marineLife_abundance_few => 'Poucos';
+
+  @override
+  String get marineLife_abundance_many => 'Muitos';
+
+  @override
+  String get marineLife_abundance_abundant => 'Abundantes';
+
+  @override
+  String get marineLife_abundance_exact => 'Exato';
+
+  @override
+  String get marineLife_abundance_ranges =>
+      'Poucos de 2 a 10, Muitos de 11 a 100, Abundantes mais de 100';
 
   @override
   String get marineLife_speciesPage_sort_recentlySeen => 'Vistas recentemente';
@@ -20473,6 +20557,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Arquivo de vídeo não encontrado';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      'Para reproduzir este vídeo é preciso uma janela normal do navegador. Janelas privadas não conseguem transmitir do Google Drive ou do WebDAV.';
+
+  @override
   String get media_photoViewer_videoNotLinked =>
       'Vídeo não vinculado a biblioteca';
 
@@ -20875,6 +20963,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_library_empty => 'Nenhuma mídia ainda';
 
   @override
+  String get media_library_emptyFiltered =>
+      'Nenhuma mídia corresponde a estes filtros';
+
+  @override
   String get media_library_filter_all => 'Tudo';
 
   @override
@@ -20905,6 +20997,43 @@ class AppLocalizationsPt extends AppLocalizations {
   String media_library_filter_missingCount(int count) {
     return 'Arquivos ausentes ($count)';
   }
+
+  @override
+  String get media_library_filter_noPeople => 'Ninguém marcado';
+
+  @override
+  String media_library_filter_peopleTwo(String first, String second) {
+    return '$first, $second';
+  }
+
+  @override
+  String media_library_filter_peopleAndMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String media_library_filter_peopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pessoas',
+      one: '$count pessoa',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_library_filter_peopleSearchHint => 'Pesquisar pessoas';
+
+  @override
+  String get media_library_filter_peopleNoMatch => 'Nenhuma pessoa corresponde';
+
+  @override
+  String get media_library_filter_peopleClear => 'Limpar pessoas';
+
+  @override
+  String get media_library_filter_notPlacedInDive =>
+      'Não posicionado no mergulho';
 
   @override
   String get media_library_filter_clear => 'Limpar filtros';
@@ -24529,6 +24658,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Equipamentos agrupados por local';
 
   @override
+  String get settings_conflict_field_equipmentCollapsedGroups =>
+      'Grupos de equipamentos recolhidos';
+
+  @override
   String get settings_conflict_field_listArrangementHlc =>
       'Registro de organização das listas';
 
@@ -26350,6 +26483,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_conflict_field_supersedesRuleId =>
       'Substitui a regra integrada';
+
+  @override
+  String get settings_conflict_field_surfaceBreathingDuration =>
+      'Tempo respirado à superfície';
 
   @override
   String get settings_conflict_field_surfaceConditions =>
@@ -53264,6 +53401,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Sem dados de perfil para este mergulho';
 
   @override
+  String get diveLog_estimatedProfile_caption =>
+      'Estimado a partir da profundidade máxima e do tempo, não é um perfil registrado';
+
+  @override
   String get settings_export_progress_divesCsv =>
       'Exportando mergulhos para CSV...';
 
@@ -56031,7 +56172,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks cilindros em $dives mergulhos carregam este transmissor. Campos vazios de tamanho, material, nome e equipamento serão preenchidos, e uma função ainda definida como Gás de fundo ou lida do nome do transmissor será substituída.';
+    return '$tanks cilindros em $dives mergulhos que carregam este transmissor precisam da sua configuração. Campos vazios de tamanho, material, nome e equipamento serão preenchidos, e uma função ainda definida como Gás de fundo ou lida do nome do transmissor será substituída.';
   }
 
   @override
@@ -56040,8 +56181,43 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing =>
-      'Nenhum cilindro carrega este transmissor';
+  String transmitters_apply_slot_label(String computer) {
+    return 'Posição em $computer';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'Não associar por posição';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives mergulhos',
+      one: '$dives mergulho',
+    );
+    return 'T$slot: $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading => 'Lendo arquivos importados';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'Cilindros importados de um arquivo não têm número de série. Podem ser preenchidos pela posição que este transmissor ocupava no computador de mergulho.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'Mergulhos preenchidos por número de série: $serialDives, por posição: $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'Nenhum cilindro precisa da configuração deste transmissor';
+
+  @override
+  String get transmitters_apply_slot_read_failed =>
+      'Não foi possível ler os arquivos importados, portanto os cilindros não podem ser associados por slot';
 
   @override
   String transmitters_channel(String computer, int channel) {

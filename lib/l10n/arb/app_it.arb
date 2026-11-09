@@ -383,6 +383,33 @@
   "trips_story_history_avgTemp": "media {value}",
   "trips_story_history_avgDepth": "prof. media {value}",
   "trips_story_rhythm_semantics": "Orari delle immersioni del giorno",
+  "trips_story_rhythm_semanticsSunriseSunset": "Orari delle immersioni del giorno. Alba {sunrise}, tramonto {sunset}.",
+  "@trips_story_rhythm_semanticsSunriseSunset": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      },
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunrise": "Orari delle immersioni del giorno. Alba {sunrise}.",
+  "@trips_story_rhythm_semanticsSunrise": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunset": "Orari delle immersioni del giorno. Tramonto {sunset}.",
+  "@trips_story_rhythm_semanticsSunset": {
+    "placeholders": {
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
   "trips_story_dayMap_semantics": "Mappa del giorno {number}",
   "@trips_story_dayMap_semantics": {
     "placeholders": {
@@ -2625,7 +2652,6 @@
   "diveLog_diveMode_ocDescription": "Scuba standard a circuito aperto con bombole",
   "diveLog_diveMode_scrDescription": "Rebreather semi-chiuso con ppO2 variabile",
   "diveLog_diveMode_title": "Modalità immersione",
-  "diveLog_editSighting_count": "Quantità",
   "diveLog_editSighting_notes": "Note",
   "diveLog_editSighting_notesHint": "Dimensione, comportamento, posizione...",
   "diveLog_editSighting_remove": "Rimuovi",
@@ -3356,6 +3382,9 @@
   "diveLog_summary_stat_totalDives": "Immersioni totali",
   "diveLog_summary_title": "Riepilogo registro immersioni",
   "diveLog_tank_label_endPressure": "Pressione finale",
+  "diveLog_tank_label_surfaceBreathing": "Respirato in superficie",
+  "diveLog_tank_surfaceBreathing_helper": "Minuti su questa bombola dopo che il computer ha smesso di registrare, come l'ossigeno sulla barca",
+  "diveLog_tank_surfaceBreathing_unit": "min",
   "diveLog_tank_label_he": "He",
   "diveLog_tank_label_material": "Materiale",
   "diveLog_tank_label_mnd": "MND",
@@ -4881,6 +4910,12 @@
   "equipment_location_deleteMoveConfirm": "Eliminare questa voce della cronologia? La posizione dell'elemento viene ricalcolata dagli spostamenti rimasti.",
   "equipment_location_bulkAction": "Sposta in una posizione",
   "equipment_location_groupCount": "{count, plural, one{{count} elemento} other{{count} elementi}}",
+  "equipment_group_foldedTypeCount": "{type} {count}",
+  "equipment_group_foldedServiceDue": "{count, plural, one{{count} manutenzione da fare} other{{count} manutenzioni da fare}}",
+  "equipment_group_foldedMoreTypes": "{count, plural, one{e {count} altro} other{e altri {count}}}",
+  "equipment_group_foldedSelected": "{selected} di {total} selezionati",
+  "equipment_list_expandAllGroups": "Espandi tutto",
+  "equipment_list_collapseAllGroups": "Comprimi tutto",
   "equipment_location_activeFilter": "Posizione",
   "equipment_location_tileSemantics": "Posizione: {name}",
   "equipment_filter_section_location": "Posizione",
@@ -5508,7 +5543,6 @@
   "marineLife_speciesDetail_sitesLabel": "Siti",
   "marineLife_speciesDetail_taxonomyClassLabel": "Classe: {className}",
   "marineLife_speciesDetail_topSitesTitle": "Siti principali",
-  "marineLife_speciesDetail_totalSightingsLabel": "Avvistamenti totali",
   "marineLife_speciesEdit_addTitle": "Aggiungi specie",
   "marineLife_speciesEdit_addedSnackbar": "Aggiunta \"{name}\"",
   "marineLife_speciesEdit_backTooltip": "Indietro",
@@ -5582,7 +5616,15 @@
   "marineLife_speciesPage_searchHint": "Cerca le specie che hai visto",
   "marineLife_speciesPage_manageCatalogTooltip": "Gestisci catalogo",
   "marineLife_speciesPage_sortTooltip": "Ordina",
-  "marineLife_speciesPage_sort_mostSightings": "Più avvistamenti",
+  "marineLife_speciesPage_sort_mostDives": "Più immersioni",
+  "marineLife_abundance_label": "Quanti",
+  "marineLife_abundance_seen": "Visto",
+  "marineLife_abundance_single": "Uno solo",
+  "marineLife_abundance_few": "Pochi",
+  "marineLife_abundance_many": "Molti",
+  "marineLife_abundance_abundant": "Abbondanti",
+  "marineLife_abundance_exact": "Esatto",
+  "marineLife_abundance_ranges": "Pochi da 2 a 10, Molti da 11 a 100, Abbondanti oltre 100",
   "marineLife_speciesPage_sort_recentlySeen": "Viste di recente",
   "marineLife_speciesPage_sort_firstSeen": "Primo avvistamento",
   "marineLife_speciesPage_sort_name": "Nome",
@@ -5801,6 +5843,7 @@
   "media_photoViewer_shareTooltip": "Condividi foto",
   "media_photoViewer_toggleOverlayLabel": "Attiva/disattiva sovrapposizione foto",
   "media_photoViewer_videoFileNotFound": "File video non trovato",
+  "media_photoViewer_videoNeedsNormalWindow": "Per riprodurre questo video serve una normale finestra del browser. Le finestre private non possono trasmettere da Google Drive o WebDAV.",
   "media_photoViewer_videoNotLinked": "Video non collegato alla libreria",
   "media_photoViewer_writeDiveDataTooltip": "Scrivi dati immersione nella foto",
   "media_quickSiteDialog_cancelButton": "Annulla",
@@ -5854,6 +5897,7 @@
   "media_console_library": "Libreria",
   "media_console_transfers": "Trasferimenti",
   "media_library_empty": "Ancora nessun contenuto multimediale",
+  "media_library_emptyFiltered": "Nessun contenuto multimediale corrisponde a questi filtri",
   "media_library_filter_all": "Tutti",
   "media_library_filter_photos": "Foto",
   "media_library_filter_videos": "Video",
@@ -5933,6 +5977,14 @@
   "media_library_filter_dates": "Date",
   "media_library_filter_missing": "File mancanti",
   "media_library_filter_missingCount": "File mancanti ({count})",
+  "media_library_filter_noPeople": "Nessuno taggato",
+  "media_library_filter_peopleTwo": "{first}, {second}",
+  "media_library_filter_peopleAndMore": "{names} +{count}",
+  "media_library_filter_peopleCount": "{count, plural, =1{{count} persona} other{{count} persone}}",
+  "media_library_filter_peopleSearchHint": "Cerca persone",
+  "media_library_filter_peopleNoMatch": "Nessuna persona corrisponde",
+  "media_library_filter_peopleClear": "Cancella persone",
+  "media_library_filter_notPlacedInDive": "Non collocato nell'immersione",
   "media_library_filter_clear": "Cancella filtri",
   "media_library_filter_any": "Qualsiasi",
   "media_library_filter_title": "Filtra media",
@@ -7188,6 +7240,7 @@
   "settings_conflict_field_certificationListGroupBy": "Brevetti: raggruppamento",
   "settings_conflict_field_equipmentArrangement": "Disposizione dell'attrezzatura",
   "settings_conflict_field_equipmentGroupByLocation": "Attrezzatura raggruppata per posizione",
+  "settings_conflict_field_equipmentCollapsedGroups": "Gruppi di attrezzatura compressi",
   "settings_conflict_field_listArrangementHlc": "Registro della disposizione degli elenchi",
   "settings_conflict_sortValue": "{field}, {direction}",
   "settings_conflict_field_avgSpeed": "Velocità media",
@@ -7722,6 +7775,7 @@
   "settings_conflict_field_summaryRuntimeSeconds": "Durata prevista",
   "settings_conflict_field_summaryTtsSeconds": "Tempo di risalita previsto",
   "settings_conflict_field_supersedesRuleId": "Sostituisce la regola integrata",
+  "settings_conflict_field_surfaceBreathingDuration": "Tempo respirato in superficie",
   "settings_conflict_field_surfaceConditions": "Condizioni in superficie",
   "settings_conflict_field_surfaceSwimLimitM": "Nuotata in superficie più lunga",
   "settings_conflict_field_swimSpeedMps": "Velocità di nuoto",
@@ -15807,6 +15861,7 @@
   "diveLog_detail_errorLoadingSignature": "Errore nel caricamento della firma: {error}",
   "diveLog_profilePanel_selectDive": "Seleziona un’immersione per vederne il profilo",
   "diveLog_profilePanel_noProfileData": "Nessun dato di profilo per questa immersione",
+  "diveLog_estimatedProfile_caption": "Stimato da profondità massima e tempo, non è un profilo registrato",
   "settings_export_progress_divesCsv": "Esportazione delle immersioni in CSV...",
   "settings_export_progress_sitesCsv": "Esportazione dei siti in CSV...",
   "settings_export_progress_equipmentCsv": "Esportazione dell’attrezzatura in CSV...",
@@ -16668,9 +16723,16 @@
   "transmitters_section_setUp": "Configura",
   "transmitters_action_apply": "Applica alle immersioni esistenti",
   "transmitters_apply_title": "Applicare alle immersioni esistenti?",
-  "transmitters_apply_content": "{tanks} bombole in {dives} immersioni portano questo trasmettitore. I campi vuoti di dimensione, materiale, nome e attrezzatura verranno compilati e un ruolo ancora impostato su Gas di fondo o letto dal nome del trasmettitore verrà sostituito.",
+  "transmitters_apply_content": "{tanks} bombole in {dives} immersioni con questo trasmettitore richiedono la sua configurazione. I campi vuoti di dimensione, materiale, nome e attrezzatura verranno compilati e un ruolo ancora impostato su Gas di fondo o letto dal nome del trasmettitore verrà sostituito.",
   "transmitters_apply_done": "Aggiornate {tanks} bombole in {dives} immersioni",
-  "transmitters_apply_nothing": "Nessuna bombola porta questo trasmettitore",
+  "transmitters_apply_slot_label": "Slot su {computer}",
+  "transmitters_apply_slot_none": "Non abbinare per slot",
+  "transmitters_apply_slot_option": "T{slot}: {dives, plural, one{{dives} immersione} other{{dives} immersioni}}",
+  "transmitters_apply_slot_reading": "Lettura dei file importati",
+  "transmitters_apply_slot_intro": "Le bombole importate da un file non hanno numero di serie. Possono essere compilate in base allo slot che questo trasmettitore occupava sul computer subacqueo.",
+  "transmitters_apply_summary": "Immersioni compilate per numero di serie: {serialDives}, per slot: {slotDives}",
+  "transmitters_apply_nothing_to_fill": "Nessuna bombola ha bisogno della configurazione di questo trasmettitore",
+  "transmitters_apply_slot_read_failed": "Non è stato possibile leggere i file importati, quindi le bombole non possono essere abbinate per slot",
   "transmitters_channel": "{computer}, canale {channel}",
   "transmitters_serial": "Trasmettitore {serial}",
   "transmitters_edit_title": "Modifica trasmettitore",
