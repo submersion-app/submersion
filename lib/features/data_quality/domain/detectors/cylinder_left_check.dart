@@ -81,10 +81,12 @@ double _ambientBarSeconds(
   int b,
   DiveEnvironment? environment,
 ) {
-  double barAt(int t) {
-    final depth = math.max(qualityDepthAt(samples, t), 0.0);
-    return environment?.pressureAtDepth(depth) ?? 1.0 + depth / 10.0;
+  double ambientAt(double depth) {
+    final d = math.max(depth, 0.0);
+    return environment?.pressureAtDepth(d) ?? 1.0 + d / 10.0;
   }
+
+  double barAt(int t) => ambientAt(qualityDepthAt(samples, t));
 
   var total = 0.0;
   var t0 = a;
@@ -95,7 +97,8 @@ double _ambientBarSeconds(
   for (; i < samples.length && samples[i].t < b; i++) {
     final t1 = samples[i].t;
     if (t1 <= t0) continue;
-    final p1 = barAt(t1);
+    // A sample's own depth: only the window's ends need interpolating.
+    final p1 = ambientAt(samples[i].depth);
     total += (p0 + p1) / 2 * (t1 - t0);
     (t0, p0) = (t1, p1);
   }
