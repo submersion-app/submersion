@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -68,8 +69,10 @@ import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.d
 import 'package:submersion/features/equipment/presentation/widgets/assembly_chips.dart';
 import 'package:submersion/features/equipment/presentation/widgets/dense_equipment_list_tile.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_filter_sheet.dart';
-import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
-import 'package:submersion/features/equipment/presentation/widgets/equipment_group_show_more.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_type_fold_header.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_fold_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_fold_summary.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_list_rows.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_header_bar.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_list_count_provider.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_sort_sheet.dart';
@@ -78,7 +81,6 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/shared/widgets/max_width_fraction.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
-import 'package:submersion/features/equipment/presentation/utils/equipment_group_cap.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_label.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
 import 'package:submersion/features/equipment/presentation/widgets/move_equipment_sheet.dart';
@@ -154,6 +156,10 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   Set<String> get _selectedIds => _selection.value.checkedIds;
 
   final ScrollController _scrollController = ScrollController();
+
+  /// The list under the keyboard navigator, whose context lets a scroll to a
+  /// selected row finish exactly once the row is built.
+  final GlobalKey _listViewKey = GlobalKey();
   String? _lastScrolledToId;
 
   /// The type axis the rows had when [_lastScrolledToId] was brought into
@@ -182,11 +188,22 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   String? _restoreTargetId;
   bool _restoreTargetRead = false;
 
-  /// Type groups the diver has expanded past the show-more cap (#3993),
-  /// keyed by [_groupKey]. Local to this widget: nothing here is persisted,
-  /// and it lives only as long as the widget does, which the app's
-  /// StatefulShellRoute keeps alive across tab switches and back navigation.
-  Set<String> _expandedGroups = const {};
+  /// Folds opened for a selection that arrived from outside the list's own
+  /// rows (issue #4184): a deep link, a new item, a restored detail item.
+  /// Held here, never saved; it ends when the diver folds that group again
+  /// or a newer outside selection replaces it.
+  Set<String> _revealed = const {};
+
+  /// The item [_revealed] was opened for, and the fold keys it sat under
+  /// then, so the reveal fires once per outside selection rather than on
+  /// every build, and again when the item moves to other groups (places and
+  /// the stored grouping can land after the first build, or the diver
+  /// regroups).
+  (String, String)? _revealedFor;
+
+  /// The outermost fold keys last published to
+  /// [equipmentOuterGroupKeysProvider], so it is written only on change.
+  List<String> _publishedOuterKeys = const [];
 
   @override
   void didChangeDependencies() {
@@ -265,16 +282,16 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
 
   /// Scroll the list to bring the row at [index] into view.
   ///
-  /// Uses estimated heights (Card + ListTile ~ 80px, a type heading ~ 32px, a
-  /// show-more row ~ 48px) since ListView.builder is lazy and off-screen rows
-  /// have no context. Headings are sized separately because sizing them like
-  /// items overshoots by the difference for every heading above the target,
-  /// which in a grouped list is nearly one per item.
+  /// Uses estimated heights (Card + ListTile ~ 80px, a heading ~ 48px) since
+  /// ListView.builder is lazy and off-screen rows have no context. Headings
+  /// are sized separately because sizing them like items overshoots by the
+  /// difference for every heading above the target, which in a grouped list
+  /// is nearly one per item.
   ///
   /// [jump] moves straight there, for a list being restored, which should not
   /// visibly travel from the top.
   void _scrollToIndex(
-    List<_EquipmentListRow> rows,
+    List<EquipmentListRow> rows,
     int index,
     String targetId,
     Object typeAxis, {
@@ -283,29 +300,41 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     if (!mounted || !_scrollController.hasClients) return;
 
     const estimatedItemHeight = 80.0;
-    const estimatedHeadingHeight = 32.0;
-    const estimatedShowMoreHeight = 48.0;
+    const estimatedHeadingHeight = 48.0;
     final maxScroll = _scrollController.position.maxScrollExtent;
     final viewportHeight = _scrollController.position.viewportDimension;
     var rowTop = 0.0;
     for (final row in rows.take(index)) {
       rowTop += switch (row) {
-        _EquipmentHeadingRow() ||
-        _EquipmentLocationHeadingRow() => estimatedHeadingHeight,
-        _EquipmentShowMoreRow() => estimatedShowMoreHeight,
-        _EquipmentItemRow() => estimatedItemHeight,
+        EquipmentTypeHeadingRow() ||
+        EquipmentLocationHeadingRow() => estimatedHeadingHeight,
+        EquipmentItemRow() => estimatedItemHeight,
       };
     }
     final targetOffset = rowTop - (viewportHeight / 3);
     final clampedOffset = targetOffset.clamp(0.0, maxScroll);
 
+    // The estimate lands near the row, but real rows and headings are not
+    // all the estimated height, and the extent of rows not yet built is only
+    // a guess; once the row is built, scroll it fully into view.
+    void settle() {
+      final listContext = _listViewKey.currentContext;
+      if (!mounted || listContext == null) return;
+      KeyboardListNavigator.keepRowVisible(listContext, targetId);
+    }
+
     if (jump) {
       _scrollController.jumpTo(clampedOffset);
+      WidgetsBinding.instance.addPostFrameCallback((_) => settle());
     } else {
-      _scrollController.animateTo(
-        clampedOffset,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
+      unawaited(
+        _scrollController
+            .animateTo(
+              clampedOffset,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            )
+            .then((_) => settle()),
       );
     }
     _lastScrolledToId = targetId;
@@ -529,6 +558,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                           unawaited(scanAndOpenTag(context, ref));
                           return;
                         }
+                        if (_handleFoldMenu(value)) return;
                         if (value.startsWith('view_')) {
                           final mode = ListViewMode.fromName(
                             value.replaceFirst('view_', ''),
@@ -548,6 +578,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                             context,
                             onSelect: _selection.enterExplicit,
                           ),
+                          ..._foldMenuEntries(context),
                           ...ListViewModeToggle.menuItems(
                             context,
                             currentMode: currentMode,
@@ -1001,6 +1032,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
               unawaited(scanAndOpenTag(context, ref));
               return;
             }
+            if (_handleFoldMenu(value)) return;
             if (value.startsWith('view_')) {
               final mode = ListViewMode.fromName(
                 value.replaceFirst('view_', ''),
@@ -1018,6 +1050,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                 context,
                 onSelect: _selection.enterExplicit,
               ),
+              ..._foldMenuEntries(context),
               ...ListViewModeToggle.menuItems(
                 context,
                 currentMode: currentMode,
@@ -1032,6 +1065,56 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         ),
       ),
     ];
+  }
+
+  static const _expandAllValue = 'fold_expand_all';
+  static const _collapseAllValue = 'fold_collapse_all';
+
+  /// Expand all and Collapse all (issue #4184), offered while the list shows
+  /// headings. Read as the menu opens, like the view mode.
+  List<PopupMenuEntry<String>> _foldMenuEntries(BuildContext context) {
+    if (ref.read(equipmentOuterGroupKeysProvider).isEmpty) return const [];
+    PopupMenuItem<String> entry(String value, IconData icon, String label) =>
+        PopupMenuItem<String>(
+          value: value,
+          child: Row(
+            children: [
+              Icon(icon, size: 20),
+              const SizedBox(width: 12),
+              // Wraps rather than overflows: some translations are long.
+              Flexible(child: Text(label)),
+            ],
+          ),
+        );
+    return [
+      entry(
+        _expandAllValue,
+        Icons.unfold_more,
+        context.l10n.equipment_list_expandAllGroups,
+      ),
+      entry(
+        _collapseAllValue,
+        Icons.unfold_less,
+        context.l10n.equipment_list_collapseAllGroups,
+      ),
+      const PopupMenuDivider(),
+    ];
+  }
+
+  /// Runs a fold menu entry; false when [value] is not one.
+  bool _handleFoldMenu(String value) {
+    final folds = ref.read(equipmentFoldsProvider.notifier);
+    switch (value) {
+      case _expandAllValue:
+        setState(() => _revealed = const {});
+        folds.expandAll();
+        return true;
+      case _collapseAllValue:
+        setState(() => _revealed = const {});
+        folds.collapseAll();
+        return true;
+    }
+    return false;
   }
 
   void _showSortSheet(BuildContext context) {
@@ -1202,48 +1285,20 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     );
   }
 
-  /// The key [_expandedGroups] tracks this group's expanded state under.
-  /// Grouping by location can put the same type under several places, so the
-  /// section (matching the heading's own key, see [_EquipmentHeadingRow])
-  /// is part of the key.
-  String _groupKey(EquipmentType type, String? sectionKey) =>
-      '${sectionKey ?? ''}-${type.name}';
+  /// Whether the group [foldKey] shows its rows: not folded, or folded but
+  /// opened for an outside selection.
+  bool _isOpen(String foldKey, Set<String> folds) =>
+      !folds.contains(foldKey) || _revealed.contains(foldKey);
 
-  /// This group's item rows, its [cappedGroupTail] replaced by a show-more
-  /// row unless the diver already expanded it.
-  ///
-  /// [currentIds] are the rows the page is landing on or resting on this
-  /// build. One in the tail expands the group here, before the rows are built,
-  /// and it stays expanded when the selection moves on: folding it then would
-  /// shift the rows under the diver's pointer.
-  ///
-  /// A checked row in the tail shows the whole group for as long as it stays
-  /// checked, so no bulk action reaches a row the diver cannot see or uncheck.
-  List<_EquipmentListRow> _rowsForGroup(
-    EquipmentGroup group, {
-    required String? sectionKey,
-    required Set<String> currentIds,
-  }) {
-    List<_EquipmentListRow> rowsOf(Iterable<EquipmentItem> items) => [
-      for (final item in items) _EquipmentItemRow(item),
-    ];
-
-    final tail = cappedGroupTail(group);
-    final type = group.type;
-    if (type == null || tail.isEmpty) return rowsOf(group.items);
-
-    final key = _groupKey(type, sectionKey);
-    if (tail.any((item) => currentIds.contains(item.id))) {
-      _expandedGroups = {..._expandedGroups, key};
+  /// Folds or opens [foldKey]. Folding a group that is only open for an
+  /// outside selection ends that reveal and writes nothing, since the saved
+  /// state already has it folded.
+  void _toggleFold(String foldKey, Set<String> folds) {
+    if (_revealed.contains(foldKey) && folds.contains(foldKey)) {
+      setState(() => _revealed = {..._revealed}..remove(foldKey));
+      return;
     }
-    if (_expandedGroups.contains(key) ||
-        tail.any((item) => _selectedIds.contains(item.id))) {
-      return rowsOf(group.items);
-    }
-    return [
-      ...rowsOf(group.items.take(equipmentGroupVisibleItems)),
-      _EquipmentShowMoreRow(groupKey: key, remainingCount: tail.length),
-    ];
+    ref.read(equipmentFoldsProvider.notifier).toggle(foldKey);
   }
 
   Widget _buildEquipmentList(
@@ -1255,15 +1310,11 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     required Map<String, EquipmentRowLabel> labels,
     List<EquipmentLocationSection>? locationSections,
   }) {
-    // The diver's selection (e.g. opened from dive detail or set detail) and
-    // the highlight must be resolved before the rows are built: either one
-    // landing in a group's hidden tail has to expand that group on this same
-    // pass, or the row is neither scrolled to nor marked (#3993).
+    // A selection that arrived from outside the rows (opened from dive or
+    // set detail, a new item, the item restored at launch) opens the folds
+    // hiding it, once, before the rows are built: otherwise the row is
+    // neither scrolled to nor marked (issue #4184).
     final selectedId = widget.selectedId ?? _restoreTargetId;
-    final currentIds = {
-      ?selectedId,
-      ?ref.watch(highlightedEquipmentIdProvider),
-    };
     // Each card names its place (issue #3625), except when grouped by
     // location: the place heading above the card already says it.
     final placesById = locationSections == null
@@ -1271,32 +1322,54 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
               const <String, EquipmentLocation>{}
         : const <String, EquipmentLocation>{};
 
-    // One flat run of rows for the lazy builder: a heading before each group
-    // when the arrangement groups, then that group's gear. Grouped by
-    // location, each place's heading comes first, its type groups inside.
-    final rows = <_EquipmentListRow>[
-      if (locationSections != null)
-        for (final section in locationSections) ...[
-          _EquipmentLocationHeadingRow(section.location, section.itemCount),
-          for (final group in section.groups) ...[
-            if (group.type != null)
-              _EquipmentHeadingRow(
-                group.type!,
-                sectionKey: section.location?.id ?? 'none',
-              ),
-            ..._rowsForGroup(
-              group,
-              sectionKey: section.location?.id ?? 'none',
-              currentIds: currentIds,
-            ),
-          ],
-        ]
-      else
-        for (final group in groups) ...[
-          if (group.type != null) _EquipmentHeadingRow(group.type!),
-          ..._rowsForGroup(group, sectionKey: null, currentIds: currentIds),
-        ],
-    ];
+    final folds = ref.watch(equipmentFoldsProvider).toSet();
+    EquipmentRowLayout layOut() => layoutEquipmentRows(
+      groups: groups,
+      sections: locationSections,
+      collapsed: folds.difference(_revealed),
+    );
+    var layout = layOut();
+    final selectedPath = layout.foldKeysByItem[selectedId];
+    final revealFor = selectedId == null || selectedPath == null
+        ? null
+        : (selectedId, selectedPath.join('|'));
+    if (revealFor != null && revealFor != _revealedFor && !_selectionFromList) {
+      _revealedFor = revealFor;
+      // Only what is folded now: a group the diver folds later, with the
+      // item in it, must fold.
+      _revealed = {...selectedPath!.where(folds.contains)};
+      layout = layOut();
+    }
+    final rows = layout.rows;
+    if (!listEquals(layout.outerKeys, _publishedOuterKeys)) {
+      _publishedOuterKeys = layout.outerKeys;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ref.read(equipmentOuterGroupKeysProvider.notifier).state =
+            layout.outerKeys;
+      });
+    }
+
+    // A folded type group says how much in it needs service. The urgency
+    // map evaluates every clock, so it is only watched while one is folded.
+    final anyTypeFolded = rows.any(
+      (row) => row is EquipmentTypeHeadingRow && !row.isExpanded,
+    );
+    final urgency = anyTypeFolded
+        ? (ref.watch(equipmentServiceUrgencyProvider).value ??
+              const <String, ServiceClockStatus>{})
+        : const <String, ServiceClockStatus>{};
+    String? selectionSummary(List<EquipmentItem> items) {
+      if (!_isSelectionMode) return null;
+      final checked = items.where((e) => _selectedIds.contains(e.id)).length;
+      return checked == 0
+          ? null
+          : foldedSelectionSummary(
+              context.l10n,
+              selected: checked,
+              total: items.length,
+            );
+    }
 
     // Scroll to selected item when data is available but we haven't
     // scrolled yet (e.g., navigated from dive detail or set detail), or when
@@ -1314,7 +1387,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         (selectedId != _lastScrolledToId || typeAxis != _scrolledTypeAxis) &&
         !_selectionFromList) {
       final selectedIndex = rows.indexWhere(
-        (row) => row is _EquipmentItemRow && row.item.id == selectedId,
+        (row) => row is EquipmentItemRow && row.item.id == selectedId,
       );
       if (selectedIndex < 0 && widget.selectedId == null) {
         _restoreTargetId = null;
@@ -1343,60 +1416,114 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         _invalidateCurrentProvider(ref);
       },
       child: KeyboardListNavigator(
-        // The group headings are labels, not folds, so only items are stops.
-        // That includes the rows past a group's cap: landing on one highlights
-        // it, which expands its group, so the cursor never skips a row.
-        keys: itemsById.keys.toList(),
+        // Headings are folds and stops of their own (issue #4184): Enter
+        // toggles one, Right opens it, Left closes it, and Left on an item
+        // closes the group it sits in, as on the site list.
+        keys: layout.navStops.keys,
         currentKey:
             widget.selectedId ?? ref.watch(highlightedEquipmentIdProvider),
-        onMove: (id) => moveListCursor(
-          context,
-          canOpen: !_isSelectionMode && widget.onItemSelected != null,
-          open: () => _handleRowTap(itemsById[id]!),
-          highlight: () =>
-              ref.read(highlightedEquipmentIdProvider.notifier).state = id,
-        ),
-        onActivate: (id) => _handleRowTap(itemsById[id]!),
+        onMove: (key) {
+          if (layout.navStops.groupOfHeader(key) != null) return;
+          moveListCursor(
+            context,
+            canOpen: !_isSelectionMode && widget.onItemSelected != null,
+            open: () => _handleRowTap(itemsById[key]!),
+            highlight: () =>
+                ref.read(highlightedEquipmentIdProvider.notifier).state = key,
+          );
+        },
+        onActivate: (key) {
+          final foldKey = layout.navStops.groupOfHeader(key);
+          if (foldKey != null) {
+            _toggleFold(foldKey, folds);
+          } else {
+            _handleRowTap(itemsById[key]!);
+          }
+        },
+        onExpand: (key) {
+          final foldKey = layout.navStops.groupOfHeader(key);
+          if (foldKey != null && !_isOpen(foldKey, folds)) {
+            _toggleFold(foldKey, folds);
+          }
+        },
+        onCollapse: (key) {
+          final header = layout.navStops.headerFor(key);
+          if (header == null) return null;
+          final foldKey = layout.navStops.groupOfHeader(header)!;
+          if (_isOpen(foldKey, folds)) {
+            _toggleFold(foldKey, folds);
+            return header;
+          }
+          // Already folded: Left climbs from a type heading to the place it
+          // sits in, as a tree view does.
+          return layout.navStops.parentHeaderOf(header) ?? header;
+        },
         child: ListView.builder(
+          key: _listViewKey,
           controller: _scrollController,
           padding: const EdgeInsets.only(bottom: 80),
           itemCount: rows.length,
           itemBuilder: (context, index) {
             final EquipmentItem item;
             switch (rows[index]) {
-              case _EquipmentLocationHeadingRow(:final location, :final count):
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: EquipmentLocationGroupHeader(
-                    location: location,
-                    count: count,
-                  ),
-                );
-              case _EquipmentHeadingRow(:final type, :final sectionKey):
-                // Keyed by place and type: grouped by location, one type can
-                // head a run under several places.
-                return KeyedSubtree(
-                  key: ValueKey(
-                    'equipment-type-${sectionKey ?? ''}-${type.name}',
-                  ),
-                  child: Padding(
-                    // Level with the card edges below it.
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: EquipmentGroupHeader(type: type),
-                  ),
-                );
-              case _EquipmentShowMoreRow(
-                :final groupKey,
-                :final remainingCount,
+              case EquipmentLocationHeadingRow(
+                :final location,
+                :final foldKey,
+                :final typeCounts,
+                :final items,
+                :final isExpanded,
+                :final isFirst,
               ):
-                return EquipmentGroupShowMore(
-                  key: ValueKey('equipment-group-show-more-$groupKey'),
-                  remainingCount: remainingCount,
-                  onPressed: () => setState(
-                    () => _expandedGroups = {..._expandedGroups, groupKey},
+                return KeyboardListItem(
+                  navigationKey: equipmentGroupNavKey(foldKey),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (!isFirst) const Divider(height: 1),
+                      EquipmentLocationGroupHeader(
+                        location: location,
+                        count: items.length,
+                        isExpanded: isExpanded,
+                        onTap: () => _toggleFold(foldKey, folds),
+                        summary:
+                            selectionSummary(items) ??
+                            foldedLocationSummary(context.l10n, typeCounts),
+                      ),
+                    ],
                   ),
                 );
-              case _EquipmentItemRow(item: final rowItem):
+              case EquipmentTypeHeadingRow(
+                :final type,
+                :final foldKey,
+                :final parentKey,
+                :final items,
+                :final isExpanded,
+              ):
+                return KeyboardListItem(
+                  navigationKey: equipmentGroupNavKey(foldKey),
+                  child: EquipmentTypeFoldHeader(
+                    foldKey: foldKey,
+                    type: type,
+                    count: items.length,
+                    isExpanded: isExpanded,
+                    nested: parentKey != null,
+                    onTap: () => _toggleFold(foldKey, folds),
+                    summary:
+                        selectionSummary(items) ??
+                        foldedTypeSummary(
+                          context.l10n,
+                          serviceDueCount: items
+                              .where(
+                                (e) =>
+                                    (urgency[e.id]?.severity ??
+                                        ServiceClockSeverity.ok) !=
+                                    ServiceClockSeverity.ok,
+                              )
+                              .length,
+                        ),
+                  ),
+                );
+              case EquipmentItemRow(item: final rowItem):
                 item = rowItem;
             }
             final isSelected =
@@ -1786,45 +1913,4 @@ class EquipmentListTile extends ConsumerWidget {
       children: [typeLabel, const SizedBox(height: 2), secondLine],
     );
   }
-}
-
-/// One row of the lazily built equipment list: a heading, an item, or the
-/// show-more row of a capped type group.
-sealed class _EquipmentListRow {
-  const _EquipmentListRow();
-}
-
-class _EquipmentHeadingRow extends _EquipmentListRow {
-  const _EquipmentHeadingRow(this.type, {this.sectionKey});
-
-  final EquipmentType type;
-
-  /// The place this type heading sits under when grouping by location.
-  final String? sectionKey;
-}
-
-/// A place's heading when the page groups by location (v268).
-class _EquipmentLocationHeadingRow extends _EquipmentListRow {
-  const _EquipmentLocationHeadingRow(this.location, this.count);
-
-  final EquipmentLocation? location;
-  final int count;
-}
-
-class _EquipmentItemRow extends _EquipmentListRow {
-  const _EquipmentItemRow(this.item);
-
-  final EquipmentItem item;
-}
-
-/// Stands in for the items a type group hides past the show-more cap
-/// (#3993). Tapping it expands the group; [groupKey] names which one.
-class _EquipmentShowMoreRow extends _EquipmentListRow {
-  const _EquipmentShowMoreRow({
-    required this.groupKey,
-    required this.remainingCount,
-  });
-
-  final String groupKey;
-  final int remainingCount;
 }
