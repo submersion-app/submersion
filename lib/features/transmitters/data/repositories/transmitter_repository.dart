@@ -438,9 +438,10 @@ class TransmitterRepository {
     );
   }
 
-  /// The computers whose dives carry a tank with [serial] (issue #4347).
-  Future<Set<String>> computersForSerial(String serial) =>
-      TransmitterSlotQueries(_db).computersForSerial(serial);
+  /// The computers whose dives (of [diverId], when given) carry a tank with
+  /// [serial] (issue #4347).
+  Future<Set<String>> computersForSerial(String serial, {String? diverId}) =>
+      TransmitterSlotQueries(_db).computersForSerial(serial, diverId: diverId);
 
   /// The file-imported tanks with no serial that [t]'s serial matches by
   /// computer, slot and date (issue #4347), for the Apply dialog. Empty for
@@ -456,7 +457,9 @@ class TransmitterRepository {
     final queries = TransmitterSlotQueries(_db);
     return queries.preview(
       serial,
-      computerIds ?? await queries.computersForSerial(serial),
+      computerIds ??
+          await queries.computersForSerial(serial, diverId: t.diverId),
+      diverId: t.diverId,
     );
   }
 
@@ -479,6 +482,7 @@ class TransmitterRepository {
       ...byKey,
       ...await _unserialedTanks(
         slotTankIds.difference({for (final r in byKey) r.id}),
+        t.diverId,
       ),
     ];
     if (candidates.isEmpty) {
@@ -558,11 +562,20 @@ class TransmitterRepository {
     );
   }
 
-  Future<List<DiveTank>> _unserialedTanks(Set<String> ids) async {
+  /// The tanks [ids] that still carry no serial, on [diverId]'s dives when
+  /// given: a slot match never writes another diver's tank.
+  Future<List<DiveTank>> _unserialedTanks(
+    Set<String> ids,
+    String? diverId,
+  ) async {
     if (ids.isEmpty) return const [];
-    final rows = await (_db.select(
-      _db.diveTanks,
-    )..where((d) => d.id.isIn(ids))).get();
+    final query = _db.select(_db.diveTanks).join([
+      innerJoin(_db.dives, _db.dives.id.equalsExp(_db.diveTanks.diveId)),
+    ])..where(_db.diveTanks.id.isIn(ids));
+    if (diverId != null) query.where(_db.dives.diverId.equals(diverId));
+    final rows = [
+      for (final r in await query.get()) r.readTable(_db.diveTanks),
+    ];
     return [
       for (final r in rows)
         if (normalizeTransmitterSerial(r.transmitterSerial) == null) r,

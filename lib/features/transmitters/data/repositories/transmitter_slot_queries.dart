@@ -16,15 +16,29 @@ class TransmitterSlotQueries {
   static const _hasSeries =
       'EXISTS (SELECT 1 FROM tank_pressure_series s WHERE s.tank_id = dt.id)';
 
-  /// The computers whose dives carry a tank with [serial].
-  Future<Set<String>> computersForSerial(String serial) async {
+  /// Serials are unique per diver, so every read keeps to the entry's own
+  /// diver's dives; a null diver reads them all, as serial matching does.
+  static const _ofDiver = '(? IS NULL OR d.diver_id = ?)';
+  static List<Variable<String>> _diverVars(String? diverId) => [
+    Variable<String>(diverId),
+    Variable<String>(diverId),
+  ];
+
+  /// The computers whose dives (of [diverId], when given) carry a tank with
+  /// [serial].
+  Future<Set<String>> computersForSerial(
+    String serial, {
+    String? diverId,
+  }) async {
     final wanted = normalizeTransmitterSerial(serial);
     if (wanted == null) return const {};
     final rows = await _db
         .customSelect(
           'SELECT DISTINCT $_computer AS c, dt.transmitter_serial AS serial '
           'FROM dive_tanks dt JOIN dives d ON d.id = dt.dive_id '
-          'WHERE dt.transmitter_serial IS NOT NULL AND $_computer IS NOT NULL',
+          'WHERE dt.transmitter_serial IS NOT NULL AND $_computer IS NOT NULL '
+          'AND $_ofDiver',
+          variables: _diverVars(diverId),
           readsFrom: {_db.diveTanks, _db.dives},
         )
         .get();
@@ -35,24 +49,29 @@ class TransmitterSlotQueries {
     };
   }
 
-  /// Builds the preview of [serial]'s slot matches on [computerIds].
+  /// Builds the preview of [serial]'s slot matches on [computerIds], among
+  /// [diverId]'s dives when given.
   Future<TransmitterSlotPreview> preview(
     String serial,
-    Set<String> computerIds,
-  ) async {
+    Set<String> computerIds, {
+    String? diverId,
+  }) async {
     final wanted = normalizeTransmitterSerial(serial);
     if (wanted == null || computerIds.isEmpty) {
       return TransmitterSlotPreview.empty;
     }
     final inComputers = '$_computer IN (${_marks(computerIds.length)})';
-    final vars = [for (final id in computerIds) Variable<String>(id)];
+    final vars = [
+      for (final id in computerIds) Variable<String>(id),
+      ..._diverVars(diverId),
+    ];
     final rows = await _db
         .customSelect(
           'SELECT dt.id AS id, dt.dive_id AS dive_id, $_computer AS c, '
           'dt.transmitter_serial AS serial, dt.transmitter_slot AS slot, '
           'd.dive_date_time AS at, $_hasSeries AS has_series '
           'FROM dive_tanks dt JOIN dives d ON d.id = dt.dive_id '
-          'WHERE $inComputers',
+          'WHERE $inComputers AND $_ofDiver',
           variables: vars,
           readsFrom: {_db.diveTanks, _db.dives, _db.tankPressureSeries},
         )

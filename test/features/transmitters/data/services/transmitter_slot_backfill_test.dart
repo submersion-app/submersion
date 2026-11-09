@@ -43,6 +43,18 @@ class _FakeParser implements ImportParser {
   List<ImportFormat> get supportedFormats => [ImportFormat.shearwaterDb];
 }
 
+/// A `.db` parse with no native parser behind it, as on the web.
+class _ThrowingParser implements ImportParser {
+  @override
+  Future<ImportPayload> parse(
+    Uint8List fileBytes, {
+    ImportOptions? options,
+  }) async => throw PlatformException(code: 'channel-error');
+
+  @override
+  List<ImportFormat> get supportedFormats => [ImportFormat.shearwaterDb];
+}
+
 class _MemoryMemo implements TransmitterSlotBackfillMemo {
   final done = <String>{};
 
@@ -162,8 +174,15 @@ void main() {
     DateTime? at,
     double? maxDepth,
     int? runtimeSeconds,
+    String? diverId,
   }) async {
     await computer(computerId);
+    if (diverId != null) {
+      await db.customStatement(
+        'INSERT OR IGNORE INTO divers (id, name, created_at, updated_at) '
+        "VALUES ('$diverId', '$diverId', 1, 1)",
+      );
+    }
     await DiveRepository().createDive(
       domain.Dive(
         id: id,
@@ -172,6 +191,7 @@ void main() {
         runtime: runtimeSeconds == null
             ? null
             : Duration(seconds: runtimeSeconds),
+        diverId: diverId,
       ),
     );
     await db.customStatement(
@@ -348,6 +368,66 @@ void main() {
       expect(await backfill().dbImportComputers(), {'teric'});
     },
   );
+
+  test(
+    'a diver\'s scope leaves other divers\' computers and dives alone',
+    () async {
+      await dive('db-1', 'teric', diverId: 'diver-1');
+      await source(
+        'db-1',
+        computerId: 'teric',
+        fileId: 'f',
+        fileFormat: 'shearwaterDb',
+      );
+      await dive('db-2', 'perdix', diverId: 'diver-2');
+      await source(
+        'db-2',
+        computerId: 'perdix',
+        fileId: 'g',
+        fileFormat: 'shearwaterDb',
+      );
+      expect(await backfill().dbImportComputers(diverId: 'diver-1'), {'teric'});
+
+      await dive('bt-1', 'petrel', diverId: 'diver-1');
+      await source('bt-1', computerId: 'petrel', raw: Uint8List(8));
+      await tank('bt-1-t', 'bt-1', serial: '180777', sourceIndex: 0);
+      await dive('bt-2', 'petrel', diverId: 'diver-2');
+      await source('bt-2', computerId: 'petrel', raw: Uint8List(8));
+      await tank('bt-2-t', 'bt-2', serial: '180777', sourceIndex: 0);
+
+      expect(await backfill().pendingCount({'petrel'}, diverId: 'diver-1'), 1);
+      await backfill().run({'petrel'}, diverId: 'diver-1');
+      final s = await slots();
+      expect(s['bt-1-t'], 1);
+      expect(s['bt-2-t'], isNull);
+    },
+  );
+
+  test('a file pass with no native parser leaves the file for later', () async {
+    await dive('db', 'petrel', maxDepth: 30, runtimeSeconds: 3000);
+    final fileId = await ImportedFileRepository().store(
+      bytes: Uint8List.fromList([1, 2, 3]),
+      fileName: 'cloud.db',
+    );
+    await source(
+      'db',
+      computerId: 'petrel',
+      fileId: fileId,
+      fileFormat: 'shearwaterDb',
+    );
+    await tank('db-t0', 'db', start: 200, end: 100);
+    final files = DiveResyncOrchestrator(
+      db: db,
+      parserFor: (_) => _ThrowingParser(),
+    );
+
+    await TransmitterSlotBackfill(
+      parseRaw: fakeParse,
+      memo: memo,
+      files: files,
+    ).run({'petrel'});
+    expect(memo.done, isNot(contains('file:db')));
+  });
 
   test('a second run parses nothing again', () async {
     await dive('bt', 'perdix');

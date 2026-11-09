@@ -44,17 +44,29 @@ class TransmitterSlotBackfill {
 
   AppDatabase get _db => _database ?? DatabaseService.instance.database;
 
-  /// Computers with a dive whose primary source is a stored Shearwater
-  /// Cloud database. Its tanks gain serials from the file, which no other
-  /// computer's downloads would bring into scope.
-  Future<Set<String>> dbImportComputers() async {
+  /// Every read keeps to one diver's dives when a diver is given: a
+  /// transmitter is one diver's, and another's dives are not its to parse.
+  static const _ofDiver = '(? IS NULL OR d.diver_id = ?)';
+  static List<Variable<String>> _diverVars(String? diverId) => [
+    Variable<String>(diverId),
+    Variable<String>(diverId),
+  ];
+
+  /// Computers with a dive (of [diverId], when given) whose primary source
+  /// is a stored Shearwater Cloud database. Its tanks gain serials from the
+  /// file, which no other computer's downloads would bring into scope.
+  Future<Set<String>> dbImportComputers({String? diverId}) async {
     final rows = await _db
         .customSelect(
           'SELECT DISTINCT d.computer_id AS c FROM dives d '
           'JOIN dive_data_sources s ON s.dive_id = d.id AND s.is_primary = 1 '
           'WHERE s.imported_file_id IS NOT NULL '
-          'AND s.source_file_format = ? AND d.computer_id IS NOT NULL',
-          variables: [Variable<String>(ImportFormat.shearwaterDb.name)],
+          'AND s.source_file_format = ? AND d.computer_id IS NOT NULL '
+          'AND $_ofDiver',
+          variables: [
+            Variable<String>(ImportFormat.shearwaterDb.name),
+            ..._diverVars(diverId),
+          ],
           readsFrom: {_db.dives, _db.diveDataSources},
         )
         .get();
@@ -63,34 +75,37 @@ class TransmitterSlotBackfill {
 
   /// How many sources and dives on [computerIds] [run] would parse, so a
   /// caller shows progress only when there is work.
-  Future<int> pendingCount(Set<String> computerIds) async {
-    final (:sources, :dives) = await _pending(computerIds);
+  Future<int> pendingCount(Set<String> computerIds, {String? diverId}) async {
+    final (:sources, :dives) = await _pending(computerIds, diverId);
     return sources.length + dives.length;
   }
 
   Future<({List<String> sources, List<String> dives})> _pending(
     Set<String> computerIds,
+    String? diverId,
   ) async {
     if (computerIds.isEmpty) return (sources: <String>[], dives: <String>[]);
     final done = await _memo.load();
     return (
       sources: [
-        for (final id in await _rawSourceIds(computerIds))
+        for (final id in await _rawSourceIds(computerIds, diverId))
           if (!done.contains('raw:$id')) id,
       ],
       dives: [
-        for (final id in await _fileDiveIds(computerIds))
+        for (final id in await _fileDiveIds(computerIds, diverId))
           if (!done.contains('file:$id')) id,
       ],
     );
   }
 
-  /// Backfills the dives on [computerIds]. Returns the tanks written.
+  /// Backfills the dives on [computerIds], only [diverId]'s when given.
+  /// Returns the tanks written.
   Future<int> run(
     Set<String> computerIds, {
     void Function(int done, int total)? onProgress,
+    String? diverId,
   }) async {
-    final (:sources, :dives) = await _pending(computerIds);
+    final (:sources, :dives) = await _pending(computerIds, diverId);
     final total = sources.length + dives.length;
     if (total == 0) return 0;
     final sync = SyncRepository(database: _db);
@@ -138,6 +153,12 @@ class TransmitterSlotBackfill {
       } on MissingPluginException {
         // A `.db` file needs the native parser; leave it for a device that
         // has one.
+      } on PlatformException catch (e) {
+        // The same missing parser, as the raw pass sees it on the web.
+        if (e.code != 'UNSUPPORTED' && e.code != 'channel-error') {
+          _log.warning('Slot backfill could not read the file of dive $id');
+          finished.add('file:$id');
+        }
       } catch (e, stackTrace) {
         _log.warning(
           'Slot backfill could not read the file of dive $id',
@@ -156,18 +177,26 @@ class TransmitterSlotBackfill {
 
   /// Sources with raw bytes on [computerIds] whose dive has a tank with a
   /// serial and no slot.
-  Future<List<String>> _rawSourceIds(Set<String> computerIds) async {
+  Future<List<String>> _rawSourceIds(
+    Set<String> computerIds,
+    String? diverId,
+  ) async {
     final rows = await _db
         .customSelect(
           'SELECT DISTINCT s.id AS id FROM dive_data_sources s '
+          'JOIN dives d ON d.id = s.dive_id '
           'JOIN dive_tanks dt ON dt.dive_id = s.dive_id '
           'WHERE s.raw_data IS NOT NULL '
           'AND s.computer_id IN (${_marks(computerIds.length)}) '
           'AND (dt.computer_id IS NULL OR dt.computer_id = s.computer_id) '
           'AND dt.transmitter_serial IS NOT NULL '
-          'AND dt.transmitter_slot IS NULL',
-          variables: [for (final c in computerIds) Variable<String>(c)],
-          readsFrom: {_db.diveDataSources, _db.diveTanks},
+          'AND dt.transmitter_slot IS NULL '
+          'AND $_ofDiver',
+          variables: [
+            for (final c in computerIds) Variable<String>(c),
+            ..._diverVars(diverId),
+          ],
+          readsFrom: {_db.diveDataSources, _db.dives, _db.diveTanks},
         )
         .get();
     return [for (final r in rows) r.read<String>('id')];
@@ -175,7 +204,10 @@ class TransmitterSlotBackfill {
 
   /// Dives on [computerIds] whose primary source is a stored UDDF or
   /// Shearwater Cloud file and that have a slot-less tank with a series.
-  Future<List<String>> _fileDiveIds(Set<String> computerIds) async {
+  Future<List<String>> _fileDiveIds(
+    Set<String> computerIds,
+    String? diverId,
+  ) async {
     final rows = await _db
         .customSelect(
           'SELECT DISTINCT d.id AS id FROM dives d '
@@ -187,10 +219,12 @@ class TransmitterSlotBackfill {
           'IN (${_marks(computerIds.length)}) '
           'AND dt.transmitter_slot IS NULL '
           'AND EXISTS (SELECT 1 FROM tank_pressure_series ps '
-          'WHERE ps.tank_id = dt.id)',
+          'WHERE ps.tank_id = dt.id) '
+          'AND $_ofDiver',
           variables: [
             for (final f in _fileFormats) Variable<String>(f.name),
             for (final c in computerIds) Variable<String>(c),
+            ..._diverVars(diverId),
           ],
           readsFrom: {
             _db.dives,

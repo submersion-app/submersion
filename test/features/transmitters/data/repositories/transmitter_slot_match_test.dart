@@ -44,18 +44,19 @@ void main() {
     String? serial,
     int? slot,
     bool series = true,
+    String diverId = 'diver-1',
   }) async {
     final db = DatabaseService.instance.database;
     await db.customStatement(
       'INSERT OR IGNORE INTO divers (id, name, created_at, updated_at) '
-      "VALUES ('diver-1', 'A', 1, 1)",
+      "VALUES ('$diverId', 'A', 1, 1)",
     );
     await computer(computerId);
     await DiveRepository().createDive(
       domain.Dive(
         id: id,
         dateTime: date,
-        diverId: 'diver-1',
+        diverId: diverId,
         computerId: computerId,
       ),
     );
@@ -137,6 +138,35 @@ void main() {
     expect(preview.candidates, isEmpty);
     expect(preview.changedHandsDiveIds, isEmpty);
   });
+
+  test('another diver with the same serial stays out of the preview', () async {
+    await dive('bt', mar, serial: '180777', slot: 1);
+    await dive('cloud', jun, slot: 1);
+    await dive('bt-2', mar, serial: '180777', slot: 1, diverId: 'diver-2');
+    await dive('cloud-2', jun, slot: 1, diverId: 'diver-2');
+
+    final preview = await repo.previewSlotMatches(entry());
+    expect(preview.tankIds(includeOlder: true), {'cloud-t'});
+    expect(await repo.computersForSerial('180777', diverId: 'diver-2'), {
+      'perdix',
+    });
+  });
+
+  test(
+    'apply writes no other diver\'s tank even when its id is given',
+    () async {
+      await dive('bt', mar, serial: '180777', slot: 1);
+      await dive('cloud-2', jun, slot: 1, diverId: 'diver-2');
+
+      await repo.applyToExistingDives(entry(), slotTankIds: {'cloud-2-t'});
+      final db = DatabaseService.instance.database;
+      final row = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.id.equals('cloud-2-t'))).getSingle();
+      expect(row.volume, isNull);
+      expect(row.tankName, isNull);
+    },
+  );
 
   test('two computers sharing the transmitter keep their own slots', () async {
     await dive('bt-a', mar, serial: '180777', slot: 1);

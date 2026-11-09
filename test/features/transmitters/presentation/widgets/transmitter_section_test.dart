@@ -34,22 +34,35 @@ class _FakeApplyRepository extends TransmitterRepository {
   final slotTankIdsApplied = <Set<String>>[];
 
   var serialLookups = 0;
+  final serialLookupDivers = <String?>[];
+  final previewComputerIds = <Set<String>?>[];
+
+  /// Answers the serial lookup in place of the slot candidates' computers.
+  Set<String> Function()? computers;
 
   /// Holds lookups open until completed, as a slow database would.
   Completer<void>? gate;
 
   @override
-  Future<Set<String>> computersForSerial(String serial) async {
+  Future<Set<String>> computersForSerial(
+    String serial, {
+    String? diverId,
+  }) async {
     serialLookups++;
+    serialLookupDivers.add(diverId);
     await gate?.future;
-    return {for (final c in slots.candidates) c.computerId};
+    return computers?.call() ??
+        {for (final c in slots.candidates) c.computerId};
   }
 
   @override
   Future<TransmitterSlotPreview> previewSlotMatches(
     Transmitter t, {
     Set<String>? computerIds,
-  }) async => slots;
+  }) async {
+    previewComputerIds.add(computerIds);
+    return slots;
+  }
 
   @override
   Future<ApplyToExistingResult> previewApplyToExistingDives(
@@ -76,19 +89,28 @@ class _FakeBackfill extends TransmitterSlotBackfill {
   final int pending;
   final Set<String> dbComputers;
   final runs = <Set<String>>[];
+  final divers = <String?>[];
 
   @override
-  Future<Set<String>> dbImportComputers() async => dbComputers;
+  Future<Set<String>> dbImportComputers({String? diverId}) async {
+    divers.add(diverId);
+    return dbComputers;
+  }
 
   @override
-  Future<int> pendingCount(Set<String> computerIds) async => pending;
+  Future<int> pendingCount(Set<String> computerIds, {String? diverId}) async {
+    divers.add(diverId);
+    return pending;
+  }
 
   @override
   Future<int> run(
     Set<String> computerIds, {
     void Function(int done, int total)? onProgress,
+    String? diverId,
   }) async {
     runs.add(computerIds);
+    divers.add(diverId);
     return 0;
   }
 }
@@ -100,8 +122,10 @@ void main() {
     bool configured = true,
     String? cylinder,
     double? volume,
+    String? diverId,
   }) => Transmitter(
     id: id,
+    diverId: diverId,
     transmitterSerial: '4A21F',
     label: 'Back gas tx',
     role: TankRole.stage,
@@ -399,7 +423,8 @@ void main() {
       await tester.pump();
       repo.gate!.complete();
       await tester.pumpAndSettle();
-      expect(repo.serialLookups, 1);
+      // One flow looks the serial up before the backfill and again after it.
+      expect(repo.serialLookups, 2);
       expect(backfill.runs, hasLength(1));
       expect(find.text('Apply to existing dives?'), findsOneWidget);
       await tester.tap(find.text('Cancel'));
@@ -424,6 +449,32 @@ void main() {
       expect(backfill.runs, [
         {'teric'},
       ]);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('the slot preview sees the computers the backfill gave the '
+        'serial, scoped to the key\'s diver', (tester) async {
+      final repo = _FakeApplyRepository(
+        preview: (tanksUpdated: 1, divesUpdated: 1, mixesKept: 0),
+      );
+      final backfill = _FakeBackfill(dbComputers: const {'teric'});
+      // No tank carries the serial until the backfill writes it.
+      repo.computers = () => backfill.runs.isEmpty ? <String>{} : {'teric'};
+      await pump(
+        tester,
+        [key(cylinder: 'cyl', diverId: 'diver-1')],
+        repository: repo,
+        backfill: backfill,
+      );
+
+      await tester.tap(find.text('Apply to existing dives'));
+      await tester.pumpAndSettle();
+      expect(repo.previewComputerIds, [
+        {'teric'},
+      ]);
+      expect(repo.serialLookupDivers.toSet(), {'diver-1'});
+      expect(backfill.divers.toSet(), {'diver-1'});
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
     });

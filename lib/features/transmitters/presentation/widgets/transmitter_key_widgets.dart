@@ -78,18 +78,24 @@ Future<void> applyTransmitterSetupToExistingDives(
   final l10n = context.l10n;
   final messenger = ScaffoldMessenger.of(context);
   final repo = ref.read(transmitterRepositoryProvider);
-  final computersByKey = <String, Set<String>>{
+  // One transmitter is one diver's; its keys share that diver.
+  final diverId = keys.isEmpty ? null : keys.first.diverId;
+  Future<Map<String, Set<String>>> computersByKey() async => {
     for (final key in keys)
       if (normalizeTransmitterSerial(key.transmitterSerial) case final serial?)
-        key.id: await repo.computersForSerial(serial),
+        key.id: await repo.computersForSerial(serial, diverId: key.diverId),
   };
-  final computers = {for (final set in computersByKey.values) ...set};
+  var byKey = await computersByKey();
+  final computers = {for (final set in byKey.values) ...set};
   final backfill = ref.read(transmitterSlotBackfillProvider);
   // A Cloud database's dives gain serials from their file, so its computers
   // join the scope even before any of their tanks carries this serial.
-  computers.addAll(await backfill.dbImportComputers());
-  if (await backfill.pendingCount(computers) > 0 && context.mounted) {
-    await _learnSlots(context, backfill, computers);
+  computers.addAll(await backfill.dbImportComputers(diverId: diverId));
+  if (await backfill.pendingCount(computers, diverId: diverId) > 0 &&
+      context.mounted) {
+    await _learnSlots(context, backfill, computers, diverId);
+    // The backfill can give a computer the serial, so look again.
+    byKey = await computersByKey();
   }
   // Preview the counts with a dry run: the repository's matchers are the
   // same ones the write uses, so the numbers cannot disagree.
@@ -102,7 +108,7 @@ Future<void> applyTransmitterSetupToExistingDives(
     dives += preview.divesUpdated;
     slotsByKey[key.id] = await repo.previewSlotMatches(
       key,
-      computerIds: computersByKey[key.id],
+      computerIds: byKey[key.id],
     );
   }
   final slots = TransmitterSlotPreview.merge(slotsByKey.values);
@@ -154,6 +160,7 @@ Future<void> _learnSlots(
   BuildContext context,
   TransmitterSlotBackfill backfill,
   Set<String> computers,
+  String? diverId,
 ) async {
   // showDialog pushes onto the root navigator, above the app's ShellRoute,
   // so the pop must go there too, not to the page's own navigator.
@@ -185,6 +192,7 @@ Future<void> _learnSlots(
     await backfill.run(
       computers,
       onProgress: (done, total) => progress.value = done / total,
+      diverId: diverId,
     );
   } catch (e, stackTrace) {
     _log.warning(
