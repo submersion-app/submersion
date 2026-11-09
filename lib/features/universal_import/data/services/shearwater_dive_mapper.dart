@@ -5,8 +5,10 @@ import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/surface_pressure_limits.dart';
+import 'package:submersion/core/services/export/uddf/uddf_transmitter_slot.dart';
 import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
@@ -201,15 +203,49 @@ class ShearwaterDiveMapper {
       final o2 = _toDouble(gasProfile?['O2Percent']) ?? 21.0;
       final he = _toDouble(gasProfile?['HePercent']) ?? 0.0;
 
+      final slot = _transmitterSlot(transmitter);
       results.add({
         'gasMix': GasMix(o2: o2, he: he),
         'startPressure': _parsePsiPressure(tank['StartPressurePSI']),
         'endPressure': _parsePsiPressure(tank['EndPressurePSI']),
         'name': transmitter['Name'] as String? ?? '',
+        'transmitterSlot': ?slot,
       });
     }
 
     return results;
+  }
+
+  /// The physical slot of a Cloud tank's transmitter, 0 based (issue
+  /// #4347): its `TankIndex` when that is a transmitter slot, otherwise the
+  /// slot its `T1` to `T4` name gives.
+  static int? _transmitterSlot(Map<String, dynamic> transmitter) {
+    final index = transmitter['TankIndex'];
+    if (index is int && index >= 0 && index < 4) return index;
+    return shearwaterSlotFromRef(transmitter['Name'] as String?);
+  }
+
+  /// Gives each mapped tank the serial of the parsed tank in its slot
+  /// (issue #4347). The export's tank list carries no serial; the raw log
+  /// does, keyed by the same physical slot.
+  static List<Map<String, dynamic>> _withSerialsBySlot(
+    List<Map<String, dynamic>> tanks,
+    List<pigeon.TankInfo> parsedTanks,
+  ) {
+    final serialBySlot = <int, String>{
+      for (final t in parsedTanks)
+        if (t.transmitterSlot case final slot?)
+          if (normalizeTransmitterSerial(t.transmitterSerial?.toString())
+              case final serial?)
+            slot: serial,
+    };
+    return [
+      for (final tank in tanks)
+        if (serialBySlot[tank['transmitterSlot']] case final serial?)
+          {...tank, 'transmitterSerial': serial}
+        else
+          tank,
+    ];
   }
 
   /// The identity a dive's site is filed under, or null when the dive says
@@ -512,6 +548,11 @@ class ShearwaterDiveMapper {
       ParsedDiveProfileMapper.samples(parsed),
       gf99Samples,
     );
+
+    final mappedTanks = merged['tanks'] as List<Map<String, dynamic>>?;
+    if (mappedTanks != null) {
+      merged['tanks'] = _withSerialsBySlot(mappedTanks, parsed.tanks);
+    }
 
     // Gas switches live only in the parsed samples, and a deco bottle without
     // a transmitter is missing from the metadata's tank list (#2608).
