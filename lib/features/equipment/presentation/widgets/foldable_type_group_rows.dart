@@ -29,18 +29,29 @@ mixin FoldableTypeGroupsState<T extends StatefulWidget> on State<T> {
   /// until then.
   Set<String>? openTypeGroups;
 
+  /// The type groups on screen, so a tap before the open set is worked out
+  /// starts from every group open, as drawn.
+  Set<String> _shownTypeGroups = const {};
+
   /// Works out the groups to open, once, when [ready] and there is gear.
+  /// Call it on every build.
   void ensureOpenTypeGroups(
     List<EquipmentTypeGroupRows> groups,
     Set<String> ticked, {
     bool ready = true,
   }) {
+    _shownTypeGroups = {
+      for (final (type, _) in groups)
+        if (type != null) typeFoldKey(type),
+    };
     if (openTypeGroups != null || groups.isEmpty || !ready) return;
     openTypeGroups = initialOpenTypeGroups(groups, ticked);
   }
 
+  /// Folds or opens one group. A tap before the open set is worked out is
+  /// the diver's own choice, so the initial rule no longer applies.
   void toggleTypeGroup(String foldKey) => setState(() {
-    final open = openTypeGroups ?? const <String>{};
+    final open = openTypeGroups ?? _shownTypeGroups;
     openTypeGroups = open.contains(foldKey)
         ? ({...open}..remove(foldKey))
         : {...open, foldKey};
