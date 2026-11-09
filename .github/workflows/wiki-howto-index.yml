@@ -52,7 +52,8 @@ jobs:
       - name: Push Home if the list changed
         working-directory: wiki
         run: |
-          if git diff --quiet -- Home.md && git ls-files --error-unmatch Home.md >/dev/null 2>&1; then
+          # Empty for an unchanged Home; lists a modified or newly created one.
+          if [ -z "$(git status --porcelain -- Home.md)" ]; then
             echo "Home.md is already current."
             exit 0
           fi

@@ -10,10 +10,12 @@ page was first created, even after a rename.
 """
 
 import importlib.util
+import io
 import os
 import subprocess
 import tempfile
 import unittest
+from unittest import mock
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _spec = importlib.util.spec_from_file_location(
@@ -40,8 +42,14 @@ class IsHowtoTest(unittest.TestCase):
         self.assertFalse(index.is_howto("Howto-tag-dives.md"))
         self.assertFalse(index.is_howto("Showing-How-to-tag.md"))
 
-    def test_rejects_non_markdown_files(self):
+    def test_accepts_every_markup_the_wiki_editor_saves(self):
+        for ext in (".asciidoc", ".rest", ".mediawiki", ".org", ".textile"):
+            with self.subTest(ext=ext):
+                self.assertTrue(index.is_howto(f"How-to-tag-dives{ext}"))
+
+    def test_rejects_files_that_are_not_pages(self):
         self.assertFalse(index.is_howto("How-to-tag-dives.png"))
+        self.assertFalse(index.is_howto("How-to-tag-dives"))
 
 
 class PageLinkTest(unittest.TestCase):
@@ -61,6 +69,13 @@ class PageLinkTest(unittest.TestCase):
         self.assertEqual(
             index.list_item("How-to-read-[beta]-pages"),
             "- [How to read \\[beta\\] pages](How-to-read-%5Bbeta%5D-pages)",
+        )
+
+    def test_list_item_escapes_markdown_formatting_in_the_title(self):
+        self.assertEqual(
+            index.list_item("How-to-set-*all*-`tanks`_now"),
+            "- [How to set \\*all\\* \\`tanks\\`\\_now]"
+            "(How-to-set-%2Aall%2A-%60tanks%60_now)",
         )
 
 
@@ -108,19 +123,61 @@ class UpdateHomeTest(unittest.TestCase):
             index.update_home(f"{END}\n- old\n{START}\n", "- new")
 
 
+def _commit(stamp, *changes):
+    entries = "".join(f"{status}\0{chr(0).join(paths)}\0" for status, *paths in changes)
+    return f"\x01{stamp}\0\n{entries}"
+
+
+class ParseCreationTimesTest(unittest.TestCase):
+    def test_a_page_is_dated_by_the_commit_that_added_it(self):
+        log = _commit(100, ("A", "a.md")) + _commit(200, ("M", "a.md"))
+        self.assertEqual(index.parse_creation_times(log), {"a.md": 100})
+
+    def test_a_rename_keeps_the_original_date(self):
+        log = _commit(100, ("A", "a.md")) + _commit(200, ("R100", "a.md", "b.md"))
+        self.assertEqual(index.parse_creation_times(log), {"b.md": 100})
+
+    def test_a_deleted_page_is_dropped_and_a_re_added_one_is_new(self):
+        log = (
+            _commit(100, ("A", "a.md"), ("A", "b.md"))
+            + _commit(200, ("D", "a.md"))
+            + _commit(300, ("D", "b.md"))
+            + _commit(400, ("A", "b.md"))
+        )
+        self.assertEqual(index.parse_creation_times(log), {"b.md": 400})
+
+    def test_a_copy_leaves_both_dates_alone(self):
+        log = _commit(100, ("A", "a.md")) + _commit(200, ("C75", "a.md", "b.md"))
+        self.assertEqual(index.parse_creation_times(log), {"a.md": 100})
+
+    def test_a_commit_without_file_changes_is_skipped(self):
+        log = _commit(100, ("A", "a.md")) + _commit(200)
+        self.assertEqual(index.parse_creation_times(log), {"a.md": 100})
+
+    def test_an_empty_log_dates_nothing(self):
+        self.assertEqual(index.parse_creation_times(""), {})
+
+
 def _git(repo, *args, when=None):
-    env = dict(os.environ)
-    env.update(
-        GIT_AUTHOR_NAME="Test",
-        GIT_AUTHOR_EMAIL="test@example.com",
-        GIT_COMMITTER_NAME="Test",
-        GIT_COMMITTER_EMAIL="test@example.com",
+    dates = (
+        {}
+        if when is None
+        else {
+            "GIT_AUTHOR_DATE": f"{when} +0000",
+            "GIT_COMMITTER_DATE": f"{when} +0000",
+        }
     )
-    if when is not None:
-        stamp = f"{when} +0000"
-        env.update(GIT_AUTHOR_DATE=stamp, GIT_COMMITTER_DATE=stamp)
+    env = {
+        **os.environ,
+        "GIT_AUTHOR_NAME": "Test",
+        "GIT_AUTHOR_EMAIL": "test@example.com",
+        "GIT_COMMITTER_NAME": "Test",
+        "GIT_COMMITTER_EMAIL": "test@example.com",
+        **dates,
+    }
+    # A developer's global commit.gpgsign would otherwise prompt for a key.
     subprocess.run(
-        ["git", "-C", repo, *args],
+        ["git", "-c", "commit.gpgsign=false", "-C", repo, *args],
         check=True,
         env=env,
         stdout=subprocess.DEVNULL,
@@ -129,7 +186,9 @@ def _git(repo, *args, when=None):
 
 
 def _add_page(repo, name, when, text="Some text.\n"):
-    with open(os.path.join(repo, name), "w", encoding="utf-8") as handle:
+    path = os.path.join(repo, name)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as handle:
         handle.write(text)
     _git(repo, "add", name)
     _git(repo, "commit", "-m", f"Add {name}", when=when)
@@ -165,6 +224,41 @@ class WikiRepoTest(unittest.TestCase):
         self.assertEqual(
             index.howto_pages(self.repo),
             ["How-to-newer", "How-to-tag-dives-with-rules"],
+        )
+
+    def test_lists_pages_in_other_markups_and_in_subfolders(self):
+        _add_page(self.repo, "How-to-plan.asciidoc", 1_700_000_100)
+        _add_page(
+            self.repo, os.path.join("guides", "How-to-log.md"), 1_700_000_200
+        )
+        _add_page(self.repo, "How-to-skip.png", 1_700_000_300)
+        self.assertEqual(
+            index.howto_pages(self.repo),
+            ["How-to-log", "How-to-plan"],
+        )
+
+    def test_a_wildcard_in_a_page_name_matches_only_that_page(self):
+        # As a glob, "How-to-try-it?.md" also matches the older
+        # "How-to-try-itX.md", which would date it before How-to-middle.
+        _add_page(self.repo, "How-to-try-itX.md", 1_700_000_100)
+        _add_page(self.repo, "How-to-middle.md", 1_700_000_200)
+        _add_page(self.repo, "How-to-try-it?.md", 1_700_000_300)
+        self.assertEqual(
+            index.howto_pages(self.repo),
+            ["How-to-try-it?", "How-to-middle", "How-to-try-itX"],
+        )
+
+    def test_a_new_page_like_an_older_one_keeps_its_own_date(self):
+        # git log --follow would take the new page for a copy of the old one.
+        boilerplate = "Shared line one.\nShared line two.\nShared line three.\n"
+        _add_page(self.repo, "How-to-old.md", 1_700_000_100, boilerplate)
+        _add_page(self.repo, "How-to-middle.md", 1_700_000_200)
+        _add_page(
+            self.repo, "How-to-new.md", 1_700_000_300, boilerplate + "More.\n"
+        )
+        self.assertEqual(
+            index.howto_pages(self.repo),
+            ["How-to-new", "How-to-middle", "How-to-old"],
         )
 
     def test_pages_created_together_sort_by_title(self):
@@ -207,7 +301,9 @@ class WikiRepoTest(unittest.TestCase):
             self.assertEqual(f.read(), f"Intro\n{START}\n")
 
     def test_main_needs_exactly_one_argument(self):
-        self.assertEqual(index.main([]), 2)
+        with mock.patch("sys.stderr", new_callable=io.StringIO) as err:
+            self.assertEqual(index.main([]), 2)
+        self.assertEqual(err.getvalue(), index.USAGE + "\n")
 
 
 if __name__ == "__main__":
