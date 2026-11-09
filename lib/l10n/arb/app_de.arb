@@ -2789,6 +2789,7 @@
   "diveLog_edit_gasSwitches_pickReadout": "{time} bei {depth}",
   "diveLog_edit_gasSwitches_pickConfirm": "Zeit festlegen",
   "diveLog_edit_gasSwitches_removedWithTank": "{count, plural, one{{count} Gaswechsel mit seiner Flasche entfernt} other{{count} Gaswechsel mit ihrer Flasche entfernt}}",
+  "diveLog_edit_gasSwitches_fillDetected": "{count, plural, one{1 Wechsel aus den Flaschendrücken übernehmen} other{{count} Wechsel aus den Flaschendrücken übernehmen}}",
   "diveLog_edit_gettingLocation": "Standort wird ermittelt...",
   "diveLog_edit_group_buddies": "Buddys",
   "diveLog_edit_group_conditions": "Bedingungen",

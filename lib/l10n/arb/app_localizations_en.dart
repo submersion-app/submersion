@@ -8099,6 +8099,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_gasSwitches_fillDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Fill in $count switches from the cylinder pressures',
+      one: 'Fill in 1 switch from the cylinder pressures',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'Getting location...';
 
   @override

@@ -50,8 +50,13 @@ typedef BreathStart = ({int t, int? previousEnd});
 /// A cylinder's [starts], and [heldFrom]: when its last breathing ended, if
 /// its readings then show it holding for [kBreathHoldSeconds] without being
 /// breathed again. Null when it was breathed to the end of its readings, or
-/// never.
-typedef BreathTurns = ({List<BreathStart> starts, int? heldFrom});
+/// never. [fromStart] says it was breathed from its first reading, with no
+/// hold before: the cylinder a dive began on (issue #4335).
+typedef BreathTurns = ({
+  List<BreathStart> starts,
+  int? heldFrom,
+  bool fromStart,
+});
 
 /// [cylinderBreathStarts], with when the breathing around them ended.
 ///
@@ -63,7 +68,9 @@ typedef BreathTurns = ({List<BreathStart> starts, int? heldFrom});
 /// fall too small to be breathing (a hose filling, a dip) never sets one.
 BreathTurns cylinderBreathTurns(List<PressureReading> readings) {
   final series = withoutPressureGlitches(readingsInTimeOrder(readings));
-  if (series.length < 2) return (starts: const [], heldFrom: null);
+  if (series.length < 2) {
+    return (starts: const [], heldFrom: null, fromStart: false);
+  }
 
   final starts = <BreathStart>[];
   var restSince = series.first.t;
@@ -72,6 +79,7 @@ BreathTurns cylinderBreathTurns(List<PressureReading> readings) {
   var lag = 0;
   int? breathingEnded;
   int? heldFrom;
+  var fromStart = false;
 
   var inTurn = false;
   var level = 0.0;
@@ -86,6 +94,12 @@ BreathTurns cylinderBreathTurns(List<PressureReading> readings) {
         lastFalling - onset >= kBreathMinFallingSeconds;
     if (eligible && breathed) {
       starts.add((t: onset, previousEnd: endedBeforeOnset));
+    }
+    // The first breathing, begun before a hold's length had passed.
+    if (breathed &&
+        breathingEnded == null &&
+        onset - series.first.t < kBreathHoldSeconds) {
+      fromStart = true;
     }
     if (breathed) {
       breathingEnded = _fallEnd(series, lastFallingIndex);
@@ -125,7 +139,50 @@ BreathTurns cylinderBreathTurns(List<PressureReading> readings) {
   }
   if (inTurn) closeTurn(series.last.bar, held: false);
 
-  return (starts: starts, heldFrom: heldFrom);
+  return (starts: starts, heldFrom: heldFrom, fromStart: fromStart);
+}
+
+/// The cylinder of [cylinderIds] (in dive order) the recorded pressures
+/// show a dive began on, or null when they do not say (issue #4335).
+///
+/// It is the one whose [turnsById] entry was breathed from its first reading
+/// ([BreathTurns.fromStart]), that reading taken within [kBreathHoldSeconds]
+/// of [diveStart]; with several such cylinders the pressures contradict one
+/// another and name none. With none, on a dive of two cylinders, a cylinder
+/// read from the start that held means the diver breathed the other one, as
+/// long as the other's own readings do not say otherwise.
+///
+/// A computer logs the gas it was told, not the cylinder, so on a dive with
+/// two cylinders of one mix (sidemount, twin independents) only the
+/// pressures say which one the dive began on.
+String? cylinderBreathedFromStart({
+  required List<String> cylinderIds,
+  required Map<String, List<PressureReading>> readingsById,
+  required Map<String, BreathTurns> turnsById,
+  required int diveStart,
+}) {
+  bool readFromStart(String id) {
+    final readings = readingsById[id];
+    if (readings == null || readings.isEmpty) return false;
+    final first = readings.map((r) => r.t).reduce((a, b) => a < b ? a : b);
+    return first <= diveStart + kBreathHoldSeconds;
+  }
+
+  final read = [
+    for (final id in cylinderIds)
+      if (readFromStart(id)) id,
+  ];
+  final breathed = [
+    for (final id in read)
+      if (turnsById[id]?.fromStart ?? false) id,
+  ];
+  if (breathed.length == 1) return breathed.single;
+  if (breathed.isNotEmpty || cylinderIds.length != 2 || read.length != 1) {
+    return null;
+  }
+  // The one cylinder read from the start held there: the diver was on the
+  // other, which has no readings of its own from then to say otherwise.
+  return cylinderIds.firstWhere((id) => id != read.single);
 }
 
 /// When breathing stopped in the fall whose last falling reading is

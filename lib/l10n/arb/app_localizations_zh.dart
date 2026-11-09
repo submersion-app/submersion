@@ -7813,6 +7813,17 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_gasSwitches_fillDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '根据气瓶压力填入 $count 次切换',
+      one: '根据气瓶压力填入 $count 次切换',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => '正在获取位置...';
 
   @override

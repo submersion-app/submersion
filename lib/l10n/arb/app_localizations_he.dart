@@ -8055,6 +8055,17 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_gasSwitches_fillDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'מילוי $count החלפות מלחצי המיכלים',
+      one: 'מילוי החלפה אחת מלחצי המיכלים',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'מקבל מיקום...';
 
   @override

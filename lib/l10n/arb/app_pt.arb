@@ -2763,6 +2763,7 @@
   "diveLog_edit_gasSwitches_pickReadout": "{time} a {depth}",
   "diveLog_edit_gasSwitches_pickConfirm": "Definir tempo",
   "diveLog_edit_gasSwitches_removedWithTank": "{count, plural, one{{count} troca de gás removida com o seu cilindro} other{{count} trocas de gás removidas com o seu cilindro}}",
+  "diveLog_edit_gasSwitches_fillDetected": "{count, plural, one{Preencher {count} troca a partir das pressões dos cilindros} other{Preencher {count} trocas a partir das pressões dos cilindros}}",
   "diveLog_edit_gettingLocation": "Obtendo localização...",
   "diveLog_edit_group_buddies": "Parceiros",
   "diveLog_edit_group_conditions": "Condições",

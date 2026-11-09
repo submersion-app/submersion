@@ -54,6 +54,33 @@ extension _GasSwitchEditing on _DiveEditPageState {
     return null;
   }
 
+  /// The earliest second a switch may fall on: 0, else the profile's first
+  /// sample or a loaded switch when either lies before it. A second
+  /// computer can start before the primary one (#4296), and a switch it
+  /// logged then must not block the save (#4335).
+  int get _gasSwitchMinTimestamp {
+    final profile = _existingDive?.profile ?? const <DiveProfilePoint>[];
+    final profileStart = profileTimeDomain(profile).min;
+    return profileStart < _loadedGasSwitchFloor
+        ? profileStart
+        : _loadedGasSwitchFloor;
+  }
+
+  /// What the editor changes to match the cylinder pressures (#4335), or
+  /// null before they load, on a new dive, and off open circuit.
+  GasSwitchEdits? get _detectedGasSwitchEdits {
+    final diveId = widget.diveId;
+    if (diveId == null || _diveMode != DiveMode.oc) return null;
+    final detected = ref.watch(detectedGasSwitchesProvider(diveId)).value;
+    if (detected == null) return null;
+    return detectedGasSwitchEdits(
+      switches: _gasSwitches,
+      tanks: _tanks,
+      detected: detected,
+      diveStart: 0,
+    );
+  }
+
   DiveTank? get _gasSwitchStartingTank => startingTankOf(
     tanks: _tanks,
     switches: _gasSwitches,
@@ -65,6 +92,7 @@ extension _GasSwitchEditing on _DiveEditPageState {
     if (!_gasSwitchesVisible) return null;
     final diveId = widget.diveId;
     final profile = _existingDive?.profile ?? const <DiveProfilePoint>[];
+    final detected = _detectedGasSwitchEdits;
     // .value keeps the last result through a reload, so the chips stay put
     // while a pressure write is read back.
     return GasSwitchesEditor(
@@ -72,6 +100,7 @@ extension _GasSwitchEditing on _DiveEditPageState {
       tanks: _tanks,
       units: units,
       maxTimestamp: _gasSwitchMaxTimestamp,
+      minTimestamp: _gasSwitchMinTimestamp,
       startingTank: _gasSwitchStartingTank,
       removedWithTankCount: _removedSwitchNotice,
       onChanged: _onGasSwitchChanged,
@@ -84,7 +113,40 @@ extension _GasSwitchEditing on _DiveEditPageState {
       onPickTime: canPickOnProfile(profile)
           ? (sw) => _pickGasSwitchTime(sw, profile, units)
           : null,
+      detectedEditCount: detected == null ? 0 : gasSwitchEditCount(detected),
+      onFillDetected: detected == null
+          ? null
+          : () => _fillDetectedGasSwitches(detected),
     );
+  }
+
+  /// Applies [edits]: re-points the rows it names and adds a row for each
+  /// switch it adds, with the depth filled from the profile as a typed time
+  /// would. One edit like any other, undone by leaving without saving.
+  void _fillDetectedGasSwitches(GasSwitchEdits edits) {
+    if (gasSwitchEditCount(edits) == 0) return;
+    final now = DateTime.now();
+    _updateGasSwitches(() {
+      _markDirty();
+      _gasSwitchesDirty = true;
+      _removedSwitchNotice = 0;
+      _gasSwitches = _inTimeOrder([
+        for (final s in _gasSwitches)
+          if (edits.retanked[s.id] case final tankId?)
+            s.copyWith(tankId: tankId)
+          else
+            s,
+        for (final missed in edits.added)
+          GasSwitch(
+            id: _uuid.v4(),
+            diveId: widget.diveId ?? '',
+            timestamp: missed.t,
+            tankId: missed.tankId,
+            depth: _profileDepthForSwitch(missed.t) ?? missed.depth,
+            createdAt: now,
+          ),
+      ]);
+    });
   }
 
   /// Picks [sw]'s time on the profile. A picked time is the same edit as a

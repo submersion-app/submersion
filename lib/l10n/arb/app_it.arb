@@ -2662,6 +2662,7 @@
   "diveLog_edit_gasSwitches_pickReadout": "{time} a {depth}",
   "diveLog_edit_gasSwitches_pickConfirm": "Imposta tempo",
   "diveLog_edit_gasSwitches_removedWithTank": "{count, plural, one{{count} cambio gas rimosso con la sua bombola} other{{count} cambi gas rimossi con la loro bombola}}",
+  "diveLog_edit_gasSwitches_fillDetected": "{count, plural, one{Completa 1 cambio dalle pressioni delle bombole} other{Completa {count} cambi dalle pressioni delle bombole}}",
   "diveLog_edit_gettingLocation": "Acquisizione posizione...",
   "diveLog_edit_group_buddies": "Compagni",
   "diveLog_edit_group_conditions": "Condizioni",

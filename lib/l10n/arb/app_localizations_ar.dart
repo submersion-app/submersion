@@ -8344,6 +8344,20 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_gasSwitches_fillDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ملء $count تبديل من ضغوط الأسطوانات',
+      many: 'ملء $count تبديلًا من ضغوط الأسطوانات',
+      few: 'ملء $count تبديلات من ضغوط الأسطوانات',
+      two: 'ملء تبديلين من ضغوط الأسطوانات',
+      one: 'ملء تبديل واحد من ضغوط الأسطوانات',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'جارٍ تحديد الموقع...';
 
   @override

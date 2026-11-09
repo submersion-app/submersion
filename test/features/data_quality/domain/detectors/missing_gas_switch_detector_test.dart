@@ -222,6 +222,68 @@ void main() {
     expect(switches[2]['t'] as int, closeTo(1800, 30));
   });
 
+  test('a dive begun on the second cylinder starts with a switch to it', () {
+    // Issue #4335: the right cylinder falls from the first reading, so the
+    // dive began on it, not on the left one the timeline defaults to.
+    bool onRight(int t) => t <= 600 || (t > 1200 && t <= 1800);
+    final ctx = makeContext(
+      dive: makeTestDive(
+        tanks: [
+          tank(id: 'left', order: 0, role: TankRole.sidemountLeft),
+          tank(id: 'right', order: 1, role: TankRole.sidemountRight),
+        ],
+      ),
+      samples: profile(2400, (t) => t == 0 ? 0 : 18),
+      pressures: {
+        'left': pressure(
+          end: 2400,
+          startBar: 200,
+          falling: (t) => t > 0 && !onRight(t),
+        ),
+        'right': pressure(end: 2400, startBar: 200, falling: onRight),
+      },
+    );
+
+    final finding = missingSwitchFinding(det.detect(ctx));
+    final switches = [
+      for (final s in finding!.params['missingSwitches'] as List) s as Map,
+    ];
+    expect(
+      [for (final s in switches) s['tankId']],
+      ['right', 'left', 'right', 'left'],
+    );
+    expect(switches[0]['t'], 0);
+    expect(switches[0]['depth'], 0);
+    expect(switches[1]['t'] as int, closeTo(600, 30));
+    expect(switches[2]['t'] as int, closeTo(1200, 30));
+    expect(switches[3]['t'] as int, closeTo(1800, 30));
+  });
+
+  test('a lone transmitter held at the start puts the diver on the other', () {
+    // One-sided sidemount with the transmitter on the left: it holds until
+    // 10:00, so the dive began on the right cylinder.
+    final ctx = makeContext(
+      dive: makeTestDive(
+        tanks: [
+          tank(id: 'left', order: 0, role: TankRole.sidemountLeft),
+          tank(id: 'right', order: 1, role: TankRole.sidemountRight),
+        ],
+      ),
+      samples: profile(2400, (t) => t == 0 ? 0 : 18),
+      pressures: {
+        'left': pressure(end: 2400, startBar: 200, falling: (t) => t > 600),
+      },
+    );
+
+    final finding = missingSwitchFinding(det.detect(ctx));
+    final switches = [
+      for (final s in finding!.params['missingSwitches'] as List) s as Map,
+    ];
+    expect([for (final s in switches) s['tankId']], ['right', 'left']);
+    expect(switches[0]['t'], 0);
+    expect(switches[1]['t'] as int, closeTo(600, 30));
+  });
+
   test('one-sided sidemount: every hand-over to the other cylinder', () {
     // Only the right cylinder carries a transmitter. It is breathed from
     // 10:00 to 20:00 and again from 30:00 to 40:00, so the diver was on the

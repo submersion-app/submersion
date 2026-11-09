@@ -255,6 +255,40 @@ void main() {
       expect(scan.glitchIndices, hasLength(30));
     });
 
+    test('a first reading far above the cylinder is a lead-in', () {
+      // Shearwater Cloud exports the transmitter's "no reading" value, 4095
+      // units of 2 psi, as a 564.7 bar first reading (issue #4335).
+      final series = withValues(draining(), {0: 564.7});
+      final scan = scanPressureGlitches(series);
+      expect(scan.episodeCount, 1);
+      expect(scan.glitchIndices, {0});
+      expect(withoutPressureGlitches(series).first.bar, closeTo(199.7, 1e-9));
+    });
+
+    test('several high readings before the first stable one are a lead-in', () {
+      final series = withValues(draining(), {0: 564.7, 1: 564.7, 2: 564.7});
+      final scan = scanPressureGlitches(series);
+      expect(scan.episodeCount, 1);
+      expect(scan.glitchIndices, {0, 1, 2});
+    });
+
+    test('an early fall from a pressure a cylinder can hold is kept', () {
+      // 300 bar to 200 in the first minute is extreme but possible (a free
+      // flow); only a reading above any fill is never the cylinder.
+      final series = withValues(draining(), {0: 300.0, 1: 300.0});
+      expect(scanPressureGlitches(series).episodeCount, 0);
+    });
+
+    test('a cylinder cooling in the water is no high lead-in', () {
+      // 212 bar in the sun settling to 200 over the first two minutes: the
+      // readings come down step by step, so none sits clear above the rest.
+      final series = [
+        for (var i = 0; i < 13; i++) (t: i * 10, bar: 212.0 - i),
+        ...[for (final r in draining()) (t: r.t + 130, bar: r.bar)],
+      ];
+      expect(scanPressureGlitches(series).episodeCount, 0);
+    });
+
     test('a trailing drop with no recovery is left alone', () {
       // Nothing after it shows the drop was a misread (e.g. the valve was
       // closed and the hose purged at the end), so it is kept.

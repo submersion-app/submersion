@@ -2763,6 +2763,7 @@
   "diveLog_edit_gasSwitches_pickReadout": "{time} op {depth}",
   "diveLog_edit_gasSwitches_pickConfirm": "Tijd instellen",
   "diveLog_edit_gasSwitches_removedWithTank": "{count, plural, one{{count} gaswissel verwijderd met zijn fles} other{{count} gaswissels verwijderd met hun fles}}",
+  "diveLog_edit_gasSwitches_fillDetected": "{count, plural, one{1 wissel invullen uit de flesdrukken} other{{count} wissels invullen uit de flesdrukken}}",
   "diveLog_edit_gettingLocation": "Locatie ophalen...",
   "diveLog_edit_group_buddies": "Buddy's",
   "diveLog_edit_group_conditions": "Omstandigheden",

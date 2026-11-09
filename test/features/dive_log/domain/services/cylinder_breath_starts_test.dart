@@ -235,6 +235,50 @@ void main() {
       expect(turns.single.previousEnd, inInclusiveRange(570, 602));
     });
 
+    test('a cylinder breathed from its first reading is from the start', () {
+      // The cylinder a sidemount dive began on (issue #4335).
+      final turns = cylinderBreathTurns(
+        _series(3000, (t) {
+          if (t <= 900) return 200 - t * _rate;
+          return 200 - 900 * _rate;
+        }),
+      );
+
+      expect(turns.fromStart, isTrue);
+      expect(turns.starts, isEmpty);
+    });
+
+    test('a cylinder held at first is not from the start', () {
+      final turns = cylinderBreathTurns(
+        _series(3000, (t) => t < 900 ? 200 : 200 - (t - 900) * _rate),
+      );
+
+      expect(turns.fromStart, isFalse);
+      expect(turns.starts, hasLength(1));
+    });
+
+    test('a hose filling at the start is not breathing from the start', () {
+      // Opening the valve drops the reading 3 bar, then it holds.
+      final turns = cylinderBreathTurns(
+        _series(3000, (t) => t < 20 ? 200 : 197),
+      );
+
+      expect(turns.fromStart, isFalse);
+    });
+
+    test('a 565 bar first reading does not hide the start', () {
+      final series = _series(3000, (t) {
+        if (t <= 900) return 200 - t * _rate;
+        return 200 - 900 * _rate;
+      });
+      final turns = cylinderBreathTurns([
+        (t: 0, bar: 564.7),
+        ...series.skip(1),
+      ]);
+
+      expect(turns.fromStart, isTrue);
+    });
+
     test('a dip between turns is not breathing', () {
       final turns = cylinderBreathTurns(
         _series(3000, (t) {

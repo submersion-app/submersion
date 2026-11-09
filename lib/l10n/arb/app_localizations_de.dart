@@ -8226,6 +8226,17 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_gasSwitches_fillDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Wechsel aus den Flaschendrücken übernehmen',
+      one: '1 Wechsel aus den Flaschendrücken übernehmen',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'Standort wird ermittelt...';
 
   @override

@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/core/profile/surfacing_pressure.dart';
 import 'package:submersion/core/profile/tank_pressure_glitches.dart';
@@ -35,32 +36,55 @@ typedef DeepStart = ({MissedSwitch start, double modMeters});
 /// deeper than their gas's MOD and are only reported. [unplaced] is a
 /// cylinder breathed again after a pause on a dive with more than two
 /// cylinders: another was breathed in between and the pressures cannot say
-/// which, so nothing is [addable].
+/// which, so nothing is [addable]. [startingTankId] is the cylinder the
+/// pressures show the dive began on ([cylinderBreathedFromStart]), or null
+/// when they do not say.
 typedef MissedSwitches = ({
   List<MissedSwitch> addable,
   List<DeepStart> deep,
   MissedSwitch? unplaced,
+  String? startingTankId,
 });
 
 const MissedSwitches _none = (
   addable: <MissedSwitch>[],
   deep: <DeepStart>[],
   unplaced: null,
+  startingTankId: null,
 );
 
 /// The gas switches [ctx]'s recorded cylinder pressures show on an
-/// open-circuit dive that logged none (issue #165).
+/// open-circuit dive that logged none (issue #165), by
+/// [inferredGasSwitches]. A rebreather dive, and a dive whose empty switch
+/// list the diver left that way in the editor, show none.
+MissedSwitches missedGasSwitches(DiveQualityContext ctx) {
+  if (ctx.gasSwitches.isNotEmpty) return _none;
+  if (ctx.dive.gasSwitchesEdited) return _none;
+  if (ctx.dive.diveMode != DiveMode.oc) return _none;
+  return inferredGasSwitches(
+    tanks: ctx.tanks,
+    pressuresByTankId: ctx.pressuresByTankId,
+    samples: ctx.primarySamples,
+    ppO2MaxBar: ctx.ppO2MaxBar,
+    environment: ctx.dive.environment,
+  );
+}
+
+/// The gas switches the recorded cylinder pressures of an open-circuit dive
+/// show, from its [tanks], their readings in [pressuresByTankId] and its
+/// depth [samples] in time order, ignoring any switch the dive logged.
 ///
 /// Each cylinder's turns come from [cylinderBreathTurns], the detector the
 /// switch editor's time chips use (#4089). The dive starts on the cylinder
-/// the gas timeline starts on ([startingTankOf]: the back gas, else the
+/// the pressures show it began on ([cylinderBreathedFromStart]), else on the
+/// one the gas timeline starts on ([startingTankOf]: the back gas, else the
 /// first in dive order), so a turn is a switch only when it moves the diver
-/// off the cylinder in use. A switch is only placed inside the profile,
+/// off the cylinder in use. Where the pressures name a different start than
+/// the timeline's, a switch to it at the first sample comes first
+/// (issue #4335). A switch is only placed inside the profile,
 /// where it has a depth. A cylinder
 /// that feeds a rebreather loop drains whatever the diver breathes and is
-/// left out, and so are rebreather dives, whose bailout the role checks
-/// judge, and a dive whose empty switch list the diver left that way in the
-/// editor. A turn deeper than its gas's MOD (with the switch-depth check's
+/// left out. A turn deeper than its gas's MOD (with the switch-depth check's
 /// tolerance) is never offered as a switch, and leaves the cylinder in use
 /// unchanged.
 ///
@@ -76,13 +100,16 @@ const MissedSwitches _none = (
 /// these read a pause in the cylinder's fall as the diver leaving it, so
 /// both need [cylinderLeftBetween] to agree: a large cylinder breathed at a
 /// shallow stop can fall too slowly to read as falling.
-MissedSwitches missedGasSwitches(DiveQualityContext ctx) {
-  if (ctx.gasSwitches.isNotEmpty) return _none;
-  if (ctx.dive.gasSwitchesEdited) return _none;
-  if (ctx.dive.diveMode != DiveMode.oc) return _none;
-  if (ctx.primarySamples.isEmpty) return _none;
+MissedSwitches inferredGasSwitches({
+  required List<DiveTank> tanks,
+  required Map<String, List<QualityPressureSample>> pressuresByTankId,
+  required List<QualitySample> samples,
+  required double ppO2MaxBar,
+  DiveEnvironment? environment,
+}) {
+  if (samples.isEmpty) return _none;
 
-  final ordered = [...ctx.tanks]..sort((a, b) => a.order.compareTo(b.order));
+  final ordered = [...tanks]..sort((a, b) => a.order.compareTo(b.order));
   // Every cylinder the diver could breathe from, with readings or not: the
   // two-cylinder rules below count the dive's cylinders, not its
   // transmitters.
@@ -95,13 +122,13 @@ MissedSwitches missedGasSwitches(DiveQualityContext ctx) {
   final positionById = {
     for (var i = 0; i < ordered.length; i++) ordered[i].id: i,
   };
-  final firstSampleT = ctx.primarySamples.first.t;
-  final lastSampleT = ctx.primarySamples.last.t;
+  final firstSampleT = samples.first.t;
+  final lastSampleT = samples.last.t;
   bool inProfile(int t) => t >= firstSampleT && t <= lastSampleT;
   final readingsById = {
     for (final tank in openCircuit)
       tank.id: <PressureReading>[
-        for (final p in ctx.pressuresByTankId[tank.id] ?? const [])
+        for (final p in pressuresByTankId[tank.id] ?? const [])
           (t: p.t, bar: p.bar),
       ],
   };
@@ -120,10 +147,10 @@ MissedSwitches missedGasSwitches(DiveQualityContext ctx) {
     return series.isNotEmpty &&
         cylinderLeftBetween(
           series: series,
-          samples: ctx.primarySamples,
+          samples: samples,
           from: from,
           to: math.min(to, series.last.t),
-          environment: ctx.dive.environment,
+          environment: environment,
         );
   }
 
@@ -146,25 +173,32 @@ MissedSwitches missedGasSwitches(DiveQualityContext ctx) {
     tankId: tank.id,
     tankPosition: positionById[tank.id]!,
     t: t,
-    depth: qualityDepthAt(ctx.primarySamples, t),
+    depth: qualityDepthAt(samples, t),
     o2Percent: tank.gasMix.o2,
     hePercent: tank.gasMix.he,
   );
 
   final addable = <MissedSwitch>[];
   final deep = <DeepStart>[];
-  var inUse = startingTankOf(
+  final timelineStart = startingTankOf(
     tanks: ordered,
     switches: const [],
     diveStart: firstSampleT,
   )!.id;
+  final pressureStart = cylinderBreathedFromStart(
+    cylinderIds: [for (final tank in openCircuit) tank.id],
+    readingsById: readingsById,
+    turnsById: turnsById,
+    diveStart: firstSampleT,
+  );
+  var inUse = pressureStart ?? timelineStart;
 
   // [missed] as a start deeper than its gas's MOD, or null when it is not.
   DeepStart? tooDeep(MissedSwitch missed, DiveTank tank) {
     final mod = maxOperatingDepthMeters(
       tank.gasMix.o2 / 100.0,
-      maxPpO2: ctx.ppO2MaxBar,
-      environment: ctx.dive.environment,
+      maxPpO2: ppO2MaxBar,
+      environment: environment,
     );
     return missed.depth > mod + QualityThresholds.modToleranceMeters
         ? (start: missed, modMeters: mod)
@@ -203,6 +237,12 @@ MissedSwitches missedGasSwitches(DiveQualityContext ctx) {
     );
   }
 
+  // The pressures say the dive began on another cylinder than the timeline
+  // starts on (issue #4335): the switch to it comes first.
+  if (pressureStart != null && pressureStart != timelineStart) {
+    offer(openCircuit.firstWhere((c) => c.id == pressureStart), firstSampleT);
+  }
+
   for (final (i, turn) in turns.indexed) {
     if (turn.tank.id == inUse) {
       final left = turn.previousEnd;
@@ -218,6 +258,7 @@ MissedSwitches missedGasSwitches(DiveQualityContext ctx) {
               ?tooDeep(startOf(later.tank, later.t), later.tank),
           ],
           unplaced: startOf(turn.tank, turn.t),
+          startingTankId: pressureStart,
         );
       }
       handOver(left);
@@ -231,7 +272,7 @@ MissedSwitches missedGasSwitches(DiveQualityContext ctx) {
       heldFrom != null &&
       (addable.isEmpty || heldFrom > addable.last.t)) {
     final inWaterEnd = lastTimeBelowSurfaceThreshold(
-      ctx.primarySamples.map((s) => (t: s.t, depth: s.depth)),
+      samples.map((s) => (t: s.t, depth: s.depth)),
     );
     if (inWaterEnd != null &&
         inWaterEnd - heldFrom >= kBreathHoldSeconds &&
@@ -239,7 +280,12 @@ MissedSwitches missedGasSwitches(DiveQualityContext ctx) {
       handOver(heldFrom);
     }
   }
-  return (addable: addable, deep: deep, unplaced: null);
+  return (
+    addable: addable,
+    deep: deep,
+    unplaced: null,
+    startingTankId: pressureStart,
+  );
 }
 
 /// [missed] as a JSON-safe map for a finding's params.
