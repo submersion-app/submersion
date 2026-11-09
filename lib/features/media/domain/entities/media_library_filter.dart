@@ -97,13 +97,12 @@ class MediaLibraryFilter {
   /// dive, since a row with no dive cannot be placed in one.
   final bool notPlacedInDive;
 
-  /// Whether a person (a buddy or Me) narrows the rows. False for
-  /// [noPeople], which asks for the rows with no person instead.
   /// Rows attached to any of these kinds (issue #4224). Empty means no
   /// constraint.
   final Set<MediaAttachmentKind> attachedTo;
 
-  /// Whether a person (a buddy or Me) narrows the rows.
+  /// Whether a person (a buddy or Me) narrows the rows. False for
+  /// [noPeople], which asks for the rows with no person instead.
   bool get hasPeople => buddyIds.isNotEmpty || includeMe;
 
   static const MediaLibraryFilter none = MediaLibraryFilter();

@@ -180,6 +180,12 @@ void main() {
     expect(find.byIcon(Icons.place_outlined), findsOneWidget);
     expect(find.text('Site pictures'), findsOneWidget);
     expect(find.byType(InkWell), findsNothing);
+    final handle = tester.ensureSemantics();
+    expect(
+      tester.getSemantics(find.text('Site pictures')),
+      matchesSemantics(label: 'Site pictures', isHeader: true),
+    );
+    handle.dispose();
   });
 
   testWidgets(

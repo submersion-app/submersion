@@ -120,10 +120,11 @@ class MediaGroupHeader extends StatelessWidget {
 extension on MediaGroupHeader {
   /// A section heading: accent label after its icon, a thin accent rule
   /// under both. Never a button. Every extent here is one the spec states,
-  /// so [MediaGroupHeaderMeasurer] measures what this draws.
+  /// so [MediaGroupHeaderMeasurer] measures what this draws. Marked as a
+  /// heading, so a screen reader can jump between the sections.
   Widget _section(Color accent, TextStyle? style) {
     final icon = spec.icon;
-    return Padding(
+    final heading = Padding(
       padding: spec.padding,
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -153,6 +154,7 @@ extension on MediaGroupHeader {
         ],
       ),
     );
+    return Semantics(header: true, container: true, child: heading);
   }
 }
 
