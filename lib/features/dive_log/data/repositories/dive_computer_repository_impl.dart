@@ -2042,6 +2042,7 @@ class DiveComputerRepository {
                   tankRole: Value(tank.role ?? 'backGas'),
                   roleSource: Value(tank.roleSource),
                   transmitterSerial: Value(tank.transmitterSerial),
+                  transmitterSlot: Value(tank.transmitterSlot),
                   equipmentId: Value.absentIfNull(tank.equipmentId),
                   tankName: Value.absentIfNull(tank.tankName),
                   // The parsed index this row's computer data comes from
@@ -3134,6 +3135,10 @@ class TankData {
   /// from, or null when it reported none.
   final String? transmitterSerial;
 
+  /// The physical transmitter slot the computer reported, 0 based, or null
+  /// (issue #4347).
+  final int? transmitterSlot;
+
   /// Gear cylinder the transmitter registry linked this tank to, if any.
   final String? equipmentId;
 
@@ -3161,6 +3166,7 @@ class TankData {
     this.role,
     this.roleSource,
     this.transmitterSerial,
+    this.transmitterSlot,
     this.equipmentId,
     this.tankName,
     this.mixRecorded = true,
@@ -3181,6 +3187,7 @@ class TankData {
     String? roleSource,
     bool clearRoleSource = false,
     String? transmitterSerial,
+    int? transmitterSlot,
     String? equipmentId,
     String? tankName,
     bool? mixRecorded,
@@ -3198,6 +3205,7 @@ class TankData {
     role: role ?? this.role,
     roleSource: clearRoleSource ? null : (roleSource ?? this.roleSource),
     transmitterSerial: transmitterSerial ?? this.transmitterSerial,
+    transmitterSlot: transmitterSlot ?? this.transmitterSlot,
     equipmentId: equipmentId ?? this.equipmentId,
     tankName: tankName ?? this.tankName,
     mixRecorded: mixRecorded ?? this.mixRecorded,

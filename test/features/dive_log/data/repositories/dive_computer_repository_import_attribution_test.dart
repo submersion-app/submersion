@@ -62,7 +62,12 @@ void main() {
       durationSeconds: 1800,
       maxDepth: 25.0,
       tanks: const [
-        TankData(index: 0, o2Percent: 32.0, transmitterSerial: '180777'),
+        TankData(
+          index: 0,
+          o2Percent: 32.0,
+          transmitterSerial: '180777',
+          transmitterSlot: 1,
+        ),
         TankData(index: 1, o2Percent: 50.0),
       ],
     );
@@ -73,6 +78,8 @@ void main() {
               ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
             .get();
     expect(tanks.map((t) => t.transmitterSerial), ['180777', null]);
+    // The slot rides with the serial (issue #4347).
+    expect(tanks.map((t) => t.transmitterSlot), [1, null]);
   });
 
   test('importProfile stores where a tank role came from (#2595)', () async {

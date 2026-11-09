@@ -81,6 +81,7 @@ class DiveParser {
     role: tank.role,
     roleSource: tank.roleSource?.name,
     transmitterSerial: tank.transmitterSerial,
+    transmitterSlot: tank.transmitterSlot,
     mixRecorded: tank.mixRecorded,
     unusedOcGas: tank.unusedOcGas,
   );

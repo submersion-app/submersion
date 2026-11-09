@@ -396,6 +396,11 @@ class DownloadedTank {
   /// same transmitter logged the same cylinder.
   final String? transmitterSerial;
 
+  /// The physical transmitter slot the computer paired this tank's
+  /// transmitter to, 0 based (Shearwater T1 = 0), or null when it reported
+  /// none (issue #4347).
+  final int? transmitterSlot;
+
   /// False when the computer gave this tank no gas of its own and the
   /// resolver filled in a default (100% for an oxygen supply, air
   /// otherwise), as on every Shearwater transmitter it cannot link to a
@@ -420,6 +425,7 @@ class DownloadedTank {
     this.role,
     this.roleSource,
     this.transmitterSerial,
+    this.transmitterSlot,
     this.mixRecorded = true,
     this.unusedOcGas = false,
   });
@@ -434,6 +440,7 @@ class DownloadedTank {
     String? role,
     TankRoleSource? roleSource,
     String? transmitterSerial,
+    int? transmitterSlot,
     bool? mixRecorded,
     bool? unusedOcGas,
   }) => DownloadedTank(
@@ -446,6 +453,7 @@ class DownloadedTank {
     role: role ?? this.role,
     roleSource: roleSource ?? this.roleSource,
     transmitterSerial: transmitterSerial ?? this.transmitterSerial,
+    transmitterSlot: transmitterSlot ?? this.transmitterSlot,
     mixRecorded: mixRecorded ?? this.mixRecorded,
     unusedOcGas: unusedOcGas ?? this.unusedOcGas,
   );

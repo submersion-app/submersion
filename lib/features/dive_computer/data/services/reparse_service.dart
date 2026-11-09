@@ -1078,6 +1078,8 @@ class ReparseService {
             // before the serial was stored gains it (and a parse that stops
             // reporting one clears the stale value).
             transmitterSerial: Value(tank.transmitterSerial),
+            // The slot rides with the serial (issue #4347).
+            transmitterSlot: Value(tank.transmitterSlot),
             // A fresh clock, so a peer's newer copy cannot take the cleared
             // serial back, nor this write's values (#2644).
             hlc: Value(await _sync.issueRowClock()),
@@ -1120,6 +1122,7 @@ class ReparseService {
                 tankRole: Value(tank.role ?? 'backGas'),
                 roleSource: Value(tank.roleSource),
                 transmitterSerial: Value(tank.transmitterSerial),
+                transmitterSlot: Value(tank.transmitterSlot),
                 sourceTankIndex: Value(tank.index),
               ),
             );

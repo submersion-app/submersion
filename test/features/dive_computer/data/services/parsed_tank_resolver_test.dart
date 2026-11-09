@@ -79,6 +79,30 @@ void main() {
       expect(resolveParsedTanks(parsed).single.transmitterSerial, isNull);
     });
 
+    test('carries the transmitter slot the computer reported (#4347)', () {
+      final parsed = makeParsedDive(
+        gasMixes: [pigeon.GasMix(index: 0, o2Percent: 32.0, hePercent: 0.0)],
+        tanks: [
+          pigeon.TankInfo(
+            index: 0,
+            gasMixIndex: unknownGasMixIndex,
+            startPressureBar: 200.0,
+            endPressureBar: 60.0,
+            transmitterSerial: 180777,
+            transmitterSlot: 1,
+          ),
+          pigeon.TankInfo(
+            index: 1,
+            gasMixIndex: unknownGasMixIndex,
+            startPressureBar: 210.0,
+            endPressureBar: 90.0,
+          ),
+        ],
+      );
+      final tanks = resolveParsedTanks(parsed);
+      expect(tanks.map((t) => t.transmitterSlot), [1, null]);
+    });
+
     test('gauge-mode parsed dive yields no synthesized tanks or switches', () {
       // Gauge dives log depth+time only. Even when the computer reports a gas
       // mix (which would otherwise synthesize a pressureless air cylinder),

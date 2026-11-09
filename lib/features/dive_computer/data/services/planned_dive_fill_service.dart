@@ -204,6 +204,7 @@ class PlannedDiveFillService {
           startPressure: hit.startPressure ?? tank.startPressure,
           endPressure: hit.endPressure ?? tank.endPressure,
           transmitterSerial: hit.transmitterSerial ?? tank.transmitterSerial,
+          transmitterSlot: hit.transmitterSlot ?? tank.transmitterSlot,
         ),
       );
     }
@@ -224,6 +225,7 @@ class PlannedDiveFillService {
           ),
           roleSource: d.roleSource,
           transmitterSerial: d.transmitterSerial,
+          transmitterSlot: d.transmitterSlot,
           order: merged.length,
         ),
       );
