@@ -1,20 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
-import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/media/presentation/helpers/media_attachment_labels.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-
-/// [kind]'s label, shared by the filter sheet section and the active-filter
-/// chip so a kind never reads two different ways.
-String mediaAttachmentKindLabel(
-  AppLocalizations l10n,
-  MediaAttachmentKind kind,
-) => switch (kind) {
-  MediaAttachmentKind.dive => l10n.media_library_filter_attachedDive,
-  MediaAttachmentKind.site => l10n.media_library_filter_attachedSite,
-  MediaAttachmentKind.equipment => l10n.media_library_filter_attachedEquipment,
-  MediaAttachmentKind.unlinked => l10n.media_library_filter_attachedUnlinked,
-};
 
 /// The filter sheet's Attached to section (issue #4224): one chip per
 /// [MediaAttachmentKind], any-of, so a diver working through their dive
