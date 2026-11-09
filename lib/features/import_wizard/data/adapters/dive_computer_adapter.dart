@@ -15,7 +15,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
 import 'package:submersion/features/dive_computer/data/services/planned_dive_fill_service.dart';
-import 'package:submersion/features/dive_computer/domain/services/planned_dive_matcher.dart';
+import 'package:submersion/features/dive_computer/domain/services/fill_target_matcher.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/data/services/fingerprint_utils.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
@@ -756,11 +756,17 @@ class DiveComputerAdapter
         for (var i = 0; i < _downloadedDives.length; i++)
           if (!duplicateIndices.contains(i)) i,
       ];
-      final pairs = const PlannedDiveMatcher().pair(
-        incomingStarts: [
-          for (final i in unmatched) _downloadedDives[i].startTime,
+      final pairs = const FillTargetMatcher().pair(
+        incoming: [
+          for (final i in unmatched)
+            (
+              start: _downloadedDives[i].startTime,
+              end: _downloadedDives[i].startTime.add(
+                Duration(seconds: _downloadedDives[i].durationSeconds),
+              ),
+            ),
         ],
-        plannedDives: planned,
+        targets: planned,
       );
       for (final entry in pairs.entries) {
         final index = unmatched[entry.key];
