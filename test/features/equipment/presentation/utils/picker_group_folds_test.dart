@@ -45,4 +45,18 @@ void main() {
     expect(tickedIn(['a', 'b', 'c'], {'b', 'c', 'z'}), 2);
     expect(tickedIn(['a'], const {}), 0);
   });
+
+  test('one group inside an owner opens with its owner', () {
+    expect(
+      initialOpenPickerGroups(
+        {
+          'owner:d2': ['s1'],
+          'owner:d2/type:bcd': ['s1'],
+        },
+        const {},
+        containers: {'owner:d2'},
+      ),
+      {'owner:d2', 'owner:d2/type:bcd'},
+    );
+  });
 }

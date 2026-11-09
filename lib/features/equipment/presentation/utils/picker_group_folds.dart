@@ -12,15 +12,19 @@ String ownerFoldKey(String diverId) => 'owner:$diverId';
 
 /// The groups a picker opens with, worked out once when it first has gear:
 /// those holding a ticked id, so nothing ticked starts hidden, or every
-/// group when there is only one, since folding the only group hides
+/// group when there is only one group of gear, since folding it hides
 /// everything.
 ///
-/// [itemIdsByGroup] maps each group's key to the ids in it.
+/// [itemIdsByGroup] maps each group's key to the ids in it. [containers]
+/// are groups that only hold other groups (an owner's shared gear), which
+/// do not count when deciding whether there is only one.
 Set<String> initialOpenPickerGroups(
   Map<String, Iterable<String>> itemIdsByGroup,
-  Set<String> ticked,
-) {
-  if (itemIdsByGroup.length == 1) return {itemIdsByGroup.keys.single};
+  Set<String> ticked, {
+  Set<String> containers = const {},
+}) {
+  final leaves = itemIdsByGroup.keys.where((k) => !containers.contains(k));
+  if (leaves.length == 1) return itemIdsByGroup.keys.toSet();
   return {
     for (final MapEntry(:key, :value) in itemIdsByGroup.entries)
       if (value.any(ticked.contains)) key,

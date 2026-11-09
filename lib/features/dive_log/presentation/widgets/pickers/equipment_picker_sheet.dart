@@ -566,16 +566,26 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
                     ),
                   ),
               ];
-              if (_open == null && available.isNotEmpty) {
-                _open = initialOpenPickerGroups({
-                  for (final a in arranged) ...{
-                    ?a.ownerKey: a.section.items.map((e) => e.id),
-                    for (final group in a.groups)
-                      if (group.type case final type?)
-                        typeFoldKey(type, parentKey: a.ownerKey): group.items
-                            .map((e) => e.id),
+              // Worked out once the parts index has settled: before it, parts
+              // still listed could make one group look like several.
+              final indexSettled =
+                  componentsAsync == null ||
+                  componentsAsync.hasValue ||
+                  componentsAsync.hasError;
+              if (_open == null && available.isNotEmpty && indexSettled) {
+                _open = initialOpenPickerGroups(
+                  {
+                    for (final a in arranged) ...{
+                      ?a.ownerKey: a.section.items.map((e) => e.id),
+                      for (final group in a.groups)
+                        if (group.type case final type?)
+                          typeFoldKey(type, parentKey: a.ownerKey): group.items
+                              .map((e) => e.id),
+                    },
                   },
-                }, _picked.keys.toSet());
+                  _picked.keys.toSet(),
+                  containers: {for (final a in arranged) ?a.ownerKey},
+                );
               }
               bool isOpen(String key) => _isOpen(key, filtered: filtered);
               final rows = <_PickerRow>[

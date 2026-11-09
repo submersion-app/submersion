@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -5,8 +7,11 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/services/components_index.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_picker_filter.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -43,6 +48,7 @@ void main() {
     EquipmentPickerFilter filter = EquipmentPickerFilter.none,
     bool multiSelect = true,
     bool twoDivers = false,
+    Future<ComponentsIndex>? index,
   }) async {
     tester.view.physicalSize = const Size(800, 1600);
     tester.view.devicePixelRatio = 1.0;
@@ -53,6 +59,8 @@ void main() {
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           activeEquipmentProvider.overrideWith((ref) async => gear),
           equipmentPickerFilterProvider.overrideWith((ref) => filter),
+          if (index != null)
+            equipmentComponentsIndexProvider.overrideWith((ref) => index),
           if (twoDivers) ...[
             hasMultipleDiversProvider.overrideWithValue(true),
             validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
@@ -70,6 +78,7 @@ void main() {
               scrollController: ScrollController(),
               selectedEquipmentIds: const {},
               typeFilter: typeFilter,
+              hideAssemblyParts: index != null,
               onEquipmentSelected: multiSelect ? null : (_) {},
               onEquipmentConfirmed: multiSelect ? (_) {} : null,
             ),
@@ -143,5 +152,43 @@ void main() {
     await tester.tap(typeHeader('owner:d2/type:bcd'));
     await tester.pumpAndSettle();
     expect(find.text('Borrowed wing'), findsOneWidget);
+  });
+
+  testWidgets('an owner with one type is one open group', (tester) async {
+    await pumpPicker(tester, gear: const [shared], twoDivers: true);
+    expect(find.text('Borrowed wing'), findsOneWidget);
+  });
+
+  testWidgets('the open set waits for the parts index', (tester) async {
+    const reg = EquipmentItem(
+      id: 'reg',
+      name: 'Cold Water Reg',
+      type: EquipmentType.regulator,
+    );
+    const first = EquipmentItem(
+      id: 'first',
+      name: 'DIN First Stage',
+      type: EquipmentType.firstStage,
+    );
+    final t0 = DateTime(2026);
+    final pending = Completer<ComponentsIndex>();
+    await pumpPicker(tester, gear: const [reg, first], index: pending.future);
+
+    pending.complete(
+      ComponentsIndex.fromRows([
+        EquipmentComponent(
+          id: 'c1',
+          parentEquipmentId: 'reg',
+          componentEquipmentId: 'first',
+          createdAt: t0,
+          updatedAt: t0,
+        ),
+      ]),
+    );
+    await tester.pumpAndSettle();
+
+    // The first stage hides behind its assembly, leaving one group, open.
+    expect(find.text('DIN First Stage'), findsNothing);
+    expect(find.text('Cold Water Reg'), findsOneWidget);
   });
 }
