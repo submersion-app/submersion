@@ -79,9 +79,13 @@ class TransmitterSlotQueries {
 
     final observations = <SlotObservation>[];
     final unserialed = <QueryRow>[];
+    // A transmitter feeds one cylinder per dive, so a dive that already
+    // names it has no other tank this serial can match by slot.
+    final carriesSerial = <String>{};
     for (final r in rows) {
       final slot = r.read<int?>('slot');
       final rowSerial = normalizeTransmitterSerial(r.read<String?>('serial'));
+      if (rowSerial == wanted) carriesSerial.add(r.read<String>('dive_id'));
       if (rowSerial != null) {
         if (slot != null) {
           observations.add(
@@ -104,6 +108,7 @@ class TransmitterSlotQueries {
     final noSlot = <String>{};
     for (final r in unserialed) {
       final diveId = r.read<String>('dive_id');
+      if (carriesSerial.contains(diveId)) continue;
       final slot = r.read<int?>('slot');
       if (slot == null) {
         noSlot.add(diveId);

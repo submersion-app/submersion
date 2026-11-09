@@ -168,6 +168,36 @@ void main() {
     },
   );
 
+  test(
+    'a dive that already carries the serial adds no slot candidate',
+    () async {
+      await dive('bt', mar, serial: '180777', slot: 1);
+      await dive('both', jun, serial: '180777', slot: 1);
+      // A second, serial-less tank in the same slot on the same dive cannot be
+      // the transmitter the dive already names.
+      final db = DatabaseService.instance.database;
+      await db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion(
+              id: const Value('both-t2'),
+              diveId: const Value('both'),
+              transmitterSlot: const Value(1),
+              tankOrder: const Value(1),
+              tankRole: const Value('backGas'),
+              o2Percent: const Value(21),
+              hePercent: const Value(0),
+            ),
+          );
+      await TankPressureRepository().insertTankPressures('both', {
+        'both-t2': [(timestamp: 0, pressure: 200.0)],
+      });
+
+      final preview = await repo.previewSlotMatches(entry());
+      expect(preview.candidates, isEmpty);
+    },
+  );
+
   test('two computers sharing the transmitter keep their own slots', () async {
     await dive('bt-a', mar, serial: '180777', slot: 1);
     await dive('bt-b', mar, computerId: 'petrel', serial: '180777', slot: 2);
