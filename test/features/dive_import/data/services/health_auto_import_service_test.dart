@@ -102,6 +102,16 @@ void main() {
     expect(result.newDiveIds, isEmpty);
   });
 
+  test('a bound diver who was deleted gets nothing read or written', () async {
+    bound = 'deleted-diver';
+    health.workouts = [workout('w1', ten)];
+
+    final result = await service().run(now: now);
+
+    expect(health.fetches, 0);
+    expect(result.isEmpty, isTrue);
+  });
+
   test('a new workout imports as a numbered watch dive', () async {
     health.workouts = [workout('w1', ten)];
 

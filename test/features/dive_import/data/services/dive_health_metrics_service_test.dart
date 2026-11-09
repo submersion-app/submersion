@@ -184,6 +184,16 @@ void main() {
     expect(health.reads, 0);
   });
 
+  test('a bound diver who was deleted gets nothing read', () async {
+    await dive();
+    duringAndAfter();
+    bound = 'deleted-diver';
+
+    await service().refreshPending();
+
+    expect(health.reads, 0);
+  });
+
   test('keeps heart rate the dive computer measured', () async {
     final d = await dive(
       profile: const [

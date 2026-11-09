@@ -1,5 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -62,7 +63,11 @@ class HealthAutoImportService {
     HealthFillService? filler,
     DiveConsolidationService? consolidation,
     Future<Set<String>> Function(Iterable<String> diveIds)? deletedDiveIds,
+    Future<bool> Function(String diverId)? diverExists,
   }) : _health = health,
+       _diverExists =
+           diverExists ??
+           ((id) async => (await DiverRepository().getDiverById(id)) != null),
        _deletedDiveIds =
            deletedDiveIds ??
            ((ids) => SyncRepository().deletedIds('dives', ids)),
@@ -102,6 +107,10 @@ class HealthAutoImportService {
   final DiveConsolidationService _consolidation;
   late final HealthFillService _filler;
 
+  /// Whether the bound diver still exists: deleted, or merged into another
+  /// profile (perhaps on another device), they get nothing written.
+  final Future<bool> Function(String diverId) _diverExists;
+
   /// The watch dive ids among those given that were deleted, here or on a
   /// peer: a workout merged into a downloaded dive leaves its watch dive's
   /// tombstone and nothing else, and is never merged again.
@@ -109,7 +118,9 @@ class HealthAutoImportService {
 
   Future<HealthAutoImportResult> run({DateTime? now}) async {
     final diverId = _boundDiverId();
-    if (diverId == null) return const HealthAutoImportResult();
+    if (diverId == null || !await _diverExists(diverId)) {
+      return const HealthAutoImportResult();
+    }
     if (!(await _health.permissionStatus()).canAttemptRead) {
       return const HealthAutoImportResult();
     }
