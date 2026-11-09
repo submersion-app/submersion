@@ -9273,6 +9273,36 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ב-$count מתוך $total הצלילות שנבחרו חסרים תנאים.',
+      one: 'בצלילה אחת מתוך $total הצלילות שנבחרו חסרים תנאים.',
+    );
+    return '$_temp0 רק שדות ריקים ימולאו, ושום דבר שכבר הזנת לא ישתנה.';
+  }
+
+  @override
+  String diveLog_fetchConditions_skippedNoLocation(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ל-$count צלילות אין קואורדינטות אתר או מיקום GPS, והן ידולגו.',
+      one: 'לצלילה אחת אין קואורדינטות אתר או מיקום GPS, והיא תדולג.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_fetchConditions_noneNeededSelected =>
+      'לא חסרים תנאים באף אחת מהצלילות שנבחרו.';
+
+  @override
+  String get diveLog_fetchConditions_noneLocatedSelected =>
+      'לצלילות שנבחרו וחסרים בהן תנאים אין קואורדינטות אתר או מיקום GPS.';
+
+  @override
   String diveLog_fetchConditions_summaryCancelled(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -37489,6 +37519,9 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get reparseBatch_noneWithRawData =>
       'לאף אחת מהצלילות שנבחרו אין נתונים גולמיים שמורים לניתוח מחדש.';
+
+  @override
+  String get diveLog_selection_tooltip_fetchConditions => 'אחזור תנאים';
 
   @override
   String get diveLog_selection_tooltip_reparse => 'נתח מחדש';

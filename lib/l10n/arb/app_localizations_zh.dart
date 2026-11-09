@@ -8989,6 +8989,33 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '所选 $total 次潜水中有 $count 次缺少环境条件。',
+    );
+    return '$_temp0仅填充空白字段，您已填写的内容不会改变。';
+  }
+
+  @override
+  String diveLog_fetchConditions_skippedNoLocation(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水既没有潜水点坐标也没有 GPS 定位，将被跳过。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_fetchConditions_noneNeededSelected => '所选潜水均不缺少环境条件。';
+
+  @override
+  String get diveLog_fetchConditions_noneLocatedSelected =>
+      '所选缺少环境条件的潜水既没有潜水点坐标也没有 GPS 定位。';
+
+  @override
   String diveLog_fetchConditions_summaryCancelled(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -36158,6 +36185,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get reparseBatch_noneWithRawData => '所选潜水均没有可重新解析的原始数据。';
+
+  @override
+  String get diveLog_selection_tooltip_fetchConditions => '获取环境条件';
 
   @override
   String get diveLog_selection_tooltip_reparse => '重新解析';

@@ -48,8 +48,8 @@ class BulkConditionsResult {
 /// point noise from splitting them into two requests.
 typedef _FetchKey = ({String date, String latitude, String longitude});
 
-/// Fills missing conditions across the whole logbook from the historical
-/// weather archive.
+/// Fills missing conditions from the historical weather archive, across the
+/// whole logbook or for a chosen set of dives.
 ///
 /// Never overwrites anything: each dive is written through
 /// [DiveRepository.fillDiveConditions], which leaves populated columns out of
@@ -70,24 +70,45 @@ class BulkConditionsService {
   /// from the cache are not delayed.
   final Duration requestDelay;
 
-  /// How many dives a run would attempt. Does not contact the network, and
-  /// counts in the database rather than materialising the candidate list: the
-  /// confirm dialog wants the number, not the dives.
-  Future<int> countCandidates({String? diverId}) =>
-      _diveRepository.countDivesNeedingConditions(diverId: diverId);
+  /// How many dives a run would attempt, among [diveIds] when given. Does not
+  /// contact the network, and counts in the database rather than
+  /// materialising the candidate list: the confirm dialog wants the number,
+  /// not the dives.
+  Future<int> countCandidates({String? diverId, Set<String>? diveIds}) =>
+      _diveRepository.countDivesNeedingConditions(
+        diverId: diverId,
+        diveIds: diveIds,
+      );
 
-  /// Fetches and fills conditions for every dive that still has a gap.
+  /// How many dives, among [diveIds] when given, are missing conditions but
+  /// have no site coordinates and no GPS fix, so a run will skip them. Does
+  /// not contact the network.
+  Future<int> countWithoutLocation({String? diverId, Set<String>? diveIds}) =>
+      _diveRepository.countDivesMissingConditionsWithoutLocation(
+        diverId: diverId,
+        diveIds: diveIds,
+      );
+
+  /// How many of [diveIds] are logged dives, which is what a selection's
+  /// confirm text counts against: planned dives are never fetched for.
+  Future<int> countLogged(Set<String> diveIds) =>
+      _diveRepository.countLoggedDives(diveIds);
+
+  /// Fetches and fills conditions for every dive that still has a gap, or
+  /// only for those among [diveIds] when given.
   ///
   /// [onProgress] fires once per dive processed. [isCancelled] is polled
   /// before each dive; a cancelled run keeps everything it has already
   /// written and reports `cancelled: true`.
   Future<BulkConditionsResult> run({
     String? diverId,
+    Set<String>? diveIds,
     void Function(BulkConditionsProgress)? onProgress,
     bool Function()? isCancelled,
   }) async {
     final candidates = await _diveRepository.getDivesNeedingConditions(
       diverId: diverId,
+      diveIds: diveIds,
     );
 
     // One archive response can serve every dive made at the same place on the
