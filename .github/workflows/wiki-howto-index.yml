@@ -1,0 +1,65 @@
+name: Wiki how-to index
+
+# Keeps the "How-to guides" list on the wiki Home page in step with the
+# wiki's How-to-* pages, newest first (issue #4376).
+# scripts/wiki_howto_index.py has the details.
+#
+# `gollum` fires when a wiki page is created or edited, so a new how-to page
+# appears on Home within a minute. The weekly run and the manual button catch
+# anything that event misses. The push below uses the workflow's own token,
+# and GitHub never starts a workflow from a push made with that token, so
+# updating Home does not trigger this workflow again.
+on:
+  gollum:
+  schedule:
+    - cron: "41 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wiki-howto-index
+  cancel-in-progress: false
+
+jobs:
+  update:
+    name: Rebuild the how-to list on the wiki Home page
+    # A fork's wiki is not the published one.
+    if: github.repository == 'submersion-app/submersion'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      # Pushing to the wiki needs write access to the repository's contents.
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: scripts
+          persist-credentials: false
+
+      - name: Check out the wiki
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ github.repository }}.wiki
+          path: wiki
+          # Full history: each page is dated by the commit that created it.
+          fetch-depth: 0
+
+      - name: Rebuild the how-to list
+        run: python3 scripts/wiki_howto_index.py wiki
+
+      - name: Push Home if the list changed
+        working-directory: wiki
+        run: |
+          if git diff --quiet -- Home.md && git ls-files --error-unmatch Home.md >/dev/null 2>&1; then
+            echo "Home.md is already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Home.md
+          git commit -m "Update the how-to list on Home"
+          # A wiki edit that landed while this ran rejects the push. Its own
+          # run is queued behind this one, but rebasing once saves the wait.
+          git push || { git pull --rebase && git push; }
