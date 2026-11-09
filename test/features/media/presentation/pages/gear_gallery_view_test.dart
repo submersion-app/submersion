@@ -111,7 +111,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.text('Photos you add to your gear and its check-ins show up here.'),
+      find.text(
+        'Photos you add to your equipment and its check-ins show up here.',
+      ),
       findsOneWidget,
     );
   });

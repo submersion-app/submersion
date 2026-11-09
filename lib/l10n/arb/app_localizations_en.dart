@@ -60219,7 +60219,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get media_import_review_linkToGear => 'Link to gear';
+  String get media_import_review_linkToGear => 'Link to equipment';
 
   @override
   String get equipment_photos_title => 'Photos';
@@ -60256,7 +60256,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'The photos are removed from Submersion. The files themselves are not touched.';
 
   @override
-  String get equipment_photos_photoLabel => 'Gear photo';
+  String get equipment_photos_photoLabel => 'Equipment photo';
 
   @override
   String get equipment_photos_coverLabel => 'Cover photo';
@@ -60270,7 +60270,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get media_gearGallery_tab => 'Gear';
+  String get media_gearGallery_tab => 'Equipment';
 
   @override
   String media_gearGallery_count(int count) {
@@ -60285,7 +60285,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_gearGallery_empty =>
-      'Photos you add to your gear and its check-ins show up here.';
+      'Photos you add to your equipment and its check-ins show up here.';
 
   @override
   String get media_gearGallery_checkInBadge => 'Check-in photo';

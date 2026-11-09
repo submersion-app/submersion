@@ -96279,7 +96279,7 @@ abstract class AppLocalizations {
   /// No description provided for @media_import_review_linkToGear.
   ///
   /// In en, this message translates to:
-  /// **'Link to gear'**
+  /// **'Link to equipment'**
   String get media_import_review_linkToGear;
 
   /// No description provided for @equipment_photos_title.
@@ -96333,7 +96333,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_photos_photoLabel.
   ///
   /// In en, this message translates to:
-  /// **'Gear photo'**
+  /// **'Equipment photo'**
   String get equipment_photos_photoLabel;
 
   /// No description provided for @equipment_photos_coverLabel.
@@ -96357,7 +96357,7 @@ abstract class AppLocalizations {
   /// No description provided for @media_gearGallery_tab.
   ///
   /// In en, this message translates to:
-  /// **'Gear'**
+  /// **'Equipment'**
   String get media_gearGallery_tab;
 
   /// No description provided for @media_gearGallery_count.
@@ -96369,7 +96369,7 @@ abstract class AppLocalizations {
   /// No description provided for @media_gearGallery_empty.
   ///
   /// In en, this message translates to:
-  /// **'Photos you add to your gear and its check-ins show up here.'**
+  /// **'Photos you add to your equipment and its check-ins show up here.'**
   String get media_gearGallery_empty;
 
   /// No description provided for @media_gearGallery_checkInBadge.
