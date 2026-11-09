@@ -41636,6 +41636,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_planned_chip => 'Planificada';
 
   @override
+  String get diveLog_draft_chip => 'Waiting for download';
+
+  @override
+  String get diveLog_draft_inWaterChip => 'In the water';
+
+  @override
   String get diveLog_planned_bannerTitle => 'Inmersión planificada';
 
   @override
@@ -50784,6 +50790,11 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return 'Inmersión $diveNumber en $siteName';
+  }
+
+  @override
+  String diveLog_listPage_semanticsDraftDiveAtSite(String siteName) {
+    return 'Draft dive at $siteName';
   }
 
   @override

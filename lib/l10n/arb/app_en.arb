@@ -25116,6 +25116,10 @@
   },
   "diveLog_detail_menu_logNearMiss": "Log near-miss",
   "diveLog_planned_chip": "Planned",
+  "diveLog_draft_chip": "Waiting for download",
+  "@diveLog_draft_chip": {"description": "List marker for a draft dive: marked at the site, waiting for its dive computer readings"},
+  "diveLog_draft_inWaterChip": "In the water",
+  "@diveLog_draft_inWaterChip": {"description": "List marker for a draft dive whose diver has entered the water and not yet surfaced"},
   "diveLog_planned_bannerTitle": "Planned dive",
   "diveLog_planned_bannerBody": "Awaiting dive computer data. Mark it as logged if you dived without one.",
   "diveLog_planned_openInPlanner": "Open in planner",
@@ -29459,6 +29463,14 @@
   "explore_unplaced_reason_unknownTime": "Could not read this time",
   "explore_unresolved_noCandidates": "No match in your logbook",
   "diveLog_listPage_semanticsDiveAtSite": "Dive {diveNumber} at {siteName}",
+  "diveLog_listPage_semanticsDraftDiveAtSite": "Draft dive at {siteName}",
+  "@diveLog_listPage_semanticsDraftDiveAtSite": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_listPage_semanticsPlannedDiveAtSite": "Planned dive at {siteName}",
   "@diveLog_listPage_semanticsPlannedDiveAtSite": {
     "placeholders": {

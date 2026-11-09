@@ -39168,6 +39168,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_planned_chip => '计划中';
 
   @override
+  String get diveLog_draft_chip => 'Waiting for download';
+
+  @override
+  String get diveLog_draft_inWaterChip => 'In the water';
+
+  @override
   String get diveLog_planned_bannerTitle => '计划的潜水';
 
   @override
@@ -47686,6 +47692,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return '第 $diveNumber 次潜水，地点 $siteName';
+  }
+
+  @override
+  String diveLog_listPage_semanticsDraftDiveAtSite(String siteName) {
+    return 'Draft dive at $siteName';
   }
 
   @override

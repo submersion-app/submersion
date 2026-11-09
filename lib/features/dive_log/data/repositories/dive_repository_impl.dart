@@ -3298,6 +3298,7 @@ class DiveRepository {
             'd.water_temp, d.rating, '
             'd.is_favorite, d.excluded_from_stats, d.excluded_from_gas_stats, '
             'd.is_planned, d.is_draft, '
+            '(d.is_draft = 1 AND d.exit_time IS NULL) AS is_open_draft, '
             'd.dive_type, d.dive_mode, '
             'COALESCE(d.entry_time, d.dive_date_time) AS sort_timestamp, '
             's.name AS site_name, s.country AS site_country, '
@@ -4214,6 +4215,7 @@ class DiveRepository {
           'd.water_temp, d.rating, '
           'd.is_favorite, d.excluded_from_stats, d.excluded_from_gas_stats, '
           'd.is_planned, d.is_draft, '
+          '(d.is_draft = 1 AND d.exit_time IS NULL) AS is_open_draft, '
           'd.dive_type, d.dive_mode, '
           'COALESCE(d.entry_time, d.dive_date_time) AS sort_timestamp, '
           's.name AS site_name, s.country AS site_country, '
@@ -4331,6 +4333,7 @@ class DiveRepository {
         excludedFromGasStats: row.read<int>('excluded_from_gas_stats') == 1,
         isPlanned: row.read<int>('is_planned') == 1,
         isDraft: row.read<int>('is_draft') == 1,
+        isOpenDraft: row.read<int>('is_open_draft') == 1,
         diveMode: DiveMode.fromCode(row.read<String>('dive_mode')),
         diveTypeIds: diveTypesByDive[id] ?? [row.read<String>('dive_type')],
         tags: tagsByDive[id] ?? [],

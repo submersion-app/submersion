@@ -40,6 +40,9 @@ class DiveSummary extends Equatable {
   /// (issue #637). Shown with a marker in the list and never numbered
   /// until it is filled.
   final bool isDraft;
+
+  /// A draft whose diver has not tapped "Surfaced" yet: no exit time.
+  final bool isOpenDraft;
   final DiveMode diveMode;
   final List<String> diveTypeIds;
   final List<Tag> tags;
@@ -81,6 +84,7 @@ class DiveSummary extends Equatable {
     this.excludedFromGasStats = false,
     this.isPlanned = false,
     this.isDraft = false,
+    this.isOpenDraft = false,
     this.diveMode = DiveMode.oc,
     this.diveTypeIds = const ['recreational'],
     this.tags = const [],
@@ -120,6 +124,7 @@ class DiveSummary extends Equatable {
       excludedFromGasStats: dive.excludedFromGasStats,
       isPlanned: dive.isPlanned,
       isDraft: dive.isDraft,
+      isOpenDraft: dive.isDraft && dive.exitTime == null,
       diveMode: dive.diveMode,
       diveTypeIds: dive.diveTypeIds,
       tags: dive.tags,
@@ -179,6 +184,7 @@ class DiveSummary extends Equatable {
     bool? excludedFromGasStats,
     bool? isPlanned,
     bool? isDraft,
+    bool? isOpenDraft,
     DiveMode? diveMode,
     List<String>? diveTypeIds,
     List<Tag>? tags,
@@ -210,6 +216,7 @@ class DiveSummary extends Equatable {
       excludedFromGasStats: excludedFromGasStats ?? this.excludedFromGasStats,
       isPlanned: isPlanned ?? this.isPlanned,
       isDraft: isDraft ?? this.isDraft,
+      isOpenDraft: isOpenDraft ?? this.isOpenDraft,
       diveMode: diveMode ?? this.diveMode,
       diveTypeIds: diveTypeIds ?? this.diveTypeIds,
       tags: tags ?? this.tags,
@@ -244,6 +251,7 @@ class DiveSummary extends Equatable {
     excludedFromGasStats,
     isPlanned,
     isDraft,
+    isOpenDraft,
     diveMode,
     diveTypeIds,
     tags,

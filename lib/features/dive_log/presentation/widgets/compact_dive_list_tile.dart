@@ -9,7 +9,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/planned_dive_chip.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/unfilled_dive_chip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_type_badge_row.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -225,10 +225,21 @@ class CompactDiveListTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // A dive awaiting its computer data (issue #2002) has no number, and the
-    // list passes its position as a fallback, so the badge and the
-    // screen-reader label leave the number out.
-    final isPlannedDive = isPlanned || summary?.isPlanned == true;
+    // A dive awaiting its computer data, a plan (issue #2002) or a draft
+    // (issue #637), has no number, and the list passes its position as a
+    // fallback, so the badge and the screen-reader label leave the number
+    // out.
+    final unfilledState = unfilledDiveStateOf(
+      isPlanned: isPlanned || summary?.isPlanned == true,
+      isDraft: summary?.isDraft == true,
+      isOpenDraft: summary?.isOpenDraft == true,
+    );
+    // The chip follows the summary alone, as the planned chip did.
+    final chipState = unfilledDiveStateOf(
+      isPlanned: summary?.isPlanned == true,
+      isDraft: summary?.isDraft == true,
+      isOpenDraft: summary?.isOpenDraft == true,
+    );
     final colorScheme = Theme.of(context).colorScheme;
     final units = ref.watch(unitFormatterProvider);
 
@@ -302,9 +313,20 @@ class CompactDiveListTile extends ConsumerWidget {
         color: cardColor,
         child: Semantics(
           button: true,
-          label: isPlannedDive
-              ? 'Planned dive at ${siteName ?? 'Unknown Site'}'
-              : 'Dive $diveNumber at ${siteName ?? 'Unknown Site'}',
+          label: switch (unfilledState) {
+            null => context.l10n.diveLog_listPage_semanticsDiveAtSite(
+              diveNumber,
+              siteName ?? context.l10n.diveLog_listPage_unknownSite,
+            ),
+            UnfilledDiveState.planned =>
+              context.l10n.diveLog_listPage_semanticsPlannedDiveAtSite(
+                siteName ?? context.l10n.diveLog_listPage_unknownSite,
+              ),
+            UnfilledDiveState.inWater || UnfilledDiveState.awaitingDownload =>
+              context.l10n.diveLog_listPage_semanticsDraftDiveAtSite(
+                siteName ?? context.l10n.diveLog_listPage_unknownSite,
+              ),
+          },
           child: InkWell(
             onTap: onTap,
             onDoubleTap: onDoubleTap,
@@ -329,9 +351,9 @@ class CompactDiveListTile extends ConsumerWidget {
                             child: FittedBox(
                               fit: BoxFit.scaleDown,
                               alignment: Alignment.centerLeft,
-                              child: isPlannedDive
+                              child: unfilledState != null
                                   ? Icon(
-                                      Icons.event_available_outlined,
+                                      unfilledDiveIcon(unfilledState),
                                       size: 14,
                                       color: accentColor,
                                     )
@@ -378,9 +400,9 @@ class CompactDiveListTile extends ConsumerWidget {
                           maxLines: 1,
                         ),
                       ),
-                      if (summary?.isPlanned == true) ...[
+                      if (chipState != null) ...[
                         const SizedBox(width: 6),
-                        const PlannedDiveChip(),
+                        UnfilledDiveChip(state: chipState),
                       ],
                       const SizedBox(width: 6),
                       DiveModeBadge(

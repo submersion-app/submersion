@@ -65720,6 +65720,18 @@ abstract class AppLocalizations {
   /// **'Planned'**
   String get diveLog_planned_chip;
 
+  /// List marker for a draft dive: marked at the site, waiting for its dive computer readings
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for download'**
+  String get diveLog_draft_chip;
+
+  /// List marker for a draft dive whose diver has entered the water and not yet surfaced
+  ///
+  /// In en, this message translates to:
+  /// **'In the water'**
+  String get diveLog_draft_inWaterChip;
+
   /// No description provided for @diveLog_planned_bannerTitle.
   ///
   /// In en, this message translates to:
@@ -80453,6 +80465,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dive {diveNumber} at {siteName}'**
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName);
+
+  /// No description provided for @diveLog_listPage_semanticsDraftDiveAtSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft dive at {siteName}'**
+  String diveLog_listPage_semanticsDraftDiveAtSite(String siteName);
 
   /// No description provided for @diveLog_listPage_semanticsPlannedDiveAtSite.
   ///
