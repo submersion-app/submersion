@@ -24,8 +24,12 @@ Future<MediaPeopleSelection?> showMediaPeopleFilterPicker(
   );
 }
 
-/// One row of the list: [key] is `none`, `me` or a buddy id.
-typedef _Row = ({String key, String label, IconData? icon});
+/// What a row picks. A kind rather than sentinel ids, so no buddy id can
+/// ever be mistaken for "No one tagged" or Me.
+enum _Pick { noPeople, me, buddy }
+
+/// One row of the list: [id] is the buddy's, or names the pinned row.
+typedef _Row = ({_Pick pick, String id, String label, IconData? icon});
 
 class _MediaPeopleFilterPicker extends ConsumerStatefulWidget {
   final MediaPeopleSelection initial;
@@ -45,17 +49,17 @@ class _MediaPeopleFilterPickerState
   bool _matches(String label) =>
       _query.isEmpty || label.toLowerCase().contains(_query.toLowerCase());
 
-  bool _ticked(String key) => switch (key) {
-    'none' => _selection.noPeople,
-    'me' => _selection.includeMe,
-    _ => _selection.buddyIds.contains(key),
+  bool _ticked(_Row row) => switch (row.pick) {
+    _Pick.noPeople => _selection.noPeople,
+    _Pick.me => _selection.includeMe,
+    _Pick.buddy => _selection.buddyIds.contains(row.id),
   };
 
-  void _toggle(String key, bool picked) => setState(() {
-    _selection = switch (key) {
-      'none' => _selection.withNoPeople(picked),
-      'me' => _selection.withMe(picked),
-      _ => _selection.withBuddy(key, picked),
+  void _toggle(_Row row, bool picked) => setState(() {
+    _selection = switch (row.pick) {
+      _Pick.noPeople => _selection.withNoPeople(picked),
+      _Pick.me => _selection.withMe(picked),
+      _Pick.buddy => _selection.withBuddy(row.id, picked),
     };
   });
 
@@ -65,10 +69,8 @@ class _MediaPeopleFilterPickerState
   /// a row never jumps when it is ticked. A picked buddy no longer listed
   /// (deleted since an album was saved) reads as removed, but only once the
   /// buddies have loaded: before that every picked id is unlisted.
-  List<_Row> _rows() {
+  List<_Row> _rows(List<Buddy>? all, Set<String> tagged) {
     final l10n = context.l10n;
-    final all = ref.watch(allBuddiesProvider).value;
-    final tagged = ref.watch(taggedBuddyIdsProvider).value ?? const <String>{};
     final picked = widget.initial.buddyIds;
 
     int byName(Buddy a, Buddy b) =>
@@ -85,17 +87,28 @@ class _MediaPeopleFilterPickerState
 
     return [
       (
-        key: 'none',
+        pick: _Pick.noPeople,
+        id: 'none',
         label: l10n.media_library_filter_noPeople,
         icon: Icons.person_off_outlined,
       ),
-      (key: 'me', label: l10n.media_people_me, icon: Icons.person),
+      (
+        pick: _Pick.me,
+        id: 'me',
+        label: l10n.media_people_me,
+        icon: Icons.person,
+      ),
       if (all != null)
         for (final id in picked)
           if (!known.contains(id))
-            (key: id, label: l10n.media_people_removedBuddy, icon: null),
-      for (final b in first) (key: b.id, label: b.name, icon: null),
-      for (final b in rest) (key: b.id, label: b.name, icon: null),
+            (
+              pick: _Pick.buddy,
+              id: id,
+              label: l10n.media_people_removedBuddy,
+              icon: null,
+            ),
+      for (final b in [...first, ...rest])
+        (pick: _Pick.buddy, id: b.id, label: b.name, icon: null),
     ].where((r) => _matches(r.label)).toList();
   }
 
@@ -103,7 +116,13 @@ class _MediaPeopleFilterPickerState
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final rows = _rows();
+    final all = ref.watch(allBuddiesProvider).value;
+    final tagged = ref.watch(taggedBuddyIdsProvider).value;
+    // The tagged ids are an autoDispose read nothing keeps warm, so each
+    // opening loads them: until then the list is partial, and an empty
+    // search result means "not yet", not "nobody".
+    final loading = all == null || tagged == null;
+    final rows = _rows(all, tagged ?? const {});
 
     return ConstrainedBox(
       constraints: BoxConstraints(
@@ -136,8 +155,9 @@ class _MediaPeopleFilterPickerState
               ),
             ),
             const SizedBox(height: 8),
+            if (loading) const LinearProgressIndicator(),
             Flexible(
-              child: rows.isEmpty
+              child: rows.isEmpty && !loading
                   ? Padding(
                       padding: const EdgeInsets.all(24),
                       child: Text(
@@ -153,7 +173,7 @@ class _MediaPeopleFilterPickerState
                       itemBuilder: (context, i) {
                         final row = rows[i];
                         return CheckboxListTile(
-                          key: ValueKey('media_people_pick_${row.key}'),
+                          key: ValueKey('media_people_pick_${row.id}'),
                           // An avatar on every row, as in the tagging
                           // picker, so the names line up under Me.
                           secondary: CircleAvatar(
@@ -167,8 +187,8 @@ class _MediaPeopleFilterPickerState
                                   ),
                           ),
                           title: Text(row.label),
-                          value: _ticked(row.key),
-                          onChanged: (v) => _toggle(row.key, v ?? false),
+                          value: _ticked(row),
+                          onChanged: (v) => _toggle(row, v ?? false),
                         );
                       },
                     ),

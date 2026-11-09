@@ -33120,7 +33120,7 @@ abstract class AppLocalizations {
   /// **'Missing files ({count})'**
   String media_library_filter_missingCount(int count);
 
-  /// Library filter chip in the People section: items with no buddy or Me tag at all
+  /// Library filter People choice, pinned first in the People picker and shown as the People row's value: items with no buddy or Me tag at all
   ///
   /// In en, this message translates to:
   /// **'No one tagged'**

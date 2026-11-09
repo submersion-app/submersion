@@ -32,6 +32,9 @@ void main() {
     MediaPeopleSelection initial = MediaPeopleSelection.none,
     FutureOr<List<Buddy>> Function()? buddies,
     Set<String> tagged = const {'alex', 'bea', 'zoe'},
+    Future<Set<String>>? taggedLater,
+    // Off while a list is pending: the progress bar never settles.
+    bool settle = true,
   }) async {
     tester.view.physicalSize = const Size(800, 1400);
     tester.view.devicePixelRatio = 1.0;
@@ -43,7 +46,9 @@ void main() {
           allBuddiesProvider.overrideWith(
             (ref) async => await (buddies?.call() ?? [zoe, bea, alex, cal]),
           ),
-          taggedBuddyIdsProvider.overrideWith((ref) async => tagged),
+          taggedBuddyIdsProvider.overrideWith(
+            (ref) async => await (taggedLater ?? Future.value(tagged)),
+          ),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -64,7 +69,12 @@ void main() {
       ),
     );
     await tester.tap(find.text('open'));
-    await tester.pumpAndSettle();
+    if (settle) {
+      await tester.pumpAndSettle();
+    } else {
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+    }
     return result;
   }
 
@@ -190,6 +200,37 @@ void main() {
     });
   });
 
+  group('while the people are still loading', () {
+    testWidgets('shows progress, never that nobody matches', (tester) async {
+      final pending = Completer<Set<String>>();
+      await open(tester, taggedLater: pending.future, settle: false);
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField), 'zoe');
+      await tester.pump();
+      expect(find.text('No people match'), findsNothing);
+
+      pending.complete({'zoe'});
+      await tester.pumpAndSettle();
+      expect(find.byType(LinearProgressIndicator), findsNothing);
+      expect(row('zoe'), findsOneWidget);
+    });
+  });
+
+  testWidgets('a buddy whose id reads "me" is still a buddy', (tester) async {
+    final result = await open(
+      tester,
+      buddies: () => [buddy('me', 'Mel')],
+      tagged: {'me'},
+    );
+    await tester.enterText(find.byType(TextField), 'mel');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Mel'));
+    await tester.pumpAndSettle();
+    await done(tester);
+    expect(await result, const MediaPeopleSelection(buddyIds: {'me'}));
+  });
+
   group('a buddy picked but since deleted', () {
     testWidgets('reads as removed and can be unticked', (tester) async {
       final result = await open(
@@ -210,6 +251,7 @@ void main() {
         tester,
         initial: const MediaPeopleSelection(buddyIds: {'alex'}),
         buddies: () => pending.future,
+        settle: false,
       );
       expect(find.text('Removed buddy'), findsNothing);
     });
