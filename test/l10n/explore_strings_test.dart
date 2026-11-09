@@ -24,11 +24,11 @@ void main() {
     expect(l10n.diveLog_ask_row('manta'), 'Ask: manta');
   });
 
-  // Code review: the German file addresses the diver formally.
-  test('the German Ask label addresses the diver formally', () {
+  // Issue #4331: the German file addresses the diver informally.
+  test('the German Ask label addresses the diver informally', () {
     expect(
       AppLocalizationsDe().accessibility_shortcut_askQuestion,
-      'Fragen zu Ihren Tauchgängen',
+      'Fragen zu deinen Tauchgängen',
     );
   });
 }

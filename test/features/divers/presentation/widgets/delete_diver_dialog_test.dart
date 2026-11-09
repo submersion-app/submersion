@@ -314,7 +314,7 @@ void main() {
       expect(find.textContaining('dauerhaft gelöscht'), findsOneWidget);
       expect(find.textContaining('permanently delete'), findsNothing);
       expect(
-        find.text('Geben Sie "Löschen Alice" zur Bestätigung ein'),
+        find.text('Gib "Löschen Alice" zur Bestätigung ein'),
         findsOneWidget,
       );
     });
