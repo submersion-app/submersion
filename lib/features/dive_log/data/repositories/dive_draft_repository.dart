@@ -38,11 +38,15 @@ class DiveDraftRepository {
     if (planId != null) {
       final plan = await _dives.getDiveById(planId);
       if (plan != null) {
+        // The plan's planned end is a guess; the draft is open until the
+        // diver surfaces.
         final draft = plan.copyWith(
           isPlanned: false,
           isDraft: true,
           dateTime: entryTime,
           entryTime: entryTime,
+          clearExitTime: true,
+          clearRuntime: true,
         );
         await _dives.updateDive(draft);
         // updateDive leaves the position pair alone; this fills it only
@@ -72,7 +76,8 @@ class DiveDraftRepository {
   /// The plan a tap at [entryTime] would adopt, or null: an unfilled plan of
   /// [diverId] whose start is on the tap's own wall-clock day and within
   /// [planAdoptionWindow] of it. The nearest wins; a tie goes to the earlier
-  /// plan.
+  /// plan. A dive mirrored from a buddy's logged dive is planned but already
+  /// happened (see diveUndivedSql), so it is never taken over.
   Future<String?> findPlanToAdopt({
     required String diverId,
     required DateTime entryTime,
@@ -86,6 +91,8 @@ class DiveDraftRepository {
       if (!_sameDay(start, entryTime)) continue;
       final gap = start.difference(entryTime).abs();
       if (gap > planAdoptionWindow) continue;
+      final times = await _dives.getDiveTimes(plan.id);
+      if (times == null || !times.isUndivedPlan) continue;
       final better =
           bestGap == null ||
           gap < bestGap ||

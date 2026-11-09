@@ -45,6 +45,9 @@ void main() {
     int? diveNumber,
     String? siteId,
     String notes = '',
+    String? outingId,
+    DateTime? exit,
+    int? runtimeSeconds,
   }) => db
       .into(db.dives)
       .insert(
@@ -57,6 +60,9 @@ void main() {
           diveNumber: Value(diveNumber),
           siteId: Value(siteId),
           notes: Value(notes),
+          outingId: Value(outingId),
+          exitTime: Value(exit?.millisecondsSinceEpoch),
+          runtime: Value(runtimeSeconds),
           createdAt: Value(created),
           updatedAt: Value(created),
         ),
@@ -115,6 +121,56 @@ void main() {
     expect(stored.notes, 'Look for the turtle');
     expect(await dives.getPlannedDives(diverId: 'me'), isEmpty);
   });
+
+  test(
+    'a dive mirrored from a buddy\'s logged dive is never taken over',
+    () async {
+      final ten = DateTime.utc(2026, 7, 17, 10);
+      await insertDive('theirs', start: ten, diverId: 'other', outingId: 'o1');
+      await insertDive(
+        'mirror',
+        start: ten,
+        isPlanned: true,
+        outingId: 'o1',
+        exit: ten.add(const Duration(minutes: 50)),
+      );
+
+      final draft = await drafts.createDraft(
+        diverId: 'me',
+        entryTime: DateTime.utc(2026, 7, 17, 11, 30),
+      );
+
+      expect(draft.id, isNot('mirror'));
+      final mirror = (await dives.getDiveById('mirror'))!;
+      expect(mirror.isPlanned, isTrue);
+      expect(mirror.isDraft, isFalse);
+    },
+  );
+
+  test(
+    'an adopted plan drops the exit and runtime it was planned with',
+    () async {
+      final ten = DateTime.utc(2026, 7, 17, 10);
+      await insertDive(
+        'plan',
+        start: ten,
+        isPlanned: true,
+        exit: ten.add(const Duration(minutes: 50)),
+        runtimeSeconds: 3000,
+      );
+
+      final draft = await drafts.createDraft(
+        diverId: 'me',
+        entryTime: DateTime.utc(2026, 7, 17, 10, 20),
+      );
+
+      final stored = (await dives.getDiveById(draft.id))!;
+      expect(stored.id, 'plan');
+      expect(stored.exitTime, isNull);
+      expect(stored.runtime, isNull);
+      expect((await drafts.openDraftFor('me'))?.id, 'plan');
+    },
+  );
 
   test('a plan on another day, or more than two hours away, is not '
       'adopted', () async {
