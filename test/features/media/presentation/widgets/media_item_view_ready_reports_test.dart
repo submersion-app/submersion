@@ -169,6 +169,20 @@ void main() {
     expect(failures, 1);
   });
 
+  testWidgets('a resolver that throws reports a failure, once', (tester) async {
+    var failures = 0;
+    await tester.runAsync(() async {
+      // No answer for this id: the resolver's lookup throws.
+      await tester.pumpWidget(
+        app(const {}, ValueNotifier('broken'), onFailed: () => failures++),
+      );
+      await settle(tester);
+      await tester.pump();
+    });
+
+    expect(failures, 1);
+  });
+
   testWidgets('a photo still downloading is not a failure', (tester) async {
     var failures = 0;
     await tester.runAsync(() async {

@@ -544,6 +544,12 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
       future: _future,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
+          // A resolver that threw cannot draw this item either. Only once
+          // this item's own resolution has settled: while another item
+          // resolves, the snapshot still carries the previous one's error.
+          if (snapshot.connectionState == ConnectionState.done) {
+            _reportFailed(widget.item.id);
+          }
           return const UnavailableMediaPlaceholder(
             data: UnavailableData(kind: UnavailableKind.notFound),
           );
