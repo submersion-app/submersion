@@ -52888,6 +52888,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'סמל קטן שמראה מאיפה כל פריט מוגש. תגי בעיה מוצגים תמיד.';
 
   @override
+  String get settings_media_tagBadges => 'הצג תגי תיוג על התמונות הממוזערות';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      'סמלים קטנים לתמונות עם אנשים מתויגים, מינים מתויגים או זמן בצלילה.';
+
+  @override
   String get settings_media_autoColorCorrection => 'תיקון צבע אוטומטי';
 
   @override
@@ -52935,6 +52942,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => 'לא מגובה';
+
+  @override
+  String get media_tileMarker_people => 'אנשים מתויגים';
+
+  @override
+  String get media_tileMarker_species => 'מינים מתויגים';
+
+  @override
+  String get media_tileMarker_timeInDive => 'ממוקמת על פרופיל הצלילה';
 
   @override
   String get media_tile_infoMenuItem => 'פרטי מדיה';

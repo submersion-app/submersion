@@ -54070,6 +54070,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'Un pequeño icono que indica de dónde procede cada elemento. Los distintivos de problemas siempre se muestran.';
 
   @override
+  String get settings_media_tagBadges =>
+      'Mostrar distintivos de etiquetas en las miniaturas';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      'Pequeños iconos para fotos con personas etiquetadas, especies etiquetadas o un momento en la inmersión.';
+
+  @override
   String get settings_media_autoColorCorrection =>
       'Corrección automática del color';
 
@@ -54118,6 +54126,16 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => 'Sin copia de seguridad';
+
+  @override
+  String get media_tileMarker_people => 'Personas etiquetadas';
+
+  @override
+  String get media_tileMarker_species => 'Especies etiquetadas';
+
+  @override
+  String get media_tileMarker_timeInDive =>
+      'Situada en el perfil de la inmersión';
 
   @override
   String get media_tile_infoMenuItem => 'Información del medio';

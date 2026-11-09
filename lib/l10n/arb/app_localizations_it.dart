@@ -54023,6 +54023,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Una piccola icona che indica da dove proviene ogni elemento. I badge di problema sono sempre visibili.';
 
   @override
+  String get settings_media_tagBadges =>
+      'Mostra i badge dei tag sulle miniature';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      'Piccole icone per le foto con persone taggate, specie taggate o un momento nell\'immersione.';
+
+  @override
   String get settings_media_autoColorCorrection =>
       'Correzione automatica del colore';
 
@@ -54073,6 +54081,16 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => 'Nessun backup';
+
+  @override
+  String get media_tileMarker_people => 'Persone taggate';
+
+  @override
+  String get media_tileMarker_species => 'Specie taggate';
+
+  @override
+  String get media_tileMarker_timeInDive =>
+      'Posizionata sul profilo dell\'immersione';
 
   @override
   String get media_tile_infoMenuItem => 'Info media';

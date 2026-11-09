@@ -8,6 +8,7 @@ import 'package:submersion/features/media/presentation/widgets/media_info_sheet.
 import 'package:submersion/features/media/presentation/widgets/media_status_badge.dart';
 import 'package:submersion/features/media/presentation/widgets/media_thumbnail_wheel_zoom.dart';
 import 'package:submersion/features/media/presentation/widgets/media_thumbnail_zoom_anchor.dart';
+import 'package:submersion/features/media/presentation/widgets/media_tile_markers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One library thumbnail with the shared selection overlay. Used by both the
@@ -95,6 +96,9 @@ class MediaLibraryTile extends StatelessWidget {
             left: 4,
             child: MediaStatusBadge(item: entry.item),
           ),
+          // Bottom-left: free on a library tile, and away from both badges
+          // above (issue #4218).
+          Positioned(bottom: 4, left: 4, child: MediaTileMarkers(entry: entry)),
           if (selected) ...[
             Container(color: colorScheme.primary.withValues(alpha: 0.3)),
             // On its own disc, as the dive and site media grids draw it: a

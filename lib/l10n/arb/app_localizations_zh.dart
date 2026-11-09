@@ -50668,6 +50668,13 @@ class AppLocalizationsZh extends AppLocalizations {
       '一个小图标，显示每个项目的来源。问题徽章始终显示。';
 
   @override
+  String get settings_media_tagBadges => '在缩略图上显示标记徽章';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      '为标记了人物、标记了物种或在潜水中有时间点的照片显示小图标。';
+
+  @override
   String get settings_media_autoColorCorrection => '自动色彩校正';
 
   @override
@@ -50713,6 +50720,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => '未备份';
+
+  @override
+  String get media_tileMarker_people => '已标记人物';
+
+  @override
+  String get media_tileMarker_species => '已标记物种';
+
+  @override
+  String get media_tileMarker_timeInDive => '已放置在潜水轮廓上';
 
   @override
   String get media_tile_infoMenuItem => '媒体信息';

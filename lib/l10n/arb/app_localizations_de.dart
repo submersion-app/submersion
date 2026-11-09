@@ -53904,6 +53904,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ein kleines Symbol, das zeigt, woher jedes Element geladen wird. Problem-Badges werden immer angezeigt.';
 
   @override
+  String get settings_media_tagBadges =>
+      'Tag-Badges auf Miniaturansichten anzeigen';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      'Kleine Symbole für Fotos mit markierten Personen, markierten Arten oder einem Zeitpunkt im Tauchgang.';
+
+  @override
   String get settings_media_autoColorCorrection => 'Automatische Farbkorrektur';
 
   @override
@@ -53953,6 +53961,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => 'Nicht gesichert';
+
+  @override
+  String get media_tileMarker_people => 'Personen markiert';
+
+  @override
+  String get media_tileMarker_species => 'Arten markiert';
+
+  @override
+  String get media_tileMarker_timeInDive => 'Im Tauchprofil platziert';
 
   @override
   String get media_tile_infoMenuItem => 'Medieninfo';

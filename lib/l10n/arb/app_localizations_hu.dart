@@ -53730,6 +53730,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Kis ikon, amely megmutatja, honnan érkezik az egyes elemek tartalma. A problémajelvények mindig láthatók.';
 
   @override
+  String get settings_media_tagBadges =>
+      'Címkejelvények megjelenítése a bélyegképeken';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      'Kis ikonok a megjelölt személyeket, megjelölt fajokat vagy merülésbeli időpontot tartalmazó fotókhoz.';
+
+  @override
   String get settings_media_autoColorCorrection => 'Automatikus színkorrekció';
 
   @override
@@ -53779,6 +53787,15 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => 'Nincs mentve';
+
+  @override
+  String get media_tileMarker_people => 'Személyek megjelölve';
+
+  @override
+  String get media_tileMarker_species => 'Fajok megjelölve';
+
+  @override
+  String get media_tileMarker_timeInDive => 'A merülési profilon elhelyezve';
 
   @override
   String get media_tile_infoMenuItem => 'Média infó';
