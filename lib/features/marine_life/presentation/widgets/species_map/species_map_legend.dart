@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/reef/presentation/widgets/reef_attribution_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Names what each mark on the species map means.
@@ -51,6 +52,21 @@ class SpeciesMapLegend extends StatelessWidget {
               color: publicRecordsColor.withValues(alpha: 0.7),
             ),
             l10n.speciesMap_legend_publicRecords,
+          ),
+        // GBIF asks to be credited wherever its records are shown; the reef
+        // sources sheet already names it and its licence filter.
+        if (publicOn)
+          TextButton(
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              minimumSize: const Size(0, 28),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            onPressed: () => showModalBottomSheet<void>(
+              context: context,
+              builder: (_) => const ReefAttributionSheet(),
+            ),
+            child: Text(l10n.speciesMap_attribution),
           ),
       ],
     ];

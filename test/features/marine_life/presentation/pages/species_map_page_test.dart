@@ -1,0 +1,272 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/marine_life/domain/entities/seen_species.dart';
+import 'package:submersion/features/marine_life/domain/entities/species.dart';
+import 'package:submersion/features/marine_life/domain/entities/species_map_pins.dart';
+import 'package:submersion/features/marine_life/presentation/pages/species_map_page.dart';
+import 'package:submersion/features/marine_life/presentation/providers/seen_species_providers.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_map_prefs_providers.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_map_providers.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/species_map/species_map_list_pane.dart';
+
+import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/test_app.dart';
+
+const _manta = Species(
+  id: 'manta',
+  commonName: 'Reef Manta Ray',
+  scientificName: 'Mobula alfredi',
+  category: SpeciesCategory.ray,
+);
+const _turtle = Species(
+  id: 'turtle',
+  commonName: 'Hawksbill',
+  category: SpeciesCategory.turtle,
+);
+
+final _seen = [
+  SeenSpecies(
+    species: _manta,
+    totalSightings: 9,
+    diveCount: 5,
+    siteCount: 2,
+    firstSeen: DateTime.utc(2024),
+    lastSeen: DateTime.utc(2025),
+  ),
+];
+
+const _sitePins = [
+  SiteSpeciesPin(
+    siteId: 's1',
+    siteName: 'Blue Corner',
+    latitude: 7.1,
+    longitude: 134.2,
+    speciesCount: 3,
+    sightingCount: 20,
+  ),
+];
+
+const _mantaPins = [
+  SpeciesSitePin(
+    siteId: 's2',
+    siteName: 'Manta Point',
+    latitude: -8.8,
+    longitude: 115.5,
+    kind: SpeciesPinKind.logged,
+    sightingCount: 6,
+  ),
+  SpeciesSitePin(
+    siteId: 's3',
+    siteName: 'Crystal Bay',
+    latitude: -8.7,
+    longitude: 115.4,
+    kind: SpeciesPinKind.expected,
+    sightingCount: 0,
+  ),
+];
+
+/// Lets a camera move finish. The cluster layer hides its markers while it
+/// animates to a new zoom, so a pin is only findable once that settles.
+/// Avoids pumpAndSettle: the tile layer animates indefinitely.
+Future<void> _settleMap(WidgetTester tester) async {
+  for (var i = 0; i < 30; i++) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+}
+
+Finder _pin(String label) => find
+    .byWidgetPredicate((w) => w is Semantics && w.properties.label == label)
+    .hitTestable();
+
+Future<void> _pump(
+  WidgetTester tester, {
+  String? initialSpeciesId,
+  Size size = const Size(1400, 900),
+  bool publicOn = false,
+  int unplaced = 0,
+  int? taxonKey,
+  List<SpeciesSitePin> mantaPins = _mantaPins,
+  List<SpeciesSitePin> turtlePins = const [],
+}) async {
+  tester.view.devicePixelRatio = 1.0;
+  tester.view.physicalSize = size;
+  addTearDown(() {
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
+  });
+  final base = await getBaseOverrides();
+  if (publicOn) {
+    await (await SharedPreferences.getInstance()).setBool(
+      kSpeciesMapPublicLayerKey,
+      true,
+    );
+  }
+  final router = GoRouter(
+    initialLocation: initialSpeciesId == null
+        ? '/species/map'
+        : '/species/map?species=$initialSpeciesId',
+    routes: [
+      GoRoute(
+        path: '/species/map',
+        builder: (context, state) => SpeciesMapPage(
+          initialSpeciesId: state.uri.queryParameters['species'],
+        ),
+      ),
+    ],
+  );
+  await tester.pumpWidget(
+    testAppRouter(
+      router: router,
+      locale: const Locale('en'),
+      overrides: [
+        ...base,
+        allSpeciesProvider.overrideWith((ref) async => [_manta, _turtle]),
+        seenSpeciesProvider.overrideWith((ref) async => _seen),
+        speciesMapSitePinsProvider.overrideWith((ref) async => _sitePins),
+        speciesMapSpeciesPinsProvider(
+          'manta',
+        ).overrideWith((ref) async => mantaPins),
+        speciesMapSpeciesPinsProvider(
+          'turtle',
+        ).overrideWith((ref) async => turtlePins),
+        speciesMapUnplacedCountProvider(
+          'manta',
+        ).overrideWith((ref) async => unplaced),
+        speciesMapUnplacedCountProvider(
+          'turtle',
+        ).overrideWith((ref) async => 0),
+        speciesMapUnplacedCountProvider(
+          null,
+        ).overrideWith((ref) async => unplaced),
+        speciesGbifTaxonKeyProvider(
+          'manta',
+        ).overrideWith((ref) async => taxonKey),
+        speciesGbifTaxonKeyProvider(
+          'turtle',
+        ).overrideWith((ref) async => taxonKey),
+      ],
+    ),
+  );
+  await tester.pump();
+  await _settleMap(tester);
+}
+
+void main() {
+  testWidgets('places mode shows one marker per site pin', (tester) async {
+    await _pump(tester);
+
+    expect(_pin('Blue Corner, 3 species'), findsOneWidget);
+    expect(_pin('Manta Point, 6 sightings'), findsNothing);
+  });
+
+  testWidgets('?species= seeds species mode with logged and expected pins', (
+    tester,
+  ) async {
+    await _pump(tester, initialSpeciesId: 'manta');
+
+    expect(_pin('Manta Point, 6 sightings'), findsOneWidget);
+    expect(_pin('Crystal Bay, expected'), findsOneWidget);
+    expect(_pin('Blue Corner, 3 species'), findsNothing);
+  });
+
+  testWidgets('an unknown ?species= id opens places mode', (tester) async {
+    await _pump(tester, initialSpeciesId: 'no-such-species');
+
+    expect(_pin('Blue Corner, 3 species'), findsOneWidget);
+  });
+
+  testWidgets('picking a species in the list switches mode, and back', (
+    tester,
+  ) async {
+    await _pump(tester);
+
+    await tester.tap(
+      find.descendant(
+        of: find.byType(SpeciesMapListPane),
+        matching: find.text('Reef Manta Ray'),
+      ),
+    );
+    await _settleMap(tester);
+    expect(_pin('Manta Point, 6 sightings'), findsOneWidget);
+
+    await tester.tap(find.text('All sites'));
+    await _settleMap(tester);
+    expect(_pin('Blue Corner, 3 species'), findsOneWidget);
+  });
+
+  testWidgets('no unplaced line when every sighting is placed', (tester) async {
+    await _pump(tester, initialSpeciesId: 'manta');
+
+    expect(find.textContaining('without a mapped site'), findsNothing);
+  });
+
+  testWidgets('the unplaced line counts sightings without a mapped site', (
+    tester,
+  ) async {
+    await _pump(tester, initialSpeciesId: 'manta', unplaced: 2);
+
+    expect(
+      find.text('2 sightings are on dives without a mapped site'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('public on with no taxon key explains there are no records', (
+    tester,
+  ) async {
+    await _pump(tester, initialSpeciesId: 'manta', publicOn: true);
+
+    expect(
+      find.textContaining('No public records can be shown'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('public on with a key shows no note and credits GBIF', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      initialSpeciesId: 'manta',
+      publicOn: true,
+      taxonKey: 9241141,
+    );
+
+    expect(find.textContaining('No public records can be shown'), findsNothing);
+    expect(find.text('Records: GBIF.org'), findsOneWidget);
+  });
+
+  testWidgets('no pins with public off suggests turning on public records', (
+    tester,
+  ) async {
+    await _pump(tester, initialSpeciesId: 'turtle');
+
+    expect(
+      find.textContaining('Turn on public records to see where others have'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('on a phone the picker opens from the app bar', (tester) async {
+    await _pump(tester, size: const Size(400, 800));
+    expect(find.byType(SpeciesMapListPane), findsNothing);
+
+    await tester.tap(find.byTooltip('Pick a species'));
+    await _settleMap(tester);
+    expect(find.byType(SpeciesMapListPane), findsOneWidget);
+
+    await tester.tap(
+      find.descendant(
+        of: find.byType(SpeciesMapListPane),
+        matching: find.text('Reef Manta Ray'),
+      ),
+    );
+    await _settleMap(tester);
+    expect(find.byType(SpeciesMapListPane), findsNothing);
+    expect(_pin('Manta Point, 6 sightings'), findsOneWidget);
+  });
+}

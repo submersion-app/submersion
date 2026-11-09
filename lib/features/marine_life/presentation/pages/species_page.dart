@@ -73,6 +73,12 @@ class _SpeciesPageState extends ConsumerState<SpeciesPage> {
             ],
           ),
           IconButton(
+            key: const ValueKey('species_map'),
+            icon: const Icon(Icons.map_outlined),
+            tooltip: l10n.speciesMap_openTooltip,
+            onPressed: () => context.push('/species/map'),
+          ),
+          IconButton(
             key: const ValueKey('manage_catalog'),
             icon: const Icon(Icons.library_books_outlined),
             tooltip: l10n.marineLife_speciesPage_manageCatalogTooltip,
