@@ -1,9 +1,12 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_type_badge_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_count.dart';
@@ -136,6 +139,11 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
 
     final chipTextColor = primaryTextColor ?? colorScheme.onSurface;
     final typeIds = {for (final t in entry.siteTypes) t.id};
+    // Site types (issue #1765) render like a dive card's type badges, at the
+    // end of the stat line (issue #4353).
+    final siteTypeLabels = [
+      for (final type in entry.siteTypes) type.localizedName(l10n),
+    ];
     final shownTags = entry.tags.take(3).toList();
     final hiddenTagCount = entry.tags.length - shownTags.length;
     final chips = <Widget>[
@@ -143,14 +151,6 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
         _SiteChip(
           icon: Icons.water_drop,
           label: site.waterType!.localizedName(l10n),
-          color: statColor,
-          textColor: chipTextColor,
-        ),
-      // Site types (issue #1765) before feature pins.
-      for (final type in entry.siteTypes)
-        _SiteChip(
-          icon: Icons.category_outlined,
-          label: type.localizedName(l10n),
           color: statColor,
           textColor: chipTextColor,
         ),
@@ -274,11 +274,9 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
             SelectionInset(
               isSelectionMode: widget.isSelectionMode,
               start: _contentInset,
-              child: Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 16,
-                runSpacing: 6,
-                children: [stat(stat1Field), stat(stat2Field)],
+              child: _SiteStatRow(
+                stats: [stat(stat1Field), stat(stat2Field)],
+                siteTypeLabels: siteTypeLabels,
               ),
             ),
             if (chips.isNotEmpty) ...[
@@ -400,8 +398,67 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
   }
 }
 
+/// The card's stat line: the stat slots on the start side and the site type
+/// badges right-aligned on the same line, where a dive card puts its dive
+/// type badges (issue #4353).
+///
+/// The badges' narrowest width (every type collapsed into "+N") is reserved
+/// first, so the stats keep their natural width up to the remainder and wrap
+/// rather than push the badges off the card. The badges then take what the
+/// stats leave, expanding back out of "+N" as room allows.
+class _SiteStatRow extends StatelessWidget {
+  final List<Widget> stats;
+  final List<String> siteTypeLabels;
+
+  const _SiteStatRow({required this.stats, required this.siteTypeLabels});
+
+  static const _statGap = 16.0;
+  static const _badgeGap = 8.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final statWrap = Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: _statGap,
+      runSpacing: 6,
+      children: stats,
+    );
+    if (siteTypeLabels.isEmpty) return statWrap;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final badgeReserve =
+            _badgeGap +
+            DiveTypeBadgeRow.minWidthOf(context, siteTypeLabels, dense: true);
+        final statMax = constraints.maxWidth.isFinite
+            ? math.max(0.0, constraints.maxWidth - badgeReserve)
+            : double.infinity;
+        return Row(
+          children: [
+            ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: statMax),
+              child: statWrap,
+            ),
+            const SizedBox(width: _badgeGap),
+            Expanded(
+              child: Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: DiveTypeBadgeRow(labels: siteTypeLabels, dense: true),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
 /// A small outlined chip with an icon, used for the fixed identity row
-/// (water type, site types, features and tags).
+/// (water type, feature pins and the hidden-tag count).
+///
+/// The outline uses the muted outlineVariant tone a dive card's type badges
+/// use, not the accent: the icon already carries the chip's colour, and an
+/// accent border made the row shout (issue #4353).
 class _SiteChip extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -420,7 +477,7 @@ class _SiteChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        border: Border.all(color: color.withValues(alpha: 0.6)),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
