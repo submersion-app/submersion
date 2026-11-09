@@ -247,7 +247,7 @@ class _DaySummaryBand extends StatelessWidget {
         children: [
           _DayStatStrip(day: day, units: units),
           const SizedBox(height: 10),
-          DayRhythmBar(dives: day.dives),
+          DayRhythmBar(dives: day.dives, units: units),
           if (!conditions.isEmpty) ...[
             const SizedBox(height: 8),
             DayConditionsLine(conditions: conditions, units: units),

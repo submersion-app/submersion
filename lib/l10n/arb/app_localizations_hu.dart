@@ -1919,6 +1919,24 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_story_rhythm_semantics => 'A nap merülési idői';
 
   @override
+  String trips_story_rhythm_semanticsSunriseSunset(
+    String sunrise,
+    String sunset,
+  ) {
+    return 'A nap merülési idői. Napkelte $sunrise, napnyugta $sunset.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunrise(String sunrise) {
+    return 'A nap merülési idői. Napkelte $sunrise.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunset(String sunset) {
+    return 'A nap merülési idői. Napnyugta $sunset.';
+  }
+
+  @override
   String trips_story_dayMap_semantics(int number) {
     return '$number. nap térképe';
   }

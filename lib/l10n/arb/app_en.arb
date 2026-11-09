@@ -1143,6 +1143,33 @@
     }
   },
   "trips_story_rhythm_semantics": "Dive times during this day",
+  "trips_story_rhythm_semanticsSunriseSunset": "Dive times during this day. Sunrise {sunrise}, sunset {sunset}.",
+  "@trips_story_rhythm_semanticsSunriseSunset": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      },
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunrise": "Dive times during this day. Sunrise {sunrise}.",
+  "@trips_story_rhythm_semanticsSunrise": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunset": "Dive times during this day. Sunset {sunset}.",
+  "@trips_story_rhythm_semanticsSunset": {
+    "placeholders": {
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
   "trips_story_dayMap_semantics": "Map of day {number}",
   "@trips_story_dayMap_semantics": {
     "placeholders": {

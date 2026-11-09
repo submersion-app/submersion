@@ -1978,6 +1978,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_story_rhythm_semantics => 'أوقات الغطس في هذا اليوم';
 
   @override
+  String trips_story_rhythm_semanticsSunriseSunset(
+    String sunrise,
+    String sunset,
+  ) {
+    return 'أوقات الغطس في هذا اليوم. شروق الشمس $sunrise، غروب الشمس $sunset.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunrise(String sunrise) {
+    return 'أوقات الغطس في هذا اليوم. شروق الشمس $sunrise.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunset(String sunset) {
+    return 'أوقات الغطس في هذا اليوم. غروب الشمس $sunset.';
+  }
+
+  @override
   String trips_story_dayMap_semantics(int number) {
     return 'خريطة اليوم $number';
   }
