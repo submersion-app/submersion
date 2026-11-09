@@ -69,7 +69,10 @@ looks the same as a dive logged without samples. The table strip and the
 detail page therefore draw the estimate only when
 `DiveRepository.hasProfileSeries` (a row count, no blob read) confirms the
 dive has no stored series at all. A dive with a damaged recording keeps its
-"No profile data" state.
+"No profile data" state. Until that check answers, the strip shows nothing
+for a dive it could draw, since "No profile data" would blink before every
+outline. Both screens take the rule from `EstimatedProfile.forDive`, which
+runs the outline to the measured runtime, never the bottom time fallback.
 
 ## Not in scope
 

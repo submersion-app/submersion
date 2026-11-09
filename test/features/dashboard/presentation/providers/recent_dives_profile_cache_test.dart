@@ -108,4 +108,47 @@ void main() {
           'back the snapshot it read before awaiting',
     );
   });
+
+  group('a recent dive already in the cache (#4112)', () {
+    Future<(_GatedProfileRepository, ProviderContainer)> setUpRecent(
+      List<DiveProfilePoint> cached,
+    ) async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+      );
+      final repo = _GatedProfileRepository(DiveRepository())
+        ..release.complete();
+      final container = ProviderContainer(
+        overrides: [
+          currentDiverIdProvider.overrideWith(
+            (ref) => MockCurrentDiverIdNotifier(),
+          ),
+          diveRepositoryProvider.overrideWithValue(repo),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.read(batchProfileCacheProvider.notifier).state = {'d1': cached};
+      return (repo, container);
+    }
+
+    test('is asked again when cached without samples, so a profile it has '
+        'gained since replaces the estimate', () async {
+      final (repo, container) = await setUpRecent(const []);
+
+      await container.read(recentDivesProvider.future);
+
+      expect(repo.started.isCompleted, isTrue);
+      expect(container.read(batchProfileCacheProvider)['d1'], _point);
+    });
+
+    test('is not asked again when cached with samples', () async {
+      const recorded = [DiveProfilePoint(timestamp: 0, depth: 20)];
+      final (repo, container) = await setUpRecent(recorded);
+
+      await container.read(recentDivesProvider.future);
+
+      expect(repo.started.isCompleted, isFalse);
+      expect(container.read(batchProfileCacheProvider)['d1'], recorded);
+    });
+  });
 }

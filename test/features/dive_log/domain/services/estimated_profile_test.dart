@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/estimated_profile.dart';
 
 /// The outline as (seconds, depth) pairs, rounded to hundredths so the
@@ -190,6 +191,80 @@ void main() {
           expect(profile.durationSeconds, minutes * 60);
         }
       }
+    });
+
+    test('its max depth is the depth it was drawn to', () {
+      final profile = EstimatedProfile.estimate(
+        maxDepth: 27.5,
+        runtime: const Duration(minutes: 45),
+      )!;
+
+      expect(profile.maxDepth, 27.5);
+      expect(
+        profile.points.map((p) => p.depth).reduce((a, b) => a > b ? a : b),
+        27.5,
+      );
+    });
+  });
+
+  group('EstimatedProfile.forDive', () {
+    final dive = Dive(
+      id: 'd1',
+      dateTime: DateTime.utc(2024, 6, 1, 9),
+      maxDepth: 22,
+      bottomTime: const Duration(minutes: 38),
+      runtime: const Duration(minutes: 44),
+    );
+
+    test('draws a dive confirmed to have no stored series', () {
+      expect(
+        EstimatedProfile.forDive(dive, hasStoredSeries: false),
+        EstimatedProfile.estimate(
+          maxDepth: 22,
+          runtime: const Duration(minutes: 44),
+          bottomTime: const Duration(minutes: 38),
+        ),
+      );
+    });
+
+    test('runs to the measured runtime, never the bottom time fallback', () {
+      // effectiveRuntime would fall back to the bottom time; the outline
+      // treats that as the start of the ascent instead.
+      final bottomOnly = Dive(
+        id: 'd2',
+        dateTime: DateTime.utc(2024, 6, 1, 9),
+        maxDepth: 22,
+        bottomTime: const Duration(minutes: 38),
+      );
+
+      expect(
+        EstimatedProfile.forDive(bottomOnly, hasStoredSeries: false),
+        EstimatedProfile.estimate(
+          maxDepth: 22,
+          bottomTime: const Duration(minutes: 38),
+        ),
+      );
+    });
+
+    test('draws nothing while the series check is unknown or finds one', () {
+      // Null is still loading (or failed); true is a stored series that
+      // read back empty, which is a damaged recording, not a missing one.
+      expect(EstimatedProfile.forDive(dive, hasStoredSeries: null), isNull);
+      expect(EstimatedProfile.forDive(dive, hasStoredSeries: true), isNull);
+    });
+
+    test('draws nothing for a dive with a recorded profile', () {
+      final recorded = dive.copyWith(
+        profile: const [
+          DiveProfilePoint(timestamp: 0, depth: 0),
+          DiveProfilePoint(timestamp: 60, depth: 10),
+        ],
+      );
+
+      expect(
+        EstimatedProfile.forDive(recorded, hasStoredSeries: false),
+        isNull,
+      );
     });
   });
 }

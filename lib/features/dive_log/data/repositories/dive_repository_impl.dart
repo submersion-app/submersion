@@ -2183,10 +2183,9 @@ class DiveRepository {
   /// tell it has no samples from not fetched yet and draw an estimated
   /// outline (#4112); a dive whose every series is unreadable, and every
   /// dive when the read fails, is absent instead, since it may well have
-  /// samples. The blobs
-  /// are decoded, merged and downsampled on a background isolate
-  /// ([summarizeSparklinesInBackground]), since a page's worth on the UI
-  /// isolate dropped frames mid-scroll (#3506).
+  /// samples. The blobs are decoded, merged and downsampled on a background
+  /// isolate ([summarizeSparklinesInBackground]), since a page's worth on
+  /// the UI isolate dropped frames mid-scroll (#3506).
   Future<Map<String, List<domain.DiveProfilePoint>>> getBatchProfileSummaries(
     List<String> diveIds, {
     int maxSamples = 120,
@@ -2223,8 +2222,18 @@ class DiveRepository {
   /// looks like a dive logged without samples; this tells the two apart,
   /// so only the second gets an estimated outline (#4112). It counts rows
   /// without reading a blob.
-  Future<bool> hasProfileSeries(String diveId) =>
-      _profileSeries.hasAnySeries(diveId);
+  Future<bool> hasProfileSeries(String diveId) async {
+    try {
+      return await _profileSeries.hasAnySeries(diveId);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to check for stored profile series: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
 
   /// Create a new dive
   Future<domain.Dive> createDive(domain.Dive dive) async {

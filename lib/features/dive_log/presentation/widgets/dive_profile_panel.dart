@@ -235,36 +235,27 @@ class _DiveProfilePanelContentState
       // A dive logged by hand or imported without samples (#4112): an
       // outline from its depth and times, drawn only, never stored. Not for
       // a dive whose stored series is unreadable: it reads empty too.
-      final hasStoredSeries = ref
-          .watch(diveHasProfileSeriesProvider(dive.id))
-          .value;
-      final estimate = hasStoredSeries == false
-          ? EstimatedProfile.estimate(
-              maxDepth: dive.maxDepth,
-              runtime: dive.measuredRuntime,
-              bottomTime: dive.bottomTime,
-            )
-          : null;
+      final storedSeries = ref.watch(diveHasProfileSeriesProvider(dive.id));
+      final estimate = EstimatedProfile.forDive(
+        dive,
+        hasStoredSeries: storedSeries.value,
+      );
       if (estimate != null) {
-        return Container(
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
-            ),
+        return _framed(context, dive, [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(4, 0, 12, 8),
+            child: EstimatedProfileChart(profile: estimate, height: 160),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeaderBar(context, dive),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(4, 0, 12, 8),
-                child: EstimatedProfileChart(profile: estimate, height: 160),
-              ),
-            ],
-          ),
-        );
+        ]);
       }
+      // Each dive asks afresh, so until the check answers, a dive that could
+      // be drawn says nothing: "No profile data" would blink before every
+      // estimated outline.
+      final awaitingCheck =
+          !storedSeries.hasValue &&
+          !storedSeries.hasError &&
+          EstimatedProfile.forDive(dive, hasStoredSeries: false) != null;
+      if (awaitingCheck) return const SizedBox(height: 100);
       return SizedBox(
         height: 100,
         child: Center(
@@ -323,7 +314,6 @@ class _DiveProfilePanelContentState
         .value;
     // Chart-only: real pressures augmented with linear estimates (#197).
     final chartTankPressures = watchChartTankSeries(ref, widget.diveId);
-    final colorScheme = Theme.of(context).colorScheme;
     final trackingIndex = ref.watch(
       profileTrackingIndexProvider(widget.diveId),
     );
@@ -354,115 +344,114 @@ class _DiveProfilePanelContentState
       }
     }
 
+    return _framed(context, dive, [
+      // Chart with cursor tracking
+      MouseRegion(
+        onExit: (_) {
+          ref.read(profileTrackingIndexProvider(widget.diveId).notifier).state =
+              null;
+        },
+        child: Listener(
+          key: _chartAreaKey,
+          onPointerHover: (e) => _onPointerUpdate(e.position),
+          onPointerMove: (e) => _onPointerUpdate(e.position),
+          child: Padding(
+            padding: const EdgeInsets.only(left: 4, right: 4),
+            child: DiveProfileChart(
+              profile: chartProfile,
+              activeComputerId: activeSourceProfile?.computerId,
+              diveDuration: dive.effectiveRuntime,
+              maxDepth: dive.maxDepth,
+              ceilingCurve: analysis?.ceilingCurve,
+              decoStopCurve: analysis?.decoStopCurve,
+              labelCeilingAsCalculated:
+                  analysis?.computerStopsWithCalculatedCeiling ?? false,
+              ascentRates: analysis?.ascentRates,
+              events: chartEvents,
+              ndlCurve: analysis?.ndlCurve,
+              sacCurve: analysis?.smoothedSacCurve,
+              environment: analysis?.environment ?? DiveEnvironment.standard,
+              ppO2Curve: analysis?.ppO2Curve,
+              o2SensorCurves: analysis?.o2SensorCurves,
+              o2CellMvCurves: analysis?.o2CellMvCurves,
+              ppO2FromSensorAverage: analysis?.ppO2FromSensorAverage ?? false,
+              ppN2Curve: analysis?.ppN2Curve,
+              ppHeCurve: analysis?.ppHeCurve,
+              modCurve: analysis?.modCurve,
+              densityCurve: analysis?.densityCurve,
+              gfCurve: analysis?.gfCurve,
+              surfaceGfCurve: analysis?.surfaceGfCurve,
+              meanDepthCurve: analysis?.meanDepthCurve,
+              ttsCurve: analysis?.ttsCurve,
+              gasSwitchEfficiency: analysis?.gasSwitchEfficiency,
+              gtrCurve: analysis?.gtrCurve,
+              cnsCurve: analysis?.cnsCurve,
+              otuCurve: analysis?.otuCurve,
+              // As the detail and fullscreen charts (#3109): the curve
+              // normalised to Dive.sac, in bar of the reference cylinder,
+              // so that cylinder's volume converts it.
+              tankVolume: dive.sacReferenceVolume,
+              sacNormalizationFactor: calculateSacNormalizationFactor(
+                dive,
+                analysis,
+              ),
+              markers: markers,
+              showMaxDepthMarker: showMaxDepthMarker,
+              showPressureThresholdMarkers: showPressureThresholdMarkers,
+              tanks: dive.tanks,
+              tankPressures: chartTankPressures?.pressures,
+              estimatedTankIds: chartTankPressures?.estimatedTankIds,
+              gasSwitches: gasSwitches,
+              gasSegments: (dive.tanks.isEmpty || chartProfile.isEmpty)
+                  ? null
+                  : activeGasUsageSegments(
+                      dive,
+                      gasSwitches: gasSwitches,
+                      profile: chartProfile,
+                      computerId: activeSourceProfile?.computerId,
+                    ),
+              diveDurationSeconds: chartProfile.isEmpty
+                  ? null
+                  : chartProfile.last.timestamp,
+              tooltipPresentation: TooltipPresentation.external,
+              highlightedTimestamp:
+                  trackingIndex != null && trackingIndex < chartProfile.length
+                  ? chartProfile[trackingIndex].timestamp
+                  : null,
+              onPointSelected: (index) {
+                ref
+                        .read(
+                          profileTrackingIndexProvider(widget.diveId).notifier,
+                        )
+                        .state =
+                    index;
+              },
+              onTooltipData: _onTooltipData,
+            ),
+          ),
+        ),
+      ),
+      // Tiny spacer
+      const SizedBox(height: 4),
+    ]);
+  }
+
+  /// The strip's frame, recorded or estimated: [_buildHeaderBar] above
+  /// [body], with a rule along the bottom.
+  Widget _framed(BuildContext context, Dive dive, List<Widget> body) {
     return Container(
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
+          bottom: BorderSide(
+            color: Theme.of(context).colorScheme.outlineVariant,
+            width: 1,
+          ),
         ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildHeaderBar(context, dive),
-          // Chart with cursor tracking
-          MouseRegion(
-            onExit: (_) {
-              ref
-                      .read(
-                        profileTrackingIndexProvider(widget.diveId).notifier,
-                      )
-                      .state =
-                  null;
-            },
-            child: Listener(
-              key: _chartAreaKey,
-              onPointerHover: (e) => _onPointerUpdate(e.position),
-              onPointerMove: (e) => _onPointerUpdate(e.position),
-              child: Padding(
-                padding: const EdgeInsets.only(left: 4, right: 4),
-                child: DiveProfileChart(
-                  profile: chartProfile,
-                  activeComputerId: activeSourceProfile?.computerId,
-                  diveDuration: dive.effectiveRuntime,
-                  maxDepth: dive.maxDepth,
-                  ceilingCurve: analysis?.ceilingCurve,
-                  decoStopCurve: analysis?.decoStopCurve,
-                  labelCeilingAsCalculated:
-                      analysis?.computerStopsWithCalculatedCeiling ?? false,
-                  ascentRates: analysis?.ascentRates,
-                  events: chartEvents,
-                  ndlCurve: analysis?.ndlCurve,
-                  sacCurve: analysis?.smoothedSacCurve,
-                  environment:
-                      analysis?.environment ?? DiveEnvironment.standard,
-                  ppO2Curve: analysis?.ppO2Curve,
-                  o2SensorCurves: analysis?.o2SensorCurves,
-                  o2CellMvCurves: analysis?.o2CellMvCurves,
-                  ppO2FromSensorAverage:
-                      analysis?.ppO2FromSensorAverage ?? false,
-                  ppN2Curve: analysis?.ppN2Curve,
-                  ppHeCurve: analysis?.ppHeCurve,
-                  modCurve: analysis?.modCurve,
-                  densityCurve: analysis?.densityCurve,
-                  gfCurve: analysis?.gfCurve,
-                  surfaceGfCurve: analysis?.surfaceGfCurve,
-                  meanDepthCurve: analysis?.meanDepthCurve,
-                  ttsCurve: analysis?.ttsCurve,
-                  gasSwitchEfficiency: analysis?.gasSwitchEfficiency,
-                  gtrCurve: analysis?.gtrCurve,
-                  cnsCurve: analysis?.cnsCurve,
-                  otuCurve: analysis?.otuCurve,
-                  // As the detail and fullscreen charts (#3109): the curve
-                  // normalised to Dive.sac, in bar of the reference cylinder,
-                  // so that cylinder's volume converts it.
-                  tankVolume: dive.sacReferenceVolume,
-                  sacNormalizationFactor: calculateSacNormalizationFactor(
-                    dive,
-                    analysis,
-                  ),
-                  markers: markers,
-                  showMaxDepthMarker: showMaxDepthMarker,
-                  showPressureThresholdMarkers: showPressureThresholdMarkers,
-                  tanks: dive.tanks,
-                  tankPressures: chartTankPressures?.pressures,
-                  estimatedTankIds: chartTankPressures?.estimatedTankIds,
-                  gasSwitches: gasSwitches,
-                  gasSegments: (dive.tanks.isEmpty || chartProfile.isEmpty)
-                      ? null
-                      : activeGasUsageSegments(
-                          dive,
-                          gasSwitches: gasSwitches,
-                          profile: chartProfile,
-                          computerId: activeSourceProfile?.computerId,
-                        ),
-                  diveDurationSeconds: chartProfile.isEmpty
-                      ? null
-                      : chartProfile.last.timestamp,
-                  tooltipPresentation: TooltipPresentation.external,
-                  highlightedTimestamp:
-                      trackingIndex != null &&
-                          trackingIndex < chartProfile.length
-                      ? chartProfile[trackingIndex].timestamp
-                      : null,
-                  onPointSelected: (index) {
-                    ref
-                            .read(
-                              profileTrackingIndexProvider(
-                                widget.diveId,
-                              ).notifier,
-                            )
-                            .state =
-                        index;
-                  },
-                  onTooltipData: _onTooltipData,
-                ),
-              ),
-            ),
-          ),
-          // Tiny spacer
-          const SizedBox(height: 4),
-        ],
+        children: [_buildHeaderBar(context, dive), ...body],
       ),
     );
   }
@@ -488,7 +477,7 @@ class _DiveProfilePanelContentState
           ],
           Expanded(
             child: Text(
-              dive.site?.name ?? 'Unknown Site',
+              dive.site?.name ?? context.l10n.diveLog_listPage_unknownSite,
               style: textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -497,7 +486,7 @@ class _DiveProfilePanelContentState
           ),
           const SizedBox(width: 8),
           Text(
-            units.formatDateTime(dive.dateTime, l10n: null),
+            units.formatDateTime(dive.dateTime, l10n: context.l10n),
             style: textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),

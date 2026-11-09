@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+
 /// One corner of an [EstimatedProfile]'s outline.
 class EstimatedProfilePoint extends Equatable {
   const EstimatedProfilePoint(this.seconds, this.depth);
@@ -27,7 +29,7 @@ class EstimatedProfilePoint extends Equatable {
 /// dive deeper than [stopThreshold]. When the times leave less room than
 /// those rates need, the legs shrink in proportion.
 class EstimatedProfile extends Equatable {
-  const EstimatedProfile._(this.points);
+  const EstimatedProfile._(this.points, this.maxDepth);
 
   /// Meters per minute down.
   static const double descentRate = 18;
@@ -47,12 +49,32 @@ class EstimatedProfile extends Equatable {
   /// The outline's corners, from the surface back to the surface.
   final List<EstimatedProfilePoint> points;
 
-  /// The outline's deepest point, in meters.
-  double get maxDepth =>
-      points.map((p) => p.depth).reduce((a, b) => a > b ? a : b);
+  /// The outline's deepest point, in meters: the depth it was drawn to.
+  final double maxDepth;
 
   /// When the outline reaches the surface again, in seconds.
   double get durationSeconds => points.last.seconds;
+
+  /// The outline for [dive], or null when it has a recorded profile or too
+  /// little to estimate one from.
+  ///
+  /// [hasStoredSeries] is whether the dive has any stored profile series.
+  /// Only a confirmed false draws: a dive whose stored series is unreadable
+  /// also reads with an empty profile, and null is not known yet. The
+  /// outline runs to [Dive.measuredRuntime], never [Dive.effectiveRuntime],
+  /// whose bottom time fallback is where the ascent starts, not where the
+  /// dive surfaces.
+  static EstimatedProfile? forDive(
+    Dive dive, {
+    required bool? hasStoredSeries,
+  }) {
+    if (dive.profile.isNotEmpty || hasStoredSeries != false) return null;
+    return estimate(
+      maxDepth: dive.maxDepth,
+      runtime: dive.measuredRuntime,
+      bottomTime: dive.bottomTime,
+    );
+  }
 
   /// The outline for a dive, or null when it lacks a depth or a time.
   ///
@@ -128,7 +150,7 @@ class EstimatedProfile extends Equatable {
       ],
       EstimatedProfilePoint(end, 0),
     ];
-    return EstimatedProfile._(List.unmodifiable(points));
+    return EstimatedProfile._(List.unmodifiable(points), maxDepth);
   }
 
   static double? _positiveSeconds(Duration? duration) {

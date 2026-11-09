@@ -16,21 +16,17 @@ class DiveDetailEstimatedProfileSection extends StatelessWidget {
 
   final EstimatedProfile profile;
 
-  /// The section for [dive], or null when it has a recorded profile or too
-  /// little to estimate one from.
+  /// The section for [dive], or null when [EstimatedProfile.forDive] has no
+  /// outline for it.
   ///
-  /// [hasStoredSeries] is `diveHasProfileSeriesProvider`'s answer: only a
-  /// confirmed false draws, since a dive whose stored series is unreadable
-  /// also reads with an empty profile, and null is not known yet.
+  /// [hasStoredSeries] is `diveHasProfileSeriesProvider`'s answer.
   static DiveDetailEstimatedProfileSection? forDive(
     Dive dive, {
     required bool? hasStoredSeries,
   }) {
-    if (dive.profile.isNotEmpty || hasStoredSeries != false) return null;
-    final estimate = EstimatedProfile.estimate(
-      maxDepth: dive.maxDepth,
-      runtime: dive.measuredRuntime,
-      bottomTime: dive.bottomTime,
+    final estimate = EstimatedProfile.forDive(
+      dive,
+      hasStoredSeries: hasStoredSeries,
     );
     if (estimate == null) return null;
     return DiveDetailEstimatedProfileSection(profile: estimate);

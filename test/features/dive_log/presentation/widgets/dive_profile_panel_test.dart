@@ -294,6 +294,38 @@ void main() {
       expect(find.byType(EstimatedProfileChart), findsNothing);
     });
 
+    testWidgets('says nothing until the stored series check answers (#4112)', (
+      tester,
+    ) async {
+      // "No profile data" first and the outline a frame later blinked on
+      // every row of the table view that has no samples.
+      final dive = _makeDiveNoProfile(id: 'no-profile');
+      final pending = Completer<bool>();
+      await tester.pumpWidget(
+        _buildPanel(
+          highlightedDiveId: 'no-profile',
+          diveToReturn: dive,
+          extraOverrides: [
+            diveHasProfileSeriesProvider(
+              'no-profile',
+            ).overrideWith((ref) => pending.future),
+          ],
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text('No profile data for this dive'), findsNothing);
+      expect(find.byType(EstimatedProfileChart), findsNothing);
+
+      pending.complete(false);
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.byType(EstimatedProfileChart), findsOneWidget);
+      expect(find.text('No profile data for this dive'), findsNothing);
+    });
+
     testWidgets('draws no estimate for a dive whose stored series is '
         'unreadable (#4112)', (tester) async {
       // An unreadable series reads as an empty profile too.
