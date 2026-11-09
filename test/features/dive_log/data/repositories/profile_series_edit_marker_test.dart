@@ -178,6 +178,63 @@ void main() {
       ]);
       expect(ids, {'legacy-edit'});
     });
+
+    test('an unmarked original over a demoted marked edit is no edit', () {
+      // A series a writer left unmarked, re-activated over the edit made
+      // from it: the edit beneath is not a generation it superseded.
+      final ids = ProfileSeriesRepository.liveEditIdsOf([
+        row('original', isPrimary: true),
+        row('edit', isPrimary: false, isEdit: true),
+      ]);
+      expect(ids, isEmpty);
+    });
+
+    test('an unmarked edit over an unmarked parse and a marked edit is '
+        'still one', () {
+      final ids = ProfileSeriesRepository.liveEditIdsOf([
+        row('legacy-edit', isPrimary: true),
+        row('older-edit', isPrimary: false, isEdit: true),
+        row('parse', isPrimary: false),
+      ]);
+      expect(ids, {'legacy-edit'});
+    });
+  });
+
+  group('hasLiveEdit', () {
+    test('a live series marked as a parse is no edit', () async {
+      await seedDive();
+      await seedSource('comp-a');
+      await seedParse('comp-a');
+
+      expect(await series.hasLiveEdit(diveId, sourceId: 'comp-a'), isFalse);
+    });
+
+    test('a live marked edit is one', () async {
+      await seedDive();
+      await seedSource('comp-a');
+      await seedParse('comp-a');
+      await saveEdit();
+
+      expect(await series.hasLiveEdit(diveId, sourceId: 'comp-a'), isTrue);
+    });
+  });
+
+  test('createDive marks its profile as no edit', () async {
+    final created = await DiveRepository().createDive(
+      domain.Dive(
+        id: 'created',
+        dateTime: DateTime.utc(2026, 1, 15, 10),
+        profile: const [
+          domain.DiveProfilePoint(timestamp: 0, depth: 0.0),
+          domain.DiveProfilePoint(timestamp: 60, depth: 12.0),
+        ],
+      ),
+    );
+
+    final rows = await (db.select(
+      db.diveProfileSeries,
+    )..where((t) => t.diveId.equals(created.id))).get();
+    expect(rows.single.isEdit, isFalse);
   });
 
   group('a re-activated original over a demoted edit', () {
@@ -303,6 +360,33 @@ void main() {
         expect(fresh.single.isEdit, isFalse);
       },
     );
+
+    test('a file resync keeps the edit over an unmarked original', () async {
+      // The original came from a writer that leaves the mark unset.
+      await seedDive();
+      await seedSource('src-file', sourceFormat: 'uddf');
+      final original = await seedParse('src-file', isEdit: null);
+      final edit = await saveEdit();
+      await series.activateSeriesForDive(diveId: diveId, seriesId: original);
+
+      await DiveReimportService(db: db).applyReimport(
+        diveId: diveId,
+        diveData: {
+          'profile': const [
+            {'timestamp': 0, 'depth': 0.0},
+            {'timestamp': 60, 'depth': 21.0},
+            {'timestamp': 120, 'depth': 0.0},
+          ],
+        },
+        now: DateTime(2026, 9, 3),
+      );
+
+      final rows = await rowsById();
+      expect(rows[edit]!.isPrimary, isFalse);
+      expect(rows.containsKey(original), isFalse);
+      final fresh = rows.values.where((r) => r.id != edit);
+      expect(fresh.single.isPrimary, isTrue);
+    });
 
     test('a computer relink leaves the demoted edit off the strand', () async {
       // Relinked, the edit would sit on the computer's strand, which that

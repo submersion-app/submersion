@@ -2643,6 +2643,8 @@ class DiveRepository {
         if (dive.profile.isNotEmpty) {
           await _profileSeries.insertSeries(
             diveId: id,
+            // The dive's first profile, so not an edit (issue #4386).
+            isEdit: false,
             samples: [
               for (final point in dive.profile) profileSampleFromPoint(point),
             ],

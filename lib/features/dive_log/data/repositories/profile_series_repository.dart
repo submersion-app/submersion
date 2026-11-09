@@ -724,7 +724,11 @@ class ProfileSeriesRepository {
                 _db.diveProfileSeries.diveId.equals(diveId) &
                     _db.diveProfileSeries.isPrimary.equals(true) &
                     _db.diveProfileSeries.computerId.isNull() &
-                    _db.diveProfileSeries.sourceId.equals(sourceId),
+                    _db.diveProfileSeries.sourceId.equals(sourceId) &
+                    // A series marked as a parse is none, whatever its
+                    // shape (issue #4386).
+                    (_db.diveProfileSeries.isEdit.isNull() |
+                        _db.diveProfileSeries.isEdit.equals(true)),
               )
               ..limit(1))
             .get();
@@ -756,11 +760,14 @@ class ProfileSeriesRepository {
   /// [liveEditIds] over [series] already read by [getIdentitiesForDive], for
   /// a caller that needs the identities as well (a re-parse, issue #4367).
   static Set<String> liveEditIdsOf(List<ProfileSeriesIdentity> series) {
+    // A marked edit demoted beneath says the live series is the original
+    // the diver re-activated over it, not an edit (issue #4386).
     bool editByShape(ProfileSeriesIdentity live) =>
         live.computerId == null &&
         series.any(
           (s) =>
               !s.isPrimary &&
+              s.isEdit != true &&
               (live.sourceId == null ||
                   s.sourceId == null ||
                   s.sourceId == live.sourceId),
