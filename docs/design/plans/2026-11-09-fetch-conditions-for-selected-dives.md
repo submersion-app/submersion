@@ -29,12 +29,20 @@ fix, its own exit GPS fix. Each is used only as a complete pair. A dive with
 none is not a candidate. The single-dive Fetch Weather button on the edit page
 is unchanged: it follows the site picked in the form.
 
+## Planned dives (decided in code review)
+
+Planned dives are left out of both fetches, in the candidate list and both
+counts. A planned dive in the future has no archive weather yet, so it could
+only ever come back as "no data available".
+
 ## Steps
 
-1. Repository (`dive_repository_impl.dart`): the candidate condition joins
-   sites with a LEFT OUTER JOIN, accepts the GPS fallback, and takes an
-   optional `diveIds` restriction, bound in chunks of `kSeriesIdChunkSize`.
-   Add `countDivesMissingConditionsWithoutLocation`. Tests first in
+1. Repository: the candidate condition joins sites with a LEFT OUTER JOIN,
+   accepts the GPS fallback, leaves planned dives out, and takes an optional
+   `diveIds` restriction, bound in chunks of `kSeriesIdChunkSize`. Add
+   `countDivesMissingConditionsWithoutLocation`. The public queries stay in
+   `dive_repository_impl.dart`; the shared pieces live in the
+   `dive_repository_conditions.dart` part-file extension. Tests first in
    `dive_repository_conditions_test.dart`.
 2. `BulkConditionsService`: `countCandidates`, `run` and a new
    `countWithoutLocation` take `diveIds`. Tests first.
