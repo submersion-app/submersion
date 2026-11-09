@@ -41,7 +41,12 @@ class GbifOccurrenceLayer extends ConsumerWidget {
         tileProvider: NetworkTileProvider(
           // Not const: flutter_map writes its own entries into this map.
           headers: {'User-Agent': GbifSpeciesMapService.userAgent},
-          silenceExceptions: true,
+          // A client the provider did not create is one it never closes, so
+          // a rebuild replacing the provider leaks nothing.
+          httpClient: ref.watch(gbifTileHttpClientProvider),
+          // Not silenced: a silenced failure is drawn as a transparent tile
+          // and never reaches errorTileCallback below.
+          silenceExceptions: false,
         ),
         errorTileCallback: (tile, error, stackTrace) {
           if (!context.mounted) return;

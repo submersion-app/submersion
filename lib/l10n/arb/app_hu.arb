@@ -5609,6 +5609,7 @@
   "speciesMap_card_openSite": "Merülőhely megnyitása",
   "speciesMap_card_speciesCount": "{count, plural, one{{count} faj} other{{count} faj}}",
   "speciesMap_card_sightingRow": "{date}, {number}. merülés, ×{count}",
+  "speciesMap_card_speciesWithCount": "{species} ×{count}",
   "speciesMap_unplaced": "{count, plural, one{{count} észlelés térképen nem szereplő merülőhelyű merülésen van} other{{count} észlelés térképen nem szereplő merülőhelyű merüléseken van}}",
   "speciesMap_noPublicRecords": "Ehhez a fajhoz nem jeleníthetők meg nyilvános adatok: olyan tudományos név kell hozzá, amelyet a GBIF ismer.",
   "speciesMap_publicUnavailable": "A nyilvános adatokat nem sikerült betölteni.",

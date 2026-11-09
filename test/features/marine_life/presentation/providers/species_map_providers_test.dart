@@ -1,18 +1,39 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/marine_life/data/services/gbif_species_map_service.dart';
+import 'package:submersion/features/marine_life/domain/entities/species.dart'
+    as domain;
 import 'package:submersion/features/marine_life/domain/entities/species_map_pins.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_map_prefs_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_map_providers.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/test_database.dart';
 
 AppDatabase get _db => DatabaseService.instance.database;
+
+class _CountingGbifService extends GbifSpeciesMapService {
+  int calls = 0;
+
+  @override
+  Future<int?> resolveTaxonKey({
+    required String speciesId,
+    String? scientificName,
+  }) async {
+    calls++;
+    return 42;
+  }
+}
+
 int get _now => DateTime.now().millisecondsSinceEpoch;
 
 Future<void> _diver(String id) => _db
@@ -305,10 +326,11 @@ void main() {
     });
   });
 
-  group('per-species and per-site reads', () {
+  group('the map reads', () {
     test('are dropped once nothing watches them', () async {
       final container = makeContainer();
       final subs = [
+        container.listen(speciesMapSitePinsProvider, (_, _) {}),
         container.listen(speciesMapSpeciesPinsProvider('fish'), (_, _) {}),
         container.listen(speciesMapUnplacedCountProvider('fish'), (_, _) {}),
         container.listen(speciesMapLoggedAtSiteProvider('site'), (_, _) {}),
@@ -319,12 +341,52 @@ void main() {
       }
       await container.pump();
 
+      // The places view's pins too: kept alive, it would re-query the whole
+      // logbook on every sighting, dive and site change after the map closed.
+      expect(container.exists(speciesMapSitePinsProvider), isFalse);
       expect(container.exists(speciesMapSpeciesPinsProvider('fish')), isFalse);
       expect(
         container.exists(speciesMapUnplacedCountProvider('fish')),
         isFalse,
       );
       expect(container.exists(speciesMapLoggedAtSiteProvider('site')), isFalse);
+    });
+  });
+
+  group('speciesGbifTaxonKeyProvider', () {
+    test('dropped while the species loads, it asks GBIF nothing', () async {
+      final species = Completer<domain.Species?>();
+      final service = _CountingGbifService();
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          speciesProvider('fish').overrideWith((ref) => species.future),
+          gbifSpeciesMapServiceProvider.overrideWithValue(service),
+        ],
+      );
+      addTearDown(container.dispose);
+      final sub = container.listen(
+        speciesGbifTaxonKeyProvider('fish'),
+        (_, _) {},
+      );
+      await container.pump();
+      // The diver turns the public layer off before the species row is back.
+      sub.close();
+      await container.pump();
+      expect(container.exists(speciesGbifTaxonKeyProvider('fish')), isFalse);
+
+      species.complete(
+        const domain.Species(
+          id: 'fish',
+          commonName: 'Fish',
+          scientificName: 'Piscis communis',
+          category: SpeciesCategory.fish,
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+      await container.pump();
+
+      expect(service.calls, 0);
     });
   });
 }

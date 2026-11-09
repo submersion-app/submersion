@@ -188,6 +188,10 @@ class SpeciesMapRepository {
     ];
   }
 
+  /// Bound variables per statement, well under SQLite's 32,766 ceiling: a
+  /// shared site library can name one species at more sites than that.
+  static const int _idChunk = 900;
+
   /// Which of [siteIds] the scope admits. With no diver there is no scope.
   ///
   /// "Mine" is a site the diver owns or has logged a (not planned) dive at.
@@ -202,7 +206,28 @@ class SpeciesMapRepository {
     required ExpectedSiteScope scope,
   }) async {
     if (diverId == null) return siteIds.toSet();
+    final allowed = <String>{};
+    for (var start = 0; start < siteIds.length; start += _idChunk) {
+      final end = start + _idChunk < siteIds.length
+          ? start + _idChunk
+          : siteIds.length;
+      allowed.addAll(
+        await _allowedInChunk(
+          siteIds.sublist(start, end),
+          diverId: diverId,
+          scope: scope,
+        ),
+      );
+    }
+    return allowed;
+  }
 
+  /// [_allowedSiteIds] for at most [_idChunk] ids.
+  Future<Set<String>> _allowedInChunk(
+    List<String> siteIds, {
+    required String diverId,
+    required ExpectedSiteScope scope,
+  }) async {
     final mineRows = await _db
         .customSelect(
           '''

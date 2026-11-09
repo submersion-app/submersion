@@ -9,8 +9,7 @@ import 'package:submersion/features/marine_life/presentation/providers/species_m
 import 'package:submersion/features/marine_life/presentation/providers/species_map_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
-import 'package:submersion/features/marine_life/presentation/utils/species_category_color.dart';
-import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/species_action_chip.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/species_map/species_map_card_frame.dart';
 import 'package:submersion/features/reef/presentation/widgets/nearby_species_tier.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -67,14 +66,7 @@ class SpeciesMapSiteCard extends ConsumerWidget {
         if (failed)
           Text(l10n.speciesMap_error_loading)
         else if (loading)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 4),
-            child: SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-          )
+          SpeciesMapCardFrame.loadingIndicator
         else if (logged.isEmpty)
           Text(l10n.speciesMap_card_nothingLogged)
         else
@@ -84,45 +76,41 @@ class SpeciesMapSiteCard extends ConsumerWidget {
             children: [
               for (final item in logged)
                 if (catalog[item.speciesId] case final Species species)
-                  _SpeciesChip(
+                  SpeciesActionChip(
                     species: species,
-                    label:
-                        '${species.localizedCommonName(l10n)} '
-                        '×${item.sightingCount}',
-                    onTap: () => openSpecies(species.id),
+                    label: l10n.speciesMap_card_speciesWithCount(
+                      species.localizedCommonName(l10n),
+                      item.sightingCount,
+                    ),
+                    onPressed: () => openSpecies(species.id),
                   ),
             ],
           ),
         // A failed expected read says so under its heading; the logged
         // list above stands on its own read.
-        if (expectedAsync.hasError) ...[
+        if (expectedAsync.hasError || expected.isNotEmpty) ...[
           const SizedBox(height: 12),
           Text(
             l10n.speciesMap_card_expectedNotLogged,
             style: theme.textTheme.labelLarge,
           ),
           const SizedBox(height: 6),
-          Text(l10n.speciesMap_error_loading),
-        ] else if (expected.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          Text(
-            l10n.speciesMap_card_expectedNotLogged,
-            style: theme.textTheme.labelLarge,
-          ),
-          const SizedBox(height: 6),
-          Wrap(
-            spacing: 6,
-            runSpacing: 4,
-            children: [
-              for (final entry in expected)
-                _ExpectedChip(
-                  label:
-                      catalog[entry.speciesId]?.localizedCommonName(l10n) ??
-                      entry.speciesName,
-                  onTap: () => openSpecies(entry.speciesId),
-                ),
-            ],
-          ),
+          if (expectedAsync.hasError)
+            Text(l10n.speciesMap_error_loading)
+          else
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: [
+                for (final entry in expected)
+                  _ExpectedChip(
+                    label:
+                        catalog[entry.speciesId]?.localizedCommonName(l10n) ??
+                        entry.speciesName,
+                    onTap: () => openSpecies(entry.speciesId),
+                  ),
+              ],
+            ),
         ],
         if (publicOn) ...[
           const SizedBox(height: 12),
@@ -133,37 +121,6 @@ class SpeciesMapSiteCard extends ConsumerWidget {
           ),
         ],
       ],
-    );
-  }
-}
-
-class _SpeciesChip extends StatelessWidget {
-  final Species species;
-  final String label;
-  final VoidCallback onTap;
-
-  const _SpeciesChip({
-    required this.species,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return ActionChip(
-      avatar: ExcludeSemantics(
-        child: Icon(
-          iconForSpeciesCategory(species.category),
-          size: 16,
-          color: colorForSpeciesCategory(species.category, theme.brightness),
-        ),
-      ),
-      label: Text(label, style: theme.textTheme.bodySmall),
-      onPressed: onTap,
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      visualDensity: VisualDensity.compact,
-      padding: const EdgeInsets.symmetric(horizontal: 4),
     );
   }
 }

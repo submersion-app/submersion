@@ -55,4 +55,30 @@ void main() {
       ExpectedSiteScope.allVisible,
     );
   });
+
+  testWidgets('the menu fits a 320 point wide phone', (tester) async {
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(320, 640);
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    await tester.pumpWidget(
+      await speciesMapHarness(
+        child: const Align(
+          alignment: Alignment.topRight,
+          child: SpeciesMapLayersButton(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(SpeciesMapLayersButton));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    final toggle = find.byKey(const ValueKey('species_map_public_toggle'));
+    expect(tester.getRect(toggle).left, greaterThanOrEqualTo(0));
+    expect(tester.getRect(toggle).right, lessThanOrEqualTo(320));
+  });
 }

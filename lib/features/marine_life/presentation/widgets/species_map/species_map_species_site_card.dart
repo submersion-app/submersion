@@ -54,14 +54,7 @@ class SpeciesMapSpeciesSiteCard extends ConsumerWidget {
         else if (sightingsAsync!.hasError)
           Text(l10n.speciesMap_error_loading)
         else if (!sightingsAsync.hasValue)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 4),
-            child: SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-          )
+          SpeciesMapCardFrame.loadingIndicator
         else
           for (final record in records)
             ListTile(

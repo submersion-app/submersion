@@ -31229,6 +31229,12 @@ abstract class AppLocalizations {
   /// **'{date}, dive {number}, ×{count}'**
   String speciesMap_card_sightingRow(String date, String number, int count);
 
+  /// No description provided for @speciesMap_card_speciesWithCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{species} ×{count}'**
+  String speciesMap_card_speciesWithCount(String species, int count);
+
   /// No description provided for @speciesMap_unplaced.
   ///
   /// In en, this message translates to:

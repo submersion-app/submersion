@@ -22,23 +22,28 @@ const _mola = Species(
   category: SpeciesCategory.fish,
 );
 
-Future<List<String?>> _pump(WidgetTester tester) async {
+SeenSpecies _seenOf(Species species, int sightings) => SeenSpecies(
+  species: species,
+  totalSightings: sightings,
+  diveCount: sightings,
+  siteCount: 2,
+  firstSeen: DateTime.utc(2024),
+  lastSeen: DateTime.utc(2025),
+);
+
+Future<List<String?>> _pump(
+  WidgetTester tester, {
+  List<SeenSpecies>? seen,
+  bool seenFails = false,
+}) async {
   final picked = <String?>[];
   await tester.pumpWidget(
     await speciesMapHarness(
       overrides: [
         allSpeciesProvider.overrideWith((ref) async => [_manta, _mola]),
         seenSpeciesProvider.overrideWith(
-          (ref) async => [
-            SeenSpecies(
-              species: _manta,
-              totalSightings: 9,
-              diveCount: 5,
-              siteCount: 2,
-              firstSeen: DateTime.utc(2024),
-              lastSeen: DateTime.utc(2025),
-            ),
-          ],
+          (ref) async =>
+              seenFails ? throw StateError('db') : seen ?? [_seenOf(_manta, 9)],
         ),
       ],
       child: SpeciesMapListPane(
@@ -74,6 +79,22 @@ void main() {
 
     await tester.tap(find.text('Ocean Sunfish'));
     expect(picked, ['mola']);
+  });
+
+  testWidgets('a failed read says so instead of an empty list', (tester) async {
+    await _pump(tester, seenFails: true);
+
+    expect(find.text('Could not load the species map.'), findsOneWidget);
+    // The places view stays one tap away.
+    expect(find.text('All sites'), findsOneWidget);
+  });
+
+  testWidgets('species seen equally often are listed by name', (tester) async {
+    await _pump(tester, seen: [_seenOf(_manta, 3), _seenOf(_mola, 3)]);
+
+    final manta = tester.getTopLeft(find.text('Reef Manta Ray')).dy;
+    final mola = tester.getTopLeft(find.text('Ocean Sunfish')).dy;
+    expect(mola, lessThan(manta));
   });
 
   testWidgets('the all sites row clears the pick', (tester) async {

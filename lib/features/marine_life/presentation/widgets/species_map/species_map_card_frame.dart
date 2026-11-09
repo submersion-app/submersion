@@ -13,6 +13,17 @@ class SpeciesMapCardFrame extends StatelessWidget {
   final VoidCallback onClose;
   final List<Widget> children;
 
+  /// What a card body shows while its read is in flight: small, so the
+  /// card does not jump when the rows arrive.
+  static const Widget loadingIndicator = Padding(
+    padding: EdgeInsets.symmetric(vertical: 4),
+    child: SizedBox(
+      width: 20,
+      height: 20,
+      child: CircularProgressIndicator(strokeWidth: 2),
+    ),
+  );
+
   const SpeciesMapCardFrame({
     super.key,
     required this.title,

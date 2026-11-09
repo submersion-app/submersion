@@ -11647,6 +11647,17 @@
       }
     }
   },
+  "speciesMap_card_speciesWithCount": "{species} ×{count}",
+  "@speciesMap_card_speciesWithCount": {
+    "placeholders": {
+      "species": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "speciesMap_unplaced": "{count, plural, one{{count} sighting is on a dive without a mapped site} other{{count} sightings are on dives without a mapped site}}",
   "@speciesMap_unplaced": {
     "placeholders": {

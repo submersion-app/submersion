@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/marine_life/data/services/gbif_species_map_service.dart';
 import 'package:submersion/features/marine_life/domain/entities/seen_species.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
@@ -251,6 +252,22 @@ void main() {
     await _pump(tester, initialSpeciesId: 'manta', leftOpenSiteId: 's2');
 
     expect(find.byType(SpeciesMapSpeciesSiteCard), findsNothing);
+  });
+
+  testWidgets('a selection whose pin is gone is let go, not kept for later', (
+    tester,
+  ) async {
+    // A site whose sightings went, or an expected pin the scope no longer
+    // draws: its card must not come back on its own if the pin returns.
+    await _pump(tester, leftOpenSiteId: 'gone');
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(SpeciesMapPage)),
+    );
+    expect(
+      container.read(mapListSelectionProvider('speciesMap')).selectedId,
+      isNull,
+    );
   });
 
   testWidgets('an unknown ?species= id opens places mode', (tester) async {

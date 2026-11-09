@@ -33,6 +33,24 @@ class SiteSpeciesPin extends Equatable {
     required this.sightingCount,
   });
 
+  SiteSpeciesPin copyWith({
+    String? siteId,
+    String? siteName,
+    double? latitude,
+    double? longitude,
+    int? speciesCount,
+    int? sightingCount,
+  }) {
+    return SiteSpeciesPin(
+      siteId: siteId ?? this.siteId,
+      siteName: siteName ?? this.siteName,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      speciesCount: speciesCount ?? this.speciesCount,
+      sightingCount: sightingCount ?? this.sightingCount,
+    );
+  }
+
   @override
   List<Object?> get props => [
     siteId,
@@ -74,6 +92,24 @@ class SpeciesSitePin extends Equatable {
     required this.sightingCount,
   });
 
+  SpeciesSitePin copyWith({
+    String? siteId,
+    String? siteName,
+    double? latitude,
+    double? longitude,
+    SpeciesPinKind? kind,
+    int? sightingCount,
+  }) {
+    return SpeciesSitePin(
+      siteId: siteId ?? this.siteId,
+      siteName: siteName ?? this.siteName,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      kind: kind ?? this.kind,
+      sightingCount: sightingCount ?? this.sightingCount,
+    );
+  }
+
   @override
   List<Object?> get props => [
     siteId,
@@ -94,6 +130,13 @@ class LoggedSpeciesAtSite extends Equatable {
     required this.speciesId,
     required this.sightingCount,
   });
+
+  LoggedSpeciesAtSite copyWith({String? speciesId, int? sightingCount}) {
+    return LoggedSpeciesAtSite(
+      speciesId: speciesId ?? this.speciesId,
+      sightingCount: sightingCount ?? this.sightingCount,
+    );
+  }
 
   @override
   List<Object?> get props => [speciesId, sightingCount];

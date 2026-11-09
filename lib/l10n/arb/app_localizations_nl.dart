@@ -19403,6 +19403,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String speciesMap_card_speciesWithCount(String species, int count) {
+    return '$species ×$count';
+  }
+
+  @override
   String speciesMap_unplaced(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

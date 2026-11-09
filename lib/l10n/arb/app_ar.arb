@@ -5710,6 +5710,7 @@
   "speciesMap_card_openSite": "فتح الموقع",
   "speciesMap_card_speciesCount": "{count, plural, zero{لا أنواع} one{نوع واحد} two{نوعان} few{{count} أنواع} many{{count} نوعًا} other{{count} نوع}}",
   "speciesMap_card_sightingRow": "{date}، الغطسة {number}، ×{count}",
+  "speciesMap_card_speciesWithCount": "{species} ×{count}",
   "speciesMap_unplaced": "{count, plural, zero{لا مشاهدات في غطسات بلا موقع على الخريطة} one{مشاهدة واحدة في غطسة بلا موقع على الخريطة} two{مشاهدتان في غطسات بلا موقع على الخريطة} few{{count} مشاهدات في غطسات بلا موقع على الخريطة} many{{count} مشاهدة في غطسات بلا موقع على الخريطة} other{{count} مشاهدة في غطسات بلا موقع على الخريطة}}",
   "speciesMap_noPublicRecords": "لا يمكن عرض سجلات عامة لهذا النوع: يحتاج إلى اسم علمي يعرفه GBIF.",
   "speciesMap_publicUnavailable": "تعذّر تحميل السجلات العامة.",

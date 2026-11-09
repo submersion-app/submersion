@@ -6,6 +6,7 @@ import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/domain/entities/species_lookup.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_lookup_providers.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/species_action_chip.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/species_lookup_sheet.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_color.dart';
@@ -150,28 +151,24 @@ class _NearbySpeciesTierState extends ConsumerState<NearbySpeciesTier> {
   Widget _matchedChip(BuildContext context, Species species) {
     final theme = Theme.of(context);
     final name = species.localizedCommonName(context.l10n);
-    final avatar = ExcludeSemantics(
-      child: Icon(
-        iconForSpeciesCategory(species.category),
-        size: 16,
-        color: colorForSpeciesCategory(species.category, theme.brightness),
-      ),
-    );
 
     final onSpeciesTap = widget.onSpeciesTap;
     if (onSpeciesTap != null) {
-      return ActionChip(
-        avatar: avatar,
-        label: Text(name, style: theme.textTheme.bodySmall),
+      return SpeciesActionChip(
+        species: species,
+        label: name,
         onPressed: () => onSpeciesTap(species.id),
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        visualDensity: VisualDensity.compact,
-        padding: const EdgeInsets.symmetric(horizontal: 4),
       );
     }
 
     return ActionChip(
-      avatar: avatar,
+      avatar: ExcludeSemantics(
+        child: Icon(
+          iconForSpeciesCategory(species.category),
+          size: 16,
+          color: colorForSpeciesCategory(species.category, theme.brightness),
+        ),
+      ),
       label: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

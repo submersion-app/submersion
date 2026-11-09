@@ -9,6 +9,7 @@ import 'package:submersion/features/marine_life/presentation/providers/species_p
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_color.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Picks the species the map shows: the diver's seen species, most seen
@@ -35,41 +36,86 @@ class _SpeciesMapListPaneState extends ConsumerState<SpeciesMapListPane> {
   final TextEditingController _search = TextEditingController();
   String _query = '';
 
+  /// Folded names per species id, refolded only when the catalog or the
+  /// language changes rather than on every keystroke and rebuild.
+  List<Species>? _foldedCatalog;
+  Locale? _foldedLocale;
+  Map<String, ({String common, String scientific})> _folded = const {};
+
   @override
   void dispose() {
     _search.dispose();
     super.dispose();
   }
 
+  Map<String, ({String common, String scientific})> _foldedNames(
+    List<Species> catalog,
+    AppLocalizations l10n,
+    Locale locale,
+  ) {
+    if (!identical(catalog, _foldedCatalog) || locale != _foldedLocale) {
+      _foldedCatalog = catalog;
+      _foldedLocale = locale;
+      _folded = {
+        for (final s in catalog)
+          s.id: (
+            common: normalize(s.localizedCommonName(l10n)),
+            scientific: normalize(s.scientificName ?? ''),
+          ),
+      };
+    }
+    return _folded;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final seen = ref.watch(seenSpeciesProvider).value ?? const <SeenSpecies>[];
-    final catalog = ref.watch(allSpeciesProvider).value ?? const <Species>[];
+    final seenAsync = ref.watch(seenSpeciesProvider);
+    final catalogAsync = ref.watch(allSpeciesProvider);
+    // A failed read says so: an empty list would read as "nothing logged".
+    final failed = seenAsync.hasError || catalogAsync.hasError;
+    final seen = seenAsync.value ?? const <SeenSpecies>[];
+    final catalog = catalogAsync.value ?? const <Species>[];
     final seenById = {for (final s in seen) s.species.id: s};
     final needle = normalize(_query);
 
     final List<Species> rows;
-    if (needle.isEmpty) {
+    if (failed) {
+      rows = const [];
+    } else if (needle.isEmpty) {
+      final names = {
+        for (final s in seen) s.species.id: s.species.localizedCommonName(l10n),
+      };
       final sorted = [...seen]
-        ..sort((a, b) => b.totalSightings.compareTo(a.totalSightings));
+        ..sort((a, b) {
+          // Most seen first, then by name, so equal counts keep one order.
+          final byCount = b.totalSightings.compareTo(a.totalSightings);
+          return byCount != 0
+              ? byCount
+              : names[a.species.id]!.compareTo(names[b.species.id]!);
+        });
       rows = [for (final s in sorted) s.species];
     } else {
-      // Each name is folded once, not once per comparison while sorting.
-      final folded = {
-        for (final s in catalog) s.id: normalize(s.localizedCommonName(l10n)),
-      };
-      bool matches(Species s) =>
-          folded[s.id]!.contains(needle) ||
-          normalize(s.scientificName ?? '').contains(needle);
+      final folded = _foldedNames(
+        catalog,
+        l10n,
+        Localizations.localeOf(context),
+      );
+      bool matches(Species s) {
+        final names = folded[s.id]!;
+        return names.common.contains(needle) ||
+            names.scientific.contains(needle);
+      }
+
       int seenRank(Species s) => seenById.containsKey(s.id) ? 0 : 1;
-      final found = catalog.where(matches).toList()
+      rows = catalog.where(matches).toList()
         ..sort((a, b) {
           // Seen species first, then by name.
           final bySeen = seenRank(a).compareTo(seenRank(b));
-          return bySeen != 0 ? bySeen : folded[a.id]!.compareTo(folded[b.id]!);
+          return bySeen != 0
+              ? bySeen
+              : folded[a.id]!.common.compareTo(folded[b.id]!.common);
         });
-      rows = found;
     }
 
     return Column(
@@ -89,7 +135,7 @@ class _SpeciesMapListPaneState extends ConsumerState<SpeciesMapListPane> {
         ),
         Expanded(
           child: ListView.builder(
-            itemCount: rows.length + 1,
+            itemCount: rows.length + (failed ? 2 : 1),
             itemBuilder: (context, index) {
               if (index == 0) {
                 return ListTile(
@@ -98,6 +144,15 @@ class _SpeciesMapListPaneState extends ConsumerState<SpeciesMapListPane> {
                   title: Text(l10n.speciesMap_list_allSites),
                   subtitle: Text(l10n.speciesMap_list_allSitesSubtitle),
                   onTap: () => widget.onSelected(null),
+                );
+              }
+              if (failed) {
+                return ListTile(
+                  leading: Icon(
+                    Icons.error_outline,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                  title: Text(l10n.speciesMap_error_loading),
                 );
               }
               final species = rows[index - 1];

@@ -96,6 +96,30 @@ void main() {
     expect(find.text('page:/species/map?species=manta'), findsOneWidget);
   });
 
+  testWidgets('the link carries an id with URL characters intact', (
+    tester,
+  ) async {
+    const id = 'a+b&c';
+    await tester.pumpWidget(
+      await speciesMapHarness(
+        overrides: [
+          speciesMapSpeciesPinsProvider(id).overrideWith((ref) async => _pins),
+        ],
+        child: const SingleChildScrollView(
+          child: SpeciesWhereSeenSection(speciesId: id),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    await tester.tap(find.text('Open full map'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.text('query:{species: a+b&c}'), findsOneWidget);
+  });
+
   testWidgets('never draws the public layer, even when it is on', (
     tester,
   ) async {

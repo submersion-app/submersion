@@ -91,8 +91,13 @@ class SpeciesWhereSeenSection extends ConsumerWidget {
                     TextButton.icon(
                       icon: const Icon(Icons.map_outlined),
                       label: Text(l10n.speciesMap_whereSeen_openFullMap),
-                      onPressed: () =>
-                          context.push('/species/map?species=$speciesId'),
+                      // Encoded, so an id holding '+' or '&' arrives intact.
+                      onPressed: () => context.push(
+                        Uri(
+                          path: '/species/map',
+                          queryParameters: {'species': speciesId},
+                        ).toString(),
+                      ),
                     ),
                   ],
                 ),

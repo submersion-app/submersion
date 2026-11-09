@@ -104,6 +104,8 @@ class _SpeciesMapPageState extends ConsumerState<SpeciesMapPage>
   @override
   void dispose() {
     _camera.dispose();
+    // The page made it, so the page closes it (its map-event stream).
+    _mapController.dispose();
     super.dispose();
   }
 
@@ -134,16 +136,12 @@ class _SpeciesMapPageState extends ConsumerState<SpeciesMapPage>
     final l10n = context.l10n;
     final catalogAsync = ref.watch(allSpeciesProvider);
     final catalog = catalogAsync.value;
+    final picked = _speciesId == null
+        ? null
+        : catalog?.where((s) => s.id == _speciesId).firstOrNull;
     // An id the catalog does not hold (deleted, or a stale link) is no
     // pick at all; while the catalog loads the seed stands.
-    final pickedId = _speciesId == null
-        ? null
-        : catalog == null || catalog.any((s) => s.id == _speciesId)
-        ? _speciesId
-        : null;
-    final picked = pickedId == null
-        ? null
-        : catalog?.where((s) => s.id == pickedId).firstOrNull;
+    final pickedId = catalog == null ? _speciesId : picked?.id;
     if (!_framedOnce || pickedId != _framedPick) {
       // The first build frames through initialCameraFit; later changes of
       // the resolved pick frame through [_fitPending].
@@ -188,25 +186,31 @@ class _SpeciesMapPageState extends ConsumerState<SpeciesMapPage>
     void close() =>
         ref.read(mapListSelectionProvider(_sectionKey).notifier).deselect();
     if (pickedId == null) {
-      final pin = ref
-          .watch(speciesMapSitePinsProvider)
-          .value
+      final pins = ref.watch(speciesMapSitePinsProvider);
+      final pin = pins.value
           ?.where((p) => p.siteId == selectedSiteId)
           .firstOrNull;
-      return pin == null ? null : SpeciesMapSiteCard(pin: pin, onClose: close);
+      if (pin == null) return _letGoOfMissing(pins);
+      return SpeciesMapSiteCard(pin: pin, onClose: close);
     }
-    final pin = ref
-        .watch(speciesMapSpeciesPinsProvider(pickedId))
-        .value
+    final pins = ref.watch(speciesMapSpeciesPinsProvider(pickedId));
+    final pin = pins.value
         ?.where((p) => p.siteId == selectedSiteId)
         .firstOrNull;
-    return pin == null
-        ? null
-        : SpeciesMapSpeciesSiteCard(
-            pin: pin,
-            speciesId: pickedId,
-            onClose: close,
-          );
+    if (pin == null) return _letGoOfMissing(pins);
+    return SpeciesMapSpeciesSiteCard(
+      pin: pin,
+      speciesId: pickedId,
+      onClose: close,
+    );
+  }
+
+  /// The selected site has no pin in loaded data (its sightings went, or
+  /// the expected scope no longer draws it): the selection goes too, or its
+  /// card would reopen by itself whenever the pin came back.
+  Widget? _letGoOfMissing(AsyncValue<Object?> pins) {
+    if (pins.hasValue) _deselectAfterFrame();
+    return null;
   }
 
   Widget _placesMap(BuildContext context, String? selectedSiteId) {
@@ -407,7 +411,8 @@ class _SpeciesMapPageState extends ConsumerState<SpeciesMapPage>
               // moving the map asks for new ones (failed tiles are evicted, so
               // they are asked again too), and a new failure sets it again.
               onPositionChanged: (_, hasGesture) {
-                if (!hasGesture || speciesId == null) return;
+                // Nothing watches the flag while the layer is off.
+                if (!hasGesture || speciesId == null || !publicOn) return;
                 final failed = ref.read(
                   speciesMapPublicTilesFailedProvider(speciesId).notifier,
                 );

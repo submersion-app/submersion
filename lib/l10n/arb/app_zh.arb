@@ -5853,6 +5853,7 @@
   "speciesMap_card_openSite": "打开潜点",
   "speciesMap_card_speciesCount": "{count, plural, other{{count} 个物种}}",
   "speciesMap_card_sightingRow": "{date}，第 {number} 次潜水，×{count}",
+  "speciesMap_card_speciesWithCount": "{species} ×{count}",
   "speciesMap_unplaced": "{count, plural, other{{count} 次目击所在的潜水没有地图上的潜点}}",
   "speciesMap_noPublicRecords": "无法显示该物种的公开记录：需要 GBIF 能识别的学名。",
   "speciesMap_publicUnavailable": "无法加载公开记录。",

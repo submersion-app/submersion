@@ -10,8 +10,8 @@ import '../../../../../helpers/test_app.dart';
 ///
 /// [prefs] are written into the preferences the overrides hand out, so a
 /// test can start with the public layer on. Any location other than `/`
-/// renders `page:<location>`, so a test can tap a link and assert where it
-/// went.
+/// renders `page:<location>` and `query:<decoded query>`, so a test can tap
+/// a link and assert where it went.
 Future<Widget> speciesMapHarness({
   required Widget child,
   List<Override> overrides = const [],
@@ -32,7 +32,15 @@ Future<Widget> speciesMapHarness({
       ),
       GoRoute(
         path: '/:a/:b',
-        builder: (context, state) => Scaffold(body: Text('page:${state.uri}')),
+        builder: (context, state) => Scaffold(
+          body: Column(
+            children: [
+              Text('page:${state.uri}'),
+              // Decoded, so a test can tell an id that arrived intact.
+              Text('query:${state.uri.queryParameters}'),
+            ],
+          ),
+        ),
       ),
     ],
   );

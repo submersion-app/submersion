@@ -202,6 +202,53 @@ void main() {
     });
   });
 
+  group('getPinsForSpecies at scale', () {
+    // More candidate sites than SQLite binds variables in one statement
+    // (32,766): a large shared site library naming a common species.
+    const many = 33000;
+
+    setUp(() async {
+      await _db.batch((b) {
+        b.insertAll(_db.diveSites, [
+          for (var i = 0; i < many; i++)
+            DiveSitesCompanion.insert(
+              id: 'bulk$i',
+              name: 'Bulk $i',
+              latitude: const Value(1),
+              longitude: const Value(2),
+              diverId: const Value('diver-a'),
+              createdAt: _now,
+              updatedAt: _now,
+            ),
+        ]);
+        b.insertAll(_db.siteSpecies, [
+          for (var i = 0; i < many; i++)
+            SiteSpeciesCompanion.insert(
+              id: 'bulk-ss$i',
+              siteId: 'bulk$i',
+              speciesId: 'sp-turtle',
+              createdAt: _now,
+            ),
+        ]);
+      });
+    });
+
+    for (final scope in ExpectedSiteScope.values) {
+      test('draws every expected site under ${scope.name}', () async {
+        final pins = await repository.getPinsForSpecies(
+          'sp-turtle',
+          diverId: 'diver-a',
+          scope: scope,
+        );
+
+        expect(
+          pins.where((p) => p.kind == SpeciesPinKind.expected),
+          hasLength(many),
+        );
+      });
+    }
+  });
+
   group('getPinsForSpecies', () {
     test('returns logged pins with summed counts', () async {
       final pins = await repository.getPinsForSpecies(

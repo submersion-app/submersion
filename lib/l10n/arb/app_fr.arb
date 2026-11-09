@@ -5609,6 +5609,7 @@
   "speciesMap_card_openSite": "Ouvrir le site",
   "speciesMap_card_speciesCount": "{count, plural, one{{count} espèce} other{{count} espèces}}",
   "speciesMap_card_sightingRow": "{date}, plongée {number}, ×{count}",
+  "speciesMap_card_speciesWithCount": "{species} ×{count}",
   "speciesMap_unplaced": "{count, plural, one{{count} observation est sur une plongée sans site cartographié} other{{count} observations sont sur des plongées sans site cartographié}}",
   "speciesMap_noPublicRecords": "Aucune donnée publique ne peut être affichée pour cette espèce : il lui faut un nom scientifique reconnu par GBIF.",
   "speciesMap_publicUnavailable": "Les données publiques n'ont pas pu être chargées.",

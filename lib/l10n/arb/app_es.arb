@@ -5710,6 +5710,7 @@
   "speciesMap_card_openSite": "Abrir sitio",
   "speciesMap_card_speciesCount": "{count, plural, one{{count} especie} other{{count} especies}}",
   "speciesMap_card_sightingRow": "{date}, inmersión {number}, ×{count}",
+  "speciesMap_card_speciesWithCount": "{species} ×{count}",
   "speciesMap_unplaced": "{count, plural, one{{count} avistamiento está en una inmersión sin sitio en el mapa} other{{count} avistamientos están en inmersiones sin sitio en el mapa}}",
   "speciesMap_noPublicRecords": "No se pueden mostrar registros públicos de esta especie: necesita un nombre científico que GBIF reconozca.",
   "speciesMap_publicUnavailable": "No se pudieron cargar los registros públicos.",

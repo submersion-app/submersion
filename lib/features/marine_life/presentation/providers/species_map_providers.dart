@@ -1,3 +1,6 @@
+import 'package:http/http.dart' as http;
+
+import 'package:submersion/core/network/platform_http_client.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -18,6 +21,18 @@ final gbifSpeciesMapServiceProvider = Provider<GbifSpeciesMapService>((ref) {
   return service;
 });
 
+/// The one HTTP client the public layer's occurrence tiles go through.
+///
+/// A tile provider left to create its own client closes it only when its
+/// tile layer unmounts, so every rebuild that hands the layer a new provider
+/// would leave the previous client open. Sharing this one leaves nothing to
+/// close but it, and it carries the app's connect timeout.
+final gbifTileHttpClientProvider = Provider<http.Client>((ref) {
+  final client = createPlatformHttpClient();
+  ref.onDispose(client.close);
+  return client;
+});
+
 /// The ticks every species map read shares: a sighting added or removed, a
 /// dive's site, diver or date edited (or the dive deleted), and a site moved
 /// or renamed.
@@ -30,21 +45,21 @@ void _invalidateOnPlacedSightingChanges(Ref ref) {
 }
 
 /// The places view: every site where the current diver logged a species.
-final speciesMapSitePinsProvider = FutureProvider<List<SiteSpeciesPin>>((
-  ref,
-) async {
-  final repository = ref.watch(speciesMapRepositoryProvider);
-  final diverId = ref.watch(currentDiverIdProvider);
-  _invalidateOnPlacedSightingChanges(ref);
-  return repository.getSitePins(diverId: diverId);
-});
+///
+/// Like every read below, dropped once nothing watches it: kept alive after
+/// the map closes, it would re-query the whole logbook on each sighting,
+/// dive and site change.
+final speciesMapSitePinsProvider =
+    FutureProvider.autoDispose<List<SiteSpeciesPin>>((ref) async {
+      final repository = ref.watch(speciesMapRepositoryProvider);
+      final diverId = ref.watch(currentDiverIdProvider);
+      _invalidateOnPlacedSightingChanges(ref);
+      return repository.getSitePins(diverId: diverId);
+    });
 
 /// One species' map: where the current diver logged it, and where it is
-/// expected under the chosen [ExpectedSiteScope].
-///
-/// This and the per-site reads below are dropped once nothing watches them:
-/// every species page the diver opens would otherwise keep one alive,
-/// re-querying on each sighting, dive and site change.
+/// expected under the chosen [ExpectedSiteScope]. Every species page the
+/// diver opens watches one, which is why these are dropped too.
 final speciesMapSpeciesPinsProvider = FutureProvider.autoDispose
     .family<List<SpeciesSitePin>, String>((ref, speciesId) async {
       final repository = ref.watch(speciesMapRepositoryProvider);

@@ -5710,6 +5710,7 @@
   "speciesMap_card_openSite": "Locatie openen",
   "speciesMap_card_speciesCount": "{count, plural, one{{count} soort} other{{count} soorten}}",
   "speciesMap_card_sightingRow": "{date}, duik {number}, ×{count}",
+  "speciesMap_card_speciesWithCount": "{species} ×{count}",
   "speciesMap_unplaced": "{count, plural, one{{count} waarneming hoort bij een duik zonder locatie op de kaart} other{{count} waarnemingen horen bij duiken zonder locatie op de kaart}}",
   "speciesMap_noPublicRecords": "Voor deze soort kunnen geen openbare waarnemingen worden getoond: er is een wetenschappelijke naam nodig die GBIF kent.",
   "speciesMap_publicUnavailable": "Openbare waarnemingen konden niet worden geladen.",

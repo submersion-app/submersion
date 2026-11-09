@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -18,6 +20,9 @@ class SpeciesMapLayersButton extends ConsumerWidget {
     final l10n = context.l10n;
     final publicOn = ref.watch(speciesMapPublicLayerProvider);
     final scope = ref.watch(speciesMapExpectedScopeProvider);
+    // 320 wide, less on a phone too narrow to hold it beside the menu's own
+    // screen margin.
+    final menuWidth = math.min(320.0, MediaQuery.sizeOf(context).width - 32);
 
     Widget scopeTile(ExpectedSiteScope value, String label) {
       final selected = scope == value;
@@ -37,7 +42,7 @@ class SpeciesMapLayersButton extends ConsumerWidget {
     return MenuAnchor(
       menuChildren: [
         SizedBox(
-          width: 320,
+          width: menuWidth,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
