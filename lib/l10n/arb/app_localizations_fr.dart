@@ -8247,6 +8247,17 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_gasSwitches_fillDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Compléter $count changements d\'après les pressions des blocs',
+      one: 'Compléter $count changement d\'après les pressions des blocs',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'Obtention de la position...';
 
   @override

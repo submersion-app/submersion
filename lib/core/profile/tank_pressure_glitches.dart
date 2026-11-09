@@ -35,6 +35,11 @@ const double kPressureGlitchDropoutReturnAboveBar = 10.0;
 /// to count as taken before the valve was open or the transmitter paired.
 const double kPressureGlitchLeadInGapBar = 10.0;
 
+/// A reading at or above this, in bar, is above what any scuba cylinder is
+/// filled to (300 bar steel, 350 bar carbon), so a lead-in of them was never
+/// the cylinder (issue #4335).
+const double kPressureGlitchAboveAnyFillBar = 400.0;
+
 /// Where a tank pressure series holds readings that do not describe the
 /// cylinder: signal dropouts, transient misreads and a lead-in logged before
 /// the valve was open (issue #2441).
@@ -63,8 +68,9 @@ class PressureGlitchScan {
 /// Three shapes are recognised:
 ///
 /// * a lead-in: readings in the first [kPressureGlitchMaxSeconds] (or of any
-///   length, while they stay near zero) that sit more than
-///   [kPressureGlitchLeadInGapBar] below the first reading after them;
+///   length, while they stay near zero) that all sit more than
+///   [kPressureGlitchLeadInGapBar] below the first reading after them, or
+///   all that far above it and at or above [kPressureGlitchAboveAnyFillBar];
 /// * a near-zero dropout: readings below [kPressureGlitchNearZeroBar] between
 ///   two normal ones, whatever their length;
 /// * a transient dip: readings more than [kPressureGlitchMinDipBar] below
@@ -150,13 +156,16 @@ List<PressureReading> _cleanReadings(
 /// A source that derives its endpoints from the samples (libdivecomputer's
 /// Shearwater parser takes the first and last non-zero reading) inherits any
 /// glitch sitting at either end. When [reportedBar] matches a glitch reading
-/// of [readings] that sits below the first or last clean reading, that clean
-/// reading replaces it; any other value, and a null, comes back unchanged.
+/// of [readings] that sits below the first or last clean reading, or a
+/// start lead-in reading above any cylinder fill, that clean reading
+/// replaces it; any other value, and a null, comes back unchanged.
 ///
-/// Only a low glitch counts: a lead-in, a dropout and a dip all read below
-/// the cylinder, and those are what a source takes an endpoint from. A
-/// reported value that equals a spike, which reads above it, is a header
-/// value that happens to coincide, and is kept.
+/// Only a low glitch counts, and for the start a lead-in reading above any
+/// cylinder fill: a lead-in, a dropout and a dip all read below the
+/// cylinder, and those are what a source takes an endpoint from, as is a
+/// "no reading" value at the head of the series (issue #4335). A reported value that equals a spike,
+/// which reads above it, is a header value that happens to coincide, and is
+/// kept.
 ///
 /// [readings] must be in time order. A caller resolving both endpoints of one
 /// cylinder passes the [scan] of [readings] it already holds, so the series
@@ -173,12 +182,20 @@ double? replaceGlitchedEndpoint({
   final clean = _cleanReadings(readings, scan);
   if (clean.isEmpty) return reportedBar;
   final replacement = atStart ? clean.first.bar : clean.last.bar;
-  final matchesLowGlitch = scan.glitchIndices.any(
+  // The glitches before the first clean reading: the lead-in.
+  var leadIn = 0;
+  while (scan.glitchIndices.contains(leadIn)) {
+    leadIn++;
+  }
+  final matchesGlitch = scan.glitchIndices.any(
     (i) =>
-        readings[i].bar < replacement &&
+        (readings[i].bar < replacement ||
+            (atStart &&
+                i < leadIn &&
+                readings[i].bar >= kPressureGlitchAboveAnyFillBar)) &&
         (readings[i].bar - reportedBar).abs() <= _endpointMatchToleranceBar,
   );
-  return matchesLowGlitch ? replacement : reportedBar;
+  return matchesGlitch ? replacement : reportedBar;
 }
 
 /// The start ([atStart]) or end pressure to record for a cylinder whose
@@ -279,17 +296,27 @@ int _leadInLength(List<PressureReading> readings) {
   // exactly when it does. Kept as a running value so each candidate costs
   // O(1) rather than a rescan of the head, which on a transmitter that
   // never paired (a whole dive near zero, so the window never closes) made
-  // the scan quadratic.
+  // the scan quadratic. The lowest reading before q does the same for a
+  // lead-in that reads above the cylinder.
   var highestBefore = double.negativeInfinity;
+  var lowestBefore = double.infinity;
   for (var q = 1; q < readings.length; q++) {
     final previousBar = readings[q - 1].bar;
     allNearZero = allNearZero && previousBar < kPressureGlitchNearZeroBar;
     if (previousBar > highestBefore) highestBefore = previousBar;
+    if (previousBar < lowestBefore) lowestBefore = previousBar;
     final span = readings[q - 1].t - readings.first.t;
     if (span > kPressureGlitchMaxSeconds && !allNearZero) break;
-    if (highestBefore >= readings[q].bar - kPressureGlitchLeadInGapBar) {
-      continue;
-    }
+    final bar = readings[q].bar;
+    final allBelow = highestBefore < bar - kPressureGlitchLeadInGapBar;
+    // Shearwater Cloud exports the transmitter's "no reading" value as a
+    // 564.7 bar first reading (issue #4335). A fall from a pressure a
+    // cylinder can hold may be real (a free flow), so only readings above
+    // any fill count.
+    final allAbove =
+        lowestBefore >= kPressureGlitchAboveAnyFillBar &&
+        lowestBefore > bar + kPressureGlitchLeadInGapBar;
+    if (!allBelow && !allAbove) continue;
     // The reading the lead-in ends at must start a stable stretch, or a
     // spike early in the dive would pass for it and take every reading
     // before it along.

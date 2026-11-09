@@ -2662,6 +2662,7 @@
   "diveLog_edit_gasSwitches_pickReadout": "{time}, {depth}",
   "diveLog_edit_gasSwitches_pickConfirm": "Idő beállítása",
   "diveLog_edit_gasSwitches_removedWithTank": "{count, plural, one{{count} gázváltás eltávolítva a palackjával} other{{count} gázváltás eltávolítva a palackjukkal}}",
+  "diveLog_edit_gasSwitches_fillDetected": "{count, plural, one{1 váltás kitöltése a palacknyomásokból} other{{count} váltás kitöltése a palacknyomásokból}}",
   "diveLog_edit_gettingLocation": "Helymeghatározás...",
   "diveLog_edit_group_buddies": "Merülőtársak",
   "diveLog_edit_group_conditions": "Körülmények",

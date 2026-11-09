@@ -2662,6 +2662,7 @@
   "diveLog_edit_gasSwitches_pickReadout": "{time} à {depth}",
   "diveLog_edit_gasSwitches_pickConfirm": "Définir le temps",
   "diveLog_edit_gasSwitches_removedWithTank": "{count, plural, one{{count} changement de gaz retiré avec son bloc} other{{count} changements de gaz retirés avec leur bloc}}",
+  "diveLog_edit_gasSwitches_fillDetected": "{count, plural, one{Compléter {count} changement d'après les pressions des blocs} other{Compléter {count} changements d'après les pressions des blocs}}",
   "diveLog_edit_gettingLocation": "Obtention de la position...",
   "diveLog_edit_group_buddies": "Binômes",
   "diveLog_edit_group_conditions": "Conditions",

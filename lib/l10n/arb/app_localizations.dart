@@ -12940,6 +12940,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{{count} gas switch removed with its tank} other{{count} gas switches removed with their tank}}'**
   String diveLog_edit_gasSwitches_removedWithTank(int count);
 
+  /// Gas switch editor: action that adds the switches the recorded cylinder pressures show, and re-points a starting switch on the same gas to the cylinder breathed first. count is how many rows it adds or changes
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Fill in 1 switch from the cylinder pressures} other{Fill in {count} switches from the cylinder pressures}}'**
+  String diveLog_edit_gasSwitches_fillDetected(int count);
+
   /// No description provided for @diveLog_edit_gettingLocation.
   ///
   /// In en, this message translates to:
