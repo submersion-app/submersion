@@ -18,6 +18,9 @@ Future<void> _pump(
 }) async {
   await tester.pumpWidget(
     MaterialApp(
+      // The assertions read English labels, so the locale is pinned rather
+      // than left to the host.
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
