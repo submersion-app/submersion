@@ -12,8 +12,11 @@ import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart'
     show PlanSummaryData;
+import 'package:submersion/features/planner/data/services/plan_engine_settings.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart'
+    show AppSettings;
 
 /// The plan settings an agent writes, by document key, as plain numbers.
 const _numbers = {
@@ -246,7 +249,7 @@ class DivePlanWrites extends WritableEntry {
             details: {'id': from},
           ));
       final rest = {...values}..remove(_copy);
-      if (rest.isNotEmpty) await _save(copy, rest);
+      if (rest.isNotEmpty) await _save(copy, rest, ownerId: diverId);
       return copy.id;
     }
     final now = DateTime.now();
@@ -258,6 +261,7 @@ class DivePlanWrites extends WritableEntry {
         updatedAt: now,
       ),
       values,
+      ownerId: diverId,
     );
     return saved.id;
   }
@@ -271,7 +275,13 @@ class DivePlanWrites extends WritableEntry {
           'Dive plan $id no longer exists.',
           details: {'id': id},
         ));
-    await _save(current, update.values);
+    await _save(
+      current,
+      update.values,
+      // No diver owns a saved plan, so the planner computes it with the
+      // active diver's settings, and so does this.
+      ownerId: ownerId ?? await _r.activeDiverId?.call(),
+    );
   }
 
   @override
@@ -279,15 +289,20 @@ class DivePlanWrites extends WritableEntry {
       _r.divePlans.deletePlan(id);
 
   /// Saves [plan] with [values] over it, with the summary the planner works
-  /// out, then moves its dive link, which the save leaves as stored.
-  Future<DivePlan> _save(DivePlan plan, Map<String, Object?> values) async {
+  /// out for [ownerId] from their planner settings, then moves its dive
+  /// link, which the save leaves as stored.
+  Future<DivePlan> _save(
+    DivePlan plan,
+    Map<String, Object?> values, {
+    required String? ownerId,
+  }) async {
     final link = values.containsKey('linked_dive_id');
     final next = _applied(plan, values);
     final changesPlan = values.keys.any((k) => k != 'linked_dive_id');
     var saved = plan;
     if (changesPlan) {
-      final outcome = const PlanEngine(
-        config: PlanEngineConfig(),
+      final outcome = PlanEngine(
+        config: await _configFor(ownerId),
       ).compute(next);
       saved = await _r.divePlans.savePlan(
         next,
@@ -307,6 +322,15 @@ class DivePlanWrites extends WritableEntry {
       }
     }
     return saved;
+  }
+
+  /// The planner settings of [ownerId], or the defaults for a plan with no
+  /// owner or an owner with no settings of their own.
+  Future<PlanEngineConfig> _configFor(String? ownerId) async {
+    final settings = ownerId == null
+        ? null
+        : await _r.diverSettings.getSettingsForDiver(ownerId);
+    return planEngineConfigFromSettings(settings ?? const AppSettings());
   }
 
   Future<String?> _seriesOf(String id) async {

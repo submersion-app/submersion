@@ -266,7 +266,9 @@ class AgentAccessController {
       localeTag: _ref.read(localeProvider),
       activeDiverId: () => _ref.read(validatedCurrentDiverIdProvider.future),
     );
-    final records = RecordRepositories();
+    final records = RecordRepositories(
+      activeDiverId: () => _ref.read(validatedCurrentDiverIdProvider.future),
+    );
     return AgentServerSpec(
       registry: AgentToolRegistry.standard(
         loader: loader,
