@@ -21,7 +21,7 @@ void main() {
 
   test('the gas detector versions moved with their rules', () {
     expect(const GasModDetector().version, 4);
-    expect(const PressureAnomalyDetector().version, 5);
+    expect(const PressureAnomalyDetector().version, 6);
   });
 
   group('GasModDetector', () {

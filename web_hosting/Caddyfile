@@ -18,7 +18,7 @@ dive.example.com {
 	# the SQLite module must all come from one release, so they are
 	# revalidated on every load. The bare / is listed because headers apply
 	# before try_files rewrites it.
-	@entry path / /index.html /flutter_bootstrap.js /main.dart.js /version.json /drift_worker.js /compute_worker.js /sqlite3.wasm
+	@entry path / /index.html /flutter_bootstrap.js /main.dart.js /version.json /drift_worker.js /compute_worker.js /media_stream_worker.js /sqlite3.wasm
 	header @entry Cache-Control "no-cache"
 	try_files {path} /index.html
 	file_server

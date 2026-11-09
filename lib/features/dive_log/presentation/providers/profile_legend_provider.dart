@@ -48,6 +48,10 @@ class ProfileLegendState {
   /// Whether the diver's annotations are drawn (#4109). Independent of
   /// [showEvents], so hiding the computer's events keeps the diver's own.
   final bool showAnnotations;
+
+  /// Whether a linked plan's profile is drawn beside the logged one (#4215).
+  /// On by default: the plan is only there when the diver linked one.
+  final bool showPlannedProfile;
   final bool showMaxDepthMarker;
   final bool showPressureMarkers;
   final bool showGasSwitchMarkers;
@@ -135,6 +139,7 @@ class ProfileLegendState {
     this.showEvents = true,
     this.showComputedEvents = true,
     this.showAnnotations = true,
+    this.showPlannedProfile = true,
     this.showMaxDepthMarker = true,
     this.showPressureMarkers = true,
     this.showGasSwitchMarkers = true,
@@ -234,6 +239,7 @@ class ProfileLegendState {
     bool? showEvents,
     bool? showComputedEvents,
     bool? showAnnotations,
+    bool? showPlannedProfile,
     bool? showMaxDepthMarker,
     bool? showPressureMarkers,
     bool? showGasSwitchMarkers,
@@ -281,6 +287,7 @@ class ProfileLegendState {
       showEvents: showEvents ?? this.showEvents,
       showComputedEvents: showComputedEvents ?? this.showComputedEvents,
       showAnnotations: showAnnotations ?? this.showAnnotations,
+      showPlannedProfile: showPlannedProfile ?? this.showPlannedProfile,
       showMaxDepthMarker: showMaxDepthMarker ?? this.showMaxDepthMarker,
       showPressureMarkers: showPressureMarkers ?? this.showPressureMarkers,
       showGasSwitchMarkers: showGasSwitchMarkers ?? this.showGasSwitchMarkers,
@@ -333,6 +340,7 @@ class ProfileLegendState {
           showEvents == other.showEvents &&
           showComputedEvents == other.showComputedEvents &&
           showAnnotations == other.showAnnotations &&
+          showPlannedProfile == other.showPlannedProfile &&
           showMaxDepthMarker == other.showMaxDepthMarker &&
           showPressureMarkers == other.showPressureMarkers &&
           showGasSwitchMarkers == other.showGasSwitchMarkers &&
@@ -379,6 +387,7 @@ class ProfileLegendState {
     showEvents,
     showComputedEvents,
     showAnnotations,
+    showPlannedProfile,
     showMaxDepthMarker,
     showPressureMarkers,
     showGasSwitchMarkers,
@@ -592,6 +601,10 @@ class ProfileLegend extends _$ProfileLegend {
 
   void toggleAnnotations() {
     state = state.copyWith(showAnnotations: !state.showAnnotations);
+  }
+
+  void togglePlannedProfile() {
+    state = state.copyWith(showPlannedProfile: !state.showPlannedProfile);
   }
 
   /// Records that the user has explicitly set the computed-events toggle, so

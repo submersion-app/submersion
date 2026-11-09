@@ -12712,12 +12712,6 @@ abstract class AppLocalizations {
   /// **'Dive Mode'**
   String get diveLog_diveMode_title;
 
-  /// No description provided for @diveLog_editSighting_count.
-  ///
-  /// In en, this message translates to:
-  /// **'Count'**
-  String get diveLog_editSighting_count;
-
   /// No description provided for @diveLog_editSighting_notes.
   ///
   /// In en, this message translates to:
@@ -12939,6 +12933,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one{{count} gas switch removed with its tank} other{{count} gas switches removed with their tank}}'**
   String diveLog_edit_gasSwitches_removedWithTank(int count);
+
+  /// Gas switch editor: action that adds the switches the recorded cylinder pressures show, and re-points a starting switch on the same gas to the cylinder breathed first. count is how many rows it adds or changes
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Fill in 1 switch from the cylinder pressures} other{Fill in {count} switches from the cylinder pressures}}'**
+  String diveLog_edit_gasSwitches_fillDetected(int count);
 
   /// No description provided for @diveLog_edit_gettingLocation.
   ///
@@ -14557,6 +14557,12 @@ abstract class AppLocalizations {
   /// **'Annotations'**
   String get diveLog_legend_label_annotations;
 
+  /// No description provided for @diveLog_legend_label_plan.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get diveLog_legend_label_plan;
+
   /// No description provided for @diveLog_legend_label_computedEvents.
   ///
   /// In en, this message translates to:
@@ -14952,6 +14958,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 dive had nothing to fill} other{{count} dives had nothing to fill}}'**
   String diveLog_fetchConditions_summaryUnchanged(int count);
+
+  /// Confirm text for fetching conditions on selected dives (issue #4329): how many of the checked dives can be filled
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} of {total} selected dives is missing conditions.} other{{count} of {total} selected dives are missing conditions.}} Only empty fields are filled, so nothing you have already entered will change.'**
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total);
+
+  /// Added to the confirm text when some checked dives have no location to fetch conditions for (issue #4329)
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} dive has no site location or GPS fix and will be skipped.} other{{count} dives have no site location or GPS fix and will be skipped.}}'**
+  String diveLog_fetchConditions_skippedNoLocation(int count);
+
+  /// Snackbar when no checked dive is missing conditions (issue #4329)
+  ///
+  /// In en, this message translates to:
+  /// **'None of the selected dives are missing conditions.'**
+  String get diveLog_fetchConditions_noneNeededSelected;
+
+  /// Snackbar when the checked dives missing conditions all lack a location (issue #4329)
+  ///
+  /// In en, this message translates to:
+  /// **'The selected dives that are missing conditions have no site location or GPS fix.'**
+  String get diveLog_fetchConditions_noneLocatedSelected;
 
   /// No description provided for @diveLog_fetchConditions_summaryCancelled.
   ///
@@ -17310,6 +17340,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'End Pressure'**
   String get diveLog_tank_label_endPressure;
+
+  /// No description provided for @diveLog_tank_label_surfaceBreathing.
+  ///
+  /// In en, this message translates to:
+  /// **'Breathed at the surface'**
+  String get diveLog_tank_label_surfaceBreathing;
+
+  /// No description provided for @diveLog_tank_surfaceBreathing_helper.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes on this cylinder after the computer stopped logging, such as oxygen on the boat'**
+  String get diveLog_tank_surfaceBreathing_helper;
+
+  /// No description provided for @diveLog_tank_surfaceBreathing_unit.
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get diveLog_tank_surfaceBreathing_unit;
 
   /// No description provided for @diveLog_tank_label_he.
   ///
@@ -30587,12 +30635,6 @@ abstract class AppLocalizations {
   /// **'Top Sites'**
   String get marineLife_speciesDetail_topSitesTitle;
 
-  /// No description provided for @marineLife_speciesDetail_totalSightingsLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Total Sightings'**
-  String get marineLife_speciesDetail_totalSightingsLabel;
-
   /// No description provided for @marineLife_speciesEdit_addTitle.
   ///
   /// In en, this message translates to:
@@ -31031,11 +31073,59 @@ abstract class AppLocalizations {
   /// **'Sort'**
   String get marineLife_speciesPage_sortTooltip;
 
-  /// No description provided for @marineLife_speciesPage_sort_mostSightings.
+  /// No description provided for @marineLife_speciesPage_sort_mostDives.
   ///
   /// In en, this message translates to:
-  /// **'Most sightings'**
-  String get marineLife_speciesPage_sort_mostSightings;
+  /// **'Most dives'**
+  String get marineLife_speciesPage_sort_mostDives;
+
+  /// Label above the sighting abundance choices
+  ///
+  /// In en, this message translates to:
+  /// **'How many'**
+  String get marineLife_abundance_label;
+
+  /// Sighting abundance: the species was seen, with no number given
+  ///
+  /// In en, this message translates to:
+  /// **'Seen'**
+  String get marineLife_abundance_seen;
+
+  /// Sighting abundance, REEF survey group: one animal
+  ///
+  /// In en, this message translates to:
+  /// **'Single'**
+  String get marineLife_abundance_single;
+
+  /// Sighting abundance, REEF survey group: 2 to 10 animals
+  ///
+  /// In en, this message translates to:
+  /// **'Few'**
+  String get marineLife_abundance_few;
+
+  /// Sighting abundance, REEF survey group: 11 to 100 animals
+  ///
+  /// In en, this message translates to:
+  /// **'Many'**
+  String get marineLife_abundance_many;
+
+  /// Sighting abundance, REEF survey group: more than 100 animals
+  ///
+  /// In en, this message translates to:
+  /// **'Abundant'**
+  String get marineLife_abundance_abundant;
+
+  /// Sighting abundance: an exact number of animals, entered with a stepper
+  ///
+  /// In en, this message translates to:
+  /// **'Exact'**
+  String get marineLife_abundance_exact;
+
+  /// Helper line under the sighting abundance choices giving each REEF group's range
+  ///
+  /// In en, this message translates to:
+  /// **'Few 2 to 10, Many 11 to 100, Abundant over 100'**
+  String get marineLife_abundance_ranges;
 
   /// No description provided for @marineLife_speciesPage_sort_recentlySeen.
   ///
@@ -32406,6 +32496,12 @@ abstract class AppLocalizations {
   /// **'Video file not found'**
   String get media_photoViewer_videoFileNotFound;
 
+  /// Media viewer, in a browser with no service workers (a private window): a Google Drive or WebDAV video cannot stream.
+  ///
+  /// In en, this message translates to:
+  /// **'Playing this video needs a normal browser window. Private windows cannot stream from Google Drive or WebDAV.'**
+  String get media_photoViewer_videoNeedsNormalWindow;
+
   /// No description provided for @media_photoViewer_videoNotLinked.
   ///
   /// In en, this message translates to:
@@ -33090,6 +33186,12 @@ abstract class AppLocalizations {
   /// **'No media yet'**
   String get media_library_empty;
 
+  /// Empty state for the media library while a filter is on and nothing matches it
+  ///
+  /// In en, this message translates to:
+  /// **'No media matches these filters'**
+  String get media_library_emptyFiltered;
+
   /// Library filter chip: no type filter
   ///
   /// In en, this message translates to:
@@ -33149,6 +33251,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Missing files ({count})'**
   String media_library_filter_missingCount(int count);
+
+  /// Library filter People choice, pinned first in the People picker and shown as the People row's value: items with no buddy or Me tag at all
+  ///
+  /// In en, this message translates to:
+  /// **'No one tagged'**
+  String get media_library_filter_noPeople;
+
+  /// People row in the library filter: two people picked, e.g. Me, Alex
+  ///
+  /// In en, this message translates to:
+  /// **'{first}, {second}'**
+  String media_library_filter_peopleTwo(String first, String second);
+
+  /// People row in the library filter: the first names picked, then how many more, e.g. Me, Alex +3
+  ///
+  /// In en, this message translates to:
+  /// **'{names} +{count}'**
+  String media_library_filter_peopleAndMore(String names, int count);
+
+  /// People row in the library filter while buddy names are still loading: how many people are picked
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} person} other{{count} people}}'**
+  String media_library_filter_peopleCount(int count);
+
+  /// Search field hint in the library filter's People picker
+  ///
+  /// In en, this message translates to:
+  /// **'Search people'**
+  String get media_library_filter_peopleSearchHint;
+
+  /// People picker in the library filter: nothing matches the search
+  ///
+  /// In en, this message translates to:
+  /// **'No people match'**
+  String get media_library_filter_peopleNoMatch;
+
+  /// Tooltip on the button that clears the people picked in the library filter
+  ///
+  /// In en, this message translates to:
+  /// **'Clear people'**
+  String get media_library_filter_peopleClear;
+
+  /// Library filter switch: dive items with no time in the dive profile, so the profile chart draws no marker for them
+  ///
+  /// In en, this message translates to:
+  /// **'Not placed in the dive'**
+  String get media_library_filter_notPlacedInDive;
 
   /// Library filter chip: reset every filter
   ///
@@ -41963,6 +42113,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Replaces built-in rule'**
   String get settings_conflict_field_supersedesRuleId;
+
+  /// No description provided for @settings_conflict_field_surfaceBreathingDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Time breathed at the surface'**
+  String get settings_conflict_field_surfaceBreathingDuration;
 
   /// No description provided for @settings_conflict_field_surfaceConditions.
   ///
@@ -60527,6 +60683,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'None of the selected dives have stored raw data to re-parse.'**
   String get reparseBatch_noneWithRawData;
+
+  /// Selection bar action that fetches conditions for the checked dives (issue #4329)
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch Conditions'**
+  String get diveLog_selection_tooltip_fetchConditions;
 
   /// Bulk re-parse (issue #224)
   ///
@@ -83937,6 +84099,12 @@ abstract class AppLocalizations {
   /// **'No profile data for this dive'**
   String get diveLog_profilePanel_noProfileData;
 
+  /// Caption under the dashed outline drawn for a dive with no recorded profile
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated from max depth and time, not a recorded profile'**
+  String get diveLog_estimatedProfile_caption;
+
   /// No description provided for @settings_export_progress_divesCsv.
   ///
   /// In en, this message translates to:
@@ -88279,7 +88447,7 @@ abstract class AppLocalizations {
   /// No description provided for @transmitters_apply_content.
   ///
   /// In en, this message translates to:
-  /// **'{tanks} cylinders on {dives} dives carry this transmitter. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas or read from the transmitter\'s name will be replaced.'**
+  /// **'{tanks} cylinders on {dives} dives carrying this transmitter need its setup. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas or read from the transmitter\'s name will be replaced.'**
   String transmitters_apply_content(int tanks, int dives);
 
   /// No description provided for @transmitters_apply_done.
@@ -88288,11 +88456,53 @@ abstract class AppLocalizations {
   /// **'Updated {tanks} cylinders on {dives} dives'**
   String transmitters_apply_done(int tanks, int dives);
 
-  /// No description provided for @transmitters_apply_nothing.
+  /// No description provided for @transmitters_apply_slot_label.
   ///
   /// In en, this message translates to:
-  /// **'No cylinders carry this transmitter'**
-  String get transmitters_apply_nothing;
+  /// **'Slot on {computer}'**
+  String transmitters_apply_slot_label(String computer);
+
+  /// No description provided for @transmitters_apply_slot_none.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t match by slot'**
+  String get transmitters_apply_slot_none;
+
+  /// No description provided for @transmitters_apply_slot_option.
+  ///
+  /// In en, this message translates to:
+  /// **'T{slot}: {dives, plural, one{{dives} dive} other{{dives} dives}}'**
+  String transmitters_apply_slot_option(int slot, int dives);
+
+  /// No description provided for @transmitters_apply_slot_reading.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading imported files'**
+  String get transmitters_apply_slot_reading;
+
+  /// No description provided for @transmitters_apply_slot_intro.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinders imported from a file carry no serial. They can be filled by the slot this transmitter sat in on the dive computer.'**
+  String get transmitters_apply_slot_intro;
+
+  /// No description provided for @transmitters_apply_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives filled by serial: {serialDives}, by slot: {slotDives}'**
+  String transmitters_apply_summary(int serialDives, int slotDives);
+
+  /// No description provided for @transmitters_apply_nothing_to_fill.
+  ///
+  /// In en, this message translates to:
+  /// **'No cylinder needs this transmitter\'s setup'**
+  String get transmitters_apply_nothing_to_fill;
+
+  /// No description provided for @transmitters_apply_slot_read_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'The imported files could not be read, so cylinders cannot be matched by slot'**
+  String get transmitters_apply_slot_read_failed;
 
   /// No description provided for @transmitters_channel.
   ///

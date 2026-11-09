@@ -259,14 +259,17 @@ class AgentAccessController {
   AgentServerSpec _buildServer(String appVersion) {
     final divers = _ref.read(diverRepositoryProvider);
     final settings = _ref.read(diverSettingsRepositoryProvider);
+    // One answer to who is active, for reads and writes alike.
+    Future<String?> activeDiverId() =>
+        _ref.read(validatedCurrentDiverIdProvider.future);
     final loader = DiverContextLoader(
       db: () => DatabaseService.instance.database,
       divers: divers,
       settings: settings,
       localeTag: _ref.read(localeProvider),
-      activeDiverId: () => _ref.read(validatedCurrentDiverIdProvider.future),
+      activeDiverId: activeDiverId,
     );
-    final records = RecordRepositories();
+    final records = RecordRepositories(activeDiverId: activeDiverId);
     return AgentServerSpec(
       registry: AgentToolRegistry.standard(
         loader: loader,

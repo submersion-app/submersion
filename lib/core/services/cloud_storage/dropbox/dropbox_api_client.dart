@@ -115,6 +115,20 @@ class DropboxApiClient {
     return response!.bodyBytes;
   }
 
+  /// A link to [path] that needs no token, valid for four hours: what a
+  /// browser's video player streams from (issue #4162).
+  Future<String> getTemporaryLink(String path) async {
+    final response = await _send(
+      () => _rpcRequest('/2/files/get_temporary_link', {'path': path}),
+      notFoundMessage: 'File not found in Dropbox: $path',
+    );
+    final link = _decodeMap(response!)['link'];
+    if (link is! String || link.isEmpty) {
+      throw const CloudStorageException('Dropbox returned no temporary link');
+    }
+    return link;
+  }
+
   /// Metadata for [path], or null when it does not exist.
   Future<DropboxFileMetadata?> getMetadata(String path) async {
     final response = await _send(

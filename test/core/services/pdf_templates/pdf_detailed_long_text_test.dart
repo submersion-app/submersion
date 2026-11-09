@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
@@ -175,6 +176,7 @@ void main() {
                 id: 's1',
                 speciesId: 'sp1',
                 speciesName: 'Green Sea Turtle',
+                abundance: SightingAbundance.exact,
                 count: 2,
                 notes: pageLongText,
               ),

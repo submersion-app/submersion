@@ -77,6 +77,14 @@ void main() {
         throwsA(anything),
       );
       await expectLater(
+        repository.countDivesMissingConditionsWithoutLocation(),
+        throwsA(anything),
+      );
+      await expectLater(
+        repository.countLoggedDives({'test-id'}),
+        throwsA(anything),
+      );
+      await expectLater(
         repository.fillDiveConditions(
           'test-id',
           humidity: 70,

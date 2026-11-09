@@ -1,5 +1,6 @@
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/core/utils/time_weighted_mean.dart';
 import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -331,7 +332,9 @@ class DiveMergeBuilder {
     }
     final mergedGear = gearById.values.toList();
 
-    // Sightings: union; same species merged (counts summed, notes joined).
+    // Sightings: union; same species merged (amounts combined, notes
+    // joined). Two exact counts add up; Seen gives way; otherwise the larger
+    // REEF group wins (issue #4337).
     final bySpecies = <String, MarineSighting>{};
     for (final d in sorted) {
       for (final s in sightingsByDive[d.id] ?? const <MarineSighting>[]) {
@@ -341,6 +344,7 @@ class DiveMergeBuilder {
             id: idGen(),
             speciesId: s.speciesId,
             speciesName: s.speciesName,
+            abundance: s.abundance,
             count: s.count,
             notes: s.notes,
           );
@@ -349,11 +353,13 @@ class DiveMergeBuilder {
             existing.notes,
             s.notes,
           ].where((n) => n.trim().isNotEmpty).join('; ');
+          final amount = SightingAbundance.combine(existing.amount, s.amount);
           bySpecies[s.speciesId] = MarineSighting(
             id: existing.id,
             speciesId: existing.speciesId,
             speciesName: existing.speciesName,
-            count: existing.count + s.count,
+            abundance: amount.abundance,
+            count: amount.count,
             notes: notes,
           );
         }

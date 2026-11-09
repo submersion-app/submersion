@@ -31,9 +31,17 @@ GoRouter _router() => GoRouter(
   ],
 );
 
+final _whaleShark = RankingItem(
+  id: 'sp_whale_shark',
+  name: 'Whale Shark',
+  count: 5,
+  kind: 'shark',
+);
+
 Future<void> _pump(
   WidgetTester tester, {
   Locale locale = const Locale('en'),
+  List<RankingItem>? sightings,
 }) async {
   final overrides = await getBaseOverrides();
   await tester.pumpWidget(
@@ -44,14 +52,7 @@ Future<void> _pump(
         ...overrides,
         uniqueSpeciesCountProvider.overrideWith((ref) async => 3),
         mostCommonSightingsProvider.overrideWith(
-          (ref) async => [
-            RankingItem(
-              id: 'sp_whale_shark',
-              name: 'Whale Shark',
-              count: 5,
-              subtitle: 'shark',
-            ),
-          ],
+          (ref) async => sightings ?? [_whaleShark],
         ),
         bestSitesForMarineLifeProvider.overrideWith(
           (ref) async => <RankingItem>[],
@@ -81,6 +82,63 @@ void main() {
 
     expect(find.text('Walhai'), findsOneWidget);
     expect(find.text('Whale Shark'), findsNothing);
+  });
+
+  // Issue #4339: the query returns the stored category key, which rendered
+  // as "fish" under a German locale.
+  testWidgets('renders the species category under its localized label', (
+    tester,
+  ) async {
+    await _pump(tester, locale: const Locale('de'));
+
+    expect(find.text('Hai'), findsOneWidget);
+    expect(find.text('shark'), findsNothing);
+  });
+
+  testWidgets('renders the species category label in English too', (
+    tester,
+  ) async {
+    await _pump(tester);
+
+    expect(find.text('Shark'), findsOneWidget);
+    expect(find.text('shark'), findsNothing);
+  });
+
+  testWidgets('a row without a category key keeps its own subtitle', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      locale: const Locale('de'),
+      sightings: [
+        RankingItem(
+          id: 'b0d7c1de-0000-4000-8000-000000000000',
+          name: 'Mein Barsch',
+          count: 2,
+          subtitle: 'Steg',
+        ),
+      ],
+    );
+
+    expect(find.text('Mein Barsch'), findsOneWidget);
+    expect(find.text('Steg'), findsOneWidget);
+  });
+
+  testWidgets('an unknown category key is shown as stored', (tester) async {
+    await _pump(
+      tester,
+      locale: const Locale('de'),
+      sightings: [
+        RankingItem(
+          id: 'b0d7c1de-0000-4000-8000-000000000001',
+          name: 'Mein Krake',
+          count: 1,
+          kind: 'cephalopod',
+        ),
+      ],
+    );
+
+    expect(find.text('cephalopod'), findsOneWidget);
   });
 
   testWidgets('tapping a ranked species still opens its detail page', (

@@ -17,10 +17,10 @@ import 'package:submersion/features/cylinder_passports/data/repositories/cylinde
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_gear_note_repository.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
 import 'package:submersion/features/dive_lab/data/repositories/dive_scenario_repository.dart';
-import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_custom_field_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_feature_repository.dart';
@@ -55,6 +55,7 @@ import 'package:submersion/features/query/data/repositories/saved_query_reposito
 import 'package:submersion/features/rules/data/repositories/rule_repository.dart';
 import 'package:submersion/features/safety/data/repositories/emergency_chamber_repository.dart';
 import 'package:submersion/features/safety/data/repositories/incident_repository.dart';
+import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tank_presets/data/repositories/tank_preset_repository.dart';
@@ -75,7 +76,15 @@ import 'package:submersion/features/weight_presets/data/repositories/weight_pres
 /// getter on each use, so a restore or storage move between calls swaps the
 /// handle underneath them, and [db] does the same.
 class RecordRepositories {
+  RecordRepositories({this.activeDiverId});
+
   AppDatabase get db => DatabaseService.instance.database;
+
+  /// The profile active in the app, for a write that acts as no diver of its
+  /// own, such as an update of a saved plan, which no diver owns: the
+  /// planner computes a plan with the active diver's settings. Null outside
+  /// the app.
+  final Future<String?> Function()? activeDiverId;
 
   late final buddies = BuddyRepository();
   late final centerGearNotes = DiveCenterGearNoteRepository();
@@ -90,6 +99,7 @@ class RecordRepositories {
   late final currency = CertificationCurrencyRepository();
   late final customCertifications = CustomCertificationRepository();
   late final divers = DiverRepository();
+  late final diverSettings = DiverSettingsRepository();
   late final dives = DiveRepository();
   late final cylinderConfigs = CylinderConfigRepository();
   late final cylinderFills = CylinderFillRepository();

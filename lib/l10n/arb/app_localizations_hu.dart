@@ -8062,9 +8062,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_diveMode_title => 'Merülési mód';
 
   @override
-  String get diveLog_editSighting_count => 'Darab';
-
-  @override
   String get diveLog_editSighting_notes => 'Jegyzetek';
 
   @override
@@ -8198,6 +8195,17 @@ class AppLocalizationsHu extends AppLocalizations {
       locale: localeName,
       other: '$count gázváltás eltávolítva a palackjukkal',
       one: '$count gázváltás eltávolítva a palackjával',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_gasSwitches_fillDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count váltás kitöltése a palacknyomásokból',
+      one: '1 váltás kitöltése a palacknyomásokból',
     );
     return '$_temp0';
   }
@@ -9198,6 +9206,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_legend_label_annotations => 'Jelölések';
 
   @override
+  String get diveLog_legend_label_plan => 'Terv';
+
+  @override
   String get diveLog_legend_label_computedEvents => 'Számított események';
 
   @override
@@ -9458,6 +9469,40 @@ class AppLocalizationsHu extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'A kiválasztott $total merülésből $count esetében hiányoznak a körülmények.',
+      one:
+          'A kiválasztott $total merülésből $count esetében hiányoznak a körülmények.',
+    );
+    return '$_temp0 Csak az üres mezők töltődnek ki, a már megadott adatok nem változnak.';
+  }
+
+  @override
+  String diveLog_fetchConditions_skippedNoLocation(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count merülésnek nincs helyszínkoordinátája vagy GPS-pozíciója, ezért kimaradnak.',
+      one:
+          '$count merülésnek nincs helyszínkoordinátája vagy GPS-pozíciója, ezért kimarad.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_fetchConditions_noneNeededSelected =>
+      'A kiválasztott merülések egyikéből sem hiányoznak a körülmények.';
+
+  @override
+  String get diveLog_fetchConditions_noneLocatedSelected =>
+      'A kiválasztott, körülmények nélküli merüléseknek nincs helyszínkoordinátája vagy GPS-pozíciója.';
 
   @override
   String diveLog_fetchConditions_summaryCancelled(int count) {
@@ -10869,6 +10914,16 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_tank_label_endPressure => 'Végnyomás';
+
+  @override
+  String get diveLog_tank_label_surfaceBreathing => 'A felszínen belélegezve';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_helper =>
+      'Percek ezen a palackon azután, hogy a komputer leállította a naplózást, például oxigén a hajón';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_unit => 'perc';
 
   @override
   String get diveLog_tank_label_he => 'He';
@@ -19019,9 +19074,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get marineLife_speciesDetail_topSitesTitle => 'Legjobb merülőhelyek';
 
   @override
-  String get marineLife_speciesDetail_totalSightingsLabel => 'Összes észlelés';
-
-  @override
   String get marineLife_speciesEdit_addTitle => 'Faj hozzáadása';
 
   @override
@@ -19330,7 +19382,32 @@ class AppLocalizationsHu extends AppLocalizations {
   String get marineLife_speciesPage_sortTooltip => 'Rendezés';
 
   @override
-  String get marineLife_speciesPage_sort_mostSightings => 'Legtöbb észlelés';
+  String get marineLife_speciesPage_sort_mostDives => 'Legtöbb merülés';
+
+  @override
+  String get marineLife_abundance_label => 'Hány';
+
+  @override
+  String get marineLife_abundance_seen => 'Látott';
+
+  @override
+  String get marineLife_abundance_single => 'Egy';
+
+  @override
+  String get marineLife_abundance_few => 'Néhány';
+
+  @override
+  String get marineLife_abundance_many => 'Sok';
+
+  @override
+  String get marineLife_abundance_abundant => 'Rengeteg';
+
+  @override
+  String get marineLife_abundance_exact => 'Pontos';
+
+  @override
+  String get marineLife_abundance_ranges =>
+      'Néhány 2 és 10 között, Sok 11 és 100 között, Rengeteg 100 felett';
 
   @override
   String get marineLife_speciesPage_sort_recentlySeen => 'Nemrég látott';
@@ -20363,6 +20440,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_photoViewer_videoFileNotFound => 'Videó fájl nem található';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      'A videó lejátszásához normál böngészőablak szükséges. A privát ablakok nem tudnak streamelni a Google Drive-ról vagy WebDAV-ről.';
+
+  @override
   String get media_photoViewer_videoNotLinked =>
       'A videó nincs a könyvtárhoz csatolva';
 
@@ -20761,6 +20842,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_library_empty => 'Még nincs média';
 
   @override
+  String get media_library_emptyFiltered => 'Nincs a szűrőknek megfelelő média';
+
+  @override
   String get media_library_filter_all => 'Összes';
 
   @override
@@ -20791,6 +20875,43 @@ class AppLocalizationsHu extends AppLocalizations {
   String media_library_filter_missingCount(int count) {
     return 'Hiányzó fájlok ($count)';
   }
+
+  @override
+  String get media_library_filter_noPeople => 'Nincs megjelölt személy';
+
+  @override
+  String media_library_filter_peopleTwo(String first, String second) {
+    return '$first, $second';
+  }
+
+  @override
+  String media_library_filter_peopleAndMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String media_library_filter_peopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count személy',
+      one: '$count személy',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_library_filter_peopleSearchHint => 'Személyek keresése';
+
+  @override
+  String get media_library_filter_peopleNoMatch => 'Nincs egyező személy';
+
+  @override
+  String get media_library_filter_peopleClear => 'Személyek törlése';
+
+  @override
+  String get media_library_filter_notPlacedInDive =>
+      'Nincs elhelyezve a merülésben';
 
   @override
   String get media_library_filter_clear => 'Szűrők törlése';
@@ -26202,6 +26323,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_supersedesRuleId =>
       'Beépített szabályt helyettesít';
+
+  @override
+  String get settings_conflict_field_surfaceBreathingDuration =>
+      'A felszínen belélegzett idő';
 
   @override
   String get settings_conflict_field_surfaceConditions =>
@@ -38263,6 +38388,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get reparseBatch_noneWithRawData =>
       'A kijelölt merülések egyikéhez sincs újraelemezhető nyers adat.';
+
+  @override
+  String get diveLog_selection_tooltip_fetchConditions =>
+      'Körülmények lekérése';
 
   @override
   String get diveLog_selection_tooltip_reparse => 'Újraelemzés';
@@ -52941,6 +53070,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ehhez a merüléshez nincs profiladat';
 
   @override
+  String get diveLog_estimatedProfile_caption =>
+      'Becslés a maximális mélység és az idő alapján, nem rögzített profil';
+
+  @override
   String get settings_export_progress_divesCsv =>
       'Merülések exportálása CSV-be...';
 
@@ -55703,7 +55836,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks palack $dives merülésben viseli ezt a jeladót. Az üres méret-, anyag-, név- és felszerelésmezők kitöltődnek, és a még Hátgázra állított vagy a jeladó nevéből kiolvasott szerep lecserélődik.';
+    return '$tanks palacknak $dives merülésben, amely ezt a jeladót viseli, szüksége van a beállítására. Az üres méret-, anyag-, név- és felszerelésmezők kitöltődnek, és a még Hátgázra állított vagy a jeladó nevéből kiolvasott szerep lecserélődik.';
   }
 
   @override
@@ -55712,8 +55845,43 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing =>
-      'Egyetlen palack sem viseli ezt a jeladót';
+  String transmitters_apply_slot_label(String computer) {
+    return 'Hely ($computer)';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'Nincs hely szerinti párosítás';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives merülés',
+      one: '$dives merülés',
+    );
+    return 'T$slot: $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading => 'Importált fájlok olvasása';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'A fájlból importált palackoknak nincs sorozatszáma. Kitölthetők annak a helynek az alapján, amelyet ez a jeladó a búvárkomputeren elfoglalt.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'Sorozatszám alapján kitöltött merülések: $serialDives, hely alapján: $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'Egyetlen palacknak sincs szüksége ennek a jeladónak a beállítására';
+
+  @override
+  String get transmitters_apply_slot_read_failed =>
+      'Az importált fájlokat nem sikerült beolvasni, így a palackok nem párosíthatók foglalat szerint';
 
   @override
   String transmitters_channel(String computer, int channel) {

@@ -45,7 +45,7 @@ extension BeforeOpenSettingsColumns on AppDatabase {
     // v347 backstop: diver_settings.show_photo_background_on_dive_cards.
     await _assertDiveCardPhotoBackgroundColumn();
 
-    // v350 backstop: diver_settings.equipment_collapsed_groups (issue #4184).
+    // v351 backstop: diver_settings.equipment_collapsed_groups (issue #4184).
     await _assertEquipmentCollapsedGroupsColumn();
   }
 }
