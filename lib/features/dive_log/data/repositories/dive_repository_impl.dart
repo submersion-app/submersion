@@ -2352,7 +2352,8 @@ class DiveRepository {
                   dive.scrubber?.remainingMinutes,
                 ),
                 // Dive planner (v1.5)
-                isPlanned: Value(dive.isPlanned),
+                // Never both (issue #637): a draft happened, so it wins.
+                isPlanned: Value(dive.isPlanned && !dive.isDraft),
                 isDraft: Value(dive.isDraft),
                 outingId: Value(dive.outingId),
                 // Training course (v1.5)
@@ -2684,7 +2685,8 @@ class DiveRepository {
             scrubberDurationMinutes: Value(dive.scrubber?.ratedMinutes),
             scrubberRemainingMinutes: Value(dive.scrubber?.remainingMinutes),
             // Dive planner (v1.5)
-            isPlanned: Value(dive.isPlanned),
+            // Never both (issue #637): a draft happened, so it wins.
+            isPlanned: Value(dive.isPlanned && !dive.isDraft),
             isDraft: Value(dive.isDraft),
             outingId: Value(dive.outingId),
             // Training course (v1.5)
@@ -6422,10 +6424,15 @@ class DiveRepository {
   /// has passed still restricts nothing until it is marked executed (issue
   /// #3924). A dive mirrored from a logged dive counts, since it happened, and
   /// reads that dive's deco obligation and end, having none of its own.
+  ///
+  /// A draft (issue #637) happened but has no readings, so it counts as a
+  /// deco dive, and one still in the water ends at [now], wall clock
+  /// flagged UTC like the stored times (the device's clock by default).
   // stats-scope-exempt: flying-after-diving safety, an excluded dive still off-gassed
   Future<List<NoFlyDiveInput>> getNoFlyDiveInputs({
     required DateTime since,
     String? diverId,
+    DateTime? now,
   }) async {
     try {
       final diverClause = diverId != null ? 'AND d.diver_id = ?' : '';
@@ -6438,18 +6445,25 @@ class DiveRepository {
       const profileDives =
           'SELECT d.id UNION ALL '
           'SELECT source.id FROM dives source WHERE $loggedSource';
+      // A draft still in the water (no exit tapped yet) ends now, so its
+      // wait counts from the moment the diver surfaces (issue #637).
       const endMs =
+          'CASE WHEN d.is_draft = 1 AND d.exit_time IS NULL THEN ? ELSE '
           'COALESCE(d.exit_time, '
           '(SELECT MAX(source.exit_time) FROM dives source '
           'WHERE $loggedSource), '
           'COALESCE(d.entry_time, d.dive_date_time) '
           '+ COALESCE(d.runtime, (SELECT MAX(source.runtime) '
-          'FROM dives source WHERE $loggedSource), 0) * 1000)';
+          'FROM dives source WHERE $loggedSource), 0) * 1000) END';
+      final nowMs =
+          (now ?? asWallClockUtc(DateTime.now())).millisecondsSinceEpoch;
       final rows = await _db
           .customSelect(
             'SELECT '
             '$endMs AS end_ms, '
-            '(EXISTS(SELECT 1 FROM dive_profile_series s '
+            // A draft has no readings to say whether it needed deco, so it
+            // counts as a deco dive, the longest wait (issue #637).
+            '(d.is_draft = 1 OR EXISTS(SELECT 1 FROM dive_profile_series s '
             'WHERE s.dive_id IN ($profileDives) AND (s.has_deco_stop = 1 '
             'OR (s.has_deco_type = 0 AND s.has_positive_ceiling = 1))) '
             'OR EXISTS(SELECT 1 FROM dive_profile_events e '
@@ -6461,6 +6475,8 @@ class DiveRepository {
             'AND NOT ${diveUndivedSql('d')} '
             '$diverClause',
             variables: [
+              Variable(nowMs),
+              Variable(nowMs),
               Variable(since.millisecondsSinceEpoch),
               if (diverId != null) Variable(diverId),
             ],
@@ -7245,9 +7261,10 @@ class DiveRepository {
       );
 
       // A planned dive holds no number until it is promoted (issue #2002),
-      // so it neither takes a slot nor shifts the numbers around it.
+      // and a draft none until it is filled (issue #637), so neither takes
+      // a slot nor shifts the numbers around it.
       final query = _db.select(_db.dives)
-        ..where((t) => t.isPlanned.equals(false))
+        ..where((t) => t.isPlanned.equals(false) & t.isDraft.equals(false))
         ..orderBy([
           (t) => OrderingTerm.asc(t.entryTime),
           (t) => OrderingTerm.asc(t.diveDateTime),

@@ -57032,6 +57032,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_dives_diveOperator => 'Szolgáltató';
 
   @override
+  String get query_dives_draft => 'Piszkozat';
+
+  @override
   String get query_dives_entryMethod => 'Beszállás módja';
 
   @override

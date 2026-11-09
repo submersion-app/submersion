@@ -25,6 +25,7 @@ class _NoQueryDiveRepository extends Fake implements DiveRepository {
   Future<List<NoFlyDiveInput>> getNoFlyDiveInputs({
     required DateTime since,
     String? diverId,
+    DateTime? now,
   }) async {
     throw StateError('getNoFlyDiveInputs must not run without an active diver');
   }
@@ -45,6 +46,7 @@ class _StubDiveRepository extends Fake implements DiveRepository {
   Future<List<NoFlyDiveInput>> getNoFlyDiveInputs({
     required DateTime since,
     String? diverId,
+    DateTime? now,
   }) async {
     queriedDiverId = diverId;
     return inputs;

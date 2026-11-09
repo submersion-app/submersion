@@ -17059,6 +17059,7 @@
   "query_dives_diveMode": "Modo de mergulho",
   "query_dives_diveNumber": "Número do mergulho",
   "query_dives_diveOperator": "Operadora",
+  "query_dives_draft": "Rascunho",
   "query_dives_entryMethod": "Método de entrada",
   "query_dives_excludedFromStats": "Excluído das estatísticas",
   "query_dives_exitMethod": "Método de saída",

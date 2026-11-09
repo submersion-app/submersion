@@ -93,6 +93,7 @@ void main() {
       String siteId, {
       String diver = 'me',
       bool planned = false,
+      bool draft = false,
       bool excluded = false,
     }) => db
         .into(db.dives)
@@ -102,6 +103,7 @@ void main() {
             diverId: Value(diver),
             siteId: Value(siteId),
             isPlanned: Value(planned),
+            isDraft: Value(draft),
             excludedFromStats: Value(excluded),
             diveDateTime: now,
             createdAt: now,
@@ -112,6 +114,8 @@ void main() {
     await dive('d-bon', 'bon', diver: 'other');
     await dive('d-plan1', 'plan', planned: true);
     await dive('d-plan2', 'plan', excluded: true);
+    // A draft waits for its readings, so the count leaves it out (#637).
+    await dive('d-plan3', 'plan', draft: true);
     await db
         .into(db.siteTypes)
         .insert(
@@ -289,7 +293,7 @@ void main() {
     }
   });
 
-  test('planned and excluded dives do not count', () async {
+  test('planned, draft and excluded dives do not count', () async {
     expect(await selected(const SiteFilterState(hasDives: true)), {'bon'});
     expect(
       await selected(const SiteFilterState(hasDives: false)),

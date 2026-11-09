@@ -2930,7 +2930,7 @@ class InsightsRepository with InsightsChartDives {
         .customSelect(
           'SELECT COUNT(*) AS logged, '
           'COUNT(*) FILTER (WHERE ${DiveStatsScope.predicate()}) AS counted '
-          'FROM dives d WHERE d.is_planned = 0 $diverFilter',
+          'FROM dives d WHERE NOT ${diveUnfilledSql('d')} $diverFilter',
           variables: diverId != null
               ? [Variable<String>(diverId)]
               : const <Variable<Object>>[],

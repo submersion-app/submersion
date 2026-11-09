@@ -320,6 +320,7 @@ void main() {
         AndNode([
           field('tankConfig', const EnumValue('singleBackmount')),
           field('planned', const BoolValue(false)),
+          field('draft', const BoolValue(false)),
           field('excludedFromStats', const BoolValue(false)),
         ]),
       );
@@ -350,6 +351,7 @@ void main() {
         AndNode([
           field('stages', const BoolValue(true)),
           field('planned', const BoolValue(false)),
+          field('draft', const BoolValue(false)),
           field('excludedFromStats', const BoolValue(false)),
         ]),
       );

@@ -17059,6 +17059,7 @@
   "query_dives_diveMode": "وضع الغوص",
   "query_dives_diveNumber": "رقم الغطسة",
   "query_dives_diveOperator": "المشغّل",
+  "query_dives_draft": "مسودة",
   "query_dives_entryMethod": "طريقة الدخول",
   "query_dives_excludedFromStats": "مستبعد من الإحصائيات",
   "query_dives_exitMethod": "طريقة الخروج",

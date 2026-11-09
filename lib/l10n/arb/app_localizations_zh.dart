@@ -53775,6 +53775,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_dives_diveOperator => '运营商';
 
   @override
+  String get query_dives_draft => '草稿';
+
+  @override
   String get query_dives_entryMethod => '入水方式';
 
   @override

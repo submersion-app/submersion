@@ -17059,6 +17059,7 @@
   "query_dives_diveMode": "Mode de plongée",
   "query_dives_diveNumber": "Numéro de plongée",
   "query_dives_diveOperator": "Opérateur",
+  "query_dives_draft": "Brouillon",
   "query_dives_entryMethod": "Mode de mise à l'eau",
   "query_dives_excludedFromStats": "Exclue des statistiques",
   "query_dives_exitMethod": "Mode de sortie",

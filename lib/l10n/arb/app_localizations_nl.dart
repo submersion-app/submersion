@@ -56965,6 +56965,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_dives_diveOperator => 'Operator';
 
   @override
+  String get query_dives_draft => 'Concept';
+
+  @override
   String get query_dives_entryMethod => 'Instapmethode';
 
   @override

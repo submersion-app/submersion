@@ -17059,6 +17059,7 @@
   "query_dives_diveMode": "潜水模式",
   "query_dives_diveNumber": "潜次",
   "query_dives_diveOperator": "运营商",
+  "query_dives_draft": "草稿",
   "query_dives_entryMethod": "入水方式",
   "query_dives_excludedFromStats": "不计入统计",
   "query_dives_exitMethod": "出水方式",

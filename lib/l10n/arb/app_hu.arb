@@ -17059,6 +17059,7 @@
   "query_dives_diveMode": "Merülési mód",
   "query_dives_diveNumber": "Merülés száma",
   "query_dives_diveOperator": "Szolgáltató",
+  "query_dives_draft": "Piszkozat",
   "query_dives_entryMethod": "Beszállás módja",
   "query_dives_excludedFromStats": "Kizárva a statisztikából",
   "query_dives_exitMethod": "Kiszállás módja",

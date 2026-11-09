@@ -56125,6 +56125,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_dives_diveOperator => 'מפעיל';
 
   @override
+  String get query_dives_draft => 'טיוטה';
+
+  @override
   String get query_dives_entryMethod => 'שיטת כניסה';
 
   @override

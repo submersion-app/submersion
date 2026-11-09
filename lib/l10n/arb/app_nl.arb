@@ -17059,6 +17059,7 @@
   "query_dives_diveMode": "Duikmodus",
   "query_dives_diveNumber": "Duiknummer",
   "query_dives_diveOperator": "Operator",
+  "query_dives_draft": "Concept",
   "query_dives_entryMethod": "Instapmethode",
   "query_dives_excludedFromStats": "Uitgesloten van statistieken",
   "query_dives_exitMethod": "Uitstapmethode",

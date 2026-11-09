@@ -57326,6 +57326,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get query_dives_diveOperator => 'Operadora';
 
   @override
+  String get query_dives_draft => 'Rascunho';
+
+  @override
   String get query_dives_entryMethod => 'Método de entrada';
 
   @override

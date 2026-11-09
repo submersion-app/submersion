@@ -17200,6 +17200,7 @@
   "query_dives_diveMode": "Tauchmodus",
   "query_dives_diveNumber": "Tauchgangsnummer",
   "query_dives_diveOperator": "Anbieter",
+  "query_dives_draft": "Entwurf",
   "query_dives_entryMethod": "Einstiegsart",
   "query_dives_excludedFromStats": "Aus Statistik ausgeschlossen",
   "query_dives_exitMethod": "Ausstiegsart",

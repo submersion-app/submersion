@@ -57212,6 +57212,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get query_dives_diveOperator => 'Anbieter';
 
   @override
+  String get query_dives_draft => 'Entwurf';
+
+  @override
   String get query_dives_entryMethod => 'Einstiegsart';
 
   @override

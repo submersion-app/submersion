@@ -17059,6 +17059,7 @@
   "query_dives_diveMode": "מצב צלילה",
   "query_dives_diveNumber": "מספר צלילה",
   "query_dives_diveOperator": "מפעיל",
+  "query_dives_draft": "טיוטה",
   "query_dives_entryMethod": "שיטת כניסה",
   "query_dives_excludedFromStats": "לא נכלל בסטטיסטיקה",
   "query_dives_exitMethod": "שיטת יציאה",

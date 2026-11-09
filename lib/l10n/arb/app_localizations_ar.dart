@@ -58063,6 +58063,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_dives_diveOperator => 'المشغّل';
 
   @override
+  String get query_dives_draft => 'مسودة';
+
+  @override
   String get query_dives_entryMethod => 'طريقة الدخول';
 
   @override

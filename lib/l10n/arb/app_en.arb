@@ -33932,6 +33932,8 @@
   "@query_dives_diveNumber": {"description": "Field label in the query builder"},
   "query_dives_diveOperator": "Operator",
   "@query_dives_diveOperator": {"description": "Field label in the query builder"},
+  "query_dives_draft": "Draft",
+  "@query_dives_draft": {"description": "Field label in the query builder: a dive marked at the site that waits for its dive computer readings"},
   "query_dives_entryMethod": "Entry method",
   "@query_dives_entryMethod": {"description": "Field label in the query builder"},
   "query_dives_excludedFromStats": "Excluded from statistics",

@@ -57463,6 +57463,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_dives_diveOperator => 'Opérateur';
 
   @override
+  String get query_dives_draft => 'Brouillon';
+
+  @override
   String get query_dives_entryMethod => 'Mode de mise à l\'eau';
 
   @override

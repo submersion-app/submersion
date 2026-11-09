@@ -90445,6 +90445,12 @@ abstract class AppLocalizations {
   /// **'Operator'**
   String get query_dives_diveOperator;
 
+  /// Field label in the query builder: a dive marked at the site that waits for its dive computer readings
+  ///
+  /// In en, this message translates to:
+  /// **'Draft'**
+  String get query_dives_draft;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
