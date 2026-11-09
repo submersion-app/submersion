@@ -482,14 +482,24 @@ class HealthKitAdapter implements ImportSourceAdapter {
             diverId: _diverId,
           );
           indicesToImport.remove(index);
-          await (_consolidationService ??
-                  DiveConsolidationService(_diveRepository))
-              .apply(targetDiveId: match.diveId, secondaryDiveIds: [dive.id]);
-          consolidated++;
+          try {
+            await (_consolidationService ??
+                    DiveConsolidationService(_diveRepository))
+                .apply(targetDiveId: match.diveId, secondaryDiveIds: [dive.id]);
+            consolidated++;
+          } catch (_) {
+            // The workout is saved; it stays a dive of its own.
+            importedDiveIds.add(dive.id);
+            rethrow;
+          }
         }
       } catch (e, stackTrace) {
+        // A failed fill wrote nothing (it is one transaction), so the
+        // workout is imported as new below; a failed merge kept it as a
+        // dive of its own above.
         _log.warning(
-          'Fill or merge of an Apple Health workout failed; importing as new',
+          'Fill or merge of an Apple Health workout failed; it stays a dive '
+          'of its own',
           error: e,
           stackTrace: stackTrace,
         );
