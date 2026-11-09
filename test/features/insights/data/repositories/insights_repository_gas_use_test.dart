@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
@@ -178,6 +179,96 @@ void main() {
           );
       final sac = await repository.getSacPressurePerDive();
       expect(sac.single.value, closeTo(entity().sac!, 1e-9));
+    });
+
+    Future<void> insertTanks(List<domain.DiveTank> tanks) async {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion(
+              id: const Value('d1'),
+              diveDateTime: Value(now),
+              runtime: const Value(runtimeMinutes * 60),
+              avgDepth: const Value(recordedAvgDepth),
+              maxDepth: const Value(25),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
+      for (final t in tanks) {
+        await db
+            .into(db.diveTanks)
+            .insert(
+              DiveTanksCompanion(
+                id: Value(t.id),
+                diveId: const Value('d1'),
+                startPressure: Value(t.startPressure),
+                endPressure: Value(t.endPressure),
+                volume: Value(t.volume),
+                tankRole: Value(t.role.name),
+                o2Percent: Value(t.gasMix.o2),
+                hePercent: Value(t.gasMix.he),
+                tankOrder: Value(t.order),
+                surfaceBreathingDuration: Value(
+                  t.surfaceBreathingDuration?.inSeconds,
+                ),
+              ),
+            );
+      }
+    }
+
+    Future<void> expectAgrees(List<domain.DiveTank> tanks) async {
+      await insertTanks(tanks);
+      final dive = domain.Dive(
+        id: 'd1',
+        dateTime: DateTime.utc(2026),
+        runtime: const Duration(minutes: runtimeMinutes),
+        avgDepth: recordedAvgDepth,
+        tanks: tanks,
+      );
+      final sac = await repository.getSacPressurePerDive();
+      expect(sac.single.value, closeTo(dive.sac!, 1e-9));
+      final rmv = await repository.getSacVolumePerDive();
+      expect(rmv.single.value, closeTo(dive.rmvFor(GasModel.ideal)!, 1e-9));
+    }
+
+    test('a matched pair counts its shared minutes once', () async {
+      domain.DiveTank side(String id, TankRole role, int order) =>
+          domain.DiveTank(
+            id: id,
+            volume: 11,
+            startPressure: 200,
+            endPressure: 100,
+            role: role,
+            order: order,
+            surfaceBreathingDuration: const Duration(minutes: 10),
+          );
+      await expectAgrees([
+        side('l', TankRole.sidemountLeft, 0),
+        side('r', TankRole.sidemountRight, 1),
+      ]);
+    });
+
+    test('a cylinder left out of the rate adds none', () async {
+      await expectAgrees(const [
+        domain.DiveTank(
+          id: 'back',
+          volume: 12,
+          startPressure: 200,
+          endPressure: 100,
+          role: TankRole.backGas,
+        ),
+        domain.DiveTank(
+          id: 'stage',
+          startPressure: 200,
+          endPressure: 150,
+          gasMix: domain.GasMix(o2: 50),
+          role: TankRole.stage,
+          order: 1,
+          surfaceBreathingDuration: Duration(minutes: 10),
+        ),
+      ]);
     });
 
     test('count without a stored window too', () async {

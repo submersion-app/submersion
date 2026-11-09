@@ -245,8 +245,14 @@ double? _perCorrectedMinute(
   final double? ambient;
   // Minutes the diver entered for breathing these cylinders at the surface
   // after the computer stopped (issue #2930), counted at 0 m as each row's
-  // rate counts them; the windows never hold them.
-  final surface = rows.map((r) => r.surfaceSeconds).sum;
+  // rate counts them; the windows never hold them. A matched pair's shared
+  // time counts once, as its recorded durations do.
+  final surfaceByTank = {for (final r in rows) r.tankId: r.surfaceSeconds};
+  final surface = enteredSurfaceSeconds(
+    [for (final r in rows) ?tanks[r.tankId]],
+    contributes: (_) => true,
+    secondsOf: (t) => surfaceByTank[t.id] ?? 0,
+  );
   if (rows.any((r) => r.usageFromRecordedDuration)) {
     // An unrecorded cylinder alongside carries the whole dive, and one diver
     // cannot breathe for longer than the dive lasted: its window, which

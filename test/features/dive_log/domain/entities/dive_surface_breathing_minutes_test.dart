@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/features/dive_log/data/services/gas_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
@@ -63,8 +64,57 @@ void main() {
         ),
       ],
     );
-    expect(d.surfaceBreathingSeconds, 0);
     expect(d.sac, closeTo(100 / 40 / d.environment.pressureAtDepth(18), 1e-9));
+  });
+
+  test('a matched pair counts its shared surface minutes once', () {
+    // Sidemount cylinders breathed in turns: ten minutes entered on each is
+    // ten minutes of the diver's time, not twenty.
+    DiveTank side(String id, TankRole role) => DiveTank(
+      id: id,
+      volume: 11,
+      startPressure: 200,
+      endPressure: 100,
+      role: role,
+      surfaceBreathingDuration: const Duration(minutes: 10),
+    );
+    final d = dive(
+      tanks: [
+        side('l', TankRole.sidemountLeft),
+        side('r', TankRole.sidemountRight),
+      ],
+    );
+    final ambient = d.environment.pressureAtDepth(18 * 40 / 50);
+    expect(d.sac, closeTo(200 / 50 / ambient, 1e-9));
+  });
+
+  test('a cylinder left out of a rate adds none of its minutes', () {
+    // An unsized stage is not converted into the back gas's bar, nor into
+    // litres, so its gas is in neither rate and its minutes must not be.
+    final d = dive(
+      tanks: const [
+        DiveTank(
+          id: 'back',
+          volume: 12,
+          startPressure: 200,
+          endPressure: 100,
+          role: TankRole.backGas,
+        ),
+        DiveTank(
+          id: 'stage',
+          startPressure: 200,
+          endPressure: 150,
+          gasMix: GasMix(o2: 50),
+          role: TankRole.stage,
+          surfaceBreathingDuration: Duration(minutes: 10),
+          order: 1,
+        ),
+      ],
+    );
+    final ambient = d.environment.pressureAtDepth(18);
+    expect(d.sac, closeTo(100 / 40 / ambient, 1e-9));
+    final rmv = d.rmvFor(GasModel.ideal)!;
+    expect(rmv, closeTo(100 * 12 / 40 / ambient, 1e-6));
   });
 
   test('a suit inflation bottle adds no surface minutes', () {

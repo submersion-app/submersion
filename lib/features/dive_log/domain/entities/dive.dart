@@ -559,7 +559,10 @@ class Dive extends Equatable {
   double? rmvFor(GasModel model) {
     final breathing = breathingTanks;
     if (breathing.isEmpty) return null;
-    final basis = _consumptionBasis();
+    // Entered surface minutes of the cylinders whose gas this rate sums.
+    final basis = _consumptionBasis(
+      _surfaceSecondsWhere((t) => consumptionVolume(t, breathing) != null),
+    );
     if (basis == null) return null;
     final (:minutes, :avgPressureBar) = basis;
 
@@ -642,7 +645,9 @@ class Dive extends Equatable {
   /// else the recorded [avgDepth]. Null when no rate can be given: a
   /// rebreather, no runtime or no average depth. Each rate checks its own
   /// cylinders.
-  ({double minutes, double avgPressureBar})? _consumptionBasis() {
+  ({double minutes, double avgPressureBar})? _consumptionBasis(
+    int surfaceSeconds,
+  ) {
     final runtime = measuredRuntime;
     final recordedDepth = avgDepth;
     if (isRebreather || runtime == null || recordedDepth == null) {
@@ -658,7 +663,6 @@ class Dive extends Equatable {
     // A dive with no recorded time has no rate, as the statistics say: the
     // entered minutes alone do not make one.
     if (seconds <= 0) return null;
-    final surfaceSeconds = surfaceBreathingSeconds;
     final total = seconds + surfaceSeconds;
     final depth = use?.avgDepth ?? recordedDepth;
     // Ambient pressure in bar, matching the 1 bar reference that gasVolume
@@ -669,16 +673,19 @@ class Dive extends Equatable {
     );
   }
 
-  /// Seconds the diver entered for breathing this dive's cylinders at the
-  /// surface after the computer stopped logging (issue #2930). A suit
-  /// inflation bottle is not breathed, and a cylinder with no logged drop
-  /// adds no gas to a rate, so neither entry counts.
-  int get surfaceBreathingSeconds => breathingTanks.fold(0, (total, t) {
-    final start = t.startPressure;
-    final end = t.endPressure;
-    if (start == null || end == null || start <= end) return total;
-    return total + (t.surfaceBreathingDuration?.inSeconds ?? 0);
-  });
+  /// Seconds the diver entered for breathing at the surface after the
+  /// computer stopped logging (issue #2930) that a rate counts: those of the
+  /// breathing cylinders with a logged drop that [contributes] says add gas
+  /// to it, a matched pair's shared time once (see [enteredSurfaceSeconds]).
+  /// A suit inflation bottle is not breathed.
+  int _surfaceSecondsWhere(bool Function(DiveTank tank) contributes) =>
+      enteredSurfaceSeconds([
+        for (final t in breathingTanks)
+          if (t.startPressure != null &&
+              t.endPressure != null &&
+              t.startPressure! > t.endPressure!)
+            t,
+      ], contributes: contributes);
 
   /// The cylinders that hold breathing gas, in order: every one but a suit
   /// inflation bottle (issue #4243). Gas calculations start from these;
@@ -717,7 +724,12 @@ class Dive extends Equatable {
   double? get sac {
     final reference = sacReferenceTank;
     if (reference == null) return null;
-    final basis = _consumptionBasis();
+    // Entered surface minutes of the cylinders [referencePressureDrop] sums.
+    final basis = _consumptionBasis(
+      _surfaceSecondsWhere(
+        (t) => referenceBarsPerBar(t, reference, tanks) != null,
+      ),
+    );
     if (basis == null) return null;
     final (:minutes, :avgPressureBar) = basis;
 

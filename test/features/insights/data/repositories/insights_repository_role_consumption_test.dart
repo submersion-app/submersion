@@ -201,6 +201,43 @@ void main() {
     expect(value, closeTo(back.rmv!, 1e-9));
   });
 
+  test(
+    'a matched pair counts its shared surface minutes once (#2930)',
+    () async {
+      // Ten minutes entered on both sidemount cylinders is the same surface time
+      // as ten entered on one of them.
+      Future<void> pair(
+        String id, {
+        required int day,
+        required bool both,
+      }) async {
+        await insertDive(id, day: day);
+        await insertTank(
+          id,
+          '$id-l',
+          'sidemountLeft',
+          surfaceBreathingSeconds: 600,
+        );
+        await insertTank(
+          id,
+          '$id-r',
+          'sidemountRight',
+          order: 1,
+          surfaceBreathingSeconds: both ? 600 : null,
+        );
+      }
+
+      await pair('both', day: 1, both: true);
+      await pair('one', day: 2, both: false);
+
+      final trend = await repository.getRoleConsumptionPerDive();
+      double rmv(String id) => trend.rmv[ConsumptionRoleGroup.bottomGas]!
+          .singleWhere((p) => p.diveId == id)
+          .value;
+      expect(rmv('both'), closeTo(rmv('one'), 1e-9));
+    },
+  );
+
   test('a recorded duration counts entered minutes once (#2930)', () async {
     // The log recorded 30 minutes on the back gas, and the diver entered ten
     // more on the boat.

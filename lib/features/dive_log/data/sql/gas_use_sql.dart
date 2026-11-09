@@ -33,32 +33,64 @@ String _recordedSeconds(String dive) {
   return 'MIN(COALESCE(${_cached(dive, 'gas_use_s')}, $measured), $measured)';
 }
 
-/// Seconds the diver entered for breathing the dive's cylinders at the
-/// surface after the computer stopped logging, 0 when none: the SQL form of
-/// `Dive.surfaceBreathingSeconds`. A suit inflation bottle is not breathed,
-/// and a cylinder with no logged drop adds no gas to a rate.
-String _surfaceSeconds(String dive) =>
+/// Which whole-dive rate a gas-use expression is for: the pressure lane
+/// (`Dive.sac`, `diveSacPressureSql`) or the volume lane (`Dive.rmvFor`).
+/// They sum different cylinders, so they count different surface minutes.
+enum GasUseLane { pressure, volume }
+
+/// Whether the `dive_tanks` row aliased [tank] adds gas to [lane] of the
+/// `dives` row aliased [dive]: in litres, when it has a consumption volume;
+/// in bar of the reference, when it is the reference, both sizes are known,
+/// or it pairs with the reference (`referenceBarsPerBar`).
+String _contributesSql(String tank, String dive, GasUseLane lane) =>
+    switch (lane) {
+      GasUseLane.volume => '${consumptionVolumeSql(tank)} IS NOT NULL',
+      GasUseLane.pressure =>
+        'EXISTS (SELECT 1 FROM dive_tanks gu_r '
+            'WHERE gu_r.id = ${sacReferenceIdSql(dive)} '
+            'AND ($tank.id = gu_r.id '
+            'OR (${consumptionVolumeSql(tank)} IS NOT NULL '
+            "AND ${consumptionVolumeSql('gu_r')} IS NOT NULL) "
+            "OR ${matchedPairSql(tank, 'gu_r')}))",
+    };
+
+/// Seconds the diver entered for breathing at the surface after the computer
+/// stopped logging that [lane] counts, 0 when none: the SQL form of
+/// `enteredSurfaceSeconds` over the breathing cylinders with a logged drop.
+/// A matched pair's shared time counts once, at its longer entry.
+String _surfaceSeconds(String dive, GasUseLane lane) =>
     '(SELECT COALESCE(SUM(gu_t.surface_breathing_duration), 0) '
     'FROM dive_tanks gu_t WHERE gu_t.dive_id = $dive.id '
     'AND gu_t.start_pressure > gu_t.end_pressure '
-    "AND ${breathingTankSql('gu_t')})";
+    "AND ${breathingTankSql('gu_t')} "
+    'AND gu_t.surface_breathing_duration > 0 '
+    "AND ${_contributesSql('gu_t', dive, lane)} "
+    'AND NOT EXISTS (SELECT 1 FROM dive_tanks gu_p '
+    'WHERE gu_p.dive_id = gu_t.dive_id AND gu_p.id <> gu_t.id '
+    'AND gu_p.start_pressure > gu_p.end_pressure '
+    "AND ${breathingTankSql('gu_p')} "
+    "AND ${matchedPairSql('gu_t', 'gu_p')} "
+    'AND (COALESCE(gu_p.surface_breathing_duration, 0) '
+    '> gu_t.surface_breathing_duration '
+    'OR (gu_p.surface_breathing_duration = gu_t.surface_breathing_duration '
+    'AND gu_p.id < gu_t.id))))';
 
-/// Seconds a whole-dive rate of the `dives` row aliased [dive] divides by:
-/// the recorded time (see [_recordedSeconds]) plus minutes entered for
-/// breathing at the surface (issue #2930). NULL exactly when the measured
-/// runtime is. Mirrors `Dive._consumptionBasis`.
-String gasUseSecondsSql(String dive) =>
-    '(${_recordedSeconds(dive)} + ${_surfaceSeconds(dive)})';
+/// Seconds [lane] of the `dives` row aliased [dive] divides by: the recorded
+/// time (see [_recordedSeconds]) plus minutes entered for breathing at the
+/// surface (issue #2930). NULL exactly when the measured runtime is.
+/// Mirrors `Dive._consumptionBasis`.
+String gasUseSecondsSql(String dive, {required GasUseLane lane}) =>
+    '(${_recordedSeconds(dive)} + ${_surfaceSeconds(dive, lane)})';
 
 /// The depth in metres a whole-dive rate of the `dives` row aliased [dive]
 /// takes its ambient pressure at: the stored window's mean depth, else the
 /// recorded average depth, with any surface minutes entered counted at 0 m.
-String gasUseAvgDepthSql(String dive) {
+String gasUseAvgDepthSql(String dive, {required GasUseLane lane}) {
   final depth =
       'COALESCE(${_cached(dive, 'gas_use_avg_depth_m')}, '
       '$dive.avg_depth)';
   final recorded = _recordedSeconds(dive);
-  final surface = _surfaceSeconds(dive);
+  final surface = _surfaceSeconds(dive, lane);
   return '(CASE WHEN $surface > 0 '
       'THEN $depth * $recorded / ($recorded + $surface) '
       'ELSE $depth END)';
