@@ -10,7 +10,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// The one name index the parser, the builder's pickers, saved-query
 /// loading and Explore's resolver read (#2365). Reloads when any ref table
 /// or the locale changes, so a synced site or a renamed buddy shows up
-/// without a restart and localized species names follow the app language.
+/// without a restart and localized species, dive type and site type names
+/// follow the app language.
 final queryNameIndexProvider = FutureProvider<NameIndex>((ref) async {
   final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
   final repository = ref.watch(diveRepositoryProvider);

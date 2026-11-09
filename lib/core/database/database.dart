@@ -469,7 +469,18 @@ class AppDatabase extends _$AppDatabase {
   /// before the update: withCurrentWireKeys points a tripId-shaped row at
   /// its trip's default checklist, and the serializer creates that
   /// checklist when this device does not hold it yet.
-  static const int minimumCompatibleSchemaVersion = 336;
+  ///
+  /// Raised 336 -> 350 by sighting abundance (#4337): v350 adds the synced
+  /// column sightings.abundance, where null means the count is exact and
+  /// `seen` or a REEF group means it is not. A peer below 350 stores a Seen
+  /// or group sighting as its count alone (1). Once that peer upgrades, the
+  /// new column is null there, and its next edit of the sighting publishes
+  /// an explicit null, which the merge applies as a real value (only an
+  /// omitted key is refilled from the local row), turning the sighting into
+  /// an exact 1 on every device. Peers below 350 are held until they
+  /// update. Their own payloads still arrive here and decode cleanly: a
+  /// missing abundance is null, an exact count.
+  static const int minimumCompatibleSchemaVersion = 350;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1595,12 +1606,22 @@ class AppDatabase extends _$AppDatabase {
     // overlay opacity over it per theme. Additive and defaulted; the floor
     // does not move.
     347,
+    // v348: dive_derived_metrics.gas_use_s and gas_use_avg_depth_m, a dive's
+    // underwater time and depth for SAC and RMV, and where surface breathing
+    // stretched them (issue #2930): a device-local cache the sweep refills.
+    // Plus dive_tanks.surface_breathing_duration, a nullable synced column an
+    // older peer omits, with no backfill. The floor does not move.
+    348,
     // v349: an empty dives.water_temp takes the temperature its source rows
     // measured, which a download kept on the source row only (issue #4333).
     // Data only, filling a column every reader already holds, so the floor
     // does not move. Numbered 349 so open PR #4327, which claimed 347, can
     // take 348.
     349,
+    // v350: sightings.abundance, Seen, a REEF group, or (null) an exact
+    // count (issue #4337). Nullable, no backfill; raises the sync floor to
+    // 350. Numbered 350: main holds 349 and open PR #4327 is to take 348.
+    350,
     // v352: media.observation_id and equipment.cover_media_id, gear photos
     // and an item's cover photo (issue #3355). Nullable columns an older
     // peer omits, with no backfill, so the floor does not move.

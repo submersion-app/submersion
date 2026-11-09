@@ -30,6 +30,10 @@ class FakeWebDavServer {
   final Map<String, DateTime> modified = {};
   final List<http.Request> captured = [];
 
+  /// Answers a GET's `Range` with a 206 piece. Off by default: the plain
+  /// GET answers the whole file with 200, as a server ignoring Range does.
+  bool honorsRange = false;
+
   DateTime Function() now = () => DateTime.utc(2026, 10, 9, 10);
 
   /// Write hrefs as full URLs instead of absolute paths.
@@ -133,7 +137,7 @@ class FakeWebDavServer {
       'PROPFIND' => _propfind(request, path),
       'GET' =>
         files.containsKey(path)
-            ? http.Response.bytes(files[path]!, 200)
+            ? _getFile(request, files[path]!)
             : http.Response('', 404),
       'PUT' => _put(path, request.bodyBytes),
       'DELETE' => _delete(path),
@@ -141,6 +145,19 @@ class FakeWebDavServer {
       'MOVE' => _move(request, path),
       _ => http.Response('', 405),
     };
+  }
+
+  http.Response _getFile(http.Request request, Uint8List bytes) {
+    final range = request.headers['range'] ?? request.headers['Range'];
+    if (!honorsRange || range == null) return http.Response.bytes(bytes, 200);
+    final match = RegExp(r'bytes=(\d+)-(\d+)').firstMatch(range)!;
+    final start = int.parse(match.group(1)!);
+    final end = int.parse(match.group(2)!).clamp(0, bytes.length - 1);
+    return http.Response.bytes(
+      bytes.sublist(start, end + 1),
+      206,
+      headers: {'content-range': 'bytes $start-$end/${bytes.length}'},
+    );
   }
 
   http.Response _propfind(http.Request request, String path) {

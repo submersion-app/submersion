@@ -1,7 +1,9 @@
 import 'package:submersion/core/services/export/uddf/uddf_dive_chunk.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
+import 'package:submersion/features/dive_log/data/services/dive_sightings_hydration.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
+import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 
 /// Dives per run of the full UDDF backup (see [databaseUddfDiveChunks]); the
 /// logbook PDF export reads its profiles in runs of the same size.
@@ -27,17 +29,26 @@ UddfDiveChunkLoader databaseUddfDiveChunks({
   required TankPressureRepository tankPressureRepository,
   required Future<List<DiveSourceExport>> Function(List<String> diveIds)
   fetchSources,
+  SpeciesRepository? speciesRepository,
 }) => (dives) async {
   final ids = [for (final dive in dives) dive.id];
   final profiles = await diveRepository.getMergedProfilesForDives(ids);
   final pressures = await tankPressureRepository.getTankPressuresForDives(ids);
+  // The dive list carries no sightings either, so the export wrote none
+  // (issue #4337 follow-up).
+  final sightings = await loadMarineSightings(
+    speciesRepository ?? SpeciesRepository(),
+    ids,
+  );
   return UddfDiveChunk(
     dives: [
       for (final dive in dives)
-        if (profiles[dive.id] case final profile?)
-          dive.copyWith(profile: profile)
-        else
-          dive,
+        dive.copyWith(
+          profile: profiles[dive.id] ?? dive.profile,
+          sightings: dive.sightings.isEmpty
+              ? sightings[dive.id] ?? const []
+              : dive.sightings,
+        ),
     ],
     tankPressures: pressures,
     sources: await fetchSources(ids),

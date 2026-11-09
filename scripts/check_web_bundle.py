@@ -38,6 +38,7 @@ REQUIRED = (
     "sqlite3.wasm",
     "drift_worker.js",
     "compute_worker.js",
+    "media_stream_worker.js",
     "version.json",
     "_headers",
     "nginx.conf",

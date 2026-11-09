@@ -7,6 +7,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
+import 'package:submersion/features/transmitters/data/services/transmitter_slot_matcher.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 import 'package:submersion/features/transmitters/presentation/widgets/transmitter_section.dart';
@@ -25,15 +26,27 @@ class _FakeApplyRepository extends TransmitterRepository {
 
   @override
   Future<ApplyToExistingResult> previewApplyToExistingDives(
-    Transmitter t,
-  ) async => preview;
+    Transmitter t, {
+    Iterable<String> slotTankIds = const [],
+  }) async => preview;
 
   @override
-  Future<ApplyToExistingResult> applyToExistingDives(Transmitter t) async {
+  Future<ApplyToExistingResult> applyToExistingDives(
+    Transmitter t, {
+    Iterable<String> slotTankIds = const [],
+  }) async {
     if (failApply) throw StateError('database closed');
     applied.add(t.id);
     return preview;
   }
+}
+
+/// Offers no computer to match by slot; the slot dialog has its own tests
+/// (transmitter_apply_dialog_test.dart).
+class _NoSlots extends TransmitterSlotMatcher {
+  @override
+  Future<List<SlotComputer>> computersWithCandidates(Transmitter t) async =>
+      const [];
 }
 
 /// A transmitter's setup lives on its Equipment page (issue #3676).
@@ -103,6 +116,7 @@ void main() {
           ).overrideWith((ref) async => keys),
           if (repository != null)
             transmitterRepositoryProvider.overrideWithValue(repository),
+          transmitterSlotMatcherProvider.overrideWithValue(_NoSlots()),
           equipmentItemProvider('cyl').overrideWith(
             (ref) async => const EquipmentItem(
               id: 'cyl',
@@ -191,7 +205,10 @@ void main() {
       await tester.tap(find.text('Apply to existing dives'));
       await tester.pumpAndSettle();
 
-      expect(find.text('No cylinders carry this transmitter'), findsOneWidget);
+      expect(
+        find.text("No cylinder needs this transmitter's setup"),
+        findsOneWidget,
+      );
       expect(repo.applied, isEmpty);
     });
 
@@ -207,7 +224,9 @@ void main() {
       await tester.tap(find.text('Apply to existing dives'));
       await tester.pumpAndSettle();
       expect(
-        find.textContaining('4 cylinders on 4 dives carry this transmitter'),
+        find.textContaining(
+          '4 cylinders on 4 dives carrying this transmitter need its setup',
+        ),
         findsOneWidget,
       );
       await tester.tap(find.widgetWithText(FilledButton, 'Apply'));
