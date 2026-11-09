@@ -210,6 +210,11 @@ ParsedDive ConvertParsedDive(const libdc_parsed_dive_t& dive) {
         std::optional<int64_t> opt_serial =
             (tk.serial == 0) ? std::nullopt
                              : std::optional<int64_t>(static_cast<int64_t>(tk.serial));
+        // The fork stores the slot plus one, 0 meaning unknown; Dart sees
+        // it 0 based.
+        std::optional<int64_t> opt_slot =
+            (tk.slot == 0) ? std::nullopt
+                           : std::optional<int64_t>(static_cast<int64_t>(tk.slot) - 1);
 
         tanks.push_back(flutter::CustomEncodableValue(TankInfo(
             static_cast<int64_t>(i),
@@ -218,7 +223,8 @@ ParsedDive ConvertParsedDive(const libdc_parsed_dive_t& dive) {
             opt_begin ? &*opt_begin : nullptr,
             opt_end ? &*opt_end : nullptr,
             opt_usage ? &*opt_usage : nullptr,
-            opt_serial ? &*opt_serial : nullptr)));
+            opt_serial ? &*opt_serial : nullptr,
+            opt_slot ? &*opt_slot : nullptr)));
     }
 
     // Convert events.

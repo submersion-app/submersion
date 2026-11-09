@@ -730,6 +730,8 @@ class DiveComputerHostApiImpl(
                 endPressureBar = if (tk[4] > 0) tk[4] else null,
                 usage = if (tk[5].toLong() == 0L) null else tk[5].toLong(),
                 transmitterSerial = tk.getOrNull(6)?.toLong()?.takeIf { it != 0L },
+                // Native stores the slot plus one, 0 meaning unknown.
+                transmitterSlot = tk.getOrNull(7)?.toLong()?.takeIf { it != 0L }?.minus(1),
             )
         }
 

@@ -903,7 +903,9 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
                     startPressureBar: tk.beginpressure > 0 ? tk.beginpressure : nil,
                     endPressureBar: tk.endpressure > 0 ? tk.endpressure : nil,
                     usage: tk.usage == 0 ? nil : Int64(tk.usage),
-                    transmitterSerial: tk.serial == 0 ? nil : Int64(tk.serial)
+                    transmitterSerial: tk.serial == 0 ? nil : Int64(tk.serial),
+                    // Native stores the slot plus one, 0 meaning unknown.
+                    transmitterSlot: tk.slot == 0 ? nil : Int64(tk.slot) - 1
                 ))
             }
         }

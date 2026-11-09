@@ -904,14 +904,16 @@ TankInfo::TankInfo(
   const double* start_pressure_bar,
   const double* end_pressure_bar,
   const int64_t* usage,
-  const int64_t* transmitter_serial)
+  const int64_t* transmitter_serial,
+  const int64_t* transmitter_slot)
  : index_(index),
     gas_mix_index_(gas_mix_index),
     volume_liters_(volume_liters ? std::optional<double>(*volume_liters) : std::nullopt),
     start_pressure_bar_(start_pressure_bar ? std::optional<double>(*start_pressure_bar) : std::nullopt),
     end_pressure_bar_(end_pressure_bar ? std::optional<double>(*end_pressure_bar) : std::nullopt),
     usage_(usage ? std::optional<int64_t>(*usage) : std::nullopt),
-    transmitter_serial_(transmitter_serial ? std::optional<int64_t>(*transmitter_serial) : std::nullopt) {}
+    transmitter_serial_(transmitter_serial ? std::optional<int64_t>(*transmitter_serial) : std::nullopt),
+    transmitter_slot_(transmitter_slot ? std::optional<int64_t>(*transmitter_slot) : std::nullopt) {}
 
 int64_t TankInfo::index() const {
   return index_;
@@ -996,9 +998,22 @@ void TankInfo::set_transmitter_serial(int64_t value_arg) {
 }
 
 
+const int64_t* TankInfo::transmitter_slot() const {
+  return transmitter_slot_ ? &(*transmitter_slot_) : nullptr;
+}
+
+void TankInfo::set_transmitter_slot(const int64_t* value_arg) {
+  transmitter_slot_ = value_arg ? std::optional<int64_t>(*value_arg) : std::nullopt;
+}
+
+void TankInfo::set_transmitter_slot(int64_t value_arg) {
+  transmitter_slot_ = value_arg;
+}
+
+
 EncodableList TankInfo::ToEncodableList() const {
   EncodableList list;
-  list.reserve(7);
+  list.reserve(8);
   list.push_back(EncodableValue(index_));
   list.push_back(EncodableValue(gas_mix_index_));
   list.push_back(volume_liters_ ? EncodableValue(*volume_liters_) : EncodableValue());
@@ -1006,6 +1021,7 @@ EncodableList TankInfo::ToEncodableList() const {
   list.push_back(end_pressure_bar_ ? EncodableValue(*end_pressure_bar_) : EncodableValue());
   list.push_back(usage_ ? EncodableValue(*usage_) : EncodableValue());
   list.push_back(transmitter_serial_ ? EncodableValue(*transmitter_serial_) : EncodableValue());
+  list.push_back(transmitter_slot_ ? EncodableValue(*transmitter_slot_) : EncodableValue());
   return list;
 }
 
@@ -1032,6 +1048,10 @@ TankInfo TankInfo::FromEncodableList(const EncodableList& list) {
   auto& encodable_transmitter_serial = list[6];
   if (!encodable_transmitter_serial.IsNull()) {
     decoded.set_transmitter_serial(std::get<int64_t>(encodable_transmitter_serial));
+  }
+  auto& encodable_transmitter_slot = list[7];
+  if (!encodable_transmitter_slot.IsNull()) {
+    decoded.set_transmitter_slot(std::get<int64_t>(encodable_transmitter_slot));
   }
   return decoded;
 }

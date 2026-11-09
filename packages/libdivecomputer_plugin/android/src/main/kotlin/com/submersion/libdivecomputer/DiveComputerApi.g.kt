@@ -311,7 +311,14 @@ data class TankInfo (
    * computer reported none. Identifies the physical cylinder across
    * computers paired to the same transmitter.
    */
-  val transmitterSerial: Long? = null
+  val transmitterSerial: Long? = null,
+  /**
+   * The physical transmitter slot the computer paired this tank's
+   * transmitter to, 0 based (Shearwater T1 = 0 to T4 = 3), from the fork's
+   * `dc_tank_t.slot` (which stores it plus one, 0 meaning unknown); null
+   * when the computer reported none (issue #4347).
+   */
+  val transmitterSlot: Long? = null
 )
  {
   companion object {
@@ -323,7 +330,8 @@ data class TankInfo (
       val endPressureBar = pigeonVar_list[4] as Double?
       val usage = pigeonVar_list[5] as Long?
       val transmitterSerial = pigeonVar_list[6] as Long?
-      return TankInfo(index, gasMixIndex, volumeLiters, startPressureBar, endPressureBar, usage, transmitterSerial)
+      val transmitterSlot = pigeonVar_list[7] as Long?
+      return TankInfo(index, gasMixIndex, volumeLiters, startPressureBar, endPressureBar, usage, transmitterSerial, transmitterSlot)
     }
   }
   fun toList(): List<Any?> {
@@ -335,6 +343,7 @@ data class TankInfo (
       endPressureBar,
       usage,
       transmitterSerial,
+      transmitterSlot,
     )
   }
 }

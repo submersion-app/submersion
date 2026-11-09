@@ -442,7 +442,8 @@ class TankInfo {
     const double* start_pressure_bar,
     const double* end_pressure_bar,
     const int64_t* usage,
-    const int64_t* transmitter_serial);
+    const int64_t* transmitter_serial,
+    const int64_t* transmitter_slot);
 
   int64_t index() const;
   void set_index(int64_t value_arg);
@@ -476,6 +477,14 @@ class TankInfo {
   void set_transmitter_serial(const int64_t* value_arg);
   void set_transmitter_serial(int64_t value_arg);
 
+  // The physical transmitter slot the computer paired this tank's
+  // transmitter to, 0 based (Shearwater T1 = 0 to T4 = 3), from the fork's
+  // `dc_tank_t.slot` (which stores it plus one, 0 meaning unknown); null
+  // when the computer reported none (issue #4347).
+  const int64_t* transmitter_slot() const;
+  void set_transmitter_slot(const int64_t* value_arg);
+  void set_transmitter_slot(int64_t value_arg);
+
 
  private:
   static TankInfo FromEncodableList(const flutter::EncodableList& list);
@@ -490,6 +499,7 @@ class TankInfo {
   std::optional<double> end_pressure_bar_;
   std::optional<int64_t> usage_;
   std::optional<int64_t> transmitter_serial_;
+  std::optional<int64_t> transmitter_slot_;
 
 };
 

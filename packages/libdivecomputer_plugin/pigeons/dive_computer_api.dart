@@ -169,6 +169,7 @@ class TankInfo {
     this.endPressureBar,
     this.usage,
     this.transmitterSerial,
+    this.transmitterSlot,
   });
   final int index;
   final int gasMixIndex;
@@ -185,6 +186,12 @@ class TankInfo {
   /// computer reported none. Identifies the physical cylinder across
   /// computers paired to the same transmitter.
   final int? transmitterSerial;
+
+  /// The physical transmitter slot the computer paired this tank's
+  /// transmitter to, 0 based (Shearwater T1 = 0 to T4 = 3), from the fork's
+  /// `dc_tank_t.slot` (which stores it plus one, 0 meaning unknown); null
+  /// when the computer reported none (issue #4347).
+  final int? transmitterSlot;
 }
 
 class DiveEvent {

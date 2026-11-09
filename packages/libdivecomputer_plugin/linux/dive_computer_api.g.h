@@ -605,12 +605,13 @@ G_DECLARE_FINAL_TYPE(LibdivecomputerPluginTankInfo, libdivecomputer_plugin_tank_
  * end_pressure_bar: field in this object.
  * usage: field in this object.
  * transmitter_serial: field in this object.
+ * transmitter_slot: field in this object.
  *
  * Creates a new #TankInfo object.
  *
  * Returns: a new #LibdivecomputerPluginTankInfo
  */
-LibdivecomputerPluginTankInfo* libdivecomputer_plugin_tank_info_new(int64_t index, int64_t gas_mix_index, double* volume_liters, double* start_pressure_bar, double* end_pressure_bar, int64_t* usage, int64_t* transmitter_serial);
+LibdivecomputerPluginTankInfo* libdivecomputer_plugin_tank_info_new(int64_t index, int64_t gas_mix_index, double* volume_liters, double* start_pressure_bar, double* end_pressure_bar, int64_t* usage, int64_t* transmitter_serial, int64_t* transmitter_slot);
 
 /**
  * libdivecomputer_plugin_tank_info_get_index
@@ -685,6 +686,19 @@ int64_t* libdivecomputer_plugin_tank_info_get_usage(LibdivecomputerPluginTankInf
  * Returns: the field value.
  */
 int64_t* libdivecomputer_plugin_tank_info_get_transmitter_serial(LibdivecomputerPluginTankInfo* object);
+
+/**
+ * libdivecomputer_plugin_tank_info_get_transmitter_slot
+ * @object: a #LibdivecomputerPluginTankInfo.
+ *
+ * The physical transmitter slot the computer paired this tank's
+ * transmitter to, 0 based (Shearwater T1 = 0 to T4 = 3), from the fork's
+ * `dc_tank_t.slot` (which stores it plus one, 0 meaning unknown); null
+ * when the computer reported none (issue #4347).
+ *
+ * Returns: the field value.
+ */
+int64_t* libdivecomputer_plugin_tank_info_get_transmitter_slot(LibdivecomputerPluginTankInfo* object);
 
 /**
  * LibdivecomputerPluginDiveEvent:

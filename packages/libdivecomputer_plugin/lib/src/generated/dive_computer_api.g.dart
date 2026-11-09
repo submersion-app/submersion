@@ -331,6 +331,7 @@ class TankInfo {
     this.endPressureBar,
     this.usage,
     this.transmitterSerial,
+    this.transmitterSlot,
   });
 
   int index;
@@ -353,6 +354,12 @@ class TankInfo {
   /// computers paired to the same transmitter.
   int? transmitterSerial;
 
+  /// The physical transmitter slot the computer paired this tank's
+  /// transmitter to, 0 based (Shearwater T1 = 0 to T4 = 3), from the fork's
+  /// `dc_tank_t.slot` (which stores it plus one, 0 meaning unknown); null
+  /// when the computer reported none (issue #4347).
+  int? transmitterSlot;
+
   Object encode() {
     return <Object?>[
       index,
@@ -362,6 +369,7 @@ class TankInfo {
       endPressureBar,
       usage,
       transmitterSerial,
+      transmitterSlot,
     ];
   }
 
@@ -375,6 +383,7 @@ class TankInfo {
       endPressureBar: result[4] as double?,
       usage: result[5] as int?,
       transmitterSerial: result[6] as int?,
+      transmitterSlot: result[7] as int?,
     );
   }
 }

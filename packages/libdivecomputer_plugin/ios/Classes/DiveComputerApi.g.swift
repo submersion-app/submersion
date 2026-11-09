@@ -355,6 +355,11 @@ struct TankInfo {
   /// computer reported none. Identifies the physical cylinder across
   /// computers paired to the same transmitter.
   var transmitterSerial: Int64? = nil
+  /// The physical transmitter slot the computer paired this tank's
+  /// transmitter to, 0 based (Shearwater T1 = 0 to T4 = 3), from the fork's
+  /// `dc_tank_t.slot` (which stores it plus one, 0 meaning unknown); null
+  /// when the computer reported none (issue #4347).
+  var transmitterSlot: Int64? = nil
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -366,6 +371,7 @@ struct TankInfo {
     let endPressureBar: Double? = nilOrValue(pigeonVar_list[4])
     let usage: Int64? = nilOrValue(pigeonVar_list[5])
     let transmitterSerial: Int64? = nilOrValue(pigeonVar_list[6])
+    let transmitterSlot: Int64? = nilOrValue(pigeonVar_list[7])
 
     return TankInfo(
       index: index,
@@ -374,7 +380,8 @@ struct TankInfo {
       startPressureBar: startPressureBar,
       endPressureBar: endPressureBar,
       usage: usage,
-      transmitterSerial: transmitterSerial
+      transmitterSerial: transmitterSerial,
+      transmitterSlot: transmitterSlot
     )
   }
   func toList() -> [Any?] {
@@ -386,6 +393,7 @@ struct TankInfo {
       endPressureBar,
       usage,
       transmitterSerial,
+      transmitterSlot,
     ]
   }
 }
