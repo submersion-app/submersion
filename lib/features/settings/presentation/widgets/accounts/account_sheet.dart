@@ -26,7 +26,8 @@ void showAccountsLoadFailed(BuildContext context, WidgetRef ref) {
 /// on this device, or null when the diver backs out.
 ///
 /// [allowedKinds] restricts both sections (shared libraries allow only S3
-/// and WebDAV). When [consequenceOf] returns text for the choice, the sheet
+/// and WebDAV), and [excludedKeys] leaves accounts out of the first. When
+/// [consequenceOf] returns text for the choice, the sheet
 /// shows it with Cancel and Continue before returning, so a choice with
 /// consequences is explained before it takes effect. [webdavCheck] is how an
 /// own WebDAV server added or signed in here is checked (a library reaches
@@ -38,6 +39,7 @@ Future<AccountGroup?> showAccountSheet(
   bool addOnly = false,
   String? Function(AccountGroup choice)? consequenceOf,
   WebDavCheck? webdavCheck,
+  Set<String> excludedKeys = const {},
 }) async => switch (await _showSheet(
   context,
   allowedKinds: allowedKinds,
@@ -45,6 +47,7 @@ Future<AccountGroup?> showAccountSheet(
   addOnly: addOnly,
   consequenceOf: consequenceOf,
   webdavCheck: webdavCheck,
+  excludedKeys: excludedKeys,
 )) {
   ChoseAccount(:final group) => group,
   _ => null,
@@ -78,6 +81,7 @@ Future<AccountSheetChoice?> _showSheet(
   WebDavCheck? webdavCheck,
   String? noneLabel,
   bool noneSelected = false,
+  Set<String> excludedKeys = const {},
 }) => showModalBottomSheet<AccountSheetChoice>(
   context: context,
   isScrollControlled: true,
@@ -95,6 +99,7 @@ Future<AccountSheetChoice?> _showSheet(
       webdavCheck: webdavCheck,
       noneLabel: noneLabel,
       noneSelected: noneSelected,
+      excludedKeys: excludedKeys,
       onChosen: (choice) => Navigator.of(sheetContext).pop(choice),
       onCancel: () => Navigator.of(sheetContext).pop(),
     ),

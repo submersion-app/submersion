@@ -12,6 +12,7 @@ class BackupHealthInputs {
     required this.lastCloudCopyMissing,
     required this.lastCloudCopyNeedsSignIn,
     required this.copyAccountNeedsSignIn,
+    this.lastExtraCopyMissing = false,
     required this.hasCustomLocation,
     required this.syncConfigured,
   });
@@ -28,6 +29,10 @@ class BackupHealthInputs {
 
   /// The copy's account reads as signed out on this device.
   final bool copyAccountNeedsSignIn;
+
+  /// An extra account the last backup should have reached did not get its
+  /// copy (#3782).
+  final bool lastExtraCopyMissing;
 
   /// A backup folder the diver chose. Counted as a copy off this device:
   /// the app cannot tell a NAS or synced folder from a local one.
@@ -82,6 +87,11 @@ FeatureHealth evaluateBackupHealth(BackupHealthInputs i, DateTime now) {
       health(HealthLevel.attention, HealthReason.backupOverdue, at: lastBackup),
     if (i.cloudBackupEnabled && i.lastCloudCopyMissing && !copySignIn)
       health(HealthLevel.attention, HealthReason.backupCloudCopyMissing),
+    // A missing main copy already says the stronger thing.
+    if (i.cloudBackupEnabled &&
+        i.lastExtraCopyMissing &&
+        !i.lastCloudCopyMissing)
+      health(HealthLevel.attention, HealthReason.backupExtraCopyMissing),
     if (!i.cloudBackupEnabled && !i.syncConfigured && !i.hasCustomLocation)
       health(HealthLevel.attention, HealthReason.backupNoOffDeviceCopy),
   ]);

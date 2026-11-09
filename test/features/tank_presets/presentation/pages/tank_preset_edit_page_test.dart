@@ -90,6 +90,61 @@ void main() {
       },
     );
 
+    testWidgets('a small bottle keeps both decimals of its size (#4243)', (
+      tester,
+    ) async {
+      // A drysuit's 0.85 L argon bottle must not load, and so save, as 0.9.
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final testPreset = TankPresetEntity(
+        id: 'argon',
+        name: 'argon',
+        displayName: 'Argon',
+        volumeLiters: 0.85,
+        workingPressureBar: 200,
+        material: TankMaterial.aluminum,
+        description: '',
+        isBuiltIn: false,
+        createdAt: DateTime(2024, 1, 1),
+        updatedAt: DateTime(2024, 1, 1),
+      );
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) =>
+                const TankPresetEditPage(presetId: 'argon'),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => MockCurrentDiverIdNotifier(),
+            ),
+            tankPresetRepositoryProvider.overrideWithValue(
+              _MockTankPresetRepository(preset: testPreset),
+            ),
+            tankPresetListNotifierProvider.overrideWith(
+              (ref) => _MockTankPresetListNotifier([testPreset]),
+            ),
+          ].cast(),
+          child: MaterialApp.router(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(TextFormField, '0.85'), findsOneWidget);
+      expect(find.text('\u2022 Water volume: 0.85 L'), findsOneWidget);
+    });
+
     testWidgets('info card shows working pressure converted to bar', (
       tester,
     ) async {

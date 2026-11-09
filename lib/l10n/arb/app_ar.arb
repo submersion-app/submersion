@@ -29,6 +29,8 @@
   "equipment_filter_owner_mine": "خاصتي",
   "enum_equipmentField_owner": "المالك",
   "enum_equipmentField_owner_short": "المالك",
+  "enum_equipmentField_location": "الموقع",
+  "enum_equipmentField_location_short": "الموقع",
   "equipment_set_noLongerShared": "لم يعد مُشارَكًا",
   "equipment_history_title": "السجل",
   "equipment_history_empty": "لم يُستخدم في أي غطسة بعد",
@@ -264,6 +266,8 @@
   "equipment_setDetail_showFigure": "إظهار رسم الغواص",
   "equipment_setDetail_hideFigure": "إخفاء رسم الغواص",
   "equipment_setEdit_figureSwitch_title": "إظهار رسم الغواص",
+  "equipment_setEdit_historyAsk": "تطبيق التغييرات على تلك الغطسات أيضًا، أم من الآن فصاعدًا فقط؟",
+  "equipment_setEdit_historyOnDives": "{count, plural, =1{هذه المجموعة موجودة في غطسة مسجلة واحدة.} two{هذه المجموعة موجودة في غطستين مسجلتين.} few{هذه المجموعة موجودة في {count} غطسات مسجلة.} many{هذه المجموعة موجودة في {count} غطسة مسجلة.} other{هذه المجموعة موجودة في {count} غطسة مسجلة.}}",
   "equipment_color_red": "أحمر",
   "equipment_color_orange": "برتقالي",
   "equipment_color_amber": "كهرماني",
@@ -2443,6 +2447,7 @@
   "diveLog_consolidate_alignStarts": "محاذاة البدايات",
   "diveLog_consolidate_sameDiveHint": "تبدو هذه الملفات كأنها الغوصة نفسها سجّلها جهازا كمبيوتر.",
   "diveLog_consolidate_clockNote": "هذه السجلات لا تتداخل زمنيًا، لذا ربما تكون ساعة أحد أجهزة الكمبيوتر خاطئة. تحتفظ الغوصة بوقت الكمبيوتر الأساسي.",
+  "diveLog_consolidate_clockNoteOverlap": "تتطابق ملفات العمق هذه في وقت مختلف عما تشير إليه ساعات أجهزة الكمبيوتر، لذا ربما تكون ساعة أحد أجهزة الكمبيوتر خاطئة. تحتفظ الغوصة بوقت الكمبيوتر الأساسي.",
   "diveLog_consolidate_noProfileFallback": "أحد السجلات لا يحتوي على ملف عمق للمطابقة، لذا تتم محاذاة بدايته مع بداية الأساسي.",
   "diveLog_combine_modeJoinShort": "ربط",
   "diveLog_combine_modeMergeShort": "دمج",
@@ -2467,6 +2472,95 @@
   "diveLog_deco_sectionTissueLoading": "تحميل الأنسجة",
   "diveLog_deco_semantics_notRequired": "لا يلزم تخفيف الضغط",
   "diveLog_deco_semantics_required": "يلزم تخفيف الضغط",
+  "diveLog_deco_compartmentLeading": "الرائدة: #{number}",
+  "@diveLog_deco_compartmentLeading": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_compartmentOther": "الحجرة: #{number}",
+  "@diveLog_deco_compartmentOther": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_metricLoad": "الحمل",
+  "diveLog_deco_gasOngassing": "امتصاص",
+  "diveLog_deco_gasOffgassing": "إطلاق",
+  "diveLog_deco_gasEquilibrium": "توازن",
+  "diveLog_deco_heatMapRows": "الصفوف: من السريعة (أعلى) إلى البطيئة (أسفل)",
+  "diveLog_deco_surfaceLevel": "مستوى السطح",
+  "diveLog_deco_mValue": "قيمة M",
+  "diveLog_deco_tooltipCompartment": "الحجرة {number}",
+  "@diveLog_deco_tooltipCompartment": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_tooltipLoaded": "حمل {percent}%",
+  "@diveLog_deco_tooltipLoaded": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_tooltipHalfTime": "نصف العمر: {minutes} دقيقة",
+  "@diveLog_deco_tooltipHalfTime": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_tooltipSurfaceLevel": "مستوى السطح: {percent}%",
+  "@diveLog_deco_tooltipSurfaceLevel": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_info_title": "ماذا تعني هذه القيم؟",
+  "diveLog_deco_info_body": "الحمل: ضغط الغاز الخامل في الحجرة كنسبة مئوية من الحد الأقصى الذي يمكنها حمله على السطح (قيمة M الخاصة بها، الخط الأحمر عند 100%).\n\nمستوى السطح: تُظهر العلامة على كل عمود المستوى الذي تستقر عنده الحجرة بعد إزالة التشبع بالكامل أثناء تنفسك الهواء على السطح. لا تكون أبداً عند 0%، لأن جسمك يحتوي دائماً على نيتروجين الهواء الذي تتنفسه. العمود الواقف عند علامته لا يحمل أي حمل متبقٍ من الغوص.\n\nالامتصاص والإطلاق: يتحرك الغاز دائماً نحو ضغط الغاز الذي تتنفسه. بعد تخفيف الضغط بالأكسجين أو بخليط غني بالهيليوم، قد تحتوي الحجرات السريعة على نيتروجين أقل من هواء السطح. وعند العودة إلى تنفس الهواء، تمتص النيتروجين مجدداً حتى تصل إلى علامتها. هذا أمر طبيعي وليس حملاً متبقياً من الغوصة.\n\nالهيليوم: لا يحتوي الهواء على هيليوم. بعد غوصة بالترايمكس، تطلق الحجرة الهيليوم بينما قد تمتص النيتروجين في الوقت نفسه. تُظهر الأسهم بجانب N₂ وHe كل غاز على حدة، وتُظهر الإشارة بجانب رقم الحجرة الاتجاه الإجمالي للغازين.",
+  "diveLog_deco_barChartSemantics": "مخطط تشبّع الأنسجة. {count} حجرة، الحمل نسبةً إلى قيمة M؛ الحجرة الرائدة {number} عند {percent}%.",
+  "@diveLog_deco_barChartSemantics": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "number": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_heatMapUndersaturated": "دون الإشباع",
+  "diveLog_deco_heatMapSupersaturated": "فوق الإشباع",
+  "diveLog_deco_percentValue": "{value}%",
+  "@diveLog_deco_percentValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_minutesValue": "{value} دقيقة",
+  "@diveLog_deco_minutesValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_deco_tissueFast": "سريعة",
   "diveLog_deco_tissueSlow": "بطيئة",
   "diveLog_deco_title": "حالة الديكو",
@@ -2802,6 +2896,10 @@
   "diveLog_edit_tripSuggested": "مقترح: {name}",
   "diveLog_edit_tripUse": "استخدام",
   "diveLog_edit_useSet": "استخدام طقم",
+  "diveLog_edit_removeSet": "إزالة طقم",
+  "diveLog_bulkEdit_setsToRemove": "أطقم للإزالة",
+  "diveLog_bulkEdit_removeSetTitle": "إزالة طقم معدات",
+  "diveLog_bulkEdit_equipmentSets": "أطقم المعدات",
   "diveLog_edit_weightPreset_use": "استخدام إعداد مسبق",
   "diveLog_edit_weightPreset_save": "حفظ كإعداد مسبق",
   "diveLog_edit_weightPreset_pickerTitle": "تطبيق إعداد أوزان مسبق",
@@ -4314,6 +4412,7 @@
   "enum_tankRole_sidemountLeft": "تعليق جانبي أيسر",
   "enum_tankRole_sidemountRight": "تعليق جانبي أيمن",
   "enum_tankRole_stage": "أسطوانة مرحلية",
+  "enum_tankRole_suitInflation": "نفخ البدلة",
   "enum_tankRole_twinSet": "طقم مزدوج",
   "enum_tideState_rising": "مد",
   "enum_tideState_falling": "جزر",
@@ -4872,6 +4971,7 @@
   "equipment_location_bulkAction": "نقل إلى موقع",
   "equipment_location_groupCount": "{count, plural, zero{لا عناصر} one{عنصر واحد} two{عنصران} few{{count} عناصر} many{{count} عنصرًا} other{{count} عنصر}}",
   "equipment_location_activeFilter": "الموقع",
+  "equipment_location_tileSemantics": "الموقع: {name}",
   "equipment_filter_section_location": "الموقع",
   "equipment_arrange_groupByLocation": "التجميع حسب الموقع",
   "equipment_arrange_groupByLocationSubtitle": "عنوان لكل مكان، في هذه الصفحة فقط",
@@ -6330,6 +6430,11 @@
   "settings_appearance_header_language": "اللغة",
   "settings_appearance_mapBackgroundDiveCards": "خلفية خريطة على بطاقات الغوص",
   "settings_appearance_mapBackgroundDiveCards_subtitleWithNote": "عرض خريطة موقع الغوص كخلفية على بطاقات الغوص (يتطلب موقع الموقع)",
+  "settings_appearance_photoBackgroundDiveCards": "خلفية صورة على بطاقات الغوص",
+  "settings_appearance_photoBackgroundDiveCards_subtitle": "عرض إحدى صور الغوصة كخلفية لبطاقات الغوص (بدون صور تُستخدم الخريطة أو اللون)",
+  "settings_appearance_photoOverlayDark": "عتامة الطبقة فوق الصورة، السمة الداكنة",
+  "settings_appearance_photoOverlayLight": "عتامة الطبقة فوق الصورة، السمة الفاتحة",
+  "settings_appearance_photoOverlay_subtitle": "القيمة الأعلى تبقي النص مقروءًا، والأقل تُظهر المزيد من الصورة",
   "settings_appearance_mapBackgroundSiteCards": "خلفية خريطة على بطاقات المواقع",
   "settings_appearance_mapBackgroundSiteCards_subtitleWithNote": "عرض الخريطة كخلفية على بطاقات مواقع الغوص (يتطلب موقع الموقع)",
   "settings_appearance_maxDepthMarker": "علامة أقصى عمق",
@@ -7656,6 +7761,9 @@
   "settings_conflict_field_showInDetailHeader": "معروض في رأس الغوصة",
   "settings_conflict_field_showInListView": "معروض في قائمة الغوصات",
   "settings_conflict_field_showMapBackgroundOnDiveCards": "خريطة خلف بطاقات الغوص",
+  "settings_conflict_field_showPhotoBackgroundOnDiveCards": "صورة خلف بطاقات الغوص",
+  "settings_conflict_field_cardPhotoOverlayDark": "طبقة فوق صورة بطاقة الغوص (داكنة)",
+  "settings_conflict_field_cardPhotoOverlayLight": "طبقة فوق صورة بطاقة الغوص (فاتحة)",
   "settings_conflict_field_showMapBackgroundOnSiteCards": "خريطة خلف بطاقات المواقع",
   "settings_conflict_field_showMaxDepthMarker": "الملف يعرض أقصى عمق",
   "settings_conflict_field_showNdlOnProfile": "الملف يعرض NDL",
@@ -7890,6 +7998,7 @@
   "dataHealth_backup_overdue": "النسخ الاحتياطي متأخر (آخر نسخة: {when})",
   "dataHealth_backup_never": "لا توجد نسخة احتياطية بعد",
   "dataHealth_backup_cloudCopyMissing": "لم يصل آخر نسخ احتياطي إلى السحابة",
+  "dataHealth_backup_extraCopyMissing": "لم يصل آخر نسخ احتياطي إلى كل الحسابات",
   "dataHealth_backup_noOffDeviceCopy": "لا توجد نسخة خارج هذا الجهاز",
   "dataHealth_sync_off": "موصى به: فعّل المزامنة السحابية",
   "dataHealth_sync_needsPassphrase": "المزامنة متوقفة مؤقتًا: أدخل عبارة المرور",
@@ -7907,7 +8016,7 @@
   "settings_data_importOptions": "خيارات الاستيراد",
   "settings_data_importOptions_subtitle": "مطابقة المواقع، الضغط عند الصعود، الوسوم التلقائية",
   "settings_data_dataTools": "أدوات البيانات",
-  "settings_data_dataTools_subtitle": "تصحيح أوقات الغطس، ربط الرفاق، إعادة تصنيف المعدات، جودة البيانات، محرر الجدول",
+  "settings_data_dataTools_subtitle": "تصحيح أوقات الغطس، ربط الرفاق، إعادة تصنيف المعدات، جودة البيانات، محرر الجدول، إعادة تحليل الغطسات",
   "settings_agentAccess_title": "وصول الوكلاء",
   "settings_agentAccess_confirm_linkedDives": "الغطسات التي ستفقد هذا الرابط ({diver}): {count}",
   "settings_agentAccess_confirm_alsoDeletes": "يحذف أيضًا {kind}: {count}",
@@ -8773,10 +8882,12 @@
   "insights_gas_gasMix_error": "فشل تحميل بيانات خليط الغاز",
   "insights_gas_gasMix_subtitle": "الغوصات حسب نوع الغاز",
   "insights_gas_gasMix_title": "توزيع خليط الغاز",
-  "insights_gas_sacByRole_empty": "لا توجد بيانات أسطوانات متعددة متاحة",
-  "insights_gas_sacByRole_error": "فشل تحميل الاستهلاك حسب الدور",
-  "insights_gas_sacByRole_subtitle": "متوسط الاستهلاك حسب نوع الأسطوانة",
-  "insights_gas_sacByRole_title": "استهلاك الغاز حسب دور الأسطوانة",
+  "insights_gas_roleUse_title": "الاستهلاك حسب دور الأسطوانة",
+  "insights_gas_roleUse_subtitle": "كل دور خلال الوقت الذي تم التنفس منه",
+  "insights_gas_roleUse_empty": "لا توجد قيم حسب دور الأسطوانة بعد",
+  "insights_gas_roleUse_error": "تعذر تحميل الاستهلاك حسب دور الأسطوانة",
+  "insights_gas_roleGroup_bottomGas": "غاز القاع",
+  "insights_gas_roleUse_leftOut": "{count, plural, =1{غطسة واحدة مستبعدة: أسطوانة مرحلية أو تخفيف ضغط أو احتياطية أو طوارئ فقدت غازًا دون تبديل غاز إليها} two{غطستان مستبعدتان: أسطوانة مرحلية أو تخفيف ضغط أو احتياطية أو طوارئ فقدت غازًا دون تبديل غاز إليها} few{{count} غطسات مستبعدة: أسطوانة مرحلية أو تخفيف ضغط أو احتياطية أو طوارئ فقدت غازًا دون تبديل غاز إليها} many{{count} غطسة مستبعدة: أسطوانة مرحلية أو تخفيف ضغط أو احتياطية أو طوارئ فقدت غازًا دون تبديل غاز إليها} other{{count} غطسة مستبعدة: أسطوانة مرحلية أو تخفيف ضغط أو احتياطية أو طوارئ فقدت غازًا دون تبديل غاز إليها}}",
   "insights_gas_ccrUse_title": "استهلاك الغاز لجهاز إعادة التنفس",
   "insights_gas_ccrUse_subtitle": "لكل دقيقة على الحلقة، باستثناء وقت الانتقال إلى الدائرة المفتوحة",
   "insights_gas_ccrUse_o2Average": "متوسط O₂",
@@ -8923,16 +9034,11 @@
   "insights_focus_gas_air": "هواء",
   "insights_focus_gas_nitrox": "نيتروكس",
   "insights_focus_gas_trimix": "ترايمكس",
-  "insights_gas_tankRole_backGas": "غاز رئيسي",
   "insights_gas_tankRole_bailout": "غاز الطوارئ",
   "insights_gas_tankRole_deco": "تخفيف الضغط",
   "insights_gas_tankRole_diluent": "مخفف",
-  "insights_gas_tankRole_oxygenSupply": "إمداد O₂",
   "insights_gas_tankRole_pony": "أسطوانة احتياطية",
-  "insights_gas_tankRole_sidemountLeft": "جانبي أيسر",
-  "insights_gas_tankRole_sidemountRight": "جانبي أيمن",
   "insights_gas_tankRole_stage": "أسطوانة مرحلية",
-  "insights_gas_tankRole_twinSet": "طقم مزدوج",
   "insights_geographic_appBar_title": "جغرافي",
   "insights_geographic_countries_empty": "لم تتم زيارة أي دول",
   "insights_geographic_countries_error": "فشل تحميل بيانات الدول",
@@ -10816,12 +10922,39 @@
   "diveComputer_detail_reimportDialogTitle": "إعادة استيراد جميع الغطسات؟",
   "diveComputer_detail_reparseAllButton": "إعادة تحليل جميع الغطسات",
   "diveComputer_detail_reparseAllMessage": "إعادة تشغيل محلل الغطسات على {count} غطسة لها بيانات أولية مخزنة. يُحدِّث ذلك بيانات الملف الشخصي والمستشعرات لكنه يحافظ على الملاحظات والمواقع والشركاء والتعديلات الأخرى.",
-  "diveComputer_detail_reparseAllPartial": "تمت إعادة تحليل {succeeded} من أصل {total} غطسة. فشلت {failed}.",
-  "diveComputer_detail_reparseAllProgress": "جارٍ إعادة تحليل {count} غطسة...",
-  "diveComputer_detail_reparseAllSuccess": "تمت إعادة تحليل {count} غطسة بنجاح",
   "diveComputer_detail_reparseAllTitle": "إعادة تحليل جميع الغطسات",
   "diveComputer_detail_reparseRawDataCount": "{count} غطسة بها بيانات أولية",
   "diveComputer_detail_reparseRawDataCountWithout": "{count} غطسة بها بيانات أولية ({without} بدون)",
+  "reparseBatch_progressTitle": "إعادة تحليل الغطسات",
+  "reparseBatch_progressCount": "إعادة تحليل {done} من أصل {total} غطسة",
+  "reparseBatch_cancelling": "جارٍ الإلغاء...",
+  "reparseBatch_resultTitle": "اكتملت إعادة التحليل",
+  "reparseBatch_resultCancelledTitle": "أُلغيت إعادة التحليل",
+  "reparseBatch_resultErrorTitle": "توقفت إعادة التحليل بسبب خطأ",
+  "reparseBatch_resultNotReached": "لم تُعالَج: {count}",
+  "reparseBatch_resultSummary": "تمت إعادة تحليل {succeeded} من أصل {total} غطسة.",
+  "reparseBatch_resultFailed": "فشلت: {count}",
+  "reparseBatch_resultNotProcessed": "لم تُعالَج (أُلغي): {count}",
+  "reparseBatch_resultSkipped": "تم تخطيها، بلا بيانات أولية: {count}",
+  "reparseBatch_resultProfilesPreserved": "غطسات مدمجة احتفظت بملفها الشخصي: {count}",
+  "reparseBatch_failedListHeader": "الغطسات التي فشلت",
+  "reparseBatch_failedDiveTitle": "الغطسة رقم {number}",
+  "reparseBatch_failedDiveUnnumbered": "غطسة بلا رقم",
+  "reparseBatch_missingDescriptors": "تفاصيل كمبيوتر الغوص مفقودة",
+  "reparseBatch_confirmTitle": "إعادة تحليل الغطسات",
+  "reparseBatch_confirmMessage": "إعادة تشغيل محلل الغطسات على {count} غطسة لها بيانات أولية مخزنة. يُحدِّث ذلك بيانات الملف الشخصي والمستشعرات لكنه يحافظ على الملاحظات والمواقع والشركاء والتعديلات الأخرى.",
+  "reparseBatch_confirmSkipped": "غطسات محددة بلا بيانات أولية (سيتم تخطيها): {count}",
+  "reparseBatch_noneWithRawData": "لا توجد بيانات أولية مخزنة لإعادة التحليل في أي من الغطسات المحددة.",
+  "diveLog_selection_tooltip_reparse": "إعادة التحليل",
+  "settings_reparseDives_title": "إعادة تحليل الغطسات",
+  "settings_reparseDives_subtitle": "إعادة تشغيل محلل الغطسات على كل غطسة لها بيانات أولية مخزنة",
+  "settings_reparseDives_intro": "استخدم هذا بعد أن يُحسّن تحديث للتطبيق قراءة بيانات كمبيوتر الغوص. تبقى الملاحظات والمواقع والشركاء والتعديلات الأخرى محفوظة.",
+  "settings_reparseDives_withRawData": "غطسات بها بيانات أولية: {count}",
+  "settings_reparseDives_withoutRawData": "غطسات بلا بيانات أولية (لن يُعاد تحليلها): {count}",
+  "settings_reparseDives_byComputer": "حسب كمبيوتر الغوص",
+  "settings_reparseDives_unknownComputer": "كمبيوتر غير معروف",
+  "settings_reparseDives_none": "لا توجد غطسات لها بيانات أولية مخزنة لإعادة التحليل.",
+  "settings_reparseDives_button": "إعادة تحليل الكل",
   "diveComputer_rawData_discardAction": "حذف",
   "diveComputer_rawData_discardAllMessage": "إزالة بيانات التنزيل الأولية المحفوظة لـ {count} غطسة من جميع كمبيوترات الغوص ({size})؟ لن يعود بالإمكان إعادة تحليل هذه الغطسات عند تحسين محلل الغطسات. تبقى الغطسات وتعديلاتك كما هي، وستزيل أجهزتك المتزامنة الأخرى البيانات أيضاً.",
   "diveComputer_rawData_discardButton": "حذف البيانات الأولية",
@@ -11554,6 +11687,7 @@
   "attrLabel_working_pressure_bar": "ضغط التشغيل",
   "attrLabel_tank_material": "المادة",
   "attrLabel_valve_type": "الصمام",
+  "attrLabel_cylinder_use": "استخدام الأسطوانة",
   "attrLabel_tank_identifier": "المعرف",
   "attrLabel_last_visual_inspection": "آخر فحص بصري",
   "attrLabel_last_hydro_test": "آخر اختبار هيدروستاتيكي",
@@ -11673,6 +11807,8 @@
   "attrChoice_valve_type_din": "DIN",
   "attrChoice_valve_type_yoke": "يوك (INT)",
   "attrChoice_valve_type_convertible": "قابل للتحويل",
+  "attrChoice_cylinder_use_breathing_gas": "غاز التنفس",
+  "attrChoice_cylinder_use_suit_inflation": "نفخ البدلة",
   "attrChoice_connection_din": "DIN",
   "attrChoice_connection_yoke": "يوك (INT)",
   "attrChoice_hose_type_lp": "LP (ضغط منخفض)",
@@ -12035,8 +12171,12 @@
   "safetyHub_cnsOtu_noProfile_body": "لا يمكن حساب CNS% و OTU لها بدون بيانات العمق. المجاميع أدناه لا تشملها.",
   "safetyHub_cnsOtu_about_title": "حول CNS وOTU",
   "safetyHub_cnsOtu_about_body": "تنخفض نسبة CNS% (ساعة الأكسجين) بعد الغطسة بعمر نصف 90 دقيقة — تعود عمليًا إلى 0 بعد نحو يوم واحد.\n\nيُعاد ضبط OTU اليومي كل ليلة عند منتصف الليل. أما OTU الأسبوعي فهو مجموع متجدد لآخر 7 أيام: تسقط الغطسات الأقدم تلقائيًا من الحساب بمجرد خروجها من هذا النطاق.",
+  "safetyHub_tissueLoading_clear_title": "لا يوجد حمل متبقٍ في الأنسجة",
+  "safetyHub_tissueLoading_clear_body": "عادت جميع الحجرات إلى التوازن مع هواء السطح. تبقى عند مستواها الطبيعي (العلامة على كل عمود)، وليس عند 0%.",
+  "safetyHub_tissueLoading_unavailable_title": "تشبّع الأنسجة غير متاح",
+  "safetyHub_tissueLoading_unavailable_body": "لا تتوفر للغوصة الأخيرة بيانات لحساب تشبّع الأنسجة، مثل غوصة بلا ملف عمق، أو في وضع مقياس العمق، أو بجهاز إعادة التنفس دون نقطة ضبط.",
   "safetyHub_tissueLoading_about_title": "حول تشبّع الأنسجة",
-  "safetyHub_tissueLoading_about_body": "يحتوي جسمك على 16 حجرة نسيجية تمتص وتطلق النيتروجين (وكذلك الهيليوم في غطسات التريميكس أو أجهزة إعادة التنفس) بسرعات مختلفة. الأنسجة السريعة تتشبّع وتتخلّص من التشبّع بسرعة؛ أما الأنسجة البطيئة فتحتاج وقتًا أطول بكثير لكليهما.\n\nبعد غطسة بالهيليوم، يمكن أن يتحرك النيتروجين والهيليوم في نفس الحجرة لفترة وجيزة باتجاهين متعاكسين: بينما لا يزال الهيليوم يتحرر، يمكن لنفس الحجرة أن تمتص القليل من النيتروجين في الوقت نفسه، حتى يصل الغازان إلى التوازن مع الهواء الذي تتنفسه. لهذا قد تُظهر الحجرة مؤقتًا \"Ongassing\" حتى وإن استمر حملها الإجمالي بالانخفاض.",
+  "safetyHub_tissueLoading_about_body": "يحتوي جسمك على 16 حجرة نسيجية تمتص النيتروجين وتطلقه (والهيليوم أيضاً في غوصات الترايمكس أو أجهزة إعادة التنفس) بسرعات مختلفة. تتشبع الأنسجة السريعة وتتخلص من التشبع بسرعة، بينما تحتاج الأنسجة البطيئة وقتاً أطول بكثير في الحالتين.\n\nالحمل المتبقي هو فقط ما يزيد على المستوى الطبيعي على السطح. حتى بعد إزالة التشبع بالكامل، لا تنخفض الأعمدة إلى 0%: تستقر كل حجرة عند العلامة المطابقة لنيتروجين الهواء الذي تتنفسه. لهذا قد تُظهر حجرة سريعة هنا قيمة أعلى مما كانت عليه في نهاية غوصة مع تخفيف ضغط بالأكسجين، دون أن يكون الحمل قد ازداد.\n\nبعد غوصة بالهيليوم، تطلق الحجرة الهيليوم بينما تمتص النيتروجين في الوقت نفسه، حتى يصل الغازان إلى التوازن مع الهواء الذي تتنفسه.",
   "safetyHub_noFly_category_single": "بعد غطسة واحدة بلا توقفات: إرشاد {hours} ساعة",
   "@safetyHub_noFly_category_single": {
     "placeholders": {
@@ -12821,6 +12961,7 @@
   "dataQuality_detector_pressure_anomaly": "خلل في الضغط",
   "dataQuality_detector_gas_mod": "تعارض بين الغاز وMOD",
   "dataQuality_detector_tank_assignment": "أسطوانة خاطئة",
+  "dataQuality_detector_missing_gas_switch": "تبديل غاز مفقود",
   "dataQuality_detector_source_conflict": "مصادر متعارضة",
   "dataQuality_detector_shared_gear_overlap": "معدات مشتركة في غطسات متداخلة",
   "dataQuality_msg_clock_future": "تاريخ الغوصة في المستقبل ({date})",
@@ -12828,6 +12969,7 @@
   "dataQuality_msg_clock_offsetAhead": "{hours, plural, =1{تتقدم ساعة أحد المصادر بساعة واحدة} two{تتقدم ساعة أحد المصادر بساعتين} few{تتقدم ساعة أحد المصادر بـ{hours} ساعات} many{تتقدم ساعة أحد المصادر بـ{hours} ساعة} other{تتقدم ساعة أحد المصادر بـ{hours} ساعة}}",
   "dataQuality_msg_clock_offsetBehind": "{hours, plural, =1{تتأخر ساعة أحد المصادر بساعة واحدة} two{تتأخر ساعة أحد المصادر بساعتين} few{تتأخر ساعة أحد المصادر بـ{hours} ساعات} many{تتأخر ساعة أحد المصادر بـ{hours} ساعة} other{تتأخر ساعة أحد المصادر بـ{hours} ساعة}}",
   "dataQuality_msg_clock_overlap": "تتداخل مع غوصة أخرى بمقدار {minutes} دقيقة",
+  "dataQuality_msg_clock_profileFit": "يقع أحد المصادر على بُعد {minutes} دقيقة من الموضع الذي يتطابق فيه ملفه مع الأساسي",
   "dataQuality_msg_shared_gear_overlap": "{item} موجودة في غطسة {diverA} عند {timeA} وفي غطسة {diverB} عند {timeB}.",
   "dataQuality_msg_shared_gear_overlap_parts": "{count, plural, one{تشمل {count} قطعة مركّبة.} two{تشمل قطعتين مركّبتين.} few{تشمل {count} قطع مركّبة.} many{تشمل {count} قطعة مركّبة.} other{تشمل {count} قطعة مركّبة.}}",
   "dataQuality_msg_duplicate": "تطابق بنسبة {percent}% مع غوصة تفصلها {minutes} دقيقة",
@@ -12853,6 +12995,12 @@
   "dataQuality_msg_hypoxic": "يظهر خليط ناقص الأكسجين ({gas}) قيد الاستخدام عند السطح",
   "dataQuality_msg_switchMod": "تبديل الغاز عند {depth} يتجاوز الحد الأقصى للعمق (MOD) لذلك الغاز البالغ {mod}",
   "dataQuality_msg_tankInactive": "فقدت هذه الأسطوانة {drop} بينما يشير الخط الزمني للغاز إلى أنها لم تكن قيد الاستخدام",
+  "dataQuality_msg_missingSwitches": "{count, plural, one{لم يُسجَّل أي تبديل للغاز، لكن ضغوط الأسطوانات تُظهر هذا التبديل: {switches}.} two{لم يُسجَّل أي تبديل للغاز، لكن ضغوط الأسطوانات تُظهر هذين التبديلين: {switches}.} few{لم يُسجَّل أي تبديل للغاز، لكن ضغوط الأسطوانات تُظهر هذه التبديلات: {switches}.} many{لم يُسجَّل أي تبديل للغاز، لكن ضغوط الأسطوانات تُظهر هذه التبديلات: {switches}.} other{لم يُسجَّل أي تبديل للغاز، لكن ضغوط الأسطوانات تُظهر هذه التبديلات: {switches}.}}",
+  "dataQuality_msg_missingSwitchItem": "الأسطوانة {tankNumber} ({gas}) عند {time}، {depth}",
+  "dataQuality_msg_missingSwitchSeparator": "؛ ",
+  "dataQuality_msg_missingSwitchDeep": "لم يُسجَّل أي تبديل للغاز. تُظهر ضغوط الأسطوانات تبديلًا إلى الأسطوانة {tankNumber} ({gas}) عند {depth}، أعمق من MOD الخاص بها البالغ {mod}، لذا لا يُقترح التبديل إليها.",
+  "dataQuality_msg_missingSwitchDeepAlso": "تُظهر ضغوط الأسطوانات أيضًا تبديلًا إلى الأسطوانة {tankNumber} ({gas}) عند {depth}، أعمق من MOD الخاص بها البالغ {mod}، لذا لا يُقترح التبديل إليها.",
+  "dataQuality_msg_missingSwitchUnplaced": "لم يُسجَّل أي تبديل للغاز. تُنفِّس من الأسطوانة {tankNumber} ({gas}) مجددًا بدءًا من {time} بعد توقف، لذا تُنفِّس من أسطوانة أخرى في الأثناء، ومع أكثر من أسطوانتين لا تُظهر الضغوط أيّها. أضف التبديلات في محرر الغطسة.",
   "dataQuality_detector_transmitter_role": "دور جهاز الإرسال",
   "dataQuality_msg_transmitterRoleBailout": "الأسطوانة {tankNumber} معلَّمة على أنها {role} بناءً على اسم جهاز الإرسال، لكنها فقدت {ocDrop} بعد التحويل إلى الدائرة المفتوحة ولم تفقد شيئًا تقريبًا على الدائرة المغلقة، لذا يبدو أنها أسطوانة غاز الطوارئ. لا يمكن بهذه الطريقة اكتشاف غاز طوارئ لم يُتنفَّس منه، أو استُخدم دون تبديل الغاز على الكمبيوتر.",
   "dataQuality_msg_twinTanks": "تحمل أسطوانتان سلسلة ضغط شبه متطابقة",
@@ -12866,6 +13014,8 @@
   "dataQuality_repairLabel_fixSourceClock": "تصحيح ساعة هذا الكمبيوتر بمقدار {offset}",
   "dataQuality_repairLabel_fixSourceClockNamed": "تصحيح ساعة {computer} بمقدار {offset}",
   "dataQuality_repairLabel_fixSourceClockAll": "تصحيح هذا الكمبيوتر أيضًا في الغوصات الأخرى ذات الفارق نفسه",
+  "dataQuality_repairLabel_alignSourceProfile": "محاذاة هذا الكمبيوتر حسب ملفه",
+  "dataQuality_repairLabel_alignSourceProfileNamed": "محاذاة {computer} حسب ملفه",
   "dataQuality_repairLabel_consolidate": "توحيد",
   "dataQuality_repairLabel_deleteDuplicate": "حذف التكرار",
   "dataQuality_deleteDuplicate_title": "حذف النسخة الزائدة؟",
@@ -12898,6 +13048,7 @@
   "dataQuality_repairLabel_setFromSeries": "استخدام قيم المستشعر",
   "dataQuality_repairLabel_swapSeries": "تبديل سلاسل الأسطوانات",
   "dataQuality_repairLabel_reassignSeries": "نقل السلسلة إلى أسطوانة أخرى",
+  "dataQuality_repairLabel_addGasSwitches": "{count, plural, one{إضافة تبديل غاز} two{إضافة تبديلَي غاز} few{إضافة {count} تبديلات غاز} many{إضافة {count} تبديلًا للغاز} other{إضافة {count} تبديل غاز}}",
   "dataQuality_repairLabel_setPrimary": "جعل هذا المصدر أساسيًا",
   "dataQuality_repairLabel_split": "التقسيم إلى غوصات منفصلة",
   "dataQuality_repairLabel_setPrimaryNamed": "جعل {source} المصدر الأساسي",
@@ -16021,6 +16172,8 @@
   "media_servedFrom_embedded": "محفوظ في سجل الغوص هذا",
   "settings_media_provenanceBadges": "إظهار شارات المصدر على الصور المصغرة",
   "settings_media_provenanceBadgesSubtitle": "رمز صغير يوضح مصدر كل عنصر. تظهر شارات المشكلات دائما.",
+  "settings_media_tagBadges": "إظهار شارات الوسوم على الصور المصغرة",
+  "settings_media_tagBadgesSubtitle": "رموز صغيرة للصور التي تحتوي على أشخاص موسومين أو أنواع موسومة أو وقت ضمن الغوصة.",
   "settings_media_autoColorCorrection": "تصحيح الألوان التلقائي",
   "settings_media_autoColorCorrectionSubtitle": "يدفّئ ألوان الصور ومقاطع الفيديو الزرقاء تحت الماء على الشاشة، بحسب العمق الذي التُقطت فيه كل منها. لا تتغير ملفاتك أبدًا.",
   "settings_photosMedia_cacheHeader": "التخزين المؤقت",
@@ -16036,6 +16189,9 @@
   "media_status_queued": "في انتظار الرفع",
   "media_status_cloudOnly": "مخزن في السحابة فقط",
   "media_status_notBackedUp": "لا يوجد نسخ احتياطي",
+  "media_tileMarker_people": "أشخاص موسومون",
+  "media_tileMarker_species": "أنواع موسومة",
+  "media_tileMarker_timeInDive": "موضوعة على ملف الغوصة",
   "media_tile_infoMenuItem": "معلومات الوسائط",
   "diveImport_healthkit_accessGrantedHint": "لا يخبر تطبيق صحة Apple التطبيقات أبدًا بما إذا كان قد تم منح إذن القراءة. إذا لم تظهر أي غطسات، افتح تطبيق صحة ثم المشاركة ثم التطبيقات ثم Submersion، وفعّل التمارين وعمق الغوص ودرجة حرارة الماء ومعدل ضربات القلب.",
   "diveImport_healthkit_foundNoDivesHint": "لا توجد تمارين غوص في هذا النطاق. تأكد من أن التواريخ تغطي الغطسة، ومن تفعيل التمارين وعمق الغوص في تطبيق صحة ضمن المشاركة ثم التطبيقات ثم Submersion.",
@@ -17256,11 +17412,13 @@
   "rules_value_yes": "نعم",
   "rules_value_no": "لا",
   "rules_value_empty": "(فارغ)",
+  "rules_value_gearViaSet": "{item} ({set})",
   "rules_collection_diveTypes": "أنواع الغطس",
   "rules_collection_tags": "الوسوم",
   "rules_collection_equipment": "المعدات",
   "rules_collection_buddies": "الرفاق",
   "rules_collection_courses": "الدورات",
+  "rules_collection_equipmentSets": "أطقم المعدات",
   "rules_collection_siteTags": "وسوم المواقع",
   "rules_collection_siteTypes": "أنواع المواقع",
   "rules_field_diveCenter": "مركز الغوص",
@@ -17430,6 +17588,9 @@
   "settings_backups_noCopy": "لا توجد نسخة خارج هذا الجهاز",
   "settings_backups_chooseAccount": "اختيار حساب",
   "settings_backups_copyAccountGone": "تمت إزالة حساب النسخة",
+  "settings_backups_alsoCopyTo": "نسخة أخرى في {account}",
+  "settings_backups_addCopyAccount": "نسخة في حساب آخر أيضًا",
+  "settings_backups_extraCopyMissed": "لم يصل آخر نسخ احتياطي إلى هذا الحساب",
   "settings_backups_auto": "النسخ الاحتياطي تلقائيًا",
   "settings_backups_backUpNow": "النسخ الاحتياطي الآن",
   "settings_backups_restoreFile": "الاستعادة من ملف",

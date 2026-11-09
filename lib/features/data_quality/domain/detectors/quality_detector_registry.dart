@@ -3,6 +3,7 @@ import 'package:submersion/features/data_quality/domain/detectors/depth_spike_de
 import 'package:submersion/features/data_quality/domain/detectors/duplicate_detector.dart';
 import 'package:submersion/features/data_quality/domain/detectors/gas_mod_detector.dart';
 import 'package:submersion/features/data_quality/domain/detectors/impossible_rate_detector.dart';
+import 'package:submersion/features/data_quality/domain/detectors/missing_gas_switch_detector.dart';
 import 'package:submersion/features/data_quality/domain/detectors/pressure_anomaly_detector.dart';
 import 'package:submersion/features/data_quality/domain/detectors/quality_detector.dart';
 import 'package:submersion/features/data_quality/domain/detectors/sample_gap_detector.dart';
@@ -26,6 +27,7 @@ const List<QualityDetector> kQualityDetectors = [
   PressureAnomalyDetector(),
   GasModDetector(),
   TankAssignmentDetector(),
+  MissingGasSwitchDetector(),
   UnknownTransmitterDetector(),
   SourceConflictDetector(),
   SharedGearOverlapDetector(),

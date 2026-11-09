@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/services/accounts/account_kind.dart';
 
+import 'package:submersion/features/backup/domain/entities/backup_copy_account.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 
@@ -40,6 +41,9 @@ class BackupPreferences {
       'backup_last_cloud_account_id';
   static const String _copyAccountIdKey = 'backup_copy_account_id';
   static const String _copyAccountKindKey = 'backup_copy_account_kind';
+  static const String _extraCopyAccountsKey = 'backup_extra_copy_accounts';
+  static const String _lastExtraCopyMissingKey =
+      'backup_last_extra_copy_missing';
 
   final SharedPreferences _prefs;
 
@@ -87,7 +91,45 @@ class BackupPreferences {
       crossDeviceRetentionAccount: _prefs.getString(
         _crossDeviceRetentionAccountKey,
       ),
+      extraCopyAccounts: _readExtraCopyAccounts(),
+      lastExtraCopyMissingIds:
+          _prefs.getStringList(_lastExtraCopyMissingKey) ?? const [],
     );
+  }
+
+  /// The extra copy accounts (issue #3782). Unreadable JSON is none, and an
+  /// entry this build cannot use is skipped.
+  List<BackupCopyAccount> _readExtraCopyAccounts() {
+    final raw = _prefs.getString(_extraCopyAccountsKey);
+    if (raw == null) return const [];
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return const [];
+      return [for (final entry in decoded) ?BackupCopyAccount.fromJson(entry)];
+    } on FormatException {
+      return const [];
+    }
+  }
+
+  /// The accounts each backup is also copied to, in order (issue #3782).
+  Future<void> setExtraCopyAccounts(List<BackupCopyAccount> accounts) async {
+    if (accounts.isEmpty) {
+      await _prefs.remove(_extraCopyAccountsKey);
+      return;
+    }
+    await _prefs.setString(
+      _extraCopyAccountsKey,
+      jsonEncode([for (final a in accounts) a.toJson()]),
+    );
+  }
+
+  /// The extra accounts the most recent backup did not reach.
+  Future<void> setLastExtraCopyMissingIds(List<String> accountIds) async {
+    if (accountIds.isEmpty) {
+      await _prefs.remove(_lastExtraCopyMissingKey);
+      return;
+    }
+    await _prefs.setStringList(_lastExtraCopyMissingKey, accountIds);
   }
 
   Future<void> setEnabled(bool value) async {

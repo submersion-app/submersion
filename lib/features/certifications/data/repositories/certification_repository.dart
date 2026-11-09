@@ -77,15 +77,25 @@ class CertificationRepository {
 
   /// [getAllCertifications] without the card images, for whatever does not
   /// draw a card (issue #3848). A scan can run to megabytes, so these reads
-  /// keep a screen's cost and memory independent of them.
+  /// keep a screen's cost and memory independent of them. [ids] narrows it
+  /// to those records (Global Search's few rows, issue #4247).
   Future<List<domain.Certification>> getCertificationMetadata({
     String? diverId,
+    List<String>? ids,
   }) async {
+    if (ids != null && ids.isEmpty) return const [];
+    final conditions = [
+      if (diverId != null) 'diver_id = ?',
+      if (ids != null) 'id IN (${List.filled(ids.length, '?').join(', ')})',
+    ];
     try {
       return await _selectMetadata(
-        '${diverId == null ? '' : 'WHERE diver_id = ? '}'
+        '${conditions.isEmpty ? '' : 'WHERE ${conditions.join(' AND ')} '}'
         'ORDER BY issue_date DESC, name ASC',
-        [if (diverId != null) Variable.withString(diverId)],
+        [
+          if (diverId != null) Variable.withString(diverId),
+          ...?ids?.map(Variable.withString),
+        ],
       );
     } catch (e, stackTrace) {
       _log.error(

@@ -74,8 +74,10 @@ Set<String> tripCylinderIdsTakenFor(
 /// Pure. Links each tank in [eligibleTankIds] that has no link to the slot
 /// [suggestTripCylinder] picks for it, filled by [tankFromTripCylinder].
 /// Slots other tanks already hold, and slots given to an earlier tank in
-/// this pass, are excluded, so two tanks never share one. Returns the tanks
-/// in their order and the ids of the tanks it linked.
+/// this pass, are excluded, so two tanks never share one. A suit inflation
+/// bottle is never suggested one: a slot is a breathing cylinder, and its
+/// fill would replace the bottle's size (issue #4243). Returns the tanks in
+/// their order and the ids of the tanks it linked.
 ({List<DiveTank> tanks, Set<String> suggested}) suggestTripCylindersForTanks({
   required List<DiveTank> tanks,
   required List<TripCylinderState> states,
@@ -89,7 +91,10 @@ Set<String> tripCylinderIdsTakenFor(
   var suggested = const <String>{};
   var out = const <DiveTank>[];
   for (final t in tanks) {
-    final pick = eligibleTankIds.contains(t.id) && t.tripCylinderId == null
+    final pick =
+        t.role.isBreathingGas &&
+            eligibleTankIds.contains(t.id) &&
+            t.tripCylinderId == null
         ? suggestTripCylinder(
             states: states,
             tankMix: t.gasMix,

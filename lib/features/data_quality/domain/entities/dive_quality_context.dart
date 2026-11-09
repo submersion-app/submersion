@@ -65,6 +65,7 @@ class DiveQualityContext {
     required this.now,
     this.sources = const [],
     this.primarySamples = const [],
+    this.sourceSamples = const {},
     this.primarySampleCount,
     this.carriesDiverData,
     this.tanks = const [],
@@ -85,6 +86,12 @@ class DiveQualityContext {
   final DateTime now;
   final List<DiveDataSource> sources;
   final List<QualitySample> primarySamples;
+
+  /// Non-primary source id -> that source's own samples, where the dive
+  /// places them on the primary's timeline (a consolidation re-bases them
+  /// by its offset). Only loaded for a dive with more than one source, so a
+  /// detector can check that placement against the primary's trace (#4296).
+  final Map<String, List<QualitySample>> sourceSamples;
 
   /// Samples stored across the dive's primary series, as the series report
   /// them. Deliberately not `primarySamples.length`: that list is sanitized

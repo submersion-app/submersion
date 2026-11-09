@@ -439,4 +439,22 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(PopupMenuItem<DiveTank>), findsNothing);
   });
+
+  testWidgets('a saved suit inflation bottle is not offered (#4243)', (
+    tester,
+  ) async {
+    final withSuit = _saved.copyWith(
+      items: [
+        ..._saved.items,
+        _item('i3', 'Argon', volume: 0.85, role: TankRole.suitInflation),
+      ],
+    );
+    await tester.pumpWidget(_harness([withSuit]));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Saved tanks (2)'), findsOneWidget);
+    await tester.tap(find.text('Saved tanks (2)'));
+    await tester.pumpAndSettle();
+    expect(find.text('Argon'), findsNothing);
+  });
 }

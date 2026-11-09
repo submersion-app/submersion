@@ -32,9 +32,10 @@
 ///   their drop is not a consumption rate, as `DerivedMetricsService` and
 ///   `Dive.sac` already hold. It stays out of the gas variant because the
 ///   gas mixes and the litres drawn on a loop are still real: gas-mix
-///   counts and gas used keep these dives, and the breakdown by cylinder
-///   role keeps SCR dives. A CCR dive's own rates have their own read,
-///   `getCcrGasUsePerDive` (issue #4082).
+///   counts and gas used keep these dives. A CCR dive's own rates have their
+///   own read, `getCcrGasUsePerDive` (issue #4082), and its bailout rate
+///   joins the consumption by cylinder role card through the gas variant
+///   (issue #771), which leaves SCR dives out like every other rate.
 ///
 /// **This is deliberately NOT folded into `buildFilteredDiveIdSubquery`.**
 /// That function implements the diver's transient *view* filter and correctly

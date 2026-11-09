@@ -141,6 +141,10 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet> {
       // keeps the loop safe regardless of what mutates the set later.
       final ids = _selected.toList();
       final changes = <GearHistoryRewrite>[];
+      // The first failure is the one the diver sees: a replay that fails
+      // after a refused part must not hide the refusal's own message.
+      Object? failure;
+      StackTrace? failureTrace;
       try {
         if (replacing != null) {
           final newId = ids.single;
@@ -162,14 +166,27 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet> {
             changes.add(GearPartAdded(id));
           }
         }
-      } finally {
-        // One pass over the dives for the whole batch rather than one per
-        // part, and it runs even when a later part was refused, so what
-        // reached the template and what reached the dives cannot drift.
-        if (alsoPast && changes.isNotEmpty) {
-          await dives.rewriteAssemblyOnPastDives(widget.parentId, changes);
+      } catch (e, st) {
+        failure = e;
+        failureTrace = st;
+      }
+      // One pass over the dives for the whole batch rather than one per
+      // part, and it runs even when a later part was refused, so what
+      // reached the template and what reached the dives cannot drift.
+      // Planned dives follow on every answer (issue #4283).
+      if (changes.isNotEmpty) {
+        try {
+          await dives.rewriteAssemblyOnDives(
+            widget.parentId,
+            changes,
+            alsoLogged: alsoPast,
+          );
+        } catch (e, st) {
+          failure ??= e;
+          failureTrace ??= st;
         }
       }
+      if (failure != null) Error.throwWithStackTrace(failure, failureTrace!);
       popped = true;
       // The sheet may have been swiped away or dismissed during the awaits;
       // popping then would take the page underneath instead.

@@ -495,8 +495,10 @@ class DiveProfileChartHost extends ConsumerWidget {
         // plot rect at any zoom (#1579).
         rangeSelection: rangeState.isEnabled
             ? (
-                startSeconds: rangeState.startTimestamp ?? 0,
+                startSeconds:
+                    rangeState.startTimestamp ?? rangeState.minTimestamp,
                 endSeconds: rangeState.endTimestamp ?? rangeState.maxTimestamp,
+                minSeconds: rangeState.minTimestamp,
                 maxSeconds: rangeState.maxTimestamp,
               )
             : null,

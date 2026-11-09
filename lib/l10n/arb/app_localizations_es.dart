@@ -612,6 +612,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get enum_equipmentField_owner_short => 'Propietario';
 
   @override
+  String get enum_equipmentField_location => 'Ubicación';
+
+  @override
+  String get enum_equipmentField_location_short => 'Ubicación';
+
+  @override
   String get equipment_set_noLongerShared => 'Ya no se comparte';
 
   @override
@@ -1417,6 +1423,21 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get equipment_setEdit_figureSwitch_title =>
       'Mostrar figura del buceador';
+
+  @override
+  String get equipment_setEdit_historyAsk =>
+      '¿Aplicar los cambios también a esas inmersiones o solo a partir de ahora?';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Este conjunto de equipo está en $count inmersiones registradas.',
+      one: 'Este conjunto de equipo está en 1 inmersión registrada.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get equipment_color_red => 'Rojo';
@@ -7409,6 +7430,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Estos registros no se superponen en el tiempo, así que probablemente el reloj de un ordenador está mal. La inmersión conserva la hora del ordenador principal.';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      'Estos perfiles de profundidad coinciden en un momento distinto del que indican los relojes de los ordenadores, así que probablemente el reloj de un ordenador está mal. La inmersión conserva la hora del ordenador principal.';
+
+  @override
   String get diveLog_consolidate_clockNoteShort =>
       'Probablemente el reloj de un ordenador está mal.';
 
@@ -7523,6 +7548,86 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_deco_semantics_required => 'Se requiere descompresión';
+
+  @override
+  String diveLog_deco_compartmentLeading(int number) {
+    return 'Líder: #$number';
+  }
+
+  @override
+  String diveLog_deco_compartmentOther(int number) {
+    return 'Compartimento: #$number';
+  }
+
+  @override
+  String get diveLog_deco_metricLoad => 'Carga';
+
+  @override
+  String get diveLog_deco_gasOngassing => 'Absorción';
+
+  @override
+  String get diveLog_deco_gasOffgassing => 'Liberación';
+
+  @override
+  String get diveLog_deco_gasEquilibrium => 'Equilibrio';
+
+  @override
+  String get diveLog_deco_heatMapRows =>
+      'Filas: rápido (arriba) a lento (abajo)';
+
+  @override
+  String get diveLog_deco_surfaceLevel => 'Nivel de superficie';
+
+  @override
+  String get diveLog_deco_mValue => 'Valor M';
+
+  @override
+  String diveLog_deco_tooltipCompartment(int number) {
+    return 'Compartimento $number';
+  }
+
+  @override
+  String diveLog_deco_tooltipLoaded(String percent) {
+    return '$percent% de carga';
+  }
+
+  @override
+  String diveLog_deco_tooltipHalfTime(String minutes) {
+    return 'Semiperiodo: $minutes min';
+  }
+
+  @override
+  String diveLog_deco_tooltipSurfaceLevel(String percent) {
+    return 'Nivel de superficie: $percent%';
+  }
+
+  @override
+  String get diveLog_deco_info_title => '¿Qué significan estos valores?';
+
+  @override
+  String get diveLog_deco_info_body =>
+      'Carga: la presión de gas inerte de un compartimento como porcentaje del máximo que puede contener en superficie (su valor M, la línea roja al 100%).\n\nNivel de superficie: la marca en cada barra indica dónde se estabiliza un compartimento totalmente desaturado mientras respiras aire en superficie. Nunca está en 0%, porque tu cuerpo siempre contiene el nitrógeno del aire que respiras. Una barra en su marca ya no tiene carga residual del buceo.\n\nAbsorción y liberación: el gas siempre se mueve hacia la presión del gas que respiras. Tras una descompresión con oxígeno o con una mezcla rica en helio, los compartimentos rápidos pueden contener menos nitrógeno que el aire en superficie. Al volver a respirar aire, absorben nitrógeno de nuevo hasta alcanzar su marca. Es normal y no es una carga residual de la inmersión.\n\nHelio: el aire no contiene helio. Tras una inmersión con trimix, un compartimento libera helio mientras puede absorber nitrógeno al mismo tiempo. Las flechas junto a N₂ y He muestran cada gas por separado; la indicación junto al número del compartimento muestra la dirección neta de ambos.';
+
+  @override
+  String diveLog_deco_barChartSemantics(int count, int number, String percent) {
+    return 'Gráfico de carga tisular. $count compartimentos, carga respecto al valor M; compartimento líder $number al $percent%.';
+  }
+
+  @override
+  String get diveLog_deco_heatMapUndersaturated => 'Subsaturado';
+
+  @override
+  String get diveLog_deco_heatMapSupersaturated => 'Sobresaturado';
+
+  @override
+  String diveLog_deco_percentValue(String value) {
+    return '$value%';
+  }
+
+  @override
+  String diveLog_deco_minutesValue(String value) {
+    return '$value min';
+  }
 
   @override
   String get diveLog_deco_tissueFast => 'Rápido';
@@ -8635,6 +8740,18 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_edit_useSet => 'Usar conjunto';
+
+  @override
+  String get diveLog_edit_removeSet => 'Quitar conjunto';
+
+  @override
+  String get diveLog_bulkEdit_setsToRemove => 'Conjuntos a quitar';
+
+  @override
+  String get diveLog_bulkEdit_removeSetTitle => 'Quitar conjunto de equipo';
+
+  @override
+  String get diveLog_bulkEdit_equipmentSets => 'Conjuntos de equipo';
 
   @override
   String get diveLog_edit_weightPreset_use => 'Usar preajuste';
@@ -14206,6 +14323,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get enum_tankRole_stage => 'Stage';
 
   @override
+  String get enum_tankRole_suitInflation => 'Inflado del traje';
+
+  @override
   String get enum_tankRole_twinSet => 'Bibotella';
 
   @override
@@ -16727,6 +16847,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_location_activeFilter => 'Ubicación';
+
+  @override
+  String equipment_location_tileSemantics(String name) {
+    return 'Ubicación: $name';
+  }
 
   @override
   String get equipment_filter_section_location => 'Ubicación';
@@ -22483,6 +22608,26 @@ class AppLocalizationsEs extends AppLocalizations {
       'Mostrar mapa del punto de buceo como fondo en tarjetas de inmersión (requiere ubicación del punto)';
 
   @override
+  String get settings_appearance_photoBackgroundDiveCards =>
+      'Fondo de foto en las tarjetas de inmersión';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards_subtitle =>
+      'Mostrar una de las fotos de la inmersión como fondo de las tarjetas (sin fotos se usa el mapa o el color)';
+
+  @override
+  String get settings_appearance_photoOverlayDark =>
+      'Opacidad de la capa sobre la foto, tema oscuro';
+
+  @override
+  String get settings_appearance_photoOverlayLight =>
+      'Opacidad de la capa sobre la foto, tema claro';
+
+  @override
+  String get settings_appearance_photoOverlay_subtitle =>
+      'Más alto mantiene el texto legible, más bajo muestra más la foto';
+
+  @override
   String get settings_appearance_mapBackgroundSiteCards =>
       'Fondo de mapa en tarjetas de puntos';
 
@@ -25969,6 +26114,18 @@ class AppLocalizationsEs extends AppLocalizations {
       'Mapa detrás de las tarjetas de inmersión';
 
   @override
+  String get settings_conflict_field_showPhotoBackgroundOnDiveCards =>
+      'Foto detrás de las tarjetas de inmersión';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayDark =>
+      'Capa sobre la foto de las tarjetas (tema oscuro)';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayLight =>
+      'Capa sobre la foto de las tarjetas (tema claro)';
+
+  @override
   String get settings_conflict_field_showMapBackgroundOnSiteCards =>
       'Mapa detrás de las tarjetas de puntos de buceo';
 
@@ -27444,6 +27601,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'El último respaldo no llegó a la nube';
 
   @override
+  String get dataHealth_backup_extraCopyMissing =>
+      'El último respaldo no llegó a todas las cuentas';
+
+  @override
   String get dataHealth_backup_noOffDeviceCopy =>
       'No hay copia fuera de este dispositivo';
 
@@ -27516,7 +27677,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'Corregir horas, enlazar compañeros, retipar equipo, calidad de datos, editor de tabla';
+      'Corregir horas, enlazar compañeros, retipar equipo, calidad de datos, editor de tabla, reanalizar inmersiones';
 
   @override
   String get settings_agentAccess_title => 'Acceso de agentes';
@@ -30630,20 +30791,35 @@ class AppLocalizationsEs extends AppLocalizations {
   String get insights_gas_gasMix_title => 'Distribución de mezcla de gas';
 
   @override
-  String get insights_gas_sacByRole_empty =>
-      'No hay datos de multitanque disponibles';
+  String get insights_gas_roleUse_title => 'Consumo por función de botella';
 
   @override
-  String get insights_gas_sacByRole_error =>
-      'Error al cargar el consumo por función';
+  String get insights_gas_roleUse_subtitle =>
+      'Cada función durante el tiempo en que se respiró';
 
   @override
-  String get insights_gas_sacByRole_subtitle =>
-      'Consumo promedio por tipo de tanque';
+  String get insights_gas_roleUse_empty =>
+      'Aún no hay valores por función de botella';
 
   @override
-  String get insights_gas_sacByRole_title =>
-      'Consumo de gas por función del tanque';
+  String get insights_gas_roleUse_error =>
+      'No se pudo cargar el consumo por función de botella';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => 'Gas de fondo';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count inmersiones omitidas: una botella de etapa, descompresión, pony o bailout perdió gas sin un cambio de gas a ella',
+      one:
+          '$count inmersión omitida: una botella de etapa, descompresión, pony o bailout perdió gas sin un cambio de gas a ella',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => 'Uso de gas del rebreather';
@@ -31253,9 +31429,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get insights_focus_gas_trimix => 'Trimix';
 
   @override
-  String get insights_gas_tankRole_backGas => 'Gas principal';
-
-  @override
   String get insights_gas_tankRole_bailout => 'Bailout';
 
   @override
@@ -31265,22 +31438,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get insights_gas_tankRole_diluent => 'Diluyente';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'Suministro de O₂';
-
-  @override
   String get insights_gas_tankRole_pony => 'Pony';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => 'Sidemount izq.';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => 'Sidemount der.';
-
-  @override
   String get insights_gas_tankRole_stage => 'Stage';
-
-  @override
-  String get insights_gas_tankRole_twinSet => 'Bibotella';
 
   @override
   String get insights_geographic_appBar_title => 'Geográfico';
@@ -38198,25 +38359,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllProgress(int count) {
-    return 'Reanalizando $count inmersiones...';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllSuccess(int count) {
-    return 'Se reanalizaron $count inmersiones correctamente';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
-    return 'Se reanalizaron $succeeded de $total inmersiones. $failed fallaron.';
-  }
-
-  @override
   String diveComputer_detail_reparseRawDataCount(int count) {
     return '$count inmersiones con datos sin procesar';
   }
@@ -38228,6 +38370,126 @@ class AppLocalizationsEs extends AppLocalizations {
   ) {
     return '$count inmersiones con datos sin procesar ($without sin)';
   }
+
+  @override
+  String get reparseBatch_progressTitle => 'Reanalizando inmersiones';
+
+  @override
+  String reparseBatch_progressCount(int done, int total) {
+    return 'Reanalizando $done de $total inmersiones';
+  }
+
+  @override
+  String get reparseBatch_cancelling => 'Cancelando...';
+
+  @override
+  String get reparseBatch_resultTitle => 'Reanálisis terminado';
+
+  @override
+  String get reparseBatch_resultCancelledTitle => 'Reanálisis cancelado';
+
+  @override
+  String get reparseBatch_resultErrorTitle =>
+      'El reanálisis se detuvo por un error';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return 'Sin procesar: $count';
+  }
+
+  @override
+  String reparseBatch_resultSummary(int succeeded, int total) {
+    return 'Se reanalizaron $succeeded de $total inmersiones.';
+  }
+
+  @override
+  String reparseBatch_resultFailed(int count) {
+    return 'Fallidas: $count';
+  }
+
+  @override
+  String reparseBatch_resultNotProcessed(int count) {
+    return 'Sin procesar (cancelado): $count';
+  }
+
+  @override
+  String reparseBatch_resultSkipped(int count) {
+    return 'Omitidas, sin datos sin procesar: $count';
+  }
+
+  @override
+  String reparseBatch_resultProfilesPreserved(int count) {
+    return 'Inmersiones combinadas que conservaron su perfil: $count';
+  }
+
+  @override
+  String get reparseBatch_failedListHeader => 'Inmersiones fallidas';
+
+  @override
+  String reparseBatch_failedDiveTitle(int number) {
+    return 'Inmersión n.º $number';
+  }
+
+  @override
+  String get reparseBatch_failedDiveUnnumbered => 'Inmersión sin número';
+
+  @override
+  String get reparseBatch_missingDescriptors =>
+      'Faltan los datos del ordenador de buceo';
+
+  @override
+  String get reparseBatch_confirmTitle => 'Reanalizar inmersiones';
+
+  @override
+  String reparseBatch_confirmMessage(int count) {
+    return 'Volver a ejecutar el analizador de inmersiones para $count inmersiones con datos sin procesar almacenados. Esto actualiza los datos de perfil y sensores, pero conserva tus notas, sitios, compañeros y otras ediciones.';
+  }
+
+  @override
+  String reparseBatch_confirmSkipped(int count) {
+    return 'Inmersiones seleccionadas sin datos sin procesar (se omiten): $count';
+  }
+
+  @override
+  String get reparseBatch_noneWithRawData =>
+      'Ninguna de las inmersiones seleccionadas tiene datos sin procesar almacenados para reanalizar.';
+
+  @override
+  String get diveLog_selection_tooltip_reparse => 'Reanalizar';
+
+  @override
+  String get settings_reparseDives_title => 'Reanalizar inmersiones';
+
+  @override
+  String get settings_reparseDives_subtitle =>
+      'Volver a ejecutar el analizador en cada inmersión con datos sin procesar almacenados';
+
+  @override
+  String get settings_reparseDives_intro =>
+      'Úsalo cuando una actualización de la app mejore la lectura de los datos del ordenador de buceo. Se conservan tus notas, sitios, compañeros y otras ediciones.';
+
+  @override
+  String settings_reparseDives_withRawData(int count) {
+    return 'Inmersiones con datos sin procesar: $count';
+  }
+
+  @override
+  String settings_reparseDives_withoutRawData(int count) {
+    return 'Inmersiones sin datos sin procesar (no se reanalizan): $count';
+  }
+
+  @override
+  String get settings_reparseDives_byComputer => 'Por ordenador de buceo';
+
+  @override
+  String get settings_reparseDives_unknownComputer => 'Ordenador desconocido';
+
+  @override
+  String get settings_reparseDives_none =>
+      'Ninguna inmersión tiene datos sin procesar almacenados para reanalizar.';
+
+  @override
+  String get settings_reparseDives_button => 'Reanalizar todo';
 
   @override
   String get diveComputer_rawData_discardAction => 'Descartar';
@@ -40035,6 +40297,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get attrLabel_valve_type => 'Válvula';
 
   @override
+  String get attrLabel_cylinder_use => 'Uso de la botella';
+
+  @override
   String get attrLabel_tank_identifier => 'Identificador';
 
   @override
@@ -40394,6 +40659,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => 'Convertible';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => 'Gas respirable';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => 'Inflado del traje';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -40893,11 +41164,27 @@ class AppLocalizationsEs extends AppLocalizations {
       'Su CNS% (reloj de oxígeno) decae tras la inmersión con una semivida de 90 minutos; prácticamente vuelve a 0 al cabo de un día.\n\nLa OTU diaria se reinicia cada noche a medianoche. La OTU semanal es un total móvil de los últimos 7 días: las inmersiones más antiguas salen automáticamente del cálculo en cuanto quedan fuera de esa ventana.';
 
   @override
+  String get safetyHub_tissueLoading_clear_title =>
+      'Sin carga tisular residual';
+
+  @override
+  String get safetyHub_tissueLoading_clear_body =>
+      'Todos los compartimentos han vuelto al equilibrio con el aire en superficie. Se quedan en su nivel normal (la marca en cada barra), no en 0%.';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_title =>
+      'Carga tisular no disponible';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_body =>
+      'La última inmersión no tiene datos para calcular la carga tisular, por ejemplo una inmersión sin perfil de profundidad, en modo profundímetro o con recirculador sin setpoint.';
+
+  @override
   String get safetyHub_tissueLoading_about_title => 'Sobre la carga tisular';
 
   @override
   String get safetyHub_tissueLoading_about_body =>
-      'Su cuerpo tiene 16 compartimentos tisulares que absorben y liberan nitrógeno (y, en inmersiones con trimix o reciclador, también helio) a distintas velocidades. Los tejidos rápidos se saturan y desaturan deprisa; los lentos tardan mucho más en ambas cosas.\n\nTras una inmersión con helio, el nitrógeno y el helio de un mismo compartimento pueden moverse brevemente en direcciones opuestas: mientras el helio aún se está liberando, ese mismo compartimento puede estar absorbiendo algo de nitrógeno a la vez, hasta que ambos gases alcanzan el equilibrio con el aire que respira. Por eso un compartimento puede mostrar brevemente \"Ongassing\" incluso mientras su carga total sigue bajando.';
+      'Tu cuerpo tiene 16 compartimentos tisulares que absorben y liberan nitrógeno (y, en inmersiones con trimix o recirculador, también helio) a distintas velocidades. Los tejidos rápidos se saturan y desaturan enseguida; los lentos tardan mucho más en ambos casos.\n\nLa carga residual es solo lo que queda por encima del nivel normal en superficie. Incluso totalmente desaturadas, las barras no bajan a 0%: cada compartimento se estabiliza en la marca que corresponde al nitrógeno del aire que respiras. Por eso un compartimento rápido puede marcar aquí más que al final de una inmersión con descompresión con oxígeno, sin que la carga haya aumentado.\n\nTras una inmersión con helio, un compartimento libera helio mientras absorbe nitrógeno al mismo tiempo, hasta que ambos gases están en equilibrio con el aire que respiras.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -42456,6 +42743,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => 'Tanque incorrecto';
 
   @override
+  String get dataQuality_detector_missing_gas_switch =>
+      'Cambio de gas no registrado';
+
+  @override
   String get dataQuality_detector_source_conflict => 'Fuentes en conflicto';
 
   @override
@@ -42497,6 +42788,11 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String dataQuality_msg_clock_overlap(int minutes) {
     return 'Se solapa con otra inmersión durante $minutes min';
+  }
+
+  @override
+  String dataQuality_msg_clock_profileFit(int minutes) {
+    return 'Una fuente está a $minutes min de donde su perfil coincide con el principal';
   }
 
   @override
@@ -42649,6 +42945,61 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'No se registró ningún cambio de gas, pero las presiones de los tanques muestran estos cambios: $switches.',
+      one:
+          'No se registró ningún cambio de gas, pero las presiones de los tanques muestran este cambio: $switches.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return 'tanque $tankNumber ($gas) a los $time, $depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => '; ';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'No se registró ningún cambio de gas. Las presiones de los tanques muestran un cambio al tanque $tankNumber ($gas) a $depth, más profundo que su MOD de $mod, por lo que no se sugiere un cambio a él.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'Las presiones de los tanques también muestran un cambio al tanque $tankNumber ($gas) a $depth, más profundo que su MOD de $mod, por lo que no se sugiere un cambio a él.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'No se registró ningún cambio de gas. El tanque $tankNumber ($gas) se volvió a respirar desde $time tras una pausa, así que entretanto se respiró otro tanque, y con más de dos tanques las presiones no muestran cuál. Añade los cambios en el editor de inmersiones.';
+  }
+
+  @override
   String get dataQuality_detector_transmitter_role => 'Función del transmisor';
 
   @override
@@ -42713,6 +43064,15 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_fixSourceClockAll =>
       'Corregir también este ordenador en otras inmersiones con el mismo desfase';
+
+  @override
+  String get dataQuality_repairLabel_alignSourceProfile =>
+      'Alinear este ordenador por su perfil';
+
+  @override
+  String dataQuality_repairLabel_alignSourceProfileNamed(String computer) {
+    return 'Alinear $computer por su perfil';
+  }
 
   @override
   String get dataQuality_repairLabel_consolidate => 'Consolidar';
@@ -42878,6 +43238,17 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_reassignSeries =>
       'Mover la serie a otro tanque';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Añadir $count cambios de gas',
+      one: 'Añadir cambio de gas',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary =>
@@ -53809,6 +54180,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'Un pequeño icono que indica de dónde procede cada elemento. Los distintivos de problemas siempre se muestran.';
 
   @override
+  String get settings_media_tagBadges =>
+      'Mostrar distintivos de etiquetas en las miniaturas';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      'Pequeños iconos para fotos con personas etiquetadas, especies etiquetadas o un momento en la inmersión.';
+
+  @override
   String get settings_media_autoColorCorrection =>
       'Corrección automática del color';
 
@@ -53857,6 +54236,16 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => 'Sin copia de seguridad';
+
+  @override
+  String get media_tileMarker_people => 'Personas etiquetadas';
+
+  @override
+  String get media_tileMarker_species => 'Especies etiquetadas';
+
+  @override
+  String get media_tileMarker_timeInDive =>
+      'Situada en el perfil de la inmersión';
 
   @override
   String get media_tile_infoMenuItem => 'Información del medio';
@@ -57976,6 +58365,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get rules_value_empty => '(vacío)';
 
   @override
+  String rules_value_gearViaSet(String item, String set) {
+    return '$item ($set)';
+  }
+
+  @override
   String get rules_collection_diveTypes => 'tipos de inmersión';
 
   @override
@@ -57989,6 +58383,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get rules_collection_courses => 'cursos';
+
+  @override
+  String get rules_collection_equipmentSets => 'conjuntos de equipo';
 
   @override
   String get rules_collection_siteTags => 'etiquetas de sitio';
@@ -58855,6 +59252,18 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_backups_copyAccountGone =>
       'Se eliminó la cuenta de la copia';
+
+  @override
+  String settings_backups_alsoCopyTo(String account) {
+    return 'También una copia en $account';
+  }
+
+  @override
+  String get settings_backups_addCopyAccount => 'Copiar también en otra cuenta';
+
+  @override
+  String get settings_backups_extraCopyMissed =>
+      'El último respaldo no llegó a esta cuenta';
 
   @override
   String get settings_backups_auto =>

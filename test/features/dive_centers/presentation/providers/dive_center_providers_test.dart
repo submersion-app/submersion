@@ -39,7 +39,10 @@ Dive _makeDive({String id = '', required DiveCenter center}) {
 /// the providers' error path.
 class _ThrowingDiveCenterRepository extends DiveCenterRepository {
   @override
-  Future<List<DiveCenter>> getAllDiveCenters({String? diverId}) async {
+  Future<List<DiveCenter>> getAllDiveCenters({
+    String? diverId,
+    List<String>? ids,
+  }) async {
     throw StateError('boom');
   }
 }

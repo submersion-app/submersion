@@ -262,6 +262,9 @@ class MediaLibraryEntry extends Equatable {
     this.siteName,
     this.attachedSiteName,
     this.attachedEquipmentName,
+    this.hasPeople = false,
+    this.hasSpecies = false,
+    this.hasTimeInDive = false,
   });
 
   final MediaItem item;
@@ -280,6 +283,53 @@ class MediaLibraryEntry extends Equatable {
   /// (`media.equipment_id`).
   final String? attachedEquipmentName;
 
+  /// Whether anyone (a buddy or a diver's Me tag) is tagged on the item
+  /// (issue #4218).
+  final bool hasPeople;
+
+  /// Whether any species is tagged on the item (issue #4218).
+  final bool hasSpecies;
+
+  /// Whether the item has a time in its dive that the profile chart would
+  /// draw it at (issue #4218). See `LibraryTileMarkers.hasTimeInDive` for the
+  /// rule.
+  final bool hasTimeInDive;
+
+  /// Sentinel-based for the nullable fields, as [MediaLibraryFilter.copyWith]
+  /// is, so a caller can clear one back to null.
+  MediaLibraryEntry copyWith({
+    MediaItem? item,
+    Object? diveNumber = MediaLibraryFilter._undefined,
+    Object? diveDateTime = MediaLibraryFilter._undefined,
+    Object? siteName = MediaLibraryFilter._undefined,
+    Object? attachedSiteName = MediaLibraryFilter._undefined,
+    Object? attachedEquipmentName = MediaLibraryFilter._undefined,
+    bool? hasPeople,
+    bool? hasSpecies,
+    bool? hasTimeInDive,
+  }) => MediaLibraryEntry(
+    item: item ?? this.item,
+    diveNumber: diveNumber == MediaLibraryFilter._undefined
+        ? this.diveNumber
+        : diveNumber as int?,
+    diveDateTime: diveDateTime == MediaLibraryFilter._undefined
+        ? this.diveDateTime
+        : diveDateTime as DateTime?,
+    siteName: siteName == MediaLibraryFilter._undefined
+        ? this.siteName
+        : siteName as String?,
+    attachedSiteName: attachedSiteName == MediaLibraryFilter._undefined
+        ? this.attachedSiteName
+        : attachedSiteName as String?,
+    attachedEquipmentName:
+        attachedEquipmentName == MediaLibraryFilter._undefined
+        ? this.attachedEquipmentName
+        : attachedEquipmentName as String?,
+    hasPeople: hasPeople ?? this.hasPeople,
+    hasSpecies: hasSpecies ?? this.hasSpecies,
+    hasTimeInDive: hasTimeInDive ?? this.hasTimeInDive,
+  );
+
   @override
   List<Object?> get props => [
     item,
@@ -288,6 +338,9 @@ class MediaLibraryEntry extends Equatable {
     siteName,
     attachedSiteName,
     attachedEquipmentName,
+    hasPeople,
+    hasSpecies,
+    hasTimeInDive,
   ];
 }
 

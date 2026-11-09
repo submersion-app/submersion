@@ -1,5 +1,6 @@
 import 'package:csv/csv.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/csv/csv_dives_writer.dart';
@@ -128,5 +129,33 @@ void main() {
     expect(r['Visibility (m)'], '21.3');
     expect(r['Visibility Min (m)'], '');
     expect(r['Visibility Max (m)'], '');
+  });
+
+  test('the gas columns skip a suit inflation bottle listed first (#4243)', () {
+    final dive = goldenDives().first;
+    final withSuit = dive.copyWith(
+      tanks: [
+        const DiveTank(
+          id: 'suit',
+          volume: 0.85,
+          startPressure: 200,
+          endPressure: 150,
+          gasMix: GasMix(o2: 21),
+          role: TankRole.suitInflation,
+        ),
+        ...dive.tanks,
+      ],
+    );
+    final units = CsvExportUnits.fromSettings(imperial);
+
+    final plain = rowOf(CsvDivesWriter(units).write([dive]), 1);
+    final r = rowOf(CsvDivesWriter(units).write([withSuit]), 1);
+    for (final column in [
+      'O2 %',
+      'Start Pressure (psi)',
+      'End Pressure (psi)',
+    ]) {
+      expect(r[column], plain[column], reason: column);
+    }
   });
 }

@@ -114,7 +114,14 @@ final allEquipmentProvider = FutureProvider<List<EquipmentItem>>((ref) async {
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
+  invalidateOnEquipmentListChanges(ref);
+  return repository.getAllEquipment(diverId: validatedDiverId);
+});
 
+/// Rebuilds [ref]'s provider whenever [allEquipmentProvider] would refresh,
+/// for a read of some of the same items (Global Search's rows, issue #4247).
+void invalidateOnEquipmentListChanges(Ref ref) {
+  final repository = ref.read(equipmentRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchEquipmentChanges());
   // Shared gear (issue #2046) comes and goes with a share row.
   ref.invalidateSelfWhen(
@@ -123,9 +130,7 @@ final allEquipmentProvider = FutureProvider<List<EquipmentItem>>((ref) async {
   // The list filters on hydrated attributes (#1805), and saveAttributes
   // or a sync pull writes only equipment_attributes.
   ref.invalidateSelfWhen(repository.watchAttributeChanges());
-
-  return repository.getAllEquipment(diverId: validatedDiverId);
-});
+}
 
 /// Retired and sold gear: what a past dive's pickers add on request, since
 /// a dive logged after the fact may well have used it (#3210). Derived from

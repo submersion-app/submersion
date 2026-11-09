@@ -24,12 +24,24 @@ describeRuleChange(
   RuleChange c,
   RuleNameOf nameOf,
 ) {
-  String names(Object? list, QuerySubject subject) {
-    final items = [
-      for (final m in (list as List?) ?? const [])
-        nameOf(subject, m is Map ? '${m['id']}' : '$m') ??
+  String names(
+    Object? list,
+    QuerySubject subject, {
+    Set<String> withSet = const {},
+  }) {
+    String label(Object? m) {
+      final id = m is Map ? '${m['id']}' : '$m';
+      final name = nameOf(subject, id) ?? l.rules_actionSummary_missing;
+      final set = m is Map ? m['set'] : null;
+      if (!withSet.contains(id) || set is! String) return name;
+      return l.rules_value_gearViaSet(
+        name,
+        nameOf(QuerySubject.equipmentSets, set) ??
             l.rules_actionSummary_missing,
-    ];
+      );
+    }
+
+    final items = [for (final m in (list as List?) ?? const []) label(m)];
     return items.isEmpty ? l.rules_value_empty : items.join(', ');
   }
 
@@ -51,10 +63,15 @@ describeRuleChange(
     final collection = DiveCollection.values.asNameMap()[c.field];
     if (collection != null) {
       final subject = diveCollectionSubject(collection);
+      // Gear a set action only tagged (#4284) reads the same by name on
+      // both sides, so those rows also name their set.
+      final retagged = collection == DiveCollection.equipment
+          ? _retaggedGear(c.before, c.after)
+          : const <String>{};
       return (
         field: ruleDiveCollectionLabel(l, collection),
-        before: names(c.before, subject),
-        after: names(c.after, subject),
+        before: names(c.before, subject, withSet: retagged),
+        after: names(c.after, subject, withSet: retagged),
         appended: null,
       );
     }
@@ -123,6 +140,22 @@ describeRuleChange(
     after: '${c.after}',
     appended: null,
   );
+}
+
+/// The gear ids a change holds on both sides under a different set, from
+/// its stored `{id, via?, set?}` rows: what a set action that only tagged
+/// gear added by hand (#4284) changed.
+Set<String> _retaggedGear(Object? before, Object? after) {
+  Map<String, Object?> setOf(Object? list) => {
+    for (final m in (list as List?) ?? const [])
+      if (m is Map) '${m['id']}': m['set'],
+  };
+  final was = setOf(before);
+  final now = setOf(after);
+  return {
+    for (final id in was.keys)
+      if (now.containsKey(id) && now[id] != was[id]) id,
+  };
 }
 
 /// The heading of a dive or site in a change list.

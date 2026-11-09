@@ -7,6 +7,7 @@ import 'package:submersion/features/universal_import/data/models/import_enums.da
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/suunto_json_handoff_card.dart';
+import 'package:submersion/core/platform/desktop_target_platform.dart';
 
 /// Step 0: File selection with drag-and-drop area and file picker button.
 class FileSelectionStep extends ConsumerWidget {
@@ -14,10 +15,7 @@ class FileSelectionStep extends ConsumerWidget {
 
   static bool get _isDesktop {
     if (kIsWeb) return false;
-    final platform = defaultTargetPlatform;
-    return platform == TargetPlatform.windows ||
-        platform == TargetPlatform.macOS ||
-        platform == TargetPlatform.linux;
+    return isDesktopTargetPlatform(defaultTargetPlatform);
   }
 
   @override

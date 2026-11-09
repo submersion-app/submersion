@@ -118,6 +118,21 @@ void main() {
 
     expect(find.textContaining('MOD: 56m (ppO₂ 1.4)'), findsOneWidget);
   });
+
+  testWidgets('a suit inflation bottle shows no MOD (#4243)', (tester) async {
+    await pumpEditor(
+      tester,
+      const DiveTank(id: 't', volume: 7, gasMix: ean50, role: TankRole.stage),
+    );
+    expect(find.textContaining('MOD:'), findsOneWidget);
+
+    await tester.tap(find.byType(DropdownButtonFormField<TankRole>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Suit Inflation').last);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('MOD:'), findsNothing);
+  });
 }
 
 class _Presets extends StateNotifier<AsyncValue<List<TankPresetEntity>>>

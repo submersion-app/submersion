@@ -32,6 +32,9 @@ class NameIndexLoader {
     QuerySubject.tags,
     QuerySubject.diveTypes,
     QuerySubject.equipment,
+    // Rule actions name equipment sets (#4284). No relation points at a
+    // set, so no query sentence resolves to one.
+    QuerySubject.equipmentSets,
     QuerySubject.species,
     // A buddy's certification is a ref (`buddies.certifications`).
     QuerySubject.certifications,

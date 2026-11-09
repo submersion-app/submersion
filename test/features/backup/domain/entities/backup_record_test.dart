@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
+import 'package:submersion/features/backup/domain/entities/extra_cloud_copy.dart';
 
 void main() {
   group('BackupRecord', () {
@@ -292,6 +293,80 @@ void main() {
 
     test('records differing only by note are not equal', () {
       expect(base == base.copyWith(note: 'Other'), isFalse);
+    });
+  });
+
+  group('extra cloud copies (#3782)', () {
+    final base = BackupRecord(
+      id: 'x',
+      filename: 'x.db',
+      timestamp: DateTime(2026, 11, 8, 9),
+      sizeBytes: 10,
+      location: BackupLocation.both,
+      cloudFileId: 'main-file',
+      cloudAccountId: 'gd-row',
+      localPath: '/backups/x.db',
+      extraCloudCopies: const [
+        ExtraCloudCopy(accountId: 'git-row', fileId: 'git-file'),
+        ExtraCloudCopy(accountId: 'db-row', fileId: 'db-file'),
+      ],
+    );
+
+    test('extraCloudCopies round-trips through JSON', () {
+      final restored = BackupRecord.fromJson(base.toJson());
+      expect(restored.extraCloudCopies, base.extraCloudCopies);
+      expect(restored, base);
+    });
+
+    // Review of #4328: a copy re-encryption could not replace stays marked
+    // across restarts, so a later run still replaces it.
+    test('a plaintext extra copy keeps its mark through JSON', () {
+      final record = base.copyWith(
+        extraCloudCopies: const [
+          ExtraCloudCopy(accountId: 'git-row', fileId: 'g', plaintext: true),
+          ExtraCloudCopy(accountId: 'db-row', fileId: 'd'),
+        ],
+      );
+      final json = record.toJson();
+      expect(BackupRecord.fromJson(json), record);
+      // Unmarked copies are written as before.
+      expect((json['extraCloudCopies'] as List).last, {
+        'accountId': 'db-row',
+        'fileId': 'd',
+      });
+    });
+
+    test('a record without extraCloudCopies reads as empty', () {
+      final json = base.toJson()..remove('extraCloudCopies');
+      expect(BackupRecord.fromJson(json).extraCloudCopies, isEmpty);
+    });
+
+    test('a malformed entry is skipped', () {
+      final json = base.toJson()
+        ..['extraCloudCopies'] = [
+          {'accountId': 'git-row', 'fileId': 'git-file'},
+          {'accountId': 'broken'},
+          'nonsense',
+        ];
+      expect(BackupRecord.fromJson(json).extraCloudCopies, const [
+        ExtraCloudCopy(accountId: 'git-row', fileId: 'git-file'),
+      ]);
+    });
+
+    test('withoutCloudCopy and withoutLocalCopy keep extra copies', () {
+      expect(base.withoutCloudCopy().extraCloudCopies, base.extraCloudCopies);
+      expect(base.withoutLocalCopy().extraCloudCopies, base.extraCloudCopies);
+    });
+
+    test('copyWith replaces extra copies', () {
+      expect(
+        base.copyWith(extraCloudCopies: const []).extraCloudCopies,
+        isEmpty,
+      );
+      expect(
+        base.copyWith(pinned: true).extraCloudCopies,
+        base.extraCloudCopies,
+      );
     });
   });
 }

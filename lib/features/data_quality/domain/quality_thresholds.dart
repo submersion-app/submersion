@@ -1,3 +1,5 @@
+import 'package:submersion/features/dive_log/domain/services/dive_consolidation_builder.dart';
+
 /// Every detector threshold, in one place. Detectors never inline numbers.
 /// Units: meters, celsius, bar, seconds unless the name says otherwise.
 abstract final class QualityThresholds {
@@ -7,6 +9,13 @@ abstract final class QualityThresholds {
   static const int hourOffsetMin = 1;
   static const int hourOffsetMax = 14;
   static const int hourOffsetRemainderToleranceMin = 5;
+
+  /// How far a source may sit from where its depth trace fits the primary's
+  /// before its placement is judged to come from a wrong clock (#4296): the
+  /// same tolerance consolidation applies, so a dive merged after the fix is
+  /// never flagged by the check meant for one merged before it.
+  static const Duration sourceProfileFitTolerance =
+      DiveConsolidationBuilder.clockTolerance;
 
   // duplicate (DiveMatcher supplies its own 0.5/0.7 score thresholds)
   static const Duration duplicateWindow = Duration(minutes: 15);

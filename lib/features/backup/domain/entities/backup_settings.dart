@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/features/backup/domain/entities/backup_copy_account.dart';
 
 /// How often automatic backups should run
 enum BackupFrequency { daily, weekly, monthly }
@@ -46,9 +47,10 @@ class BackupSettings extends Equatable {
   /// made by a version that records it.
   final LastBackupDestination? lastBackupDestination;
 
-  /// The connected account driving sync when the last backup reached the
-  /// cloud, so Settings > Data names the account the copy is in, not the
-  /// one that syncs today. Null for any other destination.
+  /// The connected account the last backup reached: its main copy's, else
+  /// its first extra copy's (issue #3782). Settings > Data names the account
+  /// the copy is in, not the one the copy goes to today. Null for any other
+  /// destination.
   final String? lastBackupCloudAccountId;
 
   /// The roster row the cloud copy goes to, with its kind; both null means
@@ -64,6 +66,14 @@ class BackupSettings extends Equatable {
   /// rather than a flag so a different backup folder reads as off until the
   /// diver confirms it too.
   final String? crossDeviceRetentionAccount;
+
+  /// Accounts each backup is also copied to, beside the main copy (issue
+  /// #3782). They are copied to only while [cloudBackupEnabled] is on.
+  final List<BackupCopyAccount> extraCopyAccounts;
+
+  /// The extra accounts the most recent backup did not reach. Every backup
+  /// rewrites it.
+  final List<String> lastExtraCopyMissingIds;
 
   const BackupSettings({
     this.enabled = false,
@@ -82,6 +92,8 @@ class BackupSettings extends Equatable {
     this.copyAccountId,
     this.copyAccountKind,
     this.crossDeviceRetentionAccount,
+    this.extraCopyAccounts = const [],
+    this.lastExtraCopyMissingIds = const [],
   });
 
   BackupSettings copyWith({
@@ -101,6 +113,8 @@ class BackupSettings extends Equatable {
     String? copyAccountId,
     AccountKind? copyAccountKind,
     String? crossDeviceRetentionAccount,
+    List<BackupCopyAccount>? extraCopyAccounts,
+    List<String>? lastExtraCopyMissingIds,
   }) {
     return BackupSettings(
       enabled: enabled ?? this.enabled,
@@ -126,6 +140,9 @@ class BackupSettings extends Equatable {
       copyAccountKind: copyAccountKind ?? this.copyAccountKind,
       crossDeviceRetentionAccount:
           crossDeviceRetentionAccount ?? this.crossDeviceRetentionAccount,
+      extraCopyAccounts: extraCopyAccounts ?? this.extraCopyAccounts,
+      lastExtraCopyMissingIds:
+          lastExtraCopyMissingIds ?? this.lastExtraCopyMissingIds,
     );
   }
 
@@ -171,5 +188,7 @@ class BackupSettings extends Equatable {
     copyAccountId,
     copyAccountKind,
     crossDeviceRetentionAccount,
+    extraCopyAccounts,
+    lastExtraCopyMissingIds,
   ];
 }

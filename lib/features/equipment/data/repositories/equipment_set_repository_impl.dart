@@ -108,9 +108,17 @@ class EquipmentSetRepository {
   }
 
   /// Get all equipment sets
-  Future<List<domain.EquipmentSet>> getAllSets({String? diverId}) async {
+  ///
+  /// [ids] narrows the read to those records (Global Search's few rows,
+  /// issue #4247), on the same terms.
+  Future<List<domain.EquipmentSet>> getAllSets({
+    String? diverId,
+    List<String>? ids,
+  }) async {
+    if (ids != null && ids.isEmpty) return const [];
     final query = _db.select(_db.equipmentSets)
       ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
+    if (ids != null) query.where((t) => t.id.isIn(ids));
 
     if (diverId != null) {
       query.where((t) => t.diverId.equals(diverId));
@@ -258,7 +266,13 @@ class EquipmentSetRepository {
   /// both. Mirrors the composite-PK junction handling in
   /// DivePlanRepository.updatePlan, including running sync bookkeeping only
   /// after the transaction commits.
-  Future<void> updateSet(domain.EquipmentSet set) async {
+  ///
+  /// Returns the members it actually added and removed, after dropping dead
+  /// ids, so a caller can replay the change on the dives that carry the set
+  /// (issue #4283).
+  Future<({List<String> added, List<String> removed})> updateSet(
+    domain.EquipmentSet set,
+  ) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     final added = <String>[];
     final removed = <String>[];
@@ -328,6 +342,10 @@ class EquipmentSetRepository {
       );
     }
     SyncEventBus.notifyLocalChange();
+    return (
+      added: List<String>.unmodifiable(added),
+      removed: List<String>.unmodifiable(removed),
+    );
   }
 
   /// Delete an equipment set.

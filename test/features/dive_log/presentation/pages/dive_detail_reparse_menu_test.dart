@@ -10,6 +10,7 @@ import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_computer/data/services/reparse_batch_service.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_service.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
@@ -78,6 +79,7 @@ void main() {
     WidgetTester tester, {
     required ({List<String> errors, int profilesPreserved}) result,
     bool embedded = false,
+    Locale locale = const Locale('en'),
     Completer<void>? gate,
     Object? failure,
   }) async {
@@ -137,7 +139,7 @@ void main() {
         child: MaterialApp.router(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          locale: const Locale('en'),
+          locale: locale,
           routerConfig: router,
         ),
       ),
@@ -147,12 +149,15 @@ void main() {
     return service;
   }
 
-  Future<void> tapReparse(WidgetTester tester) async {
+  Future<void> tapReparse(
+    WidgetTester tester, {
+    String label = 'Re-parse raw data',
+  }) async {
     // The header overflow menu is the last more_vert on the page (a source bar,
     // when present, renders earlier).
     await tester.tap(find.byIcon(Icons.more_vert).last);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Re-parse raw data'));
+    await tester.tap(find.text(label));
     await tester.pumpAndSettle();
   }
 
@@ -198,6 +203,22 @@ void main() {
     await tapReparse(tester);
 
     expect(find.text('Re-parse failed: native bridge error'), findsOneWidget);
+  });
+
+  testWidgets('a source missing its computer details says so in the '
+      'diver\'s language', (tester) async {
+    await pumpDetail(
+      tester,
+      result: (errors: <String>[missingDescriptorsError], profilesPreserved: 0),
+      locale: const Locale('de'),
+    );
+
+    await tapReparse(tester, label: 'Rohdaten neu auswerten');
+
+    expect(
+      find.text('Neu-Auswertung fehlgeschlagen: Tauchcomputer-Angaben fehlen'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('leaving while it runs still refreshes the dive', (tester) async {

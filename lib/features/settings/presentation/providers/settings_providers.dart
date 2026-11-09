@@ -86,6 +86,10 @@ class SettingsKeys {
   /// thumbnail. Health badges are not covered by it.
   static const String mediaProvenanceBadges = 'media_provenance_badges';
 
+  /// Device-local: whether library thumbnails draw the people, species and
+  /// time-in-dive markers (issue #4218).
+  static const String mediaTagBadges = 'media_tag_badges';
+
   /// Device-local: whether the fullscreen viewers fill the window or take
   /// the desktop window into OS fullscreen.
   static const String viewerFullscreenMode = 'viewer_fullscreen_mode';
@@ -525,6 +529,16 @@ class AppSettings implements UnitFormatterSettings {
   /// Show dive site map as background on dive cards in the dive list
   final bool showMapBackgroundOnDiveCards;
 
+  /// Show one of the dive's photos as background on dive cards in the dive
+  /// list. Takes precedence over the map; a dive with no usable photo falls
+  /// back to the map or the attribute colour.
+  final bool showPhotoBackgroundOnDiveCards;
+
+  /// Opacity (0..1) of the overlay over a dive card's photo on the dark
+  /// theme (black) and the light theme (white).
+  final double cardPhotoOverlayDark;
+  final double cardPhotoOverlayLight;
+
   /// Show dive site map as background on site cards in the site list
   final bool showMapBackgroundOnSiteCards;
 
@@ -859,6 +873,9 @@ class AppSettings implements UnitFormatterSettings {
     this.tissueColorScheme = TissueColorScheme.classic,
     this.tissueVizMode = TissueVizMode.heatMap,
     this.showMapBackgroundOnDiveCards = false,
+    this.showPhotoBackgroundOnDiveCards = false,
+    this.cardPhotoOverlayDark = 0.6,
+    this.cardPhotoOverlayLight = 0.6,
     this.showMapBackgroundOnSiteCards = false,
     // Dive profile marker defaults
     this.showMaxDepthMarker = true,
@@ -1090,6 +1107,9 @@ class AppSettings implements UnitFormatterSettings {
     TissueColorScheme? tissueColorScheme,
     TissueVizMode? tissueVizMode,
     bool? showMapBackgroundOnDiveCards,
+    bool? showPhotoBackgroundOnDiveCards,
+    double? cardPhotoOverlayDark,
+    double? cardPhotoOverlayLight,
     bool? showMapBackgroundOnSiteCards,
     bool? showMaxDepthMarker,
     bool? showPressureThresholdMarkers,
@@ -1313,6 +1333,11 @@ class AppSettings implements UnitFormatterSettings {
       tissueVizMode: tissueVizMode ?? this.tissueVizMode,
       showMapBackgroundOnDiveCards:
           showMapBackgroundOnDiveCards ?? this.showMapBackgroundOnDiveCards,
+      showPhotoBackgroundOnDiveCards:
+          showPhotoBackgroundOnDiveCards ?? this.showPhotoBackgroundOnDiveCards,
+      cardPhotoOverlayDark: cardPhotoOverlayDark ?? this.cardPhotoOverlayDark,
+      cardPhotoOverlayLight:
+          cardPhotoOverlayLight ?? this.cardPhotoOverlayLight,
       showMapBackgroundOnSiteCards:
           showMapBackgroundOnSiteCards ?? this.showMapBackgroundOnSiteCards,
       showMaxDepthMarker: showMaxDepthMarker ?? this.showMaxDepthMarker,
@@ -3173,6 +3198,27 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  Future<void> setShowPhotoBackgroundOnDiveCards(bool value) async {
+    state = state.copyWith(showPhotoBackgroundOnDiveCards: value);
+    await _saveSettings();
+  }
+
+  Future<void> setCardPhotoOverlayDark(double value) async {
+    state = state.copyWith(cardPhotoOverlayDark: _overlayOpacity(value));
+    await _saveSettings();
+  }
+
+  Future<void> setCardPhotoOverlayLight(double value) async {
+    state = state.copyWith(cardPhotoOverlayLight: _overlayOpacity(value));
+    await _saveSettings();
+  }
+
+  /// [value] clamped to 0..1 and rounded to a whole percent. A slider's
+  /// steps carry float noise (65% arrives as 0.6499999999999999), which
+  /// would otherwise be stored, synced and shown as "65.0%" in a conflict.
+  static double _overlayOpacity(double value) =>
+      (value.clamp(0.0, 1.0) * 100).round() / 100;
+
   Future<void> setShowMapBackgroundOnSiteCards(bool value) async {
     state = state.copyWith(showMapBackgroundOnSiteCards: value);
     await _saveSettings();
@@ -3898,6 +3944,21 @@ final cardColorAttributeProvider = Provider<CardColorAttribute>((ref) {
 final showMapBackgroundOnDiveCardsProvider = Provider<bool>((ref) {
   return ref.watch(
     settingsProvider.select((s) => s.showMapBackgroundOnDiveCards),
+  );
+});
+
+final showPhotoBackgroundOnDiveCardsProvider = Provider<bool>((ref) {
+  return ref.watch(
+    settingsProvider.select((s) => s.showPhotoBackgroundOnDiveCards),
+  );
+});
+
+/// The overlay opacity over dive card photos on the dark and light themes.
+final cardPhotoOverlayProvider = Provider<({double dark, double light})>((ref) {
+  return ref.watch(
+    settingsProvider.select(
+      (s) => (dark: s.cardPhotoOverlayDark, light: s.cardPhotoOverlayLight),
+    ),
   );
 });
 

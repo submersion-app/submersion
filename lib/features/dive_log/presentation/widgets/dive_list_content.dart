@@ -65,6 +65,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_computer/presentation/helpers/reparse_selected_dives.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/combine_dives_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
@@ -1976,6 +1978,16 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         label: context.l10n.diveLog_selection_tooltip_newTrip,
         onInvoke: _newTripFromSelection,
       ),
+      // Re-parse the checked dives from their stored raw data (#224). The
+      // parser is native, so a browser has nothing to offer here.
+      if (ref.watch(deviceCapabilitiesProvider).diveComputerDownload)
+        BulkAction(
+          id: 'reparse',
+          icon: Icons.refresh,
+          label: context.l10n.diveLog_selection_tooltip_reparse,
+          onInvoke: () =>
+              reparseSelectedDives(context, ref, _selectedIds.toList()),
+        ),
       // Logbook rules on the checked dives, previewed first (#3513). Last,
       // so the existing inline actions keep their places.
       rulesBulkAction(

@@ -297,10 +297,12 @@ class NotificationService {
   static String backupNotificationTitle({
     required bool success,
     required bool cloudCopyMissing,
+    bool extraCopyMissing = false,
   }) {
     if (!success) return 'Backup Failed';
-    return cloudCopyMissing
-        ? 'Backup Complete (device only)'
+    if (cloudCopyMissing) return 'Backup Complete (device only)';
+    return extraCopyMissing
+        ? 'Backup Complete (not every account)'
         : 'Backup Complete';
   }
 
@@ -310,19 +312,26 @@ class NotificationService {
   /// run produced no cloud copy -- an unreachable provider, expired auth, or
   /// no network. The local backup is intact, so this is not a failure, but
   /// saying "backed up successfully" would tell the user their off-device
-  /// copy is safe when it is not.
+  /// copy is safe when it is not. [extraCopyMissing] means the main copy is
+  /// off the device but an account it is also copied to (issue #3782) did
+  /// not get one; a missing main copy says the stronger thing.
   static String backupNotificationBody({
     required bool success,
     required bool cloudCopyMissing,
+    bool extraCopyMissing = false,
     String? error,
   }) {
     if (!success) {
       return 'Automatic backup failed'
           '${error != null ? ': $error' : '. Please try a manual backup.'}';
     }
-    return cloudCopyMissing
-        ? 'Your dive data was backed up on this device. The cloud copy could '
-              'not be uploaded -- it will be retried at the next backup.'
+    if (cloudCopyMissing) {
+      return 'Your dive data was backed up on this device. The cloud copy could '
+          'not be uploaded -- it will be retried at the next backup.';
+    }
+    return extraCopyMissing
+        ? 'Your dive data was backed up, but the copy did not reach every '
+              'account. It will be retried at the next backup.'
         : 'Your dive data has been backed up successfully.';
   }
 
@@ -334,6 +343,7 @@ class NotificationService {
     required bool success,
     String? error,
     bool cloudCopyMissing = false,
+    bool extraCopyMissing = false,
   }) async {
     if (!_isMobilePlatform) return;
 
@@ -365,10 +375,12 @@ class NotificationService {
       title: backupNotificationTitle(
         success: success,
         cloudCopyMissing: cloudCopyMissing,
+        extraCopyMissing: extraCopyMissing,
       ),
       body: backupNotificationBody(
         success: success,
         cloudCopyMissing: cloudCopyMissing,
+        extraCopyMissing: extraCopyMissing,
         error: error,
       ),
       notificationDetails: details,

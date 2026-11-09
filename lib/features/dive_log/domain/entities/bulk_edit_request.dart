@@ -44,7 +44,27 @@ class DiveCoursesOp extends BulkCollectionOp {
 class EquipmentOp extends BulkCollectionOp {
   final BulkCollectionMode mode;
   final List<String> equipmentIds;
-  const EquipmentOp({required this.mode, required this.equipmentIds});
+
+  /// Add mode only: the set these items came from, which every row they
+  /// write carries, as when a set is used on one dive (#4284).
+  final String? viaSetId;
+
+  const EquipmentOp({
+    required this.mode,
+    required this.equipmentIds,
+    this.viaSetId,
+  });
+}
+
+/// Whole equipment sets on every selected dive (#4284): [BulkCollectionMode.add]
+/// puts on each set's current items tagged with the set, and
+/// [BulkCollectionMode.remove] takes off the rows a set brought, with what
+/// is attached through them. Gear added any other way is untouched. The
+/// other modes are rejected.
+class EquipmentSetsOp extends BulkCollectionOp {
+  final BulkCollectionMode mode;
+  final List<String> setIds;
+  const EquipmentSetsOp({required this.mode, required this.setIds});
 }
 
 class BuddiesOp extends BulkCollectionOp {

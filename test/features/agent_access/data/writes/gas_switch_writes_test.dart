@@ -171,6 +171,63 @@ void main() {
     expect(plan.items.single.block!.reason, BlockReason.notPermitted);
   });
 
+  group('a suit inflation bottle (issue #4243)', () {
+    Future<void> bottle(String id, String diveId) => db
+        .into(db.diveTanks)
+        .insert(
+          DiveTanksCompanion(
+            id: Value(id),
+            diveId: Value(diveId),
+            tankRole: const Value('suitInflation'),
+          ),
+        );
+
+    test('is not the second cylinder a switch needs', () async {
+      await db
+          .into(db.diveTanks)
+          .insert(
+            const DiveTanksCompanion(id: Value('t1'), diveId: Value('d1')),
+          );
+      await bottle('t1-suit', 'd1');
+
+      final plan = await h.preview([
+        createOp('gas_switches', {'dive_id': 'd1', 't_s': 60, 'tank_id': 't1'}),
+      ]);
+
+      expect(plan.items.single.block!.reason, BlockReason.notPermitted);
+    });
+
+    test('is never a new switch target', () async {
+      await bottle('t-suit', 'd3');
+
+      final created = await h.preview([
+        createOp('gas_switches', {
+          'dive_id': 'd3',
+          't_s': 900,
+          'tank_id': 't-suit',
+        }),
+      ]);
+      final moved = await h.preview([
+        update('g1', {'tank_id': 't-suit'}),
+      ]);
+
+      for (final plan in [created, moved]) {
+        expect(plan.items.single.block!.reason, BlockReason.invalidValue);
+      }
+    });
+
+    test('a switch a computer already aimed at it can still move', () async {
+      await bottle('t-suit', 'd3');
+      await gasSwitch('g3', 900, 't-suit', computerId: 'c1');
+
+      final plan = await h.preview([
+        update('g3', {'t_s': 600, 'tank_id': 't-suit'}),
+      ]);
+
+      expect(plan.items.single.block, isNull);
+    });
+  });
+
   // A mode the app does not know reads as open circuit everywhere else, so
   // the dive editor shows its switches; the plan must not throw on it.
   test('a dive mode the app does not know reads as open circuit', () async {

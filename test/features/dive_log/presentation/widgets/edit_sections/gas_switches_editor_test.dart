@@ -49,6 +49,7 @@ Future<_Harness> _pump(
   Map<String, List<int>> breathStarts = const {},
   ValueChanged<GasSwitch>? onPickTime,
   double width = 900,
+  List<DiveTank> tanks = const [_back, _deco],
 }) async {
   tester.view.physicalSize = Size(width, 1600);
   tester.view.devicePixelRatio = 1.0;
@@ -68,7 +69,7 @@ Future<_Harness> _pump(
             key: h.formKey,
             child: GasSwitchesEditor(
               switches: switches,
-              tanks: const [_back, _deco],
+              tanks: tanks,
               units: units,
               maxTimestamp: maxTimestamp,
               startingTank: _back,
@@ -373,6 +374,48 @@ void main() {
       await _pump(tester, switches: [_sw('gs-1', 900, 'deco')]);
 
       expect(find.byTooltip('Pick on profile'), findsNothing);
+    });
+  });
+
+  // A suit inflation bottle is not breathed (issue #4243).
+  group('a suit inflation bottle', () {
+    const suit = DiveTank(
+      id: 'suit',
+      volume: 0.85,
+      role: TankRole.suitInflation,
+      order: 2,
+    );
+
+    /// The values the switch's tank menu offers, read with it open.
+    Future<Set<String?>> targets(WidgetTester tester, String switchId) async {
+      await tester.tap(find.byKey(ValueKey('gas-switch-tank-$switchId')));
+      await tester.pumpAndSettle();
+      return {
+        for (final item in tester.widgetList<DropdownMenuItem<String>>(
+          find.byType(DropdownMenuItem<String>),
+        ))
+          item.value,
+      };
+    }
+
+    testWidgets('is not offered as a switch target', (tester) async {
+      await _pump(
+        tester,
+        switches: [_sw('g1', 600, 'deco')],
+        tanks: const [_back, _deco, suit],
+      );
+
+      expect(await targets(tester, 'g1'), {'back', 'deco'});
+    });
+
+    testWidgets('stays on a switch a download already gave it', (tester) async {
+      await _pump(
+        tester,
+        switches: [_sw('g1', 600, 'suit')],
+        tanks: const [_back, _deco, suit],
+      );
+
+      expect(await targets(tester, 'g1'), {'back', 'deco', 'suit'});
     });
   });
 }

@@ -29,6 +29,8 @@
   "equipment_filter_owner_mine": "Míos",
   "enum_equipmentField_owner": "Propietario",
   "enum_equipmentField_owner_short": "Propietario",
+  "enum_equipmentField_location": "Ubicación",
+  "enum_equipmentField_location_short": "Ubicación",
   "equipment_set_noLongerShared": "Ya no se comparte",
   "equipment_history_title": "Historial",
   "equipment_history_empty": "Aún no se ha usado en ninguna inmersión",
@@ -264,6 +266,8 @@
   "equipment_setDetail_showFigure": "Mostrar figura del buceador",
   "equipment_setDetail_hideFigure": "Ocultar figura del buceador",
   "equipment_setEdit_figureSwitch_title": "Mostrar figura del buceador",
+  "equipment_setEdit_historyAsk": "¿Aplicar los cambios también a esas inmersiones o solo a partir de ahora?",
+  "equipment_setEdit_historyOnDives": "{count, plural, =1{Este conjunto de equipo está en 1 inmersión registrada.} other{Este conjunto de equipo está en {count} inmersiones registradas.}}",
   "equipment_color_red": "Rojo",
   "equipment_color_orange": "Naranja",
   "equipment_color_amber": "Ámbar",
@@ -2443,6 +2447,7 @@
   "diveLog_consolidate_alignStarts": "Alinear inicios",
   "diveLog_consolidate_sameDiveHint": "Estos perfiles parecen la misma inmersión registrada por dos ordenadores.",
   "diveLog_consolidate_clockNote": "Estos registros no se superponen en el tiempo, así que probablemente el reloj de un ordenador está mal. La inmersión conserva la hora del ordenador principal.",
+  "diveLog_consolidate_clockNoteOverlap": "Estos perfiles de profundidad coinciden en un momento distinto del que indican los relojes de los ordenadores, así que probablemente el reloj de un ordenador está mal. La inmersión conserva la hora del ordenador principal.",
   "diveLog_consolidate_noProfileFallback": "Un registro no tiene perfil de profundidad para comparar, así que su inicio se alinea con el del principal.",
   "diveLog_combine_modeJoinShort": "Unir",
   "diveLog_combine_modeMergeShort": "Fusionar",
@@ -2467,6 +2472,95 @@
   "diveLog_deco_sectionTissueLoading": "Carga tisular",
   "diveLog_deco_semantics_notRequired": "No se requiere descompresión",
   "diveLog_deco_semantics_required": "Se requiere descompresión",
+  "diveLog_deco_compartmentLeading": "Líder: #{number}",
+  "@diveLog_deco_compartmentLeading": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_compartmentOther": "Compartimento: #{number}",
+  "@diveLog_deco_compartmentOther": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_metricLoad": "Carga",
+  "diveLog_deco_gasOngassing": "Absorción",
+  "diveLog_deco_gasOffgassing": "Liberación",
+  "diveLog_deco_gasEquilibrium": "Equilibrio",
+  "diveLog_deco_heatMapRows": "Filas: rápido (arriba) a lento (abajo)",
+  "diveLog_deco_surfaceLevel": "Nivel de superficie",
+  "diveLog_deco_mValue": "Valor M",
+  "diveLog_deco_tooltipCompartment": "Compartimento {number}",
+  "@diveLog_deco_tooltipCompartment": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_tooltipLoaded": "{percent}% de carga",
+  "@diveLog_deco_tooltipLoaded": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_tooltipHalfTime": "Semiperiodo: {minutes} min",
+  "@diveLog_deco_tooltipHalfTime": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_tooltipSurfaceLevel": "Nivel de superficie: {percent}%",
+  "@diveLog_deco_tooltipSurfaceLevel": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_info_title": "¿Qué significan estos valores?",
+  "diveLog_deco_info_body": "Carga: la presión de gas inerte de un compartimento como porcentaje del máximo que puede contener en superficie (su valor M, la línea roja al 100%).\n\nNivel de superficie: la marca en cada barra indica dónde se estabiliza un compartimento totalmente desaturado mientras respiras aire en superficie. Nunca está en 0%, porque tu cuerpo siempre contiene el nitrógeno del aire que respiras. Una barra en su marca ya no tiene carga residual del buceo.\n\nAbsorción y liberación: el gas siempre se mueve hacia la presión del gas que respiras. Tras una descompresión con oxígeno o con una mezcla rica en helio, los compartimentos rápidos pueden contener menos nitrógeno que el aire en superficie. Al volver a respirar aire, absorben nitrógeno de nuevo hasta alcanzar su marca. Es normal y no es una carga residual de la inmersión.\n\nHelio: el aire no contiene helio. Tras una inmersión con trimix, un compartimento libera helio mientras puede absorber nitrógeno al mismo tiempo. Las flechas junto a N₂ y He muestran cada gas por separado; la indicación junto al número del compartimento muestra la dirección neta de ambos.",
+  "diveLog_deco_barChartSemantics": "Gráfico de carga tisular. {count} compartimentos, carga respecto al valor M; compartimento líder {number} al {percent}%.",
+  "@diveLog_deco_barChartSemantics": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "number": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_heatMapUndersaturated": "Subsaturado",
+  "diveLog_deco_heatMapSupersaturated": "Sobresaturado",
+  "diveLog_deco_percentValue": "{value}%",
+  "@diveLog_deco_percentValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_minutesValue": "{value} min",
+  "@diveLog_deco_minutesValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_deco_tissueFast": "Rápido",
   "diveLog_deco_tissueSlow": "Lento",
   "diveLog_deco_title": "Estado deco",
@@ -2802,6 +2896,10 @@
   "diveLog_edit_tripSuggested": "Sugerido: {name}",
   "diveLog_edit_tripUse": "Usar",
   "diveLog_edit_useSet": "Usar conjunto",
+  "diveLog_edit_removeSet": "Quitar conjunto",
+  "diveLog_bulkEdit_setsToRemove": "Conjuntos a quitar",
+  "diveLog_bulkEdit_removeSetTitle": "Quitar conjunto de equipo",
+  "diveLog_bulkEdit_equipmentSets": "Conjuntos de equipo",
   "diveLog_edit_weightPreset_use": "Usar preajuste",
   "diveLog_edit_weightPreset_save": "Guardar como preajuste",
   "diveLog_edit_weightPreset_pickerTitle": "Aplicar un preajuste de lastre",
@@ -4314,6 +4412,7 @@
   "enum_tankRole_sidemountLeft": "Sidemount izquierdo",
   "enum_tankRole_sidemountRight": "Sidemount derecho",
   "enum_tankRole_stage": "Stage",
+  "enum_tankRole_suitInflation": "Inflado del traje",
   "enum_tankRole_twinSet": "Bibotella",
   "enum_tideState_rising": "Subiendo",
   "enum_tideState_falling": "Bajando",
@@ -4872,6 +4971,7 @@
   "equipment_location_bulkAction": "Mover a una ubicación",
   "equipment_location_groupCount": "{count, plural, one{{count} elemento} other{{count} elementos}}",
   "equipment_location_activeFilter": "Ubicación",
+  "equipment_location_tileSemantics": "Ubicación: {name}",
   "equipment_filter_section_location": "Ubicación",
   "equipment_arrange_groupByLocation": "Agrupar por ubicación",
   "equipment_arrange_groupByLocationSubtitle": "Un encabezado por lugar, solo en esta página",
@@ -6330,6 +6430,11 @@
   "settings_appearance_header_language": "Idioma",
   "settings_appearance_mapBackgroundDiveCards": "Fondo de mapa en tarjetas de inmersión",
   "settings_appearance_mapBackgroundDiveCards_subtitleWithNote": "Mostrar mapa del punto de buceo como fondo en tarjetas de inmersión (requiere ubicación del punto)",
+  "settings_appearance_photoBackgroundDiveCards": "Fondo de foto en las tarjetas de inmersión",
+  "settings_appearance_photoBackgroundDiveCards_subtitle": "Mostrar una de las fotos de la inmersión como fondo de las tarjetas (sin fotos se usa el mapa o el color)",
+  "settings_appearance_photoOverlayDark": "Opacidad de la capa sobre la foto, tema oscuro",
+  "settings_appearance_photoOverlayLight": "Opacidad de la capa sobre la foto, tema claro",
+  "settings_appearance_photoOverlay_subtitle": "Más alto mantiene el texto legible, más bajo muestra más la foto",
   "settings_appearance_mapBackgroundSiteCards": "Fondo de mapa en tarjetas de puntos",
   "settings_appearance_mapBackgroundSiteCards_subtitleWithNote": "Mostrar mapa como fondo en tarjetas de puntos de buceo (requiere ubicación del punto)",
   "settings_appearance_maxDepthMarker": "Marcador de profundidad máxima",
@@ -7656,6 +7761,9 @@
   "settings_conflict_field_showInDetailHeader": "Se muestra en la cabecera de la inmersión",
   "settings_conflict_field_showInListView": "Se muestra en la lista de inmersiones",
   "settings_conflict_field_showMapBackgroundOnDiveCards": "Mapa detrás de las tarjetas de inmersión",
+  "settings_conflict_field_showPhotoBackgroundOnDiveCards": "Foto detrás de las tarjetas de inmersión",
+  "settings_conflict_field_cardPhotoOverlayDark": "Capa sobre la foto de las tarjetas (tema oscuro)",
+  "settings_conflict_field_cardPhotoOverlayLight": "Capa sobre la foto de las tarjetas (tema claro)",
   "settings_conflict_field_showMapBackgroundOnSiteCards": "Mapa detrás de las tarjetas de puntos de buceo",
   "settings_conflict_field_showMaxDepthMarker": "El perfil muestra la profundidad máxima",
   "settings_conflict_field_showNdlOnProfile": "El perfil muestra el NDL",
@@ -7890,6 +7998,7 @@
   "dataHealth_backup_overdue": "Respaldo atrasado (último: {when})",
   "dataHealth_backup_never": "Aún no hay respaldos",
   "dataHealth_backup_cloudCopyMissing": "El último respaldo no llegó a la nube",
+  "dataHealth_backup_extraCopyMissing": "El último respaldo no llegó a todas las cuentas",
   "dataHealth_backup_noOffDeviceCopy": "No hay copia fuera de este dispositivo",
   "dataHealth_sync_off": "Recomendado: activa la sincronización en la nube",
   "dataHealth_sync_needsPassphrase": "Sincronización en pausa: introduce tu frase de contraseña",
@@ -7907,7 +8016,7 @@
   "settings_data_importOptions": "Opciones de importación",
   "settings_data_importOptions_subtitle": "Coincidencia de puntos, presión al emerger, etiquetas automáticas",
   "settings_data_dataTools": "Herramientas de datos",
-  "settings_data_dataTools_subtitle": "Corregir horas, enlazar compañeros, retipar equipo, calidad de datos, editor de tabla",
+  "settings_data_dataTools_subtitle": "Corregir horas, enlazar compañeros, retipar equipo, calidad de datos, editor de tabla, reanalizar inmersiones",
   "settings_agentAccess_title": "Acceso de agentes",
   "settings_agentAccess_confirm_linkedDives": "Inmersiones que pierden este vínculo ({diver}): {count}",
   "settings_agentAccess_confirm_alsoDeletes": "También elimina {kind}: {count}",
@@ -8773,10 +8882,12 @@
   "insights_gas_gasMix_error": "Error al cargar los datos de mezcla de gas",
   "insights_gas_gasMix_subtitle": "Inmersiones por tipo de gas",
   "insights_gas_gasMix_title": "Distribución de mezcla de gas",
-  "insights_gas_sacByRole_empty": "No hay datos de multitanque disponibles",
-  "insights_gas_sacByRole_error": "Error al cargar el consumo por función",
-  "insights_gas_sacByRole_subtitle": "Consumo promedio por tipo de tanque",
-  "insights_gas_sacByRole_title": "Consumo de gas por función del tanque",
+  "insights_gas_roleUse_title": "Consumo por función de botella",
+  "insights_gas_roleUse_subtitle": "Cada función durante el tiempo en que se respiró",
+  "insights_gas_roleUse_empty": "Aún no hay valores por función de botella",
+  "insights_gas_roleUse_error": "No se pudo cargar el consumo por función de botella",
+  "insights_gas_roleGroup_bottomGas": "Gas de fondo",
+  "insights_gas_roleUse_leftOut": "{count, plural, =1{{count} inmersión omitida: una botella de etapa, descompresión, pony o bailout perdió gas sin un cambio de gas a ella} other{{count} inmersiones omitidas: una botella de etapa, descompresión, pony o bailout perdió gas sin un cambio de gas a ella}}",
   "insights_gas_ccrUse_title": "Uso de gas del rebreather",
   "insights_gas_ccrUse_subtitle": "Por minuto en el circuito, sin tiempo de bailout",
   "insights_gas_ccrUse_o2Average": "Media de O₂",
@@ -8923,16 +9034,11 @@
   "insights_focus_gas_air": "Aire",
   "insights_focus_gas_nitrox": "Nitrox",
   "insights_focus_gas_trimix": "Trimix",
-  "insights_gas_tankRole_backGas": "Gas principal",
   "insights_gas_tankRole_bailout": "Bailout",
   "insights_gas_tankRole_deco": "Deco",
   "insights_gas_tankRole_diluent": "Diluyente",
-  "insights_gas_tankRole_oxygenSupply": "Suministro de O₂",
   "insights_gas_tankRole_pony": "Pony",
-  "insights_gas_tankRole_sidemountLeft": "Sidemount izq.",
-  "insights_gas_tankRole_sidemountRight": "Sidemount der.",
   "insights_gas_tankRole_stage": "Stage",
-  "insights_gas_tankRole_twinSet": "Bibotella",
   "insights_geographic_appBar_title": "Geográfico",
   "insights_geographic_countries_empty": "No hay países visitados",
   "insights_geographic_countries_error": "Error al cargar los datos de países",
@@ -10816,12 +10922,39 @@
   "diveComputer_detail_reimportDialogTitle": "¿Reimportar todas las inmersiones?",
   "diveComputer_detail_reparseAllButton": "Reanalizar todas las inmersiones",
   "diveComputer_detail_reparseAllMessage": "Volver a ejecutar el analizador de inmersiones para {count} inmersiones con datos sin procesar almacenados. Esto actualiza los datos de perfil y sensores, pero conserva tus notas, sitios, compañeros y otras ediciones.",
-  "diveComputer_detail_reparseAllPartial": "Se reanalizaron {succeeded} de {total} inmersiones. {failed} fallaron.",
-  "diveComputer_detail_reparseAllProgress": "Reanalizando {count} inmersiones...",
-  "diveComputer_detail_reparseAllSuccess": "Se reanalizaron {count} inmersiones correctamente",
   "diveComputer_detail_reparseAllTitle": "Reanalizar todas las inmersiones",
   "diveComputer_detail_reparseRawDataCount": "{count} inmersiones con datos sin procesar",
   "diveComputer_detail_reparseRawDataCountWithout": "{count} inmersiones con datos sin procesar ({without} sin)",
+  "reparseBatch_progressTitle": "Reanalizando inmersiones",
+  "reparseBatch_progressCount": "Reanalizando {done} de {total} inmersiones",
+  "reparseBatch_cancelling": "Cancelando...",
+  "reparseBatch_resultTitle": "Reanálisis terminado",
+  "reparseBatch_resultCancelledTitle": "Reanálisis cancelado",
+  "reparseBatch_resultErrorTitle": "El reanálisis se detuvo por un error",
+  "reparseBatch_resultNotReached": "Sin procesar: {count}",
+  "reparseBatch_resultSummary": "Se reanalizaron {succeeded} de {total} inmersiones.",
+  "reparseBatch_resultFailed": "Fallidas: {count}",
+  "reparseBatch_resultNotProcessed": "Sin procesar (cancelado): {count}",
+  "reparseBatch_resultSkipped": "Omitidas, sin datos sin procesar: {count}",
+  "reparseBatch_resultProfilesPreserved": "Inmersiones combinadas que conservaron su perfil: {count}",
+  "reparseBatch_failedListHeader": "Inmersiones fallidas",
+  "reparseBatch_failedDiveTitle": "Inmersión n.º {number}",
+  "reparseBatch_failedDiveUnnumbered": "Inmersión sin número",
+  "reparseBatch_missingDescriptors": "Faltan los datos del ordenador de buceo",
+  "reparseBatch_confirmTitle": "Reanalizar inmersiones",
+  "reparseBatch_confirmMessage": "Volver a ejecutar el analizador de inmersiones para {count} inmersiones con datos sin procesar almacenados. Esto actualiza los datos de perfil y sensores, pero conserva tus notas, sitios, compañeros y otras ediciones.",
+  "reparseBatch_confirmSkipped": "Inmersiones seleccionadas sin datos sin procesar (se omiten): {count}",
+  "reparseBatch_noneWithRawData": "Ninguna de las inmersiones seleccionadas tiene datos sin procesar almacenados para reanalizar.",
+  "diveLog_selection_tooltip_reparse": "Reanalizar",
+  "settings_reparseDives_title": "Reanalizar inmersiones",
+  "settings_reparseDives_subtitle": "Volver a ejecutar el analizador en cada inmersión con datos sin procesar almacenados",
+  "settings_reparseDives_intro": "Úsalo cuando una actualización de la app mejore la lectura de los datos del ordenador de buceo. Se conservan tus notas, sitios, compañeros y otras ediciones.",
+  "settings_reparseDives_withRawData": "Inmersiones con datos sin procesar: {count}",
+  "settings_reparseDives_withoutRawData": "Inmersiones sin datos sin procesar (no se reanalizan): {count}",
+  "settings_reparseDives_byComputer": "Por ordenador de buceo",
+  "settings_reparseDives_unknownComputer": "Ordenador desconocido",
+  "settings_reparseDives_none": "Ninguna inmersión tiene datos sin procesar almacenados para reanalizar.",
+  "settings_reparseDives_button": "Reanalizar todo",
   "diveComputer_rawData_discardAction": "Descartar",
   "diveComputer_rawData_discardAllMessage": "¿Eliminar los datos de descarga sin procesar guardados de {count} inmersiones de todos los ordenadores de buceo ({size})? Esas inmersiones ya no podrán reanalizarse cuando mejore el analizador de inmersiones. Las inmersiones y tus cambios se mantienen, y tus otros dispositivos sincronizados también eliminan los datos.",
   "diveComputer_rawData_discardButton": "Descartar datos sin procesar",
@@ -11554,6 +11687,7 @@
   "attrLabel_working_pressure_bar": "Presión de trabajo",
   "attrLabel_tank_material": "Material",
   "attrLabel_valve_type": "Válvula",
+  "attrLabel_cylinder_use": "Uso de la botella",
   "attrLabel_tank_identifier": "Identificador",
   "attrLabel_last_visual_inspection": "Última inspección visual",
   "attrLabel_last_hydro_test": "Última prueba hidrostática",
@@ -11673,6 +11807,8 @@
   "attrChoice_valve_type_din": "DIN",
   "attrChoice_valve_type_yoke": "Yugo (INT)",
   "attrChoice_valve_type_convertible": "Convertible",
+  "attrChoice_cylinder_use_breathing_gas": "Gas respirable",
+  "attrChoice_cylinder_use_suit_inflation": "Inflado del traje",
   "attrChoice_connection_din": "DIN",
   "attrChoice_connection_yoke": "Yugo (INT)",
   "attrChoice_hose_type_lp": "LP (baja presión)",
@@ -12035,8 +12171,12 @@
   "safetyHub_cnsOtu_noProfile_body": "Sin perfil de profundidad no se pueden calcular su CNS% ni sus OTU. Los totales de abajo no la incluyen.",
   "safetyHub_cnsOtu_about_title": "Sobre CNS y OTU",
   "safetyHub_cnsOtu_about_body": "Su CNS% (reloj de oxígeno) decae tras la inmersión con una semivida de 90 minutos; prácticamente vuelve a 0 al cabo de un día.\n\nLa OTU diaria se reinicia cada noche a medianoche. La OTU semanal es un total móvil de los últimos 7 días: las inmersiones más antiguas salen automáticamente del cálculo en cuanto quedan fuera de esa ventana.",
+  "safetyHub_tissueLoading_clear_title": "Sin carga tisular residual",
+  "safetyHub_tissueLoading_clear_body": "Todos los compartimentos han vuelto al equilibrio con el aire en superficie. Se quedan en su nivel normal (la marca en cada barra), no en 0%.",
+  "safetyHub_tissueLoading_unavailable_title": "Carga tisular no disponible",
+  "safetyHub_tissueLoading_unavailable_body": "La última inmersión no tiene datos para calcular la carga tisular, por ejemplo una inmersión sin perfil de profundidad, en modo profundímetro o con recirculador sin setpoint.",
   "safetyHub_tissueLoading_about_title": "Sobre la carga tisular",
-  "safetyHub_tissueLoading_about_body": "Su cuerpo tiene 16 compartimentos tisulares que absorben y liberan nitrógeno (y, en inmersiones con trimix o reciclador, también helio) a distintas velocidades. Los tejidos rápidos se saturan y desaturan deprisa; los lentos tardan mucho más en ambas cosas.\n\nTras una inmersión con helio, el nitrógeno y el helio de un mismo compartimento pueden moverse brevemente en direcciones opuestas: mientras el helio aún se está liberando, ese mismo compartimento puede estar absorbiendo algo de nitrógeno a la vez, hasta que ambos gases alcanzan el equilibrio con el aire que respira. Por eso un compartimento puede mostrar brevemente \"Ongassing\" incluso mientras su carga total sigue bajando.",
+  "safetyHub_tissueLoading_about_body": "Tu cuerpo tiene 16 compartimentos tisulares que absorben y liberan nitrógeno (y, en inmersiones con trimix o recirculador, también helio) a distintas velocidades. Los tejidos rápidos se saturan y desaturan enseguida; los lentos tardan mucho más en ambos casos.\n\nLa carga residual es solo lo que queda por encima del nivel normal en superficie. Incluso totalmente desaturadas, las barras no bajan a 0%: cada compartimento se estabiliza en la marca que corresponde al nitrógeno del aire que respiras. Por eso un compartimento rápido puede marcar aquí más que al final de una inmersión con descompresión con oxígeno, sin que la carga haya aumentado.\n\nTras una inmersión con helio, un compartimento libera helio mientras absorbe nitrógeno al mismo tiempo, hasta que ambos gases están en equilibrio con el aire que respiras.",
   "safetyHub_noFly_category_single": "Tras una única inmersión sin deco: pauta de {hours} h",
   "@safetyHub_noFly_category_single": {
     "placeholders": {
@@ -12821,6 +12961,7 @@
   "dataQuality_detector_pressure_anomaly": "Anomalía de presión",
   "dataQuality_detector_gas_mod": "Incoherencia de gas/MOD",
   "dataQuality_detector_tank_assignment": "Tanque incorrecto",
+  "dataQuality_detector_missing_gas_switch": "Cambio de gas no registrado",
   "dataQuality_detector_source_conflict": "Fuentes en conflicto",
   "dataQuality_detector_shared_gear_overlap": "Equipo compartido en inmersiones solapadas",
   "dataQuality_msg_clock_future": "La inmersión tiene fecha en el futuro ({date})",
@@ -12828,6 +12969,7 @@
   "dataQuality_msg_clock_offsetAhead": "{hours, plural, =1{El reloj de una fuente va {hours} hora adelantado} other{El reloj de una fuente va {hours} horas adelantado}}",
   "dataQuality_msg_clock_offsetBehind": "{hours, plural, =1{El reloj de una fuente va {hours} hora atrasado} other{El reloj de una fuente va {hours} horas atrasado}}",
   "dataQuality_msg_clock_overlap": "Se solapa con otra inmersión durante {minutes} min",
+  "dataQuality_msg_clock_profileFit": "Una fuente está a {minutes} min de donde su perfil coincide con el principal",
   "dataQuality_msg_shared_gear_overlap": "{item} está en la inmersión de {diverA} a las {timeA} y en la de {diverB} a las {timeB}.",
   "dataQuality_msg_shared_gear_overlap_parts": "{count, plural, one{Incluye {count} pieza instalada.} other{Incluye {count} piezas instaladas.}}",
   "dataQuality_msg_duplicate": "{percent} % de coincidencia con una inmersión separada por {minutes} min",
@@ -12853,6 +12995,12 @@
   "dataQuality_msg_hypoxic": "Mezcla hipóxica ({gas}) mostrada en uso en la superficie",
   "dataQuality_msg_switchMod": "El cambio de gas a {depth} supera la MOD de ese gas de {mod}",
   "dataQuality_msg_tankInactive": "Este tanque perdió {drop} mientras la cronología de gas indica que no estaba en uso",
+  "dataQuality_msg_missingSwitches": "{count, plural, one{No se registró ningún cambio de gas, pero las presiones de los tanques muestran este cambio: {switches}.} other{No se registró ningún cambio de gas, pero las presiones de los tanques muestran estos cambios: {switches}.}}",
+  "dataQuality_msg_missingSwitchItem": "tanque {tankNumber} ({gas}) a los {time}, {depth}",
+  "dataQuality_msg_missingSwitchSeparator": "; ",
+  "dataQuality_msg_missingSwitchDeep": "No se registró ningún cambio de gas. Las presiones de los tanques muestran un cambio al tanque {tankNumber} ({gas}) a {depth}, más profundo que su MOD de {mod}, por lo que no se sugiere un cambio a él.",
+  "dataQuality_msg_missingSwitchDeepAlso": "Las presiones de los tanques también muestran un cambio al tanque {tankNumber} ({gas}) a {depth}, más profundo que su MOD de {mod}, por lo que no se sugiere un cambio a él.",
+  "dataQuality_msg_missingSwitchUnplaced": "No se registró ningún cambio de gas. El tanque {tankNumber} ({gas}) se volvió a respirar desde {time} tras una pausa, así que entretanto se respiró otro tanque, y con más de dos tanques las presiones no muestran cuál. Añade los cambios en el editor de inmersiones.",
   "dataQuality_detector_transmitter_role": "Función del transmisor",
   "dataQuality_msg_transmitterRoleBailout": "El tanque {tankNumber} figura como {role} según el nombre de su transmisor, pero perdió {ocDrop} tras el cambio a circuito abierto y casi nada en el circuito cerrado, así que parece ser el bailout. Un bailout que no se respiró, o que se respiró sin cambio de gas en el ordenador, no se puede detectar así.",
   "dataQuality_msg_twinTanks": "Dos tanques tienen una serie de presión casi idéntica",
@@ -12866,6 +13014,8 @@
   "dataQuality_repairLabel_fixSourceClock": "Corregir el reloj de este ordenador {offset}",
   "dataQuality_repairLabel_fixSourceClockNamed": "Corregir el reloj de {computer} {offset}",
   "dataQuality_repairLabel_fixSourceClockAll": "Corregir también este ordenador en otras inmersiones con el mismo desfase",
+  "dataQuality_repairLabel_alignSourceProfile": "Alinear este ordenador por su perfil",
+  "dataQuality_repairLabel_alignSourceProfileNamed": "Alinear {computer} por su perfil",
   "dataQuality_repairLabel_consolidate": "Consolidar",
   "dataQuality_repairLabel_deleteDuplicate": "Eliminar duplicado",
   "dataQuality_deleteDuplicate_title": "¿Eliminar la copia redundante?",
@@ -12898,6 +13048,7 @@
   "dataQuality_repairLabel_setFromSeries": "Usar valores del sensor",
   "dataQuality_repairLabel_swapSeries": "Intercambiar series de tanques",
   "dataQuality_repairLabel_reassignSeries": "Mover la serie a otro tanque",
+  "dataQuality_repairLabel_addGasSwitches": "{count, plural, one{Añadir cambio de gas} other{Añadir {count} cambios de gas}}",
   "dataQuality_repairLabel_setPrimary": "Hacer que esta fuente sea la principal",
   "dataQuality_repairLabel_split": "Dividir en inmersiones separadas",
   "dataQuality_repairLabel_setPrimaryNamed": "Hacer que {source} sea la fuente principal",
@@ -16021,6 +16172,8 @@
   "media_servedFrom_embedded": "Guardado en este cuaderno",
   "settings_media_provenanceBadges": "Mostrar distintivos de origen en las miniaturas",
   "settings_media_provenanceBadgesSubtitle": "Un pequeño icono que indica de dónde procede cada elemento. Los distintivos de problemas siempre se muestran.",
+  "settings_media_tagBadges": "Mostrar distintivos de etiquetas en las miniaturas",
+  "settings_media_tagBadgesSubtitle": "Pequeños iconos para fotos con personas etiquetadas, especies etiquetadas o un momento en la inmersión.",
   "settings_media_autoColorCorrection": "Corrección automática del color",
   "settings_media_autoColorCorrectionSubtitle": "Calienta en pantalla las fotos y vídeos submarinos azulados según la profundidad a la que se tomó cada uno. Tus archivos nunca se modifican.",
   "settings_photosMedia_cacheHeader": "Caché",
@@ -16036,6 +16189,9 @@
   "media_status_queued": "Esperando para subir",
   "media_status_cloudOnly": "Solo en la nube",
   "media_status_notBackedUp": "Sin copia de seguridad",
+  "media_tileMarker_people": "Personas etiquetadas",
+  "media_tileMarker_species": "Especies etiquetadas",
+  "media_tileMarker_timeInDive": "Situada en el perfil de la inmersión",
   "media_tile_infoMenuItem": "Información del medio",
   "diveImport_healthkit_accessGrantedHint": "Apple Salud nunca indica a las apps si se concedió el acceso de lectura. Si no aparece ninguna inmersión, abre Salud, luego Compartir, Apps, Submersion, y activa Entrenamientos, Profundidad bajo el agua, Temperatura del agua y Frecuencia cardíaca.",
   "diveImport_healthkit_foundNoDivesHint": "No hay entrenamientos de buceo en este intervalo. Comprueba que las fechas incluyan la inmersión y que en Salud, Compartir, Apps, Submersion estén activados Entrenamientos y Profundidad bajo el agua.",
@@ -17256,11 +17412,13 @@
   "rules_value_yes": "Sí",
   "rules_value_no": "No",
   "rules_value_empty": "(vacío)",
+  "rules_value_gearViaSet": "{item} ({set})",
   "rules_collection_diveTypes": "tipos de inmersión",
   "rules_collection_tags": "etiquetas",
   "rules_collection_equipment": "equipo",
   "rules_collection_buddies": "compañeros",
   "rules_collection_courses": "cursos",
+  "rules_collection_equipmentSets": "conjuntos de equipo",
   "rules_collection_siteTags": "etiquetas de sitio",
   "rules_collection_siteTypes": "tipos de sitio",
   "rules_field_diveCenter": "centro de buceo",
@@ -17430,6 +17588,9 @@
   "settings_backups_noCopy": "Sin copia fuera de este dispositivo",
   "settings_backups_chooseAccount": "Elegir una cuenta",
   "settings_backups_copyAccountGone": "Se eliminó la cuenta de la copia",
+  "settings_backups_alsoCopyTo": "También una copia en {account}",
+  "settings_backups_addCopyAccount": "Copiar también en otra cuenta",
+  "settings_backups_extraCopyMissed": "El último respaldo no llegó a esta cuenta",
   "settings_backups_auto": "Hacer copia de seguridad automáticamente",
   "settings_backups_backUpNow": "Hacer copia ahora",
   "settings_backups_restoreFile": "Restaurar desde un archivo",

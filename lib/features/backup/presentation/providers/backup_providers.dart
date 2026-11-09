@@ -25,6 +25,7 @@ import 'package:submersion/features/backup/data/services/browser_backup_download
 import 'package:submersion/features/backup/data/services/cloud_backup_history.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_copy_providers.dart';
+import 'package:submersion/features/backup/presentation/providers/extra_copy_providers.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_operation_state.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_settings_notifier.dart';
 import 'package:submersion/core/services/sync/crypto/sync_encryption_service.dart'
@@ -65,6 +66,7 @@ final backupServiceProvider = Provider<BackupService>((ref) {
     preferences: ref.watch(backupPreferencesProvider),
     cloudProvider: ref.watch(backupCopyProviderProvider),
     copyAccountId: ref.watch(pinnedCopyAccountIdProvider),
+    extraCopies: ref.watch(extraCopyDestinationsProvider),
     syncRepository: ref.watch(syncRepositoryProvider),
     epochStore: LibraryEpochStore(ref.watch(sharedPreferencesProvider)),
     postRestoreSyncStore: PostRestoreSyncStore(

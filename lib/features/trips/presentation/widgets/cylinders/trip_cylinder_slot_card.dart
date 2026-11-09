@@ -11,6 +11,7 @@ import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_cy
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_cylinder_edit_sheet.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_cylinder_fill_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/platform/desktop_target_platform.dart';
 
 /// Asks before deleting [cylinder], naming how many dives used it, then
 /// deletes it. The dives keep their tanks; only the link goes. Returns true
@@ -181,14 +182,8 @@ class TripCylinderSlotCard extends ConsumerWidget {
 
   /// Desktop drags by a handle and a phone by a long press, as
   /// ReorderableListView's own handles do.
-  static bool _dragsByHandle(TargetPlatform platform) => switch (platform) {
-    TargetPlatform.linux ||
-    TargetPlatform.macOS ||
-    TargetPlatform.windows => true,
-    TargetPlatform.android ||
-    TargetPlatform.fuchsia ||
-    TargetPlatform.iOS => false,
-  };
+  static bool _dragsByHandle(TargetPlatform platform) =>
+      isDesktopTargetPlatform(platform);
 
   Widget _menu(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;

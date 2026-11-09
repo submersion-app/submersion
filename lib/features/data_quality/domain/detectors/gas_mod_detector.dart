@@ -8,6 +8,8 @@ import 'package:submersion/features/data_quality/domain/entities/dive_quality_co
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
 import 'package:submersion/features/data_quality/domain/detectors/quality_detector.dart';
+import 'package:submersion/features/dive_log/domain/services/breathing_gas_switches.dart';
+import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 
 /// Flags recorded gas/depth combinations that contradict physics or
 /// procedure: the recorded mix or the recorded switch depth is wrong.
@@ -30,8 +32,12 @@ class GasModDetector extends QualityDetector {
   @override
   List<QualityFinding> detect(DiveQualityContext ctx) {
     if (ctx.dive.diveMode != DiveMode.oc) return const [];
-    final tanks = ctx.tanks;
+    // A suit inflation bottle is not breathed (issue #4243): it is never the
+    // starting gas, and a switch to it counts against the breathing cylinder
+    // on its mix.
+    final tanks = breathingTanks(ctx.tanks);
     if (tanks.isEmpty) return const [];
+    final switches = breathingRawGasSwitches(ctx.gasSwitches, ctx.tanks);
     final out = <QualityFinding>[];
     final environment = ctx.dive.environment;
 
@@ -50,7 +56,7 @@ class GasModDetector extends QualityDetector {
 
     domain.GasMix mixAt(int t) {
       var active = ordered.first;
-      for (final sw in ctx.gasSwitches) {
+      for (final sw in switches) {
         if (sw.timestamp <= t) {
           active = tankById(sw.tankId) ?? active;
         } else {
@@ -146,7 +152,7 @@ class GasModDetector extends QualityDetector {
     closeHypoRun();
 
     // Switches recorded deeper than the target gas's MOD.
-    for (final sw in ctx.gasSwitches) {
+    for (final sw in switches) {
       final tank = tankById(sw.tankId);
       final d = sw.depth;
       if (tank == null || d == null) continue;

@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/services/tank_usage_range.dart';
 
 /// SAC calculation result for a single cylinder/tank.
 ///
@@ -83,6 +84,21 @@ class CylinderSac extends Equatable {
   /// Order of this tank in the dive (for display)
   final int order;
 
+  /// The stretches of the dive [sacRate] covers, in seconds: the cylinder's
+  /// breathing windows, the whole dive when [usageFromRecordedDuration], or
+  /// its bailout windows on a CCR dive. The per-role statistics merge these
+  /// across a role's cylinders (issue #771).
+  final List<TankUsageWindow> usageWindows;
+
+  /// Whether [usageDuration] came from the duration the source log recorded
+  /// (issue #1496) because no gas switch said when the cylinder was breathed.
+  /// It then says how long, but not at what depth.
+  final bool usageFromRecordedDuration;
+
+  /// The ambient pressure, in bar, [sacRate] was divided by. Null when there
+  /// is no [sacRate].
+  final double? rateAmbientBar;
+
   const CylinderSac({
     required this.tankId,
     this.tankName,
@@ -98,6 +114,9 @@ class CylinderSac extends Equatable {
     this.avgDepthDuringUse,
     this.hasTimeSeriesData = false,
     this.order = 0,
+    this.usageWindows = const [],
+    this.usageFromRecordedDuration = false,
+    this.rateAmbientBar,
   });
 
   /// Whether we have enough data to calculate SAC
@@ -134,6 +153,9 @@ class CylinderSac extends Equatable {
     double? avgDepthDuringUse,
     bool? hasTimeSeriesData,
     int? order,
+    List<TankUsageWindow>? usageWindows,
+    bool? usageFromRecordedDuration,
+    double? rateAmbientBar,
   }) {
     return CylinderSac(
       tankId: tankId ?? this.tankId,
@@ -150,6 +172,10 @@ class CylinderSac extends Equatable {
       avgDepthDuringUse: avgDepthDuringUse ?? this.avgDepthDuringUse,
       hasTimeSeriesData: hasTimeSeriesData ?? this.hasTimeSeriesData,
       order: order ?? this.order,
+      usageWindows: usageWindows ?? this.usageWindows,
+      usageFromRecordedDuration:
+          usageFromRecordedDuration ?? this.usageFromRecordedDuration,
+      rateAmbientBar: rateAmbientBar ?? this.rateAmbientBar,
     );
   }
 
@@ -169,5 +195,8 @@ class CylinderSac extends Equatable {
     avgDepthDuringUse,
     hasTimeSeriesData,
     order,
+    usageWindows,
+    usageFromRecordedDuration,
+    rateAmbientBar,
   ];
 }

@@ -191,6 +191,17 @@ void main() {
       final result = parsedDiveToDownloaded(parsed, now: () => downloadedAt);
 
       expect(result.startTime, DateTime.utc(2026, 10, 2, 16, 5, 9));
+      // The download time is a stand-in, so nothing is placed by it, such
+      // as the trip that covers it (issue #3022).
+      expect(result.startTimeReported, isFalse);
+    });
+
+    test('marks a start time the parser reported as reported', () {
+      final result = parsedDiveToDownloaded(
+        makeParsedDive(year: 2024, month: 6, day: 15),
+      );
+
+      expect(result.startTimeReported, isTrue);
     });
 
     test('ignores timezone offset (components treated as wall-clock)', () {

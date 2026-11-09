@@ -91,6 +91,7 @@ part 'helpers/air_breaks_turn_pressure_migrations.dart';
 part 'helpers/reserve_pressure_gf_migrations.dart';
 part 'helpers/download_owner_migrations.dart';
 part 'helpers/unused_oc_gas_migrations.dart';
+part 'helpers/dive_card_photo_migrations.dart';
 part 'helpers/ppo2_deco_band_migrations.dart';
 part 'helpers/hypercapnia_bailout_migrations.dart';
 part 'helpers/list_arrangement_migrations.dart';

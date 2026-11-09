@@ -12,8 +12,10 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/shared/bulk_edit/bulk_membership_editor.dart';
+import 'package:submersion/shared/widgets/forms/edit_form_scaffold.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
@@ -160,7 +162,7 @@ void main() {
         await EquipmentRepository().createEquipment(
           const EquipmentItem(
             id: 'e1',
-            name: 'Regulator',
+            name: 'Apeks XTX50',
             type: EquipmentType.regulator,
           ),
         );
@@ -177,7 +179,7 @@ void main() {
         expect(find.byType(BulkMembershipEditor), findsNWidgets(5));
         expect(find.text('Nitrox'), findsOneWidget);
         expect(find.text('Alice'), findsOneWidget);
-        expect(find.text('Regulator'), findsOneWidget);
+        expect(find.text('Apeks XTX50'), findsOneWidget);
         // Each seeded item is on 1 of the 2 selected dives.
         expect(find.text('on 1 of 2'), findsNWidgets(4));
 
@@ -698,6 +700,352 @@ void main() {
           'e2',
           'e4',
         }, reason: 'dive $diveId keeps the set and drops only the camera');
+      }
+    });
+
+    // Issue #4284: gear "Use Set" switches on carries the set, as on one dive.
+    testWidgets('use-set tags the gear it adds with the set', (tester) async {
+      const wing = EquipmentItem(
+        id: 'e1',
+        name: 'Wing',
+        type: EquipmentType.bcd,
+      );
+      const dsmb = EquipmentItem(
+        id: 'e2',
+        name: 'DSMB',
+        type: EquipmentType.smb,
+      );
+      for (final item in [wing, dsmb]) {
+        await EquipmentRepository().createEquipment(item);
+      }
+      await seedDive('d1');
+      await seedDive('d2');
+      final tripKit = EquipmentSet(
+        id: 's1',
+        name: 'Trip kit',
+        equipmentIds: const ['e1', 'e2'],
+        items: const [wing, dsmb],
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
+
+      await pump(tester, ['d1', 'd2'], sets: [tripKit]);
+      final useSet = find.descendant(
+        of: editorFor('Equipment'),
+        matching: find.widgetWithText(TextButton, 'Use Set'),
+      );
+      await tester.ensureVisible(useSet);
+      await tester.tap(useSet);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Trip kit'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      final rows = await db.select(db.diveEquipment).get();
+      expect(rows, hasLength(4));
+      expect(rows.map((r) => r.viaSetId).toSet(), {'s1'});
+    });
+
+    // Issue #2046: a set member another profile owns and has not shared
+    // stays in the set but is not applied, as when the set is used on one
+    // dive.
+    testWidgets('use-set leaves off a member not shared with the diver', (
+      tester,
+    ) async {
+      const wing = EquipmentItem(
+        id: 'e1',
+        name: 'Wing',
+        type: EquipmentType.bcd,
+        diverId: 'me',
+      );
+      const camera = EquipmentItem(
+        id: 'e2',
+        name: 'Borrowed camera',
+        type: EquipmentType.camera,
+        diverId: 'other',
+      );
+      for (final item in [wing, camera]) {
+        await EquipmentRepository().createEquipment(item);
+      }
+      await seedDive('d1');
+      await seedDive('d2');
+      final tripKit = EquipmentSet(
+        id: 's1',
+        name: 'Trip kit',
+        equipmentIds: const ['e1', 'e2'],
+        items: const [wing, camera],
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
+
+      await pump(
+        tester,
+        ['d1', 'd2'],
+        sets: [tripKit],
+        extraOverrides: [
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'me'),
+        ],
+      );
+      final useSet = find.descendant(
+        of: editorFor('Equipment'),
+        matching: find.widgetWithText(TextButton, 'Use Set'),
+      );
+      await tester.ensureVisible(useSet);
+      await tester.tap(useSet);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Trip kit'));
+      await tester.pumpAndSettle();
+      expect(find.text('Borrowed camera'), findsNothing);
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      for (final diveId in ['d1', 'd2']) {
+        final rows = await (db.select(
+          db.diveEquipment,
+        )..where((t) => t.diveId.equals(diveId))).get();
+        expect(rows.map((r) => r.equipmentId), ['e1'], reason: diveId);
+      }
+    });
+
+    // Issue #4284: a set item the diver unchecks after "Use Set" stays off,
+    // though on no dive unchecking it makes no remove of its own.
+    testWidgets('use-set leaves off a set item the diver unchecked', (
+      tester,
+    ) async {
+      const wing = EquipmentItem(
+        id: 'e1',
+        name: 'Wing',
+        type: EquipmentType.bcd,
+      );
+      const dsmb = EquipmentItem(
+        id: 'e2',
+        name: 'DSMB',
+        type: EquipmentType.smb,
+      );
+      for (final item in [wing, dsmb]) {
+        await EquipmentRepository().createEquipment(item);
+      }
+      await seedDive('d1');
+      await seedDive('d2');
+      final tripKit = EquipmentSet(
+        id: 's1',
+        name: 'Trip kit',
+        equipmentIds: const ['e1', 'e2'],
+        items: const [wing, dsmb],
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
+
+      await pump(tester, ['d1', 'd2'], sets: [tripKit]);
+      final useSet = find.descendant(
+        of: editorFor('Equipment'),
+        matching: find.widgetWithText(TextButton, 'Use Set'),
+      );
+      await tester.ensureVisible(useSet);
+      await tester.tap(useSet);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Trip kit'));
+      await tester.pumpAndSettle();
+      final dsmbToggle = find.byKey(const ValueKey('membership-toggle-e2'));
+      await tester.ensureVisible(dsmbToggle);
+      await tester.tap(dsmbToggle);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      for (final diveId in ['d1', 'd2']) {
+        final rows = await (db.select(
+          db.diveEquipment,
+        )..where((t) => t.diveId.equals(diveId))).get();
+        expect(rows.map((r) => r.equipmentId), ['e1'], reason: diveId);
+      }
+    });
+
+    // Issue #4284: a set staged for removal is named in the confirmation and
+    // takes off only the gear it brought.
+    testWidgets('remove-set stages a set and takes off what it brought', (
+      tester,
+    ) async {
+      const wing = EquipmentItem(
+        id: 'e1',
+        name: 'Wing',
+        type: EquipmentType.bcd,
+      );
+      const dsmb = EquipmentItem(
+        id: 'e2',
+        name: 'DSMB',
+        type: EquipmentType.smb,
+      );
+      const camera = EquipmentItem(
+        id: 'e3',
+        name: 'Camera',
+        type: EquipmentType.camera,
+      );
+      for (final item in [wing, dsmb, camera]) {
+        await EquipmentRepository().createEquipment(item);
+      }
+      await db.customStatement(
+        'INSERT INTO equipment_sets (id, name, created_at, updated_at) '
+        "VALUES ('s1', 'Trip kit', 0, 0)",
+      );
+      await db.customStatement(
+        'INSERT INTO equipment_set_items (set_id, equipment_id) '
+        "VALUES ('s1', 'e1'), ('s1', 'e2')",
+      );
+      await seedDive('d1');
+      await seedDive('d2');
+      await repository.bulkAddEquipmentSets(['d1', 'd2'], ['s1']);
+      await repository.bulkAddEquipment(['d1', 'd2'], ['e3']);
+      final tripKit = EquipmentSet(
+        id: 's1',
+        name: 'Trip kit',
+        equipmentIds: const ['e1', 'e2'],
+        items: const [wing, dsmb],
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
+
+      await pump(tester, ['d1', 'd2'], sets: [tripKit]);
+      Future<void> stage() async {
+        final removeSet = find.byKey(const ValueKey('bulk-remove-set'));
+        await tester.ensureVisible(removeSet);
+        await tester.tap(removeSet);
+        await tester.pumpAndSettle();
+        expect(find.text('Remove Equipment Set'), findsOneWidget);
+        await tester.tap(find.text('Trip kit'));
+        await tester.pumpAndSettle();
+      }
+
+      final chip = find.byKey(const ValueKey('bulk-staged-set-s1'));
+      bool guarded() => tester
+          .widget<EditFormScaffold>(find.byType(EditFormScaffold))
+          .hasUnsavedChanges;
+      expect(guarded(), isFalse);
+      await stage();
+      expect(chip, findsOneWidget);
+      // A staged removal arms the unsaved-changes guard.
+      expect(guarded(), isTrue);
+      // Unstaged again, then staged for good.
+      await tester.ensureVisible(chip);
+      await tester.tap(
+        find.descendant(of: chip, matching: find.byIcon(Icons.close)),
+      );
+      await tester.pumpAndSettle();
+      expect(chip, findsNothing);
+      await stage();
+
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      final dialog = find.byType(AlertDialog);
+      Finder inDialog(String text) =>
+          find.descendant(of: dialog, matching: find.text(text));
+      expect(inDialog('Equipment sets'), findsOneWidget);
+      expect(inDialog('Removing from all 2 dives'), findsOneWidget);
+      expect(inDialog('Trip kit'), findsOneWidget);
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      for (final diveId in ['d1', 'd2']) {
+        final rows = await (db.select(
+          db.diveEquipment,
+        )..where((t) => t.diveId.equals(diveId))).get();
+        expect(rows.map((r) => r.equipmentId), ['e3'], reason: diveId);
+      }
+    });
+
+    // Issue #4284: "Remove Set A" plus "Use Set B" in one edit keeps the gear
+    // the two share, now tagged with B, though it was on every dive already.
+    testWidgets('swapping one set for another keeps the gear they share', (
+      tester,
+    ) async {
+      const wing = EquipmentItem(
+        id: 'e1',
+        name: 'Wing',
+        type: EquipmentType.bcd,
+      );
+      const dsmb = EquipmentItem(
+        id: 'e2',
+        name: 'DSMB',
+        type: EquipmentType.smb,
+      );
+      const lamp = EquipmentItem(
+        id: 'e3',
+        name: 'Lamp',
+        type: EquipmentType.light,
+      );
+      for (final item in [wing, dsmb, lamp]) {
+        await EquipmentRepository().createEquipment(item);
+      }
+      await db.customStatement(
+        'INSERT INTO equipment_sets (id, name, created_at, updated_at) '
+        "VALUES ('sa', 'Set A', 0, 0), ('sb', 'Set B', 0, 0)",
+      );
+      await db.customStatement(
+        'INSERT INTO equipment_set_items (set_id, equipment_id) '
+        "VALUES ('sa', 'e1'), ('sa', 'e2'), ('sb', 'e2'), ('sb', 'e3')",
+      );
+      await seedDive('d1');
+      await seedDive('d2');
+      await repository.bulkAddEquipmentSets(['d1', 'd2'], ['sa']);
+      EquipmentSet set(String id, String name, List<EquipmentItem> items) =>
+          EquipmentSet(
+            id: id,
+            name: name,
+            equipmentIds: [for (final i in items) i.id],
+            items: items,
+            createdAt: DateTime(2026, 1, 1),
+            updatedAt: DateTime(2026, 1, 1),
+          );
+
+      await pump(
+        tester,
+        ['d1', 'd2'],
+        sets: [
+          set('sa', 'Set A', const [wing, dsmb]),
+          set('sb', 'Set B', const [dsmb, lamp]),
+        ],
+      );
+      final removeSet = find.byKey(const ValueKey('bulk-remove-set'));
+      await tester.ensureVisible(removeSet);
+      await tester.tap(removeSet);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Set A'));
+      await tester.pumpAndSettle();
+      final useSet = find.descendant(
+        of: editorFor('Equipment'),
+        matching: find.widgetWithText(TextButton, 'Use Set'),
+      );
+      await tester.ensureVisible(useSet);
+      await tester.tap(useSet);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Set B'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      for (final diveId in ['d1', 'd2']) {
+        final rows = await (db.select(
+          db.diveEquipment,
+        )..where((t) => t.diveId.equals(diveId))).get();
+        expect(
+          {for (final r in rows) r.equipmentId: r.viaSetId},
+          {'e2': 'sb', 'e3': 'sb'},
+          reason: diveId,
+        );
       }
     });
 

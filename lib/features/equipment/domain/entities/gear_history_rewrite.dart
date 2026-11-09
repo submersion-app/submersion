@@ -13,7 +13,17 @@ import 'package:submersion/features/equipment/domain/services/gear_expander.dart
 sealed class GearHistoryRewrite extends Equatable {
   const GearHistoryRewrite();
 
-  List<GearProvenance> applyTo(List<GearProvenance> rows, String assemblyId);
+  /// [canAdd] says whether a part may join this dive: active, and usable by
+  /// its diver, as expanding the assembly fresh would decide (issue #4283).
+  /// A part it refuses is not added, and a swap onto one only takes the old
+  /// part off, since a fresh expansion would hold neither.
+  List<GearProvenance> applyTo(
+    List<GearProvenance> rows,
+    String assemblyId, {
+    bool Function(String equipmentId) canAdd = _anyPart,
+  });
+
+  static bool _anyPart(String equipmentId) => true;
 
   static GearProvenance? _rowFor(List<GearProvenance> rows, String id) {
     for (final r in rows) {
@@ -40,9 +50,13 @@ class GearPartAdded extends GearHistoryRewrite {
   const GearPartAdded(this.partId);
 
   @override
-  List<GearProvenance> applyTo(List<GearProvenance> rows, String assemblyId) {
+  List<GearProvenance> applyTo(
+    List<GearProvenance> rows,
+    String assemblyId, {
+    bool Function(String equipmentId) canAdd = GearHistoryRewrite._anyPart,
+  }) {
     final assembly = GearHistoryRewrite._rowFor(rows, assemblyId);
-    if (assembly == null) return rows;
+    if (assembly == null || !canAdd(partId)) return rows;
     final current = GearHistoryRewrite._rowFor(rows, partId);
     if (current == null) {
       return [
@@ -79,7 +93,11 @@ class GearPartRemoved extends GearHistoryRewrite {
   const GearPartRemoved(this.partId);
 
   @override
-  List<GearProvenance> applyTo(List<GearProvenance> rows, String assemblyId) {
+  List<GearProvenance> applyTo(
+    List<GearProvenance> rows,
+    String assemblyId, {
+    bool Function(String equipmentId) canAdd = GearHistoryRewrite._anyPart,
+  }) {
     if (GearHistoryRewrite._rowUnder(rows, partId, assemblyId) == null) {
       return rows;
     }
@@ -97,9 +115,16 @@ class GearPartReplaced extends GearHistoryRewrite {
   const GearPartReplaced({required this.oldPartId, required this.newPartId});
 
   @override
-  List<GearProvenance> applyTo(List<GearProvenance> rows, String assemblyId) {
+  List<GearProvenance> applyTo(
+    List<GearProvenance> rows,
+    String assemblyId, {
+    bool Function(String equipmentId) canAdd = GearHistoryRewrite._anyPart,
+  }) {
     final old = GearHistoryRewrite._rowUnder(rows, oldPartId, assemblyId);
     if (old == null) return rows;
+    if (!canAdd(newPartId)) {
+      return GearExpander.removeSubtree(rows, oldPartId);
+    }
     final existing = GearHistoryRewrite._rowFor(rows, newPartId);
     if (existing != null) {
       // The new part is already on the dive, and one item sits in one

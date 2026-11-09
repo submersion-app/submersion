@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
@@ -15,6 +13,7 @@ import 'package:submersion/features/insights/presentation/providers/insights_pro
 import 'package:submersion/features/insights/presentation/providers/trend_chart_settings_provider.dart';
 import 'package:submersion/features/insights/presentation/widgets/ccr_gas_use_section.dart';
 import 'package:submersion/features/insights/presentation/widgets/ranking_list.dart';
+import 'package:submersion/features/insights/presentation/widgets/role_consumption_section.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/features/insights/presentation/widgets/tank_configuration_card.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_filtered_scaffold.dart';
@@ -47,7 +46,7 @@ class InsightsGasPage extends ConsumerWidget {
           const SizedBox(height: 16),
           const TankConfigurationCard(),
           const SizedBox(height: 16),
-          _buildSacByRoleSection(context, ref, units),
+          const RoleConsumptionSection(),
           const SizedBox(height: 16),
           const CcrGasUseSection(),
           _buildSacRecordsSection(context, ref, units),
@@ -154,99 +153,6 @@ class InsightsGasPage extends ConsumerWidget {
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
           message: context.l10n.insights_gas_gasMix_error,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSacByRoleSection(
-    BuildContext context,
-    WidgetRef ref,
-    UnitFormatter units,
-  ) {
-    final sacByRoleAsync = ref.watch(sacByTankRoleProvider);
-    final lane = ref.watch(insightsGasLaneProvider);
-    final isRmv = lane == GasConsumptionLane.rmv;
-    String format(double v) => isRmv ? units.formatRmv(v) : units.formatSac(v);
-
-    // Map tank role keys to display names
-    String getRoleDisplayName(String role) {
-      return switch (role) {
-        'backGas' => context.l10n.insights_gas_tankRole_backGas,
-        'twinSet' => context.l10n.insights_gas_tankRole_twinSet,
-        'stage' => context.l10n.insights_gas_tankRole_stage,
-        'deco' => context.l10n.insights_gas_tankRole_deco,
-        'bailout' => context.l10n.insights_gas_tankRole_bailout,
-        'sidemountLeft' => context.l10n.insights_gas_tankRole_sidemountLeft,
-        'sidemountRight' => context.l10n.insights_gas_tankRole_sidemountRight,
-        'pony' => context.l10n.insights_gas_tankRole_pony,
-        'diluent' => context.l10n.insights_gas_tankRole_diluent,
-        'oxygenSupply' => context.l10n.insights_gas_tankRole_oxygenSupply,
-        _ => role,
-      };
-    }
-
-    return StatSectionCard(
-      title: context.l10n.insights_gas_sacByRole_title,
-      subtitle: context.l10n.insights_gas_sacByRole_subtitle,
-      child: sacByRoleAsync.when(
-        data: (data) {
-          if (data.isEmpty) {
-            return StatEmptyState(
-              icon: MdiIcons.divingScubaTank,
-              message: context.l10n.insights_gas_sacByRole_empty,
-            );
-          }
-
-          return Column(
-            children: data.entries.map((entry) {
-              final role = entry.key;
-              final sac = entry.value;
-              final isFirst = entry.key == data.keys.first;
-              final displayName = getRoleDisplayName(role);
-              final sacValue = format(sac);
-
-              return Semantics(
-                label: statLabel(name: displayName, value: sacValue),
-                child: Padding(
-                  padding: EdgeInsets.only(top: isFirst ? 0 : 8),
-                  child: Row(
-                    children: [
-                      ExcludeSemantics(
-                        child: Icon(
-                          MdiIcons.divingScubaTank,
-                          size: 20,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          displayName,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ),
-                      Text(
-                        sacValue,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }).toList(),
-          );
-        },
-        loading: () => const SizedBox(
-          height: 100,
-          child: Center(child: CircularProgressIndicator()),
-        ),
-        error: (_, _) => StatEmptyState(
-          icon: Icons.error_outline,
-          message: context.l10n.insights_gas_sacByRole_error,
         ),
       ),
     );

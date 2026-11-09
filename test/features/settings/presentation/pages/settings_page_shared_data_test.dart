@@ -83,7 +83,10 @@ class _FakeSiteRepository implements SiteRepository {
   _FakeSiteRepository({required List<domain.DiveSite> sites}) : _sites = sites;
 
   @override
-  Future<List<domain.DiveSite>> getAllSites({String? diverId}) async => _sites;
+  Future<List<domain.DiveSite>> getAllSites({
+    String? diverId,
+    List<String>? ids,
+  }) async => _sites;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError(
@@ -745,6 +748,15 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setShowMapBackgroundOnDiveCards(bool value) async =>
       state = state.copyWith(showMapBackgroundOnDiveCards: value);
+  @override
+  Future<void> setShowPhotoBackgroundOnDiveCards(bool value) async =>
+      state = state.copyWith(showPhotoBackgroundOnDiveCards: value);
+  @override
+  Future<void> setCardPhotoOverlayDark(double value) async =>
+      state = state.copyWith(cardPhotoOverlayDark: value);
+  @override
+  Future<void> setCardPhotoOverlayLight(double value) async =>
+      state = state.copyWith(cardPhotoOverlayLight: value);
   @override
   Future<void> setGroupTripsInDiveList(bool value) async =>
       state = state.copyWith(groupTripsInDiveList: value);

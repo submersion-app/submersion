@@ -29,6 +29,8 @@
   "equipment_filter_owner_mine": "Van mij",
   "enum_equipmentField_owner": "Eigenaar",
   "enum_equipmentField_owner_short": "Eigenaar",
+  "enum_equipmentField_location": "Locatie",
+  "enum_equipmentField_location_short": "Locatie",
   "equipment_set_noLongerShared": "Niet meer gedeeld",
   "equipment_history_title": "Geschiedenis",
   "equipment_history_empty": "Nog bij geen enkele duik gebruikt",
@@ -264,6 +266,8 @@
   "equipment_setDetail_showFigure": "Duikerfiguur tonen",
   "equipment_setDetail_hideFigure": "Duikerfiguur verbergen",
   "equipment_setEdit_figureSwitch_title": "Duikerfiguur tonen",
+  "equipment_setEdit_historyAsk": "De wijzigingen ook op die duiken toepassen, of alleen vanaf nu?",
+  "equipment_setEdit_historyOnDives": "{count, plural, =1{Deze set staat op 1 gelogde duik.} other{Deze set staat op {count} gelogde duiken.}}",
   "equipment_color_red": "Rood",
   "equipment_color_orange": "Oranje",
   "equipment_color_amber": "Amber",
@@ -2443,6 +2447,7 @@
   "diveLog_consolidate_alignStarts": "Begin uitlijnen",
   "diveLog_consolidate_sameDiveHint": "Deze profielen lijken op dezelfde duik, vastgelegd door twee computers.",
   "diveLog_consolidate_clockNote": "Deze registraties overlappen niet in tijd, dus de klok van een computer staat waarschijnlijk verkeerd. De duik behoudt de tijd van de primaire computer.",
+  "diveLog_consolidate_clockNoteOverlap": "Deze diepteprofielen komen op een ander moment overeen dan de klokken van de computers aangeven, dus de klok van een computer staat waarschijnlijk verkeerd. De duik behoudt de tijd van de primaire computer.",
   "diveLog_consolidate_noProfileFallback": "Een registratie heeft geen diepteprofiel om te vergelijken, dus het begin wordt uitgelijnd met dat van de primaire computer.",
   "diveLog_combine_modeJoinShort": "Koppelen",
   "diveLog_combine_modeMergeShort": "Samenvoegen",
@@ -2467,6 +2472,95 @@
   "diveLog_deco_sectionTissueLoading": "Weefselbelading",
   "diveLog_deco_semantics_notRequired": "Geen decompressie vereist",
   "diveLog_deco_semantics_required": "Decompressie vereist",
+  "diveLog_deco_compartmentLeading": "Leidend: #{number}",
+  "@diveLog_deco_compartmentLeading": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_compartmentOther": "Compartiment: #{number}",
+  "@diveLog_deco_compartmentOther": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_metricLoad": "Belading",
+  "diveLog_deco_gasOngassing": "Gasopname",
+  "diveLog_deco_gasOffgassing": "Gasafgifte",
+  "diveLog_deco_gasEquilibrium": "Evenwicht",
+  "diveLog_deco_heatMapRows": "Rijen: snel (boven) tot langzaam (onder)",
+  "diveLog_deco_surfaceLevel": "Oppervlakteniveau",
+  "diveLog_deco_mValue": "M-waarde",
+  "diveLog_deco_tooltipCompartment": "Compartiment {number}",
+  "@diveLog_deco_tooltipCompartment": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_deco_tooltipLoaded": "{percent}% belading",
+  "@diveLog_deco_tooltipLoaded": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_tooltipHalfTime": "Halfwaardetijd: {minutes} min",
+  "@diveLog_deco_tooltipHalfTime": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_tooltipSurfaceLevel": "Oppervlakteniveau: {percent}%",
+  "@diveLog_deco_tooltipSurfaceLevel": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_info_title": "Wat betekenen deze waarden?",
+  "diveLog_deco_info_body": "Belading: de inertgasdruk van een compartiment als percentage van het maximum dat het aan de oppervlakte mag bevatten (de M-waarde, de rode lijn bij 100%).\n\nOppervlakteniveau: de markering op elke balk toont waar een volledig ontzadigd compartiment uitkomt terwijl je aan de oppervlakte lucht ademt. Die ligt nooit op 0%, omdat je lichaam altijd de stikstof uit de ingeademde lucht bevat. Een balk op zijn markering draagt geen restbelading van het duiken meer.\n\nGasopname en gasafgifte: gas beweegt altijd naar de druk van het gas dat je ademt. Na decompressie op zuurstof of op een heliumrijk mengsel kunnen de snelle compartimenten minder stikstof bevatten dan de lucht aan de oppervlakte. Terug op lucht nemen ze weer stikstof op tot ze hun markering bereiken. Dat is normaal en geen restbelading van de duik.\n\nHelium: lucht bevat geen helium. Na een trimixduik geeft een compartiment helium af terwijl het tegelijk stikstof kan opnemen. De pijlen naast N₂ en He tonen elk gas afzonderlijk; de aanduiding naast het compartimentnummer toont de netto richting van beide.",
+  "diveLog_deco_barChartSemantics": "Grafiek van de weefselbelading. {count} compartimenten, belading ten opzichte van de M-waarde; leidend compartiment {number} op {percent}%.",
+  "@diveLog_deco_barChartSemantics": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "number": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_heatMapUndersaturated": "Onderverzadigd",
+  "diveLog_deco_heatMapSupersaturated": "Oververzadigd",
+  "diveLog_deco_percentValue": "{value}%",
+  "@diveLog_deco_percentValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_deco_minutesValue": "{value} min",
+  "@diveLog_deco_minutesValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_deco_tissueFast": "Snel",
   "diveLog_deco_tissueSlow": "Langzaam",
   "diveLog_deco_title": "Decostatus",
@@ -2802,6 +2896,10 @@
   "diveLog_edit_tripSuggested": "Voorgesteld: {name}",
   "diveLog_edit_tripUse": "Gebruiken",
   "diveLog_edit_useSet": "Set gebruiken",
+  "diveLog_edit_removeSet": "Set verwijderen",
+  "diveLog_bulkEdit_setsToRemove": "Te verwijderen sets",
+  "diveLog_bulkEdit_removeSetTitle": "Uitrustingsset verwijderen",
+  "diveLog_bulkEdit_equipmentSets": "Uitrustingssets",
   "diveLog_edit_weightPreset_use": "Voorinstelling gebruiken",
   "diveLog_edit_weightPreset_save": "Opslaan als voorinstelling",
   "diveLog_edit_weightPreset_pickerTitle": "Loodvoorinstelling toepassen",
@@ -4314,6 +4412,7 @@
   "enum_tankRole_sidemountLeft": "Sidemount links",
   "enum_tankRole_sidemountRight": "Sidemount rechts",
   "enum_tankRole_stage": "Stagefles",
+  "enum_tankRole_suitInflation": "Droogpakfles",
   "enum_tankRole_twinSet": "Dubbelset",
   "enum_tideState_rising": "Opkomend",
   "enum_tideState_falling": "Afgaand",
@@ -4872,6 +4971,7 @@
   "equipment_location_bulkAction": "Naar locatie verplaatsen",
   "equipment_location_groupCount": "{count, plural, one{{count} item} other{{count} items}}",
   "equipment_location_activeFilter": "Locatie",
+  "equipment_location_tileSemantics": "Locatie: {name}",
   "equipment_filter_section_location": "Locatie",
   "equipment_arrange_groupByLocation": "Groeperen op locatie",
   "equipment_arrange_groupByLocationSubtitle": "Eén kop per plek, alleen op deze pagina",
@@ -6330,6 +6430,11 @@
   "settings_appearance_header_language": "Taal",
   "settings_appearance_mapBackgroundDiveCards": "Kaartachtergrond op duikkaarten",
   "settings_appearance_mapBackgroundDiveCards_subtitleWithNote": "Toon duikstekkaart als achtergrond op duikkaarten (vereist steklocatie)",
+  "settings_appearance_photoBackgroundDiveCards": "Fotoachtergrond op duikkaarten",
+  "settings_appearance_photoBackgroundDiveCards_subtitle": "Toon een van de foto's van de duik als achtergrond op duikkaarten (zonder foto's wordt de kaart of kleur gebruikt)",
+  "settings_appearance_photoOverlayDark": "Dekking van de fotolaag, donker thema",
+  "settings_appearance_photoOverlayLight": "Dekking van de fotolaag, licht thema",
+  "settings_appearance_photoOverlay_subtitle": "Hoger houdt de tekst leesbaar, lager toont meer van de foto",
   "settings_appearance_mapBackgroundSiteCards": "Kaartachtergrond op stekkaarten",
   "settings_appearance_mapBackgroundSiteCards_subtitleWithNote": "Toon kaart als achtergrond op duikstekkaarten (vereist steklocatie)",
   "settings_appearance_maxDepthMarker": "Maximale dieptemarkering",
@@ -7656,6 +7761,9 @@
   "settings_conflict_field_showInDetailHeader": "Getoond in de duikkop",
   "settings_conflict_field_showInListView": "Getoond in de duiklijst",
   "settings_conflict_field_showMapBackgroundOnDiveCards": "Kaart achter duikkaarten",
+  "settings_conflict_field_showPhotoBackgroundOnDiveCards": "Foto achter duikkaarten",
+  "settings_conflict_field_cardPhotoOverlayDark": "Fotolaag op duikkaarten (donker thema)",
+  "settings_conflict_field_cardPhotoOverlayLight": "Fotolaag op duikkaarten (licht thema)",
   "settings_conflict_field_showMapBackgroundOnSiteCards": "Kaart achter stekkaarten",
   "settings_conflict_field_showMaxDepthMarker": "Profiel toont de maximale diepte",
   "settings_conflict_field_showNdlOnProfile": "Profiel toont NDL",
@@ -7890,6 +7998,7 @@
   "dataHealth_backup_overdue": "Back-up achterstallig (laatste: {when})",
   "dataHealth_backup_never": "Nog geen back-up",
   "dataHealth_backup_cloudCopyMissing": "Laatste back-up heeft de cloud niet bereikt",
+  "dataHealth_backup_extraCopyMissing": "Laatste back-up heeft niet elk account bereikt",
   "dataHealth_backup_noOffDeviceCopy": "Geen kopie buiten dit apparaat",
   "dataHealth_sync_off": "Aanbevolen: zet cloudsynchronisatie aan",
   "dataHealth_sync_needsPassphrase": "Synchronisatie gepauzeerd: voer je wachtzin in",
@@ -7907,7 +8016,7 @@
   "settings_data_importOptions": "Importopties",
   "settings_data_importOptions_subtitle": "Stekkoppeling, druk bij opduiken, automatische tags",
   "settings_data_dataTools": "Gegevenshulpmiddelen",
-  "settings_data_dataTools_subtitle": "Duiktijden corrigeren, buddy's koppelen, uitrusting hertyperen, datakwaliteit, tabelbewerker",
+  "settings_data_dataTools_subtitle": "Duiktijden corrigeren, buddy's koppelen, uitrusting hertyperen, datakwaliteit, tabelbewerker, duiken opnieuw verwerken",
   "settings_agentAccess_title": "Agenttoegang",
   "settings_agentAccess_confirm_linkedDives": "Duiken die deze koppeling verliezen ({diver}): {count}",
   "settings_agentAccess_confirm_alsoDeletes": "Verwijdert ook {kind}: {count}",
@@ -8773,10 +8882,12 @@
   "insights_gas_gasMix_error": "Kan gasmengselgegevens niet laden",
   "insights_gas_gasMix_subtitle": "Duiken per gastype",
   "insights_gas_gasMix_title": "Gasmengselverdeling",
-  "insights_gas_sacByRole_empty": "Geen multi-flesgegevens beschikbaar",
-  "insights_gas_sacByRole_error": "Kan verbruik per rol niet laden",
-  "insights_gas_sacByRole_subtitle": "Gemiddeld verbruik per flestype",
-  "insights_gas_sacByRole_title": "Gasverbruik per flesrol",
+  "insights_gas_roleUse_title": "Verbruik per flesrol",
+  "insights_gas_roleUse_subtitle": "Elke rol over de tijd dat eruit geademd werd",
+  "insights_gas_roleUse_empty": "Nog geen waarden per flesrol",
+  "insights_gas_roleUse_error": "Verbruik per flesrol kon niet worden geladen",
+  "insights_gas_roleGroup_bottomGas": "Bodemgas",
+  "insights_gas_roleUse_leftOut": "{count, plural, =1{{count} duik weggelaten: een stage-, deco-, pony- of bailoutfles verloor gas zonder gaswissel ernaar} other{{count} duiken weggelaten: een stage-, deco-, pony- of bailoutfles verloor gas zonder gaswissel ernaar}}",
   "insights_gas_ccrUse_title": "Gasverbruik rebreather",
   "insights_gas_ccrUse_subtitle": "Per minuut op de loop, zonder bailouttijd",
   "insights_gas_ccrUse_o2Average": "Gemiddelde O₂",
@@ -8923,16 +9034,11 @@
   "insights_focus_gas_air": "Lucht",
   "insights_focus_gas_nitrox": "Nitrox",
   "insights_focus_gas_trimix": "Trimix",
-  "insights_gas_tankRole_backGas": "Achtergas",
   "insights_gas_tankRole_bailout": "Bailout",
   "insights_gas_tankRole_deco": "Deco",
   "insights_gas_tankRole_diluent": "Diluent",
-  "insights_gas_tankRole_oxygenSupply": "O₂-toevoer",
   "insights_gas_tankRole_pony": "Ponyfles",
-  "insights_gas_tankRole_sidemountLeft": "Sidemount L",
-  "insights_gas_tankRole_sidemountRight": "Sidemount R",
   "insights_gas_tankRole_stage": "Stagefles",
-  "insights_gas_tankRole_twinSet": "Dubbelset",
   "insights_geographic_appBar_title": "Geografisch",
   "insights_geographic_countries_empty": "Geen landen bezocht",
   "insights_geographic_countries_error": "Kan landgegevens niet laden",
@@ -10816,12 +10922,39 @@
   "diveComputer_detail_reimportDialogTitle": "Alle duiken opnieuw importeren?",
   "diveComputer_detail_reparseAllButton": "Alle duiken opnieuw verwerken",
   "diveComputer_detail_reparseAllMessage": "Voer de duikparser opnieuw uit voor {count} duiken met opgeslagen ruwe data. Dit werkt profiel- en sensordata bij, maar behoudt je notities, locaties, buddy's en andere wijzigingen.",
-  "diveComputer_detail_reparseAllPartial": "{succeeded} van {total} duiken opnieuw verwerkt. {failed} mislukt.",
-  "diveComputer_detail_reparseAllProgress": "{count} duiken worden opnieuw verwerkt...",
-  "diveComputer_detail_reparseAllSuccess": "{count} duiken succesvol opnieuw verwerkt",
   "diveComputer_detail_reparseAllTitle": "Alle duiken opnieuw verwerken",
   "diveComputer_detail_reparseRawDataCount": "{count} duiken met ruwe data",
   "diveComputer_detail_reparseRawDataCountWithout": "{count} duiken met ruwe data ({without} zonder)",
+  "reparseBatch_progressTitle": "Duiken opnieuw verwerken",
+  "reparseBatch_progressCount": "{done} van {total} duiken opnieuw verwerken",
+  "reparseBatch_cancelling": "Annuleren...",
+  "reparseBatch_resultTitle": "Opnieuw verwerken voltooid",
+  "reparseBatch_resultCancelledTitle": "Opnieuw verwerken geannuleerd",
+  "reparseBatch_resultErrorTitle": "Opnieuw verwerken gestopt door een fout",
+  "reparseBatch_resultNotReached": "Niet verwerkt: {count}",
+  "reparseBatch_resultSummary": "{succeeded} van {total} duiken opnieuw verwerkt.",
+  "reparseBatch_resultFailed": "Mislukt: {count}",
+  "reparseBatch_resultNotProcessed": "Niet verwerkt (geannuleerd): {count}",
+  "reparseBatch_resultSkipped": "Overgeslagen, geen ruwe data: {count}",
+  "reparseBatch_resultProfilesPreserved": "Gecombineerde duiken die hun profiel behielden: {count}",
+  "reparseBatch_failedListHeader": "Mislukte duiken",
+  "reparseBatch_failedDiveTitle": "Duik #{number}",
+  "reparseBatch_failedDiveUnnumbered": "Duik zonder nummer",
+  "reparseBatch_missingDescriptors": "Gegevens van de duikcomputer ontbreken",
+  "reparseBatch_confirmTitle": "Duiken opnieuw verwerken",
+  "reparseBatch_confirmMessage": "Voer de duikparser opnieuw uit voor {count} duiken met opgeslagen ruwe data. Dit werkt profiel- en sensordata bij, maar behoudt je notities, locaties, buddy's en andere wijzigingen.",
+  "reparseBatch_confirmSkipped": "Geselecteerde duiken zonder ruwe data (overgeslagen): {count}",
+  "reparseBatch_noneWithRawData": "Geen van de geselecteerde duiken heeft opgeslagen ruwe data om opnieuw te verwerken.",
+  "diveLog_selection_tooltip_reparse": "Opnieuw verwerken",
+  "settings_reparseDives_title": "Duiken opnieuw verwerken",
+  "settings_reparseDives_subtitle": "Voer de duikparser opnieuw uit voor elke duik met opgeslagen ruwe data",
+  "settings_reparseDives_intro": "Gebruik dit nadat een app-update het inlezen van duikcomputerdata verbetert. Je notities, locaties, buddy's en andere wijzigingen blijven behouden.",
+  "settings_reparseDives_withRawData": "Duiken met ruwe data: {count}",
+  "settings_reparseDives_withoutRawData": "Duiken zonder ruwe data (niet opnieuw verwerkt): {count}",
+  "settings_reparseDives_byComputer": "Per duikcomputer",
+  "settings_reparseDives_unknownComputer": "Onbekende computer",
+  "settings_reparseDives_none": "Geen enkele duik heeft opgeslagen ruwe data om opnieuw te verwerken.",
+  "settings_reparseDives_button": "Alles opnieuw verwerken",
   "diveComputer_rawData_discardAction": "Verwijderen",
   "diveComputer_rawData_discardAllMessage": "De bewaarde ruwe downloaddata van {count} duiken van alle duikcomputers verwijderen ({size})? Deze duiken kunnen daarna niet meer opnieuw worden verwerkt wanneer de duikparser verbetert. De duiken en je wijzigingen blijven behouden, en je andere gesynchroniseerde apparaten verwijderen de data ook.",
   "diveComputer_rawData_discardButton": "Ruwe data verwijderen",
@@ -11554,6 +11687,7 @@
   "attrLabel_working_pressure_bar": "Werkdruk",
   "attrLabel_tank_material": "Materiaal",
   "attrLabel_valve_type": "Kraan",
+  "attrLabel_cylinder_use": "Gebruik van de fles",
   "attrLabel_tank_identifier": "Identificatie",
   "attrLabel_last_visual_inspection": "Laatste visuele inspectie",
   "attrLabel_last_hydro_test": "Laatste hydrostatische test",
@@ -11673,6 +11807,8 @@
   "attrChoice_valve_type_din": "DIN",
   "attrChoice_valve_type_yoke": "Beugel (INT)",
   "attrChoice_valve_type_convertible": "Ombouwbaar",
+  "attrChoice_cylinder_use_breathing_gas": "Ademgas",
+  "attrChoice_cylinder_use_suit_inflation": "Droogpakfles",
   "attrChoice_connection_din": "DIN",
   "attrChoice_connection_yoke": "Beugel (INT)",
   "attrChoice_hose_type_lp": "MD (middendruk)",
@@ -12035,8 +12171,12 @@
   "safetyHub_cnsOtu_noProfile_body": "Zonder diepteprofiel kunnen CNS% en OTU ervan niet worden berekend. De totalen hieronder laten hem buiten beschouwing.",
   "safetyHub_cnsOtu_about_title": "Over CNS en OTU",
   "safetyHub_cnsOtu_about_body": "Je CNS% (zuurstofklok) neemt na de duik af met een halveringstijd van 90 minuten -- na ongeveer een dag is deze vrijwel terug op 0.\n\nDe dagelijkse OTU wordt elke nacht om middernacht gereset. De wekelijkse OTU is een voortschrijdend totaal van de afgelopen 7 dagen: oudere duiken vallen automatisch uit de berekening zodra ze buiten dat venster vallen.",
+  "safetyHub_tissueLoading_clear_title": "Geen resterende weefselbelading",
+  "safetyHub_tissueLoading_clear_body": "Alle compartimenten zijn weer in evenwicht met de lucht aan de oppervlakte. Ze blijven op hun normale niveau (de markering op elke balk), niet op 0%.",
+  "safetyHub_tissueLoading_unavailable_title": "Weefselbelading niet beschikbaar",
+  "safetyHub_tissueLoading_unavailable_body": "De laatste duik heeft geen gegevens om de weefselbelading uit te berekenen, bijvoorbeeld een duik zonder diepteprofiel, in dieptemetermodus of met een rebreather zonder setpoint.",
   "safetyHub_tissueLoading_about_title": "Over weefselverzadiging",
-  "safetyHub_tissueLoading_about_body": "Je lichaam heeft 16 weefselcompartimenten die stikstof opnemen en afgeven (en bij trimix- of rebreatherduiken ook helium), elk met een eigen snelheid. Snelle weefsels verzadigen en ontzadigen snel; langzame weefsels hebben voor beide veel meer tijd nodig.\n\nNa een duik met helium kunnen stikstof en helium in één compartiment kortstondig in tegengestelde richtingen bewegen: terwijl het helium nog afgeeft, kan datzelfde compartiment tegelijk wat stikstof opnemen, totdat beide gassen in evenwicht zijn met de lucht die je inademt. Daarom kan een compartiment even \"Ongassing\" tonen, terwijl de totale belasting toch blijft dalen.",
+  "safetyHub_tissueLoading_about_body": "Je lichaam heeft 16 weefselcompartimenten die stikstof (en bij trimix- of rebreatherduiken ook helium) met verschillende snelheden opnemen en afgeven. Snelle weefsels verzadigen en ontzadigen snel; langzame weefsels hebben er voor beide veel langer voor nodig.\n\nRestbelading is alleen wat boven het normale oppervlakteniveau ligt. Zelfs volledig ontzadigd zakken de balken niet naar 0%: elk compartiment komt uit op de markering die past bij de stikstof in de lucht die je ademt. Daarom kan een snel compartiment hier hoger staan dan aan het einde van een duik met zuurstofdecompressie, zonder dat de belading is gestegen.\n\nNa een duik met helium geeft een compartiment helium af terwijl het tegelijk stikstof opneemt, tot beide gassen in evenwicht zijn met de lucht die je ademt.",
   "safetyHub_noFly_category_single": "Na een enkele duik zonder deco: richtlijn van {hours} u",
   "@safetyHub_noFly_category_single": {
     "placeholders": {
@@ -12821,6 +12961,7 @@
   "dataQuality_detector_pressure_anomaly": "Drukanomalie",
   "dataQuality_detector_gas_mod": "Gas/MOD-inconsistentie",
   "dataQuality_detector_tank_assignment": "Verkeerde fles",
+  "dataQuality_detector_missing_gas_switch": "Ontbrekende gaswissel",
   "dataQuality_detector_source_conflict": "Tegenstrijdige bronnen",
   "dataQuality_detector_shared_gear_overlap": "Gedeelde uitrusting bij overlappende duiken",
   "dataQuality_msg_clock_future": "De duik is gedateerd in de toekomst ({date})",
@@ -12828,6 +12969,7 @@
   "dataQuality_msg_clock_offsetAhead": "{hours, plural, =1{De klok van een bron loopt {hours} uur voor} other{De klok van een bron loopt {hours} uur voor}}",
   "dataQuality_msg_clock_offsetBehind": "{hours, plural, =1{De klok van een bron loopt {hours} uur achter} other{De klok van een bron loopt {hours} uur achter}}",
   "dataQuality_msg_clock_overlap": "Overlapt een andere duik met {minutes} min",
+  "dataQuality_msg_clock_profileFit": "Een bron staat {minutes} min van waar haar profiel met het primaire overeenkomt",
   "dataQuality_msg_shared_gear_overlap": "{item} zit bij de duik van {diverA} om {timeA} en bij de duik van {diverB} om {timeB}.",
   "dataQuality_msg_shared_gear_overlap_parts": "{count, plural, one{Met {count} ingebouwd onderdeel.} other{Met {count} ingebouwde onderdelen.}}",
   "dataQuality_msg_duplicate": "{percent}% overeenkomst met een duik {minutes} min ervandaan",
@@ -12853,6 +12995,12 @@
   "dataQuality_msg_hypoxic": "Hypoxisch mengsel ({gas}) weergegeven als in gebruik aan de oppervlakte",
   "dataQuality_msg_switchMod": "Gaswisseling op {depth} ligt voorbij de MOD van dat gas van {mod}",
   "dataQuality_msg_tankInactive": "Deze fles verloor {drop} terwijl de gastijdlijn aangeeft dat ze niet in gebruik was",
+  "dataQuality_msg_missingSwitches": "{count, plural, one{Er is geen gaswissel vastgelegd, maar de flesdrukken tonen deze wissel: {switches}.} other{Er is geen gaswissel vastgelegd, maar de flesdrukken tonen deze wissels: {switches}.}}",
+  "dataQuality_msg_missingSwitchItem": "fles {tankNumber} ({gas}) op {time}, {depth}",
+  "dataQuality_msg_missingSwitchSeparator": "; ",
+  "dataQuality_msg_missingSwitchDeep": "Er is geen gaswissel vastgelegd. De flesdrukken tonen op {depth} een wissel naar fles {tankNumber} ({gas}), dieper dan haar MOD van {mod}, dus er wordt geen wissel naar deze fles voorgesteld.",
+  "dataQuality_msg_missingSwitchDeepAlso": "De flesdrukken tonen ook op {depth} een wissel naar fles {tankNumber} ({gas}), dieper dan haar MOD van {mod}, dus er wordt geen wissel naar deze fles voorgesteld.",
+  "dataQuality_msg_missingSwitchUnplaced": "Er is geen gaswissel vastgelegd. Fles {tankNumber} ({gas}) werd vanaf {time} na een pauze opnieuw geademd, dus in de tussentijd werd een andere fles geademd, en met meer dan twee flessen tonen de drukken niet welke. Voeg de wissels toe in de duikeditor.",
   "dataQuality_detector_transmitter_role": "Rol van de zender",
   "dataQuality_msg_transmitterRoleBailout": "Fles {tankNumber} staat op basis van de zendernaam als {role} gemarkeerd, maar verloor {ocDrop} na de overstap naar open circuit en vrijwel niets op de loop, dus het lijkt de bailout te zijn. Een bailout die nooit is geademd, of zonder gaswissel op de computer, is zo niet te herkennen.",
   "dataQuality_msg_twinTanks": "Twee flessen hebben een vrijwel identieke drukreeks",
@@ -12866,6 +13014,8 @@
   "dataQuality_repairLabel_fixSourceClock": "Klok van deze computer corrigeren met {offset}",
   "dataQuality_repairLabel_fixSourceClockNamed": "Klok van {computer} corrigeren met {offset}",
   "dataQuality_repairLabel_fixSourceClockAll": "Deze computer ook corrigeren bij andere duiken met dezelfde afwijking",
+  "dataQuality_repairLabel_alignSourceProfile": "Deze computer uitlijnen op zijn profiel",
+  "dataQuality_repairLabel_alignSourceProfileNamed": "{computer} uitlijnen op zijn profiel",
   "dataQuality_repairLabel_consolidate": "Consolideren",
   "dataQuality_repairLabel_deleteDuplicate": "Duplicaat verwijderen",
   "dataQuality_deleteDuplicate_title": "Overbodige kopie verwijderen?",
@@ -12898,6 +13048,7 @@
   "dataQuality_repairLabel_setFromSeries": "Sensorwaarden gebruiken",
   "dataQuality_repairLabel_swapSeries": "Flesreeksen verwisselen",
   "dataQuality_repairLabel_reassignSeries": "Reeks naar een andere fles verplaatsen",
+  "dataQuality_repairLabel_addGasSwitches": "{count, plural, one{Gaswissel toevoegen} other{{count} gaswissels toevoegen}}",
   "dataQuality_repairLabel_setPrimary": "Deze bron als primair instellen",
   "dataQuality_repairLabel_split": "Splitsen in afzonderlijke duiken",
   "dataQuality_repairLabel_setPrimaryNamed": "{source} als primaire bron instellen",
@@ -16021,6 +16172,8 @@
   "media_servedFrom_embedded": "Opgeslagen in dit logboek",
   "settings_media_provenanceBadges": "Bronbadges op miniaturen tonen",
   "settings_media_provenanceBadgesSubtitle": "Een klein pictogram dat laat zien waar elk item vandaan komt. Probleembadges blijven altijd zichtbaar.",
+  "settings_media_tagBadges": "Labelbadges op miniaturen tonen",
+  "settings_media_tagBadgesSubtitle": "Kleine pictogrammen voor foto's met getagde personen, getagde soorten of een tijdstip in de duik.",
   "settings_media_autoColorCorrection": "Automatische kleurcorrectie",
   "settings_media_autoColorCorrectionSubtitle": "Maakt blauwe onderwaterfoto's en -video's op het scherm warmer, op basis van de diepte waarop elk is gemaakt. Je bestanden worden nooit gewijzigd.",
   "settings_photosMedia_cacheHeader": "Cache",
@@ -16036,6 +16189,9 @@
   "media_status_queued": "Wacht op uploaden",
   "media_status_cloudOnly": "Alleen in de cloud opgeslagen",
   "media_status_notBackedUp": "Geen back-up",
+  "media_tileMarker_people": "Personen getagd",
+  "media_tileMarker_species": "Soorten getagd",
+  "media_tileMarker_timeInDive": "Op het duikprofiel geplaatst",
   "media_tile_infoMenuItem": "Media-info",
   "diveImport_healthkit_accessGrantedHint": "Apple Gezondheid vertelt apps nooit of leestoegang is verleend. Verschijnen er geen duiken, open dan Gezondheid, vervolgens Delen, Apps, Submersion, en zet Workouts, Waterdiepte, Watertemperatuur en Hartslag aan.",
   "diveImport_healthkit_foundNoDivesHint": "Geen duikworkouts in dit bereik. Controleer of de datums de duik omvatten en of bij Gezondheid, Delen, Apps, Submersion de opties Workouts en Waterdiepte aanstaan.",
@@ -17256,11 +17412,13 @@
   "rules_value_yes": "Ja",
   "rules_value_no": "Nee",
   "rules_value_empty": "(leeg)",
+  "rules_value_gearViaSet": "{item} ({set})",
   "rules_collection_diveTypes": "duiktypes",
   "rules_collection_tags": "tags",
   "rules_collection_equipment": "uitrusting",
   "rules_collection_buddies": "buddy's",
   "rules_collection_courses": "cursussen",
+  "rules_collection_equipmentSets": "uitrustingssets",
   "rules_collection_siteTags": "duikstektags",
   "rules_collection_siteTypes": "duikstektypes",
   "rules_field_diveCenter": "duikcentrum",
@@ -17430,6 +17588,9 @@
   "settings_backups_noCopy": "Geen kopie buiten dit apparaat",
   "settings_backups_chooseAccount": "Kies een account",
   "settings_backups_copyAccountGone": "Het account van de kopie is verwijderd",
+  "settings_backups_alsoCopyTo": "Ook een kopie in {account}",
+  "settings_backups_addCopyAccount": "Ook naar een ander account kopiëren",
+  "settings_backups_extraCopyMissed": "De laatste back-up heeft dit account niet bereikt",
   "settings_backups_auto": "Automatisch back-uppen",
   "settings_backups_backUpNow": "Nu back-uppen",
   "settings_backups_restoreFile": "Herstellen vanuit een bestand",

@@ -28,12 +28,14 @@ extension TankRoleDisplay on TankRole {
     TankRole.pony => l10n.enum_tankRole_pony,
     TankRole.diluent => l10n.enum_tankRole_diluent,
     TankRole.oxygenSupply => l10n.enum_tankRole_oxygenSupply,
+    TankRole.suitInflation => l10n.enum_tankRole_suitInflation,
   };
 
   /// The glyph for how this cylinder is carried (issue #2901). Roles carried
   /// the same way share one: stage, deco and bailout are all slung, and a
   /// rebreather's diluent and oxygen supply are both onboard cylinders, so
-  /// the label beside the icon tells those apart.
+  /// the label beside the icon tells those apart. A suit inflation bottle
+  /// rides beside the main cylinder the way a pony does (issue #4243).
   IconData get icon => switch (this) {
     TankRole.backGas => SubmersionIcons.tankBackGas,
     TankRole.twinSet => SubmersionIcons.tankTwinSet,
@@ -42,7 +44,7 @@ extension TankRoleDisplay on TankRole {
     TankRole.stage ||
     TankRole.deco ||
     TankRole.bailout => SubmersionIcons.tankSlung,
-    TankRole.pony => SubmersionIcons.tankPony,
+    TankRole.pony || TankRole.suitInflation => SubmersionIcons.tankPony,
     TankRole.diluent || TankRole.oxygenSupply => SubmersionIcons.tankRebreather,
   };
 }

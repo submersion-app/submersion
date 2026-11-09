@@ -16,6 +16,7 @@ import 'package:submersion/core/deco/scr_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
@@ -26,6 +27,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_data_source.da
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/domain/services/breathing_gas_switches.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/dive_log/domain/services/ccr_gas_schedule.dart';
 import 'package:submersion/features/dive_log/domain/services/computer_cns_extractor.dart';
@@ -86,6 +88,21 @@ List<double>? combineMultiTankPressures({
   required List<DiveTank> tanks,
 }) {
   if (tankPressures.isEmpty || tanks.isEmpty) return null;
+
+  // A suit inflation bottle's pressure is not breathing (issue #4243): its
+  // series never joins the curve, even as an orphan of unknown volume.
+  final notBreathed = {
+    for (final tank in tanks)
+      if (!tank.role.isBreathingGas) tank.id,
+  };
+  if (notBreathed.isNotEmpty) {
+    tankPressures = {
+      for (final entry in tankPressures.entries)
+        if (!notBreathed.contains(entry.key)) entry.key: entry.value,
+    };
+    tanks = breathingTanks(tanks);
+    if (tankPressures.isEmpty || tanks.isEmpty) return null;
+  }
 
   // Build a map of tank volumes for weighting (needed to normalize consumption)
   final tankVolumes = <String, double>{};
@@ -190,11 +207,13 @@ final _log = LoggerService.forClass(_ProfileAnalysisProvider);
 /// The schedule starts at [buildProfileGasSegments]'s `startTimestamp`
 /// (0 by default) using the primary tank gas when available, otherwise air.
 /// Gas switches then replace the active gas from their timestamp onward.
+/// Never a suit inflation bottle, which is not breathed (issue #4243).
 DiveTank? _selectOcPrimaryTank(List<DiveTank> tanks) {
-  if (tanks.isEmpty) return null;
-  return tanks.firstWhere(
+  final breathing = breathingTanks(tanks);
+  if (breathing.isEmpty) return null;
+  return breathing.firstWhere(
     (t) => backmountRoles.contains(t.role),
-    orElse: () => tanks.first,
+    orElse: () => breathing.first,
   );
 }
 
@@ -220,6 +239,9 @@ List<ProfileGasSegment> buildProfileGasSegments(
 }) {
   final primaryMix =
       _selectOcPrimaryTank(tanks ?? dive.tanks)?.gasMix ?? const GasMix();
+  // A switch to a suit inflation bottle counts against the breathing
+  // cylinder on its mix, never as a gas breathed (issue #4243).
+  gasSwitches = breathingGasSwitches(gasSwitches, tanks ?? dive.tanks);
 
   final segments = <ProfileGasSegment>[
     ProfileGasSegment(
@@ -281,7 +303,8 @@ GasMix resolveCcrDiluentMix(Dive dive, {List<DiveTank>? tanks}) =>
 /// [resolveCcrDiluentMix] without its air default: null when the log holds no
 /// gas the loop could run on.
 GasMix? _recordedCcrDiluentMix(Dive dive, {List<DiveTank>? tanks}) {
-  final candidates = tanks ?? dive.tanks;
+  // A suit inflation bottle is never the loop's gas (issue #4243).
+  final candidates = breathingTanks(tanks ?? dive.tanks);
   for (final tank in candidates) {
     if (tank.role == TankRole.diluent) return tank.gasMix;
   }
@@ -459,6 +482,8 @@ List<AvailableGas> buildAvailableGases(
   DiveEnvironment environment = DiveEnvironment.standard,
 }) {
   bool keep(DiveTank t) {
+    // A suit inflation bottle is no ascent gas (issue #4243).
+    if (!t.role.isBreathingGas) return false;
     // A CCR bailout reads cylinder roles the way its switches are read, so
     // an untagged diluent is left out here exactly as a tagged one is.
     final role = forCcrBailout ? ccrCylinderRole(t) : t.role;
@@ -1065,16 +1090,18 @@ ProfileAnalysis _runProfileAnalysis(_ProfileAnalysisInput input) {
 
 /// Lean dive hydration for the analysis pipeline: dive-row scalars, tanks,
 /// and the merged profile only -- no joined display entities (WS2, large-DB
-/// performance). keepAlive family, so a residual-chain walk over a
-/// repetitive dive week hydrates each prior dive once per session instead
-/// of fully re-hydrating on every detail open. Self-invalidates on the
-/// analysis-input tick (the tables this hydration actually reads), so the
-/// residual-chain cache survives writes to unrelated detail tables such as
-/// media.
-final analysisDiveProvider = FutureProvider.family<Dive?, String>((
+/// performance). Held for [diveDataRetention] after its last use, so a
+/// residual-chain walk over a repetitive dive week hydrates each prior dive
+/// once while you browse that week instead of fully re-hydrating on every
+/// detail open, and a dive left alone frees itself (#4254). Self-invalidates
+/// on the analysis-input tick (the tables this hydration actually reads), so
+/// the residual-chain cache survives writes to unrelated detail tables such
+/// as media.
+final analysisDiveProvider = FutureProvider.autoDispose.family<Dive?, String>((
   ref,
   diveId,
 ) async {
+  retainDiveData(ref);
   final repository = ref.watch(diveRepositoryProvider);
   // Analysis-input tick only: this provider feeds profileAnalysisProvider,
   // so invalidating it on the broad detail tick (which includes media)
@@ -1119,8 +1146,9 @@ typedef DiveAnalysisSeries = ({
 /// this is null.
 ///
 /// Null too when the dive has no profile.
-final diveAnalysisSeriesProvider =
-    FutureProvider.family<DiveAnalysisSeries?, String>((ref, diveId) async {
+final diveAnalysisSeriesProvider = FutureProvider.autoDispose
+    .family<DiveAnalysisSeries?, String>((ref, diveId) async {
+      retainDiveData(ref);
       final dive = await ref.watch(analysisDiveProvider(diveId).future);
       if (dive == null || dive.profile.isEmpty) return null;
       final DiveAnalysisSeries whole = (
@@ -1163,10 +1191,11 @@ final diveAnalysisSeriesProvider =
 /// with no known oxygen exposure does not end the chain: it reads through to
 /// the dive before (see [_lookBackPastUnknownDives]). The chain terminates
 /// when there is no earlier dive or the surface time reaches 24h.
-final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>((
+final profileAnalysisProvider = FutureProvider.autoDispose.family<ProfileAnalysis?, String>((
   ref,
   diveId,
 ) async {
+  retainDiveData(ref);
   try {
     // Await the dive itself (not just its current AsyncValue snapshot). Reading
     // `analysisDiveProvider(id).future` suspends this provider until the dive
@@ -1388,11 +1417,10 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
       }
     }
 
-    // Get gas mix from primary tank
+    // Get gas mix from the first breathing cylinder (issue #4243)
     double o2Fraction = 0.21; // Default to air
     double heFraction = 0.0;
-    if (tanks.isNotEmpty) {
-      final primaryTank = tanks.first;
+    if (breathingTanks(tanks) case [final primaryTank, ...]) {
       o2Fraction = primaryTank.gasMix.o2 / 100.0;
       heFraction = primaryTank.gasMix.he / 100.0;
     }
@@ -1636,8 +1664,9 @@ typedef DiveSourceKey = ({String diveId, String? sourceId});
 /// dives delegate to it: one cached analysis, whichever key the chart, the
 /// overlays and the safety review read it under, sharing its residual-CNS
 /// recursion.
-final sourceProfileAnalysisProvider =
-    FutureProvider.family<ProfileAnalysis?, DiveSourceKey>((ref, key) async {
+final sourceProfileAnalysisProvider = FutureProvider.autoDispose
+    .family<ProfileAnalysis?, DiveSourceKey>((ref, key) async {
+      retainDiveData(ref);
       try {
         final sources = await ref.watch(
           diveDataSourcesProvider(key.diveId).future,
@@ -2005,10 +2034,11 @@ Future<double> _computeResidualOtu(Ref ref, String diveId) async {
 /// This is a convenience provider for synchronous consumers (like
 /// [diveProfileAnalysisProvider]) that need the residual CNS value.
 /// It derives the value from [profileAnalysisProvider]'s computed cnsStart.
-final residualCnsProvider = FutureProvider.family<double, String>((
+final residualCnsProvider = FutureProvider.autoDispose.family<double, String>((
   ref,
   diveId,
 ) async {
+  retainDiveData(ref);
   final analysis = await ref.watch(profileAnalysisProvider(diveId).future);
   return analysis?.o2Exposure.cnsStart ?? 0.0;
 });
@@ -2017,11 +2047,9 @@ final residualCnsProvider = FutureProvider.family<double, String>((
 ///
 /// Convenience provider for synchronous consumers (like
 /// [diveProfileAnalysisProvider]) that need pre-loaded tissue compartments.
-final residualTissueStateProvider =
-    FutureProvider.family<List<TissueCompartment>?, String>((
-      ref,
-      diveId,
-    ) async {
+final residualTissueStateProvider = FutureProvider.autoDispose
+    .family<List<TissueCompartment>?, String>((ref, diveId) async {
+      retainDiveData(ref);
       // Reads earlier dives' analyses once, so it goes stale when any of them
       // changes. The tick its neighbour residualCnsProvider inherits from
       // profileAnalysisProvider keeps the three in step for Compare.
@@ -2132,250 +2160,140 @@ final weeklyOtuProvider = FutureProvider.family<double, String>((
 /// for all four metrics (NDL, ceiling, TTS, CNS) when data is present.
 /// It does not read per-metric source preferences from the legend state.
 /// Use [profileAnalysisProvider] (by diveId) for preference-aware handling.
-final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
-  ref,
-  dive,
-) {
-  if (dive.profile.isEmpty) {
-    return null;
-  }
+final diveProfileAnalysisProvider = Provider.autoDispose
+    .family<ProfileAnalysis?, Dive>((ref, dive) {
+      retainDiveData(ref);
+      if (dive.profile.isEmpty) {
+        return null;
+      }
 
-  try {
-    if (dive.isGauge) {
-      // Gauge dives log depth+time only: no gas or decompression. Use the
-      // user-configured analysis service (ascent-rate thresholds) but skip the
-      // gas/GF/residual work; return a profile-only analysis.
-      return ref
-          .watch(profileAnalysisServiceProvider)
-          .analyze(
-            diveId: dive.id,
-            depths: dive.profile.map((p) => p.depth).toList(),
-            timestamps: dive.profile.map((p) => p.timestamp).toList(),
-            diveMode: DiveMode.gauge,
+      try {
+        if (dive.isGauge) {
+          // Gauge dives log depth+time only: no gas or decompression. Use the
+          // user-configured analysis service (ascent-rate thresholds) but skip the
+          // gas/GF/residual work; return a profile-only analysis.
+          return ref
+              .watch(profileAnalysisServiceProvider)
+              .analyze(
+                diveId: dive.id,
+                depths: dive.profile.map((p) => p.depth).toList(),
+                timestamps: dive.profile.map((p) => p.timestamp).toList(),
+                diveMode: DiveMode.gauge,
+              );
+        }
+        // Use dive-specific GF if the dive computer provided them,
+        // otherwise fall back to user settings
+        if (dive.gradientFactorLow != null && dive.gradientFactorHigh != null) {
+          _log.debug(
+            'Using dive-specific GF ${dive.gradientFactorLow}/'
+            '${dive.gradientFactorHigh} for dive ${dive.id}',
           );
-    }
-    // Use dive-specific GF if the dive computer provided them,
-    // otherwise fall back to user settings
-    if (dive.gradientFactorLow != null && dive.gradientFactorHigh != null) {
-      _log.debug(
-        'Using dive-specific GF ${dive.gradientFactorLow}/'
-        '${dive.gradientFactorHigh} for dive ${dive.id}',
-      );
-    }
-    final environment = dive.environment;
-    final service = _resolveAnalysisService(
-      ref,
-      dive.gradientFactorLow,
-      dive.gradientFactorHigh,
-      environment: environment,
-      recordedAlgorithm: dive.decoAlgorithm,
-    );
+        }
+        final environment = dive.environment;
+        final service = _resolveAnalysisService(
+          ref,
+          dive.gradientFactorLow,
+          dive.gradientFactorHigh,
+          environment: environment,
+          recordedAlgorithm: dive.decoAlgorithm,
+        );
 
-    // Extract profile data
-    final depths = dive.profile.map((p) => p.depth).toList();
-    final timestamps = dive.profile.map((p) => p.timestamp).toList();
-    // Get gas mix from primary tank
-    double o2Fraction = 0.21; // Default to air
-    double heFraction = 0.0;
-    if (dive.tanks.isNotEmpty) {
-      final primaryTank = dive.tanks.first;
-      o2Fraction = primaryTank.gasMix.o2 / 100.0;
-      heFraction = primaryTank.gasMix.he / 100.0;
-    }
+        // Extract profile data
+        final depths = dive.profile.map((p) => p.depth).toList();
+        final timestamps = dive.profile.map((p) => p.timestamp).toList();
+        // Get gas mix from the first breathing cylinder (issue #4243)
+        double o2Fraction = 0.21; // Default to air
+        double heFraction = 0.0;
+        if (dive.breathingTanks case [final primaryTank, ...]) {
+          o2Fraction = primaryTank.gasMix.o2 / 100.0;
+          heFraction = primaryTank.gasMix.he / 100.0;
+        }
 
-    // Get residual CNS from previous dive (0.0 while loading or if unavailable)
-    final startCns = ref.watch(residualCnsProvider(dive.id)).valueOrNull ?? 0.0;
+        // Get residual CNS from previous dive (0.0 while loading or if unavailable)
+        final startCns =
+            ref.watch(residualCnsProvider(dive.id)).valueOrNull ?? 0.0;
 
-    // Get residual tissue state from previous dives (null while loading)
-    final startCompartments = ref
-        .watch(residualTissueStateProvider(dive.id))
-        .valueOrNull;
+        // Get residual tissue state from previous dives (null while loading)
+        final startCompartments = ref
+            .watch(residualTissueStateProvider(dive.id))
+            .valueOrNull;
 
-    // Get cumulative OTU from earlier same-day dives (0.0 while loading)
-    final startOtu = ref.watch(residualOtuProvider(dive.id)).valueOrNull ?? 0.0;
+        // Get cumulative OTU from earlier same-day dives (0.0 while loading)
+        final startOtu =
+            ref.watch(residualOtuProvider(dive.id)).valueOrNull ?? 0.0;
 
-    // Resolve rebreather loop ppO2 once and reuse it for both the analysis
-    // (CNS/OTU) and the display overlay so the two always agree.
-    final rebreatherPpO2 = dive.diveMode == DiveMode.oc
-        ? null
-        : resolveRebreatherPpO2(
-            dive.profile,
-            measuredOnly: dive.diveMode == DiveMode.scr,
-          );
+        // Resolve rebreather loop ppO2 once and reuse it for both the analysis
+        // (CNS/OTU) and the display overlay so the two always agree.
+        final rebreatherPpO2 = dive.diveMode == DiveMode.oc
+            ? null
+            : resolveRebreatherPpO2(
+                dive.profile,
+                measuredOnly: dive.diveMode == DiveMode.scr,
+              );
 
-    final gasSegments = buildRebreatherProfileGasSegments(
-      dive,
-      profile: dive.profile,
-      rebreatherPpO2: rebreatherPpO2,
-    );
+        final gasSegments = buildRebreatherProfileGasSegments(
+          dive,
+          profile: dive.profile,
+          rebreatherPpO2: rebreatherPpO2,
+        );
 
-    final ascentGases = dive.diveMode == DiveMode.oc
-        ? buildAvailableGases(
-            dive,
-            maxPpO2: ref.watch(ppO2MaxDecoProvider),
-            gasSet: ref.watch(ascentGasSetProvider),
-            environment: environment,
-          )
-        : null;
-    final ascentGasPlan = ascentGases != null && ascentGases.isNotEmpty
-        ? OptimalOcAscentGas(
-            gases: ascentGases,
-            maxPpO2: ref.watch(ppO2MaxDecoProvider),
-          )
-        : null;
+        final ascentGases = dive.diveMode == DiveMode.oc
+            ? buildAvailableGases(
+                dive,
+                maxPpO2: ref.watch(ppO2MaxDecoProvider),
+                gasSet: ref.watch(ascentGasSetProvider),
+                environment: environment,
+              )
+            : null;
+        final ascentGasPlan = ascentGases != null && ascentGases.isNotEmpty
+            ? OptimalOcAscentGas(
+                gases: ascentGases,
+                maxPpO2: ref.watch(ppO2MaxDecoProvider),
+              )
+            : null;
 
-    final analysis = service.analyze(
-      diveId: dive.id,
-      depths: depths,
-      timestamps: timestamps,
-      o2Fraction: o2Fraction,
-      heFraction: heFraction,
-      startCns: startCns,
-      startCompartments: startCompartments,
-      startOtu: startOtu,
-      pressures: null,
-      // CCR/SCR parameters
-      diveMode: dive.diveMode,
-      setpointHigh: dive.setpointHigh,
-      setpointLow: dive.setpointLow,
-      scrInjectionRate: dive.scrInjectionRate,
-      scrSupplyO2Percent: dive.diluentGas?.o2,
-      scrVo2: dive.assumedVo2 ?? 1.3,
-      gasSegments: gasSegments,
-      ascentGasPlan: ascentGasPlan,
-      rebreatherPpO2Curve: rebreatherPpO2?.curve,
-    );
+        final analysis = service.analyze(
+          diveId: dive.id,
+          depths: depths,
+          timestamps: timestamps,
+          o2Fraction: o2Fraction,
+          heFraction: heFraction,
+          startCns: startCns,
+          startCompartments: startCompartments,
+          startOtu: startOtu,
+          pressures: null,
+          // CCR/SCR parameters
+          diveMode: dive.diveMode,
+          setpointHigh: dive.setpointHigh,
+          setpointLow: dive.setpointLow,
+          scrInjectionRate: dive.scrInjectionRate,
+          scrSupplyO2Percent: dive.diluentGas?.o2,
+          scrVo2: dive.assumedVo2 ?? 1.3,
+          gasSegments: gasSegments,
+          ascentGasPlan: ascentGasPlan,
+          rebreatherPpO2Curve: rebreatherPpO2?.curve,
+        );
 
-    // Overlay computer-reported deco data where available
-    final (overlaid, _) = overlayComputerDecoData(
-      analysis,
-      dive.profile,
-      ndlSource: MetricDataSource.computer,
-      ceilingSource: MetricDataSource.computer,
-      ttsSource: MetricDataSource.computer,
-      cnsSource: MetricDataSource.computer,
-      decoStopSource: MetricDataSource.computer,
-      gtrSource: MetricDataSource.computer,
-      rebreatherPpO2: rebreatherPpO2,
-      measuredPpO2Only: dive.diveMode == DiveMode.scr,
-    );
-    return overlaid;
-  } catch (e, stackTrace) {
-    _log.error(
-      'Failed to analyze profile for dive: ${dive.id}',
-      error: e,
-      stackTrace: stackTrace,
-    );
-    return null;
-  }
-});
-
-/// Provider for quick stats from profile analysis
-final profileQuickStatsProvider = Provider.family<ProfileQuickStats?, String>((
-  ref,
-  diveId,
-) {
-  final analysisAsync = ref.watch(profileAnalysisProvider(diveId));
-
-  return analysisAsync.when(
-    data: (analysis) {
-      if (analysis == null) return null;
-      return ProfileQuickStats.fromAnalysis(analysis);
-    },
-    loading: () => null,
-    error: (_, _) => null,
-  );
-});
-
-/// Quick stats summary from profile analysis
-class ProfileQuickStats {
-  /// Maximum depth in meters
-  final double maxDepth;
-
-  /// Average depth in meters
-  final double avgDepth;
-
-  /// Dive duration in seconds
-  final int durationSeconds;
-
-  /// Maximum ascent rate in m/min
-  final double maxAscentRate;
-
-  /// Whether any ascent violations occurred
-  final bool hadAscentViolations;
-
-  /// CNS% at end of dive
-  final double cnsEnd;
-
-  /// Whether CNS warning triggered
-  final bool cnsWarning;
-
-  /// Minimum NDL during dive (seconds, -1 if went into deco)
-  final int minNdl;
-
-  /// Whether dive went into deco obligation
-  final bool hadDecoObligation;
-
-  /// Maximum ppO2 during dive
-  final double maxPpO2;
-
-  /// Number of events detected
-  final int eventCount;
-
-  /// Number of warning/alert events
-  final int warningCount;
-
-  const ProfileQuickStats({
-    required this.maxDepth,
-    required this.avgDepth,
-    required this.durationSeconds,
-    required this.maxAscentRate,
-    required this.hadAscentViolations,
-    required this.cnsEnd,
-    required this.cnsWarning,
-    required this.minNdl,
-    required this.hadDecoObligation,
-    required this.maxPpO2,
-    required this.eventCount,
-    required this.warningCount,
-  });
-
-  factory ProfileQuickStats.fromAnalysis(ProfileAnalysis analysis) {
-    return ProfileQuickStats(
-      maxDepth: analysis.maxDepth,
-      avgDepth: analysis.averageDepth,
-      durationSeconds: analysis.durationSeconds,
-      maxAscentRate: analysis.ascentRateStats.maxAscentRate,
-      hadAscentViolations: analysis.hadAscentViolations,
-      cnsEnd: analysis.o2Exposure.cnsEnd,
-      cnsWarning: analysis.o2Exposure.cnsWarning,
-      minNdl: analysis.ndlCurve.isEmpty
-          ? -1
-          : analysis.ndlCurve.reduce((a, b) => a < b ? a : b),
-      hadDecoObligation: analysis.hadDecoObligation,
-      maxPpO2: analysis.o2Exposure.maxPpO2,
-      eventCount: analysis.events.length,
-      warningCount: analysis.warningEvents.length + analysis.alertEvents.length,
-    );
-  }
-
-  /// Format duration as MM:SS or HH:MM:SS
-  String get durationFormatted {
-    final hours = durationSeconds ~/ 3600;
-    final minutes = (durationSeconds % 3600) ~/ 60;
-    final seconds = durationSeconds % 60;
-
-    if (hours > 0) {
-      return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-    }
-    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-  }
-
-  /// Format min NDL as MM:SS or "DECO"
-  String get minNdlFormatted {
-    if (minNdl < 0) return 'DECO';
-    if (minNdl > 99 * 60) return '>99 min';
-    final minutes = minNdl ~/ 60;
-    return '$minutes min';
-  }
-}
+        // Overlay computer-reported deco data where available
+        final (overlaid, _) = overlayComputerDecoData(
+          analysis,
+          dive.profile,
+          ndlSource: MetricDataSource.computer,
+          ceilingSource: MetricDataSource.computer,
+          ttsSource: MetricDataSource.computer,
+          cnsSource: MetricDataSource.computer,
+          decoStopSource: MetricDataSource.computer,
+          gtrSource: MetricDataSource.computer,
+          rebreatherPpO2: rebreatherPpO2,
+          measuredPpO2Only: dive.diveMode == DiveMode.scr,
+        );
+        return overlaid;
+      } catch (e, stackTrace) {
+        _log.error(
+          'Failed to analyze profile for dive: ${dive.id}',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        return null;
+      }
+    });

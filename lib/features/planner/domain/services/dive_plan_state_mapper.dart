@@ -3,6 +3,7 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_result.dar
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
+import 'package:submersion/features/planner/domain/services/plan_breathing_tanks.dart';
 
 /// Maps between the planner UI state ([DivePlanState]) and the persisted
 /// [domain.DivePlan] aggregate.
@@ -163,9 +164,18 @@ final _epoch = DateTime.utc(2000);
 /// list arrives out of sequence (a `.subplan` file carries its own `order`
 /// values alongside the array) would otherwise show and edit a different
 /// profile from the one the engine computes, which sorts.
+///
+/// The state holds breathing gas only (issue #4243; see
+/// [breathingPlanParts]): a stored plan can still carry a suit inflation
+/// bottle, and every reader of a stored plan (the planner, a series and its
+/// carried pressures, the plan vs actual overlay) hands the state straight
+/// to the engine.
 DivePlanState stateFromDivePlan(domain.DivePlan plan) {
-  final segments = List<PlanSegment>.from(plan.segments)
-    ..sort((a, b) => a.order.compareTo(b.order));
+  final gas = breathingPlanParts(
+    plan.tanks,
+    List<PlanSegment>.from(plan.segments)
+      ..sort((a, b) => a.order.compareTo(b.order)),
+  );
   return DivePlanState(
     id: plan.id,
     name: plan.name,
@@ -217,8 +227,8 @@ DivePlanState stateFromDivePlan(domain.DivePlan plan) {
     o2Narcotic: plan.o2Narcotic,
     stopMinimums: plan.stopMinimums,
     surfaceInterval: plan.surfaceInterval,
-    segments: segments,
-    tanks: plan.tanks,
+    segments: gas.segments,
+    tanks: gas.tanks,
     equipmentIds: plan.equipmentIds,
     gearProvenance: plan.gearProvenance,
     plannedWeightKg: plan.plannedWeightKg,

@@ -2052,9 +2052,10 @@ class UddfExportBuilders {
   ///
   /// Null for a dive with no tanks, whose starting gas is unknown. Naming air
   /// there was a guess that a restore turned into a cylinder the diver never
-  /// logged (issue #1878).
+  /// logged (issue #1878). A suit inflation bottle is never the starting
+  /// gas (issue #4243).
   static String? startMixId(Dive dive) {
-    final tank = dive.tanks.firstOrNull;
+    final tank = dive.breathingTanks.firstOrNull;
     return tank == null ? null : UddfGasMixWriters.mixId(tank.gasMix);
   }
 

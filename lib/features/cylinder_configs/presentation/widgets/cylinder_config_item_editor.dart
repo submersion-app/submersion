@@ -135,7 +135,12 @@ class _CylinderConfigItemEditorState extends State<CylinderConfigItemEditor> {
             ratedCapacityCuft(liters, workingPressureBar),
             0,
           )
-        : formatRoundedForInput(liters, 1);
+        // A small bottle keeps two decimals, as the tank editor does: a
+        // 0.85 L argon bottle must not read as 0.9 (issue #4243).
+        : formatRoundedForInput(
+            liters,
+            UnitFormatter.tankVolumeLiterDecimals(liters),
+          );
   }
 
   String _pressureText(double? bar) =>

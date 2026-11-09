@@ -643,6 +643,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_equipmentField_owner_short => 'المالك';
 
   @override
+  String get enum_equipmentField_location => 'الموقع';
+
+  @override
+  String get enum_equipmentField_location_short => 'الموقع';
+
+  @override
   String get equipment_set_noLongerShared => 'لم يعد مُشارَكًا';
 
   @override
@@ -1457,6 +1463,24 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_setEdit_figureSwitch_title => 'إظهار رسم الغواص';
+
+  @override
+  String get equipment_setEdit_historyAsk =>
+      'تطبيق التغييرات على تلك الغطسات أيضًا، أم من الآن فصاعدًا فقط؟';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'هذه المجموعة موجودة في $count غطسة مسجلة.',
+      many: 'هذه المجموعة موجودة في $count غطسة مسجلة.',
+      few: 'هذه المجموعة موجودة في $count غطسات مسجلة.',
+      two: 'هذه المجموعة موجودة في غطستين مسجلتين.',
+      one: 'هذه المجموعة موجودة في غطسة مسجلة واحدة.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get equipment_color_red => 'أحمر';
@@ -7518,6 +7542,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'هذه السجلات لا تتداخل زمنيًا، لذا ربما تكون ساعة أحد أجهزة الكمبيوتر خاطئة. تحتفظ الغوصة بوقت الكمبيوتر الأساسي.';
 
   @override
+  String get diveLog_consolidate_clockNoteOverlap =>
+      'تتطابق ملفات العمق هذه في وقت مختلف عما تشير إليه ساعات أجهزة الكمبيوتر، لذا ربما تكون ساعة أحد أجهزة الكمبيوتر خاطئة. تحتفظ الغوصة بوقت الكمبيوتر الأساسي.';
+
+  @override
   String get diveLog_consolidate_clockNoteShort =>
       'ربما تكون ساعة أحد أجهزة الكمبيوتر خاطئة.';
 
@@ -7630,6 +7658,86 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_deco_semantics_required => 'يلزم تخفيف الضغط';
+
+  @override
+  String diveLog_deco_compartmentLeading(int number) {
+    return 'الرائدة: #$number';
+  }
+
+  @override
+  String diveLog_deco_compartmentOther(int number) {
+    return 'الحجرة: #$number';
+  }
+
+  @override
+  String get diveLog_deco_metricLoad => 'الحمل';
+
+  @override
+  String get diveLog_deco_gasOngassing => 'امتصاص';
+
+  @override
+  String get diveLog_deco_gasOffgassing => 'إطلاق';
+
+  @override
+  String get diveLog_deco_gasEquilibrium => 'توازن';
+
+  @override
+  String get diveLog_deco_heatMapRows =>
+      'الصفوف: من السريعة (أعلى) إلى البطيئة (أسفل)';
+
+  @override
+  String get diveLog_deco_surfaceLevel => 'مستوى السطح';
+
+  @override
+  String get diveLog_deco_mValue => 'قيمة M';
+
+  @override
+  String diveLog_deco_tooltipCompartment(int number) {
+    return 'الحجرة $number';
+  }
+
+  @override
+  String diveLog_deco_tooltipLoaded(String percent) {
+    return 'حمل $percent%';
+  }
+
+  @override
+  String diveLog_deco_tooltipHalfTime(String minutes) {
+    return 'نصف العمر: $minutes دقيقة';
+  }
+
+  @override
+  String diveLog_deco_tooltipSurfaceLevel(String percent) {
+    return 'مستوى السطح: $percent%';
+  }
+
+  @override
+  String get diveLog_deco_info_title => 'ماذا تعني هذه القيم؟';
+
+  @override
+  String get diveLog_deco_info_body =>
+      'الحمل: ضغط الغاز الخامل في الحجرة كنسبة مئوية من الحد الأقصى الذي يمكنها حمله على السطح (قيمة M الخاصة بها، الخط الأحمر عند 100%).\n\nمستوى السطح: تُظهر العلامة على كل عمود المستوى الذي تستقر عنده الحجرة بعد إزالة التشبع بالكامل أثناء تنفسك الهواء على السطح. لا تكون أبداً عند 0%، لأن جسمك يحتوي دائماً على نيتروجين الهواء الذي تتنفسه. العمود الواقف عند علامته لا يحمل أي حمل متبقٍ من الغوص.\n\nالامتصاص والإطلاق: يتحرك الغاز دائماً نحو ضغط الغاز الذي تتنفسه. بعد تخفيف الضغط بالأكسجين أو بخليط غني بالهيليوم، قد تحتوي الحجرات السريعة على نيتروجين أقل من هواء السطح. وعند العودة إلى تنفس الهواء، تمتص النيتروجين مجدداً حتى تصل إلى علامتها. هذا أمر طبيعي وليس حملاً متبقياً من الغوصة.\n\nالهيليوم: لا يحتوي الهواء على هيليوم. بعد غوصة بالترايمكس، تطلق الحجرة الهيليوم بينما قد تمتص النيتروجين في الوقت نفسه. تُظهر الأسهم بجانب N₂ وHe كل غاز على حدة، وتُظهر الإشارة بجانب رقم الحجرة الاتجاه الإجمالي للغازين.';
+
+  @override
+  String diveLog_deco_barChartSemantics(int count, int number, String percent) {
+    return 'مخطط تشبّع الأنسجة. $count حجرة، الحمل نسبةً إلى قيمة M؛ الحجرة الرائدة $number عند $percent%.';
+  }
+
+  @override
+  String get diveLog_deco_heatMapUndersaturated => 'دون الإشباع';
+
+  @override
+  String get diveLog_deco_heatMapSupersaturated => 'فوق الإشباع';
+
+  @override
+  String diveLog_deco_percentValue(String value) {
+    return '$value%';
+  }
+
+  @override
+  String diveLog_deco_minutesValue(String value) {
+    return '$value دقيقة';
+  }
 
   @override
   String get diveLog_deco_tissueFast => 'سريعة';
@@ -8765,6 +8873,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_edit_useSet => 'استخدام طقم';
+
+  @override
+  String get diveLog_edit_removeSet => 'إزالة طقم';
+
+  @override
+  String get diveLog_bulkEdit_setsToRemove => 'أطقم للإزالة';
+
+  @override
+  String get diveLog_bulkEdit_removeSetTitle => 'إزالة طقم معدات';
+
+  @override
+  String get diveLog_bulkEdit_equipmentSets => 'أطقم المعدات';
 
   @override
   String get diveLog_edit_weightPreset_use => 'استخدام إعداد مسبق';
@@ -14381,6 +14501,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_tankRole_stage => 'أسطوانة مرحلية';
 
   @override
+  String get enum_tankRole_suitInflation => 'نفخ البدلة';
+
+  @override
   String get enum_tankRole_twinSet => 'طقم مزدوج';
 
   @override
@@ -16979,6 +17102,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_location_activeFilter => 'الموقع';
+
+  @override
+  String equipment_location_tileSemantics(String name) {
+    return 'الموقع: $name';
+  }
 
   @override
   String get equipment_filter_section_location => 'الموقع';
@@ -22808,6 +22936,26 @@ class AppLocalizationsAr extends AppLocalizations {
       'عرض خريطة موقع الغوص كخلفية على بطاقات الغوص (يتطلب موقع الموقع)';
 
   @override
+  String get settings_appearance_photoBackgroundDiveCards =>
+      'خلفية صورة على بطاقات الغوص';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards_subtitle =>
+      'عرض إحدى صور الغوصة كخلفية لبطاقات الغوص (بدون صور تُستخدم الخريطة أو اللون)';
+
+  @override
+  String get settings_appearance_photoOverlayDark =>
+      'عتامة الطبقة فوق الصورة، السمة الداكنة';
+
+  @override
+  String get settings_appearance_photoOverlayLight =>
+      'عتامة الطبقة فوق الصورة، السمة الفاتحة';
+
+  @override
+  String get settings_appearance_photoOverlay_subtitle =>
+      'القيمة الأعلى تبقي النص مقروءًا، والأقل تُظهر المزيد من الصورة';
+
+  @override
   String get settings_appearance_mapBackgroundSiteCards =>
       'خلفية خريطة على بطاقات المواقع';
 
@@ -26209,6 +26357,18 @@ class AppLocalizationsAr extends AppLocalizations {
       'خريطة خلف بطاقات الغوص';
 
   @override
+  String get settings_conflict_field_showPhotoBackgroundOnDiveCards =>
+      'صورة خلف بطاقات الغوص';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayDark =>
+      'طبقة فوق صورة بطاقة الغوص (داكنة)';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayLight =>
+      'طبقة فوق صورة بطاقة الغوص (فاتحة)';
+
+  @override
   String get settings_conflict_field_showMapBackgroundOnSiteCards =>
       'خريطة خلف بطاقات المواقع';
 
@@ -27679,6 +27839,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'لم يصل آخر نسخ احتياطي إلى السحابة';
 
   @override
+  String get dataHealth_backup_extraCopyMissing =>
+      'لم يصل آخر نسخ احتياطي إلى كل الحسابات';
+
+  @override
   String get dataHealth_backup_noOffDeviceCopy =>
       'لا توجد نسخة خارج هذا الجهاز';
 
@@ -27752,7 +27916,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_data_dataTools_subtitle =>
-      'تصحيح أوقات الغطس، ربط الرفاق، إعادة تصنيف المعدات، جودة البيانات، محرر الجدول';
+      'تصحيح أوقات الغطس، ربط الرفاق، إعادة تصنيف المعدات، جودة البيانات، محرر الجدول، إعادة تحليل الغطسات';
 
   @override
   String get settings_agentAccess_title => 'وصول الوكلاء';
@@ -30865,18 +31029,40 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_gas_gasMix_title => 'توزيع خليط الغاز';
 
   @override
-  String get insights_gas_sacByRole_empty =>
-      'لا توجد بيانات أسطوانات متعددة متاحة';
+  String get insights_gas_roleUse_title => 'الاستهلاك حسب دور الأسطوانة';
 
   @override
-  String get insights_gas_sacByRole_error => 'فشل تحميل الاستهلاك حسب الدور';
+  String get insights_gas_roleUse_subtitle =>
+      'كل دور خلال الوقت الذي تم التنفس منه';
 
   @override
-  String get insights_gas_sacByRole_subtitle =>
-      'متوسط الاستهلاك حسب نوع الأسطوانة';
+  String get insights_gas_roleUse_empty => 'لا توجد قيم حسب دور الأسطوانة بعد';
 
   @override
-  String get insights_gas_sacByRole_title => 'استهلاك الغاز حسب دور الأسطوانة';
+  String get insights_gas_roleUse_error =>
+      'تعذر تحميل الاستهلاك حسب دور الأسطوانة';
+
+  @override
+  String get insights_gas_roleGroup_bottomGas => 'غاز القاع';
+
+  @override
+  String insights_gas_roleUse_leftOut(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count غطسة مستبعدة: أسطوانة مرحلية أو تخفيف ضغط أو احتياطية أو طوارئ فقدت غازًا دون تبديل غاز إليها',
+      many:
+          '$count غطسة مستبعدة: أسطوانة مرحلية أو تخفيف ضغط أو احتياطية أو طوارئ فقدت غازًا دون تبديل غاز إليها',
+      few:
+          '$count غطسات مستبعدة: أسطوانة مرحلية أو تخفيف ضغط أو احتياطية أو طوارئ فقدت غازًا دون تبديل غاز إليها',
+      two:
+          'غطستان مستبعدتان: أسطوانة مرحلية أو تخفيف ضغط أو احتياطية أو طوارئ فقدت غازًا دون تبديل غاز إليها',
+      one:
+          'غطسة واحدة مستبعدة: أسطوانة مرحلية أو تخفيف ضغط أو احتياطية أو طوارئ فقدت غازًا دون تبديل غاز إليها',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get insights_gas_ccrUse_title => 'استهلاك الغاز لجهاز إعادة التنفس';
@@ -31512,9 +31698,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_focus_gas_trimix => 'ترايمكس';
 
   @override
-  String get insights_gas_tankRole_backGas => 'غاز رئيسي';
-
-  @override
   String get insights_gas_tankRole_bailout => 'غاز الطوارئ';
 
   @override
@@ -31524,22 +31707,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_gas_tankRole_diluent => 'مخفف';
 
   @override
-  String get insights_gas_tankRole_oxygenSupply => 'إمداد O₂';
-
-  @override
   String get insights_gas_tankRole_pony => 'أسطوانة احتياطية';
 
   @override
-  String get insights_gas_tankRole_sidemountLeft => 'جانبي أيسر';
-
-  @override
-  String get insights_gas_tankRole_sidemountRight => 'جانبي أيمن';
-
-  @override
   String get insights_gas_tankRole_stage => 'أسطوانة مرحلية';
-
-  @override
-  String get insights_gas_tankRole_twinSet => 'طقم مزدوج';
 
   @override
   String get insights_geographic_appBar_title => 'جغرافي';
@@ -38643,25 +38814,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String diveComputer_detail_reparseAllProgress(int count) {
-    return 'جارٍ إعادة تحليل $count غطسة...';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllSuccess(int count) {
-    return 'تمت إعادة تحليل $count غطسة بنجاح';
-  }
-
-  @override
-  String diveComputer_detail_reparseAllPartial(
-    int succeeded,
-    int total,
-    int failed,
-  ) {
-    return 'تمت إعادة تحليل $succeeded من أصل $total غطسة. فشلت $failed.';
-  }
-
-  @override
   String diveComputer_detail_reparseRawDataCount(int count) {
     return '$count غطسة بها بيانات أولية';
   }
@@ -38673,6 +38825,124 @@ class AppLocalizationsAr extends AppLocalizations {
   ) {
     return '$count غطسة بها بيانات أولية ($without بدون)';
   }
+
+  @override
+  String get reparseBatch_progressTitle => 'إعادة تحليل الغطسات';
+
+  @override
+  String reparseBatch_progressCount(int done, int total) {
+    return 'إعادة تحليل $done من أصل $total غطسة';
+  }
+
+  @override
+  String get reparseBatch_cancelling => 'جارٍ الإلغاء...';
+
+  @override
+  String get reparseBatch_resultTitle => 'اكتملت إعادة التحليل';
+
+  @override
+  String get reparseBatch_resultCancelledTitle => 'أُلغيت إعادة التحليل';
+
+  @override
+  String get reparseBatch_resultErrorTitle => 'توقفت إعادة التحليل بسبب خطأ';
+
+  @override
+  String reparseBatch_resultNotReached(int count) {
+    return 'لم تُعالَج: $count';
+  }
+
+  @override
+  String reparseBatch_resultSummary(int succeeded, int total) {
+    return 'تمت إعادة تحليل $succeeded من أصل $total غطسة.';
+  }
+
+  @override
+  String reparseBatch_resultFailed(int count) {
+    return 'فشلت: $count';
+  }
+
+  @override
+  String reparseBatch_resultNotProcessed(int count) {
+    return 'لم تُعالَج (أُلغي): $count';
+  }
+
+  @override
+  String reparseBatch_resultSkipped(int count) {
+    return 'تم تخطيها، بلا بيانات أولية: $count';
+  }
+
+  @override
+  String reparseBatch_resultProfilesPreserved(int count) {
+    return 'غطسات مدمجة احتفظت بملفها الشخصي: $count';
+  }
+
+  @override
+  String get reparseBatch_failedListHeader => 'الغطسات التي فشلت';
+
+  @override
+  String reparseBatch_failedDiveTitle(int number) {
+    return 'الغطسة رقم $number';
+  }
+
+  @override
+  String get reparseBatch_failedDiveUnnumbered => 'غطسة بلا رقم';
+
+  @override
+  String get reparseBatch_missingDescriptors => 'تفاصيل كمبيوتر الغوص مفقودة';
+
+  @override
+  String get reparseBatch_confirmTitle => 'إعادة تحليل الغطسات';
+
+  @override
+  String reparseBatch_confirmMessage(int count) {
+    return 'إعادة تشغيل محلل الغطسات على $count غطسة لها بيانات أولية مخزنة. يُحدِّث ذلك بيانات الملف الشخصي والمستشعرات لكنه يحافظ على الملاحظات والمواقع والشركاء والتعديلات الأخرى.';
+  }
+
+  @override
+  String reparseBatch_confirmSkipped(int count) {
+    return 'غطسات محددة بلا بيانات أولية (سيتم تخطيها): $count';
+  }
+
+  @override
+  String get reparseBatch_noneWithRawData =>
+      'لا توجد بيانات أولية مخزنة لإعادة التحليل في أي من الغطسات المحددة.';
+
+  @override
+  String get diveLog_selection_tooltip_reparse => 'إعادة التحليل';
+
+  @override
+  String get settings_reparseDives_title => 'إعادة تحليل الغطسات';
+
+  @override
+  String get settings_reparseDives_subtitle =>
+      'إعادة تشغيل محلل الغطسات على كل غطسة لها بيانات أولية مخزنة';
+
+  @override
+  String get settings_reparseDives_intro =>
+      'استخدم هذا بعد أن يُحسّن تحديث للتطبيق قراءة بيانات كمبيوتر الغوص. تبقى الملاحظات والمواقع والشركاء والتعديلات الأخرى محفوظة.';
+
+  @override
+  String settings_reparseDives_withRawData(int count) {
+    return 'غطسات بها بيانات أولية: $count';
+  }
+
+  @override
+  String settings_reparseDives_withoutRawData(int count) {
+    return 'غطسات بلا بيانات أولية (لن يُعاد تحليلها): $count';
+  }
+
+  @override
+  String get settings_reparseDives_byComputer => 'حسب كمبيوتر الغوص';
+
+  @override
+  String get settings_reparseDives_unknownComputer => 'كمبيوتر غير معروف';
+
+  @override
+  String get settings_reparseDives_none =>
+      'لا توجد غطسات لها بيانات أولية مخزنة لإعادة التحليل.';
+
+  @override
+  String get settings_reparseDives_button => 'إعادة تحليل الكل';
 
   @override
   String get diveComputer_rawData_discardAction => 'حذف';
@@ -40512,6 +40782,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_valve_type => 'الصمام';
 
   @override
+  String get attrLabel_cylinder_use => 'استخدام الأسطوانة';
+
+  @override
   String get attrLabel_tank_identifier => 'المعرف';
 
   @override
@@ -40867,6 +41140,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => 'قابل للتحويل';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => 'غاز التنفس';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => 'نفخ البدلة';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -41365,11 +41644,27 @@ class AppLocalizationsAr extends AppLocalizations {
       'تنخفض نسبة CNS% (ساعة الأكسجين) بعد الغطسة بعمر نصف 90 دقيقة — تعود عمليًا إلى 0 بعد نحو يوم واحد.\n\nيُعاد ضبط OTU اليومي كل ليلة عند منتصف الليل. أما OTU الأسبوعي فهو مجموع متجدد لآخر 7 أيام: تسقط الغطسات الأقدم تلقائيًا من الحساب بمجرد خروجها من هذا النطاق.';
 
   @override
+  String get safetyHub_tissueLoading_clear_title =>
+      'لا يوجد حمل متبقٍ في الأنسجة';
+
+  @override
+  String get safetyHub_tissueLoading_clear_body =>
+      'عادت جميع الحجرات إلى التوازن مع هواء السطح. تبقى عند مستواها الطبيعي (العلامة على كل عمود)، وليس عند 0%.';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_title =>
+      'تشبّع الأنسجة غير متاح';
+
+  @override
+  String get safetyHub_tissueLoading_unavailable_body =>
+      'لا تتوفر للغوصة الأخيرة بيانات لحساب تشبّع الأنسجة، مثل غوصة بلا ملف عمق، أو في وضع مقياس العمق، أو بجهاز إعادة التنفس دون نقطة ضبط.';
+
+  @override
   String get safetyHub_tissueLoading_about_title => 'حول تشبّع الأنسجة';
 
   @override
   String get safetyHub_tissueLoading_about_body =>
-      'يحتوي جسمك على 16 حجرة نسيجية تمتص وتطلق النيتروجين (وكذلك الهيليوم في غطسات التريميكس أو أجهزة إعادة التنفس) بسرعات مختلفة. الأنسجة السريعة تتشبّع وتتخلّص من التشبّع بسرعة؛ أما الأنسجة البطيئة فتحتاج وقتًا أطول بكثير لكليهما.\n\nبعد غطسة بالهيليوم، يمكن أن يتحرك النيتروجين والهيليوم في نفس الحجرة لفترة وجيزة باتجاهين متعاكسين: بينما لا يزال الهيليوم يتحرر، يمكن لنفس الحجرة أن تمتص القليل من النيتروجين في الوقت نفسه، حتى يصل الغازان إلى التوازن مع الهواء الذي تتنفسه. لهذا قد تُظهر الحجرة مؤقتًا \"Ongassing\" حتى وإن استمر حملها الإجمالي بالانخفاض.';
+      'يحتوي جسمك على 16 حجرة نسيجية تمتص النيتروجين وتطلقه (والهيليوم أيضاً في غوصات الترايمكس أو أجهزة إعادة التنفس) بسرعات مختلفة. تتشبع الأنسجة السريعة وتتخلص من التشبع بسرعة، بينما تحتاج الأنسجة البطيئة وقتاً أطول بكثير في الحالتين.\n\nالحمل المتبقي هو فقط ما يزيد على المستوى الطبيعي على السطح. حتى بعد إزالة التشبع بالكامل، لا تنخفض الأعمدة إلى 0%: تستقر كل حجرة عند العلامة المطابقة لنيتروجين الهواء الذي تتنفسه. لهذا قد تُظهر حجرة سريعة هنا قيمة أعلى مما كانت عليه في نهاية غوصة مع تخفيف ضغط بالأكسجين، دون أن يكون الحمل قد ازداد.\n\nبعد غوصة بالهيليوم، تطلق الحجرة الهيليوم بينما تمتص النيتروجين في الوقت نفسه، حتى يصل الغازان إلى التوازن مع الهواء الذي تتنفسه.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -42964,6 +43259,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dataQuality_detector_tank_assignment => 'أسطوانة خاطئة';
 
   @override
+  String get dataQuality_detector_missing_gas_switch => 'تبديل غاز مفقود';
+
+  @override
   String get dataQuality_detector_source_conflict => 'مصادر متعارضة';
 
   @override
@@ -43011,6 +43309,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String dataQuality_msg_clock_overlap(int minutes) {
     return 'تتداخل مع غوصة أخرى بمقدار $minutes دقيقة';
+  }
+
+  @override
+  String dataQuality_msg_clock_profileFit(int minutes) {
+    return 'يقع أحد المصادر على بُعد $minutes دقيقة من الموضع الذي يتطابق فيه ملفه مع الأساسي';
   }
 
   @override
@@ -43169,6 +43472,67 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_missingSwitches(int count, String switches) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'لم يُسجَّل أي تبديل للغاز، لكن ضغوط الأسطوانات تُظهر هذه التبديلات: $switches.',
+      many:
+          'لم يُسجَّل أي تبديل للغاز، لكن ضغوط الأسطوانات تُظهر هذه التبديلات: $switches.',
+      few:
+          'لم يُسجَّل أي تبديل للغاز، لكن ضغوط الأسطوانات تُظهر هذه التبديلات: $switches.',
+      two:
+          'لم يُسجَّل أي تبديل للغاز، لكن ضغوط الأسطوانات تُظهر هذين التبديلين: $switches.',
+      one:
+          'لم يُسجَّل أي تبديل للغاز، لكن ضغوط الأسطوانات تُظهر هذا التبديل: $switches.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchItem(
+    int tankNumber,
+    String gas,
+    String time,
+    String depth,
+  ) {
+    return 'الأسطوانة $tankNumber ($gas) عند $time، $depth';
+  }
+
+  @override
+  String get dataQuality_msg_missingSwitchSeparator => '؛ ';
+
+  @override
+  String dataQuality_msg_missingSwitchDeep(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'لم يُسجَّل أي تبديل للغاز. تُظهر ضغوط الأسطوانات تبديلًا إلى الأسطوانة $tankNumber ($gas) عند $depth، أعمق من MOD الخاص بها البالغ $mod، لذا لا يُقترح التبديل إليها.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchDeepAlso(
+    int tankNumber,
+    String gas,
+    String depth,
+    String mod,
+  ) {
+    return 'تُظهر ضغوط الأسطوانات أيضًا تبديلًا إلى الأسطوانة $tankNumber ($gas) عند $depth، أعمق من MOD الخاص بها البالغ $mod، لذا لا يُقترح التبديل إليها.';
+  }
+
+  @override
+  String dataQuality_msg_missingSwitchUnplaced(
+    int tankNumber,
+    String gas,
+    String time,
+  ) {
+    return 'لم يُسجَّل أي تبديل للغاز. تُنفِّس من الأسطوانة $tankNumber ($gas) مجددًا بدءًا من $time بعد توقف، لذا تُنفِّس من أسطوانة أخرى في الأثناء، ومع أكثر من أسطوانتين لا تُظهر الضغوط أيّها. أضف التبديلات في محرر الغطسة.';
+  }
+
+  @override
   String get dataQuality_detector_transmitter_role => 'دور جهاز الإرسال';
 
   @override
@@ -43233,6 +43597,15 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_fixSourceClockAll =>
       'تصحيح هذا الكمبيوتر أيضًا في الغوصات الأخرى ذات الفارق نفسه';
+
+  @override
+  String get dataQuality_repairLabel_alignSourceProfile =>
+      'محاذاة هذا الكمبيوتر حسب ملفه';
+
+  @override
+  String dataQuality_repairLabel_alignSourceProfileNamed(String computer) {
+    return 'محاذاة $computer حسب ملفه';
+  }
 
   @override
   String get dataQuality_repairLabel_consolidate => 'توحيد';
@@ -43415,6 +43788,20 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get dataQuality_repairLabel_reassignSeries =>
       'نقل السلسلة إلى أسطوانة أخرى';
+
+  @override
+  String dataQuality_repairLabel_addGasSwitches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إضافة $count تبديل غاز',
+      many: 'إضافة $count تبديلًا للغاز',
+      few: 'إضافة $count تبديلات غاز',
+      two: 'إضافة تبديلَي غاز',
+      one: 'إضافة تبديل غاز',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get dataQuality_repairLabel_setPrimary => 'جعل هذا المصدر أساسيًا';
@@ -54463,6 +54850,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'رمز صغير يوضح مصدر كل عنصر. تظهر شارات المشكلات دائما.';
 
   @override
+  String get settings_media_tagBadges => 'إظهار شارات الوسوم على الصور المصغرة';
+
+  @override
+  String get settings_media_tagBadgesSubtitle =>
+      'رموز صغيرة للصور التي تحتوي على أشخاص موسومين أو أنواع موسومة أو وقت ضمن الغوصة.';
+
+  @override
   String get settings_media_autoColorCorrection => 'تصحيح الألوان التلقائي';
 
   @override
@@ -54512,6 +54906,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_status_notBackedUp => 'لا يوجد نسخ احتياطي';
+
+  @override
+  String get media_tileMarker_people => 'أشخاص موسومون';
+
+  @override
+  String get media_tileMarker_species => 'أنواع موسومة';
+
+  @override
+  String get media_tileMarker_timeInDive => 'موضوعة على ملف الغوصة';
 
   @override
   String get media_tile_infoMenuItem => 'معلومات الوسائط';
@@ -58636,6 +59039,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get rules_value_empty => '(فارغ)';
 
   @override
+  String rules_value_gearViaSet(String item, String set) {
+    return '$item ($set)';
+  }
+
+  @override
   String get rules_collection_diveTypes => 'أنواع الغطس';
 
   @override
@@ -58649,6 +59057,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get rules_collection_courses => 'الدورات';
+
+  @override
+  String get rules_collection_equipmentSets => 'أطقم المعدات';
 
   @override
   String get rules_collection_siteTags => 'وسوم المواقع';
@@ -59544,6 +59955,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_backups_copyAccountGone => 'تمت إزالة حساب النسخة';
+
+  @override
+  String settings_backups_alsoCopyTo(String account) {
+    return 'نسخة أخرى في $account';
+  }
+
+  @override
+  String get settings_backups_addCopyAccount => 'نسخة في حساب آخر أيضًا';
+
+  @override
+  String get settings_backups_extraCopyMissed =>
+      'لم يصل آخر نسخ احتياطي إلى هذا الحساب';
 
   @override
   String get settings_backups_auto => 'النسخ الاحتياطي تلقائيًا';

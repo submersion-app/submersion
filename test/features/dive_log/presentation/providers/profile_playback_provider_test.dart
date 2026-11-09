@@ -79,4 +79,58 @@ void main() {
       });
     });
   });
+
+  group('a series that starts before the primary (#4296)', () {
+    PlaybackNotifier started() {
+      final notifier = PlaybackNotifier();
+      notifier.initialize(2400, startSeconds: -600);
+      notifier.togglePlaybackMode();
+      return notifier;
+    }
+
+    test('starts and skips back to the first sample, not to 0', () {
+      final notifier = started();
+      expect(notifier.state.minTimestamp, -600);
+      expect(notifier.state.currentTimestamp, -600);
+      expect(notifier.state.atStart, isTrue);
+      notifier.seekTo(300);
+      notifier.skipToStart();
+      expect(notifier.state.currentTimestamp, -600);
+    });
+
+    test('seeks and steps below 0, down to the first sample', () {
+      final notifier = started();
+      notifier.seekTo(-200);
+      expect(notifier.state.currentTimestamp, -200);
+      notifier.seekTo(-5000);
+      expect(notifier.state.currentTimestamp, -600);
+      notifier.seekTo(-595);
+      notifier.stepBackward();
+      expect(notifier.state.currentTimestamp, -600);
+    });
+
+    test('progress spans the whole series', () {
+      final notifier = started();
+      expect(notifier.state.progress, 0);
+      notifier.seekToProgress(0.5);
+      expect(notifier.state.currentTimestamp, 900);
+      expect(notifier.state.progress, 0.5);
+    });
+
+    test('plays up through 0 from before it', () {
+      fakeAsync((async) {
+        final notifier = started();
+        notifier.play();
+        async.elapse(const Duration(seconds: 1));
+        expect(notifier.state.currentTimestamp, -570);
+        notifier.pause();
+      });
+    });
+
+    test('times before 0 read with a sign', () {
+      final notifier = started();
+      notifier.seekTo(-65);
+      expect(notifier.state.formattedTime, '-01:05');
+    });
+  });
 }
