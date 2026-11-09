@@ -129,8 +129,9 @@ extension _GasSwitchEditing on _DiveEditPageState {
   /// Applies [edits]: re-points the rows it names and adds a row for each
   /// switch it adds, with the depth filled from the profile as a typed time
   /// would. One edit like any other, undone by leaving without saving.
+  /// Only reached with edits to make: the editor shows the action for a
+  /// positive count alone.
   void _fillDetectedGasSwitches(GasSwitchEdits edits) {
-    if (gasSwitchEditCount(edits) == 0) return;
     final now = DateTime.now();
     _updateGasSwitches(() {
       _markDirty();
