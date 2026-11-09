@@ -18,6 +18,7 @@ import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/safety/presentation/pages/cns_otu_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -434,7 +435,10 @@ void main() {
 
         expect(find.text('Tissue Loading'), findsOneWidget);
         expect(find.text('No residual tissue load'), findsOneWidget);
-        expect(find.text('About Tissue Loading'), findsOneWidget);
+        // The tissue card explains itself through its header info icon
+        // (#4377), not a separate About card.
+        expect(find.text('About Tissue Loading'), findsNothing);
+        expect(find.byType(InfoButton), findsWidgets);
       },
     );
 

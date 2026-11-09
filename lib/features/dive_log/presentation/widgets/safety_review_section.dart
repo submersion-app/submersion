@@ -4,12 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/dive_log/presentation/info/safety_review_info.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_highlight.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_text.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// Whether [review] has any finding to show, with the review [enabled] and
 /// the diver's [disabled] rules filtered out.
@@ -83,6 +85,11 @@ class _SafetyReviewSectionState extends ConsumerState<SafetyReviewSection> {
       ),
       isExpanded: _expanded,
       onToggle: (expanded) => setState(() => _expanded = expanded),
+      info: (context) => safetyReviewInfo(
+        context.l10n,
+        infoUnits(context),
+        rules: {for (final finding in active) finding.ruleId},
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

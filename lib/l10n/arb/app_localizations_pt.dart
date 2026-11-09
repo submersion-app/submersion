@@ -61705,4 +61705,260 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get info_term_highO2Hours_body =>
       'Tempo a respirar gás com fração de oxigénio elevada, que desgasta mais depressa as peças para serviço de oxigénio.';
+
+  @override
+  String get info_term_decoStatus_label => 'DECO e SEM DECO';
+
+  @override
+  String get info_term_decoStatus_body =>
+      'SEM DECO significa que uma subida direta cabe no modelo nesse momento. DECO significa que é precisa pelo menos uma paragem antes de chegar à superfície.';
+
+  @override
+  String get info_term_cnsStartAdded_label => 'Início e este mergulho';
+
+  @override
+  String get info_term_cnsStartAdded_body =>
+      'Início é o CNS% herdado de mergulhos anteriores, já reduzido pelo tempo decorrido. Este mergulho é o que o próprio mergulho acrescentou.';
+
+  @override
+  String get info_term_otuWindows_label => 'OTU diário e semanal';
+
+  @override
+  String get info_term_otuWindows_body =>
+      'O OTU diário conta cada mergulho desde a meia-noite e o semanal é um total móvel dos últimos sete dias. Cada um é mostrado face ao limite da aplicação para esse período.';
+
+  @override
+  String get info_term_maxPpO2_label => 'ppO2 máxima';
+
+  @override
+  String get info_term_maxPpO2_body =>
+      'A pressão parcial de oxigénio mais alta respirada durante o mergulho.';
+
+  @override
+  String get info_term_timeAboveLimit_label => 'Tempo acima do limite de ppO2';
+
+  @override
+  String get info_term_timeAboveLimit_body =>
+      'Quanto tempo a ppO2 ficou acima dos limites definidos nas definições durante este mergulho.';
+
+  @override
+  String get info_term_idealSwitchDepth_label => 'Profundidade ideal de troca';
+
+  @override
+  String get info_term_idealSwitchDepth_body =>
+      'O ponto mais fundo da subida em que o gás seguinte está dentro do seu limite de ppO2, ou seja, a sua MOD. O cartão compara-o com a profundidade em que a troca foi registada.';
+
+  @override
+  String get info_term_extraDeco_label => 'Descompressão extra';
+
+  @override
+  String get info_term_extraDeco_body =>
+      'Tempo de descompressão que o modelo acrescenta porque uma troca ocorreu menos funda ou mais tarde do que o ponto ideal.';
+
+  @override
+  String get info_term_stackedArea_label => 'Área empilhada';
+
+  @override
+  String get info_term_stackedArea_body =>
+      'Cada faixa é a carga de um compartimento ao longo do tempo, empilhada sobre as outras, por isso a altura total mostra a carga de todos os compartimentos.';
+
+  @override
+  String get info_term_nitrogenHelium_label => 'N2 e He';
+
+  @override
+  String get info_term_nitrogenHelium_body =>
+      'A carga de cada compartimento divide-se em azoto e hélio. O hélio entra e sai mais depressa do que o azoto.';
+
+  @override
+  String get info_term_missedDecoStop_label =>
+      'Paragem de descompressão falhada';
+
+  @override
+  String get info_term_missedDecoStop_body =>
+      'Uma paragem obrigatória encurtada ou saltada, detetada ao comparar o perfil com as paragens do modelo.';
+
+  @override
+  String get info_term_sawtooth_label => 'Perfil em dente de serra';
+
+  @override
+  String get info_term_sawtooth_body =>
+      'Subidas e descidas repetidas durante um mergulho. A investigação sobre descompressão associa-as a mais formação de bolhas.';
+
+  @override
+  String get info_term_lateGasSwitch_label => 'Troca de gás tardia';
+
+  @override
+  String get info_term_lateGasSwitch_body =>
+      'Uma troca para um gás de descompressão feita claramente menos funda ou mais tarde do que o ponto em que esse gás ficou utilizável.';
+
+  @override
+  String get info_term_avgVerticalSpeed_label => 'Velocidade vertical média';
+
+  @override
+  String get info_term_avgVerticalSpeed_body =>
+      'O ritmo médio de variação de profundidade no intervalo selecionado.';
+
+  @override
+  String get info_term_computedEvents_label => 'Eventos calculados';
+
+  @override
+  String get info_term_computedEvents_body =>
+      'Marcadores que a aplicação acrescenta ao ler o perfil, como subidas rápidas, ao contrário dos eventos registados pelo computador.';
+
+  @override
+  String get info_term_gasSwitchMarkers_label => 'Marcadores de troca de gás';
+
+  @override
+  String get info_term_gasSwitchMarkers_body =>
+      'Pontos em que o gás respirado mudou de uma garrafa para outra.';
+
+  @override
+  String get info_term_diveModes_label => 'Modo de mergulho';
+
+  @override
+  String get info_term_diveModes_body =>
+      'Em circuito aberto (OC) cada expiração vai para a água. Os rebreathers fechados (CCR) e semifechados (SCR) reutilizam o gás através de um circuito.';
+
+  @override
+  String get info_term_netBuoyancy_label => 'Flutuabilidade líquida';
+
+  @override
+  String get info_term_netBuoyancy_body =>
+      'Todos os termos somados, com a impulsão positiva e o peso negativo. Zero é neutro.';
+
+  @override
+  String get info_term_buoyancySwing_label => 'Variação de flutuabilidade';
+
+  @override
+  String get info_term_buoyancySwing_body =>
+      'Quanto mudou a flutuabilidade líquida entre o início e o fim do mergulho, sobretudo pelo peso do gás respirado.';
+
+  @override
+  String get info_term_peakLift_label => 'Impulsão máxima necessária';
+
+  @override
+  String get info_term_peakLift_body =>
+      'A maior impulsão que o wing ou o fato seco teve de dar em algum momento do mergulho para ficar neutro.';
+
+  @override
+  String get info_term_minDitchable_label => 'Lastro mínimo largável';
+
+  @override
+  String info_term_minDitchable_body(String weight) {
+    return 'O peso que seria preciso largar no ponto mais pesado do mergulho para ficar cerca de $weight positivo.';
+  }
+
+  @override
+  String get info_term_drysuitGas_label => 'Gás adicionado ao fato seco';
+
+  @override
+  String get info_term_drysuitGas_body =>
+      'Gás adicionado ao fato seco para compensar o aperto na descida, que conta como impulsão.';
+
+  @override
+  String get info_term_noFlyTime_label => 'Tempo sem voar';
+
+  @override
+  String get info_term_noFlyTime_body =>
+      'Tempo desde o último mergulho até passar o intervalo das diretrizes da DAN e da UHMS para voar. O intervalo depende de os mergulhos terem sido únicos, repetitivos ou com descompressão, e da predefinição nas definições.';
+
+  @override
+  String get info_diveLog_profile_summary =>
+      'Profundidade ao longo do tempo para todo o mergulho, com cada camada ativa desenhada no mesmo eixo do tempo.';
+
+  @override
+  String get info_diveLog_profile_background =>
+      'As camadas de descompressão e oxigénio vêm do modelo Buhlmann ZHL-16C com os fatores de gradiente das definições e das tabelas de oxigénio da NOAA.';
+
+  @override
+  String get info_diveLog_profile_howToUse =>
+      'Percorra o gráfico para ler todos os valores num instante. A legenda liga e desliga as camadas, e o botão de intervalo seleciona parte do mergulho para ver as estatísticas.';
+
+  @override
+  String get info_diveLog_rangeStats_summary =>
+      'Estatísticas da parte do mergulho selecionada no gráfico.';
+
+  @override
+  String get info_diveLog_decoStatus_summary =>
+      'O que o modelo de descompressão indica no momento do cursor: se são precisas paragens e quanto tempo ou profundidade resta.';
+
+  @override
+  String get info_diveLog_decoStatus_background =>
+      'A aplicação usa o modelo Buhlmann ZHL-16C com os fatores de gradiente da etiqueta GF. Um computador com outro modelo ou outras definições pode mostrar números diferentes.';
+
+  @override
+  String get info_diveLog_o2Toxicity_summary =>
+      'Quanta exposição ao oxigénio o mergulho acrescentou, no relógio CNS de curto prazo e na dose OTU mais lenta.';
+
+  @override
+  String get info_diveLog_o2Toxicity_background =>
+      'O CNS% segue os limites de exposição à ppO2 da NOAA e desce com uma semivida de 90 minutos após o mergulho. O OTU diário reinicia à meia-noite e o semanal cobre os últimos sete dias.';
+
+  @override
+  String get info_diveLog_gasSwitches_summary =>
+      'Como cada troca de gás se compara com o ponto mais fundo em que esse gás estava dentro do seu limite de ppO2.';
+
+  @override
+  String get info_diveLog_tissueLoading_summary =>
+      'Quão carregado de gás inerte está cada um dos 16 compartimentos do modelo no momento do cursor.';
+
+  @override
+  String get info_diveLog_tissueLoading_background =>
+      'O modelo é o Buhlmann ZHL-16C, que acompanha o azoto e o hélio separadamente em cada compartimento. A carga conta só o que fica acima do nível de superfície, por isso as barras nunca chegam a zero mesmo dessaturadas.';
+
+  @override
+  String get info_diveLog_safetyReview_summary =>
+      'Momentos deste mergulho que ultrapassaram uma das regras da revisão de segurança, detetados ao verificar o perfil depois do mergulho.';
+
+  @override
+  String get info_diveLog_safetyReview_background =>
+      'As regras e os seus limiares definem-se nas Definições, em Revisão de segurança.';
+
+  @override
+  String get info_diveLog_safetyReview_howToUse =>
+      'Tocar numa ocorrência mostra onde aconteceu no perfil. Dispensá-la oculta-a neste mergulho.';
+
+  @override
+  String get info_diveLog_cylinders_summary =>
+      'Cada garrafa do mergulho com o seu gás, a pressão usada e os limites de profundidade desse gás.';
+
+  @override
+  String get info_diveLog_sacSegments_summary =>
+      'O consumo de gás dividido por fases do mergulho ou por intervalos de tempo, para comparar o esforço de cada parte.';
+
+  @override
+  String get info_diveLog_sacSegments_howToUse =>
+      'O seletor acima do gráfico alterna entre SAC e RMV.';
+
+  @override
+  String get info_diveLog_details_summary =>
+      'Os dados registados deste mergulho, com valores calculados a partir do perfil onde nada foi introduzido.';
+
+  @override
+  String get info_diveLog_altitude_summary =>
+      'Este mergulho foi em altitude, onde a menor pressão atmosférica à superfície torna o modelo de descompressão mais conservador.';
+
+  @override
+  String get info_diveLog_buoyancy_summary =>
+      'Um modelo da flutuabilidade líquida durante o mergulho, a partir do perfil, do gás respirado e do equipamento registado com o mergulho.';
+
+  @override
+  String get info_diveLog_buoyancy_howToUse =>
+      'Ajustar abre uma folha que experimenta outra quantidade de lastro ou outra flutuabilidade do fato neste mergulho.';
+
+  @override
+  String get info_diveLog_waterConditions_summary =>
+      'Temperatura do mar e stress térmico dos corais perto do local por volta da data do mergulho, a partir de dados de satélite da NOAA Coral Reef Watch.';
+
+  @override
+  String get info_diveLab_compare_summary =>
+      'Como este mergulho se compara com o plano ligado ou com cenários guardados nos números que importam para a descompressão.';
+
+  @override
+  String get info_diveLab_compare_howToUse =>
+      'Toque no cartão para abrir o Laboratório de mergulho e experimentar outras escolhas neste mergulho.';
+
+  @override
+  String get info_safety_noFly_summary =>
+      'Quando termina o intervalo das diretrizes para voar após os mergulhos mais recentes.';
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/features/reef/presentation/widgets/water_conditions_lines.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 /// The Environment card's satellite water conditions subsection.
 ///
@@ -14,7 +15,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 class EnvironmentWaterConditions extends StatelessWidget {
   final WaterConditionsLines lines;
 
-  const EnvironmentWaterConditions({super.key, required this.lines});
+  /// What the subsection's info icon explains; null shows no icon.
+  final InfoContentBuilder? info;
+
+  const EnvironmentWaterConditions({super.key, required this.lines, this.info});
 
   @override
   Widget build(BuildContext context) {
@@ -23,11 +27,24 @@ class EnvironmentWaterConditions extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          context.l10n.water_conditions_title,
-          style: theme.textTheme.titleSmall?.copyWith(
-            color: theme.colorScheme.primary,
-          ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Text(
+                context.l10n.water_conditions_title,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+            ),
+            if (info case final builder?)
+              HeaderInfoButton(
+                title: context.l10n.water_conditions_title,
+                height: 20,
+                content: builder,
+              ),
+          ],
         ),
         const SizedBox(height: 8),
         for (final reading in lines.readings)

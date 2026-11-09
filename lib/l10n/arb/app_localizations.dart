@@ -97163,6 +97163,420 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Time spent breathing gas with a raised oxygen fraction, which wears oxygen-service parts faster.'**
   String get info_term_highO2Hours_body;
+
+  /// No description provided for @info_term_decoStatus_label.
+  ///
+  /// In en, this message translates to:
+  /// **'DECO and NO DECO'**
+  String get info_term_decoStatus_label;
+
+  /// No description provided for @info_term_decoStatus_body.
+  ///
+  /// In en, this message translates to:
+  /// **'NO DECO means a direct ascent fits the model at that moment. DECO means at least one stop is required before surfacing.'**
+  String get info_term_decoStatus_body;
+
+  /// No description provided for @info_term_cnsStartAdded_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Start and this dive'**
+  String get info_term_cnsStartAdded_label;
+
+  /// No description provided for @info_term_cnsStartAdded_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Start is the CNS% carried in from earlier dives, already reduced by the time since. This dive is what the dive itself added on top.'**
+  String get info_term_cnsStartAdded_body;
+
+  /// No description provided for @info_term_otuWindows_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily and weekly OTU'**
+  String get info_term_otuWindows_label;
+
+  /// No description provided for @info_term_otuWindows_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily OTU counts every dive since midnight, and weekly OTU is a rolling total of the last seven days. Each is shown against the app\'s limit for that period.'**
+  String get info_term_otuWindows_body;
+
+  /// No description provided for @info_term_maxPpO2_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Max ppO2'**
+  String get info_term_maxPpO2_label;
+
+  /// No description provided for @info_term_maxPpO2_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The highest oxygen partial pressure breathed during the dive.'**
+  String get info_term_maxPpO2_body;
+
+  /// No description provided for @info_term_timeAboveLimit_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Time above the ppO2 limit'**
+  String get info_term_timeAboveLimit_label;
+
+  /// No description provided for @info_term_timeAboveLimit_body.
+  ///
+  /// In en, this message translates to:
+  /// **'How long the ppO2 stayed above the limits set in settings during this dive.'**
+  String get info_term_timeAboveLimit_body;
+
+  /// No description provided for @info_term_idealSwitchDepth_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Ideal switch depth'**
+  String get info_term_idealSwitchDepth_label;
+
+  /// No description provided for @info_term_idealSwitchDepth_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The deepest point on the ascent where the next gas is within its ppO2 limit, which is its MOD. The card compares it with the depth where the switch was logged.'**
+  String get info_term_idealSwitchDepth_body;
+
+  /// No description provided for @info_term_extraDeco_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra deco'**
+  String get info_term_extraDeco_label;
+
+  /// No description provided for @info_term_extraDeco_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Decompression time the model adds because a switch happened shallower or later than the ideal point.'**
+  String get info_term_extraDeco_body;
+
+  /// No description provided for @info_term_stackedArea_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Stacked area'**
+  String get info_term_stackedArea_label;
+
+  /// No description provided for @info_term_stackedArea_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Each band is one compartment\'s load over time, stacked on the others, so the total height shows the load across all compartments.'**
+  String get info_term_stackedArea_body;
+
+  /// No description provided for @info_term_nitrogenHelium_label.
+  ///
+  /// In en, this message translates to:
+  /// **'N2 and He'**
+  String get info_term_nitrogenHelium_label;
+
+  /// No description provided for @info_term_nitrogenHelium_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Each compartment\'s load is split into nitrogen and helium. Helium enters and leaves faster than nitrogen.'**
+  String get info_term_nitrogenHelium_body;
+
+  /// No description provided for @info_term_missedDecoStop_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed deco stop'**
+  String get info_term_missedDecoStop_label;
+
+  /// No description provided for @info_term_missedDecoStop_body.
+  ///
+  /// In en, this message translates to:
+  /// **'A required stop that was cut short or skipped, found by comparing the profile with the model\'s stops.'**
+  String get info_term_missedDecoStop_body;
+
+  /// No description provided for @info_term_sawtooth_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Sawtooth profile'**
+  String get info_term_sawtooth_label;
+
+  /// No description provided for @info_term_sawtooth_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeated ascents and descents during a dive. Decompression research links them to more bubble formation.'**
+  String get info_term_sawtooth_body;
+
+  /// No description provided for @info_term_lateGasSwitch_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Late gas switch'**
+  String get info_term_lateGasSwitch_label;
+
+  /// No description provided for @info_term_lateGasSwitch_body.
+  ///
+  /// In en, this message translates to:
+  /// **'A switch to a deco gas made clearly shallower or later than the point where that gas became usable.'**
+  String get info_term_lateGasSwitch_body;
+
+  /// No description provided for @info_term_avgVerticalSpeed_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Average vertical speed'**
+  String get info_term_avgVerticalSpeed_label;
+
+  /// No description provided for @info_term_avgVerticalSpeed_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The average rate of depth change across the selected range.'**
+  String get info_term_avgVerticalSpeed_body;
+
+  /// No description provided for @info_term_computedEvents_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Computed events'**
+  String get info_term_computedEvents_label;
+
+  /// No description provided for @info_term_computedEvents_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Markers the app adds by reading the profile, such as fast ascents, as opposed to events the dive computer logged.'**
+  String get info_term_computedEvents_body;
+
+  /// No description provided for @info_term_gasSwitchMarkers_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas switch markers'**
+  String get info_term_gasSwitchMarkers_label;
+
+  /// No description provided for @info_term_gasSwitchMarkers_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Points where the breathing gas changed from one cylinder to another.'**
+  String get info_term_gasSwitchMarkers_body;
+
+  /// No description provided for @info_term_diveModes_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive mode'**
+  String get info_term_diveModes_label;
+
+  /// No description provided for @info_term_diveModes_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Open circuit (OC) breathes each breath out into the water. Closed-circuit (CCR) and semi-closed (SCR) rebreathers recycle the gas through a loop.'**
+  String get info_term_diveModes_body;
+
+  /// No description provided for @info_term_netBuoyancy_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Net buoyancy'**
+  String get info_term_netBuoyancy_label;
+
+  /// No description provided for @info_term_netBuoyancy_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Every term added together, with lift counted as positive and weight as negative. Zero is neutral.'**
+  String get info_term_netBuoyancy_body;
+
+  /// No description provided for @info_term_buoyancySwing_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Buoyancy swing'**
+  String get info_term_buoyancySwing_label;
+
+  /// No description provided for @info_term_buoyancySwing_body.
+  ///
+  /// In en, this message translates to:
+  /// **'How much the net buoyancy changed between the start and the end of the dive, mostly from the weight of the gas breathed.'**
+  String get info_term_buoyancySwing_body;
+
+  /// No description provided for @info_term_peakLift_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Peak lift needed'**
+  String get info_term_peakLift_label;
+
+  /// No description provided for @info_term_peakLift_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The most lift the wing or drysuit had to add at any point in the dive to stay neutral.'**
+  String get info_term_peakLift_body;
+
+  /// No description provided for @info_term_minDitchable_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Min ditchable weight'**
+  String get info_term_minDitchable_label;
+
+  /// No description provided for @info_term_minDitchable_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The weight that would need to be dropped at the heaviest point of the dive to end up about {weight} buoyant.'**
+  String info_term_minDitchable_body(String weight);
+
+  /// No description provided for @info_term_drysuitGas_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Drysuit gas added'**
+  String get info_term_drysuitGas_label;
+
+  /// No description provided for @info_term_drysuitGas_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas added to the drysuit to offset its squeeze on the way down, which counts as lift.'**
+  String get info_term_drysuitGas_body;
+
+  /// No description provided for @info_term_noFlyTime_label.
+  ///
+  /// In en, this message translates to:
+  /// **'No-fly time'**
+  String get info_term_noFlyTime_label;
+
+  /// No description provided for @info_term_noFlyTime_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Time from the last dive until the DAN and UHMS guideline interval for flying has passed. The interval depends on whether the dives were single, repetitive or needed decompression, and on the preset in settings.'**
+  String get info_term_noFlyTime_body;
+
+  /// No description provided for @info_diveLog_profile_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth over time for the whole dive, with each overlay that is switched on drawn on the same time axis.'**
+  String get info_diveLog_profile_summary;
+
+  /// No description provided for @info_diveLog_profile_background.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco and oxygen overlays come from the Buhlmann ZHL-16C model with the gradient factors in settings, and from the NOAA oxygen tables.'**
+  String get info_diveLog_profile_background;
+
+  /// No description provided for @info_diveLog_profile_howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Move across the chart to read every value at one moment. The legend turns overlays on and off, and the range button selects part of the dive to see its statistics.'**
+  String get info_diveLog_profile_howToUse;
+
+  /// No description provided for @info_diveLog_rangeStats_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Statistics for the part of the dive selected on the chart.'**
+  String get info_diveLog_rangeStats_summary;
+
+  /// No description provided for @info_diveLog_decoStatus_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'What the decompression model reports at the cursor time: whether stops are needed, and how much time or depth remains.'**
+  String get info_diveLog_decoStatus_summary;
+
+  /// No description provided for @info_diveLog_decoStatus_background.
+  ///
+  /// In en, this message translates to:
+  /// **'The app runs the Buhlmann ZHL-16C model with the gradient factors on the GF chip. A dive computer with another model or settings can show different numbers.'**
+  String get info_diveLog_decoStatus_background;
+
+  /// No description provided for @info_diveLog_o2Toxicity_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'How much oxygen exposure the dive added, on the short-term CNS clock and the slower OTU dose.'**
+  String get info_diveLog_o2Toxicity_summary;
+
+  /// No description provided for @info_diveLog_o2Toxicity_background.
+  ///
+  /// In en, this message translates to:
+  /// **'CNS% follows the NOAA ppO2 exposure limits and falls with a 90-minute half-life after the dive. Daily OTU resets at midnight and weekly OTU covers the last seven days.'**
+  String get info_diveLog_o2Toxicity_background;
+
+  /// No description provided for @info_diveLog_gasSwitches_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'How each gas switch compared with the deepest point where that gas was within its ppO2 limit.'**
+  String get info_diveLog_gasSwitches_summary;
+
+  /// No description provided for @info_diveLog_tissueLoading_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'How loaded each of the model\'s 16 compartments is with inert gas at the cursor time.'**
+  String get info_diveLog_tissueLoading_summary;
+
+  /// No description provided for @info_diveLog_tissueLoading_background.
+  ///
+  /// In en, this message translates to:
+  /// **'The model is Buhlmann ZHL-16C, which tracks nitrogen and helium separately in each compartment. Load counts only what sits above the surface level, so fully off-gassed bars never read zero.'**
+  String get info_diveLog_tissueLoading_background;
+
+  /// No description provided for @info_diveLog_safetyReview_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Moments in this dive that crossed one of the safety review rules, found by checking the profile after the dive.'**
+  String get info_diveLog_safetyReview_summary;
+
+  /// No description provided for @info_diveLog_safetyReview_background.
+  ///
+  /// In en, this message translates to:
+  /// **'The rules and their thresholds are set in Settings, under Safety review.'**
+  String get info_diveLog_safetyReview_background;
+
+  /// No description provided for @info_diveLog_safetyReview_howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a finding to show where it happened on the profile. Dismissing a finding hides it for this dive.'**
+  String get info_diveLog_safetyReview_howToUse;
+
+  /// No description provided for @info_diveLog_cylinders_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Each cylinder on the dive with its gas, the pressure used and the depth limits of that gas.'**
+  String get info_diveLog_cylinders_summary;
+
+  /// No description provided for @info_diveLog_sacSegments_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas use split into phases of the dive or into time slices, so the effort of each part can be compared.'**
+  String get info_diveLog_sacSegments_summary;
+
+  /// No description provided for @info_diveLog_sacSegments_howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'The selector above the chart switches between SAC and RMV.'**
+  String get info_diveLog_sacSegments_howToUse;
+
+  /// No description provided for @info_diveLog_details_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'The logged facts of this dive, with values worked out from the profile where nothing was entered.'**
+  String get info_diveLog_details_summary;
+
+  /// No description provided for @info_diveLog_altitude_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'This dive was at altitude, where lower air pressure at the surface makes the decompression model more conservative.'**
+  String get info_diveLog_altitude_summary;
+
+  /// No description provided for @info_diveLog_buoyancy_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'A model of net buoyancy through the dive, from the profile, the gas breathed and the gear logged with the dive.'**
+  String get info_diveLog_buoyancy_summary;
+
+  /// No description provided for @info_diveLog_buoyancy_howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust opens a sheet that tries a different amount of lead or suit buoyancy against this dive.'**
+  String get info_diveLog_buoyancy_howToUse;
+
+  /// No description provided for @info_diveLog_waterConditions_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Sea temperature and coral heat stress near the site around the dive date, from NOAA Coral Reef Watch satellite data.'**
+  String get info_diveLog_waterConditions_summary;
+
+  /// No description provided for @info_diveLab_compare_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'How this dive compares with its linked plan or saved scenarios on the numbers that matter for decompression.'**
+  String get info_diveLab_compare_summary;
+
+  /// No description provided for @info_diveLab_compare_howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the card to open the Dive Lab and try other choices against this dive.'**
+  String get info_diveLab_compare_howToUse;
+
+  /// No description provided for @info_safety_noFly_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'When the guideline interval for flying ends after the most recent dives.'**
+  String get info_safety_noFly_summary;
 }
 
 class _AppLocalizationsDelegate

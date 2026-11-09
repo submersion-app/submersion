@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_toxicity_card.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/l10n_test_helpers.dart';
 
@@ -184,5 +185,10 @@ void main() {
 
       expect(find.text(note), findsNothing);
     });
+  });
+
+  testWidgets('header carries an info icon', (tester) async {
+    await tester.pumpWidget(buildPanel());
+    expect(find.byType(InfoButton), findsOneWidget);
   });
 }

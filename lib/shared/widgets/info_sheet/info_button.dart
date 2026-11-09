@@ -40,14 +40,15 @@ class InfoButton extends StatelessWidget {
 /// its height.
 ///
 /// The 48 px button overflows the slot, so its splash and focus ring look as
-/// usual; taps land within the slot's 48 px width and [height], which is the
-/// title line the icon sits on.
+/// usual; taps land within the slot's [width] and [height], the title line the
+/// icon sits on.
 class HeaderInfoButton extends StatelessWidget {
   const HeaderInfoButton({
     super.key,
     required this.title,
     required this.content,
     this.height = 24,
+    this.width = 48,
   });
 
   final String title;
@@ -56,10 +57,14 @@ class HeaderInfoButton extends StatelessWidget {
   /// The height of the header's title line.
   final double height;
 
+  /// The slot's width: 48 by default, or a row's shared control width where
+  /// the header lines up a set of equal icon buttons.
+  final double width;
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 48,
+      width: width,
       height: height,
       child: OverflowBox(
         maxWidth: 48,

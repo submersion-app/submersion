@@ -5,6 +5,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_toxicity_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/contrast_ratio.dart';
 import '../../../../helpers/l10n_test_helpers.dart';
@@ -273,5 +274,15 @@ void main() {
         });
       }
     }
+  });
+
+  testWidgets('the header carries an info icon', (tester) async {
+    await tester.pumpWidget(
+      buildCard(
+        const O2Exposure(cnsStart: 10, cnsEnd: 20),
+        locale: const Locale('en'),
+      ),
+    );
+    expect(find.byType(InfoButton), findsOneWidget);
   });
 }

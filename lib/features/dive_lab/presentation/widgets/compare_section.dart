@@ -8,6 +8,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_lab/domain/dive_lab_eligibility.dart';
 import 'package:submersion/features/dive_lab/domain/entities/compare_column.dart';
 import 'package:submersion/features/dive_lab/domain/entities/dive_scenario.dart';
+import 'package:submersion/features/dive_lab/presentation/info/compare_info.dart';
 import 'package:submersion/features/dive_lab/presentation/pages/dive_lab_page.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/compare_providers.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/dive_scenario_providers.dart';
@@ -21,6 +22,8 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// Width at or above which the table sits beside the chart.
 const double kCompareSectionWideBreakpoint = 720;
@@ -102,9 +105,16 @@ class CompareSection extends ConsumerWidget {
                     color: theme.colorScheme.primary,
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    l10n.diveDetailSection_diveLab_name,
-                    style: theme.textTheme.titleMedium,
+                  Expanded(
+                    child: Text(
+                      l10n.diveDetailSection_diveLab_name,
+                      style: theme.textTheme.titleMedium,
+                    ),
+                  ),
+                  HeaderInfoButton(
+                    title: l10n.diveDetailSection_diveLab_name,
+                    content: (context) =>
+                        diveLabCompareInfo(context.l10n, infoUnits(context)),
                   ),
                 ],
               ),

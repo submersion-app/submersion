@@ -57926,4 +57926,235 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get info_term_highO2Hours_body => '呼吸高氧比例气体的时间，会加快氧气专用部件的磨损。';
+
+  @override
+  String get info_term_decoStatus_label => '需减压与免减压';
+
+  @override
+  String get info_term_decoStatus_body => '免减压表示此刻直接上升符合模型。需减压表示出水前至少需要一次停留。';
+
+  @override
+  String get info_term_cnsStartAdded_label => '起始值与本次潜水';
+
+  @override
+  String get info_term_cnsStartAdded_body =>
+      '起始值是之前潜水留下、并已随时间下降的 CNS%。本次潜水是这次潜水本身新增的部分。';
+
+  @override
+  String get info_term_otuWindows_label => '每日与每周 OTU';
+
+  @override
+  String get info_term_otuWindows_body =>
+      '每日 OTU 统计午夜以来的所有潜水，每周 OTU 是最近七天的滚动总和。两者都与应用对应时段的限值并列显示。';
+
+  @override
+  String get info_term_maxPpO2_label => '最大 ppO2';
+
+  @override
+  String get info_term_maxPpO2_body => '潜水过程中呼吸到的最高氧分压。';
+
+  @override
+  String get info_term_timeAboveLimit_label => '超出 ppO2 限值的时间';
+
+  @override
+  String get info_term_timeAboveLimit_body => '本次潜水中 ppO2 高于设置中限值的持续时间。';
+
+  @override
+  String get info_term_idealSwitchDepth_label => '理想换气深度';
+
+  @override
+  String get info_term_idealSwitchDepth_body =>
+      '上升途中下一种气体处于其 ppO2 限值内的最深点，即其 MOD。卡片将它与记录换气时的深度比较。';
+
+  @override
+  String get info_term_extraDeco_label => '额外减压';
+
+  @override
+  String get info_term_extraDeco_body => '由于换气比理想位置更浅或更晚，模型额外增加的减压时间。';
+
+  @override
+  String get info_term_stackedArea_label => '堆叠面积图';
+
+  @override
+  String get info_term_stackedArea_body =>
+      '每条色带是一个舱室随时间的负荷，叠加在其他舱室之上，因此总高度显示所有舱室的负荷。';
+
+  @override
+  String get info_term_nitrogenHelium_label => 'N2 与 He';
+
+  @override
+  String get info_term_nitrogenHelium_body => '每个舱室的负荷分为氮和氦两部分。氦的进出都比氮快。';
+
+  @override
+  String get info_term_missedDecoStop_label => '错过的减压停留';
+
+  @override
+  String get info_term_missedDecoStop_body => '被缩短或跳过的必需停留，通过将潜水曲线与模型的停留比较得出。';
+
+  @override
+  String get info_term_sawtooth_label => '锯齿形曲线';
+
+  @override
+  String get info_term_sawtooth_body => '潜水中反复上升和下降。减压研究认为这与更多气泡形成有关。';
+
+  @override
+  String get info_term_lateGasSwitch_label => '延迟换气';
+
+  @override
+  String get info_term_lateGasSwitch_body => '切换到减压气的位置明显比该气体可用的位置更浅或更晚。';
+
+  @override
+  String get info_term_avgVerticalSpeed_label => '平均垂直速度';
+
+  @override
+  String get info_term_avgVerticalSpeed_body => '所选区间内深度变化的平均速率。';
+
+  @override
+  String get info_term_computedEvents_label => '计算事件';
+
+  @override
+  String get info_term_computedEvents_body =>
+      '应用通过读取潜水曲线添加的标记，例如快速上升，区别于潜水电脑记录的事件。';
+
+  @override
+  String get info_term_gasSwitchMarkers_label => '换气标记';
+
+  @override
+  String get info_term_gasSwitchMarkers_body => '呼吸气体从一个气瓶切换到另一个气瓶的位置。';
+
+  @override
+  String get info_term_diveModes_label => '潜水模式';
+
+  @override
+  String get info_term_diveModes_body =>
+      '开路（OC）每次呼气都排入水中。闭路（CCR）和半闭路（SCR）循环呼吸器通过回路循环利用气体。';
+
+  @override
+  String get info_term_netBuoyancy_label => '净浮力';
+
+  @override
+  String get info_term_netBuoyancy_body => '所有项相加，浮力记为正、重量记为负。零即中性。';
+
+  @override
+  String get info_term_buoyancySwing_label => '浮力变化';
+
+  @override
+  String get info_term_buoyancySwing_body => '潜水开始与结束之间净浮力的变化量，主要来自所呼吸气体的重量。';
+
+  @override
+  String get info_term_peakLift_label => '所需最大浮力';
+
+  @override
+  String get info_term_peakLift_body => '为保持中性，浮力翼或干衣在潜水中任一时刻需要提供的最大浮力。';
+
+  @override
+  String get info_term_minDitchable_label => '最少可抛配重';
+
+  @override
+  String info_term_minDitchable_body(String weight) {
+    return '在潜水最重的时刻需要抛掉的配重，使浮力约为正 $weight。';
+  }
+
+  @override
+  String get info_term_drysuitGas_label => '干衣补气量';
+
+  @override
+  String get info_term_drysuitGas_body => '下潜时为抵消挤压而充入干衣的气体，计为浮力。';
+
+  @override
+  String get info_term_noFlyTime_label => '禁飞时间';
+
+  @override
+  String get info_term_noFlyTime_body =>
+      '从最后一次潜水到 DAN 与 UHMS 飞行指南间隔结束的时间。间隔取决于潜水是单次、重复还是需要减压，以及设置中的预设。';
+
+  @override
+  String get info_diveLog_profile_summary =>
+      '整次潜水的深度随时间变化，每个已开启的叠加层都绘制在同一时间轴上。';
+
+  @override
+  String get info_diveLog_profile_background =>
+      '减压和氧相关叠加层来自使用设置中梯度因子的 Buhlmann ZHL-16C 模型，以及 NOAA 氧暴露表。';
+
+  @override
+  String get info_diveLog_profile_howToUse =>
+      '在图表上移动可读取某一时刻的全部数值。图例用于开关叠加层，范围按钮可选取潜水的一段查看其统计。';
+
+  @override
+  String get info_diveLog_rangeStats_summary => '图表上所选潜水片段的统计数据。';
+
+  @override
+  String get info_diveLog_decoStatus_summary =>
+      '减压模型在光标时刻给出的结果：是否需要停留，以及剩余的时间或深度。';
+
+  @override
+  String get info_diveLog_decoStatus_background =>
+      '应用使用 Buhlmann ZHL-16C 模型和 GF 标签上的梯度因子计算。使用其他模型或设置的潜水电脑可能显示不同的数字。';
+
+  @override
+  String get info_diveLog_o2Toxicity_summary =>
+      '本次潜水增加的氧暴露，分为短期的 CNS 时钟和较慢的 OTU 剂量。';
+
+  @override
+  String get info_diveLog_o2Toxicity_background =>
+      'CNS% 依据 NOAA 的 ppO2 暴露限值，潜水后以 90 分钟半衰期下降。每日 OTU 在午夜重置，每周 OTU 覆盖最近七天。';
+
+  @override
+  String get info_diveLog_gasSwitches_summary => '每次换气与该气体处于 ppO2 限值内的最深点相比如何。';
+
+  @override
+  String get info_diveLog_tissueLoading_summary => '光标时刻模型 16 个舱室各自的惰性气体负荷。';
+
+  @override
+  String get info_diveLog_tissueLoading_background =>
+      '模型为 Buhlmann ZHL-16C，分别追踪每个舱室中的氮和氦。负荷只计算高于水面水平的部分，因此即使完全排气，条柱也不会归零。';
+
+  @override
+  String get info_diveLog_safetyReview_summary =>
+      '本次潜水中触及安全复查规则的时刻，由潜水后检查潜水曲线得出。';
+
+  @override
+  String get info_diveLog_safetyReview_background => '规则及其阈值在“设置”的“安全复查”中设置。';
+
+  @override
+  String get info_diveLog_safetyReview_howToUse =>
+      '点击某项发现可在曲线上显示其发生位置。忽略某项发现会在本次潜水中隐藏它。';
+
+  @override
+  String get info_diveLog_cylinders_summary =>
+      '本次潜水的每个气瓶，包括其气体、所用压力以及该气体的深度限值。';
+
+  @override
+  String get info_diveLog_sacSegments_summary =>
+      '按潜水阶段或时间片拆分的耗气量，便于比较各部分的用力程度。';
+
+  @override
+  String get info_diveLog_sacSegments_howToUse => '图表上方的选择器可在 SAC 与 RMV 之间切换。';
+
+  @override
+  String get info_diveLog_details_summary => '本次潜水的记录数据；未填写的项目使用从潜水曲线推算的数值。';
+
+  @override
+  String get info_diveLog_altitude_summary => '本次潜水在高海拔进行，水面气压较低会使减压模型更保守。';
+
+  @override
+  String get info_diveLog_buoyancy_summary =>
+      '根据潜水曲线、所呼吸的气体和随潜水记录的装备，模拟整次潜水的净浮力。';
+
+  @override
+  String get info_diveLog_buoyancy_howToUse =>
+      '“调整”会打开一个面板，用不同的配重或潜水服浮力重新计算本次潜水。';
+
+  @override
+  String get info_diveLog_waterConditions_summary =>
+      '潜水日期前后潜点附近的海温和珊瑚热应力，来自 NOAA 珊瑚礁观察卫星数据。';
+
+  @override
+  String get info_diveLab_compare_summary => '本次潜水在影响减压的关键数字上与其关联计划或已保存情景的对比。';
+
+  @override
+  String get info_diveLab_compare_howToUse => '点击卡片打开潜水实验室，在本次潜水上尝试其他选择。';
+
+  @override
+  String get info_safety_noFly_summary => '最近几次潜水后的飞行指南间隔何时结束。';
 }

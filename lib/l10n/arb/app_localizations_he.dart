@@ -60443,4 +60443,259 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get info_term_highO2Hours_body =>
       'זמן נשימת גז עם שיעור חמצן מוגבר, שמבלה מהר יותר חלקים לשירות חמצן.';
+
+  @override
+  String get info_term_decoStatus_label => 'DECO ו-NO DECO';
+
+  @override
+  String get info_term_decoStatus_body =>
+      'NO DECO פירושו שעלייה ישירה תואמת את המודל באותו רגע. DECO פירושו שנדרשת לפחות עצירה אחת לפני היציאה לפני המים.';
+
+  @override
+  String get info_term_cnsStartAdded_label => 'התחלה והצלילה הזו';
+
+  @override
+  String get info_term_cnsStartAdded_body =>
+      'התחלה הוא ה-CNS% שנותר מצלילות קודמות, אחרי שכבר ירד עם הזמן שעבר. הצלילה הזו היא מה שהצלילה עצמה הוסיפה מעליו.';
+
+  @override
+  String get info_term_otuWindows_label => 'OTU יומי ושבועי';
+
+  @override
+  String get info_term_otuWindows_body =>
+      'OTU יומי סופר כל צלילה מאז חצות, ו-OTU שבועי הוא סכום מתגלגל של שבעת הימים האחרונים. כל אחד מוצג מול הגבול של האפליקציה לאותה תקופה.';
+
+  @override
+  String get info_term_maxPpO2_label => 'ppO2 מרבי';
+
+  @override
+  String get info_term_maxPpO2_body =>
+      'הלחץ החלקי הגבוה ביותר של חמצן שנשאף במהלך הצלילה.';
+
+  @override
+  String get info_term_timeAboveLimit_label => 'זמן מעל גבול ה-ppO2';
+
+  @override
+  String get info_term_timeAboveLimit_body =>
+      'כמה זמן ה-ppO2 נשאר מעל הגבולות שנקבעו בהגדרות במהלך הצלילה הזו.';
+
+  @override
+  String get info_term_idealSwitchDepth_label => 'עומק החלפה אידיאלי';
+
+  @override
+  String get info_term_idealSwitchDepth_body =>
+      'הנקודה העמוקה ביותר בעלייה שבה הגז הבא נמצא בתוך גבול ה-ppO2 שלו, כלומר ה-MOD שלו. הכרטיס משווה אותה לעומק שבו נרשמה ההחלפה.';
+
+  @override
+  String get info_term_extraDeco_label => 'דקומפרסיה נוספת';
+
+  @override
+  String get info_term_extraDeco_body =>
+      'זמן דקומפרסיה שהמודל מוסיף משום שההחלפה נעשתה רדודה יותר או מאוחר יותר מהנקודה האידיאלית.';
+
+  @override
+  String get info_term_stackedArea_label => 'שטח מוערם';
+
+  @override
+  String get info_term_stackedArea_body =>
+      'כל רצועה היא העומס של תא אחד לאורך זמן, מוערמת על האחרות, כך שהגובה הכולל מראה את העומס בכל התאים.';
+
+  @override
+  String get info_term_nitrogenHelium_label => 'N2 ו-He';
+
+  @override
+  String get info_term_nitrogenHelium_body =>
+      'העומס של כל תא מחולק לחנקן ולהליום. הליום נכנס ויוצא מהר יותר מחנקן.';
+
+  @override
+  String get info_term_missedDecoStop_label => 'עצירת דקומפרסיה שהוחמצה';
+
+  @override
+  String get info_term_missedDecoStop_body =>
+      'עצירה נדרשת שקוצרה או דולגה, שנמצאה בהשוואת הפרופיל לעצירות של המודל.';
+
+  @override
+  String get info_term_sawtooth_label => 'פרופיל משונן';
+
+  @override
+  String get info_term_sawtooth_body =>
+      'עליות וירידות חוזרות במהלך הצלילה. מחקר הדקומפרסיה מקשר אותן ליותר היווצרות בועות.';
+
+  @override
+  String get info_term_lateGasSwitch_label => 'החלפת גז מאוחרת';
+
+  @override
+  String get info_term_lateGasSwitch_body =>
+      'החלפה לגז דקומפרסיה שנעשתה רדודה או מאוחרת בבירור מהנקודה שבה הגז נעשה שמיש.';
+
+  @override
+  String get info_term_avgVerticalSpeed_label => 'מהירות אנכית ממוצעת';
+
+  @override
+  String get info_term_avgVerticalSpeed_body =>
+      'הקצב הממוצע של שינוי העומק לאורך הטווח שנבחר.';
+
+  @override
+  String get info_term_computedEvents_label => 'אירועים מחושבים';
+
+  @override
+  String get info_term_computedEvents_body =>
+      'סימונים שהאפליקציה מוסיפה מקריאת הפרופיל, כמו עליות מהירות, לעומת אירועים שמחשב הצלילה רשם.';
+
+  @override
+  String get info_term_gasSwitchMarkers_label => 'סימוני החלפת גז';
+
+  @override
+  String get info_term_gasSwitchMarkers_body =>
+      'נקודות שבהן גז הנשימה עבר ממיכל אחד לאחר.';
+
+  @override
+  String get info_term_diveModes_label => 'מצב צלילה';
+
+  @override
+  String get info_term_diveModes_body =>
+      'במעגל פתוח (OC) כל נשיפה יוצאת למים. מכשירי מחזור סגורים (CCR) וחצי-סגורים (SCR) ממחזרים את הגז דרך לולאה.';
+
+  @override
+  String get info_term_netBuoyancy_label => 'ציפה נטו';
+
+  @override
+  String get info_term_netBuoyancy_body =>
+      'כל הרכיבים יחד, כשעילוי נספר כחיובי ומשקל כשלילי. אפס הוא ניטרלי.';
+
+  @override
+  String get info_term_buoyancySwing_label => 'שינוי ציפה';
+
+  @override
+  String get info_term_buoyancySwing_body =>
+      'בכמה השתנתה הציפה נטו בין תחילת הצלילה לסופה, בעיקר בגלל משקל הגז שנשאף.';
+
+  @override
+  String get info_term_peakLift_label => 'עילוי מרבי נדרש';
+
+  @override
+  String get info_term_peakLift_body =>
+      'העילוי הגדול ביותר שהכנף או החליפה היבשה נאלצו להוסיף בנקודה כלשהי בצלילה כדי להישאר ניטרליים.';
+
+  @override
+  String get info_term_minDitchable_label => 'משקל מינימלי להשלכה';
+
+  @override
+  String info_term_minDitchable_body(String weight) {
+    return 'המשקל שיהיה צורך להשליך בנקודה הכבדה ביותר בצלילה כדי להגיע לציפה חיובית של כ-$weight.';
+  }
+
+  @override
+  String get info_term_drysuitGas_label => 'גז שהוסף לחליפה היבשה';
+
+  @override
+  String get info_term_drysuitGas_body =>
+      'גז שהוסף לחליפה היבשה כדי לפצות על הלחיצה שלה בירידה, ונספר כעילוי.';
+
+  @override
+  String get info_term_noFlyTime_label => 'זמן ללא טיסה';
+
+  @override
+  String get info_term_noFlyTime_body =>
+      'הזמן מהצלילה האחרונה עד שחולף מרווח ההנחיה של DAN ו-UHMS לטיסה. המרווח תלוי בכך שהצלילות היו בודדות, חוזרות או דרשו דקומפרסיה, ובהגדרה המוגדרת מראש.';
+
+  @override
+  String get info_diveLog_profile_summary =>
+      'עומק לאורך זמן לכל הצלילה, כשכל שכבה מופעלת מצוירת על אותו ציר זמן.';
+
+  @override
+  String get info_diveLog_profile_background =>
+      'שכבות הדקומפרסיה והחמצן מגיעות ממודל Buhlmann ZHL-16C עם מקדמי השיפוע מההגדרות, ומטבלאות החמצן של NOAA.';
+
+  @override
+  String get info_diveLog_profile_howToUse =>
+      'מעבר על התרשים מציג את כל הערכים ברגע אחד. המקרא מפעיל ומכבה שכבות, וכפתור הטווח בוחר חלק מהצלילה כדי לראות את הנתונים שלו.';
+
+  @override
+  String get info_diveLog_rangeStats_summary =>
+      'נתונים עבור החלק שנבחר מהצלילה בתרשים.';
+
+  @override
+  String get info_diveLog_decoStatus_summary =>
+      'מה שמודל הדקומפרסיה מדווח בזמן הסמן: האם נדרשות עצירות, וכמה זמן או עומק נותרו.';
+
+  @override
+  String get info_diveLog_decoStatus_background =>
+      'האפליקציה מריצה את מודל Buhlmann ZHL-16C עם מקדמי השיפוע שעל תווית ה-GF. מחשב צלילה עם מודל או הגדרות אחרים עשוי להציג מספרים שונים.';
+
+  @override
+  String get info_diveLog_o2Toxicity_summary =>
+      'כמה חשיפה לחמצן הוסיפה הצלילה, בשעון ה-CNS לטווח קצר ובמנת ה-OTU האיטית יותר.';
+
+  @override
+  String get info_diveLog_o2Toxicity_background =>
+      'ה-CNS% עוקב אחר גבולות החשיפה ל-ppO2 של NOAA ויורד בזמן מחצית של 90 דקות אחרי הצלילה. ה-OTU היומי מתאפס בחצות וה-OTU השבועי מכסה את שבעת הימים האחרונים.';
+
+  @override
+  String get info_diveLog_gasSwitches_summary =>
+      'איך כל החלפת גז משתווה לנקודה העמוקה ביותר שבה הגז היה בתוך גבול ה-ppO2 שלו.';
+
+  @override
+  String get info_diveLog_tissueLoading_summary =>
+      'עד כמה כל אחד מ-16 התאים של המודל עמוס בגז אינרטי בזמן הסמן.';
+
+  @override
+  String get info_diveLog_tissueLoading_background =>
+      'המודל הוא Buhlmann ZHL-16C, שעוקב אחר חנקן והליום בנפרד בכל תא. העומס סופר רק את מה שמעל רמת פני המים, ולכן עמודות שפלטו את כל הגז לעולם אינן מגיעות לאפס.';
+
+  @override
+  String get info_diveLog_safetyReview_summary =>
+      'רגעים בצלילה הזו שחצו אחד מכללי סקירת הבטיחות, שנמצאו בבדיקת הפרופיל אחרי הצלילה.';
+
+  @override
+  String get info_diveLog_safetyReview_background =>
+      'הכללים והספים שלהם נקבעים בהגדרות, תחת סקירת בטיחות.';
+
+  @override
+  String get info_diveLog_safetyReview_howToUse =>
+      'הקשה על ממצא מראה היכן הוא קרה בפרופיל. דחיית ממצא מסתירה אותו בצלילה הזו.';
+
+  @override
+  String get info_diveLog_cylinders_summary =>
+      'כל מיכל בצלילה עם הגז שלו, הלחץ שנוצל וגבולות העומק של הגז הזה.';
+
+  @override
+  String get info_diveLog_sacSegments_summary =>
+      'צריכת הגז מחולקת לשלבי הצלילה או לפרוסות זמן, כדי להשוות את המאמץ בכל חלק.';
+
+  @override
+  String get info_diveLog_sacSegments_howToUse =>
+      'הבורר מעל התרשים מחליף בין SAC ל-RMV.';
+
+  @override
+  String get info_diveLog_details_summary =>
+      'העובדות שנרשמו בצלילה הזו, עם ערכים שחושבו מהפרופיל במקומות שבהם לא הוזן דבר.';
+
+  @override
+  String get info_diveLog_altitude_summary =>
+      'הצלילה הזו הייתה בגובה, שבו לחץ האוויר הנמוך בפני המים הופך את מודל הדקומפרסיה לשמרני יותר.';
+
+  @override
+  String get info_diveLog_buoyancy_summary =>
+      'מודל של הציפה נטו לאורך הצלילה, מתוך הפרופיל, הגז שנשאף והציוד שנרשם עם הצלילה.';
+
+  @override
+  String get info_diveLog_buoyancy_howToUse =>
+      'כוונון פותח חלונית שמנסה כמות משקולות או ציפת חליפה אחרת על הצלילה הזו.';
+
+  @override
+  String get info_diveLog_waterConditions_summary =>
+      'טמפרטורת הים ועקת החום של האלמוגים ליד האתר סביב תאריך הצלילה, מנתוני הלוויין של NOAA Coral Reef Watch.';
+
+  @override
+  String get info_diveLab_compare_summary =>
+      'איך הצלילה הזו משתווה לתוכנית המקושרת או לתרחישים שנשמרו במספרים החשובים לדקומפרסיה.';
+
+  @override
+  String get info_diveLab_compare_howToUse =>
+      'הקשה על הכרטיס פותחת את מעבדת הצלילה לניסוי בחירות אחרות על הצלילה הזו.';
+
+  @override
+  String get info_safety_noFly_summary =>
+      'מתי מסתיים מרווח ההנחיה לטיסה אחרי הצלילות האחרונות.';
 }

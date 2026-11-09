@@ -60755,4 +60755,259 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get info_term_highO2Hours_body =>
       'Time spent breathing gas with a raised oxygen fraction, which wears oxygen-service parts faster.';
+
+  @override
+  String get info_term_decoStatus_label => 'DECO and NO DECO';
+
+  @override
+  String get info_term_decoStatus_body =>
+      'NO DECO means a direct ascent fits the model at that moment. DECO means at least one stop is required before surfacing.';
+
+  @override
+  String get info_term_cnsStartAdded_label => 'Start and this dive';
+
+  @override
+  String get info_term_cnsStartAdded_body =>
+      'Start is the CNS% carried in from earlier dives, already reduced by the time since. This dive is what the dive itself added on top.';
+
+  @override
+  String get info_term_otuWindows_label => 'Daily and weekly OTU';
+
+  @override
+  String get info_term_otuWindows_body =>
+      'Daily OTU counts every dive since midnight, and weekly OTU is a rolling total of the last seven days. Each is shown against the app\'s limit for that period.';
+
+  @override
+  String get info_term_maxPpO2_label => 'Max ppO2';
+
+  @override
+  String get info_term_maxPpO2_body =>
+      'The highest oxygen partial pressure breathed during the dive.';
+
+  @override
+  String get info_term_timeAboveLimit_label => 'Time above the ppO2 limit';
+
+  @override
+  String get info_term_timeAboveLimit_body =>
+      'How long the ppO2 stayed above the limits set in settings during this dive.';
+
+  @override
+  String get info_term_idealSwitchDepth_label => 'Ideal switch depth';
+
+  @override
+  String get info_term_idealSwitchDepth_body =>
+      'The deepest point on the ascent where the next gas is within its ppO2 limit, which is its MOD. The card compares it with the depth where the switch was logged.';
+
+  @override
+  String get info_term_extraDeco_label => 'Extra deco';
+
+  @override
+  String get info_term_extraDeco_body =>
+      'Decompression time the model adds because a switch happened shallower or later than the ideal point.';
+
+  @override
+  String get info_term_stackedArea_label => 'Stacked area';
+
+  @override
+  String get info_term_stackedArea_body =>
+      'Each band is one compartment\'s load over time, stacked on the others, so the total height shows the load across all compartments.';
+
+  @override
+  String get info_term_nitrogenHelium_label => 'N2 and He';
+
+  @override
+  String get info_term_nitrogenHelium_body =>
+      'Each compartment\'s load is split into nitrogen and helium. Helium enters and leaves faster than nitrogen.';
+
+  @override
+  String get info_term_missedDecoStop_label => 'Missed deco stop';
+
+  @override
+  String get info_term_missedDecoStop_body =>
+      'A required stop that was cut short or skipped, found by comparing the profile with the model\'s stops.';
+
+  @override
+  String get info_term_sawtooth_label => 'Sawtooth profile';
+
+  @override
+  String get info_term_sawtooth_body =>
+      'Repeated ascents and descents during a dive. Decompression research links them to more bubble formation.';
+
+  @override
+  String get info_term_lateGasSwitch_label => 'Late gas switch';
+
+  @override
+  String get info_term_lateGasSwitch_body =>
+      'A switch to a deco gas made clearly shallower or later than the point where that gas became usable.';
+
+  @override
+  String get info_term_avgVerticalSpeed_label => 'Average vertical speed';
+
+  @override
+  String get info_term_avgVerticalSpeed_body =>
+      'The average rate of depth change across the selected range.';
+
+  @override
+  String get info_term_computedEvents_label => 'Computed events';
+
+  @override
+  String get info_term_computedEvents_body =>
+      'Markers the app adds by reading the profile, such as fast ascents, as opposed to events the dive computer logged.';
+
+  @override
+  String get info_term_gasSwitchMarkers_label => 'Gas switch markers';
+
+  @override
+  String get info_term_gasSwitchMarkers_body =>
+      'Points where the breathing gas changed from one cylinder to another.';
+
+  @override
+  String get info_term_diveModes_label => 'Dive mode';
+
+  @override
+  String get info_term_diveModes_body =>
+      'Open circuit (OC) breathes each breath out into the water. Closed-circuit (CCR) and semi-closed (SCR) rebreathers recycle the gas through a loop.';
+
+  @override
+  String get info_term_netBuoyancy_label => 'Net buoyancy';
+
+  @override
+  String get info_term_netBuoyancy_body =>
+      'Every term added together, with lift counted as positive and weight as negative. Zero is neutral.';
+
+  @override
+  String get info_term_buoyancySwing_label => 'Buoyancy swing';
+
+  @override
+  String get info_term_buoyancySwing_body =>
+      'How much the net buoyancy changed between the start and the end of the dive, mostly from the weight of the gas breathed.';
+
+  @override
+  String get info_term_peakLift_label => 'Peak lift needed';
+
+  @override
+  String get info_term_peakLift_body =>
+      'The most lift the wing or drysuit had to add at any point in the dive to stay neutral.';
+
+  @override
+  String get info_term_minDitchable_label => 'Min ditchable weight';
+
+  @override
+  String info_term_minDitchable_body(String weight) {
+    return 'The weight that would need to be dropped at the heaviest point of the dive to end up about $weight buoyant.';
+  }
+
+  @override
+  String get info_term_drysuitGas_label => 'Drysuit gas added';
+
+  @override
+  String get info_term_drysuitGas_body =>
+      'Gas added to the drysuit to offset its squeeze on the way down, which counts as lift.';
+
+  @override
+  String get info_term_noFlyTime_label => 'No-fly time';
+
+  @override
+  String get info_term_noFlyTime_body =>
+      'Time from the last dive until the DAN and UHMS guideline interval for flying has passed. The interval depends on whether the dives were single, repetitive or needed decompression, and on the preset in settings.';
+
+  @override
+  String get info_diveLog_profile_summary =>
+      'Depth over time for the whole dive, with each overlay that is switched on drawn on the same time axis.';
+
+  @override
+  String get info_diveLog_profile_background =>
+      'Deco and oxygen overlays come from the Buhlmann ZHL-16C model with the gradient factors in settings, and from the NOAA oxygen tables.';
+
+  @override
+  String get info_diveLog_profile_howToUse =>
+      'Move across the chart to read every value at one moment. The legend turns overlays on and off, and the range button selects part of the dive to see its statistics.';
+
+  @override
+  String get info_diveLog_rangeStats_summary =>
+      'Statistics for the part of the dive selected on the chart.';
+
+  @override
+  String get info_diveLog_decoStatus_summary =>
+      'What the decompression model reports at the cursor time: whether stops are needed, and how much time or depth remains.';
+
+  @override
+  String get info_diveLog_decoStatus_background =>
+      'The app runs the Buhlmann ZHL-16C model with the gradient factors on the GF chip. A dive computer with another model or settings can show different numbers.';
+
+  @override
+  String get info_diveLog_o2Toxicity_summary =>
+      'How much oxygen exposure the dive added, on the short-term CNS clock and the slower OTU dose.';
+
+  @override
+  String get info_diveLog_o2Toxicity_background =>
+      'CNS% follows the NOAA ppO2 exposure limits and falls with a 90-minute half-life after the dive. Daily OTU resets at midnight and weekly OTU covers the last seven days.';
+
+  @override
+  String get info_diveLog_gasSwitches_summary =>
+      'How each gas switch compared with the deepest point where that gas was within its ppO2 limit.';
+
+  @override
+  String get info_diveLog_tissueLoading_summary =>
+      'How loaded each of the model\'s 16 compartments is with inert gas at the cursor time.';
+
+  @override
+  String get info_diveLog_tissueLoading_background =>
+      'The model is Buhlmann ZHL-16C, which tracks nitrogen and helium separately in each compartment. Load counts only what sits above the surface level, so fully off-gassed bars never read zero.';
+
+  @override
+  String get info_diveLog_safetyReview_summary =>
+      'Moments in this dive that crossed one of the safety review rules, found by checking the profile after the dive.';
+
+  @override
+  String get info_diveLog_safetyReview_background =>
+      'The rules and their thresholds are set in Settings, under Safety review.';
+
+  @override
+  String get info_diveLog_safetyReview_howToUse =>
+      'Tap a finding to show where it happened on the profile. Dismissing a finding hides it for this dive.';
+
+  @override
+  String get info_diveLog_cylinders_summary =>
+      'Each cylinder on the dive with its gas, the pressure used and the depth limits of that gas.';
+
+  @override
+  String get info_diveLog_sacSegments_summary =>
+      'Gas use split into phases of the dive or into time slices, so the effort of each part can be compared.';
+
+  @override
+  String get info_diveLog_sacSegments_howToUse =>
+      'The selector above the chart switches between SAC and RMV.';
+
+  @override
+  String get info_diveLog_details_summary =>
+      'The logged facts of this dive, with values worked out from the profile where nothing was entered.';
+
+  @override
+  String get info_diveLog_altitude_summary =>
+      'This dive was at altitude, where lower air pressure at the surface makes the decompression model more conservative.';
+
+  @override
+  String get info_diveLog_buoyancy_summary =>
+      'A model of net buoyancy through the dive, from the profile, the gas breathed and the gear logged with the dive.';
+
+  @override
+  String get info_diveLog_buoyancy_howToUse =>
+      'Adjust opens a sheet that tries a different amount of lead or suit buoyancy against this dive.';
+
+  @override
+  String get info_diveLog_waterConditions_summary =>
+      'Sea temperature and coral heat stress near the site around the dive date, from NOAA Coral Reef Watch satellite data.';
+
+  @override
+  String get info_diveLab_compare_summary =>
+      'How this dive compares with its linked plan or saved scenarios on the numbers that matter for decompression.';
+
+  @override
+  String get info_diveLab_compare_howToUse =>
+      'Tap the card to open the Dive Lab and try other choices against this dive.';
+
+  @override
+  String get info_safety_noFly_summary =>
+      'When the guideline interval for flying ends after the most recent dives.';
 }

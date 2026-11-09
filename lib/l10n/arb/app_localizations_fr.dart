@@ -61864,4 +61864,261 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get info_term_highO2Hours_body =>
       'Temps passé à respirer un gaz à fraction d\'oxygène élevée, qui use plus vite les pièces compatibles oxygène.';
+
+  @override
+  String get info_term_decoStatus_label => 'DÉCO et SANS DÉCO';
+
+  @override
+  String get info_term_decoStatus_body =>
+      'SANS DÉCO signifie qu\'une remontée directe respecte le modèle à cet instant. DÉCO signifie qu\'au moins un palier est requis avant de faire surface.';
+
+  @override
+  String get info_term_cnsStartAdded_label => 'Départ et cette plongée';
+
+  @override
+  String get info_term_cnsStartAdded_body =>
+      'Départ est le CNS% hérité des plongées précédentes, déjà réduit par le temps écoulé. Cette plongée est ce que la plongée elle-même a ajouté.';
+
+  @override
+  String get info_term_otuWindows_label => 'OTU quotidien et hebdomadaire';
+
+  @override
+  String get info_term_otuWindows_body =>
+      'L\'OTU quotidien compte chaque plongée depuis minuit et l\'OTU hebdomadaire est un total glissant des sept derniers jours. Chacun est affiché face à la limite de l\'application pour cette période.';
+
+  @override
+  String get info_term_maxPpO2_label => 'ppO2 maximale';
+
+  @override
+  String get info_term_maxPpO2_body =>
+      'La pression partielle d\'oxygène la plus élevée respirée pendant la plongée.';
+
+  @override
+  String get info_term_timeAboveLimit_label =>
+      'Temps au-dessus de la limite de ppO2';
+
+  @override
+  String get info_term_timeAboveLimit_body =>
+      'Combien de temps la ppO2 est restée au-dessus des limites définies dans les réglages pendant cette plongée.';
+
+  @override
+  String get info_term_idealSwitchDepth_label =>
+      'Profondeur de changement idéale';
+
+  @override
+  String get info_term_idealSwitchDepth_body =>
+      'Le point le plus profond de la remontée où le gaz suivant est dans sa limite de ppO2, c\'est-à-dire sa MOD. La carte le compare à la profondeur où le changement a été enregistré.';
+
+  @override
+  String get info_term_extraDeco_label => 'Déco supplémentaire';
+
+  @override
+  String get info_term_extraDeco_body =>
+      'Temps de décompression que le modèle ajoute parce qu\'un changement a eu lieu moins profond ou plus tard que le point idéal.';
+
+  @override
+  String get info_term_stackedArea_label => 'Aires empilées';
+
+  @override
+  String get info_term_stackedArea_body =>
+      'Chaque bande est la charge d\'un compartiment dans le temps, empilée sur les autres, si bien que la hauteur totale montre la charge de tous les compartiments.';
+
+  @override
+  String get info_term_nitrogenHelium_label => 'N2 et He';
+
+  @override
+  String get info_term_nitrogenHelium_body =>
+      'La charge de chaque compartiment est répartie entre azote et hélium. L\'hélium entre et sort plus vite que l\'azote.';
+
+  @override
+  String get info_term_missedDecoStop_label => 'Palier de décompression manqué';
+
+  @override
+  String get info_term_missedDecoStop_body =>
+      'Un palier requis écourté ou sauté, repéré en comparant le profil aux paliers du modèle.';
+
+  @override
+  String get info_term_sawtooth_label => 'Profil en dents de scie';
+
+  @override
+  String get info_term_sawtooth_body =>
+      'Des remontées et descentes répétées pendant une plongée. La recherche sur la décompression les associe à plus de bulles.';
+
+  @override
+  String get info_term_lateGasSwitch_label => 'Changement de gaz tardif';
+
+  @override
+  String get info_term_lateGasSwitch_body =>
+      'Un passage à un gaz de déco nettement moins profond ou plus tardif que le point où ce gaz devenait utilisable.';
+
+  @override
+  String get info_term_avgVerticalSpeed_label => 'Vitesse verticale moyenne';
+
+  @override
+  String get info_term_avgVerticalSpeed_body =>
+      'Le rythme moyen de variation de profondeur sur la plage sélectionnée.';
+
+  @override
+  String get info_term_computedEvents_label => 'Événements calculés';
+
+  @override
+  String get info_term_computedEvents_body =>
+      'Repères que l\'application ajoute en lisant le profil, comme les remontées rapides, par opposition aux événements enregistrés par l\'ordinateur.';
+
+  @override
+  String get info_term_gasSwitchMarkers_label => 'Repères de changement de gaz';
+
+  @override
+  String get info_term_gasSwitchMarkers_body =>
+      'Points où le gaz respiré est passé d\'un bloc à un autre.';
+
+  @override
+  String get info_term_diveModes_label => 'Mode de plongée';
+
+  @override
+  String get info_term_diveModes_body =>
+      'En circuit ouvert (OC), chaque expiration part dans l\'eau. Les recycleurs fermés (CCR) et semi-fermés (SCR) réutilisent le gaz dans une boucle.';
+
+  @override
+  String get info_term_netBuoyancy_label => 'Flottabilité nette';
+
+  @override
+  String get info_term_netBuoyancy_body =>
+      'Tous les termes additionnés, la portance comptée en positif et le poids en négatif. Zéro est neutre.';
+
+  @override
+  String get info_term_buoyancySwing_label => 'Variation de flottabilité';
+
+  @override
+  String get info_term_buoyancySwing_body =>
+      'De combien la flottabilité nette a changé entre le début et la fin de la plongée, surtout à cause du poids du gaz respiré.';
+
+  @override
+  String get info_term_peakLift_label => 'Portance maximale nécessaire';
+
+  @override
+  String get info_term_peakLift_body =>
+      'La plus grande portance que la wing ou l\'étanche a dû fournir à un moment de la plongée pour rester neutre.';
+
+  @override
+  String get info_term_minDitchable_label => 'Lest largable minimum';
+
+  @override
+  String info_term_minDitchable_body(String weight) {
+    return 'Le poids à larguer au point le plus lourd de la plongée pour se retrouver environ $weight positif.';
+  }
+
+  @override
+  String get info_term_drysuitGas_label => 'Gaz ajouté dans l\'étanche';
+
+  @override
+  String get info_term_drysuitGas_body =>
+      'Gaz ajouté dans l\'étanche pour compenser son placage à la descente, compté comme portance.';
+
+  @override
+  String get info_term_noFlyTime_label => 'Délai avant de prendre l\'avion';
+
+  @override
+  String get info_term_noFlyTime_body =>
+      'Temps entre la dernière plongée et la fin de l\'intervalle recommandé par le DAN et l\'UHMS avant de voler. L\'intervalle dépend du caractère unique, successif ou décompressif des plongées et du préréglage choisi.';
+
+  @override
+  String get info_diveLog_profile_summary =>
+      'Profondeur dans le temps sur toute la plongée, avec chaque superposition activée tracée sur le même axe du temps.';
+
+  @override
+  String get info_diveLog_profile_background =>
+      'Les superpositions de déco et d\'oxygène viennent du modèle Buhlmann ZHL-16C avec les facteurs de gradient des réglages, et des tables d\'oxygène de la NOAA.';
+
+  @override
+  String get info_diveLog_profile_howToUse =>
+      'Parcourez le graphique pour lire toutes les valeurs à un instant. La légende active ou masque les superpositions, et le bouton de plage sélectionne une partie de la plongée pour ses statistiques.';
+
+  @override
+  String get info_diveLog_rangeStats_summary =>
+      'Statistiques de la partie de la plongée sélectionnée sur le graphique.';
+
+  @override
+  String get info_diveLog_decoStatus_summary =>
+      'Ce que le modèle de décompression indique à l\'heure du curseur : si des paliers sont nécessaires et combien de temps ou de profondeur il reste.';
+
+  @override
+  String get info_diveLog_decoStatus_background =>
+      'L\'application utilise le modèle Buhlmann ZHL-16C avec les facteurs de gradient de la pastille GF. Un ordinateur avec un autre modèle ou d\'autres réglages peut afficher d\'autres valeurs.';
+
+  @override
+  String get info_diveLog_o2Toxicity_summary =>
+      'Quelle exposition à l\'oxygène la plongée a ajoutée, sur l\'horloge CNS à court terme et la dose OTU plus lente.';
+
+  @override
+  String get info_diveLog_o2Toxicity_background =>
+      'Le CNS% suit les limites d\'exposition à la ppO2 de la NOAA et diminue avec une demi-vie de 90 minutes après la plongée. L\'OTU quotidien repart à minuit et l\'OTU hebdomadaire couvre les sept derniers jours.';
+
+  @override
+  String get info_diveLog_gasSwitches_summary =>
+      'Comment chaque changement de gaz se compare au point le plus profond où ce gaz était dans sa limite de ppO2.';
+
+  @override
+  String get info_diveLog_tissueLoading_summary =>
+      'La charge en gaz inerte de chacun des 16 compartiments du modèle à l\'heure du curseur.';
+
+  @override
+  String get info_diveLog_tissueLoading_background =>
+      'Le modèle est Buhlmann ZHL-16C, qui suit l\'azote et l\'hélium séparément dans chaque compartiment. La charge ne compte que ce qui dépasse le niveau de surface, donc des barres désaturées n\'affichent jamais zéro.';
+
+  @override
+  String get info_diveLog_safetyReview_summary =>
+      'Moments de cette plongée qui ont franchi une règle de la revue de sécurité, repérés en vérifiant le profil après la plongée.';
+
+  @override
+  String get info_diveLog_safetyReview_background =>
+      'Les règles et leurs seuils se règlent dans Réglages, sous Revue de sécurité.';
+
+  @override
+  String get info_diveLog_safetyReview_howToUse =>
+      'Toucher un constat montre où il s\'est produit sur le profil. Un constat ignoré est masqué pour cette plongée.';
+
+  @override
+  String get info_diveLog_cylinders_summary =>
+      'Chaque bloc de la plongée avec son gaz, la pression utilisée et les limites de profondeur de ce gaz.';
+
+  @override
+  String get info_diveLog_sacSegments_summary =>
+      'La consommation de gaz répartie par phases de la plongée ou par tranches de temps, pour comparer l\'effort de chaque partie.';
+
+  @override
+  String get info_diveLog_sacSegments_howToUse =>
+      'Le sélecteur au-dessus du graphique bascule entre SAC et RMV.';
+
+  @override
+  String get info_diveLog_details_summary =>
+      'Les données enregistrées de cette plongée, avec des valeurs déduites du profil là où rien n\'a été saisi.';
+
+  @override
+  String get info_diveLog_altitude_summary =>
+      'Cette plongée était en altitude, où la pression atmosphérique plus faible en surface rend le modèle de décompression plus prudent.';
+
+  @override
+  String get info_diveLog_buoyancy_summary =>
+      'Un modèle de la flottabilité nette pendant la plongée, à partir du profil, du gaz respiré et du matériel enregistré avec la plongée.';
+
+  @override
+  String get info_diveLog_buoyancy_howToUse =>
+      'Ajuster ouvre une feuille qui essaie une autre quantité de lest ou de flottabilité de combinaison sur cette plongée.';
+
+  @override
+  String get info_diveLog_waterConditions_summary =>
+      'Température de la mer et stress thermique des coraux près du site autour de la date de plongée, d\'après les données satellite de NOAA Coral Reef Watch.';
+
+  @override
+  String get info_diveLab_compare_summary =>
+      'Comment cette plongée se compare à son plan lié ou aux scénarios enregistrés sur les chiffres qui comptent pour la décompression.';
+
+  @override
+  String get info_diveLab_compare_howToUse =>
+      'Touchez la carte pour ouvrir le labo de plongée et essayer d\'autres choix sur cette plongée.';
+
+  @override
+  String get info_safety_noFly_summary =>
+      'Quand se termine l\'intervalle recommandé avant de voler après les plongées les plus récentes.';
 }

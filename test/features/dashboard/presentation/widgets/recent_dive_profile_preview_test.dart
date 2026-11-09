@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_c
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_legend.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -184,5 +185,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('detail'), findsOneWidget);
+  });
+
+  testWidgets('header carries an info icon', (tester) async {
+    await _pump(tester, profile: _profile());
+    expect(find.byType(InfoButton), findsOneWidget);
   });
 }

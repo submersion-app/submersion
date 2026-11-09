@@ -5,7 +5,10 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
+import 'package:submersion/features/dive_log/presentation/info/altitude_info.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// Informational note shown when the site records a meaningful altitude
 /// but the dive itself has none, so deco replay ran at sea-level pressure.
@@ -104,9 +107,16 @@ class DiveAltitudeSection extends ConsumerWidget {
               children: [
                 Icon(Icons.terrain, size: 20, color: colorScheme.primary),
                 const SizedBox(width: 8),
-                Text(
-                  context.l10n.diveLog_detail_section_altitudeDive,
-                  style: Theme.of(context).textTheme.titleMedium,
+                Expanded(
+                  child: Text(
+                    context.l10n.diveLog_detail_section_altitudeDive,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                HeaderInfoButton(
+                  title: context.l10n.diveLog_detail_section_altitudeDive,
+                  content: (context) =>
+                      altitudeInfo(context.l10n, infoUnits(context)),
                 ),
               ],
             ),

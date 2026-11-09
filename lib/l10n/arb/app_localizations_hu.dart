@@ -61379,4 +61379,259 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get info_term_highO2Hours_body =>
       'Megnövelt oxigénarányú gáz belélegzésével töltött idő, amely gyorsabban koptatja az oxigénkompatibilis alkatrészeket.';
+
+  @override
+  String get info_term_decoStatus_label => 'DEKO és DEKÓMENTES';
+
+  @override
+  String get info_term_decoStatus_body =>
+      'A DEKÓMENTES azt jelenti, hogy abban a pillanatban a közvetlen emelkedés belefér a modellbe. A DEKO azt jelenti, hogy a felszínre érés előtt legalább egy megálló kell.';
+
+  @override
+  String get info_term_cnsStartAdded_label => 'Kezdet és ez a merülés';
+
+  @override
+  String get info_term_cnsStartAdded_body =>
+      'A kezdet a korábbi merülésekből áthozott CNS%, az azóta eltelt idővel már csökkentve. Ez a merülés az, amit maga a merülés hozzáadott.';
+
+  @override
+  String get info_term_otuWindows_label => 'Napi és heti OTU';
+
+  @override
+  String get info_term_otuWindows_body =>
+      'A napi OTU az éjfél óta tett merüléseket számolja, a heti OTU az utolsó hét nap gördülő összege. Mindkettő az alkalmazás adott időszakra vonatkozó határa mellett látható.';
+
+  @override
+  String get info_term_maxPpO2_label => 'Max. ppO2';
+
+  @override
+  String get info_term_maxPpO2_body =>
+      'A merülés során belélegzett legnagyobb oxigén parciális nyomás.';
+
+  @override
+  String get info_term_timeAboveLimit_label => 'ppO2-határ fölötti idő';
+
+  @override
+  String get info_term_timeAboveLimit_body =>
+      'Mennyi ideig volt a ppO2 a beállításokban megadott határok fölött ezen a merülésen.';
+
+  @override
+  String get info_term_idealSwitchDepth_label => 'Ideális váltási mélység';
+
+  @override
+  String get info_term_idealSwitchDepth_body =>
+      'Az emelkedés legmélyebb pontja, ahol a következő gáz a ppO2-határán belül van, vagyis a MOD-ja. A kártya ezt veti össze azzal a mélységgel, ahol a váltás naplózva lett.';
+
+  @override
+  String get info_term_extraDeco_label => 'Többlet deko';
+
+  @override
+  String get info_term_extraDeco_body =>
+      'Dekompressziós idő, amelyet a modell azért ad hozzá, mert a váltás sekélyebben vagy később történt az ideális pontnál.';
+
+  @override
+  String get info_term_stackedArea_label => 'Halmozott terület';
+
+  @override
+  String get info_term_stackedArea_body =>
+      'Minden sáv egy kompartment terhelése az időben, a többire halmozva, így a teljes magasság az összes kompartment terhelését mutatja.';
+
+  @override
+  String get info_term_nitrogenHelium_label => 'N2 és He';
+
+  @override
+  String get info_term_nitrogenHelium_body =>
+      'Minden kompartment terhelése nitrogénre és héliumra oszlik. A hélium gyorsabban jut be és távozik, mint a nitrogén.';
+
+  @override
+  String get info_term_missedDecoStop_label => 'Kihagyott dekómegálló';
+
+  @override
+  String get info_term_missedDecoStop_body =>
+      'Kötelező megálló, amely rövidebb volt vagy kimaradt, a profil és a modell megállóinak összevetéséből.';
+
+  @override
+  String get info_term_sawtooth_label => 'Fűrészfog profil';
+
+  @override
+  String get info_term_sawtooth_body =>
+      'Ismételt emelkedések és süllyedések merülés közben. A dekompressziós kutatás több buborékképződéssel hozza összefüggésbe.';
+
+  @override
+  String get info_term_lateGasSwitch_label => 'Késői gázváltás';
+
+  @override
+  String get info_term_lateGasSwitch_body =>
+      'Dekógázra váltás jóval sekélyebben vagy később annál a pontnál, ahol a gáz használhatóvá vált.';
+
+  @override
+  String get info_term_avgVerticalSpeed_label => 'Átlagos függőleges sebesség';
+
+  @override
+  String get info_term_avgVerticalSpeed_body =>
+      'A mélységváltozás átlagos üteme a kijelölt tartományban.';
+
+  @override
+  String get info_term_computedEvents_label => 'Számított események';
+
+  @override
+  String get info_term_computedEvents_body =>
+      'Jelölések, amelyeket az alkalmazás a profilból olvas ki, például gyors emelkedések, szemben a búvárkomputer által naplózott eseményekkel.';
+
+  @override
+  String get info_term_gasSwitchMarkers_label => 'Gázváltás-jelölők';
+
+  @override
+  String get info_term_gasSwitchMarkers_body =>
+      'Pontok, ahol a légzőgáz egyik palackról a másikra váltott.';
+
+  @override
+  String get info_term_diveModes_label => 'Merülési mód';
+
+  @override
+  String get info_term_diveModes_body =>
+      'Nyitott rendszerben (OC) minden kilégzés a vízbe távozik. A zárt (CCR) és félig zárt (SCR) rebreatherek hurokban újrahasznosítják a gázt.';
+
+  @override
+  String get info_term_netBuoyancy_label => 'Nettó felhajtóerő';
+
+  @override
+  String get info_term_netBuoyancy_body =>
+      'Minden tag összeadva, a felhajtóerő pozitív, a súly negatív. A nulla a semleges.';
+
+  @override
+  String get info_term_buoyancySwing_label => 'Felhajtóerő-ingadozás';
+
+  @override
+  String get info_term_buoyancySwing_body =>
+      'Mennyit változott a nettó felhajtóerő a merülés eleje és vége között, főleg a belélegzett gáz súlya miatt.';
+
+  @override
+  String get info_term_peakLift_label => 'Szükséges legnagyobb felhajtóerő';
+
+  @override
+  String get info_term_peakLift_body =>
+      'A legnagyobb felhajtóerő, amelyet a wingnek vagy a szárazruhának a merülés bármely pontján hozzá kellett adnia a semlegességhez.';
+
+  @override
+  String get info_term_minDitchable_label => 'Minimális ledobható súly';
+
+  @override
+  String info_term_minDitchable_body(String weight) {
+    return 'Az a súly, amelyet a merülés legnehezebb pontján le kellene dobni, hogy nagyjából $weight pozitív felhajtóerő legyen.';
+  }
+
+  @override
+  String get info_term_drysuitGas_label => 'Szárazruhába adott gáz';
+
+  @override
+  String get info_term_drysuitGas_body =>
+      'A szárazruhába lefelé menet adott gáz a szorítás kiegyenlítésére, felhajtóerőként számolva.';
+
+  @override
+  String get info_term_noFlyTime_label => 'Repülési tilalom ideje';
+
+  @override
+  String get info_term_noFlyTime_body =>
+      'Az utolsó merüléstől addig eltelt idő, amíg a DAN és UHMS repülésre vonatkozó irányelve szerinti intervallum le nem telik. Az intervallum attól függ, hogy egyszeri, ismételt vagy dekompressziós merülések voltak-e, és a beállításokban választott előbeállítástól.';
+
+  @override
+  String get info_diveLog_profile_summary =>
+      'A mélység az idő függvényében az egész merülésre, minden bekapcsolt réteggel ugyanazon az időtengelyen.';
+
+  @override
+  String get info_diveLog_profile_background =>
+      'A deko- és oxigénrétegek a Buhlmann ZHL-16C modellből származnak a beállításokban megadott gradiensfaktorokkal, valamint a NOAA oxigéntáblázataiból.';
+
+  @override
+  String get info_diveLog_profile_howToUse =>
+      'A grafikonon végighaladva egy pillanat minden értéke leolvasható. A jelmagyarázat ki- és bekapcsolja a rétegeket, a tartomány gomb a merülés egy részét jelöli ki a statisztikájához.';
+
+  @override
+  String get info_diveLog_rangeStats_summary =>
+      'Statisztika a merülés grafikonon kijelölt részére.';
+
+  @override
+  String get info_diveLog_decoStatus_summary =>
+      'Amit a dekompressziós modell a kurzor időpontjában jelez: kellenek-e megállók, és mennyi idő vagy mélység maradt.';
+
+  @override
+  String get info_diveLog_decoStatus_background =>
+      'Az alkalmazás a Buhlmann ZHL-16C modellt futtatja a GF-címkén látható gradiensfaktorokkal. Más modellt vagy beállítást használó búvárkomputer eltérő számokat mutathat.';
+
+  @override
+  String get info_diveLog_o2Toxicity_summary =>
+      'Mennyi oxigénterhelést adott a merülés a rövid távú CNS-órán és a lassabb OTU-dózisban.';
+
+  @override
+  String get info_diveLog_o2Toxicity_background =>
+      'A CNS% a NOAA ppO2-terhelési határait követi, és a merülés után 90 perces felezési idővel csökken. A napi OTU éjfélkor nullázódik, a heti OTU az utolsó hét napot fedi le.';
+
+  @override
+  String get info_diveLog_gasSwitches_summary =>
+      'Hogyan viszonyul minden gázváltás ahhoz a legmélyebb ponthoz, ahol a gáz a ppO2-határán belül volt.';
+
+  @override
+  String get info_diveLog_tissueLoading_summary =>
+      'Mennyire terhelt inert gázzal a modell 16 kompartmentje a kurzor időpontjában.';
+
+  @override
+  String get info_diveLog_tissueLoading_background =>
+      'A modell a Buhlmann ZHL-16C, amely minden kompartmentben külön követi a nitrogént és a héliumot. A terhelés csak a felszíni szint fölötti részt számolja, így a teljesen deszaturált oszlopok sem mutatnak nullát.';
+
+  @override
+  String get info_diveLog_safetyReview_summary =>
+      'A merülés azon pillanatai, amelyek átléptek egy biztonsági ellenőrzési szabályt, a profil merülés utáni vizsgálatából.';
+
+  @override
+  String get info_diveLog_safetyReview_background =>
+      'A szabályok és küszöbeik a Beállítások, Biztonsági ellenőrzés részben adhatók meg.';
+
+  @override
+  String get info_diveLog_safetyReview_howToUse =>
+      'Egy megállapításra koppintva látszik, hol történt a profilon. Az elvetett megállapítás ennél a merülésnél rejtve marad.';
+
+  @override
+  String get info_diveLog_cylinders_summary =>
+      'A merülés minden palackja a gázával, a felhasznált nyomással és a gáz mélységhatáraival.';
+
+  @override
+  String get info_diveLog_sacSegments_summary =>
+      'A gázfogyasztás a merülés szakaszaira vagy időszeletekre bontva, hogy az egyes részek terhelése összevethető legyen.';
+
+  @override
+  String get info_diveLog_sacSegments_howToUse =>
+      'A grafikon fölötti kapcsoló vált a SAC és az RMV között.';
+
+  @override
+  String get info_diveLog_details_summary =>
+      'A merülés naplózott adatai, ahol semmit nem adtak meg, ott a profilból számított értékekkel.';
+
+  @override
+  String get info_diveLog_altitude_summary =>
+      'Ez a merülés magaslaton volt, ahol a felszín alacsonyabb légnyomása óvatosabbá teszi a dekompressziós modellt.';
+
+  @override
+  String get info_diveLog_buoyancy_summary =>
+      'A nettó felhajtóerő modellje a merülés során, a profilból, a belélegzett gázból és a merüléshez naplózott felszerelésből.';
+
+  @override
+  String get info_diveLog_buoyancy_howToUse =>
+      'A Módosítás egy lapot nyit, amely más ólommennyiséget vagy ruhafelhajtóerőt próbál ki erre a merülésre.';
+
+  @override
+  String get info_diveLog_waterConditions_summary =>
+      'Tengerhőmérséklet és korallok hőstressze a hely közelében a merülés napja körül, a NOAA Coral Reef Watch műholdas adataiból.';
+
+  @override
+  String get info_diveLab_compare_summary =>
+      'Hogyan viszonyul ez a merülés a kapcsolt tervéhez vagy a mentett forgatókönyvekhez a dekompresszió szempontjából fontos számokban.';
+
+  @override
+  String get info_diveLab_compare_howToUse =>
+      'A kártyára koppintva megnyílik a Merülési labor, ahol más döntések próbálhatók ki erre a merülésre.';
+
+  @override
+  String get info_safety_noFly_summary =>
+      'Mikor ér véget a repülésre vonatkozó irányelv szerinti intervallum a legutóbbi merülések után.';
 }

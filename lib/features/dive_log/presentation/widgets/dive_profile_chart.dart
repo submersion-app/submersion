@@ -10,6 +10,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/features/dive_log/presentation/info/dive_profile_info.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gas_switch_format.dart';
 import 'package:submersion/features/dive_log/presentation/utils/profile_time_domain.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gtr_format.dart';
@@ -3186,6 +3187,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       hasCnsData: hasCnsData,
       hasOtuData: hasOtuData,
     );
+
+    // The card header's info icon lists the overlays drawn here.
+    ProfileLegendSnapshotScope.maybeOf(context)?.config = legendConfig;
 
     _scheduleLegendMeasure();
 

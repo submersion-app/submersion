@@ -15,6 +15,7 @@ import 'package:submersion/features/dive_log/domain/services/logged_tank_mod.dar
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_pressure_lookup.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
+import 'package:submersion/features/dive_log/presentation/info/cylinders_info.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -38,6 +39,8 @@ import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_dis
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// Unified card showing every cylinder on a dive: each tank drawn as a
 /// figure filled to show the gas left and the gas used, labelled with its
@@ -145,9 +148,30 @@ class CylindersCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              l10n.diveLog_detail_section_cylinders,
-              style: theme.textTheme.titleMedium,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.diveLog_detail_section_cylinders,
+                    style: theme.textTheme.titleMedium,
+                  ),
+                ),
+                HeaderInfoButton(
+                  title: l10n.diveLog_detail_section_cylinders,
+                  content: (context) => cylindersInfo(
+                    context.l10n,
+                    infoUnits(context),
+                    hasNitrox: dive.tanks.any(
+                      (t) => t.gasMix.he == 0 && t.gasMix.o2 > 22,
+                    ),
+                    hasTrimix: dive.tanks.any((t) => t.gasMix.he > 0),
+                    isRebreather: dive.isRebreather,
+                    showsSac: display.showsSac,
+                    showsRmv: display.showsRmv,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 4),
             for (var i = 0; i < rows.length; i++) ...[

@@ -62572,4 +62572,259 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get info_term_highO2Hours_body =>
       'الوقت المقضي في تنفس غاز بنسبة أكسجين مرتفعة، ما يسرّع تآكل القطع المخصصة لخدمة الأكسجين.';
+
+  @override
+  String get info_term_decoStatus_label => 'DECO وNO DECO';
+
+  @override
+  String get info_term_decoStatus_body =>
+      'NO DECO تعني أن الصعود المباشر يتوافق مع النموذج في تلك اللحظة. DECO تعني أن توقفًا واحدًا على الأقل مطلوب قبل الوصول إلى السطح.';
+
+  @override
+  String get info_term_cnsStartAdded_label => 'البداية وهذه الغطسة';
+
+  @override
+  String get info_term_cnsStartAdded_body =>
+      'البداية هي نسبة CNS المنقولة من الغطسات السابقة بعد انخفاضها بمرور الوقت. وهذه الغطسة هي ما أضافته الغطسة نفسها فوق ذلك.';
+
+  @override
+  String get info_term_otuWindows_label => 'OTU اليومي والأسبوعي';
+
+  @override
+  String get info_term_otuWindows_body =>
+      'يحسب OTU اليومي كل الغطسات منذ منتصف الليل، وOTU الأسبوعي مجموع متحرك لآخر سبعة أيام. ويُعرض كل منهما مقابل حد التطبيق لتلك الفترة.';
+
+  @override
+  String get info_term_maxPpO2_label => 'أقصى ppO2';
+
+  @override
+  String get info_term_maxPpO2_body =>
+      'أعلى ضغط جزئي للأكسجين تم تنفسه خلال الغطسة.';
+
+  @override
+  String get info_term_timeAboveLimit_label => 'الوقت فوق حد ppO2';
+
+  @override
+  String get info_term_timeAboveLimit_body =>
+      'المدة التي بقي فيها ضغط الأكسجين الجزئي فوق الحدود المحددة في الإعدادات خلال هذه الغطسة.';
+
+  @override
+  String get info_term_idealSwitchDepth_label => 'عمق التبديل المثالي';
+
+  @override
+  String get info_term_idealSwitchDepth_body =>
+      'أعمق نقطة أثناء الصعود يكون فيها الغاز التالي ضمن حد ضغط الأكسجين الجزئي، أي MOD الخاص به. تقارنها البطاقة بالعمق الذي سُجل فيه التبديل.';
+
+  @override
+  String get info_term_extraDeco_label => 'إزالة ضغط إضافية';
+
+  @override
+  String get info_term_extraDeco_body =>
+      'وقت إزالة الضغط الذي يضيفه النموذج لأن التبديل حدث أقل عمقًا أو أبطأ من النقطة المثالية.';
+
+  @override
+  String get info_term_stackedArea_label => 'المساحة المكدسة';
+
+  @override
+  String get info_term_stackedArea_body =>
+      'كل شريط هو تحميل حجيرة واحدة عبر الزمن مكدسًا فوق الأخرى، فيبين الارتفاع الكلي التحميل عبر كل الحجيرات.';
+
+  @override
+  String get info_term_nitrogenHelium_label => 'N2 وHe';
+
+  @override
+  String get info_term_nitrogenHelium_body =>
+      'يُقسم تحميل كل حجيرة إلى نيتروجين وهيليوم. يدخل الهيليوم ويخرج أسرع من النيتروجين.';
+
+  @override
+  String get info_term_missedDecoStop_label => 'توقف إزالة ضغط فائت';
+
+  @override
+  String get info_term_missedDecoStop_body =>
+      'توقف مطلوب اختُصر أو تم تجاوزه، يُكتشف بمقارنة المخطط مع توقفات النموذج.';
+
+  @override
+  String get info_term_sawtooth_label => 'مخطط منشاري';
+
+  @override
+  String get info_term_sawtooth_body =>
+      'صعود وهبوط متكرران خلال الغطسة. تربطهما أبحاث إزالة الضغط بزيادة تكون الفقاعات.';
+
+  @override
+  String get info_term_lateGasSwitch_label => 'تبديل غاز متأخر';
+
+  @override
+  String get info_term_lateGasSwitch_body =>
+      'تبديل إلى غاز إزالة ضغط تم على عمق أقل بوضوح أو في وقت أبطأ من النقطة التي أصبح فيها الغاز صالحًا للاستخدام.';
+
+  @override
+  String get info_term_avgVerticalSpeed_label => 'متوسط السرعة العمودية';
+
+  @override
+  String get info_term_avgVerticalSpeed_body =>
+      'متوسط معدل تغير العمق عبر النطاق المحدد.';
+
+  @override
+  String get info_term_computedEvents_label => 'أحداث محسوبة';
+
+  @override
+  String get info_term_computedEvents_body =>
+      'علامات يضيفها التطبيق بقراءة المخطط، مثل الصعود السريع، بخلاف الأحداث التي سجلها حاسوب الغوص.';
+
+  @override
+  String get info_term_gasSwitchMarkers_label => 'علامات تبديل الغاز';
+
+  @override
+  String get info_term_gasSwitchMarkers_body =>
+      'النقاط التي تغير فيها غاز التنفس من أسطوانة إلى أخرى.';
+
+  @override
+  String get info_term_diveModes_label => 'وضع الغوص';
+
+  @override
+  String get info_term_diveModes_body =>
+      'في الدائرة المفتوحة (OC) يخرج كل نفس إلى الماء. أما أجهزة إعادة التنفس المغلقة (CCR) وشبه المغلقة (SCR) فتعيد تدوير الغاز عبر دائرة.';
+
+  @override
+  String get info_term_netBuoyancy_label => 'صافي الطفو';
+
+  @override
+  String get info_term_netBuoyancy_body =>
+      'مجموع كل العناصر، مع احتساب الرفع موجبًا والوزن سالبًا. الصفر يعني الحياد.';
+
+  @override
+  String get info_term_buoyancySwing_label => 'تأرجح الطفو';
+
+  @override
+  String get info_term_buoyancySwing_body =>
+      'مقدار تغير صافي الطفو بين بداية الغطسة ونهايتها، ويرجع غالبًا إلى وزن الغاز المستنشق.';
+
+  @override
+  String get info_term_peakLift_label => 'أقصى رفع مطلوب';
+
+  @override
+  String get info_term_peakLift_body =>
+      'أكبر رفع اضطر الجناح أو البدلة الجافة إلى إضافته في أي لحظة من الغطسة للبقاء محايدًا.';
+
+  @override
+  String get info_term_minDitchable_label => 'أدنى وزن قابل للإسقاط';
+
+  @override
+  String info_term_minDitchable_body(String weight) {
+    return 'الوزن الذي يلزم إسقاطه عند أثقل نقطة في الغطسة ليصبح الطفو موجبًا بنحو $weight.';
+  }
+
+  @override
+  String get info_term_drysuitGas_label => 'غاز البدلة الجافة المضاف';
+
+  @override
+  String get info_term_drysuitGas_body =>
+      'الغاز المضاف إلى البدلة الجافة لتعويض انضغاطها أثناء النزول، ويُحتسب رفعًا.';
+
+  @override
+  String get info_term_noFlyTime_label => 'وقت حظر الطيران';
+
+  @override
+  String get info_term_noFlyTime_body =>
+      'الوقت من آخر غطسة حتى تنقضي الفترة الإرشادية للطيران وفق DAN وUHMS. تعتمد الفترة على كون الغطسات مفردة أو متكررة أو احتاجت إلى إزالة ضغط، وعلى الإعداد المسبق في الإعدادات.';
+
+  @override
+  String get info_diveLog_profile_summary =>
+      'العمق عبر الزمن للغطسة كلها، مع رسم كل طبقة مفعّلة على محور الزمن نفسه.';
+
+  @override
+  String get info_diveLog_profile_background =>
+      'تأتي طبقات إزالة الضغط والأكسجين من نموذج Buhlmann ZHL-16C بعوامل التدرج المحددة في الإعدادات، ومن جداول الأكسجين لدى NOAA.';
+
+  @override
+  String get info_diveLog_profile_howToUse =>
+      'تحرك عبر المخطط لقراءة كل القيم في لحظة واحدة. تشغّل وسيلة الإيضاح الطبقات وتطفئها، ويحدد زر النطاق جزءًا من الغطسة لعرض إحصاءاته.';
+
+  @override
+  String get info_diveLog_rangeStats_summary =>
+      'إحصاءات الجزء المحدد من الغطسة على المخطط.';
+
+  @override
+  String get info_diveLog_decoStatus_summary =>
+      'ما يبلغ عنه نموذج إزالة الضغط عند وقت المؤشر: هل التوقفات مطلوبة، وكم بقي من الوقت أو العمق.';
+
+  @override
+  String get info_diveLog_decoStatus_background =>
+      'يشغّل التطبيق نموذج Buhlmann ZHL-16C بعوامل التدرج الظاهرة على شارة GF. قد يعرض حاسوب غوص بنموذج أو إعدادات أخرى أرقامًا مختلفة.';
+
+  @override
+  String get info_diveLog_o2Toxicity_summary =>
+      'مقدار التعرض للأكسجين الذي أضافته الغطسة، على ساعة CNS قصيرة الأمد وجرعة OTU الأبطأ.';
+
+  @override
+  String get info_diveLog_o2Toxicity_background =>
+      'تتبع نسبة CNS حدود التعرض لضغط الأكسجين الجزئي لدى NOAA وتنخفض بنصف عمر قدره 90 دقيقة بعد الغطسة. يُعاد ضبط OTU اليومي عند منتصف الليل ويغطي OTU الأسبوعي آخر سبعة أيام.';
+
+  @override
+  String get info_diveLog_gasSwitches_summary =>
+      'كيف قورن كل تبديل غاز بأعمق نقطة كان فيها ذلك الغاز ضمن حد ضغط الأكسجين الجزئي.';
+
+  @override
+  String get info_diveLog_tissueLoading_summary =>
+      'مدى تحميل كل حجيرة من الحجيرات الست عشرة في النموذج بالغاز الخامل عند وقت المؤشر.';
+
+  @override
+  String get info_diveLog_tissueLoading_background =>
+      'النموذج هو Buhlmann ZHL-16C الذي يتتبع النيتروجين والهيليوم بشكل منفصل في كل حجيرة. يحتسب التحميل ما فوق مستوى السطح فقط، لذا لا تصل الأعمدة إلى الصفر حتى بعد إطلاق الغاز كاملًا.';
+
+  @override
+  String get info_diveLog_safetyReview_summary =>
+      'لحظات في هذه الغطسة تجاوزت إحدى قواعد مراجعة السلامة، اكتُشفت بفحص المخطط بعد الغطسة.';
+
+  @override
+  String get info_diveLog_safetyReview_background =>
+      'تُحدد القواعد وعتباتها في الإعدادات، ضمن مراجعة السلامة.';
+
+  @override
+  String get info_diveLog_safetyReview_howToUse =>
+      'اضغط على ملاحظة لإظهار موضع حدوثها على المخطط. يؤدي تجاهل الملاحظة إلى إخفائها في هذه الغطسة.';
+
+  @override
+  String get info_diveLog_cylinders_summary =>
+      'كل أسطوانة في الغطسة مع غازها والضغط المستخدم وحدود العمق لذلك الغاز.';
+
+  @override
+  String get info_diveLog_sacSegments_summary =>
+      'استهلاك الغاز مقسمًا إلى مراحل الغطسة أو إلى شرائح زمنية، لمقارنة جهد كل جزء.';
+
+  @override
+  String get info_diveLog_sacSegments_howToUse =>
+      'يبدّل المحدد أعلى المخطط بين SAC وRMV.';
+
+  @override
+  String get info_diveLog_details_summary =>
+      'حقائق هذه الغطسة المسجلة، مع قيم مستخرجة من المخطط حيث لم يُدخل شيء.';
+
+  @override
+  String get info_diveLog_altitude_summary =>
+      'كانت هذه الغطسة على ارتفاع، حيث يجعل انخفاض ضغط الهواء عند السطح نموذج إزالة الضغط أكثر تحفظًا.';
+
+  @override
+  String get info_diveLog_buoyancy_summary =>
+      'نموذج لصافي الطفو خلال الغطسة، مبني على المخطط والغاز المستنشق والمعدات المسجلة مع الغطسة.';
+
+  @override
+  String get info_diveLog_buoyancy_howToUse =>
+      'يفتح زر الضبط لوحة تجرب كمية مختلفة من الرصاص أو طفو البدلة على هذه الغطسة.';
+
+  @override
+  String get info_diveLog_waterConditions_summary =>
+      'حرارة البحر والإجهاد الحراري للشعاب المرجانية قرب الموقع حول تاريخ الغطسة، من بيانات أقمار NOAA Coral Reef Watch.';
+
+  @override
+  String get info_diveLab_compare_summary =>
+      'كيف تقارن هذه الغطسة بخطتها المرتبطة أو بالسيناريوهات المحفوظة في الأرقام المهمة لإزالة الضغط.';
+
+  @override
+  String get info_diveLab_compare_howToUse =>
+      'اضغط على البطاقة لفتح مختبر الغوص وتجربة خيارات أخرى على هذه الغطسة.';
+
+  @override
+  String get info_safety_noFly_summary =>
+      'متى تنتهي الفترة الإرشادية للطيران بعد أحدث الغطسات.';
 }

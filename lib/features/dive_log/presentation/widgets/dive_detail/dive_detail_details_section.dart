@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/dive_log/presentation/info/dive_details_info.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/text/blank_text.dart';
@@ -29,6 +30,8 @@ import 'package:submersion/features/trips/presentation/widgets/part_of_trip_link
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// The Details card, the same one in the normal section flow and beside
 /// Conditions.
@@ -80,9 +83,29 @@ class DiveDetailsSection extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                context.l10n.diveLog_detail_section_details,
-                style: Theme.of(context).textTheme.titleMedium,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      context.l10n.diveLog_detail_section_details,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                  HeaderInfoButton(
+                    title: context.l10n.diveLog_detail_section_details,
+                    content: (context) {
+                      final display = ref.read(gasConsumptionDisplayProvider);
+                      return diveDetailsInfo(
+                        context.l10n,
+                        infoUnits(context),
+                        showsSac: display.showsSac,
+                        showsRmv: display.showsRmv,
+                        hasGradientFactors: dive.gradientFactorLow != null,
+                      );
+                    },
+                  ),
+                ],
               ),
               const Divider(),
               DiveDetailRow(

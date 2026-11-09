@@ -61730,4 +61730,260 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get info_term_highO2Hours_body =>
       'Tempo passato a respirare gas con frazione di ossigeno elevata, che consuma prima le parti per servizio ossigeno.';
+
+  @override
+  String get info_term_decoStatus_label => 'DECO e NO DECO';
+
+  @override
+  String get info_term_decoStatus_body =>
+      'NO DECO significa che una risalita diretta rientra nel modello in quel momento. DECO significa che serve almeno una sosta prima di emergere.';
+
+  @override
+  String get info_term_cnsStartAdded_label => 'Inizio e questa immersione';
+
+  @override
+  String get info_term_cnsStartAdded_body =>
+      'Inizio è il CNS% ereditato dalle immersioni precedenti, già ridotto dal tempo trascorso. Questa immersione è quanto l\'immersione stessa ha aggiunto.';
+
+  @override
+  String get info_term_otuWindows_label => 'OTU giornaliero e settimanale';
+
+  @override
+  String get info_term_otuWindows_body =>
+      'L\'OTU giornaliero conta ogni immersione dalla mezzanotte e quello settimanale è un totale mobile degli ultimi sette giorni. Ciascuno è mostrato rispetto al limite dell\'app per quel periodo.';
+
+  @override
+  String get info_term_maxPpO2_label => 'ppO2 massima';
+
+  @override
+  String get info_term_maxPpO2_body =>
+      'La pressione parziale di ossigeno più alta respirata durante l\'immersione.';
+
+  @override
+  String get info_term_timeAboveLimit_label => 'Tempo sopra il limite di ppO2';
+
+  @override
+  String get info_term_timeAboveLimit_body =>
+      'Per quanto tempo la ppO2 è rimasta sopra i limiti impostati nelle impostazioni durante questa immersione.';
+
+  @override
+  String get info_term_idealSwitchDepth_label => 'Profondità ideale di cambio';
+
+  @override
+  String get info_term_idealSwitchDepth_body =>
+      'Il punto più profondo della risalita in cui il gas successivo è entro il suo limite di ppO2, cioè la sua MOD. La scheda lo confronta con la profondità in cui è stato registrato il cambio.';
+
+  @override
+  String get info_term_extraDeco_label => 'Deco aggiuntiva';
+
+  @override
+  String get info_term_extraDeco_body =>
+      'Tempo di decompressione che il modello aggiunge perché un cambio è avvenuto meno in profondità o più tardi del punto ideale.';
+
+  @override
+  String get info_term_stackedArea_label => 'Area impilata';
+
+  @override
+  String get info_term_stackedArea_body =>
+      'Ogni banda è il carico di un compartimento nel tempo, impilato sugli altri, così l\'altezza totale mostra il carico di tutti i compartimenti.';
+
+  @override
+  String get info_term_nitrogenHelium_label => 'N2 e He';
+
+  @override
+  String get info_term_nitrogenHelium_body =>
+      'Il carico di ogni compartimento è diviso in azoto ed elio. L\'elio entra ed esce più in fretta dell\'azoto.';
+
+  @override
+  String get info_term_missedDecoStop_label =>
+      'Sosta di decompressione mancata';
+
+  @override
+  String get info_term_missedDecoStop_body =>
+      'Una sosta richiesta accorciata o saltata, individuata confrontando il profilo con le soste del modello.';
+
+  @override
+  String get info_term_sawtooth_label => 'Profilo a dente di sega';
+
+  @override
+  String get info_term_sawtooth_body =>
+      'Risalite e discese ripetute durante un\'immersione. La ricerca sulla decompressione le collega a una maggiore formazione di bolle.';
+
+  @override
+  String get info_term_lateGasSwitch_label => 'Cambio gas tardivo';
+
+  @override
+  String get info_term_lateGasSwitch_body =>
+      'Un passaggio a un gas decompressivo fatto chiaramente meno in profondità o più tardi del punto in cui quel gas era utilizzabile.';
+
+  @override
+  String get info_term_avgVerticalSpeed_label => 'Velocità verticale media';
+
+  @override
+  String get info_term_avgVerticalSpeed_body =>
+      'Il ritmo medio di variazione della profondità nell\'intervallo selezionato.';
+
+  @override
+  String get info_term_computedEvents_label => 'Eventi calcolati';
+
+  @override
+  String get info_term_computedEvents_body =>
+      'Indicatori che l\'app aggiunge leggendo il profilo, come le risalite rapide, a differenza degli eventi registrati dal computer.';
+
+  @override
+  String get info_term_gasSwitchMarkers_label => 'Indicatori di cambio gas';
+
+  @override
+  String get info_term_gasSwitchMarkers_body =>
+      'Punti in cui il gas respirato è passato da una bombola a un\'altra.';
+
+  @override
+  String get info_term_diveModes_label => 'Modalità di immersione';
+
+  @override
+  String get info_term_diveModes_body =>
+      'In circuito aperto (OC) ogni espirazione finisce in acqua. I rebreather chiusi (CCR) e semichiusi (SCR) riciclano il gas attraverso un circuito.';
+
+  @override
+  String get info_term_netBuoyancy_label => 'Galleggiabilità netta';
+
+  @override
+  String get info_term_netBuoyancy_body =>
+      'Tutti i termini sommati, con la spinta positiva e il peso negativo. Zero è neutro.';
+
+  @override
+  String get info_term_buoyancySwing_label => 'Variazione di galleggiabilità';
+
+  @override
+  String get info_term_buoyancySwing_body =>
+      'Quanto è cambiata la galleggiabilità netta tra inizio e fine immersione, soprattutto per il peso del gas respirato.';
+
+  @override
+  String get info_term_peakLift_label => 'Spinta massima necessaria';
+
+  @override
+  String get info_term_peakLift_body =>
+      'La spinta maggiore che il wing o la muta stagna ha dovuto fornire in un momento dell\'immersione per restare neutri.';
+
+  @override
+  String get info_term_minDitchable_label => 'Zavorra sganciabile minima';
+
+  @override
+  String info_term_minDitchable_body(String weight) {
+    return 'Il peso da sganciare nel punto più pesante dell\'immersione per restare positivi di circa $weight.';
+  }
+
+  @override
+  String get info_term_drysuitGas_label => 'Gas aggiunto alla muta stagna';
+
+  @override
+  String get info_term_drysuitGas_body =>
+      'Gas aggiunto alla muta stagna per compensarne lo schiacciamento in discesa, conteggiato come spinta.';
+
+  @override
+  String get info_term_noFlyTime_label => 'Tempo di non volo';
+
+  @override
+  String get info_term_noFlyTime_body =>
+      'Tempo dall\'ultima immersione finché trascorre l\'intervallo delle linee guida DAN e UHMS per volare. L\'intervallo dipende dal fatto che le immersioni fossero singole, ripetitive o con decompressione, e dal preset nelle impostazioni.';
+
+  @override
+  String get info_diveLog_profile_summary =>
+      'Profondità nel tempo per tutta l\'immersione, con ogni sovrapposizione attiva disegnata sullo stesso asse del tempo.';
+
+  @override
+  String get info_diveLog_profile_background =>
+      'Le sovrapposizioni di deco e ossigeno derivano dal modello Buhlmann ZHL-16C con i fattori di gradiente delle impostazioni e dalle tabelle dell\'ossigeno della NOAA.';
+
+  @override
+  String get info_diveLog_profile_howToUse =>
+      'Scorri il grafico per leggere tutti i valori in un istante. La legenda attiva e disattiva le sovrapposizioni e il pulsante intervallo seleziona una parte dell\'immersione per vederne le statistiche.';
+
+  @override
+  String get info_diveLog_rangeStats_summary =>
+      'Statistiche della parte dell\'immersione selezionata sul grafico.';
+
+  @override
+  String get info_diveLog_decoStatus_summary =>
+      'Cosa riporta il modello di decompressione al momento del cursore: se servono soste e quanto tempo o profondità resta.';
+
+  @override
+  String get info_diveLog_decoStatus_background =>
+      'L\'app usa il modello Buhlmann ZHL-16C con i fattori di gradiente dell\'etichetta GF. Un computer con un altro modello o altre impostazioni può mostrare numeri diversi.';
+
+  @override
+  String get info_diveLog_o2Toxicity_summary =>
+      'Quanta esposizione all\'ossigeno ha aggiunto l\'immersione, sull\'orologio CNS a breve termine e sulla dose OTU più lenta.';
+
+  @override
+  String get info_diveLog_o2Toxicity_background =>
+      'Il CNS% segue i limiti di esposizione alla ppO2 della NOAA e cala con un\'emivita di 90 minuti dopo l\'immersione. L\'OTU giornaliero si azzera a mezzanotte e quello settimanale copre gli ultimi sette giorni.';
+
+  @override
+  String get info_diveLog_gasSwitches_summary =>
+      'Come si confronta ogni cambio gas con il punto più profondo in cui quel gas era entro il suo limite di ppO2.';
+
+  @override
+  String get info_diveLog_tissueLoading_summary =>
+      'Quanto è carico di gas inerte ciascuno dei 16 compartimenti del modello al momento del cursore.';
+
+  @override
+  String get info_diveLog_tissueLoading_background =>
+      'Il modello è Buhlmann ZHL-16C, che segue azoto ed elio separatamente in ogni compartimento. Il carico conta solo ciò che sta sopra il livello di superficie, quindi le barre desaturate non arrivano mai a zero.';
+
+  @override
+  String get info_diveLog_safetyReview_summary =>
+      'Momenti di questa immersione che hanno superato una delle regole della revisione di sicurezza, individuati controllando il profilo dopo l\'immersione.';
+
+  @override
+  String get info_diveLog_safetyReview_background =>
+      'Le regole e le loro soglie si impostano in Impostazioni, alla voce Revisione di sicurezza.';
+
+  @override
+  String get info_diveLog_safetyReview_howToUse =>
+      'Toccando un rilievo si vede dove è avvenuto sul profilo. Ignorarlo lo nasconde per questa immersione.';
+
+  @override
+  String get info_diveLog_cylinders_summary =>
+      'Ogni bombola dell\'immersione con il suo gas, la pressione usata e i limiti di profondità di quel gas.';
+
+  @override
+  String get info_diveLog_sacSegments_summary =>
+      'Il consumo di gas diviso per fasi dell\'immersione o per intervalli di tempo, così da confrontare lo sforzo di ogni parte.';
+
+  @override
+  String get info_diveLog_sacSegments_howToUse =>
+      'Il selettore sopra il grafico passa da SAC a RMV.';
+
+  @override
+  String get info_diveLog_details_summary =>
+      'I dati registrati di questa immersione, con valori ricavati dal profilo dove non è stato inserito nulla.';
+
+  @override
+  String get info_diveLog_altitude_summary =>
+      'Questa immersione era in quota, dove la minore pressione atmosferica in superficie rende più conservativo il modello di decompressione.';
+
+  @override
+  String get info_diveLog_buoyancy_summary =>
+      'Un modello della galleggiabilità netta durante l\'immersione, dal profilo, dal gas respirato e dall\'attrezzatura registrata con l\'immersione.';
+
+  @override
+  String get info_diveLog_buoyancy_howToUse =>
+      'Regola apre un pannello che prova un\'altra quantità di zavorra o di galleggiabilità della muta su questa immersione.';
+
+  @override
+  String get info_diveLog_waterConditions_summary =>
+      'Temperatura del mare e stress termico dei coralli vicino al sito intorno alla data dell\'immersione, dai dati satellitari di NOAA Coral Reef Watch.';
+
+  @override
+  String get info_diveLab_compare_summary =>
+      'Come si confronta questa immersione con il piano collegato o con gli scenari salvati sui numeri che contano per la decompressione.';
+
+  @override
+  String get info_diveLab_compare_howToUse =>
+      'Tocca la scheda per aprire il Laboratorio immersioni e provare altre scelte su questa immersione.';
+
+  @override
+  String get info_safety_noFly_summary =>
+      'Quando termina l\'intervallo delle linee guida per volare dopo le immersioni più recenti.';
 }

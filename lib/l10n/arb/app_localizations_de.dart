@@ -61595,4 +61595,260 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get info_term_highO2Hours_body =>
       'Zeit mit Atemgas erhöhten Sauerstoffanteils, die Teile für Sauerstoffbetrieb schneller verschleißt.';
+
+  @override
+  String get info_term_decoStatus_label => 'DEKO und NULLZEIT';
+
+  @override
+  String get info_term_decoStatus_body =>
+      'NULLZEIT bedeutet, dass ein direkter Aufstieg in diesem Moment ins Modell passt. DEKO bedeutet, dass vor dem Auftauchen mindestens ein Stopp nötig ist.';
+
+  @override
+  String get info_term_cnsStartAdded_label => 'Start und dieser Tauchgang';
+
+  @override
+  String get info_term_cnsStartAdded_body =>
+      'Start ist der aus früheren Tauchgängen mitgebrachte CNS-Wert, bereits um die vergangene Zeit verringert. Dieser Tauchgang ist das, was der Tauchgang selbst hinzugefügt hat.';
+
+  @override
+  String get info_term_otuWindows_label => 'OTU pro Tag und Woche';
+
+  @override
+  String get info_term_otuWindows_body =>
+      'Tages-OTU zählt alle Tauchgänge seit Mitternacht, Wochen-OTU ist eine laufende Summe der letzten sieben Tage. Beide stehen neben dem Grenzwert der App für diesen Zeitraum.';
+
+  @override
+  String get info_term_maxPpO2_label => 'Max. ppO2';
+
+  @override
+  String get info_term_maxPpO2_body =>
+      'Der höchste während des Tauchgangs geatmete Sauerstoffpartialdruck.';
+
+  @override
+  String get info_term_timeAboveLimit_label => 'Zeit über der ppO2-Grenze';
+
+  @override
+  String get info_term_timeAboveLimit_body =>
+      'Wie lange der ppO2 in diesem Tauchgang über den in den Einstellungen festgelegten Grenzen lag.';
+
+  @override
+  String get info_term_idealSwitchDepth_label => 'Ideale Wechseltiefe';
+
+  @override
+  String get info_term_idealSwitchDepth_body =>
+      'Der tiefste Punkt beim Aufstieg, an dem das nächste Gas innerhalb seiner ppO2-Grenze liegt, also seine MOD. Die Karte vergleicht ihn mit der Tiefe, in der der Wechsel geloggt wurde.';
+
+  @override
+  String get info_term_extraDeco_label => 'Zusätzliche Deko';
+
+  @override
+  String get info_term_extraDeco_body =>
+      'Dekompressionszeit, die das Modell hinzufügt, weil ein Wechsel flacher oder später als am idealen Punkt stattfand.';
+
+  @override
+  String get info_term_stackedArea_label => 'Gestapelte Fläche';
+
+  @override
+  String get info_term_stackedArea_body =>
+      'Jedes Band ist die Beladung eines Kompartiments über die Zeit, auf die anderen gestapelt, sodass die Gesamthöhe die Beladung aller Kompartimente zeigt.';
+
+  @override
+  String get info_term_nitrogenHelium_label => 'N2 und He';
+
+  @override
+  String get info_term_nitrogenHelium_body =>
+      'Die Beladung jedes Kompartiments ist in Stickstoff und Helium aufgeteilt. Helium wird schneller auf- und abgesättigt als Stickstoff.';
+
+  @override
+  String get info_term_missedDecoStop_label => 'Verpasster Dekostopp';
+
+  @override
+  String get info_term_missedDecoStop_body =>
+      'Ein nötiger Stopp, der verkürzt oder ausgelassen wurde, gefunden durch den Vergleich des Profils mit den Stopps des Modells.';
+
+  @override
+  String get info_term_sawtooth_label => 'Sägezahnprofil';
+
+  @override
+  String get info_term_sawtooth_body =>
+      'Wiederholtes Auf- und Absteigen während eines Tauchgangs. Die Dekompressionsforschung verbindet es mit stärkerer Blasenbildung.';
+
+  @override
+  String get info_term_lateGasSwitch_label => 'Später Gaswechsel';
+
+  @override
+  String get info_term_lateGasSwitch_body =>
+      'Ein Wechsel auf ein Dekogas, deutlich flacher oder später als an dem Punkt, an dem das Gas nutzbar wurde.';
+
+  @override
+  String get info_term_avgVerticalSpeed_label =>
+      'Mittlere Vertikalgeschwindigkeit';
+
+  @override
+  String get info_term_avgVerticalSpeed_body =>
+      'Die durchschnittliche Tiefenänderung pro Zeit im gewählten Bereich.';
+
+  @override
+  String get info_term_computedEvents_label => 'Berechnete Ereignisse';
+
+  @override
+  String get info_term_computedEvents_body =>
+      'Markierungen, die die App aus dem Profil ableitet, etwa schnelle Aufstiege, im Unterschied zu Ereignissen, die der Tauchcomputer geloggt hat.';
+
+  @override
+  String get info_term_gasSwitchMarkers_label => 'Gaswechselmarken';
+
+  @override
+  String get info_term_gasSwitchMarkers_body =>
+      'Punkte, an denen das Atemgas von einer Flasche auf eine andere wechselte.';
+
+  @override
+  String get info_term_diveModes_label => 'Tauchmodus';
+
+  @override
+  String get info_term_diveModes_body =>
+      'Im offenen System (OC) geht jeder Atemzug ins Wasser. Geschlossene (CCR) und halbgeschlossene (SCR) Rebreather führen das Gas durch einen Kreislauf zurück.';
+
+  @override
+  String get info_term_netBuoyancy_label => 'Nettoauftrieb';
+
+  @override
+  String get info_term_netBuoyancy_body =>
+      'Alle Anteile zusammengezählt, Auftrieb positiv und Gewicht negativ. Null ist neutral.';
+
+  @override
+  String get info_term_buoyancySwing_label => 'Auftriebsschwankung';
+
+  @override
+  String get info_term_buoyancySwing_body =>
+      'Wie stark sich der Nettoauftrieb zwischen Beginn und Ende des Tauchgangs änderte, vor allem durch das Gewicht des veratmeten Gases.';
+
+  @override
+  String get info_term_peakLift_label => 'Benötigter Spitzenauftrieb';
+
+  @override
+  String get info_term_peakLift_body =>
+      'Der größte Auftrieb, den Wing oder Trockenanzug zu irgendeinem Zeitpunkt des Tauchgangs liefern mussten, um neutral zu bleiben.';
+
+  @override
+  String get info_term_minDitchable_label => 'Mindestens abwerfbares Blei';
+
+  @override
+  String info_term_minDitchable_body(String weight) {
+    return 'Das Gewicht, das am schwersten Punkt des Tauchgangs abgeworfen werden müsste, um etwa $weight Auftrieb zu haben.';
+  }
+
+  @override
+  String get info_term_drysuitGas_label => 'Zugeführtes Trockenanzuggas';
+
+  @override
+  String get info_term_drysuitGas_body =>
+      'Gas, das dem Trockenanzug beim Abtauchen zugeführt wurde, um den Anzugdruck auszugleichen, und als Auftrieb zählt.';
+
+  @override
+  String get info_term_noFlyTime_label => 'Flugverbotszeit';
+
+  @override
+  String get info_term_noFlyTime_body =>
+      'Zeit vom letzten Tauchgang, bis das Richtlinienintervall von DAN und UHMS für das Fliegen verstrichen ist. Das Intervall hängt davon ab, ob die Tauchgänge einzeln, wiederholt oder mit Dekompression waren, und von der Voreinstellung in den Einstellungen.';
+
+  @override
+  String get info_diveLog_profile_summary =>
+      'Tiefe über die Zeit für den ganzen Tauchgang, mit jeder eingeschalteten Überlagerung auf derselben Zeitachse.';
+
+  @override
+  String get info_diveLog_profile_background =>
+      'Deko- und Sauerstoffüberlagerungen stammen aus dem Buhlmann-Modell ZHL-16C mit den Gradientenfaktoren aus den Einstellungen und aus den NOAA-Sauerstofftabellen.';
+
+  @override
+  String get info_diveLog_profile_howToUse =>
+      'Über das Diagramm fahren, um alle Werte zu einem Zeitpunkt abzulesen. Die Legende schaltet Überlagerungen ein und aus, die Bereichstaste wählt einen Teil des Tauchgangs für seine Statistik.';
+
+  @override
+  String get info_diveLog_rangeStats_summary =>
+      'Statistik für den im Diagramm gewählten Teil des Tauchgangs.';
+
+  @override
+  String get info_diveLog_decoStatus_summary =>
+      'Was das Dekompressionsmodell zur Cursorzeit meldet: ob Stopps nötig sind und wie viel Zeit oder Tiefe bleibt.';
+
+  @override
+  String get info_diveLog_decoStatus_background =>
+      'Die App rechnet mit dem Buhlmann-Modell ZHL-16C und den Gradientenfaktoren auf dem GF-Chip. Ein Tauchcomputer mit anderem Modell oder anderen Einstellungen kann andere Zahlen zeigen.';
+
+  @override
+  String get info_diveLog_o2Toxicity_summary =>
+      'Wie viel Sauerstoffbelastung der Tauchgang hinzufügte, auf der kurzfristigen CNS-Uhr und als langsamere OTU-Dosis.';
+
+  @override
+  String get info_diveLog_o2Toxicity_background =>
+      'CNS% folgt den ppO2-Belastungsgrenzen der NOAA und sinkt nach dem Tauchgang mit einer Halbwertszeit von 90 Minuten. Tages-OTU beginnt um Mitternacht neu, Wochen-OTU umfasst die letzten sieben Tage.';
+
+  @override
+  String get info_diveLog_gasSwitches_summary =>
+      'Wie jeder Gaswechsel im Vergleich zum tiefsten Punkt lag, an dem das Gas innerhalb seiner ppO2-Grenze war.';
+
+  @override
+  String get info_diveLog_tissueLoading_summary =>
+      'Wie stark jedes der 16 Kompartimente des Modells zur Cursorzeit mit Inertgas beladen ist.';
+
+  @override
+  String get info_diveLog_tissueLoading_background =>
+      'Das Modell ist Buhlmann ZHL-16C, das Stickstoff und Helium in jedem Kompartiment getrennt verfolgt. Die Beladung zählt nur, was über dem Oberflächenniveau liegt, daher zeigen ganz entsättigte Balken nie null.';
+
+  @override
+  String get info_diveLog_safetyReview_summary =>
+      'Momente dieses Tauchgangs, die eine der Regeln der Sicherheitsprüfung überschritten, gefunden durch Prüfen des Profils nach dem Tauchgang.';
+
+  @override
+  String get info_diveLog_safetyReview_background =>
+      'Die Regeln und ihre Schwellen werden in den Einstellungen unter Sicherheitsprüfung festgelegt.';
+
+  @override
+  String get info_diveLog_safetyReview_howToUse =>
+      'Ein Befund zeigt beim Antippen, wo er im Profil auftrat. Ein verworfener Befund wird für diesen Tauchgang ausgeblendet.';
+
+  @override
+  String get info_diveLog_cylinders_summary =>
+      'Jede Flasche des Tauchgangs mit ihrem Gas, dem verbrauchten Druck und den Tiefengrenzen dieses Gases.';
+
+  @override
+  String get info_diveLog_sacSegments_summary =>
+      'Gasverbrauch aufgeteilt nach Phasen des Tauchgangs oder Zeitabschnitten, damit sich die Anstrengung jedes Teils vergleichen lässt.';
+
+  @override
+  String get info_diveLog_sacSegments_howToUse =>
+      'Der Schalter über dem Diagramm wechselt zwischen Druckverbrauch und AMV.';
+
+  @override
+  String get info_diveLog_details_summary =>
+      'Die geloggten Angaben dieses Tauchgangs, mit aus dem Profil ermittelten Werten, wo nichts eingetragen wurde.';
+
+  @override
+  String get info_diveLog_altitude_summary =>
+      'Dieser Tauchgang war in der Höhe, wo der geringere Luftdruck an der Oberfläche das Dekompressionsmodell konservativer macht.';
+
+  @override
+  String get info_diveLog_buoyancy_summary =>
+      'Ein Modell des Nettoauftriebs während des Tauchgangs, aus Profil, veratmetem Gas und der mit dem Tauchgang geloggten Ausrüstung.';
+
+  @override
+  String get info_diveLog_buoyancy_howToUse =>
+      'Anpassen öffnet ein Blatt, das eine andere Bleimenge oder einen anderen Anzugauftrieb an diesem Tauchgang durchrechnet.';
+
+  @override
+  String get info_diveLog_waterConditions_summary =>
+      'Meerestemperatur und Hitzestress der Korallen nahe dem Platz rund um das Tauchdatum, aus Satellitendaten von NOAA Coral Reef Watch.';
+
+  @override
+  String get info_diveLab_compare_summary =>
+      'Wie dieser Tauchgang bei den für die Dekompression wichtigen Zahlen mit seinem verknüpften Plan oder gespeicherten Szenarien abschneidet.';
+
+  @override
+  String get info_diveLab_compare_howToUse =>
+      'Die Karte antippen, um das Tauchlabor zu öffnen und andere Entscheidungen an diesem Tauchgang auszuprobieren.';
+
+  @override
+  String get info_safety_noFly_summary =>
+      'Wann das Richtlinienintervall für das Fliegen nach den letzten Tauchgängen endet.';
 }

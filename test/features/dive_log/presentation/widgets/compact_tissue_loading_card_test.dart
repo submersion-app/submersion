@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/tissue_heat_ma
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_pressure_bar_chart.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -714,42 +715,31 @@ void main() {
     });
   });
 
-  group('CompactTissueLoadingCard values explanation (issue #4228)', () {
-    testWidgets('is collapsed by default and expands on tap', (tester) async {
+  group('CompactTissueLoadingCard info icon (issue #4377)', () {
+    testWidgets('replaces the values footer with a header info icon', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildCard(scrollable: true));
       await tester.pumpAndSettle();
 
       final context = tester.element(find.byType(CompactTissueLoadingCard));
       final l10n = AppLocalizations.of(context);
-      expect(find.text(l10n.diveLog_deco_info_title), findsOneWidget);
-      expect(find.text(l10n.diveLog_deco_info_body), findsNothing);
+      expect(find.text(l10n.diveLog_deco_info_title), findsNothing);
+      expect(find.byType(InfoButton), findsOneWidget);
 
-      await tester.tap(find.text(l10n.diveLog_deco_info_title));
+      await tester.tap(find.byType(InfoButton));
       await tester.pumpAndSettle();
-
-      expect(find.text(l10n.diveLog_deco_info_body), findsOneWidget);
-      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.textContaining('M-value'), findsWidgets);
     });
 
-    testWidgets('opens in a dialog when the card is stretched to a fixed '
-        'height, so it cannot overflow it', (tester) async {
+    testWidgets('keeps the stretched card free of overflow', (tester) async {
       await tester.pumpWidget(
         buildCard(decoStatuses: [_status], expandVisualization: true),
       );
       await tester.pumpAndSettle();
 
-      final context = tester.element(find.byType(CompactTissueLoadingCard));
-      final l10n = AppLocalizations.of(context);
-      await tester.tap(find.text(l10n.diveLog_deco_info_title));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(AlertDialog), findsOneWidget);
-      expect(find.text(l10n.diveLog_deco_info_body), findsOneWidget);
+      expect(find.byType(InfoButton), findsOneWidget);
       expect(tester.takeException(), isNull);
-
-      await tester.tap(find.text('Close'));
-      await tester.pumpAndSettle();
-      expect(find.byType(AlertDialog), findsNothing);
     });
   });
 }
