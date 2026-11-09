@@ -17179,6 +17179,52 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String equipment_group_foldedTypeCount(int count, String type) {
+    return '$type $count';
+  }
+
+  @override
+  String equipment_group_foldedServiceDue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صيانة مستحقة',
+      many: '$count صيانة مستحقة',
+      few: '$count صيانات مستحقة',
+      two: 'صيانتان مستحقتان',
+      one: 'صيانة واحدة مستحقة',
+      zero: 'لا صيانة مستحقة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedMoreTypes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'و$count أخرى',
+      many: 'و$count أخرى',
+      few: 'و$count أخرى',
+      two: 'واثنان آخران',
+      one: 'وواحد آخر',
+      zero: 'و$count أخرى',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedSelected(int selected, int total) {
+    return '$selected من $total محددة';
+  }
+
+  @override
+  String get equipment_list_expandAllGroups => 'توسيع الكل';
+
+  @override
+  String get equipment_list_collapseAllGroups => 'طي الكل';
+
+  @override
   String get equipment_location_activeFilter => 'الموقع';
 
   @override
@@ -24925,6 +24971,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_equipmentGroupByLocation =>
       'المعدات مجمعة حسب الموقع';
+
+  @override
+  String get settings_conflict_field_equipmentCollapsedGroups =>
+      'مجموعات المعدات المطوية';
 
   @override
   String get settings_conflict_field_listArrangementHlc => 'سجل ترتيب القوائم';

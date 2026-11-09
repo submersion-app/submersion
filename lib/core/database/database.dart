@@ -315,7 +315,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 350;
+  static const int currentSchemaVersion = 351;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1622,6 +1622,10 @@ class AppDatabase extends _$AppDatabase {
     // count (issue #4337). Nullable, no backfill; raises the sync floor to
     // 350. Numbered 350: main holds 349 and open PR #4327 is to take 348.
     350,
+    // v351: diver_settings.equipment_collapsed_groups, the Equipment page's
+    // folded group keys (issue #4184). A nullable column an older peer
+    // omits, so the floor does not move.
+    351,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

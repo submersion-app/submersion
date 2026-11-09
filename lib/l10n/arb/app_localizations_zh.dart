@@ -16123,6 +16123,42 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String equipment_group_foldedTypeCount(int count, String type) {
+    return '$type $count';
+  }
+
+  @override
+  String equipment_group_foldedServiceDue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 项保养到期',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedMoreTypes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '另外 $count 种',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedSelected(int selected, int total) {
+    return '已选 $selected/$total';
+  }
+
+  @override
+  String get equipment_list_expandAllGroups => '全部展开';
+
+  @override
+  String get equipment_list_collapseAllGroups => '全部折叠';
+
+  @override
   String get equipment_location_activeFilter => '位置';
 
   @override
@@ -23307,6 +23343,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_equipmentGroupByLocation => '装备按位置分组';
+
+  @override
+  String get settings_conflict_field_equipmentCollapsedGroups => '已折叠的装备分组';
 
   @override
   String get settings_conflict_field_listArrangementHlc => '列表排列记录';

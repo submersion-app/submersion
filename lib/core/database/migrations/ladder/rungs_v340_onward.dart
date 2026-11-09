@@ -99,5 +99,11 @@ extension RungsFromV340 on AppDatabase {
     // 350: main holds 349 and open PR #4327 is to take 348.
     if (from < 350) await _assertSightingAbundanceColumn();
     if (from < 350) await reportProgress();
+
+    // v351: diver_settings.equipment_collapsed_groups, the Equipment page's
+    // folded group keys (issue #4184). Nullable, no backfill. Re-asserted in
+    // beforeOpen.
+    if (from < 351) await _assertEquipmentCollapsedGroupsColumn();
+    if (from < 351) await reportProgress();
   }
 }

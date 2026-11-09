@@ -10067,7 +10067,19 @@
   "equipment_location_bulkAction": "Move to location",
   "@equipment_location_bulkAction": {"description": "Bulk action moving the selected gear to a place"},
   "equipment_location_groupCount": "{count, plural, one{{count} item} other{{count} items}}",
-  "@equipment_location_groupCount": {"description": "Item count beside a location heading and on the Locations page", "placeholders": {"count": {"type": "int"}}},
+  "@equipment_location_groupCount": {"description": "Item count beside a group heading on gear lists and pickers (a location, a type, or another diver's shared gear) and on the Locations page", "placeholders": {"count": {"type": "int"}}},
+  "equipment_group_foldedTypeCount": "{type} {count}",
+  "@equipment_group_foldedTypeCount": {"description": "One type and its item count in a folded location heading's summary, e.g. BCD 2", "placeholders": {"count": {"type": "int"}, "type": {"type": "String"}}},
+  "equipment_group_foldedServiceDue": "{count, plural, one{{count} service due} other{{count} service due}}",
+  "@equipment_group_foldedServiceDue": {"description": "Second line of a folded type heading on the Equipment list: how many items inside need service", "placeholders": {"count": {"type": "int"}}},
+  "equipment_group_foldedMoreTypes": "{count, plural, one{and {count} more} other{and {count} more}}",
+  "@equipment_group_foldedMoreTypes": {"description": "Ends a folded location heading's summary when it lists only the first three types", "placeholders": {"count": {"type": "int"}}},
+  "equipment_group_foldedSelected": "{selected} of {total} selected",
+  "@equipment_group_foldedSelected": {"description": "Second line of a folded group heading in selection mode: ticked items inside it of all its items", "placeholders": {"selected": {"type": "int"}, "total": {"type": "int"}}},
+  "equipment_list_expandAllGroups": "Expand all",
+  "@equipment_list_expandAllGroups": {"description": "Equipment list overflow menu: open every folded group"},
+  "equipment_list_collapseAllGroups": "Collapse all",
+  "@equipment_list_collapseAllGroups": {"description": "Equipment list overflow menu: fold every outermost group"},
   "equipment_location_activeFilter": "Location",
   "@equipment_location_activeFilter": {"description": "Chip in the active filters bar when the list is filtered by location"},
   "equipment_location_tileSemantics": "Location: {name}",
@@ -15096,6 +15108,10 @@
   "settings_conflict_field_equipmentGroupByLocation": "Equipment grouped by location",
   "@settings_conflict_field_equipmentGroupByLocation": {
     "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_field_equipmentCollapsedGroups": "Equipment folded groups",
+  "@settings_conflict_field_equipmentCollapsedGroups": {
+    "description": "Label for the Equipment page's saved folded groups in a sync conflict"
   },
   "settings_conflict_field_listArrangementHlc": "List arrangement record",
   "@settings_conflict_field_listArrangementHlc": {

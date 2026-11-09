@@ -16817,6 +16817,44 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String equipment_group_foldedTypeCount(int count, String type) {
+    return '$type $count';
+  }
+
+  @override
+  String equipment_group_foldedServiceDue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count onderhoudsbeurten nodig',
+      one: '$count onderhoudsbeurt nodig',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedMoreTypes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'en nog $count',
+      one: 'en nog $count',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedSelected(int selected, int total) {
+    return '$selected van $total geselecteerd';
+  }
+
+  @override
+  String get equipment_list_expandAllGroups => 'Alles uitklappen';
+
+  @override
+  String get equipment_list_collapseAllGroups => 'Alles inklappen';
+
+  @override
   String get equipment_location_activeFilter => 'Locatie';
 
   @override
@@ -24438,6 +24476,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_equipmentGroupByLocation =>
       'Uitrusting gegroepeerd op locatie';
+
+  @override
+  String get settings_conflict_field_equipmentCollapsedGroups =>
+      'Ingeklapte uitrustingsgroepen';
 
   @override
   String get settings_conflict_field_listArrangementHlc =>

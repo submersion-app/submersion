@@ -18,6 +18,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/folded_groups.dart';
 
 class _FakeComponentRepository extends EquipmentComponentRepository {
   final added = <(String, String)>[];
@@ -181,6 +182,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    await openFoldedGroups(tester);
     expect(find.text('Miflex XT · S/N X1'), findsOneWidget);
     expect(find.text('Miflex XT · S/N X2'), findsOneWidget);
   });
@@ -188,6 +190,7 @@ void main() {
   testWidgets('hides self, ancestors, and current parts', (tester) async {
     await tester.pumpWidget(build(_FakeComponentRepository()));
     await tester.pumpAndSettle();
+    await openFoldedGroups(tester);
     expect(find.text('Name hose'), findsOneWidget);
     expect(find.text('Name fins'), findsOneWidget);
     expect(find.text('Name reg'), findsNothing);
@@ -201,6 +204,7 @@ void main() {
     final repo = _FakeComponentRepository();
     await tester.pumpWidget(build(repo));
     await tester.pumpAndSettle();
+    await openFoldedGroups(tester);
     expect(find.text('Add'), findsOneWidget);
     await tester.tap(find.text('Name hose'));
     await tester.pump();
@@ -221,6 +225,7 @@ void main() {
       build(repo, count: _DiveCount()..diveCount = 3, dives: dives),
     );
     await tester.pumpAndSettle();
+    await openFoldedGroups(tester);
     await tester.tap(find.text('Name hose'));
     await tester.pump();
     await tester.tap(find.text('Name fins'));
@@ -258,6 +263,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    await openFoldedGroups(tester);
     await tester.tap(find.text('Name hose'));
     await tester.pump();
     await tester.tap(find.text('Add 1'));
@@ -280,6 +286,7 @@ void main() {
     final repo = _FakeComponentRepository()..throwCycleAfter = 1;
     await tester.pumpWidget(build(repo, count: _DiveCount()..diveCount = 0));
     await tester.pumpAndSettle();
+    await openFoldedGroups(tester);
     await tester.tap(find.text('Name hose'));
     await tester.pump();
     await tester.tap(find.text('Name fins'));
@@ -304,6 +311,7 @@ void main() {
       build(repo, count: _DiveCount()..diveCount = 2, dives: dives),
     );
     await tester.pumpAndSettle();
+    await openFoldedGroups(tester);
     await tester.tap(find.text('Name hose'));
     await tester.pump();
     await tester.tap(find.text('Name fins'));
@@ -329,6 +337,7 @@ void main() {
       build(repo, count: _DiveCount()..diveCount = 3, dives: dives),
     );
     await tester.pumpAndSettle();
+    await openFoldedGroups(tester);
     await tester.tap(find.text('Name hose'));
     await tester.pump();
     await tester.tap(find.text('Add 1'));
@@ -347,6 +356,7 @@ void main() {
     final repo = _FakeComponentRepository();
     await tester.pumpWidget(build(repo, count: _DiveCount()..diveCount = 3));
     await tester.pumpAndSettle();
+    await openFoldedGroups(tester);
     await tester.tap(find.text('Name hose'));
     await tester.pump();
     await tester.tap(find.text('Add 1'));
@@ -373,6 +383,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    await openFoldedGroups(tester);
     expect(find.text('Replace with'), findsOneWidget);
     expect(find.text('Replace'), findsOneWidget);
     await tester.tap(find.text('Name hose'));
@@ -413,6 +424,7 @@ void main() {
     expect(find.byType(CheckboxListTile), findsNothing);
     pending.complete(ComponentsIndex.fromRows(edges));
     await tester.pumpAndSettle();
+    await openFoldedGroups(tester);
     expect(find.byType(CircularProgressIndicator), findsNothing);
     expect(find.text('Name hose'), findsOneWidget);
     expect(find.text('Name reg'), findsNothing);
@@ -424,6 +436,7 @@ void main() {
     final repo = _FakeComponentRepository()..throwOther = StateError('boom');
     await tester.pumpWidget(build(repo));
     await tester.pumpAndSettle();
+    await openFoldedGroups(tester);
     await tester.tap(find.text('Name hose'));
     await tester.pump();
     await tester.tap(find.text('Add 1'));
@@ -437,6 +450,7 @@ void main() {
     final repo = _FakeComponentRepository()..gate = Completer<void>();
     await tester.pumpWidget(build(repo));
     await tester.pumpAndSettle();
+    await openFoldedGroups(tester);
     await tester.tap(find.text('Name hose'));
     await tester.pump();
     await tester.tap(find.text('Add 1'));
@@ -486,6 +500,7 @@ void main() {
     );
     await tester.tap(find.text('PAGE BENEATH'));
     await tester.pumpAndSettle();
+    await openFoldedGroups(tester);
     await tester.tap(find.text('Name hose'));
     await tester.pump();
     await tester.tap(find.text('Add 1'));
@@ -507,6 +522,7 @@ void main() {
     final repo = _FakeComponentRepository()..throwCycle = true;
     await tester.pumpWidget(build(repo));
     await tester.pumpAndSettle();
+    await openFoldedGroups(tester);
     await tester.tap(find.text('Name hose'));
     await tester.pump();
     await tester.tap(find.text('Add 1'));
@@ -524,10 +540,54 @@ void main() {
     // it follows Fins, so neither order can produce the result.
     await tester.pumpWidget(build(_FakeComponentRepository()));
     await tester.pumpAndSettle();
+    await openFoldedGroups(tester);
 
     expect(
       tester.getTopLeft(find.text('Fins')).dy,
       lessThan(tester.getTopLeft(find.text('Hose')).dy),
     );
+  });
+
+  group('foldable groups (#3364)', () {
+    Finder typeHeader(EquipmentType type) =>
+        find.byKey(ValueKey('equipment-type-fold-type:${type.name}'));
+
+    testWidgets('several types start closed', (tester) async {
+      await tester.pumpWidget(build(_FakeComponentRepository()));
+      await tester.pumpAndSettle();
+      expect(typeHeader(EquipmentType.hose), findsOneWidget);
+      expect(typeHeader(EquipmentType.fins), findsOneWidget);
+      expect(find.text('Name hose'), findsNothing);
+      expect(find.text('Name fins'), findsNothing);
+    });
+
+    testWidgets('one type starts open', (tester) async {
+      await tester.pumpWidget(
+        build(
+          _FakeComponentRepository(),
+          gear: [
+            item('reg', EquipmentType.regulator),
+            item('hose', EquipmentType.hose),
+          ],
+          index: Future.value(ComponentsIndex.empty),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Name hose'), findsOneWidget);
+    });
+
+    testWidgets('ticking then folding shows 1 of N selected', (tester) async {
+      await tester.pumpWidget(build(_FakeComponentRepository()));
+      await tester.pumpAndSettle();
+      await tester.tap(typeHeader(EquipmentType.hose));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Name hose'));
+      await tester.pumpAndSettle();
+      await tester.tap(typeHeader(EquipmentType.hose));
+      await tester.pumpAndSettle();
+      expect(find.text('1 of 1 selected'), findsOneWidget);
+      // The tick survives the fold.
+      expect(find.text('Add 1'), findsOneWidget);
+    });
   });
 }

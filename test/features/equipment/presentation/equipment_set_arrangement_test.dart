@@ -12,6 +12,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_a
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_type_fold_header.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -80,8 +81,14 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  List<EquipmentType> headers(WidgetTester tester) => tester
+  // The set detail page keeps plain headings; the editor's fold (#3364).
+  List<EquipmentType> detailHeaders(WidgetTester tester) => tester
       .widgetList<EquipmentGroupHeader>(find.byType(EquipmentGroupHeader))
+      .map((h) => h.type)
+      .toList();
+
+  List<EquipmentType> headers(WidgetTester tester) => tester
+      .widgetList<EquipmentTypeFoldHeader>(find.byType(EquipmentTypeFoldHeader))
       .map((h) => h.type)
       .toList();
 
@@ -96,7 +103,7 @@ void main() {
       ),
     );
 
-    expect(headers(tester), [
+    expect(detailHeaders(tester), [
       EquipmentType.tank,
       EquipmentType.regulator,
       EquipmentType.bcd,

@@ -13,6 +13,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../../helpers/mock_providers.dart';
+import '../../../../../helpers/folded_groups.dart';
 
 const _reg = EquipmentItem(
   id: 'reg',
@@ -114,11 +115,14 @@ Future<void> _pump(
     ),
   );
   await tester.pumpAndSettle();
+  // The picker opens with its groups folded (#3364).
+  await openFoldedGroups(tester);
 }
 
 Future<void> _showParts(WidgetTester tester) async {
   await tester.tap(find.text(_showLabel));
   await tester.pumpAndSettle();
+  await openFoldedGroups(tester);
 }
 
 void main() {
@@ -270,6 +274,7 @@ void main() {
       );
       await tester.tap(find.text('Show retired and sold gear'));
       await tester.pumpAndSettle();
+      await openFoldedGroups(tester);
 
       expect(find.text('DIN First Stage'), findsOneWidget);
       expect(find.text('Primary Second Stage'), findsNothing);
@@ -306,6 +311,7 @@ void main() {
 
       await tester.tap(find.text('Show retired and sold gear'));
       await tester.pumpAndSettle();
+      await openFoldedGroups(tester);
 
       expect(find.text('DIN First Stage'), findsOneWidget);
       expect(find.text('Braided Hose'), findsOneWidget);
@@ -329,6 +335,7 @@ void main() {
       );
       await tester.tap(find.text('Show retired and sold gear'));
       await tester.pumpAndSettle();
+      await openFoldedGroups(tester);
 
       expect(find.text('Cold Water Reg'), findsOneWidget);
       expect(find.text('DIN First Stage'), findsOneWidget);

@@ -21,6 +21,7 @@ extension ListArrangementColumns on DiverSettingsCompanion {
         certificationListGroupBy: Value(arrangements.certificationGroupBy),
         equipmentArrangement: Value(arrangements.equipmentArrangement),
         equipmentGroupByLocation: Value(arrangements.equipmentGroupByLocation),
+        equipmentCollapsedGroups: Value(arrangements.equipmentCollapsedGroups),
       );
 }
 
@@ -39,4 +40,5 @@ ListArrangements listArrangementsFromRow(DiverSetting row) => ListArrangements(
   certificationGroupBy: row.certificationListGroupBy,
   equipmentArrangement: row.equipmentArrangement,
   equipmentGroupByLocation: row.equipmentGroupByLocation,
+  equipmentCollapsedGroups: row.equipmentCollapsedGroups,
 );
