@@ -90,6 +90,24 @@ void main() {
     expect(fieldText(tester), tagHexOf(shown.color.toColor()));
   });
 
+  testWidgets('a vertical drag on the square wins over a scrolling dialog', (
+    tester,
+  ) async {
+    // Short enough that the dialog scrolls, as it does with the keyboard up.
+    tester.view.physicalSize = const Size(360, 380);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await open(tester, const Color(0xFF2E8B57));
+    final square = find.byType(SaturationValueSquare);
+    final box = tester.getRect(square);
+    // Pressing at the centre reports brightness 0.5; dragging a quarter of
+    // the square's height down must carry on to about 0.25.
+    await tester.dragFrom(box.center, Offset(0, box.height / 4));
+    await tester.pump();
+    final after = tester.widget<SaturationValueSquare>(square).color.value;
+    expect(after, closeTo(0.25, 0.05));
+  });
+
   testWidgets('typing a grey keeps the hue where it was', (tester) async {
     await open(tester, const Color(0xFF2E8B57));
     await tester.enterText(hexField, '#808080');

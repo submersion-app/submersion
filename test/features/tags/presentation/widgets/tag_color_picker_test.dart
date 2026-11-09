@@ -280,6 +280,89 @@ void main() {
     });
   });
 
+  group('in a real dialog (review of #4384)', () {
+    Future<ValueNotifier<String?>> pumpDialog(
+      WidgetTester tester, {
+      required Size view,
+      required TargetPlatform platform,
+      String? selectedColor,
+    }) async {
+      tester.view.physicalSize = view;
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final selection = ValueNotifier<String?>(selectedColor);
+      addTearDown(selection.dispose);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(platform: platform),
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: AlertDialog(
+              content: SingleChildScrollView(
+                child: ValueListenableBuilder<String?>(
+                  valueListenable: selection,
+                  builder: (context, value, _) => TagColorPicker(
+                    selectedColor: value,
+                    onColorSelected: (hex) => selection.value = hex,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      return selection;
+    }
+
+    for (final stored in <String?>[null, 'FF0000']) {
+      testWidgets('a 360 dp phone gets four hues a band, not two ($stored)', (
+        tester,
+      ) async {
+        await pumpDialog(
+          tester,
+          view: const Size(360, 2000),
+          platform: TargetPlatform.android,
+          selectedColor: stored,
+        );
+        expect(tester.takeException(), isNull);
+        final first = tester.getRect(dot(tagPalette.first.hex));
+        final fourth = tester.getRect(dot(tagPalette[3 * 3].hex));
+        final last = tester.getRect(dot(tagPalette.last.hex));
+        expect(fourth.top, first.top);
+        // Five bands of three 48 dp dots and the gaps between them.
+        expect(last.bottom - first.top, lessThanOrEqualTo(5 * 144 + 4 * 4));
+      });
+    }
+
+    testWidgets('the dialog keeps its width when a current dot appears', (
+      tester,
+    ) async {
+      final selection = await pumpDialog(
+        tester,
+        view: const Size(1200, 900),
+        platform: TargetPlatform.macOS,
+        selectedColor: '#EF4444',
+      );
+      final before = tester.getSize(find.byType(AlertDialog)).width;
+      selection.value = '#123456';
+      await tester.pump();
+      expect(current, findsOne);
+      expect(tester.getSize(find.byType(AlertDialog)).width, before);
+    });
+  });
+
+  testWidgets('the + dot is an action, not a choice with a selected state', (
+    tester,
+  ) async {
+    await pumpPicker(tester, selectedColor: '#EF4444');
+    expect(
+      tester.getSemantics(custom).flagsCollection.isSelected,
+      Tristate.none,
+    );
+  });
+
   testWidgets('wraps to a narrow phone dialog without overflowing', (
     tester,
   ) async {

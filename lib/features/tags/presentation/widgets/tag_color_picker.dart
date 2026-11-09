@@ -106,7 +106,6 @@ class _TagColorPickerState extends State<TagColorPicker> {
     final customDot = _ColorDot(
       key: const ValueKey('tag-color-custom'),
       label: l10n.tags_color_custom,
-      selected: false,
       onTap: _pickCustom,
     );
 
@@ -126,28 +125,33 @@ class _TagColorPickerState extends State<TagColorPicker> {
           child: LayoutBuilder(
             builder: (context, constraints) {
               final slot = geometry.slot;
-              final perBand = geometry.huesPerBand(constraints.maxWidth);
+              final plan = geometry.planAt(constraints.maxWidth);
               final hues = tagLightShades.length;
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: _gap,
+                spacing: _bandGap,
                 children: [
-                  for (var start = 0; start < hues; start += perBand)
+                  // Too narrow to lead the first band beside its hues: the
+                  // current colour takes a row of its own above them.
+                  if (currentDot != null && !plan.leadInBand) currentDot,
+                  for (var start = 0; start < hues; start += plan.perBand)
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: _gap,
+                      spacing: _bandGap,
                       children: [
-                        // The current colour leads the first band; later bands
-                        // keep its slot empty so the hue columns line up.
-                        if (currentDot != null)
-                          start == 0 ? currentDot : SizedBox(width: slot),
-                        for (var hue = start; hue < start + perBand; hue++)
+                        // The current colour leads the first band; later
+                        // bands keep its slot empty so the columns line up.
+                        if (plan.leadInBand)
+                          start == 0 ? currentDot! : SizedBox(width: slot),
+                        for (var hue = start; hue < start + plan.perBand; hue++)
                           hueColumn(hue),
-                        if (start + perBand >= hues) customDot,
+                        if (plan.plusInBand && start + plan.perBand >= hues)
+                          customDot,
                       ],
                     ),
+                  if (!plan.plusInBand) customDot,
                 ],
               );
             },
@@ -186,13 +190,16 @@ class _ColorDot extends StatelessWidget {
     super.key,
     this.color,
     required this.label,
-    required this.selected,
+    this.selected,
     required this.onTap,
   });
 
   final Color? color;
   final String label;
-  final bool selected;
+
+  /// Whether this colour is the chosen one; null for the "+", which is an
+  /// action rather than a choice and so has no selected state to announce.
+  final bool? selected;
   final VoidCallback onTap;
 
   static const double _diameter = 26;
@@ -227,7 +234,7 @@ class _ColorDot extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: selected ? scheme.primary : Colors.transparent,
+                  color: selected == true ? scheme.primary : Colors.transparent,
                   width: _ringWidth,
                 ),
               ),
@@ -253,11 +260,15 @@ class _ColorDot extends StatelessWidget {
   }
 }
 
-/// Space between dots, across and down.
-const double _gap = 4;
+/// Space between hue columns and between bands. The three dots of a hue
+/// sit flush: their tap targets already keep them apart.
+const double _bandGap = 4;
+
+/// How the grid is laid out at one width (see [_BandGeometry.planAt]).
+typedef _BandPlan = ({int perBand, bool leadInBand, bool plusInBand});
 
 /// The arithmetic of the dot grid: [slot] is a dot's square (the platform
-/// tap target) and [lead] is 1 when a current-colour dot leads each band.
+/// tap target) and [lead] is 1 when a current-colour dot is shown.
 class _BandGeometry {
   const _BandGeometry({required this.slot, required this.lead});
 
@@ -266,32 +277,47 @@ class _BandGeometry {
 
   static const int _hues = 20;
 
-  /// How many hue columns go in each band: the most of 10, 5, 4, 2 or 1
-  /// (each divides the 20 hues, so every band is full) that fit beside the
-  /// [lead] slot and the "+" dot. Ten across on a desktop dialog, fewer on a
-  /// phone, and never a lopsided last band.
-  int huesPerBand(double width) {
-    if (!width.isFinite) return 10;
-    final slots = ((width + _gap) / (slot + _gap)).floor();
-    return const [
+  /// The layout at [width]. A band holds the most of 10, 5, 4, 2 or 1 hue
+  /// columns that fit (each divides the 20 hues, so every band is full):
+  /// ten across on a desktop dialog, four on a 360 dp phone. The current
+  /// colour leads the first band and the "+" ends the last only where there
+  /// is a slot to spare; otherwise each takes a row of its own, so neither
+  /// ever costs the hues a column.
+  _BandPlan planAt(double width) {
+    final slots = width.isFinite
+        ? ((width + _bandGap) / (slot + _bandGap)).floor()
+        : 1 << 20;
+    final perBand = const [
       10,
       5,
       4,
       2,
       1,
-    ].firstWhere((n) => n + lead + 1 <= slots, orElse: () => 1);
+    ].firstWhere((n) => n <= slots, orElse: () => 1);
+    final leadInBand = lead == 1 && perBand + 1 <= slots;
+    final plusInBand = perBand + (leadInBand ? 1 : 0) + 1 <= slots;
+    return (perBand: perBand, leadInBand: leadInBand, plusInBand: plusInBand);
   }
 
-  /// The width of a band of [hues] columns with its lead and "+" slots.
-  double widthFor(int hues) {
-    final slots = hues + lead + 1;
-    return slots * slot + (slots - 1) * _gap;
-  }
+  /// The width of [slots] dots side by side.
+  double _span(int slots) => slots * slot + (slots - 1) * _bandGap;
+
+  /// The width the grid would like: ten hues with a current-colour slot and
+  /// the "+" beside them. The current slot is counted whether or not one is
+  /// shown, so a dialog does not widen when a custom colour first appears.
+  double get preferredWidth => _span(10 + 1 + 1);
+
+  /// The narrowest the grid can go: one dot.
+  double get minWidth => slot;
 
   /// The height the grid takes at [width].
   double heightAt(double width) {
-    final bands = _hues ~/ huesPerBand(width);
-    return bands * 3 * slot + (bands - 1) * _gap;
+    final plan = planAt(width);
+    final bands = _hues ~/ plan.perBand;
+    final extraRows =
+        (lead == 1 && !plan.leadInBand ? 1 : 0) + (plan.plusInBand ? 0 : 1);
+    final rows = bands + extraRows;
+    return bands * 3 * slot + extraRows * slot + (rows - 1) * _bandGap;
   }
 }
 
@@ -329,10 +355,10 @@ class _RenderBandIntrinsics extends RenderProxyBox {
   }
 
   @override
-  double computeMinIntrinsicWidth(double height) => _geometry.widthFor(1);
+  double computeMinIntrinsicWidth(double height) => _geometry.minWidth;
 
   @override
-  double computeMaxIntrinsicWidth(double height) => _geometry.widthFor(10);
+  double computeMaxIntrinsicWidth(double height) => _geometry.preferredWidth;
 
   @override
   double computeMinIntrinsicHeight(double width) => _geometry.heightAt(width);

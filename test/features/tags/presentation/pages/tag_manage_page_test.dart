@@ -1471,6 +1471,12 @@ void main() {
       expect(notifier.updated.single.colorHex, 'FF0000');
     });
 
+    testWidgets('an unreadable stored code is saved as it was', (tester) async {
+      final notifier = await openEditOn(tester, 'red');
+      await save(tester);
+      expect(notifier.updated.single.colorHex, 'red');
+    });
+
     testWidgets('choosing Blue for a tag with no color saves Blue', (
       tester,
     ) async {

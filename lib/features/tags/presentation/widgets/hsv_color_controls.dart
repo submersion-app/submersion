@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -31,11 +32,8 @@ class SaturationValueSquare extends StatelessWidget {
                 .withSaturation((p.dx / size.width).clamp(0.0, 1.0))
                 .withValue(1 - (p.dy / size.height).clamp(0.0, 1.0)),
           );
-          return GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTapDown: (d) => report(d.localPosition),
-            onPanDown: (d) => report(d.localPosition),
-            onPanUpdate: (d) => report(d.localPosition),
+          return _EagerPointer(
+            onPosition: report,
             child: CustomPaint(size: size, painter: _SquarePainter(color)),
           );
         },
@@ -105,11 +103,8 @@ class HueSlider extends StatelessWidget {
           void report(Offset p) => onChanged(
             color.withHue((p.dx / size.width).clamp(0.0, 1.0) * 360),
           );
-          return GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTapDown: (d) => report(d.localPosition),
-            onPanDown: (d) => report(d.localPosition),
-            onPanUpdate: (d) => report(d.localPosition),
+          return _EagerPointer(
+            onPosition: report,
             child: CustomPaint(size: size, painter: _HuePainter(color.hue)),
           );
         },
@@ -160,4 +155,38 @@ void _paintThumb(Canvas canvas, Offset at) {
       ..strokeWidth = 2.5
       ..color = Colors.white,
   );
+}
+
+/// Reports every press and move of a pointer on [child], and keeps the
+/// gesture from a scrolling ancestor.
+///
+/// A plain pan loses a vertical drag to the dialog's scroll view whenever the
+/// dialog scrolls (the keyboard is up, or a phone is on its side), and the
+/// square then stops answering up and down. Winning the gesture arena on
+/// pointer down keeps every drag that starts here on the control.
+class _EagerPointer extends StatelessWidget {
+  const _EagerPointer({required this.onPosition, required this.child});
+
+  final ValueChanged<Offset> onPosition;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return RawGestureDetector(
+      behavior: HitTestBehavior.opaque,
+      gestures: {
+        EagerGestureRecognizer:
+            GestureRecognizerFactoryWithHandlers<EagerGestureRecognizer>(
+              EagerGestureRecognizer.new,
+              (_) {},
+            ),
+      },
+      child: Listener(
+        behavior: HitTestBehavior.opaque,
+        onPointerDown: (e) => onPosition(e.localPosition),
+        onPointerMove: (e) => onPosition(e.localPosition),
+        child: child,
+      ),
+    );
+  }
 }
