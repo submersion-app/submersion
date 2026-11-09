@@ -6,6 +6,8 @@ import 'package:submersion/features/dive_log/presentation/formatters/profile_eve
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
+import 'package:submersion/features/marine_life/presentation/sighting_abundance_display.dart';
 import 'package:submersion/features/safety/domain/entities/incident.dart';
 import 'package:submersion/features/safety/presentation/formatters/incident_labels.dart';
 import 'package:submersion/features/settings/presentation/conflicts/conflict_field.dart';
@@ -59,6 +61,13 @@ final ConflictEnumLabeler visibilityLabeler = enumLabeler(
 final ConflictEnumLabeler waterTypeLabeler = enumLabeler(
   WaterType.values,
   (l, v) => v.localizedName(l),
+);
+
+/// A sighting's stored abundance (issue #4337). Null, an exact count, has
+/// no stored value to label; the count column beside it carries the number.
+final ConflictEnumLabeler sightingAbundanceLabeler = enumLabeler(
+  SightingAbundance.values,
+  sightingAbundanceName,
 );
 
 final ConflictEnumLabeler currentDirectionLabeler = enumLabeler(

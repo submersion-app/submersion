@@ -258,6 +258,16 @@ class MediaLibraryRepository {
     if (filter.attachedTo.isNotEmpty) {
       where = where & _attachedToFacet(filter.attachedTo);
     }
+    // The cleanup facets (issue #4148) negate the tile markers' own SQL, so
+    // a row shows under each exactly when its tile lacks that marker.
+    if (filter.noPeople) {
+      where = where & LibraryTileMarkers.hasPeople.not();
+    }
+    if (filter.notPlacedInDive) {
+      // Only dive rows: a row with no dive cannot be placed in one.
+      where =
+          where & m.diveId.isNotNull() & LibraryTileMarkers.hasTimeInDive.not();
+    }
     // taken_at is stored as wall-clock-as-UTC millis, so a bound picked in
     // local time has to be normalised the same way before it can be
     // compared -- otherwise the window slides by the host's UTC offset.
@@ -678,7 +688,8 @@ class MediaLibraryRepository {
   /// Emits whenever anything that can move a map point, or change which
   /// points are in scope, changes: the media row itself, a dive's entry fix,
   /// a site's coordinates, or a species, tag or people tag (each filter is
-  /// an EXISTS over its link table). Built and debounced exactly like
+  /// an EXISTS over its link table), or a time in the dive (the "not placed"
+  /// facet's EXISTS over `media_enrichment`). Built and debounced exactly like
   /// [watchMediaChanges]; see its notes on why a `tableUpdates` stream and
   /// not a watched query.
   Stream<void> watchMapChanges() => _db
@@ -690,6 +701,7 @@ class MediaLibraryRepository {
           _db.mediaSpecies,
           _db.mediaTags,
           _db.mediaPeople,
+          _db.mediaEnrichment,
         ]),
       )
       .debounce(MediaRepository.changeTickDebounce);

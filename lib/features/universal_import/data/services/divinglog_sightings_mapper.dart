@@ -43,7 +43,8 @@ class DivingLogSightingsMapper {
         if (species!.scientificName case final String s
             when s.trim().isNotEmpty)
           'speciesScientificName': s.trim(),
-        'count': 1,
+        // Diving Log records no number, so the sighting imports as Seen
+        // (issue #4337) rather than an exact count of one.
         'notes': '',
       });
     }

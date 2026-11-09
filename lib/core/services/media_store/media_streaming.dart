@@ -1,0 +1,62 @@
+/// How a browser's video player streams an object from the media store
+/// (issue #4162).
+///
+/// A browser's `<video>` element fetches its file itself and cannot send
+/// headers, so a store either gives the player a URL that authorises itself
+/// ([DirectLinkStore]: S3 presigning, Dropbox temporary links) or lets the
+/// page read the object a byte range at a time ([RangeReadStore]: Google
+/// Drive and WebDAV), which the media stream worker relays to the player.
+///
+/// Both are optional, apart from `MediaObjectStore`, so an adapter that
+/// streams neither way (iCloud) and the test fakes stay as they are.
+library;
+
+import 'dart:typed_data';
+
+/// A link a video player can fetch with no headers, until [expiresAt].
+class DirectLink {
+  const DirectLink({required this.url, required this.expiresAt});
+
+  final Uri url;
+  final DateTime expiresAt;
+}
+
+/// A store that can give a player a self-authorising link to an object.
+abstract interface class DirectLinkStore {
+  /// A link to [key]: one still fresh may be reused, unless [fresh] asks
+  /// for a new one (the last one failed, so it may have been revoked).
+  Future<DirectLink> directLink(String key, {bool fresh = false});
+}
+
+/// A store that can read one byte range of an object. The object's total
+/// size comes from the store's `head`.
+abstract interface class RangeReadStore {
+  /// Bytes [start] to [endInclusive] of [key], or fewer when the object
+  /// ends first. Throws `MediaStoreException` (notFound) for a missing key.
+  Future<Uint8List> readRange(
+    String key, {
+    required int start,
+    required int endInclusive,
+  });
+}
+
+/// The bytes [start] to [endInclusive] of a ranged GET's answer. A `206`
+/// body starts at [start] but may run past the end a server was asked for,
+/// and a `200` body (a server that ignores `Range`) is the whole object;
+/// both are cut down to the range here, so a reader never passes on more
+/// than it asked for.
+Uint8List rangeOfAnswer(
+  int status,
+  Uint8List body, {
+  required int start,
+  required int endInclusive,
+}) {
+  final from = status == 200 ? start : 0;
+  final to = status == 200 ? endInclusive + 1 : endInclusive - start + 1;
+  if (from >= body.length) return Uint8List(0);
+  if (from == 0 && to >= body.length) return body;
+  return Uint8List.sublistView(body, from, to < body.length ? to : body.length);
+}
+
+/// How long an S3 presigned video link stays valid.
+const Duration kS3PresignLifetime = Duration(hours: 6);

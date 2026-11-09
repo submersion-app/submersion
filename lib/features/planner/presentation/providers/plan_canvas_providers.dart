@@ -1,4 +1,3 @@
-import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -9,10 +8,10 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/domain/role_consumption.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
+import 'package:submersion/features/planner/data/services/plan_engine_settings.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
-import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
 import 'package:submersion/features/planner/domain/services/contingency_service.dart';
 import 'package:submersion/features/planner/domain/services/diluent_switch_time.dart';
@@ -21,57 +20,17 @@ import 'package:submersion/features/planner/domain/services/plan_best_mix.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/plan_gas_switches.dart';
 import 'package:submersion/features/planner/domain/services/plan_state_outcome.dart';
+import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/domain/services/segment_rate_split.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// PlanEngine thresholds sourced from the diver's deco settings.
+/// Selected by value, so a change to a setting the planner does not read
+/// leaves its dependents alone.
 final planEngineConfigProvider = Provider<PlanEngineConfig>((ref) {
-  return PlanEngineConfig(
-    ppO2Working: ref.watch(ppO2MaxWorkingProvider),
-    ppO2Deco: ref.watch(ppO2MaxDecoProvider),
-    ppO2DecoBandsEnabled: ref.watch(ppO2DecoBandsEnabledProvider),
-    ppO2DecoBand1: ref.watch(ppO2DecoBand1Provider),
-    ppO2DecoBand2: ref.watch(ppO2DecoBand2Provider),
-    ppO2DecoBand3: ref.watch(ppO2DecoBand3Provider),
-    maxO2DepthEnabled: ref.watch(maxO2DepthEnabledProvider),
-    maxO2DepthMeters: ref.watch(maxO2DepthMetersProvider),
-    hypercapniaEnabled: ref.watch(plannerHypercapniaEnabledProvider),
-    hypercapniaFactor: ref.watch(plannerHypercapniaFactorProvider),
-    hypercapniaMinutes: ref.watch(plannerHypercapniaMinutesProvider),
-    ccrDiluentModPpO2: ref.watch(ccrDiluentModPpO2Provider),
-    ccrSetpointLow: ref.watch(ccrSetpointLowProvider),
-    ccrSetpointHigh: ref.watch(ccrSetpointHighProvider),
-    cnsWarningThreshold: ref.watch(cnsWarningThresholdProvider),
-    o2Narcotic: ref.watch(settingsProvider.select((s) => s.o2Narcotic)),
-    endLimitMeters: ref.watch(settingsProvider.select((s) => s.endLimit)),
-    pscrRatio: ref.watch(pscrRatioProvider),
-    cnsMethod: ref.watch(cnsCalculationMethodProvider),
-    gasModel: ref.watch(gasModelProvider),
-    descentRate: ref.watch(plannerDescentRateProvider),
-    ascentRate: ref.watch(plannerAscentRateProvider),
-    intermediateAscentRate: ref.watch(plannerIntermediateAscentRateProvider),
-    shallowAscentRate: ref.watch(plannerShallowAscentRateProvider),
-    finalAscentRate: ref.watch(plannerFinalAscentRateProvider),
-    lastStopDepth: ref.watch(lastStopDepthProvider),
-    gasSwitchStopSeconds: ref.watch(plannerGasSwitchStopSecondsProvider),
-    sacBottom: ref.watch(plannerSacBottomProvider),
-    sacDeco: ref.watch(plannerSacDecoProvider),
-    sacStressedFactor: ref.watch(plannerSacStressedFactorProvider),
-    problemSolvingMinutes: ref.watch(plannerProblemSolvingMinutesProvider),
-    buddyFactor: ref.watch(plannerBuddyFactorProvider),
-    bestMixEndMeters: ref.watch(plannerBestMixEndMetersProvider),
-    deviationDepthDelta: ref.watch(plannerDeviationDepthDeltaProvider),
-    deviationTimeMinutes: ref.watch(plannerDeviationTimeMinutesProvider),
-    turnPressureRule: ref.watch(plannerTurnPressureRuleProvider),
-    turnPressureFraction: ref.watch(plannerTurnPressureFractionProvider),
-    airBreakPolicy: ref.watch(plannerAirBreakPolicyProvider),
-    gfLow: ref.watch(gfLowProvider),
-    gfHigh: ref.watch(gfHighProvider),
-    reservePressure: ref.watch(plannerReservePressureProvider),
-    batteryReserveFraction: ref.watch(plannerBatteryReserveFractionProvider),
-    walkSpeedMps: ref.watch(plannerWalkSpeedMpsProvider),
-  );
+  return ref.watch(settingsProvider.select(planEngineConfigFromSettings));
 });
 
 /// [planEngineConfigProvider] resolved against the plan being edited: each

@@ -1914,6 +1914,24 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_story_rhythm_semantics => 'Duiktijden van deze dag';
 
   @override
+  String trips_story_rhythm_semanticsSunriseSunset(
+    String sunrise,
+    String sunset,
+  ) {
+    return 'Duiktijden van deze dag. Zonsopkomst $sunrise, zonsondergang $sunset.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunrise(String sunrise) {
+    return 'Duiktijden van deze dag. Zonsopkomst $sunrise.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunset(String sunset) {
+    return 'Duiktijden van deze dag. Zonsondergang $sunset.';
+  }
+
+  @override
   String trips_story_dayMap_semantics(int number) {
     return 'Kaart van dag $number';
   }
@@ -8036,9 +8054,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_diveMode_title => 'Duikmodus';
 
   @override
-  String get diveLog_editSighting_count => 'Aantal';
-
-  @override
   String get diveLog_editSighting_notes => 'Notities';
 
   @override
@@ -10870,6 +10885,17 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_tank_label_endPressure => 'Einddruk';
+
+  @override
+  String get diveLog_tank_label_surfaceBreathing =>
+      'Aan de oppervlakte geademd';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_helper =>
+      'Minuten op deze fles nadat de computer stopte met loggen, zoals zuurstof op de boot';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_unit => 'min';
 
   @override
   String get diveLog_tank_label_he => 'He';
@@ -18967,10 +18993,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get marineLife_speciesDetail_topSitesTitle => 'Toplocaties';
 
   @override
-  String get marineLife_speciesDetail_totalSightingsLabel =>
-      'Totaal waarnemingen';
-
-  @override
   String get marineLife_speciesEdit_addTitle => 'Soort toevoegen';
 
   @override
@@ -19277,7 +19299,32 @@ class AppLocalizationsNl extends AppLocalizations {
   String get marineLife_speciesPage_sortTooltip => 'Sorteren';
 
   @override
-  String get marineLife_speciesPage_sort_mostSightings => 'Meeste waarnemingen';
+  String get marineLife_speciesPage_sort_mostDives => 'Meeste duiken';
+
+  @override
+  String get marineLife_abundance_label => 'Hoeveel';
+
+  @override
+  String get marineLife_abundance_seen => 'Gezien';
+
+  @override
+  String get marineLife_abundance_single => 'Eén';
+
+  @override
+  String get marineLife_abundance_few => 'Enkele';
+
+  @override
+  String get marineLife_abundance_many => 'Veel';
+
+  @override
+  String get marineLife_abundance_abundant => 'Talrijk';
+
+  @override
+  String get marineLife_abundance_exact => 'Exact';
+
+  @override
+  String get marineLife_abundance_ranges =>
+      'Enkele 2 tot 10, Veel 11 tot 100, Talrijk meer dan 100';
 
   @override
   String get marineLife_speciesPage_sort_recentlySeen => 'Recent gezien';
@@ -20310,6 +20357,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Videobestand niet gevonden';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      'Voor het afspelen van deze video is een normaal browservenster nodig. Privévensters kunnen niet streamen vanuit Google Drive of WebDAV.';
+
+  @override
   String get media_photoViewer_videoNotLinked =>
       'Video niet gekoppeld aan bibliotheek';
 
@@ -20708,6 +20759,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_library_empty => 'Nog geen media';
 
   @override
+  String get media_library_emptyFiltered =>
+      'Geen media komen overeen met deze filters';
+
+  @override
   String get media_library_filter_all => 'Alles';
 
   @override
@@ -20738,6 +20793,43 @@ class AppLocalizationsNl extends AppLocalizations {
   String media_library_filter_missingCount(int count) {
     return 'Ontbrekende bestanden ($count)';
   }
+
+  @override
+  String get media_library_filter_noPeople => 'Niemand getagd';
+
+  @override
+  String media_library_filter_peopleTwo(String first, String second) {
+    return '$first, $second';
+  }
+
+  @override
+  String media_library_filter_peopleAndMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String media_library_filter_peopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count personen',
+      one: '$count persoon',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_library_filter_peopleSearchHint => 'Personen zoeken';
+
+  @override
+  String get media_library_filter_peopleNoMatch => 'Geen personen gevonden';
+
+  @override
+  String get media_library_filter_peopleClear => 'Personen wissen';
+
+  @override
+  String get media_library_filter_notPlacedInDive =>
+      'Niet in de duik geplaatst';
 
   @override
   String get media_library_filter_clear => 'Filters wissen';
@@ -26165,6 +26257,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_supersedesRuleId =>
       'Vervangt ingebouwde regel';
+
+  @override
+  String get settings_conflict_field_surfaceBreathingDuration =>
+      'Aan de oppervlakte geademde tijd';
 
   @override
   String get settings_conflict_field_surfaceConditions =>
@@ -52911,6 +53007,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen profielgegevens voor deze duik';
 
   @override
+  String get diveLog_estimatedProfile_caption =>
+      'Geschat op basis van maximale diepte en tijd, geen opgenomen profiel';
+
+  @override
   String get settings_export_progress_divesCsv =>
       'Duiken exporteren naar CSV...';
 
@@ -55660,7 +55760,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks flessen in $dives duiken dragen deze zender. Lege velden voor inhoud, materiaal, naam en uitrusting worden ingevuld, en een rol die nog op Ruggas staat of uit de zendernaam is afgeleid wordt vervangen.';
+    return '$tanks flessen in $dives duiken met deze zender hebben de instellingen ervan nodig. Lege velden voor inhoud, materiaal, naam en uitrusting worden ingevuld, en een rol die nog op Ruggas staat of uit de zendernaam is afgeleid wordt vervangen.';
   }
 
   @override
@@ -55669,8 +55769,43 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing =>
-      'Geen enkele fles draagt deze zender';
+  String transmitters_apply_slot_label(String computer) {
+    return 'Positie op $computer';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'Niet koppelen op positie';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives duiken',
+      one: '$dives duik',
+    );
+    return 'T$slot: $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading => 'Geïmporteerde bestanden lezen';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'Flessen die uit een bestand zijn geïmporteerd hebben geen serienummer. Ze kunnen worden ingevuld op basis van de positie die deze zender op de duikcomputer innam.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'Duiken ingevuld via serienummer: $serialDives, via positie: $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'Geen enkele fles heeft de instellingen van deze zender nodig';
+
+  @override
+  String get transmitters_apply_slot_read_failed =>
+      'De geïmporteerde bestanden konden niet worden gelezen, dus flessen kunnen niet op slot worden gekoppeld';
 
   @override
   String transmitters_channel(String computer, int channel) {

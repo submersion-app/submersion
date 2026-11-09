@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../helpers/pdf_text.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 
 /// #4339: the Marine Life section of the Detailed report printed each
 /// sighting under its stored English name, whatever the report's language.
@@ -30,6 +31,7 @@ void main() {
         id: 's1',
         speciesId: 'sp_european_perch',
         speciesName: 'European Perch',
+        abundance: SightingAbundance.exact,
         count: 4,
       ),
       MarineSighting(

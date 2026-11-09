@@ -30,6 +30,9 @@ class _GatedProfileRepository implements DiveRepository {
   final Completer<void> started = Completer<void>();
   final Completer<void> release = Completer<void>();
 
+  /// Dives the batch leaves out, as it does a dive with an unreadable series.
+  final Set<String> leftOut = {};
+
   @override
   Stream<void> watchDivesChangesWithBuddyLinks() =>
       _inner.watchDivesChangesWithBuddyLinks();
@@ -59,7 +62,10 @@ class _GatedProfileRepository implements DiveRepository {
   }) async {
     started.complete();
     await release.future;
-    return {for (final id in diveIds) id: _point};
+    return {
+      for (final id in diveIds)
+        if (!leftOut.contains(id)) id: _point,
+    };
   }
 
   @override
@@ -107,5 +113,60 @@ void main() {
           'the dashboard must merge into the cache as it is now, not write '
           'back the snapshot it read before awaiting',
     );
+  });
+
+  group('a recent dive already in the cache (#4112)', () {
+    Future<(_GatedProfileRepository, ProviderContainer)> setUpRecent(
+      List<DiveProfilePoint> cached,
+    ) async {
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+      );
+      final repo = _GatedProfileRepository(DiveRepository())
+        ..release.complete();
+      final container = ProviderContainer(
+        overrides: [
+          currentDiverIdProvider.overrideWith(
+            (ref) => MockCurrentDiverIdNotifier(),
+          ),
+          diveRepositoryProvider.overrideWithValue(repo),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.read(batchProfileCacheProvider.notifier).state = {'d1': cached};
+      return (repo, container);
+    }
+
+    test('is asked again when cached without samples, so a profile it has '
+        'gained since replaces the estimate', () async {
+      final (repo, container) = await setUpRecent(const []);
+
+      await container.read(recentDivesProvider.future);
+
+      expect(repo.started.isCompleted, isTrue);
+      expect(container.read(batchProfileCacheProvider)['d1'], _point);
+    });
+
+    test('loses an empty entry when the batch leaves it out', () async {
+      final (repo, container) = await setUpRecent(const []);
+      repo.leftOut.add('d1');
+
+      await container.read(recentDivesProvider.future);
+
+      expect(
+        container.read(batchProfileCacheProvider).containsKey('d1'),
+        isFalse,
+      );
+    });
+
+    test('is not asked again when cached with samples', () async {
+      const recorded = [DiveProfilePoint(timestamp: 0, depth: 20)];
+      final (repo, container) = await setUpRecent(recorded);
+
+      await container.read(recentDivesProvider.future);
+
+      expect(repo.started.isCompleted, isFalse);
+      expect(container.read(batchProfileCacheProvider)['d1'], recorded);
+    });
   });
 }

@@ -34,7 +34,9 @@ void main() {
   });
 
   test('the new column is additive and kept the floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(343));
+    // A later rung (v350, sighting abundance) raised the floor; v343 itself
+    // did not set it.
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(343));
   });
 
   test('upgrading from v342 starts every diver on automatic', () async {

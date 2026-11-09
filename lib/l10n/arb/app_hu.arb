@@ -383,6 +383,33 @@
   "trips_story_history_avgTemp": "átlag {value}",
   "trips_story_history_avgDepth": "átl. mélység {value}",
   "trips_story_rhythm_semantics": "A nap merülési idői",
+  "trips_story_rhythm_semanticsSunriseSunset": "A nap merülési idői. Napkelte {sunrise}, napnyugta {sunset}.",
+  "@trips_story_rhythm_semanticsSunriseSunset": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      },
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunrise": "A nap merülési idői. Napkelte {sunrise}.",
+  "@trips_story_rhythm_semanticsSunrise": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunset": "A nap merülési idői. Napnyugta {sunset}.",
+  "@trips_story_rhythm_semanticsSunset": {
+    "placeholders": {
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
   "trips_story_dayMap_semantics": "{number}. nap térképe",
   "@trips_story_dayMap_semantics": {
     "placeholders": {
@@ -2625,7 +2652,6 @@
   "diveLog_diveMode_ocDescription": "Standard nyílt körű búvármerülés palackokkal",
   "diveLog_diveMode_scrDescription": "Félig zárt visszalélegeztető változó ppO₂-vel",
   "diveLog_diveMode_title": "Merülési mód",
-  "diveLog_editSighting_count": "Darab",
   "diveLog_editSighting_notes": "Jegyzetek",
   "diveLog_editSighting_notesHint": "Méret, viselkedés, helyszín...",
   "diveLog_editSighting_remove": "Eltávolítás",
@@ -3350,6 +3376,9 @@
   "diveLog_summary_stat_totalDives": "Összes merülés",
   "diveLog_summary_title": "Merülésnapló összefoglaló",
   "diveLog_tank_label_endPressure": "Végnyomás",
+  "diveLog_tank_label_surfaceBreathing": "A felszínen belélegezve",
+  "diveLog_tank_surfaceBreathing_helper": "Percek ezen a palackon azután, hogy a komputer leállította a naplózást, például oxigén a hajón",
+  "diveLog_tank_surfaceBreathing_unit": "perc",
   "diveLog_tank_label_he": "He",
   "diveLog_tank_label_material": "Anyag",
   "diveLog_tank_label_mnd": "MND",
@@ -5502,7 +5531,6 @@
   "marineLife_speciesDetail_sitesLabel": "Merülőhelyek",
   "marineLife_speciesDetail_taxonomyClassLabel": "Osztály: {className}",
   "marineLife_speciesDetail_topSitesTitle": "Legjobb merülőhelyek",
-  "marineLife_speciesDetail_totalSightingsLabel": "Összes észlelés",
   "marineLife_speciesEdit_addTitle": "Faj hozzáadása",
   "marineLife_speciesEdit_addedSnackbar": "\"{name}\" hozzáadva",
   "marineLife_speciesEdit_backTooltip": "Vissza",
@@ -5576,7 +5604,15 @@
   "marineLife_speciesPage_searchHint": "Látott fajok keresése",
   "marineLife_speciesPage_manageCatalogTooltip": "Katalógus kezelése",
   "marineLife_speciesPage_sortTooltip": "Rendezés",
-  "marineLife_speciesPage_sort_mostSightings": "Legtöbb észlelés",
+  "marineLife_speciesPage_sort_mostDives": "Legtöbb merülés",
+  "marineLife_abundance_label": "Hány",
+  "marineLife_abundance_seen": "Látott",
+  "marineLife_abundance_single": "Egy",
+  "marineLife_abundance_few": "Néhány",
+  "marineLife_abundance_many": "Sok",
+  "marineLife_abundance_abundant": "Rengeteg",
+  "marineLife_abundance_exact": "Pontos",
+  "marineLife_abundance_ranges": "Néhány 2 és 10 között, Sok 11 és 100 között, Rengeteg 100 felett",
   "marineLife_speciesPage_sort_recentlySeen": "Nemrég látott",
   "marineLife_speciesPage_sort_firstSeen": "Először látott",
   "marineLife_speciesPage_sort_name": "Név",
@@ -5795,6 +5831,7 @@
   "media_photoViewer_shareTooltip": "Fotó megosztása",
   "media_photoViewer_toggleOverlayLabel": "Fotó feliratok ki/be kapcsolása",
   "media_photoViewer_videoFileNotFound": "Videó fájl nem található",
+  "media_photoViewer_videoNeedsNormalWindow": "A videó lejátszásához normál böngészőablak szükséges. A privát ablakok nem tudnak streamelni a Google Drive-ról vagy WebDAV-ről.",
   "media_photoViewer_videoNotLinked": "A videó nincs a könyvtárhoz csatolva",
   "media_photoViewer_writeDiveDataTooltip": "Merülési adatok írása a fotóra",
   "media_quickSiteDialog_cancelButton": "Mégse",
@@ -5848,6 +5885,7 @@
   "media_console_library": "Könyvtár",
   "media_console_transfers": "Átvitelek",
   "media_library_empty": "Még nincs média",
+  "media_library_emptyFiltered": "Nincs a szűrőknek megfelelő média",
   "media_library_filter_all": "Összes",
   "media_library_filter_photos": "Fotók",
   "media_library_filter_videos": "Videók",
@@ -5927,6 +5965,14 @@
   "media_library_filter_dates": "Dátumok",
   "media_library_filter_missing": "Hiányzó fájlok",
   "media_library_filter_missingCount": "Hiányzó fájlok ({count})",
+  "media_library_filter_noPeople": "Nincs megjelölt személy",
+  "media_library_filter_peopleTwo": "{first}, {second}",
+  "media_library_filter_peopleAndMore": "{names} +{count}",
+  "media_library_filter_peopleCount": "{count, plural, =1{{count} személy} other{{count} személy}}",
+  "media_library_filter_peopleSearchHint": "Személyek keresése",
+  "media_library_filter_peopleNoMatch": "Nincs egyező személy",
+  "media_library_filter_peopleClear": "Személyek törlése",
+  "media_library_filter_notPlacedInDive": "Nincs elhelyezve a merülésben",
   "media_library_filter_clear": "Szűrők törlése",
   "media_library_filter_any": "Bármely",
   "media_library_filter_title": "Média szűrése",
@@ -7718,6 +7764,7 @@
   "settings_conflict_field_summaryRuntimeSeconds": "Tervezett merülési idő",
   "settings_conflict_field_summaryTtsSeconds": "Tervezett idő a felszínig",
   "settings_conflict_field_supersedesRuleId": "Beépített szabályt helyettesít",
+  "settings_conflict_field_surfaceBreathingDuration": "A felszínen belélegzett idő",
   "settings_conflict_field_surfaceConditions": "Felszíni körülmények",
   "settings_conflict_field_surfaceSwimLimitM": "Leghosszabb felszíni úszás",
   "settings_conflict_field_swimSpeedMps": "Úszási sebesség",
@@ -15803,6 +15850,7 @@
   "diveLog_detail_errorLoadingSignature": "Hiba az aláírás betöltésekor: {error}",
   "diveLog_profilePanel_selectDive": "Válasszon egy merülést a profil megtekintéséhez",
   "diveLog_profilePanel_noProfileData": "Ehhez a merüléshez nincs profiladat",
+  "diveLog_estimatedProfile_caption": "Becslés a maximális mélység és az idő alapján, nem rögzített profil",
   "settings_export_progress_divesCsv": "Merülések exportálása CSV-be...",
   "settings_export_progress_sitesCsv": "Merülőhelyek exportálása CSV-be...",
   "settings_export_progress_equipmentCsv": "Felszerelés exportálása CSV-be...",
@@ -16664,9 +16712,16 @@
   "transmitters_section_setUp": "Beállítás",
   "transmitters_action_apply": "Alkalmazás meglévő merülésekre",
   "transmitters_apply_title": "Alkalmazod a meglévő merülésekre?",
-  "transmitters_apply_content": "{tanks} palack {dives} merülésben viseli ezt a jeladót. Az üres méret-, anyag-, név- és felszerelésmezők kitöltődnek, és a még Hátgázra állított vagy a jeladó nevéből kiolvasott szerep lecserélődik.",
+  "transmitters_apply_content": "{tanks} palacknak {dives} merülésben, amely ezt a jeladót viseli, szüksége van a beállítására. Az üres méret-, anyag-, név- és felszerelésmezők kitöltődnek, és a még Hátgázra állított vagy a jeladó nevéből kiolvasott szerep lecserélődik.",
   "transmitters_apply_done": "{tanks} palack frissítve {dives} merülésben",
-  "transmitters_apply_nothing": "Egyetlen palack sem viseli ezt a jeladót",
+  "transmitters_apply_slot_label": "Hely ({computer})",
+  "transmitters_apply_slot_none": "Nincs hely szerinti párosítás",
+  "transmitters_apply_slot_option": "T{slot}: {dives, plural, one{{dives} merülés} other{{dives} merülés}}",
+  "transmitters_apply_slot_reading": "Importált fájlok olvasása",
+  "transmitters_apply_slot_intro": "A fájlból importált palackoknak nincs sorozatszáma. Kitölthetők annak a helynek az alapján, amelyet ez a jeladó a búvárkomputeren elfoglalt.",
+  "transmitters_apply_summary": "Sorozatszám alapján kitöltött merülések: {serialDives}, hely alapján: {slotDives}",
+  "transmitters_apply_nothing_to_fill": "Egyetlen palacknak sincs szüksége ennek a jeladónak a beállítására",
+  "transmitters_apply_slot_read_failed": "Az importált fájlokat nem sikerült beolvasni, így a palackok nem párosíthatók foglalat szerint",
   "transmitters_channel": "{computer}, {channel}. csatorna",
   "transmitters_serial": "{serial} jeladó",
   "transmitters_edit_title": "Jeladó szerkesztése",

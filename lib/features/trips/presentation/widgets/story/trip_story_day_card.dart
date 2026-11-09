@@ -8,6 +8,8 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_item.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
+import 'package:submersion/features/marine_life/presentation/sighting_abundance_display.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
@@ -245,7 +247,7 @@ class _DaySummaryBand extends StatelessWidget {
         children: [
           _DayStatStrip(day: day, units: units),
           const SizedBox(height: 10),
-          DayRhythmBar(dives: day.dives),
+          DayRhythmBar(dives: day.dives, units: units),
           if (!conditions.isEmpty) ...[
             const SizedBox(height: 8),
             DayConditionsLine(conditions: conditions, units: units),
@@ -423,16 +425,21 @@ class _SightingChips extends StatelessWidget {
   Widget build(BuildContext context) {
     // Merge the same species across the day's dives, keyed by the stable
     // speciesId so distinct species that share a common name stay separate.
-    final merged = <String, ({String name, int count})>{};
+    // Amounts combine as a dive merge does (issue #4337): exact counts add
+    // up, Seen gives way, otherwise the larger REEF group wins.
+    final l10n = context.l10n;
+    final merged = <String, ({String name, SightingAmount amount})>{};
     for (final sighting in day.sightings) {
       final existing = merged[sighting.speciesId];
       merged[sighting.speciesId] = (
         name: localizedSpeciesName(
-          context.l10n,
+          l10n,
           sighting.speciesId,
           sighting.speciesName,
         ),
-        count: (existing?.count ?? 0) + sighting.count,
+        amount: existing == null
+            ? sighting.amount
+            : SightingAbundance.combine(existing.amount, sighting.amount),
       );
     }
     return Wrap(
@@ -441,9 +448,10 @@ class _SightingChips extends StatelessWidget {
       children: [
         for (final entry in merged.values)
           Chip(
-            label: Text(
-              entry.count > 1 ? '${entry.name} x${entry.count}' : entry.name,
-            ),
+            label: Text(switch (sightingAmountLabel(l10n, entry.amount)) {
+              null => entry.name,
+              final amount => '${entry.name} $amount',
+            }),
             visualDensity: VisualDensity.compact,
           ),
       ],

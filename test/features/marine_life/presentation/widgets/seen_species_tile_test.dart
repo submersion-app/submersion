@@ -58,10 +58,7 @@ void main() {
     expect(find.text('Whale Shark'), findsOneWidget);
     expect(find.text('Rhincodon typus'), findsOneWidget);
     // Default date format in AppSettings is "MMM d, yyyy".
-    expect(
-      find.text('5 sightings · 3 dives · Last seen Jan 15, 2024'),
-      findsOneWidget,
-    );
+    expect(find.text('3 dives · Last seen Jan 15, 2024'), findsOneWidget);
   });
 
   testWidgets('renders the localized name for a built-in species', (

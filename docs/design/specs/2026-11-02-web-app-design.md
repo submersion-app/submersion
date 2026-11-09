@@ -438,7 +438,7 @@ format and shared with every other device.
 
 | Source | Shown | Why |
 | --- | --- | --- |
-| `mediaStore` | Yes: thumbnails for every row, photo originals and renditions in full; a video or document keeps its thumbnail | The media store lives in the sync backend the browser is connected to. A page has no disk, so a browser's store resolver downloads each tier into memory and keeps it in a bounded in-page cache; a video or document needs a file to play or render, so its full bytes are not downloaded |
+| `mediaStore` | Yes: thumbnails for every row, photo originals and renditions in full, and videos streamed (issue #4162, `docs/design/specs/2026-11-08-web-store-video-playback-design.md`); a document keeps its thumbnail | The media store lives in the sync backend the browser is connected to. A page has no disk, so a browser's store resolver downloads each tier into memory and keeps it in a bounded in-page cache; a document needs a file to render, so its full bytes are not downloaded, and a video streams to the player from a signed link or through the media stream worker rather than into memory |
 | `networkUrl`, `manifestEntry` | Yes, when the host allows browser requests | Plain HTTP fetches |
 | `serviceConnector` (Lightroom, Immich) | Yes, when the connector's host allows browser requests and the account is signed in on this device | Same as native, over fetch |
 | `localFile`, `platformGallery` | Placeholder: "Stored on another device" | The path or asset only exists there |

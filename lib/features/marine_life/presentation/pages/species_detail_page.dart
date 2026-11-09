@@ -320,19 +320,11 @@ class SpeciesDetailPage extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 12),
-        // Summary row
+        // Summary row. No "total sightings" card: with one sighting per dive
+        // it always equalled Dives, and a sum of counts stopped meaning
+        // animals once a sighting can be Seen or a REEF group (issue #4337).
         Row(
           children: [
-            Expanded(
-              child: _buildStatCard(
-                context,
-                icon: Icons.visibility,
-                label:
-                    context.l10n.marineLife_speciesDetail_totalSightingsLabel,
-                value: stats.totalSightings.toString(),
-              ),
-            ),
-            const SizedBox(width: 8),
             Expanded(
               child: _buildStatCard(
                 context,
