@@ -268,6 +268,24 @@ void main() {
       expect(stats.totalSightings, 2);
       expect(stats.topSites.single.count, 2);
     });
+
+    test('two rows of one species on one dive count once', () async {
+      final ray = await speciesRepository.createSpecies(
+        commonName: 'Test Ray',
+        category: SpeciesCategory.ray,
+      );
+      await insertTestDive(id: 'dive-r', siteId: 'site-r');
+      for (var i = 0; i < 2; i++) {
+        await speciesRepository.addSighting(
+          diveId: 'dive-r',
+          speciesId: ray.id,
+        );
+      }
+
+      final stats = await statsRepository.getSpeciesInsights(speciesId: ray.id);
+      expect(stats.totalSightings, 1);
+      expect(stats.diveCount, 1);
+    });
   });
 
   group('SpeciesInsights entity', () {

@@ -2210,7 +2210,7 @@ class InsightsRepository with InsightsChartDives {
       // Aggregate stats: total sightings, dive count, depth range, date range
       final statsResult = await _db.customSelect('''
         SELECT
-          COUNT(*) AS total_sightings,
+          COUNT(DISTINCT s.dive_id) AS total_sightings,
           COUNT(DISTINCT s.dive_id) AS dive_count,
           MIN(d.max_depth) AS min_depth,
           MAX(d.max_depth) AS max_depth,

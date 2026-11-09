@@ -41,7 +41,7 @@ class SeenSpeciesRepository {
           '''
       SELECT sp.id, sp.common_name, sp.scientific_name, sp.category,
              sp.taxonomy_class, sp.description, sp.photo_path, sp.is_built_in,
-             COUNT(*) AS total_sightings,
+             COUNT(DISTINCT s.dive_id) AS total_sightings,
              COUNT(DISTINCT d.id) AS dive_count,
              COUNT(DISTINCT d.site_id) AS site_count,
              MIN(d.dive_date_time) AS first_seen,

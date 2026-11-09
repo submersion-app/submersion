@@ -5820,7 +5820,7 @@
   "marineLife_abundance_many": "较多",
   "marineLife_abundance_abundant": "大量",
   "marineLife_abundance_exact": "精确",
-  "marineLife_abundance_ranges": "少量 2 至 10，较多 11 至 100，大量 100 以上",
+  "marineLife_abundance_ranges": "少量 2 至 10，较多 11 至 100，大量超过 100",
   "marineLife_speciesPage_sort_recentlySeen": "最近见到",
   "marineLife_speciesPage_sort_firstSeen": "首次见到",
   "marineLife_speciesPage_sort_name": "名称",

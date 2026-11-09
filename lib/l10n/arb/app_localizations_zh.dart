@@ -18417,7 +18417,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get marineLife_abundance_exact => '精确';
 
   @override
-  String get marineLife_abundance_ranges => '少量 2 至 10，较多 11 至 100，大量 100 以上';
+  String get marineLife_abundance_ranges => '少量 2 至 10，较多 11 至 100，大量超过 100';
 
   @override
   String get marineLife_speciesPage_sort_recentlySeen => '最近见到';
