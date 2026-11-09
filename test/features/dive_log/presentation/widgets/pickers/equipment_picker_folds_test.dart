@@ -142,6 +142,26 @@ void main() {
     expect(find.text('Faber'), findsOneWidget);
   });
 
+  testWidgets('a different filter reopens groups closed under the last one', (
+    tester,
+  ) async {
+    await pumpPicker(
+      tester,
+      filter: const EquipmentPickerFilter(status: EquipmentStatus.active),
+    );
+    await tester.tap(typeHeader('type:bcd'));
+    await tester.pumpAndSettle();
+    expect(find.text('Zeagle'), findsNothing);
+
+    ProviderScope.containerOf(tester.element(find.byType(EquipmentPickerSheet)))
+        .read(equipmentPickerFilterProvider.notifier)
+        .state = const EquipmentPickerFilter(
+      type: EquipmentType.bcd,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Zeagle'), findsOneWidget);
+  });
+
   testWidgets('owner sections fold with their types inside', (tester) async {
     await pumpPicker(tester, gear: const [bcd1, tank, shared], twoDivers: true);
     final owner = find.byKey(const ValueKey('equipment-owner-fold-owner:d2'));

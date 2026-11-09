@@ -518,7 +518,7 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet>
                 sections: sections,
                 arrangement: arrangement,
                 available: available,
-                filtered: filtered,
+                filter: filter,
                 indexSettled:
                     componentsAsync == null ||
                     componentsAsync.hasValue ||

@@ -18,9 +18,10 @@ mixin _PickerFolds on ConsumerState<EquipmentPickerSheet> {
   Set<String> _shownGroups = const {};
 
   /// Groups the diver closed while the filter was on, when every group
-  /// starts open. Dropped when the filter clears.
+  /// starts open. Dropped when the filter clears or changes, so a group
+  /// closed under one filter never hides a match for the next.
   Set<String> _closedWhileFiltered = const {};
-  bool _wasFiltered = false;
+  EquipmentPickerFilter _lastFilter = EquipmentPickerFilter.none;
 
   bool _isOpen(String key, {required bool filtered}) => filtered
       ? !_closedWhileFiltered.contains(key)
@@ -56,12 +57,13 @@ mixin _PickerFolds on ConsumerState<EquipmentPickerSheet> {
     required List<OwnerSection> sections,
     required EquipmentArrangement arrangement,
     required List<EquipmentItem> available,
-    required bool filtered,
+    required EquipmentPickerFilter filter,
     required bool indexSettled,
     required String Function(String ownerId) ownerName,
   }) {
-    if (_wasFiltered && !filtered) _closedWhileFiltered = const {};
-    _wasFiltered = filtered;
+    if (filter != _lastFilter) _closedWhileFiltered = const {};
+    _lastFilter = filter;
+    final filtered = filter.hasActiveFilters;
     final arranged = [
       for (final section in sections)
         (

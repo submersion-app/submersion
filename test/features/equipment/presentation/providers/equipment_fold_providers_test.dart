@@ -92,6 +92,18 @@ void main() {
     expect(stored(), '["loc:a"]');
   });
 
+  test('a different filter drops the folds made under the last one', () {
+    container = build(saved: '["loc:a"]');
+    final filter = container.read(equipmentFilterProvider.notifier);
+    filter.state = const EquipmentFilterState(type: EquipmentType.bcd);
+    container.read(equipmentFoldsProvider.notifier).toggle('loc:b');
+    expect(container.read(equipmentFoldsProvider), ['loc:b']);
+
+    filter.state = const EquipmentFilterState(type: EquipmentType.tank);
+    expect(container.read(equipmentFoldsProvider), isEmpty);
+    expect(stored(), '["loc:a"]');
+  });
+
   test('collapseAll folds outer keys only, keeping inner folds', () {
     container = build(saved: '["loc:a/type:bcd"]');
     container.read(equipmentFoldsProvider.notifier).collapseAll(const [

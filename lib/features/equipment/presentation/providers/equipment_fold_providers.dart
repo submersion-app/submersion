@@ -11,8 +11,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 ///
 /// Normally the active diver's saved folds, and every change is saved. While
 /// a filter is on, every group shows open: the state starts empty, changes
-/// stay in memory, and they are dropped when the filter clears, which brings
-/// the saved folds back untouched.
+/// stay in memory, and they are dropped when the filter changes or clears.
+/// Clearing brings the saved folds back untouched.
 final equipmentFoldsProvider =
     NotifierProvider<EquipmentFoldsNotifier, List<String>>(
       EquipmentFoldsNotifier.new,
@@ -24,9 +24,15 @@ class EquipmentFoldsNotifier extends Notifier<List<String>> {
 
   @override
   List<String> build() {
-    _sessionOnly = ref.watch(
-      effectiveEquipmentFilterProvider.select((f) => f.hasActiveFilters),
-    );
+    // The whole filter while one is on, so a change to a different filter
+    // drops the folds made under the last one and every group shows open.
+    _sessionOnly =
+        ref.watch(
+          effectiveEquipmentFilterProvider.select(
+            (f) => f.hasActiveFilters ? f : null,
+          ),
+        ) !=
+        null;
     if (_sessionOnly) return const [];
     return decodeFoldKeys(
       ref.watch(
