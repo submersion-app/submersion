@@ -2426,13 +2426,23 @@ class SyncDataSerializer {
       for (final type in {...pending.keys, ...byOwnClock.keys})
         type: {...?pending[type], ...?byOwnClock[type]},
     };
+    // Read ahead of the computers, which must cover what these reference.
+    final dives = await _safeExport('dives', () => _exportDives(hlcSince));
+    final diveDataSources = await _safeExport(
+      'diveDataSources',
+      () async => _withPendingChildren(
+        'diveDataSources',
+        await _exportDiveDataSources(hlcSince),
+        pendingChildren,
+      ),
+    );
     return SyncData(
       divers: await _safeExport('divers', () => _exportDivers(hlcSince)),
       diverSettings: await _safeExport(
         'diverSettings',
         () => _exportDiverSettings(hlcSince),
       ),
-      dives: await _safeExport('dives', () => _exportDives(hlcSince)),
+      dives: dives,
       diveTanks: await _safeExport(
         'diveTanks',
         () async => _withPendingChildren(
@@ -2800,7 +2810,11 @@ class SyncDataSerializer {
       ),
       diveComputers: await _safeExport(
         'diveComputers',
-        () => _exportDiveComputers(hlcSince),
+        () async => _withReferencedComputers(
+          await _exportDiveComputers(hlcSince),
+          hlcSince: hlcSince,
+          referencing: [dives, diveDataSources],
+        ),
       ),
       transmitters: await _safeExport(
         'transmitters',
@@ -2906,14 +2920,7 @@ class SyncDataSerializer {
         'importedFiles',
         () => _exportImportedFiles(hlcSince),
       ),
-      diveDataSources: await _safeExport(
-        'diveDataSources',
-        () async => _withPendingChildren(
-          'diveDataSources',
-          await _exportDiveDataSources(hlcSince),
-          pendingChildren,
-        ),
-      ),
+      diveDataSources: diveDataSources,
       siteSpecies: await _safeExport(
         'siteSpecies',
         () async => _withPendingChildren(
@@ -10864,6 +10871,48 @@ class SyncDataSerializer {
         .map((r) => withoutDeviceLocalColumns('diveComputers', r.toJson()))
         .toList();
   }
+
+  /// [exported] plus every computer a row in [referencing] points at by its
+  /// `computerId`, for an incremental changeset (issue #4368). A peer that
+  /// applies a dive or data source without the computer it names has its
+  /// foreign-key repair clear the link for good, and a computer older than
+  /// the watermark, or one an earlier apply on the peer failed to keep, is
+  /// otherwise not sent again until its own clock moves. Resending an
+  /// unchanged computer is a no-op on the peer. A base already carries
+  /// every computer.
+  Future<List<Map<String, dynamic>>> _withReferencedComputers(
+    List<Map<String, dynamic>> exported, {
+    required String? hlcSince,
+    required List<List<Map<String, dynamic>>> referencing,
+  }) async {
+    if (hlcSince == null) return exported;
+    final have = {for (final row in exported) row['id']};
+    final missing = {
+      for (final rows in referencing)
+        for (final row in rows)
+          if (row['computerId'] case final String id when !have.contains(id))
+            id,
+    }.toList();
+    if (missing.isEmpty) return exported;
+    final extra = <Map<String, dynamic>>[];
+    for (var i = 0; i < missing.length; i += _referencedComputerChunk) {
+      final chunk = missing.sublist(
+        i,
+        math.min(i + _referencedComputerChunk, missing.length),
+      );
+      final rows = await (_db.select(
+        _db.diveComputers,
+      )..where((t) => t.id.isIn(chunk))).get();
+      extra.addAll(
+        rows.map((r) => withoutDeviceLocalColumns('diveComputers', r.toJson())),
+      );
+    }
+    return [...exported, ...extra];
+  }
+
+  /// Ids per query when fetching referenced computers, well below SQLite's
+  /// bound-variable limit.
+  static const _referencedComputerChunk = 500;
 
   /// Dive computer connections (v279, issue #3106): their own clock, and
   /// this device's address and last use stripped, like [_exportDiveComputers].

@@ -13,6 +13,8 @@ import 'package:submersion/core/database/last_service_date_repair.dart';
 import 'package:submersion/core/database/weather_fetched_at_repair.dart';
 import 'package:submersion/core/database/combined_dive_summary_repair.dart';
 import 'package:submersion/core/database/dive_water_temp_fill.dart';
+import 'package:submersion/core/database/snapshot_serial_heal.dart';
+import 'package:submersion/core/database/source_computer_relink.dart';
 import 'package:submersion/core/database/device_gear_heal.dart';
 import 'package:submersion/core/database/database.dart'
     show AppDatabase, SyncRecord, DeletionLogData;
@@ -1487,7 +1489,10 @@ class SyncService {
   /// item's last service date older than its newest service record when an
   /// older record was logged there (issue #4201). One below v349 publishes a
   /// downloaded dive with no water temperature, kept on its source row only
-  /// (issue #4333); that fill reads the same touched dives.
+  /// (issue #4333); that fill reads the same touched dives. Downloaded
+  /// sources whose computer link the foreign-key repair cleared get it back
+  /// where their dive vouches for it, and their serial copies follow the
+  /// computer (issue #4368).
   Future<void> _repairLegacyPeerRows({Iterable<String>? touchedDiveIds}) async {
     try {
       final db = DatabaseService.instance.database;
@@ -1502,6 +1507,16 @@ class SyncService {
       }
       if (await repairLastServiceDates(db) > 0) {
         db.notifyUpdates({TableUpdate.onTable(db.equipment)});
+      }
+      // An apply that ended with a source's computer row missing had its
+      // foreign-key repair clear the link, and a peer below this version
+      // still sends empty or decimal serial copies (issue #4368).
+      final relinked = await relinkDiveAttributedSources(db);
+      if (relinked + await healDownloadedSnapshotSerials(db) > 0) {
+        db.notifyUpdates({
+          TableUpdate.onTable(db.diveDataSources),
+          TableUpdate.onTable(db.dives),
+        });
       }
     } catch (e, st) {
       // The applied rows are already in place; losing this repair costs only
