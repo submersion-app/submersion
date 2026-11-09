@@ -519,5 +519,20 @@ void main() {
       expect(index.labelOf(QuerySubject.diveTypes, 'wreck'), 'My Wrecks');
       expect(index.resolve(QuerySubject.diveTypes, 'Wreck'), isNull);
     });
+
+    test(
+      'a diver\'s own site type on a built-in slug keeps its name',
+      () async {
+        await db.customStatement("DELETE FROM site_types WHERE id = 'reef'");
+        await db.customStatement(
+          "INSERT INTO site_types (id, diver_id, name, is_built_in, "
+          "sort_order, created_at, updated_at) "
+          "VALUES ('reef', 'me', 'House Reef', 0, 0, 0, 0)",
+        );
+        final index = await loadFr();
+        expect(index.labelOf(QuerySubject.siteTypes, 'reef'), 'House Reef');
+        expect(index.resolve(QuerySubject.siteTypes, 'Reef'), isNull);
+      },
+    );
   });
 }
