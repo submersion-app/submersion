@@ -153,6 +153,37 @@ void main() {
     },
   );
 
+  test('an opted-in series delete survives settling while its dive lives, '
+      'even with no source to have gone', () async {
+    await ChangeLogScope.bulk(
+      db,
+      label: ChangeLogLabels.removeSource,
+      body: () => db.customStatement(
+        "DELETE FROM dive_profile_series WHERE id = 'series'",
+      ),
+    );
+
+    await repository.settleAll();
+
+    final events = await logEvents(db);
+    expect(events.map((e) => e['action']), ['D']);
+  });
+
+  test('a series delete in another operation is still dropped while its dive '
+      'lives', () async {
+    await ChangeLogScope.bulk(
+      db,
+      label: ChangeLogLabels.qualityRepair,
+      body: () => db.customStatement(
+        "DELETE FROM dive_profile_series WHERE id = 'series'",
+      ),
+    );
+
+    await repository.settleAll();
+
+    expect(await logEvents(db), isEmpty);
+  });
+
   test('revert restores an opted-in samples edit without a changed-since '
       'block', () async {
     String? operationId;

@@ -19,6 +19,7 @@ import 'package:submersion/features/dive_log/data/repositories/tank_pressure_rep
 import 'package:submersion/features/dive_log/data/services/dive_bulk_delete_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_merge_service.dart';
+import 'package:submersion/features/dive_log/data/services/dive_source_removal_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_split_service.dart';
 import 'package:submersion/features/dive_log/data/services/dive_uncombine_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
@@ -240,6 +241,11 @@ final diveConsolidationServiceProvider = Provider<DiveConsolidationService>((
 final diveSplitServiceProvider = Provider<DiveSplitService>((ref) {
   return DiveSplitService(ref.watch(diveRepositoryProvider));
 });
+
+/// Remove-a-source-from-a-dive service singleton (issue #4393).
+final diveSourceRemovalServiceProvider = Provider<DiveSourceRemovalService>(
+  (ref) => DiveSourceRemovalService(),
+);
 
 /// Separate-a-combined-dive service singleton (inverse of combine).
 final diveUncombineServiceProvider = Provider<DiveUncombineService>((ref) {
