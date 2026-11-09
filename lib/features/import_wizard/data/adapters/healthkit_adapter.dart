@@ -440,10 +440,10 @@ class HealthKitAdapter implements ImportSourceAdapter {
   // Helpers
   // ---------------------------------------------------------------------------
 
-  /// The trip a new dive starting at [start] joins, as a dive computer
-  /// download's does (issue #3022), or null when no resolver is configured,
-  /// no trip covers the dive, or the lookup fails: an import must never fail
-  /// because the trips could not be read.
+  /// The trip a new dive starting at [start] joins, the same one a dive
+  /// computer download would place it in (issue #3022), or null when no
+  /// resolver is configured, no trip covers the dive, or the lookup fails: an
+  /// import must never fail because the trips could not be read.
   Future<String?> _tripFor(DateTime start) async {
     final resolver = _tripForImports;
     if (resolver == null) return null;
