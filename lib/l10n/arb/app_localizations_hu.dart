@@ -60888,4 +60888,495 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get info_sheet_close => 'Bezárás';
+
+  @override
+  String get info_term_ndl_label => 'NDL (dekompressziómentes határ)';
+
+  @override
+  String get info_term_ndl_body =>
+      'A jelenlegi mélységben hátralévő percek, mielőtt a modell dekompressziós megállókat ír elő. Csökken, amíg a búvár mélyen marad, és felemelkedéskor újra nő.';
+
+  @override
+  String get info_term_ceiling_label => 'Plafon';
+
+  @override
+  String get info_term_ceiling_body =>
+      'A legkisebb mélység, amelyet a dekompressziós modell abban a pillanatban megenged. A nulla azt jelenti, hogy a közvetlen felszínre emelkedés belefér a modellbe.';
+
+  @override
+  String get info_term_decoStops_label => 'Dekómegállók';
+
+  @override
+  String info_term_decoStops_body(String step) {
+    return 'Tervezett szünetek felfelé jövet, mindegyik egy mélységgel és egy időtartammal, amelyek alatt az oldott gáz távozik a testből. A megállók általában $step távolságra vannak egymástól.';
+  }
+
+  @override
+  String get info_term_tts_label => 'TTS (felszínig hátralévő idő)';
+
+  @override
+  String get info_term_tts_body =>
+      'Innen a felszínig szükséges percek, az emelkedéssel és minden kötelező megállóval együtt.';
+
+  @override
+  String get info_term_gtr_label => 'GTR (hátralévő gázidő)';
+
+  @override
+  String get info_term_gtr_body =>
+      'Percek a jelenlegi mélységben és légzési ütemben, amíg a palack a tartaléknyomásra esik. Megállók nélküli, közvetlen emelkedést feltételez.';
+
+  @override
+  String get info_term_gf99_label => 'GF99';
+
+  @override
+  String get info_term_gf99_body =>
+      'Mennyire van most közel a legterheltebb szövet az M-értékéhez, százalékban. 100%-nál pontosan a módosítatlan Bühlmann-határon van.';
+
+  @override
+  String get info_term_surfaceGf_label => 'SurfGF (felszíni gradiensfaktor)';
+
+  @override
+  String get info_term_surfaceGf_body =>
+      'Az a GF99, amely a szövetekre jellemző lenne, ha a búvár azonnal a felszínre jönne. 100% fölött a felszínen túllépné a módosítatlan Bühlmann-határt.';
+
+  @override
+  String get info_term_gradientFactors_label => 'GF (gradiensfaktorok)';
+
+  @override
+  String get info_term_gradientFactors_body =>
+      'Két százalék, amely szűkíti a Bühlmann-határokat: a GF Low az első megálló helyét, a GF High a felszínre érkezés határát állítja be. Alacsonyabb értékek hosszabb, óvatosabb tervet adnak.';
+
+  @override
+  String get info_term_cns_label =>
+      'CNS% (központi idegrendszeri oxigénterhelés)';
+
+  @override
+  String get info_term_cns_body =>
+      'Az egy merülésre vonatkozó, agyat és idegeket érintő oxigénhatár része a NOAA ppO2-táblázata szerint. A felszínen nagyjából 90 percenként feleződik.';
+
+  @override
+  String get info_term_otu_label => 'OTU (oxigéntolerancia-egység)';
+
+  @override
+  String get info_term_otu_body =>
+      'Lassabb, az egész testre ható oxigéndózis, amely több búvárnap alatt összeadódik. Egy OTU egy perc tiszta oxigén 1 bar nyomáson.';
+
+  @override
+  String get info_term_ppO2_label => 'ppO2 (oxigén parciális nyomása)';
+
+  @override
+  String get info_term_ppO2_body =>
+      'A légzőgázban egyedül az oxigén által kifejtett nyomás ebben a mélységben, barban. A szokásos határ munkavégzés közben 1,4 bar, dekompresszió alatt 1,6 bar.';
+
+  @override
+  String get info_term_ppN2_label => 'ppN2 (nitrogén parciális nyomása)';
+
+  @override
+  String get info_term_ppN2_body =>
+      'A légzőgáz nitrogénje által kifejtett nyomás ebben a mélységben, barban. Ez határozza meg a nitrogénfelvételt és a narkózist.';
+
+  @override
+  String get info_term_ppHe_label => 'ppHe (hélium parciális nyomása)';
+
+  @override
+  String get info_term_ppHe_body =>
+      'A légzőgáz héliuma által kifejtett nyomás ebben a mélységben, barban. A hélium gyorsabban telít és deszaturál, mint a nitrogén, és nem narkotikus.';
+
+  @override
+  String get info_term_o2Cells_label => 'O2-cellák';
+
+  @override
+  String get info_term_o2Cells_body =>
+      'Egy rebreather hurokjában lévő érzékelők, amelyek egyenként mérik a ppO2-t. Az eltérő értékek meghibásodó vagy nedves cellára utalnak.';
+
+  @override
+  String get info_term_mod_label => 'MOD (maximális üzemi mélység)';
+
+  @override
+  String get info_term_mod_body =>
+      'Az a mélység, ahol egy gáz eléri a ppO2-határát. Ennél mélyebben az oxigénterhelés a határ fölött van.';
+
+  @override
+  String get info_term_mnd_label => 'MND (maximális narkotikus mélység)';
+
+  @override
+  String get info_term_mnd_body =>
+      'Az a legnagyobb mélység, ahol egy gáz a búvár END-határán belül marad. A keverékben lévő hélium mélyebbre tolja.';
+
+  @override
+  String get info_term_end_label => 'END (egyenértékű narkotikus mélység)';
+
+  @override
+  String get info_term_end_body =>
+      'Az a levegős mélység, amely ugyanolyan narkotikus lenne, mint ez a gáz ebben a mélységben. A hélium csökkenti, mert nem narkotikus.';
+
+  @override
+  String get info_term_ead_label => 'EAD (egyenértékű levegőmélység)';
+
+  @override
+  String get info_term_ead_body =>
+      'Az a levegős mélység, amely ugyanolyan ütemben telítene nitrogénnel, mint ez a nitrox ebben a mélységben. Kisebb a valódi mélységnél, mert a nitrox kevesebb nitrogént tartalmaz.';
+
+  @override
+  String get info_term_eadd_label =>
+      'EADD (egyenértékű levegősűrűségi mélység)';
+
+  @override
+  String get info_term_eadd_body =>
+      'Az a mélység, ahol a levegő olyan sűrű lenne, mint ez a gáz ebben a mélységben. A keverékek légzési munkáját hasonlítja össze.';
+
+  @override
+  String get info_term_gasDensity_label => 'Gázsűrűség';
+
+  @override
+  String get info_term_gasDensity_body =>
+      'Milyen nehéz a légzőgáz a mélyben, gramm per literben, ami a légzés nehézségét határozza meg. A publikált kutatás 5,2 g/l-t ajánlott maximumként, 6,2 g/l-t felső határként említ.';
+
+  @override
+  String get info_term_sac_label => 'SAC (felszíni levegőfogyasztás)';
+
+  @override
+  String get info_term_sac_body =>
+      'Percenkénti gázfogyasztás felszíni nyomásra átszámítva, percenkénti nyomásesésként kijelezve. A palack méretétől függ, ezért azonos palackkal tett merüléseket hasonlít össze.';
+
+  @override
+  String get info_term_rmv_label => 'RMV (légzési perctérfogat)';
+
+  @override
+  String get info_term_rmv_body =>
+      'Percenként belélegzett gáztérfogat felszíni nyomásra átszámítva. A SAC-kal ellentétben nem függ a palack méretétől.';
+
+  @override
+  String get info_term_ascentRate_label => 'Emelkedési sebesség';
+
+  @override
+  String info_term_ascentRate_body(String rate) {
+    return 'Milyen gyorsan csökken a mélység percenként. A szokásos képzés $rate értéket vesz maximumnak.';
+  }
+
+  @override
+  String get info_term_descentRate_label => 'Süllyedési sebesség';
+
+  @override
+  String get info_term_descentRate_body =>
+      'Milyen gyorsan nő a mélység percenként.';
+
+  @override
+  String get info_term_meanDepth_label => 'Átlagmélység';
+
+  @override
+  String get info_term_meanDepth_body =>
+      'A merülés időarányosan súlyozott átlagmélysége. A gázfogyasztás és a dekompresszió jobban követi, mint a maximális mélységet.';
+
+  @override
+  String get info_term_bottomTime_label => 'Fenékidő';
+
+  @override
+  String get info_term_bottomTime_body =>
+      'A felszín elhagyásától az utolsó emelkedés kezdetéig eltelt idő. A profilból számítjuk.';
+
+  @override
+  String get info_term_runtime_label => 'Teljes merülési idő';
+
+  @override
+  String get info_term_runtime_body =>
+      'A felszín elhagyásától a felszínre érkezésig eltelt teljes idő. A technikai merülési tervek ehhez igazodnak.';
+
+  @override
+  String get info_term_safetyStop_label => 'Biztonsági megálló';
+
+  @override
+  String info_term_safetyStop_body(String depth) {
+    return 'Nem kötelező szünet $depth közelében, általában három perc, a felszínre érkezés előtt. A modell dekompressziómentes merülésnél nem írja elő.';
+  }
+
+  @override
+  String get info_term_surfaceInterval_label => 'Felszíni idő';
+
+  @override
+  String get info_term_surfaceInterval_body =>
+      'Két merülés között a felszínen töltött idő. A szövetek közben tovább adják le a gázt, így hosszabb szünet kevesebbet visz át a következő merülésre.';
+
+  @override
+  String get info_term_tissueCompartment_label => 'Szövetkompartmentek';
+
+  @override
+  String get info_term_tissueCompartment_body =>
+      'A modell 16 elképzelt szövete, amelyek mind a saját ütemükben vesznek fel és adnak le gázt. A gyorsak a jól vérellátott szöveteket, a lassúak a zsírt és a csontot jelképezik.';
+
+  @override
+  String get info_term_leadingCompartment_label => 'Vezető kompartment';
+
+  @override
+  String get info_term_leadingCompartment_body =>
+      'Az a kompartment, amely éppen a legközelebb van a határához. Ez határozza meg a plafont, és merülés közben változik.';
+
+  @override
+  String get info_term_tissueLoad_label => 'Terhelés';
+
+  @override
+  String get info_term_tissueLoad_body =>
+      'Mennyi inert gázt tartalmaz egy kompartment a határához képest, százalékban. 100%-nál az M-értékén van.';
+
+  @override
+  String get info_term_mValue_label => 'M-érték';
+
+  @override
+  String get info_term_mValue_body =>
+      'Az a legnagyobb inertgáz-nyomás, amelyet egy kompartment adott mélységben a Bühlmann-modell szerint megtarthat. A gradiensfaktorok szabják meg, mennyit használunk ki belőle.';
+
+  @override
+  String get info_term_surfaceLevel_label => 'Felszíni szint';
+
+  @override
+  String get info_term_surfaceLevel_body =>
+      'Az a gáznyomás, amely egy kompartmentben a felszínen, levegőn teljesen kiegyenlítődve van. A vonal fölötti oszlopok még többletgázt hordoznak.';
+
+  @override
+  String get info_term_halfTime_label => 'Felezési idő';
+
+  @override
+  String get info_term_halfTime_body =>
+      'Ennyi perc alatt teszi meg egy kompartment a környezeti nyomás felé vezető út felét. A tartomány néhány perctől tíz óránál is többig terjed.';
+
+  @override
+  String get info_term_ongassing_label => 'Telítődés és deszaturáció';
+
+  @override
+  String get info_term_ongassing_body =>
+      'Telítődéskor a kompartment gázt vesz fel, mert a környezeti nyomás nagyobb, deszaturációkor gázt ad le. A szín mutatja, melyik irányba halad az egyes kompartment.';
+
+  @override
+  String get info_term_heatMap_label => 'Hőtérkép';
+
+  @override
+  String get info_term_heatMap_body =>
+      'Minden sor egy kompartment, fent a gyorsak, lent a lassúak, az idő balról jobbra halad. A szín mutatja, mennyire terhelt az adott kompartment abban a pillanatban.';
+
+  @override
+  String get info_term_nitrox_label => 'Nitrox (EANx)';
+
+  @override
+  String get info_term_nitrox_body =>
+      'Oxigénnel dúsított levegő, oxigénszázaléka szerint elnevezve, például EAN32. A kevesebb nitrogén meghosszabbítja a dekompressziómentes időt, a több oxigén sekélyebbé teszi a MOD-ot.';
+
+  @override
+  String get info_term_trimix_label => 'Trimix';
+
+  @override
+  String get info_term_trimix_body =>
+      'Oxigén, hélium és nitrogén keveréke, oxigén per hélium alakban írva, például 18/45. A hélium csökkenti a narkózist és a gázsűrűséget a mélyben.';
+
+  @override
+  String get info_term_diluent_label => 'Hígítógáz';
+
+  @override
+  String get info_term_diluent_body =>
+      'Az a gáz, amelyet a rebreather a hurokba ad a térfogat fenntartásához. A készülék ezen felül oxigént ad hozzá a setpoint tartásához.';
+
+  @override
+  String get info_term_setpoint_label => 'Setpoint';
+
+  @override
+  String get info_term_setpoint_body =>
+      'Az a ppO2, amelyet egy zárt rendszerű rebreather a hurokban tartani próbál. A készülékek merülés közben gyakran váltanak alacsony és magas setpoint között.';
+
+  @override
+  String get info_term_bailout_label => 'Bailout';
+
+  @override
+  String get info_term_bailout_body =>
+      'Nyitott rendszerű gáz, amelyet rebreatheres merülésen visznek a hurkon kívüli emelkedéshez. A bailout-tervek a hurok elvesztésével számolnak.';
+
+  @override
+  String get info_term_loop_label => 'Hurok';
+
+  @override
+  String get info_term_loop_body =>
+      'A rebreather légzőköre, ahol a kilélegzett gázból eltávolítják a szén-dioxidot, és újra belélegzik.';
+
+  @override
+  String get info_term_stage_label => 'Stage';
+
+  @override
+  String get info_term_stage_body =>
+      'Oldalra csatolt plusz palack, amelyet a merülés egy szakaszára visznek, és útközben átváltanak rá.';
+
+  @override
+  String get info_term_decoGas_label => 'Dekógáz';
+
+  @override
+  String get info_term_decoGas_body =>
+      'Oxigénben gazdagabb gáz, amelyet a dekómegállókon lélegeznek. Sekély mélységben gyorsítja a deszaturációt.';
+
+  @override
+  String get info_term_pony_label => 'Pony';
+
+  @override
+  String get info_term_pony_body =>
+      'Kis, önálló palack saját légzőautomatával, tartalék gázforrásként viszik.';
+
+  @override
+  String get info_term_sidemount_label => 'Sidemount';
+
+  @override
+  String get info_term_sidemount_body =>
+      'A hát helyett oldalt viselt palackok, mindegyik saját légzőautomatával.';
+
+  @override
+  String get info_term_twinBackmount_label => 'Ikerpalack';
+
+  @override
+  String get info_term_twinBackmount_body =>
+      'Két, a háton összekapcsolt palack, általában hídcsappal, egy forrásként lélegezve.';
+
+  @override
+  String get info_term_altitudeGroup_label => 'Magassági csoport';
+
+  @override
+  String get info_term_altitudeGroup_body =>
+      'Magassági sáv, amelyre ugyanazok a táblázatok és modellbeállítások érvényesek. Magasabb csoportokban kisebb a légnyomás a felszínen.';
+
+  @override
+  String get info_term_surfacePressure_label => 'Felszíni nyomás';
+
+  @override
+  String get info_term_surfacePressure_body =>
+      'A légnyomás a merülőhely felszínén. Magasban kisebb, így a modell óvatosabban számol.';
+
+  @override
+  String get info_term_salinity_label => 'Víz típusa';
+
+  @override
+  String get info_term_salinity_body =>
+      'A sós víz sűrűbb az édesvíznél, ezért ugyanaz a nyomás tengerben kicsit kisebb mélységnek felel meg. A komputerek ezzel számítják a nyomásból a mélységet.';
+
+  @override
+  String get info_term_isobaricCounterdiffusion_label =>
+      'ICD (izobár ellendiffúzió)';
+
+  @override
+  String get info_term_isobaricCounterdiffusion_body =>
+      'Gázváltás mélységváltozás nélkül is növelheti a szövetek teljes inertgáz-tartalmát, ha a nitrogén gyorsabban nő, mint ahogy a hélium csökken. A szokásos ellenőrzés, az ötödszabály, a nitrogén növekedését a héliumcsökkenés egyötödére korlátozza.';
+
+  @override
+  String get info_term_hypercapnia_label => 'Hiperkapnia';
+
+  @override
+  String get info_term_hypercapnia_body =>
+      'Szén-dioxid felhalmozódása a szervezetben. Sűrű gáz és nehéz munka valószínűbbé teszi.';
+
+  @override
+  String get info_term_turnPressure_label => 'Visszafordulási nyomás';
+
+  @override
+  String get info_term_turnPressure_body =>
+      'Az a palacknyomás, amelynél a terv a merülést a kijárat felé fordítja.';
+
+  @override
+  String get info_term_minGas_label => 'Minimális gáz';
+
+  @override
+  String get info_term_minGas_body =>
+      'Visszatartott gáz, hogy két búvár a legmélyebb ponttól a felszínig egy forráson osztozhasson, megállókkal együtt.';
+
+  @override
+  String get info_term_rockBottom_label => 'Rock bottom';
+
+  @override
+  String get info_term_rockBottom_body =>
+      'Az a palacknyomás, amely a minimális gázt tartalmazza. Benne van egy rövid idő a mélyben a probléma kezelésére az emelkedés előtt.';
+
+  @override
+  String get info_term_thirds_label => 'Harmadszabály';
+
+  @override
+  String get info_term_thirds_body =>
+      'Gázterv, amely egyharmadot befelé, egyharmadot kifelé használ, és egyharmadot tartalékban tart. Barlangi és zárt terű képzésen tanítják.';
+
+  @override
+  String get info_term_airBreaks_label => 'Levegőszünetek';
+
+  @override
+  String get info_term_airBreaks_body =>
+      'Rövid szakaszok alacsonyabb oxigéntartalmú gázzal hosszú oxigénes megállók közben. Csökkentik a CNS-terhelést.';
+
+  @override
+  String get info_term_rollingAverage_label => 'Mozgóátlag';
+
+  @override
+  String get info_term_rollingAverage_body =>
+      'Az utolsó néhány merülés átlaga minden pontban, amely kisimítja a merülések közti ingadozást, hogy látszódjon a trend.';
+
+  @override
+  String get info_term_overallTrend_label => 'Általános trend';
+
+  @override
+  String get info_term_overallTrend_body =>
+      'A tartomány összes merülésére illesztett egyenes, amely az értékek általános irányát mutatja.';
+
+  @override
+  String get info_term_rangeBand_label => 'Tartománysáv';
+
+  @override
+  String get info_term_rangeBand_body =>
+      'Az árnyékolt sáv minden időszakban a legkisebb értéktől a legnagyobbig terjed.';
+
+  @override
+  String get info_term_collapseGaps_label => 'Szünetek összecsukása';
+
+  @override
+  String get info_term_collapseGaps_body =>
+      'Eltávolítja az időtengelyről a merülések közti hosszú szüneteket, így a merülések egymás mellé kerülnek.';
+
+  @override
+  String get info_term_degreeHeatingWeeks_label =>
+      'DHW (felmelegedési fokhetek)';
+
+  @override
+  String get info_term_degreeHeatingWeeks_body =>
+      'Az elmúlt 12 hétben felhalmozódott hőstressz a NOAA Coral Reef Watch adatai szerint. A NOAA 4-től jelentős, 8-tól súlyos korallfehéredést vár.';
+
+  @override
+  String get info_term_sstAnomaly_label =>
+      'Tengerfelszín-hőmérsékleti anomália';
+
+  @override
+  String get info_term_sstAnomaly_body =>
+      'Mennyivel van a tengerfelszín hőmérséklete az adott napra vonatkozó hosszú távú átlag felett vagy alatt.';
+
+  @override
+  String get info_term_bleachingAlert_label => 'Fehéredési riasztás';
+
+  @override
+  String get info_term_bleachingAlert_body =>
+      'A NOAA Coral Reef Watch hőstressz-szintje a területre, a figyeléstől a riasztási szintekig.';
+
+  @override
+  String get info_term_sourceDcCalc_label => 'Búvárkomputer vagy számított';
+
+  @override
+  String get info_term_sourceDcCalc_body =>
+      'A búvárkomputer értékei azok, amelyeket a merülés közben rögzített. A számított értékek az alkalmazás saját modelljéből jönnek a profil alapján, így a kettő eltérhet.';
+
+  @override
+  String get info_term_scrubber_label => 'Mésztartály';
+
+  @override
+  String get info_term_scrubber_body =>
+      'A rebreather tartálya, amely eltávolítja a szén-dioxidot a hurokból. Az elnyelőanyag meghatározott óraszámra van méretezve.';
+
+  @override
+  String get info_term_cellOutput_label => 'Cellafeszültség';
+
+  @override
+  String get info_term_cellOutput_body =>
+      'Az egyes oxigéncellák millivoltos jele, amelyet a rebreather ppO2-vé alakít.';
+
+  @override
+  String get info_term_highO2Hours_label => 'Magas oxigéntartalmú órák';
+
+  @override
+  String get info_term_highO2Hours_body =>
+      'Megnövelt oxigénarányú gáz belélegzésével töltött idő, amely gyorsabban koptatja az oxigénkompatibilis alkatrészeket.';
 }

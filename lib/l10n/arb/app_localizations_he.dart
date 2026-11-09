@@ -59957,4 +59957,490 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_sheet_close => 'סגירה';
+
+  @override
+  String get info_term_ndl_label => 'NDL (גבול ללא דקומפרסיה)';
+
+  @override
+  String get info_term_ndl_body =>
+      'הדקות שנותרו בעומק הנוכחי לפני שהמודל דורש עצירות דקומפרסיה. הערך יורד כל עוד הצולל נשאר עמוק ועולה שוב בזמן העלייה.';
+
+  @override
+  String get info_term_ceiling_label => 'תקרה';
+
+  @override
+  String get info_term_ceiling_body =>
+      'העומק הרדוד ביותר שמודל הדקומפרסיה מתיר באותו רגע. אפס פירושו שעלייה ישירה לפני המים תואמת את המודל.';
+
+  @override
+  String get info_term_decoStops_label => 'עצירות דקומפרסיה';
+
+  @override
+  String info_term_decoStops_body(String step) {
+    return 'עצירות מתוכננות בזמן העלייה, כל אחת עם עומק ומשך, שמאפשרות לגז המומס לצאת מהגוף. העצירות מרוחקות בדרך כלל $step זו מזו.';
+  }
+
+  @override
+  String get info_term_tts_label => 'TTS (זמן עד פני המים)';
+
+  @override
+  String get info_term_tts_body =>
+      'הדקות הנדרשות כדי להגיע לפני המים מכאן, כולל העלייה וכל עצירה נדרשת.';
+
+  @override
+  String get info_term_gtr_label => 'GTR (זמן גז שנותר)';
+
+  @override
+  String get info_term_gtr_body =>
+      'הדקות בעומק ובקצב הנשימה הנוכחיים עד שלחץ המיכל יורד ללחץ הרזרבה. ההנחה היא עלייה ישירה ללא עצירות.';
+
+  @override
+  String get info_term_gf99_label => 'GF99';
+
+  @override
+  String get info_term_gf99_body =>
+      'עד כמה הרקמה העמוסה ביותר קרובה כעת לערך ה-M שלה, באחוזים. ב-100% היא נמצאת בדיוק על גבול בילמן הגולמי.';
+
+  @override
+  String get info_term_surfaceGf_label => 'SurfGF (מקדם שיפוע בפני המים)';
+
+  @override
+  String get info_term_surfaceGf_body =>
+      'ערך ה-GF99 שהיה לרקמות אילו הצולל עלה לפני המים מיד. מעל 100% גבול בילמן הגולמי היה נחצה בפני המים.';
+
+  @override
+  String get info_term_gradientFactors_label => 'GF (מקדמי שיפוע)';
+
+  @override
+  String get info_term_gradientFactors_body =>
+      'שני אחוזים שמצמצמים את גבולות בילמן: GF Low קובע היכן נופלת העצירה הראשונה ו-GF High קובע את הגבול ביציאה לפני המים. ערכים נמוכים יותר נותנים תוכניות ארוכות ושמרניות יותר.';
+
+  @override
+  String get info_term_cns_label => 'CNS% (חמצן ומערכת העצבים המרכזית)';
+
+  @override
+  String get info_term_cns_body =>
+      'החלק מגבול החמצן לצלילה אחת עבור המוח והעצבים, לפי טבלת ה-ppO2 של NOAA. הערך יורד בערך בחצי כל 90 דקות בפני המים.';
+
+  @override
+  String get info_term_otu_label => 'OTU (יחידות סבילות לחמצן)';
+
+  @override
+  String get info_term_otu_body =>
+      'מנת חמצן איטית יותר לכל הגוף שמצטברת לאורך כמה ימי צלילה. OTU אחת היא דקה של חמצן טהור ב-1 בר.';
+
+  @override
+  String get info_term_ppO2_label => 'ppO2 (לחץ חלקי של חמצן)';
+
+  @override
+  String get info_term_ppO2_body =>
+      'הלחץ שהחמצן לבדו מפעיל בגז הנשימה בעומק הזה, בבר. הגבולות המקובלים הם 1.4 בר בזמן עבודה ו-1.6 בר בזמן דקומפרסיה.';
+
+  @override
+  String get info_term_ppN2_label => 'ppN2 (לחץ חלקי של חנקן)';
+
+  @override
+  String get info_term_ppN2_body =>
+      'הלחץ שהחנקן מפעיל בגז הנשימה בעומק הזה, בבר. הוא קובע את העמסת החנקן ואת הנרקוזה.';
+
+  @override
+  String get info_term_ppHe_label => 'ppHe (לחץ חלקי של הליום)';
+
+  @override
+  String get info_term_ppHe_body =>
+      'הלחץ שההליום מפעיל בגז הנשימה בעומק הזה, בבר. הליום נספג ומשתחרר מהר יותר מחנקן ואינו גורם לנרקוזה.';
+
+  @override
+  String get info_term_o2Cells_label => 'תאי חמצן';
+
+  @override
+  String get info_term_o2Cells_body =>
+      'חיישנים בלולאה של מכשיר מחזור, שכל אחד מהם מודד ppO2. קריאות שאינן תואמות מצביעות על תא שכושל או רטוב.';
+
+  @override
+  String get info_term_mod_label => 'MOD (עומק פעולה מרבי)';
+
+  @override
+  String get info_term_mod_body =>
+      'העומק שבו גז מגיע לגבול ה-ppO2 שלו. עמוק יותר, החשיפה לחמצן גבוהה מהגבול הזה.';
+
+  @override
+  String get info_term_mnd_label => 'MND (עומק נרקוטי מרבי)';
+
+  @override
+  String get info_term_mnd_body =>
+      'הנקודה העמוקה ביותר שבה גז נשאר בתוך גבול ה-END של הצולל. הליום בתערובת מעמיק אותה.';
+
+  @override
+  String get info_term_end_label => 'END (עומק נרקוטי שקול)';
+
+  @override
+  String get info_term_end_body =>
+      'העומק באוויר שהיה גורם לנרקוזה כמו הגז הזה בעומק הזה. הליום מוריד אותו כי אינו נרקוטי.';
+
+  @override
+  String get info_term_ead_label => 'EAD (עומק אוויר שקול)';
+
+  @override
+  String get info_term_ead_body =>
+      'העומק באוויר שהיה טוען חנקן באותו קצב כמו הנייטרוקס הזה בעומק הזה. הוא רדוד מהעומק האמיתי כי בנייטרוקס פחות חנקן.';
+
+  @override
+  String get info_term_eadd_label => 'EADD (עומק צפיפות אוויר שקול)';
+
+  @override
+  String get info_term_eadd_body =>
+      'העומק שבו אוויר היה צפוף כמו הגז הזה בעומק הזה. הוא משווה את מאמץ הנשימה בין תערובות.';
+
+  @override
+  String get info_term_gasDensity_label => 'צפיפות הגז';
+
+  @override
+  String get info_term_gasDensity_body =>
+      'כמה כבד גז הנשימה בעומק, בגרם לליטר, וזה קובע כמה קשה לנשום אותו. מחקרים שפורסמו מציינים 5.2 גרם לליטר כמקסימום מומלץ ו-6.2 גרם לליטר כגבול עליון.';
+
+  @override
+  String get info_term_sac_label => 'SAC (צריכת אוויר בפני המים)';
+
+  @override
+  String get info_term_sac_body =>
+      'צריכת גז בדקה מומרת ללחץ פני המים, ומוצגת כירידת לחץ בדקה. היא תלויה בגודל המיכל, ולכן משווה צלילות עם אותו מיכל.';
+
+  @override
+  String get info_term_rmv_label => 'RMV (נפח נשימה לדקה)';
+
+  @override
+  String get info_term_rmv_body =>
+      'נפח הגז הנשאף בדקה, מומר ללחץ פני המים. בניגוד ל-SAC הוא אינו תלוי בגודל המיכל.';
+
+  @override
+  String get info_term_ascentRate_label => 'קצב עלייה';
+
+  @override
+  String info_term_ascentRate_body(String rate) {
+    return 'כמה מהר העומק יורד בדקה. ההכשרה המקובלת משתמשת ב-$rate כמקסימום.';
+  }
+
+  @override
+  String get info_term_descentRate_label => 'קצב ירידה';
+
+  @override
+  String get info_term_descentRate_body => 'כמה מהר העומק עולה בדקה.';
+
+  @override
+  String get info_term_meanDepth_label => 'עומק ממוצע';
+
+  @override
+  String get info_term_meanDepth_body =>
+      'העומק הממוצע לאורך הצלילה, משוקלל לפי זמן. צריכת הגז והדקומפרסיה עוקבות אחריו יותר מאשר אחרי העומק המרבי.';
+
+  @override
+  String get info_term_bottomTime_label => 'זמן קרקעית';
+
+  @override
+  String get info_term_bottomTime_body =>
+      'הזמן מעזיבת פני המים ועד תחילת העלייה הסופית. הוא מחושב מפרופיל הצלילה.';
+
+  @override
+  String get info_term_runtime_label => 'זמן ריצה';
+
+  @override
+  String get info_term_runtime_body =>
+      'הזמן הכולל מעזיבת פני המים ועד העלייה אליהם. לוחות זמנים טכניים נכתבים לפיו.';
+
+  @override
+  String get info_term_safetyStop_label => 'עצירת ביטחון';
+
+  @override
+  String info_term_safetyStop_body(String depth) {
+    return 'עצירה רשות ליד $depth, בדרך כלל שלוש דקות, לפני היציאה לפני המים. המודל אינו דורש אותה בצלילה ללא עצירות.';
+  }
+
+  @override
+  String get info_term_surfaceInterval_label => 'מרווח שטח';
+
+  @override
+  String get info_term_surfaceInterval_body =>
+      'הזמן בפני המים בין שתי צלילות. הרקמות ממשיכות לשחרר גז בזמן הזה, ולכן מרווח ארוך יותר מעביר פחות לצלילה הבאה.';
+
+  @override
+  String get info_term_tissueCompartment_label => 'תאי רקמה';
+
+  @override
+  String get info_term_tissueCompartment_body =>
+      '16 הרקמות הדמיוניות של המודל, שכל אחת סופגת ומשחררת גז בקצב משלה. המהירות מייצגות רקמה עשירה בדם והאיטיות שומן ועצם.';
+
+  @override
+  String get info_term_leadingCompartment_label => 'התא המוביל';
+
+  @override
+  String get info_term_leadingCompartment_body =>
+      'התא הקרוב ביותר לגבול שלו כרגע. הוא קובע את התקרה ומתחלף במהלך הצלילה.';
+
+  @override
+  String get info_term_tissueLoad_label => 'עומס';
+
+  @override
+  String get info_term_tissueLoad_body =>
+      'כמה גז אינרטי מכיל תא ביחס לגבול שלו, באחוזים. ב-100% הוא נמצא על ערך ה-M שלו.';
+
+  @override
+  String get info_term_mValue_label => 'ערך M';
+
+  @override
+  String get info_term_mValue_body =>
+      'לחץ הגז האינרטי הגבוה ביותר שתא יכול להחזיק בעומק נתון לפי מודל בילמן. מקדמי השיפוע קובעים כמה ממנו מנוצל.';
+
+  @override
+  String get info_term_surfaceLevel_label => 'רמת פני המים';
+
+  @override
+  String get info_term_surfaceLevel_body =>
+      'לחץ הגז בתא כשהוא מאוזן לגמרי בפני המים בנשימת אוויר. עמודות מעל הקו הזה עדיין נושאות גז עודף.';
+
+  @override
+  String get info_term_halfTime_label => 'זמן מחצית';
+
+  @override
+  String get info_term_halfTime_body =>
+      'הדקות שתא צריך כדי לעבור חצי מהדרך אל הלחץ הסובב. הטווח נע מכמה דקות ועד יותר מעשר שעות.';
+
+  @override
+  String get info_term_ongassing_label => 'ספיגת גז ושחרור גז';
+
+  @override
+  String get info_term_ongassing_body =>
+      'ספיגת גז פירושה שהתא קולט גז כי הלחץ הסובב גבוה יותר, ושחרור גז פירושו שהוא פולט אותו. הצבע מראה לאיזה כיוון כל תא נע.';
+
+  @override
+  String get info_term_heatMap_label => 'מפת חום';
+
+  @override
+  String get info_term_heatMap_body =>
+      'כל שורה היא תא אחד, המהירים למעלה והאיטיים למטה, והזמן נע משמאל לימין. הצבע מראה עד כמה התא עמוס באותו רגע.';
+
+  @override
+  String get info_term_nitrox_label => 'נייטרוקס (EANx)';
+
+  @override
+  String get info_term_nitrox_body =>
+      'אוויר מועשר בחמצן, הנקרא לפי אחוז החמצן בו, כמו EAN32. פחות חנקן מאריך את זמני הצלילה ללא עצירות, והחמצן הנוסף הופך את ה-MOD לרדוד יותר.';
+
+  @override
+  String get info_term_trimix_label => 'טרימיקס';
+
+  @override
+  String get info_term_trimix_body =>
+      'תערובת של חמצן, הליום וחנקן, הנכתבת כחמצן ואחריו הליום, כמו 18/45. ההליום מפחית נרקוזה וצפיפות גז בעומק.';
+
+  @override
+  String get info_term_diluent_label => 'גז מדלל';
+
+  @override
+  String get info_term_diluent_body =>
+      'הגז שמכשיר המחזור מוסיף ללולאה כדי לשמור על הנפח שלה. המכשיר מוסיף מעליו חמצן כדי להחזיק את נקודת הכיוון.';
+
+  @override
+  String get info_term_setpoint_label => 'נקודת כיוון';
+
+  @override
+  String get info_term_setpoint_body =>
+      'ה-ppO2 שמכשיר מחזור במעגל סגור מנסה להחזיק בלולאה. מכשירים עוברים לעיתים קרובות בין נקודת כיוון נמוכה לגבוהה במהלך הצלילה.';
+
+  @override
+  String get info_term_bailout_label => 'גז חילוץ';
+
+  @override
+  String get info_term_bailout_body =>
+      'גז במעגל פתוח שנישא בצלילת מכשיר מחזור לעלייה מחוץ ללולאה. תוכניות חילוץ מניחות שהלולאה אבדה.';
+
+  @override
+  String get info_term_loop_label => 'לולאה';
+
+  @override
+  String get info_term_loop_body =>
+      'מעגל הנשימה של מכשיר המחזור, שבו הגז הננשף מנוקה מפחמן דו-חמצני ונשאף שוב.';
+
+  @override
+  String get info_term_stage_label => 'מיכל במה';
+
+  @override
+  String get info_term_stage_body =>
+      'מיכל נוסף המחובר לצד, נישא לחלק מהצלילה ועוברים אליו בדרך.';
+
+  @override
+  String get info_term_decoGas_label => 'גז דקומפרסיה';
+
+  @override
+  String get info_term_decoGas_body =>
+      'גז עשיר יותר בחמצן שנושמים בעצירות הדקומפרסיה. הוא מאיץ את שחרור הגז בעומקים רדודים.';
+
+  @override
+  String get info_term_pony_label => 'פוני';
+
+  @override
+  String get info_term_pony_body =>
+      'מיכל קטן ועצמאי עם וסת משלו, הנישא כאספקת גז גיבוי.';
+
+  @override
+  String get info_term_sidemount_label => 'סיידמאונט';
+
+  @override
+  String get info_term_sidemount_body =>
+      'מיכלים הנישאים לאורך כל צד במקום על הגב, לכל אחד וסת משלו.';
+
+  @override
+  String get info_term_twinBackmount_label => 'מיכל כפול על הגב';
+
+  @override
+  String get info_term_twinBackmount_body =>
+      'שני מיכלים המחוברים על הגב, בדרך כלל במגוון, ונשאפים כאספקה אחת.';
+
+  @override
+  String get info_term_altitudeGroup_label => 'קבוצת גובה';
+
+  @override
+  String get info_term_altitudeGroup_body =>
+      'טווח גבהים שחולקים מערכת טבלאות והגדרות מודל אחת. בקבוצות גבוהות יותר לחץ האוויר בפני המים נמוך יותר.';
+
+  @override
+  String get info_term_surfacePressure_label => 'לחץ בפני המים';
+
+  @override
+  String get info_term_surfacePressure_body =>
+      'לחץ האוויר בפני המים באתר הצלילה. בגובה הוא נמוך יותר, וזה הופך את המודל לשמרני יותר.';
+
+  @override
+  String get info_term_salinity_label => 'סוג המים';
+
+  @override
+  String get info_term_salinity_body =>
+      'מים מלוחים צפופים ממים מתוקים, ולכן אותו לחץ מתאים בים לעומק רדוד מעט יותר. מחשבי צלילה משתמשים בזה כדי להמיר לחץ לעומק.';
+
+  @override
+  String get info_term_isobaricCounterdiffusion_label =>
+      'ICD (דיפוזיה נגדית איזוברית)';
+
+  @override
+  String get info_term_isobaricCounterdiffusion_body =>
+      'החלפת גז יכולה להעלות את סך הגז האינרטי ברקמות בלי שינוי עומק כשהחנקן עולה מהר יותר משההליום יורד. הבדיקה המקובלת, כלל החמישיות, מגבילה את עליית החנקן לחמישית מירידת ההליום.';
+
+  @override
+  String get info_term_hypercapnia_label => 'היפרקפניה';
+
+  @override
+  String get info_term_hypercapnia_body =>
+      'הצטברות של פחמן דו-חמצני בגוף. גז צפוף ומאמץ קשה מגבירים את הסיכוי לה.';
+
+  @override
+  String get info_term_turnPressure_label => 'לחץ חזרה';
+
+  @override
+  String get info_term_turnPressure_body =>
+      'לחץ המיכל שבו התוכנית מחזירה את הצלילה לכיוון היציאה.';
+
+  @override
+  String get info_term_minGas_label => 'גז מינימלי';
+
+  @override
+  String get info_term_minGas_body =>
+      'גז שנשמר כדי ששני צוללים יוכלו לחלוק אספקה אחת מהנקודה העמוקה ביותר עד פני המים, כולל עצירות.';
+
+  @override
+  String get info_term_rockBottom_label => 'רוק בוטום';
+
+  @override
+  String get info_term_rockBottom_body =>
+      'לחץ המיכל שמחזיק את הגז המינימלי. הוא כולל השהיה קצרה בעומק לטיפול בבעיה לפני העלייה.';
+
+  @override
+  String get info_term_thirds_label => 'כלל השלישים';
+
+  @override
+  String get info_term_thirds_body =>
+      'תוכנית גז שמשתמשת בשליש בדרך פנימה, בשליש בדרך החוצה ושומרת שליש כרזרבה. היא נלמדת בהכשרות מערות וסביבות סגורות.';
+
+  @override
+  String get info_term_airBreaks_label => 'הפסקות אוויר';
+
+  @override
+  String get info_term_airBreaks_body =>
+      'פרקי זמן קצרים של נשימת גז דל יותר בחמצן בזמן עצירות חמצן ארוכות. הם מפחיתים את עומס ה-CNS.';
+
+  @override
+  String get info_term_rollingAverage_label => 'ממוצע נע';
+
+  @override
+  String get info_term_rollingAverage_body =>
+      'הממוצע של כמה הצלילות האחרונות בכל נקודה, שמחליק את התנודות בין צלילות כדי להראות את המגמה.';
+
+  @override
+  String get info_term_overallTrend_label => 'מגמה כללית';
+
+  @override
+  String get info_term_overallTrend_body =>
+      'קו ישר שמותאם לכל הצלילות בטווח ומראה את הכיוון הכללי של הערכים.';
+
+  @override
+  String get info_term_rangeBand_label => 'רצועת טווח';
+
+  @override
+  String get info_term_rangeBand_body =>
+      'הרצועה המוצללת משתרעת מהערך הנמוך ביותר לגבוה ביותר בכל תקופה.';
+
+  @override
+  String get info_term_collapseGaps_label => 'כיווץ פערים';
+
+  @override
+  String get info_term_collapseGaps_body =>
+      'מסיר מציר הזמן הפסקות ארוכות בין צלילות כך שהצלילות יושבות זו לצד זו.';
+
+  @override
+  String get info_term_degreeHeatingWeeks_label => 'DHW (שבועות חימום מעלות)';
+
+  @override
+  String get info_term_degreeHeatingWeeks_body =>
+      'עקת חום שהצטברה ב-12 השבועות האחרונים, לפי NOAA Coral Reef Watch. NOAA צופה הלבנה משמעותית מ-4 והלבנה חמורה מ-8.';
+
+  @override
+  String get info_term_sstAnomaly_label => 'חריגת טמפרטורת פני הים';
+
+  @override
+  String get info_term_sstAnomaly_body =>
+      'בכמה טמפרטורת פני הים גבוהה או נמוכה מהממוצע ארוך הטווח שלה לתאריך.';
+
+  @override
+  String get info_term_bleachingAlert_label => 'התראת הלבנה';
+
+  @override
+  String get info_term_bleachingAlert_body =>
+      'רמת עקת החום של NOAA Coral Reef Watch לאזור, ממעקב ועד רמות ההתראה.';
+
+  @override
+  String get info_term_sourceDcCalc_label => 'ממחשב הצלילה או מחושב';
+
+  @override
+  String get info_term_sourceDcCalc_body =>
+      'ערכי מחשב הצלילה הם מה שהוא רשם במהלך הצלילה. ערכים מחושבים מגיעים מהמודל של האפליקציה על הפרופיל, ולכן הם עשויים להיות שונים.';
+
+  @override
+  String get info_term_scrubber_label => 'מסנן CO2';
+
+  @override
+  String get info_term_scrubber_body =>
+      'המכל במכשיר המחזור שמסלק פחמן דו-חמצני מהלולאה. החומר הסופח בו מדורג למספר שעות קבוע.';
+
+  @override
+  String get info_term_cellOutput_label => 'תפוקת התא';
+
+  @override
+  String get info_term_cellOutput_body =>
+      'קריאת המיליוולט של כל תא חמצן, שמכשיר המחזור ממיר ל-ppO2.';
+
+  @override
+  String get info_term_highO2Hours_label => 'שעות חמצן גבוה';
+
+  @override
+  String get info_term_highO2Hours_body =>
+      'זמן נשימת גז עם שיעור חמצן מוגבר, שמבלה מהר יותר חלקים לשירות חמצן.';
 }

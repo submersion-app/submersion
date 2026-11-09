@@ -96335,6 +96335,834 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Close'**
   String get info_sheet_close;
+
+  /// No description provided for @info_term_ndl_label.
+  ///
+  /// In en, this message translates to:
+  /// **'NDL (no-decompression limit)'**
+  String get info_term_ndl_label;
+
+  /// No description provided for @info_term_ndl_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes left at the current depth before the model calls for decompression stops. It counts down while the diver stays deep and grows again on the way up.'**
+  String get info_term_ndl_body;
+
+  /// No description provided for @info_term_ceiling_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Ceiling'**
+  String get info_term_ceiling_label;
+
+  /// No description provided for @info_term_ceiling_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The shallowest depth the decompression model allows at that moment. Zero means a direct ascent to the surface fits the model.'**
+  String get info_term_ceiling_body;
+
+  /// No description provided for @info_term_decoStops_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco stops'**
+  String get info_term_decoStops_label;
+
+  /// No description provided for @info_term_decoStops_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned pauses on the way up, each a depth and a time, that let dissolved gas leave the body. Stops are usually {step} apart.'**
+  String info_term_decoStops_body(String step);
+
+  /// No description provided for @info_term_tts_label.
+  ///
+  /// In en, this message translates to:
+  /// **'TTS (time to surface)'**
+  String get info_term_tts_label;
+
+  /// No description provided for @info_term_tts_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes needed to reach the surface from here, counting the ascent and every required stop.'**
+  String get info_term_tts_body;
+
+  /// No description provided for @info_term_gtr_label.
+  ///
+  /// In en, this message translates to:
+  /// **'GTR (gas time remaining)'**
+  String get info_term_gtr_label;
+
+  /// No description provided for @info_term_gtr_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes at the current depth and breathing rate until the cylinder falls to its reserve pressure. It assumes a direct ascent with no stops.'**
+  String get info_term_gtr_body;
+
+  /// No description provided for @info_term_gf99_label.
+  ///
+  /// In en, this message translates to:
+  /// **'GF99'**
+  String get info_term_gf99_label;
+
+  /// No description provided for @info_term_gf99_body.
+  ///
+  /// In en, this message translates to:
+  /// **'How close the most loaded tissue is to its M-value right now, as a percent. At 100% it sits exactly on the raw Bühlmann limit.'**
+  String get info_term_gf99_body;
+
+  /// No description provided for @info_term_surfaceGf_label.
+  ///
+  /// In en, this message translates to:
+  /// **'SurfGF (surface gradient factor)'**
+  String get info_term_surfaceGf_label;
+
+  /// No description provided for @info_term_surfaceGf_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The GF99 the tissues would have if the diver surfaced instantly. Above 100% the raw Bühlmann limit would be exceeded at the surface.'**
+  String get info_term_surfaceGf_body;
+
+  /// No description provided for @info_term_gradientFactors_label.
+  ///
+  /// In en, this message translates to:
+  /// **'GF (gradient factors)'**
+  String get info_term_gradientFactors_label;
+
+  /// No description provided for @info_term_gradientFactors_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Two percentages that scale back the Bühlmann limits: GF Low sets where the first stop falls and GF High sets the limit on surfacing. Lower numbers give longer, more conservative schedules.'**
+  String get info_term_gradientFactors_body;
+
+  /// No description provided for @info_term_cns_label.
+  ///
+  /// In en, this message translates to:
+  /// **'CNS% (central nervous system oxygen)'**
+  String get info_term_cns_label;
+
+  /// No description provided for @info_term_cns_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Share of the single-dive oxygen limit for the brain and nerves, taken from the NOAA ppO2 table. It falls by about half every 90 minutes on the surface.'**
+  String get info_term_cns_body;
+
+  /// No description provided for @info_term_otu_label.
+  ///
+  /// In en, this message translates to:
+  /// **'OTU (oxygen tolerance units)'**
+  String get info_term_otu_label;
+
+  /// No description provided for @info_term_otu_body.
+  ///
+  /// In en, this message translates to:
+  /// **'A slower, whole-body oxygen dose that adds up over several days of diving. One OTU is one minute of pure oxygen at 1 bar.'**
+  String get info_term_otu_body;
+
+  /// No description provided for @info_term_ppO2_label.
+  ///
+  /// In en, this message translates to:
+  /// **'ppO2 (oxygen partial pressure)'**
+  String get info_term_ppO2_label;
+
+  /// No description provided for @info_term_ppO2_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The pressure oxygen alone exerts in the breathing gas at this depth, in bar. Common limits are 1.4 bar while working and 1.6 bar during decompression.'**
+  String get info_term_ppO2_body;
+
+  /// No description provided for @info_term_ppN2_label.
+  ///
+  /// In en, this message translates to:
+  /// **'ppN2 (nitrogen partial pressure)'**
+  String get info_term_ppN2_label;
+
+  /// No description provided for @info_term_ppN2_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The pressure nitrogen exerts in the breathing gas at this depth, in bar. It drives nitrogen loading and narcosis.'**
+  String get info_term_ppN2_body;
+
+  /// No description provided for @info_term_ppHe_label.
+  ///
+  /// In en, this message translates to:
+  /// **'ppHe (helium partial pressure)'**
+  String get info_term_ppHe_label;
+
+  /// No description provided for @info_term_ppHe_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The pressure helium exerts in the breathing gas at this depth, in bar. Helium loads and unloads faster than nitrogen and is not narcotic.'**
+  String get info_term_ppHe_body;
+
+  /// No description provided for @info_term_o2Cells_label.
+  ///
+  /// In en, this message translates to:
+  /// **'O2 cells'**
+  String get info_term_o2Cells_label;
+
+  /// No description provided for @info_term_o2Cells_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensors in a rebreather loop that each measure ppO2. Readings that disagree point to a cell that is failing or wet.'**
+  String get info_term_o2Cells_body;
+
+  /// No description provided for @info_term_mod_label.
+  ///
+  /// In en, this message translates to:
+  /// **'MOD (maximum operating depth)'**
+  String get info_term_mod_label;
+
+  /// No description provided for @info_term_mod_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The depth at which a gas reaches its ppO2 limit. Deeper than this the oxygen exposure is above that limit.'**
+  String get info_term_mod_body;
+
+  /// No description provided for @info_term_mnd_label.
+  ///
+  /// In en, this message translates to:
+  /// **'MND (maximum narcotic depth)'**
+  String get info_term_mnd_label;
+
+  /// No description provided for @info_term_mnd_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The deepest point where a gas stays within the diver\'s END limit. Helium in the mix makes it deeper.'**
+  String get info_term_mnd_body;
+
+  /// No description provided for @info_term_end_label.
+  ///
+  /// In en, this message translates to:
+  /// **'END (equivalent narcotic depth)'**
+  String get info_term_end_label;
+
+  /// No description provided for @info_term_end_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The depth on air that would feel as narcotic as this gas at this depth. Helium lowers it because helium is not narcotic.'**
+  String get info_term_end_body;
+
+  /// No description provided for @info_term_ead_label.
+  ///
+  /// In en, this message translates to:
+  /// **'EAD (equivalent air depth)'**
+  String get info_term_ead_label;
+
+  /// No description provided for @info_term_ead_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The depth on air that would load nitrogen at the same rate as this nitrox at this depth. It is shallower than the real depth because nitrox carries less nitrogen.'**
+  String get info_term_ead_body;
+
+  /// No description provided for @info_term_eadd_label.
+  ///
+  /// In en, this message translates to:
+  /// **'EADD (equivalent air density depth)'**
+  String get info_term_eadd_label;
+
+  /// No description provided for @info_term_eadd_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The depth at which air would be as dense as this gas at this depth. It compares breathing effort across mixes.'**
+  String get info_term_eadd_body;
+
+  /// No description provided for @info_term_gasDensity_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas density'**
+  String get info_term_gasDensity_label;
+
+  /// No description provided for @info_term_gasDensity_body.
+  ///
+  /// In en, this message translates to:
+  /// **'How heavy the breathing gas is at depth, in grams per litre, which sets how hard it is to breathe. Published research names 5.2 g/L as a recommended maximum and 6.2 g/L as an upper limit.'**
+  String get info_term_gasDensity_body;
+
+  /// No description provided for @info_term_sac_label.
+  ///
+  /// In en, this message translates to:
+  /// **'SAC (surface air consumption)'**
+  String get info_term_sac_label;
+
+  /// No description provided for @info_term_sac_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas use per minute converted to surface pressure, shown as pressure drop per minute. It depends on cylinder size, so it compares dives on the same cylinder.'**
+  String get info_term_sac_body;
+
+  /// No description provided for @info_term_rmv_label.
+  ///
+  /// In en, this message translates to:
+  /// **'RMV (respiratory minute volume)'**
+  String get info_term_rmv_label;
+
+  /// No description provided for @info_term_rmv_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas volume breathed per minute, converted to surface pressure. Unlike SAC it does not depend on cylinder size.'**
+  String get info_term_rmv_body;
+
+  /// No description provided for @info_term_ascentRate_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Ascent rate'**
+  String get info_term_ascentRate_label;
+
+  /// No description provided for @info_term_ascentRate_body.
+  ///
+  /// In en, this message translates to:
+  /// **'How fast depth decreases, per minute. Common training uses {rate} as the maximum.'**
+  String info_term_ascentRate_body(String rate);
+
+  /// No description provided for @info_term_descentRate_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Descent rate'**
+  String get info_term_descentRate_label;
+
+  /// No description provided for @info_term_descentRate_body.
+  ///
+  /// In en, this message translates to:
+  /// **'How fast depth increases, per minute.'**
+  String get info_term_descentRate_body;
+
+  /// No description provided for @info_term_meanDepth_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Mean depth'**
+  String get info_term_meanDepth_label;
+
+  /// No description provided for @info_term_meanDepth_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The time-weighted average depth across the dive. Gas use and decompression follow it more closely than maximum depth.'**
+  String get info_term_meanDepth_body;
+
+  /// No description provided for @info_term_bottomTime_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom time'**
+  String get info_term_bottomTime_label;
+
+  /// No description provided for @info_term_bottomTime_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Time from leaving the surface to the start of the final ascent. It is worked out from the profile.'**
+  String get info_term_bottomTime_body;
+
+  /// No description provided for @info_term_runtime_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Runtime'**
+  String get info_term_runtime_label;
+
+  /// No description provided for @info_term_runtime_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Total time from leaving the surface to surfacing. Technical schedules are written against it.'**
+  String get info_term_runtime_body;
+
+  /// No description provided for @info_term_safetyStop_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety stop'**
+  String get info_term_safetyStop_label;
+
+  /// No description provided for @info_term_safetyStop_body.
+  ///
+  /// In en, this message translates to:
+  /// **'An optional pause near {depth}, usually three minutes, before surfacing. The model does not require it on a no-stop dive.'**
+  String info_term_safetyStop_body(String depth);
+
+  /// No description provided for @info_term_surfaceInterval_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface interval'**
+  String get info_term_surfaceInterval_label;
+
+  /// No description provided for @info_term_surfaceInterval_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Time on the surface between two dives. Tissues keep releasing gas during it, so a longer interval carries less into the next dive.'**
+  String get info_term_surfaceInterval_body;
+
+  /// No description provided for @info_term_tissueCompartment_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Tissue compartments'**
+  String get info_term_tissueCompartment_label;
+
+  /// No description provided for @info_term_tissueCompartment_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The model\'s 16 imaginary tissues, each taking up and releasing gas at its own speed. Fast ones stand for blood-rich tissue and slow ones for fat and bone.'**
+  String get info_term_tissueCompartment_body;
+
+  /// No description provided for @info_term_leadingCompartment_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Leading compartment'**
+  String get info_term_leadingCompartment_label;
+
+  /// No description provided for @info_term_leadingCompartment_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The compartment closest to its limit right now. It sets the ceiling and changes during the dive.'**
+  String get info_term_leadingCompartment_body;
+
+  /// No description provided for @info_term_tissueLoad_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Load'**
+  String get info_term_tissueLoad_label;
+
+  /// No description provided for @info_term_tissueLoad_body.
+  ///
+  /// In en, this message translates to:
+  /// **'How much inert gas a compartment holds compared with its limit, as a percent. At 100% it sits on its M-value.'**
+  String get info_term_tissueLoad_body;
+
+  /// No description provided for @info_term_mValue_label.
+  ///
+  /// In en, this message translates to:
+  /// **'M-value'**
+  String get info_term_mValue_label;
+
+  /// No description provided for @info_term_mValue_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The most inert gas pressure a compartment can hold at a given depth under the Bühlmann model. Gradient factors set how much of it is used.'**
+  String get info_term_mValue_body;
+
+  /// No description provided for @info_term_surfaceLevel_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface level'**
+  String get info_term_surfaceLevel_label;
+
+  /// No description provided for @info_term_surfaceLevel_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The gas pressure a compartment holds when fully settled at the surface on air. Bars above this line are still carrying extra gas.'**
+  String get info_term_surfaceLevel_body;
+
+  /// No description provided for @info_term_halfTime_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Half-time'**
+  String get info_term_halfTime_label;
+
+  /// No description provided for @info_term_halfTime_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes a compartment takes to move halfway toward the surrounding pressure. The range runs from a few minutes to over ten hours.'**
+  String get info_term_halfTime_body;
+
+  /// No description provided for @info_term_ongassing_label.
+  ///
+  /// In en, this message translates to:
+  /// **'On-gassing and off-gassing'**
+  String get info_term_ongassing_label;
+
+  /// No description provided for @info_term_ongassing_body.
+  ///
+  /// In en, this message translates to:
+  /// **'On-gassing means a compartment is taking up gas because the surrounding pressure is higher, and off-gassing means it is releasing gas. The colour shows which way each compartment is going.'**
+  String get info_term_ongassing_body;
+
+  /// No description provided for @info_term_heatMap_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Heat map'**
+  String get info_term_heatMap_label;
+
+  /// No description provided for @info_term_heatMap_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Each row is one compartment, fast at the top and slow at the bottom, and time runs left to right. The colour shows how loaded that compartment is at that moment.'**
+  String get info_term_heatMap_body;
+
+  /// No description provided for @info_term_nitrox_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Nitrox (EANx)'**
+  String get info_term_nitrox_label;
+
+  /// No description provided for @info_term_nitrox_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Air enriched with oxygen, named by its oxygen percent, as in EAN32. Less nitrogen lengthens no-stop times, and the extra oxygen makes the MOD shallower.'**
+  String get info_term_nitrox_body;
+
+  /// No description provided for @info_term_trimix_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Trimix'**
+  String get info_term_trimix_label;
+
+  /// No description provided for @info_term_trimix_body.
+  ///
+  /// In en, this message translates to:
+  /// **'A mix of oxygen, helium and nitrogen, written as oxygen over helium, as in 18/45. Helium reduces narcosis and gas density at depth.'**
+  String get info_term_trimix_body;
+
+  /// No description provided for @info_term_diluent_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Diluent'**
+  String get info_term_diluent_label;
+
+  /// No description provided for @info_term_diluent_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The gas a rebreather adds to the loop to keep up its volume. The unit adds oxygen on top to hold the setpoint.'**
+  String get info_term_diluent_body;
+
+  /// No description provided for @info_term_setpoint_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Setpoint'**
+  String get info_term_setpoint_label;
+
+  /// No description provided for @info_term_setpoint_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The ppO2 a closed-circuit rebreather tries to hold in the loop. Units often switch between a low and a high setpoint during a dive.'**
+  String get info_term_setpoint_body;
+
+  /// No description provided for @info_term_bailout_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Bailout'**
+  String get info_term_bailout_label;
+
+  /// No description provided for @info_term_bailout_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Open-circuit gas carried on a rebreather dive for an ascent off the loop. Bailout plans assume the loop is lost.'**
+  String get info_term_bailout_body;
+
+  /// No description provided for @info_term_loop_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Loop'**
+  String get info_term_loop_label;
+
+  /// No description provided for @info_term_loop_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The rebreather\'s breathing circuit, where exhaled gas is cleared of carbon dioxide and breathed again.'**
+  String get info_term_loop_body;
+
+  /// No description provided for @info_term_stage_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Stage'**
+  String get info_term_stage_label;
+
+  /// No description provided for @info_term_stage_body.
+  ///
+  /// In en, this message translates to:
+  /// **'An extra cylinder clipped to the side, carried for one part of the dive and swapped to on the way.'**
+  String get info_term_stage_body;
+
+  /// No description provided for @info_term_decoGas_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco gas'**
+  String get info_term_decoGas_label;
+
+  /// No description provided for @info_term_decoGas_body.
+  ///
+  /// In en, this message translates to:
+  /// **'A gas richer in oxygen breathed during decompression stops. It speeds up off-gassing at shallow depths.'**
+  String get info_term_decoGas_body;
+
+  /// No description provided for @info_term_pony_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Pony'**
+  String get info_term_pony_label;
+
+  /// No description provided for @info_term_pony_body.
+  ///
+  /// In en, this message translates to:
+  /// **'A small independent cylinder with its own regulator, carried as a backup gas supply.'**
+  String get info_term_pony_body;
+
+  /// No description provided for @info_term_sidemount_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Sidemount'**
+  String get info_term_sidemount_label;
+
+  /// No description provided for @info_term_sidemount_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinders worn along each side instead of on the back, each with its own regulator.'**
+  String get info_term_sidemount_body;
+
+  /// No description provided for @info_term_twinBackmount_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Twin backmount'**
+  String get info_term_twinBackmount_label;
+
+  /// No description provided for @info_term_twinBackmount_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Two cylinders joined on the back, usually by a manifold, and breathed as one supply.'**
+  String get info_term_twinBackmount_body;
+
+  /// No description provided for @info_term_altitudeGroup_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude group'**
+  String get info_term_altitudeGroup_label;
+
+  /// No description provided for @info_term_altitudeGroup_body.
+  ///
+  /// In en, this message translates to:
+  /// **'A band of altitudes that share one set of tables and model settings. Higher groups have lower air pressure at the surface.'**
+  String get info_term_altitudeGroup_body;
+
+  /// No description provided for @info_term_surfacePressure_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface pressure'**
+  String get info_term_surfacePressure_label;
+
+  /// No description provided for @info_term_surfacePressure_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The air pressure at the dive site\'s surface. At altitude it is lower, which makes the model more conservative.'**
+  String get info_term_surfacePressure_body;
+
+  /// No description provided for @info_term_salinity_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Water type'**
+  String get info_term_salinity_label;
+
+  /// No description provided for @info_term_salinity_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Salt water is denser than fresh water, so the same pressure reads as a slightly shallower depth in the sea. Computers use it to turn pressure into depth.'**
+  String get info_term_salinity_body;
+
+  /// No description provided for @info_term_isobaricCounterdiffusion_label.
+  ///
+  /// In en, this message translates to:
+  /// **'ICD (isobaric counterdiffusion)'**
+  String get info_term_isobaricCounterdiffusion_label;
+
+  /// No description provided for @info_term_isobaricCounterdiffusion_body.
+  ///
+  /// In en, this message translates to:
+  /// **'A gas switch can raise total inert gas in tissues with no change in depth when nitrogen rises faster than helium falls. The common check, the rule of fifths, limits the nitrogen rise to one fifth of the helium drop.'**
+  String get info_term_isobaricCounterdiffusion_body;
+
+  /// No description provided for @info_term_hypercapnia_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Hypercapnia'**
+  String get info_term_hypercapnia_label;
+
+  /// No description provided for @info_term_hypercapnia_body.
+  ///
+  /// In en, this message translates to:
+  /// **'A build-up of carbon dioxide in the body. Dense gas and hard work make it more likely.'**
+  String get info_term_hypercapnia_body;
+
+  /// No description provided for @info_term_turnPressure_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn pressure'**
+  String get info_term_turnPressure_label;
+
+  /// No description provided for @info_term_turnPressure_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The cylinder pressure at which the plan turns the dive back toward the exit.'**
+  String get info_term_turnPressure_body;
+
+  /// No description provided for @info_term_minGas_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum gas'**
+  String get info_term_minGas_label;
+
+  /// No description provided for @info_term_minGas_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas held back so two divers can share one supply from the deepest point to the surface, including stops.'**
+  String get info_term_minGas_body;
+
+  /// No description provided for @info_term_rockBottom_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Rock bottom'**
+  String get info_term_rockBottom_label;
+
+  /// No description provided for @info_term_rockBottom_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The cylinder pressure that holds the minimum gas. It includes a short delay at depth to deal with the problem before the ascent.'**
+  String get info_term_rockBottom_body;
+
+  /// No description provided for @info_term_thirds_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Rule of thirds'**
+  String get info_term_thirds_label;
+
+  /// No description provided for @info_term_thirds_body.
+  ///
+  /// In en, this message translates to:
+  /// **'A gas plan that uses one third going in, one third coming out and keeps one third in reserve. Cave and overhead training teaches it.'**
+  String get info_term_thirds_body;
+
+  /// No description provided for @info_term_airBreaks_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Air breaks'**
+  String get info_term_airBreaks_label;
+
+  /// No description provided for @info_term_airBreaks_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Short periods breathing a lower-oxygen gas during long oxygen stops. They reduce the CNS load.'**
+  String get info_term_airBreaks_body;
+
+  /// No description provided for @info_term_rollingAverage_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Rolling average'**
+  String get info_term_rollingAverage_label;
+
+  /// No description provided for @info_term_rollingAverage_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The mean of the last several dives at each point, which smooths dive-to-dive noise to show the trend.'**
+  String get info_term_rollingAverage_body;
+
+  /// No description provided for @info_term_overallTrend_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Overall trend'**
+  String get info_term_overallTrend_label;
+
+  /// No description provided for @info_term_overallTrend_body.
+  ///
+  /// In en, this message translates to:
+  /// **'A straight line fitted through every dive in range, showing the general direction of the values.'**
+  String get info_term_overallTrend_body;
+
+  /// No description provided for @info_term_rangeBand_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Range band'**
+  String get info_term_rangeBand_label;
+
+  /// No description provided for @info_term_rangeBand_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The shaded band spans the lowest to the highest value in each period.'**
+  String get info_term_rangeBand_body;
+
+  /// No description provided for @info_term_collapseGaps_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse gaps'**
+  String get info_term_collapseGaps_label;
+
+  /// No description provided for @info_term_collapseGaps_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Removes long breaks between dives from the time axis so dives sit side by side.'**
+  String get info_term_collapseGaps_body;
+
+  /// No description provided for @info_term_degreeHeatingWeeks_label.
+  ///
+  /// In en, this message translates to:
+  /// **'DHW (degree heating weeks)'**
+  String get info_term_degreeHeatingWeeks_label;
+
+  /// No description provided for @info_term_degreeHeatingWeeks_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Heat stress built up over the past 12 weeks, from NOAA Coral Reef Watch. NOAA expects significant bleaching from 4 and severe bleaching from 8.'**
+  String get info_term_degreeHeatingWeeks_body;
+
+  /// No description provided for @info_term_sstAnomaly_label.
+  ///
+  /// In en, this message translates to:
+  /// **'SST anomaly'**
+  String get info_term_sstAnomaly_label;
+
+  /// No description provided for @info_term_sstAnomaly_body.
+  ///
+  /// In en, this message translates to:
+  /// **'How far the sea surface temperature sits above or below its long-term average for the date.'**
+  String get info_term_sstAnomaly_body;
+
+  /// No description provided for @info_term_bleachingAlert_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Bleaching alert'**
+  String get info_term_bleachingAlert_label;
+
+  /// No description provided for @info_term_bleachingAlert_body.
+  ///
+  /// In en, this message translates to:
+  /// **'NOAA Coral Reef Watch\'s heat-stress level for the area, from watch up to the alert levels.'**
+  String get info_term_bleachingAlert_body;
+
+  /// No description provided for @info_term_sourceDcCalc_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive computer or calculated'**
+  String get info_term_sourceDcCalc_label;
+
+  /// No description provided for @info_term_sourceDcCalc_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive computer values are what it recorded during the dive. Calculated values come from the app\'s own model run over the profile, so the two can differ.'**
+  String get info_term_sourceDcCalc_body;
+
+  /// No description provided for @info_term_scrubber_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Scrubber'**
+  String get info_term_scrubber_label;
+
+  /// No description provided for @info_term_scrubber_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The canister in a rebreather that removes carbon dioxide from the loop. Its absorbent is rated for a set number of hours.'**
+  String get info_term_scrubber_body;
+
+  /// No description provided for @info_term_cellOutput_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell output'**
+  String get info_term_cellOutput_label;
+
+  /// No description provided for @info_term_cellOutput_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Each oxygen cell\'s millivolt reading, which the rebreather turns into ppO2.'**
+  String get info_term_cellOutput_body;
+
+  /// No description provided for @info_term_highO2Hours_label.
+  ///
+  /// In en, this message translates to:
+  /// **'High-oxygen hours'**
+  String get info_term_highO2Hours_label;
+
+  /// No description provided for @info_term_highO2Hours_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Time spent breathing gas with a raised oxygen fraction, which wears oxygen-service parts faster.'**
+  String get info_term_highO2Hours_body;
 }
 
 class _AppLocalizationsDelegate
