@@ -75,4 +75,29 @@ void main() {
       expect(dive.diveComputerSerial, '8629AC48');
     },
   );
+
+  test('a failing serial heal never fails the computer save', () async {
+    final diveId = await download();
+    await db.customStatement(
+      'CREATE TEMP TRIGGER block_source_update BEFORE UPDATE ON '
+      "dive_data_sources BEGIN SELECT RAISE(ABORT, 'blocked'); END",
+    );
+    addTearDown(
+      () => db.customStatement('DROP TRIGGER IF EXISTS block_source_update'),
+    );
+
+    final computer = (await repository.getComputerById('teric'))!;
+    await repository.updateComputer(
+      computer.copyWith(serialNumber: '8629AC48'),
+    );
+
+    expect(
+      (await repository.getComputerById('teric'))!.serialNumber,
+      '8629AC48',
+    );
+    final source = await (db.select(
+      db.diveDataSources,
+    )..where((t) => t.diveId.equals(diveId))).getSingle();
+    expect(source.computerSerial, isNull);
+  });
 }

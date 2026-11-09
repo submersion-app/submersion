@@ -81,11 +81,15 @@ Future<int> healDownloadedSnapshotSerials(
     'descriptor_vendor',
     'descriptor_product',
   });
-  final sourceModel = sourceCols.contains('computer_model')
-      ? (hasVendor
-            ? 'COALESCE(s.computer_model, s.descriptor_product)'
-            : 's.computer_model')
-      : (hasVendor ? 's.descriptor_product' : 'NULL');
+  // The model snapshot, else the descriptor's product; the two trailing
+  // NULLs keep COALESCE at the two arguments it needs on any schema.
+  final modelColumns = [
+    if (sourceCols.contains('computer_model')) 's.computer_model',
+    if (hasVendor) 's.descriptor_product',
+    'NULL',
+    'NULL',
+  ];
+  final sourceModel = 'COALESCE(${modelColumns.join(', ')})';
   changed += await _convertDecimal(
     db,
     table: 'dive_data_sources',

@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
-import 'package:collection/collection.dart' show IterableExtension;
 import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart' show listEquals, visibleForTesting;
@@ -18,6 +17,7 @@ import 'package:submersion/core/database/legacy_sample_staging.dart';
 import 'package:submersion/core/database/profile_series_pack.dart';
 import 'package:submersion/core/database/site_type_seed.dart';
 import 'package:submersion/core/database/source_computer_relink.dart';
+import 'package:submersion/core/services/sync/referenced_computer_export.dart';
 import 'package:submersion/core/database/tag_scope_tables.dart';
 import 'package:submersion/core/database/trip_checklist_default.dart';
 import 'package:submersion/core/services/sync/child_column_clears.dart';
@@ -2812,7 +2812,8 @@ class SyncDataSerializer {
       ),
       diveComputers: await _safeExport(
         'diveComputers',
-        () async => _withReferencedComputers(
+        () async => withReferencedComputers(
+          _db,
           await _exportDiveComputers(hlcSince),
           hlcSince: hlcSince,
           referencing: [dives, diveDataSources],
@@ -3209,13 +3210,23 @@ class SyncDataSerializer {
   /// an apply ends without that computer's row (issue #4368). Gives it back
   /// where the source's own dive names the computer. Marks nothing pending:
   /// every device derives the same link from the same synced rows.
+  /// Best-effort: a failure is logged and the apply goes on, since the next
+  /// apply or open repeats it.
   Future<void> relinkClearedSourceComputers() async {
-    if (await relinkDiveAttributedSources(_db) > 0) {
-      _db.notifyUpdates({
-        TableUpdate.onTable(_db.diveDataSources, kind: UpdateKind.update),
-        TableUpdate.onTable(_db.diveProfileSeries, kind: UpdateKind.update),
-        TableUpdate.onTable(_db.tankPressureSeries, kind: UpdateKind.update),
-      });
+    try {
+      if (await relinkDiveAttributedSources(_db) > 0) {
+        _db.notifyUpdates({
+          TableUpdate.onTable(_db.diveDataSources, kind: UpdateKind.update),
+          TableUpdate.onTable(_db.diveProfileSeries, kind: UpdateKind.update),
+          TableUpdate.onTable(_db.tankPressureSeries, kind: UpdateKind.update),
+        });
+      }
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Relinking data sources to their computers failed (non-fatal)',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 
@@ -10888,42 +10899,6 @@ class SyncDataSerializer {
         .map((r) => withoutDeviceLocalColumns('diveComputers', r.toJson()))
         .toList();
   }
-
-  /// [exported] plus every computer a row in [referencing] points at by its
-  /// `computerId`, for an incremental changeset (issue #4368). A peer that
-  /// applies a dive or data source without the computer it names has its
-  /// foreign-key repair clear the link for good, and a computer older than
-  /// the watermark, or one an earlier apply on the peer failed to keep, is
-  /// otherwise not sent again until its own clock moves. Resending an
-  /// unchanged computer is a no-op on the peer. A base already carries
-  /// every computer.
-  Future<List<Map<String, dynamic>>> _withReferencedComputers(
-    List<Map<String, dynamic>> exported, {
-    required String? hlcSince,
-    required List<List<Map<String, dynamic>>> referencing,
-  }) async {
-    if (hlcSince == null) return exported;
-    final have = {for (final row in exported) row['id']};
-    final missing = {
-      for (final rows in referencing)
-        for (final row in rows)
-          if (row['computerId'] case final String id when !have.contains(id))
-            id,
-    }.toList();
-    if (missing.isEmpty) return exported;
-    return [
-      ...exported,
-      for (final chunk in missing.slices(_referencedComputerChunk))
-        for (final row in await (_db.select(
-          _db.diveComputers,
-        )..where((t) => t.id.isIn(chunk))).get())
-          withoutDeviceLocalColumns('diveComputers', row.toJson()),
-    ];
-  }
-
-  /// Ids per query when fetching referenced computers, well below SQLite's
-  /// bound-variable limit.
-  static const _referencedComputerChunk = 500;
 
   /// Dive computer connections (v279, issue #3106): their own clock, and
   /// this device's address and last use stripped, like [_exportDiveComputers].

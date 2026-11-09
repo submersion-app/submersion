@@ -92,4 +92,22 @@ void main() {
     expect(source['computerId'], 'teric');
     expect(source['computerSerial'], '8629AC48');
   });
+
+  test('an apply brings a linked decimal serial copy, as a peer below this '
+      'fix sends it, to the computer\'s hex', () async {
+    await seedDetachedSource();
+    await DatabaseService.instance.database.customStatement(
+      "UPDATE dive_data_sources SET computer_id = 'teric', "
+      "computer_serial = '2250878024' WHERE id = 's1'",
+    );
+    final payload = await peerPayload();
+
+    await SyncService(
+      syncRepository: SyncRepository(),
+      serializer: serializer,
+    ).debugApplyPayload(payload);
+
+    final source = (await serializer.fetchRecord('diveDataSources', 's1'))!;
+    expect(source['computerSerial'], '8629AC48');
+  });
 }

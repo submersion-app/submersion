@@ -72,9 +72,13 @@ Future<int> relinkDiveAttributedSources(DatabaseConnectionUser db) async {
     final row = candidates.single;
     final computerId = row.read<String>('computer_id');
     final sourceId = row.read<String>('id');
+    // An empty serial copy takes the computer's at once: a source relinked
+    // while a conflict is resolved sees no serial heal until the next open.
     await db.customStatement(
-      'UPDATE dive_data_sources SET computer_id = ? WHERE id = ?',
-      [computerId, sourceId],
+      'UPDATE dive_data_sources SET computer_id = ?, computer_serial = '
+      "COALESCE(NULLIF(TRIM(computer_serial), ''), ?, computer_serial) "
+      'WHERE id = ?',
+      [computerId, row.readNullable<String>('serial_number'), sourceId],
     );
     // The same repair cleared the link on the source's recorded series,
     // which say whose they are only through it.

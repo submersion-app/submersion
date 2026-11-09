@@ -102,7 +102,8 @@ void main() {
     expect((await source('s2')).computerId, 'sw');
   });
 
-  test('the source\'s profile series follows it', () async {
+  test('the source\'s profile and tank pressure series follow it, and an '
+      'empty serial copy takes the computer\'s', () async {
     await insertComputer('sw');
     await insertDive('d1', computerId: 'sw');
     await insertSource('s1', diveId: 'd1');
@@ -112,15 +113,26 @@ void main() {
       'first_depth, last_depth, codec_version, samples, created_at, '
       "updated_at) VALUES ('p1', 'd1', 's1', 0, 0, 0, 0, 0, 0, 1, x'', 1, 1)",
     );
+    await db.customStatement(
+      "INSERT INTO dive_tanks (id, dive_id) VALUES ('t1', 'd1')",
+    );
+    await db.customStatement(
+      'INSERT INTO tank_pressure_series (id, dive_id, tank_id, source_id, '
+      'sample_count, start_timestamp, end_timestamp, codec_version, samples, '
+      "created_at, updated_at) VALUES ('tp1', 'd1', 't1', 's1', 0, 0, 0, 1, "
+      "x'', 1, 1)",
+    );
 
     expect(await relinkDiveAttributedSources(db), 1);
 
-    final series = await db
-        .customSelect(
-          "SELECT computer_id FROM dive_profile_series WHERE id = 'p1'",
-        )
-        .getSingle();
-    expect(series.read<String?>('computer_id'), 'sw');
+    Future<String?> seriesComputer(String table, String id) async =>
+        (await db
+                .customSelect("SELECT computer_id FROM $table WHERE id = '$id'")
+                .getSingle())
+            .read<String?>('computer_id');
+    expect(await seriesComputer('dive_profile_series', 'p1'), 'sw');
+    expect(await seriesComputer('tank_pressure_series', 'tp1'), 'sw');
+    expect((await source('s1')).computerSerial, '8629AC48');
   });
 
   test('the every-open heal relinks first, so the source takes its '

@@ -69,6 +69,21 @@ void main() {
     expect(data.diveComputers.map((c) => c['id']), ['teric']);
   });
 
+  test('a dive alone brings its computer too', () async {
+    final watermark = await seedComputer();
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+    );
+    await DatabaseService.instance.database.customStatement(
+      "UPDATE dives SET computer_id = 'teric' WHERE id = 'd1'",
+    );
+
+    final data = await changesetSince(watermark);
+
+    expect(data.diveDataSources, isEmpty);
+    expect(data.diveComputers.map((c) => c['id']), ['teric']);
+  });
+
   test('a changeset that references no computer carries none', () async {
     final watermark = await seedComputer();
     await DiveRepository().createDive(
