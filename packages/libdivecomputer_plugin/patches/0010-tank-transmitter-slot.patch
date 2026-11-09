@@ -1,0 +1,90 @@
+diff --git a/doc/man/dc_parser_get_field.3 b/doc/man/dc_parser_get_field.3
+index bf1937a..6286502 100644
+--- a/doc/man/dc_parser_get_field.3
++++ b/doc/man/dc_parser_get_field.3
+@@ -162,7 +162,10 @@ and
+ being the pressures at start and finish in bar;
+ .Va serial ,
+ the serial number of the air-integration transmitter that reported the
+-pressures, or zero if the device does not report one.
++pressures, or zero if the device does not report one;
++.Va slot ,
++the physical transmitter slot the device paired that transmitter to, plus
++one, or zero if the device does not report one.
+ The
+ .Fa flags
+ value is the tank index.
+diff --git a/include/libdivecomputer/parser.h b/include/libdivecomputer/parser.h
+index 9e1ac2a..98b7086 100644
+--- a/include/libdivecomputer/parser.h
++++ b/include/libdivecomputer/parser.h
+@@ -203,6 +203,12 @@ typedef struct dc_tank_t {
+      * the same transmitter log the same cylinder, so this identifies the tank
+      * across computers regardless of the gas mix each had programmed. */
+     unsigned int serial;
++    /* Submersion patch (tank transmitter slot): the physical transmitter
++     * slot the device paired this tank's transmitter to, plus one (so 1 is
++     * the first slot), or zero when the device does not report one. A
++     * logbook export that names slots but no serial can then be matched to
++     * the downloads that show which serial sat in which slot. */
++    unsigned int slot;
+ } dc_tank_t;
+ 
+ typedef enum dc_decomodel_type_t {
+diff --git a/src/parser.c b/src/parser.c
+index dcdc9bf..20c2d97 100644
+--- a/src/parser.c
++++ b/src/parser.c
+@@ -385,8 +385,12 @@ dc_parser_get_field (dc_parser_t *parser, dc_field_type_t type, unsigned int fla
+ 	// a transmitter serial assign dc_tank_t.serial, so define it here for
+ 	// every other backend rather than leaving it to the caller's
+ 	// initialisation.
+-	if (type == DC_FIELD_TANK && value != NULL)
++	if (type == DC_FIELD_TANK && value != NULL) {
+ 		((dc_tank_t *) value)->serial = 0;
++		// Submersion patch (tank transmitter slot): same rule, zero is
++		// "not reported".
++		((dc_tank_t *) value)->slot = 0;
++	}
+ 
+ 	return parser->vtable->field (parser, type, flags, value);
+ }
+diff --git a/src/shearwater_predator_parser.c b/src/shearwater_predator_parser.c
+index 458e215..27aed26 100644
+--- a/src/shearwater_predator_parser.c
++++ b/src/shearwater_predator_parser.c
+@@ -135,6 +135,7 @@ typedef struct shearwater_predator_tank_t {
+ 	unsigned int pressure_max;
+ 	unsigned int pressure_reserve;
+ 	unsigned int serial;
++	unsigned int slot; // Submersion patch: physical slot plus one, 0 unknown.
+ 	char name[2];
+ 	dc_usage_t usage;
+ } shearwater_predator_tank_t;
+@@ -277,6 +278,7 @@ shearwater_common_parser_create (dc_parser_t **out, dc_context_t *context, const
+ 		parser->tank[i].pressure_max = 0;
+ 		parser->tank[i].pressure_reserve = 0;
+ 		parser->tank[i].serial = 0;
++		parser->tank[i].slot = 0;
+ 		memset (parser->tank[i].name, 0, sizeof (parser->tank[i].name));
+ 		parser->tank[i].usage = DC_USAGE_NONE;
+ 		parser->tankidx[i] = i;
+@@ -748,6 +750,10 @@ shearwater_predator_parser_cache (shearwater_predator_parser_t *parser)
+ 		if (tank[i].active) {
+ 			parser->tankidx[i] = parser->ntanks;
+ 			parser->tank[parser->ntanks] = tank[i];
++			// Submersion patch (tank transmitter slot): compaction drops the
++			// raw index, so keep it. Only T1 to T4 are transmitter slots;
++			// 4 and 5 are the HP CCR diluent and oxygen sensors.
++			parser->tank[parser->ntanks].slot = i < 4 ? i + 1 : 0;
+ 			parser->ntanks++;
+ 		} else {
+ 			parser->tankidx[i] = UNDEFINED;
+@@ -820,6 +826,7 @@ shearwater_predator_parser_get_field (dc_parser_t *abstract, dc_field_type_t typ
+ 			tank->beginpressure = parser->tank[flags].beginpressure * 2 * PSI / BAR;
+ 			tank->endpressure   = parser->tank[flags].endpressure   * 2 * PSI / BAR;
+ 			tank->serial = parser->tank[flags].serial;
++			tank->slot = parser->tank[flags].slot;
+ 			tank->gasmix = DC_GASMIX_UNKNOWN;
+ 			if (shearwater_predator_is_ccr (parser->divemode) && !parser->hpccr) {
+ 				switch (parser->tank[flags].name[0]) {

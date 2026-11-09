@@ -23,6 +23,13 @@
 #define EXPECTED_TANK0_SERIAL 123086u
 #define EXPECTED_TANK1_SERIAL 109623u
 
+/* The slot is reported as the physical transmitter slot plus one, so a
+   zeroed field means "unknown". Both serials come from opening record 5,
+   whose first entry is T1 and second T2, so the two active tanks sit in
+   T1 and T2: slots 1 and 2. */
+#define EXPECTED_TANK0_SLOT 1u
+#define EXPECTED_TANK1_SLOT 2u
+
 static unsigned int load_fixture(const char *path, unsigned char **out) {
     *out = NULL;
     FILE *f = fopen(path, "rb");
@@ -89,10 +96,31 @@ static void test_unused_tank_slots_have_no_serial(void) {
     printf("PASS: test_unused_tank_slots_have_no_serial\n");
 }
 
+/* Each active transmitter reports the physical slot it was paired to (issue
+   #4347), so a file import that names slots T1 to T4 can be matched to it. */
+static void test_tanks_carry_transmitter_slots(void) {
+    libdc_parsed_dive_t dive;
+    parse_fixture(&dive);
+
+    assert(dive.tank_count == 2);
+    printf("  tank 0 slot %u, tank 1 slot %u\n",
+           dive.tanks[0].slot, dive.tanks[1].slot);
+    assert(dive.tanks[0].slot == EXPECTED_TANK0_SLOT);
+    assert(dive.tanks[1].slot == EXPECTED_TANK1_SLOT);
+    for (unsigned int t = dive.tank_count; t < LIBDC_MAX_TANKS; t++) {
+        assert(dive.tanks[t].slot == 0);
+    }
+
+    free(dive.samples);
+    free(dive.events);
+    printf("PASS: test_tanks_carry_transmitter_slots\n");
+}
+
 int main(void) {
     printf("Running tank transmitter serial tests...\n");
     test_tanks_carry_transmitter_serials();
     test_unused_tank_slots_have_no_serial();
+    test_tanks_carry_transmitter_slots();
     printf("All tank transmitter serial tests passed\n");
     return 0;
 }
