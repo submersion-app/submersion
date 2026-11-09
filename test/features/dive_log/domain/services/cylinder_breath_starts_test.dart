@@ -349,4 +349,52 @@ void main() {
       ], cylinderBreathStarts(readings));
     });
   });
+
+  group('cylinderBreathedFromStart', () {
+    // Breathed from the first reading to 15:00, then held.
+    final falling = _series(
+      2400,
+      (t) => t <= 900 ? 200 - t * _rate : 200 - 900 * _rate,
+    );
+    // Held to 15:00, then breathed.
+    final held = _series(2400, (t) => t < 900 ? 200 : 200 - (t - 900) * _rate);
+
+    String? startOf(
+      Map<String, List<PressureReading>> readingsById, {
+      List<String> ids = const ['a', 'b'],
+    }) => cylinderBreathedFromStart(
+      cylinderIds: ids,
+      readingsById: readingsById,
+      turnsById: {
+        for (final MapEntry(:key, :value) in readingsById.entries)
+          key: cylinderBreathTurns(value),
+      },
+      diveStart: 0,
+    );
+
+    test('names the one cylinder breathed from the start', () {
+      expect(startOf({'a': held, 'b': falling}), 'b');
+    });
+
+    test('two cylinders both falling from the start name none', () {
+      expect(startOf({'a': falling, 'b': falling}), isNull);
+    });
+
+    test('a transmitter that paired late says nothing about the start', () {
+      final late = [for (final r in falling) (t: r.t + 600, bar: r.bar)];
+      expect(startOf({'b': late}), isNull);
+    });
+
+    test('a lone cylinder held at the start puts the diver on the other', () {
+      expect(startOf({'a': held}), 'b');
+    });
+
+    test('with three cylinders a lone held one names none', () {
+      expect(startOf({'a': held}, ids: const ['a', 'b', 'c']), isNull);
+    });
+
+    test('both held at the start name none', () {
+      expect(startOf({'a': held, 'b': held}), isNull);
+    });
+  });
 }
