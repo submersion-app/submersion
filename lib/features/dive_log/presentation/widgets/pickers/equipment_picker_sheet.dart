@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_picker_filter.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
@@ -28,6 +29,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/max_width_fraction.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/picker_header_layout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/shared_gear_note_line.dart';
+
+part 'equipment_picker_folds.dart';
 
 /// Equipment picker bottom sheet.
 ///
@@ -113,56 +116,15 @@ class EquipmentPickerSheet extends ConsumerStatefulWidget {
       _EquipmentPickerSheetState();
 }
 
-class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
+class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet>
+    with _PickerFolds {
   /// The ticked items by id, in the order ticked. Kept as items, not ids, so
   /// a tick outlives its row being filtered out of the list.
+  @override
   Map<String, EquipmentItem> _picked = const {};
 
+  @override
   bool get _multiSelect => widget.onEquipmentConfirmed != null;
-
-  /// The open groups (issue #3364), worked out once when the picker first
-  /// has gear: closed except where the ticks are, or the only group. Never
-  /// saved; it lasts as long as the sheet.
-  Set<String>? _open;
-
-  /// Every group on screen, so a tap before [_open] is worked out starts
-  /// from every group open, as drawn.
-  Set<String> _shownGroups = const {};
-
-  /// Groups the diver closed while the filter was on, when every group
-  /// starts open. Dropped when the filter clears.
-  Set<String> _closedWhileFiltered = const {};
-  bool _wasFiltered = false;
-
-  bool _isOpen(String key, {required bool filtered}) => filtered
-      ? !_closedWhileFiltered.contains(key)
-      : (_open?.contains(key) ?? true);
-
-  void _toggleGroup(String key, {required bool filtered}) {
-    Set<String> flip(Set<String> keys) =>
-        keys.contains(key) ? ({...keys}..remove(key)) : {...keys, key};
-    setState(() {
-      if (filtered) {
-        _closedWhileFiltered = flip(_closedWhileFiltered);
-      } else {
-        _open = flip(_open ?? _shownGroups);
-      }
-    });
-  }
-
-  /// "2 of 8 selected" for a closed group holding ticks, so a tick is never
-  /// hidden without a trace.
-  String? _tickSummary(BuildContext context, List<EquipmentItem> items) {
-    if (!_multiSelect) return null;
-    final ticked = tickedIn(items.map((e) => e.id), _picked.keys.toSet());
-    return ticked == 0
-        ? null
-        : foldedSelectionSummary(
-            context.l10n,
-            selected: ticked,
-            total: items.length,
-          );
-  }
 
   void _toggle(EquipmentItem item, bool checked) {
     setState(() {
@@ -550,90 +512,19 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
                       ownerName: ownerName,
                     )
                   : [(ownerId: null, items: available)];
-              // Folding (issue #3364): each owner's shared gear is an outer
-              // group, types are groups of their own inside it or at the
-              // top level. While the filter is on, every group is open.
               final filtered = filter.hasActiveFilters;
-              if (_wasFiltered && !filtered) _closedWhileFiltered = const {};
-              _wasFiltered = filtered;
-              final arranged = [
-                for (final section in sections)
-                  (
-                    section: section,
-                    ownerKey: section.ownerId == null
-                        ? null
-                        : ownerFoldKey(section.ownerId!),
-                    groups: arrangeEquipment(
-                      section.items,
-                      arrangement,
-                      typeLabel: (type) => type.localizedName(context.l10n),
-                    ),
-                  ),
-              ];
-              // Worked out once the parts index has settled: before it, parts
-              // still listed could make one group look like several.
-              _shownGroups = {
-                for (final a in arranged) ...{
-                  ?a.ownerKey,
-                  for (final group in a.groups)
-                    if (group.type case final type?)
-                      typeFoldKey(type, parentKey: a.ownerKey),
-                },
-              };
-              final indexSettled =
-                  componentsAsync == null ||
-                  componentsAsync.hasValue ||
-                  componentsAsync.hasError;
-              if (_open == null && available.isNotEmpty && indexSettled) {
-                _open = initialOpenPickerGroups(
-                  {
-                    for (final a in arranged) ...{
-                      ?a.ownerKey: a.section.items.map((e) => e.id),
-                      for (final group in a.groups)
-                        if (group.type case final type?)
-                          typeFoldKey(type, parentKey: a.ownerKey): group.items
-                              .map((e) => e.id),
-                    },
-                  },
-                  _picked.keys.toSet(),
-                  containers: {for (final a in arranged) ?a.ownerKey},
-                );
-              }
-              bool isOpen(String key) => _isOpen(key, filtered: filtered);
-              final rows = <_PickerRow>[
-                for (final (i, a) in arranged.indexed) ...[
-                  if (a.section.ownerId != null &&
-                      (i == 0 || arranged[i - 1].section.ownerId == null))
-                    _SectionRow(context.l10n.equipment_sharedWithMe),
-                  if (a.ownerKey case final owner?)
-                    _OwnerHeaderRow(
-                      foldKey: owner,
-                      title: context.l10n.equipment_picker_ownerHeader(
-                        ownerName(a.section.ownerId!),
-                      ),
-                      items: a.section.items,
-                      isOpen: isOpen(owner),
-                    ),
-                  if (a.ownerKey == null || isOpen(a.ownerKey!))
-                    for (final group in a.groups)
-                      if (group.type case final type?) ...[
-                        _HeaderRow(
-                          type,
-                          foldKey: typeFoldKey(type, parentKey: a.ownerKey),
-                          nested: a.ownerKey != null,
-                          items: group.items,
-                          isOpen: isOpen(
-                            typeFoldKey(type, parentKey: a.ownerKey),
-                          ),
-                        ),
-                        if (isOpen(typeFoldKey(type, parentKey: a.ownerKey)))
-                          for (final equipment in group.items)
-                            _ItemRow(equipment, showTypeLabel: false),
-                      ] else
-                        for (final equipment in group.items)
-                          _ItemRow(equipment, showTypeLabel: true),
-                ],
-              ];
+              final rows = _pickerRows(
+                context,
+                sections: sections,
+                arrangement: arrangement,
+                available: available,
+                filtered: filtered,
+                indexSettled:
+                    componentsAsync == null ||
+                    componentsAsync.hasValue ||
+                    componentsAsync.hasError,
+                ownerName: ownerName,
+              );
 
               return ListView.builder(
                 controller: widget.scrollController,
@@ -648,40 +539,11 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
                       ),
                     ),
                   ),
-                  _OwnerHeaderRow(
-                    :final foldKey,
-                    :final title,
-                    :final items,
-                    :final isOpen,
-                  ) =>
-                    CollapsibleGroupHeader(
-                      key: ValueKey('equipment-owner-fold-$foldKey'),
-                      label: title,
-                      countLabel: context.l10n.equipment_location_groupCount(
-                        items.length,
-                      ),
-                      isExpanded: isOpen,
-                      onTap: () => _toggleGroup(foldKey, filtered: filtered),
-                      summary: _tickSummary(context, items),
-                      titleWeight: FontWeight.w700,
-                      isHeading: true,
-                    ),
-                  _HeaderRow(
-                    :final type,
-                    :final foldKey,
-                    :final nested,
-                    :final items,
-                    :final isOpen,
-                  ) =>
-                    EquipmentTypeFoldHeader(
-                      foldKey: foldKey,
-                      type: type,
-                      count: items.length,
-                      isExpanded: isOpen,
-                      nested: nested,
-                      onTap: () => _toggleGroup(foldKey, filtered: filtered),
-                      summary: _tickSummary(context, items),
-                    ),
+                  _OwnerHeaderRow() || _HeaderRow() => _foldHeader(
+                    context,
+                    rows[index],
+                    filtered: filtered,
+                  ),
                   _ItemRow(:final item, :final showTypeLabel) => _itemTile(
                     context,
                     item,
@@ -779,62 +641,6 @@ class _ConfirmButtons extends StatelessWidget {
       ),
     );
   }
-}
-
-/// One row of the picker list, as data rather than a built widget so the
-/// list stays lazy.
-sealed class _PickerRow {
-  const _PickerRow();
-}
-
-/// A section title: "Shared with me", or one owner's name (issue #2046).
-class _SectionRow extends _PickerRow {
-  const _SectionRow(this.title);
-
-  final String title;
-}
-
-/// One owner's shared gear, folding as a group with its types inside
-/// (issue #3364).
-class _OwnerHeaderRow extends _PickerRow {
-  const _OwnerHeaderRow({
-    required this.foldKey,
-    required this.title,
-    required this.items,
-    required this.isOpen,
-  });
-
-  final String foldKey;
-  final String title;
-  final List<EquipmentItem> items;
-  final bool isOpen;
-}
-
-class _HeaderRow extends _PickerRow {
-  const _HeaderRow(
-    this.type, {
-    required this.foldKey,
-    required this.nested,
-    required this.items,
-    required this.isOpen,
-  });
-
-  final EquipmentType type;
-  final String foldKey;
-
-  /// Inside an owner's group, so indented under it.
-  final bool nested;
-  final List<EquipmentItem> items;
-  final bool isOpen;
-}
-
-class _ItemRow extends _PickerRow {
-  const _ItemRow(this.item, {required this.showTypeLabel});
-
-  final EquipmentItem item;
-
-  /// Only when no heading names the type already.
-  final bool showTypeLabel;
 }
 
 class _EmptyState extends StatelessWidget {

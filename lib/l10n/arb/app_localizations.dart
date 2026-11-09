@@ -27004,7 +27004,7 @@ abstract class AppLocalizations {
   /// **'Move to location'**
   String get equipment_location_bulkAction;
 
-  /// Item count beside a location heading and on the Locations page
+  /// Item count beside a group heading on gear lists and pickers (a location, a type, or another diver's shared gear) and on the Locations page
   ///
   /// In en, this message translates to:
   /// **'{count, plural, one{{count} item} other{{count} items}}'**

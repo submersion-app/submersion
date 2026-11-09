@@ -10020,7 +10020,7 @@
   "equipment_location_bulkAction": "Move to location",
   "@equipment_location_bulkAction": {"description": "Bulk action moving the selected gear to a place"},
   "equipment_location_groupCount": "{count, plural, one{{count} item} other{{count} items}}",
-  "@equipment_location_groupCount": {"description": "Item count beside a location heading and on the Locations page", "placeholders": {"count": {"type": "int"}}},
+  "@equipment_location_groupCount": {"description": "Item count beside a group heading on gear lists and pickers (a location, a type, or another diver's shared gear) and on the Locations page", "placeholders": {"count": {"type": "int"}}},
   "equipment_group_foldedTypeCount": "{type} {count}",
   "@equipment_group_foldedTypeCount": {"description": "One type and its item count in a folded location heading's summary, e.g. BCD 2", "placeholders": {"count": {"type": "int"}, "type": {"type": "String"}}},
   "equipment_group_foldedServiceDue": "{count, plural, one{{count} service due} other{{count} service due}}",

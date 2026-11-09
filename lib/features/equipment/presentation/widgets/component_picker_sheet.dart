@@ -282,13 +282,13 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet>
               final firstFold = openTypeGroups == null;
               ensureOpenTypeGroups(groups, _selected);
               // Replacing a part, its type is where the diver will look.
-              final replacedId = widget.replacing?.componentEquipmentId;
-              final replaced = active.where((e) => e.id == replacedId);
-              if (firstFold && openTypeGroups != null && replaced.isNotEmpty) {
-                openTypeGroups = {
-                  ...openTypeGroups!,
-                  typeFoldKey(replaced.first.type),
-                };
+              if (firstFold && openTypeGroups != null) {
+                final replacedId = widget.replacing?.componentEquipmentId;
+                for (final item in active) {
+                  if (item.id != replacedId) continue;
+                  openTypeGroups = {...openTypeGroups!, typeFoldKey(item.type)};
+                  break;
+                }
               }
               return ListView(
                 controller: widget.scrollController,
