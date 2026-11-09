@@ -22113,6 +22113,26 @@ class AppLocalizationsHe extends AppLocalizations {
       'הצג מפת אתר צלילה כרקע בכרטיסי צלילה (דורש מיקום אתר)';
 
   @override
+  String get settings_appearance_photoBackgroundDiveCards =>
+      'רקע תמונה בכרטיסי צלילה';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards_subtitle =>
+      'הצגת אחת מתמונות הצלילה כרקע בכרטיסי הצלילה (ללא תמונות מוצגים המפה או הצבע)';
+
+  @override
+  String get settings_appearance_photoOverlayDark =>
+      'אטימות השכבה מעל התמונה, ערכת נושא כהה';
+
+  @override
+  String get settings_appearance_photoOverlayLight =>
+      'אטימות השכבה מעל התמונה, ערכת נושא בהירה';
+
+  @override
+  String get settings_appearance_photoOverlay_subtitle =>
+      'ערך גבוה שומר על קריאות הטקסט, ערך נמוך מציג יותר מהתמונה';
+
+  @override
   String get settings_appearance_mapBackgroundSiteCards =>
       'רקע מפה בכרטיסי אתרים';
 
@@ -25429,6 +25449,18 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_showMapBackgroundOnDiveCards =>
       'מפה מאחורי כרטיסי הצלילה';
+
+  @override
+  String get settings_conflict_field_showPhotoBackgroundOnDiveCards =>
+      'תמונה מאחורי כרטיסי צלילה';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayDark =>
+      'שכבה מעל תמונת כרטיס הצלילה (כהה)';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayLight =>
+      'שכבה מעל תמונת כרטיס הצלילה (בהירה)';
 
   @override
   String get settings_conflict_field_showMapBackgroundOnSiteCards =>

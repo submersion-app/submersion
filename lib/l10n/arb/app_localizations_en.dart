@@ -22276,6 +22276,26 @@ class AppLocalizationsEn extends AppLocalizations {
       'Show dive site map as background on dive cards (requires site location)';
 
   @override
+  String get settings_appearance_photoBackgroundDiveCards =>
+      'Photo background on dive cards';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards_subtitle =>
+      'Show one of the dive\'s photos as background on dive cards (falls back to the map or colour when a dive has no photos)';
+
+  @override
+  String get settings_appearance_photoOverlayDark =>
+      'Photo overlay opacity, dark theme';
+
+  @override
+  String get settings_appearance_photoOverlayLight =>
+      'Photo overlay opacity, light theme';
+
+  @override
+  String get settings_appearance_photoOverlay_subtitle =>
+      'Higher keeps the text readable, lower shows more of the photo';
+
+  @override
   String get settings_appearance_mapBackgroundSiteCards =>
       'Map background on site cards';
 
@@ -25643,6 +25663,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_field_showMapBackgroundOnDiveCards =>
       'Map behind dive cards';
+
+  @override
+  String get settings_conflict_field_showPhotoBackgroundOnDiveCards =>
+      'Photo behind dive cards';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayDark =>
+      'Dive card photo overlay (dark theme)';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayLight =>
+      'Dive card photo overlay (light theme)';
 
   @override
   String get settings_conflict_field_showMapBackgroundOnSiteCards =>

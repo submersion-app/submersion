@@ -22672,6 +22672,26 @@ class AppLocalizationsFr extends AppLocalizations {
       'Afficher la carte du site de plongée en fond sur les cartes de plongée (localisation du site requise)';
 
   @override
+  String get settings_appearance_photoBackgroundDiveCards =>
+      'Photo en fond des cartes de plongée';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards_subtitle =>
+      'Afficher une des photos de la plongée en fond des cartes (sans photo, la carte ou la couleur est utilisée)';
+
+  @override
+  String get settings_appearance_photoOverlayDark =>
+      'Opacité du voile sur la photo, thème sombre';
+
+  @override
+  String get settings_appearance_photoOverlayLight =>
+      'Opacité du voile sur la photo, thème clair';
+
+  @override
+  String get settings_appearance_photoOverlay_subtitle =>
+      'Plus fort garde le texte lisible, plus faible montre davantage la photo';
+
+  @override
   String get settings_appearance_mapBackgroundSiteCards =>
       'Fond cartographique sur les cartes de site';
 
@@ -26154,6 +26174,18 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_conflict_field_showMapBackgroundOnDiveCards =>
       'Carte derrière les cartes de plongée';
+
+  @override
+  String get settings_conflict_field_showPhotoBackgroundOnDiveCards =>
+      'Photo derrière les cartes de plongée';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayDark =>
+      'Voile sur la photo des cartes (thème sombre)';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayLight =>
+      'Voile sur la photo des cartes (thème clair)';
 
   @override
   String get settings_conflict_field_showMapBackgroundOnSiteCards =>

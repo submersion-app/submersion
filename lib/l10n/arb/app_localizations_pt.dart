@@ -22606,6 +22606,26 @@ class AppLocalizationsPt extends AppLocalizations {
       'Mostrar mapa do ponto de mergulho como fundo nos cartões de mergulho (requer localização do ponto)';
 
   @override
+  String get settings_appearance_photoBackgroundDiveCards =>
+      'Fundo de foto nos cartões de mergulho';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards_subtitle =>
+      'Mostrar uma das fotos do mergulho como fundo dos cartões (sem fotos, usa o mapa ou a cor)';
+
+  @override
+  String get settings_appearance_photoOverlayDark =>
+      'Opacidade da camada sobre a foto, tema escuro';
+
+  @override
+  String get settings_appearance_photoOverlayLight =>
+      'Opacidade da camada sobre a foto, tema claro';
+
+  @override
+  String get settings_appearance_photoOverlay_subtitle =>
+      'Mais alto mantém o texto legível, mais baixo mostra mais da foto';
+
+  @override
   String get settings_appearance_mapBackgroundSiteCards =>
       'Fundo de mapa nos cartões de ponto';
 
@@ -26067,6 +26087,18 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_conflict_field_showMapBackgroundOnDiveCards =>
       'Mapa atrás dos cartões de mergulho';
+
+  @override
+  String get settings_conflict_field_showPhotoBackgroundOnDiveCards =>
+      'Foto atrás dos cartões de mergulho';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayDark =>
+      'Camada sobre a foto dos cartões (tema escuro)';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayLight =>
+      'Camada sobre a foto dos cartões (tema claro)';
 
   @override
   String get settings_conflict_field_showMapBackgroundOnSiteCards =>

@@ -65,5 +65,11 @@ extension RungsFromV340 on AppDatabase {
     // an open PR that also claimed 343 can take 345.
     if (from < 346) await _repairLastServiceDates();
     if (from < 346) await reportProgress();
+
+    // v347: diver_settings.show_photo_background_on_dive_cards and the
+    // photo overlay opacity per theme. Columns only, defaulted; re-asserted
+    // in beforeOpen.
+    if (from < 347) await _assertDiveCardPhotoBackgroundColumn();
+    if (from < 347) await reportProgress();
   }
 }

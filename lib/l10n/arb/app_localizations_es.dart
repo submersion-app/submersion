@@ -22604,6 +22604,26 @@ class AppLocalizationsEs extends AppLocalizations {
       'Mostrar mapa del punto de buceo como fondo en tarjetas de inmersión (requiere ubicación del punto)';
 
   @override
+  String get settings_appearance_photoBackgroundDiveCards =>
+      'Fondo de foto en las tarjetas de inmersión';
+
+  @override
+  String get settings_appearance_photoBackgroundDiveCards_subtitle =>
+      'Mostrar una de las fotos de la inmersión como fondo de las tarjetas (sin fotos se usa el mapa o el color)';
+
+  @override
+  String get settings_appearance_photoOverlayDark =>
+      'Opacidad de la capa sobre la foto, tema oscuro';
+
+  @override
+  String get settings_appearance_photoOverlayLight =>
+      'Opacidad de la capa sobre la foto, tema claro';
+
+  @override
+  String get settings_appearance_photoOverlay_subtitle =>
+      'Más alto mantiene el texto legible, más bajo muestra más la foto';
+
+  @override
   String get settings_appearance_mapBackgroundSiteCards =>
       'Fondo de mapa en tarjetas de puntos';
 
@@ -26088,6 +26108,18 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_conflict_field_showMapBackgroundOnDiveCards =>
       'Mapa detrás de las tarjetas de inmersión';
+
+  @override
+  String get settings_conflict_field_showPhotoBackgroundOnDiveCards =>
+      'Foto detrás de las tarjetas de inmersión';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayDark =>
+      'Capa sobre la foto de las tarjetas (tema oscuro)';
+
+  @override
+  String get settings_conflict_field_cardPhotoOverlayLight =>
+      'Capa sobre la foto de las tarjetas (tema claro)';
 
   @override
   String get settings_conflict_field_showMapBackgroundOnSiteCards =>
