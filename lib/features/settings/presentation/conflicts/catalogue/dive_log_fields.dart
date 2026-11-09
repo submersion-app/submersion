@@ -341,6 +341,10 @@ final Map<String, ConflictField> diveLogFields = {
     (l) => l.settings_conflict_field_isPlanned,
     FieldKind.boolean,
   ),
+  'isDraft': ConflictField(
+    (l) => l.settings_conflict_field_isDraft,
+    FieldKind.boolean,
+  ),
   'isPrimary': ConflictField(
     (l) => l.settings_conflict_field_isPrimary,
     FieldKind.boolean,

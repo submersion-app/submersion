@@ -15243,6 +15243,7 @@
   "settings_conflict_field_isCustom": "Custom",
   "settings_conflict_field_isDefault": "Default",
   "settings_conflict_field_isDone": "Done",
+  "settings_conflict_field_isDraft": "Draft dive",
   "settings_conflict_field_isOrphaned": "File missing",
   "settings_conflict_field_isPackage": "Part of a package",
   "settings_conflict_field_isPlanned": "Planned dive",

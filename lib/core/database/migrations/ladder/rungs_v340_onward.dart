@@ -79,5 +79,11 @@ extension RungsFromV340 on AppDatabase {
     // Numbered 349 so open PR #4327, which claimed 347, can take 348.
     if (from < 349) await fillDiveWaterTempsFromSources(this);
     if (from < 349) await reportProgress();
+
+    // v350: dives.is_draft, a dive marked at the site that waits for its
+    // readings (issue #637). Defaulted, no backfill, so the compatibility
+    // floor does not move. Numbered 350 so open PR #4327 can take 348.
+    if (from < 350) await _assertDiveIsDraftColumn();
+    if (from < 350) await reportProgress();
   }
 }

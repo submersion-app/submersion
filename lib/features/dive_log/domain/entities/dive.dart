@@ -218,6 +218,12 @@ class Dive extends Equatable {
   // Dive planner flag (v1.5)
   final bool isPlanned; // True for planned dives (not yet executed)
 
+  /// A dive marked at the site that waits for its dive computer readings
+  /// (issue #637): it has times and positions but no profile. It counts
+  /// for no-fly and surface interval, and stays out of totals and
+  /// numbering until it is filled.
+  final bool isDraft;
+
   /// Shared id across sibling dives mirrored from one save (issue #2002).
   /// Null for a dive that was never mirrored.
   final String? outingId;
@@ -336,6 +342,7 @@ class Dive extends Equatable {
     this.scrubber,
     // Dive planner (v1.5)
     this.isPlanned = false,
+    this.isDraft = false,
     this.outingId,
     // Training courses (issue #2515)
     this.courseIds = const [],
@@ -812,6 +819,7 @@ class Dive extends Equatable {
     ScrubberInfo? scrubber,
     // Dive planner
     bool? isPlanned,
+    bool? isDraft,
     String? outingId,
     bool clearOutingId = false,
     bool clearSetpoints = false,
@@ -922,6 +930,7 @@ class Dive extends Equatable {
       scrubber: scrubber ?? this.scrubber,
       // Dive planner
       isPlanned: isPlanned ?? this.isPlanned,
+      isDraft: isDraft ?? this.isDraft,
       outingId: clearOutingId ? null : (outingId ?? this.outingId),
       // Training courses
       courseIds: courseIds ?? this.courseIds,
@@ -1032,6 +1041,7 @@ class Dive extends Equatable {
     scrubber,
     // Dive planner
     isPlanned,
+    isDraft,
     outingId,
     // Training courses
     courseIds,

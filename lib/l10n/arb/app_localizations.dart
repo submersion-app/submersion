@@ -40362,6 +40362,12 @@ abstract class AppLocalizations {
   /// **'Done'**
   String get settings_conflict_field_isDone;
 
+  /// No description provided for @settings_conflict_field_isDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft dive'**
+  String get settings_conflict_field_isDraft;
+
   /// No description provided for @settings_conflict_field_isOrphaned.
   ///
   /// In en, this message translates to:

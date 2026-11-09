@@ -411,6 +411,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'import_id': 'Source-specific ID (e.g., HealthKit UUID)',
     'import_source': 'Import source tracking - tracks import source for Apple Watch, Garmin, etc.',
     'import_version': 'Import version: null = pre-fix, 1 = wall-clock-as-UTC convention',
+    'is_draft': 'Draft dive flag: marked at the site, waiting for its dive computer readings',
     'is_favorite': 'Favorite flag',
     'is_planned': 'Dive planner flag',
     'loop_o2_avg': 'Avg loop O2%',

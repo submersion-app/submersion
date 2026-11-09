@@ -6547,6 +6547,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         // promoted keeps the flag here: updateDive must not clear it, since
         // convertPlanToActualDive below is the one path that also numbers.
         isPlanned: _isPlanned || (_existingDive?.isPlanned ?? false),
+        // No switch sets it: a draft stays one until a download fills it
+        // or the diver marks it complete (issue #637).
+        isDraft: _existingDive?.isDraft ?? false,
         outingId: _existingDive?.outingId,
         diveComputerModel: _existingDive?.diveComputerModel,
         diveComputerSerial: _existingDive?.diveComputerSerial,

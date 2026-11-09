@@ -25409,6 +25409,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_field_isDone => 'Hecho';
 
   @override
+  String get settings_conflict_field_isDraft => 'Draft dive';
+
+  @override
   String get settings_conflict_field_isOrphaned => 'Falta el archivo';
 
   @override

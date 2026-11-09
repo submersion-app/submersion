@@ -2353,6 +2353,7 @@ class DiveRepository {
                 ),
                 // Dive planner (v1.5)
                 isPlanned: Value(dive.isPlanned),
+                isDraft: Value(dive.isDraft),
                 outingId: Value(dive.outingId),
                 // Training course (v1.5)
                 courseId: Value(dive.courseId),
@@ -2684,6 +2685,7 @@ class DiveRepository {
             scrubberRemainingMinutes: Value(dive.scrubber?.remainingMinutes),
             // Dive planner (v1.5)
             isPlanned: Value(dive.isPlanned),
+            isDraft: Value(dive.isDraft),
             outingId: Value(dive.outingId),
             // Training course (v1.5)
             courseId: Value(dive.courseId),
@@ -3293,7 +3295,7 @@ class DiveRepository {
             '${measuredRuntimeSecondsSql('d')} AS runtime, '
             'd.water_temp, d.rating, '
             'd.is_favorite, d.excluded_from_stats, d.excluded_from_gas_stats, '
-            'd.is_planned, '
+            'd.is_planned, d.is_draft, '
             'd.dive_type, d.dive_mode, '
             'COALESCE(d.entry_time, d.dive_date_time) AS sort_timestamp, '
             's.name AS site_name, s.country AS site_country, '
@@ -4209,7 +4211,7 @@ class DiveRepository {
           '${measuredRuntimeSecondsSql('d')} AS runtime, '
           'd.water_temp, d.rating, '
           'd.is_favorite, d.excluded_from_stats, d.excluded_from_gas_stats, '
-          'd.is_planned, '
+          'd.is_planned, d.is_draft, '
           'd.dive_type, d.dive_mode, '
           'COALESCE(d.entry_time, d.dive_date_time) AS sort_timestamp, '
           's.name AS site_name, s.country AS site_country, '
@@ -4326,6 +4328,7 @@ class DiveRepository {
         excludedFromStats: row.read<int>('excluded_from_stats') == 1,
         excludedFromGasStats: row.read<int>('excluded_from_gas_stats') == 1,
         isPlanned: row.read<int>('is_planned') == 1,
+        isDraft: row.read<int>('is_draft') == 1,
         diveMode: DiveMode.fromCode(row.read<String>('dive_mode')),
         diveTypeIds: diveTypesByDive[id] ?? [row.read<String>('dive_type')],
         tags: tagsByDive[id] ?? [],
@@ -5169,6 +5172,7 @@ class DiveRepository {
           : null,
       // Dive planner (v1.5)
       isPlanned: row.isPlanned,
+      isDraft: row.isDraft,
       outingId: row.outingId,
       // Training courses (issue #2515); callers that do not preload the set
       // get the representative alone.
@@ -5631,6 +5635,7 @@ class DiveRepository {
           : null,
       // Dive planner (v1.5)
       isPlanned: row.isPlanned,
+      isDraft: row.isDraft,
       outingId: row.outingId,
       // Training courses (issue #2515)
       courseIds: courseIds,

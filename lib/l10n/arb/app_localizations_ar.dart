@@ -25686,6 +25686,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_isDone => 'تم';
 
   @override
+  String get settings_conflict_field_isDraft => 'Draft dive';
+
+  @override
   String get settings_conflict_field_isOrphaned => 'الملف مفقود';
 
   @override
