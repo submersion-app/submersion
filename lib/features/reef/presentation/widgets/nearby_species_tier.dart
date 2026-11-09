@@ -28,10 +28,17 @@ class NearbySpeciesTier extends ConsumerStatefulWidget {
   final String siteId;
   final GeoPoint location;
 
+  /// When set, the tier is read-only (the species map's site card, issue
+  /// #4358): a matched chip opens its species through this callback instead
+  /// of adding it to the site's Expected list, and an unmatched name is
+  /// shown without an action.
+  final ValueChanged<String>? onSpeciesTap;
+
   const NearbySpeciesTier({
     super.key,
     required this.siteId,
     required this.location,
+    this.onSpeciesTap,
   });
 
   @override
@@ -143,15 +150,28 @@ class _NearbySpeciesTierState extends ConsumerState<NearbySpeciesTier> {
   Widget _matchedChip(BuildContext context, Species species) {
     final theme = Theme.of(context);
     final name = species.localizedCommonName(context.l10n);
+    final avatar = ExcludeSemantics(
+      child: Icon(
+        iconForSpeciesCategory(species.category),
+        size: 16,
+        color: colorForSpeciesCategory(species.category, theme.brightness),
+      ),
+    );
+
+    final onSpeciesTap = widget.onSpeciesTap;
+    if (onSpeciesTap != null) {
+      return ActionChip(
+        avatar: avatar,
+        label: Text(name, style: theme.textTheme.bodySmall),
+        onPressed: () => onSpeciesTap(species.id),
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.compact,
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+      );
+    }
 
     return ActionChip(
-      avatar: ExcludeSemantics(
-        child: Icon(
-          iconForSpeciesCategory(species.category),
-          size: 16,
-          color: colorForSpeciesCategory(species.category, theme.brightness),
-        ),
-      ),
+      avatar: avatar,
       label: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -178,6 +198,18 @@ class _NearbySpeciesTierState extends ConsumerState<NearbySpeciesTier> {
   /// list is, in effect, the species missing from the catalog at this site.
   Widget _unmatchedChip(BuildContext context, String scientificName) {
     final theme = Theme.of(context);
+
+    if (widget.onSpeciesTap != null) {
+      return Chip(
+        avatar: const ExcludeSemantics(
+          child: Icon(Icons.help_outline, size: 16),
+        ),
+        label: Text(scientificName, style: theme.textTheme.bodySmall),
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.compact,
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+      );
+    }
 
     return ActionChip(
       avatar: const ExcludeSemantics(child: Icon(Icons.help_outline, size: 16)),
