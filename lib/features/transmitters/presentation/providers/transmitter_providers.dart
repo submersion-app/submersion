@@ -8,11 +8,18 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
 import 'package:submersion/features/transmitters/data/services/transmitter_gear_linker.dart';
+import 'package:submersion/features/transmitters/data/services/transmitter_slot_matcher.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 
 final transmitterRepositoryProvider = Provider<TransmitterRepository>(
   (ref) => TransmitterRepository(),
+);
+
+/// Finds serial-less, file-imported cylinders by computer slot for the
+/// apply dialog (issue #4347).
+final transmitterSlotMatcherProvider = Provider<TransmitterSlotMatcher>(
+  (ref) => TransmitterSlotMatcher(),
 );
 
 /// Registers the transmitter serials a download turns up (issue #3676),

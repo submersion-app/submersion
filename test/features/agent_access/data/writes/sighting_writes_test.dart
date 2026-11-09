@@ -52,9 +52,69 @@ void main() {
     ))!;
     expect(doc['dive_id'], 'd2');
     expect(doc['species_name'], 'Moray eel');
+    expect(doc['abundance'], 'exact');
     expect(doc['count'], 3);
     expect(doc['notes'], '');
     expect(h.refreshed.single, {'d2'});
+  });
+
+  group('abundance (issue #4337)', () {
+    Future<Map<String, Object?>> created(Map<String, Object?> values) async {
+      final result = await h.run([createOp('sightings', values)]);
+      return (await h.one(
+        'sightings',
+        result.created.single.id,
+        diverId: kDiverB,
+      ))!;
+    }
+
+    test('a sighting given no number is Seen', () async {
+      final doc = await created({'dive_id': 'd2', 'species_id': 'sp2'});
+      expect(doc['abundance'], 'seen');
+      expect(doc['count'], 1);
+    });
+
+    test('a REEF group stores count 1', () async {
+      final doc = await created({
+        'dive_id': 'd2',
+        'species_id': 'sp2',
+        'abundance': 'few',
+        'count': 9,
+      });
+      expect(doc['abundance'], 'few');
+      expect(doc['count'], 1);
+    });
+
+    test('an update to a group drops the exact count', () async {
+      await h.run([
+        updateOp('sightings', 's1', {'abundance': 'many'}),
+      ]);
+      final doc = (await h.one('sightings', 's1'))!;
+      expect(doc['abundance'], 'many');
+      expect(doc['count'], 1);
+      expect(doc['notes'], 'Anemone');
+    });
+
+    test('an update giving only a count makes a Seen sighting exact', () async {
+      await (db.update(db.sightings)..where((s) => s.id.equals('s1'))).write(
+        const SightingsCompanion(abundance: Value('seen'), count: Value(1)),
+      );
+      await h.run([
+        updateOp('sightings', 's1', {'count': 4}),
+      ]);
+      final doc = (await h.one('sightings', 's1'))!;
+      expect(doc['abundance'], 'exact');
+      expect(doc['count'], 4);
+    });
+
+    test('an update to exact with no count keeps the stored number', () async {
+      await h.run([
+        updateOp('sightings', 's1', {'abundance': 'exact'}),
+      ]);
+      final doc = (await h.one('sightings', 's1'))!;
+      expect(doc['abundance'], 'exact');
+      expect(doc['count'], 2);
+    });
   });
 
   test('a new sighting names its species and its dive', () async {

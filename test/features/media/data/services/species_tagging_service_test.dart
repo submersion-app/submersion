@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_species_repository.dart';
@@ -65,6 +66,7 @@ void main() {
     final existing = await species.addSighting(
       diveId: 'd1',
       speciesId: 'sp_whale_shark',
+      abundance: SightingAbundance.exact,
       count: 3,
     );
 

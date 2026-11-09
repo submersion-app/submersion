@@ -381,6 +381,33 @@
   "trips_story_history_avgTemp": "متوسط {value}",
   "trips_story_history_avgDepth": "متوسط العمق {value}",
   "trips_story_rhythm_semantics": "أوقات الغطس في هذا اليوم",
+  "trips_story_rhythm_semanticsSunriseSunset": "أوقات الغطس في هذا اليوم. شروق الشمس {sunrise}، غروب الشمس {sunset}.",
+  "@trips_story_rhythm_semanticsSunriseSunset": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      },
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunrise": "أوقات الغطس في هذا اليوم. شروق الشمس {sunrise}.",
+  "@trips_story_rhythm_semanticsSunrise": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunset": "أوقات الغطس في هذا اليوم. غروب الشمس {sunset}.",
+  "@trips_story_rhythm_semanticsSunset": {
+    "placeholders": {
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
   "trips_story_dayMap_semantics": "خريطة اليوم {number}",
   "@trips_story_dayMap_semantics": {
     "placeholders": {
@@ -2721,7 +2748,6 @@
   "diveLog_diveMode_ocDescription": "غوص دائرة مفتوحة قياسي مع أسطوانات",
   "diveLog_diveMode_scrDescription": "جهاز إعادة تنفس شبه مغلق بضغط ppO₂ متغير",
   "diveLog_diveMode_title": "وضع الغوص",
-  "diveLog_editSighting_count": "العدد",
   "diveLog_editSighting_notes": "ملاحظات",
   "diveLog_editSighting_notesHint": "الحجم، السلوك، الموقع...",
   "diveLog_editSighting_remove": "إزالة",
@@ -3446,6 +3472,9 @@
   "diveLog_summary_stat_totalDives": "إجمالي الغوصات",
   "diveLog_summary_title": "ملخص سجل الغوص",
   "diveLog_tank_label_endPressure": "ضغط النهاية",
+  "diveLog_tank_label_surfaceBreathing": "التنفس على السطح",
+  "diveLog_tank_surfaceBreathing_helper": "الدقائق على هذه الأسطوانة بعد توقف الكمبيوتر عن التسجيل، مثل الأكسجين على القارب",
+  "diveLog_tank_surfaceBreathing_unit": "دقيقة",
   "diveLog_tank_label_he": "He",
   "diveLog_tank_label_material": "المادة",
   "diveLog_tank_label_mnd": "MND",
@@ -5587,7 +5616,6 @@
   "marineLife_speciesDetail_sitesLabel": "المواقع",
   "marineLife_speciesDetail_taxonomyClassLabel": "الصنف: {className}",
   "marineLife_speciesDetail_topSitesTitle": "أفضل المواقع",
-  "marineLife_speciesDetail_totalSightingsLabel": "إجمالي المشاهدات",
   "marineLife_speciesEdit_addTitle": "إضافة نوع",
   "marineLife_speciesEdit_addedSnackbar": "تمت إضافة \"{name}\"",
   "marineLife_speciesEdit_backTooltip": "رجوع",
@@ -5661,7 +5689,15 @@
   "marineLife_speciesPage_searchHint": "ابحث في الأنواع التي رأيتها",
   "marineLife_speciesPage_manageCatalogTooltip": "إدارة الفهرس",
   "marineLife_speciesPage_sortTooltip": "ترتيب",
-  "marineLife_speciesPage_sort_mostSightings": "الأكثر مشاهدة",
+  "marineLife_speciesPage_sort_mostDives": "الأكثر غطسات",
+  "marineLife_abundance_label": "كم عددها",
+  "marineLife_abundance_seen": "شوهد",
+  "marineLife_abundance_single": "واحد",
+  "marineLife_abundance_few": "قليل",
+  "marineLife_abundance_many": "كثير",
+  "marineLife_abundance_abundant": "وفير",
+  "marineLife_abundance_exact": "عدد دقيق",
+  "marineLife_abundance_ranges": "قليل من 2 إلى 10، كثير من 11 إلى 100، وفير أكثر من 100",
   "marineLife_speciesPage_sort_recentlySeen": "شوهدت مؤخرًا",
   "marineLife_speciesPage_sort_firstSeen": "شوهدت أولًا",
   "marineLife_speciesPage_sort_name": "الاسم",
@@ -5880,6 +5916,7 @@
   "media_photoViewer_shareTooltip": "مشاركة الصورة",
   "media_photoViewer_toggleOverlayLabel": "تبديل طبقة الصورة",
   "media_photoViewer_videoFileNotFound": "ملف الفيديو غير موجود",
+  "media_photoViewer_videoNeedsNormalWindow": "يتطلب تشغيل هذا الفيديو نافذة متصفح عادية. لا يمكن للنوافذ الخاصة البث من Google Drive أو WebDAV.",
   "media_photoViewer_videoNotLinked": "الفيديو غير مرتبط بالمكتبة",
   "media_photoViewer_writeDiveDataTooltip": "كتابة بيانات الغوصة على الصورة",
   "media_quickSiteDialog_cancelButton": "إلغاء",
@@ -5933,6 +5970,7 @@
   "media_console_library": "المكتبة",
   "media_console_transfers": "عمليات النقل",
   "media_library_empty": "لا توجد وسائط بعد",
+  "media_library_emptyFiltered": "لا توجد وسائط تطابق عوامل التصفية هذه",
   "media_library_filter_all": "الكل",
   "media_library_filter_photos": "الصور",
   "media_library_filter_videos": "مقاطع الفيديو",
@@ -6012,6 +6050,14 @@
   "media_library_filter_dates": "التواريخ",
   "media_library_filter_missing": "ملفات مفقودة",
   "media_library_filter_missingCount": "ملفات مفقودة ({count})",
+  "media_library_filter_noPeople": "بلا أشخاص موسومين",
+  "media_library_filter_peopleTwo": "{first}، {second}",
+  "media_library_filter_peopleAndMore": "{names} +{count}",
+  "media_library_filter_peopleCount": "{count, plural, =1{شخص واحد} =2{شخصان} few{{count} أشخاص} many{{count} شخصًا} other{{count} شخص}}",
+  "media_library_filter_peopleSearchHint": "البحث عن أشخاص",
+  "media_library_filter_peopleNoMatch": "لا يوجد أشخاص مطابقون",
+  "media_library_filter_peopleClear": "مسح الأشخاص",
+  "media_library_filter_notPlacedInDive": "غير محدد في الغطسة",
   "media_library_filter_clear": "مسح عوامل التصفية",
   "media_library_filter_any": "أي",
   "media_library_filter_title": "تصفية الوسائط",
@@ -7801,6 +7847,7 @@
   "settings_conflict_field_summaryRuntimeSeconds": "المدة المخططة",
   "settings_conflict_field_summaryTtsSeconds": "الوقت المخطط حتى السطح",
   "settings_conflict_field_supersedesRuleId": "يحل محل القاعدة المدمجة",
+  "settings_conflict_field_surfaceBreathingDuration": "وقت التنفس على السطح",
   "settings_conflict_field_surfaceConditions": "الأحوال على السطح",
   "settings_conflict_field_surfaceSwimLimitM": "أطول سباحة على السطح",
   "settings_conflict_field_swimSpeedMps": "سرعة السباحة",
@@ -15775,6 +15822,7 @@
   "diveLog_detail_errorLoadingSignature": "خطأ في تحميل التوقيع: {error}",
   "diveLog_profilePanel_selectDive": "اختر غوصة لعرض ملفها",
   "diveLog_profilePanel_noProfileData": "لا توجد بيانات ملف لهذه الغوصة",
+  "diveLog_estimatedProfile_caption": "تقدير من أقصى عمق والوقت، وليس ملفًا مسجلًا",
   "settings_export_progress_divesCsv": "جارٍ تصدير الغوصات إلى CSV...",
   "settings_export_progress_sitesCsv": "جارٍ تصدير المواقع إلى CSV...",
   "settings_export_progress_equipmentCsv": "جارٍ تصدير المعدات إلى CSV...",
@@ -16636,9 +16684,16 @@
   "transmitters_section_setUp": "إعداد",
   "transmitters_action_apply": "تطبيق على الغطسات الحالية",
   "transmitters_apply_title": "تطبيق على الغطسات الحالية؟",
-  "transmitters_apply_content": "{tanks} أسطوانة في {dives} غطسة تحمل جهاز الإرسال هذا. ستُملأ حقول الحجم والمادة والاسم والمعدات الفارغة، وسيُستبدل الدور الذي ما زال مضبوطًا على غاز الظهر أو المأخوذ من اسم جهاز الإرسال.",
+  "transmitters_apply_content": "{tanks} أسطوانة في {dives} غطسة تحمل جهاز الإرسال هذا تحتاج إلى إعداده. ستُملأ حقول الحجم والمادة والاسم والمعدات الفارغة، وسيُستبدل الدور الذي ما زال مضبوطًا على غاز الظهر أو المأخوذ من اسم جهاز الإرسال.",
   "transmitters_apply_done": "تم تحديث {tanks} أسطوانة في {dives} غطسة",
-  "transmitters_apply_nothing": "لا توجد أسطوانة تحمل جهاز الإرسال هذا",
+  "transmitters_apply_slot_label": "الفتحة على {computer}",
+  "transmitters_apply_slot_none": "عدم المطابقة حسب الفتحة",
+  "transmitters_apply_slot_option": "T{slot}: {dives, plural, one{غطسة واحدة} two{غطستان} few{{dives} غطسات} many{{dives} غطسة} other{{dives} غطسة}}",
+  "transmitters_apply_slot_reading": "جارٍ قراءة الملفات المستوردة",
+  "transmitters_apply_slot_intro": "لا تحمل الأسطوانات المستوردة من ملف رقمًا تسلسليًا. يمكن ملؤها حسب الفتحة التي شغلها جهاز الإرسال هذا في كمبيوتر الغوص.",
+  "transmitters_apply_summary": "غطسات مُلئت حسب الرقم التسلسلي: {serialDives}، حسب الفتحة: {slotDives}",
+  "transmitters_apply_nothing_to_fill": "لا توجد أسطوانة تحتاج إلى إعداد جهاز الإرسال هذا",
+  "transmitters_apply_slot_read_failed": "تعذّرت قراءة الملفات المستوردة، لذا لا يمكن مطابقة الأسطوانات حسب الفتحة",
   "transmitters_channel": "{computer}، القناة {channel}",
   "transmitters_serial": "جهاز الإرسال {serial}",
   "transmitters_edit_title": "تعديل جهاز الإرسال",

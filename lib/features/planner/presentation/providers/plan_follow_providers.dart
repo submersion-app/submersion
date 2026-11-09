@@ -2,12 +2,12 @@ import 'package:clock/clock.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
-import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/planner/data/services/stored_series_results.dart';
 import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 import 'package:submersion/features/planner/domain/services/logged_dive_chain.dart';
 import 'package:submersion/features/planner/domain/services/plan_series_calculator.dart';
@@ -155,31 +155,6 @@ final seriesActualsProvider = FutureProvider<Map<String, SeriesFollow>>((
     (diveId) => ref.watch(seriesFollowProvider(diveId).future),
   );
 });
-
-/// What the log says about [links], (plan id, dive id) pairs, by plan id:
-/// for each entry no longer planned, the dive as a followed dive reads.
-/// Shared by [seriesActualsProvider] and opening a saved plan, which reads
-/// it before the plan shows so a dived dive never shows as a plan first.
-Future<Map<String, SeriesFollow>> readSeriesActuals(
-  Iterable<(String, String)> links,
-  DiveRepository repository,
-  Future<SeriesFollow?> Function(String diveId) followOf,
-) async {
-  // Each link is read on its own, so all of them at once.
-  final read = await Future.wait([
-    for (final (planId, diveId) in links)
-      () async {
-        final dive = await repository.getDiveById(diveId);
-        if (dive == null || dive.isPlanned) return null;
-        final follow = await followOf(diveId);
-        return follow == null ? null : (planId, follow);
-      }(),
-  ]);
-  return {
-    for (final entry in read)
-      if (entry case (final planId, final follow)) planId: follow,
-  };
-}
 
 /// Logged dives whose Follow prompt the diver dismissed this session.
 final dismissedFollowSuggestionsProvider = StateProvider<Set<String>>(

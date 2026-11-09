@@ -27,7 +27,8 @@ class ChildWriteHarness {
     this.db, {
     WriteCatalog Function(RecordRepositories repositories)? catalog,
   }) : records = RecordHarness(db),
-       _repositories = RecordRepositories() {
+       // Diver A is active, as resolveDiver below says.
+       _repositories = RecordRepositories(activeDiverId: () async => kDiverA) {
     writes = (catalog ?? WriteCatalog.new)(_repositories);
   }
 

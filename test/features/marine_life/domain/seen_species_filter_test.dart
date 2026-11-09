@@ -75,7 +75,7 @@ void main() {
   List<SeenSpecies> run({
     String query = '',
     SpeciesCategory? category,
-    SeenSpeciesSort sort = SeenSpeciesSort.mostSightings,
+    SeenSpeciesSort sort = SeenSpeciesSort.mostDives,
     SpeciesNameOf nameOf = _english,
   }) => filterSeenSpecies(
     all,
@@ -122,18 +122,31 @@ void main() {
   });
 
   group('sorting', () {
-    test('mostSightings: sightings desc, then dives desc, then name', () {
-      // turtle and anemone tie on 3 sightings; turtle has more dives.
+    test('mostDives: dives desc, then name', () {
       expect(_ids(run()), ['sp_whale_shark', 'sp_green_sea_turtle', 'c1']);
     });
 
-    test('mostSightings breaks a full tie on name', () {
+    test('mostDives ignores the sighting total', () {
+      // Issue #4337: sightings no longer add up animals, so a species with
+      // a big old total but fewer dives sorts below one seen more often.
+      final often = _entry(id: 'often', name: 'Often', sightings: 3, dives: 3);
+      final big = _entry(id: 'big', name: 'Big', sightings: 200, dives: 1);
+      final sorted = filterSeenSpecies(
+        [big, often],
+        query: '',
+        sort: SeenSpeciesSort.mostDives,
+        nameOf: _english,
+      );
+      expect(_ids(sorted), ['often', 'big']);
+    });
+
+    test('mostDives breaks a full tie on name', () {
       final a = _entry(id: 'a', name: 'Zebra', sightings: 2, dives: 2);
       final b = _entry(id: 'b', name: 'Apple', sightings: 2, dives: 2);
       final sorted = filterSeenSpecies(
         [a, b],
         query: '',
-        sort: SeenSpeciesSort.mostSightings,
+        sort: SeenSpeciesSort.mostDives,
         nameOf: _english,
       );
       expect(_ids(sorted), ['b', 'a']);

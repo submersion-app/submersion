@@ -44,15 +44,18 @@ final recentDivesProvider = FutureProvider<List<Dive>>((ref) async {
   // immediately (the batch cache is shared with the paginated dive list).
   if (recent.isNotEmpty) {
     final cache = ref.read(batchProfileCacheProvider);
+    // A dive cached without samples is asked again, as the dive list does,
+    // in case it has gained a profile since (#4112).
     final uncached = recent
         .map((d) => d.id)
-        .where((id) => !cache.containsKey(id))
+        .where((id) => cache[id]?.isEmpty ?? true)
         .toList();
     if (uncached.isNotEmpty) {
       final profiles = await repository.getBatchProfileSummaries(uncached);
       mergeIntoBatchProfileCache(
         ref.read(batchProfileCacheProvider.notifier),
         profiles,
+        requested: uncached,
       );
     }
   }
