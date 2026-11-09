@@ -56016,8 +56016,39 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing =>
-      'Ninguna botella lleva este transmisor';
+  String transmitters_apply_slot_label(String computer) {
+    return 'Ranura en $computer';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'No emparejar por ranura';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives inmersiones',
+      one: '$dives inmersión',
+    );
+    return 'T$slot: $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading => 'Leyendo archivos importados';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'Las botellas importadas de un archivo no tienen número de serie. Se pueden rellenar según la ranura que ocupaba este transmisor en el ordenador de buceo.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'Inmersiones rellenadas por número de serie: $serialDives, por ranura: $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'Ninguna botella necesita la configuración de este transmisor';
 
   @override
   String transmitters_channel(String computer, int channel) {

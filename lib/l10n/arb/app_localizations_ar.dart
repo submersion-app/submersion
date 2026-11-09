@@ -56687,8 +56687,42 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing =>
-      'لا توجد أسطوانة تحمل جهاز الإرسال هذا';
+  String transmitters_apply_slot_label(String computer) {
+    return 'الفتحة على $computer';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'عدم المطابقة حسب الفتحة';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives غطسة',
+      many: '$dives غطسة',
+      few: '$dives غطسات',
+      two: 'غطستان',
+      one: 'غطسة واحدة',
+    );
+    return 'T$slot: $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading => 'جارٍ قراءة الملفات المستوردة';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'لا تحمل الأسطوانات المستوردة من ملف رقمًا تسلسليًا. يمكن ملؤها حسب الفتحة التي شغلها جهاز الإرسال هذا في كمبيوتر الغوص.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'غطسات مُلئت حسب الرقم التسلسلي: $serialDives، حسب الفتحة: $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'لا توجد أسطوانة تحتاج إلى إعداد جهاز الإرسال هذا';
 
   @override
   String transmitters_channel(String computer, int channel) {

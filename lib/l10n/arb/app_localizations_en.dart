@@ -55086,8 +55086,39 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing =>
-      'No cylinders carry this transmitter';
+  String transmitters_apply_slot_label(String computer) {
+    return 'Slot on $computer';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'Don\'t match by slot';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives dives',
+      one: '$dives dive',
+    );
+    return 'T$slot: $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading => 'Reading imported files';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'Cylinders imported from a file carry no serial. They can be filled by the slot this transmitter sat in on the dive computer.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'Dives filled by serial: $serialDives, by slot: $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'No cylinder needs this transmitter\'s setup';
 
   @override
   String transmitters_channel(String computer, int channel) {

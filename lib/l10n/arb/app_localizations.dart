@@ -88246,11 +88246,47 @@ abstract class AppLocalizations {
   /// **'Updated {tanks} cylinders on {dives} dives'**
   String transmitters_apply_done(int tanks, int dives);
 
-  /// No description provided for @transmitters_apply_nothing.
+  /// No description provided for @transmitters_apply_slot_label.
   ///
   /// In en, this message translates to:
-  /// **'No cylinders carry this transmitter'**
-  String get transmitters_apply_nothing;
+  /// **'Slot on {computer}'**
+  String transmitters_apply_slot_label(String computer);
+
+  /// No description provided for @transmitters_apply_slot_none.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t match by slot'**
+  String get transmitters_apply_slot_none;
+
+  /// No description provided for @transmitters_apply_slot_option.
+  ///
+  /// In en, this message translates to:
+  /// **'T{slot}: {dives, plural, one{{dives} dive} other{{dives} dives}}'**
+  String transmitters_apply_slot_option(int slot, int dives);
+
+  /// No description provided for @transmitters_apply_slot_reading.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading imported files'**
+  String get transmitters_apply_slot_reading;
+
+  /// No description provided for @transmitters_apply_slot_intro.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinders imported from a file carry no serial. They can be filled by the slot this transmitter sat in on the dive computer.'**
+  String get transmitters_apply_slot_intro;
+
+  /// No description provided for @transmitters_apply_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives filled by serial: {serialDives}, by slot: {slotDives}'**
+  String transmitters_apply_summary(int serialDives, int slotDives);
+
+  /// No description provided for @transmitters_apply_nothing_to_fill.
+  ///
+  /// In en, this message translates to:
+  /// **'No cylinder needs this transmitter\'s setup'**
+  String get transmitters_apply_nothing_to_fill;
 
   /// No description provided for @transmitters_channel.
   ///

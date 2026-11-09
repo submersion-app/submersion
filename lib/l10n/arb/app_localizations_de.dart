@@ -55851,7 +55851,40 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing => 'Keine Flasche trägt diesen Sender';
+  String transmitters_apply_slot_label(String computer) {
+    return 'Steckplatz auf $computer';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'Nicht nach Steckplatz zuordnen';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives Tauchgänge',
+      one: '$dives Tauchgang',
+    );
+    return 'T$slot: $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading =>
+      'Importierte Dateien werden gelesen';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'Aus einer Datei importierte Flaschen haben keine Seriennummer. Sie lassen sich über den Steckplatz füllen, den dieser Sender am Tauchcomputer belegte.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'Über Seriennummer gefüllte Tauchgänge: $serialDives, über Steckplatz: $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'Keine Flasche braucht die Einrichtung dieses Senders';
 
   @override
   String transmitters_channel(String computer, int channel) {

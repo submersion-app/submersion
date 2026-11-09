@@ -33113,7 +33113,22 @@
       "dives": { "type": "int" }
     }
   },
-  "transmitters_apply_nothing": "No cylinders carry this transmitter",
+  "transmitters_apply_slot_label": "Slot on {computer}",
+  "@transmitters_apply_slot_label": {
+    "placeholders": { "computer": { "type": "String" } }
+  },
+  "transmitters_apply_slot_none": "Don't match by slot",
+  "transmitters_apply_slot_option": "T{slot}: {dives, plural, one{{dives} dive} other{{dives} dives}}",
+  "@transmitters_apply_slot_option": {
+    "placeholders": { "slot": { "type": "int" }, "dives": { "type": "int" } }
+  },
+  "transmitters_apply_slot_reading": "Reading imported files",
+  "transmitters_apply_slot_intro": "Cylinders imported from a file carry no serial. They can be filled by the slot this transmitter sat in on the dive computer.",
+  "transmitters_apply_summary": "Dives filled by serial: {serialDives}, by slot: {slotDives}",
+  "@transmitters_apply_summary": {
+    "placeholders": { "serialDives": { "type": "int" }, "slotDives": { "type": "int" } }
+  },
+  "transmitters_apply_nothing_to_fill": "No cylinder needs this transmitter's setup",
   "transmitters_channel": "{computer}, channel {channel}",
   "@transmitters_channel": {
     "placeholders": {

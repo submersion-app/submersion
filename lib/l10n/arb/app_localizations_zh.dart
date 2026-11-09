@@ -52479,7 +52479,37 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing => '没有气瓶带有此发射器';
+  String transmitters_apply_slot_label(String computer) {
+    return '$computer 上的插槽';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => '不按插槽匹配';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives 次潜水',
+    );
+    return 'T$slot：$_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading => '正在读取导入的文件';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      '从文件导入的气瓶没有序列号。可以按此发射器在潜水电脑上所占的插槽来填充它们。';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return '按序列号填充的潜水：$serialDives，按插槽：$slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill => '没有气瓶需要此发射器的设置';
 
   @override
   String transmitters_channel(String computer, int channel) {

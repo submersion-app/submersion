@@ -56096,8 +56096,39 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing =>
-      'Aucune bouteille ne porte cet émetteur';
+  String transmitters_apply_slot_label(String computer) {
+    return 'Emplacement sur $computer';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'Ne pas associer par emplacement';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives plongées',
+      one: '$dives plongée',
+    );
+    return 'T$slot : $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading => 'Lecture des fichiers importés';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'Les bouteilles importées d\'un fichier n\'ont pas de numéro de série. Elles peuvent être remplies selon l\'emplacement qu\'occupait cet émetteur sur l\'ordinateur de plongée.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'Plongées remplies par numéro de série : $serialDives, par emplacement : $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'Aucune bouteille n\'a besoin de la configuration de cet émetteur';
 
   @override
   String transmitters_channel(String computer, int channel) {

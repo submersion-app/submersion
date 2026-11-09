@@ -55958,8 +55958,39 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing =>
-      'Nenhum cilindro carrega este transmissor';
+  String transmitters_apply_slot_label(String computer) {
+    return 'Posição em $computer';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'Não associar por posição';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives mergulhos',
+      one: '$dives mergulho',
+    );
+    return 'T$slot: $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading => 'Lendo arquivos importados';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'Cilindros importados de um arquivo não têm número de série. Podem ser preenchidos pela posição que este transmissor ocupava no computador de mergulho.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'Mergulhos preenchidos por número de série: $serialDives, por posição: $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'Nenhum cilindro precisa da configuração deste transmissor';
 
   @override
   String transmitters_channel(String computer, int channel) {

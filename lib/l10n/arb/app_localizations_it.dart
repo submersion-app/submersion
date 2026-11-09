@@ -55973,8 +55973,39 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing =>
-      'Nessuna bombola porta questo trasmettitore';
+  String transmitters_apply_slot_label(String computer) {
+    return 'Slot su $computer';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'Non abbinare per slot';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives immersioni',
+      one: '$dives immersione',
+    );
+    return 'T$slot: $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading => 'Lettura dei file importati';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'Le bombole importate da un file non hanno numero di serie. Possono essere compilate in base allo slot che questo trasmettitore occupava sul computer subacqueo.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'Immersioni compilate per numero di serie: $serialDives, per slot: $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'Nessuna bombola ha bisogno della configurazione di questo trasmettitore';
 
   @override
   String transmitters_channel(String computer, int channel) {
