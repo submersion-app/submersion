@@ -20692,6 +20692,13 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get media_library_filter_noPeople => 'Niemand getagd';
+
+  @override
+  String get media_library_filter_notPlacedInDive =>
+      'Niet in de duik geplaatst';
+
+  @override
   String get media_library_filter_clear => 'Filters wissen';
 
   @override

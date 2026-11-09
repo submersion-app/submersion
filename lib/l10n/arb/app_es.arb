@@ -6022,6 +6022,8 @@
   "media_library_filter_dates": "Fechas",
   "media_library_filter_missing": "Archivos faltantes",
   "media_library_filter_missingCount": "Archivos faltantes ({count})",
+  "media_library_filter_noPeople": "Nadie etiquetado",
+  "media_library_filter_notPlacedInDive": "Sin ubicar en la inmersión",
   "media_library_filter_clear": "Borrar filtros",
   "media_library_filter_any": "Cualquiera",
   "media_library_filter_title": "Filtrar medios",

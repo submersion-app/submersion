@@ -20515,6 +20515,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get media_library_filter_noPeople => 'No one tagged';
+
+  @override
+  String get media_library_filter_notPlacedInDive => 'Not placed in the dive';
+
+  @override
   String get media_library_filter_clear => 'Clear filters';
 
   @override

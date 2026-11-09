@@ -33114,6 +33114,18 @@ abstract class AppLocalizations {
   /// **'Missing files ({count})'**
   String media_library_filter_missingCount(int count);
 
+  /// Library filter chip in the People section: items with no buddy or Me tag at all
+  ///
+  /// In en, this message translates to:
+  /// **'No one tagged'**
+  String get media_library_filter_noPeople;
+
+  /// Library filter switch: dive items with no time in the dive profile, so the profile chart draws no marker for them
+  ///
+  /// In en, this message translates to:
+  /// **'Not placed in the dive'**
+  String get media_library_filter_notPlacedInDive;
+
   /// Library filter chip: reset every filter
   ///
   /// In en, this message translates to:

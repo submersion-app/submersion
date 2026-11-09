@@ -19804,6 +19804,12 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get media_library_filter_noPeople => '未标记人物';
+
+  @override
+  String get media_library_filter_notPlacedInDive => '未定位到潜水时间点';
+
+  @override
   String get media_library_filter_clear => '清除筛选';
 
   @override

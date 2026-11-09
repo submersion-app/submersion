@@ -5921,6 +5921,8 @@
   "media_library_filter_dates": "תאריכים",
   "media_library_filter_missing": "קבצים חסרים",
   "media_library_filter_missingCount": "קבצים חסרים ({count})",
+  "media_library_filter_noPeople": "אף אחד לא מתויג",
+  "media_library_filter_notPlacedInDive": "לא ממוקם בצלילה",
   "media_library_filter_clear": "ניקוי מסננים",
   "media_library_filter_any": "הכול",
   "media_library_filter_title": "סינון מדיה",

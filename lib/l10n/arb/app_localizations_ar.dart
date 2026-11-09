@@ -21122,6 +21122,12 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get media_library_filter_noPeople => 'بلا أشخاص موسومين';
+
+  @override
+  String get media_library_filter_notPlacedInDive => 'غير محدد في الغطسة';
+
+  @override
   String get media_library_filter_clear => 'مسح عوامل التصفية';
 
   @override

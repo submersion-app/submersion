@@ -12855,6 +12855,14 @@
       }
     }
   },
+  "media_library_filter_noPeople": "No one tagged",
+  "@media_library_filter_noPeople": {
+    "description": "Library filter chip in the People section: items with no buddy or Me tag at all"
+  },
+  "media_library_filter_notPlacedInDive": "Not placed in the dive",
+  "@media_library_filter_notPlacedInDive": {
+    "description": "Library filter switch: dive items with no time in the dive profile, so the profile chart draws no marker for them"
+  },
   "media_library_filter_clear": "Clear filters",
   "media_library_filter_any": "Any",
   "@media_library_filter_any": {

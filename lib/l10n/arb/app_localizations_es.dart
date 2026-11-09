@@ -20816,6 +20816,13 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get media_library_filter_noPeople => 'Nadie etiquetado';
+
+  @override
+  String get media_library_filter_notPlacedInDive =>
+      'Sin ubicar en la inmersión';
+
+  @override
   String get media_library_filter_clear => 'Borrar filtros';
 
   @override

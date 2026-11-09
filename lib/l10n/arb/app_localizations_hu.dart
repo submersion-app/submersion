@@ -20755,6 +20755,13 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get media_library_filter_noPeople => 'Nincs megjelölt személy';
+
+  @override
+  String get media_library_filter_notPlacedInDive =>
+      'Nincs elhelyezve a merülésben';
+
+  @override
   String get media_library_filter_clear => 'Szűrők törlése';
 
   @override

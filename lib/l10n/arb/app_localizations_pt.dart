@@ -20828,6 +20828,13 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get media_library_filter_noPeople => 'Ninguém marcado';
+
+  @override
+  String get media_library_filter_notPlacedInDive =>
+      'Não posicionado no mergulho';
+
+  @override
   String get media_library_filter_clear => 'Limpar filtros';
 
   @override

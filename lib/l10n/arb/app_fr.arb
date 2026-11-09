@@ -5921,6 +5921,8 @@
   "media_library_filter_dates": "Dates",
   "media_library_filter_missing": "Fichiers manquants",
   "media_library_filter_missingCount": "Fichiers manquants ({count})",
+  "media_library_filter_noPeople": "Aucune personne identifiée",
+  "media_library_filter_notPlacedInDive": "Non placé dans la plongée",
   "media_library_filter_clear": "Effacer les filtres",
   "media_library_filter_any": "Indifférent",
   "media_library_filter_title": "Filtrer les médias",

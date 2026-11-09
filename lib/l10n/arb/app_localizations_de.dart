@@ -20805,6 +20805,13 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get media_library_filter_noPeople => 'Niemand markiert';
+
+  @override
+  String get media_library_filter_notPlacedInDive =>
+      'Nicht im Tauchgang platziert';
+
+  @override
   String get media_library_filter_clear => 'Filter zurücksetzen';
 
   @override

@@ -20886,6 +20886,13 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get media_library_filter_noPeople => 'Aucune personne identifiée';
+
+  @override
+  String get media_library_filter_notPlacedInDive =>
+      'Non placé dans la plongée';
+
+  @override
   String get media_library_filter_clear => 'Effacer les filtres';
 
   @override

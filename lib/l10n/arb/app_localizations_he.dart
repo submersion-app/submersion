@@ -20367,6 +20367,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get media_library_filter_noPeople => 'אף אחד לא מתויג';
+
+  @override
+  String get media_library_filter_notPlacedInDive => 'לא ממוקם בצלילה';
+
+  @override
   String get media_library_filter_clear => 'ניקוי מסננים';
 
   @override
