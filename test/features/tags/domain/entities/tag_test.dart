@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 
@@ -25,6 +27,21 @@ void main() {
     final both = tag().copyWith(scopes: const {TagScope.dives, TagScope.sites});
     expect(both.appliesTo(TagScope.sites), isTrue);
     expect(both.copyWith(name: 'U').scopes, both.scopes);
+  });
+
+  group('color (issue #4384)', () {
+    Tag coloured(String? hex) =>
+        Tag(id: 't', name: 'T', colorHex: hex, createdAt: now, updatedAt: now);
+
+    test('a tag with no usable colour draws as the palette Blue', () {
+      for (final hex in [null, '', 'nothex']) {
+        expect(coloured(hex).color, const Color(0xFF3B82F6), reason: '$hex');
+      }
+    });
+
+    test('an imported code without a hash keeps drawing as itself', () {
+      expect(coloured('FF0000').color, const Color(0xFFFF0000));
+    });
   });
 
   test('equality ignores the order the scopes were added in', () {
